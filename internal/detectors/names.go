@@ -1,0 +1,22 @@
+package detectors
+
+const (
+	NameNPM           = "npm-detector"
+	NameNPMNative     = "npm-native-detector"
+	NamePNPM          = "pnpm-detector"
+	NamePNPMNative    = "pnpm-native-detector"
+	NameYarn          = "yarn-detector"
+	NameYarnNative    = "yarn-native-detector"
+	NameGradle        = "gradle-detector"
+	NameMaven         = "maven-detector"
+	NameGoMod         = "go-detector"
+	NameComposer      = "composer-detector"
+	NameBundler       = "bundler-detector"
+	NameGitHubActions = "github-actions-detector"
+	NamePip           = "pip-detector"
+	NamePipenv        = "pipenv-detector"
+	NamePoetry        = "poetry-detector"
+	NameUV            = "uv-detector"
+	NameSBOM          = "sbom-detector"
+	NameSyft          = "syft-detector"
+)

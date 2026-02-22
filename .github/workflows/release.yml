@@ -1,0 +1,219 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: |
+            go.sum
+
+      - name: Run test suite
+        run: make test
+
+      - name: Run go vet
+        run: go vet ./...
+
+  licenses:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: |
+            go.sum
+
+      - name: Generate third-party license notices
+        run: make licenses
+
+      - name: Upload license notices
+        uses: actions/upload-artifact@v4
+        with:
+          name: licenses
+          path: licenses/
+
+  package:
+    needs: [validate, licenses]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+          - goos: windows
+            goarch: amd64
+          - goos: windows
+            goarch: arm64
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: |
+            go.sum
+
+      - name: Download license notices
+        uses: actions/download-artifact@v5
+        with:
+          name: licenses
+          path: licenses/
+
+      - name: Build release archives
+        shell: bash
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          VERSION: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          repo_root="${PWD}"
+          binary_version="${VERSION#v}"
+          ext=""
+          archive_ext="tar.gz"
+          if [[ "${GOOS}" == "windows" ]]; then
+            ext=".exe"
+            archive_ext="zip"
+          fi
+
+          mkdir -p dist
+
+          build_archive() {
+            local archive_base="$1"
+            local binary_name="$2"
+            local build_tags="$3"
+            local stage_dir
+            stage_dir="$(mktemp -d)"
+
+            if [[ -n "${build_tags}" ]]; then
+              GOOS="${GOOS}" GOARCH="${GOARCH}" CGO_ENABLED=0 go build \
+                -trimpath \
+                -tags "${build_tags}" \
+                -ldflags "-s -w -X main.version=${binary_version}" \
+                -o "${stage_dir}/${binary_name}${ext}" \
+                ./cmd/bomly
+            else
+              GOOS="${GOOS}" GOARCH="${GOARCH}" CGO_ENABLED=0 go build \
+                -trimpath \
+                -ldflags "-s -w -X main.version=${binary_version}" \
+                -o "${stage_dir}/${binary_name}${ext}" \
+                ./cmd/bomly
+            fi
+
+            cp -r "${repo_root}/licenses" "${stage_dir}/licenses"
+            cp "${repo_root}/LICENSE" "${stage_dir}/LICENSE"
+            cp "${repo_root}/NOTICE" "${stage_dir}/NOTICE"
+
+            local archive_path="dist/${archive_base}_${VERSION}_${GOOS}_${GOARCH}.${archive_ext}"
+            if [[ "${archive_ext}" == "zip" ]]; then
+              (
+                cd "${stage_dir}"
+                zip -qr "${repo_root}/${archive_path}" "${binary_name}${ext}" licenses/ LICENSE NOTICE
+              )
+            else
+              tar -C "${stage_dir}" -czf "${archive_path}" "${binary_name}${ext}" licenses/ LICENSE NOTICE
+            fi
+
+            rm -rf "${stage_dir}"
+          }
+
+          build_archive "bomly" "bomly" ""
+          build_archive "bomly-lite" "bomly-lite" "bomly_external_syft,bomly_external_grype"
+
+      - name: Upload packaged artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/*
+
+  publish:
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Download packaged artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: dist
+          pattern: release-*
+          merge-multiple: true
+
+      - name: Generate checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          find dist -maxdepth 1 -type f | sort | xargs sha256sum > dist/SHA256SUMS
+
+      - name: Write release notes
+        shell: bash
+        run: |
+          cat > RELEASE_NOTES.md <<'EOF'
+          Bomly release ${{ github.ref_name }}
+
+          Assets in this draft prerelease include:
+          - Full builtin `bomly` archives for Linux, macOS, and Windows
+          - Alternate `bomly-lite` archives for users who prefer external Syft/Grype binaries
+          - `SHA256SUMS` for release verification
+
+          Each archive includes `LICENSE`, `NOTICE`, and a `licenses/` directory with the full license text for every bundled dependency.
+
+          GitHub-native artifact attestations are intentionally deferred while the repository remains private on a non-Enterprise plan.
+          EOF
+
+      - name: Publish draft prerelease
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            gh release upload "${TAG}" dist/* --clobber
+          else
+            gh release create "${TAG}" dist/* \
+              --title "Bomly ${TAG}" \
+              --notes-file RELEASE_NOTES.md \
+              --draft \
+              --prerelease
+          fi

@@ -1,0 +1,108 @@
+name: Update Smoke Goldens
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Git ref to regenerate golden files from
+        required: true
+        default: main
+        type: string
+      base_ref:
+        description: Base branch for the pull request
+        required: true
+        default: main
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-smoke-goldens-${{ github.event.inputs.source_ref }}
+  cancel-in-progress: false
+
+jobs:
+  update-goldens:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.source_ref }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: |
+            go.sum
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install smoke-test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y maven
+
+      - name: Regenerate golden files
+        run: make smoke ARGS="-update"
+
+      - name: Detect golden file changes
+        id: changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- test/smoke/testdata/golden; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create pull request with updated goldens
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SOURCE_REF: ${{ inputs.source_ref }}
+          BASE_REF: ${{ inputs.base_ref }}
+          RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sanitized_ref="$(echo "${SOURCE_REF}" | tr '/:' '--')"
+          branch_name="automation/update-smoke-goldens-${sanitized_ref}-${RUN_ID}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "${branch_name}"
+          git add test/smoke/testdata/golden
+          git commit -m "test: update smoke golden files"
+          git push --set-upstream origin "${branch_name}"
+
+          gh pr create \
+            --base "${BASE_REF}" \
+            --head "${branch_name}" \
+            --title "test: update smoke golden files" \
+            --body "Automated smoke golden update generated from \`${SOURCE_REF}\` after maintainer review."
+
+      - name: Report no-op run
+        if: steps.changes.outputs.changed != 'true'
+        run: echo "Smoke golden files already match the regenerated outputs."

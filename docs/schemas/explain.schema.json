@@ -1,0 +1,1135 @@
+{
+  "$id": "https://bomly.dev/schemas/explain.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "audit_summary": {
+      "properties": {
+        "critical": {
+          "type": "integer"
+        },
+        "high": {
+          "type": "integer"
+        },
+        "low": {
+          "type": "integer"
+        },
+        "medium": {
+          "type": "integer"
+        },
+        "total": {
+          "type": "integer"
+        },
+        "unknown": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "critical",
+        "high",
+        "medium",
+        "low",
+        "unknown",
+        "total"
+      ],
+      "type": "object"
+    },
+    "command": {
+      "type": "string"
+    },
+    "dependency": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "licenses": {
+          "items": {
+            "properties": {
+              "spdxExpression": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "metadata": {
+          "additionalProperties": {},
+          "type": "object"
+        },
+        "name": {
+          "type": "string"
+        },
+        "purl": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "vulnerabilities": {
+          "items": {
+            "properties": {
+              "affected_version_range": {
+                "type": "string"
+              },
+              "aliases": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "cvss": {
+                "items": {
+                  "properties": {
+                    "Score": {
+                      "type": "number"
+                    },
+                    "Source": {
+                      "type": "string"
+                    },
+                    "Vector": {
+                      "type": "string"
+                    },
+                    "Version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "Vector",
+                    "Score",
+                    "Version",
+                    "Source"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "description": {
+                "type": "string"
+              },
+              "fixed_in": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "kev_exploited": {
+                "type": "boolean"
+              },
+              "reasons": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "references": {
+                "items": {
+                  "properties": {
+                    "Type": {
+                      "type": "string"
+                    },
+                    "URL": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "URL",
+                    "Type"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "severity": {
+                "type": "string"
+              },
+              "severity_source": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "source"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "licenses",
+        "vulnerabilities"
+      ],
+      "type": "object"
+    },
+    "findings": {
+      "items": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "package": {
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "licenses": {
+                "items": {
+                  "properties": {
+                    "spdxExpression": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "metadata": {
+                "additionalProperties": {},
+                "type": "object"
+              },
+              "name": {
+                "type": "string"
+              },
+              "purl": {
+                "type": "string"
+              },
+              "scope": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              },
+              "vulnerabilities": {
+                "items": {
+                  "properties": {
+                    "affected_version_range": {
+                      "type": "string"
+                    },
+                    "aliases": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "cvss": {
+                      "items": {
+                        "properties": {
+                          "Score": {
+                            "type": "number"
+                          },
+                          "Source": {
+                            "type": "string"
+                          },
+                          "Vector": {
+                            "type": "string"
+                          },
+                          "Version": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "Vector",
+                          "Score",
+                          "Version",
+                          "Source"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "fixed_in": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "kev_exploited": {
+                      "type": "boolean"
+                    },
+                    "reasons": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "references": {
+                      "items": {
+                        "properties": {
+                          "Type": {
+                            "type": "string"
+                          },
+                          "URL": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "URL",
+                          "Type"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "severity": {
+                      "type": "string"
+                    },
+                    "severity_source": {
+                      "type": "string"
+                    },
+                    "source": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "source"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "name",
+              "licenses",
+              "vulnerabilities"
+            ],
+            "type": "object"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "severity",
+          "package",
+          "title",
+          "source"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "metadata": {
+      "properties": {
+        "duration_ms": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "duration_ms"
+      ],
+      "type": "object"
+    },
+    "paths": {
+      "items": {
+        "properties": {
+          "cycle_to": {
+            "type": "string"
+          },
+          "cyclic": {
+            "type": "boolean"
+          },
+          "introduced_via": {
+            "type": "string"
+          },
+          "packages": {
+            "items": {
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "licenses": {
+                  "items": {
+                    "properties": {
+                      "spdxExpression": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "metadata": {
+                  "additionalProperties": {},
+                  "type": "object"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "purl": {
+                  "type": "string"
+                },
+                "scope": {
+                  "type": "string"
+                },
+                "version": {
+                  "type": "string"
+                },
+                "vulnerabilities": {
+                  "items": {
+                    "properties": {
+                      "affected_version_range": {
+                        "type": "string"
+                      },
+                      "aliases": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "cvss": {
+                        "items": {
+                          "properties": {
+                            "Score": {
+                              "type": "number"
+                            },
+                            "Source": {
+                              "type": "string"
+                            },
+                            "Vector": {
+                              "type": "string"
+                            },
+                            "Version": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "Vector",
+                            "Score",
+                            "Version",
+                            "Source"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "fixed_in": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "kev_exploited": {
+                        "type": "boolean"
+                      },
+                      "reasons": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "references": {
+                        "items": {
+                          "properties": {
+                            "Type": {
+                              "type": "string"
+                            },
+                            "URL": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "URL",
+                            "Type"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "severity": {
+                        "type": "string"
+                      },
+                      "severity_source": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "source"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "name",
+                "licenses",
+                "vulnerabilities"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "relationship": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "packages"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "project": {
+      "properties": {
+        "ecosystem": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "package_manager": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "ecosystem"
+      ],
+      "type": "object"
+    },
+    "query": {
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "targets": {
+      "items": {
+        "properties": {
+          "audit_summary": {
+            "properties": {
+              "critical": {
+                "type": "integer"
+              },
+              "high": {
+                "type": "integer"
+              },
+              "low": {
+                "type": "integer"
+              },
+              "medium": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              },
+              "unknown": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "critical",
+              "high",
+              "medium",
+              "low",
+              "unknown",
+              "total"
+            ],
+            "type": "object"
+          },
+          "dependency": {
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "licenses": {
+                "items": {
+                  "properties": {
+                    "spdxExpression": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "metadata": {
+                "additionalProperties": {},
+                "type": "object"
+              },
+              "name": {
+                "type": "string"
+              },
+              "purl": {
+                "type": "string"
+              },
+              "scope": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              },
+              "vulnerabilities": {
+                "items": {
+                  "properties": {
+                    "affected_version_range": {
+                      "type": "string"
+                    },
+                    "aliases": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "cvss": {
+                      "items": {
+                        "properties": {
+                          "Score": {
+                            "type": "number"
+                          },
+                          "Source": {
+                            "type": "string"
+                          },
+                          "Vector": {
+                            "type": "string"
+                          },
+                          "Version": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "Vector",
+                          "Score",
+                          "Version",
+                          "Source"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "fixed_in": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "kev_exploited": {
+                      "type": "boolean"
+                    },
+                    "reasons": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "references": {
+                      "items": {
+                        "properties": {
+                          "Type": {
+                            "type": "string"
+                          },
+                          "URL": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "URL",
+                          "Type"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "severity": {
+                      "type": "string"
+                    },
+                    "severity_source": {
+                      "type": "string"
+                    },
+                    "source": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "source"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "name",
+              "licenses",
+              "vulnerabilities"
+            ],
+            "type": "object"
+          },
+          "detector": {
+            "type": "string"
+          },
+          "findings": {
+            "items": {
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "package": {
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "licenses": {
+                      "items": {
+                        "properties": {
+                          "spdxExpression": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string"
+                          },
+                          "value": {
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "metadata": {
+                      "additionalProperties": {},
+                      "type": "object"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "purl": {
+                      "type": "string"
+                    },
+                    "scope": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "vulnerabilities": {
+                      "items": {
+                        "properties": {
+                          "affected_version_range": {
+                            "type": "string"
+                          },
+                          "aliases": {
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          },
+                          "cvss": {
+                            "items": {
+                              "properties": {
+                                "Score": {
+                                  "type": "number"
+                                },
+                                "Source": {
+                                  "type": "string"
+                                },
+                                "Vector": {
+                                  "type": "string"
+                                },
+                                "Version": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "Vector",
+                                "Score",
+                                "Version",
+                                "Source"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "fixed_in": {
+                            "type": "string"
+                          },
+                          "id": {
+                            "type": "string"
+                          },
+                          "kev_exploited": {
+                            "type": "boolean"
+                          },
+                          "reasons": {
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          },
+                          "references": {
+                            "items": {
+                              "properties": {
+                                "Type": {
+                                  "type": "string"
+                                },
+                                "URL": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "URL",
+                                "Type"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "severity": {
+                            "type": "string"
+                          },
+                          "severity_source": {
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "source"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "licenses",
+                    "vulnerabilities"
+                  ],
+                  "type": "object"
+                },
+                "reasons": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "severity": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "kind",
+                "severity",
+                "package",
+                "title",
+                "source"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "paths": {
+            "items": {
+              "properties": {
+                "cycle_to": {
+                  "type": "string"
+                },
+                "cyclic": {
+                  "type": "boolean"
+                },
+                "introduced_via": {
+                  "type": "string"
+                },
+                "packages": {
+                  "items": {
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "licenses": {
+                        "items": {
+                          "properties": {
+                            "spdxExpression": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "metadata": {
+                        "additionalProperties": {},
+                        "type": "object"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "purl": {
+                        "type": "string"
+                      },
+                      "scope": {
+                        "type": "string"
+                      },
+                      "version": {
+                        "type": "string"
+                      },
+                      "vulnerabilities": {
+                        "items": {
+                          "properties": {
+                            "affected_version_range": {
+                              "type": "string"
+                            },
+                            "aliases": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "cvss": {
+                              "items": {
+                                "properties": {
+                                  "Score": {
+                                    "type": "number"
+                                  },
+                                  "Source": {
+                                    "type": "string"
+                                  },
+                                  "Vector": {
+                                    "type": "string"
+                                  },
+                                  "Version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "Vector",
+                                  "Score",
+                                  "Version",
+                                  "Source"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "fixed_in": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "kev_exploited": {
+                              "type": "boolean"
+                            },
+                            "reasons": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "references": {
+                              "items": {
+                                "properties": {
+                                  "Type": {
+                                    "type": "string"
+                                  },
+                                  "URL": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "URL",
+                                  "Type"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "severity": {
+                              "type": "string"
+                            },
+                            "severity_source": {
+                              "type": "string"
+                            },
+                            "source": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "source"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "licenses",
+                      "vulnerabilities"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "relationship": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "packages"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "project": {
+            "properties": {
+              "ecosystem": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "package_manager": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path",
+              "ecosystem"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "project",
+          "dependency",
+          "paths"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "command",
+    "project",
+    "query",
+    "metadata"
+  ],
+  "title": "Bomly explain output",
+  "type": "object"
+}

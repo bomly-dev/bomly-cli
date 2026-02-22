@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "bomly.plugin.package.v1",
+  "id": "bomly.example.gomod-detector",
+  "name": "Bomly Example Go Module Detector",
+  "version": "0.1.0",
+  "kind": "detector",
+  "runtime": "hashicorp-grpc",
+  "pluginApiVersion": "bomly.plugin.v1",
+  "bomlyVersion": ">=0.1.0",
+  "entrypoint": {
+    "linux/amd64": "bin/bomly-example-gomod-detector",
+    "darwin/arm64": "bin/bomly-example-gomod-detector",
+    "windows/amd64": "bin/bomly-example-gomod-detector.exe"
+  },
+  "detectorDescriptor": {
+    "name": "bomly.example.gomod-detector",
+    "enabled": true,
+    "componentType": "plugin",
+    "supportedModes": [
+      "full-graph",
+      "component"
+    ],
+    "packageManagerSupport": [
+      {
+        "packageManager": "gomod",
+        "evidencePatterns": [
+          "go.mod"
+        ]
+      }
+    ],
+    "capabilities": [
+      "dependency-detection"
+    ]
+  },
+  "source": "local:examples/plugins/go-module-detector",
+  "homepage": "https://github.com/bomly-dev/bomly-cli/tree/main/examples/plugins/go-module-detector",
+  "license": "Apache-2.0",
+  "description": "Example managed detector plugin that reads a local go.mod and returns the module itself as a single package."
+}

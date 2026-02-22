@@ -1,0 +1,442 @@
+{
+  "$id": "https://bomly.dev/schemas/scan.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "audit_summary": {
+      "properties": {
+        "critical": {
+          "type": "integer"
+        },
+        "high": {
+          "type": "integer"
+        },
+        "low": {
+          "type": "integer"
+        },
+        "medium": {
+          "type": "integer"
+        },
+        "total": {
+          "type": "integer"
+        },
+        "unknown": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "critical",
+        "high",
+        "medium",
+        "low",
+        "unknown",
+        "total"
+      ],
+      "type": "object"
+    },
+    "command": {
+      "type": "string"
+    },
+    "findings": {
+      "items": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "package": {
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "licenses": {
+                "items": {
+                  "properties": {
+                    "spdxExpression": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "metadata": {
+                "additionalProperties": {},
+                "type": "object"
+              },
+              "name": {
+                "type": "string"
+              },
+              "purl": {
+                "type": "string"
+              },
+              "scope": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              },
+              "vulnerabilities": {
+                "items": {
+                  "properties": {
+                    "affected_version_range": {
+                      "type": "string"
+                    },
+                    "aliases": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "cvss": {
+                      "items": {
+                        "properties": {
+                          "Score": {
+                            "type": "number"
+                          },
+                          "Source": {
+                            "type": "string"
+                          },
+                          "Vector": {
+                            "type": "string"
+                          },
+                          "Version": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "Vector",
+                          "Score",
+                          "Version",
+                          "Source"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "fixed_in": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "kev_exploited": {
+                      "type": "boolean"
+                    },
+                    "reasons": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "references": {
+                      "items": {
+                        "properties": {
+                          "Type": {
+                            "type": "string"
+                          },
+                          "URL": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "URL",
+                          "Type"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "severity": {
+                      "type": "string"
+                    },
+                    "severity_source": {
+                      "type": "string"
+                    },
+                    "source": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "source"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "name",
+              "licenses",
+              "vulnerabilities"
+            ],
+            "type": "object"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "severity",
+          "package",
+          "title",
+          "source"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "manifests": {
+      "items": {
+        "properties": {
+          "detector": {
+            "type": "string"
+          },
+          "ecosystem": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "package_manager": {
+            "type": "string"
+          },
+          "packages": {
+            "items": {
+              "properties": {
+                "dependencies": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "licenses": {
+                  "items": {
+                    "properties": {
+                      "spdxExpression": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "metadata": {
+                  "additionalProperties": {},
+                  "type": "object"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "purl": {
+                  "type": "string"
+                },
+                "scope": {
+                  "type": "string"
+                },
+                "version": {
+                  "type": "string"
+                },
+                "vulnerabilities": {
+                  "items": {
+                    "properties": {
+                      "affected_version_range": {
+                        "type": "string"
+                      },
+                      "aliases": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "cvss": {
+                        "items": {
+                          "properties": {
+                            "Score": {
+                              "type": "number"
+                            },
+                            "Source": {
+                              "type": "string"
+                            },
+                            "Vector": {
+                              "type": "string"
+                            },
+                            "Version": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "Vector",
+                            "Score",
+                            "Version",
+                            "Source"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "fixed_in": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "kev_exploited": {
+                        "type": "boolean"
+                      },
+                      "reasons": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "references": {
+                        "items": {
+                          "properties": {
+                            "Type": {
+                              "type": "string"
+                            },
+                            "URL": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "URL",
+                            "Type"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "severity": {
+                        "type": "string"
+                      },
+                      "severity_source": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "source"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "name",
+                "licenses",
+                "vulnerabilities",
+                "dependencies"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "path": {
+            "type": "string"
+          },
+          "subproject": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "packages"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "metadata": {
+      "properties": {
+        "duration_ms": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "duration_ms"
+      ],
+      "type": "object"
+    },
+    "project": {
+      "properties": {
+        "ecosystem": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "package_manager": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "ecosystem"
+      ],
+      "type": "object"
+    },
+    "schema_version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "command",
+    "project",
+    "manifests",
+    "metadata"
+  ],
+  "title": "Bomly scan output",
+  "type": "object"
+}

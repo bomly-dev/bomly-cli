@@ -1,0 +1,112 @@
+name: Smoke
+
+on:
+  merge_group:
+    types:
+      - checks_requested
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smoke-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Smoke (${{ matrix.slice.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        slice:
+          - name: go
+            run: 'TestScan/scan-go|TestDiff/diff-go|TestExplain/explain-go|TestAuditScan/(scan-go-enrich|scan-go-audit|scan-go-audit-high)|TestAuditDiffAndExplain/(diff-go-audit|explain-go-enrich)|TestLiteScan/lite-scan-go|TestLiteDiff/lite-diff-go|TestLiteExplain/lite-explain-go'
+          - name: node
+            run: 'TestScan/(scan-npm|scan-npm-scope-runtime|scan-github-actions)|TestDiff/diff-npm|TestAuditScan/scan-npm-audit'
+            node: true
+          - name: java
+            run: 'TestScan/scan-maven'
+            java: true
+            maven: true
+          - name: python
+            run: 'TestScan/scan-python-pip'
+            python: true
+          - name: php
+            run: 'TestScan/scan-composer'
+          - name: ruby
+            run: 'TestScan/scan-bundler'
+          - name: sbom
+            run: 'TestScan/(scan-sbom-spdx|scan-sbom-cyclonedx)|TestDiff/diff-sbom|TestLiteScan/(lite-scan-sbom-spdx|lite-scan-sbom-cyclonedx)'
+          - name: container
+            run: 'TestContainer(Scan|Diff|Explain)|TestContainerAuditScan/container-scan-alpine-audit'
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: |
+            go.sum
+
+      - name: Set up Node.js
+        if: matrix.slice.node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Set up Python
+        if: matrix.slice.python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Set up Java
+        if: matrix.slice.java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install smoke-test dependencies
+        if: matrix.slice.maven
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y maven
+
+      - name: Run smoke tests
+        id: smoke_tests
+        continue-on-error: true
+        run: make smoke ARGS="-run '${{ matrix.slice.run }}'"
+
+      - name: Regenerate candidate golden files
+        if: steps.smoke_tests.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          make smoke ARGS="-run '${{ matrix.slice.run }}' -update"
+          mkdir -p smoke-artifacts
+          git diff -- test/smoke/testdata/golden > smoke-artifacts/golden.diff || true
+          cp -R test/smoke/testdata/golden smoke-artifacts/updated-golden
+
+      - name: Upload candidate golden files
+        if: steps.smoke_tests.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-updated-goldens-${{ matrix.slice.name }}
+          path: |
+            smoke-artifacts
+          if-no-files-found: ignore
+
+      - name: Fail job if smoke tests failed
+        if: steps.smoke_tests.outcome == 'failure'
+        run: |
+          echo "Smoke tests failed. Candidate updated golden files were uploaded as an artifact for review."
+          exit 1

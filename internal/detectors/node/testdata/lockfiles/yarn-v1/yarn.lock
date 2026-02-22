@@ -1,0 +1,25 @@
+# yarn.lock classic (v1) format
+
+react@^18.2.0:
+  version "18.2.0"
+  resolved "https://registry.npmjs.org/react/-/react-18.2.0.tgz#ceeba79ee36dfa7612b1ede82a3e37b2a30def1c"
+  integrity sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fA==
+  dependencies:
+    loose-envify "^1.1.0"
+
+loose-envify@^1.1.0, loose-envify@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.npmjs.org/loose-envify/-/loose-envify-1.4.0.tgz#71ee51fa7be4caec1a63839f7e682d8132d30caf"
+  integrity sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+DVx8vvpSKkHE0d7vNGh8HNb+CpKtHcvNg==
+  dependencies:
+    js-tokens "^3.0.0 || ^4.0.0"
+
+js-tokens@^3.0.0 || ^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.npmjs.org/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
+  integrity sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==
+
+axios@^1.6.5:
+  version "1.6.5"
+  resolved "https://registry.npmjs.org/axios/-/axios-1.6.5.tgz#2c090da14aeeab3770ad30c3a1461bc2523b05e4"
+  integrity sha512-Ii012v05KEVuPRxUWC/DkSmDOHc9QSjwUY9jjJzDMQdriDtPWLLSHS6Bh/VgL0D/xImz3VoGKI28fqtGnVDfg==

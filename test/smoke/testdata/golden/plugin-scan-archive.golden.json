@@ -1,0 +1,34 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "detector": "bomly.example.gomod-detector",
+      "ecosystem": "go",
+      "kind": "go.mod",
+      "package_manager": "gomod",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:golang/example.com/plugin-smoke@v0.0.0",
+          "licenses": [],
+          "name": "example.com/plugin-smoke",
+          "purl": "pkg:golang/example.com/plugin-smoke@v0.0.0",
+          "version": "v0.0.0",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "go.mod",
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "duration_ms": 0
+  },
+  "project": {
+    "ecosystem": "go",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "gomod",
+    "path": "\u003cnormalized\u003e"
+  },
+  "schema_version": "1.0"
+}

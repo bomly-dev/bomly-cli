@@ -1,0 +1,42 @@
+# pnpm-lock.yaml for pnpm v5.4 era (old format, no importers)
+# Root dependencies are listed at the top level, not under importers.
+lockfileVersion: 5.4
+
+dependencies:
+  react: 18.2.0
+  axios: 1.6.5
+
+devDependencies:
+  typescript: 5.3.3
+
+packages:
+
+  /react@18.2.0:
+    resolution:
+      integrity: sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fA==
+      tarball: https://registry.npmjs.org/react/-/react-18.2.0.tgz
+    dependencies:
+      loose-envify: 1.4.0
+    dev: false
+    engines:
+      node: '>=0.10.0'
+
+  /loose-envify@1.4.0:
+    resolution:
+      integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+DVx8vvpSKkHE0d7vNGh8HNb+CpKtHcvNg==
+      tarball: https://registry.npmjs.org/loose-envify/-/loose-envify-1.4.0.tgz
+    dev: false
+
+  /axios@1.6.5:
+    resolution:
+      integrity: sha512-Ii012v05KEVuPRxUWC/DkSmDOHc9QSjwUY9jjJzDMQdriDtPWLLSHS6Bh/VgL0D/xImz3VoGKI28fqtGnVDfg==
+      tarball: https://registry.npmjs.org/axios/-/axios-1.6.5.tgz
+    dev: false
+
+  /typescript@5.3.3:
+    resolution:
+      integrity: sha512-pXWcraxM0uxAS+tN0AG/BF2TyqmHO014Z070UsJ+pFvYuRSq8KH8DmWpnbXe0pEPDHXZV3FcAbJkijJ5oqEnKQ==
+      tarball: https://registry.npmjs.org/typescript/-/typescript-5.3.3.tgz
+    dev: true
+    engines:
+      node: '>=14.17'

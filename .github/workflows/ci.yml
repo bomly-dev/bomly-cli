@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: |
+            go.sum
+
+      - name: Run golangci-lint
+        run: make lint
+
+      - name: Run unit and integration tests
+        run: make test
+
+      - name: Run go vet
+        run: go vet ./...
+
+      - name: Build default Bomly binary
+        run: go build -o /tmp/bomly ./cmd/bomly
+
+      - name: Build lite Bomly binary
+        run: go build -tags "bomly_external_syft,bomly_external_grype" -o /tmp/bomly-lite ./cmd/bomly
+
+      - name: Check Go formatting
+        run: make fmt-check
+
+      - name: Check module metadata drift
+        shell: bash
+        run: |
+          set -euo pipefail
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum
+
+      - name: Check generated documentation drift
+        shell: bash
+        run: |
+          set -euo pipefail
+          make generate
+          git diff --exit-code

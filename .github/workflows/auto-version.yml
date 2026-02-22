@@ -1,0 +1,98 @@
+name: Auto Version
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  actions: write
+  contents: write
+
+concurrency:
+  group: auto-version-main
+  cancel-in-progress: false
+
+jobs:
+  bump-tag-and-release:
+    if: github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, '[skip release]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Compute next version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          latest_tag="$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)"
+          if [[ -n "${latest_tag}" ]]; then
+            current="${latest_tag#v}"
+            messages="$(git log --format=%B "${latest_tag}..HEAD")"
+          else
+            current="$(sed -nE 's/^var version = "([^"]+)"/\1/p' cmd/bomly/main.go | head -n 1)"
+            messages="$(git log --format=%B -n 1 HEAD)"
+          fi
+
+          if [[ ! "${current}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Current version ${current} is not semver MAJOR.MINOR.PATCH" >&2
+            exit 1
+          fi
+
+          IFS=. read -r major minor patch <<< "${current}"
+          if grep -Eq '(^[a-zA-Z]+(\([^)]+\))?!:|BREAKING CHANGE:)' <<< "${messages}"; then
+            major=$((major + 1))
+            minor=0
+            patch=0
+          elif grep -Eq '^feat(\([^)]+\))?:' <<< "${messages}"; then
+            minor=$((minor + 1))
+            patch=0
+          else
+            patch=$((patch + 1))
+          fi
+
+          next="${major}.${minor}.${patch}"
+          tag="v${next}"
+          if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
+            echo "Tag ${tag} already exists" >&2
+            exit 1
+          fi
+
+          echo "version=${next}" >> "$GITHUB_OUTPUT"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+
+      - name: Update source version
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          sed -i -E "s/^var version = \"[^\"]+\"/var version = \"${VERSION}\"/" cmd/bomly/main.go
+          git diff -- cmd/bomly/main.go
+
+      - name: Commit version bump and tag
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add cmd/bomly/main.go
+          git commit -m "chore(release): ${TAG} [skip ci]"
+          git tag -a "${TAG}" -m "Release ${TAG}"
+          git push origin HEAD:main
+          git push origin "${TAG}"
+
+      - name: Start release workflow
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: gh workflow run release.yml --ref "${TAG}"

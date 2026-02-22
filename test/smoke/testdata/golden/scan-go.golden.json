@@ -1,0 +1,119 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "detector": "github-actions-detector",
+      "ecosystem": "github-actions",
+      "kind": "github-actions-workflow",
+      "package_manager": "github-actions",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@v3",
+            "pkg:github-actions/actions/setup-go@v4"
+          ],
+          "id": "pkg:github-actions/.github%2Fworkflows%2Fapidiff.yaml@local",
+          "licenses": [],
+          "name": ".github/workflows/apidiff.yaml",
+          "purl": "pkg:github-actions/.github%2Fworkflows%2Fapidiff.yaml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/actions/checkout@v3",
+          "licenses": [],
+          "name": "actions:checkout",
+          "purl": "pkg:github-actions/actions/checkout@v3",
+          "scope": "runtime",
+          "version": "v3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/actions/setup-go@v4",
+          "licenses": [],
+          "name": "actions:setup-go",
+          "purl": "pkg:github-actions/actions/setup-go@v4",
+          "scope": "runtime",
+          "version": "v4",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/apidiff.yaml",
+      "subproject": "."
+    },
+    {
+      "detector": "github-actions-detector",
+      "ecosystem": "github-actions",
+      "kind": "github-actions-workflow",
+      "package_manager": "github-actions",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@v3",
+            "pkg:github-actions/actions/setup-go@v4"
+          ],
+          "id": "pkg:github-actions/.github%2Fworkflows%2Ftests.yaml@local",
+          "licenses": [],
+          "name": ".github/workflows/tests.yaml",
+          "purl": "pkg:github-actions/.github%2Fworkflows%2Ftests.yaml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/actions/checkout@v3",
+          "licenses": [],
+          "name": "actions:checkout",
+          "purl": "pkg:github-actions/actions/checkout@v3",
+          "scope": "runtime",
+          "version": "v3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/actions/setup-go@v4",
+          "licenses": [],
+          "name": "actions:setup-go",
+          "purl": "pkg:github-actions/actions/setup-go@v4",
+          "scope": "runtime",
+          "version": "v4",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/tests.yaml",
+      "subproject": "."
+    },
+    {
+      "detector": "go-detector",
+      "ecosystem": "go",
+      "kind": "go.mod",
+      "package_manager": "gomod",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:golang/github.com/google/uuid",
+          "licenses": [],
+          "name": "github.com/google/uuid",
+          "purl": "pkg:golang/github.com/google/uuid",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "go.mod",
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "duration_ms": 0
+  },
+  "project": {
+    "ecosystem": "multiple",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "multiple",
+    "path": "\u003cnormalized\u003e"
+  },
+  "schema_version": "1.0"
+}

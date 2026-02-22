@@ -1,0 +1,743 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "scan bomly text",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "${workspaceFolder}",
+        "--audit"
+      ]
+    },
+    {
+      "name": "scan bomly tree",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "${workspaceFolder}",
+        "--format",
+        "tree"
+      ]
+    },
+    {
+      "name": "scan bomly table",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "${workspaceFolder}",
+        "--format",
+        "table"
+      ]
+    },
+    {
+      "name": "scan bomly json",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "${workspaceFolder}",
+        "--format",
+        "json"
+      ]
+    },
+    {
+      "name": "scan javascript text",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-javascript",
+        "--audit"
+      ]
+    },
+    {
+      "name": "scan javascript tree",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-javascript",
+        "--format",
+        "tree"
+      ]
+    },
+    {
+      "name": "scan javascript table",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-javascript",
+        "--format",
+        "table"
+      ]
+    },
+    {
+      "name": "scan javascript json",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-javascript",
+        "--format",
+        "json"
+      ]
+    },
+    {
+      "name": "scan go-modules text",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-go-modules",
+        "--format",
+        "text"
+      ]
+    },
+    {
+      "name": "scan go-modules tree",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-go-modules",
+        "--format",
+        "tree"
+      ]
+    },
+    {
+      "name": "scan go-modules table",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-go-modules",
+        "--format",
+        "table"
+      ]
+    },
+    {
+      "name": "scan go-modules json",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-go-modules",
+        "--format",
+        "json"
+      ]
+    },
+    {
+      "name": "scan java maven text",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-java-maven",
+        "--format",
+        "text"
+      ]
+    },
+    {
+      "name": "scan java maven tree",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-java-maven",
+        "--format",
+        "tree"
+      ]
+    },
+    {
+      "name": "scan java maven table",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-java-maven",
+        "--format",
+        "table"
+      ]
+    },
+    {
+      "name": "scan java maven json",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-java-maven",
+        "--format",
+        "json"
+      ]
+    },
+    {
+      "name": "scan java gradle text",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-java-gradle",
+        "--format",
+        "text"
+      ]
+    },
+    {
+      "name": "scan java gradle tree",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-java-gradle",
+        "--format",
+        "tree"
+      ]
+    },
+    {
+      "name": "scan java gradle table",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-java-gradle",
+        "--format",
+        "table"
+      ]
+    },
+    {
+      "name": "scan java gradle json",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-java-gradle",
+        "--format",
+        "json"
+      ]
+    },
+    {
+      "name": "scan webgoat text",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/Webgoat",
+        "--audit"
+      ]
+    },
+    {
+      "name": "scan webgoat tree",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/Webgoat",
+        "--format",
+        "tree"
+      ]
+    },
+    {
+      "name": "scan webgoat table",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/Webgoat",
+        "--format",
+        "table"
+      ]
+    },
+    {
+      "name": "scan & audit webgoat json",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/Webgoat",
+        "--audit",
+        "--format",
+        "json"
+      ]
+    },
+    {
+      "name": "scan bomly spdx",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "${workspaceFolder}",
+        "--ecosystems",
+        "go",
+        "-o",
+        "spdx-json=./sboms/spdx-go.json"
+      ]
+    },
+    {
+      "name": "scan bomly cyclonedx",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "${workspaceFolder}",
+        "--ecosystems",
+        "go",
+        "-o",
+        "cyclonedx-json=./sboms/cyclonedx-go.json"
+      ]
+    },
+    {
+      "name": "scan javascript spdx",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-javascript",
+        "--ecosystems",
+        "npm",
+        "-o",
+        "spdx-json=./sboms/spdx-js.json"
+      ]
+    },
+    {
+      "name": "scan javascript cyclonedx",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-javascript",
+        "--ecosystems",
+        "npm",
+        "-o",
+        "cyclonedx-json=./sboms/cyclonedx-js.json"
+      ]
+    },
+    {
+      "name": "scan go-modules spdx",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-go-modules",
+        "--ecosystems",
+        "go",
+        "-o",
+        "spdx-json=./sboms/spdx-go-modules.json"
+      ]
+    },
+    {
+      "name": "scan go-modules cyclonedx",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-go-modules",
+        "--ecosystems",
+        "go",
+        "-o",
+        "cyclonedx-json=./sboms/cyclonedx-go-modules.json"
+      ]
+    },
+    {
+      "name": "scan java maven spdx",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-java-maven",
+        "--ecosystems",
+        "maven",
+        "-o",
+        "spdx-json=./sboms/spdx-maven.json"
+      ]
+    },
+    {
+      "name": "scan java maven cyclonedx",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-java-maven",
+        "--ecosystems",
+        "maven",
+        "-o",
+        "cyclonedx-json=./sboms/cyclonedx-maven.json"
+      ]
+    },
+    {
+      "name": "scan java gradle spdx",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-java-gradle",
+        "--ecosystems",
+        "gradle",
+        "-o",
+        "spdx-json=./sboms/spdx-gradle.json"
+      ]
+    },
+    {
+      "name": "scan java gradle cyclonedx",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/example-java-gradle",
+        "--ecosystems",
+        "gradle",
+        "-o",
+        "cyclonedx-json=./sboms/cyclonedx-gradle.json"
+      ]
+    },
+    {
+      "name": "scan webgoat spdx",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/Webgoat",
+        "--ecosystems",
+        "maven",
+        "-o",
+        "spdx-json=./sboms/spdx-webgoat.json"
+      ]
+    },
+    {
+      "name": "scan webgoat sbom spdx",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--sbom",
+        "--path",
+        "../../examples/Webgoat/bomly.spdx"
+      ]
+    },
+    {
+      "name": "scan webgoat cyclonedx",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--path",
+        "../../examples/Webgoat",
+        "--ecosystems",
+        "maven",
+        "-o",
+        "cyclonedx-json=./sboms/cyclonedx-webgoat.json"
+      ]
+    },
+    {
+      "name": "scan python container",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--container",
+        "python:latest"
+      ]
+    },
+    {
+      "name": "scan python container tree",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--container",
+        "python:3.14-alpine3.22",
+        "--audit"
+      ],
+      "env": {
+        "BOMLY_BYPASS_CACHE": "true"
+      }
+    },
+    {
+      "name": "scan python container table",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--container",
+        "python:3.14-alpine3.22",
+        "--format",
+        "table"
+      ]
+    },
+    {
+      "name": "scan python container json",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "scan",
+        "--container",
+        "python:3.14-alpine3.22",
+        "--format",
+        "json"
+      ]
+    },
+    {
+      "name": "diff maven",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "diff",
+        "--path",
+        "../../examples/example-java-maven",
+        "--base",
+        "master",
+        "--head",
+        "dev",
+        "--format",
+        "json"
+      ]
+    },
+    {
+      "name": "diff javascript",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "diff",
+        "--path",
+        "../../examples/example-javascript",
+        "--base",
+        "master",
+        "--head",
+        "dev",
+        "--audit"
+      ]
+    },
+    {
+      "name": "diff javascript repo",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "diff",
+        "--url",
+        "https://github.com/bomly-dev/example-javascript",
+        "--base",
+        "master",
+        "--head",
+        "dev"
+      ]
+    },
+    {
+      "name": "diff container",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "diff",
+        "--container",
+        "python",
+        "--base",
+        "3.13.13-alpine3.23",
+        "--head",
+        "3.14-alpine3.22",
+        "--format",
+        "json"
+      ]
+    },
+    {
+      "name": "diff container text",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "diff",
+        "--container",
+        "python",
+        "--base",
+        "3.13.13-alpine3.23",
+        "--head",
+        "3.14-alpine3.22"
+      ]
+    },
+    {
+      "name": "why?",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/bomly",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "why",
+        "github.com/anchore/syft"
+      ]
+    }
+  ]
+}

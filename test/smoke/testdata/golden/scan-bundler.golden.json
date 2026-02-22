@@ -1,0 +1,216 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "detector": "github-actions-detector",
+      "ecosystem": "github-actions",
+      "kind": "depsreview.yaml",
+      "package_manager": "github-actions",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:github-actions/.github/workflows/depsreview.yaml@local",
+            "pkg:github-actions/.github/workflows/test-external.yaml@local",
+            "pkg:github-actions/.github/workflows/test.yaml@local"
+          ],
+          "id": ".github/workflows/depsreview.yaml",
+          "licenses": [],
+          "name": ".github/workflows/depsreview.yaml",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@v4",
+            "pkg:github-actions/actions/dependency-review-action@v4"
+          ],
+          "id": "pkg:github-actions/.github/workflows/depsreview.yaml@local",
+          "licenses": [],
+          "name": ".github/workflows/depsreview.yaml",
+          "purl": "pkg:github-actions/.github/workflows/depsreview.yaml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@v4",
+            "pkg:github-actions/ruby/setup-ruby-pkgs@v1"
+          ],
+          "id": "pkg:github-actions/.github/workflows/test-external.yaml@local",
+          "licenses": [],
+          "name": ".github/workflows/test-external.yaml",
+          "purl": "pkg:github-actions/.github/workflows/test-external.yaml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@v4",
+            "pkg:github-actions/ruby/setup-ruby@v1"
+          ],
+          "id": "pkg:github-actions/.github/workflows/test.yaml@local",
+          "licenses": [],
+          "name": ".github/workflows/test.yaml",
+          "purl": "pkg:github-actions/.github/workflows/test.yaml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/actions/checkout@v4",
+          "licenses": [],
+          "name": "actions:checkout",
+          "purl": "pkg:github-actions/actions/checkout@v4",
+          "scope": "runtime",
+          "version": "v4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/actions/dependency-review-action@v4",
+          "licenses": [],
+          "name": "actions:dependency-review-action",
+          "purl": "pkg:github-actions/actions/dependency-review-action@v4",
+          "scope": "runtime",
+          "version": "v4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/ruby/setup-ruby-pkgs@v1",
+          "licenses": [],
+          "name": "ruby:setup-ruby-pkgs",
+          "purl": "pkg:github-actions/ruby/setup-ruby-pkgs@v1",
+          "scope": "runtime",
+          "version": "v1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/ruby/setup-ruby@v1",
+          "licenses": [],
+          "name": "ruby:setup-ruby",
+          "purl": "pkg:github-actions/ruby/setup-ruby@v1",
+          "scope": "runtime",
+          "version": "v1",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/depsreview.yaml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "ruby",
+      "kind": "github-action",
+      "package_manager": "gemspec",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:github/actions/checkout@v4",
+            "pkg:github/ruby/setup-ruby-pkgs@v1"
+          ],
+          "id": ".github/workflows/test-external.yaml",
+          "licenses": [],
+          "name": ".github/workflows/test-external.yaml",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/actions/checkout@v4",
+          "licenses": [],
+          "name": "actions/checkout",
+          "purl": "pkg:github/actions/checkout@v4",
+          "version": "v4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/ruby/setup-ruby-pkgs@v1",
+          "licenses": [],
+          "name": "ruby/setup-ruby-pkgs",
+          "purl": "pkg:github/ruby/setup-ruby-pkgs@v1",
+          "version": "v1",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/test-external.yaml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "ruby",
+      "kind": "github-action",
+      "package_manager": "gemspec",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:github/actions/checkout@v4",
+            "pkg:github/ruby/setup-ruby@v1"
+          ],
+          "id": ".github/workflows/test.yaml",
+          "licenses": [],
+          "name": ".github/workflows/test.yaml",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/actions/checkout@v4",
+          "licenses": [],
+          "name": "actions/checkout",
+          "purl": "pkg:github/actions/checkout@v4",
+          "version": "v4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/ruby/setup-ruby@v1",
+          "licenses": [],
+          "name": "ruby/setup-ruby",
+          "purl": "pkg:github/ruby/setup-ruby@v1",
+          "version": "v1",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/test.yaml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "ruby",
+      "kind": "gem",
+      "package_manager": "gemspec",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:gem/rack",
+          "licenses": [],
+          "metadata": {
+            "bomly.normalization.applied": [
+              "version"
+            ],
+            "bomly.normalization.original_version": "UNKNOWN"
+          },
+          "name": "rack",
+          "purl": "pkg:gem/rack",
+          "version": "unknown",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "rack.gemspec",
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "duration_ms": 0
+  },
+  "project": {
+    "ecosystem": "multiple",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "multiple",
+    "path": "\u003cnormalized\u003e"
+  },
+  "schema_version": "1.0"
+}

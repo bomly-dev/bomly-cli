@@ -1,0 +1,102 @@
+{
+  "command": "diff",
+  "comparison": {
+    "base": "C:\\Users\\ahmed\\repos\\bomly.dev\\bomly-cli\\test\\smoke\\testdata\\sboms\\go.spdx.json",
+    "head": "C:\\Users\\ahmed\\repos\\bomly.dev\\bomly-cli\\test\\smoke\\testdata\\sboms\\js.spdx.json"
+  },
+  "metadata": {
+    "duration_ms": 0
+  },
+  "project": {
+    "ecosystem": "multiple",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "multiple",
+    "path": "\u003cnormalized\u003e"
+  },
+  "results": {
+    "manifests": [
+      {
+        "added": [
+          {
+            "package": {
+              "id": "pkg:npm/lodash@4.17.21",
+              "licenses": [],
+              "name": "lodash",
+              "purl": "pkg:npm/lodash@4.17.21",
+              "version": "4.17.21",
+              "vulnerabilities": []
+            }
+          },
+          {
+            "package": {
+              "id": "pkg:npm/my-js-app@2.0.0",
+              "licenses": [],
+              "name": "my-js-app",
+              "purl": "pkg:npm/my-js-app@2.0.0",
+              "version": "2.0.0",
+              "vulnerabilities": []
+            }
+          },
+          {
+            "package": {
+              "id": "pkg:npm/react@18.2.0",
+              "licenses": [],
+              "name": "react",
+              "purl": "pkg:npm/react@18.2.0",
+              "version": "18.2.0",
+              "vulnerabilities": []
+            }
+          }
+        ],
+        "ecosystem": "sbom",
+        "kind": "js.spdx.json",
+        "package_manager": "sbom",
+        "path": "js.spdx.json",
+        "removed": [
+          {
+            "package": {
+              "id": "pkg:golang/example.com/app@1.0.0",
+              "licenses": [],
+              "name": "example.com/app",
+              "purl": "pkg:golang/example.com/app@1.0.0",
+              "version": "1.0.0",
+              "vulnerabilities": []
+            }
+          },
+          {
+            "package": {
+              "id": "pkg:golang/github.com/google/uuid@1.6.0",
+              "licenses": [],
+              "name": "github.com/google/uuid",
+              "purl": "pkg:golang/github.com/google/uuid@1.6.0",
+              "version": "1.6.0",
+              "vulnerabilities": []
+            }
+          },
+          {
+            "package": {
+              "id": "pkg:golang/github.com/pkg/errors@0.9.1",
+              "licenses": [],
+              "name": "github.com/pkg/errors",
+              "purl": "pkg:golang/github.com/pkg/errors@0.9.1",
+              "version": "0.9.1",
+              "vulnerabilities": []
+            }
+          }
+        ],
+        "status": "changed",
+        "subproject": "."
+      }
+    ]
+  },
+  "schema_version": "1.0",
+  "summary": {
+    "added_manifest_count": 0,
+    "added_package_count": 3,
+    "changed_manifest_count": 1,
+    "changed_package_count": 0,
+    "removed_manifest_count": 0,
+    "removed_package_count": 3,
+    "unchanged_manifest_count": 0
+  }
+}

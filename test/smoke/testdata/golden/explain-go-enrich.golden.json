@@ -1,0 +1,83 @@
+{
+  "audit_summary": {
+    "critical": 0,
+    "high": 0,
+    "low": 0,
+    "medium": 0,
+    "total": 0,
+    "unknown": 0
+  },
+  "command": "explain",
+  "dependency": {
+    "id": "github.com/google/uuid",
+    "licenses": [],
+    "name": "github.com/google/uuid",
+    "vulnerabilities": []
+  },
+  "metadata": {
+    "duration_ms": 0
+  },
+  "paths": [
+    {
+      "IntroducedVia": "github.com/google/uuid",
+      "Packages": [
+        {
+          "id": "github.com/google/uuid",
+          "licenses": [],
+          "name": "github.com/google/uuid",
+          "vulnerabilities": []
+        }
+      ],
+      "Relationship": "direct"
+    }
+  ],
+  "project": {
+    "ecosystem": "multiple",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "multiple",
+    "path": "\u003cnormalized\u003e"
+  },
+  "query": {
+    "name": "github.com/google/uuid"
+  },
+  "schema_version": "1.0",
+  "targets": [
+    {
+      "audit_summary": {
+        "critical": 0,
+        "high": 0,
+        "low": 0,
+        "medium": 0,
+        "total": 0,
+        "unknown": 0
+      },
+      "dependency": {
+        "id": "github.com/google/uuid",
+        "licenses": [],
+        "name": "github.com/google/uuid",
+        "vulnerabilities": []
+      },
+      "detector": "go-detector",
+      "paths": [
+        {
+          "IntroducedVia": "github.com/google/uuid",
+          "Packages": [
+            {
+              "id": "github.com/google/uuid",
+              "licenses": [],
+              "name": "github.com/google/uuid",
+              "vulnerabilities": []
+            }
+          ],
+          "Relationship": "direct"
+        }
+      ],
+      "project": {
+        "ecosystem": "go",
+        "name": "\u003cnormalized\u003e",
+        "package_manager": "gomod",
+        "path": "\u003cnormalized\u003e"
+      }
+    }
+  ]
+}

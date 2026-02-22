@@ -1,0 +1,886 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "detector": "github-actions-detector",
+      "ecosystem": "github-actions",
+      "kind": "build.yml",
+      "package_manager": "github-actions",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:github-actions/.github/workflows/build.yml@local",
+            "pkg:github-actions/.github/workflows/check-android-compatibility.yml@local",
+            "pkg:github-actions/.github/workflows/check-api-compatibility.yml@local",
+            "pkg:github-actions/.github/workflows/cifuzz.yml@local",
+            "pkg:github-actions/.github/workflows/codeql-analysis.yml@local"
+          ],
+          "id": ".github/workflows/build.yml",
+          "licenses": [],
+          "name": ".github/workflows/build.yml",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b",
+            "pkg:github-actions/actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9",
+            "pkg:github-actions/graalvm/setup-graalvm@2f25c0caae5b220866f732832d5e3e29ff493338"
+          ],
+          "id": "pkg:github-actions/.github/workflows/build.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/build.yml",
+          "purl": "pkg:github-actions/.github/workflows/build.yml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b",
+            "pkg:github-actions/actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9"
+          ],
+          "id": "pkg:github-actions/.github/workflows/check-android-compatibility.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/check-android-compatibility.yml",
+          "purl": "pkg:github-actions/.github/workflows/check-android-compatibility.yml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b",
+            "pkg:github-actions/actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9",
+            "pkg:github-actions/actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808"
+          ],
+          "id": "pkg:github-actions/.github/workflows/check-api-compatibility.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/check-api-compatibility.yml",
+          "purl": "pkg:github-actions/.github/workflows/check-api-compatibility.yml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808",
+            "pkg:github-actions/google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@master",
+            "pkg:github-actions/google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@master"
+          ],
+          "id": "pkg:github-actions/.github/workflows/cifuzz.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/cifuzz.yml",
+          "purl": "pkg:github-actions/.github/workflows/cifuzz.yml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b",
+            "pkg:github-actions/actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9",
+            "pkg:github-actions/github/codeql-action/analyze@d39d31e687223d841ef683f52467bd88e9b21c14",
+            "pkg:github-actions/github/codeql-action/init@d39d31e687223d841ef683f52467bd88e9b21c14"
+          ],
+          "id": "pkg:github-actions/.github/workflows/codeql-analysis.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/codeql-analysis.yml",
+          "purl": "pkg:github-actions/.github/workflows/codeql-analysis.yml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b",
+          "licenses": [],
+          "name": "actions:checkout",
+          "purl": "pkg:github-actions/actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b",
+          "scope": "runtime",
+          "version": "0ad4b8fadaa221de15dcec353f45205ec38ea70b",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9",
+          "licenses": [],
+          "name": "actions:setup-java",
+          "purl": "pkg:github-actions/actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9",
+          "scope": "runtime",
+          "version": "99b8673ff64fbf99d8d325f52d9a5bdedb8483e9",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808",
+          "licenses": [],
+          "name": "actions:upload-artifact",
+          "purl": "pkg:github-actions/actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808",
+          "scope": "runtime",
+          "version": "65462800fd760344b1a7b4382951275a0abb4808",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/github/codeql-action/analyze@d39d31e687223d841ef683f52467bd88e9b21c14",
+          "licenses": [],
+          "name": "github:codeql-action/analyze",
+          "purl": "pkg:github-actions/github/codeql-action/analyze@d39d31e687223d841ef683f52467bd88e9b21c14",
+          "scope": "runtime",
+          "version": "d39d31e687223d841ef683f52467bd88e9b21c14",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/github/codeql-action/init@d39d31e687223d841ef683f52467bd88e9b21c14",
+          "licenses": [],
+          "name": "github:codeql-action/init",
+          "purl": "pkg:github-actions/github/codeql-action/init@d39d31e687223d841ef683f52467bd88e9b21c14",
+          "scope": "runtime",
+          "version": "d39d31e687223d841ef683f52467bd88e9b21c14",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@master",
+          "licenses": [],
+          "name": "google:oss-fuzz/infra/cifuzz/actions/build_fuzzers",
+          "purl": "pkg:github-actions/google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@master",
+          "scope": "runtime",
+          "version": "master",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@master",
+          "licenses": [],
+          "name": "google:oss-fuzz/infra/cifuzz/actions/run_fuzzers",
+          "purl": "pkg:github-actions/google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@master",
+          "scope": "runtime",
+          "version": "master",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/graalvm/setup-graalvm@2f25c0caae5b220866f732832d5e3e29ff493338",
+          "licenses": [],
+          "name": "graalvm:setup-graalvm",
+          "purl": "pkg:github-actions/graalvm/setup-graalvm@2f25c0caae5b220866f732832d5e3e29ff493338",
+          "scope": "runtime",
+          "version": "2f25c0caae5b220866f732832d5e3e29ff493338",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/build.yml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "maven",
+      "kind": "github-action",
+      "package_manager": "maven",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:github/actions/checkout@v4.1.4",
+            "pkg:github/actions/setup-java@v4.2.1"
+          ],
+          "id": ".github/workflows/check-android-compatibility.yml",
+          "licenses": [],
+          "name": ".github/workflows/check-android-compatibility.yml",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/actions/checkout@v4.1.4",
+          "licenses": [],
+          "name": "actions/checkout",
+          "purl": "pkg:github/actions/checkout@v4.1.4",
+          "version": "v4.1.4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/actions/setup-java@v4.2.1",
+          "licenses": [],
+          "name": "actions/setup-java",
+          "purl": "pkg:github/actions/setup-java@v4.2.1",
+          "version": "v4.2.1",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/check-android-compatibility.yml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "maven",
+      "kind": "github-action",
+      "package_manager": "maven",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:github/actions/checkout@v4.1.4",
+            "pkg:github/actions/setup-java@v4.2.1",
+            "pkg:github/actions/upload-artifact@v4.3.3"
+          ],
+          "id": ".github/workflows/check-api-compatibility.yml",
+          "licenses": [],
+          "name": ".github/workflows/check-api-compatibility.yml",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/actions/checkout@v4.1.4",
+          "licenses": [],
+          "name": "actions/checkout",
+          "purl": "pkg:github/actions/checkout@v4.1.4",
+          "version": "v4.1.4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/actions/setup-java@v4.2.1",
+          "licenses": [],
+          "name": "actions/setup-java",
+          "purl": "pkg:github/actions/setup-java@v4.2.1",
+          "version": "v4.2.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/actions/upload-artifact@v4.3.3",
+          "licenses": [],
+          "name": "actions/upload-artifact",
+          "purl": "pkg:github/actions/upload-artifact@v4.3.3",
+          "version": "v4.3.3",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/check-api-compatibility.yml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "maven",
+      "kind": "github-action",
+      "package_manager": "maven",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:github/actions/upload-artifact@v4.3.3",
+            "pkg:github/google/oss-fuzz@master#infra/cifuzz/actions/build_fuzzers",
+            "pkg:github/google/oss-fuzz@master#infra/cifuzz/actions/run_fuzzers"
+          ],
+          "id": ".github/workflows/cifuzz.yml",
+          "licenses": [],
+          "name": ".github/workflows/cifuzz.yml",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/actions/upload-artifact@v4.3.3",
+          "licenses": [],
+          "name": "actions/upload-artifact",
+          "purl": "pkg:github/actions/upload-artifact@v4.3.3",
+          "version": "v4.3.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/google/oss-fuzz@master#infra/cifuzz/actions/build_fuzzers",
+          "licenses": [],
+          "name": "google/oss-fuzz/infra/cifuzz/actions/build_fuzzers",
+          "purl": "pkg:github/google/oss-fuzz@master#infra/cifuzz/actions/build_fuzzers",
+          "version": "master",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/google/oss-fuzz@master#infra/cifuzz/actions/run_fuzzers",
+          "licenses": [],
+          "name": "google/oss-fuzz/infra/cifuzz/actions/run_fuzzers",
+          "purl": "pkg:github/google/oss-fuzz@master#infra/cifuzz/actions/run_fuzzers",
+          "version": "master",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/cifuzz.yml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "maven",
+      "kind": "github-action",
+      "package_manager": "maven",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:github/actions/checkout@v4.1.4",
+            "pkg:github/actions/setup-java@v4.2.1",
+            "pkg:github/github/codeql-action@v3.25.3#analyze",
+            "pkg:github/github/codeql-action@v3.25.3#init"
+          ],
+          "id": ".github/workflows/codeql-analysis.yml",
+          "licenses": [],
+          "name": ".github/workflows/codeql-analysis.yml",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/actions/checkout@v4.1.4",
+          "licenses": [],
+          "name": "actions/checkout",
+          "purl": "pkg:github/actions/checkout@v4.1.4",
+          "version": "v4.1.4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/actions/setup-java@v4.2.1",
+          "licenses": [],
+          "name": "actions/setup-java",
+          "purl": "pkg:github/actions/setup-java@v4.2.1",
+          "version": "v4.2.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/github/codeql-action@v3.25.3#analyze",
+          "licenses": [],
+          "name": "github/codeql-action/analyze",
+          "purl": "pkg:github/github/codeql-action@v3.25.3#analyze",
+          "version": "v3.25.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/github/codeql-action@v3.25.3#init",
+          "licenses": [],
+          "name": "github/codeql-action/init",
+          "purl": "pkg:github/github/codeql-action@v3.25.3#init",
+          "version": "v3.25.3",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/codeql-analysis.yml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "maven",
+      "kind": "java-archive",
+      "package_manager": "maven",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:maven/com.google.code.gson/gson@2.11.0",
+            "pkg:maven/javax.annotation/jsr250-api@1.0",
+            "pkg:maven/junit/junit@4.13.2"
+          ],
+          "id": "pkg:maven/com.google.code.gson/gson-extras@2.11.0",
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "name": "com.google.code.gson:gson-extras",
+          "purl": "pkg:maven/com.google.code.gson/gson-extras@2.11.0",
+          "version": "2.11.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:maven/com.google.errorprone/error_prone_annotations@2.27.0",
+            "pkg:maven/com.google.guava/guava-testlib@33.1.0-jre",
+            "pkg:maven/com.google.truth/truth@1.4.2",
+            "pkg:maven/junit/junit@4.13.2"
+          ],
+          "id": "pkg:maven/com.google.code.gson/gson@2.11.0",
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "name": "com.google.code.gson:gson",
+          "purl": "pkg:maven/com.google.code.gson/gson@2.11.0",
+          "version": "2.11.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.google.errorprone/error_prone_annotations@2.27.0",
+          "licenses": [],
+          "name": "com.google.errorprone:error_prone_annotations",
+          "purl": "pkg:maven/com.google.errorprone/error_prone_annotations@2.27.0",
+          "version": "2.27.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.google.guava/guava-testlib@33.1.0-jre",
+          "licenses": [],
+          "name": "com.google.guava:guava-testlib",
+          "purl": "pkg:maven/com.google.guava/guava-testlib@33.1.0-jre",
+          "version": "33.1.0-jre",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.google.truth/truth@1.4.2",
+          "licenses": [],
+          "name": "com.google.truth:truth",
+          "purl": "pkg:maven/com.google.truth/truth@1.4.2",
+          "version": "1.4.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/javax.annotation/jsr250-api@1.0",
+          "licenses": [],
+          "name": "javax.annotation:jsr250-api",
+          "purl": "pkg:maven/javax.annotation/jsr250-api@1.0",
+          "version": "1.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/junit/junit@4.13.2",
+          "licenses": [],
+          "name": "junit:junit",
+          "purl": "pkg:maven/junit/junit@4.13.2",
+          "version": "4.13.2",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "extras/pom.xml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "maven",
+      "kind": "java-archive",
+      "package_manager": "maven",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:maven/com.google.code.gson/gson@2.11.0",
+            "pkg:maven/com.google.truth/truth@1.4.2",
+            "pkg:maven/org.junit.jupiter/junit-jupiter@5.10.2"
+          ],
+          "id": "pkg:maven/com.google.code.gson/graal-native-image-test@2.11.0",
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "name": "com.google.code.gson:graal-native-image-test",
+          "purl": "pkg:maven/com.google.code.gson/graal-native-image-test@2.11.0",
+          "version": "2.11.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:maven/com.google.errorprone/error_prone_annotations@2.27.0",
+            "pkg:maven/com.google.guava/guava-testlib@33.1.0-jre",
+            "pkg:maven/com.google.truth/truth@1.4.2",
+            "pkg:maven/junit/junit@4.13.2"
+          ],
+          "id": "pkg:maven/com.google.code.gson/gson@2.11.0",
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "name": "com.google.code.gson:gson",
+          "purl": "pkg:maven/com.google.code.gson/gson@2.11.0",
+          "version": "2.11.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.google.errorprone/error_prone_annotations@2.27.0",
+          "licenses": [],
+          "name": "com.google.errorprone:error_prone_annotations",
+          "purl": "pkg:maven/com.google.errorprone/error_prone_annotations@2.27.0",
+          "version": "2.27.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.google.guava/guava-testlib@33.1.0-jre",
+          "licenses": [],
+          "name": "com.google.guava:guava-testlib",
+          "purl": "pkg:maven/com.google.guava/guava-testlib@33.1.0-jre",
+          "version": "33.1.0-jre",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.google.truth/truth@1.4.2",
+          "licenses": [],
+          "name": "com.google.truth:truth",
+          "purl": "pkg:maven/com.google.truth/truth@1.4.2",
+          "version": "1.4.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/junit/junit@4.13.2",
+          "licenses": [],
+          "name": "junit:junit",
+          "purl": "pkg:maven/junit/junit@4.13.2",
+          "version": "4.13.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/org.junit.jupiter/junit-jupiter@5.10.2",
+          "licenses": [],
+          "name": "org.junit.jupiter:junit-jupiter",
+          "purl": "pkg:maven/org.junit.jupiter/junit-jupiter@5.10.2",
+          "version": "5.10.2",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "graal-native-image-test/pom.xml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "maven",
+      "kind": "java-archive",
+      "package_manager": "maven",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.17.0",
+          "licenses": [],
+          "name": "com.fasterxml.jackson.core:jackson-databind",
+          "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.17.0",
+          "version": "2.17.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.google.caliper/caliper@1.0-beta-3",
+          "licenses": [],
+          "name": "com.google.caliper:caliper",
+          "purl": "pkg:maven/com.google.caliper/caliper@1.0-beta-3",
+          "version": "1.0-beta-3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.17.0",
+            "pkg:maven/com.google.caliper/caliper@1.0-beta-3",
+            "pkg:maven/com.google.code.gson/gson@2.11.0"
+          ],
+          "id": "pkg:maven/com.google.code.gson/gson-metrics@2.11.0",
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "name": "com.google.code.gson:gson-metrics",
+          "purl": "pkg:maven/com.google.code.gson/gson-metrics@2.11.0",
+          "version": "2.11.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:maven/com.google.errorprone/error_prone_annotations@2.27.0",
+            "pkg:maven/com.google.guava/guava-testlib@33.1.0-jre",
+            "pkg:maven/com.google.truth/truth@1.4.2",
+            "pkg:maven/junit/junit@4.13.2"
+          ],
+          "id": "pkg:maven/com.google.code.gson/gson@2.11.0",
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "name": "com.google.code.gson:gson",
+          "purl": "pkg:maven/com.google.code.gson/gson@2.11.0",
+          "version": "2.11.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.google.errorprone/error_prone_annotations@2.27.0",
+          "licenses": [],
+          "name": "com.google.errorprone:error_prone_annotations",
+          "purl": "pkg:maven/com.google.errorprone/error_prone_annotations@2.27.0",
+          "version": "2.27.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.google.guava/guava-testlib@33.1.0-jre",
+          "licenses": [],
+          "name": "com.google.guava:guava-testlib",
+          "purl": "pkg:maven/com.google.guava/guava-testlib@33.1.0-jre",
+          "version": "33.1.0-jre",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.google.truth/truth@1.4.2",
+          "licenses": [],
+          "name": "com.google.truth:truth",
+          "purl": "pkg:maven/com.google.truth/truth@1.4.2",
+          "version": "1.4.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/junit/junit@4.13.2",
+          "licenses": [],
+          "name": "junit:junit",
+          "purl": "pkg:maven/junit/junit@4.13.2",
+          "version": "4.13.2",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "metrics/pom.xml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "maven",
+      "kind": "java-archive",
+      "package_manager": "maven",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.google.code.gson/gson-parent@2.11.0",
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "name": "com.google.code.gson:gson-parent",
+          "purl": "pkg:maven/com.google.code.gson/gson-parent@2.11.0",
+          "version": "2.11.0",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "pom.xml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "maven",
+      "kind": "java-archive",
+      "package_manager": "maven",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:maven/com.google.errorprone/error_prone_annotations@2.27.0",
+            "pkg:maven/com.google.guava/guava-testlib@33.1.0-jre",
+            "pkg:maven/com.google.truth/truth@1.4.2",
+            "pkg:maven/junit/junit@4.13.2"
+          ],
+          "id": "pkg:maven/com.google.code.gson/gson@2.11.0",
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "name": "com.google.code.gson:gson",
+          "purl": "pkg:maven/com.google.code.gson/gson@2.11.0",
+          "version": "2.11.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:maven/com.google.code.gson/gson@2.11.0",
+            "pkg:maven/com.google.guava/guava@33.1.0-jre",
+            "pkg:maven/com.google.protobuf/protobuf-java@4.26.1",
+            "pkg:maven/com.google.truth/truth@1.4.2",
+            "pkg:maven/junit/junit@4.13.2"
+          ],
+          "id": "pkg:maven/com.google.code.gson/proto@2.11.0",
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "name": "com.google.code.gson:proto",
+          "purl": "pkg:maven/com.google.code.gson/proto@2.11.0",
+          "version": "2.11.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.google.errorprone/error_prone_annotations@2.27.0",
+          "licenses": [],
+          "name": "com.google.errorprone:error_prone_annotations",
+          "purl": "pkg:maven/com.google.errorprone/error_prone_annotations@2.27.0",
+          "version": "2.27.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.google.guava/guava-testlib@33.1.0-jre",
+          "licenses": [],
+          "name": "com.google.guava:guava-testlib",
+          "purl": "pkg:maven/com.google.guava/guava-testlib@33.1.0-jre",
+          "version": "33.1.0-jre",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.google.guava/guava@33.1.0-jre",
+          "licenses": [],
+          "name": "com.google.guava:guava",
+          "purl": "pkg:maven/com.google.guava/guava@33.1.0-jre",
+          "version": "33.1.0-jre",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.google.protobuf/protobuf-java@4.26.1",
+          "licenses": [],
+          "name": "com.google.protobuf:protobuf-java",
+          "purl": "pkg:maven/com.google.protobuf/protobuf-java@4.26.1",
+          "version": "4.26.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.google.truth/truth@1.4.2",
+          "licenses": [],
+          "name": "com.google.truth:truth",
+          "purl": "pkg:maven/com.google.truth/truth@1.4.2",
+          "version": "1.4.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/junit/junit@4.13.2",
+          "licenses": [],
+          "name": "junit:junit",
+          "purl": "pkg:maven/junit/junit@4.13.2",
+          "version": "4.13.2",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "proto/pom.xml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "maven",
+      "kind": "java-archive",
+      "package_manager": "maven",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:maven/com.google.errorprone/error_prone_annotations@2.27.0",
+            "pkg:maven/com.google.guava/guava-testlib@33.1.0-jre",
+            "pkg:maven/com.google.truth/truth@1.4.2",
+            "pkg:maven/junit/junit@4.13.2"
+          ],
+          "id": "pkg:maven/com.google.code.gson/gson@2.11.0",
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "name": "com.google.code.gson:gson",
+          "purl": "pkg:maven/com.google.code.gson/gson@2.11.0",
+          "version": "2.11.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:maven/com.google.code.gson/gson@2.11.0",
+            "pkg:maven/com.google.truth/truth@1.4.2",
+            "pkg:maven/junit/junit@4.13.2"
+          ],
+          "id": "pkg:maven/com.google.code.gson/shrinker-test@2.11.0",
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "name": "com.google.code.gson:shrinker-test",
+          "purl": "pkg:maven/com.google.code.gson/shrinker-test@2.11.0",
+          "version": "2.11.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.google.errorprone/error_prone_annotations@2.27.0",
+          "licenses": [],
+          "name": "com.google.errorprone:error_prone_annotations",
+          "purl": "pkg:maven/com.google.errorprone/error_prone_annotations@2.27.0",
+          "version": "2.27.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.google.guava/guava-testlib@33.1.0-jre",
+          "licenses": [],
+          "name": "com.google.guava:guava-testlib",
+          "purl": "pkg:maven/com.google.guava/guava-testlib@33.1.0-jre",
+          "version": "33.1.0-jre",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.google.truth/truth@1.4.2",
+          "licenses": [],
+          "name": "com.google.truth:truth",
+          "purl": "pkg:maven/com.google.truth/truth@1.4.2",
+          "version": "1.4.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/junit/junit@4.13.2",
+          "licenses": [],
+          "name": "junit:junit",
+          "purl": "pkg:maven/junit/junit@4.13.2",
+          "version": "4.13.2",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "shrinker-test/pom.xml",
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "duration_ms": 0
+  },
+  "project": {
+    "ecosystem": "multiple",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "multiple",
+    "path": "\u003cnormalized\u003e"
+  },
+  "schema_version": "1.0"
+}

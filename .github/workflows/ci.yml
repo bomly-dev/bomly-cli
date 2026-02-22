@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run unit and integration tests
+        run: make test
+
+      - name: Build default Bomly binary
+        run: go build -o /tmp/bomly ./cmd/bomly
+
+      - name: Build lite Bomly binary
+        run: go build -tags "bomly_external_syft,bomly_external_grype" -o /tmp/bomly-lite ./cmd/bomly
+
+      - name: Check Go formatting
+        shell: bash
+        run: |
+          set -euo pipefail
+          files="$(git ls-files '*.go')"
+          if [[ -n "${files}" ]]; then
+            test -z "$(gofmt -l ${files})"
+          fi
+
+      - name: Check module metadata drift
+        shell: bash
+        run: |
+          set -euo pipefail
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum
+
+      - name: Check generated documentation drift
+        shell: bash
+        run: |
+          set -euo pipefail
+          make generate
+          git diff --exit-code

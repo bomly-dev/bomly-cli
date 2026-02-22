@@ -1,0 +1,54 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2025-01-15T10:00:00Z",
+    "tools": [
+      {
+        "name": "bomly-cli-test",
+        "version": "0.0.1"
+      }
+    ]
+  },
+  "components": [
+    {
+      "bom-ref": "app",
+      "type": "library",
+      "name": "example.com/app",
+      "version": "1.0.0",
+      "scope": "required",
+      "purl": "pkg:golang/example.com/app@1.0.0"
+    },
+    {
+      "bom-ref": "uuid",
+      "type": "library",
+      "name": "github.com/google/uuid",
+      "version": "1.6.0",
+      "scope": "required",
+      "purl": "pkg:golang/github.com/google/uuid@1.6.0"
+    },
+    {
+      "bom-ref": "errors",
+      "type": "library",
+      "name": "github.com/pkg/errors",
+      "version": "0.9.1",
+      "scope": "required",
+      "purl": "pkg:golang/github.com/pkg/errors@0.9.1"
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "app",
+      "dependsOn": ["uuid", "errors"]
+    },
+    {
+      "ref": "uuid",
+      "dependsOn": []
+    },
+    {
+      "ref": "errors",
+      "dependsOn": []
+    }
+  ]
+}

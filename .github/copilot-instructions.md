@@ -1,0 +1,1 @@
+# Copilot Instructions\n\nSee [AGENTS.md](../AGENTS.md) — that is the single source of truth for agent instructions in this repo.

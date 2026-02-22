@@ -1,0 +1,81 @@
+name: Smoke
+
+on:
+  merge_group:
+    types:
+      - checks_requested
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smoke-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install smoke-test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y maven
+
+      - name: Run smoke tests
+        id: smoke_tests
+        continue-on-error: true
+        run: make smoke
+
+      - name: Regenerate candidate golden files
+        if: steps.smoke_tests.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          make smoke ARGS="-update"
+          mkdir -p smoke-artifacts
+          git diff -- test/smoke/testdata/golden > smoke-artifacts/golden.diff || true
+          cp -R test/smoke/testdata/golden smoke-artifacts/updated-golden
+
+      - name: Upload candidate golden files
+        if: steps.smoke_tests.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-updated-goldens
+          path: |
+            smoke-artifacts
+          if-no-files-found: ignore
+
+      - name: Fail job if smoke tests failed
+        if: steps.smoke_tests.outcome == 'failure'
+        run: |
+          echo "Smoke tests failed. Candidate updated golden files were uploaded as an artifact for review."
+          exit 1

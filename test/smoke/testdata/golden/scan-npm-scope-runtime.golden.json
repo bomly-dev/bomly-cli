@@ -1,0 +1,244 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "detector": "github-actions-detector",
+      "ecosystem": "github-actions",
+      "kind": "node-aught.yml",
+      "package_manager": "github-actions",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:github-actions/.github/workflows/node-aught.yml@local",
+            "pkg:github-actions/.github/workflows/node-pretest.yml@local",
+            "pkg:github-actions/.github/workflows/node-tens.yml@local",
+            "pkg:github-actions/.github/workflows/rebase.yml@local",
+            "pkg:github-actions/.github/workflows/require-allow-edits.yml@local"
+          ],
+          "id": ".github/workflows/node-aught.yml",
+          "licenses": [],
+          "name": ".github/workflows/node-aught.yml",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/ljharb/actions/.github/workflows/node.yml@main"
+          ],
+          "id": "pkg:github-actions/.github/workflows/node-aught.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/node-aught.yml",
+          "purl": "pkg:github-actions/.github/workflows/node-aught.yml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/ljharb/actions/.github/workflows/pretest.yml@main"
+          ],
+          "id": "pkg:github-actions/.github/workflows/node-pretest.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/node-pretest.yml",
+          "purl": "pkg:github-actions/.github/workflows/node-pretest.yml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/ljharb/actions/.github/workflows/node.yml@main"
+          ],
+          "id": "pkg:github-actions/.github/workflows/node-tens.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/node-tens.yml",
+          "purl": "pkg:github-actions/.github/workflows/node-tens.yml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@v3",
+            "pkg:github-actions/ljharb/rebase@master"
+          ],
+          "id": "pkg:github-actions/.github/workflows/rebase.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/rebase.yml",
+          "purl": "pkg:github-actions/.github/workflows/rebase.yml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/ljharb/require-allow-edits@main"
+          ],
+          "id": "pkg:github-actions/.github/workflows/require-allow-edits.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/require-allow-edits.yml",
+          "purl": "pkg:github-actions/.github/workflows/require-allow-edits.yml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/actions/checkout@v3",
+          "licenses": [],
+          "name": "actions:checkout",
+          "purl": "pkg:github-actions/actions/checkout@v3",
+          "scope": "runtime",
+          "version": "v3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/ljharb/actions/.github/workflows/node.yml@main",
+          "licenses": [],
+          "name": "ljharb:actions/.github/workflows/node.yml",
+          "purl": "pkg:github-actions/ljharb/actions/.github/workflows/node.yml@main",
+          "scope": "runtime",
+          "version": "main",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/ljharb/actions/.github/workflows/pretest.yml@main",
+          "licenses": [],
+          "name": "ljharb:actions/.github/workflows/pretest.yml",
+          "purl": "pkg:github-actions/ljharb/actions/.github/workflows/pretest.yml@main",
+          "scope": "runtime",
+          "version": "main",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/ljharb/rebase@master",
+          "licenses": [],
+          "name": "ljharb:rebase",
+          "purl": "pkg:github-actions/ljharb/rebase@master",
+          "scope": "runtime",
+          "version": "master",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/ljharb/require-allow-edits@main",
+          "licenses": [],
+          "name": "ljharb:require-allow-edits",
+          "purl": "pkg:github-actions/ljharb/require-allow-edits@main",
+          "scope": "runtime",
+          "version": "main",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/node-aught.yml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "npm",
+      "kind": "github-action-workflow",
+      "package_manager": "npm",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:github/ljharb/actions@main#.github/workflows/pretest.yml",
+          "licenses": [],
+          "name": "ljharb/actions/.github/workflows/pretest.yml",
+          "purl": "pkg:github/ljharb/actions@main#.github/workflows/pretest.yml",
+          "version": "main",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/node-pretest.yml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "npm",
+      "kind": "github-action-workflow",
+      "package_manager": "npm",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:github/ljharb/actions@main#.github/workflows/node.yml",
+          "licenses": [],
+          "name": "ljharb/actions/.github/workflows/node.yml",
+          "purl": "pkg:github/ljharb/actions@main#.github/workflows/node.yml",
+          "version": "main",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/node-tens.yml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "npm",
+      "kind": "github-action",
+      "package_manager": "npm",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:github/actions/checkout@v3",
+            "pkg:github/ljharb/rebase@master"
+          ],
+          "id": ".github/workflows/rebase.yml",
+          "licenses": [],
+          "name": ".github/workflows/rebase.yml",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/actions/checkout@v3",
+          "licenses": [],
+          "name": "actions/checkout",
+          "purl": "pkg:github/actions/checkout@v3",
+          "version": "v3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/ljharb/rebase@master",
+          "licenses": [],
+          "name": "ljharb/rebase",
+          "purl": "pkg:github/ljharb/rebase@master",
+          "version": "master",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/rebase.yml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "npm",
+      "kind": "github-action",
+      "package_manager": "npm",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:github/ljharb/require-allow-edits@main",
+          "licenses": [],
+          "name": "ljharb/require-allow-edits",
+          "purl": "pkg:github/ljharb/require-allow-edits@main",
+          "version": "main",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/require-allow-edits.yml",
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "duration_ms": 0
+  },
+  "project": {
+    "ecosystem": "multiple",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "multiple",
+    "path": "\u003cnormalized\u003e"
+  },
+  "schema_version": "1.0"
+}

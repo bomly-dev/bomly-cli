@@ -1,0 +1,46 @@
+{
+  "command": "diff",
+  "comparison": {
+    "base": "v1.5.0",
+    "head": "v1.6.0"
+  },
+  "metadata": {
+    "duration_ms": 0
+  },
+  "project": {
+    "ecosystem": "multiple",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "multiple",
+    "path": "\u003cnormalized\u003e"
+  },
+  "results": {
+    "manifests": [
+      {
+        "ecosystem": "github-actions",
+        "kind": "apidiff.yaml",
+        "package_manager": "github-actions",
+        "path": ".github/workflows/apidiff.yaml",
+        "status": "unchanged",
+        "subproject": "."
+      },
+      {
+        "ecosystem": "go",
+        "kind": "go.mod",
+        "package_manager": "gomod",
+        "path": "go.mod",
+        "status": "unchanged",
+        "subproject": "."
+      }
+    ]
+  },
+  "schema_version": "1.0",
+  "summary": {
+    "added_manifest_count": 0,
+    "added_package_count": 0,
+    "changed_manifest_count": 0,
+    "changed_package_count": 0,
+    "removed_manifest_count": 0,
+    "removed_package_count": 0,
+    "unchanged_manifest_count": 2
+  }
+}

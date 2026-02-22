@@ -1,0 +1,403 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "detector": "github-actions-detector",
+      "ecosystem": "github-actions",
+      "kind": "close-issues.yml",
+      "package_manager": "github-actions",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:github-actions/.github/workflows/close-issues.yml@local",
+            "pkg:github-actions/.github/workflows/codeql-analysis.yml@local",
+            "pkg:github-actions/.github/workflows/lint.yml@local",
+            "pkg:github-actions/.github/workflows/lock-issues.yml@local",
+            "pkg:github-actions/.github/workflows/run-tests.yml@local"
+          ],
+          "id": ".github/workflows/close-issues.yml",
+          "licenses": [],
+          "name": ".github/workflows/close-issues.yml",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/.github/workflows/close-issues.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/close-issues.yml",
+          "purl": "pkg:github-actions/.github/workflows/close-issues.yml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608",
+            "pkg:github-actions/github/codeql-action/analyze@df5a14dc28094dc936e103b37d749c6628682b60",
+            "pkg:github-actions/github/codeql-action/autobuild@df5a14dc28094dc936e103b37d749c6628682b60",
+            "pkg:github-actions/github/codeql-action/init@df5a14dc28094dc936e103b37d749c6628682b60"
+          ],
+          "id": "pkg:github-actions/.github/workflows/codeql-analysis.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/codeql-analysis.yml",
+          "purl": "pkg:github-actions/.github/workflows/codeql-analysis.yml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608",
+            "pkg:github-actions/actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d",
+            "pkg:github-actions/pre-commit/action@646c83fcd040023954eafda54b4db0192ce70507"
+          ],
+          "id": "pkg:github-actions/.github/workflows/lint.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/lint.yml",
+          "purl": "pkg:github-actions/.github/workflows/lint.yml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/dessant/lock-threads@d42e5f49803f3c4e14ffee0378e31481265dda22"
+          ],
+          "id": "pkg:github-actions/.github/workflows/lock-issues.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/lock-issues.yml",
+          "purl": "pkg:github-actions/.github/workflows/lock-issues.yml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608",
+            "pkg:github-actions/actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d"
+          ],
+          "id": "pkg:github-actions/.github/workflows/run-tests.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/run-tests.yml",
+          "purl": "pkg:github-actions/.github/workflows/run-tests.yml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608",
+          "licenses": [],
+          "name": "actions:checkout",
+          "purl": "pkg:github-actions/actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608",
+          "scope": "runtime",
+          "version": "8ade135a41bc03ea155e62e844d188df1ea18608",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d",
+          "licenses": [],
+          "name": "actions:setup-python",
+          "purl": "pkg:github-actions/actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d",
+          "scope": "runtime",
+          "version": "82c7e631bb3cdc910f68e0081d67478d79c6982d",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/dessant/lock-threads@d42e5f49803f3c4e14ffee0378e31481265dda22",
+          "licenses": [],
+          "name": "dessant:lock-threads",
+          "purl": "pkg:github-actions/dessant/lock-threads@d42e5f49803f3c4e14ffee0378e31481265dda22",
+          "scope": "runtime",
+          "version": "d42e5f49803f3c4e14ffee0378e31481265dda22",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/github/codeql-action/analyze@df5a14dc28094dc936e103b37d749c6628682b60",
+          "licenses": [],
+          "name": "github:codeql-action/analyze",
+          "purl": "pkg:github-actions/github/codeql-action/analyze@df5a14dc28094dc936e103b37d749c6628682b60",
+          "scope": "runtime",
+          "version": "df5a14dc28094dc936e103b37d749c6628682b60",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/github/codeql-action/autobuild@df5a14dc28094dc936e103b37d749c6628682b60",
+          "licenses": [],
+          "name": "github:codeql-action/autobuild",
+          "purl": "pkg:github-actions/github/codeql-action/autobuild@df5a14dc28094dc936e103b37d749c6628682b60",
+          "scope": "runtime",
+          "version": "df5a14dc28094dc936e103b37d749c6628682b60",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/github/codeql-action/init@df5a14dc28094dc936e103b37d749c6628682b60",
+          "licenses": [],
+          "name": "github:codeql-action/init",
+          "purl": "pkg:github-actions/github/codeql-action/init@df5a14dc28094dc936e103b37d749c6628682b60",
+          "scope": "runtime",
+          "version": "df5a14dc28094dc936e103b37d749c6628682b60",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/pre-commit/action@646c83fcd040023954eafda54b4db0192ce70507",
+          "licenses": [],
+          "name": "pre-commit:action",
+          "purl": "pkg:github-actions/pre-commit/action@646c83fcd040023954eafda54b4db0192ce70507",
+          "scope": "runtime",
+          "version": "646c83fcd040023954eafda54b4db0192ce70507",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/close-issues.yml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "python",
+      "kind": "github-action",
+      "package_manager": "poetry",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:github/actions/checkout@v4.1.0",
+            "pkg:github/github/codeql-action@v3.25.0#analyze",
+            "pkg:github/github/codeql-action@v3.25.0#autobuild",
+            "pkg:github/github/codeql-action@v3.25.0#init"
+          ],
+          "id": ".github/workflows/codeql-analysis.yml",
+          "licenses": [],
+          "name": ".github/workflows/codeql-analysis.yml",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/actions/checkout@v4.1.0",
+          "licenses": [],
+          "name": "actions/checkout",
+          "purl": "pkg:github/actions/checkout@v4.1.0",
+          "version": "v4.1.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/github/codeql-action@v3.25.0#analyze",
+          "licenses": [],
+          "name": "github/codeql-action/analyze",
+          "purl": "pkg:github/github/codeql-action@v3.25.0#analyze",
+          "version": "v3.25.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/github/codeql-action@v3.25.0#autobuild",
+          "licenses": [],
+          "name": "github/codeql-action/autobuild",
+          "purl": "pkg:github/github/codeql-action@v3.25.0#autobuild",
+          "version": "v3.25.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/github/codeql-action@v3.25.0#init",
+          "licenses": [],
+          "name": "github/codeql-action/init",
+          "purl": "pkg:github/github/codeql-action@v3.25.0#init",
+          "version": "v3.25.0",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/codeql-analysis.yml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "python",
+      "kind": "github-action",
+      "package_manager": "poetry",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:github/actions/checkout@v4.1.0",
+            "pkg:github/actions/setup-python@v5.1.0",
+            "pkg:github/pre-commit/action@v3.0.0"
+          ],
+          "id": ".github/workflows/lint.yml",
+          "licenses": [],
+          "name": ".github/workflows/lint.yml",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/actions/checkout@v4.1.0",
+          "licenses": [],
+          "name": "actions/checkout",
+          "purl": "pkg:github/actions/checkout@v4.1.0",
+          "version": "v4.1.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/actions/setup-python@v5.1.0",
+          "licenses": [],
+          "name": "actions/setup-python",
+          "purl": "pkg:github/actions/setup-python@v5.1.0",
+          "version": "v5.1.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/pre-commit/action@v3.0.0",
+          "licenses": [],
+          "name": "pre-commit/action",
+          "purl": "pkg:github/pre-commit/action@v3.0.0",
+          "version": "v3.0.0",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/lint.yml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "python",
+      "kind": "github-action",
+      "package_manager": "poetry",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:github/dessant/lock-threads@v5.0.0",
+          "licenses": [],
+          "name": "dessant/lock-threads",
+          "purl": "pkg:github/dessant/lock-threads@v5.0.0",
+          "version": "v5.0.0",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/lock-issues.yml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "python",
+      "kind": "github-action",
+      "package_manager": "poetry",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:github/actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608",
+            "pkg:github/actions/checkout@v4.1.0",
+            "pkg:github/actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d",
+            "pkg:github/actions/setup-python@v5.1.0"
+          ],
+          "id": ".github/workflows/run-tests.yml",
+          "licenses": [],
+          "name": ".github/workflows/run-tests.yml",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608",
+          "licenses": [],
+          "name": "actions/checkout",
+          "purl": "pkg:github/actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608",
+          "version": "8ade135a41bc03ea155e62e844d188df1ea18608",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/actions/checkout@v4.1.0",
+          "licenses": [],
+          "name": "actions/checkout",
+          "purl": "pkg:github/actions/checkout@v4.1.0",
+          "version": "v4.1.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d",
+          "licenses": [],
+          "name": "actions/setup-python",
+          "purl": "pkg:github/actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d",
+          "version": "82c7e631bb3cdc910f68e0081d67478d79c6982d",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github/actions/setup-python@v5.1.0",
+          "licenses": [],
+          "name": "actions/setup-python",
+          "purl": "pkg:github/actions/setup-python@v5.1.0",
+          "version": "v5.1.0",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/run-tests.yml",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "python",
+      "kind": "python",
+      "package_manager": "poetry",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/sphinx@7.2.6",
+          "licenses": [],
+          "name": "sphinx",
+          "purl": "pkg:pypi/sphinx@7.2.6",
+          "version": "7.2.6",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "docs/requirements.txt",
+      "subproject": "."
+    },
+    {
+      "detector": "pip-detector",
+      "ecosystem": "python",
+      "kind": "requirements-dev.txt",
+      "package_manager": "pip",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:python/pip@25.3",
+          "licenses": [],
+          "name": "pip",
+          "purl": "pkg:python/pip@25.3",
+          "version": "25.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:python/pip@25.3"
+          ],
+          "id": "pkg:python/root",
+          "licenses": [],
+          "name": "root",
+          "purl": "pkg:python/root",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "requirements-dev.txt",
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "duration_ms": 0
+  },
+  "project": {
+    "ecosystem": "multiple",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "multiple",
+    "path": "\u003cnormalized\u003e"
+  },
+  "schema_version": "1.0"
+}

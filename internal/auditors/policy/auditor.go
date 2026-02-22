@@ -1,0 +1,175 @@
+package policy
+
+import (
+	"context"
+	"fmt"
+	"strings"
+
+	"github.com/bomly/bomly-cli/internal/model"
+	"github.com/bomly/bomly-cli/internal/scan"
+)
+
+const auditorName = "severity-policy"
+
+// Auditor evaluates enriched vulnerability data against a severity threshold.
+type Auditor struct {
+	FailOn string
+}
+
+// Descriptor returns the registration metadata for the policy auditor.
+func (a Auditor) Descriptor() scan.AuditorDescriptor {
+	return scan.AuditorDescriptor{
+		Name:                auditorName,
+		ImplementationType:  scan.NativeDetector,
+		SupportedEcosystems: nil,
+		SupportedModes:      []scan.TargetMode{scan.TargetModeFullGraph, scan.TargetModeComponent},
+		Priority:            10,
+		Required:            false,
+	}
+}
+
+// Audit evaluates enriched vulnerabilities and emits findings for entries that meet the configured threshold.
+func (a Auditor) Audit(_ context.Context, req scan.AuditRequest) (scan.AuditResult, error) {
+	if req.Graph == nil {
+		return scan.AuditResult{}, nil
+	}
+
+	threshold, err := ParseSeverityThreshold(a.FailOn)
+	if err != nil {
+		return scan.AuditResult{}, fmt.Errorf("parse fail-on severity: %w", err)
+	}
+
+	packages := req.Graph.Packages()
+	if req.Mode == scan.TargetModeComponent && req.Target != nil {
+		packages = []*model.Package{req.Target}
+	}
+
+	findings := make([]scan.Finding, 0)
+	for _, pkg := range packages {
+		if pkg == nil {
+			continue
+		}
+		for _, vulnerability := range collapsePreferredVulnerabilities(pkg.Vulnerabilities) {
+			if !threshold.Matches(vulnerability.Severity) {
+				continue
+			}
+			title := strings.TrimSpace(vulnerability.Title)
+			if title == "" {
+				title = vulnerability.ID
+			}
+			findings = append(findings, scan.Finding{
+				ID:                   vulnerability.ID,
+				Kind:                 scan.FindingKindVulnerability,
+				Package:              pkg,
+				Title:                title,
+				Severity:             strings.ToLower(strings.TrimSpace(vulnerability.Severity)),
+				Reasons:              append([]string(nil), vulnerability.Reasons...),
+				Source:               vulnerability.Source,
+				Aliases:              append([]string(nil), vulnerability.Aliases...),
+				Description:          vulnerability.Description,
+				SeveritySource:       vulnerability.SeveritySource,
+				CVSS:                 append([]model.CVSSScore(nil), vulnerability.CVSS...),
+				FixedIn:              vulnerability.FixedIn,
+				AffectedVersionRange: vulnerability.AffectedVersionRange,
+				References:           append([]model.Reference(nil), vulnerability.References...),
+				KEVExploited:         vulnerability.KEVExploited,
+			})
+		}
+	}
+
+	return scan.AuditResult{
+		Graph:    req.Graph,
+		Target:   req.Target,
+		Findings: findings,
+	}, nil
+}
+
+// SeverityThreshold controls which severities should create findings.
+type SeverityThreshold string
+
+const (
+	SeverityAny      SeverityThreshold = "any"
+	SeverityLow      SeverityThreshold = "low"
+	SeverityMedium   SeverityThreshold = "medium"
+	SeverityHigh     SeverityThreshold = "high"
+	SeverityCritical SeverityThreshold = "critical"
+)
+
+// ParseSeverityThreshold validates a fail-on severity value.
+func ParseSeverityThreshold(value string) (SeverityThreshold, error) {
+	normalized := strings.ToLower(strings.TrimSpace(value))
+	if normalized == "" {
+		normalized = string(SeverityAny)
+	}
+	switch SeverityThreshold(normalized) {
+	case SeverityAny, SeverityLow, SeverityMedium, SeverityHigh, SeverityCritical:
+		return SeverityThreshold(normalized), nil
+	default:
+		return "", fmt.Errorf("unsupported severity %q", value)
+	}
+}
+
+// Matches reports whether the configured threshold should emit a finding for the provided severity.
+func (s SeverityThreshold) Matches(severity string) bool {
+	if s == SeverityAny {
+		return true
+	}
+	return severityRank(severity) >= severityRank(string(s))
+}
+
+func severityRank(severity string) int {
+	switch strings.ToLower(strings.TrimSpace(severity)) {
+	case "critical":
+		return 4
+	case "high":
+		return 3
+	case "medium":
+		return 2
+	case "low":
+		return 1
+	default:
+		return 0
+	}
+}
+
+func collapsePreferredVulnerabilities(vulnerabilities []model.PackageVulnerability) []model.PackageVulnerability {
+	type key struct {
+		id string
+	}
+	type choice struct {
+		entry model.PackageVulnerability
+		rank  int
+	}
+	best := make(map[key]choice, len(vulnerabilities))
+	order := make([]key, 0, len(vulnerabilities))
+	for _, vulnerability := range vulnerabilities {
+		k := key{id: vulnerability.ID}
+		rank := sourceRank(vulnerability.Source)
+		current, exists := best[k]
+		if !exists {
+			best[k] = choice{entry: vulnerability, rank: rank}
+			order = append(order, k)
+			continue
+		}
+		if rank < current.rank {
+			best[k] = choice{entry: vulnerability, rank: rank}
+		}
+	}
+
+	out := make([]model.PackageVulnerability, 0, len(best))
+	for _, k := range order {
+		out = append(out, best[k].entry)
+	}
+	return out
+}
+
+func sourceRank(source string) int {
+	switch strings.ToLower(strings.TrimSpace(source)) {
+	case "grype":
+		return 0
+	case "osv":
+		return 1
+	default:
+		return 2
+	}
+}

@@ -1,0 +1,55 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "detector": "sbom-detector",
+      "ecosystem": "sbom",
+      "kind": "go.cdx.json",
+      "package_manager": "sbom",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:golang/github.com/google/uuid@1.6.0",
+            "pkg:golang/github.com/pkg/errors@0.9.1"
+          ],
+          "id": "pkg:golang/example.com/app@1.0.0",
+          "licenses": [],
+          "name": "example.com/app",
+          "purl": "pkg:golang/example.com/app@1.0.0",
+          "scope": "required",
+          "version": "1.0.0"
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:golang/github.com/google/uuid@1.6.0",
+          "licenses": [],
+          "name": "github.com/google/uuid",
+          "purl": "pkg:golang/github.com/google/uuid@1.6.0",
+          "scope": "required",
+          "version": "1.6.0"
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:golang/github.com/pkg/errors@0.9.1",
+          "licenses": [],
+          "name": "github.com/pkg/errors",
+          "purl": "pkg:golang/github.com/pkg/errors@0.9.1",
+          "scope": "required",
+          "version": "0.9.1"
+        }
+      ],
+      "path": "go.cdx.json",
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "duration_ms": 0
+  },
+  "project": {
+    "ecosystem": "sbom",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "sbom",
+    "path": "\u003cnormalized\u003e"
+  },
+  "schema_version": "1.0"
+}

@@ -1,0 +1,74 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "test-js-project",
+  "documentNamespace": "https://example.com/spdx/test-js-project",
+  "creationInfo": {
+    "created": "2025-01-15T10:00:00Z",
+    "creators": [
+      "Tool: bomly-cli-test"
+    ]
+  },
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-app",
+      "name": "my-js-app",
+      "versionInfo": "2.0.0",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/my-js-app@2.0.0"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-react",
+      "name": "react",
+      "versionInfo": "18.2.0",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/react@18.2.0"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-lodash",
+      "name": "lodash",
+      "versionInfo": "4.17.21",
+      "downloadLocation": "NOASSERTION",
+      "filesAnalyzed": false,
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/lodash@4.17.21"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relatedSpdxElement": "SPDXRef-app",
+      "relationshipType": "DESCRIBES"
+    },
+    {
+      "spdxElementId": "SPDXRef-app",
+      "relatedSpdxElement": "SPDXRef-react",
+      "relationshipType": "DEPENDS_ON"
+    },
+    {
+      "spdxElementId": "SPDXRef-app",
+      "relatedSpdxElement": "SPDXRef-lodash",
+      "relationshipType": "DEPENDS_ON"
+    }
+  ]
+}

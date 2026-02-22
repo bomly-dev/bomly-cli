@@ -1,0 +1,14 @@
+# Ignore build files
+/bin
+
+# Ignore generated SBOM files
+/sboms
+
+# Ignore test coverage files
+coverage
+
+# IDE files
+.idea
+
+# Qodana files
+qodana.yaml

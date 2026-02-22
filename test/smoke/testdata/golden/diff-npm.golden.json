@@ -1,0 +1,70 @@
+{
+  "command": "diff",
+  "comparison": {
+    "base": "v6.12.0",
+    "head": "v6.13.0"
+  },
+  "metadata": {
+    "duration_ms": 0
+  },
+  "project": {
+    "ecosystem": "multiple",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "multiple",
+    "path": "\u003cnormalized\u003e"
+  },
+  "results": {
+    "manifests": [
+      {
+        "ecosystem": "github-actions",
+        "kind": "node-aught.yml",
+        "package_manager": "github-actions",
+        "path": ".github/workflows/node-aught.yml",
+        "status": "unchanged",
+        "subproject": "."
+      },
+      {
+        "ecosystem": "npm",
+        "kind": "github-action-workflow",
+        "package_manager": "npm",
+        "path": ".github/workflows/node-pretest.yml",
+        "status": "unchanged",
+        "subproject": "."
+      },
+      {
+        "ecosystem": "npm",
+        "kind": "github-action-workflow",
+        "package_manager": "npm",
+        "path": ".github/workflows/node-tens.yml",
+        "status": "unchanged",
+        "subproject": "."
+      },
+      {
+        "ecosystem": "npm",
+        "kind": "github-action",
+        "package_manager": "npm",
+        "path": ".github/workflows/rebase.yml",
+        "status": "unchanged",
+        "subproject": "."
+      },
+      {
+        "ecosystem": "npm",
+        "kind": "github-action",
+        "package_manager": "npm",
+        "path": ".github/workflows/require-allow-edits.yml",
+        "status": "unchanged",
+        "subproject": "."
+      }
+    ]
+  },
+  "schema_version": "1.0",
+  "summary": {
+    "added_manifest_count": 0,
+    "added_package_count": 0,
+    "changed_manifest_count": 0,
+    "changed_package_count": 0,
+    "removed_manifest_count": 0,
+    "removed_package_count": 0,
+    "unchanged_manifest_count": 5
+  }
+}

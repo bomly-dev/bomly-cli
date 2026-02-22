@@ -1,0 +1,225 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "detector": "github-actions-detector",
+      "ecosystem": "github-actions",
+      "kind": "check-dist.yml",
+      "package_manager": "github-actions",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:github-actions/.github/workflows/check-dist.yml@local",
+            "pkg:github-actions/.github/workflows/codeql-analysis.yml@local",
+            "pkg:github-actions/.github/workflows/licensed.yml@local",
+            "pkg:github-actions/.github/workflows/publish-immutable-actions.yml@local",
+            "pkg:github-actions/.github/workflows/test.yml@local",
+            "pkg:github-actions/.github/workflows/update-main-version.yml@local",
+            "pkg:github-actions/.github/workflows/update-test-ubuntu-git.yml@local"
+          ],
+          "id": ".github/workflows/check-dist.yml",
+          "licenses": [],
+          "name": ".github/workflows/check-dist.yml"
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/.@local",
+          "licenses": [],
+          "name": ".",
+          "purl": "pkg:github-actions/.@local",
+          "scope": "runtime",
+          "version": "local"
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@v4.1.6",
+            "pkg:github-actions/actions/setup-node@v4",
+            "pkg:github-actions/actions/upload-artifact@v4"
+          ],
+          "id": "pkg:github-actions/.github/workflows/check-dist.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/check-dist.yml",
+          "purl": "pkg:github-actions/.github/workflows/check-dist.yml@local",
+          "scope": "runtime",
+          "version": "local"
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@v4.1.6",
+            "pkg:github-actions/github/codeql-action/analyze@v3",
+            "pkg:github-actions/github/codeql-action/init@v3"
+          ],
+          "id": "pkg:github-actions/.github/workflows/codeql-analysis.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/codeql-analysis.yml",
+          "purl": "pkg:github-actions/.github/workflows/codeql-analysis.yml@local",
+          "scope": "runtime",
+          "version": "local"
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@v4.1.6"
+          ],
+          "id": "pkg:github-actions/.github/workflows/licensed.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/licensed.yml",
+          "purl": "pkg:github-actions/.github/workflows/licensed.yml@local",
+          "scope": "runtime",
+          "version": "local"
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@v4",
+            "pkg:github-actions/actions/publish-immutable-action@0.0.3"
+          ],
+          "id": "pkg:github-actions/.github/workflows/publish-immutable-actions.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/publish-immutable-actions.yml",
+          "purl": "pkg:github-actions/.github/workflows/publish-immutable-actions.yml@local",
+          "scope": "runtime",
+          "version": "local"
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/.@local",
+            "pkg:github-actions/actions/checkout@v4.1.6",
+            "pkg:github-actions/actions/setup-node@v4",
+            "pkg:github-actions/localClone@local"
+          ],
+          "id": "pkg:github-actions/.github/workflows/test.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/test.yml",
+          "purl": "pkg:github-actions/.github/workflows/test.yml@local",
+          "scope": "runtime",
+          "version": "local"
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@v4.1.6"
+          ],
+          "id": "pkg:github-actions/.github/workflows/update-main-version.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/update-main-version.yml",
+          "purl": "pkg:github-actions/.github/workflows/update-main-version.yml@local",
+          "scope": "runtime",
+          "version": "local"
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@v4",
+            "pkg:github-actions/docker/build-push-action@v6.5.0",
+            "pkg:github-actions/docker/login-action@v3.3.0"
+          ],
+          "id": "pkg:github-actions/.github/workflows/update-test-ubuntu-git.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/update-test-ubuntu-git.yml",
+          "purl": "pkg:github-actions/.github/workflows/update-test-ubuntu-git.yml@local",
+          "scope": "runtime",
+          "version": "local"
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/actions/checkout@v4",
+          "licenses": [],
+          "name": "actions:checkout",
+          "purl": "pkg:github-actions/actions/checkout@v4",
+          "scope": "runtime",
+          "version": "v4"
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/actions/checkout@v4.1.6",
+          "licenses": [],
+          "name": "actions:checkout",
+          "purl": "pkg:github-actions/actions/checkout@v4.1.6",
+          "scope": "runtime",
+          "version": "v4.1.6"
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/actions/publish-immutable-action@0.0.3",
+          "licenses": [],
+          "name": "actions:publish-immutable-action",
+          "purl": "pkg:github-actions/actions/publish-immutable-action@0.0.3",
+          "scope": "runtime",
+          "version": "0.0.3"
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/actions/setup-node@v4",
+          "licenses": [],
+          "name": "actions:setup-node",
+          "purl": "pkg:github-actions/actions/setup-node@v4",
+          "scope": "runtime",
+          "version": "v4"
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/actions/upload-artifact@v4",
+          "licenses": [],
+          "name": "actions:upload-artifact",
+          "purl": "pkg:github-actions/actions/upload-artifact@v4",
+          "scope": "runtime",
+          "version": "v4"
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/docker/build-push-action@v6.5.0",
+          "licenses": [],
+          "name": "docker:build-push-action",
+          "purl": "pkg:github-actions/docker/build-push-action@v6.5.0",
+          "scope": "runtime",
+          "version": "v6.5.0"
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/docker/login-action@v3.3.0",
+          "licenses": [],
+          "name": "docker:login-action",
+          "purl": "pkg:github-actions/docker/login-action@v3.3.0",
+          "scope": "runtime",
+          "version": "v3.3.0"
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/github/codeql-action/analyze@v3",
+          "licenses": [],
+          "name": "github:codeql-action/analyze",
+          "purl": "pkg:github-actions/github/codeql-action/analyze@v3",
+          "scope": "runtime",
+          "version": "v3"
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/github/codeql-action/init@v3",
+          "licenses": [],
+          "name": "github:codeql-action/init",
+          "purl": "pkg:github-actions/github/codeql-action/init@v3",
+          "scope": "runtime",
+          "version": "v3"
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/localClone@local",
+          "licenses": [],
+          "name": "localClone",
+          "purl": "pkg:github-actions/localClone@local",
+          "scope": "runtime",
+          "version": "local"
+        }
+      ],
+      "path": ".github/workflows/check-dist.yml",
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "duration_ms": 0
+  },
+  "project": {
+    "ecosystem": "github-actions",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "github-actions",
+    "path": "\u003cnormalized\u003e"
+  },
+  "schema_version": "1.0"
+}

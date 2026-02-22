@@ -1,0 +1,7 @@
+path: .
+ecosystems: npm,go
+exclude_ecosystems: rpm
+detectors: npm-detector,go-detector
+exclude_detectors: syft-detector
+recursive: false
+verbose: true

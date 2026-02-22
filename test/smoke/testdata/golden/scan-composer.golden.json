@@ -1,0 +1,98 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "detector": "github-actions-detector",
+      "ecosystem": "github-actions",
+      "kind": "checks.yml",
+      "package_manager": "github-actions",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:github-actions/.github/workflows/checks.yml@local",
+            "pkg:github-actions/.github/workflows/ci.yml@local",
+            "pkg:github-actions/.github/workflows/static.yml@local"
+          ],
+          "id": ".github/workflows/checks.yml",
+          "licenses": [],
+          "name": ".github/workflows/checks.yml"
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@v4"
+          ],
+          "id": "pkg:github-actions/.github/workflows/checks.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/checks.yml",
+          "purl": "pkg:github-actions/.github/workflows/checks.yml@local",
+          "scope": "runtime",
+          "version": "local"
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@v4",
+            "pkg:github-actions/actions/setup-node@v3",
+            "pkg:github-actions/shivammathur/setup-php@v2"
+          ],
+          "id": "pkg:github-actions/.github/workflows/ci.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/ci.yml",
+          "purl": "pkg:github-actions/.github/workflows/ci.yml@local",
+          "scope": "runtime",
+          "version": "local"
+        },
+        {
+          "dependencies": [
+            "pkg:github-actions/actions/checkout@v4",
+            "pkg:github-actions/shivammathur/setup-php@v2"
+          ],
+          "id": "pkg:github-actions/.github/workflows/static.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/static.yml",
+          "purl": "pkg:github-actions/.github/workflows/static.yml@local",
+          "scope": "runtime",
+          "version": "local"
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/actions/checkout@v4",
+          "licenses": [],
+          "name": "actions:checkout",
+          "purl": "pkg:github-actions/actions/checkout@v4",
+          "scope": "runtime",
+          "version": "v4"
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/actions/setup-node@v3",
+          "licenses": [],
+          "name": "actions:setup-node",
+          "purl": "pkg:github-actions/actions/setup-node@v3",
+          "scope": "runtime",
+          "version": "v3"
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:github-actions/shivammathur/setup-php@v2",
+          "licenses": [],
+          "name": "shivammathur:setup-php",
+          "purl": "pkg:github-actions/shivammathur/setup-php@v2",
+          "scope": "runtime",
+          "version": "v2"
+        }
+      ],
+      "path": ".github/workflows/checks.yml",
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "duration_ms": 0
+  },
+  "project": {
+    "ecosystem": "github-actions",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "github-actions",
+    "path": "\u003cnormalized\u003e"
+  },
+  "schema_version": "1.0"
+}

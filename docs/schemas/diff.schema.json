@@ -1,0 +1,610 @@
+{
+  "$id": "https://bomly.dev/schemas/diff.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "audit": {
+      "properties": {
+        "audit_summary": {
+          "properties": {
+            "critical": {
+              "type": "integer"
+            },
+            "high": {
+              "type": "integer"
+            },
+            "low": {
+              "type": "integer"
+            },
+            "medium": {
+              "type": "integer"
+            },
+            "total": {
+              "type": "integer"
+            },
+            "unknown": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "critical",
+            "high",
+            "medium",
+            "low",
+            "unknown",
+            "total"
+          ],
+          "type": "object"
+        },
+        "introduced": {
+          "items": {
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string"
+              },
+              "package": {
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "licenses": {
+                    "items": {
+                      "properties": {
+                        "spdxExpression": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "purl": {
+                    "type": "string"
+                  },
+                  "scope": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "licenses"
+                ],
+                "type": "object"
+              },
+              "reasons": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "severity": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "severity",
+              "package",
+              "title",
+              "source"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "persisted": {
+          "items": {
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string"
+              },
+              "package": {
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "licenses": {
+                    "items": {
+                      "properties": {
+                        "spdxExpression": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "purl": {
+                    "type": "string"
+                  },
+                  "scope": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "licenses"
+                ],
+                "type": "object"
+              },
+              "reasons": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "severity": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "severity",
+              "package",
+              "title",
+              "source"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "resolved": {
+          "items": {
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string"
+              },
+              "package": {
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "licenses": {
+                    "items": {
+                      "properties": {
+                        "spdxExpression": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "purl": {
+                    "type": "string"
+                  },
+                  "scope": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "licenses"
+                ],
+                "type": "object"
+              },
+              "reasons": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "severity": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "severity",
+              "package",
+              "title",
+              "source"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "command": {
+      "type": "string"
+    },
+    "comparison": {
+      "properties": {
+        "base": {
+          "type": "string"
+        },
+        "head": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "base",
+        "head"
+      ],
+      "type": "object"
+    },
+    "metadata": {
+      "properties": {
+        "duration_ms": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "duration_ms"
+      ],
+      "type": "object"
+    },
+    "project": {
+      "properties": {
+        "ecosystem": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "package_manager": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "ecosystem"
+      ],
+      "type": "object"
+    },
+    "results": {
+      "properties": {
+        "manifests": {
+          "items": {
+            "properties": {
+              "added": {
+                "items": {
+                  "properties": {
+                    "package": {
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "licenses": {
+                          "items": {
+                            "properties": {
+                              "spdxExpression": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "purl": {
+                          "type": "string"
+                        },
+                        "scope": {
+                          "type": "string"
+                        },
+                        "version": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "licenses"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "package"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "changed": {
+                "items": {
+                  "properties": {
+                    "after": {
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "licenses": {
+                          "items": {
+                            "properties": {
+                              "spdxExpression": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "purl": {
+                          "type": "string"
+                        },
+                        "scope": {
+                          "type": "string"
+                        },
+                        "version": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "licenses"
+                      ],
+                      "type": "object"
+                    },
+                    "before": {
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "licenses": {
+                          "items": {
+                            "properties": {
+                              "spdxExpression": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "purl": {
+                          "type": "string"
+                        },
+                        "scope": {
+                          "type": "string"
+                        },
+                        "version": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "licenses"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "after",
+                    "before"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "ecosystem": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string"
+              },
+              "package_manager": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              },
+              "removed": {
+                "items": {
+                  "properties": {
+                    "package": {
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "licenses": {
+                          "items": {
+                            "properties": {
+                              "spdxExpression": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "purl": {
+                          "type": "string"
+                        },
+                        "scope": {
+                          "type": "string"
+                        },
+                        "version": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "licenses"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "package"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "status": {
+                "type": "string"
+              },
+              "subproject": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "status"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "manifests"
+      ],
+      "type": "object"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "summary": {
+      "properties": {
+        "added_manifest_count": {
+          "type": "integer"
+        },
+        "added_package_count": {
+          "type": "integer"
+        },
+        "changed_manifest_count": {
+          "type": "integer"
+        },
+        "changed_package_count": {
+          "type": "integer"
+        },
+        "removed_manifest_count": {
+          "type": "integer"
+        },
+        "removed_package_count": {
+          "type": "integer"
+        },
+        "unchanged_manifest_count": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "added_manifest_count",
+        "changed_manifest_count",
+        "removed_manifest_count",
+        "unchanged_manifest_count",
+        "added_package_count",
+        "changed_package_count",
+        "removed_package_count"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "command",
+    "project",
+    "comparison",
+    "results",
+    "summary",
+    "metadata"
+  ],
+  "title": "Bomly diff output",
+  "type": "object"
+}

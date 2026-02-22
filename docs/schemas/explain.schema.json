@@ -1,0 +1,539 @@
+{
+  "$id": "https://bomly.dev/schemas/explain.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "audit_summary": {
+      "properties": {
+        "critical": {
+          "type": "integer"
+        },
+        "high": {
+          "type": "integer"
+        },
+        "low": {
+          "type": "integer"
+        },
+        "medium": {
+          "type": "integer"
+        },
+        "total": {
+          "type": "integer"
+        },
+        "unknown": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "critical",
+        "high",
+        "medium",
+        "low",
+        "unknown",
+        "total"
+      ],
+      "type": "object"
+    },
+    "command": {
+      "type": "string"
+    },
+    "dependency": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "licenses": {
+          "items": {
+            "properties": {
+              "spdxExpression": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "name": {
+          "type": "string"
+        },
+        "purl": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "licenses"
+      ],
+      "type": "object"
+    },
+    "findings": {
+      "items": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "package": {
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "licenses": {
+                "items": {
+                  "properties": {
+                    "spdxExpression": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "name": {
+                "type": "string"
+              },
+              "purl": {
+                "type": "string"
+              },
+              "scope": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "licenses"
+            ],
+            "type": "object"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "severity",
+          "package",
+          "title",
+          "source"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "metadata": {
+      "properties": {
+        "duration_ms": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "duration_ms"
+      ],
+      "type": "object"
+    },
+    "paths": {
+      "items": {
+        "properties": {
+          "IntroducedVia": {
+            "type": "string"
+          },
+          "Packages": {
+            "items": {
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "licenses": {
+                  "items": {
+                    "properties": {
+                      "spdxExpression": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "purl": {
+                  "type": "string"
+                },
+                "scope": {
+                  "type": "string"
+                },
+                "version": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "licenses"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "Relationship": {
+            "type": "string"
+          },
+          "cycle_to": {
+            "type": "string"
+          },
+          "cyclic": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "Relationship",
+          "Packages",
+          "IntroducedVia"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "project": {
+      "properties": {
+        "ecosystem": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "package_manager": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "ecosystem"
+      ],
+      "type": "object"
+    },
+    "query": {
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "targets": {
+      "items": {
+        "properties": {
+          "audit_summary": {
+            "properties": {
+              "critical": {
+                "type": "integer"
+              },
+              "high": {
+                "type": "integer"
+              },
+              "low": {
+                "type": "integer"
+              },
+              "medium": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              },
+              "unknown": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "critical",
+              "high",
+              "medium",
+              "low",
+              "unknown",
+              "total"
+            ],
+            "type": "object"
+          },
+          "dependency": {
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "licenses": {
+                "items": {
+                  "properties": {
+                    "spdxExpression": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "name": {
+                "type": "string"
+              },
+              "purl": {
+                "type": "string"
+              },
+              "scope": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "licenses"
+            ],
+            "type": "object"
+          },
+          "detector": {
+            "type": "string"
+          },
+          "findings": {
+            "items": {
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "package": {
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "licenses": {
+                      "items": {
+                        "properties": {
+                          "spdxExpression": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string"
+                          },
+                          "value": {
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "purl": {
+                      "type": "string"
+                    },
+                    "scope": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "licenses"
+                  ],
+                  "type": "object"
+                },
+                "reasons": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "severity": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "kind",
+                "severity",
+                "package",
+                "title",
+                "source"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "paths": {
+            "items": {
+              "properties": {
+                "IntroducedVia": {
+                  "type": "string"
+                },
+                "Packages": {
+                  "items": {
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "licenses": {
+                        "items": {
+                          "properties": {
+                            "spdxExpression": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "purl": {
+                        "type": "string"
+                      },
+                      "scope": {
+                        "type": "string"
+                      },
+                      "version": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "licenses"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "Relationship": {
+                  "type": "string"
+                },
+                "cycle_to": {
+                  "type": "string"
+                },
+                "cyclic": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "Relationship",
+                "Packages",
+                "IntroducedVia"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "project": {
+            "properties": {
+              "ecosystem": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "package_manager": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path",
+              "ecosystem"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "project",
+          "dependency",
+          "paths"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "command",
+    "project",
+    "query",
+    "metadata"
+  ],
+  "title": "Bomly explain output",
+  "type": "object"
+}

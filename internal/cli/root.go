@@ -59,6 +59,7 @@ func newRootCmd(version string) (*cobra.Command, error) {
 	root.AddCommand(newScanCmd(options))
 	root.AddCommand(newDiffCmd(options))
 	root.AddCommand(newPluginCmd(options))
+	root.AddCommand(newMcpCmd(options))
 	root.AddCommand(newVersionCmd(version, options))
 
 	return root, nil

@@ -13,5 +13,8 @@ coverage
 # IDE files
 .idea
 
+# Claude files
+/.claude
+
 # Qodana files
 qodana.yaml

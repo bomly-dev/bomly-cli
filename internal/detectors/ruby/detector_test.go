@@ -1,12 +1,44 @@
 package ruby
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
 
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
+
+func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
+	detector := Detector{WorkingDir: "testdata/project"}
+	result, err := detector.ResolveGraph(context.Background(), model.DetectionRequest{
+		ProjectPath:     "testdata/project",
+		PackageManager:  model.PackageManagerBundler,
+		Ecosystem:       model.EcosystemRuby,
+		ExecutionTarget: model.ExecutionTarget{Location: "testdata/project"},
+	})
+	if err != nil {
+		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+	g, err := result.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	rack, ok := g.Package("rack@3.1.8")
+	if !ok {
+		t.Fatal("expected rack package")
+	}
+	if rack.Scope != string(model.ScopeRuntime) {
+		t.Fatalf("expected runtime scope, got %q", rack.Scope)
+	}
+	rake, ok := g.Package("rake@13.2.1")
+	if !ok {
+		t.Fatal("expected rake package")
+	}
+	if rake.Scope != string(model.ScopeDevelopment) {
+		t.Fatalf("expected development scope, got %q", rake.Scope)
+	}
+}
 
 func TestDepGraphFromLock(t *testing.T) {
 	raw := []byte(`GEM

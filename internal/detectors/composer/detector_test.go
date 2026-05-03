@@ -1,10 +1,42 @@
 package composer
 
 import (
+	"context"
 	"testing"
 
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
+
+func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
+	detector := Detector{WorkingDir: "testdata/project"}
+	result, err := detector.ResolveGraph(context.Background(), model.DetectionRequest{
+		ProjectPath:     "testdata/project",
+		PackageManager:  model.PackageManagerComposer,
+		Ecosystem:       model.EcosystemPHP,
+		ExecutionTarget: model.ExecutionTarget{Location: "testdata/project"},
+	})
+	if err != nil {
+		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+	g, err := result.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	runtimePkg, ok := g.Package("monolog:monolog@3.7.0")
+	if !ok {
+		t.Fatal("expected monolog package")
+	}
+	if runtimePkg.Scope != string(model.ScopeRuntime) {
+		t.Fatalf("expected runtime scope, got %q", runtimePkg.Scope)
+	}
+	devPkg, ok := g.Package("phpunit:phpunit@11.4.3")
+	if !ok {
+		t.Fatal("expected phpunit package")
+	}
+	if devPkg.Scope != string(model.ScopeDevelopment) {
+		t.Fatalf("expected development scope, got %q", devPkg.Scope)
+	}
+}
 
 func TestDepGraphFromLock(t *testing.T) {
 	raw := []byte(`{

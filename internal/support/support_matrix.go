@@ -20,10 +20,11 @@ func RenderSupportMatrixMarkdown() string {
 	builder.WriteString("- Native detectors implemented directly in Bomly.\n")
 	builder.WriteString("- Third-party-backed detection powered by Syft support metadata.\n\n")
 	builder.WriteString("## Native Detectors\n\n")
-	builder.WriteString("| Ecosystem | Package managers | Detector |\n")
-	builder.WriteString("| --- | --- | --- |\n")
+	builder.WriteString("Primary detector files are the preferred inputs for Bomly-owned resolution. Fallback detector files are inputs for the next built-in Bomly detector in the same chain; Syft-only backstops are omitted here and listed under third-party support.\n\n")
+	builder.WriteString("| Ecosystem | Package managers | Primary detector files | Fallback detector files | Detector |\n")
+	builder.WriteString("| --- | --- | --- | --- | --- |\n")
 	for _, entry := range groupedNativeEntries() {
-		builder.WriteString(fmt.Sprintf("| `%s` | %s | %s |\n", entry.ecosystem, codeList(entry.managers), nativeDetectorLabel(entry.ecosystem)))
+		builder.WriteString(fmt.Sprintf("| `%s` | %s | %s | %s | %s |\n", entry.ecosystem, codeList(entry.managers), codeListOrDash(entry.primaryPatterns), codeListOrDash(entry.fallbackPatterns), nativeDetectorLabel(entry.ecosystem)))
 	}
 	builder.WriteString("\n## Third-Party Support\n\n")
 	builder.WriteString("The entries below show Syft-backed ecosystem coverage plus representative files Bomly uses during planning and discovery.\n\n")
@@ -61,35 +62,56 @@ func WriteSupportMatrix(outputPath string) error {
 }
 
 type groupedEntry struct {
-	ecosystem model.Ecosystem
-	managers  []string
-	patterns  []string
+	ecosystem        model.Ecosystem
+	managers         []string
+	patterns         []string
+	primaryPatterns  []string
+	fallbackPatterns []string
 }
 
-// groupedNativeEntries merges NativeComponent and LockfileParserComponent entries
-// so that lockfile-based detectors appear together with native detectors in the
-// support matrix (they are first-class built-in detectors from the user perspective).
+// groupedNativeEntries reports the first Bomly-owned detector in each built-in
+// package-manager chain and, when present, the next Bomly-owned fallback.
 func groupedNativeEntries() []groupedEntry {
 	indexByEcosystem := make(map[model.Ecosystem]int)
 	result := make([]groupedEntry, 0)
-	for _, componentType := range []model.ComponentType{model.NativeComponent, model.LockfileParserComponent} {
-		for _, entry := range registry.SupportEntriesForDetectorType(componentType) {
-			idx, ok := indexByEcosystem[entry.Ecosystem]
-			if !ok {
-				idx = len(result)
-				indexByEcosystem[entry.Ecosystem] = idx
-				result = append(result, groupedEntry{ecosystem: entry.Ecosystem})
-			}
-			result[idx].managers = appendUnique(result[idx].managers, entry.Manager.Name())
-			for _, pattern := range entry.EvidencePatterns {
-				result[idx].patterns = appendUnique(result[idx].patterns, pattern)
-			}
+	for _, entry := range registry.SupportEntries() {
+		primary, fallback := firstBuiltInDetectorPair(entry.Detectors)
+		if primary == "" {
+			continue
+		}
+		idx, ok := indexByEcosystem[entry.Ecosystem]
+		if !ok {
+			idx = len(result)
+			indexByEcosystem[entry.Ecosystem] = idx
+			result = append(result, groupedEntry{ecosystem: entry.Ecosystem})
+		}
+		result[idx].managers = appendUnique(result[idx].managers, entry.Manager.Name())
+		for _, pattern := range entry.EvidencePatternsByDetector[primary] {
+			result[idx].primaryPatterns = appendUnique(result[idx].primaryPatterns, pattern)
+		}
+		for _, pattern := range entry.EvidencePatternsByDetector[fallback] {
+			result[idx].fallbackPatterns = appendUnique(result[idx].fallbackPatterns, pattern)
 		}
 	}
 	sort.Slice(result, func(i, j int) bool {
 		return result[i].ecosystem < result[j].ecosystem
 	})
 	return result
+}
+
+func firstBuiltInDetectorPair(detectors []string) (string, string) {
+	primary := ""
+	for _, detector := range detectors {
+		switch registry.DetectorTypeForName(detector) {
+		case model.NativeComponent, model.LockfileParserComponent:
+			if primary == "" {
+				primary = detector
+				continue
+			}
+			return primary, detector
+		}
+	}
+	return primary, ""
 }
 
 func groupedSupportEntries(detectorType model.ComponentType) []groupedEntry {
@@ -134,6 +156,13 @@ func codeList(values []string) string {
 		items = append(items, "`"+v+"`")
 	}
 	return strings.Join(items, ", ")
+}
+
+func codeListOrDash(values []string) string {
+	if len(values) == 0 {
+		return "-"
+	}
+	return codeList(values)
 }
 
 func nativeDetectorLabel(ecosystem model.Ecosystem) string {

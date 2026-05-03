@@ -131,6 +131,12 @@ func normEffectiveEcosystem(pkg *Package) string {
 			return string(EcosystemGo)
 		case string(EcosystemMaven), "gradle":
 			return string(EcosystemMaven)
+		case string(EcosystemDotNet), "nuget":
+			return string(EcosystemDotNet)
+		case string(EcosystemDart), "pub":
+			return string(EcosystemDart)
+		case string(EcosystemSwift), "cocoapods", "swiftpm":
+			return string(EcosystemSwift)
 		}
 	}
 	return ""

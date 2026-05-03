@@ -42,6 +42,16 @@ jobs:
             run: 'TestScan/scan-bundler'
           - name: sbom
             run: 'TestScan/(scan-sbom-spdx|scan-sbom-cyclonedx)|TestDiff/diff-sbom|TestLiteScan/(lite-scan-sbom-spdx|lite-scan-sbom-cyclonedx)'
+          - name: dotnet
+            run: 'TestScan/scan-nuget'
+            dotnet: true
+          - name: rust
+            run: 'TestScan/scan-cargo'
+          - name: dart
+            run: 'TestScan/scan-pub'
+            dart: true
+          - name: swift
+            run: 'TestScan/scan-cocoapods'
           - name: container
             run: 'TestContainer(Scan|Diff|Explain)|TestContainerAuditScan/container-scan-alpine-audit'
     steps:
@@ -74,6 +84,16 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
+
+      - name: Set up .NET
+        if: matrix.slice.dotnet
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Set up Dart
+        if: matrix.slice.dart
+        uses: dart-lang/setup-dart@v1
 
       - name: Install smoke-test dependencies
         if: matrix.slice.maven

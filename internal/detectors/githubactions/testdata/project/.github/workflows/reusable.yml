@@ -1,0 +1,4 @@
+jobs:
+  nested:
+    steps:
+      - uses: actions/setup-java@v5

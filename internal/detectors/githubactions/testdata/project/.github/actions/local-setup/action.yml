@@ -1,0 +1,4 @@
+runs:
+  using: composite
+  steps:
+    - uses: actions/cache@v4

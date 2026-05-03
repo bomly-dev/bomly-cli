@@ -19,7 +19,8 @@ type LockfileDetector struct {
 	Fallback   model.Detector
 }
 
-var yarnEvidencePatterns = []string{"yarn.lock", "package.json"}
+var yarnEvidencePatterns = []string{"yarn.lock"}
+var yarnManifestMetadataPatterns = []string{"yarn.lock", "package.json"}
 
 // PackageManagerSupport returns Yarn package-manager discovery metadata.
 func (d LockfileDetector) PackageManagerSupport() []model.PackageManagerSupport {
@@ -66,7 +67,7 @@ func (d LockfileDetector) ResolveGraph(_ context.Context, req model.DetectionReq
 		return model.DetectionResult{}, err
 	}
 	return model.DetectionResult{
-		Graphs: model.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, yarnEvidencePatterns)),
+		Graphs: model.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, yarnManifestMetadataPatterns)),
 	}, nil
 }
 

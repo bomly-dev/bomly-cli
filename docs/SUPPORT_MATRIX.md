@@ -11,16 +11,22 @@ Bomly groups support into two implementation paths:
 
 ## Native Detectors
 
-| Ecosystem | Package managers | Detector |
-| --- | --- | --- |
-| `github-actions` | `github-actions` | Native detector |
-| `go` | `gomod` | Native Go detector |
-| `maven` | `gradle`, `maven` | Native Maven and Gradle detectors |
-| `npm` | `npm`, `pnpm`, `yarn` | Native Node detectors |
-| `php` | `composer` | Native detector |
-| `python` | `pip`, `pipenv`, `poetry`, `uv` | Native Python detectors |
-| `ruby` | `bundler` | Native detector |
-| `sbom` | `sbom` | Native SBOM detector |
+Primary detector files are the preferred inputs for Bomly-owned resolution. Fallback detector files are inputs for the next built-in Bomly detector in the same chain; Syft-only backstops are omitted here and listed under third-party support.
+
+| Ecosystem | Package managers | Primary detector files | Fallback detector files | Detector |
+| --- | --- | --- | --- | --- |
+| `dart` | `pub` | `pubspec.lock`, `pubspec.yaml`, `pubspec.yml` | - | Native detector |
+| `dotnet` | `nuget` | `packages.lock.json`, `packages.config`, `*.csproj`, `*.fsproj`, `*.vbproj`, `*.vcxproj`, `project.assets.json` | - | Native detector |
+| `github-actions` | `github-actions` | `.github/workflows/*.yaml`, `.github/workflows/*.yml`, `.github/actions/*/action.yml`, `.github/actions/*/action.yaml` | - | Native detector |
+| `go` | `gomod` | `go.mod` | - | Native Go detector |
+| `maven` | `gradle`, `maven` | `build.gradle`, `build.gradle.kts`, `settings.gradle`, `settings.gradle.kts`, `gradle.lockfile*`, `pom.xml`, `*pom.xml` | - | Native Maven and Gradle detectors |
+| `npm` | `npm`, `pnpm`, `yarn` | `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock` | `package.json` | Native Node detectors |
+| `php` | `composer` | `composer.lock`, `installed.json` | - | Native detector |
+| `python` | `pip`, `pipenv`, `poetry`, `uv` | `requirements.txt`, `requirements-dev.txt`, `requirements.in`, `requirements.lock`, `*requirements*.txt`, `Pipfile`, `Pipfile.lock`, `poetry.lock`, `pyproject.toml`, `uv.lock` | - | Native Python detectors |
+| `ruby` | `bundler` | `Gemfile.lock`, `Gemfile.next.lock` | - | Native detector |
+| `rust` | `cargo` | `Cargo.lock`, `Cargo.toml` | - | Native detector |
+| `sbom` | `sbom` | `*.syft.json`, `*.bom.*`, `*.bom`, `bom`, `*.sbom.*`, `*.sbom`, `sbom`, `*.cdx.*`, `*.cdx`, `*.spdx.*`, `*.spdx` | - | Native SBOM detector |
+| `swift` | `cocoapods` | `Podfile.lock`, `Podfile` | - | Native detector |
 
 ## Third-Party Support
 

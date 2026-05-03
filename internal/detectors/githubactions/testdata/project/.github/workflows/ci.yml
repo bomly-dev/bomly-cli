@@ -1,0 +1,7 @@
+jobs:
+  build:
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/local-setup
+  deploy:
+    uses: ./.github/workflows/reusable.yml

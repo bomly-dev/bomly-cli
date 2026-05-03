@@ -120,6 +120,22 @@ func TestScan(t *testing.T) {
 			args: []string{"scan", "--url", "https://github.com/actions/checkout", "--ref", "v4.2.2", "--format", "json", "--ecosystems", "github-actions"},
 		},
 		{
+			name: "scan-nuget",
+			args: []string{"scan", "--url", "https://github.com/pi-apps/SilkRoad", "--ref", "8c273f35c4a021ba73482f06636e730dd24b080d", "--format", "json", "--ecosystems", "dotnet"},
+		},
+		{
+			name: "scan-cargo",
+			args: []string{"scan", "--url", "https://github.com/BurntSushi/ripgrep", "--ref", "4519153e5e461527f4bca45b042fff45c4ec6fb9", "--format", "json", "--ecosystems", "rust"},
+		},
+		{
+			name: "scan-pub",
+			args: []string{"scan", "--url", "https://github.com/KhoaSuperman/findseat", "--ref", "53007f252ec7143718e3f273a802e26b67cf2739", "--format", "json", "--ecosystems", "dart"},
+		},
+		{
+			name: "scan-cocoapods",
+			args: []string{"scan", "--url", "https://github.com/material-motion/motion-interchange-objc", "--ref", "835474053336d2004c079f7d6580f582a7a2b85a", "--format", "json", "--ecosystems", "swift"},
+		},
+		{
 			name:  "scan-npm-scope-runtime",
 			args:  []string{"scan", "--url", "https://github.com/ljharb/qs", "--ref", "v6.13.0", "--format", "json", "--scope", "runtime"},
 			tools: []string{"npm"},

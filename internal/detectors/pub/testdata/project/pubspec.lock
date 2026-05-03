@@ -1,0 +1,27 @@
+packages:
+  collection:
+    dependency: transitive
+    description:
+      name: collection
+      sha256: demo
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.18.0"
+  path:
+    dependency: "direct main"
+    description:
+      name: path
+      sha256: demo
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.9.0"
+  test:
+    dependency: "direct dev"
+    description:
+      name: test
+      sha256: demo
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.25.8"
+sdks:
+  dart: ">=3.0.0 <4.0.0"

@@ -1,12 +1,36 @@
 package githubactions
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
 
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
+
+func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
+	detector := Detector{}
+	result, err := detector.ResolveGraph(context.Background(), model.DetectionRequest{
+		ProjectPath:     "testdata/project",
+		PackageManager:  model.PackageManagerGitHubActions,
+		Ecosystem:       model.EcosystemGitHub,
+		ExecutionTarget: model.ExecutionTarget{Location: "testdata/project"},
+	})
+	if err != nil {
+		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+	g, err := result.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	if _, ok := g.Package("actions:checkout@v4"); !ok {
+		t.Fatal("expected actions/checkout package")
+	}
+	if _, ok := g.Package("actions:cache@v4"); !ok {
+		t.Fatal("expected actions/cache package")
+	}
+}
 
 func TestDepGraphFromRepository(t *testing.T) {
 	projectDir := t.TempDir()

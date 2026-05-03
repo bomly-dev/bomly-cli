@@ -3,6 +3,8 @@ package registry
 import (
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/detectors/cargo"
+	"github.com/bomly-dev/bomly-cli/internal/detectors/cocoapods"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/composer"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/githubactions"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/gomod"
@@ -11,6 +13,8 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/npm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/pnpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/yarn"
+	"github.com/bomly-dev/bomly-cli/internal/detectors/nuget"
+	"github.com/bomly-dev/bomly-cli/internal/detectors/pub"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/python"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/ruby"
 	sbomdetector "github.com/bomly-dev/bomly-cli/internal/detectors/sbom"
@@ -20,11 +24,12 @@ import (
 
 // PackageManagerSupport records Bomly's built-in support metadata for one package manager.
 type PackageManagerSupport struct {
-	Manager          model.PackageManager
-	Ecosystem        model.Ecosystem
-	Aliases          []string
-	EvidencePatterns []string
-	Detectors        []string
+	Manager                    model.PackageManager
+	Ecosystem                  model.Ecosystem
+	Aliases                    []string
+	EvidencePatterns           []string
+	Detectors                  []string
+	EvidencePatternsByDetector map[string][]string
 }
 
 // OperatingSystemSupport records the container OS families Syft documents support for.
@@ -56,8 +61,11 @@ var operatingSystemSupport = []OperatingSystemSupport{
 func builtInSupportDetectors() []model.Detector {
 	return []model.Detector{
 		npm.LockfileDetector{},
+		npm.NativeDetector{},
 		pnpm.LockfileDetector{},
+		pnpm.NativeDetector{},
 		yarn.LockfileDetector{},
+		yarn.NativeDetector{},
 		gradle.Detector{},
 		maven.Detector{},
 		gomod.Detector{},
@@ -68,6 +76,10 @@ func builtInSupportDetectors() []model.Detector {
 		python.PipenvDetector{},
 		python.PoetryDetector{},
 		python.UVDetector{},
+		nuget.Detector{},
+		cargo.Detector{},
+		pub.Detector{},
+		cocoapods.Detector{},
 		sbomdetector.Detector{},
 		syft.Detector{},
 	}
@@ -239,11 +251,22 @@ func SupportEntries() []PackageManagerSupport {
 func SupportEntriesForDetectorType(detectorType model.ComponentType) []PackageManagerSupport {
 	values := make([]PackageManagerSupport, 0)
 	for _, entry := range SupportEntries() {
+		filtered := entry
+		filtered.EvidencePatterns = nil
+		filtered.Detectors = nil
+		filtered.EvidencePatternsByDetector = nil
 		for _, detector := range entry.Detectors {
 			if DetectorTypeForName(detector) == detectorType {
-				values = append(values, entry)
-				break
+				filtered.Detectors = appendUniqueStrings(filtered.Detectors, detector)
+				filtered.EvidencePatterns = appendUniqueStrings(filtered.EvidencePatterns, entry.EvidencePatternsByDetector[detector]...)
+				if filtered.EvidencePatternsByDetector == nil {
+					filtered.EvidencePatternsByDetector = make(map[string][]string)
+				}
+				filtered.EvidencePatternsByDetector[detector] = appendUniqueStrings(filtered.EvidencePatternsByDetector[detector], entry.EvidencePatternsByDetector[detector]...)
 			}
+		}
+		if len(filtered.Detectors) > 0 {
+			values = append(values, filtered)
 		}
 	}
 	return values
@@ -274,6 +297,10 @@ func buildPackageManagerSupportCatalog(detectorList []model.Detector) map[model.
 			}
 			entry.EvidencePatterns = appendUniqueStrings(entry.EvidencePatterns, support.EvidencePatterns...)
 			entry.Detectors = appendUniqueStrings(entry.Detectors, descriptor.Name)
+			if entry.EvidencePatternsByDetector == nil {
+				entry.EvidencePatternsByDetector = make(map[string][]string)
+			}
+			entry.EvidencePatternsByDetector[descriptor.Name] = appendUniqueStrings(entry.EvidencePatternsByDetector[descriptor.Name], support.EvidencePatterns...)
 			catalog[support.PackageManager] = entry
 		}
 	}
@@ -319,5 +346,12 @@ func cloneSupport(entry PackageManagerSupport) PackageManagerSupport {
 	entry.Aliases = append([]string(nil), entry.Aliases...)
 	entry.EvidencePatterns = append([]string(nil), entry.EvidencePatterns...)
 	entry.Detectors = append([]string(nil), entry.Detectors...)
+	if len(entry.EvidencePatternsByDetector) > 0 {
+		clone := make(map[string][]string, len(entry.EvidencePatternsByDetector))
+		for detector, patterns := range entry.EvidencePatternsByDetector {
+			clone[detector] = append([]string(nil), patterns...)
+		}
+		entry.EvidencePatternsByDetector = clone
+	}
 	return entry
 }

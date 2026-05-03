@@ -1,0 +1,25 @@
+{
+  "packages": [
+    {
+      "name": "monolog/monolog",
+      "version": "3.7.0",
+      "require": {
+        "psr/log": "^3.0"
+      }
+    },
+    {
+      "name": "psr/log",
+      "version": "3.0.2",
+      "require": {}
+    }
+  ],
+  "packages-dev": [
+    {
+      "name": "phpunit/phpunit",
+      "version": "11.4.3",
+      "require": {
+        "psr/log": "^3.0"
+      }
+    }
+  ]
+}

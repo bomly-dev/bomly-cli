@@ -1,0 +1,56 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "detector": "cocoapods-detector",
+      "ecosystem": "swift",
+      "kind": "Podfile.lock",
+      "package_manager": "cocoapods",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:cocoapods/CatalogByConvention@2.5.2",
+          "licenses": [],
+          "name": "CatalogByConvention",
+          "purl": "pkg:cocoapods/CatalogByConvention@2.5.2",
+          "scope": "runtime",
+          "version": "2.5.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:cocoapods/MotionInterchange@4.0.1",
+          "licenses": [],
+          "name": "MotionInterchange",
+          "purl": "pkg:cocoapods/MotionInterchange@4.0.1",
+          "scope": "runtime",
+          "version": "4.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:cocoapods/CatalogByConvention@2.5.2",
+            "pkg:cocoapods/MotionInterchange@4.0.1"
+          ],
+          "id": "pkg:cocoapods/root",
+          "licenses": [],
+          "name": "root",
+          "purl": "pkg:cocoapods/root",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "Podfile.lock",
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "duration_ms": 0
+  },
+  "project": {
+    "ecosystem": "swift",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "cocoapods",
+    "path": "\u003cnormalized\u003e"
+  },
+  "schema_version": "1.0"
+}

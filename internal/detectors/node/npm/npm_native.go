@@ -20,7 +20,7 @@ type NativeDetector struct {
 
 // PackageManagerSupport returns discovery metadata for the internal npm CLI fallback detector.
 func (d NativeDetector) PackageManagerSupport() []model.PackageManagerSupport {
-	return nil
+	return []model.PackageManagerSupport{model.Support(model.PackageManagerNPM, "package.json")}
 }
 
 // Ready reports whether npm is available.
@@ -69,7 +69,7 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req model.DetectionReque
 		return model.DetectionResult{}, err
 	}
 	return model.DetectionResult{
-		Graphs: model.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, npmEvidencePatterns)),
+		Graphs: model.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, npmManifestMetadataPatterns)),
 	}, nil
 }
 

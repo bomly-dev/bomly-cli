@@ -20,7 +20,7 @@ type NativeDetector struct {
 
 // PackageManagerSupport returns discovery metadata for the internal Yarn CLI fallback detector.
 func (d NativeDetector) PackageManagerSupport() []model.PackageManagerSupport {
-	return nil
+	return []model.PackageManagerSupport{model.Support(model.PackageManagerYarn, "package.json")}
 }
 
 // Ready reports whether Yarn is available.
@@ -69,7 +69,7 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req model.DetectionReque
 		return model.DetectionResult{}, err
 	}
 	return model.DetectionResult{
-		Graphs: model.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, yarnEvidencePatterns)),
+		Graphs: model.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, yarnManifestMetadataPatterns)),
 	}, nil
 }
 

@@ -6,6 +6,8 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/auditors/policy"
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
+	"github.com/bomly-dev/bomly-cli/internal/detectors/cargo"
+	"github.com/bomly-dev/bomly-cli/internal/detectors/cocoapods"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/composer"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/githubactions"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/gomod"
@@ -14,6 +16,8 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/npm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/pnpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/yarn"
+	"github.com/bomly-dev/bomly-cli/internal/detectors/nuget"
+	"github.com/bomly-dev/bomly-cli/internal/detectors/pub"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/python"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/ruby"
 	sbomdetector "github.com/bomly-dev/bomly-cli/internal/detectors/sbom"
@@ -655,6 +659,10 @@ func builtInDetectorsByName(logger *zap.Logger) map[string]model.Detector {
 	pipenvDetector := python.PipenvDetector{Logger: logger, Fallback: syftFallback}
 	poetryDetector := python.PoetryDetector{Logger: logger, Fallback: syftFallback}
 	uvDetector := python.UVDetector{Logger: logger, Fallback: syftFallback}
+	nugetDetector := nuget.Detector{Logger: logger, Fallback: syftFallback}
+	cargoDetector := cargo.Detector{Logger: logger, Fallback: syftFallback}
+	pubDetector := pub.Detector{Logger: logger, Fallback: syftFallback}
+	cocoaPodsDetector := cocoapods.Detector{Logger: logger, Fallback: syftFallback}
 
 	return map[string]model.Detector{
 		sbomDetector.Descriptor().Name:          sbomDetector,
@@ -671,6 +679,10 @@ func builtInDetectorsByName(logger *zap.Logger) map[string]model.Detector {
 		pipenvDetector.Descriptor().Name:        pipenvDetector,
 		poetryDetector.Descriptor().Name:        poetryDetector,
 		uvDetector.Descriptor().Name:            uvDetector,
+		nugetDetector.Descriptor().Name:         nugetDetector,
+		cargoDetector.Descriptor().Name:         cargoDetector,
+		pubDetector.Descriptor().Name:           pubDetector,
+		cocoaPodsDetector.Descriptor().Name:     cocoaPodsDetector,
 		syftPrimary.Descriptor().Name:           syftPrimary,
 	}
 }

@@ -1,0 +1,17 @@
+PODS:
+  - Alamofire (5.10.2)
+  - AppCenter/Analytics (5.0.6):
+    - AppCenter/Core
+  - AppCenter/Core (5.0.6)
+
+DEPENDENCIES:
+  - Alamofire (~> 5.10)
+  - AppCenter/Analytics
+
+SPEC CHECKSUMS:
+  Alamofire: abc123
+  AppCenter: def456
+
+PODFILE CHECKSUM: 000000
+
+COCOAPODS: 1.15.2

@@ -54,6 +54,21 @@ func BuildPackageURL(purlType, namespace, name, version string) string {
 func PackageURLTypeForValues(values ...string) string {
 	for _, value := range values {
 		normalized := strings.ToLower(strings.TrimSpace(value))
+		switch normalized {
+		case "nuget":
+			return "nuget"
+		case "cargo":
+			return "cargo"
+		case "pub":
+			return "pub"
+		case "cocoapods":
+			return "cocoapods"
+		case "swiftpm":
+			return "swift"
+		}
+	}
+	for _, value := range values {
+		normalized := strings.ToLower(strings.TrimSpace(value))
 		if normalized == "" {
 			continue
 		}

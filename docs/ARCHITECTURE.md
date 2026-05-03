@@ -250,4 +250,3 @@ This keeps the scan engine recognizable while making it possible to migrate sele
 - `internal/scan` owns runtime planning, orchestration, hook execution, and detector-chain reuse.
 - `internal/plugin` owns managed plugin installation, verification, store state, and external runtime adapters.
 - The CLI resolves user input but should not perform its own independent discovery pass.
-

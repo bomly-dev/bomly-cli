@@ -20,7 +20,7 @@ type NativeDetector struct {
 
 // PackageManagerSupport returns discovery metadata for the internal pnpm CLI fallback detector.
 func (d NativeDetector) PackageManagerSupport() []model.PackageManagerSupport {
-	return nil
+	return []model.PackageManagerSupport{model.Support(model.PackageManagerPNPM, "package.json")}
 }
 
 // Ready reports whether pnpm is available.
@@ -69,7 +69,7 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req model.DetectionReque
 		return model.DetectionResult{}, err
 	}
 	return model.DetectionResult{
-		Graphs: model.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, pnpmEvidencePatterns)),
+		Graphs: model.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, pnpmManifestMetadataPatterns)),
 	}, nil
 }
 

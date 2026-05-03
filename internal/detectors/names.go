@@ -17,6 +17,10 @@ const (
 	NamePipenv        = "pipenv-detector"
 	NamePoetry        = "poetry-detector"
 	NameUV            = "uv-detector"
+	NameNuGet         = "nuget-detector"
+	NameCargo         = "cargo-detector"
+	NamePub           = "pub-detector"
+	NameCocoaPods     = "cocoapods-detector"
 	NameSBOM          = "sbom-detector"
 	NameSyft          = "syft-detector"
 )

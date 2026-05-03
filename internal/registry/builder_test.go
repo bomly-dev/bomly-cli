@@ -23,20 +23,20 @@ func TestBuildScanRegistryRegistersDetectorForEveryPackageManager(t *testing.T) 
 	}
 }
 
-func TestBuildScanRegistryUsesSyftForSyftOnlyManagers(t *testing.T) {
+func TestBuildScanRegistryUsesSyftForUnclaimedManagers(t *testing.T) {
 	builtins := NewRegistry(RegistryConfigs{}, *zap.NewNop())
 	builtins.Build()
 
 	detectorChain := builtins.Detectors(model.DetectionRequest{
-		Ecosystem:      model.PackageManagerCargo.Ecosystem(),
-		PackageManager: model.PackageManagerCargo,
+		Ecosystem:      model.PackageManagerTerraform.Ecosystem(),
+		PackageManager: model.PackageManagerTerraform,
 		Mode:           model.TargetModeFullGraph,
 	})
 	if len(detectorChain) != 1 {
-		t.Fatalf("expected a single detector for %q, got %d", model.PackageManagerCargo.Name(), len(detectorChain))
+		t.Fatalf("expected a single detector for %q, got %d", model.PackageManagerTerraform.Name(), len(detectorChain))
 	}
 	if got := detectorChain[0].Descriptor().Name; got != "syft-detector" {
-		t.Fatalf("expected syft detector for %q, got %q", model.PackageManagerCargo.Name(), got)
+		t.Fatalf("expected syft detector for %q, got %q", model.PackageManagerTerraform.Name(), got)
 	}
 }
 
@@ -52,6 +52,10 @@ func TestBuildScanRegistryKeepsNativeDetectorFirstForNativeManagers(t *testing.T
 		{manager: model.PackageManagerComposer, detectorName: "composer-detector"},
 		{manager: model.PackageManagerBundler, detectorName: "bundler-detector"},
 		{manager: model.PackageManagerGitHubActions, detectorName: "github-actions-detector"},
+		{manager: model.PackageManagerNuGet, detectorName: "nuget-detector"},
+		{manager: model.PackageManagerCargo, detectorName: "cargo-detector"},
+		{manager: model.PackageManagerPub, detectorName: "pub-detector"},
+		{manager: model.PackageManagerCocoaPods, detectorName: "cocoapods-detector"},
 	}
 
 	for _, tc := range testCases {

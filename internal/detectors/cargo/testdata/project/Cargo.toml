@@ -1,0 +1,10 @@
+[package]
+name = "bomly-cargo-smoke"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bomly-cargo-smoke-helper = { path = "helper" }
+
+[dev-dependencies]
+bomly-cargo-smoke-dev = { path = "dev-helper" }

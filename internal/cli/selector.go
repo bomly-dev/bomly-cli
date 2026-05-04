@@ -1,21 +1,16 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	"github.com/bomly-dev/bomly-cli/internal/scan"
+	"github.com/bomly-dev/bomly-cli/internal/selector"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
-
-type selectorCatalog struct {
-	kind            string
-	available       []string
-	aliasToName     map[string]string
-	simplifiedItems []string
-}
 
 type detectorOptionRow struct {
 	Name            string
@@ -41,7 +36,7 @@ func buildDetectorOptionRows(reg *scan.Registry) []detectorOptionRow {
 		for _, ecosystem := range descriptor.SupportedEcosystems {
 			value := strings.TrimSpace(string(ecosystem))
 			if value != "" {
-				row.Ecosystems = appendUnique(row.Ecosystems, value)
+				row.Ecosystems = selector.AppendUnique(row.Ecosystems, value)
 			}
 		}
 		rows[name] = row
@@ -56,10 +51,10 @@ func buildDetectorOptionRows(reg *scan.Registry) []detectorOptionRow {
 				continue
 			}
 			if managerName != "" {
-				row.PackageManagers = appendUnique(row.PackageManagers, managerName)
+				row.PackageManagers = selector.AppendUnique(row.PackageManagers, managerName)
 			}
 			if ecosystemName != "" {
-				row.Ecosystems = appendUnique(row.Ecosystems, ecosystemName)
+				row.Ecosystems = selector.AppendUnique(row.Ecosystems, ecosystemName)
 			}
 		}
 	}
@@ -75,7 +70,7 @@ func buildDetectorOptionRows(reg *scan.Registry) []detectorOptionRow {
 	return out
 }
 
-func buildDetectorSelectorCatalog(reg *scan.Registry) selectorCatalog {
+func buildDetectorSelectorCatalog(reg *scan.Registry) selector.Catalog {
 	rows := buildDetectorOptionRows(reg)
 	aliasToName := make(map[string]string, len(rows)*2)
 	available := make([]string, 0, len(rows))
@@ -95,15 +90,15 @@ func buildDetectorSelectorCatalog(reg *scan.Registry) selectorCatalog {
 	}
 	sort.Strings(available)
 	sort.Strings(simplified)
-	return selectorCatalog{
-		kind:            "detector",
-		available:       available,
-		aliasToName:     aliasToName,
-		simplifiedItems: simplified,
+	return selector.Catalog{
+		Kind:        "detector",
+		Available:   available,
+		AliasToName: aliasToName,
+		Items:       simplified,
 	}
 }
 
-func buildEcosystemSelectorCatalog() selectorCatalog {
+func buildEcosystemSelectorCatalog() selector.Catalog {
 	ecosystems := registry.SupportedEcosystems()
 	aliasMap := registry.EcosystemAliasMap()
 	available := make([]string, 0, len(ecosystems))
@@ -116,18 +111,18 @@ func buildEcosystemSelectorCatalog() selectorCatalog {
 		aliasToName[k] = v
 	}
 	simplified := append([]string(nil), available...)
-	return selectorCatalog{
-		kind:            "ecosystem",
-		available:       available,
-		aliasToName:     aliasToName,
-		simplifiedItems: simplified,
+	return selector.Catalog{
+		Kind:        "ecosystem",
+		Available:   available,
+		AliasToName: aliasToName,
+		Items:       simplified,
 	}
 }
 
 func resolveEcosystemFilter(raw string) (model.EcosystemFilter, error) {
 	catalog := buildEcosystemSelectorCatalog()
-	defaults := append([]string(nil), catalog.available...)
-	includeNames, excludeNames, err := resolveSelectorExpression(raw, defaults, catalog, true)
+	defaults := append([]string(nil), catalog.Available...)
+	includeNames, excludeNames, err := resolveSelector(raw, defaults, catalog, true)
 	if err != nil {
 		return model.EcosystemFilter{}, err
 	}
@@ -162,7 +157,7 @@ func ecosystemStringSliceToValues(items []string) ([]model.Ecosystem, error) {
 	return values, nil
 }
 
-func buildAuditorSelectorCatalog(reg *scan.Registry) selectorCatalog {
+func buildAuditorSelectorCatalog(reg *scan.Registry) selector.Catalog {
 	available := make([]string, 0)
 	aliasToName := make(map[string]string)
 	for _, descriptor := range reg.AuditorDescriptors() {
@@ -179,10 +174,10 @@ func buildAuditorSelectorCatalog(reg *scan.Registry) selectorCatalog {
 	}
 	sort.Strings(available)
 	sort.Strings(simplified)
-	return selectorCatalog{kind: "auditor", available: available, aliasToName: aliasToName, simplifiedItems: simplified}
+	return selector.Catalog{Kind: "auditor", Available: available, AliasToName: aliasToName, Items: simplified}
 }
 
-func buildMatcherSelectorCatalog(reg *scan.Registry) selectorCatalog {
+func buildMatcherSelectorCatalog(reg *scan.Registry) selector.Catalog {
 	available := make([]string, 0)
 	aliasToName := make(map[string]string)
 	for _, descriptor := range reg.MatcherDescriptors() {
@@ -225,7 +220,7 @@ func buildMatcherSelectorCatalog(reg *scan.Registry) selectorCatalog {
 	}
 	sort.Strings(available)
 	sort.Strings(simplified)
-	return selectorCatalog{kind: "matcher", available: available, aliasToName: aliasToName, simplifiedItems: simplified}
+	return selector.Catalog{Kind: "matcher", Available: available, AliasToName: aliasToName, Items: simplified}
 }
 
 func detectorShortAlias(name string) string {
@@ -236,120 +231,30 @@ func detectorShortAlias(name string) string {
 	return ""
 }
 
-func resolveSelectorExpression(raw string, defaults []string, catalog selectorCatalog, implicitAllWhenEmpty bool) ([]string, []string, error) {
-	selectors := parseCSV(raw)
-	if len(selectors) == 0 {
-		if implicitAllWhenEmpty {
-			return nil, nil, nil
-		}
-		exclude := differenceSorted(catalog.available, defaults)
-		if len(exclude) == 0 {
-			return nil, nil, nil
-		}
-		return nil, exclude, nil
+// resolveSelector wraps selector.Resolve and translates the typed unknown-selector
+// error into the CLI's invalidInputError so cobra surfaces a help hint.
+func resolveSelector(raw string, defaults []string, catalog selector.Catalog, implicitAllWhenEmpty bool) ([]string, []string, error) {
+	include, exclude, err := selector.Resolve(raw, defaults, catalog, implicitAllWhenEmpty)
+	if err == nil {
+		return include, exclude, nil
 	}
-
-	hasOps := false
-	for _, selector := range selectors {
-		if strings.HasPrefix(selector, "+") || strings.HasPrefix(selector, "-") {
-			hasOps = true
-			break
-		}
-	}
-
-	selected := make(map[string]struct{})
-	if hasOps {
-		for _, name := range defaults {
-			selected[name] = struct{}{}
-		}
-	}
-
-	unknown := make([]string, 0)
-	for _, selector := range selectors {
-		op := byte(0)
-		token := selector
-		if strings.HasPrefix(token, "+") || strings.HasPrefix(token, "-") {
-			op = token[0]
-			token = strings.TrimSpace(token[1:])
-		}
-		if token == "" {
-			unknown = append(unknown, selector)
-			continue
-		}
-		resolved, ok := catalog.aliasToName[token]
-		if !ok {
-			unknown = append(unknown, token)
-			continue
-		}
-		if hasOps {
-			switch op {
-			case '-':
-				delete(selected, resolved)
-			default:
-				selected[resolved] = struct{}{}
-			}
-			continue
-		}
-		selected[resolved] = struct{}{}
-	}
-
-	if len(unknown) > 0 {
-		sort.Strings(unknown)
+	var unknown *selector.UnknownSelectorError
+	if errors.As(err, &unknown) {
 		return nil, nil, invalidInputf(
 			"unknown %s selector(s): %s\navailable %ss: %s\nrun `bomly scan --help` for full selector details",
-			catalog.kind,
-			strings.Join(unknown, ", "),
-			catalog.kind,
-			strings.Join(catalog.simplifiedItems, ", "),
+			unknown.Kind,
+			strings.Join(unknown.Unknown, ", "),
+			unknown.Kind,
+			strings.Join(unknown.Items, ", "),
 		)
 	}
-
-	if len(selected) == 0 {
-		exclude := append([]string(nil), catalog.available...)
-		sort.Strings(exclude)
-		return nil, exclude, nil
-	}
-
-	if hasOps {
-		selectedNames := make([]string, 0, len(selected))
-		for name := range selected {
-			selectedNames = append(selectedNames, name)
-		}
-		exclude := differenceSorted(catalog.available, selectedNames)
-		if len(exclude) == 0 {
-			return nil, nil, nil
-		}
-		return nil, exclude, nil
-	}
-
-	include := make([]string, 0, len(selected))
-	for name := range selected {
-		include = append(include, name)
-	}
-	sort.Strings(include)
-	return include, nil, nil
-}
-
-func differenceSorted(all []string, keep []string) []string {
-	kept := make(map[string]struct{}, len(keep))
-	for _, name := range keep {
-		kept[name] = struct{}{}
-	}
-	out := make([]string, 0, len(all))
-	for _, name := range all {
-		if _, ok := kept[name]; ok {
-			continue
-		}
-		out = append(out, name)
-	}
-	sort.Strings(out)
-	return out
+	return nil, nil, err
 }
 
 func resolveDetectorFilter(raw string, reg *scan.Registry) (model.DetectorFilter, error) {
 	catalog := buildDetectorSelectorCatalog(reg)
 	defaultSet := defaultEnabledDetectorNames(reg)
-	include, exclude, err := resolveSelectorExpression(raw, defaultSet, catalog, true)
+	include, exclude, err := resolveSelector(raw, defaultSet, catalog, true)
 	if err != nil {
 		return model.DetectorFilter{}, err
 	}
@@ -362,7 +267,7 @@ func resolveAuditorFilter(raw string, reg *scan.Registry) (model.AuditorFilter, 
 	}
 	catalog := buildAuditorSelectorCatalog(reg)
 	defaultSet := defaultEnabledAuditorNames(reg)
-	include, exclude, err := resolveSelectorExpression(raw, defaultSet, catalog, false)
+	include, exclude, err := resolveSelector(raw, defaultSet, catalog, false)
 	if err != nil {
 		return model.AuditorFilter{}, err
 	}
@@ -375,7 +280,7 @@ func resolveMatcherFilter(raw string, reg *scan.Registry) (model.MatcherFilter, 
 	}
 	catalog := buildMatcherSelectorCatalog(reg)
 	defaultSet := defaultEnabledMatcherNames(reg)
-	include, exclude, err := resolveSelectorExpression(raw, defaultSet, catalog, false)
+	include, exclude, err := resolveSelector(raw, defaultSet, catalog, false)
 	if err != nil {
 		return model.MatcherFilter{}, err
 	}
@@ -383,10 +288,10 @@ func resolveMatcherFilter(raw string, reg *scan.Registry) (model.MatcherFilter, 
 }
 
 func filterAllowsName(include, exclude []string, name string) bool {
-	if len(include) > 0 && !containsStringValue(include, name) {
+	if len(include) > 0 && !selector.Contains(include, name) {
 		return false
 	}
-	if containsStringValue(exclude, name) {
+	if selector.Contains(exclude, name) {
 		return false
 	}
 	return true

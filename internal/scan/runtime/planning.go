@@ -1,4 +1,4 @@
-package scan
+package runtime
 
 import (
 	"fmt"
@@ -7,10 +7,11 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/registry"
+	"github.com/bomly-dev/bomly-cli/internal/scan"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
 
-func planSubprojects(registryValue *Registry, req PrepareRequest) ([]model.Subproject, error) {
+func planSubprojects(registryValue *scan.Registry, req Request) ([]model.Subproject, error) {
 	if req.ForcedPackageManager != model.PackageManagerUnknown {
 		subproject, ok := plannedSubprojectForPackageManager(
 			registryValue,
@@ -34,7 +35,7 @@ func planSubprojects(registryValue *Registry, req PrepareRequest) ([]model.Subpr
 	}
 }
 
-func planContainerSubprojects(registryValue *Registry, req PrepareRequest) ([]model.Subproject, error) {
+func planContainerSubprojects(registryValue *scan.Registry, req Request) ([]model.Subproject, error) {
 	plans := registryValue.DiscoveryPlans()
 	if len(plans) == 0 {
 		return nil, noSubprojectsError(req)
@@ -80,7 +81,7 @@ func planContainerSubprojects(registryValue *Registry, req PrepareRequest) ([]mo
 	return subprojects, nil
 }
 
-func planFilesystemSubprojects(registryValue *Registry, req PrepareRequest) ([]model.Subproject, error) {
+func planFilesystemSubprojects(registryValue *scan.Registry, req Request) ([]model.Subproject, error) {
 	isSingleFile, err := executionTargetIsSingleFile(req.ExecutionTarget)
 	if err != nil {
 		return nil, fmt.Errorf("discover subprojects: %w", err)
@@ -127,7 +128,7 @@ func planFilesystemSubprojects(registryValue *Registry, req PrepareRequest) ([]m
 }
 
 func plannedSubprojectsForPath(
-	registryValue *Registry,
+	registryValue *scan.Registry,
 	executionTarget model.ExecutionTarget,
 	candidatePath string,
 	detectorFilter model.DetectorFilter,
@@ -186,7 +187,7 @@ func detectPackageManagers(candidatePath string) []model.PackageManager {
 }
 
 func detectPackageManagersForPath(
-	registryValue *Registry,
+	registryValue *scan.Registry,
 	targetKind model.ExecutionTargetKind,
 	candidatePath string,
 ) map[model.PackageManager][]string {
@@ -220,7 +221,7 @@ func detectPackageManagersForPath(
 }
 
 func plannedSubprojectForPackageManager(
-	registryValue *Registry,
+	registryValue *scan.Registry,
 	executionTarget model.ExecutionTarget,
 	candidatePath string,
 	manager model.PackageManager,
@@ -276,7 +277,7 @@ func plannedSubprojectForPackageManager(
 }
 
 func plannedPluginSubprojectsForPath(
-	registryValue *Registry,
+	registryValue *scan.Registry,
 	executionTarget model.ExecutionTarget,
 	candidatePath string,
 	detectorFilter model.DetectorFilter,
@@ -366,7 +367,7 @@ func discoveryTargetKinds(targetKind model.ExecutionTargetKind) []model.Executio
 }
 
 func detectorNamesForPackageManager(
-	registryValue *Registry,
+	registryValue *scan.Registry,
 	targetKind model.ExecutionTargetKind,
 	candidatePath string,
 	manager model.PackageManager,
@@ -429,7 +430,7 @@ func appendUniquePatterns(existing []string, patterns ...string) []string {
 	return existing
 }
 
-func expandDetectorNames(registryValue *Registry, detectors []model.Detector) []string {
+func expandDetectorNames(registryValue *scan.Registry, detectors []model.Detector) []string {
 	if len(detectors) == 0 {
 		return nil
 	}
@@ -529,7 +530,7 @@ func sortSubprojects(subprojects []model.Subproject) {
 	})
 }
 
-func noSubprojectsError(req PrepareRequest) error {
+func noSubprojectsError(req Request) error {
 	var hints []string
 
 	if len(req.DetectorFilter.Include) > 0 {

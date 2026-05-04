@@ -1,4 +1,4 @@
-package cli
+package render
 
 import (
 	"strings"
@@ -11,7 +11,7 @@ func TestBomlyLogoFrames(t *testing.T) {
 		t.Fatalf("expected multiple animation frames, got %d", len(frames))
 	}
 	for _, frame := range frames {
-		plain := stripANSI(frame)
+		plain := StripANSI(frame)
 		for _, want := range []string{
 			"██████╗",
 			"SBOM clarity with momentum.",

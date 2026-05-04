@@ -1,4 +1,4 @@
-package cli
+package progress
 
 import (
 	"bytes"
@@ -6,9 +6,9 @@ import (
 	"testing"
 )
 
-func TestCommandProgressSeparateReport_WritesEmptyLineAfterCompletion(t *testing.T) {
+func TestSeparateReport_WritesEmptyLineAfterCompletion(t *testing.T) {
 	var buf bytes.Buffer
-	progress := &commandProgress{
+	progress := &Progress{
 		writer:   &buf,
 		enabled:  true,
 		finished: true,
@@ -23,10 +23,10 @@ func TestCommandProgressSeparateReport_WritesEmptyLineAfterCompletion(t *testing
 	}
 }
 
-func TestCommandProgressSeparateReport_IgnoresIncompleteOrDisabledProgress(t *testing.T) {
+func TestSeparateReport_IgnoresIncompleteOrDisabledProgress(t *testing.T) {
 	t.Run("incomplete", func(t *testing.T) {
 		var buf bytes.Buffer
-		progress := &commandProgress{writer: &buf, enabled: true}
+		progress := &Progress{writer: &buf, enabled: true}
 
 		progress.SeparateReport()
 
@@ -37,7 +37,7 @@ func TestCommandProgressSeparateReport_IgnoresIncompleteOrDisabledProgress(t *te
 
 	t.Run("disabled", func(t *testing.T) {
 		var buf bytes.Buffer
-		progress := &commandProgress{writer: &buf, finished: true}
+		progress := &Progress{writer: &buf, finished: true}
 
 		progress.SeparateReport()
 
@@ -59,9 +59,9 @@ func TestFormatProgressBar(t *testing.T) {
 	}
 }
 
-func TestCommandProgressStageShowsBarAndPercent(t *testing.T) {
+func TestStageShowsBarAndPercent(t *testing.T) {
 	var buf bytes.Buffer
-	progress := &commandProgress{writer: &buf, enabled: true}
+	progress := &Progress{writer: &buf, enabled: true}
 
 	progress.setStageProgress("Detected Dependencies", 3, 10)
 

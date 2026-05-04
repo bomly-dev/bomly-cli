@@ -158,19 +158,3 @@ func defaultMatcherFilter(matchers string) model.MatcherFilter {
 	}
 	return filter
 }
-
-func appendUnique(values []string, value string) []string {
-	if value == "" || containsStringValue(values, value) {
-		return values
-	}
-	return append(values, value)
-}
-
-func containsStringValue(values []string, value string) bool {
-	for _, candidate := range values {
-		if candidate == value {
-			return true
-		}
-	}
-	return false
-}

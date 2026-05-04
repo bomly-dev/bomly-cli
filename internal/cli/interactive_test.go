@@ -6,6 +6,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/scan"
+	"github.com/bomly-dev/bomly-cli/internal/scan/consolidation"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -340,7 +341,7 @@ func graphFixtureForInteractive(t *testing.T, root, dep *model.Package) *model.G
 
 func consolidatedForInteractive(t *testing.T, results []model.DetectionResult) model.ConsolidatedGraph {
 	t.Helper()
-	consolidated, err := scan.ConsolidateGraphs(results)
+	consolidated, err := consolidation.ConsolidateGraphs(results)
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
 	}

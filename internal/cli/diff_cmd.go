@@ -6,6 +6,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/scan"
+	"github.com/bomly-dev/bomly-cli/internal/scan/consolidation"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/spf13/cobra"
 )
@@ -109,11 +110,11 @@ func newDiffCmd(options *globalOptions) *cobra.Command {
 				progress.CompleteStep("Enriched packages", matchProgressChildren(nil, []string{"matchers"}, nil))
 			}
 
-			baseConsolidated, err := scan.ConsolidateGraphs(baseResults)
+			baseConsolidated, err := consolidation.ConsolidateGraphs(baseResults)
 			if err != nil {
 				return resolutionFailure(err)
 			}
-			headConsolidated, err := scan.ConsolidateGraphs(headResults)
+			headConsolidated, err := consolidation.ConsolidateGraphs(headResults)
 			if err != nil {
 				return resolutionFailure(err)
 			}

@@ -1,4 +1,4 @@
-package scan
+package runtime
 
 import (
 	"os"
@@ -36,16 +36,6 @@ func matchingPatternsForFile(path string, patterns []string) []string {
 			continue
 		}
 		if matchesBase, _ := filepath.Match(slashPattern, base); matchesBase {
-			matched = append(matched, pattern)
-		}
-	}
-	return matched
-}
-
-func matchingPatternsInDirectory(dir string, patterns []string) []string {
-	matched := make([]string, 0, len(patterns))
-	for _, pattern := range patterns {
-		if patternExists(dir, pattern) {
 			matched = append(matched, pattern)
 		}
 	}

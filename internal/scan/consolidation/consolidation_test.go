@@ -1,4 +1,4 @@
-package scan
+package consolidation
 
 import (
 	"testing"
@@ -75,9 +75,9 @@ func TestConsolidateGraphs_PreservesManifestRoots(t *testing.T) {
 		[][2]string{{"example.com/api", "rsc.io/quote@v1.5.2"}},
 	)
 
-	consolidated, err := ConsolidateGraphs([]ResolveGraphResult{
-		{SubprojectInfo: Subproject{ExecutionTarget: ExecutionTarget{Kind: ExecutionTargetWorkingDirectory, Location: "/repo"}, RelativePath: "apps/web", PrimaryDetector: "npm-detector", DetectedPackageManagers: []PackageManager{PackageManagerNPM}, Ecosystem: EcosystemNPM}, DetectorName: "npm-detector", Graphs: SingleGraphContainer(npmGraph, model.ManifestMetadata{Path: "apps/web/package-lock.json", Kind: "package-lock.json"})},
-		{SubprojectInfo: Subproject{ExecutionTarget: ExecutionTarget{Kind: ExecutionTargetWorkingDirectory, Location: "/repo"}, RelativePath: "services/api", PrimaryDetector: "go-detector", DetectedPackageManagers: []PackageManager{PackageManagerGoMod}, Ecosystem: EcosystemGo}, DetectorName: "go-detector", Graphs: SingleGraphContainer(goGraph, model.ManifestMetadata{Path: "services/api/go.mod", Kind: "go.mod"})},
+	consolidated, err := ConsolidateGraphs([]model.DetectionResult{
+		{SubprojectInfo: model.Subproject{ExecutionTarget: model.ExecutionTarget{Kind: model.ExecutionTargetWorkingDirectory, Location: "/repo"}, RelativePath: "apps/web", PrimaryDetector: "npm-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM}, Ecosystem: model.EcosystemNPM}, DetectorName: "npm-detector", Graphs: model.SingleGraphContainer(npmGraph, model.ManifestMetadata{Path: "apps/web/package-lock.json", Kind: "package-lock.json"})},
+		{SubprojectInfo: model.Subproject{ExecutionTarget: model.ExecutionTarget{Kind: model.ExecutionTargetWorkingDirectory, Location: "/repo"}, RelativePath: "services/api", PrimaryDetector: "go-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerGoMod}, Ecosystem: model.EcosystemGo}, DetectorName: "go-detector", Graphs: model.SingleGraphContainer(goGraph, model.ManifestMetadata{Path: "services/api/go.mod", Kind: "go.mod"})},
 	})
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
@@ -115,9 +115,9 @@ func TestConsolidateGraphs_PreservesManifestRoots(t *testing.T) {
 }
 
 func TestConsolidateGraphs_RejectsMultipleExecutionTargets(t *testing.T) {
-	_, err := ConsolidateGraphs([]ResolveGraphResult{
-		{SubprojectInfo: Subproject{ExecutionTarget: ExecutionTarget{Kind: ExecutionTargetWorkingDirectory, Location: "/repo-a"}, RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []PackageManager{PackageManagerNPM}, Ecosystem: EcosystemNPM}, Graphs: SingleGraphContainer(graphFixture(nil, nil), model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
-		{SubprojectInfo: Subproject{ExecutionTarget: ExecutionTarget{Kind: ExecutionTargetWorkingDirectory, Location: "/repo-b"}, RelativePath: ".", PrimaryDetector: "go-detector", DetectedPackageManagers: []PackageManager{PackageManagerGoMod}, Ecosystem: EcosystemGo}, Graphs: SingleGraphContainer(graphFixture(nil, nil), model.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
+	_, err := ConsolidateGraphs([]model.DetectionResult{
+		{SubprojectInfo: model.Subproject{ExecutionTarget: model.ExecutionTarget{Kind: model.ExecutionTargetWorkingDirectory, Location: "/repo-a"}, RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM}, Ecosystem: model.EcosystemNPM}, Graphs: model.SingleGraphContainer(graphFixture(nil, nil), model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+		{SubprojectInfo: model.Subproject{ExecutionTarget: model.ExecutionTarget{Kind: model.ExecutionTargetWorkingDirectory, Location: "/repo-b"}, RelativePath: ".", PrimaryDetector: "go-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerGoMod}, Ecosystem: model.EcosystemGo}, Graphs: model.SingleGraphContainer(graphFixture(nil, nil), model.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
 	})
 	if err == nil {
 		t.Fatal("expected error for multiple execution targets")
@@ -147,18 +147,18 @@ func TestConsolidateGraphs_DeduplicatesManifestAndPrefersNative(t *testing.T) {
 	projectRoot := "C:/Users/ahmed/repos/examples/WebGoat"
 	manifestAbs := projectRoot + "/pom.xml"
 
-	consolidated, err := ConsolidateGraphs([]ResolveGraphResult{
+	consolidated, err := ConsolidateGraphs([]model.DetectionResult{
 		{
-			SubprojectInfo: Subproject{ExecutionTarget: ExecutionTarget{Kind: ExecutionTargetWorkingDirectory, Location: projectRoot}, RelativePath: ".", PrimaryDetector: "maven-detector", DetectedPackageManagers: []PackageManager{PackageManagerMaven}, Ecosystem: EcosystemMaven},
+			SubprojectInfo: model.Subproject{ExecutionTarget: model.ExecutionTarget{Kind: model.ExecutionTargetWorkingDirectory, Location: projectRoot}, RelativePath: ".", PrimaryDetector: "maven-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerMaven}, Ecosystem: model.EcosystemMaven},
 			DetectorName:   "syft-detector",
-			ComponentType:  ThirdPartyDetector,
-			Graphs:         SingleGraphContainer(syftGraph, model.ManifestMetadata{Path: manifestAbs, Kind: "pom.xml"}),
+			ComponentType:  model.ThirdPartyComponent,
+			Graphs:         model.SingleGraphContainer(syftGraph, model.ManifestMetadata{Path: manifestAbs, Kind: "pom.xml"}),
 		},
 		{
-			SubprojectInfo: Subproject{ExecutionTarget: ExecutionTarget{Kind: ExecutionTargetWorkingDirectory, Location: projectRoot}, RelativePath: ".", PrimaryDetector: "maven-detector", DetectedPackageManagers: []PackageManager{PackageManagerMaven}, Ecosystem: EcosystemMaven},
+			SubprojectInfo: model.Subproject{ExecutionTarget: model.ExecutionTarget{Kind: model.ExecutionTargetWorkingDirectory, Location: projectRoot}, RelativePath: ".", PrimaryDetector: "maven-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerMaven}, Ecosystem: model.EcosystemMaven},
 			DetectorName:   "maven-detector",
-			ComponentType:  NativeDetector,
-			Graphs:         SingleGraphContainer(nativeGraph, model.ManifestMetadata{Path: manifestAbs, Kind: "pom.xml"}),
+			ComponentType:  model.NativeComponent,
+			Graphs:         model.SingleGraphContainer(nativeGraph, model.ManifestMetadata{Path: manifestAbs, Kind: "pom.xml"}),
 		},
 	})
 	if err != nil {
@@ -188,13 +188,13 @@ func TestConsolidateGraphs_DeduplicatesManifestAndPrefersNative(t *testing.T) {
 }
 
 func TestManifestDedupPriorityPrefersNativeOverSyft(t *testing.T) {
-	if got := ManifestDedupPriority(NativeDetector, "npm-detector"); got != 0 {
+	if got := ManifestDedupPriority(model.NativeComponent, "npm-detector"); got != 0 {
 		t.Fatalf("expected native detector priority 0, got %d", got)
 	}
-	if got := ManifestDedupPriority(ThirdPartyDetector, "syft-detector"); got != 2 {
+	if got := ManifestDedupPriority(model.ThirdPartyComponent, "syft-detector"); got != 2 {
 		t.Fatalf("expected syft fallback priority 2, got %d", got)
 	}
-	if !(ManifestDedupPriority(NativeDetector, "npm-detector") < ManifestDedupPriority(ThirdPartyDetector, "syft-detector")) {
+	if !(ManifestDedupPriority(model.NativeComponent, "npm-detector") < ManifestDedupPriority(model.ThirdPartyComponent, "syft-detector")) {
 		t.Fatal("expected native detector to outrank syft for manifest deduplication")
 	}
 }
@@ -210,16 +210,16 @@ func TestConsolidateGraphs_SynthesizesManifestRootWhenEntryHasMultipleRoots(t *t
 		t.Fatalf("add setup-java: %v", err)
 	}
 
-	consolidated, err := ConsolidateGraphs([]ResolveGraphResult{{
-		SubprojectInfo: Subproject{
-			ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetWorkingDirectory, Location: "/repo"},
+	consolidated, err := ConsolidateGraphs([]model.DetectionResult{{
+		SubprojectInfo: model.Subproject{
+			ExecutionTarget:         model.ExecutionTarget{Kind: model.ExecutionTargetWorkingDirectory, Location: "/repo"},
 			RelativePath:            ".github/actions/java-setup",
 			PrimaryDetector:         "github-actions-detector",
-			DetectedPackageManagers: []PackageManager{PackageManagerGitHubActions},
-			Ecosystem:               EcosystemGitHub,
+			DetectedPackageManagers: []model.PackageManager{model.PackageManagerGitHubActions},
+			Ecosystem:               model.EcosystemGitHub,
 		},
 		DetectorName: "syft-detector",
-		Graphs: SingleGraphContainer(actionsGraph, model.ManifestMetadata{
+		Graphs: model.SingleGraphContainer(actionsGraph, model.ManifestMetadata{
 			Path: ".github/actions/java-setup",
 			Kind: "github-actions",
 		}),

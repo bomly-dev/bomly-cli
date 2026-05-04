@@ -1,6 +1,7 @@
-package scan
+package consolidation
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -187,4 +188,11 @@ func subprojectManifestPath(subproject model.Subproject, idx int) string {
 		return fmt.Sprintf("entry-%d", idx+1)
 	}
 	return strings.ReplaceAll(label, "\\", "/")
+}
+
+func validateGraphEntry(entry model.GraphEntry) error {
+	if entry.Graph == nil {
+		return errors.New("graph entry graph is nil")
+	}
+	return nil
 }

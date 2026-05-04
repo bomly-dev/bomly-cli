@@ -1,66 +1,33 @@
 package cli
 
-import "strings"
+import "github.com/bomly-dev/bomly-cli/internal/cli/render"
 
+// ANSI escape sequences are owned by internal/cli/render. They're aliased here so
+// existing cli/tui call sites keep working without churn; new code should use the
+// render package directly.
 const (
-	ansiReset   = "\x1b[0m"
-	ansiBlack   = "\x1b[30m"
-	ansiRed     = "\x1b[31m"
-	ansiGreen   = "\x1b[32m"
-	ansiYellow  = "\x1b[33m"
-	ansiBlue    = "\x1b[34m"
-	ansiMagenta = "\x1b[34m"
-	ansiCyan    = "\x1b[36m"
-	ansiWhite   = "\x1b[37m"
-	ansiGray    = "\x1b[90m"
-	ansiBold    = "\x1b[1m"
-	ansiDim     = "\x1b[2m"
+	ansiReset   = render.Reset
+	ansiBlack   = render.Black
+	ansiRed     = render.Red
+	ansiGreen   = render.Green
+	ansiYellow  = render.Yellow
+	ansiBlue    = render.Blue
+	ansiMagenta = render.Magenta
+	ansiCyan    = render.Cyan
+	ansiWhite   = render.White
+	ansiGray    = render.Gray
+	ansiBold    = render.Bold
+	ansiDim     = render.Dim
 
-	ansiBgBlue    = "\x1b[44m"
-	ansiBgCyan    = "\x1b[44m"
-	ansiBgGreen   = "\x1b[42m"
-	ansiBgRed     = "\x1b[41m"
-	ansiBgYellow  = "\x1b[43m"
-	ansiBgMagenta = "\x1b[100m"
+	ansiBgBlue    = render.BgBlue
+	ansiBgCyan    = render.BgCyan
+	ansiBgGreen   = render.BgGreen
+	ansiBgRed     = render.BgRed
+	ansiBgYellow  = render.BgYellow
+	ansiBgMagenta = render.BgMagenta
 )
 
-func ansiWrap(value, color string) string {
-	if value == "" || color == "" {
-		return value
-	}
-	return color + value + ansiReset
-}
-
-func colorizeGraphTree(value string) string {
-	value = strings.ReplaceAll(value, "(cycle)", ansiWrap("(cycle)", ansiRed))
-	value = strings.ReplaceAll(value, "(shared)", ansiWrap("(shared)", ansiYellow))
-	return value
-}
-
-func ansiStyled(value string, codes ...string) string {
-	if value == "" || len(codes) == 0 {
-		return value
-	}
-	return strings.Join(codes, "") + value + ansiReset
-}
-
-func stripANSI(value string) string {
-	var out strings.Builder
-	inEscape := false
-	for idx := 0; idx < len(value); idx++ {
-		ch := value[idx]
-		if inEscape {
-			if (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') {
-				inEscape = false
-			}
-			continue
-		}
-		if ch == 0x1b && idx+1 < len(value) && value[idx+1] == '[' {
-			inEscape = true
-			idx++
-			continue
-		}
-		out.WriteByte(ch)
-	}
-	return out.String()
-}
+func ansiWrap(value, color string) string             { return render.Wrap(value, color) }
+func ansiStyled(value string, codes ...string) string { return render.Style(value, codes...) }
+func colorizeGraphTree(value string) string           { return render.ColorizeGraphTree(value) }
+func stripANSI(value string) string                   { return render.StripANSI(value) }

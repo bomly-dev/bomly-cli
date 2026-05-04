@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
+	"github.com/bomly-dev/bomly-cli/internal/selector"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
@@ -51,7 +52,7 @@ func enrichResolvedGraphs(
 		logger.Info("matcher enrichment completed with no matcher runs", zap.String("mode", string(req.Mode)))
 	} else {
 		logger.Info("matcher enrichment completed", zap.Int("runs", len(result.MatcherRuns)), zap.Strings("matchers", result.MatcherRuns), zap.String("mode", string(req.Mode)))
-		if containsStringValue(result.MatcherRuns, eolCheckerName) {
+		if selector.Contains(result.MatcherRuns, eolCheckerName) {
 			logger.Debug("eol matcher invoked for aggregate graph", zap.Int("packages", len(aggregateGraph.Packages())))
 		} else {
 			logger.Debug("eol matcher not invoked for aggregate graph", zap.Strings("matchers", result.MatcherRuns))
@@ -93,7 +94,7 @@ func enrichGraph(
 		logger.Info("matcher enrichment completed with no matcher runs", zap.String("mode", string(req.Mode)))
 	} else {
 		logger.Info("matcher enrichment completed", zap.Int("runs", len(result.MatcherRuns)), zap.Strings("matchers", result.MatcherRuns), zap.String("mode", string(req.Mode)))
-		if containsStringValue(result.MatcherRuns, eolCheckerName) {
+		if selector.Contains(result.MatcherRuns, eolCheckerName) {
 			logger.Debug("eol matcher invoked for graph", zap.Int("packages", len(g.Packages())), zap.String("subproject", subproject.RelativePath))
 		} else {
 			logger.Debug("eol matcher not invoked for graph", zap.Strings("matchers", result.MatcherRuns), zap.String("subproject", subproject.RelativePath))

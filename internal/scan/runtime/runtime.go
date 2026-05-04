@@ -1,16 +1,20 @@
-package scan
+// Package runtime prepares the per-execution runtime state used by the scan pipeline.
+// It owns subproject discovery and registry filtering. The CLI builds a Request and
+// the pipeline consumes the resulting Runtime — neither side runs discovery on its own.
+package runtime
 
 import (
 	"errors"
 	"fmt"
 
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
+	"github.com/bomly-dev/bomly-cli/internal/scan"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
 
-// PrepareRequest defines the inputs required to build one execution runtime.
-type PrepareRequest struct {
-	Registry             *Registry
+// Request defines the inputs required to build one execution runtime.
+type Request struct {
+	Registry             *scan.Registry
 	ExecutionTarget      model.ExecutionTarget
 	ForcedPackageManager model.PackageManager
 	DetectorFilter       model.DetectorFilter
@@ -23,7 +27,7 @@ type PrepareRequest struct {
 
 // Runtime is the prepared execution state reused across resolution, matching, and audit.
 type Runtime struct {
-	Registry        *Registry
+	Registry        *scan.Registry
 	ExecutionTarget model.ExecutionTarget
 	Subprojects     []model.Subproject
 	DetectorFilter  model.DetectorFilter
@@ -32,13 +36,11 @@ type Runtime struct {
 	EcosystemFilter model.EcosystemFilter
 }
 
-var (
-	// ErrNoSubprojects indicates that no compatible subprojects were discovered for the runtime.
-	ErrNoSubprojects = errors.New("no subprojects discovered for execution target with the applied filters")
-)
+// ErrNoSubprojects indicates that no compatible subprojects were discovered for the runtime.
+var ErrNoSubprojects = errors.New("no subprojects discovered for execution target with the applied filters")
 
 // Prepare builds a filtered runtime and plans subprojects from the selected execution target.
-func Prepare(req PrepareRequest) (*Runtime, error) {
+func Prepare(req Request) (*Runtime, error) {
 	if req.Registry == nil {
 		return nil, fmt.Errorf("prepare runtime: registry is nil")
 	}
@@ -46,7 +48,7 @@ func Prepare(req PrepareRequest) (*Runtime, error) {
 		return nil, fmt.Errorf("prepare runtime plugins: %w", err)
 	}
 
-	filteredRegistry := req.Registry.Filter(RegistryFilter{
+	filteredRegistry := req.Registry.Filter(scan.RegistryFilter{
 		DetectorFilter:  req.DetectorFilter,
 		AuditorFilter:   req.AuditorFilter,
 		MatcherFilter:   req.MatcherFilter,

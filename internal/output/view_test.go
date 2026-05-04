@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-cli/internal/scan"
+	"github.com/bomly-dev/bomly-cli/internal/scan/consolidation"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -35,7 +35,7 @@ func TestBuildScanResponseIncludesAuditData(t *testing.T) {
 		Title:    "Prototype pollution",
 		Source:   "osv",
 	}}
-	consolidated, err := scan.ConsolidateGraphs(results)
+	consolidated, err := consolidation.ConsolidateGraphs(results)
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
 	}
@@ -108,7 +108,7 @@ func TestBuildScanResponseDeduplicatesManifestAndPrefersNative(t *testing.T) {
 		},
 	}
 
-	consolidated, err := scan.ConsolidateGraphs(results)
+	consolidated, err := consolidation.ConsolidateGraphs(results)
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
 	}
@@ -172,7 +172,7 @@ func TestBuildScanResponseDeduplicatesSameManifestWhenMetadataDiffers(t *testing
 		},
 	}
 
-	consolidated, err := scan.ConsolidateGraphs(results)
+	consolidated, err := consolidation.ConsolidateGraphs(results)
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
 	}
@@ -227,11 +227,11 @@ func TestBuildDiffResponseAggregatesManifestChanges(t *testing.T) {
 		}}},
 	}}
 
-	baseConsolidated, err := scan.ConsolidateGraphs(baseResults)
+	baseConsolidated, err := consolidation.ConsolidateGraphs(baseResults)
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs(base) error = %v", err)
 	}
-	headConsolidated, err := scan.ConsolidateGraphs(headResults)
+	headConsolidated, err := consolidation.ConsolidateGraphs(headResults)
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs(head) error = %v", err)
 	}
@@ -286,11 +286,11 @@ func TestBuildDiffResponseTreatsSBOMFilesAsSameManifestWhenOnlyEvidencePathDiffe
 		}}},
 	}}
 
-	baseConsolidated, err := scan.ConsolidateGraphs(baseResults)
+	baseConsolidated, err := consolidation.ConsolidateGraphs(baseResults)
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs(base) error = %v", err)
 	}
-	headConsolidated, err := scan.ConsolidateGraphs(headResults)
+	headConsolidated, err := consolidation.ConsolidateGraphs(headResults)
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs(head) error = %v", err)
 	}
@@ -387,7 +387,7 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 		},
 	}
 
-	consolidated, err := scan.ConsolidateGraphs(results)
+	consolidated, err := consolidation.ConsolidateGraphs(results)
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
 	}
@@ -401,7 +401,7 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 	}
 	pkg.Licenses = []model.PackageLicense{{SPDXExpression: "MIT"}}
 	pkg.Matched = true
-	scan.SyncConsolidatedEnrichmentToManifests(&consolidated, enrichedGraph)
+	consolidation.SyncConsolidatedEnrichmentToManifests(&consolidated, enrichedGraph)
 
 	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo", Path: projectRoot}, consolidated, nil, time.Now().Add(-time.Second))
 	if len(response.Manifests) != 2 {
@@ -477,11 +477,11 @@ func TestBuildDiffResponseFuzzyReconcilesRenamedPackage(t *testing.T) {
 		}}},
 	}}
 
-	baseConsolidated, err := scan.ConsolidateGraphs(baseResults)
+	baseConsolidated, err := consolidation.ConsolidateGraphs(baseResults)
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs(base) error = %v", err)
 	}
-	headConsolidated, err := scan.ConsolidateGraphs(headResults)
+	headConsolidated, err := consolidation.ConsolidateGraphs(headResults)
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs(head) error = %v", err)
 	}

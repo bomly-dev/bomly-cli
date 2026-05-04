@@ -9,6 +9,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/explain"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/scan"
+	"github.com/bomly-dev/bomly-cli/internal/scan/consolidation"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/spf13/cobra"
 )
@@ -121,7 +122,7 @@ func newExplainCmd(options *globalOptions) *cobra.Command {
 				return output.WriteSARIF(streams.reportWriter(), allFindings, "bomly", cmd.Root().Version)
 			}
 			if ctx.config.Interactive {
-				consolidated, err := scan.ConsolidateGraphs(focusedResults)
+				consolidated, err := consolidation.ConsolidateGraphs(focusedResults)
 				if err != nil {
 					return resolutionFailure(err)
 				}

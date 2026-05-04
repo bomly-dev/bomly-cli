@@ -1,4 +1,4 @@
-package scan
+package consolidation
 
 import (
 	"errors"
@@ -158,6 +158,9 @@ func syncPackageEnrichment(dst, src *model.Package) {
 	}
 }
 
+// SyncConsolidatedEnrichmentToManifests propagates enrichment from a fully consolidated graph
+// (matched, audited) back to each per-manifest entry graph so callers can render per-manifest
+// views with the enriched data.
 func SyncConsolidatedEnrichmentToManifests(consolidated *model.ConsolidatedGraph, graph *model.Graph) {
 	if consolidated == nil || graph == nil {
 		return

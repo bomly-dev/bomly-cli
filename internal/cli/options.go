@@ -14,6 +14,7 @@ import (
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	"github.com/bomly-dev/bomly-cli/internal/scan"
+	scanruntime "github.com/bomly-dev/bomly-cli/internal/scan/runtime"
 	"github.com/bomly-dev/bomly-cli/internal/system"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/spf13/cobra"
@@ -52,7 +53,7 @@ type globalOptions struct {
 }
 
 type commandContext struct {
-	runtime         *scan.Runtime
+	runtime         *scanruntime.Runtime
 	executionTarget model.ExecutionTarget
 	subprojects     []model.Subproject
 	detectorFilter  model.DetectorFilter
@@ -148,7 +149,7 @@ func (o *globalOptions) newCommandContextForExecutionTarget(logger *zap.Logger, 
 			return commandContext{}, invalidInputf("--install-arg requires exactly one selected detector, got %d (%s)", len(selectedDetectors), strings.Join(selectedDetectors, ", "))
 		}
 	}
-	preparedRuntime, err := scan.Prepare(scan.PrepareRequest{
+	preparedRuntime, err := scanruntime.Prepare(scanruntime.Request{
 		Registry:             scanRegistry,
 		ExecutionTarget:      executionTarget,
 		ForcedPackageManager: forcedPackageManager,
@@ -367,7 +368,7 @@ func (o *globalOptions) resolveSubprojects(executionTarget model.ExecutionTarget
 		return nil, err
 	}
 
-	runtime, err := scan.Prepare(scan.PrepareRequest{
+	runtime, err := scanruntime.Prepare(scanruntime.Request{
 		Registry:             scanRegistry,
 		ExecutionTarget:      executionTarget,
 		ForcedPackageManager: forcedPackageManager,

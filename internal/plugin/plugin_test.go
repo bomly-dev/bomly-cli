@@ -11,6 +11,7 @@ import (
 
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
 	"github.com/bomly-dev/bomly-cli/internal/scan"
+	scanruntime "github.com/bomly-dev/bomly-cli/internal/scan/runtime"
 	"github.com/bomly-dev/bomly-cli/internal/testutil"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
@@ -207,7 +208,7 @@ func TestPrepareLoadsAndRunsExternalDetector(t *testing.T) {
 
 	reg := scan.NewRegistry(scan.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
-	runtimeValue, err := scan.Prepare(scan.PrepareRequest{
+	runtimeValue, err := scanruntime.Prepare(scanruntime.Request{
 		Registry:        reg,
 		ExecutionTarget: model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: projectDir},
 		DetectorFilter:  model.DetectorFilter{Include: []string{"acme.detector.gomod"}},

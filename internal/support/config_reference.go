@@ -56,7 +56,7 @@ func parseConfigFields(configPath string) ([]configField, error) {
 		}
 		for _, spec := range genDecl.Specs {
 			ts, ok := spec.(*ast.TypeSpec)
-			if !ok || ts.Name.Name != "fileConfig" {
+			if !ok || ts.Name.Name != "File" {
 				continue
 			}
 			st, ok := ts.Type.(*ast.StructType)
@@ -90,7 +90,7 @@ func parseConfigFields(configPath string) ([]configField, error) {
 		}
 		for _, spec := range genDecl.Specs {
 			ts, ok := spec.(*ast.TypeSpec)
-			if !ok || ts.Name.Name != "resolvedConfig" {
+			if !ok || ts.Name.Name != "Resolved" {
 				continue
 			}
 			st, ok := ts.Type.(*ast.StructType)

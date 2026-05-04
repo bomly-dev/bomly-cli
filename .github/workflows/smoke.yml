@@ -51,7 +51,11 @@ jobs:
             run: 'TestScan/scan-pub'
             dart: true
           - name: swift
-            run: 'TestScan/scan-cocoapods'
+            run: 'TestScan/(scan-cocoapods|scan-swiftpm)'
+          - name: elixir
+            run: 'TestScan/scan-mix'
+          - name: scala
+            run: 'TestScan/scan-sbt'
           - name: container
             run: 'TestContainer(Scan|Diff|Explain)|TestContainerAuditScan/container-scan-alpine-audit'
     steps:

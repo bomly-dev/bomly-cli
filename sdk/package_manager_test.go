@@ -82,6 +82,34 @@ func TestOtherPackageManagerAndEcosystem(t *testing.T) {
 	}
 }
 
+func TestScalaPackageManagerAndEcosystem(t *testing.T) {
+	ecosystem, err := ParseEcosystem(" scala ")
+	if err != nil {
+		t.Fatalf("parse scala ecosystem: %v", err)
+	}
+	if ecosystem != EcosystemScala {
+		t.Fatalf("expected scala ecosystem, got %q", ecosystem)
+	}
+
+	manager, err := ParsePackageManager(" sbt ")
+	if err != nil {
+		t.Fatalf("parse sbt package manager: %v", err)
+	}
+	if manager != PackageManagerSBT {
+		t.Fatalf("expected sbt package manager, got %q", manager.Name())
+	}
+	if got := manager.Ecosystem(); got != EcosystemScala {
+		t.Fatalf("expected scala ecosystem, got %q", got)
+	}
+}
+
+func TestBuildPackageURLFallbackForSwift(t *testing.T) {
+	got := BuildPackageURL("swift", "", "async-kit", "1.15.0")
+	if got != "pkg:swift/async-kit@1.15.0" {
+		t.Fatalf("expected Swift package URL, got %q", got)
+	}
+}
+
 func TestAllPackageManagersReturnsCopy(t *testing.T) {
 	managers := AllPackageManagers()
 	if len(managers) == 0 {

@@ -19,6 +19,7 @@ func TestSupportCatalogEvidencePatterns(t *testing.T) {
 	if got := EvidencePatternsForPackageManager(model.PackageManagerGoMod); !reflect.DeepEqual(got, want) {
 		t.Fatalf("expected evidence patterns to be copied, got %v", got)
 	}
+
 }
 
 func TestSupportCatalogDetectorChainOrdering(t *testing.T) {
@@ -46,6 +47,12 @@ func TestSupportCatalogDetectorChainOrdering(t *testing.T) {
 		t.Fatalf("expected cargo detector chain %v, got %v", want, chain)
 	}
 
+	chain = DetectorNamesForPackageManager(model.PackageManagerSBT)
+	want = []string{detectors.NameSBT}
+	if !reflect.DeepEqual(chain, want) {
+		t.Fatalf("expected sbt detector chain %v, got %v", want, chain)
+	}
+
 	for _, tc := range []struct {
 		manager model.PackageManager
 		native  string
@@ -53,6 +60,9 @@ func TestSupportCatalogDetectorChainOrdering(t *testing.T) {
 		{manager: model.PackageManagerNuGet, native: detectors.NameNuGet},
 		{manager: model.PackageManagerPub, native: detectors.NamePub},
 		{manager: model.PackageManagerCocoaPods, native: detectors.NameCocoaPods},
+		{manager: model.PackageManagerSwiftPM, native: detectors.NameSwiftPM},
+		{manager: model.PackageManagerMix, native: detectors.NameMix},
+		{manager: model.PackageManagerConan, native: detectors.NameConan},
 	} {
 		chain = DetectorNamesForPackageManager(tc.manager)
 		want = []string{tc.native, detectors.NameSyft}
@@ -78,6 +88,38 @@ func TestSupportEntriesForDetectorTypeFiltersEvidencePatterns(t *testing.T) {
 			wantDetectors:  []string{detectors.NameNPMNative},
 			wantEvidence:   []string{"package.json"},
 			rejectEvidence: []string{"package-lock.json"},
+		},
+		{
+			name:           "swiftpm native",
+			manager:        model.PackageManagerSwiftPM,
+			detectorType:   model.NativeComponent,
+			wantDetectors:  []string{detectors.NameSwiftPM},
+			wantEvidence:   []string{"Package.resolved", ".package.resolved", "Package.swift", "project.xcworkspace/xcshareddata/swiftpm/Package.resolved"},
+			rejectEvidence: []string{},
+		},
+		{
+			name:           "mix native",
+			manager:        model.PackageManagerMix,
+			detectorType:   model.NativeComponent,
+			wantDetectors:  []string{detectors.NameMix},
+			wantEvidence:   []string{"mix.lock", "mix.exs"},
+			rejectEvidence: []string{},
+		},
+		{
+			name:           "conan native",
+			manager:        model.PackageManagerConan,
+			detectorType:   model.NativeComponent,
+			wantDetectors:  []string{detectors.NameConan},
+			wantEvidence:   []string{"conan.lock", "conanfile.txt", "conanfile.py", "conaninfo.txt"},
+			rejectEvidence: []string{},
+		},
+		{
+			name:           "sbt native",
+			manager:        model.PackageManagerSBT,
+			detectorType:   model.NativeComponent,
+			wantDetectors:  []string{detectors.NameSBT},
+			wantEvidence:   []string{"build.sbt", "project/plugins.sbt", "project/build.properties"},
+			rejectEvidence: []string{},
 		},
 		{
 			name:           "npm lockfile",

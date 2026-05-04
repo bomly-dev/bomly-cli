@@ -38,6 +38,7 @@ const (
 	EcosystemRPM       Ecosystem = "rpm"
 	EcosystemRuby      Ecosystem = "ruby"
 	EcosystemRust      Ecosystem = "rust"
+	EcosystemScala     Ecosystem = "scala"
 	EcosystemSBOM      Ecosystem = "sbom"
 	EcosystemSnap      Ecosystem = "snap"
 	EcosystemSwift     Ecosystem = "swift"
@@ -107,6 +108,7 @@ var ecosystemRegistry = []ecosystemSupport{
 	{Ecosystem: EcosystemRPM},
 	{Ecosystem: EcosystemRuby},
 	{Ecosystem: EcosystemRust},
+	{Ecosystem: EcosystemScala},
 	{Ecosystem: EcosystemSBOM},
 	{Ecosystem: EcosystemSnap},
 	{Ecosystem: EcosystemSwift},

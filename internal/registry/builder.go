@@ -9,10 +9,12 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/cargo"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/cocoapods"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/composer"
+	"github.com/bomly-dev/bomly-cli/internal/detectors/conan"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/githubactions"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/gomod"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/gradle"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/maven"
+	"github.com/bomly-dev/bomly-cli/internal/detectors/mix"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/npm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/pnpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/yarn"
@@ -21,6 +23,8 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/python"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/ruby"
 	sbomdetector "github.com/bomly-dev/bomly-cli/internal/detectors/sbom"
+	"github.com/bomly-dev/bomly-cli/internal/detectors/sbt"
+	"github.com/bomly-dev/bomly-cli/internal/detectors/swiftpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/syft"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/clearlydefined"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/depsdev"
@@ -663,6 +667,10 @@ func builtInDetectorsByName(logger *zap.Logger) map[string]model.Detector {
 	cargoDetector := cargo.Detector{Logger: logger, Fallback: syftFallback}
 	pubDetector := pub.Detector{Logger: logger, Fallback: syftFallback}
 	cocoaPodsDetector := cocoapods.Detector{Logger: logger, Fallback: syftFallback}
+	swiftPMDetector := swiftpm.Detector{Logger: logger, Fallback: syftFallback}
+	mixDetector := mix.Detector{Logger: logger, Fallback: syftFallback}
+	conanDetector := conan.Detector{Logger: logger, Fallback: syftFallback}
+	sbtDetector := sbt.Detector{Logger: logger, Fallback: syftFallback}
 
 	return map[string]model.Detector{
 		sbomDetector.Descriptor().Name:          sbomDetector,
@@ -683,6 +691,10 @@ func builtInDetectorsByName(logger *zap.Logger) map[string]model.Detector {
 		cargoDetector.Descriptor().Name:         cargoDetector,
 		pubDetector.Descriptor().Name:           pubDetector,
 		cocoaPodsDetector.Descriptor().Name:     cocoaPodsDetector,
+		swiftPMDetector.Descriptor().Name:       swiftPMDetector,
+		mixDetector.Descriptor().Name:           mixDetector,
+		conanDetector.Descriptor().Name:         conanDetector,
+		sbtDetector.Descriptor().Name:           sbtDetector,
 		syftPrimary.Descriptor().Name:           syftPrimary,
 	}
 }

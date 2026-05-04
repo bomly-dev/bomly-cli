@@ -136,6 +136,18 @@ func TestScan(t *testing.T) {
 			args: []string{"scan", "--url", "https://github.com/material-motion/motion-interchange-objc", "--ref", "835474053336d2004c079f7d6580f582a7a2b85a", "--format", "json", "--ecosystems", "swift"},
 		},
 		{
+			name: "scan-mix",
+			args: []string{"scan", "--url", "https://github.com/phoenixframework/phoenix", "--ref", "05e0b5b26a65124e768e0ab55b86bba30a531e14", "--format", "json", "--ecosystems", "elixir"},
+		},
+		{
+			name: "scan-swiftpm",
+			args: []string{"scan", "--url", "https://github.com/vapor/vapor", "--ref", "ebbe71c89aa1b76a0920277760b12be7a2ec7c70", "--format", "json", "--ecosystems", "swift"},
+		},
+		{
+			name: "scan-sbt",
+			args: []string{"scan", "--url", "https://github.com/ucb-bar/chiseltest", "--ref", "8315873827715841f75af9b2d73e49214a1373d6", "--format", "json", "--ecosystems", "scala"},
+		},
+		{
 			name:  "scan-npm-scope-runtime",
 			args:  []string{"scan", "--url", "https://github.com/ljharb/qs", "--ref", "v6.13.0", "--format", "json", "--scope", "runtime"},
 			tools: []string{"npm"},

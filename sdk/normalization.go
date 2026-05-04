@@ -137,6 +137,12 @@ func normEffectiveEcosystem(pkg *Package) string {
 			return string(EcosystemDart)
 		case string(EcosystemSwift), "cocoapods", "swiftpm":
 			return string(EcosystemSwift)
+		case string(EcosystemCPP), "conan":
+			return string(EcosystemCPP)
+		case string(EcosystemElixir), "mix", "hex":
+			return string(EcosystemElixir)
+		case string(EcosystemScala), "sbt":
+			return string(EcosystemScala)
 		}
 	}
 	return ""

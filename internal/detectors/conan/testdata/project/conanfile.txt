@@ -1,0 +1,5 @@
+[requires]
+zlib/1.2.13
+
+[tool_requires]
+cmake/3.27.0

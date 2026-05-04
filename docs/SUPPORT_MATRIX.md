@@ -15,8 +15,10 @@ Primary detector files are the preferred inputs for Bomly-owned resolution. Fall
 
 | Ecosystem | Package managers | Primary detector files | Fallback detector files | Detector |
 | --- | --- | --- | --- | --- |
+| `cpp` | `conan` | `conan.lock`, `conanfile.txt`, `conanfile.py`, `conaninfo.txt` | - | Native detector |
 | `dart` | `pub` | `pubspec.lock`, `pubspec.yaml`, `pubspec.yml` | - | Native detector |
 | `dotnet` | `nuget` | `packages.lock.json`, `packages.config`, `*.csproj`, `*.fsproj`, `*.vbproj`, `*.vcxproj`, `project.assets.json` | - | Native detector |
+| `elixir` | `mix` | `mix.lock`, `mix.exs` | - | Native detector |
 | `github-actions` | `github-actions` | `.github/workflows/*.yaml`, `.github/workflows/*.yml`, `.github/actions/*/action.yml`, `.github/actions/*/action.yaml` | - | Native detector |
 | `go` | `gomod` | `go.mod` | - | Native Go detector |
 | `maven` | `gradle`, `maven` | `build.gradle`, `build.gradle.kts`, `settings.gradle`, `settings.gradle.kts`, `gradle.lockfile*`, `pom.xml`, `*pom.xml` | - | Native Maven and Gradle detectors |
@@ -26,7 +28,8 @@ Primary detector files are the preferred inputs for Bomly-owned resolution. Fall
 | `ruby` | `bundler` | `Gemfile.lock`, `Gemfile.next.lock` | - | Native detector |
 | `rust` | `cargo` | `Cargo.lock`, `Cargo.toml` | - | Native detector |
 | `sbom` | `sbom` | `*.syft.json`, `*.bom.*`, `*.bom`, `bom`, `*.sbom.*`, `*.sbom`, `sbom`, `*.cdx.*`, `*.cdx`, `*.spdx.*`, `*.spdx` | - | Native SBOM detector |
-| `swift` | `cocoapods` | `Podfile.lock`, `Podfile` | - | Native detector |
+| `scala` | `sbt` | `build.sbt`, `project/plugins.sbt`, `project/build.properties` | - | Native detector |
+| `swift` | `cocoapods`, `swiftpm` | `Podfile.lock`, `Podfile`, `Package.resolved`, `.package.resolved`, `Package.swift`, `project.xcworkspace/xcshareddata/swiftpm/Package.resolved` | - | Native detector |
 
 ## Third-Party Support
 

@@ -45,9 +45,26 @@ func BuildPackageURL(purlType, namespace, name, version string) string {
 		return ""
 	}
 	if err := purl.Normalize(); err != nil {
-		return ""
+		return buildPackageURLFallback(purlType, namespace, name, version)
 	}
 	return purl.ToString()
+}
+
+func buildPackageURLFallback(purlType, namespace, name, version string) string {
+	var builder strings.Builder
+	builder.WriteString("pkg:")
+	builder.WriteString(purlType)
+	builder.WriteString("/")
+	if namespace != "" {
+		builder.WriteString(namespace)
+		builder.WriteString("/")
+	}
+	builder.WriteString(name)
+	if version != "" {
+		builder.WriteString("@")
+		builder.WriteString(version)
+	}
+	return builder.String()
 }
 
 // PackageURLTypeForValues maps ecosystem/build-system values to a package-url type.
@@ -65,6 +82,12 @@ func PackageURLTypeForValues(values ...string) string {
 			return "cocoapods"
 		case "swiftpm":
 			return "swift"
+		case "conan":
+			return "conan"
+		case "mix", "hex":
+			return "hex"
+		case "sbt", "scala":
+			return "maven"
 		}
 	}
 	for _, value := range values {

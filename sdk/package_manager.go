@@ -55,6 +55,7 @@ const (
 	PackageManagerWordPress
 	PackageManagerSetupPy
 	PackageManagerOther
+	PackageManagerSBT
 	PackageManagerCount
 )
 
@@ -111,6 +112,7 @@ var packageManagerInfoByID = [...]packageManagerInfo{
 	PackageManagerWordPress:     {Name: "wordpress", Ecosystem: EcosystemWordPress},
 	PackageManagerSetupPy:       {Name: "setuppy", Ecosystem: EcosystemPython},
 	PackageManagerOther:         {Name: "other", Ecosystem: EcosystemOther},
+	PackageManagerSBT:           {Name: "sbt", Ecosystem: EcosystemScala},
 }
 
 var allPackageManagers = []PackageManager{
@@ -158,6 +160,7 @@ var allPackageManagers = []PackageManager{
 	PackageManagerTerraform,
 	PackageManagerWordPress,
 	PackageManagerSetupPy,
+	PackageManagerSBT,
 	PackageManagerOther,
 }
 

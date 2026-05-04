@@ -13,7 +13,7 @@ require (
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/glebarez/sqlite v1.11.0
 	github.com/hashicorp/go-hclog v1.6.3
-	github.com/hashicorp/go-plugin v1.7.0
+	github.com/hashicorp/go-plugin v1.8.0
 	github.com/mark3labs/mcp-go v0.50.0
 	github.com/pandatix/go-cvss v0.6.2
 	github.com/spdx/tools-golang v0.5.7

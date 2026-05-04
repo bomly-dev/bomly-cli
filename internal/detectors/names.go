@@ -21,6 +21,10 @@ const (
 	NameCargo         = "cargo-detector"
 	NamePub           = "pub-detector"
 	NameCocoaPods     = "cocoapods-detector"
+	NameSwiftPM       = "swiftpm-detector"
+	NameMix           = "mix-detector"
+	NameConan         = "conan-detector"
+	NameSBT           = "sbt-detector"
 	NameSBOM          = "sbom-detector"
 	NameSyft          = "syft-detector"
 )

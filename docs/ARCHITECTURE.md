@@ -106,6 +106,8 @@ Implementation priority:
 | Lockfile parser | Package-manager-specific parsers where applicable                        | High     |
 | Third-party     | Syft detector, Grype matcher                                             | Lower    |
 
+Native detector coverage is quality-of-graph coverage, not just support-matrix labeling. A built-in detector should ship with deterministic package metadata, graph edges where the ecosystem source can provide them, direct/development/runtime classification when it can be inferred, package URLs, unit fixtures in the detector package, and smoke coverage when a stable root-level real repository is available. Syft remains the compatibility backstop for package managers or project shapes that Bomly cannot resolve directly.
+
 ## Build Modes
 
 Syft and Grype support two build modes:

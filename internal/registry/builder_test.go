@@ -56,6 +56,10 @@ func TestBuildScanRegistryKeepsNativeDetectorFirstForNativeManagers(t *testing.T
 		{manager: model.PackageManagerCargo, detectorName: "cargo-detector"},
 		{manager: model.PackageManagerPub, detectorName: "pub-detector"},
 		{manager: model.PackageManagerCocoaPods, detectorName: "cocoapods-detector"},
+		{manager: model.PackageManagerSwiftPM, detectorName: "swiftpm-detector"},
+		{manager: model.PackageManagerMix, detectorName: "mix-detector"},
+		{manager: model.PackageManagerConan, detectorName: "conan-detector"},
+		{manager: model.PackageManagerSBT, detectorName: "sbt-detector"},
 	}
 
 	for _, tc := range testCases {

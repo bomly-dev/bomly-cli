@@ -6,10 +6,12 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/cargo"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/cocoapods"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/composer"
+	"github.com/bomly-dev/bomly-cli/internal/detectors/conan"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/githubactions"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/gomod"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/gradle"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/maven"
+	"github.com/bomly-dev/bomly-cli/internal/detectors/mix"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/npm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/pnpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/yarn"
@@ -18,6 +20,8 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/python"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/ruby"
 	sbomdetector "github.com/bomly-dev/bomly-cli/internal/detectors/sbom"
+	"github.com/bomly-dev/bomly-cli/internal/detectors/sbt"
+	"github.com/bomly-dev/bomly-cli/internal/detectors/swiftpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/syft"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
@@ -80,6 +84,10 @@ func builtInSupportDetectors() []model.Detector {
 		cargo.Detector{},
 		pub.Detector{},
 		cocoapods.Detector{},
+		swiftpm.Detector{},
+		mix.Detector{},
+		conan.Detector{},
+		sbt.Detector{},
 		sbomdetector.Detector{},
 		syft.Detector{},
 	}

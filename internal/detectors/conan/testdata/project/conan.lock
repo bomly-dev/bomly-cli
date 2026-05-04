@@ -1,0 +1,21 @@
+{
+  "graph": {
+    "nodes": {
+      "0": {
+        "ref": "",
+        "requires": ["1"],
+        "build_requires": ["2"]
+      },
+      "1": {
+        "ref": "zlib/1.2.13#rev",
+        "context": "host",
+        "requires": []
+      },
+      "2": {
+        "ref": "cmake/3.27.0",
+        "context": "build",
+        "requires": []
+      }
+    }
+  }
+}

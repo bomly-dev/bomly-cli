@@ -1,0 +1,5 @@
+%{
+  "credo": {:hex, :credo, "1.7.7", "checksum", [:mix], [{:bunt, "~> 1.0", [hex: :bunt, repo: "hexpm", optional: false]}], "hexpm", "checksum"},
+  "plug": {:hex, :plug, "1.15.3", "checksum", [:mix], [{:mime, "~> 1.0", [hex: :mime, repo: "hexpm", optional: false]}], "hexpm", "checksum"},
+  "mime": {:hex, :mime, "2.0.6", "checksum", [:mix], [], "hexpm", "checksum"}
+}

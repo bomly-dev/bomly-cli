@@ -1,0 +1,78 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "detector": "sbt-detector",
+      "ecosystem": "scala",
+      "kind": "build.sbt",
+      "package_manager": "sbt",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.github.sbt/sbt-ci-release@1.5.12",
+          "licenses": [],
+          "name": "com.github.sbt:sbt-ci-release",
+          "purl": "pkg:maven/com.github.sbt/sbt-ci-release@1.5.12",
+          "scope": "runtime",
+          "version": "1.5.12",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/net.java.dev.jna/jna@5.14.0",
+          "licenses": [],
+          "name": "net.java.dev.jna:jna",
+          "purl": "pkg:maven/net.java.dev.jna/jna@5.14.0",
+          "scope": "runtime",
+          "version": "5.14.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/org.scalameta/sbt-scalafmt@2.5.2",
+          "licenses": [],
+          "name": "org.scalameta:sbt-scalafmt",
+          "purl": "pkg:maven/org.scalameta/sbt-scalafmt@2.5.2",
+          "scope": "runtime",
+          "version": "2.5.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/org.scalatest/scalatest@3.2.17",
+          "licenses": [],
+          "name": "org.scalatest:scalatest",
+          "purl": "pkg:maven/org.scalatest/scalatest@3.2.17",
+          "scope": "runtime",
+          "version": "3.2.17",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:maven/com.github.sbt/sbt-ci-release@1.5.12",
+            "pkg:maven/net.java.dev.jna/jna@5.14.0",
+            "pkg:maven/org.scalameta/sbt-scalafmt@2.5.2",
+            "pkg:maven/org.scalatest/scalatest@3.2.17"
+          ],
+          "id": "pkg:maven/root",
+          "licenses": [],
+          "name": "root",
+          "purl": "pkg:maven/root",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "build.sbt",
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "duration_ms": 0
+  },
+  "project": {
+    "ecosystem": "scala",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "sbt",
+    "path": "\u003cnormalized\u003e"
+  },
+  "schema_version": "1.0"
+}

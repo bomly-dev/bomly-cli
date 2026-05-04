@@ -6,9 +6,9 @@ require (
 	github.com/CycloneDX/cyclonedx-go v0.10.0
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/anchore/clio v0.1.0
-	github.com/anchore/grype v0.111.1
+	github.com/anchore/grype v0.112.0
 	github.com/anchore/packageurl-go v0.2.0
-	github.com/anchore/syft v1.43.0
+	github.com/anchore/syft v1.44.0
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/glebarez/sqlite v1.11.0

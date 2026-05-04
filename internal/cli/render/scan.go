@@ -1,4 +1,4 @@
-package cli
+package render
 
 import (
 	"fmt"
@@ -10,7 +10,9 @@ import (
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
 
-func scanGraphDisplayName(g *model.Graph, fallback string) string {
+// ScanGraphDisplayName returns a label for the scan target derived from g's
+// single root, or fallback when g has zero or multiple roots.
+func ScanGraphDisplayName(g *model.Graph, fallback string) string {
 	if g == nil {
 		return fallback
 	}
@@ -27,7 +29,8 @@ func scanGraphDisplayName(g *model.Graph, fallback string) string {
 	return fallback
 }
 
-func renderScanReport(manifests []output.ScanManifest, g *model.Graph, findings []model.Finding, enrichEnabled, auditEnabled bool) string {
+// Scan returns the human-readable text report for a scan command.
+func Scan(manifests []output.ScanManifest, g *model.Graph, findings []model.Finding, enrichEnabled, auditEnabled bool) string {
 	var b strings.Builder
 
 	if g == nil {
@@ -190,10 +193,10 @@ func renderUniqueLicensesTable(g *model.Graph) string {
 		_, _ = fmt.Fprintf(
 			tw,
 			"%s\t%s\t%s\t%s\t%d\n",
-			valueOrDash(row.identifier),
-			valueOrDash(row.spdx),
-			valueOrDash(row.value),
-			valueOrDash(row.sourceType),
+			ValueOrDash(row.identifier),
+			ValueOrDash(row.spdx),
+			ValueOrDash(row.value),
+			ValueOrDash(row.sourceType),
 			len(row.packages),
 		)
 	}
@@ -408,7 +411,7 @@ func renderScanGraphTable(g *model.Graph) string {
 
 	sort.Slice(rows, func(i, j int) bool {
 		if rows[i].relationship != rows[j].relationship {
-			return interactiveRelationshipOrder(rows[i].relationship) < interactiveRelationshipOrder(rows[j].relationship)
+			return RelationshipOrder(rows[i].relationship) < RelationshipOrder(rows[j].relationship)
 		}
 		return rows[i].id < rows[j].id
 	})
@@ -425,7 +428,7 @@ func renderScanGraphTable(g *model.Graph) string {
 		if scope == "" {
 			scope = "-"
 		}
-		_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n", row.name, version, scope, row.relationship, valueOrDash(row.licenses))
+		_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n", row.name, version, scope, row.relationship, ValueOrDash(row.licenses))
 	}
 	_ = tw.Flush()
 	return strings.TrimRight(b.String(), "\n")

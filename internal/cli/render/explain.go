@@ -1,4 +1,4 @@
-package cli
+package render
 
 import (
 	"fmt"
@@ -8,36 +8,37 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/output"
 )
 
-func renderExplainTextReport(w io.Writer, target output.ExplainTargetResponse) error {
-	divider := ansiStyled(strings.Repeat("=", 72), ansiDim)
-	section := ansiStyled(strings.Repeat("-", 72), ansiDim)
+// Explain writes the human-readable explain report for one target dependency.
+func Explain(w io.Writer, target output.ExplainTargetResponse) error {
+	divider := Style(strings.Repeat("=", 72), Dim)
+	section := Style(strings.Repeat("-", 72), Dim)
 
 	if _, err := fmt.Fprintln(w, divider); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintln(w, ansiStyled("Dependency Explanation", ansiBold, ansiCyan)); err != nil {
+	if _, err := fmt.Fprintln(w, Style("Dependency Explanation", Bold, Cyan)); err != nil {
 		return err
 	}
 	if _, err := fmt.Fprintln(w, section); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintf(w, "%s %s\n", ansiStyled("Component:", ansiDim), explainPackageDisplayName(target.Dependency)); err != nil {
+	if _, err := fmt.Fprintf(w, "%s %s\n", Style("Component:", Dim), explainPackageDisplayName(target.Dependency)); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintf(w, "%s %s\n", ansiStyled("Project:  ", ansiDim), valueOrDash(target.Project.Name)); err != nil {
+	if _, err := fmt.Fprintf(w, "%s %s\n", Style("Project:  ", Dim), ValueOrDash(target.Project.Name)); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintf(w, "%s %s\n", ansiStyled("Detector: ", ansiDim), valueOrDash(target.Detector)); err != nil {
+	if _, err := fmt.Fprintf(w, "%s %s\n", Style("Detector: ", Dim), ValueOrDash(target.Detector)); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintf(w, "%s %d\n", ansiStyled("Path count:", ansiDim), len(target.Paths)); err != nil {
+	if _, err := fmt.Fprintf(w, "%s %d\n", Style("Path count:", Dim), len(target.Paths)); err != nil {
 		return err
 	}
 
 	if _, err := fmt.Fprintln(w); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintln(w, ansiStyled("Dependency Paths", ansiBold)); err != nil {
+	if _, err := fmt.Fprintln(w, Style("Dependency Paths", Bold)); err != nil {
 		return err
 	}
 	for _, line := range whyTreeLinesForTarget(target.Paths, target.Dependency.ID) {
@@ -50,20 +51,20 @@ func renderExplainTextReport(w io.Writer, target output.ExplainTargetResponse) e
 		if _, err := fmt.Fprintln(w); err != nil {
 			return err
 		}
-		if _, err := fmt.Fprintln(w, ansiStyled("Impact Assessment", ansiBold)); err != nil {
+		if _, err := fmt.Fprintln(w, Style("Impact Assessment", Bold)); err != nil {
 			return err
 		}
 	}
 
 	if len(target.Dependency.Vulnerabilities) > 0 {
-		if _, err := fmt.Fprintf(w, "%s %d matched\n", ansiStyled("Vulnerability enrichment:", ansiDim), len(target.Dependency.Vulnerabilities)); err != nil {
+		if _, err := fmt.Fprintf(w, "%s %d matched\n", Style("Vulnerability enrichment:", Dim), len(target.Dependency.Vulnerabilities)); err != nil {
 			return err
 		}
 		for _, vulnerability := range target.Dependency.Vulnerabilities {
-			if _, err := fmt.Fprintf(w, "- %s %s (%s)\n", explainSeverityLabel(vulnerability.Severity), vulnerability.ID, valueOrDash(vulnerability.Source)); err != nil {
+			if _, err := fmt.Fprintf(w, "- %s %s (%s)\n", explainSeverityLabel(vulnerability.Severity), vulnerability.ID, ValueOrDash(vulnerability.Source)); err != nil {
 				return err
 			}
-			if _, err := fmt.Fprintf(w, "  %s %s\n", ansiStyled("Title:   ", ansiDim), valueOrDash(vulnerability.Title)); err != nil {
+			if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Title:   ", Dim), ValueOrDash(vulnerability.Title)); err != nil {
 				return err
 			}
 		}
@@ -75,24 +76,24 @@ func renderExplainTextReport(w io.Writer, target output.ExplainTargetResponse) e
 				return err
 			}
 		}
-		if _, err := fmt.Fprintf(w, "%s %s\n", ansiStyled("Policy findings:", ansiDim), formatExplainAuditSummary(target.AuditSummary)); err != nil {
+		if _, err := fmt.Fprintf(w, "%s %s\n", Style("Policy findings:", Dim), formatExplainAuditSummary(target.AuditSummary)); err != nil {
 			return err
 		}
 		for _, finding := range target.Findings {
 			if _, err := fmt.Fprintf(w, "- %s %s\n", explainSeverityLabel(finding.Severity), finding.ID); err != nil {
 				return err
 			}
-			if _, err := fmt.Fprintf(w, "  %s %s\n", ansiStyled("Title:   ", ansiDim), valueOrDash(finding.Title)); err != nil {
+			if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Title:   ", Dim), ValueOrDash(finding.Title)); err != nil {
 				return err
 			}
-			if _, err := fmt.Fprintf(w, "  %s %s\n", ansiStyled("Source:  ", ansiDim), valueOrDash(finding.Source)); err != nil {
+			if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Source:  ", Dim), ValueOrDash(finding.Source)); err != nil {
 				return err
 			}
-			if _, err := fmt.Fprintf(w, "  %s %s\n", ansiStyled("Package: ", ansiDim), explainPackageDisplayName(finding.Package)); err != nil {
+			if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Package: ", Dim), explainPackageDisplayName(finding.Package)); err != nil {
 				return err
 			}
 			if len(finding.Reasons) > 0 {
-				if _, err := fmt.Fprintln(w, "  "+ansiStyled("Details: ", ansiDim)+finding.Reasons[0]); err != nil {
+				if _, err := fmt.Fprintln(w, "  "+Style("Details: ", Dim)+finding.Reasons[0]); err != nil {
 					return err
 				}
 				for _, reason := range finding.Reasons[1:] {
@@ -110,7 +111,7 @@ func renderExplainTextReport(w io.Writer, target output.ExplainTargetResponse) e
 				return err
 			}
 		}
-		if _, err := fmt.Fprintf(w, "%s %d detected\n", ansiStyled("Licenses:", ansiDim), len(target.Dependency.Licenses)); err != nil {
+		if _, err := fmt.Fprintf(w, "%s %d detected\n", Style("Licenses:", Dim), len(target.Dependency.Licenses)); err != nil {
 			return err
 		}
 		for idx, license := range target.Dependency.Licenses {
@@ -118,10 +119,10 @@ func renderExplainTextReport(w io.Writer, target output.ExplainTargetResponse) e
 			if license.Type != "" {
 				label += " [" + license.Type + "]"
 			}
-			if _, err := fmt.Fprintf(w, "- License %d: %s\n", idx+1, valueOrDash(label)); err != nil {
+			if _, err := fmt.Fprintf(w, "- License %d: %s\n", idx+1, ValueOrDash(label)); err != nil {
 				return err
 			}
-			if _, err := fmt.Fprintf(w, "  %s applicable to %s\n", ansiStyled("Scope:   ", ansiDim), explainPackageDisplayName(target.Dependency)); err != nil {
+			if _, err := fmt.Fprintf(w, "  %s applicable to %s\n", Style("Scope:   ", Dim), explainPackageDisplayName(target.Dependency)); err != nil {
 				return err
 			}
 		}
@@ -157,17 +158,17 @@ func formatExplainAuditSummary(summary *output.AuditSummary) string {
 }
 
 func explainSeverityLabel(severity string) string {
-	label := strings.ToUpper(valueOrDash(severity))
+	label := strings.ToUpper(ValueOrDash(severity))
 	switch strings.ToLower(strings.TrimSpace(severity)) {
 	case "critical":
-		return ansiStyled("["+label+"]", ansiRed, ansiBold)
+		return Style("["+label+"]", Red, Bold)
 	case "high":
-		return ansiStyled("["+label+"]", ansiRed)
+		return Style("["+label+"]", Red)
 	case "medium":
-		return ansiStyled("["+label+"]", ansiYellow, ansiBold)
+		return Style("["+label+"]", Yellow, Bold)
 	case "low":
-		return ansiStyled("["+label+"]", ansiCyan)
+		return Style("["+label+"]", Cyan)
 	default:
-		return ansiStyled("["+label+"]", ansiDim)
+		return Style("["+label+"]", Dim)
 	}
 }

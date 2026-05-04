@@ -1,4 +1,4 @@
-package cli
+package render
 
 import (
 	"fmt"
@@ -11,7 +11,9 @@ import (
 	"golang.org/x/text/language"
 )
 
-func diffManifestStatusOrder(status string) int {
+// DiffManifestStatusOrder returns the sort rank for a diff manifest status
+// (removed, added, changed, unchanged). Lower wins; unknown sorts last.
+func DiffManifestStatusOrder(status string) int {
 	switch strings.ToLower(strings.TrimSpace(status)) {
 	case "removed":
 		return 0
@@ -26,7 +28,8 @@ func diffManifestStatusOrder(status string) int {
 	}
 }
 
-func renderDiffText(w io.Writer, payload output.DiffResponse) error {
+// Diff writes the human-readable diff report for the diff command.
+func Diff(w io.Writer, payload output.DiffResponse) error {
 	if _, err := fmt.Fprintf(w, "Dependency diff %s -> %s\n", payload.Comparison.Base, payload.Comparison.Head); err != nil {
 		return err
 	}
@@ -88,8 +91,8 @@ func diffAuditTextSections(audit output.DiffAudit) []string {
 		lines = append(lines, "")
 		lines = append(lines, title)
 		for _, finding := range sortDiffAuditFindings(findings) {
-			line := fmt.Sprintf("  - [%s] %s", strings.ToUpper(valueOrDash(finding.Severity)), valueOrDash(finding.ID))
-			pkgLabel := diffPackageDisplayName(finding.Package)
+			line := fmt.Sprintf("  - [%s] %s", strings.ToUpper(ValueOrDash(finding.Severity)), ValueOrDash(finding.ID))
+			pkgLabel := DiffPackageDisplayName(finding.Package)
 			if pkgLabel != "" {
 				line += " " + pkgLabel
 			}
@@ -100,15 +103,15 @@ func diffAuditTextSections(audit output.DiffAudit) []string {
 				line += fmt.Sprintf(": %s", finding.Title)
 			}
 			if color != "" {
-				line = ansiWrap(line, color)
+				line = Wrap(line, color)
 			}
 			lines = append(lines, line)
 		}
 	}
 
-	appendSection("Introduced Findings", audit.Introduced, ansiRed)
+	appendSection("Introduced Findings", audit.Introduced, Red)
 	appendSection("Persisted Findings", audit.Persisted, "")
-	appendSection("Resolved Findings", audit.Resolved, ansiGreen)
+	appendSection("Resolved Findings", audit.Resolved, Green)
 
 	return lines
 }
@@ -132,8 +135,8 @@ func sortDiffAuditFindings(findings []output.AuditFinding) []output.AuditFinding
 		if sorted[i].ID != sorted[j].ID {
 			return sorted[i].ID < sorted[j].ID
 		}
-		pi := diffPackageDisplayName(sorted[i].Package)
-		pj := diffPackageDisplayName(sorted[j].Package)
+		pi := DiffPackageDisplayName(sorted[i].Package)
+		pj := DiffPackageDisplayName(sorted[j].Package)
 		if pi != pj {
 			return pi < pj
 		}
@@ -157,26 +160,26 @@ func diffTextSections(manifests []output.DiffManifestResult) []string {
 
 	for _, manifest := range manifests {
 		lines = append(lines, "")
-		statusLine := fmt.Sprintf("%s manifest %s", titleCaser.String(manifest.Status), diffManifestDisplayLabel(manifest))
+		statusLine := fmt.Sprintf("%s manifest %s", titleCaser.String(manifest.Status), DiffManifestDisplayLabel(manifest))
 		switch manifest.Status {
 		case "added":
-			statusLine = ansiWrap(statusLine, ansiGreen)
+			statusLine = Wrap(statusLine, Green)
 		case "removed":
-			statusLine = ansiWrap(statusLine, ansiRed)
+			statusLine = Wrap(statusLine, Red)
 		}
 		lines = append(lines, statusLine)
 
 		added := make([]string, 0, len(manifest.Added))
 		for _, change := range manifest.Added {
-			added = append(added, ansiWrap(diffPackageDisplayName(change.Package), ansiGreen))
+			added = append(added, Wrap(DiffPackageDisplayName(change.Package), Green))
 		}
 		changed := make([]string, 0, len(manifest.Changed))
 		for _, change := range manifest.Changed {
-			changed = append(changed, fmt.Sprintf("%s (%s -> %s)", diffPackageDisplayName(change.After), change.Before.Version, change.After.Version))
+			changed = append(changed, fmt.Sprintf("%s (%s -> %s)", DiffPackageDisplayName(change.After), change.Before.Version, change.After.Version))
 		}
 		removed := make([]string, 0, len(manifest.Removed))
 		for _, change := range manifest.Removed {
-			removed = append(removed, ansiWrap(diffPackageDisplayName(change.Package), ansiRed))
+			removed = append(removed, Wrap(DiffPackageDisplayName(change.Package), Red))
 		}
 
 		appendSection("Added", added, "  ")
@@ -186,7 +189,9 @@ func diffTextSections(manifests []output.DiffManifestResult) []string {
 	return lines
 }
 
-func diffPackageDisplayName(pkg output.PackageRef) string {
+// DiffPackageDisplayName returns a human-readable label for a package
+// referenced by the diff API: "name@version", "name", "id", or "".
+func DiffPackageDisplayName(pkg output.PackageRef) string {
 	switch {
 	case pkg.Name != "" && pkg.Version != "":
 		return pkg.Name + "@" + pkg.Version
@@ -199,7 +204,9 @@ func diffPackageDisplayName(pkg output.PackageRef) string {
 	}
 }
 
-func diffManifestDisplayLabel(manifest output.DiffManifestResult) string {
+// DiffManifestDisplayLabel returns a human-readable label for a manifest in
+// diff output, optionally suffixed with the package manager name.
+func DiffManifestDisplayLabel(manifest output.DiffManifestResult) string {
 	label := manifest.Path
 	if strings.TrimSpace(label) == "" {
 		label = manifest.Kind

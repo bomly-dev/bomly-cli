@@ -1,4 +1,4 @@
-package cli
+package render
 
 import (
 	"errors"
@@ -19,7 +19,8 @@ type whyTreeNode struct {
 	annotationSeen map[string]struct{}
 }
 
-func whyTreeLines(paths []explain.Path) []string {
+// WhyTreeLines renders a why/explain dependency tree without highlighting.
+func WhyTreeLines(paths []explain.Path) []string {
 	return whyTreeLinesForTarget(paths, "")
 }
 
@@ -43,7 +44,7 @@ func whyTreeLinesForTarget(paths []explain.Path, targetID string) []string {
 func appendWhyTreeLines(lines []string, node *whyTreeNode, prefix string, isLast bool, root bool, targetID string) []string {
 	line := node.label
 	if targetID != "" && node.key == targetID {
-		line = ansiStyled(line, ansiBold, ansiCyan) + " " + ansiStyled("[analyzed]", ansiDim)
+		line = Style(line, Bold, Cyan) + " " + Style("[analyzed]", Dim)
 	}
 	if len(node.annotations) > 0 {
 		line = fmt.Sprintf("%s (%s)", line, strings.Join(node.annotations, "; "))
@@ -125,7 +126,9 @@ func explainPackageDisplayName(ref output.PackageRef) string {
 	return name
 }
 
-func explainGraphFromPaths(source *model.Graph, paths []explain.Path) (*model.Graph, error) {
+// ExplainGraphFromPaths returns a focused subgraph of source containing only
+// the packages and edges that appear in the supplied explain paths.
+func ExplainGraphFromPaths(source *model.Graph, paths []explain.Path) (*model.Graph, error) {
 	focused := model.New()
 	if source == nil {
 		return focused, nil
@@ -162,7 +165,9 @@ func explainGraphFromPaths(source *model.Graph, paths []explain.Path) (*model.Gr
 	return focused, nil
 }
 
-func explainManifestMetadata(result model.DetectionResult) model.ManifestMetadata {
+// ExplainManifestMetadata returns the manifest metadata for the first entry
+// in result, falling back to subproject info when no entries are present.
+func ExplainManifestMetadata(result model.DetectionResult) model.ManifestMetadata {
 	if result.Graphs != nil && len(result.Graphs.Entries) > 0 {
 		return result.Graphs.Entries[0].Manifest
 	}

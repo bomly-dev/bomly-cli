@@ -1,37 +1,44 @@
-package cli
+package tui
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	tea "github.com/charmbracelet/bubbletea"
 	"golang.org/x/term"
 )
 
-type interactiveModel interface {
+// ErrNotATerminal is returned by Run when stdin or stderr is not an
+// attached terminal. Callers (the CLI) typically translate this into an
+// invalid-input exit code.
+var ErrNotATerminal = errors.New("--interactive requires a terminal stdin and stderr")
+
+type Model interface {
 	View(width, height int) string
 	Move(delta int)
 	Home()
 	End()
 }
 
-type interactiveFilterModel interface {
-	interactiveModel
+type filterModel interface {
+	Model
 	CycleRelationshipFilter()
 	CycleScopeFilter()
 	CycleSeverityFilter()
 }
 
-type interactiveTabbedModel interface {
+type tabbedModel interface {
 	CycleView()
 }
 
-type interactiveSearchModel interface {
-	interactiveModel
+type searchModel interface {
+	Model
 	BeginSearch()
 	AppendSearch(value string)
 	BackspaceSearch()
@@ -40,35 +47,35 @@ type interactiveSearchModel interface {
 	IsSearching() bool
 }
 
-type interactiveNavigationModel interface {
+type navigationModel interface {
 	OpenSelected()
 	GoBack()
 	CanGoBack() bool
 }
 
-type interactiveDetailScrollModel interface {
+type detailScrollModel interface {
 	ScrollDetails(delta int)
 }
 
-type interactiveListItem struct {
+type listItem struct {
 	title    string
 	subtitle string
-	badges   []interactiveBadge
+	badges   []badge
 	details  []string
 }
 
-type interactiveBadge struct {
+type badge struct {
 	label string
 	kind  string
 }
 
-type interactiveListModel struct {
+type listModel struct {
 	title          string
 	summary        []string
 	navigationHelp string
 	filterHelp     string
 	emptyState     string
-	items          []interactiveListItem
+	items          []listItem
 	selected       int
 	scrollOffset   int
 	detailOffset   int
@@ -79,7 +86,7 @@ type interactiveListModel struct {
 
 const interactiveCommonNavigationHelp = "Up/Down or j/k move; PgUp/PgDn or Ctrl+u/Ctrl+d scroll details; Home/End or g/G jump; q quits"
 
-type interactiveListPackageRow struct {
+type listPackageRow struct {
 	id           string
 	rootID       string
 	targetID     string
@@ -90,73 +97,73 @@ type interactiveListPackageRow struct {
 	purl         string
 }
 
-type interactiveRootDependencyGroup struct {
+type rootDependencyGroup struct {
 	direct     []*model.Package
 	transitive []*model.Package
 }
 
-type interactiveScanMode string
+type scanMode string
 
 const (
-	interactiveScanModeManifests  interactiveScanMode = "manifests"
-	interactiveScanModeComponents interactiveScanMode = "components"
+	interactiveScanModeManifests  scanMode = "manifests"
+	interactiveScanModeComponents scanMode = "components"
 )
 
-type interactiveScanView string
+type scanView string
 
 const (
-	interactiveScanViewPackages interactiveScanView = "packages"
-	interactiveScanViewVulns    interactiveScanView = "vulnerabilities"
-	interactiveScanViewLicenses interactiveScanView = "licenses"
+	interactiveScanViewPackages scanView = "packages"
+	interactiveScanViewVulns    scanView = "vulnerabilities"
+	interactiveScanViewLicenses scanView = "licenses"
 )
 
-type interactiveScanModel struct {
+type scanModel struct {
 	titlePrefix        string
 	project            output.ProjectDescriptor
 	graphValue         *model.Graph
 	explainMode        bool
-	manifests          []interactiveListPackageRow
-	manifestByID       map[string]interactiveListPackageRow
-	mode               interactiveScanMode
-	activeView         interactiveScanView
+	manifests          []listPackageRow
+	manifestByID       map[string]listPackageRow
+	mode               scanMode
+	activeView         scanView
 	findings           []model.Finding
 	currentManifestID  string
 	allowManifestExit  bool
 	relationshipFilter string
 	scopeFilter        string
 	severityFilter     string
-	list               *interactiveListModel
+	list               *listModel
 }
 
-type interactiveTeaModel struct {
-	inner       interactiveModel
+type teaModel struct {
+	inner       Model
 	width       int
 	height      int
 	quitting    bool
 	confirmQuit bool
 }
 
-func runInteractiveModel(stdin io.Reader, stderr io.Writer, model interactiveModel) error {
+func Run(stdin io.Reader, stderr io.Writer, model Model) error {
 	inFile, err := terminalFile(stdin)
 	if err != nil {
-		return invalidInputf("--interactive requires a terminal stdin")
+		return ErrNotATerminal
 	}
 	outFile, err := terminalFile(stderr)
 	if err != nil {
-		return invalidInputf("--interactive requires a terminal stderr")
+		return ErrNotATerminal
 	}
 
 	stdinFD := int(inFile.Fd())
 	stdoutFD := int(outFile.Fd())
 	if !term.IsTerminal(stdinFD) {
-		return invalidInputf("--interactive requires a terminal stdin")
+		return ErrNotATerminal
 	}
 	if !term.IsTerminal(stdoutFD) {
-		return invalidInputf("--interactive requires a terminal stderr")
+		return ErrNotATerminal
 	}
 
 	program := tea.NewProgram(
-		&interactiveTeaModel{inner: model, width: 100, height: 30},
+		&teaModel{inner: model, width: 100, height: 30},
 		tea.WithInput(inFile),
 		tea.WithOutput(outFile),
 		tea.WithAltScreen(),
@@ -175,17 +182,17 @@ func terminalFile(value any) (*os.File, error) {
 	return file, nil
 }
 
-func (m *interactiveTeaModel) Init() tea.Cmd {
+func (m *teaModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m *interactiveTeaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *teaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
 	case tea.KeyMsg:
-		if searchModel, ok := m.inner.(interactiveSearchModel); ok && searchModel.IsSearching() {
+		if searchModel, ok := m.inner.(searchModel); ok && searchModel.IsSearching() {
 			switch msg.Type {
 			case tea.KeyEsc:
 				searchModel.CancelSearch()
@@ -204,19 +211,19 @@ func (m *interactiveTeaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		switch msg.String() {
 		case "/":
-			if searchModel, ok := m.inner.(interactiveSearchModel); ok {
+			if searchModel, ok := m.inner.(searchModel); ok {
 				searchModel.BeginSearch()
 			}
 		case "r":
-			if filterModel, ok := m.inner.(interactiveFilterModel); ok {
+			if filterModel, ok := m.inner.(filterModel); ok {
 				filterModel.CycleRelationshipFilter()
 			}
 		case "s":
-			if filterModel, ok := m.inner.(interactiveFilterModel); ok {
+			if filterModel, ok := m.inner.(filterModel); ok {
 				filterModel.CycleScopeFilter()
 			}
 		case "v":
-			if filterModel, ok := m.inner.(interactiveFilterModel); ok {
+			if filterModel, ok := m.inner.(filterModel); ok {
 				filterModel.CycleSeverityFilter()
 			}
 		case "enter":
@@ -224,7 +231,7 @@ func (m *interactiveTeaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.quitting = true
 				return m, tea.Quit
 			}
-			if navigationModel, ok := m.inner.(interactiveNavigationModel); ok {
+			if navigationModel, ok := m.inner.(navigationModel); ok {
 				navigationModel.OpenSelected()
 			}
 		case "left", "h", "backspace":
@@ -232,7 +239,7 @@ func (m *interactiveTeaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.confirmQuit = false
 				return m, nil
 			}
-			if navigationModel, ok := m.inner.(interactiveNavigationModel); ok && navigationModel.CanGoBack() {
+			if navigationModel, ok := m.inner.(navigationModel); ok && navigationModel.CanGoBack() {
 				navigationModel.GoBack()
 			}
 		case "up", "k":
@@ -240,11 +247,11 @@ func (m *interactiveTeaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "down", "j":
 			m.inner.Move(1)
 		case "pgup", "ctrl+u":
-			if detailModel, ok := m.inner.(interactiveDetailScrollModel); ok {
+			if detailModel, ok := m.inner.(detailScrollModel); ok {
 				detailModel.ScrollDetails(-1)
 			}
 		case "pgdown", "ctrl+d":
-			if detailModel, ok := m.inner.(interactiveDetailScrollModel); ok {
+			if detailModel, ok := m.inner.(detailScrollModel); ok {
 				detailModel.ScrollDetails(1)
 			}
 		case "home", "g":
@@ -252,7 +259,7 @@ func (m *interactiveTeaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "end", "G", "shift+g":
 			m.inner.End()
 		case "tab":
-			if tabbedModel, ok := m.inner.(interactiveTabbedModel); ok {
+			if tabbedModel, ok := m.inner.(tabbedModel); ok {
 				tabbedModel.CycleView()
 			}
 		case "esc", "q", "ctrl+c":
@@ -271,7 +278,7 @@ func (m *interactiveTeaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m *interactiveTeaModel) View() string {
+func (m *teaModel) View() string {
 	if m.quitting {
 		return ""
 	}
@@ -287,7 +294,7 @@ func (m *interactiveTeaModel) View() string {
 	if !m.confirmQuit {
 		return view
 	}
-	confirmation := ansiStyled(" Exit Bomly interactive mode? Enter confirms, Esc/Backspace cancels. ", ansiBgRed, ansiWhite, ansiBold)
+	confirmation := render.Style(" Exit Bomly interactive mode? Enter confirms, Esc/Backspace cancels. ", render.BgRed, render.White, render.Bold)
 	if view == "" {
 		return truncateToWidth(confirmation, width)
 	}
@@ -299,7 +306,7 @@ func (m *interactiveTeaModel) View() string {
 	return strings.Join(lines, "\n")
 }
 
-func (m *interactiveListModel) Move(delta int) {
+func (m *listModel) Move(delta int) {
 	visible := m.visibleItemIndices()
 	if len(visible) == 0 {
 		m.selected = 0
@@ -319,7 +326,7 @@ func (m *interactiveListModel) Move(delta int) {
 	m.detailOffset = 0
 }
 
-func (m *interactiveListModel) Home() {
+func (m *listModel) Home() {
 	visible := m.visibleItemIndices()
 	if len(visible) == 0 {
 		m.selected = 0
@@ -331,7 +338,7 @@ func (m *interactiveListModel) Home() {
 	m.detailOffset = 0
 }
 
-func (m *interactiveListModel) End() {
+func (m *listModel) End() {
 	visible := m.visibleItemIndices()
 	if len(visible) == 0 {
 		m.selected = 0
@@ -342,7 +349,7 @@ func (m *interactiveListModel) End() {
 	m.detailOffset = 0
 }
 
-func (m *interactiveListModel) ScrollDetails(delta int) {
+func (m *listModel) ScrollDetails(delta int) {
 	if delta == 0 {
 		return
 	}
@@ -352,14 +359,14 @@ func (m *interactiveListModel) ScrollDetails(delta int) {
 	}
 }
 
-func (m *interactiveListModel) BeginSearch() {
+func (m *listModel) BeginSearch() {
 	m.searching = true
 	m.searchQuery = ""
 	m.searchMatch = true
 	m.scrollOffset = 0
 }
 
-func (m *interactiveListModel) AppendSearch(value string) {
+func (m *listModel) AppendSearch(value string) {
 	if !m.searching {
 		return
 	}
@@ -367,7 +374,7 @@ func (m *interactiveListModel) AppendSearch(value string) {
 	m.jumpToSearchMatch()
 }
 
-func (m *interactiveListModel) BackspaceSearch() {
+func (m *listModel) BackspaceSearch() {
 	if !m.searching {
 		return
 	}
@@ -379,23 +386,23 @@ func (m *interactiveListModel) BackspaceSearch() {
 	m.jumpToSearchMatch()
 }
 
-func (m *interactiveListModel) CancelSearch() {
+func (m *listModel) CancelSearch() {
 	m.searching = false
 	m.searchQuery = ""
 	m.searchMatch = true
 	m.scrollOffset = 0
 }
 
-func (m *interactiveListModel) ConfirmSearch() {
+func (m *listModel) ConfirmSearch() {
 	m.searching = false
 	m.scrollOffset = 0
 }
 
-func (m *interactiveListModel) IsSearching() bool {
+func (m *listModel) IsSearching() bool {
 	return m.searching
 }
 
-func (m *interactiveListModel) View(width, height int) string {
+func (m *listModel) View(width, height int) string {
 	if width < 60 {
 		width = 60
 	}
@@ -404,15 +411,15 @@ func (m *interactiveListModel) View(width, height int) string {
 	}
 
 	var lines []string
-	lines = append(lines, truncateToWidth(ansiStyled(" "+m.title+" ", ansiBgBlue, ansiWhite, ansiBold), width))
+	lines = append(lines, truncateToWidth(render.Style(" "+m.title+" ", render.BgBlue, render.White, render.Bold), width))
 	for _, summaryLine := range m.summary {
 		lines = append(lines, truncateToWidth(summaryLine, width))
 	}
 	if m.searching {
 		lines = append(lines, truncateToWidth(m.searchLine(width), width))
 	}
-	lines = append(lines, ansiStyled(strings.Repeat("=", width), ansiDim, ansiGray))
-	helpLines := interactiveHelpLines(m.navigationHelp, m.filterHelp, width)
+	lines = append(lines, render.Style(strings.Repeat("=", width), render.Dim, render.Gray))
+	helpLines := helpLines(m.navigationHelp, m.filterHelp, width)
 	if len(helpLines) == 0 {
 		helpLines = []string{""}
 	}
@@ -424,10 +431,10 @@ func (m *interactiveListModel) View(width, height int) string {
 
 	visible := m.visibleItemIndices()
 	if len(visible) == 0 {
-		lines = append(lines, truncateToWidth(ansiStyled(m.emptyState, ansiYellow, ansiBold), width))
-		lines = append(lines, ansiStyled(strings.Repeat("=", width), ansiDim, ansiGray))
+		lines = append(lines, truncateToWidth(render.Style(m.emptyState, render.Yellow, render.Bold), width))
+		lines = append(lines, render.Style(strings.Repeat("=", width), render.Dim, render.Gray))
 		for _, helpLine := range helpLines {
-			lines = append(lines, truncateToWidth(ansiStyled(helpLine, ansiDim), width))
+			lines = append(lines, truncateToWidth(render.Style(helpLine, render.Dim), width))
 		}
 		return strings.Join(lines, "\n")
 	}
@@ -458,17 +465,17 @@ func (m *interactiveListModel) View(width, height int) string {
 		if idx < len(detailLines) {
 			right = detailLines[idx]
 		}
-		lines = append(lines, padRight(left, listWidth)+" "+ansiStyled("|", ansiDim, ansiGray)+" "+padRight(right, detailWidth))
+		lines = append(lines, padRight(left, listWidth)+" "+render.Style("|", render.Dim, render.Gray)+" "+padRight(right, detailWidth))
 	}
 
-	lines = append(lines, ansiStyled(strings.Repeat("=", width), ansiDim, ansiGray))
+	lines = append(lines, render.Style(strings.Repeat("=", width), render.Dim, render.Gray))
 	for _, helpLine := range helpLines {
-		lines = append(lines, truncateToWidth(ansiStyled(helpLine, ansiDim), width))
+		lines = append(lines, truncateToWidth(render.Style(helpLine, render.Dim), width))
 	}
 	return strings.Join(lines, "\n")
 }
 
-func interactiveHelpLines(navigationHelp, filterHelp string, width int) []string {
+func helpLines(navigationHelp, filterHelp string, width int) []string {
 	lines := make([]string, 0, 4)
 	navigationHelp = strings.TrimSpace(navigationHelp)
 	filterHelp = strings.TrimSpace(filterHelp)
@@ -484,24 +491,24 @@ func interactiveHelpLines(navigationHelp, filterHelp string, width int) []string
 	return lines
 }
 
-func (m *interactiveListModel) searchLine(width int) string {
+func (m *listModel) searchLine(width int) string {
 	var status string
 	switch {
 	case strings.TrimSpace(m.searchQuery) == "":
-		status = ansiStyled("type to filter and jump", ansiBlue, ansiBold)
+		status = render.Style("type to filter and jump", render.Blue, render.Bold)
 	case !m.searchMatch:
-		status = ansiStyled("no matches", ansiRed, ansiBold)
+		status = render.Style("no matches", render.Red, render.Bold)
 	default:
-		status = ansiStyled(fmt.Sprintf("%d match(es)", len(m.visibleItemIndices())), ansiBlue, ansiBold)
+		status = render.Style(fmt.Sprintf("%d match(es)", len(m.visibleItemIndices())), render.Blue, render.Bold)
 	}
-	line := ansiStyled("Search ", ansiDim) +
-		ansiStyled("/"+m.searchQuery, ansiWhite, ansiBold) +
-		ansiStyled("  Enter: keep  Esc: clear  Backspace: edit  ", ansiDim) +
+	line := render.Style("Search ", render.Dim) +
+		render.Style("/"+m.searchQuery, render.White, render.Bold) +
+		render.Style("  Enter: keep  Esc: clear  Backspace: edit  ", render.Dim) +
 		status
 	return truncateToWidth(line, width)
 }
 
-func (m *interactiveListModel) visibleListLines(width, height int, visible []int) []string {
+func (m *listModel) visibleListLines(width, height int, visible []int) []string {
 	if height <= 0 {
 		return nil
 	}
@@ -523,18 +530,18 @@ func (m *interactiveListModel) visibleListLines(width, height int, visible []int
 	}
 	for visibleIdx := m.scrollOffset; visibleIdx < end; visibleIdx++ {
 		idx := visible[visibleIdx]
-		prefix := ansiStyled("  ", ansiDim)
-		title := ansiStyled(m.items[idx].title, ansiWhite)
+		prefix := render.Style("  ", render.Dim)
+		title := render.Style(m.items[idx].title, render.White)
 		if idx == m.selected {
-			prefix = ansiStyled("> ", ansiBgBlue, ansiWhite, ansiBold)
-			title = ansiStyled(m.items[idx].title, ansiWhite, ansiBold)
+			prefix = render.Style("> ", render.BgBlue, render.White, render.Bold)
+			title = render.Style(m.items[idx].title, render.White, render.Bold)
 		}
 		line := prefix + title
 		if m.items[idx].subtitle != "" {
-			line += " " + interactiveStatusBadge(m.items[idx].subtitle)
+			line += " " + statusBadge(m.items[idx].subtitle)
 		}
 		for _, badge := range m.items[idx].badges {
-			line += " " + interactiveBadgeView(badge)
+			line += " " + badgeView(badge)
 		}
 		out = append(out, truncateToWidth(line, width))
 	}
@@ -544,7 +551,7 @@ func (m *interactiveListModel) visibleListLines(width, height int, visible []int
 	return out
 }
 
-func (m *interactiveListModel) visibleDetailLines(lines []string, width, height int) []string {
+func (m *listModel) visibleDetailLines(lines []string, width, height int) []string {
 	if height <= 0 {
 		return nil
 	}
@@ -571,7 +578,7 @@ func (m *interactiveListModel) visibleDetailLines(lines []string, width, height 
 	return out
 }
 
-func (m *interactiveListModel) jumpToSearchMatch() {
+func (m *listModel) jumpToSearchMatch() {
 	visible := m.visibleItemIndices()
 	if len(m.items) == 0 {
 		m.searchMatch = false
@@ -596,7 +603,7 @@ func (m *interactiveListModel) jumpToSearchMatch() {
 	m.searchMatch = false
 }
 
-func (m *interactiveListModel) visibleItemIndices() []int {
+func (m *listModel) visibleItemIndices() []int {
 	query := strings.TrimSpace(strings.ToLower(m.searchQuery))
 	if query == "" {
 		indices := make([]int, len(m.items))
@@ -608,14 +615,14 @@ func (m *interactiveListModel) visibleItemIndices() []int {
 
 	indices := make([]int, 0, len(m.items))
 	for idx, item := range m.items {
-		if interactiveItemMatches(item, query) {
+		if itemMatches(item, query) {
 			indices = append(indices, idx)
 		}
 	}
 	return indices
 }
 
-func (m *interactiveListModel) selectedVisibleIndex(visible []int) int {
+func (m *listModel) selectedVisibleIndex(visible []int) int {
 	if len(visible) == 0 {
 		return 0
 	}
@@ -628,7 +635,7 @@ func (m *interactiveListModel) selectedVisibleIndex(visible []int) int {
 	return 0
 }
 
-func interactiveItemMatches(item interactiveListItem, query string) bool {
+func itemMatches(item listItem, query string) bool {
 	if strings.Contains(strings.ToLower(item.title), query) {
 		return true
 	}

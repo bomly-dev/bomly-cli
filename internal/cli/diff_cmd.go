@@ -4,9 +4,11 @@ import (
 	"io"
 	"time"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/scan"
 	"github.com/bomly-dev/bomly-cli/internal/scan/consolidation"
+	"github.com/bomly-dev/bomly-cli/internal/tui"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/spf13/cobra"
 )
@@ -152,7 +154,7 @@ func newDiffCmd(options *globalOptions) *cobra.Command {
 			}
 			if current.Interactive {
 				progress.Stop()
-				return runInteractiveModel(cmd.InOrStdin(), streams.interactiveWriter(), newDiffInteractiveModel(payload))
+				return interactiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewDiff(payload)))
 			}
 
 			progress.Success("Resolved Graph")
@@ -161,7 +163,7 @@ func newDiffCmd(options *globalOptions) *cobra.Command {
 			}
 			err = output.Write(streams.reportWriter(), outputFormat, payload, output.Renderers{
 				Text: func(w io.Writer) error {
-					return renderDiffText(w, payload)
+					return render.Diff(w, payload)
 				},
 			})
 			if err == nil && current.Audit && auditPayload != nil && auditPayload.AuditSummary != nil && auditPayload.AuditSummary.Total > 0 {

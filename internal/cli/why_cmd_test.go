@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/explain"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 )
@@ -28,7 +29,7 @@ func TestWhyTreeLines_RendersBranchingPaths(t *testing.T) {
 		},
 	}
 
-	got := strings.Join(whyTreeLines(paths), "\n")
+	got := strings.Join(render.WhyTreeLines(paths), "\n")
 	want := strings.Join([]string{
 		"app",
 		"|- react",
@@ -63,7 +64,7 @@ func TestWhyTreeLines_PreservesLeafAnnotationsOnSharedPrefix(t *testing.T) {
 		},
 	}
 
-	got := strings.Join(whyTreeLines(paths), "\n")
+	got := strings.Join(render.WhyTreeLines(paths), "\n")
 	want := strings.Join([]string{
 		"app",
 		"\\- b (direct)",

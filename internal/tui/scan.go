@@ -1,4 +1,4 @@
-package cli
+package tui
 
 import (
 	"fmt"
@@ -6,22 +6,23 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
 
-func newScanInteractiveModel(project output.ProjectDescriptor, consolidated model.ConsolidatedGraph, graphValue *model.Graph, findings []model.Finding) *interactiveScanModel {
-	return newScanNavigatorModel("Bomly Interactive Scan", project, consolidated, graphValue, findings)
+func NewScan(project output.ProjectDescriptor, consolidated model.ConsolidatedGraph, graphValue *model.Graph, findings []model.Finding) *scanModel {
+	return NewScanNavigator("Bomly Interactive Scan", project, consolidated, graphValue, findings)
 }
 
-func newScanNavigatorModel(titlePrefix string, project output.ProjectDescriptor, consolidated model.ConsolidatedGraph, graphValue *model.Graph, findings []model.Finding) *interactiveScanModel {
-	manifests := interactiveManifestRows(consolidated)
-	manifestByID := make(map[string]interactiveListPackageRow, len(manifests))
+func NewScanNavigator(titlePrefix string, project output.ProjectDescriptor, consolidated model.ConsolidatedGraph, graphValue *model.Graph, findings []model.Finding) *scanModel {
+	manifests := manifestRows(consolidated)
+	manifestByID := make(map[string]listPackageRow, len(manifests))
 	for _, manifest := range manifests {
 		manifestByID[manifest.id] = manifest
 	}
 
-	model := &interactiveScanModel{
+	model := &scanModel{
 		titlePrefix:       titlePrefix,
 		project:           project,
 		graphValue:        graphValue,
@@ -41,84 +42,84 @@ func newScanNavigatorModel(titlePrefix string, project output.ProjectDescriptor,
 	return model
 }
 
-func (m *interactiveScanModel) View(width, height int) string {
+func (m *scanModel) View(width, height int) string {
 	if m == nil || m.list == nil {
 		return ""
 	}
 	return m.list.View(width, height)
 }
 
-func (m *interactiveScanModel) Move(delta int) {
+func (m *scanModel) Move(delta int) {
 	if m == nil || m.list == nil {
 		return
 	}
 	m.list.Move(delta)
 }
 
-func (m *interactiveScanModel) ScrollDetails(delta int) {
+func (m *scanModel) ScrollDetails(delta int) {
 	if m == nil || m.list == nil {
 		return
 	}
 	m.list.ScrollDetails(delta)
 }
 
-func (m *interactiveScanModel) Home() {
+func (m *scanModel) Home() {
 	if m == nil || m.list == nil {
 		return
 	}
 	m.list.Home()
 }
 
-func (m *interactiveScanModel) End() {
+func (m *scanModel) End() {
 	if m == nil || m.list == nil {
 		return
 	}
 	m.list.End()
 }
 
-func (m *interactiveScanModel) BeginSearch() {
+func (m *scanModel) BeginSearch() {
 	if m == nil || m.list == nil {
 		return
 	}
 	m.list.BeginSearch()
 }
 
-func (m *interactiveScanModel) AppendSearch(value string) {
+func (m *scanModel) AppendSearch(value string) {
 	if m == nil || m.list == nil {
 		return
 	}
 	m.list.AppendSearch(value)
 }
 
-func (m *interactiveScanModel) BackspaceSearch() {
+func (m *scanModel) BackspaceSearch() {
 	if m == nil || m.list == nil {
 		return
 	}
 	m.list.BackspaceSearch()
 }
 
-func (m *interactiveScanModel) CancelSearch() {
+func (m *scanModel) CancelSearch() {
 	if m == nil || m.list == nil {
 		return
 	}
 	m.list.CancelSearch()
 }
 
-func (m *interactiveScanModel) ConfirmSearch() {
+func (m *scanModel) ConfirmSearch() {
 	if m == nil || m.list == nil {
 		return
 	}
 	m.list.ConfirmSearch()
 }
 
-func (m *interactiveScanModel) IsSearching() bool {
+func (m *scanModel) IsSearching() bool {
 	if m == nil || m.list == nil {
 		return false
 	}
 	return m.list.IsSearching()
 }
 
-func (m *interactiveScanModel) CycleView() {
+func (m *scanModel) CycleView() {
 	if m == nil {
 		return
 	}
@@ -133,23 +134,23 @@ func (m *interactiveScanModel) CycleView() {
 	m.list = m.buildCurrentListModel()
 }
 
-func (m *interactiveScanModel) CycleRelationshipFilter() {
+func (m *scanModel) CycleRelationshipFilter() {
 	if m == nil || m.activeView != interactiveScanViewPackages || m.mode != interactiveScanModeComponents {
 		return
 	}
-	m.relationshipFilter = nextInteractiveRelationshipFilter(m.relationshipFilter, m.explainMode)
+	m.relationshipFilter = nextRelationshipFilter(m.relationshipFilter, m.explainMode)
 	m.list = m.buildCurrentListModel()
 }
 
-func (m *interactiveScanModel) CycleScopeFilter() {
+func (m *scanModel) CycleScopeFilter() {
 	if m == nil || m.activeView != interactiveScanViewPackages || m.mode != interactiveScanModeComponents {
 		return
 	}
-	m.scopeFilter = nextInteractiveScopeFilter(m.scopeFilter)
+	m.scopeFilter = nextScopeFilter(m.scopeFilter)
 	m.list = m.buildCurrentListModel()
 }
 
-func (m *interactiveScanModel) CycleSeverityFilter() {
+func (m *scanModel) CycleSeverityFilter() {
 	if m == nil {
 		return
 	}
@@ -163,11 +164,11 @@ func (m *interactiveScanModel) CycleSeverityFilter() {
 	default:
 		return
 	}
-	m.severityFilter = nextInteractiveSeverityFilter(m.severityFilter)
+	m.severityFilter = nextSeverityFilter(m.severityFilter)
 	m.list = m.buildCurrentListModel()
 }
 
-func (m *interactiveScanModel) OpenSelected() {
+func (m *scanModel) OpenSelected() {
 	if m == nil || m.list == nil || m.activeView != interactiveScanViewPackages || m.mode != interactiveScanModeManifests {
 		return
 	}
@@ -176,7 +177,7 @@ func (m *interactiveScanModel) OpenSelected() {
 		return
 	}
 	item := m.list.items[visible[m.list.selectedVisibleIndex(visible)]]
-	manifestID := interactiveManifestIDFromTitle(item.title)
+	manifestID := manifestIDFromTitle(item.title)
 	if manifestID == "" {
 		for id, manifest := range m.manifestByID {
 			if manifest.displayName == item.title {
@@ -193,7 +194,7 @@ func (m *interactiveScanModel) OpenSelected() {
 	m.list = m.buildCurrentListModel()
 }
 
-func (m *interactiveScanModel) GoBack() {
+func (m *scanModel) GoBack() {
 	if !m.CanGoBack() {
 		return
 	}
@@ -202,14 +203,14 @@ func (m *interactiveScanModel) GoBack() {
 	m.list = m.buildCurrentListModel()
 }
 
-func (m *interactiveScanModel) CanGoBack() bool {
+func (m *scanModel) CanGoBack() bool {
 	if m == nil {
 		return false
 	}
 	return m.activeView == interactiveScanViewPackages && m.mode == interactiveScanModeComponents && m.allowManifestExit
 }
 
-func (m *interactiveScanModel) buildCurrentListModel() *interactiveListModel {
+func (m *scanModel) buildCurrentListModel() *listModel {
 	switch m.activeView {
 	case interactiveScanViewVulns:
 		return m.buildVulnsListModel()
@@ -226,14 +227,14 @@ func (m *interactiveScanModel) buildCurrentListModel() *interactiveListModel {
 	}
 }
 
-func (m *interactiveScanModel) buildManifestListModel() *interactiveListModel {
-	items := make([]interactiveListItem, 0, len(m.manifests))
+func (m *scanModel) buildManifestListModel() *listModel {
+	items := make([]listItem, 0, len(m.manifests))
 	for _, manifest := range m.manifests {
 		title := manifest.displayName + " [" + manifest.id + "]"
-		items = append(items, interactiveListItem{
+		items = append(items, listItem{
 			title:    title,
 			subtitle: "manifest",
-			details:  interactiveManifestDetails(m.graphValue, manifest),
+			details:  manifestDetails(m.graphValue, manifest),
 		})
 	}
 
@@ -242,14 +243,14 @@ func (m *interactiveScanModel) buildManifestListModel() *interactiveListModel {
 		packageCount = m.graphValue.Size()
 	}
 
-	return &interactiveListModel{
+	return &listModel{
 		title: fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
 		summary: []string{
-			ansiStyled("Tab: [PACKAGES] | Vulnerabilities | Licenses", ansiDim),
-			ansiStyled(fmt.Sprintf("Manifests %d", len(m.manifests)), ansiCyan, ansiBold),
-			ansiStyled(fmt.Sprintf("Packages  %d", packageCount), ansiCyan, ansiBold),
-			ansiStyled("Project   ", ansiDim) + m.project.Path,
-			ansiStyled("Ecosystem ", ansiDim) + valueOrDash(m.project.Ecosystem),
+			render.Style("Tab: [PACKAGES] | Vulnerabilities | Licenses", render.Dim),
+			render.Style(fmt.Sprintf("Manifests %d", len(m.manifests)), render.Cyan, render.Bold),
+			render.Style(fmt.Sprintf("Packages  %d", packageCount), render.Cyan, render.Bold),
+			render.Style("Project   ", render.Dim) + m.project.Path,
+			render.Style("Ecosystem ", render.Dim) + valueOrDash(m.project.Ecosystem),
 		},
 		navigationHelp: interactiveCommonNavigationHelp + "; Enter opens selected manifest",
 		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search",
@@ -258,7 +259,7 @@ func (m *interactiveScanModel) buildManifestListModel() *interactiveListModel {
 	}
 }
 
-func (m *interactiveScanModel) buildVulnsListModel() *interactiveListModel {
+func (m *scanModel) buildVulnsListModel() *listModel {
 	all := make([]model.Finding, 0, len(m.findings))
 	for _, f := range m.findings {
 		if f.Kind == model.FindingKindVulnerability {
@@ -278,14 +279,14 @@ func (m *interactiveScanModel) buildVulnsListModel() *interactiveListModel {
 	}
 
 	sort.Slice(filtered, func(i, j int) bool {
-		ri, rj := interactiveSeverityRank(filtered[i].Severity), interactiveSeverityRank(filtered[j].Severity)
+		ri, rj := severityRank(filtered[i].Severity), severityRank(filtered[j].Severity)
 		if ri != rj {
 			return ri < rj
 		}
 		return filtered[i].ID < filtered[j].ID
 	})
 
-	items := make([]interactiveListItem, 0, len(filtered))
+	items := make([]listItem, 0, len(filtered))
 	for _, f := range filtered {
 		pkgName := ""
 		if f.Package != nil {
@@ -300,25 +301,25 @@ func (m *interactiveScanModel) buildVulnsListModel() *interactiveListModel {
 		if pkgName != "" {
 			titleStr += "  " + pkgName
 		}
-		items = append(items, interactiveListItem{
+		items = append(items, listItem{
 			title:  titleStr,
-			badges: []interactiveBadge{{label: f.Severity, kind: "severity-" + strings.ToLower(f.Severity)}},
+			badges: []badge{{label: f.Severity, kind: "severity-" + strings.ToLower(f.Severity)}},
 			details: []string{
-				ansiStyled("ID        ", ansiDim) + valueOrDash(f.ID),
-				ansiStyled("Severity  ", ansiDim) + interactiveSeverityText(f.Severity),
-				ansiStyled("Package   ", ansiDim) + valueOrDash(pkgName),
-				ansiStyled("Title     ", ansiDim) + valueOrDash(f.Title),
-				ansiStyled("Source    ", ansiDim) + valueOrDash(f.Source),
+				render.Style("ID        ", render.Dim) + valueOrDash(f.ID),
+				render.Style("Severity  ", render.Dim) + severityText(f.Severity),
+				render.Style("Package   ", render.Dim) + valueOrDash(pkgName),
+				render.Style("Title     ", render.Dim) + valueOrDash(f.Title),
+				render.Style("Source    ", render.Dim) + valueOrDash(f.Source),
 			},
 		})
 	}
 
-	return &interactiveListModel{
+	return &listModel{
 		title: fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
 		summary: []string{
-			ansiStyled("Tab: Packages | [VULNERABILITIES] | Licenses", ansiDim),
-			ansiStyled("Filter severity ", ansiDim) + valueOrDash(m.severityFilter),
-			ansiStyled(fmt.Sprintf("Showing %d / %d", len(filtered), len(all)), ansiCyan, ansiBold),
+			render.Style("Tab: Packages | [VULNERABILITIES] | Licenses", render.Dim),
+			render.Style("Filter severity ", render.Dim) + valueOrDash(m.severityFilter),
+			render.Style(fmt.Sprintf("Showing %d / %d", len(filtered), len(all)), render.Cyan, render.Bold),
 		},
 		navigationHelp: interactiveCommonNavigationHelp,
 		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; v cycles severity filter",
@@ -327,22 +328,22 @@ func (m *interactiveScanModel) buildVulnsListModel() *interactiveListModel {
 	}
 }
 
-func (m *interactiveScanModel) buildLicensesListModel() *interactiveListModel {
-	rows := interactiveLicenseRows(m.graphValue)
-	items := make([]interactiveListItem, 0, len(rows))
+func (m *scanModel) buildLicensesListModel() *listModel {
+	rows := licenseRows(m.graphValue)
+	items := make([]listItem, 0, len(rows))
 	for _, row := range rows {
-		items = append(items, interactiveListItem{
+		items = append(items, listItem{
 			title:    row.license,
 			subtitle: fmt.Sprintf("%d package(s)", len(row.packages)),
-			details:  interactiveLicenseDetails(row),
+			details:  licenseDetails(row),
 		})
 	}
 
-	return &interactiveListModel{
+	return &listModel{
 		title: fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
 		summary: []string{
-			ansiStyled("Tab: Packages | Vulnerabilities | [LICENSES]", ansiDim),
-			ansiStyled(fmt.Sprintf("Unique licenses %d", len(rows)), ansiCyan, ansiBold),
+			render.Style("Tab: Packages | Vulnerabilities | [LICENSES]", render.Dim),
+			render.Style(fmt.Sprintf("Unique licenses %d", len(rows)), render.Cyan, render.Bold),
 		},
 		navigationHelp: interactiveCommonNavigationHelp,
 		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search",
@@ -351,24 +352,24 @@ func (m *interactiveScanModel) buildLicensesListModel() *interactiveListModel {
 	}
 }
 
-type interactiveLicenseRow struct {
+type licenseRow struct {
 	license  string
-	packages []interactiveLicensePackageRef
+	packages []licensePackageRef
 }
 
-type interactiveLicensePackageRef struct {
+type licensePackageRef struct {
 	id          string
 	displayName string
 	version     string
 	scope       string
 }
 
-func interactiveLicenseRows(graphValue *model.Graph) []interactiveLicenseRow {
+func licenseRows(graphValue *model.Graph) []licenseRow {
 	if graphValue == nil {
 		return nil
 	}
 
-	rowsByLicense := make(map[string]map[string]interactiveLicensePackageRef)
+	rowsByLicense := make(map[string]map[string]licensePackageRef)
 	for _, pkg := range graphValue.Packages() {
 		if pkg == nil {
 			continue
@@ -380,10 +381,10 @@ func interactiveLicenseRows(graphValue *model.Graph) []interactiveLicenseRow {
 			}
 			packageRefs, ok := rowsByLicense[licenseValue]
 			if !ok {
-				packageRefs = make(map[string]interactiveLicensePackageRef)
+				packageRefs = make(map[string]licensePackageRef)
 				rowsByLicense[licenseValue] = packageRefs
 			}
-			packageRefs[pkg.ID] = interactiveLicensePackageRef{
+			packageRefs[pkg.ID] = licensePackageRef{
 				id:          pkg.ID,
 				displayName: pkg.DisplayName(),
 				version:     pkg.Version,
@@ -392,9 +393,9 @@ func interactiveLicenseRows(graphValue *model.Graph) []interactiveLicenseRow {
 		}
 	}
 
-	rows := make([]interactiveLicenseRow, 0, len(rowsByLicense))
+	rows := make([]licenseRow, 0, len(rowsByLicense))
 	for licenseValue, packageRefs := range rowsByLicense {
-		packages := make([]interactiveLicensePackageRef, 0, len(packageRefs))
+		packages := make([]licensePackageRef, 0, len(packageRefs))
 		for _, pkg := range packageRefs {
 			packages = append(packages, pkg)
 		}
@@ -407,7 +408,7 @@ func interactiveLicenseRows(graphValue *model.Graph) []interactiveLicenseRow {
 			}
 			return packages[i].id < packages[j].id
 		})
-		rows = append(rows, interactiveLicenseRow{
+		rows = append(rows, licenseRow{
 			license:  licenseValue,
 			packages: packages,
 		})
@@ -418,16 +419,16 @@ func interactiveLicenseRows(graphValue *model.Graph) []interactiveLicenseRow {
 	return rows
 }
 
-func interactiveLicenseDetails(row interactiveLicenseRow) []string {
+func licenseDetails(row licenseRow) []string {
 	lines := []string{
-		ansiStyled("License", ansiBold, ansiCyan),
-		ansiStyled("  Identifier: ", ansiDim) + valueOrDash(row.license),
-		ansiStyled("  Package count: ", ansiDim) + fmt.Sprintf("%d", len(row.packages)),
+		render.Style("License", render.Bold, render.Cyan),
+		render.Style("  Identifier: ", render.Dim) + valueOrDash(row.license),
+		render.Style("  Package count: ", render.Dim) + fmt.Sprintf("%d", len(row.packages)),
 		"",
-		ansiStyled("Packages Using This License", ansiBold, ansiMagenta),
+		render.Style("Packages Using This License", render.Bold, render.Magenta),
 	}
 	if len(row.packages) == 0 {
-		lines = append(lines, ansiStyled("  (none)", ansiDim))
+		lines = append(lines, render.Style("  (none)", render.Dim))
 		return lines
 	}
 	for _, pkg := range row.packages {
@@ -438,36 +439,36 @@ func interactiveLicenseDetails(row interactiveLicenseRow) []string {
 		if pkg.scope != "" {
 			label += " [" + pkg.scope + "]"
 		}
-		lines = append(lines, ansiStyled("  - ", ansiDim)+label)
+		lines = append(lines, render.Style("  - ", render.Dim)+label)
 	}
 	return lines
 }
 
-func (m *interactiveScanModel) buildComponentListModel(manifest interactiveListPackageRow) *interactiveListModel {
+func (m *scanModel) buildComponentListModel(manifest listPackageRow) *listModel {
 	if m.explainMode {
 		return m.buildExplainComponentListModel(manifest)
 	}
 	rootPkg, _ := m.graphValue.Package(manifest.rootID)
-	groups := interactiveRootDependencies(m.graphValue, manifest.rootID)
+	groups := rootDependencies(m.graphValue, manifest.rootID)
 
 	// Build rows: root first, then direct, then transitive
-	rows := make([]interactiveListPackageRow, 0, 1+len(groups.direct)+len(groups.transitive))
+	rows := make([]listPackageRow, 0, 1+len(groups.direct)+len(groups.transitive))
 
 	// Add root package first
 	if rootPkg != nil {
-		rows = append(rows, interactivePackageRowFromGraph(rootPkg, "root"))
+		rows = append(rows, packageRowFromGraph(rootPkg, "root"))
 	}
 
 	for _, pkg := range groups.direct {
-		rows = append(rows, interactivePackageRowFromGraph(pkg, "direct"))
+		rows = append(rows, packageRowFromGraph(pkg, "direct"))
 	}
 	for _, pkg := range groups.transitive {
-		rows = append(rows, interactivePackageRowFromGraph(pkg, "transitive"))
+		rows = append(rows, packageRowFromGraph(pkg, "transitive"))
 	}
-	rows = filterInteractivePackageRows(rows, m.relationshipFilter, m.scopeFilter)
+	rows = filterPackageRows(rows, m.relationshipFilter, m.scopeFilter)
 
 	// Compute highest severity per package for badge display, filtering, and sorting.
-	maxSevByID := interactiveMaxSeverityByPkgID(m.findings)
+	maxSevByID := maxSeverityByPkgID(m.findings)
 
 	// Apply severity filter.
 	if m.severityFilter != "" {
@@ -482,29 +483,29 @@ func (m *interactiveScanModel) buildComponentListModel(manifest interactiveListP
 
 	// Sort: highest severity first, then relationship, then ID.
 	sort.Slice(rows, func(i, j int) bool {
-		si := interactiveSeverityRank(maxSevByID[rows[i].id])
-		sj := interactiveSeverityRank(maxSevByID[rows[j].id])
+		si := severityRank(maxSevByID[rows[i].id])
+		sj := severityRank(maxSevByID[rows[j].id])
 		if si != sj {
 			return si < sj
 		}
 		if rows[i].relationship != rows[j].relationship {
-			return interactiveRelationshipOrder(rows[i].relationship) < interactiveRelationshipOrder(rows[j].relationship)
+			return render.RelationshipOrder(rows[i].relationship) < render.RelationshipOrder(rows[j].relationship)
 		}
 		return rows[i].id < rows[j].id
 	})
 
-	items := make([]interactiveListItem, 0, len(rows))
+	items := make([]listItem, 0, len(rows))
 	for _, row := range rows {
-		badges := interactivePackageBadges(row)
+		badges := packageBadges(row)
 		if sev := maxSevByID[row.id]; sev != "" {
 			// Prepend the severity badge so it appears before the scope badge.
-			badges = append([]interactiveBadge{{label: sev, kind: "severity-" + strings.ToLower(sev)}}, badges...)
+			badges = append([]badge{{label: sev, kind: "severity-" + strings.ToLower(sev)}}, badges...)
 		}
-		items = append(items, interactiveListItem{
+		items = append(items, listItem{
 			title:    row.displayName,
 			subtitle: row.relationship,
 			badges:   badges,
-			details:  interactiveComponentDetails(m.graphValue, row, manifest, m.findings),
+			details:  componentDetails(m.graphValue, row, manifest, m.findings),
 		})
 	}
 
@@ -513,18 +514,18 @@ func (m *interactiveScanModel) buildComponentListModel(manifest interactiveListP
 		navigationHelp += "; Backspace/Left/h returns to manifests"
 	}
 
-	return &interactiveListModel{
+	return &listModel{
 		title: fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
 		summary: []string{
-			ansiStyled("Tab: [PACKAGES] | Vulnerabilities | Licenses", ansiDim),
-			ansiStyled("Manifest  ", ansiDim) + manifest.displayName,
-			ansiStyled("Root      ", ansiDim) + interactivePackageDisplayName(rootPkg),
-			ansiStyled("Filter relationship ", ansiDim) + valueOrDash(m.relationshipFilter),
-			ansiStyled("Filter scope ", ansiDim) + valueOrDash(m.scopeFilter),
-			ansiStyled("Filter severity ", ansiDim) + valueOrDash(m.severityFilter),
-			ansiStyled(fmt.Sprintf("Direct    %d", len(groups.direct)), ansiCyan, ansiBold),
-			ansiStyled(fmt.Sprintf("Transitive %d", len(groups.transitive)), ansiCyan, ansiBold),
-			ansiStyled("Project   ", ansiDim) + m.project.Path,
+			render.Style("Tab: [PACKAGES] | Vulnerabilities | Licenses", render.Dim),
+			render.Style("Manifest  ", render.Dim) + manifest.displayName,
+			render.Style("Root      ", render.Dim) + packageDisplayName(rootPkg),
+			render.Style("Filter relationship ", render.Dim) + valueOrDash(m.relationshipFilter),
+			render.Style("Filter scope ", render.Dim) + valueOrDash(m.scopeFilter),
+			render.Style("Filter severity ", render.Dim) + valueOrDash(m.severityFilter),
+			render.Style(fmt.Sprintf("Direct    %d", len(groups.direct)), render.Cyan, render.Bold),
+			render.Style(fmt.Sprintf("Transitive %d", len(groups.transitive)), render.Cyan, render.Bold),
+			render.Style("Project   ", render.Dim) + m.project.Path,
 		},
 		navigationHelp: navigationHelp,
 		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; r cycles relationship filter; s cycles scope filter; v cycles severity filter",
@@ -533,21 +534,21 @@ func (m *interactiveScanModel) buildComponentListModel(manifest interactiveListP
 	}
 }
 
-func (m *interactiveScanModel) buildExplainComponentListModel(manifest interactiveListPackageRow) *interactiveListModel {
-	labels, counts := interactiveExplainRelationships(m.graphValue, manifest.targetID)
-	rows := make([]interactiveListPackageRow, 0, len(labels))
+func (m *scanModel) buildExplainComponentListModel(manifest listPackageRow) *listModel {
+	labels, counts := explainRelationships(m.graphValue, manifest.targetID)
+	rows := make([]listPackageRow, 0, len(labels))
 	if m.graphValue != nil {
 		for _, pkg := range m.graphValue.Packages() {
 			if pkg == nil {
 				continue
 			}
-			row := interactivePackageRowFromGraph(pkg, labels[pkg.ID])
+			row := packageRowFromGraph(pkg, labels[pkg.ID])
 			row.targetID = manifest.targetID
 			rows = append(rows, row)
 		}
 	}
-	rows = filterInteractivePackageRows(rows, m.relationshipFilter, m.scopeFilter)
-	maxSevByID := interactiveMaxSeverityByPkgID(m.findings)
+	rows = filterPackageRows(rows, m.relationshipFilter, m.scopeFilter)
+	maxSevByID := maxSeverityByPkgID(m.findings)
 	if m.severityFilter != "" {
 		kept := rows[:0]
 		for _, row := range rows {
@@ -558,44 +559,44 @@ func (m *interactiveScanModel) buildExplainComponentListModel(manifest interacti
 		rows = kept
 	}
 	sort.Slice(rows, func(i, j int) bool {
-		si := interactiveSeverityRank(maxSevByID[rows[i].id])
-		sj := interactiveSeverityRank(maxSevByID[rows[j].id])
+		si := severityRank(maxSevByID[rows[i].id])
+		sj := severityRank(maxSevByID[rows[j].id])
 		if si != sj {
 			return si < sj
 		}
 		if rows[i].relationship != rows[j].relationship {
-			return interactiveRelationshipOrder(rows[i].relationship) < interactiveRelationshipOrder(rows[j].relationship)
+			return render.RelationshipOrder(rows[i].relationship) < render.RelationshipOrder(rows[j].relationship)
 		}
 		return rows[i].id < rows[j].id
 	})
-	items := make([]interactiveListItem, 0, len(rows))
+	items := make([]listItem, 0, len(rows))
 	for _, row := range rows {
-		badges := interactivePackageBadges(row)
+		badges := packageBadges(row)
 		if sev := maxSevByID[row.id]; sev != "" {
-			badges = append([]interactiveBadge{{label: sev, kind: "severity-" + strings.ToLower(sev)}}, badges...)
+			badges = append([]badge{{label: sev, kind: "severity-" + strings.ToLower(sev)}}, badges...)
 		}
-		items = append(items, interactiveListItem{
+		items = append(items, listItem{
 			title:    row.displayName,
 			subtitle: row.relationship,
 			badges:   badges,
-			details:  interactiveComponentDetails(m.graphValue, row, manifest, m.findings),
+			details:  componentDetails(m.graphValue, row, manifest, m.findings),
 		})
 	}
 	targetPkg, _ := m.graphValue.Package(manifest.targetID)
-	return &interactiveListModel{
+	return &listModel{
 		title: fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
 		summary: []string{
-			ansiStyled("Tab: [PACKAGES] | Vulnerabilities | Licenses", ansiDim),
-			ansiStyled("Manifest  ", ansiDim) + manifest.displayName,
-			ansiStyled("Target    ", ansiDim) + interactivePackageDisplayName(targetPkg),
-			ansiStyled("Filter relationship ", ansiDim) + valueOrDash(m.relationshipFilter),
-			ansiStyled("Filter scope ", ansiDim) + valueOrDash(m.scopeFilter),
-			ansiStyled("Filter severity ", ansiDim) + valueOrDash(m.severityFilter),
-			ansiStyled(fmt.Sprintf("Self      %d", counts["self"]), ansiCyan, ansiBold),
-			ansiStyled(fmt.Sprintf("Parents   %d", counts["parent"]), ansiCyan, ansiBold),
-			ansiStyled(fmt.Sprintf("Ancestors %d", counts["ancestor"]), ansiCyan, ansiBold),
-			ansiStyled(fmt.Sprintf("Roots     %d", counts["root"]), ansiCyan, ansiBold),
-			ansiStyled("Project   ", ansiDim) + m.project.Path,
+			render.Style("Tab: [PACKAGES] | Vulnerabilities | Licenses", render.Dim),
+			render.Style("Manifest  ", render.Dim) + manifest.displayName,
+			render.Style("Target    ", render.Dim) + packageDisplayName(targetPkg),
+			render.Style("Filter relationship ", render.Dim) + valueOrDash(m.relationshipFilter),
+			render.Style("Filter scope ", render.Dim) + valueOrDash(m.scopeFilter),
+			render.Style("Filter severity ", render.Dim) + valueOrDash(m.severityFilter),
+			render.Style(fmt.Sprintf("Self      %d", counts["self"]), render.Cyan, render.Bold),
+			render.Style(fmt.Sprintf("Parents   %d", counts["parent"]), render.Cyan, render.Bold),
+			render.Style(fmt.Sprintf("Ancestors %d", counts["ancestor"]), render.Cyan, render.Bold),
+			render.Style(fmt.Sprintf("Roots     %d", counts["root"]), render.Cyan, render.Bold),
+			render.Style("Project   ", render.Dim) + m.project.Path,
 		},
 		navigationHelp: interactiveCommonNavigationHelp,
 		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; r cycles relationship filter; s cycles scope filter; v cycles severity filter",
@@ -604,7 +605,7 @@ func (m *interactiveScanModel) buildExplainComponentListModel(manifest interacti
 	}
 }
 
-func interactiveManifestIDFromTitle(value string) string {
+func manifestIDFromTitle(value string) string {
 	start := strings.LastIndex(value, "[")
 	end := strings.LastIndex(value, "]")
 	if start == -1 || end == -1 || end <= start+1 {
@@ -613,12 +614,12 @@ func interactiveManifestIDFromTitle(value string) string {
 	return strings.TrimSpace(value[start+1 : end])
 }
 
-func interactiveManifestRows(consolidated model.ConsolidatedGraph) []interactiveListPackageRow {
+func manifestRows(consolidated model.ConsolidatedGraph) []listPackageRow {
 	if len(consolidated.Manifests) == 0 {
 		return nil
 	}
 
-	rows := make([]interactiveListPackageRow, 0, len(consolidated.Manifests))
+	rows := make([]listPackageRow, 0, len(consolidated.Manifests))
 	for idx, manifest := range consolidated.Manifests {
 		manifestID := strings.TrimSpace(manifest.Entry.Manifest.Path)
 		if manifestID == "" {
@@ -640,10 +641,10 @@ func interactiveManifestRows(consolidated model.ConsolidatedGraph) []interactive
 			}
 		}
 
-		rows = append(rows, interactiveListPackageRow{
+		rows = append(rows, listPackageRow{
 			id:           manifestID,
 			rootID:       rootID,
-			targetID:     interactiveManifestTargetID(manifest.Entry.Graph),
+			targetID:     manifestTargetID(manifest.Entry.Graph),
 			displayName:  manifestName,
 			relationship: "manifest",
 		})
@@ -653,28 +654,28 @@ func interactiveManifestRows(consolidated model.ConsolidatedGraph) []interactive
 	return rows
 }
 
-func interactiveManifestDetails(graphValue *model.Graph, row interactiveListPackageRow) []string {
-	groups := interactiveRootDependencies(graphValue, row.rootID)
+func manifestDetails(graphValue *model.Graph, row listPackageRow) []string {
+	groups := rootDependencies(graphValue, row.rootID)
 	rootPkg, _ := graphValue.Package(row.rootID)
 	lines := []string{
-		ansiStyled("Manifest", ansiBold, ansiCyan),
-		ansiStyled("  Name: ", ansiDim) + row.displayName,
-		ansiStyled("  ID: ", ansiDim) + valueOrDash(row.id),
-		ansiStyled("  Kind: ", ansiDim) + valueOrDash(filepath.Base(row.id)),
-		ansiStyled("  Type: ", ansiDim) + interactiveStatusText(row.relationship),
+		render.Style("Manifest", render.Bold, render.Cyan),
+		render.Style("  Name: ", render.Dim) + row.displayName,
+		render.Style("  ID: ", render.Dim) + valueOrDash(row.id),
+		render.Style("  Kind: ", render.Dim) + valueOrDash(filepath.Base(row.id)),
+		render.Style("  Type: ", render.Dim) + statusText(row.relationship),
 		"",
-		ansiStyled("Dependencies", ansiBold, ansiMagenta),
-		ansiStyled("  Root (project package): ", ansiDim) + interactivePackageDisplayName(rootPkg),
-		ansiStyled("  Direct dependencies: ", ansiDim) + fmt.Sprintf("%d", len(groups.direct)),
-		ansiStyled("  Transitive dependencies: ", ansiDim) + fmt.Sprintf("%d", len(groups.transitive)),
+		render.Style("Dependencies", render.Bold, render.Magenta),
+		render.Style("  Root (project package): ", render.Dim) + packageDisplayName(rootPkg),
+		render.Style("  Direct dependencies: ", render.Dim) + fmt.Sprintf("%d", len(groups.direct)),
+		render.Style("  Transitive dependencies: ", render.Dim) + fmt.Sprintf("%d", len(groups.transitive)),
 		"",
-		ansiStyled("Press Enter to view components for this manifest.", ansiDim),
+		render.Style("Press Enter to view components for this manifest.", render.Dim),
 		"",
 	}
 	return lines
 }
 
-func interactiveManifestTargetID(graphValue *model.Graph) string {
+func manifestTargetID(graphValue *model.Graph) string {
 	if graphValue == nil {
 		return ""
 	}
@@ -695,16 +696,16 @@ func interactiveManifestTargetID(graphValue *model.Graph) string {
 	return leaves[0]
 }
 
-func interactivePackageRowFromGraph(pkg *model.Package, relationship string) interactiveListPackageRow {
+func packageRowFromGraph(pkg *model.Package, relationship string) listPackageRow {
 	if pkg == nil {
-		return interactiveListPackageRow{relationship: relationship}
+		return listPackageRow{relationship: relationship}
 	}
 	name := pkg.DisplayName()
 	displayName := name
 	if pkg.Version != "" {
 		displayName = name + "@" + pkg.Version
 	}
-	return interactiveListPackageRow{
+	return listPackageRow{
 		id:           pkg.ID,
 		rootID:       pkg.ID,
 		displayName:  displayName,
@@ -715,7 +716,7 @@ func interactivePackageRowFromGraph(pkg *model.Package, relationship string) int
 	}
 }
 
-func interactivePackageDisplayName(pkg *model.Package) string {
+func packageDisplayName(pkg *model.Package) string {
 	if pkg == nil {
 		return "-"
 	}
@@ -729,30 +730,30 @@ func interactivePackageDisplayName(pkg *model.Package) string {
 	return name
 }
 
-func interactiveComponentBaseName(value string) string {
+func componentBaseName(value string) string {
 	if idx := strings.LastIndex(value, " ["); idx >= 0 && strings.HasSuffix(value, "]") {
 		return value[:idx]
 	}
 	return value
 }
 
-func interactiveComponentDetails(graphValue *model.Graph, row interactiveListPackageRow, manifest interactiveListPackageRow, findings []model.Finding) []string {
+func componentDetails(graphValue *model.Graph, row listPackageRow, manifest listPackageRow, findings []model.Finding) []string {
 	lines := []string{
-		ansiStyled("Component", ansiBold, ansiCyan),
-		ansiStyled("  Manifest: ", ansiDim) + manifest.displayName,
-		ansiStyled("  Name: ", ansiDim) + interactiveComponentBaseName(row.displayName),
-		ansiStyled("  ID: ", ansiDim) + valueOrDash(row.id),
-		ansiStyled("  Version: ", ansiDim) + valueOrDash(row.version),
-		ansiStyled("  Scope: ", ansiDim) + valueOrDash(row.scope),
-		ansiStyled("  Relationship: ", ansiDim) + interactiveStatusText(row.relationship),
-		ansiStyled("  PURL: ", ansiDim) + valueOrDash(row.purl),
+		render.Style("Component", render.Bold, render.Cyan),
+		render.Style("  Manifest: ", render.Dim) + manifest.displayName,
+		render.Style("  Name: ", render.Dim) + componentBaseName(row.displayName),
+		render.Style("  ID: ", render.Dim) + valueOrDash(row.id),
+		render.Style("  Version: ", render.Dim) + valueOrDash(row.version),
+		render.Style("  Scope: ", render.Dim) + valueOrDash(row.scope),
+		render.Style("  Relationship: ", render.Dim) + statusText(row.relationship),
+		render.Style("  PURL: ", render.Dim) + valueOrDash(row.purl),
 		"",
 	}
 
 	appendPackages := func(title string, packages []*model.Package) {
-		lines = append(lines, ansiStyled(title, ansiBold, ansiMagenta))
+		lines = append(lines, render.Style(title, render.Bold, render.Magenta))
 		if len(packages) == 0 {
-			lines = append(lines, ansiStyled("  (none)", ansiDim))
+			lines = append(lines, render.Style("  (none)", render.Dim))
 			lines = append(lines, "")
 			return
 		}
@@ -764,7 +765,7 @@ func interactiveComponentDetails(graphValue *model.Graph, row interactiveListPac
 			if pkg.Scope != "" {
 				value += " [" + pkg.Scope + "]"
 			}
-			lines = append(lines, ansiStyled("  - ", ansiDim)+value)
+			lines = append(lines, render.Style("  - ", render.Dim)+value)
 		}
 		lines = append(lines, "")
 	}
@@ -777,7 +778,7 @@ func interactiveComponentDetails(graphValue *model.Graph, row interactiveListPac
 	}
 
 	// Vulnerabilities section
-	lines = append(lines, ansiStyled("Vulnerabilities", ansiBold, ansiCyan))
+	lines = append(lines, render.Style("Vulnerabilities", render.Bold, render.Cyan))
 	var pkgFindings []model.Finding
 	for _, f := range findings {
 		if f.Kind == model.FindingKindVulnerability && f.Package != nil && f.Package.ID == row.id {
@@ -785,21 +786,21 @@ func interactiveComponentDetails(graphValue *model.Graph, row interactiveListPac
 		}
 	}
 	if len(pkgFindings) == 0 {
-		lines = append(lines, ansiStyled("  (none)", ansiDim))
+		lines = append(lines, render.Style("  (none)", render.Dim))
 	} else {
 		for _, f := range pkgFindings {
 			var severityLabel string
 			switch strings.ToLower(f.Severity) {
 			case "critical":
-				severityLabel = ansiStyled(" "+strings.ToUpper(valueOrDash(f.Severity))+" ", ansiBgRed, ansiWhite, ansiBold)
+				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(f.Severity))+" ", render.BgRed, render.White, render.Bold)
 			case "high":
-				severityLabel = ansiStyled(" "+strings.ToUpper(valueOrDash(f.Severity))+" ", ansiBgRed, ansiWhite)
+				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(f.Severity))+" ", render.BgRed, render.White)
 			case "medium":
-				severityLabel = ansiStyled(" "+strings.ToUpper(valueOrDash(f.Severity))+" ", ansiBgYellow, ansiBold)
+				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(f.Severity))+" ", render.BgYellow, render.Bold)
 			case "low":
-				severityLabel = ansiStyled(" "+strings.ToUpper(valueOrDash(f.Severity))+" ", ansiBgCyan, ansiBlue, ansiBold)
+				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(f.Severity))+" ", render.BgCyan, render.Blue, render.Bold)
 			default:
-				severityLabel = ansiStyled(" "+strings.ToUpper(valueOrDash(f.Severity))+" ", ansiDim)
+				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(f.Severity))+" ", render.Dim)
 			}
 			title := valueOrDash(f.Title)
 			if title == "-" {
@@ -807,19 +808,19 @@ func interactiveComponentDetails(graphValue *model.Graph, row interactiveListPac
 			} else {
 				title = " " + title
 			}
-			lines = append(lines, "  "+severityLabel+" "+ansiStyled(f.ID, ansiBold)+title)
+			lines = append(lines, "  "+severityLabel+" "+render.Style(f.ID, render.Bold)+title)
 		}
 	}
 	lines = append(lines, "")
 
 	// Licenses section
-	lines = append(lines, ansiStyled("Licenses", ansiBold, ansiCyan))
+	lines = append(lines, render.Style("Licenses", render.Bold, render.Cyan))
 	var pkg *model.Package
 	if graphValue != nil {
 		pkg, _ = graphValue.Package(row.id)
 	}
 	if pkg == nil || len(pkg.Licenses) == 0 {
-		lines = append(lines, ansiStyled("  (none)", ansiDim))
+		lines = append(lines, render.Style("  (none)", render.Dim))
 	} else {
 		for _, lic := range pkg.Licenses {
 			expr := lic.SPDXExpression
@@ -829,7 +830,7 @@ func interactiveComponentDetails(graphValue *model.Graph, row interactiveListPac
 			if lic.Type != "" {
 				expr += " [" + lic.Type + "]"
 			}
-			lines = append(lines, ansiStyled("  - ", ansiDim)+valueOrDash(expr))
+			lines = append(lines, render.Style("  - ", render.Dim)+valueOrDash(expr))
 		}
 	}
 	lines = append(lines, "")
@@ -837,14 +838,14 @@ func interactiveComponentDetails(graphValue *model.Graph, row interactiveListPac
 	return lines
 }
 
-func interactiveRootDependencies(graphValue *model.Graph, rootID string) interactiveRootDependencyGroup {
+func rootDependencies(graphValue *model.Graph, rootID string) rootDependencyGroup {
 	if graphValue == nil || strings.TrimSpace(rootID) == "" {
-		return interactiveRootDependencyGroup{}
+		return rootDependencyGroup{}
 	}
 
 	direct, err := graphValue.Dependencies(rootID)
 	if err != nil || len(direct) == 0 {
-		return interactiveRootDependencyGroup{}
+		return rootDependencyGroup{}
 	}
 
 	directByID := make(map[string]*model.Package, len(direct))
@@ -890,16 +891,16 @@ func interactiveRootDependencies(graphValue *model.Graph, rootID string) interac
 		transitive = append(transitive, pkg)
 	}
 	sort.Slice(direct, func(i, j int) bool {
-		return interactivePackageSortKey(direct[i]) < interactivePackageSortKey(direct[j])
+		return packageSortKey(direct[i]) < packageSortKey(direct[j])
 	})
 	sort.Slice(transitive, func(i, j int) bool {
-		return interactivePackageSortKey(transitive[i]) < interactivePackageSortKey(transitive[j])
+		return packageSortKey(transitive[i]) < packageSortKey(transitive[j])
 	})
 
-	return interactiveRootDependencyGroup{direct: direct, transitive: transitive}
+	return rootDependencyGroup{direct: direct, transitive: transitive}
 }
 
-func interactivePackageSortKey(pkg *model.Package) string {
+func packageSortKey(pkg *model.Package) string {
 	if pkg == nil {
 		return ""
 	}

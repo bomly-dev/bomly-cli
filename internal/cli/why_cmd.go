@@ -6,10 +6,12 @@ import (
 	"io"
 	"time"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/explain"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/scan"
 	"github.com/bomly-dev/bomly-cli/internal/scan/consolidation"
+	"github.com/bomly-dev/bomly-cli/internal/tui"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/spf13/cobra"
 )
@@ -95,7 +97,7 @@ func newExplainCmd(options *globalOptions) *cobra.Command {
 					Findings:     output.FindingsFromScan(findings),
 					AuditSummary: output.SummaryFromFindings(findings),
 				})
-				focusedGraph, focusErr := explainGraphFromPaths(depsGraph, paths)
+				focusedGraph, focusErr := render.ExplainGraphFromPaths(depsGraph, paths)
 				if focusErr != nil {
 					return resolutionFailure(focusErr)
 				}
@@ -103,7 +105,7 @@ func newExplainCmd(options *globalOptions) *cobra.Command {
 					SubprojectInfo: result.SubprojectInfo,
 					DetectorName:   result.DetectorName,
 					ComponentType:  result.ComponentType,
-					Graphs:         scan.SingleGraphContainer(focusedGraph, explainManifestMetadata(result)),
+					Graphs:         scan.SingleGraphContainer(focusedGraph, render.ExplainManifestMetadata(result)),
 				})
 			}
 			if len(targets) == 0 {
@@ -131,7 +133,7 @@ func newExplainCmd(options *globalOptions) *cobra.Command {
 					return resolutionFailure(err)
 				}
 				progress.Stop()
-				return runInteractiveModel(cmd.InOrStdin(), streams.interactiveWriter(), newScanNavigatorModel("Bomly Interactive Explain", payload.Project, consolidated, graphValue, allFindings))
+				return interactiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewScanNavigator("Bomly Interactive Explain", payload.Project, consolidated, graphValue, allFindings)))
 			}
 
 			writer, closeWriter, err := ctx.writer(streams.reportWriter())
@@ -152,7 +154,7 @@ func newExplainCmd(options *globalOptions) *cobra.Command {
 								return err
 							}
 						}
-						if err := renderExplainTextReport(w, target); err != nil {
+						if err := render.Explain(w, target); err != nil {
 							return err
 						}
 					}

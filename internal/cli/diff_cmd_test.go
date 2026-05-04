@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 )
 
@@ -22,7 +23,7 @@ func TestRenderDiffTextIncludesAuditOutcomeWithoutChanges(t *testing.T) {
 	}
 
 	var out bytes.Buffer
-	if err := renderDiffText(&out, payload); err != nil {
+	if err := render.Diff(&out, payload); err != nil {
 		t.Fatalf("renderDiffText() error = %v", err)
 	}
 
@@ -73,7 +74,7 @@ func TestRenderDiffTextIncludesAuditSections(t *testing.T) {
 	}
 
 	var out bytes.Buffer
-	if err := renderDiffText(&out, payload); err != nil {
+	if err := render.Diff(&out, payload); err != nil {
 		t.Fatalf("renderDiffText() error = %v", err)
 	}
 

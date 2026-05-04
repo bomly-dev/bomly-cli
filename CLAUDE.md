@@ -31,10 +31,15 @@ make generate            # Regenerate config reference, JSON schemas, support ma
 ```txt
 cmd/bomly/                       Entry point — calls internal/cli.Execute(version)
 internal/cli/                    Cobra command wiring (scan, explain, diff, plugin, mcp, version),
-                                 options/flags, command-context glue, scan/diff/explain text rendering,
-                                 interactive TUI (interactive_*.go)
-internal/cli/render/             ANSI escape primitives (Reset, Red, Wrap, Style, StripANSI,
-                                 ColorizeGraphTree) and the startup-logo animation
+                                 options/flags, command-context glue, resolver/orchestration shim
+internal/cli/render/             CLI presentation layer: ANSI primitives, text helpers
+                                 (Wrap/Style/TruncateToWidth/PadRight/ValueOrDash), the startup
+                                 logo, and the scan/diff/explain text reports + SBOM writer
+                                 (Scan, Diff, Explain, WhyTreeLines, ExplainGraphFromPaths,
+                                 ParseSBOMOutputSpecs, WriteSBOMDocument)
+internal/tui/                    Interactive Bubbletea terminal UI (Run, NewScan, NewDiff,
+                                 NewScanNavigator, Model interface). ErrNotATerminal sentinel
+                                 lets the cli surface missing-tty as an invalid-input exit
 sdk/                             Neutral domain types, ecosystem/package-manager identifiers,
                                  support-matrix data
 internal/config/                 Resolved + File: the canonical config schema + YAML shape that
@@ -77,14 +82,11 @@ Runtime preparation lives in `internal/scan/runtime` and is invoked by the CLI b
 - `internal/registry` owns package-manager discovery, support lookups, and built-in wiring in `builder.go`. Do not create a separate `registrybuilder` package.
 - `internal/scan` (pipeline core) may import `internal/scan/consolidation`, `internal/scan/hooks`, `internal/detectors`, and `internal/registry`. It must not import `internal/scan/runtime` (the CLI invokes runtime directly).
 - `internal/scan/runtime` may import `internal/scan` (for the Registry wrapper). The other scan subpackages (`consolidation`, `hooks`) must not.
-- `internal/config`, `internal/selector`, `internal/progress`, `internal/cli/render` must not import `internal/cli`. They are downstream of cobra wiring; cli consumes them, not the reverse.
-- Nothing under `internal/` (other than `cmd/bomly/main.go`) imports `internal/cli`.
+- `internal/config`, `internal/selector`, `internal/progress`, `internal/cli/render`, `internal/tui` must not import `internal/cli`. They are downstream of cobra wiring; cli consumes them, not the reverse.
+- `internal/tui` may import `internal/cli/render` (for ANSI primitives, text helpers, and shared sort/format helpers used by both the TUI and the text reports).
+- `cmd/bomly/main.go` is the only file outside `internal/cli` that imports `internal/cli`.
 
 Detector registration priority (lower = higher priority): native → lockfile-parser → third-party → plugin.
-
-### Pending refactor follow-up
-
-The interactive TUI (`internal/cli/interactive.go`, `interactive_scan.go`, `interactive_diff.go`, `interactive_utils.go`) and the higher-level scan/diff/explain text renderers (`scan_render.go`, `diff_render.go`, `explain_render.go`, `explain_tree.go`, `scan_sbom.go`) remain in `internal/cli` for now. A future PR can lift the TUI to `internal/tui` and the renderers to `internal/cli/render` once a small text-helper layer (currently mixed into `interactive_utils.go`) is split out so both layers can share it without coupling back into cli.
 
 ## Non-Negotiables
 

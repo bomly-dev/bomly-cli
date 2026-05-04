@@ -242,16 +242,16 @@
       "packages": [
         {
           "dependencies": [],
-          "id": "pkg:python/pip@25.3",
+          "id": "pkg:python/pip@26.0.1",
           "licenses": [],
           "name": "pip",
-          "purl": "pkg:python/pip@25.3",
-          "version": "25.3",
+          "purl": "pkg:python/pip@26.0.1",
+          "version": "26.0.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:python/pip@25.3"
+            "pkg:python/pip@26.0.1"
           ],
           "id": "pkg:python/root",
           "licenses": [],

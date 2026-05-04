@@ -139,7 +139,13 @@
         {
           "dependencies": [],
           "id": "pkg:gem/rack",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "concluded",
+              "value": "MIT"
+            }
+          ],
           "metadata": {
             "bomly.normalization.applied": [
               "version"

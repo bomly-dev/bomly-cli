@@ -9,55 +9,8 @@
       "packages": [
         {
           "dependencies": [
-            "pkg:cargo/aho-corasick@1.1.3",
-            "pkg:cargo/arbitrary@1.4.2",
-            "pkg:cargo/cc@1.2.41",
-            "pkg:cargo/cfg-if@1.0.4",
-            "pkg:cargo/crossbeam-channel@0.5.15",
-            "pkg:cargo/crossbeam-deque@0.8.6",
-            "pkg:cargo/crossbeam-epoch@0.9.18",
-            "pkg:cargo/crossbeam-utils@0.8.21",
-            "pkg:cargo/derive_arbitrary@1.4.2",
-            "pkg:cargo/encoding_rs@0.8.35",
-            "pkg:cargo/encoding_rs_io@0.1.7",
-            "pkg:cargo/find-msvc-tools@0.1.4",
-            "pkg:cargo/getrandom@0.3.4",
-            "pkg:cargo/glob@0.3.3",
-            "pkg:cargo/globset@0.4.18",
-            "pkg:cargo/grep-cli@0.1.12",
-            "pkg:cargo/grep-matcher@0.1.8",
-            "pkg:cargo/grep-pcre2@0.1.9",
-            "pkg:cargo/grep-printer@0.3.1",
-            "pkg:cargo/grep-regex@0.1.14",
-            "pkg:cargo/grep-searcher@0.1.16",
-            "pkg:cargo/itoa@1.0.15",
-            "pkg:cargo/jobserver@0.1.34",
-            "pkg:cargo/libc@0.2.177",
-            "pkg:cargo/memchr@2.7.6",
-            "pkg:cargo/memmap2@0.9.9",
-            "pkg:cargo/pcre2-sys@0.2.10",
-            "pkg:cargo/pcre2@0.2.11",
-            "pkg:cargo/pkg-config@0.3.32",
-            "pkg:cargo/proc-macro2@1.0.101",
-            "pkg:cargo/quote@1.0.41",
-            "pkg:cargo/r-efi@5.3.0",
-            "pkg:cargo/regex-automata@0.4.13",
-            "pkg:cargo/regex-syntax@0.8.8",
-            "pkg:cargo/regex@1.12.2",
             "pkg:cargo/ripgrep@15.1.0%22%20%20%23%3Aversion",
-            "pkg:cargo/ryu@1.0.20",
-            "pkg:cargo/same-file@1.0.6",
-            "pkg:cargo/serde_core@1.0.228",
-            "pkg:cargo/shlex@1.3.0",
-            "pkg:cargo/syn@2.0.107",
-            "pkg:cargo/tikv-jemalloc-sys@0.6.1%2B5.3.0-1-ge13ca993e8ccb9ba9847cc330696e02839f328f7",
-            "pkg:cargo/tikv-jemallocator@0.6.1",
-            "pkg:cargo/unicode-ident@1.0.20",
-            "pkg:cargo/wasip2@1.0.1%2Bwasi-0.2.4",
-            "pkg:cargo/winapi-util@0.1.11",
-            "pkg:cargo/windows-link@0.2.1",
-            "pkg:cargo/windows-sys@0.61.2",
-            "pkg:cargo/wit-bindgen@0.46.0"
+            "pkg:cargo/tikv-jemallocator@0.6.1"
           ],
           "id": "Cargo.lock",
           "licenses": [],
@@ -65,7 +18,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/memchr@2.7.6"
+          ],
           "id": "pkg:cargo/aho-corasick@1.1.3",
           "licenses": [],
           "name": "aho-corasick",
@@ -84,7 +39,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/derive_arbitrary@1.4.2"
+          ],
           "id": "pkg:cargo/arbitrary@1.4.2",
           "licenses": [],
           "name": "arbitrary",
@@ -93,7 +50,11 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/memchr@2.7.6",
+            "pkg:cargo/regex-automata@0.4.13",
+            "pkg:cargo/serde@1.0.228"
+          ],
           "id": "pkg:cargo/bstr@1.12.0",
           "licenses": [],
           "name": "bstr",
@@ -103,7 +64,12 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/find-msvc-tools@0.1.4",
+            "pkg:cargo/jobserver@0.1.34",
+            "pkg:cargo/libc@0.2.177",
+            "pkg:cargo/shlex@1.3.0"
+          ],
           "id": "pkg:cargo/cc@1.2.41",
           "licenses": [],
           "name": "cc",
@@ -121,7 +87,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/crossbeam-utils@0.8.21"
+          ],
           "id": "pkg:cargo/crossbeam-channel@0.5.15",
           "licenses": [],
           "name": "crossbeam-channel",
@@ -130,7 +98,10 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/crossbeam-epoch@0.9.18",
+            "pkg:cargo/crossbeam-utils@0.8.21"
+          ],
           "id": "pkg:cargo/crossbeam-deque@0.8.6",
           "licenses": [],
           "name": "crossbeam-deque",
@@ -139,7 +110,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/crossbeam-utils@0.8.21"
+          ],
           "id": "pkg:cargo/crossbeam-epoch@0.9.18",
           "licenses": [],
           "name": "crossbeam-epoch",
@@ -157,7 +130,11 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/proc-macro2@1.0.101",
+            "pkg:cargo/quote@1.0.41",
+            "pkg:cargo/syn@2.0.107"
+          ],
           "id": "pkg:cargo/derive_arbitrary@1.4.2",
           "licenses": [],
           "metadata": {
@@ -172,7 +149,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/cfg-if@1.0.4"
+          ],
           "id": "pkg:cargo/encoding_rs@0.8.35",
           "licenses": [],
           "metadata": {
@@ -187,7 +166,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/encoding_rs@0.8.35"
+          ],
           "id": "pkg:cargo/encoding_rs_io@0.1.7",
           "licenses": [],
           "metadata": {
@@ -211,7 +192,12 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/cfg-if@1.0.4",
+            "pkg:cargo/libc@0.2.177",
+            "pkg:cargo/r-efi@5.3.0",
+            "pkg:cargo/wasip2@1.0.1%2Bwasi-0.2.4"
+          ],
           "id": "pkg:cargo/getrandom@0.3.4",
           "licenses": [],
           "name": "getrandom",
@@ -229,7 +215,17 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/aho-corasick@1.1.3",
+            "pkg:cargo/arbitrary@1.4.2",
+            "pkg:cargo/bstr@1.12.0",
+            "pkg:cargo/glob@0.3.3",
+            "pkg:cargo/log@0.4.28",
+            "pkg:cargo/regex-automata@0.4.13",
+            "pkg:cargo/regex-syntax@0.8.8",
+            "pkg:cargo/serde@1.0.228",
+            "pkg:cargo/serde_json@1.0.145"
+          ],
           "id": "pkg:cargo/globset@0.4.18",
           "licenses": [],
           "name": "globset",
@@ -238,7 +234,14 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/bstr@1.12.0",
+            "pkg:cargo/globset@0.4.18",
+            "pkg:cargo/libc@0.2.177",
+            "pkg:cargo/log@0.4.28",
+            "pkg:cargo/termcolor@1.4.1",
+            "pkg:cargo/winapi-util@0.1.11"
+          ],
           "id": "pkg:cargo/grep-cli@0.1.12",
           "licenses": [],
           "name": "grep-cli",
@@ -247,7 +250,10 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/memchr@2.7.6",
+            "pkg:cargo/regex@1.12.2"
+          ],
           "id": "pkg:cargo/grep-matcher@0.1.8",
           "licenses": [],
           "name": "grep-matcher",
@@ -256,7 +262,11 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/grep-matcher@0.1.8",
+            "pkg:cargo/log@0.4.28",
+            "pkg:cargo/pcre2@0.2.11"
+          ],
           "id": "pkg:cargo/grep-pcre2@0.1.9",
           "licenses": [],
           "name": "grep-pcre2",
@@ -265,7 +275,16 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/bstr@1.12.0",
+            "pkg:cargo/grep-matcher@0.1.8",
+            "pkg:cargo/grep-regex@0.1.14",
+            "pkg:cargo/grep-searcher@0.1.16",
+            "pkg:cargo/log@0.4.28",
+            "pkg:cargo/serde@1.0.228",
+            "pkg:cargo/serde_json@1.0.145",
+            "pkg:cargo/termcolor@1.4.1"
+          ],
           "id": "pkg:cargo/grep-printer@0.3.1",
           "licenses": [],
           "name": "grep-printer",
@@ -274,7 +293,13 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/bstr@1.12.0",
+            "pkg:cargo/grep-matcher@0.1.8",
+            "pkg:cargo/log@0.4.28",
+            "pkg:cargo/regex-automata@0.4.13",
+            "pkg:cargo/regex-syntax@0.8.8"
+          ],
           "id": "pkg:cargo/grep-regex@0.1.14",
           "licenses": [],
           "name": "grep-regex",
@@ -283,7 +308,17 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/bstr@1.12.0",
+            "pkg:cargo/encoding_rs@0.8.35",
+            "pkg:cargo/encoding_rs_io@0.1.7",
+            "pkg:cargo/grep-matcher@0.1.8",
+            "pkg:cargo/grep-regex@0.1.14",
+            "pkg:cargo/log@0.4.28",
+            "pkg:cargo/memchr@2.7.6",
+            "pkg:cargo/memmap2@0.9.9",
+            "pkg:cargo/regex@1.12.2"
+          ],
           "id": "pkg:cargo/grep-searcher@0.1.16",
           "licenses": [],
           "name": "grep-searcher",
@@ -292,7 +327,16 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/grep-cli@0.1.12",
+            "pkg:cargo/grep-matcher@0.1.8",
+            "pkg:cargo/grep-pcre2@0.1.9",
+            "pkg:cargo/grep-printer@0.3.1",
+            "pkg:cargo/grep-regex@0.1.14",
+            "pkg:cargo/grep-searcher@0.1.16",
+            "pkg:cargo/termcolor@1.4.1",
+            "pkg:cargo/walkdir@2.5.0"
+          ],
           "id": "pkg:cargo/grep@0.4.1",
           "licenses": [],
           "name": "grep",
@@ -302,7 +346,18 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/bstr@1.12.0",
+            "pkg:cargo/crossbeam-channel@0.5.15",
+            "pkg:cargo/crossbeam-deque@0.8.6",
+            "pkg:cargo/globset@0.4.18",
+            "pkg:cargo/log@0.4.28",
+            "pkg:cargo/memchr@2.7.6",
+            "pkg:cargo/regex-automata@0.4.13",
+            "pkg:cargo/same-file@1.0.6",
+            "pkg:cargo/walkdir@2.5.0",
+            "pkg:cargo/winapi-util@0.1.11"
+          ],
           "id": "pkg:cargo/ignore@0.4.25",
           "licenses": [],
           "name": "ignore",
@@ -321,7 +376,10 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/getrandom@0.3.4",
+            "pkg:cargo/libc@0.2.177"
+          ],
           "id": "pkg:cargo/jobserver@0.1.34",
           "licenses": [],
           "name": "jobserver",
@@ -368,7 +426,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/libc@0.2.177"
+          ],
           "id": "pkg:cargo/memmap2@0.9.9",
           "licenses": [],
           "name": "memmap2",
@@ -377,7 +437,11 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/cc@1.2.41",
+            "pkg:cargo/libc@0.2.177",
+            "pkg:cargo/pkg-config@0.3.32"
+          ],
           "id": "pkg:cargo/pcre2-sys@0.2.10",
           "licenses": [],
           "name": "pcre2-sys",
@@ -386,7 +450,11 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/libc@0.2.177",
+            "pkg:cargo/log@0.4.28",
+            "pkg:cargo/pcre2-sys@0.2.10"
+          ],
           "id": "pkg:cargo/pcre2@0.2.11",
           "licenses": [],
           "name": "pcre2",
@@ -404,7 +472,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/unicode-ident@1.0.20"
+          ],
           "id": "pkg:cargo/proc-macro2@1.0.101",
           "licenses": [],
           "name": "proc-macro2",
@@ -413,7 +483,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/proc-macro2@1.0.101"
+          ],
           "id": "pkg:cargo/quote@1.0.41",
           "licenses": [],
           "name": "quote",
@@ -431,7 +503,11 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/aho-corasick@1.1.3",
+            "pkg:cargo/memchr@2.7.6",
+            "pkg:cargo/regex-syntax@0.8.8"
+          ],
           "id": "pkg:cargo/regex-automata@0.4.13",
           "licenses": [],
           "name": "regex-automata",
@@ -449,7 +525,12 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/aho-corasick@1.1.3",
+            "pkg:cargo/memchr@2.7.6",
+            "pkg:cargo/regex-automata@0.4.13",
+            "pkg:cargo/regex-syntax@0.8.8"
+          ],
           "id": "pkg:cargo/regex@1.12.2",
           "licenses": [],
           "name": "regex",
@@ -489,7 +570,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/winapi-util@0.1.11"
+          ],
           "id": "pkg:cargo/same-file@1.0.6",
           "licenses": [],
           "name": "same-file",
@@ -498,7 +581,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/serde_core@1.0.228"
+          ],
           "id": "pkg:cargo/serde@1.0.228",
           "licenses": [],
           "name": "serde",
@@ -508,7 +593,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/serde_derive@1.0.228"
+          ],
           "id": "pkg:cargo/serde_core@1.0.228",
           "licenses": [],
           "metadata": {
@@ -523,7 +610,11 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/proc-macro2@1.0.101",
+            "pkg:cargo/quote@1.0.41",
+            "pkg:cargo/syn@2.0.107"
+          ],
           "id": "pkg:cargo/serde_derive@1.0.228",
           "licenses": [],
           "metadata": {
@@ -539,7 +630,13 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/itoa@1.0.15",
+            "pkg:cargo/memchr@2.7.6",
+            "pkg:cargo/ryu@1.0.20",
+            "pkg:cargo/serde@1.0.228",
+            "pkg:cargo/serde_core@1.0.228"
+          ],
           "id": "pkg:cargo/serde_json@1.0.145",
           "licenses": [],
           "metadata": {
@@ -564,7 +661,11 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/proc-macro2@1.0.101",
+            "pkg:cargo/quote@1.0.41",
+            "pkg:cargo/unicode-ident@1.0.20"
+          ],
           "id": "pkg:cargo/syn@2.0.107",
           "licenses": [],
           "name": "syn",
@@ -573,7 +674,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/winapi-util@0.1.11"
+          ],
           "id": "pkg:cargo/termcolor@1.4.1",
           "licenses": [],
           "name": "termcolor",
@@ -593,7 +696,10 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/cc@1.2.41",
+            "pkg:cargo/libc@0.2.177"
+          ],
           "id": "pkg:cargo/tikv-jemalloc-sys@0.6.1%2B5.3.0-1-ge13ca993e8ccb9ba9847cc330696e02839f328f7",
           "licenses": [],
           "name": "tikv-jemalloc-sys",
@@ -602,7 +708,10 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/libc@0.2.177",
+            "pkg:cargo/tikv-jemalloc-sys@0.6.1%2B5.3.0-1-ge13ca993e8ccb9ba9847cc330696e02839f328f7"
+          ],
           "id": "pkg:cargo/tikv-jemallocator@0.6.1",
           "licenses": [],
           "name": "tikv-jemallocator",
@@ -620,7 +729,10 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/same-file@1.0.6",
+            "pkg:cargo/winapi-util@0.1.11"
+          ],
           "id": "pkg:cargo/walkdir@2.5.0",
           "licenses": [],
           "name": "walkdir",
@@ -630,7 +742,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/wit-bindgen@0.46.0"
+          ],
           "id": "pkg:cargo/wasip2@1.0.1%2Bwasi-0.2.4",
           "licenses": [],
           "name": "wasip2",
@@ -639,7 +753,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/windows-sys@0.61.2"
+          ],
           "id": "pkg:cargo/winapi-util@0.1.11",
           "licenses": [],
           "name": "winapi-util",
@@ -657,7 +773,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/windows-link@0.2.1"
+          ],
           "id": "pkg:cargo/windows-sys@0.61.2",
           "licenses": [],
           "name": "windows-sys",

@@ -278,16 +278,18 @@ func TestRootHelp_IncludesAvailableOptionValuesSection(t *testing.T) {
 	}
 
 	helpText := output.String()
-	for _, want := range []string{
+	if !strings.Contains(helpText, "Explore available detectors, matchers, and auditors with `bomly plugin list`.") {
+		t.Fatalf("expected help output to contain plugin list guidance, got:\n%s", helpText)
+	}
+
+	for _, removed := range []string{
 		"Available Native Detectors:",
 		"Available Third-party Detectors:",
+		"Available Auditors:",
 		"Available Matchers:",
-		"maven",
-		"syft-detector",
-		"deps.dev",
 	} {
-		if !strings.Contains(helpText, want) {
-			t.Fatalf("expected help output to contain %q, got:\n%s", want, helpText)
+		if strings.Contains(helpText, removed) {
+			t.Fatalf("expected help output to omit %q, got:\n%s", removed, helpText)
 		}
 	}
 }

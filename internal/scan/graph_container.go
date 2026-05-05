@@ -1,8 +1,6 @@
 package scan
 
 import (
-	"errors"
-
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
@@ -27,11 +25,4 @@ type ConsolidatedGraphResult struct {
 // ConsolidateGraphContainerEntry ensures one entry is present.
 func ConsolidateGraphContainerEntry(container *model.GraphContainer) (*model.Graph, error) {
 	return model.ConsolidateGraphContainerEntry(container)
-}
-
-func validateGraphEntry(entry model.GraphEntry) error {
-	if entry.Graph == nil {
-		return errors.New("graph entry graph is nil")
-	}
-	return nil
 }

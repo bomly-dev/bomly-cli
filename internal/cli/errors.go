@@ -3,6 +3,8 @@ package cli
 import (
 	"errors"
 	"fmt"
+
+	"github.com/bomly-dev/bomly-cli/internal/tui"
 )
 
 const (
@@ -58,6 +60,19 @@ func resolutionFailure(err error) error {
 
 func policyViolation(err error) error {
 	return &exitError{code: exitCodePolicyViolation, err: err}
+}
+
+// interactiveResult wraps the error returned by tui.Run so that a missing
+// terminal surfaces as an invalid-input exit (4) instead of a generic
+// failure. Other errors flow through unchanged.
+func interactiveResult(err error) error {
+	if err == nil {
+		return nil
+	}
+	if errors.Is(err, tui.ErrNotATerminal) {
+		return invalidInputf("%v", err)
+	}
+	return err
 }
 
 func policyViolationFindings(count int) error {

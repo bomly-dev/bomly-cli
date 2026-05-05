@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/bomly-dev/bomly-cli/internal/scan/consolidation"
+	"github.com/bomly-dev/bomly-cli/internal/scan/hooks"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
@@ -35,7 +37,7 @@ func NewPipeline(registry *Registry, logger *zap.Logger) *Pipeline {
 // support), returning raw per-subproject results. This is useful for commands
 // that need per-result processing before consolidation (e.g., explain, diff).
 func (p *Pipeline) ResolveAll(ctx context.Context, req PipelineRequest) ([]model.DetectionResult, error) {
-	if err := p.runPreHooks(ctx, req); err != nil {
+	if err := hooks.RunPre(ctx, p.Logger, p.Registry.PreResolveHooks(), preHookContext(req)); err != nil {
 		return nil, fmt.Errorf("pre-resolve hook: %w", err)
 	}
 	return p.resolveAll(ctx, req)
@@ -46,7 +48,7 @@ func (p *Pipeline) Run(ctx context.Context, req PipelineRequest) (PipelineResult
 	result := PipelineResult{}
 
 	// 1. Pre-resolve hooks.
-	if err := p.runPreHooks(ctx, req); err != nil {
+	if err := hooks.RunPre(ctx, p.Logger, p.Registry.PreResolveHooks(), preHookContext(req)); err != nil {
 		return result, fmt.Errorf("pre-resolve hook: %w", err)
 	}
 
@@ -73,7 +75,7 @@ func (p *Pipeline) Run(ctx context.Context, req PipelineRequest) (PipelineResult
 	}
 
 	// 4. Consolidate graphs.
-	consolidated, err := ConsolidateGraphs(resolveResults)
+	consolidated, err := consolidation.ConsolidateGraphs(resolveResults)
 	if err != nil {
 		return result, fmt.Errorf("consolidation: %w", err)
 	}
@@ -132,11 +134,29 @@ func (p *Pipeline) Run(ctx context.Context, req PipelineRequest) (PipelineResult
 	}
 
 	// 8. Post-resolve hooks.
-	if err := p.runPostHooks(ctx, req, result); err != nil {
+	if err := hooks.RunPost(ctx, p.Logger, p.Registry.PostResolveHooks(), postHookContext(req, result)); err != nil {
 		p.Logger.Warn("pipeline: post-resolve hook error", zap.Error(err))
 	}
 
 	return result, nil
+}
+
+func preHookContext(req PipelineRequest) hooks.PreResolveContext {
+	return hooks.PreResolveContext{
+		ExecutionTarget: req.ExecutionTarget,
+		Subprojects:     req.Subprojects,
+		ProjectPath:     req.ProjectPath,
+		Stderr:          req.Stderr,
+	}
+}
+
+func postHookContext(req PipelineRequest, result PipelineResult) hooks.PostResolveContext {
+	return hooks.PostResolveContext{
+		Consolidated: result.Consolidated,
+		Findings:     result.Findings,
+		ProjectPath:  req.ProjectPath,
+		Stderr:       req.Stderr,
+	}
 }
 
 func (p *Pipeline) match(ctx context.Context, result *PipelineResult, req PipelineRequest) {
@@ -155,7 +175,7 @@ func (p *Pipeline) match(ctx context.Context, result *PipelineResult, req Pipeli
 	result.MatcherRuns = matchResult.MatcherRuns
 	if matchResult.Graph != nil {
 		result.Graph = matchResult.Graph
-		SyncConsolidatedEnrichmentToManifests(&result.Consolidated, matchResult.Graph)
+		consolidation.SyncConsolidatedEnrichmentToManifests(&result.Consolidated, matchResult.Graph)
 	}
 	if err != nil {
 		result.MatchWarnings = PipelineWarningsFromError(err, "matcher")

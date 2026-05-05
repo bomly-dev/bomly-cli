@@ -13,6 +13,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
 	"github.com/bomly-dev/bomly-cli/internal/scan"
+	"github.com/bomly-dev/bomly-cli/internal/scan/consolidation"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	mcpserver "github.com/mark3labs/mcp-go/server"
 	"github.com/spf13/cobra"
@@ -203,11 +204,11 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req bomcp.DiffRequest) 
 		headResults = enrichResolvedGraphs(headTarget.Context, logger, headResults, io.Discard)
 	}
 
-	baseConsolidated, err := scan.ConsolidateGraphs(baseResults)
+	baseConsolidated, err := consolidation.ConsolidateGraphs(baseResults)
 	if err != nil {
 		return output.DiffResponse{}, err
 	}
-	headConsolidated, err := scan.ConsolidateGraphs(headResults)
+	headConsolidated, err := consolidation.ConsolidateGraphs(headResults)
 	if err != nil {
 		return output.DiffResponse{}, err
 	}

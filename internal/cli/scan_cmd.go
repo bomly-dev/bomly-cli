@@ -5,8 +5,10 @@ import (
 	"io"
 	"time"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
+	"github.com/bomly-dev/bomly-cli/internal/tui"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/spf13/cobra"
 )
@@ -46,9 +48,9 @@ func newScanCmd(options *globalOptions) *cobra.Command {
 				return invalidInputf("%v", err)
 			}
 
-			var outputSpecs []sbomOutputSpec
+			var outputSpecs []render.SBOMOutputSpec
 			if len(outputs) > 0 {
-				outputSpecs, err = parseSBOMOutputSpecs(outputs)
+				outputSpecs, err = render.ParseSBOMOutputSpecs(outputs)
 				if err != nil {
 					return invalidInputf("%v", err)
 				}
@@ -79,11 +81,11 @@ func newScanCmd(options *globalOptions) *cobra.Command {
 				progress.Advance("Writing SBOM output")
 				stdout := streams.reportWriter()
 				for _, spec := range outputSpecs {
-					rawDocument, err := sbom.MarshalDepGraphJSON(selectedGraph, spec.target, sbom.BuildOptions{}, sbom.EncodeOptions{Pretty: true})
+					rawDocument, err := sbom.MarshalDepGraphJSON(selectedGraph, spec.Target, sbom.BuildOptions{}, sbom.EncodeOptions{Pretty: true})
 					if err != nil {
-						return fmt.Errorf("marshal %s sbom: %w", spec.label, err)
+						return fmt.Errorf("marshal %s sbom: %w", spec.Label, err)
 					}
-					if err := writeSBOMDocument(stdout, spec, rawDocument); err != nil {
+					if err := render.WriteSBOMDocument(stdout, spec, rawDocument); err != nil {
 						return err
 					}
 				}
@@ -107,7 +109,7 @@ func newScanCmd(options *globalOptions) *cobra.Command {
 
 			if ctx.config.Interactive {
 				progress.Stop()
-				return runInteractiveModel(cmd.InOrStdin(), streams.interactiveWriter(), newScanInteractiveModel(payload.Project, consolidated, selectedGraph, enrichResult.Findings))
+				return interactiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewScan(payload.Project, consolidated, selectedGraph, enrichResult.Findings)))
 			}
 
 			writer, closeWriter, err := ctx.writer(streams.reportWriter())
@@ -123,7 +125,7 @@ func newScanCmd(options *globalOptions) *cobra.Command {
 			err = output.Write(writer, ctx.format, payload, output.Renderers{
 				Text: func(w io.Writer) error {
 					if len(resolved) == 1 {
-						if _, err := fmt.Fprintf(w, "Dependency report for %s\n\n", scanGraphDisplayName(selectedGraph, payload.Project.Name)); err != nil {
+						if _, err := fmt.Fprintf(w, "Dependency report for %s\n\n", render.ScanGraphDisplayName(selectedGraph, payload.Project.Name)); err != nil {
 							return err
 						}
 					} else {
@@ -131,7 +133,7 @@ func newScanCmd(options *globalOptions) *cobra.Command {
 							return err
 						}
 					}
-					_, err := io.WriteString(w, renderScanReport(payload.Manifests, selectedGraph, enrichResult.Findings, ctx.config.Enrich, ctx.config.Audit))
+					_, err := io.WriteString(w, render.Scan(payload.Manifests, selectedGraph, enrichResult.Findings, ctx.config.Enrich, ctx.config.Audit))
 					return err
 				},
 			})

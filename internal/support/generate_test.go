@@ -11,7 +11,7 @@ import (
 )
 
 func TestGenerateConfigReference(t *testing.T) {
-	markdown, fieldCount, err := GenerateConfigReference(filepath.Join("..", "cli", "config.go"))
+	markdown, fieldCount, err := GenerateConfigReference(filepath.Join("..", "config", "config.go"))
 	if err != nil {
 		t.Fatalf("generate config reference: %v", err)
 	}

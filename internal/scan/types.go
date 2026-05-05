@@ -4,51 +4,20 @@ import (
 	"context"
 	"io"
 
+	"github.com/bomly-dev/bomly-cli/internal/scan/hooks"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
 
-// ---------------------------------------------------------------------------
-// Hook interfaces
-// ---------------------------------------------------------------------------
-
-// HookDescriptor describes a hook registration.
-type HookDescriptor struct {
-	Name     string
-	Priority int
-	Stage    string // "pre-resolve" | "post-resolve"
-}
-
-// PreResolveContext provides inputs available before detection.
-type PreResolveContext struct {
-	ExecutionTarget model.ExecutionTarget
-	Subprojects     []model.Subproject
-	ProjectPath     string
-	Stderr          io.Writer
-}
-
-// PostResolveContext provides inputs available after full resolution.
-type PostResolveContext struct {
-	Consolidated model.ConsolidatedGraph
-	Findings     []model.Finding
-	ProjectPath  string
-	Stderr       io.Writer
-}
-
-// PreResolveHook runs logic before detection.
-type PreResolveHook interface {
-	Descriptor() HookDescriptor
-	Execute(context.Context, PreResolveContext) error
-}
-
-// PostResolveHook runs logic after all resolutions and auditing.
-type PostResolveHook interface {
-	Descriptor() HookDescriptor
-	Execute(context.Context, PostResolveContext) error
-}
-
-// ---------------------------------------------------------------------------
-// Pipeline types
-// ---------------------------------------------------------------------------
+// Hook types are re-exported from internal/scan/hooks for backward-compatible references
+// inside the scan package and as the registry's hook surface. Plugins should depend on
+// internal/scan/hooks directly.
+type (
+	HookDescriptor     = hooks.Descriptor
+	PreResolveContext  = hooks.PreResolveContext
+	PostResolveContext = hooks.PostResolveContext
+	PreResolveHook     = hooks.PreResolveHook
+	PostResolveHook    = hooks.PostResolveHook
+)
 
 // StageProcessor is a command-specific graph manipulation step injected into the
 // pipeline between consolidation and audit. Return a non-nil error to abort.

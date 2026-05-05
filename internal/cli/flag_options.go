@@ -7,6 +7,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	"github.com/bomly-dev/bomly-cli/internal/scan"
+	"github.com/bomly-dev/bomly-cli/internal/selector"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -210,19 +211,7 @@ func optionValuesHelpSection(cmd *cobra.Command) string {
 		return ""
 	}
 
-	reg := scan.NewRegistry(scan.RegistryConfigs{}, *zap.NewNop())
-	reg.Build()
-
-	var b strings.Builder
-	b.WriteString("\n\n")
-	b.WriteString(formatTable("Available Native Detectors", []string{"Ecosystem", "Package Managers", "Detectors (Alias)"}, buildNativeDetectorRows(reg)))
-	b.WriteString("\n")
-	b.WriteString(formatTable("Available Third-party Detectors", []string{"Detector", "Ecosystems"}, buildThirdPartyDetectorRows(reg)))
-	b.WriteString("\n")
-	b.WriteString(formatHelpList("Available Auditors", availableAuditorOptions(zap.NewNop())))
-	b.WriteString("\n")
-	b.WriteString(formatHelpList("Available Matchers", availableMatcherOptions()))
-	return b.String()
+	return "\n\nExplore available detectors, matchers, and auditors with `bomly plugin list`."
 }
 
 func formatHelpList(label string, values []string) string {
@@ -294,10 +283,10 @@ func buildNativeDetectorRows(reg *scan.Registry) [][]string {
 		}
 		manager := strings.TrimSpace(support.Manager.Name())
 		if manager != "" {
-			row.PackageManagers = appendUnique(row.PackageManagers, manager)
+			row.PackageManagers = selector.AppendUnique(row.PackageManagers, manager)
 		}
 		for _, det := range nativeDets {
-			row.Detectors = appendUnique(row.Detectors, detectorEntryLabel(det))
+			row.Detectors = selector.AppendUnique(row.Detectors, detectorEntryLabel(det))
 		}
 	}
 	ecos := make([]string, 0, len(rowMap))
@@ -347,7 +336,7 @@ func buildThirdPartyDetectorRows(reg *scan.Registry) [][]string {
 		for _, eco := range desc.SupportedEcosystems {
 			ecoStr := strings.TrimSpace(string(eco))
 			if ecoStr != "" {
-				e.ecos = appendUnique(e.ecos, ecoStr)
+				e.ecos = selector.AppendUnique(e.ecos, ecoStr)
 			}
 		}
 	}

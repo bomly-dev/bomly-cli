@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
@@ -56,7 +57,7 @@ func TestRenderScanReportIncludesProfessionalSections(t *testing.T) {
 		Packages:       output.PackagesFromGraph(g),
 	}}
 
-	report := renderScanReport(manifests, g, findings, true, true)
+	report := render.Scan(manifests, g, findings, true, true)
 	for _, want := range []string{
 		"Executive Summary",
 		"Manifests",
@@ -81,7 +82,7 @@ func TestRenderScanReportIncludesProfessionalSections(t *testing.T) {
 
 func TestRenderScanReportWithoutFindingsUsesCleanMessage(t *testing.T) {
 	g := newScanTestGraph(t)
-	report := renderScanReport([]output.ScanManifest{{
+	report := render.Scan([]output.ScanManifest{{
 		Path:           "package-lock.json",
 		Kind:           "package-lock.json",
 		Subproject:     ".",

@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	plugschema "github.com/bomly-dev/bomly-cli/sdk"
@@ -38,12 +39,19 @@ func newPluginListCmd(options *globalOptions) *cobra.Command {
 	var enabledOnly bool
 	var disabledOnly bool
 	var showAll bool
-	var jsonOutput bool
+	var includeDetectors bool
+	var includeMatchers bool
+	var includeAuditors bool
+	var format string
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List built-in and installed plugins",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			selectedFormat, err := parsePluginListFormat(format)
+			if err != nil {
+				return err
+			}
 			current := options.current()
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
 			builtins := builtInPluginInfos(current, cmd.Root().Version)
@@ -51,8 +59,16 @@ func newPluginListCmd(options *globalOptions) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			kindFilter := pluginKindFilter{
+				detectors: includeDetectors,
+				matchers:  includeMatchers,
+				auditors:  includeAuditors,
+			}
 			filtered := make([]managedplugin.PluginInfo, 0, len(all))
 			for _, info := range all {
+				if !kindFilter.includes(info.Kind) {
+					continue
+				}
 				if includeBuiltIn && !info.BuiltIn {
 					continue
 				}
@@ -67,7 +83,7 @@ func newPluginListCmd(options *globalOptions) *cobra.Command {
 				}
 				filtered = append(filtered, info)
 			}
-			if jsonOutput {
+			if selectedFormat == pluginListFormatJSON {
 				return writeJSON(streams.reportWriter(), filtered)
 			}
 			if len(filtered) == 0 {
@@ -75,7 +91,7 @@ func newPluginListCmd(options *globalOptions) *cobra.Command {
 				return err
 			}
 			sortPluginInfos(filtered)
-			_, err = io.WriteString(streams.reportWriter(), renderPluginListTable(filtered))
+			_, err = io.WriteString(streams.reportWriter(), renderPluginListTables(filtered, kindFilter))
 			return err
 		},
 	}
@@ -84,8 +100,55 @@ func newPluginListCmd(options *globalOptions) *cobra.Command {
 	cmd.Flags().BoolVar(&includeExternal, "external", false, "Show external plugins only")
 	cmd.Flags().BoolVar(&enabledOnly, "enabled", false, "Show enabled plugins only")
 	cmd.Flags().BoolVar(&disabledOnly, "disabled", false, "Show disabled plugins only")
-	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Render the plugin list as JSON")
+	cmd.Flags().BoolVar(&includeDetectors, "detectors", false, "Show detector plugins")
+	cmd.Flags().BoolVar(&includeMatchers, "matchers", false, "Show matcher plugins")
+	cmd.Flags().BoolVar(&includeAuditors, "auditors", false, "Show auditor plugins")
+	cmd.Flags().StringVar(&format, "format", pluginListFormatTable, "Render output format: table or json")
 	return cmd
+}
+
+const (
+	pluginListFormatTable = "table"
+	pluginListFormatJSON  = "json"
+)
+
+type pluginKindFilter struct {
+	detectors bool
+	matchers  bool
+	auditors  bool
+}
+
+func (f pluginKindFilter) hasSelections() bool {
+	return f.detectors || f.matchers || f.auditors
+}
+
+func (f pluginKindFilter) includes(kind plugschema.PluginKind) bool {
+	if !f.hasSelections() {
+		return true
+	}
+	switch kind {
+	case plugschema.PluginKindDetector:
+		return f.detectors
+	case plugschema.PluginKindMatcher:
+		return f.matchers
+	case plugschema.PluginKindAuditor:
+		return f.auditors
+	default:
+		return false
+	}
+}
+
+func parsePluginListFormat(value string) (string, error) {
+	normalized := strings.ToLower(strings.TrimSpace(value))
+	if normalized == "" {
+		normalized = pluginListFormatTable
+	}
+	switch normalized {
+	case pluginListFormatTable, pluginListFormatJSON:
+		return normalized, nil
+	default:
+		return "", invalidInputf("parse format: unsupported format %q", value)
+	}
 }
 
 func newPluginInfoCmd(options *globalOptions) *cobra.Command {
@@ -240,11 +303,35 @@ func builtInPluginInfos(current resolvedConfig, coreVersion string) []managedplu
 	infos := make([]managedplugin.PluginInfo, 0)
 	reg := registry.NewRegistry(registryBuilderConfig(current), *zap.NewNop())
 	reg.Build()
+	detectorByName := make(map[string]plugschema.DetectorDescriptor)
+	registeredNames := make(map[string]struct{})
 	for _, descriptor := range reg.DetectorDescriptors() {
 		d := descriptor
+		detectorByName[d.Name] = d
+		registeredNames[d.Name] = struct{}{}
 		metadata := builtInMetadata(d.Name, plugschema.PluginKindDetector)
 		infos = append(infos, detectorPluginInfo(metadata, &d, coreVersion, d.Enabled))
 	}
+
+	seenFallbackTraversal := make(map[string]struct{})
+	for _, detector := range reg.Detectors(plugschema.DetectionRequest{Mode: plugschema.TargetModeFullGraph}) {
+		collectFallbackDetectorDescriptors(detector, detectorByName, seenFallbackTraversal)
+	}
+
+	additionalNames := make([]string, 0)
+	for name := range detectorByName {
+		if _, ok := registeredNames[name]; ok {
+			continue
+		}
+		additionalNames = append(additionalNames, name)
+	}
+	sort.Strings(additionalNames)
+	for _, name := range additionalNames {
+		d := detectorByName[name]
+		metadata := builtInMetadata(d.Name, plugschema.PluginKindDetector)
+		infos = append(infos, detectorPluginInfo(metadata, &d, coreVersion, d.Enabled))
+	}
+
 	for _, descriptor := range reg.MatcherDescriptors() {
 		d := descriptor
 		metadata := builtInMetadata(d.Name, plugschema.PluginKindMatcher)
@@ -266,6 +353,39 @@ func builtInMetadata(id string, kind plugschema.PluginKind) *plugschema.PluginMe
 		Kind:             kind,
 		PluginAPIVersion: plugschema.PluginAPIVersion,
 	}
+}
+
+func collectFallbackDetectorDescriptors(
+	detector plugschema.Detector,
+	detectorByName map[string]plugschema.DetectorDescriptor,
+	seen map[string]struct{},
+) {
+	if detector == nil {
+		return
+	}
+	name := strings.TrimSpace(detector.Descriptor().Name)
+	if name != "" {
+		if _, ok := seen[name]; ok {
+			return
+		}
+		seen[name] = struct{}{}
+	}
+	provider, ok := detector.(plugschema.FallbackDetector)
+	if !ok {
+		return
+	}
+	fallback := provider.FallbackDetector()
+	if fallback == nil {
+		return
+	}
+	fallbackDescriptor := fallback.Descriptor()
+	fallbackName := strings.TrimSpace(fallbackDescriptor.Name)
+	if fallbackName != "" {
+		if _, ok := detectorByName[fallbackName]; !ok {
+			detectorByName[fallbackName] = fallbackDescriptor
+		}
+	}
+	collectFallbackDetectorDescriptors(fallback, detectorByName, seen)
 }
 
 func detectorPluginInfo(metadata *plugschema.PluginMetadata, descriptor *plugschema.DetectorDescriptor, coreVersion string, enabled bool) managedplugin.PluginInfo {
@@ -339,10 +459,29 @@ func cloneDetectorDescriptor(descriptor *plugschema.DetectorDescriptor) *plugsch
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
 	copyValue.SupportedModes = append([]plugschema.TargetMode(nil), descriptor.SupportedModes...)
-	copyValue.PackageManagerSupport = clonePackageManagerSupport(descriptor.PackageManagerSupport)
+	copyValue.PackageManagerSupport = completeDetectorPackageManagerSupport(descriptor.SupportedManagers, descriptor.PackageManagerSupport)
 	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
 	copyValue.FallbackDetectors = append([]string(nil), descriptor.FallbackDetectors...)
 	return &copyValue
+}
+
+func completeDetectorPackageManagerSupport(
+	managers []plugschema.PackageManager,
+	src []plugschema.PackageManagerSupport,
+) []plugschema.PackageManagerSupport {
+	out := clonePackageManagerSupport(src)
+	for idx, entry := range out {
+		if len(entry.EvidencePatterns) == 0 {
+			out[idx].EvidencePatterns = registry.EvidencePatternsForPackageManager(entry.PackageManager)
+		}
+	}
+	for _, manager := range managers {
+		if containsPackageManagerSupport(out, manager) {
+			continue
+		}
+		out = append(out, plugschema.Support(manager, registry.EvidencePatternsForPackageManager(manager)...))
+	}
+	return out
 }
 
 func clonePackageManagerSupport(src []plugschema.PackageManagerSupport) []plugschema.PackageManagerSupport {
@@ -352,6 +491,15 @@ func clonePackageManagerSupport(src []plugschema.PackageManagerSupport) []plugsc
 		out[i].EvidencePatterns = append([]string(nil), entry.EvidencePatterns...)
 	}
 	return out
+}
+
+func containsPackageManagerSupport(values []plugschema.PackageManagerSupport, manager plugschema.PackageManager) bool {
+	for _, value := range values {
+		if value.PackageManager == manager {
+			return true
+		}
+	}
+	return false
 }
 
 func cloneMatcherDescriptor(descriptor *plugschema.MatcherDescriptor) *plugschema.MatcherDescriptor {
@@ -419,7 +567,7 @@ func renderPluginInfo(w io.Writer, info managedplugin.PluginInfo) error {
 	}
 	labelWidth := 0
 	for _, line := range lines {
-		if width := len(stripANSI(line[0])); width > labelWidth {
+		if width := len(render.StripANSI(line[0])); width > labelWidth {
 			labelWidth = width
 		}
 	}
@@ -485,14 +633,40 @@ func sortPluginInfos(items []managedplugin.PluginInfo) {
 	sort.Slice(items, func(i, j int) bool {
 		left := items[i]
 		right := items[j]
-		if string(left.Kind) != string(right.Kind) {
-			return string(left.Kind) < string(right.Kind)
+		if left.Enabled != right.Enabled {
+			return left.Enabled && !right.Enabled
 		}
-		if pluginSourceValue(left) != pluginSourceValue(right) {
-			return pluginSourceValue(left) < pluginSourceValue(right)
+		leftEcosystem := pluginSortEcosystem(left)
+		rightEcosystem := pluginSortEcosystem(right)
+		if leftEcosystem != rightEcosystem {
+			if leftEcosystem == "" {
+				return false
+			}
+			if rightEcosystem == "" {
+				return true
+			}
+			return leftEcosystem < rightEcosystem
 		}
 		return left.ID < right.ID
 	})
+}
+
+func pluginSortEcosystem(info managedplugin.PluginInfo) string {
+	if info.Kind != plugschema.PluginKindDetector || info.DetectorDescriptor == nil {
+		return ""
+	}
+	items := make([]string, 0, len(info.DetectorDescriptor.SupportedEcosystems))
+	for _, ecosystem := range info.DetectorDescriptor.SupportedEcosystems {
+		value := strings.TrimSpace(string(ecosystem))
+		if value != "" {
+			items = append(items, value)
+		}
+	}
+	if len(items) == 0 {
+		return ""
+	}
+	sort.Strings(items)
+	return strings.Join(items, ",")
 }
 
 func joinEcosystems(values []plugschema.Ecosystem) string {
@@ -500,6 +674,7 @@ func joinEcosystems(values []plugschema.Ecosystem) string {
 	for _, value := range values {
 		items = append(items, string(value))
 	}
+	sort.Strings(items)
 	return strings.Join(items, ", ")
 }
 
@@ -508,30 +683,96 @@ func joinPackageManagers(values []plugschema.PackageManager) string {
 	for _, value := range values {
 		items = append(items, value.Name())
 	}
+	sort.Strings(items)
 	return strings.Join(items, ", ")
 }
 
-func renderPluginListTable(items []managedplugin.PluginInfo) string {
-	headers := []string{"KIND", "SOURCE", "ID", "VERSION", "STATE"}
+func renderPluginListTables(items []managedplugin.PluginInfo, kindFilter pluginKindFilter) string {
+	detectors := make([]managedplugin.PluginInfo, 0)
+	matchers := make([]managedplugin.PluginInfo, 0)
+	auditors := make([]managedplugin.PluginInfo, 0)
+	for _, info := range items {
+		switch info.Kind {
+		case plugschema.PluginKindDetector:
+			detectors = append(detectors, info)
+		case plugschema.PluginKindMatcher:
+			matchers = append(matchers, info)
+		case plugschema.PluginKindAuditor:
+			auditors = append(auditors, info)
+		}
+	}
+
+	var b strings.Builder
+	appendTable := func(title string, headers []string, rows [][]string) {
+		if len(rows) == 0 {
+			return
+		}
+		if b.Len() > 0 {
+			b.WriteString("\n")
+		}
+		b.WriteString(title)
+		b.WriteString(":\n")
+		b.WriteString(renderPluginListTable(headers, rows))
+	}
+
+	if kindFilter.includes(plugschema.PluginKindDetector) {
+		appendTable("Detectors", []string{"ECOSYSTEMS", "PACKAGE MANAGERS", "NAME", "TYPE", "STATE"}, detectorPluginRows(detectors))
+	}
+	if kindFilter.includes(plugschema.PluginKindMatcher) {
+		appendTable("Matchers", []string{"NAME", "TYPE", "STATE"}, basicPluginRows(matchers))
+	}
+	if kindFilter.includes(plugschema.PluginKindAuditor) {
+		appendTable("Auditors", []string{"NAME", "TYPE", "STATE"}, basicPluginRows(auditors))
+	}
+	if b.Len() > 0 {
+		b.WriteString("\n* Complete plugin metadata is available with --format json.\n")
+	}
+
+	return b.String()
+}
+
+func detectorPluginRows(items []managedplugin.PluginInfo) [][]string {
 	rows := make([][]string, 0, len(items))
 	for _, info := range items {
 		rows = append(rows, []string{
-			string(info.Kind),
-			pluginSourceValue(info),
-			info.ID,
-			info.Version,
+			nonEmptyString(summarizePluginListValue(pluginDetectorEcosystems(info), 6), "-"),
+			nonEmptyString(summarizePluginListValue(pluginDetectorPackageManagers(info), 6), "-"),
+			pluginListName(info),
+			colorPluginType(pluginTypeValue(info), info),
 			colorPluginState(pluginStateValue(info)),
 		})
 	}
+	return rows
+}
+
+func basicPluginRows(items []managedplugin.PluginInfo) [][]string {
+	rows := make([][]string, 0, len(items))
+	for _, info := range items {
+		rows = append(rows, []string{
+			pluginListName(info),
+			colorPluginType(pluginTypeValue(info), info),
+			colorPluginState(pluginStateValue(info)),
+		})
+	}
+	return rows
+}
+
+func renderPluginListTable(headers []string, rows [][]string) string {
+	maxWidths := pluginListTableMaxWidths(headers)
 	widths := make([]int, len(headers))
 	for idx, header := range headers {
 		widths[idx] = len(header)
 	}
 	for _, row := range rows {
 		for idx, value := range row {
-			if width := len(stripANSI(value)); width > widths[idx] {
+			if width := len(render.StripANSI(value)); width > widths[idx] {
 				widths[idx] = width
 			}
+		}
+	}
+	for idx, maxWidth := range maxWidths {
+		if maxWidth > 0 && widths[idx] > maxWidth {
+			widths[idx] = maxWidth
 		}
 	}
 	var b strings.Builder
@@ -548,19 +789,36 @@ func renderPluginListTable(items []managedplugin.PluginInfo) string {
 		return line.String()
 	}
 	writeRow := func(values []string, header bool) {
-		b.WriteString("│")
+		cells := make([][]string, len(values))
+		height := 1
 		for idx, value := range values {
-			cell := value
-			if header {
-				cell = ansiStyled(value, ansiBold)
+			lines := []string{value}
+			if !header {
+				lines = wrapPluginListTableCell(value, widths[idx])
 			}
-			padding := widths[idx] - len(stripANSI(cell))
-			b.WriteString(" ")
-			b.WriteString(cell)
-			b.WriteString(strings.Repeat(" ", padding+1))
-			b.WriteString("│")
+			if len(lines) > height {
+				height = len(lines)
+			}
+			cells[idx] = lines
 		}
-		b.WriteString("\n")
+		for lineIdx := 0; lineIdx < height; lineIdx++ {
+			b.WriteString("│")
+			for idx, lines := range cells {
+				cell := ""
+				if lineIdx < len(lines) {
+					cell = lines[lineIdx]
+				}
+				if header {
+					cell = render.Style(cell, render.Bold)
+				}
+				padding := widths[idx] - len(render.StripANSI(cell))
+				b.WriteString(" ")
+				b.WriteString(cell)
+				b.WriteString(strings.Repeat(" ", padding+1))
+				b.WriteString("│")
+			}
+			b.WriteString("\n")
+		}
 	}
 	b.WriteString(border("┌", "─", "┬", "┐"))
 	b.WriteString("\n")
@@ -573,6 +831,49 @@ func renderPluginListTable(items []managedplugin.PluginInfo) string {
 	b.WriteString(border("└", "─", "┴", "┘"))
 	b.WriteString("\n")
 	return b.String()
+}
+
+func pluginListTableMaxWidths(headers []string) []int {
+	widths := make([]int, len(headers))
+	for idx, header := range headers {
+		switch header {
+		case "NAME":
+			widths[idx] = 48
+		case "PACKAGE MANAGERS":
+			widths[idx] = 28
+		case "ECOSYSTEMS":
+			widths[idx] = 28
+		default:
+			widths[idx] = 0
+		}
+	}
+	return widths
+}
+
+func wrapPluginListTableCell(value string, width int) []string {
+	if len(render.StripANSI(value)) <= width {
+		return []string{value}
+	}
+	return render.WrapLines(render.WrapTextLines(value, width), width)
+}
+
+func pluginListName(info managedplugin.PluginInfo) string {
+	return nonEmptyString(info.Name, info.ID)
+}
+
+func summarizePluginListValue(value string, maxItems int) string {
+	if maxItems < 1 {
+		maxItems = 1
+	}
+	parts := strings.Split(value, ", ")
+	if len(parts) <= maxItems {
+		return value
+	}
+	return strings.Join(parts[:maxItems], ", ") + fmt.Sprintf(", +%d more*", len(parts)-maxItems)
+}
+
+func pluginTypeValue(info managedplugin.PluginInfo) string {
+	return pluginSourceValue(info)
 }
 
 func pluginSourceValue(info managedplugin.PluginInfo) string {
@@ -595,12 +896,109 @@ func pluginStateValue(info managedplugin.PluginInfo) string {
 func colorPluginState(state string) string {
 	switch state {
 	case "enabled":
-		return ansiStyled(state, ansiGreen)
+		return render.Style(state, render.Green)
 	case "disabled":
-		return ansiStyled(state, ansiYellow, ansiDim)
+		return render.Style(state, render.Yellow, render.Dim)
 	default:
 		return state
 	}
+}
+
+func colorPluginType(value string, info managedplugin.PluginInfo) string {
+	if !info.BuiltIn {
+		return render.Style(value, render.Yellow, render.Dim)
+	}
+	return value
+}
+
+func pluginDetectorPackageManagers(info managedplugin.PluginInfo) string {
+	if info.DetectorDescriptor == nil {
+		return ""
+	}
+	items := make([]string, 0, len(info.DetectorDescriptor.PackageManagerSupport))
+	for _, support := range info.DetectorDescriptor.PackageManagerSupport {
+		name := strings.TrimSpace(support.PackageManager.Name())
+		if name == "" {
+			continue
+		}
+		if !containsPluginValue(items, name) {
+			items = append(items, name)
+		}
+	}
+	if len(items) == 0 {
+		for _, manager := range info.DetectorDescriptor.SupportedManagers {
+			name := strings.TrimSpace(manager.Name())
+			if name == "" {
+				continue
+			}
+			if !containsPluginValue(items, name) {
+				items = append(items, name)
+			}
+		}
+	}
+	sort.Strings(items)
+	return strings.Join(items, ", ")
+}
+
+func pluginDetectorEcosystems(info managedplugin.PluginInfo) string {
+	if info.DetectorDescriptor == nil {
+		return ""
+	}
+	items := make([]string, 0, len(info.DetectorDescriptor.SupportedEcosystems))
+	for _, ecosystem := range info.DetectorDescriptor.SupportedEcosystems {
+		name := strings.TrimSpace(string(ecosystem))
+		if name == "" {
+			continue
+		}
+		if !containsPluginValue(items, name) {
+			items = append(items, name)
+		}
+	}
+	sort.Strings(items)
+	return strings.Join(items, ", ")
+}
+
+func pluginDetectorExpectedEvidence(info managedplugin.PluginInfo) string {
+	if info.DetectorDescriptor == nil {
+		return ""
+	}
+	items := make([]string, 0)
+	for _, support := range info.DetectorDescriptor.PackageManagerSupport {
+		for _, evidence := range support.EvidencePatterns {
+			entry := strings.TrimSpace(evidence)
+			if entry == "" {
+				continue
+			}
+			if !containsPluginValue(items, entry) {
+				items = append(items, entry)
+			}
+		}
+	}
+	if len(items) == 0 {
+		for _, manager := range info.DetectorDescriptor.SupportedManagers {
+			patterns := registry.EvidencePatternsForPackageManager(manager)
+			for _, pattern := range patterns {
+				entry := strings.TrimSpace(pattern)
+				if entry == "" {
+					continue
+				}
+				if !containsPluginValue(items, entry) {
+					items = append(items, entry)
+				}
+			}
+		}
+	}
+	sort.Strings(items)
+	return strings.Join(items, ", ")
+}
+
+func containsPluginValue(values []string, target string) bool {
+	for _, value := range values {
+		if value == target {
+			return true
+		}
+	}
+	return false
 }
 
 func nonEmptyString(value, fallback string) string {

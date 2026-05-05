@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/spf13/cobra"
@@ -45,7 +46,7 @@ func TestGlobalOptionsResolveSubprojects_AppliesEcosystemFilter(t *testing.T) {
 		t.Fatalf("write go.mod: %v", err)
 	}
 
-	options := globalOptions{Ecosystems: "go,npm"}
+	options := globalOptions{Resolved: config.Resolved{Ecosystems: "go,npm"}}
 	subprojects, err := options.resolveSubprojects(model.ExecutionTarget{Kind: model.ExecutionTargetWorkingDirectory, Location: projectDir})
 	if err != nil {
 		t.Fatalf("resolveSubprojects() error = %v", err)
@@ -54,7 +55,7 @@ func TestGlobalOptionsResolveSubprojects_AppliesEcosystemFilter(t *testing.T) {
 		t.Fatalf("expected 2 filtered subprojects, got %d", len(subprojects))
 	}
 
-	options = globalOptions{Ecosystems: "go"}
+	options = globalOptions{Resolved: config.Resolved{Ecosystems: "go"}}
 	subprojects, err = options.resolveSubprojects(model.ExecutionTarget{Kind: model.ExecutionTargetWorkingDirectory, Location: projectDir})
 	if err != nil {
 		t.Fatalf("resolveSubprojects() error = %v", err)
@@ -68,7 +69,7 @@ func TestGlobalOptionsResolveSubprojects_AppliesEcosystemFilter(t *testing.T) {
 }
 
 func TestGlobalOptionsResolveExecutionTarget_Container(t *testing.T) {
-	options := globalOptions{Container: "alpine:3.20"}
+	options := globalOptions{Resolved: config.Resolved{Container: "alpine:3.20"}}
 
 	target, location, cleanup, err := options.resolveExecutionTarget(nil)
 	if err != nil {
@@ -86,7 +87,7 @@ func TestGlobalOptionsResolveExecutionTarget_Container(t *testing.T) {
 }
 
 func TestGlobalOptionsResolveExecutionTarget_RejectsMultipleTargets(t *testing.T) {
-	options := globalOptions{Path: ".", Container: "alpine:3.20"}
+	options := globalOptions{Resolved: config.Resolved{Path: ".", Container: "alpine:3.20"}}
 
 	_, _, _, err := options.resolveExecutionTarget(nil)
 	if err == nil {
@@ -103,7 +104,7 @@ func TestGlobalOptionsResolveSubprojects_SingleFileUsesRegistryIndexedManager(t 
 		t.Fatalf("write Cargo.lock: %v", err)
 	}
 
-	options := globalOptions{Path: projectFile}
+	options := globalOptions{Resolved: config.Resolved{Path: projectFile}}
 	subprojects, err := options.resolveSubprojects(model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: projectFile})
 	if err != nil {
 		t.Fatalf("resolveSubprojects() error = %v", err)
@@ -134,7 +135,7 @@ func TestGlobalOptionsResolveSubprojects_ContainerUsesGenericDiscoveryTarget(t *
 }
 
 func TestGlobalOptionsResolveSubprojects_ContainerAppliesEcosystemFilter(t *testing.T) {
-	options := globalOptions{Ecosystems: "rpm"}
+	options := globalOptions{Resolved: config.Resolved{Ecosystems: "rpm"}}
 	subprojects, err := options.resolveSubprojects(model.ExecutionTarget{Kind: model.ExecutionTargetContainerImage, Location: "alpine:3.20"})
 	if err != nil {
 		t.Fatalf("resolveSubprojects() error = %v", err)
@@ -363,8 +364,10 @@ func TestGlobalOptionsInitialize_LoadsConfigHierarchy(t *testing.T) {
 	})
 
 	options := &globalOptions{
-		Config:     explicitConfig,
-		Ecosystems: "python",
+		Resolved: config.Resolved{
+			Config:     explicitConfig,
+			Ecosystems: "python",
+		},
 	}
 	root := newTestRootCommand(t)
 	if err := options.bind(root); err != nil {
@@ -426,7 +429,7 @@ func TestGlobalOptionsInitialize_LoadsQuietFromConfig(t *testing.T) {
 }
 
 func TestGlobalOptionsInitialize_RejectsQuietAndVerboseTogether(t *testing.T) {
-	options := &globalOptions{Quiet: true, Verbosity: 1}
+	options := &globalOptions{Resolved: config.Resolved{Quiet: true, Verbosity: 1}}
 	root := newTestRootCommand(t)
 	if err := options.bind(root); err != nil {
 		t.Fatalf("bind() error = %v", err)
@@ -456,7 +459,7 @@ func TestGlobalOptionsInitialize_ProjectConfigUsesSelectedPath(t *testing.T) {
 		"ecosystems": "go",
 	})
 
-	options := &globalOptions{Path: projectDir}
+	options := &globalOptions{Resolved: config.Resolved{Path: projectDir}}
 	root := newTestRootCommand(t)
 	if err := options.bind(root); err != nil {
 		t.Fatalf("bind() error = %v", err)

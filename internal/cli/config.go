@@ -9,7 +9,6 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 )
 
 // resolvedConfig and fileConfig are cli-side aliases for the canonical config
@@ -34,36 +33,8 @@ func (o *globalOptions) current() resolvedConfig {
 	if o.resolved != nil {
 		return *o.resolved
 	}
-	cfg := resolvedConfig{
-		Path:         o.Path,
-		Container:    o.Container,
-		URL:          o.URL,
-		Ref:          o.Ref,
-		SBOM:         o.SBOM,
-		Enrich:       o.Enrich,
-		Audit:        o.Audit,
-		FailOn:       o.FailOn,
-		Format:       o.Format,
-		Interactive:  o.Interactive,
-		Ecosystems:   o.Ecosystems,
-		Detectors:    o.Detectors,
-		Auditors:     o.Auditors,
-		Matchers:     o.Matchers,
-		InstallFirst: o.InstallFirst,
-		InstallArgs:  append([]string(nil), o.InstallArgs...),
-		Config:       o.Config,
-		Quiet:        o.Quiet,
-		Verbosity:    o.Verbosity,
-		OsvAPIBase:   o.OsvAPIBase,
-		OsvCacheDir:  o.OsvCacheDir,
-		OsvCacheTTL:  o.OsvCacheTTL,
-		KEVCacheDir:  o.KEVCacheDir,
-		KEVCacheTTL:  o.KEVCacheTTL,
-		EOLAPIBase:   o.EOLAPIBase,
-		EOLCacheDir:  o.EOLCacheDir,
-		EOLCacheTTL:  o.EOLCacheTTL,
-	}
-	applyResolvedConfigDefaults(&cfg)
+	cfg := o.Resolved
+	config.ApplyDefaults(&cfg)
 	return cfg
 }
 
@@ -75,22 +46,22 @@ func (o *globalOptions) loadResolvedConfig(cmd *cobra.Command) (resolvedConfig, 
 		return resolvedConfig{}, err
 	}
 	for _, path := range configPaths {
-		fileCfg, err := loadConfigFile(path)
+		fileCfg, err := config.LoadFile(path)
 		if err != nil {
 			return resolvedConfig{}, invalidInputf("load config %q: %v", path, err)
 		}
 		if fileCfg == nil {
 			continue
 		}
-		applyFileConfig(&resolved, *fileCfg)
+		config.ApplyFileConfig(&resolved, *fileCfg)
 		resolved.LoadedFiles = append(resolved.LoadedFiles, path)
 	}
 
-	applyEnvOverrides(&resolved)
+	config.ApplyEnvOverrides(&resolved)
 	applyFlagOverrides(&resolved, o, cmd)
-	applyResolvedConfigDefaults(&resolved)
-	if err := validateResolvedConfig(resolved); err != nil {
-		return resolvedConfig{}, err
+	config.ApplyDefaults(&resolved)
+	if err := config.Validate(resolved); err != nil {
+		return resolvedConfig{}, invalidInputf("%v", err)
 	}
 	return resolved, nil
 }
@@ -98,7 +69,7 @@ func (o *globalOptions) loadResolvedConfig(cmd *cobra.Command) (resolvedConfig, 
 func (o *globalOptions) configLoadPaths() ([]string, error) {
 	paths := make([]string, 0, 3)
 
-	homePath, err := userConfigPath()
+	homePath, err := config.UserConfigPath()
 	if err != nil {
 		return nil, err
 	}
@@ -127,20 +98,6 @@ func (o *globalOptions) configLoadPaths() ([]string, error) {
 	return paths, nil
 }
 
-func userConfigPath() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		if strings.TrimSpace(err.Error()) == "" {
-			return "", nil
-		}
-		return "", fmt.Errorf("resolve user home: %w", err)
-	}
-	if strings.TrimSpace(home) == "" {
-		return "", nil
-	}
-	return filepath.Join(home, ".bomly", "config.yaml"), nil
-}
-
 func (o *globalOptions) projectConfigPathForLoading() (string, error) {
 	if strings.TrimSpace(o.URL) != "" || strings.TrimSpace(o.Container) != "" {
 		return "", nil
@@ -164,132 +121,6 @@ func (o *globalOptions) projectConfigPathForLoading() (string, error) {
 		absPath = filepath.Dir(absPath)
 	}
 	return filepath.Join(absPath, ".bomly", "config.yaml"), nil
-}
-
-func loadConfigFile(path string) (*fileConfig, error) {
-	if strings.TrimSpace(path) == "" {
-		return nil, nil
-	}
-	data, err := os.ReadFile(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	var cfg fileConfig
-	if err := yaml.Unmarshal(data, &cfg); err != nil {
-		return nil, fmt.Errorf("parse YAML: %w", err)
-	}
-
-	baseDir := filepath.Dir(path)
-	normalizeFileConfigPaths(&cfg, baseDir)
-	return &cfg, nil
-}
-
-func normalizeFileConfigPaths(cfg *fileConfig, baseDir string) {
-	if cfg == nil {
-		return
-	}
-	for _, target := range []*string{cfg.Path, cfg.Config} {
-		if target == nil || strings.TrimSpace(*target) == "" {
-			continue
-		}
-		if filepath.IsAbs(*target) {
-			continue
-		}
-		*target = filepath.Clean(filepath.Join(baseDir, *target))
-	}
-}
-
-func applyFileConfig(dst *resolvedConfig, src fileConfig) {
-	if dst == nil {
-		return
-	}
-	if src.Path != nil {
-		dst.Path = *src.Path
-	}
-	if src.Container != nil {
-		dst.Container = *src.Container
-	}
-	if src.URL != nil {
-		dst.URL = *src.URL
-	}
-	if src.Ref != nil {
-		dst.Ref = *src.Ref
-	}
-	if src.SBOM != nil {
-		dst.SBOM = *src.SBOM
-	}
-	if src.Enrich != nil {
-		dst.Enrich = *src.Enrich
-	}
-	if src.Audit != nil {
-		dst.Audit = *src.Audit
-	}
-	if src.FailOn != nil {
-		dst.FailOn = *src.FailOn
-	}
-	if src.Format != nil {
-		dst.Format = *src.Format
-	}
-	if src.Interactive != nil {
-		dst.Interactive = *src.Interactive
-	}
-	if src.Ecosystems != nil {
-		dst.Ecosystems = *src.Ecosystems
-	}
-	if src.Detectors != nil {
-		dst.Detectors = *src.Detectors
-	}
-	if src.Auditors != nil {
-		dst.Auditors = *src.Auditors
-	}
-	if src.Matchers != nil {
-		dst.Matchers = *src.Matchers
-	}
-	if src.InstallFirst != nil {
-		dst.InstallFirst = *src.InstallFirst
-	}
-	if len(src.InstallArgs) > 0 {
-		dst.InstallArgs = append([]string(nil), src.InstallArgs...)
-	}
-	if src.Config != nil {
-		dst.Config = *src.Config
-	}
-	if src.Quiet != nil {
-		dst.Quiet = *src.Quiet
-	}
-	if src.Verbosity != nil {
-		dst.Verbosity = *src.Verbosity
-	}
-	if src.Verbose != nil && *src.Verbose && dst.Verbosity == 0 {
-		dst.Verbosity = 1
-	}
-	if src.OsvAPIBase != nil {
-		dst.OsvAPIBase = *src.OsvAPIBase
-	}
-	if src.OsvCacheDir != nil {
-		dst.OsvCacheDir = *src.OsvCacheDir
-	}
-	if src.OsvCacheTTL != nil {
-		dst.OsvCacheTTL = *src.OsvCacheTTL
-	}
-	if src.KEVCacheDir != nil {
-		dst.KEVCacheDir = *src.KEVCacheDir
-	}
-	if src.KEVCacheTTL != nil {
-		dst.KEVCacheTTL = *src.KEVCacheTTL
-	}
-	if src.EOLAPIBase != nil {
-		dst.EOLAPIBase = *src.EOLAPIBase
-	}
-	if src.EOLCacheDir != nil {
-		dst.EOLCacheDir = *src.EOLCacheDir
-	}
-	if src.EOLCacheTTL != nil {
-		dst.EOLCacheTTL = *src.EOLCacheTTL
-	}
 }
 
 func applyFlagOverrides(dst *resolvedConfig, src *globalOptions, cmd *cobra.Command) {
@@ -330,91 +161,6 @@ func applyFlagOverrides(dst *resolvedConfig, src *globalOptions, cmd *cobra.Comm
 	if flagChanged(cmd, "verbose") {
 		dst.Verbosity = src.Verbosity
 	}
-}
-
-func applyEnvOverrides(dst *resolvedConfig) {
-	if dst == nil {
-		return
-	}
-	overrideString := func(key string, target *string) {
-		if value, ok := os.LookupEnv(key); ok {
-			*target = value
-		}
-	}
-	overrideBool := func(key string, target *bool) {
-		value, ok := os.LookupEnv(key)
-		if !ok {
-			return
-		}
-		switch strings.ToLower(strings.TrimSpace(value)) {
-		case "1", "true", "yes", "on":
-			*target = true
-		case "0", "false", "no", "off":
-			*target = false
-		}
-	}
-
-	overrideString("BOMLY_PATH", &dst.Path)
-	overrideString("BOMLY_CONTAINER", &dst.Container)
-	overrideString("BOMLY_URL", &dst.URL)
-	overrideString("BOMLY_REF", &dst.Ref)
-	overrideBool("BOMLY_SBOM", &dst.SBOM)
-	overrideBool("BOMLY_ENRICH", &dst.Enrich)
-	overrideBool("BOMLY_AUDIT", &dst.Audit)
-	overrideString("BOMLY_FAIL_ON", &dst.FailOn)
-	overrideString("BOMLY_FORMAT", &dst.Format)
-	overrideBool("BOMLY_INTERACTIVE", &dst.Interactive)
-	overrideString("BOMLY_ECOSYSTEMS", &dst.Ecosystems)
-	overrideString("BOMLY_DETECTORS", &dst.Detectors)
-	overrideString("BOMLY_AUDITORS", &dst.Auditors)
-	overrideString("BOMLY_MATCHERS", &dst.Matchers)
-	overrideBool("BOMLY_INSTALL_FIRST", &dst.InstallFirst)
-	if value, ok := os.LookupEnv("BOMLY_INSTALL_ARGS"); ok {
-		dst.InstallArgs = parseCSV(value)
-	}
-	overrideString("BOMLY_CONFIG", &dst.Config)
-	overrideBool("BOMLY_QUIET", &dst.Quiet)
-	if value, ok := os.LookupEnv("BOMLY_VERBOSE"); ok {
-		switch strings.ToLower(strings.TrimSpace(value)) {
-		case "1", "true", "yes", "on":
-			if dst.Verbosity == 0 {
-				dst.Verbosity = 1
-			}
-		case "2":
-			dst.Verbosity = 2
-		case "3":
-			dst.Verbosity = 3
-		case "0", "false", "no", "off":
-			dst.Verbosity = 0
-		}
-	}
-	overrideString("BOMLY_OSV_API_BASE", &dst.OsvAPIBase)
-	overrideString("BOMLY_OSV_CACHE_DIR", &dst.OsvCacheDir)
-	overrideString("BOMLY_OSV_CACHE_TTL", &dst.OsvCacheTTL)
-	overrideString("BOMLY_KEV_CACHE_DIR", &dst.KEVCacheDir)
-	overrideString("BOMLY_KEV_CACHE_TTL", &dst.KEVCacheTTL)
-	overrideString("BOMLY_EOL_API_BASE", &dst.EOLAPIBase)
-	overrideString("BOMLY_EOL_CACHE_DIR", &dst.EOLCacheDir)
-	overrideString("BOMLY_EOL_CACHE_TTL", &dst.EOLCacheTTL)
-}
-
-func applyResolvedConfigDefaults(cfg *resolvedConfig) {
-	if cfg == nil {
-		return
-	}
-	if strings.TrimSpace(cfg.FailOn) == "" {
-		cfg.FailOn = "any"
-	}
-}
-
-func validateResolvedConfig(cfg resolvedConfig) error {
-	if cfg.Interactive && strings.TrimSpace(cfg.Format) != "" {
-		return invalidInputf("--interactive cannot be combined with --format")
-	}
-	if cfg.Quiet && cfg.Verbosity > 0 {
-		return invalidInputf("--quiet cannot be combined with --verbose")
-	}
-	return nil
 }
 
 func flagChanged(cmd *cobra.Command, name string) bool {

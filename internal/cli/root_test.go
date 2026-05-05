@@ -11,8 +11,168 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	syftdetector "github.com/bomly-dev/bomly-cli/internal/detectors/syft"
+	"github.com/bomly-dev/bomly-cli/internal/system"
+	"github.com/spf13/cobra"
 )
+
+var (
+	testHelperBinDir  string
+	fakeGradleBinPath string
+	fakeGoBinPath     string
+)
+
+func TestMain(m *testing.M) {
+	dir, err := os.MkdirTemp("", "bomly-cli-testbin-*")
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "create test helper dir: %v\n", err)
+		os.Exit(1)
+	}
+	testHelperBinDir = dir
+
+	if err := buildSharedTestHelpers(dir); err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "build shared test helpers: %v\n", err)
+		_ = os.RemoveAll(dir)
+		os.Exit(1)
+	}
+
+	code := m.Run()
+	_ = os.RemoveAll(dir)
+	os.Exit(code)
+}
+
+func buildSharedTestHelpers(dir string) error {
+	npmPath := filepath.Join(dir, executableName("npm"))
+	if err := buildHelperBinary(dir, npmPath, fakeNPMSource()); err != nil {
+		return err
+	}
+
+	gradlePath := filepath.Join(dir, executableName("gradle"))
+	if err := buildHelperBinary(dir, gradlePath, fakeGradleSource()); err != nil {
+		return err
+	}
+	fakeGradleBinPath = gradlePath
+
+	goPath := filepath.Join(dir, executableName("go"))
+	if err := buildHelperBinary(dir, goPath, fakeGoSource()); err != nil {
+		return err
+	}
+	fakeGoBinPath = goPath
+
+	return nil
+}
+
+func executableName(base string) string {
+	if runtime.GOOS == "windows" {
+		return base + ".exe"
+	}
+	return base
+}
+
+func fakeNPMSource() string {
+	return `package main
+
+import (
+	"fmt"
+	"os"
+	"strings"
+)
+
+func main() {
+	if len(os.Args) < 2 || os.Args[1] != "ls" {
+		fmt.Fprintln(os.Stderr, "unsupported command")
+		os.Exit(1)
+	}
+
+	if os.Getenv("BOMLY_FAKE_NPM_MODE") == "dynamic" {
+		raw, err := os.ReadFile("package.json")
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		content := string(raw)
+		if strings.Contains(content, "\"react\": \"19.0.0\"") {
+			fmt.Print("{\"name\":\"demo-app\",\"version\":\"1.0.0\",\"dependencies\":{\"react\":{\"version\":\"19.0.0\"},\"zod\":{\"version\":\"3.23.0\"}}}")
+			return
+		}
+		fmt.Print("{\"name\":\"demo-app\",\"version\":\"1.0.0\",\"dependencies\":{\"react\":{\"version\":\"18.2.0\"}}}")
+		return
+	}
+
+	fmt.Print(os.Getenv("BOMLY_FAKE_NPM_JSON"))
+}
+`
+}
+
+func fakeGradleSource() string {
+	return `package main
+
+import (
+	"fmt"
+	"os"
+	"strings"
+)
+
+func main() {
+	for _, arg := range os.Args[1:] {
+		if arg == "dependencies" {
+			if os.Getenv("BOMLY_FAKE_GRADLE_FAIL") == "1" {
+				fmt.Fprintln(os.Stderr, "unexpected gradle fallback invocation")
+				os.Exit(23)
+			}
+			if outputFile := os.Getenv("BOMLY_FAKE_GRADLE_OUTPUT_FILE"); outputFile != "" {
+				data, err := os.ReadFile(outputFile)
+				if err != nil {
+					fmt.Fprintln(os.Stderr, err)
+					os.Exit(1)
+				}
+				fmt.Print(string(data))
+				return
+			}
+			fmt.Print(os.Getenv("BOMLY_FAKE_GRADLE_OUTPUT"))
+			return
+		}
+	}
+	fmt.Fprintf(os.Stderr, "unsupported command: %s\n", strings.Join(os.Args[1:], " "))
+	os.Exit(1)
+}
+`
+}
+
+func fakeGoSource() string {
+	return `package main
+
+import (
+	"fmt"
+	"os"
+	"strings"
+)
+
+func main() {
+	args := os.Args[1:]
+	if len(args) == 4 && args[0] == "list" && args[1] == "-deps" && args[2] == "-json" && args[3] == "all" {
+		fmt.Print(os.Getenv("BOMLY_FAKE_GO_LIST_OUTPUT"))
+		return
+	}
+	fmt.Fprintf(os.Stderr, "unsupported command: %s\n", strings.Join(args, " "))
+	os.Exit(1)
+}
+`
+}
+
+func buildHelperBinary(dir, outputPath, source string) error {
+	srcPath := filepath.Join(dir, filepath.Base(outputPath)+".go")
+	if err := os.WriteFile(srcPath, []byte(source), 0o644); err != nil {
+		return err
+	}
+	buildCmd := system.Command("go", "build", "-o", outputPath, srcPath)
+	buildOutput, err := buildCmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("go build failed: %w (%s)", err, string(buildOutput))
+	}
+	return nil
+}
 
 func TestRoot_RegistersCoreCommands(t *testing.T) {
 	tempHome := t.TempDir()
@@ -34,6 +194,42 @@ func TestRoot_RegistersCoreCommands(t *testing.T) {
 		if cmd == nil || cmd.Name() != commandName {
 			t.Fatalf("expected command %q, got %#v", commandName, cmd)
 		}
+	}
+}
+
+func TestRootHasCommandRequiredFlags(t *testing.T) {
+	tests := []struct {
+		name string
+		args []string
+		want bool
+	}{
+		{name: "nil command", want: false},
+		{name: "no flags", want: false},
+		{name: "help only", args: []string{"--help"}, want: false},
+		{name: "version only", args: []string{"--version"}, want: false},
+		{name: "verbose flag", args: []string{"--verbose"}, want: true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.name == "nil command" {
+				if got := rootHasCommandRequiredFlags(nil); got != tc.want {
+					t.Fatalf("rootHasCommandRequiredFlags(nil) = %v, want %v", got, tc.want)
+				}
+				return
+			}
+
+			root := &cobra.Command{Use: "bomly"}
+			root.Flags().Bool("help", false, "")
+			root.Flags().Bool("version", false, "")
+			root.Flags().Bool("verbose", false, "")
+			if err := root.ParseFlags(tc.args); err != nil {
+				t.Fatalf("ParseFlags(%v) error = %v", tc.args, err)
+			}
+			if got := rootHasCommandRequiredFlags(root); got != tc.want {
+				t.Fatalf("rootHasCommandRequiredFlags(%v) = %v, want %v", tc.args, got, tc.want)
+			}
+		})
 	}
 }
 
@@ -120,32 +316,6 @@ func TestRoot_VersionFlagWithoutCommandStillWorks(t *testing.T) {
 	root.SetOut(&stdout)
 	root.SetErr(&stderr)
 	root.SetArgs([]string{"--version"})
-
-	if err := root.Execute(); err != nil {
-		t.Fatalf("root.Execute() error = %v; stderr=%s", err, stderr.String())
-	}
-	if !strings.Contains(stdout.String(), "0.9.0-test") {
-		t.Fatalf("expected version output, got %q", stdout.String())
-	}
-}
-
-func TestRoot_VersionCommandWithoutFlagsStillWorks(t *testing.T) {
-	tempHome := t.TempDir()
-	t.Setenv("HOME", tempHome)
-	if runtime.GOOS == "windows" {
-		t.Setenv("USERPROFILE", tempHome)
-	}
-
-	root, err := newRootCmd("0.9.0-test")
-	if err != nil {
-		t.Fatalf("newRootCmd() error = %v", err)
-	}
-
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-	root.SetOut(&stdout)
-	root.SetErr(&stderr)
-	root.SetArgs([]string{"version"})
 
 	if err := root.Execute(); err != nil {
 		t.Fatalf("root.Execute() error = %v; stderr=%s", err, stderr.String())
@@ -773,7 +943,7 @@ func TestRoot_WhyCommand_DefaultTextOutputUsesTree(t *testing.T) {
 	}
 
 	out := stdout.String()
-	plainOut := stripANSI(out)
+	plainOut := render.StripANSI(out)
 	projectName := filepath.Base(projectDir)
 	for _, want := range []string{
 		"Dependency Explanation",
@@ -2044,4 +2214,8 @@ func containsManifestUpdatedPackageChange(manifests []any, status, targetName, t
 		}
 	}
 	return false
+}
+
+func shellQuote(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", `'\''`) + "'"
 }

@@ -6,12 +6,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type executionLogger interface {
-	Info(msg string, fields ...zap.Field)
-	Debug(msg string, fields ...zap.Field)
-	Error(msg string, fields ...zap.Field)
-}
-
 func commandLogger(cmd *cobra.Command, options *globalOptions, name string) *zap.Logger {
 	current := options.current()
 	// In default mode (no verbosity flags), suppress log output so only the

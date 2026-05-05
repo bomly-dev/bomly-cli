@@ -244,7 +244,7 @@ func (ctx commandContext) close() error {
 	return ctx.cleanup()
 }
 
-func (o *globalOptions) resolveExecutionTarget(logger executionLogger) (model.ExecutionTarget, string, func() error, error) {
+func (o *globalOptions) resolveExecutionTarget(logger *zap.Logger) (model.ExecutionTarget, string, func() error, error) {
 	current := o.current()
 	if current.SBOM {
 		if current.Container != "" || current.URL != "" || current.Ref != "" {

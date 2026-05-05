@@ -211,19 +211,7 @@ func optionValuesHelpSection(cmd *cobra.Command) string {
 		return ""
 	}
 
-	reg := scan.NewRegistry(scan.RegistryConfigs{}, *zap.NewNop())
-	reg.Build()
-
-	var b strings.Builder
-	b.WriteString("\n\n")
-	b.WriteString(formatTable("Available Native Detectors", []string{"Ecosystem", "Package Managers", "Detectors (Alias)"}, buildNativeDetectorRows(reg)))
-	b.WriteString("\n")
-	b.WriteString(formatTable("Available Third-party Detectors", []string{"Detector", "Ecosystems"}, buildThirdPartyDetectorRows(reg)))
-	b.WriteString("\n")
-	b.WriteString(formatHelpList("Available Auditors", availableAuditorOptions(zap.NewNop())))
-	b.WriteString("\n")
-	b.WriteString(formatHelpList("Available Matchers", availableMatcherOptions()))
-	return b.String()
+	return "\n\nExplore available detectors, matchers, and auditors with `bomly plugin list`."
 }
 
 func formatHelpList(label string, values []string) string {

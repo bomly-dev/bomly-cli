@@ -111,7 +111,7 @@ Cache failures are **non-fatal** — log a warning and continue without caching.
 
 ### Terminal Output
 
-- Use `internal/cli/ansi.go` helpers (`ansiStyled`, `ansiWrap`, `stripANSI`) — never raw escape codes inline.
+- Use `internal/cli/render/ansi.go` helpers (`Style`, `Wrap`, `StripANSI`) — never raw escape codes inline.
 - Interactive TUI uses Bubbletea (`internal/cli/interactive.go`) with the `interactiveModel` interface.
 - SARIF output via `internal/output` — do not hand-craft SARIF JSON.
 

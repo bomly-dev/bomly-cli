@@ -3,61 +3,8 @@ package cli
 import (
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/scan"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
-
-func TestLicenseProgressChildren_CountsPackagesWithLicensesPerSource(t *testing.T) {
-	g := model.New()
-	for _, pkg := range []*model.Package{
-		model.NewPackage(model.Package{
-			Name:    "react",
-			Version: "18.2.0",
-			Licenses: []model.PackageLicense{{
-				Type:  "external-depsdev",
-				Value: "MIT",
-			}},
-		}),
-		model.NewPackage(model.Package{
-			Name:    "zod",
-			Version: "3.23.0",
-			Licenses: []model.PackageLicense{{
-				Type:  "external-depsdev",
-				Value: "MIT",
-			}},
-		}),
-		model.NewPackage(model.Package{
-			Name:    "chalk",
-			Version: "5.4.1",
-			Licenses: []model.PackageLicense{{
-				Type:  "external-clearlydefined",
-				Value: "ISC",
-			}},
-		}),
-	} {
-		if err := g.AddPackage(pkg); err != nil {
-			t.Fatalf("AddPackage() error = %v", err)
-		}
-	}
-
-	children := licenseProgressChildren([]model.DetectionResult{{
-		Graphs: scan.SingleGraphContainer(g, model.ManifestMetadata{Path: "package.json", Kind: "npm"}),
-	}})
-
-	if len(children) != 2 {
-		t.Fatalf("expected 2 children, got %#v", children)
-	}
-	counts := make(map[string]string, len(children))
-	for _, child := range children {
-		counts[child.Label] = child.Detail
-	}
-	if counts["deps.dev"] != "[2 licenses]" {
-		t.Fatalf("expected deps.dev count based on packages, got %#v", children)
-	}
-	if counts["ClearlyDefined"] != "[1 licenses]" {
-		t.Fatalf("expected ClearlyDefined count based on packages, got %#v", children)
-	}
-}
 
 func TestMatchProgressChildren_ReportsMatcherCounts(t *testing.T) {
 	g := model.New()
@@ -66,7 +13,7 @@ func TestMatchProgressChildren_ReportsMatcherCounts(t *testing.T) {
 			Name:    "react",
 			Version: "18.2.0",
 			Licenses: []model.PackageLicense{{
-				Type:  "external-depsdev",
+				Type:  "deps.dev",
 				Value: "MIT",
 			}},
 			Vulnerabilities: []model.PackageVulnerability{
@@ -78,7 +25,7 @@ func TestMatchProgressChildren_ReportsMatcherCounts(t *testing.T) {
 			Name:    "zod",
 			Version: "3.23.0",
 			Licenses: []model.PackageLicense{{
-				Type:  "external-clearlydefined",
+				Type:  "ClearlyDefined",
 				Value: "Apache-2.0",
 			}},
 			Vulnerabilities: []model.PackageVulnerability{

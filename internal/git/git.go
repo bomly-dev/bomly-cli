@@ -11,15 +11,9 @@ import (
 	"go.uber.org/zap"
 )
 
-type executionLogger interface {
-	Info(msg string, fields ...zap.Field)
-	Debug(msg string, fields ...zap.Field)
-	Error(msg string, fields ...zap.Field)
-}
-
 // CloneTemp clones repoURL into a temporary directory and optionally checks out ref.
 // The caller owns cleanup of the returned directory.
-func CloneTemp(logger executionLogger, repoURL, ref string) (string, error) {
+func CloneTemp(logger *zap.Logger, repoURL, ref string) (string, error) {
 	if err := ensureGitAvailable(); err != nil {
 		return "", err
 	}
@@ -66,7 +60,7 @@ func VerifyRef(repoPath, ref string) error {
 }
 
 // CheckoutRef checks out ref in repoPath.
-func CheckoutRef(logger executionLogger, repoPath, ref string) error {
+func CheckoutRef(logger *zap.Logger, repoPath, ref string) error {
 	if ref == "" {
 		return fmt.Errorf("ref is empty")
 	}
@@ -88,7 +82,7 @@ func ResolveHEAD(repoPath string) (string, error) {
 
 // MaterializeLocalRef clones sourceRepoPath into a temporary directory and checks out ref.
 // The caller owns cleanup of the returned directory.
-func MaterializeLocalRef(logger executionLogger, sourceRepoPath, ref string) (string, error) {
+func MaterializeLocalRef(logger *zap.Logger, sourceRepoPath, ref string) (string, error) {
 	if err := ensureGitAvailable(); err != nil {
 		return "", err
 	}
@@ -127,7 +121,7 @@ func ensureGitAvailable() error {
 	return nil
 }
 
-func cloneInto(logger executionLogger, source, dest, ref string, local bool) error {
+func cloneInto(logger *zap.Logger, source, dest, ref string, local bool) error {
 	args := []string{"clone", "--quiet"}
 	if local {
 		args = append(args, "--local")
@@ -166,7 +160,7 @@ func refResolutionCandidates(ref string) []string {
 	return append(candidates, "origin/"+ref)
 }
 
-func checkoutCommit(logger executionLogger, repoPath, commit, originalRef string) error {
+func checkoutCommit(logger *zap.Logger, repoPath, commit, originalRef string) error {
 	if _, err := runGit(repoPath, "checkout", "--quiet", "--detach", commit); err != nil {
 		if logger != nil {
 			logger.Error(fmt.Sprintf("Git checkout failed: %v", err))

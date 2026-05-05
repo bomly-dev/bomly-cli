@@ -42,7 +42,7 @@ func TestPluginWorkflows(t *testing.T) {
 			t.Fatalf("unexpected verify output:\n%s", verifyStdout)
 		}
 
-		listStdout, listStderr, listCode := runBomlyWithEnv(t, env, "plugin", "list", "--external", "--json")
+		listStdout, listStderr, listCode := runBomlyWithEnv(t, env, "plugin", "list", "--external", "--format", "json")
 		if listCode != 0 {
 			t.Fatalf("plugin list exited %d\nstderr:\n%s", listCode, listStderr)
 		}

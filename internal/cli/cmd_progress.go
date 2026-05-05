@@ -5,22 +5,29 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/progress"
 	"github.com/bomly-dev/bomly-cli/internal/scan"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
 
+// newCommandProgress constructs a Progress sourcing its writer + TTY-detection
+// from the CLI's commandStreams.
+func newCommandProgress(streams commandStreams, label string) *progress.Progress {
+	return progress.New(streams.notificationWriter(), streams.canRenderProgress(), label)
+}
+
 // warningProgressChildren converts pipeline warnings into ⚠ children using
 // the warning source as Label and the message as Detail.
-func warningProgressChildren(warnings []scan.PipelineWarning) []progressChild {
-	children := make([]progressChild, 0, len(warnings))
+func warningProgressChildren(warnings []scan.PipelineWarning) []progress.Child {
+	children := make([]progress.Child, 0, len(warnings))
 	for _, w := range warnings {
 		label := w.Source
 		if label == "" {
 			label = "unknown"
 		}
 		detail := strings.ReplaceAll(w.Message, "\n", " ")
-		children = append(children, progressChild{
-			Icon:   progressWarningMark,
+		children = append(children, progress.Child{
+			Icon:   progress.WarningMark,
 			Label:  label,
 			Detail: detail,
 		})
@@ -30,8 +37,8 @@ func warningProgressChildren(warnings []scan.PipelineWarning) []progressChild {
 
 // subprojectProgressChildren returns one child per resolved subproject showing
 // the relative path and ecosystem.
-func subprojectProgressChildren(results []model.DetectionResult) []progressChild {
-	children := make([]progressChild, 0, len(results))
+func subprojectProgressChildren(results []model.DetectionResult) []progress.Child {
+	children := make([]progress.Child, 0, len(results))
 	for _, r := range results {
 		label := r.SubprojectInfo.RelativePath
 		if label == "" || label == "." {
@@ -44,14 +51,14 @@ func subprojectProgressChildren(results []model.DetectionResult) []progressChild
 		if detail != "" {
 			label += " (" + detail + ")"
 		}
-		children = append(children, progressChild{Label: label})
+		children = append(children, progress.Child{Label: label})
 	}
 	return children
 }
 
 // detectorProgressChildren groups results by detector name, sums the total
 // package count per detector, and returns children with ✔ icon.
-func detectorProgressChildren(results []model.DetectionResult) []progressChild {
+func detectorProgressChildren(results []model.DetectionResult) []progress.Child {
 	type detectorInfo struct {
 		name     string
 		packages int
@@ -74,11 +81,11 @@ func detectorProgressChildren(results []model.DetectionResult) []progressChild {
 			}
 		}
 	}
-	children := make([]progressChild, 0, len(order))
+	children := make([]progress.Child, 0, len(order))
 	for _, key := range order {
 		info := index[key]
-		children = append(children, progressChild{
-			Icon:   progressCheckMark,
+		children = append(children, progress.Child{
+			Icon:   progress.CheckMark,
 			Label:  humanizeDetectorName(info.name),
 			Detail: fmt.Sprintf("[%d packages]", info.packages),
 		})
@@ -86,61 +93,12 @@ func detectorProgressChildren(results []model.DetectionResult) []progressChild {
 	return children
 }
 
-// licenseProgressChildren counts packages with license data grouped by source type and
-// returns children with ✔ icon and [N licenses] detail.
-func licenseProgressChildren(results []model.DetectionResult) []progressChild {
-	type sourceInfo struct {
-		name     string
-		packages map[string]struct{}
-	}
-	index := make(map[string]*sourceInfo)
-	order := make([]string, 0)
-	for _, r := range results {
-		if r.Graphs == nil {
-			continue
-		}
-		for _, entry := range r.Graphs.Entries {
-			if entry.Graph == nil {
-				continue
-			}
-			for _, pkg := range entry.Graph.Packages() {
-				if pkg == nil {
-					continue
-				}
-				for _, lic := range pkg.Licenses {
-					key := lic.Type
-					if key == "" {
-						continue
-					}
-					info, exists := index[key]
-					if !exists {
-						info = &sourceInfo{name: key, packages: make(map[string]struct{})}
-						index[key] = info
-						order = append(order, key)
-					}
-					info.packages[pkg.ID] = struct{}{}
-				}
-			}
-		}
-	}
-	children := make([]progressChild, 0, len(order))
-	for _, key := range order {
-		info := index[key]
-		children = append(children, progressChild{
-			Icon:   progressCheckMark,
-			Label:  humanizeLicenseSource(info.name),
-			Detail: fmt.Sprintf("[%d licenses]", len(info.packages)),
-		})
-	}
-	return children
-}
-
 // auditProgressChildren groups findings by source and returns children with ✔ icon.
-func auditProgressChildren(auditorRuns []string, auditorFindings map[string]int, warnings []scan.PipelineWarning) []progressChild {
-	children := make([]progressChild, 0, len(auditorRuns)+len(warnings))
+func auditProgressChildren(auditorRuns []string, auditorFindings map[string]int, warnings []scan.PipelineWarning) []progress.Child {
+	children := make([]progress.Child, 0, len(auditorRuns)+len(warnings))
 	for _, name := range auditorRuns {
-		children = append(children, progressChild{
-			Icon:   progressCheckMark,
+		children = append(children, progress.Child{
+			Icon:   progress.CheckMark,
 			Label:  humanizeAuditorSource(name),
 			Detail: fmt.Sprintf("[%d findings]", auditorFindings[name]),
 		})
@@ -151,11 +109,11 @@ func auditProgressChildren(auditorRuns []string, auditorFindings map[string]int,
 
 // matchProgressChildren returns ✔ children for each successful matcher run
 // and ⚠ children for each warning.
-func matchProgressChildren(g *model.Graph, runs []string, warnings []scan.PipelineWarning) []progressChild {
-	children := make([]progressChild, 0, len(runs)+len(warnings))
+func matchProgressChildren(g *model.Graph, runs []string, warnings []scan.PipelineWarning) []progress.Child {
+	children := make([]progress.Child, 0, len(runs)+len(warnings))
 	for _, name := range runs {
-		children = append(children, progressChild{
-			Icon:   progressCheckMark,
+		children = append(children, progress.Child{
+			Icon:   progress.CheckMark,
 			Label:  humanizeMatcherName(name),
 			Detail: matcherProgressDetail(g, name),
 		})
@@ -177,11 +135,11 @@ func matcherProgressDetail(g *model.Graph, matcherName string) string {
 		}
 		switch matcherName {
 		case depsdevCheckerName:
-			if packageHasLicenseSource(pkg, "external-depsdev") {
+			if packageHasLicenseSource(pkg, "deps.dev") {
 				packages++
 			}
 		case clearlyDefinedCheckerName:
-			if packageHasLicenseSource(pkg, "external-clearlydefined") {
+			if packageHasLicenseSource(pkg, "ClearlyDefined") {
 				packages++
 			}
 		case osvMatcherName, grypeMatcherName:
@@ -245,18 +203,6 @@ func humanizeDetectorName(name string) string {
 		}
 	}
 	return strings.Join(parts, " ") + " Detector"
-}
-
-// humanizeLicenseSource converts a license source type to a display name.
-func humanizeLicenseSource(sourceType string) string {
-	switch sourceType {
-	case "external-depsdev":
-		return "deps.dev"
-	case "external-clearlydefined":
-		return "ClearlyDefined"
-	default:
-		return sourceType
-	}
 }
 
 // humanizeAuditorSource converts an auditor source name to a display name.

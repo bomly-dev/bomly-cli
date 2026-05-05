@@ -19,8 +19,22 @@ var trackedDependencyVersions = []dependencyVersion{
 	{Label: "Grype", Module: "github.com/anchore/grype"},
 }
 
+func newVersionCmd(version string, options *globalOptions) *cobra.Command {
+	return &cobra.Command{
+		Use:   "version",
+		Short: "Print version information",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			current := options.current()
+			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
+			_, err := fmt.Fprintln(streams.reportWriter(), renderVersionDetails(version))
+			return err
+		},
+	}
+}
+
 func renderVersionDetails(coreVersion string) string {
-	lines := []string{"bomly " + coreVersion, "Built-in plugins:"}
+	lines := []string{"bomly " + coreVersion, "", "Built-in third-party plugins:"}
 	for _, item := range selectedDependencyVersions() {
 		lines = append(lines, item.Label+" ("+item.Module+"): "+item.Version)
 	}
@@ -62,18 +76,4 @@ func moduleVersion(info *debug.BuildInfo, modulePath string) string {
 		return dep.Version
 	}
 	return ""
-}
-
-func newVersionCmd(version string, options *globalOptions) *cobra.Command {
-	return &cobra.Command{
-		Use:   "version",
-		Short: "Print version information",
-		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			current := options.current()
-			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
-			_, err := fmt.Fprintln(streams.reportWriter(), renderVersionDetails(version))
-			return err
-		},
-	}
 }

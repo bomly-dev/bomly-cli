@@ -172,9 +172,9 @@ func New(config Config) (*Matcher, error) {
 // Descriptor returns the matcher registration metadata.
 func (a *Matcher) Descriptor() model.MatcherDescriptor {
 	return model.MatcherDescriptor{
-		Name:          "osv",
-		Enabled:       false,
-		ComponentType: model.ThirdPartyComponent,
+		Name:    "osv",
+		Enabled: false,
+		Origin:  model.CoreOrigin,
 		// nil SupportedEcosystems means all ecosystems; OSV handles ecosystem
 		// selection internally via PURL or name+ecosystem queries.
 		SupportedEcosystems: nil,

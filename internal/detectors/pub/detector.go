@@ -69,7 +69,8 @@ func (d Detector) Descriptor() model.DetectorDescriptor {
 	return model.DetectorDescriptor{
 		Name:                detectors.NamePub,
 		Enabled:             true,
-		ComponentType:       model.NativeComponent,
+		Origin:              model.CoreOrigin,
+		Technique:           model.LockfileTechnique,
 		SupportedEcosystems: []model.Ecosystem{model.EcosystemDart},
 		SupportedManagers:   []model.PackageManager{model.PackageManagerPub},
 		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},

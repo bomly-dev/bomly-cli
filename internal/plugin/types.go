@@ -551,7 +551,7 @@ func runtimeMetadataMatchesManifest(metadata *plugschema.PluginMetadata, detecto
 			return fmt.Errorf("plugin runtime detector package manager support does not match manifest detector support")
 		}
 		if !slices.Equal(detector.FallbackDetectors, manifest.DetectorDescriptor.FallbackDetectors) ||
-			detector.ComponentType != manifest.DetectorDescriptor.ComponentType ||
+			detector.Origin != manifest.DetectorDescriptor.Origin ||
 			!slices.Equal(detector.SupportedModes, manifest.DetectorDescriptor.SupportedModes) ||
 			detector.SupportsInstallFirst != manifest.DetectorDescriptor.SupportsInstallFirst {
 			return fmt.Errorf("plugin runtime detector descriptor does not match manifest detector descriptor")
@@ -560,14 +560,14 @@ func runtimeMetadataMatchesManifest(metadata *plugschema.PluginMetadata, detecto
 		if matcher == nil || manifest.MatcherDescriptor == nil {
 			return errors.New("plugin runtime matcher descriptor is missing")
 		}
-		if matcher.ComponentType != manifest.MatcherDescriptor.ComponentType || !slices.Equal(matcher.SupportedModes, manifest.MatcherDescriptor.SupportedModes) {
+		if matcher.Origin != manifest.MatcherDescriptor.Origin || !slices.Equal(matcher.SupportedModes, manifest.MatcherDescriptor.SupportedModes) {
 			return fmt.Errorf("plugin runtime matcher descriptor does not match manifest matcher descriptor")
 		}
 	case plugschema.PluginKindAuditor:
 		if auditor == nil || manifest.AuditorDescriptor == nil {
 			return errors.New("plugin runtime auditor descriptor is missing")
 		}
-		if auditor.ComponentType != manifest.AuditorDescriptor.ComponentType || !slices.Equal(auditor.SupportedModes, manifest.AuditorDescriptor.SupportedModes) {
+		if auditor.Origin != manifest.AuditorDescriptor.Origin || !slices.Equal(auditor.SupportedModes, manifest.AuditorDescriptor.SupportedModes) {
 			return fmt.Errorf("plugin runtime auditor descriptor does not match manifest auditor descriptor")
 		}
 	}

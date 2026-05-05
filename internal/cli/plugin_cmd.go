@@ -405,7 +405,7 @@ func detectorPluginInfo(metadata *plugschema.PluginMetadata, descriptor *plugsch
 		},
 		BuiltIn:    true,
 		Enabled:    enabled,
-		SourceType: string(descriptor.ComponentType),
+		SourceType: string(descriptor.Origin),
 	}
 }
 
@@ -426,7 +426,7 @@ func matcherPluginInfo(metadata *plugschema.PluginMetadata, descriptor *plugsche
 		},
 		BuiltIn:    true,
 		Enabled:    enabled,
-		SourceType: string(descriptor.ComponentType),
+		SourceType: string(descriptor.Origin),
 	}
 }
 
@@ -447,7 +447,7 @@ func auditorPluginInfo(metadata *plugschema.PluginMetadata, descriptor *plugsche
 		},
 		BuiltIn:    true,
 		Enabled:    enabled,
-		SourceType: string(descriptor.ComponentType),
+		SourceType: string(descriptor.Origin),
 	}
 }
 

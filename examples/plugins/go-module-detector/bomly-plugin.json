@@ -15,7 +15,7 @@
   "detectorDescriptor": {
     "name": "bomly.example.gomod-detector",
     "enabled": true,
-    "componentType": "plugin",
+    "origin": "external",
     "supportedModes": [
       "full-graph",
       "component"

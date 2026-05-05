@@ -618,21 +618,26 @@ func orderedBuiltInDetectors(logger *zap.Logger) []model.Detector {
 	}
 
 	sort.SliceStable(ordered, func(i, j int) bool {
-		return componentPriority(ordered[i].Descriptor().ComponentType) < componentPriority(ordered[j].Descriptor().ComponentType)
+		return componentPriority(ordered[i].Descriptor().Origin, ordered[i].Descriptor().Technique) < componentPriority(ordered[j].Descriptor().Origin, ordered[j].Descriptor().Technique)
 	})
 
 	return ordered
 }
 
-func componentPriority(componentType model.ComponentType) int {
-	switch componentType {
-	case model.NativeComponent:
+// componentPriority assigns a priority for ordering detectors, with lower values indicating higher priority.
+// The priority is determined first by the origin (external vs built-in) and then by the technique,
+// with lockfile and build tool techniques prioritized over manifest, SBOM, binary, and container techniques,
+// which are in turn prioritized over multiple technique and other techniques.
+func componentPriority(origin model.DetectorOrigin, technique model.DetectorTechnique) int {
+	if origin == model.ExternalOrigin {
 		return 0
-	case model.LockfileParserComponent:
+	}
+	switch technique {
+	case model.LockfileTechnique, model.BuildToolTechnique:
 		return 1
-	case model.ThirdPartyComponent:
+	case model.ManifestTechnique, model.SBOMTechnique, model.BinaryTechnique, model.ContainerTechnique:
 		return 2
-	case model.PluginComponent:
+	case model.MultipleTechnique:
 		return 3
 	default:
 		return 4

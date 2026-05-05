@@ -60,7 +60,8 @@ func (d Detector) Descriptor() model.DetectorDescriptor {
 	return model.DetectorDescriptor{
 		Name:                detectors.NameCocoaPods,
 		Enabled:             true,
-		ComponentType:       model.NativeComponent,
+		Origin:              model.CoreOrigin,
+		Technique:           model.LockfileTechnique,
 		SupportedEcosystems: []model.Ecosystem{model.EcosystemSwift},
 		SupportedManagers:   []model.PackageManager{model.PackageManagerCocoaPods},
 		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},

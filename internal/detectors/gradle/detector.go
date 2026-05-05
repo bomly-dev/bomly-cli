@@ -69,7 +69,8 @@ func (d Detector) Descriptor() model.DetectorDescriptor {
 	return model.DetectorDescriptor{
 		Name:                detectors.NameGradle,
 		Enabled:             true,
-		ComponentType:       model.NativeComponent,
+		Origin:              model.CoreOrigin,
+		Technique:           model.BuildToolTechnique,
 		SupportedEcosystems: []model.Ecosystem{model.EcosystemMaven},
 		SupportedManagers:   []model.PackageManager{model.PackageManagerGradle},
 		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},

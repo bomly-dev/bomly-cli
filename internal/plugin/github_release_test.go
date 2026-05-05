@@ -42,7 +42,7 @@ func TestResolveGitHubReleaseAndInstall(t *testing.T) {
 		DetectorDescriptor: &plugschema.DetectorDescriptor{
 			Name:           "acme.detector.release",
 			Enabled:        true,
-			ComponentType:  plugschema.ComponentTypePlugin,
+			Origin:         plugschema.ExternalOrigin,
 			SupportedModes: []plugschema.TargetMode{plugschema.TargetModeFullGraph, plugschema.TargetModeComponent},
 			PackageManagerSupport: []plugschema.PackageManagerSupport{
 				plugschema.Support(plugschema.PackageManagerGoMod, "go.mod"),
@@ -216,7 +216,7 @@ func (d *detector) Descriptor(ctx context.Context) (*schemav1.DetectorDescriptor
 	return &schemav1.DetectorDescriptor{
 		Name:           "` + id + `",
 		Enabled:        true,
-		ComponentType:  schemav1.ComponentTypePlugin,
+		Origin:         schemav1.ExternalOrigin,
 		SupportedModes: []schemav1.TargetMode{schemav1.TargetModeFullGraph, schemav1.TargetModeComponent},
 		Capabilities:   []string{"dependency-detection"},
 	}, nil
@@ -250,7 +250,7 @@ func (d *detector) Detect(ctx context.Context, req *schemav1.DetectRequest) (*sc
 		SubprojectInfo:      req.Subproject,
 		RootExecutionTarget: req.ExecutionTarget,
 		DetectorName:        "` + id + `",
-		ComponentType:       schemav1.ComponentTypePlugin,
+		Origin:              schemav1.ExternalOrigin,
 		Graphs: &schemav1.GraphContainer{
 			Entries: []schemav1.GraphEntry{{
 				Manifest: schemav1.ManifestMetadata{

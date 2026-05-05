@@ -60,7 +60,9 @@ func (d externalDetector) Descriptor() model.DetectorDescriptor {
 	if d.info.DetectorDescriptor == nil {
 		return model.DetectorDescriptor{}
 	}
-	return *cloneDetectorDescriptor(d.info.DetectorDescriptor)
+	desc := *cloneDetectorDescriptor(d.info.DetectorDescriptor)
+	desc.Origin = model.ExternalOrigin
+	return desc
 }
 
 func (d externalDetector) PackageManagerSupport() []model.PackageManagerSupport {

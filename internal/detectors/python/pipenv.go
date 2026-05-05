@@ -39,7 +39,8 @@ func (d PipenvDetector) Descriptor() model.DetectorDescriptor {
 	return model.DetectorDescriptor{
 		Name:                detectors.NamePipenv,
 		Enabled:             true,
-		ComponentType:       model.NativeComponent,
+		Origin:              model.CoreOrigin,
+		Technique:           model.BuildToolTechnique,
 		SupportedEcosystems: []model.Ecosystem{model.EcosystemPython},
 		SupportedManagers:   []model.PackageManager{model.PackageManagerPipenv},
 		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},

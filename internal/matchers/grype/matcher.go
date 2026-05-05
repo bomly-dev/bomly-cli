@@ -40,7 +40,7 @@ func (a Matcher) Descriptor() model.MatcherDescriptor {
 	return model.MatcherDescriptor{
 		Name:                matcherName,
 		Enabled:             true,
-		ComponentType:       model.ThirdPartyComponent,
+		Origin:              model.BundledOrigin,
 		SupportedEcosystems: nil, // nil = all ecosystems
 		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
 		Priority:            a.Priority,

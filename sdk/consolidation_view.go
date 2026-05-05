@@ -13,7 +13,8 @@ type ConsolidatedManifest struct {
 	Entry          GraphEntry
 	Subproject     Subproject
 	DetectorName   string
-	ComponentType  ComponentType
+	Origin         DetectorOrigin
+	Technique      DetectorTechnique
 	RootManifestID string
 }
 

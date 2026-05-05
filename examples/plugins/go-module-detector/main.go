@@ -35,7 +35,7 @@ func (d *detector) Descriptor(context.Context) (*sdk.DetectorDescriptor, error) 
 	return &sdk.DetectorDescriptor{
 		Name:           pluginID,
 		Enabled:        true,
-		ComponentType:  sdk.ComponentTypePlugin,
+		Origin:         sdk.ExternalOrigin,
 		SupportedModes: []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:   []string{"dependency-detection"},
 	}, nil
@@ -74,7 +74,7 @@ func (d *detector) Detect(ctx context.Context, req *sdk.DetectRequest) (*sdk.Det
 		SubprojectInfo:      req.Subproject,
 		RootExecutionTarget: req.ExecutionTarget,
 		DetectorName:        pluginID,
-		ComponentType:       sdk.ComponentTypePlugin,
+		Origin:              sdk.ExternalOrigin,
 		Graphs: &sdk.GraphContainer{
 			Entries: []sdk.GraphEntry{{
 				Manifest: sdk.ManifestMetadata{

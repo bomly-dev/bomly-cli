@@ -109,7 +109,7 @@ func (c *Checker) Descriptor() model.MatcherDescriptor {
 	return model.MatcherDescriptor{
 		Name:           "clearlydefined-license-checker",
 		Enabled:        false,
-		ComponentType:  model.ThirdPartyComponent,
+		Origin:         model.CoreOrigin,
 		SupportedModes: []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
 		Priority:       90,
 		Required:       false,

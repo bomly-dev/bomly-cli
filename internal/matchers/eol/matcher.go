@@ -109,7 +109,7 @@ func (c *Checker) Descriptor() model.MatcherDescriptor {
 	return model.MatcherDescriptor{
 		Name:           "eol-checker",
 		Enabled:        false,
-		ComponentType:  model.ThirdPartyComponent,
+		Origin:         model.CoreOrigin,
 		SupportedModes: []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
 		Priority:       80,
 		Required:       false,

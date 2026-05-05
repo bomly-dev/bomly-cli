@@ -94,18 +94,30 @@ func TestBuildScanRegistryRegistersBuiltInMatchers(t *testing.T) {
 	builtins := NewRegistry(RegistryConfigs{}, *zap.NewNop())
 	builtins.Build()
 
-	got := make(map[string]model.ComponentType)
+	got := make(map[string]model.DetectorOrigin)
 	for _, descriptor := range builtins.MatcherDescriptors() {
-		got[descriptor.Name] = descriptor.ComponentType
+		got[descriptor.Name] = descriptor.Origin
 	}
 
-	for _, name := range []string{"grype", "osv", "depsdev-license-checker", "clearlydefined-license-checker", "eol-checker"} {
-		componentType, ok := got[name]
+	// grype is a bundled third-party library; it keeps BundledOrigin.
+	for _, name := range []string{"grype"} {
+		origin, ok := got[name]
 		if !ok {
 			t.Fatalf("expected built-in matcher %q to be registered; got %#v", name, got)
 		}
-		if componentType != model.ThirdPartyComponent {
-			t.Fatalf("expected matcher %q to be third-party component, got %q", name, componentType)
+		if origin != model.BundledOrigin {
+			t.Fatalf("expected matcher %q to be bundled origin, got %q", name, origin)
+		}
+	}
+
+	// Core matchers are implemented directly in Bomly's codebase; they use CoreOrigin.
+	for _, name := range []string{"osv", "depsdev-license-checker", "clearlydefined-license-checker", "eol-checker"} {
+		origin, ok := got[name]
+		if !ok {
+			t.Fatalf("expected built-in matcher %q to be registered; got %#v", name, got)
+		}
+		if origin != model.CoreOrigin {
+			t.Fatalf("expected matcher %q to be core origin, got %q", name, origin)
 		}
 	}
 }

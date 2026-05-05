@@ -50,7 +50,8 @@ func (d NativeDetector) Descriptor() model.DetectorDescriptor {
 	return model.DetectorDescriptor{
 		Name:                 detectors.NameNPMNative,
 		Enabled:              true,
-		ComponentType:        model.NativeComponent,
+		Origin:               model.CoreOrigin,
+		Technique:            model.BuildToolTechnique,
 		SupportedEcosystems:  []model.Ecosystem{model.EcosystemNPM},
 		SupportedManagers:    []model.PackageManager{model.PackageManagerNPM},
 		SupportedModes:       []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},

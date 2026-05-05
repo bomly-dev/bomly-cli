@@ -6,12 +6,12 @@ It is generated from the canonical support registry in `internal/registry/suppor
 
 Bomly groups support into two implementation paths:
 
-- Native detectors implemented directly in Bomly.
-- Third-party-backed detection powered by Syft support metadata.
+- Core detectors implemented directly in Bomly.
+- Bundled detectors based on third-party tools that are distributed with Bomly and maintained by the Bomly team.
 
-## Native Detectors
+## Core Detectors
 
-Primary detector files are the preferred inputs for Bomly-owned resolution. Fallback detector files are inputs for the next built-in Bomly detector in the same chain; Syft-only backstops are omitted here and listed under third-party support.
+Primary detector files are the preferred inputs for Bomly-owned resolution. Fallback detector files are inputs for the next built-in Bomly detector in the same chain; Syft-only backstops are omitted here and listed under Bundled detectors support.
 
 | Ecosystem | Package managers | Primary detector files | Fallback detector files | Detector |
 | --- | --- | --- | --- | --- |
@@ -31,7 +31,7 @@ Primary detector files are the preferred inputs for Bomly-owned resolution. Fall
 | `scala` | `sbt` | `build.sbt`, `project/plugins.sbt`, `project/build.properties` | - | Native detector |
 | `swift` | `cocoapods`, `swiftpm` | `Podfile.lock`, `Podfile`, `Package.resolved`, `.package.resolved`, `Package.swift`, `project.xcworkspace/xcshareddata/swiftpm/Package.resolved` | - | Native detector |
 
-## Third-Party Support
+## Bundled Detectors
 
 The entries below show Syft-backed ecosystem coverage plus representative files Bomly uses during planning and discovery.
 
@@ -74,7 +74,6 @@ Source: https://oss.anchore.com/docs/capabilities/all-packages/
 
 - Bomly does not expose every Syft cataloger as a package manager.
 - Some OS image and binary catalogers are intentionally omitted when they do not map cleanly to Bomly's ecosystem and package-manager model.
-- The `maven` ecosystem is a shared umbrella for both Maven and Gradle.
 
 ## Syft Container OS Support
 

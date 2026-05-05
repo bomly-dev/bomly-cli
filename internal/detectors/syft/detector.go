@@ -115,7 +115,8 @@ func (d Detector) Descriptor() model.DetectorDescriptor {
 	return model.DetectorDescriptor{
 		Name:                detectors.NameSyft,
 		Enabled:             true,
-		ComponentType:       model.ThirdPartyComponent,
+		Origin:              model.BundledOrigin,
+		Technique:           model.MultipleTechnique,
 		SupportedEcosystems: supportedEcosystems,
 		SupportedManagers:   supportedManagers,
 		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},

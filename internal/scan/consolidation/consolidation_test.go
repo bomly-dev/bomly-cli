@@ -151,13 +151,15 @@ func TestConsolidateGraphs_DeduplicatesManifestAndPrefersNative(t *testing.T) {
 		{
 			SubprojectInfo: model.Subproject{ExecutionTarget: model.ExecutionTarget{Kind: model.ExecutionTargetWorkingDirectory, Location: projectRoot}, RelativePath: ".", PrimaryDetector: "maven-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerMaven}, Ecosystem: model.EcosystemMaven},
 			DetectorName:   "syft-detector",
-			ComponentType:  model.ThirdPartyComponent,
+			Origin:         model.BundledOrigin,
+			Technique:      model.MultipleTechnique,
 			Graphs:         model.SingleGraphContainer(syftGraph, model.ManifestMetadata{Path: manifestAbs, Kind: "pom.xml"}),
 		},
 		{
 			SubprojectInfo: model.Subproject{ExecutionTarget: model.ExecutionTarget{Kind: model.ExecutionTargetWorkingDirectory, Location: projectRoot}, RelativePath: ".", PrimaryDetector: "maven-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerMaven}, Ecosystem: model.EcosystemMaven},
 			DetectorName:   "maven-detector",
-			ComponentType:  model.NativeComponent,
+			Origin:         model.CoreOrigin,
+			Technique:      model.BuildToolTechnique,
 			Graphs:         model.SingleGraphContainer(nativeGraph, model.ManifestMetadata{Path: manifestAbs, Kind: "pom.xml"}),
 		},
 	})
@@ -188,14 +190,14 @@ func TestConsolidateGraphs_DeduplicatesManifestAndPrefersNative(t *testing.T) {
 }
 
 func TestManifestDedupPriorityPrefersNativeOverSyft(t *testing.T) {
-	if got := ManifestDedupPriority(model.NativeComponent, "npm-detector"); got != 0 {
-		t.Fatalf("expected native detector priority 0, got %d", got)
+	if got := ManifestDedupPriority(model.CoreOrigin, model.BuildToolTechnique); got != 1 {
+		t.Fatalf("expected core build-tool detector priority 1, got %d", got)
 	}
-	if got := ManifestDedupPriority(model.ThirdPartyComponent, "syft-detector"); got != 2 {
-		t.Fatalf("expected syft fallback priority 2, got %d", got)
+	if got := ManifestDedupPriority(model.BundledOrigin, model.MultipleTechnique); got != 2 {
+		t.Fatalf("expected bundled multiple-technique detector priority 2, got %d", got)
 	}
-	if !(ManifestDedupPriority(model.NativeComponent, "npm-detector") < ManifestDedupPriority(model.ThirdPartyComponent, "syft-detector")) {
-		t.Fatal("expected native detector to outrank syft for manifest deduplication")
+	if !(ManifestDedupPriority(model.CoreOrigin, model.BuildToolTechnique) < ManifestDedupPriority(model.BundledOrigin, model.MultipleTechnique)) {
+		t.Fatal("expected core detector to outrank bundled multiple-technique detector for manifest deduplication")
 	}
 }
 

@@ -104,7 +104,8 @@ func newExplainCmd(options *globalOptions) *cobra.Command {
 				focusedResults = append(focusedResults, model.DetectionResult{
 					SubprojectInfo: result.SubprojectInfo,
 					DetectorName:   result.DetectorName,
-					ComponentType:  result.ComponentType,
+					Origin:         result.Origin,
+					Technique:      result.Technique,
 					Graphs:         scan.SingleGraphContainer(focusedGraph, render.ExplainManifestMetadata(result)),
 				})
 			}

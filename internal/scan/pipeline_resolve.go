@@ -204,7 +204,8 @@ func (p *Pipeline) resolveDetector(ctx context.Context, req model.DetectionReque
 
 	result.SubprojectInfo = req.Subproject
 	result.DetectorName = descriptor.Name
-	result.ComponentType = descriptor.ComponentType
+	result.Origin = descriptor.Origin
+	result.Technique = descriptor.Technique
 	p.Logger.Debug("pipeline: detector succeeded", zap.String("detector", descriptor.Name))
 	return []model.DetectionResult{result}, nil
 }

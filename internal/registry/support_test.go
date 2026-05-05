@@ -72,11 +72,11 @@ func TestSupportCatalogDetectorChainOrdering(t *testing.T) {
 	}
 }
 
-func TestSupportEntriesForDetectorTypeFiltersEvidencePatterns(t *testing.T) {
+func TestSupportEntriesForTechniqueFiltersEvidencePatterns(t *testing.T) {
 	for _, tc := range []struct {
 		name           string
 		manager        model.PackageManager
-		detectorType   model.ComponentType
+		technique      model.DetectorTechnique
 		wantDetectors  []string
 		wantEvidence   []string
 		rejectEvidence []string
@@ -84,39 +84,39 @@ func TestSupportEntriesForDetectorTypeFiltersEvidencePatterns(t *testing.T) {
 		{
 			name:           "npm native fallback",
 			manager:        model.PackageManagerNPM,
-			detectorType:   model.NativeComponent,
+			technique:      model.BuildToolTechnique,
 			wantDetectors:  []string{detectors.NameNPMNative},
 			wantEvidence:   []string{"package.json"},
 			rejectEvidence: []string{"package-lock.json"},
 		},
 		{
-			name:           "swiftpm native",
+			name:           "swiftpm lockfile",
 			manager:        model.PackageManagerSwiftPM,
-			detectorType:   model.NativeComponent,
+			technique:      model.LockfileTechnique,
 			wantDetectors:  []string{detectors.NameSwiftPM},
 			wantEvidence:   []string{"Package.resolved", ".package.resolved", "Package.swift", "project.xcworkspace/xcshareddata/swiftpm/Package.resolved"},
 			rejectEvidence: []string{},
 		},
 		{
-			name:           "mix native",
+			name:           "mix lockfile",
 			manager:        model.PackageManagerMix,
-			detectorType:   model.NativeComponent,
+			technique:      model.LockfileTechnique,
 			wantDetectors:  []string{detectors.NameMix},
 			wantEvidence:   []string{"mix.lock", "mix.exs"},
 			rejectEvidence: []string{},
 		},
 		{
-			name:           "conan native",
+			name:           "conan lockfile",
 			manager:        model.PackageManagerConan,
-			detectorType:   model.NativeComponent,
+			technique:      model.LockfileTechnique,
 			wantDetectors:  []string{detectors.NameConan},
 			wantEvidence:   []string{"conan.lock", "conanfile.txt", "conanfile.py", "conaninfo.txt"},
 			rejectEvidence: []string{},
 		},
 		{
-			name:           "sbt native",
+			name:           "sbt manifest",
 			manager:        model.PackageManagerSBT,
-			detectorType:   model.NativeComponent,
+			technique:      model.ManifestTechnique,
 			wantDetectors:  []string{detectors.NameSBT},
 			wantEvidence:   []string{"build.sbt", "project/plugins.sbt", "project/build.properties"},
 			rejectEvidence: []string{},
@@ -124,54 +124,54 @@ func TestSupportEntriesForDetectorTypeFiltersEvidencePatterns(t *testing.T) {
 		{
 			name:           "npm lockfile",
 			manager:        model.PackageManagerNPM,
-			detectorType:   model.LockfileParserComponent,
+			technique:      model.LockfileTechnique,
 			wantDetectors:  []string{detectors.NameNPM},
 			wantEvidence:   []string{"package-lock.json"},
 			rejectEvidence: []string{},
 		},
 		{
-			name:           "cargo native",
+			name:           "cargo lockfile",
 			manager:        model.PackageManagerCargo,
-			detectorType:   model.NativeComponent,
+			technique:      model.LockfileTechnique,
 			wantDetectors:  []string{detectors.NameCargo},
 			wantEvidence:   []string{"Cargo.lock", "Cargo.toml"},
 			rejectEvidence: []string{},
 		},
 		{
-			name:           "cargo third-party",
+			name:           "cargo multiple",
 			manager:        model.PackageManagerCargo,
-			detectorType:   model.ThirdPartyComponent,
+			technique:      model.MultipleTechnique,
 			wantDetectors:  []string{detectors.NameSyft},
 			wantEvidence:   []string{"Cargo.lock"},
 			rejectEvidence: []string{"Cargo.toml"},
 		},
 		{
-			name:           "nuget third-party",
+			name:           "nuget multiple",
 			manager:        model.PackageManagerNuGet,
-			detectorType:   model.ThirdPartyComponent,
+			technique:      model.MultipleTechnique,
 			wantDetectors:  []string{detectors.NameSyft},
 			wantEvidence:   []string{"packages.lock.json", "*.deps.json"},
 			rejectEvidence: []string{"packages.config", "*.csproj", "*.fsproj", "*.vbproj", "*.vcxproj", "project.assets.json"},
 		},
 		{
-			name:           "pub third-party",
+			name:           "pub multiple",
 			manager:        model.PackageManagerPub,
-			detectorType:   model.ThirdPartyComponent,
+			technique:      model.MultipleTechnique,
 			wantDetectors:  []string{detectors.NameSyft},
 			wantEvidence:   []string{"pubspec.yml", "pubspec.yaml", "pubspec.lock"},
 			rejectEvidence: []string{},
 		},
 		{
-			name:           "cocoapods third-party",
+			name:           "cocoapods multiple",
 			manager:        model.PackageManagerCocoaPods,
-			detectorType:   model.ThirdPartyComponent,
+			technique:      model.MultipleTechnique,
 			wantDetectors:  []string{detectors.NameSyft},
 			wantEvidence:   []string{"Podfile.lock"},
 			rejectEvidence: []string{"Podfile"},
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			entry, ok := supportEntryForManager(SupportEntriesForDetectorType(tc.detectorType), tc.manager)
+			entry, ok := supportEntryForManager(SupportEntriesForTechnique(tc.technique), tc.manager)
 			if !ok {
 				t.Fatalf("expected support entry for %s", tc.manager.Name())
 			}
@@ -184,7 +184,7 @@ func TestSupportEntriesForDetectorTypeFiltersEvidencePatterns(t *testing.T) {
 			for _, rejected := range tc.rejectEvidence {
 				for _, pattern := range entry.EvidencePatterns {
 					if pattern == rejected {
-						t.Fatalf("did not expect %q in %s evidence %v", rejected, tc.detectorType, entry.EvidencePatterns)
+						t.Fatalf("did not expect %q in %s evidence %v", rejected, tc.technique, entry.EvidencePatterns)
 					}
 				}
 			}

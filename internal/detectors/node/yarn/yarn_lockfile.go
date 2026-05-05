@@ -48,7 +48,8 @@ func (d LockfileDetector) Descriptor() model.DetectorDescriptor {
 	return model.DetectorDescriptor{
 		Name:                 detectors.NameYarn,
 		Enabled:              true,
-		ComponentType:        model.LockfileParserComponent,
+		Origin:               model.CoreOrigin,
+		Technique:            model.LockfileTechnique,
 		SupportedEcosystems:  []model.Ecosystem{model.EcosystemNPM},
 		SupportedManagers:    []model.PackageManager{model.PackageManagerYarn},
 		SupportedModes:       []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},

@@ -146,7 +146,7 @@ func (d *Detector) Descriptor(ctx context.Context) (*sdk.DetectorDescriptor, err
     return &sdk.DetectorDescriptor{
         Name:           "acme.detector.example",
         Enabled:        true,
-        ComponentType:  sdk.ComponentTypePlugin,
+        Origin:         sdk.ExternalOrigin,
         SupportedModes: []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
         Capabilities:   []string{"dependency-detection"},
     }, nil

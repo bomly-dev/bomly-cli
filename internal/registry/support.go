@@ -45,7 +45,8 @@ type OperatingSystemSupport struct {
 }
 
 var packageManagerSupport = buildPackageManagerSupportCatalog(builtInSupportDetectors())
-var detectorTypeByName = buildDetectorTypeCatalog(builtInSupportDetectors())
+var detectorOriginByName = buildDetectorOriginCatalog(builtInSupportDetectors())
+var detectorTechniqueByName = buildDetectorTechniqueCatalog(builtInSupportDetectors())
 
 var operatingSystemSupport = []OperatingSystemSupport{
 	{Name: "alpine", Provider: "apk-db-cataloger", VersionSource: "/etc/os-release"},
@@ -239,9 +240,14 @@ func PreferredEcosystemsForDetector(detectorName string) []model.Ecosystem {
 	return values
 }
 
-// DetectorTypeForName returns the implementation family for a built-in detector name.
-func DetectorTypeForName(name string) model.ComponentType {
-	return detectorTypeByName[strings.TrimSpace(name)]
+// DetectorOriginForName returns the origin for a built-in detector name.
+func DetectorOriginForName(name string) model.DetectorOrigin {
+	return detectorOriginByName[strings.TrimSpace(name)]
+}
+
+// DetectorTechniqueForName returns the detection technique for a built-in detector name.
+func DetectorTechniqueForName(name string) model.DetectorTechnique {
+	return detectorTechniqueByName[strings.TrimSpace(name)]
 }
 
 // SupportEntries returns Bomly's built-in package-manager support catalog.
@@ -255,8 +261,8 @@ func SupportEntries() []PackageManagerSupport {
 	return values
 }
 
-// SupportEntriesForDetectorType returns support entries backed by the requested component type.
-func SupportEntriesForDetectorType(detectorType model.ComponentType) []PackageManagerSupport {
+// SupportEntriesForTechnique returns support entries backed by the requested detector technique.
+func SupportEntriesForTechnique(technique model.DetectorTechnique) []PackageManagerSupport {
 	values := make([]PackageManagerSupport, 0)
 	for _, entry := range SupportEntries() {
 		filtered := entry
@@ -264,7 +270,7 @@ func SupportEntriesForDetectorType(detectorType model.ComponentType) []PackageMa
 		filtered.Detectors = nil
 		filtered.EvidencePatternsByDetector = nil
 		for _, detector := range entry.Detectors {
-			if DetectorTypeForName(detector) == detectorType {
+			if DetectorTechniqueForName(detector) == technique {
 				filtered.Detectors = appendUniqueStrings(filtered.Detectors, detector)
 				filtered.EvidencePatterns = appendUniqueStrings(filtered.EvidencePatterns, entry.EvidencePatternsByDetector[detector]...)
 				if filtered.EvidencePatternsByDetector == nil {
@@ -315,8 +321,8 @@ func buildPackageManagerSupportCatalog(detectorList []model.Detector) map[model.
 	return catalog
 }
 
-func buildDetectorTypeCatalog(detectorList []model.Detector) map[string]model.ComponentType {
-	catalog := make(map[string]model.ComponentType, len(detectorList))
+func buildDetectorOriginCatalog(detectorList []model.Detector) map[string]model.DetectorOrigin {
+	catalog := make(map[string]model.DetectorOrigin, len(detectorList))
 	for _, detector := range detectorList {
 		if detector == nil {
 			continue
@@ -325,7 +331,22 @@ func buildDetectorTypeCatalog(detectorList []model.Detector) map[string]model.Co
 		if descriptor.Name == "" {
 			continue
 		}
-		catalog[descriptor.Name] = descriptor.ComponentType
+		catalog[descriptor.Name] = descriptor.Origin
+	}
+	return catalog
+}
+
+func buildDetectorTechniqueCatalog(detectorList []model.Detector) map[string]model.DetectorTechnique {
+	catalog := make(map[string]model.DetectorTechnique, len(detectorList))
+	for _, detector := range detectorList {
+		if detector == nil {
+			continue
+		}
+		descriptor := detector.Descriptor()
+		if descriptor.Name == "" {
+			continue
+		}
+		catalog[descriptor.Name] = descriptor.Technique
 	}
 	return catalog
 }

@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/git"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
@@ -22,34 +23,8 @@ import (
 )
 
 type globalOptions struct {
-	Path         string
-	Container    string
-	URL          string
-	Ref          string
-	SBOM         bool
-	Enrich       bool
-	Audit        bool
-	FailOn       string
-	Format       string
-	Interactive  bool
-	Ecosystems   string
-	Detectors    string
-	Auditors     string
-	Matchers     string
-	InstallFirst bool
-	InstallArgs  []string
-	Config       string
-	Quiet        bool
-	Verbosity    int
-	OsvAPIBase   string
-	OsvCacheDir  string
-	OsvCacheTTL  string
-	KEVCacheDir  string
-	KEVCacheTTL  string
-	EOLAPIBase   string
-	EOLCacheDir  string
-	EOLCacheTTL  string
-	resolved     *resolvedConfig
+	config.Resolved
+	resolved *resolvedConfig
 }
 
 type commandContext struct {

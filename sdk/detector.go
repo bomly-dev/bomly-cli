@@ -44,11 +44,12 @@ type DetectionRequest struct {
 
 // DetectionResult contains one or more manifest-scoped graphs.
 type DetectionResult struct {
-	SubprojectInfo      Subproject      `json:"subprojectInfo"`
-	RootExecutionTarget ExecutionTarget `json:"rootExecutionTarget"`
-	DetectorName        string          `json:"detectorName,omitempty"`
-	ComponentType       ComponentType   `json:"componentType,omitempty"`
-	Graphs              *GraphContainer `json:"graphs,omitempty"`
+	SubprojectInfo      Subproject        `json:"subprojectInfo"`
+	RootExecutionTarget ExecutionTarget   `json:"rootExecutionTarget"`
+	DetectorName        string            `json:"detectorName,omitempty"`
+	Origin              DetectorOrigin    `json:"origin,omitempty"`
+	Technique           DetectorTechnique `json:"technique,omitempty"`
+	Graphs              *GraphContainer   `json:"graphs,omitempty"`
 }
 
 // ConsolidatedGraph returns a single graph view for the resolve result.
@@ -60,7 +61,8 @@ func (r DetectionResult) ConsolidatedGraph() (*Graph, error) {
 type DetectorDescriptor struct {
 	Name                  string                  `json:"name"`
 	Enabled               bool                    `json:"enabled,omitempty"`
-	ComponentType         ComponentType           `json:"componentType,omitempty"`
+	Origin                DetectorOrigin          `json:"origin,omitempty"`
+	Technique             DetectorTechnique       `json:"technique,omitempty"`
 	SupportedEcosystems   []Ecosystem             `json:"supportedEcosystems,omitempty"`
 	SupportedManagers     []PackageManager        `json:"supportedManagers,omitempty"`
 	SupportedModes        []TargetMode            `json:"supportedModes,omitempty"`

@@ -118,7 +118,7 @@ func (c *Checker) Descriptor() model.MatcherDescriptor {
 	return model.MatcherDescriptor{
 		Name:           "depsdev-license-checker",
 		Enabled:        true,
-		ComponentType:  model.ThirdPartyComponent,
+		Origin:         model.CoreOrigin,
 		SupportedModes: []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
 		Priority:       100,
 		Required:       false,

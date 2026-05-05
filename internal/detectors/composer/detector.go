@@ -63,7 +63,8 @@ func (d Detector) Descriptor() model.DetectorDescriptor {
 	return model.DetectorDescriptor{
 		Name:                detectors.NameComposer,
 		Enabled:             true,
-		ComponentType:       model.NativeComponent,
+		Origin:              model.CoreOrigin,
+		Technique:           model.LockfileTechnique,
 		SupportedEcosystems: []model.Ecosystem{model.EcosystemPHP},
 		SupportedManagers:   []model.PackageManager{model.PackageManagerComposer},
 		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},

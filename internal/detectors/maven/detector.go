@@ -71,7 +71,8 @@ func (d Detector) Descriptor() model.DetectorDescriptor {
 	return model.DetectorDescriptor{
 		Name:                detectors.NameMaven,
 		Enabled:             true,
-		ComponentType:       model.NativeComponent,
+		Origin:              model.CoreOrigin,
+		Technique:           model.BuildToolTechnique,
 		SupportedEcosystems: []model.Ecosystem{model.EcosystemMaven},
 		SupportedManagers:   []model.PackageManager{model.PackageManagerMaven},
 		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},

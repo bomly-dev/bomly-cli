@@ -38,7 +38,8 @@ func (d PipDetector) Descriptor() model.DetectorDescriptor {
 	return model.DetectorDescriptor{
 		Name:                detectors.NamePip,
 		Enabled:             true,
-		ComponentType:       model.NativeComponent,
+		Origin:              model.CoreOrigin,
+		Technique:           model.BuildToolTechnique,
 		SupportedEcosystems: []model.Ecosystem{model.EcosystemPython},
 		SupportedManagers:   []model.PackageManager{model.PackageManagerPip},
 		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},

@@ -20,7 +20,7 @@ func (a Auditor) Descriptor() model.AuditorDescriptor {
 	return model.AuditorDescriptor{
 		Name:                auditorName,
 		Enabled:             true,
-		ComponentType:       model.NativeComponent,
+		Origin:              model.CoreOrigin,
 		SupportedEcosystems: nil,
 		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
 	}

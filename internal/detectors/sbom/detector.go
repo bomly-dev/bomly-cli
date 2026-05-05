@@ -49,7 +49,8 @@ func (d Detector) Descriptor() model.DetectorDescriptor {
 	return model.DetectorDescriptor{
 		Name:                detectors.NameSBOM,
 		Enabled:             true,
-		ComponentType:       model.NativeComponent,
+		Origin:              model.CoreOrigin,
+		Technique:           model.SBOMTechnique,
 		SupportedEcosystems: []model.Ecosystem{model.EcosystemSBOM},
 		SupportedManagers:   []model.PackageManager{model.PackageManagerSBOM},
 		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
@@ -105,7 +106,8 @@ func (d Detector) ResolveGraph(_ context.Context, req model.DetectionRequest) (m
 	return model.DetectionResult{
 		SubprojectInfo: req.Subproject,
 		DetectorName:   d.Descriptor().Name,
-		ComponentType:  d.Descriptor().ComponentType,
+		Origin:         d.Descriptor().Origin,
+		Technique:      d.Descriptor().Technique,
 		Graphs:         normalizeSBOMGraphContainer(normalizeSBOMManifestMetadata(graphs, req)),
 	}, nil
 }

@@ -60,7 +60,8 @@ func (d Detector) Descriptor() model.DetectorDescriptor {
 	return model.DetectorDescriptor{
 		Name:                detectors.NameSBT,
 		Enabled:             true,
-		ComponentType:       model.NativeComponent,
+		Origin:              model.CoreOrigin,
+		Technique:           model.ManifestTechnique,
 		SupportedEcosystems: []model.Ecosystem{model.EcosystemScala, model.EcosystemMaven},
 		SupportedManagers:   []model.PackageManager{model.PackageManagerSBT},
 		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},

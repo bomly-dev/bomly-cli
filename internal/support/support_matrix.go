@@ -17,27 +17,26 @@ func RenderSupportMatrixMarkdown() string {
 	builder.WriteString("This document lists the ecosystems and package managers Bomly can identify today.\n\n")
 	builder.WriteString("It is generated from the canonical support registry in `internal/registry/support.go`.\n\n")
 	builder.WriteString("Bomly groups support into two implementation paths:\n\n")
-	builder.WriteString("- Native detectors implemented directly in Bomly.\n")
-	builder.WriteString("- Third-party-backed detection powered by Syft support metadata.\n\n")
-	builder.WriteString("## Native Detectors\n\n")
-	builder.WriteString("Primary detector files are the preferred inputs for Bomly-owned resolution. Fallback detector files are inputs for the next built-in Bomly detector in the same chain; Syft-only backstops are omitted here and listed under third-party support.\n\n")
+	builder.WriteString("- Core detectors implemented directly in Bomly.\n")
+	builder.WriteString("- Bundled detectors based on third-party tools that are distributed with Bomly and maintained by the Bomly team.\n\n")
+	builder.WriteString("## Core Detectors\n\n")
+	builder.WriteString("Primary detector files are the preferred inputs for Bomly-owned resolution. Fallback detector files are inputs for the next built-in Bomly detector in the same chain; Syft-only backstops are omitted here and listed under Bundled detectors support.\n\n")
 	builder.WriteString("| Ecosystem | Package managers | Primary detector files | Fallback detector files | Detector |\n")
 	builder.WriteString("| --- | --- | --- | --- | --- |\n")
 	for _, entry := range groupedNativeEntries() {
 		builder.WriteString(fmt.Sprintf("| `%s` | %s | %s | %s | %s |\n", entry.ecosystem, codeList(entry.managers), codeListOrDash(entry.primaryPatterns), codeListOrDash(entry.fallbackPatterns), nativeDetectorLabel(entry.ecosystem)))
 	}
-	builder.WriteString("\n## Third-Party Support\n\n")
+	builder.WriteString("\n## Bundled Detectors\n\n")
 	builder.WriteString("The entries below show Syft-backed ecosystem coverage plus representative files Bomly uses during planning and discovery.\n\n")
 	builder.WriteString("Source: https://oss.anchore.com/docs/capabilities/all-packages/\n\n")
 	builder.WriteString("| Ecosystem | Package managers | Representative file evidence |\n")
 	builder.WriteString("| --- | --- | --- |\n")
-	for _, entry := range groupedSupportEntries(model.ThirdPartyComponent) {
+	for _, entry := range groupedMultipleTechniqueEntries() {
 		builder.WriteString(fmt.Sprintf("| `%s` | %s | %s |\n", entry.ecosystem, codeList(entry.managers), codeList(entry.patterns)))
 	}
 	builder.WriteString("\n## Notes\n\n")
 	builder.WriteString("- Bomly does not expose every Syft cataloger as a package manager.\n")
 	builder.WriteString("- Some OS image and binary catalogers are intentionally omitted when they do not map cleanly to Bomly's ecosystem and package-manager model.\n")
-	builder.WriteString("- The `maven` ecosystem is a shared umbrella for both Maven and Gradle.\n")
 	builder.WriteString("\n## Syft Container OS Support\n\n")
 	builder.WriteString("These OS families are listed separately because they describe container base-image detection rather than language-specific package managers.\n\n")
 	builder.WriteString("Source: https://oss.anchore.com/docs/capabilities/all-os/\n\n")
@@ -102,8 +101,7 @@ func groupedNativeEntries() []groupedEntry {
 func firstBuiltInDetectorPair(detectors []string) (string, string) {
 	primary := ""
 	for _, detector := range detectors {
-		switch registry.DetectorTypeForName(detector) {
-		case model.NativeComponent, model.LockfileParserComponent:
+		if registry.DetectorOriginForName(detector) == model.CoreOrigin {
 			if primary == "" {
 				primary = detector
 				continue
@@ -114,10 +112,10 @@ func firstBuiltInDetectorPair(detectors []string) (string, string) {
 	return primary, ""
 }
 
-func groupedSupportEntries(detectorType model.ComponentType) []groupedEntry {
+func groupedMultipleTechniqueEntries() []groupedEntry {
 	indexByEcosystem := make(map[model.Ecosystem]int)
 	result := make([]groupedEntry, 0)
-	for _, entry := range registry.SupportEntriesForDetectorType(detectorType) {
+	for _, entry := range registry.SupportEntriesForTechnique(model.MultipleTechnique) {
 		idx, ok := indexByEcosystem[entry.Ecosystem]
 		if !ok {
 			idx = len(result)

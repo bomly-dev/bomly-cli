@@ -250,15 +250,15 @@ type ecosystemGroupRow struct {
 	Detectors       []string
 }
 
-// buildNativeDetectorRows returns rows for the native/lockfile-parser detector table.
+// buildBundledDetectorRows returns rows for the bundled detector table.
 // Each row contains [Ecosystem, Package Managers, Detectors].
-func buildNativeDetectorRows(reg *scan.Registry) [][]string {
+func buildBundledDetectorRows(reg *scan.Registry) [][]string {
 	if reg == nil {
 		return nil
 	}
-	detectorTypes := make(map[string]model.ComponentType, len(reg.DetectorDescriptors()))
+	detectorOrigins := make(map[string]model.DetectorOrigin, len(reg.DetectorDescriptors()))
 	for _, desc := range reg.DetectorDescriptors() {
-		detectorTypes[desc.Name] = desc.ComponentType
+		detectorOrigins[desc.Name] = desc.Origin
 	}
 	rowMap := make(map[string]*ecosystemGroupRow)
 	for _, support := range registry.SupportEntries() {
@@ -266,14 +266,14 @@ func buildNativeDetectorRows(reg *scan.Registry) [][]string {
 		if eco == "" {
 			continue
 		}
-		var nativeDets []string
+		var bundledDets []string
 		for _, det := range support.Detectors {
-			t := detectorTypes[det]
-			if t == model.NativeComponent || t == model.LockfileParserComponent {
-				nativeDets = append(nativeDets, det)
+			t := detectorOrigins[det]
+			if t == model.CoreOrigin {
+				bundledDets = append(bundledDets, det)
 			}
 		}
-		if len(nativeDets) == 0 {
+		if len(bundledDets) == 0 {
 			continue
 		}
 		row := rowMap[eco]
@@ -285,7 +285,7 @@ func buildNativeDetectorRows(reg *scan.Registry) [][]string {
 		if manager != "" {
 			row.PackageManagers = selector.AppendUnique(row.PackageManagers, manager)
 		}
-		for _, det := range nativeDets {
+		for _, det := range bundledDets {
 			row.Detectors = selector.AppendUnique(row.Detectors, detectorEntryLabel(det))
 		}
 	}
@@ -312,9 +312,9 @@ func buildNativeDetectorRows(reg *scan.Registry) [][]string {
 	return out
 }
 
-// buildThirdPartyDetectorRows returns rows for the third-party detector table.
+// buildExternalDetectorRows returns rows for the external detector table.
 // Each row contains [Detector, Ecosystems].
-func buildThirdPartyDetectorRows(reg *scan.Registry) [][]string {
+func buildExternalDetectorRows(reg *scan.Registry) [][]string {
 	if reg == nil {
 		return nil
 	}
@@ -324,7 +324,7 @@ func buildThirdPartyDetectorRows(reg *scan.Registry) [][]string {
 	}
 	byDet := make(map[string]*entry)
 	for _, desc := range reg.DetectorDescriptors() {
-		if desc.ComponentType != model.ThirdPartyComponent {
+		if desc.Origin != model.ExternalOrigin {
 			continue
 		}
 		label := detectorEntryLabel(strings.TrimSpace(desc.Name))

@@ -41,9 +41,9 @@ func TestInteractiveManifestRows_OnlyIncludesManifests(t *testing.T) {
 			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
 			Ecosystem:               model.EcosystemNPM,
 		},
-		DetectorName:  "npm-detector",
-		ComponentType: model.NativeComponent,
-		Graphs:        scan.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		DetectorName: "npm-detector",
+		Origin:       model.CoreOrigin,
+		Graphs:       scan.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	rows := manifestRows(consolidated)
 	if len(rows) != 1 {
@@ -79,9 +79,9 @@ func TestInteractiveListModel_ViewIncludesDetails(t *testing.T) {
 			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
 			Ecosystem:               model.EcosystemNPM,
 		},
-		DetectorName:  "npm-detector",
-		ComponentType: model.NativeComponent,
-		Graphs:        scan.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		DetectorName: "npm-detector",
+		Origin:       model.CoreOrigin,
+		Graphs:       scan.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {
@@ -178,9 +178,9 @@ func TestNewScanInteractiveModel_ViewIncludesGraphSummary(t *testing.T) {
 			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
 			Ecosystem:               model.EcosystemNPM,
 		},
-		DetectorName:  "npm-detector",
-		ComponentType: model.NativeComponent,
-		Graphs:        scan.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		DetectorName: "npm-detector",
+		Origin:       model.CoreOrigin,
+		Graphs:       scan.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {
@@ -240,9 +240,9 @@ func TestScanInteractiveModel_MultiManifestNavigation(t *testing.T) {
 				DetectedPackageManagers: []model.PackageManager{model.PackageManagerMaven},
 				Ecosystem:               model.EcosystemMaven,
 			},
-			DetectorName:  "maven-detector",
-			ComponentType: model.NativeComponent,
-			Graphs:        scan.SingleGraphContainer(graphFixtureForInteractive(t, r1, c1), model.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}),
+			DetectorName: "maven-detector",
+			Origin:       model.CoreOrigin,
+			Graphs:       scan.SingleGraphContainer(graphFixtureForInteractive(t, r1, c1), model.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}),
 		},
 		{
 			SubprojectInfo: model.Subproject{
@@ -252,9 +252,9 @@ func TestScanInteractiveModel_MultiManifestNavigation(t *testing.T) {
 				DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
 				Ecosystem:               model.EcosystemNPM,
 			},
-			DetectorName:  "npm-detector",
-			ComponentType: model.NativeComponent,
-			Graphs:        scan.SingleGraphContainer(graphFixtureForInteractive(t, r2, c2), model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+			DetectorName: "npm-detector",
+			Origin:       model.CoreOrigin,
+			Graphs:       scan.SingleGraphContainer(graphFixtureForInteractive(t, r2, c2), model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 		},
 	})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
@@ -303,9 +303,9 @@ func TestScanInteractiveModel_SingleManifestAutoEntry_NoBackNavigation(t *testin
 			DetectedPackageManagers: []model.PackageManager{model.PackageManagerMaven},
 			Ecosystem:               model.EcosystemMaven,
 		},
-		DetectorName:  "maven-detector",
-		ComponentType: model.NativeComponent,
-		Graphs:        scan.SingleGraphContainer(graphFixtureForInteractive(t, r1, c1), model.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}),
+		DetectorName: "maven-detector",
+		Origin:       model.CoreOrigin,
+		Graphs:       scan.SingleGraphContainer(graphFixtureForInteractive(t, r1, c1), model.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {
@@ -650,9 +650,9 @@ func TestScanInteractiveModel_FiltersAndScopeBadges(t *testing.T) {
 			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
 			Ecosystem:               model.EcosystemNPM,
 		},
-		DetectorName:  "npm-detector",
-		ComponentType: model.NativeComponent,
-		Graphs:        scan.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		DetectorName: "npm-detector",
+		Origin:       model.CoreOrigin,
+		Graphs:       scan.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {
@@ -801,9 +801,9 @@ func TestBuildLicensesListModel_GroupsByUniqueLicense(t *testing.T) {
 			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
 			Ecosystem:               model.EcosystemNPM,
 		},
-		DetectorName:  "npm-detector",
-		ComponentType: model.NativeComponent,
-		Graphs:        scan.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		DetectorName: "npm-detector",
+		Origin:       model.CoreOrigin,
+		Graphs:       scan.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {

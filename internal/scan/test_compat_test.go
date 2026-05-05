@@ -54,8 +54,6 @@ const (
 	EcosystemSBOM                   = model.EcosystemSBOM
 	TargetModeFullGraph             = model.TargetModeFullGraph
 	TargetModeComponent             = model.TargetModeComponent
-	NativeDetector                  = model.NativeComponent
-	ThirdPartyDetector              = model.ThirdPartyComponent
 	ExecutionTargetFilesystem       = model.ExecutionTargetFilesystem
 	ExecutionTargetWorkingDirectory = model.ExecutionTargetWorkingDirectory
 	ExecutionTargetContainerImage   = model.ExecutionTargetContainerImage

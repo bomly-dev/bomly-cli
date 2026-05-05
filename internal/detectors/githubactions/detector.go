@@ -67,7 +67,8 @@ func (d Detector) Descriptor() model.DetectorDescriptor {
 	return model.DetectorDescriptor{
 		Name:                detectors.NameGitHubActions,
 		Enabled:             true,
-		ComponentType:       model.NativeComponent,
+		Origin:              model.CoreOrigin,
+		Technique:           model.ManifestTechnique,
 		SupportedEcosystems: []model.Ecosystem{model.EcosystemGitHub},
 		SupportedManagers:   []model.PackageManager{model.PackageManagerGitHubActions},
 		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},

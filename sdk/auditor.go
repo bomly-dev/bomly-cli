@@ -50,7 +50,7 @@ type AuditResult struct {
 type AuditorDescriptor struct {
 	Name                string           `json:"name"`
 	Enabled             bool             `json:"enabled,omitempty"`
-	ComponentType       ComponentType    `json:"componentType,omitempty"`
+	Origin              DetectorOrigin   `json:"origin,omitempty"`
 	SupportedEcosystems []Ecosystem      `json:"supportedEcosystems,omitempty"`
 	SupportedManagers   []PackageManager `json:"supportedManagers,omitempty"`
 	SupportedModes      []TargetMode     `json:"supportedModes,omitempty"`

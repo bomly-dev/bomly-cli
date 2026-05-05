@@ -95,7 +95,8 @@ func (d Detector) Descriptor() model.DetectorDescriptor {
 	return model.DetectorDescriptor{
 		Name:                detectors.NameGoMod,
 		Enabled:             true,
-		ComponentType:       model.NativeComponent,
+		Origin:              model.CoreOrigin,
+		Technique:           model.BuildToolTechnique,
 		SupportedEcosystems: []model.Ecosystem{model.EcosystemGo},
 		SupportedManagers:   []model.PackageManager{model.PackageManagerGoMod},
 		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},

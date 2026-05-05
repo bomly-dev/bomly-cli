@@ -84,7 +84,8 @@ func (d Detector) Descriptor() model.DetectorDescriptor {
 	return model.DetectorDescriptor{
 		Name:                detectors.NameConan,
 		Enabled:             true,
-		ComponentType:       model.NativeComponent,
+		Origin:              model.CoreOrigin,
+		Technique:           model.LockfileTechnique,
 		SupportedEcosystems: []model.Ecosystem{model.EcosystemCPP},
 		SupportedManagers:   []model.PackageManager{model.PackageManagerConan},
 		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},

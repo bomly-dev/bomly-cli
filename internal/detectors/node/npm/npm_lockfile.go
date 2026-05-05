@@ -48,7 +48,8 @@ func (d LockfileDetector) Descriptor() model.DetectorDescriptor {
 	return model.DetectorDescriptor{
 		Name:                 detectors.NameNPM,
 		Enabled:              true,
-		ComponentType:        model.LockfileParserComponent,
+		Origin:               model.CoreOrigin,
+		Technique:            model.LockfileTechnique,
 		SupportedEcosystems:  []model.Ecosystem{model.EcosystemNPM},
 		SupportedManagers:    []model.PackageManager{model.PackageManagerNPM},
 		SupportedModes:       []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},

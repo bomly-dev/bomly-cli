@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -47,7 +46,8 @@ type consolidatedEntryCandidate struct {
 	entry          model.GraphEntry
 	subproject     model.Subproject
 	detectorName   string
-	componentType  model.ComponentType
+	origin         model.DetectorOrigin
+	technique      model.DetectorTechnique
 	rootManifestID string
 	priority       int
 }
@@ -79,7 +79,7 @@ func selectManifestEntries(results []model.DetectionResult) (model.ExecutionTarg
 			if err != nil {
 				return model.ExecutionTarget{}, nil, fmt.Errorf("normalize graph identity for %s entry %d: %w", result.SubprojectInfo.RelativePath, idx, err)
 			}
-			manifest := normalizeSubprojectManifest(result.SubprojectInfo, entry.Manifest, idx, result.ComponentType, result.DetectorName)
+			manifest := normalizeSubprojectManifest(result.SubprojectInfo, entry.Manifest, idx, result.Origin, result.Technique)
 			if err := ensureEntryRoot(normalizedGraph, manifest, idx); err != nil {
 				return model.ExecutionTarget{}, nil, fmt.Errorf("ensure entry root for %s entry %d: %w", result.SubprojectInfo.RelativePath, idx, err)
 			}
@@ -90,9 +90,10 @@ func selectManifestEntries(results []model.DetectionResult) (model.ExecutionTarg
 				},
 				subproject:     result.SubprojectInfo,
 				detectorName:   result.DetectorName,
-				componentType:  result.ComponentType,
+				origin:         result.Origin,
+				technique:      result.Technique,
 				rootManifestID: consolidatedEntryRootID(normalizedGraph, manifest, idx),
-				priority:       ManifestDedupPriority(result.ComponentType, result.DetectorName),
+				priority:       ManifestDedupPriority(result.Origin, result.Technique),
 			}
 
 			manifestKey := manifestDedupKey(result.SubprojectInfo, manifest)
@@ -115,19 +116,20 @@ func selectManifestEntries(results []model.DetectionResult) (model.ExecutionTarg
 			Entry:          selected.entry,
 			Subproject:     selected.subproject,
 			DetectorName:   selected.detectorName,
-			ComponentType:  selected.componentType,
+			Origin:         selected.origin,
+			Technique:      selected.technique,
 			RootManifestID: selected.rootManifestID,
 		})
 	}
 	return executionTarget, selectedManifests, nil
 }
 
-func normalizeSubprojectManifest(subproject model.Subproject, manifest model.ManifestMetadata, idx int, detectorType model.ComponentType, detectorName string) model.ManifestMetadata {
+func normalizeSubprojectManifest(subproject model.Subproject, manifest model.ManifestMetadata, idx int, origin model.DetectorOrigin, technique model.DetectorTechnique) model.ManifestMetadata {
 	if strings.TrimSpace(manifest.Path) == "" {
 		manifest.Path = subprojectManifestPath(subproject, idx)
 	}
 	manifest.Path = strings.ReplaceAll(strings.TrimSpace(manifest.Path), "\\", "/")
-	if isNativeDetector(detectorType, detectorName) {
+	if isCoreDetector(origin) {
 		manifest.Path = normalizeNativeManifestPath(subproject, manifest.Path)
 	}
 	if strings.TrimSpace(manifest.Kind) == "" {
@@ -141,38 +143,23 @@ func normalizeSubprojectManifest(subproject model.Subproject, manifest model.Man
 // detectors resolve the same manifest. Lower values win.
 //
 // Priority order:
-// 0. Native and lockfile-parser detectors
-// 1. Plugin detectors and non-Syft third-party detectors
-// 2. Syft fallback detector
-func ManifestDedupPriority(detectorType model.ComponentType, detectorName string) int {
-	switch effectiveDetectorType(detectorType, detectorName) {
-	case model.NativeComponent, model.LockfileParserComponent:
+// 0. External detectors
+// 1. Core detectors (Bomly-native implementations)
+// 2. Bundled third-party detectors (e.g. Syft fallback)
+func ManifestDedupPriority(origin model.DetectorOrigin, technique model.DetectorTechnique) int {
+	switch origin {
+	case model.ExternalOrigin:
 		return 0
-	case model.ThirdPartyComponent:
-		if strings.EqualFold(strings.TrimSpace(detectorName), detectors.NameSyft) {
-			return 2
-		}
+	case model.CoreOrigin:
 		return 1
-	case model.PluginComponent:
-		return 1
-	default:
-		return 1
+	case model.BundledOrigin:
+		return 2
 	}
+	return 3
 }
 
-func isNativeDetector(detectorType model.ComponentType, detectorName string) bool {
-	effectiveType := effectiveDetectorType(detectorType, detectorName)
-	return effectiveType == model.NativeComponent || effectiveType == model.LockfileParserComponent
-}
-
-func effectiveDetectorType(detectorType model.ComponentType, detectorName string) model.ComponentType {
-	if detectorType != "" {
-		return detectorType
-	}
-	if strings.EqualFold(strings.TrimSpace(detectorName), detectors.NameSyft) {
-		return model.ThirdPartyComponent
-	}
-	return model.NativeComponent
+func isCoreDetector(origin model.DetectorOrigin) bool {
+	return origin == model.CoreOrigin
 }
 
 func consolidatedSubprojectKey(subproject model.Subproject, detectorName string) string {

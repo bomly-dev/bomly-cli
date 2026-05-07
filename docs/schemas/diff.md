@@ -54,7 +54,7 @@ Complete reference for the `bomly diff` JSON output.
 | Field | Type | Description |
 |-------|------|-------------|
 | `introduced` | Array<[`AuditFinding`](#auditfinding)> | |
-| `resolved` | Array<[`AuditFinding`](#auditfinding)> | |
+| `Resolved` | Array<[`AuditFinding`](#auditfinding)> | |
 | `persisted` | Array<[`AuditFinding`](#auditfinding)> | |
 | `audit_summary` | [`AuditSummary`](#auditsummary) | |
 

@@ -119,13 +119,32 @@ func ApplyEnvOverrides(dst *Resolved) {
 	}
 }
 
-// ApplyDefaults fills in zero-value fields with their documented defaults.
+// ApplyDefaults fills in zero-value fields with their documented defaults,
+// driven by the `default` struct tags on Resolved.
 func ApplyDefaults(cfg *Resolved) {
 	if cfg == nil {
 		return
 	}
-	if strings.TrimSpace(cfg.FailOn) == "" {
-		cfg.FailOn = "any"
+	v := reflect.ValueOf(cfg).Elem()
+	t := v.Type()
+	for i := 0; i < t.NumField(); i++ {
+		def := t.Field(i).Tag.Get("default")
+		if def == "" {
+			continue
+		}
+		fv := v.Field(i)
+		switch fv.Kind() {
+		case reflect.String:
+			if strings.TrimSpace(fv.String()) == "" {
+				fv.SetString(def)
+			}
+		case reflect.Bool:
+			if !fv.Bool() {
+				if b, ok := parseBool(def); ok {
+					fv.SetBool(b)
+				}
+			}
+		}
 	}
 }
 

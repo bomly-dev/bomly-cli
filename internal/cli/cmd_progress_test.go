@@ -3,6 +3,7 @@ package cli
 import (
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -39,10 +40,10 @@ func TestMatchProgressChildren_ReportsMatcherCounts(t *testing.T) {
 	}
 
 	children := matchProgressChildren(g, []string{
-		depsdevCheckerName,
-		clearlyDefinedCheckerName,
-		osvMatcherName,
-		grypeMatcherName,
+		opts.DepsdevCheckerName,
+		opts.ClearlyDefinedCheckerName,
+		opts.OSVMatcherName,
+		opts.GrypeMatcherName,
 	}, nil)
 
 	details := make(map[string]string, len(children))
@@ -65,8 +66,8 @@ func TestMatchProgressChildren_ReportsMatcherCounts(t *testing.T) {
 
 func TestAuditProgressChildren_UsesAuditorRunsNotFindingSources(t *testing.T) {
 	children := auditProgressChildren(
-		[]string{severityPolicyAuditorName},
-		map[string]int{severityPolicyAuditorName: 3},
+		[]string{opts.SeverityPolicyAuditorName},
+		map[string]int{opts.SeverityPolicyAuditorName: 3},
 		nil,
 	)
 

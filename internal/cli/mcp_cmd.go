@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	clictx "github.com/bomly-dev/bomly-cli/internal/cli/opts"
+	"github.com/bomly-dev/bomly-cli/internal/cli/resolve"
 	"github.com/bomly-dev/bomly-cli/internal/explain"
 	bomcp "github.com/bomly-dev/bomly-cli/internal/mcp"
 	"github.com/bomly-dev/bomly-cli/internal/output"
@@ -20,16 +22,16 @@ import (
 	"go.uber.org/zap"
 )
 
-func newMcpCmd(options *globalOptions) *cobra.Command {
+func newMcpCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "mcp",
 		Short: "MCP server for AI agent integration",
 	}
-	cmd.AddCommand(newMcpServeCmd(options))
+	cmd.AddCommand(newMcpServeCmd())
 	return cmd
 }
 
-func newMcpServeCmd(options *globalOptions) *cobra.Command {
+func newMcpServeCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "serve",
 		Short: "Start the MCP stdio server",
@@ -37,7 +39,11 @@ func newMcpServeCmd(options *globalOptions) *cobra.Command {
 			"Exposes bomly analysis capabilities as tools that AI agents (Claude, Cursor, etc.) can call.",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logger := commandLogger(cmd, options, "mcp")
+			options, err := commandOptions(cmd)
+			if err != nil {
+				return err
+			}
+			logger := commandLogger(cmd, "mcp")
 			adapter := &mcpOptionsAdapter{
 				options: options,
 				logger:  logger,
@@ -55,51 +61,45 @@ func newMcpServeCmd(options *globalOptions) *cobra.Command {
 // mcpOptionsAdapter implements bomcp.OptionsAdapter.
 // It lives in package cli so it can call unexported pipeline helpers.
 type mcpOptionsAdapter struct {
-	options *globalOptions
+	options *clictx.Options
 	logger  *zap.Logger
 	version string
 }
 
-// cloneWithOverrides returns a copy of globalOptions with per-call values layered on top.
+// cloneWithOverrides returns a copy of CommandContext with per-call values layered on top.
 // The copy is safe to use concurrently — each call gets its own context and pipeline.
-func (a *mcpOptionsAdapter) cloneWithOverrides(path, container, url, ref string, enrich, audit bool, failOn, ecosystems string) *globalOptions {
+func (a *mcpOptionsAdapter) cloneWithOverrides(path, container, url, ref string, enrich, audit bool, failOn, ecosystems string) *clictx.Options {
 	clone := *a.options
 
-	// Deep-copy resolved config so per-call overrides don't mutate the server-level state.
-	if clone.resolved != nil {
-		resolved := *clone.resolved
-		clone.resolved = &resolved
-	}
-
-	applyStringOverride(&clone.Path, path)
-	applyStringOverride(&clone.Container, container)
-	applyStringOverride(&clone.URL, url)
-	applyStringOverride(&clone.Ref, ref)
-	applyStringOverride(&clone.FailOn, failOn)
-	applyStringOverride(&clone.Ecosystems, ecosystems)
+	resolved := clone.GetConfig()
+	applyStringOverride(&clone.ResolvedConfig.Path, path)
+	applyStringOverride(&clone.ResolvedConfig.Container, container)
+	applyStringOverride(&clone.ResolvedConfig.URL, url)
+	applyStringOverride(&clone.ResolvedConfig.Ref, ref)
+	applyStringOverride(&clone.ResolvedConfig.FailOn, failOn)
+	applyStringOverride(&clone.ResolvedConfig.Ecosystems, ecosystems)
 	if enrich {
-		clone.Enrich = true
+		clone.ResolvedConfig.Enrich = true
 	}
 	if audit {
-		clone.Audit = true
+		clone.ResolvedConfig.Audit = true
 	}
-	clone.Interactive = false
+	clone.ResolvedConfig.Interactive = false
 
-	if clone.resolved != nil {
-		applyStringOverride(&clone.resolved.Path, path)
-		applyStringOverride(&clone.resolved.Container, container)
-		applyStringOverride(&clone.resolved.URL, url)
-		applyStringOverride(&clone.resolved.Ref, ref)
-		applyStringOverride(&clone.resolved.FailOn, failOn)
-		applyStringOverride(&clone.resolved.Ecosystems, ecosystems)
-		if enrich {
-			clone.resolved.Enrich = true
-		}
-		if audit {
-			clone.resolved.Audit = true
-		}
-		clone.resolved.Interactive = false
+	applyStringOverride(&resolved.Path, path)
+	applyStringOverride(&resolved.Container, container)
+	applyStringOverride(&resolved.URL, url)
+	applyStringOverride(&resolved.Ref, ref)
+	applyStringOverride(&resolved.FailOn, failOn)
+	applyStringOverride(&resolved.Ecosystems, ecosystems)
+	if enrich {
+		resolved.Enrich = true
 	}
+	if audit {
+		resolved.Audit = true
+	}
+	resolved.Interactive = false
+	clone.SetConfig(resolved)
 
 	return &clone
 }
@@ -113,36 +113,34 @@ func applyStringOverride(target *string, value string) {
 func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req bomcp.ScanRequest) (output.ScanResponse, error) {
 	started := time.Now()
 	o := a.cloneWithOverrides(req.Path, req.Container, req.URL, req.Ref, req.Enrich, req.Audit, req.FailOn, req.Ecosystems)
-	cmdCtx, err := o.newCommandContext(a.logger)
+	cmdCtx, err := o.Prepare(ctx, a.logger)
 	if err != nil {
 		return output.ScanResponse{}, err
 	}
-	defer func() { _ = cmdCtx.close() }()
 
-	pipeline := newPipeline(cmdCtx, a.logger)
-	pipeReq := pipelineRequest(cmdCtx, model.ScopeUnknown, io.Discard)
+	pipeline := resolve.NewPipeline(cmdCtx, a.logger)
+	pipeReq := resolve.PipelineRequest(cmdCtx, model.ScopeUnknown, io.Discard)
 	pipeResult, runErr := pipeline.Run(ctx, pipeReq)
 	if runErr != nil && len(pipeResult.ResolveResults) == 0 {
 		return output.ScanResponse{}, runErr
 	}
 
 	var findings []model.Finding
-	if cmdCtx.config.Audit {
-		findings = deduplicateFindings(pipeResult.Findings)
+	if cmdCtx.ResolvedConfig.Audit {
+		findings = resolve.DeduplicateFindings(pipeResult.Findings)
 	}
-	return output.BuildScanResponse(cmdCtx.projectDescriptor(), pipeResult.Consolidated, findings, started), nil
+	return output.BuildScanResponse(cmdCtx.ProjectDescriptor(), pipeResult.Consolidated, findings, started), nil
 }
 
 func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req bomcp.ExplainRequest) (output.ExplainResponse, error) {
 	started := time.Now()
 	o := a.cloneWithOverrides(req.Path, "", "", "", req.Enrich, req.Audit, "", "")
-	cmdCtx, err := o.newCommandContext(a.logger)
+	cmdCtx, err := o.Prepare(ctx, a.logger)
 	if err != nil {
 		return output.ExplainResponse{}, err
 	}
-	defer func() { _ = cmdCtx.close() }()
 
-	resolution, err := resolveGraphs(cmdCtx, a.logger, io.Discard)
+	resolution, err := resolve.ResolveGraphs(cmdCtx, a.logger, io.Discard)
 	if err != nil {
 		return output.ExplainResponse{}, err
 	}
@@ -153,8 +151,8 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req bomcp.ExplainReq
 		if graphErr != nil {
 			return output.ExplainResponse{}, graphErr
 		}
-		if cmdCtx.config.Enrich {
-			depsGraph = enrichGraph(cmdCtx, a.logger, depsGraph, result.SubprojectInfo, io.Discard)
+		if cmdCtx.ResolvedConfig.Enrich {
+			depsGraph = resolve.EnrichGraph(cmdCtx, a.logger, depsGraph, result.SubprojectInfo, io.Discard)
 		}
 		dependency, paths, findErr := explain.FindWhy(depsGraph, req.Package)
 		if findErr != nil {
@@ -164,14 +162,14 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req bomcp.ExplainReq
 			return output.ExplainResponse{}, findErr
 		}
 		var findings []model.Finding
-		if cmdCtx.config.Audit {
+		if cmdCtx.ResolvedConfig.Audit {
 			targetPkg, ok := depsGraph.Package(dependency.ID)
 			if ok {
-				findings = auditComponent(cmdCtx, a.logger, depsGraph, targetPkg, io.Discard).Findings
+				findings = resolve.AuditComponent(cmdCtx, a.logger, depsGraph, targetPkg, io.Discard).Findings
 			}
 		}
 		targets = append(targets, output.ExplainTargetResponse{
-			Project:      cmdCtx.projectDescriptorForSubproject(result.SubprojectInfo),
+			Project:      cmdCtx.ProjectDescriptorForSubproject(result.SubprojectInfo),
 			Detector:     result.DetectorName,
 			Dependency:   dependency,
 			Paths:        paths,
@@ -182,7 +180,7 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req bomcp.ExplainReq
 	if len(targets) == 0 {
 		return output.ExplainResponse{}, fmt.Errorf("%w: %s", explain.ErrDependencyNotFound, req.Package)
 	}
-	return output.BuildExplainResponse(cmdCtx.projectDescriptor(), req.Package, targets, started), nil
+	return output.BuildExplainResponse(cmdCtx.ProjectDescriptor(), req.Package, targets, started), nil
 }
 
 func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req bomcp.DiffRequest) (output.DiffResponse, error) {
@@ -190,18 +188,16 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req bomcp.DiffRequest) 
 	o := a.cloneWithOverrides(req.Path, req.Container, "", "", req.Enrich, req.Audit, "", "")
 	logger := a.logger
 
-	baseTarget, headTarget, projectIdentifier, _, err := resolveGitDiffGraphs(o, logger, req.Base, req.Head, io.Discard)
+	baseTarget, headTarget, projectIdentifier, _, err := resolveGitDiffGraphs(ctx, o, logger, req.Base, req.Head, io.Discard)
 	if err != nil {
 		return output.DiffResponse{}, err
 	}
-	defer func() { _ = baseTarget.close() }()
-	defer func() { _ = headTarget.close() }()
 
 	baseResults := baseTarget.Results
 	headResults := headTarget.Results
 	if req.Enrich {
-		baseResults = enrichResolvedGraphs(baseTarget.Context, logger, baseResults, io.Discard)
-		headResults = enrichResolvedGraphs(headTarget.Context, logger, headResults, io.Discard)
+		baseResults = resolve.EnrichResolvedGraphs(baseTarget.Context, logger, baseResults, io.Discard)
+		headResults = resolve.EnrichResolvedGraphs(headTarget.Context, logger, headResults, io.Discard)
 	}
 
 	baseConsolidated, err := consolidation.ConsolidateGraphs(baseResults)
@@ -215,25 +211,25 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req bomcp.DiffRequest) 
 
 	var auditPayload *output.DiffAudit
 	if req.Audit {
-		current := o.current()
-		scanRegistry := scan.NewRegistry(registryBuilderConfig(current), *logger)
+		current := o.GetConfig()
+		scanRegistry := scan.NewRegistry(resolve.RegistryBuilderConfig(current), *logger)
 		scanRegistry.Build()
-		auditorFilter, filterErr := resolveAuditorFilter(current.Auditors, scanRegistry)
+		auditorFilter, filterErr := clictx.ResolveAuditorFilter(current.Auditors, scanRegistry)
 		if filterErr != nil {
 			return output.DiffResponse{}, filterErr
 		}
 		baseGraph, _ := baseConsolidated.Graphs.ConsolidatedGraph()
 		headGraph, _ := headConsolidated.Graphs.ConsolidatedGraph()
-		baseAudit := auditGraph(baseTarget.Context, logger, baseGraph, auditorFilter, io.Discard)
-		headAudit := auditGraph(headTarget.Context, logger, headGraph, auditorFilter, io.Discard)
-		auditPayload = diffAuditSummary(baseAudit.Findings, headAudit.Findings)
+		baseAudit := resolve.AuditGraph(baseTarget.Context, logger, baseGraph, auditorFilter, io.Discard)
+		headAudit := resolve.AuditGraph(headTarget.Context, logger, headGraph, auditorFilter, io.Discard)
+		auditPayload = resolve.DiffAuditSummary(baseAudit.Findings, headAudit.Findings)
 	}
 
 	return output.BuildDiffResponse(projectIdentifier, req.Base, req.Head, baseConsolidated, headConsolidated, auditPayload, started), nil
 }
 
 func (a *mcpOptionsAdapter) ListPlugins(_ context.Context) ([]managedplugin.PluginInfo, error) {
-	current := a.options.current()
+	current := a.options.GetConfig()
 	builtins := builtInPluginInfos(current, a.version)
 	return managedplugin.ListPluginInfos("", builtins)
 }
@@ -241,14 +237,13 @@ func (a *mcpOptionsAdapter) ListPlugins(_ context.Context) ([]managedplugin.Plug
 func (a *mcpOptionsAdapter) VulnFixContext(ctx context.Context, req bomcp.VulnFixRequest) (bomcp.VulnFixResult, error) {
 	// Force enrich=true — vulnerability data is required for fix context.
 	o := a.cloneWithOverrides(req.Path, "", "", "", true, false, "", "")
-	cmdCtx, err := o.newCommandContext(a.logger)
+	cmdCtx, err := o.Prepare(ctx, a.logger)
 	if err != nil {
 		return bomcp.VulnFixResult{}, err
 	}
-	defer func() { _ = cmdCtx.close() }()
 
-	pipeline := newPipeline(cmdCtx, a.logger)
-	pipeReq := pipelineRequest(cmdCtx, model.ScopeUnknown, io.Discard)
+	pipeline := resolve.NewPipeline(cmdCtx, a.logger)
+	pipeReq := resolve.PipelineRequest(cmdCtx, model.ScopeUnknown, io.Discard)
 	pipeResult, runErr := pipeline.Run(ctx, pipeReq)
 	if runErr != nil && len(pipeResult.ResolveResults) == 0 {
 		return bomcp.VulnFixResult{}, runErr

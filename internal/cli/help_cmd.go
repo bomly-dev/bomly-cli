@@ -1,12 +1,11 @@
 package cli
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/bomly-dev/bomly-cli/internal/cli/render"
+	"github.com/spf13/cobra"
+)
 
-func init() {
-	cobra.AddTemplateFunc("optionValuesHelpSection", optionValuesHelpSection)
-	cobra.AddTemplateFunc("versionDetails", versionDetailsTemplateValue)
-}
-
+// rootHelpTemplate defines the help text for the root command
 const rootHelpTemplate = `{{with (or .Long .Short)}}{{. | trimTrailingWhitespaces}}
 
 {{end}}Usage:{{if .Runnable}}
@@ -34,12 +33,28 @@ Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
 Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
 `
 
-const rootVersionTemplate = `{{versionDetails .}}
-`
-
-func versionDetailsTemplateValue(cmd *cobra.Command) string {
+func optionValuesHelpSection(cmd *cobra.Command) string {
 	if cmd == nil {
 		return ""
 	}
-	return renderVersionDetails(cmd.Version)
+
+	flags := cmd.Flags()
+	if flags.Lookup("ecosystems") == nil &&
+		flags.Lookup("detectors") == nil {
+		return ""
+	}
+
+	return "\n\nExplore available detectors, matchers, and auditors with `bomly plugin list`."
+}
+
+// startupLogoHelpFunc wraps the root command's help function so that running
+// `bomly help` plays the Bomly logo animation before printing help text.
+func startupLogoHelpFunc(root *cobra.Command) func(*cobra.Command, []string) {
+	defaultHelp := root.HelpFunc()
+	return func(cmd *cobra.Command, args []string) {
+		if cmd == root {
+			render.StartupLogo(cmd.ErrOrStderr())
+		}
+		defaultHelp(cmd, args)
+	}
 }

@@ -2,9 +2,12 @@ package cli
 
 import (
 	"bytes"
+	stdctx "context"
 	"runtime/debug"
 	"strings"
 	"testing"
+
+	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 )
 
 func TestModuleVersion(t *testing.T) {
@@ -85,7 +88,8 @@ func TestRenderVersionDetailsIncludesResolvedDependency(t *testing.T) {
 }
 
 func TestNewVersionCmdExecute(t *testing.T) {
-	cmd := newVersionCmd("v9.9.9", &globalOptions{})
+	cmd := newVersionCmd("v9.9.9")
+	cmd.SetContext(opts.ToContext(stdctx.Background(), &opts.Options{}))
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.SetOut(&stdout)
@@ -100,7 +104,8 @@ func TestNewVersionCmdExecute(t *testing.T) {
 }
 
 func TestNewVersionCmdRejectsArgs(t *testing.T) {
-	cmd := newVersionCmd("v9.9.9", &globalOptions{})
+	cmd := newVersionCmd("v9.9.9")
+	cmd.SetContext(opts.ToContext(stdctx.Background(), &opts.Options{}))
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.SetOut(&stdout)
@@ -109,6 +114,33 @@ func TestNewVersionCmdRejectsArgs(t *testing.T) {
 
 	if err := cmd.Execute(); err == nil {
 		t.Fatalf("Execute() with args expected error")
+	}
+}
+
+func TestRootVersion_IncludesTrackedDependencyVersions(t *testing.T) {
+	root, err := newRootCmd("0.9.0-test")
+	if err != nil {
+		t.Fatalf("newRootCmd() error = %v", err)
+	}
+
+	var output strings.Builder
+	root.SetOut(&output)
+	root.SetErr(&output)
+	root.SetArgs([]string{"version"})
+
+	if err := root.Execute(); err != nil {
+		t.Fatalf("root.Execute() error = %v", err)
+	}
+
+	versionText := output.String()
+	if !strings.Contains(versionText, "bomly 0.9.0-test") {
+		t.Fatalf("expected version output to contain core version, got:\n%s", versionText)
+	}
+	for _, item := range selectedDependencyVersions() {
+		want := item.Label + ":"
+		if !strings.Contains(versionText, want) {
+			t.Fatalf("expected version output to contain %q, got:\n%s", want, versionText)
+		}
 	}
 }
 

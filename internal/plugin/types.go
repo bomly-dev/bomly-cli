@@ -25,20 +25,33 @@ const (
 	EnvPluginHome = "BOMLY_PLUGIN_HOME"
 	// EnvPluginAPIVersion is passed to managed plugin subprocesses.
 	EnvPluginAPIVersion = "BOMLY_PLUGIN_API_VERSION"
-	// EnvCoreVersion is passed to managed plugin subprocesses.
-	EnvCoreVersion = "BOMLY_CORE_VERSION"
-	// EnvPluginCWD is passed to managed plugin subprocesses.
-	EnvPluginCWD = "BOMLY_CWD"
 	// EnvPluginConfig is passed to managed plugin subprocesses.
 	EnvPluginConfig = "BOMLY_CONFIG"
 )
 
-// ExecutionPolicy carries launch context for managed external plugins.
-type ExecutionPolicy struct {
-	CoreVersion string
-	ConfigPath  string
-	CWD         string
-	Verbosity   int
+// LaunchOptions carries launch context for managed external plugins.
+type LaunchOptions struct {
+	ConfigPath string
+	Verbosity  int
+}
+
+type launchOptionsKey struct{}
+
+// WithLaunchOptions returns a context carrying managed plugin launch options.
+func WithLaunchOptions(ctx context.Context, options LaunchOptions) context.Context {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return context.WithValue(ctx, launchOptionsKey{}, options)
+}
+
+// LaunchOptionsFromContext returns managed plugin launch options from ctx.
+func LaunchOptionsFromContext(ctx context.Context) (LaunchOptions, bool) {
+	if ctx == nil {
+		return LaunchOptions{}, false
+	}
+	options, ok := ctx.Value(launchOptionsKey{}).(LaunchOptions)
+	return options, ok
 }
 
 // Manifest describes one installed managed plugin package.
@@ -624,8 +637,7 @@ func ListPluginInfos(root string, builtins []PluginInfo) ([]PluginInfo, error) {
 }
 
 // LoadRuntimePlugins loads enabled external plugins.
-func LoadRuntimePlugins(root string, policy ExecutionPolicy) ([]PluginInfo, error) {
-	_ = policy
+func LoadRuntimePlugins(root string) ([]PluginInfo, error) {
 	var err error
 	root, err = resolveRoot(root)
 	if err != nil {

@@ -6,7 +6,10 @@ import (
 	"io"
 	"time"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
+	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
+	"github.com/bomly-dev/bomly-cli/internal/cli/resolve"
 	"github.com/bomly-dev/bomly-cli/internal/explain"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/scan"
@@ -16,20 +19,24 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newExplainCmd(options *globalOptions) *cobra.Command {
+func newExplainCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "explain <package>",
 		Short: "Explain why a dependency exists",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return invalidInputf("explain expects exactly one package argument")
+				return exit.InvalidInputError("explain expects exactly one package argument")
 			}
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			started := time.Now()
-			current := options.current()
-			logger := commandLogger(cmd, options, "explain")
+			options, err := commandOptions(cmd)
+			if err != nil {
+				return err
+			}
+			current := options.GetConfig()
+			logger := commandLogger(cmd, "explain")
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
 			progress := newCommandProgress(streams, "Resolving dependencies")
 			restoreStdout := streams.captureStdoutToDebugLog(logger)
@@ -39,15 +46,15 @@ func newExplainCmd(options *globalOptions) *cobra.Command {
 				}
 				restoreStdout()
 			}()
-			ctx, err := options.newCommandContext(logger)
+			context, err := options.Prepare(cmd.Context(), logger)
 			if err != nil {
 				return err
 			}
-			defer func() { _ = ctx.close() }()
-			if ctx.format == output.FormatSARIF && !ctx.config.Audit {
-				return invalidInputf("--format sarif requires --audit")
+			defer func() { _ = context.Close() }()
+			if context.Format == output.FormatSARIF && !context.ResolvedConfig.Audit {
+				return exit.InvalidInputError("--format sarif requires --audit")
 			}
-			resolution, err := resolveGraphs(ctx, logger, streams.notificationWriter())
+			resolution, err := resolve.ResolveGraphs(context, logger, streams.notificationWriter())
 			if err != nil {
 				return err
 			}
@@ -66,10 +73,10 @@ func newExplainCmd(options *globalOptions) *cobra.Command {
 			for _, result := range resolved {
 				depsGraph, graphErr := result.ConsolidatedGraph()
 				if graphErr != nil {
-					return resolutionFailure(graphErr)
+					return exit.ResolutionFailureError(graphErr)
 				}
-				if ctx.config.Enrich {
-					depsGraph = enrichGraph(ctx, logger, depsGraph, result.SubprojectInfo, streams.notificationWriter())
+				if context.ResolvedConfig.Enrich {
+					depsGraph = resolve.EnrichGraph(context, logger, depsGraph, result.SubprojectInfo, streams.notificationWriter())
 				}
 				if scan.GraphHasVulnerabilityData(depsGraph) {
 					anyVulnerabilityData = true
@@ -79,18 +86,18 @@ func newExplainCmd(options *globalOptions) *cobra.Command {
 					if errors.Is(findErr, explain.ErrDependencyNotFound) {
 						continue
 					}
-					return resolutionFailure(findErr)
+					return exit.ResolutionFailureError(findErr)
 				}
 				findings := []model.Finding(nil)
-				if ctx.config.Audit {
+				if context.ResolvedConfig.Audit {
 					targetPkg, ok := depsGraph.Package(dependency.ID)
 					if ok {
-						findings = auditComponent(ctx, logger, depsGraph, targetPkg, streams.notificationWriter()).Findings
+						findings = resolve.AuditComponent(context, logger, depsGraph, targetPkg, streams.notificationWriter()).Findings
 						allFindings = append(allFindings, findings...)
 					}
 				}
 				targets = append(targets, output.ExplainTargetResponse{
-					Project:      ctx.projectDescriptorForSubproject(result.SubprojectInfo),
+					Project:      context.ProjectDescriptorForSubproject(result.SubprojectInfo),
 					Detector:     result.DetectorName,
 					Dependency:   dependency,
 					Paths:        paths,
@@ -99,7 +106,7 @@ func newExplainCmd(options *globalOptions) *cobra.Command {
 				})
 				focusedGraph, focusErr := render.ExplainGraphFromPaths(depsGraph, paths)
 				if focusErr != nil {
-					return resolutionFailure(focusErr)
+					return exit.ResolutionFailureError(focusErr)
 				}
 				focusedResults = append(focusedResults, model.DetectionResult{
 					SubprojectInfo: result.SubprojectInfo,
@@ -110,44 +117,44 @@ func newExplainCmd(options *globalOptions) *cobra.Command {
 				})
 			}
 			if len(targets) == 0 {
-				return resolutionFailure(fmt.Errorf("%w: %s", explain.ErrDependencyNotFound, args[0]))
+				return exit.ResolutionFailureError(fmt.Errorf("%w: %s", explain.ErrDependencyNotFound, args[0]))
 			}
-			if ctx.config.Audit && !anyVulnerabilityData {
-				auditWarnings = append(auditWarnings, auditDataAvailabilityWarnings(nil)...)
+			if context.ResolvedConfig.Audit && !anyVulnerabilityData {
+				auditWarnings = append(auditWarnings, resolve.AuditDataAvailabilityWarnings(nil)...)
 			}
-			if ctx.config.Audit {
-				progress.CompleteStep("Evaluated policy", auditProgressChildren([]string{severityPolicyAuditorName}, map[string]int{severityPolicyAuditorName: len(allFindings)}, auditWarnings))
+			if context.ResolvedConfig.Audit {
+				progress.CompleteStep("Evaluated policy", auditProgressChildren([]string{opts.SeverityPolicyAuditorName}, map[string]int{opts.SeverityPolicyAuditorName: len(allFindings)}, auditWarnings))
 			}
 
-			payload := output.BuildExplainResponse(ctx.projectDescriptor(), args[0], targets, started)
-			if ctx.format == output.FormatSARIF {
+			payload := output.BuildExplainResponse(context.ProjectDescriptor(), args[0], targets, started)
+			if context.Format == output.FormatSARIF {
 				progress.Success("Resolved Graph")
 				return output.WriteSARIF(streams.reportWriter(), allFindings, "bomly", cmd.Root().Version)
 			}
-			if ctx.config.Interactive {
+			if context.ResolvedConfig.Interactive {
 				consolidated, err := consolidation.ConsolidateGraphs(focusedResults)
 				if err != nil {
-					return resolutionFailure(err)
+					return exit.ResolutionFailureError(err)
 				}
 				graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 				if err != nil {
-					return resolutionFailure(err)
+					return exit.ResolutionFailureError(err)
 				}
 				progress.Stop()
-				return interactiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewScanNavigator("Bomly Interactive Explain", payload.Project, consolidated, graphValue, allFindings)))
+				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewScanNavigator("Bomly Interactive Explain", payload.Project, consolidated, graphValue, allFindings)))
 			}
 
-			writer, closeWriter, err := ctx.writer(streams.reportWriter())
+			writer, closeWriter, err := context.Writer(streams.reportWriter())
 			if err != nil {
 				return err
 			}
 			defer func() { _ = closeWriter() }()
 			progress.Success("Resolved Graph")
-			if ctx.format == output.FormatText {
+			if context.Format == output.FormatText {
 				progress.SeparateReport()
 			}
 
-			err = output.Write(writer, ctx.format, payload, output.Renderers{
+			err = output.Write(writer, context.Format, payload, output.Renderers{
 				Text: func(w io.Writer) error {
 					for i, target := range payload.Targets {
 						if i > 0 {
@@ -162,8 +169,8 @@ func newExplainCmd(options *globalOptions) *cobra.Command {
 					return nil
 				},
 			})
-			if err == nil && ctx.config.Audit && len(allFindings) > 0 {
-				return policyViolationFindings(len(allFindings))
+			if err == nil && context.ResolvedConfig.Audit && len(allFindings) > 0 {
+				return exit.PolicyViolationFindings(len(allFindings))
 			}
 			return err
 		},

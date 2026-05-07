@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	"github.com/bomly-dev/bomly-cli/internal/progress"
 	"github.com/bomly-dev/bomly-cli/internal/scan"
 	model "github.com/bomly-dev/bomly-cli/sdk"
@@ -134,15 +135,15 @@ func matcherProgressDetail(g *model.Graph, matcherName string) string {
 			continue
 		}
 		switch matcherName {
-		case depsdevCheckerName:
+		case opts.DepsdevCheckerName:
 			if packageHasLicenseSource(pkg, "deps.dev") {
 				packages++
 			}
-		case clearlyDefinedCheckerName:
+		case opts.ClearlyDefinedCheckerName:
 			if packageHasLicenseSource(pkg, "ClearlyDefined") {
 				packages++
 			}
-		case osvMatcherName, grypeMatcherName:
+		case opts.OSVMatcherName, opts.GrypeMatcherName:
 			matchedPackage := false
 			for _, vulnerability := range pkg.Vulnerabilities {
 				if vulnerability.Source != matcherName {
@@ -154,9 +155,9 @@ func matcherProgressDetail(g *model.Graph, matcherName string) string {
 			if matchedPackage {
 				packages++
 			}
-		case eolCheckerName:
+		case opts.EOLCheckerName:
 			if pkg.Metadata != nil {
-				if _, ok := pkg.Metadata[eolMetadataKey]; ok {
+				if _, ok := pkg.Metadata[opts.EOLMetadataKey]; ok {
 					packages++
 				}
 			}
@@ -164,9 +165,9 @@ func matcherProgressDetail(g *model.Graph, matcherName string) string {
 	}
 
 	switch matcherName {
-	case depsdevCheckerName, clearlyDefinedCheckerName, eolCheckerName:
+	case opts.DepsdevCheckerName, opts.ClearlyDefinedCheckerName, opts.EOLCheckerName:
 		return fmt.Sprintf("[%d matched packages]", packages)
-	case osvMatcherName, grypeMatcherName:
+	case opts.OSVMatcherName, opts.GrypeMatcherName:
 		return fmt.Sprintf("[%d matched packages, %d vulnerabilities]", packages, vulnerabilities)
 	default:
 		if vulnerabilities > 0 {

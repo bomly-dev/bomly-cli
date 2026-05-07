@@ -1,6 +1,7 @@
-package cli
+package opts
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,63 +14,21 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func TestDiscoverSubprojects_FindsRootPackageManagers(t *testing.T) {
-	projectDir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte("{}\n"), 0o644); err != nil {
-		t.Fatalf("write package.json: %v", err)
-	}
-	if err := os.WriteFile(filepath.Join(projectDir, "go.mod"), []byte("module example.com/api\n"), 0o644); err != nil {
-		t.Fatalf("write go.mod: %v", err)
-	}
+func TestCommandContextRoundTripsThroughContext(t *testing.T) {
+	commandCtx := &Options{ResolvedConfig: config.Resolved{Path: "fixture"}}
+	parent := context.Background()
 
-	subprojects, err := discoverSubprojects(model.ExecutionTarget{Kind: model.ExecutionTargetWorkingDirectory, Location: projectDir})
-	if err != nil {
-		t.Fatalf("discoverSubprojects() error = %v", err)
+	got, ok := FromContext(ToContext(parent, commandCtx))
+	if !ok {
+		t.Fatal("expected command context in context")
 	}
-	if len(subprojects) != 2 {
-		t.Fatalf("expected 2 subprojects, got %d", len(subprojects))
-	}
-	if subprojects[0].RelativePath != "." || subprojects[0].PrimaryPackageManager() != model.PackageManagerGoMod {
-		t.Fatalf("unexpected first subproject: %#v", subprojects[0])
-	}
-	if subprojects[1].RelativePath != "." || subprojects[1].PrimaryPackageManager() != model.PackageManagerNPM {
-		t.Fatalf("unexpected second subproject: %#v", subprojects[1])
+	if got != commandCtx {
+		t.Fatal("expected stored command context pointer")
 	}
 }
 
-func TestGlobalOptionsResolveSubprojects_AppliesEcosystemFilter(t *testing.T) {
-	projectDir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte("{}\n"), 0o644); err != nil {
-		t.Fatalf("write package.json: %v", err)
-	}
-	if err := os.WriteFile(filepath.Join(projectDir, "go.mod"), []byte("module example.com/demo\n"), 0o644); err != nil {
-		t.Fatalf("write go.mod: %v", err)
-	}
-
-	options := globalOptions{Resolved: config.Resolved{Ecosystems: "go,npm"}}
-	subprojects, err := options.resolveSubprojects(model.ExecutionTarget{Kind: model.ExecutionTargetWorkingDirectory, Location: projectDir})
-	if err != nil {
-		t.Fatalf("resolveSubprojects() error = %v", err)
-	}
-	if len(subprojects) != 2 {
-		t.Fatalf("expected 2 filtered subprojects, got %d", len(subprojects))
-	}
-
-	options = globalOptions{Resolved: config.Resolved{Ecosystems: "go"}}
-	subprojects, err = options.resolveSubprojects(model.ExecutionTarget{Kind: model.ExecutionTargetWorkingDirectory, Location: projectDir})
-	if err != nil {
-		t.Fatalf("resolveSubprojects() error = %v", err)
-	}
-	if len(subprojects) != 1 {
-		t.Fatalf("expected 1 filtered subproject, got %d", len(subprojects))
-	}
-	if subprojects[0].Ecosystem != model.EcosystemGo {
-		t.Fatalf("expected go subproject, got %#v", subprojects[0])
-	}
-}
-
-func TestGlobalOptionsResolveExecutionTarget_Container(t *testing.T) {
-	options := globalOptions{Resolved: config.Resolved{Container: "alpine:3.20"}}
+func TestCommandContextResolveExecutionTarget_Container(t *testing.T) {
+	options := Options{ResolvedConfig: config.Resolved{Container: "alpine:3.20"}}
 
 	target, location, cleanup, err := options.resolveExecutionTarget(nil)
 	if err != nil {
@@ -86,8 +45,8 @@ func TestGlobalOptionsResolveExecutionTarget_Container(t *testing.T) {
 	}
 }
 
-func TestGlobalOptionsResolveExecutionTarget_RejectsMultipleTargets(t *testing.T) {
-	options := globalOptions{Resolved: config.Resolved{Path: ".", Container: "alpine:3.20"}}
+func TestCommandContextResolveExecutionTarget_RejectsMultipleTargets(t *testing.T) {
+	options := Options{ResolvedConfig: config.Resolved{Path: ".", Container: "alpine:3.20"}}
 
 	_, _, _, err := options.resolveExecutionTarget(nil)
 	if err == nil {
@@ -95,56 +54,6 @@ func TestGlobalOptionsResolveExecutionTarget_RejectsMultipleTargets(t *testing.T
 	}
 	if !strings.Contains(err.Error(), "--path, --url, and --container cannot be used together") {
 		t.Fatalf("unexpected error: %v", err)
-	}
-}
-
-func TestGlobalOptionsResolveSubprojects_SingleFileUsesRegistryIndexedManager(t *testing.T) {
-	projectFile := filepath.Join(t.TempDir(), "Cargo.lock")
-	if err := os.WriteFile(projectFile, []byte("version = 3\n"), 0o644); err != nil {
-		t.Fatalf("write Cargo.lock: %v", err)
-	}
-
-	options := globalOptions{Resolved: config.Resolved{Path: projectFile}}
-	subprojects, err := options.resolveSubprojects(model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: projectFile})
-	if err != nil {
-		t.Fatalf("resolveSubprojects() error = %v", err)
-	}
-	if len(subprojects) != 1 {
-		t.Fatalf("expected 1 subproject, got %d", len(subprojects))
-	}
-	if subprojects[0].PrimaryPackageManager() != model.PackageManagerCargo || subprojects[0].Ecosystem != model.EcosystemRust {
-		t.Fatalf("unexpected single-file subproject: %#v", subprojects[0])
-	}
-}
-
-func TestGlobalOptionsResolveSubprojects_ContainerUsesGenericDiscoveryTarget(t *testing.T) {
-	options := globalOptions{}
-	subprojects, err := options.resolveSubprojects(model.ExecutionTarget{Kind: model.ExecutionTargetContainerImage, Location: "alpine:3.20"})
-	if err != nil {
-		t.Fatalf("resolveSubprojects() error = %v", err)
-	}
-	if len(subprojects) != 1 {
-		t.Fatalf("expected 1 subproject, got %d", len(subprojects))
-	}
-	if subprojects[0].PrimaryPackageManager() != model.PackageManagerUnknown || subprojects[0].Ecosystem != model.EcosystemUnknown {
-		t.Fatalf("unexpected container subproject: %#v", subprojects[0])
-	}
-	if len(subprojects[0].PlannedDetectors) != 1 || subprojects[0].PlannedDetectors[0] != "syft-detector" {
-		t.Fatalf("expected syft detector chain, got %#v", subprojects[0].PlannedDetectors)
-	}
-}
-
-func TestGlobalOptionsResolveSubprojects_ContainerAppliesEcosystemFilter(t *testing.T) {
-	options := globalOptions{Resolved: config.Resolved{Ecosystems: "rpm"}}
-	subprojects, err := options.resolveSubprojects(model.ExecutionTarget{Kind: model.ExecutionTargetContainerImage, Location: "alpine:3.20"})
-	if err != nil {
-		t.Fatalf("resolveSubprojects() error = %v", err)
-	}
-	if len(subprojects) != 1 {
-		t.Fatalf("expected 1 subproject, got %d", len(subprojects))
-	}
-	if subprojects[0].Ecosystem != model.EcosystemRPM {
-		t.Fatalf("expected rpm ecosystem, got %#v", subprojects[0])
 	}
 }
 
@@ -172,13 +81,6 @@ func TestAvailableFlagOptions_AreDerivedFromRegistry(t *testing.T) {
 	} {
 		if !containsOption(detectors, want) {
 			t.Fatalf("expected detector option %q in %#v", want, detectors)
-		}
-	}
-
-	containerOS := availableContainerOSOptions()
-	for _, want := range []string{"alpine", "ubuntu", "wolfi", "rhel", "amzn"} {
-		if !containsOption(containerOS, want) {
-			t.Fatalf("expected container os option %q in %#v", want, containerOS)
 		}
 	}
 }
@@ -247,77 +149,18 @@ func TestDetectPackageManagers_FindsSyftManagers(t *testing.T) {
 	}
 }
 
-func TestGlobalOptionsBind_AnnotatesUsageWithAvailableOptions(t *testing.T) {
-	options := &globalOptions{}
+func TestCommandContextBind_AnnotatesUsageWithAvailableOptions(t *testing.T) {
+	options := &Options{}
 	root := newTestRootCommand(t)
 
-	if err := options.bind(root); err != nil {
-		t.Fatalf("bind() error = %v", err)
+	if err := options.Bind(root); err != nil {
+		t.Fatalf("Bind() error = %v", err)
 	}
 
 	for _, flagName := range []string{"ecosystems", "detectors", "auditors", "matchers"} {
 		flag := root.PersistentFlags().Lookup(flagName)
 		if flag == nil {
 			t.Fatalf("expected flag %q to exist", flagName)
-		}
-	}
-}
-
-func TestRootHelp_IncludesAvailableOptionValuesSection(t *testing.T) {
-	root, err := newRootCmd("0.9.0-test")
-	if err != nil {
-		t.Fatalf("newRootCmd() error = %v", err)
-	}
-
-	var output strings.Builder
-	root.SetOut(&output)
-	root.SetErr(&output)
-	root.SetArgs([]string{"--help"})
-
-	if err := root.Execute(); err != nil {
-		t.Fatalf("root.Execute() error = %v", err)
-	}
-
-	helpText := output.String()
-	if !strings.Contains(helpText, "Explore available detectors, matchers, and auditors with `bomly plugin list`.") {
-		t.Fatalf("expected help output to contain plugin list guidance, got:\n%s", helpText)
-	}
-
-	for _, removed := range []string{
-		"Available Native Detectors:",
-		"Available Third-party Detectors:",
-		"Available Auditors:",
-		"Available Matchers:",
-	} {
-		if strings.Contains(helpText, removed) {
-			t.Fatalf("expected help output to omit %q, got:\n%s", removed, helpText)
-		}
-	}
-}
-
-func TestRootVersion_IncludesTrackedDependencyVersions(t *testing.T) {
-	root, err := newRootCmd("0.9.0-test")
-	if err != nil {
-		t.Fatalf("newRootCmd() error = %v", err)
-	}
-
-	var output strings.Builder
-	root.SetOut(&output)
-	root.SetErr(&output)
-	root.SetArgs([]string{"version"})
-
-	if err := root.Execute(); err != nil {
-		t.Fatalf("root.Execute() error = %v", err)
-	}
-
-	versionText := output.String()
-	if !strings.Contains(versionText, "bomly 0.9.0-test") {
-		t.Fatalf("expected version output to contain core version, got:\n%s", versionText)
-	}
-	for _, item := range selectedDependencyVersions() {
-		want := item.Label + ":"
-		if !strings.Contains(versionText, want) {
-			t.Fatalf("expected version output to contain %q, got:\n%s", want, versionText)
 		}
 	}
 }
@@ -333,7 +176,7 @@ func TestCSVCompletionFunc_CompletesCommaSeparatedValues(t *testing.T) {
 	}
 }
 
-func TestGlobalOptionsInitialize_LoadsConfigHierarchy(t *testing.T) {
+func TestCommandContextInitialize_LoadsConfigHierarchy(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
 	t.Setenv("USERPROFILE", tempHome)
@@ -363,15 +206,15 @@ func TestGlobalOptionsInitialize_LoadsConfigHierarchy(t *testing.T) {
 		"detectors": "maven-detector",
 	})
 
-	options := &globalOptions{
-		Resolved: config.Resolved{
+	options := &Options{
+		ResolvedConfig: config.Resolved{
 			Config:     explicitConfig,
 			Ecosystems: "python",
 		},
 	}
 	root := newTestRootCommand(t)
-	if err := options.bind(root); err != nil {
-		t.Fatalf("bind() error = %v", err)
+	if err := options.Bind(root); err != nil {
+		t.Fatalf("Bind() error = %v", err)
 	}
 	root.SetArgs([]string{"--config", explicitConfig, "--ecosystems", "python"})
 	if err := root.ParseFlags(root.Flags().Args()); err != nil {
@@ -380,11 +223,11 @@ func TestGlobalOptionsInitialize_LoadsConfigHierarchy(t *testing.T) {
 	if err := root.ParseFlags([]string{"--config", explicitConfig, "--ecosystems", "python"}); err != nil {
 		t.Fatalf("ParseFlags() error = %v", err)
 	}
-	if err := options.initialize(root); err != nil {
+	if err := options.ResolveConfig(root); err != nil {
 		t.Fatalf("initialize() error = %v", err)
 	}
 
-	got := options.current()
+	got := options.GetConfig()
 	if got.Ecosystems != "python" {
 		t.Fatalf("expected flag ecosystems override, got %q", got.Ecosystems)
 	}
@@ -399,7 +242,89 @@ func TestGlobalOptionsInitialize_LoadsConfigHierarchy(t *testing.T) {
 	}
 }
 
-func TestGlobalOptionsInitialize_LoadsQuietFromConfig(t *testing.T) {
+func TestCommandContextInitialize_AppliesConfigPrecedence(t *testing.T) {
+	tempHome := t.TempDir()
+	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
+	t.Setenv("BOMLY_FAIL_ON", "critical")
+	t.Setenv("BOMLY_FORMAT", "sarif")
+	t.Setenv("BOMLY_ECOSYSTEMS", "npm")
+	t.Setenv("BOMLY_OSV_CACHE_TTL", "3h")
+
+	projectDir := t.TempDir()
+	t.Chdir(projectDir)
+
+	if err := os.MkdirAll(filepath.Join(tempHome, ".bomly"), 0o755); err != nil {
+		t.Fatalf("mkdir home config dir: %v", err)
+	}
+	writeConfigFile(t, filepath.Join(tempHome, ".bomly", "config.yaml"), map[string]any{
+		"detectors":     "syft-detector",
+		"fail_on":       "low",
+		"format":        "text",
+		"osv_cache_ttl": "1h",
+	})
+
+	if err := os.MkdirAll(filepath.Join(projectDir, ".bomly"), 0o755); err != nil {
+		t.Fatalf("mkdir project config dir: %v", err)
+	}
+	writeConfigFile(t, filepath.Join(projectDir, ".bomly", "config.yaml"), map[string]any{
+		"detectors":     "go-detector",
+		"fail_on":       "medium",
+		"format":        "json",
+		"matchers":      "osv",
+		"osv_cache_ttl": "2h",
+	})
+
+	explicitConfig := filepath.Join(t.TempDir(), "bomly.yaml")
+	writeConfigFile(t, explicitConfig, map[string]any{
+		"auditors":      "policy-auditor",
+		"fail_on":       "high",
+		"osv_cache_ttl": "4h",
+	})
+
+	options := &Options{}
+	root := newTestRootCommand(t)
+	if err := options.Bind(root); err != nil {
+		t.Fatalf("Bind() error = %v", err)
+	}
+	if err := root.ParseFlags([]string{"--config", explicitConfig, "--fail-on", "low", "--ecosystems", "python"}); err != nil {
+		t.Fatalf("ParseFlags() error = %v", err)
+	}
+	if err := options.ResolveConfig(root); err != nil {
+		t.Fatalf("ResolveConfig() error = %v", err)
+	}
+
+	got := options.GetConfig()
+	if got.FailOn != "low" {
+		t.Fatalf("expected flag fail_on override, got %q", got.FailOn)
+	}
+	if got.Ecosystems != "python" {
+		t.Fatalf("expected flag ecosystems override, got %q", got.Ecosystems)
+	}
+	if got.Format != "sarif" {
+		t.Fatalf("expected env format override, got %q", got.Format)
+	}
+	if got.OsvCacheTTL != "3h" {
+		t.Fatalf("expected env OSV cache TTL override, got %q", got.OsvCacheTTL)
+	}
+	if got.Auditors != "policy-auditor" {
+		t.Fatalf("expected explicit config auditors override, got %q", got.Auditors)
+	}
+	if got.Matchers != "osv" {
+		t.Fatalf("expected project config matchers override, got %q", got.Matchers)
+	}
+	if got.Detectors != "go-detector" {
+		t.Fatalf("expected project config detectors override home config, got %q", got.Detectors)
+	}
+	if got.OsvAPIBase != "https://api.osv.dev" {
+		t.Fatalf("expected default OSV API base, got %q", got.OsvAPIBase)
+	}
+	if len(got.LoadedFiles) != 3 {
+		t.Fatalf("expected 3 loaded config files, got %#v", got.LoadedFiles)
+	}
+}
+
+func TestCommandContextInitialize_LoadsQuietFromConfig(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
 	t.Setenv("USERPROFILE", tempHome)
@@ -414,30 +339,30 @@ func TestGlobalOptionsInitialize_LoadsQuietFromConfig(t *testing.T) {
 		"quiet": true,
 	})
 
-	options := &globalOptions{}
+	options := &Options{}
 	root := newTestRootCommand(t)
-	if err := options.bind(root); err != nil {
-		t.Fatalf("bind() error = %v", err)
+	if err := options.Bind(root); err != nil {
+		t.Fatalf("Bind() error = %v", err)
 	}
-	if err := options.initialize(root); err != nil {
+	if err := options.ResolveConfig(root); err != nil {
 		t.Fatalf("initialize() error = %v", err)
 	}
 
-	if !options.current().Quiet {
+	if !options.GetConfig().Quiet {
 		t.Fatal("expected quiet value from config")
 	}
 }
 
-func TestGlobalOptionsInitialize_RejectsQuietAndVerboseTogether(t *testing.T) {
-	options := &globalOptions{Resolved: config.Resolved{Quiet: true, Verbosity: 1}}
+func TestCommandContextInitialize_RejectsQuietAndVerboseTogether(t *testing.T) {
+	options := &Options{ResolvedConfig: config.Resolved{Quiet: true, Verbosity: 1}}
 	root := newTestRootCommand(t)
-	if err := options.bind(root); err != nil {
-		t.Fatalf("bind() error = %v", err)
+	if err := options.Bind(root); err != nil {
+		t.Fatalf("Bind() error = %v", err)
 	}
 	if err := root.ParseFlags([]string{"--quiet", "--verbose"}); err != nil {
 		t.Fatalf("ParseFlags() error = %v", err)
 	}
-	err := options.initialize(root)
+	err := options.ResolveConfig(root)
 	if err == nil {
 		t.Fatal("expected quiet and verbose validation error")
 	}
@@ -446,7 +371,7 @@ func TestGlobalOptionsInitialize_RejectsQuietAndVerboseTogether(t *testing.T) {
 	}
 }
 
-func TestGlobalOptionsInitialize_ProjectConfigUsesSelectedPath(t *testing.T) {
+func TestCommandContextInitialize_ProjectConfigUsesSelectedPath(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
 	t.Setenv("USERPROFILE", tempHome)
@@ -459,19 +384,19 @@ func TestGlobalOptionsInitialize_ProjectConfigUsesSelectedPath(t *testing.T) {
 		"ecosystems": "go",
 	})
 
-	options := &globalOptions{Resolved: config.Resolved{Path: projectDir}}
+	options := &Options{ResolvedConfig: config.Resolved{Path: projectDir}}
 	root := newTestRootCommand(t)
-	if err := options.bind(root); err != nil {
-		t.Fatalf("bind() error = %v", err)
+	if err := options.Bind(root); err != nil {
+		t.Fatalf("Bind() error = %v", err)
 	}
 	if err := root.ParseFlags([]string{"--path", projectDir}); err != nil {
 		t.Fatalf("ParseFlags() error = %v", err)
 	}
-	if err := options.initialize(root); err != nil {
+	if err := options.ResolveConfig(root); err != nil {
 		t.Fatalf("initialize() error = %v", err)
 	}
 
-	if got := options.current().Ecosystems; got != "go" {
+	if got := options.GetConfig().Ecosystems; got != "go" {
 		t.Fatalf("expected project config ecosystems, got %q", got)
 	}
 }

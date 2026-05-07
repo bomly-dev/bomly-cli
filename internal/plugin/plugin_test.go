@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
 	"github.com/bomly-dev/bomly-cli/internal/scan"
-	scanruntime "github.com/bomly-dev/bomly-cli/internal/scan/runtime"
 	"github.com/bomly-dev/bomly-cli/internal/testutil"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
@@ -24,7 +24,7 @@ func TestInstallDevBinaryVerifyEnableDisableAndUninstall(t *testing.T) {
 		t.Fatalf("build fake plugin: %v", err)
 	}
 
-	result, err := managedplugin.Install(context.Background(), root, binaryPath, managedplugin.InstallOptions{DevBinary: true}, managedplugin.ExecutionPolicy{})
+	result, err := managedplugin.Install(context.Background(), root, binaryPath, managedplugin.InstallOptions{DevBinary: true})
 	if err != nil {
 		t.Fatalf("Install() error = %v", err)
 	}
@@ -43,7 +43,7 @@ func TestInstallDevBinaryVerifyEnableDisableAndUninstall(t *testing.T) {
 		t.Fatalf("expected installed manifest to derive ecosystem and manager support from packageManagerSupport, got %s", manifestJSON)
 	}
 
-	verifyResult, err := managedplugin.Verify(context.Background(), root, "acme.detector.fake", managedplugin.ExecutionPolicy{})
+	verifyResult, err := managedplugin.Verify(context.Background(), root, "acme.detector.fake")
 	if err != nil {
 		t.Fatalf("Verify() error = %v", err)
 	}
@@ -97,7 +97,7 @@ func TestEnableDisableUseDefaultPluginRoot(t *testing.T) {
 		t.Fatalf("build fake plugin: %v", err)
 	}
 
-	if _, err := managedplugin.Install(context.Background(), "", binaryPath, managedplugin.InstallOptions{DevBinary: true}, managedplugin.ExecutionPolicy{}); err != nil {
+	if _, err := managedplugin.Install(context.Background(), "", binaryPath, managedplugin.InstallOptions{DevBinary: true}); err != nil {
 		t.Fatalf("Install() error = %v", err)
 	}
 	if _, err := managedplugin.Enable("", "acme.detector.default-root"); err != nil {
@@ -138,7 +138,7 @@ func TestInstallDevBinaryResolvesWindowsExeSuffix(t *testing.T) {
 		t.Fatalf("expected extensionless plugin binary to exist: %v", err)
 	}
 
-	result, err := managedplugin.Install(context.Background(), root, binaryWithoutExt, managedplugin.InstallOptions{DevBinary: true}, managedplugin.ExecutionPolicy{})
+	result, err := managedplugin.Install(context.Background(), root, binaryWithoutExt, managedplugin.InstallOptions{DevBinary: true})
 	if err != nil {
 		t.Fatalf("Install() error = %v", err)
 	}
@@ -169,7 +169,7 @@ func TestInstallRejectsUnsafeArchivePaths(t *testing.T) {
 		t.Fatalf("close archive file: %v", err)
 	}
 
-	_, err = managedplugin.Install(context.Background(), root, archivePath, managedplugin.InstallOptions{}, managedplugin.ExecutionPolicy{})
+	_, err = managedplugin.Install(context.Background(), root, archivePath, managedplugin.InstallOptions{})
 	if err == nil || !strings.Contains(err.Error(), "escapes the extraction directory") {
 		t.Fatalf("expected unsafe archive path error, got %v", err)
 	}
@@ -182,7 +182,7 @@ func TestInstallDevBinaryRejectsDetectorWithoutPackageManagers(t *testing.T) {
 		t.Fatalf("build fake plugin: %v", err)
 	}
 
-	_, err := managedplugin.Install(context.Background(), root, binaryPath, managedplugin.InstallOptions{DevBinary: true}, managedplugin.ExecutionPolicy{})
+	_, err := managedplugin.Install(context.Background(), root, binaryPath, managedplugin.InstallOptions{DevBinary: true})
 	if err == nil || !strings.Contains(err.Error(), "detector plugins must declare at least one package manager") {
 		t.Fatalf("expected missing package managers error, got %v", err)
 	}
@@ -199,7 +199,7 @@ func TestPrepareLoadsAndRunsExternalDetector(t *testing.T) {
 	if err := testutil.BuildGoBinary(t, binaryPath, fakeDetectorPluginSource("acme.detector.gomod")); err != nil {
 		t.Fatalf("build fake plugin: %v", err)
 	}
-	if _, err := managedplugin.Install(context.Background(), root, binaryPath, managedplugin.InstallOptions{DevBinary: true}, managedplugin.ExecutionPolicy{}); err != nil {
+	if _, err := managedplugin.Install(context.Background(), root, binaryPath, managedplugin.InstallOptions{DevBinary: true}); err != nil {
 		t.Fatalf("Install() error = %v", err)
 	}
 	if _, err := managedplugin.Enable(root, "acme.detector.gomod"); err != nil {
@@ -208,28 +208,33 @@ func TestPrepareLoadsAndRunsExternalDetector(t *testing.T) {
 
 	reg := scan.NewRegistry(scan.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
-	runtimeValue, err := scanruntime.Prepare(scanruntime.Request{
+	if err := managedplugin.RegisterRuntimePlugins(context.Background(), reg, root); err != nil {
+		t.Fatalf("RegisterRuntimePlugins() error = %v", err)
+	}
+	filtered := reg.Filter(scan.RegistryFilter{
+		DetectorFilter:  model.DetectorFilter{Include: []string{"acme.detector.gomod"}},
+		EcosystemFilter: model.EcosystemFilter{Include: []model.Ecosystem{model.EcosystemGo}},
+	})
+	subprojects, err := opts.PlanSubprojects(filtered, opts.Request{
 		Registry:        reg,
 		ExecutionTarget: model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: projectDir},
 		DetectorFilter:  model.DetectorFilter{Include: []string{"acme.detector.gomod"}},
 		EcosystemFilter: model.EcosystemFilter{Include: []model.Ecosystem{model.EcosystemGo}},
-		PluginRoot:      root,
-		PluginPolicy:    managedplugin.ExecutionPolicy{},
 	})
 	if err != nil {
-		t.Fatalf("Prepare() error = %v", err)
+		t.Fatalf("PlanSubprojects() error = %v", err)
 	}
-	if len(runtimeValue.Subprojects) != 1 {
-		t.Fatalf("expected one external plugin subproject, got %d", len(runtimeValue.Subprojects))
+	if len(subprojects) != 1 {
+		t.Fatalf("expected one external plugin subproject, got %d", len(subprojects))
 	}
-	if runtimeValue.Subprojects[0].PrimaryDetector != "acme.detector.gomod" {
-		t.Fatalf("expected external detector to be planned, got %q", runtimeValue.Subprojects[0].PrimaryDetector)
+	if subprojects[0].PrimaryDetector != "acme.detector.gomod" {
+		t.Fatalf("expected external detector to be planned, got %q", subprojects[0].PrimaryDetector)
 	}
 
-	detectors := runtimeValue.Registry.PlannedDetectors(model.DetectionRequest{
+	detectors := filtered.PlannedDetectors(model.DetectionRequest{
 		ProjectPath:     projectDir,
 		ExecutionTarget: model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: projectDir},
-		Subproject:      runtimeValue.Subprojects[0],
+		Subproject:      subprojects[0],
 		Ecosystem:       model.EcosystemGo,
 		PackageManager:  model.PackageManagerGoMod,
 		Mode:            model.TargetModeFullGraph,
@@ -240,7 +245,7 @@ func TestPrepareLoadsAndRunsExternalDetector(t *testing.T) {
 	result, err := detectors[0].ResolveGraph(context.Background(), model.DetectionRequest{
 		ProjectPath:     projectDir,
 		ExecutionTarget: model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: projectDir},
-		Subproject:      runtimeValue.Subprojects[0],
+		Subproject:      subprojects[0],
 		Ecosystem:       model.EcosystemGo,
 		PackageManager:  model.PackageManagerGoMod,
 		Mode:            model.TargetModeFullGraph,

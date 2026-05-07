@@ -20,7 +20,7 @@ import (
 )
 
 // Install installs a managed plugin from a local archive, local dev binary, or direct URL.
-func Install(ctx context.Context, root, source string, opts InstallOptions, policy ExecutionPolicy) (*InstallResult, error) {
+func Install(ctx context.Context, root, source string, opts InstallOptions) (*InstallResult, error) {
 	if root == "" {
 		var err error
 		root, err = defaultRoot()
@@ -43,15 +43,15 @@ func Install(ctx context.Context, root, source string, opts InstallOptions, poli
 	checksumVerified := false
 	switch {
 	case opts.DevBinary:
-		manifest, checksum, err = installDevBinary(ctx, tempDir, source, policy)
+		manifest, checksum, err = installDevBinary(ctx, tempDir, source)
 		checksumVerified = checksum != ""
 	case isGitHubReleaseSource(source):
-		manifest, checksum, resolvedSource, checksumVerified, err = installGitHubRelease(ctx, tempDir, source, opts, policy)
+		manifest, checksum, resolvedSource, checksumVerified, err = installGitHubRelease(ctx, tempDir, source, opts)
 	case isRemoteURL(source):
-		manifest, checksum, err = installRemoteArchive(ctx, tempDir, source, opts, policy)
+		manifest, checksum, err = installRemoteArchive(ctx, tempDir, source, opts)
 		checksumVerified = opts.Checksum != "" || opts.InsecureSkipChecksum
 	default:
-		manifest, checksum, err = installLocalArtifact(ctx, tempDir, source, opts, policy)
+		manifest, checksum, err = installLocalArtifact(ctx, tempDir, source, opts)
 		checksumVerified = checksum != ""
 	}
 	if err != nil {
@@ -96,7 +96,7 @@ func Install(ctx context.Context, root, source string, opts InstallOptions, poli
 	}, nil
 }
 
-func installGitHubRelease(ctx context.Context, tempDir, source string, opts InstallOptions, policy ExecutionPolicy) (Manifest, string, string, bool, error) {
+func installGitHubRelease(ctx context.Context, tempDir, source string, opts InstallOptions) (Manifest, string, string, bool, error) {
 	resolution, err := resolveGitHubRelease(ctx, source)
 	if err != nil {
 		return Manifest{}, "", "", false, err
@@ -108,14 +108,14 @@ func installGitHubRelease(ctx context.Context, tempDir, source string, opts Inst
 	manifest, checksum, err := installRemoteArchive(ctx, tempDir, resolution.DownloadURL, InstallOptions{
 		Checksum:             expectedChecksum,
 		InsecureSkipChecksum: opts.InsecureSkipChecksum || expectedChecksum == "",
-	}, policy)
+	})
 	if err != nil {
 		return Manifest{}, "", "", false, err
 	}
 	return manifest, checksum, resolution.DownloadURL, resolution.ExpectedChecksum != "", nil
 }
 
-func installDevBinary(ctx context.Context, tempDir, source string, policy ExecutionPolicy) (Manifest, string, error) {
+func installDevBinary(ctx context.Context, tempDir, source string) (Manifest, string, error) {
 	binaryPath, err := resolveLocalExecutablePath(source)
 	if err != nil {
 		return Manifest{}, "", fmt.Errorf("resolve plugin binary path: %w", err)
@@ -131,11 +131,11 @@ func installDevBinary(ctx context.Context, tempDir, source string, policy Execut
 	if err != nil {
 		return Manifest{}, "", fmt.Errorf("prepare plugin binary for launch: %w", err)
 	}
-	metadata, err := fetchRuntimeMetadata(ctx, binaryPath, policy)
+	metadata, err := fetchRuntimeMetadata(ctx, binaryPath)
 	if err != nil {
 		return Manifest{}, "", err
 	}
-	detectorDescriptor, packageManagerSupport, matcherDescriptor, auditorDescriptor, err := fetchRuntimeDescriptors(ctx, binaryPath, policy, metadata.Kind)
+	detectorDescriptor, packageManagerSupport, matcherDescriptor, auditorDescriptor, err := fetchRuntimeDescriptors(ctx, binaryPath, metadata.Kind)
 	if err != nil {
 		return Manifest{}, "", err
 	}
@@ -161,7 +161,7 @@ func installDevBinary(ctx context.Context, tempDir, source string, policy Execut
 	return manifest, checksum, nil
 }
 
-func installRemoteArchive(ctx context.Context, tempDir, source string, opts InstallOptions, policy ExecutionPolicy) (Manifest, string, error) {
+func installRemoteArchive(ctx context.Context, tempDir, source string, opts InstallOptions) (Manifest, string, error) {
 	if opts.Checksum == "" && !opts.InsecureSkipChecksum {
 		return Manifest{}, "", errors.New("direct URL plugin installs require --checksum or --insecure-skip-checksum")
 	}
@@ -193,10 +193,10 @@ func installRemoteArchive(ctx context.Context, tempDir, source string, opts Inst
 	if err := file.Close(); err != nil {
 		return Manifest{}, "", fmt.Errorf("close downloaded plugin archive: %w", err)
 	}
-	return installArchiveAtPath(ctx, tempDir, archivePath, source, opts.Checksum, opts.InsecureSkipChecksum, policy)
+	return installArchiveAtPath(ctx, tempDir, archivePath, source, opts.Checksum, opts.InsecureSkipChecksum)
 }
 
-func installLocalArtifact(ctx context.Context, tempDir, source string, opts InstallOptions, policy ExecutionPolicy) (Manifest, string, error) {
+func installLocalArtifact(ctx context.Context, tempDir, source string, opts InstallOptions) (Manifest, string, error) {
 	artifactPath, err := filepath.Abs(source)
 	if err != nil {
 		return Manifest{}, "", fmt.Errorf("resolve plugin source path: %w", err)
@@ -208,10 +208,10 @@ func installLocalArtifact(ctx context.Context, tempDir, source string, opts Inst
 	if info.IsDir() {
 		return Manifest{}, "", fmt.Errorf("plugin source %q is a directory", source)
 	}
-	return installArchiveAtPath(ctx, tempDir, artifactPath, source, opts.Checksum, opts.InsecureSkipChecksum, policy)
+	return installArchiveAtPath(ctx, tempDir, artifactPath, source, opts.Checksum, opts.InsecureSkipChecksum)
 }
 
-func installArchiveAtPath(ctx context.Context, tempDir, archivePath, source, expectedChecksum string, skipChecksum bool, policy ExecutionPolicy) (Manifest, string, error) {
+func installArchiveAtPath(ctx context.Context, tempDir, archivePath, source, expectedChecksum string, skipChecksum bool) (Manifest, string, error) {
 	checksum, err := checksumFile(archivePath)
 	if err != nil {
 		return Manifest{}, "", err
@@ -237,11 +237,11 @@ func installArchiveAtPath(ctx context.Context, tempDir, archivePath, source, exp
 	if _, err := os.Stat(fullEntrypoint); err != nil {
 		return Manifest{}, "", fmt.Errorf("plugin entrypoint %q is missing: %w", entry, err)
 	}
-	metadata, err := fetchRuntimeMetadata(ctx, fullEntrypoint, policy)
+	metadata, err := fetchRuntimeMetadata(ctx, fullEntrypoint)
 	if err != nil {
 		return Manifest{}, "", err
 	}
-	detectorDescriptor, packageManagerSupport, matcherDescriptor, auditorDescriptor, err := fetchRuntimeDescriptors(ctx, fullEntrypoint, policy, metadata.Kind)
+	detectorDescriptor, packageManagerSupport, matcherDescriptor, auditorDescriptor, err := fetchRuntimeDescriptors(ctx, fullEntrypoint, metadata.Kind)
 	if err != nil {
 		return Manifest{}, "", err
 	}
@@ -425,8 +425,8 @@ func normalizeWindowsExecutableForLaunch(tempDir, binaryPath string) (string, er
 	return launchPath, nil
 }
 
-func fetchRuntimeMetadata(ctx context.Context, executable string, policy ExecutionPolicy) (*plugschema.PluginMetadata, error) {
-	client, err := hashicorp.Start(ctx, executable, pluginEnv(policy), policy.Verbosity)
+func fetchRuntimeMetadata(ctx context.Context, executable string) (*plugschema.PluginMetadata, error) {
+	client, err := startPlugin(ctx, executable)
 	if err != nil {
 		return nil, err
 	}
@@ -438,8 +438,8 @@ func fetchRuntimeMetadata(ctx context.Context, executable string, policy Executi
 	return metadata, nil
 }
 
-func fetchRuntimeDescriptors(ctx context.Context, executable string, policy ExecutionPolicy, kind plugschema.PluginKind) (*plugschema.DetectorDescriptor, []plugschema.PackageManagerSupport, *plugschema.MatcherDescriptor, *plugschema.AuditorDescriptor, error) {
-	client, err := hashicorp.Start(ctx, executable, pluginEnv(policy), policy.Verbosity)
+func fetchRuntimeDescriptors(ctx context.Context, executable string, kind plugschema.PluginKind) (*plugschema.DetectorDescriptor, []plugschema.PackageManagerSupport, *plugschema.MatcherDescriptor, *plugschema.AuditorDescriptor, error) {
+	client, err := startPlugin(ctx, executable)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -464,12 +464,15 @@ func fetchRuntimeDescriptors(ctx context.Context, executable string, policy Exec
 	}
 }
 
-func pluginEnv(policy ExecutionPolicy) []string {
+func startPlugin(ctx context.Context, executable string) (*hashicorp.Client, error) {
+	options, _ := LaunchOptionsFromContext(ctx)
+	return hashicorp.Start(ctx, executable, pluginEnv(options), options.Verbosity)
+}
+
+func pluginEnv(options LaunchOptions) []string {
 	env := []string{
 		EnvPluginAPIVersion + "=" + plugschema.PluginAPIVersion,
-		EnvCoreVersion + "=" + strings.TrimSpace(policy.CoreVersion),
-		EnvPluginCWD + "=" + strings.TrimSpace(policy.CWD),
-		EnvPluginConfig + "=" + strings.TrimSpace(policy.ConfigPath),
+		EnvPluginConfig + "=" + strings.TrimSpace(options.ConfigPath),
 	}
 	return env
 }

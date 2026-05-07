@@ -1,0 +1,475 @@
+package opts
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
+	"github.com/bomly-dev/bomly-cli/internal/config"
+	"github.com/bomly-dev/bomly-cli/internal/git"
+	"github.com/bomly-dev/bomly-cli/internal/output"
+	"github.com/bomly-dev/bomly-cli/internal/plugin"
+	"github.com/bomly-dev/bomly-cli/internal/scan"
+	"github.com/bomly-dev/bomly-cli/internal/system"
+	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/spf13/cobra"
+	"go.uber.org/zap"
+)
+
+// Options encapsulates the context for executing a CLI command,
+// including configuration, registry, execution target, filters, output format, and cleanup logic.
+type Options struct {
+	ResolvedConfig  config.Resolved
+	registry        *scan.Registry
+	executionTarget sdk.ExecutionTarget
+	subprojects     []sdk.Subproject
+	detectorFilter  sdk.DetectorFilter
+	auditorFilter   sdk.AuditorFilter
+	matcherFilter   sdk.MatcherFilter
+	ecosystemFilter sdk.EcosystemFilter
+	Format          output.Format
+	outputPath      string
+	verbose         bool
+	cleanup         func() error
+}
+
+type optionsKey struct{}
+
+func NewOptions() *Options {
+	return &Options{}
+}
+
+// ToContext returns a context that carries Bomly command options.
+func ToContext(ctx context.Context, options *Options) context.Context {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return context.WithValue(ctx, optionsKey{}, options)
+}
+
+// FromContext returns the Bomly command context stored on ctx.
+func FromContext(ctx context.Context) (*Options, bool) {
+	if ctx == nil {
+		return nil, false
+	}
+	options, ok := ctx.Value(optionsKey{}).(*Options)
+	return options, ok && options != nil
+}
+
+func (o *Options) GetConfig() config.Resolved {
+	if o == nil {
+		cfg := config.Resolved{}
+		config.ApplyDefaults(&cfg)
+		return cfg
+	}
+	return o.ResolvedConfig
+}
+
+func (o *Options) SetConfig(cfg config.Resolved) {
+	o.ResolvedConfig = cfg
+}
+
+// Registry returns the filtered scan registry prepared for command execution.
+func (o Options) Registry() *scan.Registry {
+	return o.registry
+}
+
+// ExecutionTarget returns the target prepared for command execution.
+func (o Options) ExecutionTarget() sdk.ExecutionTarget {
+	return o.executionTarget
+}
+
+// Subprojects returns the subprojects prepared for command execution.
+func (o Options) Subprojects() []sdk.Subproject {
+	return append([]sdk.Subproject(nil), o.subprojects...)
+}
+
+// DetectorFilter returns the detector filter prepared for command execution.
+func (o Options) DetectorFilter() sdk.DetectorFilter {
+	return o.detectorFilter
+}
+
+// AuditorFilter returns the auditor filter prepared for command execution.
+func (o Options) AuditorFilter() sdk.AuditorFilter {
+	return o.auditorFilter
+}
+
+// MatcherFilter returns the matcher filter prepared for command execution.
+func (o Options) MatcherFilter() sdk.MatcherFilter {
+	return o.matcherFilter
+}
+
+// Verbose reports whether verbose command output is enabled.
+func (o Options) Verbose() bool {
+	return o.verbose
+}
+
+func (o *Options) Bind(root *cobra.Command) error {
+	return bindFlagOptions(root, &o.ResolvedConfig)
+}
+
+func (o *Options) ResolveConfig(cmd *cobra.Command) error {
+	flagValues := o.ResolvedConfig
+	resolved := o.ResolvedConfig
+	config.ApplyDefaults(&resolved)
+
+	configPaths, err := o.configLoadPaths()
+	if err != nil {
+		return err
+	}
+	for _, path := range configPaths {
+		fileCfg, err := config.LoadFile(path)
+		if err != nil {
+			return exit.InvalidInputError("load config %q: %v", path, err)
+		}
+		if fileCfg == nil {
+			continue
+		}
+		config.ApplyFileConfig(&resolved, *fileCfg)
+		resolved.LoadedFiles = append(resolved.LoadedFiles, path)
+	}
+
+	config.ApplyEnvOverrides(&resolved)
+	applyFlagOverrides(&resolved, flagValues, cmd)
+	if err := config.Validate(resolved); err != nil {
+		return exit.InvalidInputError("%v", err)
+	}
+	o.ResolvedConfig = resolved
+	return nil
+}
+
+func (o *Options) Prepare(ctx context.Context, logger *zap.Logger) (Options, error) {
+	executionTarget, _, cleanup, err := o.resolveExecutionTarget(logger)
+	if err != nil {
+		return Options{}, err
+	}
+	return o.PrepareForExecutionTarget(ctx, logger, executionTarget, cleanup)
+}
+
+func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Logger, executionTarget sdk.ExecutionTarget, cleanup func() error) (Options, error) {
+	resolved := o.ResolvedConfig
+
+	format, err := o.OutputFormat()
+	if err != nil {
+		if cleanup != nil {
+			_ = cleanup()
+		}
+		return Options{}, exit.InvalidInputError("parse format: %v", err)
+	}
+
+	scanRegistry := scan.NewRegistry(scan.RegistryConfigs{
+		FailOn:      resolved.FailOn,
+		OsvAPIBase:  resolved.OsvAPIBase,
+		OsvCacheDir: resolved.OsvCacheDir,
+		OsvCacheTTL: resolved.OsvCacheTTL,
+		KEVCacheDir: resolved.KEVCacheDir,
+		KEVCacheTTL: resolved.KEVCacheTTL,
+		EOLAPIBase:  resolved.EOLAPIBase,
+		EOLCacheDir: resolved.EOLCacheDir,
+		EOLCacheTTL: resolved.EOLCacheTTL,
+	}, *logger)
+	scanRegistry.Build()
+
+	if err := o.registerInstalledPluginMetadata(ctx, scanRegistry); err != nil {
+		if cleanup != nil {
+			_ = cleanup()
+		}
+		return Options{}, err
+	}
+
+	ecosystemFilter, err := resolveEcosystemFilter(resolved.Ecosystems)
+	if err != nil {
+		if cleanup != nil {
+			_ = cleanup()
+		}
+		return Options{}, err
+	}
+
+	detectorFilter, err := resolveDetectorFilter(resolved.Detectors, scanRegistry)
+	if err != nil {
+		if cleanup != nil {
+			_ = cleanup()
+		}
+		return Options{}, err
+	}
+
+	matcherFilter, err := resolveMatcherFilter(resolved.Matchers, scanRegistry)
+	if err != nil {
+		if cleanup != nil {
+			_ = cleanup()
+		}
+		return Options{}, err
+	}
+
+	auditorFilter, err := ResolveAuditorFilter(resolved.Auditors, scanRegistry)
+	if err != nil {
+		if cleanup != nil {
+			_ = cleanup()
+		}
+		return Options{}, err
+	}
+
+	if len(resolved.InstallArgs) > 0 {
+		selectedDetectors := selectedDetectorNames(detectorFilter, scanRegistry)
+		if len(selectedDetectors) != 1 {
+			if cleanup != nil {
+				_ = cleanup()
+			}
+			return Options{}, exit.InvalidInputError("--install-arg requires exactly one selected detector, got %d (%s)", len(selectedDetectors), strings.Join(selectedDetectors, ", "))
+		}
+	}
+
+	forcedPackageManager := sdk.PackageManagerUnknown
+	if resolved.SBOM {
+		forcedPackageManager = sdk.PackageManagerSBOM
+	}
+
+	filteredRegistry := scanRegistry.Filter(scan.RegistryFilter{
+		DetectorFilter:  detectorFilter,
+		AuditorFilter:   auditorFilter,
+		MatcherFilter:   matcherFilter,
+		EcosystemFilter: ecosystemFilter,
+	})
+
+	subprojects, err := PlanSubprojects(filteredRegistry, Request{
+		Registry:             scanRegistry,
+		ExecutionTarget:      executionTarget,
+		ForcedPackageManager: forcedPackageManager,
+		DetectorFilter:       detectorFilter,
+		EcosystemFilter:      ecosystemFilter,
+	})
+	if err != nil {
+		if cleanup != nil {
+			_ = cleanup()
+		}
+		return Options{}, err
+	}
+
+	return Options{
+		registry:        filteredRegistry,
+		executionTarget: executionTarget,
+		subprojects:     subprojects,
+		detectorFilter:  detectorFilter,
+		auditorFilter:   auditorFilter,
+		matcherFilter:   matcherFilter,
+		ecosystemFilter: ecosystemFilter,
+		ResolvedConfig:  resolved,
+		Format:          format,
+		verbose:         resolved.Verbosity > 0,
+		cleanup:         cleanup,
+	}, nil
+}
+
+func (o *Options) ResolveProjectPath() (string, error) {
+	resolvedConfig := o.ResolvedConfig
+	if resolvedConfig.Path != "" {
+		absPath, err := system.Abs(resolvedConfig.Path)
+		if err != nil {
+			return "", exit.InvalidInputError("resolve path %q: %v", resolvedConfig.Path, err)
+		}
+		return absPath, nil
+	}
+	cwd, err := system.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("resolve cwd: %w", err)
+	}
+	return cwd, nil
+}
+
+func (o *Options) OutputFormat() (output.Format, error) {
+	cfg := o.ResolvedConfig
+	if cfg.Interactive {
+		return output.FormatText, nil
+	}
+	if strings.TrimSpace(cfg.Format) == "" {
+		return output.FormatText, nil
+	}
+	return output.ParseFormat(strings.ToLower(strings.TrimSpace(cfg.Format)))
+}
+
+func (o *Options) PluginLaunchContext(ctx context.Context) context.Context {
+	current := o.GetConfig()
+	return plugin.WithLaunchOptions(ctx, plugin.LaunchOptions{
+		ConfigPath: current.Config,
+		Verbosity:  current.Verbosity,
+	})
+}
+
+// ProjectDescriptor returns a descriptor for the main project being analyzed,
+// summarizing its name, path, ecosystem, and package manager.
+func (o *Options) ProjectDescriptor() output.ProjectDescriptor {
+	ecosystem := "multiple"
+	packageManager := "multiple"
+	if len(o.subprojects) == 1 {
+		ecosystem = string(o.subprojects[0].Ecosystem)
+		packageManager = o.subprojects[0].PrimaryPackageManager().Name()
+	}
+	return output.ProjectDescriptor{
+		Name:           filepath.Base(o.executionTarget.Location),
+		Path:           o.executionTarget.Location,
+		Ecosystem:      ecosystem,
+		PackageManager: packageManager,
+	}
+}
+
+// ProjectDescriptorForSubproject returns a descriptor for a given subproject,
+// summarizing its name, path, ecosystem, and package manager.
+// If the subproject's relative path is ".", it uses the main execution target's name instead.
+func (o *Options) ProjectDescriptorForSubproject(subproject sdk.Subproject) output.ProjectDescriptor {
+	name := filepath.Base(subproject.ExecutionTarget.Location)
+	if subproject.RelativePath == "." {
+		name = filepath.Base(o.executionTarget.Location)
+	}
+	return output.ProjectDescriptor{
+		Name:           name,
+		Path:           subproject.ExecutionTarget.Location,
+		Ecosystem:      string(subproject.Ecosystem),
+		PackageManager: subproject.PrimaryPackageManager().Name(),
+	}
+}
+
+// Writer returns an io.Writer for the command's output, which writes to
+// the specified output path if provided, or to the given stdout otherwise.
+func (o *Options) Writer(stdout io.Writer) (io.Writer, func() error, error) {
+	if o.outputPath == "" {
+		return stdout, func() error { return nil }, nil
+	}
+	file, err := os.Create(o.outputPath)
+	if err != nil {
+		return nil, nil, fmt.Errorf("create output file: %w", err)
+	}
+	return file, file.Close, nil
+}
+
+// Close performs any necessary cleanup for the command options.
+func (o *Options) Close() error {
+	if o.cleanup == nil {
+		return nil
+	}
+	return o.cleanup()
+}
+
+func (o *Options) configLoadPaths() ([]string, error) {
+	paths := make([]string, 0, 3)
+
+	homePath, err := config.UserConfigPath()
+	if err != nil {
+		return nil, err
+	}
+	if homePath != "" {
+		paths = append(paths, homePath)
+	}
+
+	projectPath, err := o.projectConfigPathForLoading()
+	if err != nil {
+		return nil, err
+	}
+	if projectPath != "" && projectPath != homePath {
+		paths = append(paths, projectPath)
+	}
+
+	if strings.TrimSpace(o.ResolvedConfig.Config) != "" {
+		explicitPath, err := system.Abs(o.ResolvedConfig.Config)
+		if err != nil {
+			return nil, exit.InvalidInputError("resolve config path %q: %v", o.ResolvedConfig.Config, err)
+		}
+		if explicitPath != homePath && explicitPath != projectPath {
+			paths = append(paths, explicitPath)
+		}
+	}
+
+	return paths, nil
+}
+
+func (o *Options) projectConfigPathForLoading() (string, error) {
+	if strings.TrimSpace(o.ResolvedConfig.URL) != "" || strings.TrimSpace(o.ResolvedConfig.Container) != "" {
+		return "", nil
+	}
+
+	projectRoot := strings.TrimSpace(o.ResolvedConfig.Path)
+	if projectRoot == "" {
+		cwd, err := system.Getwd()
+		if err != nil {
+			return "", fmt.Errorf("resolve cwd for config discovery: %w", err)
+		}
+		projectRoot = cwd
+	}
+
+	absPath, err := system.Abs(projectRoot)
+	if err != nil {
+		return "", exit.InvalidInputError("resolve project config path %q: %v", projectRoot, err)
+	}
+	info, err := os.Stat(absPath)
+	if err == nil && !info.IsDir() {
+		absPath = filepath.Dir(absPath)
+	}
+	return filepath.Join(absPath, ".bomly", "config.yaml"), nil
+}
+
+func (o *Options) resolveExecutionTarget(logger *zap.Logger) (sdk.ExecutionTarget, string, func() error, error) {
+	resolved := o.ResolvedConfig
+	if resolved.SBOM {
+		if resolved.Container != "" || resolved.URL != "" || resolved.Ref != "" {
+			return sdk.ExecutionTarget{}, "", nil, exit.InvalidInputError("--sbom cannot be combined with --container, --url, or --ref")
+		}
+		sbomPath, err := system.ResolveExistingFile(resolved.Path)
+		if err != nil {
+			return sdk.ExecutionTarget{}, "", nil, exit.InvalidInputError("resolve --path for --sbom: %v", err)
+		}
+		return sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: sbomPath}, sbomPath, nil, nil
+	}
+	targetCount := 0
+	if resolved.Path != "" {
+		targetCount++
+	}
+	if resolved.URL != "" {
+		targetCount++
+	}
+	if resolved.Container != "" {
+		targetCount++
+	}
+	if targetCount > 1 {
+		return sdk.ExecutionTarget{}, "", nil, exit.InvalidInputError("--path, --url, and --container cannot be used together")
+	}
+	if resolved.URL != "" {
+		projectPath, err := git.CloneTemp(logger, resolved.URL, resolved.Ref)
+		if err != nil {
+			return sdk.ExecutionTarget{}, "", nil, exit.InvalidInputError("clone --url %q: %v", resolved.URL, err)
+		}
+		cleanup := func() error {
+			return os.RemoveAll(projectPath)
+		}
+		return sdk.ExecutionTarget{
+			Kind:          sdk.ExecutionTargetGitRepository,
+			Location:      projectPath,
+			RepositoryURL: resolved.URL,
+			Ref:           resolved.Ref,
+		}, projectPath, cleanup, nil
+	}
+	if resolved.Container != "" {
+		if resolved.Ref != "" {
+			return sdk.ExecutionTarget{}, "", nil, exit.InvalidInputError("--ref can only be used with --url")
+		}
+		return sdk.ExecutionTarget{
+			Kind:     sdk.ExecutionTargetContainerImage,
+			Location: strings.TrimSpace(resolved.Container),
+		}, resolved.Container, nil, nil
+	}
+	projectPath, err := o.ResolveProjectPath()
+	if err != nil {
+		return sdk.ExecutionTarget{}, "", nil, err
+	}
+	return sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectPath}, projectPath, nil, nil
+}
+
+func (o *Options) registerInstalledPluginMetadata(ctx context.Context, reg *scan.Registry) error {
+	if reg == nil {
+		return nil
+	}
+	launchCtx := o.PluginLaunchContext(ctx)
+	return plugin.RegisterRuntimePlugins(launchCtx, reg, "")
+}

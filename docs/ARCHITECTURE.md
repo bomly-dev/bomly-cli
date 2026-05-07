@@ -80,7 +80,7 @@ Stage summary:
 Bomly treats detectors, matchers, and auditors as explicit runtime roles.
 
 - Detectors resolve package graphs.
-- Matchers enrich resolved packages.
+- Matchers enrich Resolved packages.
 - Auditors evaluate policy and produce normalized findings.
 
 Within a package-manager chain, Bomly uses explicit ordering and superseding rules. Native detectors are preferred where available, and Syft-backed detection fills the coverage gaps for additional ecosystems.

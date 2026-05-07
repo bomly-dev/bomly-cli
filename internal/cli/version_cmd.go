@@ -19,18 +19,29 @@ var trackedDependencyVersions = []dependencyVersion{
 	{Label: "Grype", Module: "github.com/anchore/grype"},
 }
 
-func newVersionCmd(version string, options *globalOptions) *cobra.Command {
+func newVersionCmd(version string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
 		Short: "Print version information",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			current := options.current()
+			options, err := commandOptions(cmd)
+			if err != nil {
+				return err
+			}
+			current := options.GetConfig()
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
-			_, err := fmt.Fprintln(streams.reportWriter(), renderVersionDetails(version))
+			_, err = fmt.Fprintln(streams.reportWriter(), renderVersionDetails(version))
 			return err
 		},
 	}
+}
+
+func versionDetailsTemplateValue(cmd *cobra.Command) string {
+	if cmd == nil {
+		return ""
+	}
+	return renderVersionDetails(cmd.Version)
 }
 
 func renderVersionDetails(coreVersion string) string {
@@ -77,3 +88,6 @@ func moduleVersion(info *debug.BuildInfo, modulePath string) string {
 	}
 	return ""
 }
+
+const rootVersionTemplate = `{{versionDetails .}}
+`

@@ -9,36 +9,6 @@ import (
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
 
-func TestParseOutputMode(t *testing.T) {
-	tests := []struct {
-		input   resolvedConfig
-		want    output.Format
-		wantErr bool
-	}{
-		{input: resolvedConfig{Format: "text"}, want: output.FormatText},
-		{input: resolvedConfig{Format: "json"}, want: output.FormatJSON},
-		{input: resolvedConfig{Format: "sarif"}, want: output.FormatSARIF},
-		{input: resolvedConfig{Interactive: true}, want: output.FormatText},
-		{input: resolvedConfig{Format: "table"}, wantErr: true},
-	}
-
-	for _, tc := range tests {
-		got, err := parseOutputMode(tc.input)
-		if tc.wantErr {
-			if err == nil {
-				t.Fatalf("parseOutputMode(%#v) expected error", tc.input)
-			}
-			continue
-		}
-		if err != nil {
-			t.Fatalf("parseOutputMode(%#v) error = %v", tc.input, err)
-		}
-		if got != tc.want {
-			t.Fatalf("parseOutputMode(%#v) = %q, want %q", tc.input, got, tc.want)
-		}
-	}
-}
-
 func TestRenderScanReportIncludesProfessionalSections(t *testing.T) {
 	g := newScanTestGraph(t)
 	findings := []model.Finding{{

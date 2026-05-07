@@ -1,20 +1,24 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
+	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
+	"github.com/bomly-dev/bomly-cli/internal/cli/resolve"
 	"github.com/bomly-dev/bomly-cli/internal/git"
 	"github.com/bomly-dev/bomly-cli/internal/scan"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
-func resolveGitDiffGraphs(options *globalOptions, logger *zap.Logger, baseRef, headRef string, stderr io.Writer) (diffResolvedTarget, diffResolvedTarget, string, []scan.PipelineWarning, error) {
+func resolveGitDiffGraphs(ctx context.Context, options *opts.Options, logger *zap.Logger, baseRef, headRef string, stderr io.Writer) (diffResolvedTarget, diffResolvedTarget, string, []scan.PipelineWarning, error) {
 	repoRoot, repoCleanup, projectIdentifier, err := resolveDiffRepo(options, logger)
 	if err != nil {
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, err
@@ -23,17 +27,17 @@ func resolveGitDiffGraphs(options *globalOptions, logger *zap.Logger, baseRef, h
 		defer func() { _ = repoCleanup() }()
 	}
 	if err := git.VerifyRef(repoRoot, baseRef); err != nil {
-		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, invalidInputf("verify --base %q: %v", baseRef, err)
+		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, exit.InvalidInputError("verify --base %q: %v", baseRef, err)
 	}
 	if err := git.VerifyRef(repoRoot, headRef); err != nil {
-		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, invalidInputf("verify --head %q: %v", headRef, err)
+		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, exit.InvalidInputError("verify --head %q: %v", headRef, err)
 	}
 
-	baseTarget, err := resolveDiffResultsForRef(options, logger, repoRoot, baseRef, stderr)
+	baseTarget, err := resolveDiffResultsForRef(ctx, options, logger, repoRoot, baseRef, stderr)
 	if err != nil {
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, err
 	}
-	headTarget, err := resolveDiffResultsForRef(options, logger, repoRoot, headRef, stderr)
+	headTarget, err := resolveDiffResultsForRef(ctx, options, logger, repoRoot, headRef, stderr)
 	if err != nil {
 		_ = baseTarget.close()
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, err
@@ -42,95 +46,95 @@ func resolveGitDiffGraphs(options *globalOptions, logger *zap.Logger, baseRef, h
 	return baseTarget, headTarget, projectIdentifier, collectPipelineWarnings(baseTarget.Warnings, headTarget.Warnings), nil
 }
 
-func resolveDiffRepo(options *globalOptions, logger *zap.Logger) (string, func() error, string, error) {
-	if options.URL != "" {
-		repoRoot, err := git.CloneTemp(logger, options.URL, "")
+func resolveDiffRepo(options *opts.Options, logger *zap.Logger) (string, func() error, string, error) {
+	current := options.GetConfig()
+	if current.URL != "" {
+		repoRoot, err := git.CloneTemp(logger, current.URL, "")
 		if err != nil {
-			return "", nil, "", invalidInputf("clone --url %q: %v", options.URL, err)
+			return "", nil, "", exit.InvalidInputError("clone --url %q: %v", current.URL, err)
 		}
-		return repoRoot, func() error { return os.RemoveAll(repoRoot) }, options.URL, nil
+		return repoRoot, func() error { return os.RemoveAll(repoRoot) }, current.URL, nil
 	}
 
-	selectedPath, err := options.resolveProjectPath()
+	selectedPath, err := options.ResolveProjectPath()
 	if err != nil {
 		return "", nil, "", err
 	}
 	repoRoot, err := git.FindRepoRoot(selectedPath)
 	if err != nil {
-		return "", nil, "", invalidInputf("resolve local git repository: %v", err)
+		return "", nil, "", exit.InvalidInputError("resolve local git repository: %v", err)
 	}
 	return repoRoot, nil, repoRoot, nil
 }
 
-func resolveDiffResultsForRef(options *globalOptions, logger *zap.Logger, repoRoot, ref string, stderr io.Writer) (diffResolvedTarget, error) {
+func resolveDiffResultsForRef(ctx context.Context, options *opts.Options, logger *zap.Logger, repoRoot, ref string, stderr io.Writer) (diffResolvedTarget, error) {
 	materializedPath, err := git.MaterializeLocalRef(logger, repoRoot, ref)
 	if err != nil {
-		return diffResolvedTarget{}, resolutionFailure(err)
+		return diffResolvedTarget{}, exit.ResolutionFailureError(err)
 	}
 	cleanup := func() error {
 		return os.RemoveAll(materializedPath)
 	}
-	executionTarget := model.ExecutionTarget{
-		Kind:     model.ExecutionTargetGitRepository,
+	executionTarget := sdk.ExecutionTarget{
+		Kind:     sdk.ExecutionTargetGitRepository,
 		Location: materializedPath,
 		Ref:      ref,
 	}
-	ctx, err := options.newCommandContextForExecutionTarget(logger, executionTarget, cleanup)
+	commandCtx, err := options.PrepareForExecutionTarget(ctx, logger, executionTarget, cleanup)
 	if err != nil {
 		return diffResolvedTarget{}, err
 	}
-	resolution, err := resolveGraphs(ctx, logger, stderr)
+	resolution, err := resolve.ResolveGraphs(commandCtx, logger, stderr)
 	if err != nil {
-		_ = ctx.close()
 		return diffResolvedTarget{}, err
 	}
-	return diffResolvedTarget{Context: ctx, Results: resolution.Results, Warnings: resolution.DetectorWarnings}, nil
+	return diffResolvedTarget{Context: commandCtx, Results: resolution.Results, Warnings: resolution.DetectorWarnings}, nil
 }
 
-func resolveContainerDiffGraphs(options *globalOptions, logger *zap.Logger, baseRef, headRef string, stderr io.Writer) (diffResolvedTarget, diffResolvedTarget, string, []scan.PipelineWarning, error) {
-	baseTarget, err := resolveContainerDiffTarget(options.Container, baseRef)
+func resolveContainerDiffGraphs(ctx context.Context, options *opts.Options, logger *zap.Logger, baseRef, headRef string, stderr io.Writer) (diffResolvedTarget, diffResolvedTarget, string, []scan.PipelineWarning, error) {
+	current := options.GetConfig()
+	baseTarget, err := resolveContainerDiffTarget(current.Container, baseRef)
 	if err != nil {
-		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, invalidInputf("resolve --base %q: %v", baseRef, err)
+		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, exit.InvalidInputError("resolve --base %q: %v", baseRef, err)
 	}
-	headTarget, err := resolveContainerDiffTarget(options.Container, headRef)
+	headTarget, err := resolveContainerDiffTarget(current.Container, headRef)
 	if err != nil {
-		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, invalidInputf("resolve --head %q: %v", headRef, err)
+		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, exit.InvalidInputError("resolve --head %q: %v", headRef, err)
 	}
 
-	baseResolved, err := resolveDiffResultsForExecutionTarget(options, logger, executionTargetForResolved(baseTarget), stderr)
+	baseResolved, err := resolveDiffResultsForExecutionTarget(ctx, options, logger, executionTargetForResolved(baseTarget), stderr)
 	if err != nil {
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, err
 	}
-	headResolved, err := resolveDiffResultsForExecutionTarget(options, logger, executionTargetForResolved(headTarget), stderr)
+	headResolved, err := resolveDiffResultsForExecutionTarget(ctx, options, logger, executionTargetForResolved(headTarget), stderr)
 	if err != nil {
 		_ = baseResolved.close()
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, err
 	}
 
-	return baseResolved, headResolved, options.Container, collectPipelineWarnings(baseResolved.Warnings, headResolved.Warnings), nil
+	return baseResolved, headResolved, current.Container, collectPipelineWarnings(baseResolved.Warnings, headResolved.Warnings), nil
 }
 
 // executionTargetForResolved returns a filesystem target when the resolved location
 // is a local path, otherwise a container image target.
-func executionTargetForResolved(location string) model.ExecutionTarget {
+func executionTargetForResolved(location string) sdk.ExecutionTarget {
 	if localPathExists(location) {
-		return model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: location}
+		return sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: location}
 	}
-	return model.ExecutionTarget{Kind: model.ExecutionTargetContainerImage, Location: location}
+	return sdk.ExecutionTarget{Kind: sdk.ExecutionTargetContainerImage, Location: location}
 }
 
-func resolveDiffResultsForExecutionTarget(options *globalOptions, logger *zap.Logger, executionTarget model.ExecutionTarget, stderr io.Writer) (diffResolvedTarget, error) {
-	ctx, err := options.newCommandContextForExecutionTarget(logger, executionTarget, nil)
+func resolveDiffResultsForExecutionTarget(ctx context.Context, options *opts.Options, logger *zap.Logger, executionTarget sdk.ExecutionTarget, stderr io.Writer) (diffResolvedTarget, error) {
+	commandCtx, err := options.PrepareForExecutionTarget(ctx, logger, executionTarget, nil)
 	if err != nil {
 		return diffResolvedTarget{}, err
 	}
 
-	resolution, err := resolveGraphs(ctx, logger, stderr)
+	resolution, err := resolve.ResolveGraphs(commandCtx, logger, stderr)
 	if err != nil {
-		_ = ctx.close()
 		return diffResolvedTarget{}, err
 	}
-	return diffResolvedTarget{Context: ctx, Results: resolution.Results, Warnings: resolution.DetectorWarnings}, nil
+	return diffResolvedTarget{Context: commandCtx, Results: resolution.Results, Warnings: resolution.DetectorWarnings}, nil
 }
 
 func collectPipelineWarnings(groups ...[]scan.PipelineWarning) []scan.PipelineWarning {
@@ -187,16 +191,17 @@ func looksLikeContainerReference(value string) bool {
 // resolveSBOMDiffGraphs resolves dependency graph results for two SBOM files
 // and returns them along with a human-readable comparison label.
 func resolveSBOMDiffGraphs(
-	options *globalOptions,
+	ctx context.Context,
+	options *opts.Options,
 	logger *zap.Logger,
 	basePath, headPath string,
 	stderr io.Writer,
 ) (diffResolvedTarget, diffResolvedTarget, string, []scan.PipelineWarning, error) {
-	baseResolved, err := resolveDiffResultsForSBOMFile(options, logger, basePath, stderr)
+	baseResolved, err := resolveDiffResultsForSBOMFile(ctx, options, logger, basePath, stderr)
 	if err != nil {
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, fmt.Errorf("resolve base SBOM %q: %w", basePath, err)
 	}
-	headResolved, err := resolveDiffResultsForSBOMFile(options, logger, headPath, stderr)
+	headResolved, err := resolveDiffResultsForSBOMFile(ctx, options, logger, headPath, stderr)
 	if err != nil {
 		_ = baseResolved.close()
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, fmt.Errorf("resolve head SBOM %q: %w", headPath, err)
@@ -207,27 +212,27 @@ func resolveSBOMDiffGraphs(
 
 // resolveDiffResultsForSBOMFile builds one prepared runtime and graph resolution for an explicit SBOM file.
 func resolveDiffResultsForSBOMFile(
-	options *globalOptions,
+	ctx context.Context,
+	options *opts.Options,
 	logger *zap.Logger,
 	sbomPath string,
 	stderr io.Writer,
 ) (diffResolvedTarget, error) {
-	absPath, err := resolveExactFileTarget(sbomPath)
+	absPath, err := system.ResolveExistingFile(sbomPath)
 	if err != nil {
-		return diffResolvedTarget{}, err
+		return diffResolvedTarget{}, exit.InvalidInputError("resolve SBOM file %q: %v", sbomPath, err)
 	}
-	executionTarget := model.ExecutionTarget{
-		Kind:     model.ExecutionTargetFilesystem,
+	executionTarget := sdk.ExecutionTarget{
+		Kind:     sdk.ExecutionTargetFilesystem,
 		Location: absPath,
 	}
-	ctx, err := options.newCommandContextForExecutionTarget(logger, executionTarget, nil)
+	commandCtx, err := options.PrepareForExecutionTarget(ctx, logger, executionTarget, nil)
 	if err != nil {
 		return diffResolvedTarget{}, err
 	}
-	resolution, err := resolveGraphs(ctx, logger, stderr)
+	resolution, err := resolve.ResolveGraphs(commandCtx, logger, stderr)
 	if err != nil {
-		_ = ctx.close()
 		return diffResolvedTarget{}, err
 	}
-	return diffResolvedTarget{Context: ctx, Results: resolution.Results, Warnings: resolution.DetectorWarnings}, nil
+	return diffResolvedTarget{Context: commandCtx, Results: resolution.Results, Warnings: resolution.DetectorWarnings}, nil
 }

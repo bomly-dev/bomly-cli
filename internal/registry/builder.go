@@ -53,6 +53,7 @@ type RegistryFilter struct {
 	DetectorFilter  sdk.DetectorFilter
 	AuditorFilter   sdk.AuditorFilter
 	MatcherFilter   sdk.MatcherFilter
+	AnalyzerFilter  sdk.AnalyzerFilter
 	EcosystemFilter sdk.EcosystemFilter
 }
 
@@ -74,13 +75,14 @@ func (p DetectorDiscoveryPlan) Clone() DetectorDiscoveryPlan {
 	}
 }
 
-// Registry holds registered detectors, auditors, matchers, and discovery plans.
+// Registry holds registered detectors, auditors, matchers, analyzers, and discovery plans.
 type Registry struct {
 	logger         *zap.Logger
 	configs        RegistryConfigs
 	detectors      []sdk.Detector
 	auditors       []sdk.Auditor
 	matchers       []sdk.Matcher
+	analyzers      []sdk.Analyzer
 	discoveryPlans map[string]DetectorDiscoveryPlan
 }
 
@@ -93,11 +95,12 @@ func NewRegistry(configs RegistryConfigs, logger zap.Logger) *Registry {
 	}
 }
 
-// Build registers detectors, auditors, and matchers.
+// Build registers detectors, auditors, matchers, and analyzers.
 func (r *Registry) Build() {
 	r.logger.Debug("Building scan registry")
 	r.registerDetectors()
 	r.registerMatchers()
+	r.registerAnalyzers()
 	r.registerAuditors()
 	r.registerDiscoveryPlans()
 }
@@ -234,6 +237,26 @@ func (r *Registry) RegisterMatcher(matcher sdk.Matcher) {
 	r.matchers = append(r.matchers, matcher)
 }
 
+// registerAnalyzers wires the built-in reachability analyzers. Concrete
+// analyzers are registered by separate methods so plugins (and lite builds)
+// can opt out via build tags. Phase A registers the govulncheck analyzer
+// only; future analyzers (jsreach, pyreach, ...) will append here.
+func (r *Registry) registerAnalyzers() {
+	r.registerGovulncheckAnalyzer()
+}
+
+// registerGovulncheckAnalyzer is provided by analyzers_govulncheck.go so the
+// registry package can stay free of analyzer dependencies (they pull in
+// golang.org/x/vuln in the builtin build).
+
+// RegisterAnalyzer adds an analyzer to the registry.
+func (r *Registry) RegisterAnalyzer(analyzer sdk.Analyzer) {
+	if analyzer == nil {
+		return
+	}
+	r.analyzers = append(r.analyzers, analyzer)
+}
+
 func (r *Registry) registerAuditors() {
 	for _, auditor := range builtInAuditors([]sdk.Auditor{policy.Auditor{FailOn: r.configs.FailOn}}) {
 		r.RegisterAuditor(auditor)
@@ -293,6 +316,18 @@ func (r *Registry) MatcherDescriptors() []sdk.MatcherDescriptor {
 	descriptors := make([]sdk.MatcherDescriptor, 0, len(r.matchers))
 	for _, matcher := range r.matchers {
 		descriptors = append(descriptors, matcher.Descriptor())
+	}
+	sort.Slice(descriptors, func(i, j int) bool {
+		return descriptors[i].Name < descriptors[j].Name
+	})
+	return descriptors
+}
+
+// AnalyzerDescriptors returns registered analyzer descriptors sorted by name.
+func (r *Registry) AnalyzerDescriptors() []sdk.AnalyzerDescriptor {
+	descriptors := make([]sdk.AnalyzerDescriptor, 0, len(r.analyzers))
+	for _, analyzer := range r.analyzers {
+		descriptors = append(descriptors, analyzer.Descriptor())
 	}
 	sort.Slice(descriptors, func(i, j int) bool {
 		return descriptors[i].Name < descriptors[j].Name
@@ -381,6 +416,33 @@ func (r *Registry) Auditors(req sdk.AuditRequest) []sdk.Auditor {
 	return matches
 }
 
+// Analyzers returns the analyzers that apply to the request, filtered by
+// include/exclude selectors, ecosystem, package manager, language, and mode.
+// Empty SupportedLanguages on a descriptor means "applies to any language".
+func (r *Registry) Analyzers(req sdk.AnalyzeRequest) []sdk.Analyzer {
+	matches := make([]sdk.Analyzer, 0, len(r.analyzers))
+	for _, analyzer := range r.analyzers {
+		descriptor := analyzer.Descriptor()
+		if !analyzerSelected(req.AnalyzerFilter, descriptor) {
+			continue
+		}
+		if req.Ecosystem != sdk.EcosystemUnknown && !supportsEcosystem(descriptor.SupportedEcosystems, req.Ecosystem) {
+			continue
+		}
+		if req.PackageManager != sdk.PackageManagerUnknown && !supportsPackageManager(descriptor.SupportedManagers, req.PackageManager) {
+			continue
+		}
+		if req.Language != sdk.LanguageUnknown && !supportsLanguage(descriptor.SupportedLanguages, req.Language) {
+			continue
+		}
+		if !supportsMode(descriptor.SupportedModes, req.Mode) {
+			continue
+		}
+		matches = append(matches, analyzer)
+	}
+	return matches
+}
+
 // Matchers returns matching matchers sorted by priority descending then name.
 func (r *Registry) Matchers(req sdk.MatchRequest) []sdk.Matcher {
 	matches := make([]sdk.Matcher, 0, len(r.matchers))
@@ -459,6 +521,17 @@ func (r *Registry) Filter(filter RegistryFilter) *Registry {
 		filtered.matchers = append(filtered.matchers, matcher)
 	}
 
+	for _, analyzer := range r.analyzers {
+		descriptor := analyzer.Descriptor()
+		if !analyzerSelected(filter.AnalyzerFilter, descriptor) {
+			continue
+		}
+		if !descriptorAllowsEcosystem(descriptor.SupportedEcosystems, filter.EcosystemFilter) {
+			continue
+		}
+		filtered.analyzers = append(filtered.analyzers, analyzer)
+	}
+
 	for name, plan := range r.discoveryPlans {
 		if _, ok := allowedDetectors[name]; !ok {
 			continue
@@ -478,6 +551,18 @@ func supportsEcosystem(supported []sdk.Ecosystem, ecosystem sdk.Ecosystem) bool 
 	}
 	for _, candidate := range supported {
 		if candidate == ecosystem {
+			return true
+		}
+	}
+	return false
+}
+
+func supportsLanguage(supported []sdk.Language, language sdk.Language) bool {
+	if len(supported) == 0 {
+		return true
+	}
+	for _, candidate := range supported {
+		if candidate == language {
 			return true
 		}
 	}
@@ -526,6 +611,16 @@ func auditorSelected(filter sdk.AuditorFilter, descriptor sdk.AuditorDescriptor)
 }
 
 func matcherSelected(filter sdk.MatcherFilter, descriptor sdk.MatcherDescriptor) bool {
+	if filter.Excludes(descriptor.Name) {
+		return false
+	}
+	if len(filter.Include) > 0 {
+		return filter.Includes(descriptor.Name)
+	}
+	return descriptor.Enabled
+}
+
+func analyzerSelected(filter sdk.AnalyzerFilter, descriptor sdk.AnalyzerDescriptor) bool {
 	if filter.Excludes(descriptor.Name) {
 		return false
 	}

@@ -11,7 +11,7 @@ import (
 )
 
 // Pipeline orchestrates a full scan through a sequence of typed stages:
-// pre-resolve hooks -> detect -> consolidate -> match -> process -> audit -> post-resolve hooks.
+// pre-resolve hooks -> detect -> consolidate -> match -> analyze -> process -> audit -> post-resolve hooks.
 type Pipeline struct {
 	Registry *Registry
 	Logger   *zap.Logger
@@ -49,6 +49,7 @@ func (p *Pipeline) Run(ctx context.Context, req PipelineRequest) (PipelineResult
 		return result, err
 	}
 	p.runMatch(ctx, &result, req)
+	p.runAnalyze(ctx, &result, req)
 	if err := p.runProcessor(ctx, &result, req); err != nil {
 		return result, err
 	}
@@ -121,6 +122,49 @@ func (p *Pipeline) runMatch(ctx context.Context, result *PipelineResult, req Pip
 	p.match(ctx, result, req)
 	if req.Progress != nil {
 		req.Progress.CompleteStage("Enriching packages", 1)
+	}
+}
+
+// runAnalyze runs the reachability analyzer stage when --reachability is
+// set. Errors degrade to warnings; analyzer failure must never abort the
+// pipeline.
+func (p *Pipeline) runAnalyze(ctx context.Context, result *PipelineResult, req PipelineRequest) {
+	if !req.AnalyzeReachabilityEnabled || result.Graph == nil {
+		return
+	}
+	if req.Progress != nil {
+		req.Progress.StartStage("Analyzing reachability", 1)
+	}
+	p.analyze(ctx, result, req)
+	if req.Progress != nil {
+		req.Progress.CompleteStage("Analyzing reachability", 1)
+	}
+}
+
+func (p *Pipeline) analyze(ctx context.Context, result *PipelineResult, req PipelineRequest) {
+	if result.Graph == nil {
+		return
+	}
+	aReq := sdk.AnalyzeRequest{
+		ProjectPath:     req.ProjectPath,
+		ExecutionTarget: req.ExecutionTarget,
+		Mode:            sdk.TargetModeFullGraph,
+		Graph:           result.Graph,
+		AnalyzerFilter:  req.AnalyzerFilter,
+		Stderr:          req.Stderr,
+	}
+	analyzeResult, err := p.engine.Analyze(ctx, aReq)
+	result.AnalyzerRuns = analyzeResult.AnalyzerRuns
+	if len(analyzeResult.AnalyzerStats) > 0 {
+		result.AnalyzerStats = analyzeResult.AnalyzerStats
+	}
+	if analyzeResult.Graph != nil {
+		result.Graph = analyzeResult.Graph
+		consolidation.SyncConsolidatedEnrichmentToManifests(&result.Consolidated, analyzeResult.Graph)
+	}
+	if err != nil {
+		result.AnalyzeWarnings = PipelineWarningsFromError(err, "analyzer")
+		p.Logger.Warn("pipeline: reachability analysis errors", zap.Error(err))
 	}
 }
 

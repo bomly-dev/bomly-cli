@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
-	"github.com/bomly-dev/bomly-cli/internal/explain"
+	"github.com/bomly-dev/bomly-cli/internal/engine/explain"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 )
 

@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	err2 "github.com/bomly-dev/bomly-cli/internal/cli/exit"
+	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
-	"github.com/bomly-dev/bomly-cli/internal/scan"
 	"github.com/bomly-dev/bomly-cli/internal/selector"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
@@ -40,7 +40,7 @@ const (
 	eolMetadataKey            = EOLMetadataKey
 )
 
-func buildDetectorOptionRows(reg *scan.Registry) []detectorOptionRow {
+func buildDetectorOptionRows(reg *engine.Registry) []detectorOptionRow {
 	if reg == nil {
 		return nil
 	}
@@ -91,7 +91,7 @@ func buildDetectorOptionRows(reg *scan.Registry) []detectorOptionRow {
 	return out
 }
 
-func buildDetectorSelectorCatalog(reg *scan.Registry) selector.Catalog {
+func buildDetectorSelectorCatalog(reg *engine.Registry) selector.Catalog {
 	rows := buildDetectorOptionRows(reg)
 	aliasToName := make(map[string]string, len(rows)*2)
 	available := make([]string, 0, len(rows))
@@ -178,7 +178,7 @@ func ecosystemStringSliceToValues(items []string) ([]model.Ecosystem, error) {
 	return values, nil
 }
 
-func buildAuditorSelectorCatalog(reg *scan.Registry) selector.Catalog {
+func buildAuditorSelectorCatalog(reg *engine.Registry) selector.Catalog {
 	available := make([]string, 0)
 	aliasToName := make(map[string]string)
 	for _, descriptor := range reg.AuditorDescriptors() {
@@ -198,7 +198,7 @@ func buildAuditorSelectorCatalog(reg *scan.Registry) selector.Catalog {
 	return selector.Catalog{Kind: "auditor", Available: available, AliasToName: aliasToName, Items: simplified}
 }
 
-func buildMatcherSelectorCatalog(reg *scan.Registry) selector.Catalog {
+func buildMatcherSelectorCatalog(reg *engine.Registry) selector.Catalog {
 	available := make([]string, 0)
 	aliasToName := make(map[string]string)
 	for _, descriptor := range reg.MatcherDescriptors() {
@@ -272,7 +272,7 @@ func resolveSelector(raw string, defaults []string, catalog selector.Catalog, im
 	return nil, nil, err
 }
 
-func resolveDetectorFilter(raw string, reg *scan.Registry) (model.DetectorFilter, error) {
+func resolveDetectorFilter(raw string, reg *engine.Registry) (model.DetectorFilter, error) {
 	catalog := buildDetectorSelectorCatalog(reg)
 	defaultSet := defaultEnabledDetectorNames(reg)
 	include, exclude, err := resolveSelector(raw, defaultSet, catalog, true)
@@ -282,7 +282,7 @@ func resolveDetectorFilter(raw string, reg *scan.Registry) (model.DetectorFilter
 	return model.DetectorFilter{Include: include, Exclude: exclude}, nil
 }
 
-func ResolveAuditorFilter(raw string, reg *scan.Registry) (model.AuditorFilter, error) {
+func ResolveAuditorFilter(raw string, reg *engine.Registry) (model.AuditorFilter, error) {
 	if strings.TrimSpace(raw) == "" {
 		return model.AuditorFilter{}, nil
 	}
@@ -295,7 +295,7 @@ func ResolveAuditorFilter(raw string, reg *scan.Registry) (model.AuditorFilter, 
 	return model.AuditorFilter{Include: include, Exclude: exclude}, nil
 }
 
-func ResolveMatcherFilter(raw string, reg *scan.Registry) (model.MatcherFilter, error) {
+func ResolveMatcherFilter(raw string, reg *engine.Registry) (model.MatcherFilter, error) {
 	if strings.TrimSpace(raw) == "" {
 		return model.MatcherFilter{}, nil
 	}
@@ -308,7 +308,7 @@ func ResolveMatcherFilter(raw string, reg *scan.Registry) (model.MatcherFilter, 
 	return model.MatcherFilter{Include: include, Exclude: exclude}, nil
 }
 
-func resolveMatcherFilter(raw string, reg *scan.Registry) (model.MatcherFilter, error) {
+func resolveMatcherFilter(raw string, reg *engine.Registry) (model.MatcherFilter, error) {
 	return ResolveMatcherFilter(raw, reg)
 }
 
@@ -322,7 +322,7 @@ func filterAllowsName(include, exclude []string, name string) bool {
 	return true
 }
 
-func selectedDetectorNames(filter model.DetectorFilter, reg *scan.Registry) []string {
+func selectedDetectorNames(filter model.DetectorFilter, reg *engine.Registry) []string {
 	names := make([]string, 0)
 	for _, descriptor := range reg.DetectorDescriptors() {
 		if descriptor.Name == "" {
@@ -337,7 +337,7 @@ func selectedDetectorNames(filter model.DetectorFilter, reg *scan.Registry) []st
 	return names
 }
 
-func defaultEnabledDetectorNames(reg *scan.Registry) []string {
+func defaultEnabledDetectorNames(reg *engine.Registry) []string {
 	if reg == nil {
 		return nil
 	}
@@ -352,7 +352,7 @@ func defaultEnabledDetectorNames(reg *scan.Registry) []string {
 	return names
 }
 
-func defaultEnabledAuditorNames(reg *scan.Registry) []string {
+func defaultEnabledAuditorNames(reg *engine.Registry) []string {
 	if reg == nil {
 		return nil
 	}
@@ -367,7 +367,7 @@ func defaultEnabledAuditorNames(reg *scan.Registry) []string {
 	return names
 }
 
-func defaultEnabledMatcherNames(reg *scan.Registry) []string {
+func defaultEnabledMatcherNames(reg *engine.Registry) []string {
 	if reg == nil {
 		return nil
 	}

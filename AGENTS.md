@@ -27,15 +27,17 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for full detail. Component ma
 | `internal/cli`         | Cobra root + all commands (`scan`, `explain`, `diff`, `plugin`, `version`)                        |
 | `sdk`       | Unified domain types plus neutral package/ecosystem/support identifiers shared across packages    |
 | `internal/detectors`   | Detector contracts, descriptors, requests/results, and detector-only helpers                      |
-| `internal/scan`        | Pipeline, engine, consolidation, auditors, matchers, hooks, and orchestration                     |
-| `internal/registry`    | Canonical support/discovery registry and built-in scan-registry wiring                            |
+| `internal/engine`      | Pipeline, engine, consolidation, auditors, matchers, hooks, and orchestration                     |
+| `internal/registry`    | Canonical support/discovery registry and built-in engine registry wiring                          |
 | `internal/detectors/*` | Concrete dependency resolution per ecosystem (gomod, gradle, maven, node, python, sbom, syft)     |
 | `internal/matchers/*`  | External enrichment matchers and shared matcher cache (osv, grype, deps.dev, ClearlyDefined, eol) |
 | `internal/auditors/*`  | Policy evaluators and audit-only logic (policy, noop)                                             |
 | `internal/sbom`        | SBOM codec (SPDX 2.3, CycloneDX)                                                                  |
 | `internal/output`      | Output rendering plus structured command payloads and schema generation for `scan`, `diff`, `explain`, JSON, and SARIF 2.1.0 |
 | `internal/plugin`      | Plugin discovery, protocol, handshake, and execution                                              |
-| `internal/explain`     | Dependency path traversal (`explain` command)                                                     |
+| `internal/engine/diff` | Diff pipeline orchestration and audit delta classification                                        |
+| `internal/engine/explain` | Dependency path traversal (`explain` command)                                                  |
+| `internal/engine/scan` | Scan command pipeline API                                                                         |
 | `internal/matchers`    | External enrichment matchers plus shared matcher cache and enrichment helpers                     |
 | `internal/logging`     | Zap console wrapper                                                                               |
 | `internal/testutil`    | Test helpers (fake binary builder)                                                                |
@@ -43,17 +45,17 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for full detail. Component ma
 
 Scan pipeline: `runtimePreparation → subprojectDiscovery → preResolveHooks → detect (per-package-manager chains) → scopeFilter → consolidate → match (license enrichment on the consolidated graph) → commandProcess → audit → postResolveHooks → format`.
 
-Runtime preparation is owned by `internal/scan`: build the filtered registry once, index the execution target with that same registry, and reuse the prepared runtime for `scan`, `diff`, `explain`, license enrichment, and auditing. The CLI resolves raw execution targets and flags, but it must not discover subprojects with a separate registry.
+Runtime preparation is owned by `internal/engine`: build the filtered registry once, index the execution target with that same registry, and reuse the prepared runtime for `scan`, `diff`, `explain`, license enrichment, and auditing. The CLI resolves raw execution targets and flags, but it must not discover subprojects with a separate registry.
 
-`bomly explain` is implemented by `newExplainCmd` in `internal/cli/why_cmd.go`; the filename has not been renamed.
+`bomly explain` is implemented by `newExplainCmd` in `internal/cli/explain_cmd.go`.
 
 ### Package Boundaries
 
-- `internal/detectors/*` must not import `internal/scan` or `internal/registry`. Concrete detectors depend on `internal/detectors`, `sdk`, and local helpers only.
+- `internal/detectors/*` must not import `internal/engine` or `internal/registry`. Concrete detectors depend on `internal/detectors`, `sdk`, and local helpers only.
 - `internal/detectors` owns detector-facing contracts such as `Detector`, `DetectorDescriptor`, `ResolveGraphRequest`, and detector helper functions.
 - `sdk` owns neutral shared identifiers and support metadata that would otherwise create package cycles, including ecosystems, package managers, detector types, and support-matrix data.
 - `internal/registry` owns package-manager discovery, support lookups, and built-in registry wiring in `internal/registry/builder.go`. Do not create or reintroduce a separate `registrybuilder` package.
-- `internal/scan` may import `internal/detectors` and `internal/registry`, but detector packages must not point back into `internal/scan`. Runtime planning, prepared subprojects, and detector-chain reuse belong in `internal/scan`.
+- `internal/engine` may import `internal/detectors` and `internal/registry`, but detector packages must not point back into `internal/engine`. Runtime planning, prepared subprojects, and detector-chain reuse belong in `internal/engine`.
 
 ## Non-Negotiable
 
@@ -103,9 +105,9 @@ Cache failures are **non-fatal** — log a warning and continue without caching.
 
 ### Detector / Auditor Pattern
 
-- Implement `detectors.Detector` for concrete detectors, or `scan.Auditor` / `scan.Matcher` for audit and license stages.
+- Implement `detectors.Detector` for concrete detectors, or `engine.Auditor` / `engine.Matcher` for audit and license stages.
 - Detectors may implement `ReadyDetector`, `ApplicableDetector`, and `InstallFirstDetector`; auditors and matchers have parallel `Ready*` / `Applicable*` hooks.
-- Register built-ins in `internal/registry/builder.go`, which wires concrete detectors, auditors, matchers, and plugin stages into `scan.Registry`.
+- Register built-ins in `internal/registry/builder.go`, which wires concrete detectors, auditors, matchers, and plugin stages into `engine.Registry`.
 - External enrichment is matcher-based; see `internal/matchers/depsdev`, `internal/matchers/clearlydefined`, `internal/matchers/osv`, `internal/matchers/grype`, and `internal/matchers/eol`.
 - Priority order (lower = higher priority): native → lockfile-parser → third-party → plugin.
 
@@ -145,4 +147,3 @@ Core passes these env vars. Plugin discovery: `~/.bomly/plugins/bomly-*` overrid
 | [`docs/SUPPORT_MATRIX.md`](docs/SUPPORT_MATRIX.md)     | Ecosystem detector coverage                                                             |
 | `docs/schemas/*.json`, `docs/schemas/*.md`             | Generated JSON schemas and human-readable output docs for `scan`, `diff`, and `explain` |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md)                   | Development setup, conventions, testing                                                 |
-

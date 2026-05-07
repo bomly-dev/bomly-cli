@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
+	"github.com/bomly-dev/bomly-cli/internal/engine"
+	"github.com/bomly-dev/bomly-cli/internal/engine/consolidation"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-cli/internal/scan"
-	"github.com/bomly-dev/bomly-cli/internal/scan/consolidation"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -43,7 +43,7 @@ func TestInteractiveManifestRows_OnlyIncludesManifests(t *testing.T) {
 		},
 		DetectorName: "npm-detector",
 		Origin:       model.CoreOrigin,
-		Graphs:       scan.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		Graphs:       engine.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	rows := manifestRows(consolidated)
 	if len(rows) != 1 {
@@ -81,7 +81,7 @@ func TestInteractiveListModel_ViewIncludesDetails(t *testing.T) {
 		},
 		DetectorName: "npm-detector",
 		Origin:       model.CoreOrigin,
-		Graphs:       scan.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		Graphs:       engine.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {
@@ -180,7 +180,7 @@ func TestNewScanInteractiveModel_ViewIncludesGraphSummary(t *testing.T) {
 		},
 		DetectorName: "npm-detector",
 		Origin:       model.CoreOrigin,
-		Graphs:       scan.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		Graphs:       engine.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {
@@ -242,7 +242,7 @@ func TestScanInteractiveModel_MultiManifestNavigation(t *testing.T) {
 			},
 			DetectorName: "maven-detector",
 			Origin:       model.CoreOrigin,
-			Graphs:       scan.SingleGraphContainer(graphFixtureForInteractive(t, r1, c1), model.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}),
+			Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r1, c1), model.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}),
 		},
 		{
 			SubprojectInfo: model.Subproject{
@@ -254,7 +254,7 @@ func TestScanInteractiveModel_MultiManifestNavigation(t *testing.T) {
 			},
 			DetectorName: "npm-detector",
 			Origin:       model.CoreOrigin,
-			Graphs:       scan.SingleGraphContainer(graphFixtureForInteractive(t, r2, c2), model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+			Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r2, c2), model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 		},
 	})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
@@ -305,7 +305,7 @@ func TestScanInteractiveModel_SingleManifestAutoEntry_NoBackNavigation(t *testin
 		},
 		DetectorName: "maven-detector",
 		Origin:       model.CoreOrigin,
-		Graphs:       scan.SingleGraphContainer(graphFixtureForInteractive(t, r1, c1), model.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}),
+		Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r1, c1), model.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {
@@ -652,7 +652,7 @@ func TestScanInteractiveModel_FiltersAndScopeBadges(t *testing.T) {
 		},
 		DetectorName: "npm-detector",
 		Origin:       model.CoreOrigin,
-		Graphs:       scan.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		Graphs:       engine.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {
@@ -803,7 +803,7 @@ func TestBuildLicensesListModel_GroupsByUniqueLicense(t *testing.T) {
 		},
 		DetectorName: "npm-detector",
 		Origin:       model.CoreOrigin,
-		Graphs:       scan.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		Graphs:       engine.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {

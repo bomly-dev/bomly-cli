@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/config"
-	"github.com/bomly-dev/bomly-cli/internal/scan"
+	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -137,7 +137,7 @@ func bindDynamicFlagOptions(cmd *cobra.Command) error {
 func availableEcosystemOptions() []string {
 	seen := map[string]struct{}{}
 	options := make([]string, 0)
-	reg := scan.NewRegistry(scan.RegistryConfigs{}, *zap.NewNop())
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
 	for _, descriptor := range reg.DetectorDescriptors() {
 		for _, ecosystem := range descriptor.SupportedEcosystems {
@@ -157,7 +157,7 @@ func availableEcosystemOptions() []string {
 }
 
 func availableDetectorOptions() []string {
-	reg := scan.NewRegistry(scan.RegistryConfigs{}, *zap.NewNop())
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
 	rows := buildDetectorOptionRows(reg)
 	seen := map[string]struct{}{}
@@ -188,7 +188,7 @@ func availableDetectorOptions() []string {
 func availableAuditorOptions(logger *zap.Logger) []string {
 	seen := map[string]struct{}{}
 	options := make([]string, 0)
-	reg := scan.NewRegistry(scan.RegistryConfigs{}, *logger)
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *logger)
 	reg.Build()
 	for _, descriptor := range reg.AuditorDescriptors() {
 		name := descriptor.Name
@@ -209,7 +209,7 @@ func availableAuditorOptions(logger *zap.Logger) []string {
 func availableMatcherOptions() []string {
 	seen := map[string]struct{}{}
 	options := make([]string, 0)
-	reg := scan.NewRegistry(scan.RegistryConfigs{}, *zap.NewNop())
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
 	for _, descriptor := range reg.MatcherDescriptors() {
 		name := descriptor.Name

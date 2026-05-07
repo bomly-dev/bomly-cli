@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
+	"github.com/bomly-dev/bomly-cli/internal/engine"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
-	"github.com/bomly-dev/bomly-cli/internal/scan"
 	"github.com/bomly-dev/bomly-cli/internal/testutil"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
@@ -206,12 +206,12 @@ func TestPrepareLoadsAndRunsExternalDetector(t *testing.T) {
 		t.Fatalf("Enable() error = %v", err)
 	}
 
-	reg := scan.NewRegistry(scan.RegistryConfigs{}, *zap.NewNop())
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
 	if err := managedplugin.RegisterRuntimePlugins(context.Background(), reg, root); err != nil {
 		t.Fatalf("RegisterRuntimePlugins() error = %v", err)
 	}
-	filtered := reg.Filter(scan.RegistryFilter{
+	filtered := reg.Filter(engine.RegistryFilter{
 		DetectorFilter:  model.DetectorFilter{Include: []string{"acme.detector.gomod"}},
 		EcosystemFilter: model.EcosystemFilter{Include: []model.Ecosystem{model.EcosystemGo}},
 	})

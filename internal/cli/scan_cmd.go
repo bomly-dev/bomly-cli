@@ -7,7 +7,8 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
-	"github.com/bomly-dev/bomly-cli/internal/cli/resolve"
+	"github.com/bomly-dev/bomly-cli/internal/engine"
+	enginescan "github.com/bomly-dev/bomly-cli/internal/engine/scan"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
 	"github.com/bomly-dev/bomly-cli/internal/tui"
@@ -62,12 +63,12 @@ func newScanCmd() *cobra.Command {
 				}
 			}
 
-			pipeline := resolve.NewPipeline(commandCtx, logger)
+			pipeline := engine.NewPipeline(commandCtx.Registry(), logger)
 			progress.StartStage("Indexed subprojects", 1)
 			progress.CompleteStage("Indexed subprojects", 1)
-			pipeReq := resolve.PipelineRequest(commandCtx, selectedScope, streams.notificationWriter())
+			pipeReq := commandCtx.PipelineRequest(selectedScope, streams.notificationWriter())
 			pipeReq.Progress = progress
-			pipeResult, err := pipeline.Run(cmd.Context(), pipeReq)
+			pipeResult, err := enginescan.Run(cmd.Context(), pipeline, pipeReq)
 			if err != nil {
 				return exit.ResolutionFailureError(err)
 			}
@@ -103,7 +104,7 @@ func newScanCmd() *cobra.Command {
 
 			var findings []model.Finding
 			if commandCtx.ResolvedConfig.Audit {
-				findings = resolve.DeduplicateFindings(pipeResult.Findings)
+				findings = pipeResult.Findings
 				progress.CompleteStep("Evaluated policy", auditProgressChildren(pipeResult.AuditorRuns, pipeResult.AuditorFindings, pipeResult.AuditWarnings))
 			}
 			payload := output.BuildScanResponse(commandCtx.ProjectDescriptor(), consolidated, findings, started)

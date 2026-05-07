@@ -2,20 +2,19 @@ package cli
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
 	clictx "github.com/bomly-dev/bomly-cli/internal/cli/opts"
-	"github.com/bomly-dev/bomly-cli/internal/cli/resolve"
-	"github.com/bomly-dev/bomly-cli/internal/explain"
+	"github.com/bomly-dev/bomly-cli/internal/engine"
+	enginediff "github.com/bomly-dev/bomly-cli/internal/engine/diff"
+	"github.com/bomly-dev/bomly-cli/internal/engine/explain"
+	enginescan "github.com/bomly-dev/bomly-cli/internal/engine/scan"
 	bomcp "github.com/bomly-dev/bomly-cli/internal/mcp"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
-	"github.com/bomly-dev/bomly-cli/internal/scan"
-	"github.com/bomly-dev/bomly-cli/internal/scan/consolidation"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	mcpserver "github.com/mark3labs/mcp-go/server"
 	"github.com/spf13/cobra"
@@ -118,16 +117,16 @@ func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req bomcp.ScanRequest) 
 		return output.ScanResponse{}, err
 	}
 
-	pipeline := resolve.NewPipeline(cmdCtx, a.logger)
-	pipeReq := resolve.PipelineRequest(cmdCtx, model.ScopeUnknown, io.Discard)
-	pipeResult, runErr := pipeline.Run(ctx, pipeReq)
+	pipeline := engine.NewPipeline(cmdCtx.Registry(), a.logger)
+	pipeReq := cmdCtx.PipelineRequest(model.ScopeUnknown, io.Discard)
+	pipeResult, runErr := enginescan.Run(ctx, pipeline, pipeReq)
 	if runErr != nil && len(pipeResult.ResolveResults) == 0 {
 		return output.ScanResponse{}, runErr
 	}
 
 	var findings []model.Finding
 	if cmdCtx.ResolvedConfig.Audit {
-		findings = resolve.DeduplicateFindings(pipeResult.Findings)
+		findings = pipeResult.Findings
 	}
 	return output.BuildScanResponse(cmdCtx.ProjectDescriptor(), pipeResult.Consolidated, findings, started), nil
 }
@@ -140,45 +139,25 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req bomcp.ExplainReq
 		return output.ExplainResponse{}, err
 	}
 
-	resolution, err := resolve.ResolveGraphs(cmdCtx, a.logger, io.Discard)
+	pipeline := engine.NewPipeline(cmdCtx.Registry(), a.logger)
+	explainResult, err := pipeline.RunExplain(ctx, engine.ExplainRequest{
+		Query:    req.Package,
+		Pipeline: cmdCtx.PipelineRequest(model.ScopeUnknown, io.Discard),
+	})
 	if err != nil {
 		return output.ExplainResponse{}, err
 	}
 
-	targets := make([]output.ExplainTargetResponse, 0, len(resolution.Results))
-	for _, result := range resolution.Results {
-		depsGraph, graphErr := result.ConsolidatedGraph()
-		if graphErr != nil {
-			return output.ExplainResponse{}, graphErr
-		}
-		if cmdCtx.ResolvedConfig.Enrich {
-			depsGraph = resolve.EnrichGraph(cmdCtx, a.logger, depsGraph, result.SubprojectInfo, io.Discard)
-		}
-		dependency, paths, findErr := explain.FindWhy(depsGraph, req.Package)
-		if findErr != nil {
-			if errors.Is(findErr, explain.ErrDependencyNotFound) {
-				continue
-			}
-			return output.ExplainResponse{}, findErr
-		}
-		var findings []model.Finding
-		if cmdCtx.ResolvedConfig.Audit {
-			targetPkg, ok := depsGraph.Package(dependency.ID)
-			if ok {
-				findings = resolve.AuditComponent(cmdCtx, a.logger, depsGraph, targetPkg, io.Discard).Findings
-			}
-		}
+	targets := make([]output.ExplainTargetResponse, 0, len(explainResult.Targets))
+	for _, target := range explainResult.Targets {
 		targets = append(targets, output.ExplainTargetResponse{
-			Project:      cmdCtx.ProjectDescriptorForSubproject(result.SubprojectInfo),
-			Detector:     result.DetectorName,
-			Dependency:   dependency,
-			Paths:        paths,
-			Findings:     output.FindingsFromScan(findings),
-			AuditSummary: output.SummaryFromFindings(findings),
+			Project:      cmdCtx.ProjectDescriptorForSubproject(target.Manifest.Subproject),
+			Detector:     target.Manifest.DetectorName,
+			Dependency:   explainPackageRef(target.Dependency),
+			Paths:        explainPathsWithStableIDs(target.Paths),
+			Findings:     output.FindingsFromScan(target.Findings),
+			AuditSummary: output.SummaryFromFindings(target.Findings),
 		})
-	}
-	if len(targets) == 0 {
-		return output.ExplainResponse{}, fmt.Errorf("%w: %s", explain.ErrDependencyNotFound, req.Package)
 	}
 	return output.BuildExplainResponse(cmdCtx.ProjectDescriptor(), req.Package, targets, started), nil
 }
@@ -192,40 +171,24 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req bomcp.DiffRequest) 
 	if err != nil {
 		return output.DiffResponse{}, err
 	}
+	defer func() { _ = baseTarget.close() }()
+	defer func() { _ = headTarget.close() }()
 
-	baseResults := baseTarget.Results
-	headResults := headTarget.Results
-	if req.Enrich {
-		baseResults = resolve.EnrichResolvedGraphs(baseTarget.Context, logger, baseResults, io.Discard)
-		headResults = resolve.EnrichResolvedGraphs(headTarget.Context, logger, headResults, io.Discard)
-	}
-
-	baseConsolidated, err := consolidation.ConsolidateGraphs(baseResults)
+	diffResult, err := enginediff.Run(ctx, enginediff.Request{
+		Base: enginediff.Target{
+			Pipeline: engine.NewPipeline(baseTarget.Context.Registry(), logger),
+			Request:  baseTarget.Context.PipelineRequest(model.ScopeUnknown, io.Discard),
+		},
+		Head: enginediff.Target{
+			Pipeline: engine.NewPipeline(headTarget.Context.Registry(), logger),
+			Request:  headTarget.Context.PipelineRequest(model.ScopeUnknown, io.Discard),
+		},
+	})
 	if err != nil {
 		return output.DiffResponse{}, err
 	}
-	headConsolidated, err := consolidation.ConsolidateGraphs(headResults)
-	if err != nil {
-		return output.DiffResponse{}, err
-	}
 
-	var auditPayload *output.DiffAudit
-	if req.Audit {
-		current := o.GetConfig()
-		scanRegistry := scan.NewRegistry(resolve.RegistryBuilderConfig(current), *logger)
-		scanRegistry.Build()
-		auditorFilter, filterErr := clictx.ResolveAuditorFilter(current.Auditors, scanRegistry)
-		if filterErr != nil {
-			return output.DiffResponse{}, filterErr
-		}
-		baseGraph, _ := baseConsolidated.Graphs.ConsolidatedGraph()
-		headGraph, _ := headConsolidated.Graphs.ConsolidatedGraph()
-		baseAudit := resolve.AuditGraph(baseTarget.Context, logger, baseGraph, auditorFilter, io.Discard)
-		headAudit := resolve.AuditGraph(headTarget.Context, logger, headGraph, auditorFilter, io.Discard)
-		auditPayload = resolve.DiffAuditSummary(baseAudit.Findings, headAudit.Findings)
-	}
-
-	return output.BuildDiffResponse(projectIdentifier, req.Base, req.Head, baseConsolidated, headConsolidated, auditPayload, started), nil
+	return output.BuildDiffResponse(projectIdentifier, req.Base, req.Head, diffResult.Base.Consolidated, diffResult.Head.Consolidated, diffAuditOutput(diffResult.Audit), started), nil
 }
 
 func (a *mcpOptionsAdapter) ListPlugins(_ context.Context) ([]managedplugin.PluginInfo, error) {
@@ -242,9 +205,9 @@ func (a *mcpOptionsAdapter) VulnFixContext(ctx context.Context, req bomcp.VulnFi
 		return bomcp.VulnFixResult{}, err
 	}
 
-	pipeline := resolve.NewPipeline(cmdCtx, a.logger)
-	pipeReq := resolve.PipelineRequest(cmdCtx, model.ScopeUnknown, io.Discard)
-	pipeResult, runErr := pipeline.Run(ctx, pipeReq)
+	pipeline := engine.NewPipeline(cmdCtx.Registry(), a.logger)
+	pipeReq := cmdCtx.PipelineRequest(model.ScopeUnknown, io.Discard)
+	pipeResult, runErr := enginescan.Run(ctx, pipeline, pipeReq)
 	if runErr != nil && len(pipeResult.ResolveResults) == 0 {
 		return bomcp.VulnFixResult{}, runErr
 	}

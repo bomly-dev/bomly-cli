@@ -219,14 +219,16 @@ More detail lives in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 ```text
 cmd/bomly/           CLI entry point
 internal/cli/        Commands, config loading, progress, help
-internal/scan/       Runtime preparation, orchestration, consolidation
+internal/engine/     Runtime preparation, orchestration, consolidation
 internal/detectors/  Ecosystem-specific dependency resolution
 internal/matchers/   External enrichment matchers and shared matcher cache
 internal/auditors/   Policy evaluation and finding creation
 internal/matchers/   Shared matcher helpers and external enrichment matchers
 internal/output/     Text, JSON, SARIF rendering, and structured response payloads
 internal/sbom/       SPDX and CycloneDX encoding and decoding
-internal/explain/    Dependency path explanation
+internal/engine/diff/ Diff orchestration and audit deltas
+internal/engine/explain/ Dependency path explanation
+internal/engine/scan/ Scan command pipeline API
 internal/registry/   Canonical support and discovery registry
 internal/system/     OS-level helpers used internally
 docs/                Public reference documentation

@@ -1,4 +1,4 @@
-package scan
+package engine
 
 import (
 	"context"
@@ -59,11 +59,15 @@ type fakeAuditor struct {
 	ready      *bool
 	applicable *bool
 	applyErr   error
+	run        func(AuditRequest) AuditResult
 }
 
 func (f fakeAuditor) Descriptor() AuditorDescriptor { return f.descriptor }
 
-func (f fakeAuditor) Audit(_ context.Context, _ AuditRequest) (AuditResult, error) {
+func (f fakeAuditor) Audit(_ context.Context, req AuditRequest) (AuditResult, error) {
+	if f.run != nil {
+		return f.run(req), f.err
+	}
 	return f.result, f.err
 }
 

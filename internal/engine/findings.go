@@ -1,4 +1,4 @@
-package scan
+package engine
 
 import "github.com/bomly-dev/bomly-cli/sdk"
 

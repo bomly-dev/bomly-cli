@@ -31,11 +31,11 @@ make generate            # Regenerate config reference, JSON schemas, support ma
 ```txt
 cmd/bomly/                       Entry point — calls internal/cli.Execute(version)
 internal/cli/                    Cobra command wiring (scan, explain, diff, plugin, mcp, version),
-                                 options/flags, command-context glue, resolver/orchestration shim
+                                 options/flags, command-context glue, and output orchestration
 internal/cli/render/             CLI presentation layer: ANSI primitives, text helpers
                                  (Wrap/Style/TruncateToWidth/PadRight/ValueOrDash), the startup
                                  logo, and the scan/diff/explain text reports + SBOM writer
-                                 (Scan, Diff, Explain, WhyTreeLines, ExplainGraphFromPaths,
+                                 (Scan, Diff, Explain, WhyTreeLines,
                                  ParseSBOMOutputSpecs, WriteSBOMDocument)
 internal/tui/                    Interactive Bubbletea terminal UI (Run, NewScan, NewDiff,
                                  NewScanNavigator, Model interface). ErrNotATerminal sentinel
@@ -50,13 +50,12 @@ internal/progress/               Live spinner + buffered completed-step renderer
 internal/detectors/              Detector contracts (Detector, DetectorDescriptor, ResolveGraphRequest)
 internal/detectors/*             Concrete per-ecosystem detectors (gomod, gradle, maven, npm,
                                  pnpm, yarn, python, ruby, composer, githubactions, sbom, syft)
-internal/scan/                   Pipeline core (pipeline.go, engine.go), Registry wrapper, scope,
-                                 graph-container helpers
-internal/scan/consolidation/     Cross-subproject graph consolidation, manifest dedup, enrichment
+internal/engine/                 Pipeline core (pipeline.go, engine.go), Registry wrapper, scope,
+                                 graph-container helpers, explain orchestration, diff orchestration
+internal/engine/consolidation/   Cross-subproject graph consolidation, manifest dedup, enrichment
                                  sync (ConsolidateGraphs, ManifestDedupPriority,
                                  SyncConsolidatedEnrichmentToManifests)
-internal/scan/runtime/           Subproject discovery + registry filtering (Prepare, Request, Runtime)
-internal/scan/hooks/             Pre-/post-resolve hook contract + executor (Descriptor,
+internal/engine/hooks/           Pre-/post-resolve hook contract + executor (Descriptor,
                                  PreResolveHook, PostResolveHook, RunPre, RunPost)
 internal/registry/               Support/discovery registry; built-in wiring in builder.go
 internal/matchers/*              External enrichment: osv, grype, deps.dev, ClearlyDefined, eol
@@ -64,24 +63,26 @@ internal/matchers/cache          File-based cache shared by matchers
 internal/auditors/*              Policy evaluators (policy, noop)
 internal/sbom/                   SPDX 2.3 / CycloneDX codec
 internal/output/                 Text, JSON, SARIF 2.1.0, SBOM rendering + schema generation
-internal/explain/                Dependency path traversal (explain command)
+internal/engine/diff/            Diff pipeline orchestration and audit delta classification
+internal/engine/explain/         Dependency path traversal (explain command)
+internal/engine/scan/            Scan command pipeline API
 internal/plugin/                 gRPC plugin system (v1 protocol)
 internal/testutil/               Test helpers (fake binary builder)
 ```
 
-**`bomly explain`** is implemented by `newExplainCmd` in `internal/cli/why_cmd.go` (filename not renamed).
+**`bomly explain`** is implemented by `newExplainCmd` in `internal/cli/explain_cmd.go`.
 
 **Scan pipeline order**: `runtimePreparation → subprojectDiscovery → preResolveHooks → detect (per-package-manager chains) → scopeFilter → consolidate → match (license enrichment) → commandProcess → audit → postResolveHooks → format`
 
-Runtime preparation lives in `internal/scan/runtime` and is invoked by the CLI before pipeline execution. The CLI resolves raw targets and flags but must not discover subprojects with a separate registry.
+Runtime preparation is owned by `internal/engine` and is reached through CLI option helpers before pipeline execution. The CLI resolves raw targets and flags but must not discover subprojects with a separate registry.
 
 ### Package Boundaries
 
-- `internal/detectors/*` must not import `internal/scan`, `internal/scan/*`, or `internal/registry`.
+- `internal/detectors/*` must not import `internal/engine`, `internal/engine/*`, or `internal/registry`.
 - `sdk` owns neutral identifiers that would otherwise create import cycles.
 - `internal/registry` owns package-manager discovery, support lookups, and built-in wiring in `builder.go`. Do not create a separate `registrybuilder` package.
-- `internal/scan` (pipeline core) may import `internal/scan/consolidation`, `internal/scan/hooks`, `internal/detectors`, and `internal/registry`. It must not import `internal/scan/runtime` (the CLI invokes runtime directly).
-- `internal/scan/runtime` may import `internal/scan` (for the Registry wrapper). The other scan subpackages (`consolidation`, `hooks`) must not.
+- `internal/engine` (pipeline core) may import `internal/engine/consolidation`, `internal/engine/hooks`, `internal/engine/explain`, `internal/detectors`, and `internal/registry`.
+- `internal/engine` subpackages (`consolidation`, `hooks`, `diff`, `explain`, `scan`) must not import `internal/cli`.
 - `internal/config`, `internal/selector`, `internal/progress`, `internal/cli/render`, `internal/tui` must not import `internal/cli`. They are downstream of cobra wiring; cli consumes them, not the reverse.
 - `internal/tui` may import `internal/cli/render` (for ANSI primitives, text helpers, and shared sort/format helpers used by both the TUI and the text reports).
 - `cmd/bomly/main.go` is the only file outside `internal/cli` that imports `internal/cli`.

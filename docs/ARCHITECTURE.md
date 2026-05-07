@@ -149,12 +149,14 @@ Cache failures are non-fatal. The command should warn and continue rather than f
 |-----------------------|-------------------------------------------------------------------------------------------------|
 | `cmd/bomly`           | CLI entry point                                                                                 |
 | `internal/cli`        | Commands, config loading, progress, and help output                                             |
-| `internal/scan`       | Runtime preparation, orchestration, pipeline hooks, and consolidation                           |
+| `internal/engine`     | Runtime preparation, orchestration, pipeline hooks, and consolidation                           |
 | `internal/registry`   | Support metadata, package-manager discovery, and built-in detector, matcher, and auditor wiring |
 | `internal/detectors`  | Detector contracts and ecosystem implementations                                                |
 | `internal/auditors`   | Policy evaluators and finding creation                                                          |
 | `internal/matchers`   | Matcher contracts plus shared enrichment helpers used by built-in matchers                      |
-| `internal/explain`    | Dependency path traversal                                                                       |
+| `internal/engine/diff` | Diff pipeline orchestration and audit delta classification                                    |
+| `internal/engine/explain` | Dependency path traversal                                                                   |
+| `internal/engine/scan` | Scan command pipeline API                                                                    |
 | `internal/output`     | Text, JSON, SARIF rendering, plus structured response payloads and schema generation            |
 | `internal/sbom`       | SPDX and CycloneDX codecs                                                                       |
 | `sdk`      | Shared domain types                                                                             |
@@ -217,7 +219,7 @@ The installer rejects archive path traversal, absolute paths, unsupported entryp
 
 ## Plugin Selection
 
-External plugins are not executed ad hoc from CLI handlers. `scan.Prepare` now loads enabled installed plugins into the registry before filtering and subproject planning.
+External plugins are not executed ad hoc from CLI handlers. Runtime preparation loads enabled installed plugins into the engine registry before filtering and subproject planning.
 
 Selection rules stay aligned with the normal scan pipeline:
 
@@ -246,9 +248,9 @@ This keeps the scan engine recognizable while making it possible to migrate sele
 
 ## Design Boundaries
 
-- Detector packages must not import `internal/scan` or `internal/registry`.
+- Detector packages must not import `internal/engine` or `internal/registry`.
 - `sdk` owns shared neutral identifiers and support types.
 - `internal/registry` owns discovery, support-matrix data, and built-in registry wiring.
-- `internal/scan` owns runtime planning, orchestration, hook execution, and detector-chain reuse.
+- `internal/engine` owns runtime planning, orchestration, hook execution, and detector-chain reuse.
 - `internal/plugin` owns managed plugin installation, verification, store state, and external runtime adapters.
 - The CLI resolves user input but should not perform its own independent discovery pass.

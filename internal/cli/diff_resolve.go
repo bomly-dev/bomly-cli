@@ -10,15 +10,14 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
-	"github.com/bomly-dev/bomly-cli/internal/cli/resolve"
+	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/git"
-	"github.com/bomly-dev/bomly-cli/internal/scan"
 	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
-func resolveGitDiffGraphs(ctx context.Context, options *opts.Options, logger *zap.Logger, baseRef, headRef string, stderr io.Writer) (diffResolvedTarget, diffResolvedTarget, string, []scan.PipelineWarning, error) {
+func resolveGitDiffGraphs(ctx context.Context, options *opts.Options, logger *zap.Logger, baseRef, headRef string, stderr io.Writer) (diffResolvedTarget, diffResolvedTarget, string, []engine.PipelineWarning, error) {
 	repoRoot, repoCleanup, projectIdentifier, err := resolveDiffRepo(options, logger)
 	if err != nil {
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, err
@@ -84,14 +83,10 @@ func resolveDiffResultsForRef(ctx context.Context, options *opts.Options, logger
 	if err != nil {
 		return diffResolvedTarget{}, err
 	}
-	resolution, err := resolve.ResolveGraphs(commandCtx, logger, stderr)
-	if err != nil {
-		return diffResolvedTarget{}, err
-	}
-	return diffResolvedTarget{Context: commandCtx, Results: resolution.Results, Warnings: resolution.DetectorWarnings}, nil
+	return diffResolvedTarget{Context: commandCtx}, nil
 }
 
-func resolveContainerDiffGraphs(ctx context.Context, options *opts.Options, logger *zap.Logger, baseRef, headRef string, stderr io.Writer) (diffResolvedTarget, diffResolvedTarget, string, []scan.PipelineWarning, error) {
+func resolveContainerDiffGraphs(ctx context.Context, options *opts.Options, logger *zap.Logger, baseRef, headRef string, stderr io.Writer) (diffResolvedTarget, diffResolvedTarget, string, []engine.PipelineWarning, error) {
 	current := options.GetConfig()
 	baseTarget, err := resolveContainerDiffTarget(current.Container, baseRef)
 	if err != nil {
@@ -130,15 +125,11 @@ func resolveDiffResultsForExecutionTarget(ctx context.Context, options *opts.Opt
 		return diffResolvedTarget{}, err
 	}
 
-	resolution, err := resolve.ResolveGraphs(commandCtx, logger, stderr)
-	if err != nil {
-		return diffResolvedTarget{}, err
-	}
-	return diffResolvedTarget{Context: commandCtx, Results: resolution.Results, Warnings: resolution.DetectorWarnings}, nil
+	return diffResolvedTarget{Context: commandCtx}, nil
 }
 
-func collectPipelineWarnings(groups ...[]scan.PipelineWarning) []scan.PipelineWarning {
-	var all []scan.PipelineWarning
+func collectPipelineWarnings(groups ...[]engine.PipelineWarning) []engine.PipelineWarning {
+	var all []engine.PipelineWarning
 	for _, g := range groups {
 		all = append(all, g...)
 	}
@@ -196,7 +187,7 @@ func resolveSBOMDiffGraphs(
 	logger *zap.Logger,
 	basePath, headPath string,
 	stderr io.Writer,
-) (diffResolvedTarget, diffResolvedTarget, string, []scan.PipelineWarning, error) {
+) (diffResolvedTarget, diffResolvedTarget, string, []engine.PipelineWarning, error) {
 	baseResolved, err := resolveDiffResultsForSBOMFile(ctx, options, logger, basePath, stderr)
 	if err != nil {
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, fmt.Errorf("resolve base SBOM %q: %w", basePath, err)
@@ -230,9 +221,5 @@ func resolveDiffResultsForSBOMFile(
 	if err != nil {
 		return diffResolvedTarget{}, err
 	}
-	resolution, err := resolve.ResolveGraphs(commandCtx, logger, stderr)
-	if err != nil {
-		return diffResolvedTarget{}, err
-	}
-	return diffResolvedTarget{Context: commandCtx, Results: resolution.Results, Warnings: resolution.DetectorWarnings}, nil
+	return diffResolvedTarget{Context: commandCtx}, nil
 }

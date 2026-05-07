@@ -1,16 +1,16 @@
-package scan
+package engine
 
 import (
 	"context"
 	"io"
 
-	"github.com/bomly-dev/bomly-cli/internal/scan/hooks"
+	"github.com/bomly-dev/bomly-cli/internal/engine/hooks"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
 
-// Hook types are re-exported from internal/scan/hooks for backward-compatible references
-// inside the scan package and as the registry's hook surface. Plugins should depend on
-// internal/scan/hooks directly.
+// Hook types are re-exported from internal/engine/hooks for existing references
+// inside the engine package and as the registry's hook surface. Plugins should depend on
+// internal/engine/hooks directly.
 type (
 	HookDescriptor     = hooks.Descriptor
 	PreResolveContext  = hooks.PreResolveContext

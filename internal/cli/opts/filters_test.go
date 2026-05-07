@@ -4,14 +4,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/scan"
+	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/selector"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
 func TestResolveDetectorFilter_AliasAndExplicitSet(t *testing.T) {
-	reg := scan.NewRegistry(scan.RegistryConfigs{}, *zap.NewNop())
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
 	filter, err := resolveDetectorFilter("npm", reg)
 	if err != nil {
@@ -23,7 +23,7 @@ func TestResolveDetectorFilter_AliasAndExplicitSet(t *testing.T) {
 }
 
 func TestResolveDetectorFilter_DefaultMinusToken(t *testing.T) {
-	reg := scan.NewRegistry(scan.RegistryConfigs{}, *zap.NewNop())
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
 	filter, err := resolveDetectorFilter("-npm", reg)
 	if err != nil {
@@ -35,7 +35,7 @@ func TestResolveDetectorFilter_DefaultMinusToken(t *testing.T) {
 }
 
 func TestResolveDetectorFilter_UnknownShowsHelpHint(t *testing.T) {
-	reg := scan.NewRegistry(scan.RegistryConfigs{}, *zap.NewNop())
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
 	_, err := resolveDetectorFilter("not-a-detector", reg)
 	if err == nil {
@@ -51,7 +51,7 @@ func TestResolveDetectorFilter_UnknownShowsHelpHint(t *testing.T) {
 }
 
 func TestResolveAuditorFilter_DefaultLeavesAuditorSelectionToRegistryDefaults(t *testing.T) {
-	reg := scan.NewRegistry(scan.RegistryConfigs{}, *zap.NewNop())
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
 	filter, err := ResolveAuditorFilter("", reg)
 	if err != nil {
@@ -63,7 +63,7 @@ func TestResolveAuditorFilter_DefaultLeavesAuditorSelectionToRegistryDefaults(t 
 }
 
 func TestResolveMatcherFilter_DefaultLeavesMatcherSelectionToRegistryDefaults(t *testing.T) {
-	reg := scan.NewRegistry(scan.RegistryConfigs{}, *zap.NewNop())
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
 	filter, err := resolveMatcherFilter("", reg)
 	if err != nil {
@@ -75,7 +75,7 @@ func TestResolveMatcherFilter_DefaultLeavesMatcherSelectionToRegistryDefaults(t 
 }
 
 func TestResolveMatcherFilter_PlusSyntaxAddsClearlyDefined(t *testing.T) {
-	reg := scan.NewRegistry(scan.RegistryConfigs{}, *zap.NewNop())
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
 	filter, err := resolveMatcherFilter("+clearlydefined", reg)
 	if err != nil {

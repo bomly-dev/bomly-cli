@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/scan"
+	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
@@ -16,7 +16,7 @@ func TestPlanSubprojectsDetectsFilesystemPackageManager(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(projectDir, "package-lock.json"), []byte("{}"), 0o644); err != nil {
 		t.Fatalf("write package-lock.json: %v", err)
 	}
-	reg := scan.NewRegistry(scan.RegistryConfigs{}, *zap.NewNop())
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
 
 	subprojects, err := PlanSubprojects(reg, Request{
@@ -34,7 +34,7 @@ func TestPlanSubprojectsDetectsFilesystemPackageManager(t *testing.T) {
 }
 
 func TestPlanSubprojectsReportsActiveFilters(t *testing.T) {
-	reg := scan.NewRegistry(scan.RegistryConfigs{}, *zap.NewNop())
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
 
 	_, err := PlanSubprojects(reg, Request{

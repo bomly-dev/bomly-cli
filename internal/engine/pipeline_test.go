@@ -1,4 +1,4 @@
-package scan
+package engine
 
 import (
 	"context"
@@ -124,7 +124,7 @@ func TestPipeline_UsesPlannedDetectorChainWithoutEagerFallbackExecution(t *testi
 	})
 
 	pipeline := NewPipeline(registry, zap.NewNop())
-	results, err := pipeline.ResolveAll(context.Background(), PipelineRequest{
+	result, err := pipeline.Run(context.Background(), PipelineRequest{
 		ExecutionTarget: ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
 		Subprojects: []Subproject{{
 			ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
@@ -136,8 +136,9 @@ func TestPipeline_UsesPlannedDetectorChainWithoutEagerFallbackExecution(t *testi
 		}},
 	})
 	if err != nil {
-		t.Fatalf("ResolveAll() error = %v", err)
+		t.Fatalf("Run() error = %v", err)
 	}
+	results := result.ResolveResults
 	if len(results) != 1 {
 		t.Fatalf("expected 1 result, got %d", len(results))
 	}
@@ -174,7 +175,7 @@ func TestPipeline_DoesNotEnableDetectorEnrichmentForAuditOnly(t *testing.T) {
 	})
 
 	pipeline := NewPipeline(registry, zap.NewNop())
-	_, err := pipeline.ResolveAll(context.Background(), PipelineRequest{
+	_, err := pipeline.Run(context.Background(), PipelineRequest{
 		ExecutionTarget: ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
 		Subprojects: []Subproject{{
 			ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
@@ -186,7 +187,7 @@ func TestPipeline_DoesNotEnableDetectorEnrichmentForAuditOnly(t *testing.T) {
 		AuditEnabled: true,
 	})
 	if err != nil {
-		t.Fatalf("ResolveAll() error = %v", err)
+		t.Fatalf("Run() error = %v", err)
 	}
 	if !seen {
 		t.Fatal("expected detector to receive resolve request")
@@ -221,7 +222,7 @@ func TestPipeline_ThreadsEnrichEnabledIntoResolveRequest(t *testing.T) {
 	})
 
 	pipeline := NewPipeline(registry, zap.NewNop())
-	_, err := pipeline.ResolveAll(context.Background(), PipelineRequest{
+	_, err := pipeline.Run(context.Background(), PipelineRequest{
 		ExecutionTarget: ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
 		Subprojects: []Subproject{{
 			ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
@@ -233,7 +234,7 @@ func TestPipeline_ThreadsEnrichEnabledIntoResolveRequest(t *testing.T) {
 		EnrichEnabled: true,
 	})
 	if err != nil {
-		t.Fatalf("ResolveAll() error = %v", err)
+		t.Fatalf("Run() error = %v", err)
 	}
 	if !seen {
 		t.Fatal("expected detector to receive resolve request")
@@ -422,6 +423,150 @@ func TestPipeline_Run_WithStageProcessor(t *testing.T) {
 		t.Fatal("expected stage processor to be called")
 	}
 	_ = result
+}
+
+func TestPipeline_Run_DeduplicatesAuditFindings(t *testing.T) {
+	registry := newTestRegistry()
+	g := model.New()
+	pkg := model.NewPackageWithID("pkg:npm/react@18.2.0", model.Package{
+		Ecosystem: "npm",
+		Name:      "react",
+		Version:   "18.2.0",
+		PURL:      "pkg:npm/react@18.2.0",
+	})
+	if err := g.AddPackage(pkg); err != nil {
+		t.Fatalf("add package: %v", err)
+	}
+	pkg.Vulnerabilities = []model.PackageVulnerability{{ID: "CVE-1", Source: "osv"}}
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "npm-detector", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}, SupportedModes: []TargetMode{TargetModeFullGraph}},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+	})
+	registry.registerAuditor(fakeAuditor{
+		descriptor: AuditorDescriptor{Name: "severity-policy", Enabled: true, SupportedModes: []TargetMode{TargetModeFullGraph}},
+		result: AuditResult{Findings: []Finding{
+			{ID: "CVE-1", Kind: model.FindingKindVulnerability, Source: "osv", Package: pkg},
+			{ID: "CVE-1", Kind: model.FindingKindVulnerability, Source: "grype", Package: pkg},
+		}},
+	})
+
+	result, err := NewPipeline(registry, zap.NewNop()).Run(context.Background(), PipelineRequest{
+		Subprojects: []Subproject{{
+			ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
+			RelativePath:            ".",
+			PrimaryDetector:         "npm-detector",
+			DetectedPackageManagers: []PackageManager{PackageManagerNPM},
+			Ecosystem:               EcosystemNPM,
+		}},
+		AuditEnabled: true,
+	})
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	if len(result.Findings) != 1 {
+		t.Fatalf("expected deduped finding, got %#v", result.Findings)
+	}
+	if result.Findings[0].Source != "grype" {
+		t.Fatalf("expected grype finding to win, got %#v", result.Findings[0])
+	}
+}
+
+func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testing.T) {
+	registry := newTestRegistry()
+	g := model.New()
+	app := model.NewPackageWithID("pkg:npm/app@1.0.0", model.Package{Ecosystem: "npm", Name: "app", Version: "1.0.0", PURL: "pkg:npm/app@1.0.0"})
+	dep := model.NewPackageWithID("pkg:npm/dep@2.0.0", model.Package{Ecosystem: "npm", Name: "dep", Version: "2.0.0", PURL: "pkg:npm/dep@2.0.0"})
+	if err := g.AddPackage(app); err != nil {
+		t.Fatalf("add app: %v", err)
+	}
+	if err := g.AddPackage(dep); err != nil {
+		t.Fatalf("add dep: %v", err)
+	}
+	if err := g.AddDependency(app.ID, dep.ID); err != nil {
+		t.Fatalf("add dependency: %v", err)
+	}
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "npm-detector", Enabled: true, Origin: model.CoreOrigin, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}, SupportedModes: []TargetMode{TargetModeFullGraph}},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+	})
+	registry.registerMatcher(fakeMatcher{
+		name:    "license-checker",
+		enabled: true,
+		run: func(g *model.Graph) {
+			pkg, ok := g.Package(dep.ID)
+			if ok {
+				pkg.Licenses = []model.PackageLicense{{SPDXExpression: "MIT"}}
+			}
+		},
+	})
+	registry.registerAuditor(fakeAuditor{
+		descriptor: AuditorDescriptor{Name: "severity-policy", Enabled: true, SupportedModes: []TargetMode{TargetModeComponent}},
+		run: func(req AuditRequest) AuditResult {
+			if req.Mode != model.TargetModeComponent {
+				t.Fatalf("expected component audit mode, got %q", req.Mode)
+			}
+			if req.Target == nil || req.Target.ID != dep.ID {
+				t.Fatalf("expected component target %q, got %#v", dep.ID, req.Target)
+			}
+			return AuditResult{Findings: []Finding{{ID: "CVE-1", Kind: model.FindingKindVulnerability, Source: "osv", Package: req.Target}}}
+		},
+	})
+
+	result, err := NewPipeline(registry, zap.NewNop()).RunExplain(context.Background(), ExplainRequest{
+		Query: "dep",
+		Pipeline: PipelineRequest{
+			Subprojects: []Subproject{{
+				ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
+				RelativePath:            ".",
+				PrimaryDetector:         "npm-detector",
+				DetectedPackageManagers: []PackageManager{PackageManagerNPM},
+				Ecosystem:               EcosystemNPM,
+			}},
+			EnrichEnabled: true,
+			AuditEnabled:  true,
+		},
+	})
+	if err != nil {
+		t.Fatalf("RunExplain() error = %v", err)
+	}
+	if len(result.Targets) != 1 {
+		t.Fatalf("expected one explain target, got %#v", result.Targets)
+	}
+	if len(result.Targets[0].Dependency.Licenses) != 1 {
+		t.Fatalf("expected matcher enrichment on target dependency, got %#v", result.Targets[0].Dependency)
+	}
+	if len(result.Targets[0].Findings) != 1 || len(result.Findings) != 1 {
+		t.Fatalf("expected component audit findings, target=%#v all=%#v", result.Targets[0].Findings, result.Findings)
+	}
+	if result.FocusedGraph == nil || result.FocusedGraph.Size() != 2 {
+		t.Fatalf("expected focused graph with path packages, got %#v", result.FocusedGraph)
+	}
+}
+
+func TestPipeline_RunExplain_ReturnsNotFoundWhenQueryIsAbsent(t *testing.T) {
+	registry := newTestRegistry()
+	g := model.New()
+	if err := g.AddPackage(model.NewPackageWithID("pkg:npm/app@1.0.0", model.Package{Ecosystem: "npm", Name: "app", Version: "1.0.0"})); err != nil {
+		t.Fatalf("add package: %v", err)
+	}
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "npm-detector", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}, SupportedModes: []TargetMode{TargetModeFullGraph}},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+	})
+
+	_, err := NewPipeline(registry, zap.NewNop()).RunExplain(context.Background(), ExplainRequest{
+		Query: "missing",
+		Pipeline: PipelineRequest{Subprojects: []Subproject{{
+			ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
+			RelativePath:            ".",
+			PrimaryDetector:         "npm-detector",
+			DetectedPackageManagers: []PackageManager{PackageManagerNPM},
+			Ecosystem:               EcosystemNPM,
+		}}},
+	})
+	if err == nil {
+		t.Fatal("expected missing dependency error")
+	}
 }
 
 func TestPipeline_Run_PropagatesMatcherEnrichmentBackToManifestGraphs(t *testing.T) {

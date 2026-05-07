@@ -1,4 +1,4 @@
-// Package osv implements a scan.Auditor backed by the OSV (Open Source Vulnerabilities) API.
+// Package osv implements an engine.Auditor backed by the OSV (Open Source Vulnerabilities) API.
 package osv
 
 import "encoding/json"

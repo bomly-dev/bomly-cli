@@ -18,14 +18,23 @@ type Path = output.DependencyPath
 
 // FindWhy resolves a target package and returns all root-to-target paths.
 func FindWhy(deps *model.Graph, query string) (output.PackageRef, []Path, error) {
-	target, err := resolveTarget(deps, query)
+	target, paths, err := FindWhyPackage(deps, query)
 	if err != nil {
 		return output.PackageRef{}, nil, err
+	}
+	return output.PackageFromGraphPackage(target), paths, nil
+}
+
+// FindWhyPackage resolves a target package and returns the package plus all root-to-target paths.
+func FindWhyPackage(deps *model.Graph, query string) (*model.Package, []Path, error) {
+	target, err := resolveTarget(deps, query)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	rawPaths, err := deps.CollectPathsTo(target.ID)
 	if err != nil {
-		return output.PackageRef{}, nil, err
+		return nil, nil, err
 	}
 
 	paths := make([]Path, 0, len(rawPaths))
@@ -36,7 +45,7 @@ func FindWhy(deps *model.Graph, query string) (output.PackageRef, []Path, error)
 		return pathKey(paths[i]) < pathKey(paths[j])
 	})
 
-	return output.PackageFromGraphPackage(target), paths, nil
+	return target, paths, nil
 }
 
 func resolveTarget(deps *model.Graph, query string) (*model.Package, error) {
@@ -86,4 +95,43 @@ func pathKey(path Path) string {
 		ids = append(ids, pkg.ID)
 	}
 	return strings.Join(ids, "/")
+}
+
+// GraphFromPaths returns a focused subgraph of source containing only the
+// packages and edges that appear in the supplied explain paths.
+func GraphFromPaths(source *model.Graph, paths []Path) (*model.Graph, error) {
+	focused := model.New()
+	if source == nil {
+		return focused, nil
+	}
+	for _, path := range paths {
+		for i, ref := range path.Packages {
+			pkg, ok := source.Package(ref.ID)
+			if !ok || pkg == nil {
+				continue
+			}
+			if _, exists := focused.Package(pkg.ID); !exists {
+				if err := focused.AddPackage(pkg.Clone()); err != nil {
+					return nil, err
+				}
+			}
+			if i == 0 {
+				continue
+			}
+			parentRef := path.Packages[i-1]
+			parent, ok := source.Package(parentRef.ID)
+			if !ok || parent == nil {
+				continue
+			}
+			if _, exists := focused.Package(parent.ID); !exists {
+				if err := focused.AddPackage(parent.Clone()); err != nil {
+					return nil, err
+				}
+			}
+			if err := focused.AddDependency(parent.ID, pkg.ID); err != nil && !errors.Is(err, model.ErrCycleDetected) {
+				return nil, err
+			}
+		}
+	}
+	return focused, nil
 }

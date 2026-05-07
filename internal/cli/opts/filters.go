@@ -1,4 +1,4 @@
-package cli
+package opts
 
 import (
 	"errors"
@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	err2 "github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	"github.com/bomly-dev/bomly-cli/internal/scan"
 	"github.com/bomly-dev/bomly-cli/internal/selector"
@@ -18,6 +19,26 @@ type detectorOptionRow struct {
 	Ecosystems      []string
 	PackageManagers []string
 }
+
+const (
+	OSVMatcherName             = "osv"
+	GrypeMatcherName           = "grype"
+	SeverityPolicyAuditorName  = "severity-policy"
+	ClearlyDefinedCheckerName  = "clearlydefined-license-checker"
+	clearlyDefinedCheckerAlias = "clearlydefined"
+	DepsdevCheckerName         = "depsdev-license-checker"
+	depsdevCheckerAlias        = "deps.dev"
+	EOLCheckerName             = "eol-checker"
+	eolCheckerAlias            = "eol"
+	EOLMetadataKey             = "endoflife.date"
+
+	osvMatcherName            = OSVMatcherName
+	grypeMatcherName          = GrypeMatcherName
+	clearlyDefinedCheckerName = ClearlyDefinedCheckerName
+	depsdevCheckerName        = DepsdevCheckerName
+	eolCheckerName            = EOLCheckerName
+	eolMetadataKey            = EOLMetadataKey
+)
 
 func buildDetectorOptionRows(reg *scan.Registry) []detectorOptionRow {
 	if reg == nil {
@@ -240,7 +261,7 @@ func resolveSelector(raw string, defaults []string, catalog selector.Catalog, im
 	}
 	var unknown *selector.UnknownSelectorError
 	if errors.As(err, &unknown) {
-		return nil, nil, invalidInputf(
+		return nil, nil, err2.InvalidInputError(
 			"unknown %s selector(s): %s\navailable %ss: %s\nrun `bomly scan --help` for full selector details",
 			unknown.Kind,
 			strings.Join(unknown.Unknown, ", "),
@@ -261,7 +282,7 @@ func resolveDetectorFilter(raw string, reg *scan.Registry) (model.DetectorFilter
 	return model.DetectorFilter{Include: include, Exclude: exclude}, nil
 }
 
-func resolveAuditorFilter(raw string, reg *scan.Registry) (model.AuditorFilter, error) {
+func ResolveAuditorFilter(raw string, reg *scan.Registry) (model.AuditorFilter, error) {
 	if strings.TrimSpace(raw) == "" {
 		return model.AuditorFilter{}, nil
 	}
@@ -274,7 +295,7 @@ func resolveAuditorFilter(raw string, reg *scan.Registry) (model.AuditorFilter, 
 	return model.AuditorFilter{Include: include, Exclude: exclude}, nil
 }
 
-func resolveMatcherFilter(raw string, reg *scan.Registry) (model.MatcherFilter, error) {
+func ResolveMatcherFilter(raw string, reg *scan.Registry) (model.MatcherFilter, error) {
 	if strings.TrimSpace(raw) == "" {
 		return model.MatcherFilter{}, nil
 	}
@@ -285,6 +306,10 @@ func resolveMatcherFilter(raw string, reg *scan.Registry) (model.MatcherFilter, 
 		return model.MatcherFilter{}, err
 	}
 	return model.MatcherFilter{Include: include, Exclude: exclude}, nil
+}
+
+func resolveMatcherFilter(raw string, reg *scan.Registry) (model.MatcherFilter, error) {
+	return ResolveMatcherFilter(raw, reg)
 }
 
 func filterAllowsName(include, exclude []string, name string) bool {

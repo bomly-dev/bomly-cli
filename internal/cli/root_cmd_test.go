@@ -11,11 +11,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	syftdetector "github.com/bomly-dev/bomly-cli/internal/detectors/syft"
 	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/spf13/cobra"
 )
+
+const ExitCodeInvalidInput = 4
 
 var (
 	testHelperBinDir  string
@@ -255,8 +258,8 @@ func TestRoot_FlagOnlyInvocationRequiresCommand(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected flag-only invocation to fail")
 	}
-	if ExitCode(err) != exitCodeInvalidInput {
-		t.Fatalf("expected invalid input exit code, got %d (err=%v)", ExitCode(err), err)
+	if exit.Code(err) != ExitCodeInvalidInput {
+		t.Fatalf("expected invalid input exit code, got %d (err=%v)", exit.Code(err), err)
 	}
 	if !strings.Contains(err.Error(), "a command is required when using flags") {
 		t.Fatalf("unexpected error: %v", err)
@@ -296,6 +299,38 @@ func TestRoot_HelpFlagWithoutCommandStillWorks(t *testing.T) {
 	}
 	if strings.Contains(helpText, "  bomly [flags]") {
 		t.Fatalf("expected help to omit root [flags] usage line, got %q", helpText)
+	}
+}
+
+func TestRootHelp_IncludesAvailableOptionValuesSection(t *testing.T) {
+	root, err := newRootCmd("0.9.0-test")
+	if err != nil {
+		t.Fatalf("newRootCmd() error = %v", err)
+	}
+
+	var output strings.Builder
+	root.SetOut(&output)
+	root.SetErr(&output)
+	root.SetArgs([]string{"--help"})
+
+	if err := root.Execute(); err != nil {
+		t.Fatalf("root.Execute() error = %v", err)
+	}
+
+	helpText := output.String()
+	if !strings.Contains(helpText, "Explore available detectors, matchers, and auditors with `bomly plugin list`.") {
+		t.Fatalf("expected help output to contain plugin list guidance, got:\n%s", helpText)
+	}
+
+	for _, removed := range []string{
+		"Available Native Detectors:",
+		"Available Third-party Detectors:",
+		"Available Auditors:",
+		"Available Matchers:",
+	} {
+		if strings.Contains(helpText, removed) {
+			t.Fatalf("expected help output to omit %q, got:\n%s", removed, helpText)
+		}
 	}
 }
 
@@ -757,8 +792,8 @@ func TestRoot_DiffCommand_RequiresBaseAndHeadFlags(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected missing required flag error")
 	}
-	if ExitCode(err) != exitCodeInvalidInput {
-		t.Fatalf("expected invalid input exit code, got %d (err=%v)", ExitCode(err), err)
+	if exit.Code(err) != ExitCodeInvalidInput {
+		t.Fatalf("expected invalid input exit code, got %d (err=%v)", exit.Code(err), err)
 	}
 	if !strings.Contains(err.Error(), "--base is required") {
 		t.Fatalf("expected required flag error, got %v", err)
@@ -791,8 +826,8 @@ func TestRoot_ScanCommand_InteractiveRejectsJSONFormat(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected interactive format validation error")
 	}
-	if ExitCode(err) != exitCodeInvalidInput {
-		t.Fatalf("expected invalid input exit code, got %d (err=%v)", ExitCode(err), err)
+	if exit.Code(err) != ExitCodeInvalidInput {
+		t.Fatalf("expected invalid input exit code, got %d (err=%v)", exit.Code(err), err)
 	}
 	if !strings.Contains(err.Error(), "--interactive cannot be combined with --format") {
 		t.Fatalf("unexpected error: %v", err)
@@ -822,8 +857,8 @@ func TestRoot_DiffCommand_InteractiveRejectsJSONFormat(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected interactive format validation error")
 	}
-	if ExitCode(err) != exitCodeInvalidInput {
-		t.Fatalf("expected invalid input exit code, got %d (err=%v)", ExitCode(err), err)
+	if exit.Code(err) != ExitCodeInvalidInput {
+		t.Fatalf("expected invalid input exit code, got %d (err=%v)", exit.Code(err), err)
 	}
 	if !strings.Contains(err.Error(), "--interactive cannot be combined with --format") {
 		t.Fatalf("unexpected error: %v", err)
@@ -1200,8 +1235,8 @@ func TestRoot_ScanCommand_InteractiveRejectsSBOMOutput(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected interactive terminal validation error")
 	}
-	if ExitCode(err) != exitCodeInvalidInput {
-		t.Fatalf("expected invalid input exit code, got %d (err=%v)", ExitCode(err), err)
+	if exit.Code(err) != ExitCodeInvalidInput {
+		t.Fatalf("expected invalid input exit code, got %d (err=%v)", exit.Code(err), err)
 	}
 	if !strings.Contains(err.Error(), "--interactive requires a terminal stdin") {
 		t.Fatalf("unexpected error: %v", err)

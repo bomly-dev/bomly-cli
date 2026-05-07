@@ -4,7 +4,10 @@ import (
 	"io"
 	"time"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
+	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
+	"github.com/bomly-dev/bomly-cli/internal/cli/resolve"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/scan"
 	"github.com/bomly-dev/bomly-cli/internal/scan/consolidation"
@@ -14,16 +17,16 @@ import (
 )
 
 type diffResolvedTarget struct {
-	Context  commandContext
+	Context  opts.Options
 	Results  []model.DetectionResult
 	Warnings []scan.PipelineWarning
 }
 
 func (t diffResolvedTarget) close() error {
-	return t.Context.close()
+	return t.Context.Close()
 }
 
-func newDiffCmd(options *globalOptions) *cobra.Command {
+func newDiffCmd() *cobra.Command {
 	var baseRef string
 	var headRef string
 
@@ -33,8 +36,12 @@ func newDiffCmd(options *globalOptions) *cobra.Command {
 		Long:  "Compare dependency states between two git refs or two container image tags/digests.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logger := commandLogger(cmd, options, "diff")
-			current := options.current()
+			options, err := commandOptions(cmd)
+			if err != nil {
+				return err
+			}
+			logger := commandLogger(cmd, "diff")
+			current := options.GetConfig()
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
 			progress := newCommandProgress(streams, "Resolving diff inputs")
 			restoreStdout := streams.captureStdoutToDebugLog(logger)
@@ -44,37 +51,37 @@ func newDiffCmd(options *globalOptions) *cobra.Command {
 				}
 				restoreStdout()
 			}()
-			if options.Ref != "" {
-				return invalidInputf("diff does not support --ref; use --base and --head")
+			if current.Ref != "" {
+				return exit.InvalidInputError("diff does not support --ref; use --base and --head")
 			}
 
 			// Validate SBOM diff mode vs git diff mode flag combinations.
 			if current.SBOM {
 				if baseRef == "" {
-					return invalidInputf("--base is required when --sbom is set")
+					return exit.InvalidInputError("--base is required when --sbom is set")
 				}
 				if headRef == "" {
-					return invalidInputf("--head is required when --sbom is set")
+					return exit.InvalidInputError("--head is required when --sbom is set")
 				}
-				if options.Container != "" {
-					return invalidInputf("--sbom cannot be combined with --container")
+				if current.Container != "" {
+					return exit.InvalidInputError("--sbom cannot be combined with --container")
 				}
 			} else {
 				if baseRef == "" {
-					return invalidInputf("--base is required (or use --sbom to treat refs as SBOM file paths)")
+					return exit.InvalidInputError("--base is required (or use --sbom to treat refs as SBOM file paths)")
 				}
 				if headRef == "" {
-					return invalidInputf("--head is required (or use --sbom to treat refs as SBOM file paths)")
+					return exit.InvalidInputError("--head is required (or use --sbom to treat refs as SBOM file paths)")
 				}
 			}
 
 			started := time.Now()
-			outputFormat, err := parseOutputMode(current)
+			outputFormat, err := options.OutputFormat()
 			if err != nil {
-				return invalidInputf("%v", err)
+				return exit.InvalidInputError("%v", err)
 			}
 			if outputFormat == output.FormatSARIF && !current.Audit {
-				return invalidInputf("--format sarif requires --audit")
+				return exit.InvalidInputError("--format sarif requires --audit")
 			}
 
 			var baseTarget diffResolvedTarget
@@ -86,17 +93,15 @@ func newDiffCmd(options *globalOptions) *cobra.Command {
 
 			switch {
 			case current.SBOM:
-				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveSBOMDiffGraphs(options, logger, baseRef, headRef, streams.notificationWriter())
-			case options.Container != "":
-				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveContainerDiffGraphs(options, logger, baseRef, headRef, streams.notificationWriter())
+				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveSBOMDiffGraphs(cmd.Context(), options, logger, baseRef, headRef, streams.notificationWriter())
+			case current.Container != "":
+				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveContainerDiffGraphs(cmd.Context(), options, logger, baseRef, headRef, streams.notificationWriter())
 			default:
-				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveGitDiffGraphs(options, logger, baseRef, headRef, streams.notificationWriter())
+				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveGitDiffGraphs(cmd.Context(), options, logger, baseRef, headRef, streams.notificationWriter())
 			}
 			if err != nil {
 				return err
 			}
-			defer func() { _ = baseTarget.close() }()
-			defer func() { _ = headTarget.close() }()
 
 			baseResults := baseTarget.Results
 			headResults := headTarget.Results
@@ -107,44 +112,44 @@ func newDiffCmd(options *globalOptions) *cobra.Command {
 			progress.CompleteStep("Detected Dependencies", detectorProgressChildren(allResults))
 			if current.Enrich {
 				progress.Advance("Enriching diff targets")
-				baseResults = enrichResolvedGraphs(baseTarget.Context, logger, baseResults, streams.notificationWriter())
-				headResults = enrichResolvedGraphs(headTarget.Context, logger, headResults, streams.notificationWriter())
+				baseResults = resolve.EnrichResolvedGraphs(baseTarget.Context, logger, baseResults, streams.notificationWriter())
+				headResults = resolve.EnrichResolvedGraphs(headTarget.Context, logger, headResults, streams.notificationWriter())
 				progress.CompleteStep("Enriched packages", matchProgressChildren(nil, []string{"matchers"}, nil))
 			}
 
 			baseConsolidated, err := consolidation.ConsolidateGraphs(baseResults)
 			if err != nil {
-				return resolutionFailure(err)
+				return exit.ResolutionFailureError(err)
 			}
 			headConsolidated, err := consolidation.ConsolidateGraphs(headResults)
 			if err != nil {
-				return resolutionFailure(err)
+				return exit.ResolutionFailureError(err)
 			}
 
 			var auditPayload *output.DiffAudit
 			var sarifFindings []model.Finding
 			if current.Audit {
-				scanRegistry := scan.NewRegistry(registryBuilderConfig(current), *logger)
+				scanRegistry := scan.NewRegistry(resolve.RegistryBuilderConfig(current), *logger)
 				scanRegistry.Build()
-				auditorFilter, err := resolveAuditorFilter(current.Auditors, scanRegistry)
+				auditorFilter, err := opts.ResolveAuditorFilter(current.Auditors, scanRegistry)
 				if err != nil {
-					return invalidInputf("%v", err)
+					return exit.InvalidInputError("%v", err)
 				}
 				progress.Advance("Evaluating policy")
 				baseGraph, err := baseConsolidated.Graphs.ConsolidatedGraph()
 				if err != nil {
-					return resolutionFailure(err)
+					return exit.ResolutionFailureError(err)
 				}
 				headGraph, err := headConsolidated.Graphs.ConsolidatedGraph()
 				if err != nil {
-					return resolutionFailure(err)
+					return exit.ResolutionFailureError(err)
 				}
-				baseAudit := auditGraph(baseTarget.Context, logger, baseGraph, auditorFilter, streams.notificationWriter())
-				headAudit := auditGraph(headTarget.Context, logger, headGraph, auditorFilter, streams.notificationWriter())
-				auditPayload = diffAuditSummary(baseAudit.Findings, headAudit.Findings)
+				baseAudit := resolve.AuditGraph(baseTarget.Context, logger, baseGraph, auditorFilter, streams.notificationWriter())
+				headAudit := resolve.AuditGraph(headTarget.Context, logger, headGraph, auditorFilter, streams.notificationWriter())
+				auditPayload = resolve.DiffAuditSummary(baseAudit.Findings, headAudit.Findings)
 				sarifFindings = append(append([]model.Finding{}, headAudit.Findings...), baseAudit.Findings...)
-				auditWarnings := auditDataAvailabilityWarnings(baseGraph, headGraph)
-				progress.CompleteStep("Evaluated policy", auditProgressChildren([]string{severityPolicyAuditorName}, map[string]int{severityPolicyAuditorName: len(sarifFindings)}, auditWarnings))
+				auditWarnings := resolve.AuditDataAvailabilityWarnings(baseGraph, headGraph)
+				progress.CompleteStep("Evaluated policy", auditProgressChildren([]string{opts.SeverityPolicyAuditorName}, map[string]int{opts.SeverityPolicyAuditorName: len(sarifFindings)}, auditWarnings))
 			}
 
 			payload := output.BuildDiffResponse(projectIdentifier, compBase, compHead, baseConsolidated, headConsolidated, auditPayload, started)
@@ -154,7 +159,7 @@ func newDiffCmd(options *globalOptions) *cobra.Command {
 			}
 			if current.Interactive {
 				progress.Stop()
-				return interactiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewDiff(payload)))
+				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewDiff(payload)))
 			}
 
 			progress.Success("Resolved Graph")
@@ -167,13 +172,13 @@ func newDiffCmd(options *globalOptions) *cobra.Command {
 				},
 			})
 			if err == nil && current.Audit && auditPayload != nil && auditPayload.AuditSummary != nil && auditPayload.AuditSummary.Total > 0 {
-				return policyViolationFindings(auditPayload.AuditSummary.Total)
+				return exit.PolicyViolationFindings(auditPayload.AuditSummary.Total)
 			}
 			return err
 		},
 	}
 	cmd.SetFlagErrorFunc(func(_ *cobra.Command, err error) error {
-		return invalidInputf("%v", err)
+		return exit.InvalidInputError("%v", err)
 	})
 	cmd.Flags().StringVar(&baseRef, "base", "", "Base git reference to compare (or SBOM file path when --sbom is set)")
 	cmd.Flags().StringVar(&headRef, "head", "", "Head git reference to compare (or SBOM file path when --sbom is set)")

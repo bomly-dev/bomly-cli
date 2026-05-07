@@ -1,14 +1,16 @@
 package cli
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
+	"github.com/bomly-dev/bomly-cli/internal/cli/resolve"
+	"github.com/bomly-dev/bomly-cli/internal/config"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	plugschema "github.com/bomly-dev/bomly-cli/sdk"
@@ -16,24 +18,24 @@ import (
 	"go.uber.org/zap"
 )
 
-func newPluginCmd(options *globalOptions) *cobra.Command {
+func newPluginCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "plugin",
 		Short: "Manage Bomly managed plugins",
 	}
 	cmd.AddCommand(
-		newPluginListCmd(options),
-		newPluginInfoCmd(options),
-		newPluginInstallCmd(options),
-		newPluginUninstallCmd(options),
-		newPluginEnableCmd(options),
-		newPluginDisableCmd(options),
-		newPluginVerifyCmd(options),
+		newPluginListCmd(),
+		newPluginInfoCmd(),
+		newPluginInstallCmd(),
+		newPluginUninstallCmd(),
+		newPluginEnableCmd(),
+		newPluginDisableCmd(),
+		newPluginVerifyCmd(),
 	)
 	return cmd
 }
 
-func newPluginListCmd(options *globalOptions) *cobra.Command {
+func newPluginListCmd() *cobra.Command {
 	var includeBuiltIn bool
 	var includeExternal bool
 	var enabledOnly bool
@@ -48,11 +50,15 @@ func newPluginListCmd(options *globalOptions) *cobra.Command {
 		Short: "List built-in and installed plugins",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			options, err := commandOptions(cmd)
+			if err != nil {
+				return err
+			}
 			selectedFormat, err := parsePluginListFormat(format)
 			if err != nil {
 				return err
 			}
-			current := options.current()
+			current := options.GetConfig()
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
 			builtins := builtInPluginInfos(current, cmd.Root().Version)
 			all, err := managedplugin.ListPluginInfos("", builtins)
@@ -147,18 +153,22 @@ func parsePluginListFormat(value string) (string, error) {
 	case pluginListFormatTable, pluginListFormatJSON:
 		return normalized, nil
 	default:
-		return "", invalidInputf("parse format: unsupported format %q", value)
+		return "", exit.InvalidInputError("parse format: unsupported format %q", value)
 	}
 }
 
-func newPluginInfoCmd(options *globalOptions) *cobra.Command {
+func newPluginInfoCmd() *cobra.Command {
 	var jsonOutput bool
 	cmd := &cobra.Command{
 		Use:   "info <id>",
 		Short: "Show plugin metadata",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			current := options.current()
+			options, err := commandOptions(cmd)
+			if err != nil {
+				return err
+			}
+			current := options.GetConfig()
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
 			all, err := managedplugin.ListPluginInfos("", builtInPluginInfos(current, cmd.Root().Version))
 			if err != nil {
@@ -174,14 +184,14 @@ func newPluginInfoCmd(options *globalOptions) *cobra.Command {
 				}
 				return renderPluginInfo(streams.reportWriter(), info)
 			}
-			return invalidInputf("plugin %q not found", id)
+			return exit.InvalidInputError("plugin %q not found", id)
 		},
 	}
 	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Render plugin metadata as JSON")
 	return cmd
 }
 
-func newPluginInstallCmd(options *globalOptions) *cobra.Command {
+func newPluginInstallCmd() *cobra.Command {
 	var devBinary bool
 	var checksum string
 	var insecureSkipChecksum bool
@@ -190,13 +200,17 @@ func newPluginInstallCmd(options *globalOptions) *cobra.Command {
 		Short: "Install a managed plugin from an archive, URL, or dev binary",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			current := options.current()
+			options, err := commandOptions(cmd)
+			if err != nil {
+				return err
+			}
+			current := options.GetConfig()
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
-			result, err := managedplugin.Install(context.Background(), "", args[0], managedplugin.InstallOptions{
+			result, err := managedplugin.Install(cmd.Context(), "", args[0], managedplugin.InstallOptions{
 				DevBinary:            devBinary,
 				Checksum:             checksum,
 				InsecureSkipChecksum: insecureSkipChecksum,
-			}, options.pluginExecutionPolicy(current))
+			})
 			if err != nil {
 				return err
 			}
@@ -219,33 +233,36 @@ func newPluginInstallCmd(options *globalOptions) *cobra.Command {
 	return cmd
 }
 
-func newPluginUninstallCmd(options *globalOptions) *cobra.Command {
+func newPluginUninstallCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "uninstall <id>",
 		Short: "Uninstall an external plugin",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			options, err := commandOptions(cmd)
+			if err != nil {
+				return err
+			}
 			if err := managedplugin.Uninstall("", strings.TrimSpace(args[0])); err != nil {
 				return err
 			}
-			current := options.current()
+			current := options.GetConfig()
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
-			_, err := fmt.Fprintf(streams.reportWriter(), "uninstalled %s\n", strings.TrimSpace(args[0]))
+			_, err = fmt.Fprintf(streams.reportWriter(), "uninstalled %s\n", strings.TrimSpace(args[0]))
 			return err
 		},
 	}
 }
 
-func newPluginEnableCmd(options *globalOptions) *cobra.Command {
-	return togglePluginStateCmd(options, "enable", "Enable an installed external plugin", managedplugin.Enable, "enabled")
+func newPluginEnableCmd() *cobra.Command {
+	return togglePluginStateCmd("enable", "Enable an installed external plugin", managedplugin.Enable, "enabled")
 }
 
-func newPluginDisableCmd(options *globalOptions) *cobra.Command {
-	return togglePluginStateCmd(options, "disable", "Disable an installed external plugin", managedplugin.Disable, "disabled")
+func newPluginDisableCmd() *cobra.Command {
+	return togglePluginStateCmd("disable", "Disable an installed external plugin", managedplugin.Disable, "disabled")
 }
 
 func togglePluginStateCmd(
-	options *globalOptions,
 	use string,
 	short string,
 	fn func(string, string) (*managedplugin.InstalledPlugin, error),
@@ -256,11 +273,15 @@ func togglePluginStateCmd(
 		Short: short,
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			options, err := commandOptions(cmd)
+			if err != nil {
+				return err
+			}
 			pluginRecord, err := fn("", strings.TrimSpace(args[0]))
 			if err != nil {
 				return err
 			}
-			current := options.current()
+			current := options.GetConfig()
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
 			_, err = fmt.Fprintf(streams.reportWriter(), "%s %s@%s\n", label, pluginRecord.ID, pluginRecord.Version)
 			return err
@@ -268,16 +289,20 @@ func togglePluginStateCmd(
 	}
 }
 
-func newPluginVerifyCmd(options *globalOptions) *cobra.Command {
+func newPluginVerifyCmd() *cobra.Command {
 	var jsonOutput bool
 	cmd := &cobra.Command{
 		Use:   "verify <id>",
 		Short: "Verify an installed plugin manifest, binary, checksum, and runtime metadata",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			current := options.current()
+			options, err := commandOptions(cmd)
+			if err != nil {
+				return err
+			}
+			current := options.GetConfig()
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
-			result, err := managedplugin.Verify(context.Background(), "", strings.TrimSpace(args[0]), options.pluginExecutionPolicy(current))
+			result, err := managedplugin.Verify(cmd.Context(), "", strings.TrimSpace(args[0]))
 			if err != nil {
 				return err
 			}
@@ -299,9 +324,9 @@ func newPluginVerifyCmd(options *globalOptions) *cobra.Command {
 	return cmd
 }
 
-func builtInPluginInfos(current resolvedConfig, coreVersion string) []managedplugin.PluginInfo {
+func builtInPluginInfos(current config.Resolved, coreVersion string) []managedplugin.PluginInfo {
 	infos := make([]managedplugin.PluginInfo, 0)
-	reg := registry.NewRegistry(registryBuilderConfig(current), *zap.NewNop())
+	reg := registry.NewRegistry(resolve.RegistryBuilderConfig(current), *zap.NewNop())
 	reg.Build()
 	detectorByName := make(map[string]plugschema.DetectorDescriptor)
 	registeredNames := make(map[string]struct{})

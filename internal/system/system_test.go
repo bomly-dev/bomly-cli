@@ -45,3 +45,31 @@ func TestAbsCommandAndDirectories(t *testing.T) {
 		t.Fatalf("LookPath(go) error = %v", err)
 	}
 }
+
+func TestResolveExistingFile(t *testing.T) {
+	dir := t.TempDir()
+	file := filepath.Join(dir, "demo.txt")
+	if err := os.WriteFile(file, []byte("demo"), 0o644); err != nil {
+		t.Fatalf("write file: %v", err)
+	}
+
+	got, err := ResolveExistingFile(file)
+	if err != nil {
+		t.Fatalf("ResolveExistingFile(file) error = %v", err)
+	}
+	if got != file {
+		t.Fatalf("expected absolute file path %q, got %q", file, got)
+	}
+
+	for name, path := range map[string]string{
+		"empty":   " ",
+		"missing": filepath.Join(dir, "missing.txt"),
+		"dir":     dir,
+	} {
+		t.Run(name, func(t *testing.T) {
+			if _, err := ResolveExistingFile(path); err == nil {
+				t.Fatal("expected error")
+			}
+		})
+	}
+}

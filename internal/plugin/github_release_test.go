@@ -85,7 +85,7 @@ func TestResolveGitHubReleaseAndInstall(t *testing.T) {
 		pluginHTTPClient = origClient
 	}()
 
-	result, err := Install(context.Background(), root, "github:acme/release-detector@v1.0.0", InstallOptions{}, ExecutionPolicy{})
+	result, err := Install(context.Background(), root, "github:acme/release-detector@v1.0.0", InstallOptions{})
 	if err != nil {
 		t.Fatalf("Install() error = %v", err)
 	}

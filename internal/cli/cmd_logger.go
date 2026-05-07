@@ -6,8 +6,12 @@ import (
 	"go.uber.org/zap"
 )
 
-func commandLogger(cmd *cobra.Command, options *globalOptions, name string) *zap.Logger {
-	current := options.current()
+func commandLogger(cmd *cobra.Command, name string) *zap.Logger {
+	options, err := commandOptions(cmd)
+	if err != nil {
+		return zap.NewNop().Named(name)
+	}
+	current := options.GetConfig()
 	// In default mode (no verbosity flags), suppress log output so only the
 	// progress UI is visible. In verbose mode, the logger replaces the UI.
 	// Quiet mode suppresses everything except errors.

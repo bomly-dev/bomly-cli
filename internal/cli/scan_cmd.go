@@ -5,7 +5,9 @@ import (
 	"io"
 	"time"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
+	"github.com/bomly-dev/bomly-cli/internal/cli/resolve"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
 	"github.com/bomly-dev/bomly-cli/internal/tui"
@@ -13,7 +15,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newScanCmd(options *globalOptions) *cobra.Command {
+func newScanCmd() *cobra.Command {
 	var outputs []string
 	var scopeValue string
 	cmd := &cobra.Command{
@@ -22,8 +24,12 @@ func newScanCmd(options *globalOptions) *cobra.Command {
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			started := time.Now()
-			current := options.current()
-			logger := commandLogger(cmd, options, "scan")
+			options, err := commandOptions(cmd)
+			if err != nil {
+				return err
+			}
+			current := options.GetConfig()
+			logger := commandLogger(cmd, "scan")
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
 			progress := newCommandProgress(streams, "Resolving dependencies")
 			restoreStdout := streams.captureStdoutToDebugLog(logger)
@@ -33,37 +39,37 @@ func newScanCmd(options *globalOptions) *cobra.Command {
 				}
 				restoreStdout()
 			}()
-			ctx, err := options.newCommandContext(logger)
+			commandCtx, err := options.Prepare(cmd.Context(), logger)
 			if err != nil {
 				return err
 			}
-			defer func() { _ = ctx.close() }()
+			defer func() { _ = commandCtx.Close() }()
 
-			graphOutputFormat := ctx.format
-			if graphOutputFormat == output.FormatSARIF && !ctx.config.Audit {
-				return invalidInputf("--format sarif requires --audit")
+			graphOutputFormat := commandCtx.Format
+			if graphOutputFormat == output.FormatSARIF && !commandCtx.ResolvedConfig.Audit {
+				return exit.InvalidInputError("--format sarif requires --audit")
 			}
 			selectedScope, err := model.ParseScope(scopeValue)
 			if err != nil {
-				return invalidInputf("%v", err)
+				return exit.InvalidInputError("%v", err)
 			}
 
 			var outputSpecs []render.SBOMOutputSpec
 			if len(outputs) > 0 {
 				outputSpecs, err = render.ParseSBOMOutputSpecs(outputs)
 				if err != nil {
-					return invalidInputf("%v", err)
+					return exit.InvalidInputError("%v", err)
 				}
 			}
 
-			pipeline := newPipeline(ctx, logger)
+			pipeline := resolve.NewPipeline(commandCtx, logger)
 			progress.StartStage("Indexed subprojects", 1)
 			progress.CompleteStage("Indexed subprojects", 1)
-			pipeReq := pipelineRequest(ctx, selectedScope, streams.notificationWriter())
+			pipeReq := resolve.PipelineRequest(commandCtx, selectedScope, streams.notificationWriter())
 			pipeReq.Progress = progress
 			pipeResult, err := pipeline.Run(cmd.Context(), pipeReq)
 			if err != nil {
-				return resolutionFailure(err)
+				return exit.ResolutionFailureError(err)
 			}
 			resolved := pipeResult.ResolveResults
 			subprojectChildren := subprojectProgressChildren(resolved)
@@ -89,40 +95,40 @@ func newScanCmd(options *globalOptions) *cobra.Command {
 						return err
 					}
 				}
-				if !ctx.config.Interactive {
+				if !commandCtx.ResolvedConfig.Interactive {
 					progress.Success("Wrote SBOM output")
 					return nil
 				}
 			}
 
-			var enrichResult auditEnrichResult
-			if ctx.config.Audit {
-				enrichResult.Findings = deduplicateFindings(pipeResult.Findings)
+			var findings []model.Finding
+			if commandCtx.ResolvedConfig.Audit {
+				findings = resolve.DeduplicateFindings(pipeResult.Findings)
 				progress.CompleteStep("Evaluated policy", auditProgressChildren(pipeResult.AuditorRuns, pipeResult.AuditorFindings, pipeResult.AuditWarnings))
 			}
-			payload := output.BuildScanResponse(ctx.projectDescriptor(), consolidated, enrichResult.Findings, started)
+			payload := output.BuildScanResponse(commandCtx.ProjectDescriptor(), consolidated, findings, started)
 
 			if graphOutputFormat == output.FormatSARIF {
 				progress.Success("Resolved Graph")
-				return output.WriteSARIF(streams.reportWriter(), enrichResult.Findings, "bomly", cmd.Root().Version)
+				return output.WriteSARIF(streams.reportWriter(), findings, "bomly", cmd.Root().Version)
 			}
 
-			if ctx.config.Interactive {
+			if commandCtx.ResolvedConfig.Interactive {
 				progress.Stop()
-				return interactiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewScan(payload.Project, consolidated, selectedGraph, enrichResult.Findings)))
+				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewScan(payload.Project, consolidated, selectedGraph, findings)))
 			}
 
-			writer, closeWriter, err := ctx.writer(streams.reportWriter())
+			writer, closeWriter, err := commandCtx.Writer(streams.reportWriter())
 			if err != nil {
 				return err
 			}
 			defer func() { _ = closeWriter() }()
 			progress.Success("Resolved Graph")
-			if ctx.format == output.FormatText {
+			if commandCtx.Format == output.FormatText {
 				progress.SeparateReport()
 			}
 
-			err = output.Write(writer, ctx.format, payload, output.Renderers{
+			err = output.Write(writer, commandCtx.Format, payload, output.Renderers{
 				Text: func(w io.Writer) error {
 					if len(resolved) == 1 {
 						if _, err := fmt.Fprintf(w, "Dependency report for %s\n\n", render.ScanGraphDisplayName(selectedGraph, payload.Project.Name)); err != nil {
@@ -133,12 +139,12 @@ func newScanCmd(options *globalOptions) *cobra.Command {
 							return err
 						}
 					}
-					_, err := io.WriteString(w, render.Scan(payload.Manifests, selectedGraph, enrichResult.Findings, ctx.config.Enrich, ctx.config.Audit))
+					_, err := io.WriteString(w, render.Scan(payload.Manifests, selectedGraph, findings, commandCtx.ResolvedConfig.Enrich, commandCtx.ResolvedConfig.Audit))
 					return err
 				},
 			})
-			if err == nil && ctx.config.Audit && len(enrichResult.Findings) > 0 {
-				return policyViolationFindings(len(enrichResult.Findings))
+			if err == nil && commandCtx.ResolvedConfig.Audit && len(findings) > 0 {
+				return exit.PolicyViolationFindings(len(findings))
 			}
 			return err
 		},

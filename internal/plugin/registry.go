@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/plugin/runtime/hashicorp"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	plugschema "github.com/bomly-dev/bomly-cli/sdk"
@@ -20,36 +19,37 @@ type registryWriter interface {
 }
 
 // RegisterRuntimePlugins loads enabled external plugins into the scan registry.
-func RegisterRuntimePlugins(reg registryWriter, root string, policy ExecutionPolicy) error {
+func RegisterRuntimePlugins(ctx context.Context, reg registryWriter, root string) error {
 	if reg == nil {
 		return nil
 	}
 	if root == "" && strings.Contains(os.Args[0], ".test") {
 		return nil
 	}
-	infos, err := LoadRuntimePlugins(root, policy)
+	ctx = launchContext(ctx, nil)
+	infos, err := LoadRuntimePlugins(root)
 	if err != nil {
 		return err
 	}
 	for _, info := range infos {
 		switch info.Kind {
 		case plugschema.PluginKindDetector:
-			reg.RegisterDetector(newExternalDetector(info, policy))
+			reg.RegisterDetector(newExternalDetector(info, ctx))
 			if plan, ok := detectorDiscoveryPlan(info.Manifest); ok {
 				reg.RegisterDetectorDiscoveryPlan(info.ID, plan)
 			}
 		case plugschema.PluginKindMatcher:
-			reg.RegisterMatcher(newExternalMatcher(info, policy))
+			reg.RegisterMatcher(newExternalMatcher(info, ctx))
 		case plugschema.PluginKindAuditor:
-			reg.RegisterAuditor(newExternalAuditor(info, policy))
+			reg.RegisterAuditor(newExternalAuditor(info, ctx))
 		}
 	}
 	return nil
 }
 
 type externalDetector struct {
-	info   PluginInfo
-	policy ExecutionPolicy
+	info      PluginInfo
+	launchCtx context.Context
 }
 
 func (d externalDetector) Metadata(context.Context) (*plugschema.PluginMetadata, error) {
@@ -73,8 +73,8 @@ func (d externalDetector) PackageManagerSupport() []model.PackageManagerSupport 
 }
 
 func (d externalDetector) Ready() bool {
-	ctx := context.Background()
-	client, err := hashicorp.Start(ctx, d.info.Entrypoint, pluginEnv(d.policy), d.policy.Verbosity)
+	ctx := launchContext(context.Background(), d.launchCtx)
+	client, err := startPlugin(ctx, d.info.Entrypoint)
 	if err != nil {
 		return false
 	}
@@ -87,7 +87,8 @@ func (d externalDetector) Ready() bool {
 }
 
 func (d externalDetector) Applicable(ctx context.Context, req model.DetectionRequest) (bool, error) {
-	client, err := hashicorp.Start(ctx, d.info.Entrypoint, pluginEnv(d.policy), d.policy.Verbosity)
+	ctx = launchContext(ctx, d.launchCtx)
+	client, err := startPlugin(ctx, d.info.Entrypoint)
 	if err != nil {
 		return false, err
 	}
@@ -100,7 +101,8 @@ func (d externalDetector) Applicable(ctx context.Context, req model.DetectionReq
 }
 
 func (d externalDetector) Install(ctx context.Context, req model.DetectionRequest) error {
-	client, err := hashicorp.Start(ctx, d.info.Entrypoint, pluginEnv(d.policy), d.policy.Verbosity)
+	ctx = launchContext(ctx, d.launchCtx)
+	client, err := startPlugin(ctx, d.info.Entrypoint)
 	if err != nil {
 		return err
 	}
@@ -113,7 +115,8 @@ func (d externalDetector) Install(ctx context.Context, req model.DetectionReques
 }
 
 func (d externalDetector) ResolveGraph(ctx context.Context, req model.DetectionRequest) (model.DetectionResult, error) {
-	client, err := hashicorp.Start(ctx, d.info.Entrypoint, pluginEnv(d.policy), d.policy.Verbosity)
+	ctx = launchContext(ctx, d.launchCtx)
+	client, err := startPlugin(ctx, d.info.Entrypoint)
 	if err != nil {
 		return model.DetectionResult{}, err
 	}
@@ -128,13 +131,13 @@ func (d externalDetector) ResolveGraph(ctx context.Context, req model.DetectionR
 	return *resp, nil
 }
 
-func newExternalDetector(info PluginInfo, policy ExecutionPolicy) model.Detector {
-	return externalDetector{info: info, policy: policy}
+func newExternalDetector(info PluginInfo, ctx context.Context) model.Detector {
+	return externalDetector{info: info, launchCtx: launchContext(ctx, nil)}
 }
 
 type externalMatcher struct {
-	info   PluginInfo
-	policy ExecutionPolicy
+	info      PluginInfo
+	launchCtx context.Context
 }
 
 func (m externalMatcher) Metadata(context.Context) (*plugschema.PluginMetadata, error) {
@@ -149,8 +152,8 @@ func (m externalMatcher) Descriptor() model.MatcherDescriptor {
 }
 
 func (m externalMatcher) Ready() bool {
-	ctx := context.Background()
-	client, err := hashicorp.Start(ctx, m.info.Entrypoint, pluginEnv(m.policy), m.policy.Verbosity)
+	ctx := launchContext(context.Background(), m.launchCtx)
+	client, err := startPlugin(ctx, m.info.Entrypoint)
 	if err != nil {
 		return false
 	}
@@ -160,7 +163,8 @@ func (m externalMatcher) Ready() bool {
 }
 
 func (m externalMatcher) Applicable(ctx context.Context, req model.MatchRequest) (bool, error) {
-	client, err := hashicorp.Start(ctx, m.info.Entrypoint, pluginEnv(m.policy), m.policy.Verbosity)
+	ctx = launchContext(ctx, m.launchCtx)
+	client, err := startPlugin(ctx, m.info.Entrypoint)
 	if err != nil {
 		return false, err
 	}
@@ -170,7 +174,8 @@ func (m externalMatcher) Applicable(ctx context.Context, req model.MatchRequest)
 }
 
 func (m externalMatcher) Match(ctx context.Context, req model.MatchRequest) (model.MatchResult, error) {
-	client, err := hashicorp.Start(ctx, m.info.Entrypoint, pluginEnv(m.policy), m.policy.Verbosity)
+	ctx = launchContext(ctx, m.launchCtx)
+	client, err := startPlugin(ctx, m.info.Entrypoint)
 	if err != nil {
 		return model.MatchResult{}, err
 	}
@@ -185,13 +190,13 @@ func (m externalMatcher) Match(ctx context.Context, req model.MatchRequest) (mod
 	return *resp, nil
 }
 
-func newExternalMatcher(info PluginInfo, policy ExecutionPolicy) model.Matcher {
-	return externalMatcher{info: info, policy: policy}
+func newExternalMatcher(info PluginInfo, ctx context.Context) model.Matcher {
+	return externalMatcher{info: info, launchCtx: launchContext(ctx, nil)}
 }
 
 type externalAuditor struct {
-	info   PluginInfo
-	policy ExecutionPolicy
+	info      PluginInfo
+	launchCtx context.Context
 }
 
 func (a externalAuditor) Metadata(context.Context) (*plugschema.PluginMetadata, error) {
@@ -206,8 +211,8 @@ func (a externalAuditor) Descriptor() model.AuditorDescriptor {
 }
 
 func (a externalAuditor) Ready() bool {
-	ctx := context.Background()
-	client, err := hashicorp.Start(ctx, a.info.Entrypoint, pluginEnv(a.policy), a.policy.Verbosity)
+	ctx := launchContext(context.Background(), a.launchCtx)
+	client, err := startPlugin(ctx, a.info.Entrypoint)
 	if err != nil {
 		return false
 	}
@@ -217,7 +222,8 @@ func (a externalAuditor) Ready() bool {
 }
 
 func (a externalAuditor) Applicable(ctx context.Context, req model.AuditRequest) (bool, error) {
-	client, err := hashicorp.Start(ctx, a.info.Entrypoint, pluginEnv(a.policy), a.policy.Verbosity)
+	ctx = launchContext(ctx, a.launchCtx)
+	client, err := startPlugin(ctx, a.info.Entrypoint)
 	if err != nil {
 		return false, err
 	}
@@ -227,7 +233,8 @@ func (a externalAuditor) Applicable(ctx context.Context, req model.AuditRequest)
 }
 
 func (a externalAuditor) Audit(ctx context.Context, req model.AuditRequest) (model.AuditResult, error) {
-	client, err := hashicorp.Start(ctx, a.info.Entrypoint, pluginEnv(a.policy), a.policy.Verbosity)
+	ctx = launchContext(ctx, a.launchCtx)
+	client, err := startPlugin(ctx, a.info.Entrypoint)
 	if err != nil {
 		return model.AuditResult{}, err
 	}
@@ -242,8 +249,21 @@ func (a externalAuditor) Audit(ctx context.Context, req model.AuditRequest) (mod
 	return *resp, nil
 }
 
-func newExternalAuditor(info PluginInfo, policy ExecutionPolicy) model.Auditor {
-	return externalAuditor{info: info, policy: policy}
+func newExternalAuditor(info PluginInfo, ctx context.Context) model.Auditor {
+	return externalAuditor{info: info, launchCtx: launchContext(ctx, nil)}
+}
+
+func launchContext(ctx context.Context, fallback context.Context) context.Context {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if _, ok := LaunchOptionsFromContext(ctx); ok {
+		return ctx
+	}
+	if options, ok := LaunchOptionsFromContext(fallback); ok {
+		return WithLaunchOptions(ctx, options)
+	}
+	return WithLaunchOptions(ctx, LaunchOptions{})
 }
 
 func metadataFromPluginInfo(info PluginInfo) *plugschema.PluginMetadata {

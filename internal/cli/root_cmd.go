@@ -1,12 +1,21 @@
 package cli
 
 import (
+	"context"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
+	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"go.uber.org/zap"
 )
+
+// init registers custom template functions for use in Cobra help and version text templates.
+func init() {
+	cobra.AddTemplateFunc("optionValuesHelpSection", optionValuesHelpSection)
+	cobra.AddTemplateFunc("versionDetails", versionDetailsTemplateValue)
+}
 
 // Execute runs the bomly CLI.
 func Execute(version string) error {
@@ -17,16 +26,19 @@ func Execute(version string) error {
 	return normalizeExecuteError(root.Execute())
 }
 
+// normalizeExecuteError checks if the error from executing the root
+// command is related to missing required flags and, if so, wraps it
+// in a more user-friendly error message. Otherwise, it returns the original error.
 func normalizeExecuteError(err error) error {
 	if err != nil && strings.Contains(err.Error(), "required flag(s)") {
-		return invalidInputf("%v", err)
+		return exit.InvalidInputError("%v", err)
 	}
 	return err
 }
 
+// newRootCmd creates the root Cobra command for the bomly CLI, setting up global options, subcommands, and templates.
 func newRootCmd(version string) (*cobra.Command, error) {
-	options := &globalOptions{}
-
+	options := opts.NewOptions()
 	root := &cobra.Command{
 		Use:                   "bomly",
 		Short:                 "A CLI for software bill of materials (SBOM) generation and analysis.",
@@ -35,32 +47,40 @@ func newRootCmd(version string) (*cobra.Command, error) {
 		SilenceErrors:         true,
 		DisableFlagsInUseLine: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			if err := options.initialize(cmd); err != nil {
+			options, err := commandOptions(cmd)
+			if err != nil {
 				return err
 			}
-			logResolvedOptions(cmd, options)
+			if err := options.ResolveConfig(cmd); err != nil {
+				return err
+			}
+			cmd.SetContext(options.PluginLaunchContext(opts.ToContext(cmd.Context(), options)))
+			logResolvedOptions(cmd)
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if rootHasCommandRequiredFlags(cmd) {
-				return invalidInputf("a command is required when using flags")
+				return exit.InvalidInputError("a command is required when using flags")
 			}
 			return cmd.Help()
 		},
 	}
-	root.SetHelpTemplate(rootHelpTemplate)
-	root.SetVersionTemplate(rootVersionTemplate)
-	root.SetHelpFunc(startupLogoHelpFunc(root))
-	if err := options.bind(root); err != nil {
+
+	if err := options.Bind(root); err != nil {
 		return nil, err
 	}
+	root.SetContext(opts.ToContext(context.Background(), options))
 
-	root.AddCommand(newExplainCmd(options))
-	root.AddCommand(newScanCmd(options))
-	root.AddCommand(newDiffCmd(options))
-	root.AddCommand(newPluginCmd(options))
-	root.AddCommand(newMcpCmd(options))
-	root.AddCommand(newVersionCmd(version, options))
+	root.SetVersionTemplate(rootVersionTemplate)
+	root.SetHelpTemplate(rootHelpTemplate)
+	root.SetHelpFunc(startupLogoHelpFunc(root))
+
+	root.AddCommand(newExplainCmd())
+	root.AddCommand(newScanCmd())
+	root.AddCommand(newDiffCmd())
+	root.AddCommand(newPluginCmd())
+	root.AddCommand(newMcpCmd())
+	root.AddCommand(newVersionCmd(version))
 
 	return root, nil
 }
@@ -85,12 +105,16 @@ func rootHasCommandRequiredFlags(cmd *cobra.Command) bool {
 	return hasRequiredFlags
 }
 
-func logResolvedOptions(cmd *cobra.Command, options *globalOptions) {
-	if cmd == nil || options == nil {
+func logResolvedOptions(cmd *cobra.Command) {
+	if cmd == nil {
 		return
 	}
-	resolved := options.current()
-	logger := commandLogger(cmd, options, "startup")
+	logger := commandLogger(cmd, "startup")
+	options, err := commandOptions(cmd)
+	if err != nil {
+		return
+	}
+	resolved := options.GetConfig()
 	logger.Debug("Resolved options",
 		zap.String("path", resolved.Path),
 		zap.String("container", resolved.Container),

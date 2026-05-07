@@ -1,4 +1,4 @@
-package cli
+package opts
 
 import (
 	"strings"
@@ -53,7 +53,7 @@ func TestResolveDetectorFilter_UnknownShowsHelpHint(t *testing.T) {
 func TestResolveAuditorFilter_DefaultLeavesAuditorSelectionToRegistryDefaults(t *testing.T) {
 	reg := scan.NewRegistry(scan.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
-	filter, err := resolveAuditorFilter("", reg)
+	filter, err := ResolveAuditorFilter("", reg)
 	if err != nil {
 		t.Fatalf("resolveAuditorFilter() error = %v", err)
 	}

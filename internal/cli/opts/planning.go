@@ -1,18 +1,34 @@
-package runtime
+package opts
 
 import (
+	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	"github.com/bomly-dev/bomly-cli/internal/scan"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/internal/system"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
-func planSubprojects(registryValue *scan.Registry, req Request) ([]model.Subproject, error) {
-	if req.ForcedPackageManager != model.PackageManagerUnknown {
+// Request defines the inputs required to build one execution runtime.
+type Request struct {
+	Registry             *scan.Registry
+	ExecutionTarget      sdk.ExecutionTarget
+	ForcedPackageManager sdk.PackageManager
+	DetectorFilter       sdk.DetectorFilter
+	EcosystemFilter      sdk.EcosystemFilter
+}
+
+// ErrNoSubprojects indicates that no compatible subprojects were discovered for the runtime.
+var ErrNoSubprojects = errors.New("no subprojects discovered for execution target with the applied filters")
+
+// PlanSubprojects discovers subprojects for an execution target with the provided registry and filters.
+func PlanSubprojects(registryValue *scan.Registry, req Request) ([]sdk.Subproject, error) {
+	if req.ForcedPackageManager != sdk.PackageManagerUnknown {
 		subproject, ok := plannedSubprojectForPackageManager(
 			registryValue,
 			req.ExecutionTarget,
@@ -24,36 +40,36 @@ func planSubprojects(registryValue *scan.Registry, req Request) ([]model.Subproj
 		if !ok {
 			return nil, noSubprojectsError(req)
 		}
-		return []model.Subproject{subproject}, nil
+		return []sdk.Subproject{subproject}, nil
 	}
 
 	switch req.ExecutionTarget.Kind {
-	case model.ExecutionTargetContainerImage:
+	case sdk.ExecutionTargetContainerImage:
 		return planContainerSubprojects(registryValue, req)
 	default:
 		return planFilesystemSubprojects(registryValue, req)
 	}
 }
 
-func planContainerSubprojects(registryValue *scan.Registry, req Request) ([]model.Subproject, error) {
+func planContainerSubprojects(registryValue *scan.Registry, req Request) ([]sdk.Subproject, error) {
 	plans := registryValue.DiscoveryPlans()
 	if len(plans) == 0 {
 		return nil, noSubprojectsError(req)
 	}
 
-	subprojects := make([]model.Subproject, 0, len(plans))
+	subprojects := make([]sdk.Subproject, 0, len(plans))
 	seen := make(map[string]struct{}, len(plans))
 	for detectorName, plan := range plans {
-		if !supportsTargetKind(plan.TargetKinds, model.ExecutionTargetContainerImage) {
+		if !supportsTargetKind(plan.TargetKinds, sdk.ExecutionTargetContainerImage) {
 			continue
 		}
-		detectorList := registryValue.PlannedDetectors(model.DetectionRequest{
+		detectorList := registryValue.PlannedDetectors(sdk.DetectionRequest{
 			ProjectPath:     req.ExecutionTarget.Location,
 			ExecutionTarget: req.ExecutionTarget,
 			Ecosystem:       singleEcosystem(plan.SupportedEcosystems, req.EcosystemFilter),
 			PackageManager:  singlePackageManager(plan.SupportedManagers),
 			DetectorFilter:  req.DetectorFilter,
-			Mode:            model.TargetModeFullGraph,
+			Mode:            sdk.TargetModeFullGraph,
 		}, []string{detectorName})
 		chain := expandDetectorNames(registryValue, detectorList)
 		if len(chain) == 0 {
@@ -64,11 +80,11 @@ func planContainerSubprojects(registryValue *scan.Registry, req Request) ([]mode
 			continue
 		}
 		seen[key] = struct{}{}
-		subprojects = append(subprojects, model.Subproject{
+		subprojects = append(subprojects, sdk.Subproject{
 			ExecutionTarget:         req.ExecutionTarget,
 			RelativePath:            ".",
 			PrimaryDetector:         chain[0],
-			DetectedPackageManagers: append([]model.PackageManager(nil), plan.SupportedManagers...),
+			DetectedPackageManagers: append([]sdk.PackageManager(nil), plan.SupportedManagers...),
 			PlannedDetectors:        chain,
 			Ecosystem:               singleEcosystem(plan.SupportedEcosystems, req.EcosystemFilter),
 		})
@@ -81,7 +97,7 @@ func planContainerSubprojects(registryValue *scan.Registry, req Request) ([]mode
 	return subprojects, nil
 }
 
-func planFilesystemSubprojects(registryValue *scan.Registry, req Request) ([]model.Subproject, error) {
+func planFilesystemSubprojects(registryValue *scan.Registry, req Request) ([]sdk.Subproject, error) {
 	isSingleFile, err := executionTargetIsSingleFile(req.ExecutionTarget)
 	if err != nil {
 		return nil, fmt.Errorf("discover subprojects: %w", err)
@@ -100,23 +116,18 @@ func planFilesystemSubprojects(registryValue *scan.Registry, req Request) ([]mod
 		return subprojects, nil
 	}
 
-	seen := make(map[string]model.Subproject)
-	collect := func(candidatePath string) {
-		for _, subproject := range plannedSubprojectsForPath(
-			registryValue,
-			req.ExecutionTarget,
-			candidatePath,
-			req.DetectorFilter,
-			req.EcosystemFilter,
-		) {
-			key := subproject.RelativePath + "::" + subproject.PrimaryPackageManager().Name() + "::" + strings.Join(subproject.PlannedDetectors, "|")
-			seen[key] = subproject
-		}
+	seen := map[string]sdk.Subproject{}
+	for _, subproject := range plannedSubprojectsForPath(
+		registryValue,
+		req.ExecutionTarget,
+		req.ExecutionTarget.Location,
+		req.DetectorFilter,
+		req.EcosystemFilter,
+	) {
+		seen[subprojectDedupKey(subproject)] = subproject
 	}
 
-	collect(req.ExecutionTarget.Location)
-
-	subprojects := make([]model.Subproject, 0, len(seen))
+	subprojects := make([]sdk.Subproject, 0, len(seen))
 	for _, subproject := range seen {
 		subprojects = append(subprojects, subproject)
 	}
@@ -129,12 +140,12 @@ func planFilesystemSubprojects(registryValue *scan.Registry, req Request) ([]mod
 
 func plannedSubprojectsForPath(
 	registryValue *scan.Registry,
-	executionTarget model.ExecutionTarget,
+	executionTarget sdk.ExecutionTarget,
 	candidatePath string,
-	detectorFilter model.DetectorFilter,
-	ecosystemFilter model.EcosystemFilter,
-) []model.Subproject {
-	grouped := make(map[string]*model.Subproject)
+	detectorFilter sdk.DetectorFilter,
+	ecosystemFilter sdk.EcosystemFilter,
+) []sdk.Subproject {
+	grouped := make(map[string]*sdk.Subproject)
 
 	for manager, evidencePatterns := range detectPackageManagersForPath(registryValue, executionTarget.Kind, candidatePath) {
 		ecosystem := manager.Ecosystem()
@@ -153,7 +164,7 @@ func plannedSubprojectsForPath(
 		existing, ok := grouped[key]
 		if !ok {
 			copyValue := subproject
-			copyValue.DetectedPackageManagers = append([]model.PackageManager(nil), subproject.DetectedPackageManagers...)
+			copyValue.DetectedPackageManagers = append([]sdk.PackageManager(nil), subproject.DetectedPackageManagers...)
 			copyValue.PlannedDetectors = append([]string(nil), subproject.PlannedDetectors...)
 			grouped[key] = &copyValue
 			continue
@@ -161,7 +172,7 @@ func plannedSubprojectsForPath(
 		existing.DetectedPackageManagers = appendUniquePackageManager(existing.DetectedPackageManagers, manager)
 	}
 
-	subprojects := make([]model.Subproject, 0, len(grouped))
+	subprojects := make([]sdk.Subproject, 0, len(grouped))
 	for _, subproject := range grouped {
 		subprojects = append(subprojects, *subproject)
 	}
@@ -178,7 +189,7 @@ func plannedSubprojectsForPath(
 	return subprojects
 }
 
-func detectPackageManagers(candidatePath string) []model.PackageManager {
+func detectPackageManagers(candidatePath string) []sdk.PackageManager {
 	managers, err := registry.DetectPackageManagers(candidatePath)
 	if err != nil {
 		return nil
@@ -188,10 +199,10 @@ func detectPackageManagers(candidatePath string) []model.PackageManager {
 
 func detectPackageManagersForPath(
 	registryValue *scan.Registry,
-	targetKind model.ExecutionTargetKind,
+	targetKind sdk.ExecutionTargetKind,
 	candidatePath string,
-) map[model.PackageManager][]string {
-	detected := make(map[model.PackageManager][]string)
+) map[sdk.PackageManager][]string {
+	detected := make(map[sdk.PackageManager][]string)
 	for _, manager := range detectPackageManagers(candidatePath) {
 		detected[manager] = appendUniquePatterns(detected[manager], registry.EvidencePatternsForPackageManager(manager)...)
 	}
@@ -222,55 +233,55 @@ func detectPackageManagersForPath(
 
 func plannedSubprojectForPackageManager(
 	registryValue *scan.Registry,
-	executionTarget model.ExecutionTarget,
+	executionTarget sdk.ExecutionTarget,
 	candidatePath string,
-	manager model.PackageManager,
+	manager sdk.PackageManager,
 	evidencePatterns []string,
-	detectorFilter model.DetectorFilter,
-) (model.Subproject, bool) {
+	detectorFilter sdk.DetectorFilter,
+) (sdk.Subproject, bool) {
 	patterns := evidencePatterns
 	if len(patterns) == 0 {
 		patterns = registry.EvidencePatternsForPackageManager(manager)
 	}
 	if len(patterns) == 0 {
-		return model.Subproject{}, false
+		return sdk.Subproject{}, false
 	}
 
 	projectPath := candidatePath
-	if manager == model.PackageManagerSBOM {
+	if manager == sdk.PackageManagerSBOM {
 		resolvedPath, ok := resolveMatchedManifestPath(candidatePath, patterns)
 		if !ok {
-			return model.Subproject{}, false
+			return sdk.Subproject{}, false
 		}
 		projectPath = resolvedPath
 	}
 
 	relPath, err := filepath.Rel(executionTarget.Location, projectPath)
 	if err != nil {
-		return model.Subproject{}, false
+		return sdk.Subproject{}, false
 	}
 	if relPath == "" {
 		relPath = "."
 	}
 
-	resolveReq := model.DetectionRequest{
+	resolveReq := sdk.DetectionRequest{
 		ProjectPath:     projectPath,
 		ExecutionTarget: executionTarget,
 		Ecosystem:       manager.Ecosystem(),
 		PackageManager:  manager,
 		DetectorFilter:  detectorFilter,
-		Mode:            model.TargetModeFullGraph,
+		Mode:            sdk.TargetModeFullGraph,
 	}
 	chain := expandDetectorNames(registryValue, registryValue.PlannedDetectors(resolveReq, detectorNamesForPackageManager(registryValue, executionTarget.Kind, candidatePath, manager)))
 	if len(chain) == 0 {
-		return model.Subproject{}, false
+		return sdk.Subproject{}, false
 	}
 
-	return model.Subproject{
+	return sdk.Subproject{
 		ExecutionTarget:         concreteSubprojectExecutionTarget(executionTarget, projectPath),
 		RelativePath:            filepath.ToSlash(relPath),
 		PrimaryDetector:         chain[0],
-		DetectedPackageManagers: []model.PackageManager{manager},
+		DetectedPackageManagers: []sdk.PackageManager{manager},
 		PlannedDetectors:        chain,
 		Ecosystem:               manager.Ecosystem(),
 	}, true
@@ -278,12 +289,12 @@ func plannedSubprojectForPackageManager(
 
 func plannedPluginSubprojectsForPath(
 	registryValue *scan.Registry,
-	executionTarget model.ExecutionTarget,
+	executionTarget sdk.ExecutionTarget,
 	candidatePath string,
-	detectorFilter model.DetectorFilter,
-	ecosystemFilter model.EcosystemFilter,
-) []model.Subproject {
-	if executionTarget.Kind != model.ExecutionTargetFilesystem && executionTarget.Kind != model.ExecutionTargetGitRepository {
+	detectorFilter sdk.DetectorFilter,
+	ecosystemFilter sdk.EcosystemFilter,
+) []sdk.Subproject {
+	if executionTarget.Kind != sdk.ExecutionTargetFilesystem && executionTarget.Kind != sdk.ExecutionTargetGitRepository {
 		return nil
 	}
 
@@ -300,7 +311,7 @@ func plannedPluginSubprojectsForPath(
 		relPath = "."
 	}
 
-	subprojects := make([]model.Subproject, 0)
+	subprojects := make([]sdk.Subproject, 0)
 	for _, planEntry := range sortedDiscoveryPlans(plans) {
 		detectorName := planEntry.name
 		plan := planEntry.plan
@@ -313,23 +324,23 @@ func plannedPluginSubprojectsForPath(
 		if len(plan.EvidencePatterns) == 0 || !pathMatchesPatterns(candidatePath, plan.EvidencePatterns) {
 			continue
 		}
-		detectorList := registryValue.PlannedDetectors(model.DetectionRequest{
+		detectorList := registryValue.PlannedDetectors(sdk.DetectionRequest{
 			ProjectPath:     candidatePath,
 			ExecutionTarget: executionTarget,
 			Ecosystem:       singleEcosystem(plan.SupportedEcosystems, ecosystemFilter),
 			PackageManager:  singlePackageManager(plan.SupportedManagers),
 			DetectorFilter:  detectorFilter,
-			Mode:            model.TargetModeFullGraph,
+			Mode:            sdk.TargetModeFullGraph,
 		}, []string{detectorName})
 		chain := expandDetectorNames(registryValue, detectorList)
 		if len(chain) == 0 {
 			continue
 		}
-		subprojects = append(subprojects, model.Subproject{
+		subprojects = append(subprojects, sdk.Subproject{
 			ExecutionTarget:         concreteSubprojectExecutionTarget(executionTarget, candidatePath),
 			RelativePath:            filepath.ToSlash(relPath),
 			PrimaryDetector:         chain[0],
-			DetectedPackageManagers: append([]model.PackageManager(nil), plan.SupportedManagers...),
+			DetectedPackageManagers: append([]sdk.PackageManager(nil), plan.SupportedManagers...),
 			PlannedDetectors:        chain,
 			Ecosystem:               singleEcosystem(plan.SupportedEcosystems, ecosystemFilter),
 		})
@@ -359,18 +370,18 @@ func sortedDiscoveryPlans(plans map[string]registry.DetectorDiscoveryPlan) []dis
 	return entries
 }
 
-func discoveryTargetKinds(targetKind model.ExecutionTargetKind) []model.ExecutionTargetKind {
-	if targetKind == model.ExecutionTargetGitRepository {
-		return []model.ExecutionTargetKind{model.ExecutionTargetGitRepository, model.ExecutionTargetFilesystem}
+func discoveryTargetKinds(targetKind sdk.ExecutionTargetKind) []sdk.ExecutionTargetKind {
+	if targetKind == sdk.ExecutionTargetGitRepository {
+		return []sdk.ExecutionTargetKind{sdk.ExecutionTargetGitRepository, sdk.ExecutionTargetFilesystem}
 	}
-	return []model.ExecutionTargetKind{targetKind}
+	return []sdk.ExecutionTargetKind{targetKind}
 }
 
 func detectorNamesForPackageManager(
 	registryValue *scan.Registry,
-	targetKind model.ExecutionTargetKind,
+	targetKind sdk.ExecutionTargetKind,
 	candidatePath string,
-	manager model.PackageManager,
+	manager sdk.PackageManager,
 ) []string {
 	names := append([]string(nil), registry.DetectorNamesForPackageManager(manager)...)
 	if registryValue == nil {
@@ -393,7 +404,7 @@ func detectorNamesForPackageManager(
 	return names
 }
 
-func containsPackageManager(managers []model.PackageManager, target model.PackageManager) bool {
+func containsPackageManager(managers []sdk.PackageManager, target sdk.PackageManager) bool {
 	for _, manager := range managers {
 		if manager == target {
 			return true
@@ -409,6 +420,14 @@ func appendUniqueDetectorName(names []string, name string) []string {
 		}
 	}
 	return append(names, name)
+}
+
+func subprojectDedupKey(subproject sdk.Subproject) string {
+	return strings.Join([]string{
+		subproject.RelativePath,
+		subproject.PrimaryPackageManager().Name(),
+		strings.Join(subproject.PlannedDetectors, "|"),
+	}, "::")
 }
 
 func appendUniquePatterns(existing []string, patterns ...string) []string {
@@ -430,7 +449,7 @@ func appendUniquePatterns(existing []string, patterns ...string) []string {
 	return existing
 }
 
-func expandDetectorNames(registryValue *scan.Registry, detectors []model.Detector) []string {
+func expandDetectorNames(registryValue *scan.Registry, detectors []sdk.Detector) []string {
 	if len(detectors) == 0 {
 		return nil
 	}
@@ -453,7 +472,7 @@ func expandDetectorNames(registryValue *scan.Registry, detectors []model.Detecto
 	return names
 }
 
-func appendDetectorChain(detector model.Detector, allowed map[string]struct{}, seen map[string]struct{}, names *[]string) {
+func appendDetectorChain(detector sdk.Detector, allowed map[string]struct{}, seen map[string]struct{}, names *[]string) {
 	if detector == nil {
 		return
 	}
@@ -471,17 +490,17 @@ func appendDetectorChain(detector model.Detector, allowed map[string]struct{}, s
 	}
 }
 
-func concreteSubprojectExecutionTarget(parent model.ExecutionTarget, location string) model.ExecutionTarget {
+func concreteSubprojectExecutionTarget(parent sdk.ExecutionTarget, location string) sdk.ExecutionTarget {
 	target := parent
 	target.Location = location
-	if parent.Kind == model.ExecutionTargetContainerImage {
+	if parent.Kind == sdk.ExecutionTargetContainerImage {
 		return target
 	}
-	target.Kind = model.ExecutionTargetFilesystem
+	target.Kind = sdk.ExecutionTargetFilesystem
 	return target
 }
 
-func supportsTargetKind(targetKinds []model.ExecutionTargetKind, candidates ...model.ExecutionTargetKind) bool {
+func supportsTargetKind(targetKinds []sdk.ExecutionTargetKind, candidates ...sdk.ExecutionTargetKind) bool {
 	if len(targetKinds) == 0 {
 		return false
 	}
@@ -495,24 +514,24 @@ func supportsTargetKind(targetKinds []model.ExecutionTargetKind, candidates ...m
 	return false
 }
 
-func singleEcosystem(ecosystems []model.Ecosystem, ecosystemFilter model.EcosystemFilter) model.Ecosystem {
+func singleEcosystem(ecosystems []sdk.Ecosystem, ecosystemFilter sdk.EcosystemFilter) sdk.Ecosystem {
 	if len(ecosystemFilter.Include) == 1 {
 		return ecosystemFilter.Include[0]
 	}
 	if len(ecosystems) == 1 {
 		return ecosystems[0]
 	}
-	return model.EcosystemUnknown
+	return sdk.EcosystemUnknown
 }
 
-func singlePackageManager(managers []model.PackageManager) model.PackageManager {
+func singlePackageManager(managers []sdk.PackageManager) sdk.PackageManager {
 	if len(managers) == 1 {
 		return managers[0]
 	}
-	return model.PackageManagerUnknown
+	return sdk.PackageManagerUnknown
 }
 
-func appendUniquePackageManager(values []model.PackageManager, value model.PackageManager) []model.PackageManager {
+func appendUniquePackageManager(values []sdk.PackageManager, value sdk.PackageManager) []sdk.PackageManager {
 	for _, existing := range values {
 		if existing == value {
 			return values
@@ -521,7 +540,7 @@ func appendUniquePackageManager(values []model.PackageManager, value model.Packa
 	return append(values, value)
 }
 
-func sortSubprojects(subprojects []model.Subproject) {
+func sortSubprojects(subprojects []sdk.Subproject) {
 	sort.Slice(subprojects, func(i, j int) bool {
 		if subprojects[i].RelativePath != subprojects[j].RelativePath {
 			return subprojects[i].RelativePath < subprojects[j].RelativePath
@@ -560,4 +579,103 @@ func noSubprojectsError(req Request) error {
 		return fmt.Errorf("%w (active filters: %s)", ErrNoSubprojects, strings.Join(hints, ", "))
 	}
 	return ErrNoSubprojects
+}
+
+func pathMatchesPatterns(candidatePath string, patterns []string) bool {
+	info, err := os.Stat(candidatePath)
+	if err != nil {
+		return false
+	}
+	if !info.IsDir() {
+		return len(matchingPatternsForFile(candidatePath, patterns)) > 0
+	}
+	for _, pattern := range patterns {
+		if patternExists(candidatePath, pattern) {
+			return true
+		}
+	}
+	return false
+}
+
+func matchingPatternsForFile(path string, patterns []string) []string {
+	matched := make([]string, 0, len(patterns))
+	slashPath := filepath.ToSlash(path)
+	base := filepath.Base(slashPath)
+	for _, pattern := range patterns {
+		slashPattern := filepath.ToSlash(pattern)
+		if matchesPath, _ := filepath.Match(slashPattern, slashPath); matchesPath {
+			matched = append(matched, pattern)
+			continue
+		}
+		if matchesBase, _ := filepath.Match(slashPattern, base); matchesBase {
+			matched = append(matched, pattern)
+		}
+	}
+	return matched
+}
+
+func patternExists(dir, pattern string) bool {
+	if !strings.ContainsAny(pattern, "*?[") {
+		exists, err := system.FileExists(filepath.Join(dir, filepath.FromSlash(pattern)))
+		return err == nil && exists
+	}
+	matches, err := filepath.Glob(filepath.Join(dir, filepath.FromSlash(pattern)))
+	return err == nil && len(matches) > 0
+}
+
+func resolveMatchedManifestPath(candidatePath string, patterns []string) (string, bool) {
+	info, err := os.Stat(candidatePath)
+	if err != nil {
+		return "", false
+	}
+	if !info.IsDir() {
+		if len(matchingPatternsForFile(candidatePath, patterns)) == 0 {
+			return "", false
+		}
+		return candidatePath, true
+	}
+
+	for _, pattern := range patterns {
+		resolvedPath, ok := resolveManifestCandidate(candidatePath, pattern)
+		if ok {
+			return resolvedPath, true
+		}
+	}
+	return "", false
+}
+
+func resolveManifestCandidate(basePath, pattern string) (string, bool) {
+	pattern = filepath.FromSlash(pattern)
+	if pattern == "" {
+		return "", false
+	}
+	if !strings.ContainsAny(pattern, "*?[") {
+		candidate := filepath.Join(basePath, pattern)
+		if info, err := os.Stat(candidate); err == nil && !info.IsDir() {
+			return candidate, true
+		}
+		return "", false
+	}
+
+	matches, err := filepath.Glob(filepath.Join(basePath, pattern))
+	if err != nil || len(matches) == 0 {
+		return "", false
+	}
+	for _, match := range matches {
+		if info, statErr := os.Stat(match); statErr == nil && !info.IsDir() {
+			return match, true
+		}
+	}
+	return "", false
+}
+
+func executionTargetIsSingleFile(executionTarget sdk.ExecutionTarget) (bool, error) {
+	if executionTarget.Kind != sdk.ExecutionTargetFilesystem {
+		return false, nil
+	}
+	info, err := os.Stat(executionTarget.Location)
+	if err != nil {
+		return false, err
+	}
+	return !info.IsDir(), nil
 }

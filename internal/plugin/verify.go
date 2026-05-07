@@ -8,7 +8,7 @@ import (
 )
 
 // Verify validates one installed managed plugin.
-func Verify(ctx context.Context, root, id string, policy ExecutionPolicy) (*VerifyResult, error) {
+func Verify(ctx context.Context, root, id string) (*VerifyResult, error) {
 	var err error
 	root, err = resolveRoot(root)
 	if err != nil {
@@ -41,11 +41,11 @@ func Verify(ctx context.Context, root, id string, policy ExecutionPolicy) (*Veri
 		}
 		checks = append(checks, "checksum matches")
 	}
-	metadata, err := fetchRuntimeMetadata(ctx, fullEntrypoint, policy)
+	metadata, err := fetchRuntimeMetadata(ctx, fullEntrypoint)
 	if err != nil {
 		return nil, err
 	}
-	detectorDescriptor, packageManagerSupport, matcherDescriptor, auditorDescriptor, err := fetchRuntimeDescriptors(ctx, fullEntrypoint, policy, metadata.Kind)
+	detectorDescriptor, packageManagerSupport, matcherDescriptor, auditorDescriptor, err := fetchRuntimeDescriptors(ctx, fullEntrypoint, metadata.Kind)
 	if err != nil {
 		return nil, err
 	}

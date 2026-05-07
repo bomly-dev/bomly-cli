@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 const (
@@ -76,7 +76,7 @@ type sarifMessage struct {
 
 // WriteSARIF writes findings as a SARIF 2.1.0 document to w.
 // toolName and toolVersion are used to populate the driver section.
-func WriteSARIF(w io.Writer, findings []model.Finding, toolName, toolVersion string) error {
+func WriteSARIF(w io.Writer, findings []sdk.Finding, toolName, toolVersion string) error {
 	// Deduplicate rules by finding ID.
 	seen := map[string]bool{}
 	var rules []sarifRule

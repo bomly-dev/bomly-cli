@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // ScanResponse is the structured payload for the scan command.
@@ -130,7 +130,7 @@ type ExplainTargetResponse struct {
 
 // BuildScanResponse constructs the structured scan payload from consolidated
 // manifest selections and findings.
-func BuildScanResponse(project ProjectDescriptor, consolidated model.ConsolidatedGraph, findings []model.Finding, started time.Time) ScanResponse {
+func BuildScanResponse(project ProjectDescriptor, consolidated sdk.ConsolidatedGraph, findings []sdk.Finding, started time.Time) ScanResponse {
 	response := ScanResponse{
 		SchemaVersion: SchemaVersion,
 		Command:       "scan",
@@ -146,7 +146,7 @@ func BuildScanResponse(project ProjectDescriptor, consolidated model.Consolidate
 }
 
 // ScanManifestsFromConsolidated converts consolidated manifest selections into stable scan payloads.
-func ScanManifestsFromConsolidated(consolidated model.ConsolidatedGraph) []ScanManifest {
+func ScanManifestsFromConsolidated(consolidated sdk.ConsolidatedGraph) []ScanManifest {
 	manifests := make([]ScanManifest, 0, len(consolidated.Manifests))
 	for idx, manifest := range consolidated.Manifests {
 		if manifest.Entry.Graph == nil {
@@ -169,7 +169,7 @@ func ScanManifestsFromConsolidated(consolidated model.ConsolidatedGraph) []ScanM
 	return manifests
 }
 
-func scanManifestFromConsolidated(manifest model.ConsolidatedManifest, idx int) ScanManifest {
+func scanManifestFromConsolidated(manifest sdk.ConsolidatedManifest, idx int) ScanManifest {
 	kind := strings.TrimSpace(manifest.Entry.Manifest.Kind)
 	if kind == "" {
 		kind = "entry-" + strconv.Itoa(idx+1)
@@ -185,7 +185,7 @@ func scanManifestFromConsolidated(manifest model.ConsolidatedManifest, idx int) 
 	}
 }
 
-func normalizeScanManifestPath(subproject model.Subproject, candidates ...string) string {
+func normalizeScanManifestPath(subproject sdk.Subproject, candidates ...string) string {
 	for _, candidate := range candidates {
 		normalized := strings.TrimSpace(strings.ReplaceAll(candidate, "\\", "/"))
 		if normalized == "" {
@@ -235,7 +235,7 @@ func BuildExplainResponse(project ProjectDescriptor, query string, targets []Exp
 }
 
 // BuildDiffResponse constructs the structured diff payload from consolidated manifest selections.
-func BuildDiffResponse(projectPath, baseRef, headRef string, baseConsolidated, headConsolidated model.ConsolidatedGraph, audit *DiffAudit, started time.Time) DiffResponse {
+func BuildDiffResponse(projectPath, baseRef, headRef string, baseConsolidated, headConsolidated sdk.ConsolidatedGraph, audit *DiffAudit, started time.Time) DiffResponse {
 	results, summary := diffResultsFromConsolidated(baseConsolidated, headConsolidated)
 	return DiffResponse{
 		SchemaVersion: SchemaVersion,
@@ -257,7 +257,7 @@ func BuildDiffResponse(projectPath, baseRef, headRef string, baseConsolidated, h
 type diffManifestSnapshot struct {
 	Key      string
 	Manifest diffManifestRef
-	Graph    *model.Graph
+	Graph    *sdk.Graph
 }
 
 type diffManifestRef struct {
@@ -268,7 +268,7 @@ type diffManifestRef struct {
 	PackageManager string
 }
 
-func diffResultsFromConsolidated(baseConsolidated, headConsolidated model.ConsolidatedGraph) (DiffResults, DiffSummary) {
+func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.ConsolidatedGraph) (DiffResults, DiffSummary) {
 	baseByKey := manifestSnapshotsByConsolidated(baseConsolidated)
 	headByKey := manifestSnapshotsByConsolidated(headConsolidated)
 	keys := make([]string, 0, len(baseByKey)+len(headByKey))
@@ -323,7 +323,7 @@ func diffResultsFromConsolidated(baseConsolidated, headConsolidated model.Consol
 			summary.RemovedManifestCount++
 			summary.RemovedPackageCount += len(result.Removed)
 		case hasBase && hasHead:
-			manifestDiff := model.Compare(baseManifest.Graph, headManifest.Graph)
+			manifestDiff := sdk.Compare(baseManifest.Graph, headManifest.Graph)
 			reconcileDiffWithFuzzyMatches(&manifestDiff)
 			result := DiffManifestResult{
 				Status:         "unchanged",
@@ -381,7 +381,7 @@ func diffManifestStatusOrder(status string) int {
 	}
 }
 
-func manifestSnapshotsByConsolidated(consolidated model.ConsolidatedGraph) map[string]diffManifestSnapshot {
+func manifestSnapshotsByConsolidated(consolidated sdk.ConsolidatedGraph) map[string]diffManifestSnapshot {
 	snapshots := make(map[string]diffManifestSnapshot)
 	for idx, manifest := range consolidated.Manifests {
 		if manifest.Entry.Graph == nil {
@@ -398,7 +398,7 @@ func manifestSnapshotsByConsolidated(consolidated model.ConsolidatedGraph) map[s
 	return snapshots
 }
 
-func diffManifestRefFromConsolidated(manifest model.ConsolidatedManifest, idx int) diffManifestRef {
+func diffManifestRefFromConsolidated(manifest sdk.ConsolidatedManifest, idx int) diffManifestRef {
 	pathValue := normalizeScanManifestPath(manifest.Subproject, diffManifestPath(manifest.Subproject, manifest.Entry.Manifest), manifest.Entry.Manifest.Path)
 	kind := strings.TrimSpace(manifest.Entry.Manifest.Kind)
 	if kind == "" {
@@ -413,7 +413,7 @@ func diffManifestRefFromConsolidated(manifest model.ConsolidatedManifest, idx in
 	}
 }
 
-func diffManifestPath(subproject model.Subproject, manifest model.ManifestMetadata) string {
+func diffManifestPath(subproject sdk.Subproject, manifest sdk.ManifestMetadata) string {
 	rawPath := strings.TrimSpace(manifest.Path)
 	if rawPath == "" {
 		if subproject.RelativePath == "." {
@@ -469,7 +469,7 @@ func diffManifestKey(manifest diffManifestRef, idx int) string {
 	return strings.Join([]string{subproject, manifest.PackageManager, manifest.Kind, pathValue}, "::")
 }
 
-func diffManifestKeyForConsolidated(manifest model.ConsolidatedManifest, ref diffManifestRef, idx int) string {
+func diffManifestKeyForConsolidated(manifest sdk.ConsolidatedManifest, ref diffManifestRef, idx int) string {
 	if !isSBOMManifest(manifest.Subproject) {
 		return diffManifestKey(ref, idx)
 	}
@@ -485,7 +485,7 @@ func diffManifestKeyForConsolidated(manifest model.ConsolidatedManifest, ref dif
 	}, "::")
 }
 
-func derivedSBOMManifestKey(manifest model.ConsolidatedManifest, ref diffManifestRef) (string, bool) {
+func derivedSBOMManifestKey(manifest sdk.ConsolidatedManifest, ref diffManifestRef) (string, bool) {
 	pathValue := strings.TrimSpace(strings.ReplaceAll(ref.Path, "\\", "/"))
 	if pathValue == "" || !sbomManifestPathLooksDerived(manifest, pathValue) {
 		return "", false
@@ -497,7 +497,7 @@ func derivedSBOMManifestKey(manifest model.ConsolidatedManifest, ref diffManifes
 	}, "::"), true
 }
 
-func sbomManifestPathLooksDerived(manifest model.ConsolidatedManifest, candidate string) bool {
+func sbomManifestPathLooksDerived(manifest sdk.ConsolidatedManifest, candidate string) bool {
 	if candidate == "" {
 		return false
 	}
@@ -523,11 +523,11 @@ func sbomManifestPathLooksDerived(manifest model.ConsolidatedManifest, candidate
 	return true
 }
 
-func isSBOMManifest(subproject model.Subproject) bool {
-	return subproject.PrimaryPackageManager() == model.PackageManagerSBOM || subproject.Ecosystem == model.EcosystemSBOM
+func isSBOMManifest(subproject sdk.Subproject) bool {
+	return subproject.PrimaryPackageManager() == sdk.PackageManagerSBOM || subproject.Ecosystem == sdk.EcosystemSBOM
 }
 
-func diffPackageChangesFromPackages(packages []*model.Package) []DiffPackageChange {
+func diffPackageChangesFromPackages(packages []*sdk.Package) []DiffPackageChange {
 	changes := make([]DiffPackageChange, 0, len(packages))
 	for _, pkg := range packages {
 		changes = append(changes, DiffPackageChange{Package: PackageFromGraphPackage(pkg)})
@@ -536,7 +536,7 @@ func diffPackageChangesFromPackages(packages []*model.Package) []DiffPackageChan
 	return changes
 }
 
-func diffChangedPackagesFromDiff(changes []model.VersionChange) []DiffChangedPackage {
+func diffChangedPackagesFromDiff(changes []sdk.VersionChange) []DiffChangedPackage {
 	out := make([]DiffChangedPackage, 0, len(changes))
 	for _, change := range changes {
 		out = append(out, DiffChangedPackage{
@@ -554,7 +554,7 @@ const (
 	diffFuzzyTierKey       = "bomly.diff.fuzzy_tier"
 )
 
-func reconcileDiffWithFuzzyMatches(diff *model.Diff) {
+func reconcileDiffWithFuzzyMatches(diff *sdk.Diff) {
 	if diff == nil || len(diff.Added) == 0 || len(diff.Removed) == 0 {
 		return
 	}
@@ -604,7 +604,7 @@ func reconcileDiffWithFuzzyMatches(diff *model.Diff) {
 		after := diff.Added[match.addedIdx]
 		before := diff.Removed[match.removedIdx]
 		applyFuzzyMetadata(before, after, match.score, match.tier)
-		diff.Updated = append(diff.Updated, model.VersionChange{Before: before, After: after})
+		diff.Updated = append(diff.Updated, sdk.VersionChange{Before: before, After: after})
 		matchedAdded[match.addedIdx] = struct{}{}
 		matchedRemoved[match.removedIdx] = struct{}{}
 	}
@@ -613,14 +613,14 @@ func reconcileDiffWithFuzzyMatches(diff *model.Diff) {
 		return
 	}
 
-	remainingAdded := make([]*model.Package, 0, len(diff.Added)-len(matchedAdded))
+	remainingAdded := make([]*sdk.Package, 0, len(diff.Added)-len(matchedAdded))
 	for idx, pkg := range diff.Added {
 		if _, ok := matchedAdded[idx]; ok {
 			continue
 		}
 		remainingAdded = append(remainingAdded, pkg)
 	}
-	remainingRemoved := make([]*model.Package, 0, len(diff.Removed)-len(matchedRemoved))
+	remainingRemoved := make([]*sdk.Package, 0, len(diff.Removed)-len(matchedRemoved))
 	for idx, pkg := range diff.Removed {
 		if _, ok := matchedRemoved[idx]; ok {
 			continue
@@ -646,7 +646,7 @@ func reconcileDiffWithFuzzyMatches(diff *model.Diff) {
 	})
 }
 
-func fuzzyReconcileScore(before, after *model.Package) (float64, string) {
+func fuzzyReconcileScore(before, after *sdk.Package) (float64, string) {
 	if before == nil || after == nil {
 		return 0, ""
 	}
@@ -656,10 +656,10 @@ func fuzzyReconcileScore(before, after *model.Package) (float64, string) {
 
 	beforeNorm := before.Clone()
 	afterNorm := after.Clone()
-	model.NormalizePackageIdentity(beforeNorm)
-	model.NormalizePackageIdentity(afterNorm)
+	sdk.NormalizePackageIdentity(beforeNorm)
+	sdk.NormalizePackageIdentity(afterNorm)
 
-	if model.PackageURLBase(beforeNorm.PURL) != "" && model.PackageURLBase(beforeNorm.PURL) == model.PackageURLBase(afterNorm.PURL) {
+	if sdk.PackageURLBase(beforeNorm.PURL) != "" && sdk.PackageURLBase(beforeNorm.PURL) == sdk.PackageURLBase(afterNorm.PURL) {
 		return 1.0, "purl-base"
 	}
 
@@ -681,7 +681,7 @@ func fuzzyReconcileScore(before, after *model.Package) (float64, string) {
 	return final, "name-similarity"
 }
 
-func sameEcosystemForFuzzy(before, after *model.Package) bool {
+func sameEcosystemForFuzzy(before, after *sdk.Package) bool {
 	b := strings.ToLower(strings.TrimSpace(before.Ecosystem))
 	a := strings.ToLower(strings.TrimSpace(after.Ecosystem))
 	if b == "" || a == "" {
@@ -781,9 +781,9 @@ func maxInt(values ...int) int {
 	return best
 }
 
-func applyFuzzyMetadata(before, after *model.Package, score float64, tier string) {
+func applyFuzzyMetadata(before, after *sdk.Package, score float64, tier string) {
 	roundedScore := math.Round(score*1000) / 1000
-	for _, pkg := range []*model.Package{before, after} {
+	for _, pkg := range []*sdk.Package{before, after} {
 		if pkg == nil {
 			continue
 		}

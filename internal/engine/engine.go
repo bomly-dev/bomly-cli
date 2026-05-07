@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -30,13 +30,13 @@ func NewEngine(registry *Registry) *Engine {
 }
 
 // Audit selects auditors by priority and aggregates their findings.
-func (e *Engine) Audit(ctx context.Context, req model.AuditRequest) (model.AuditResult, error) {
+func (e *Engine) Audit(ctx context.Context, req sdk.AuditRequest) (sdk.AuditResult, error) {
 	auditorsList := e.registry.Auditors(req)
 	if len(auditorsList) == 0 {
-		return model.AuditResult{}, fmt.Errorf("%w for ecosystem %q, package manager %q, and mode %q", ErrNoAuditor, req.Ecosystem, req.PackageManager, req.Mode)
+		return sdk.AuditResult{}, fmt.Errorf("%w for ecosystem %q, package manager %q, and mode %q", ErrNoAuditor, req.Ecosystem, req.PackageManager, req.Mode)
 	}
 
-	aggregated := model.AuditResult{
+	aggregated := sdk.AuditResult{
 		Graph:           req.Graph,
 		Target:          req.Target,
 		AuditorFindings: make(map[string]int),
@@ -78,13 +78,13 @@ func (e *Engine) Audit(ctx context.Context, req model.AuditRequest) (model.Audit
 }
 
 // Match runs registered matchers against the graph and returns the enriched graph.
-func (e *Engine) Match(ctx context.Context, req model.MatchRequest) (model.MatchResult, error) {
+func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
 	matcherList := e.registry.Matchers(req)
 	if len(matcherList) == 0 {
-		return model.MatchResult{Graph: req.Graph, Target: req.Target}, nil
+		return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, nil
 	}
 
-	aggregated := model.MatchResult{
+	aggregated := sdk.MatchResult{
 		Graph:  req.Graph,
 		Target: req.Target,
 	}

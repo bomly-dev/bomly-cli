@@ -8,10 +8,10 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
-	enginediff "github.com/bomly-dev/bomly-cli/internal/engine/diff"
+	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/tui"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/spf13/cobra"
 )
 
@@ -102,21 +102,21 @@ func newDiffCmd() *cobra.Command {
 			defer func() { _ = baseTarget.close() }()
 			defer func() { _ = headTarget.close() }()
 
-			diffResult, err := enginediff.Run(cmd.Context(), enginediff.Request{
-				Base: enginediff.Target{
+			diffResult, err := diffengine.Run(cmd.Context(), diffengine.Request{
+				Base: diffengine.Target{
 					Pipeline: engine.NewPipeline(baseTarget.Context.Registry(), logger),
-					Request:  baseTarget.Context.PipelineRequest(model.ScopeUnknown, streams.notificationWriter()),
+					Request:  baseTarget.Context.PipelineRequest(sdk.ScopeUnknown, streams.notificationWriter()),
 				},
-				Head: enginediff.Target{
+				Head: diffengine.Target{
 					Pipeline: engine.NewPipeline(headTarget.Context.Registry(), logger),
-					Request:  headTarget.Context.PipelineRequest(model.ScopeUnknown, streams.notificationWriter()),
+					Request:  headTarget.Context.PipelineRequest(sdk.ScopeUnknown, streams.notificationWriter()),
 				},
 			})
 			if err != nil {
 				return exit.ResolutionFailureError(err)
 			}
 
-			allResults := append(append([]model.DetectionResult{}, diffResult.Base.ResolveResults...), diffResult.Head.ResolveResults...)
+			allResults := append(append([]sdk.DetectionResult{}, diffResult.Base.ResolveResults...), diffResult.Head.ResolveResults...)
 			resolutionWarnings = append(resolutionWarnings, diffResult.Base.DetectorWarnings...)
 			resolutionWarnings = append(resolutionWarnings, diffResult.Head.DetectorWarnings...)
 			subprojectChildren := subprojectProgressChildren(allResults)

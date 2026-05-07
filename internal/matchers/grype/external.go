@@ -13,14 +13,14 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // Match attaches Grype vulnerability matches by shelling out to the grype CLI binary.
-func (a Matcher) Match(_ context.Context, req model.MatchRequest) (model.MatchResult, error) {
+func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
 	started := time.Now()
 	if req.Graph == nil {
-		return model.MatchResult{}, nil
+		return sdk.MatchResult{}, nil
 	}
 
 	logger := a.logger()
@@ -28,7 +28,7 @@ func (a Matcher) Match(_ context.Context, req model.MatchRequest) (model.MatchRe
 	// Serialize graph as SPDX JSON to feed to grype stdin.
 	spdxBytes, err := sbom.MarshalDepGraphJSON(req.Graph, sbom.TargetSPDX23JSON, sbom.BuildOptions{}, sbom.EncodeOptions{})
 	if err != nil {
-		return model.MatchResult{}, fmt.Errorf("grype: serialize sbom: %w", err)
+		return sdk.MatchResult{}, fmt.Errorf("grype: serialize sbom: %w", err)
 	}
 
 	var stdout, stderr bytes.Buffer
@@ -40,16 +40,16 @@ func (a Matcher) Match(_ context.Context, req model.MatchRequest) (model.MatchRe
 	logger.Debug("running external grype matcher")
 	if err := cmd.Run(); err != nil {
 		logger.Warn(fmt.Sprintf("grype CLI failed: %v (stderr: %s)", err, stderr.String()))
-		return model.MatchResult{Graph: req.Graph, Target: req.Target}, fmt.Errorf("grype match failed: %w", err)
+		return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, fmt.Errorf("grype match failed: %w", err)
 	}
 
 	err = parseGrypeJSONOutput(stdout.Bytes(), req.Graph)
 	if err != nil {
-		return model.MatchResult{}, fmt.Errorf("grype: parse output: %w", err)
+		return sdk.MatchResult{}, fmt.Errorf("grype: parse output: %w", err)
 	}
 
 	logger.Info(fmt.Sprintf("External grype enrichment completed in %s", logging.FormatDuration(time.Since(started))))
-	return model.MatchResult{
+	return sdk.MatchResult{
 		Graph:  req.Graph,
 		Target: req.Target,
 	}, nil
@@ -78,13 +78,13 @@ type grypeJSONArtifact struct {
 	PURL    string `json:"purl"`
 }
 
-func parseGrypeJSONOutput(data []byte, g *model.Graph) error {
+func parseGrypeJSONOutput(data []byte, g *sdk.Graph) error {
 	var out grypeJSONOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return fmt.Errorf("decode grype json: %w", err)
 	}
 
-	pkgByPURL := make(map[string]*model.Package)
+	pkgByPURL := make(map[string]*sdk.Package)
 	for _, p := range g.Packages() {
 		if p.PURL != "" {
 			pkgByPURL[p.PURL] = p
@@ -94,7 +94,7 @@ func parseGrypeJSONOutput(data []byte, g *model.Graph) error {
 	for _, m := range out.Matches {
 		graphPkg := pkgByPURL[m.Artifact.PURL]
 		if graphPkg == nil {
-			graphPkg = &model.Package{
+			graphPkg = &sdk.Package{
 				Name:    m.Artifact.Name,
 				Version: m.Artifact.Version,
 				PURL:    m.Artifact.PURL,
@@ -107,7 +107,7 @@ func parseGrypeJSONOutput(data []byte, g *model.Graph) error {
 		}
 
 		graphPkg.Matched = true
-		graphPkg.Vulnerabilities = appendUniqueVulnerability(graphPkg.Vulnerabilities, model.PackageVulnerability{
+		graphPkg.Vulnerabilities = appendUniqueVulnerability(graphPkg.Vulnerabilities, sdk.PackageVulnerability{
 			ID:          m.Vulnerability.ID,
 			Title:       title,
 			Severity:    strings.ToLower(m.Vulnerability.Severity),

@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/bomly-dev/bomly-cli/internal/engine/hooks"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // Hook types are re-exported from internal/engine/hooks for existing references
@@ -26,16 +26,16 @@ type StageProcessor func(context.Context, *PipelineResult) error
 // PipelineRequest defines input for a full pipeline run.
 type PipelineRequest struct {
 	ProjectPath     string
-	ExecutionTarget model.ExecutionTarget
-	Subprojects     []model.Subproject
+	ExecutionTarget sdk.ExecutionTarget
+	Subprojects     []sdk.Subproject
 	Processor       StageProcessor
 	EnrichEnabled   bool
 	MatchEnabled    bool
 	AuditEnabled    bool
-	ScopeFilter     model.Scope
-	AuditorFilter   model.AuditorFilter
-	MatcherFilter   model.MatcherFilter
-	DetectorFilter  model.DetectorFilter
+	ScopeFilter     sdk.Scope
+	AuditorFilter   sdk.AuditorFilter
+	MatcherFilter   sdk.MatcherFilter
+	DetectorFilter  sdk.DetectorFilter
 	InstallFirst    bool
 	InstallArgs     []string
 	CoreVersion     string
@@ -59,11 +59,11 @@ type PipelineWarning struct {
 
 // PipelineResult contains the full output of a pipeline run.
 type PipelineResult struct {
-	ResolveResults   []model.DetectionResult
-	Consolidated     model.ConsolidatedGraph
-	Graph            *model.Graph
-	Findings         []model.Finding
-	RiskScores       []model.RiskScore
+	ResolveResults   []sdk.DetectionResult
+	Consolidated     sdk.ConsolidatedGraph
+	Graph            *sdk.Graph
+	Findings         []sdk.Finding
+	RiskScores       []sdk.RiskScore
 	DetectorWarnings []PipelineWarning
 	AuditWarnings    []PipelineWarning
 	MatchWarnings    []PipelineWarning

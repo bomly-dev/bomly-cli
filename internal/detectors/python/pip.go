@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -12,14 +12,14 @@ import (
 type PipDetector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   model.Detector
+	Fallback   sdk.Detector
 }
 
 var pipEvidencePatterns = []string{"requirements.txt", "requirements-dev.txt", "requirements.in", "requirements.lock", "*requirements*.txt"}
 
 // PackageManagerSupport returns pip package-manager discovery metadata.
-func (d PipDetector) PackageManagerSupport() []model.PackageManagerSupport {
-	return []model.PackageManagerSupport{model.Support(model.PackageManagerPip, pipEvidencePatterns...)}
+func (d PipDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerPip, pipEvidencePatterns...)}
 }
 
 // Ready reports whether a Python interpreter is available.
@@ -29,41 +29,41 @@ func (d PipDetector) Ready() bool {
 }
 
 // Applicable reports whether pip-style manifests are present.
-func (d PipDetector) Applicable(ctx context.Context, req model.DetectionRequest) (bool, error) {
+func (d PipDetector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
 	return d.base().applicable(ctx, req, "requirements.txt", "requirements-dev.txt", "requirements.in", "requirements.lock")
 }
 
 // Descriptor describes the pip detector.
-func (d PipDetector) Descriptor() model.DetectorDescriptor {
-	return model.DetectorDescriptor{
+func (d PipDetector) Descriptor() sdk.DetectorDescriptor {
+	return sdk.DetectorDescriptor{
 		Name:                detectors.NamePip,
 		Enabled:             true,
-		Origin:              model.CoreOrigin,
-		Technique:           model.BuildToolTechnique,
-		SupportedEcosystems: []model.Ecosystem{model.EcosystemPython},
-		SupportedManagers:   []model.PackageManager{model.PackageManagerPip},
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
+		Origin:              sdk.CoreOrigin,
+		Technique:           sdk.BuildToolTechnique,
+		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemPython},
+		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerPip},
+		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "component-targeting"},
 	}
 }
 
 // ResolveGraph resolves a Python dependency graph with pip inspect.
-func (d PipDetector) ResolveGraph(_ context.Context, req model.DetectionRequest) (model.DetectionResult, error) {
+func (d PipDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	command, err := pipInspectCommand()
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
 	depsGraph, err := d.base().resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "pip detector", command)
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
-	return model.DetectionResult{
-		Graphs: model.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, pipEvidencePatterns)),
+	return sdk.DetectionResult{
+		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, pipEvidencePatterns)),
 	}, nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d PipDetector) FallbackDetector() model.Detector {
+func (d PipDetector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
@@ -75,7 +75,7 @@ func (d PipDetector) base() baseDetector {
 }
 
 // Install prepares pip dependencies before graph resolution.
-func (d PipDetector) Install(ctx context.Context, req model.DetectionRequest) error {
+func (d PipDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 	requirementsFile, err := installRequirementsPath(d.base().workingDir(req.ProjectPath))
 	if err != nil {
 		return err

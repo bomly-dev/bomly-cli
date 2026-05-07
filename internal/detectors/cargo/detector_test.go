@@ -4,16 +4,16 @@ import (
 	"context"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	detector := Detector{WorkingDir: "testdata/project"}
-	result, err := detector.ResolveGraph(context.Background(), model.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
 		ProjectPath:     "testdata/project",
-		PackageManager:  model.PackageManagerCargo,
-		Ecosystem:       model.EcosystemRust,
-		ExecutionTarget: model.ExecutionTarget{Location: "testdata/project"},
+		PackageManager:  sdk.PackageManagerCargo,
+		Ecosystem:       sdk.EcosystemRust,
+		ExecutionTarget: sdk.ExecutionTarget{Location: "testdata/project"},
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -26,7 +26,7 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if !ok {
 		t.Fatal("expected helper package")
 	}
-	if pkg.Scope != string(model.ScopeRuntime) {
+	if pkg.Scope != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope, got %q", pkg.Scope)
 	}
 }
@@ -69,7 +69,7 @@ func TestDepGraphFromMetadataWorkspace(t *testing.T) {
 	if !ok {
 		t.Fatal("expected dev package")
 	}
-	if dev.Scope != string(model.ScopeDevelopment) {
+	if dev.Scope != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected dev scope, got %q", dev.Scope)
 	}
 	if dev.PURL != "pkg:cargo/pretty_assertions@1.4.1" {
@@ -126,7 +126,7 @@ dev-helper = { path = "dev-helper" }
 	if !ok {
 		t.Fatal("expected dev-helper package")
 	}
-	if dev.Scope != string(model.ScopeDevelopment) {
+	if dev.Scope != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected development scope, got %q", dev.Scope)
 	}
 }

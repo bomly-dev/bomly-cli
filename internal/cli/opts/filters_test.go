@@ -6,7 +6,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/selector"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -94,10 +94,10 @@ func TestResolveEcosystemFilter_PlainList(t *testing.T) {
 	if len(filter.Include) != 2 {
 		t.Fatalf("expected 2 included ecosystems, got %v", filter.Include)
 	}
-	if !containsEcosystem(filter.Include, model.EcosystemNPM) {
+	if !containsEcosystem(filter.Include, sdk.EcosystemNPM) {
 		t.Fatalf("expected npm in include, got %v", filter.Include)
 	}
-	if !containsEcosystem(filter.Include, model.EcosystemPython) {
+	if !containsEcosystem(filter.Include, sdk.EcosystemPython) {
 		t.Fatalf("expected python in include, got %v", filter.Include)
 	}
 	if len(filter.Exclude) != 0 {
@@ -113,7 +113,7 @@ func TestResolveEcosystemFilter_MinusSyntax(t *testing.T) {
 	if len(filter.Include) != 0 {
 		t.Fatalf("expected empty include for ops-mode, got %v", filter.Include)
 	}
-	if !containsEcosystem(filter.Exclude, model.EcosystemNPM) {
+	if !containsEcosystem(filter.Exclude, sdk.EcosystemNPM) {
 		t.Fatalf("expected npm in exclude, got %v", filter.Exclude)
 	}
 }
@@ -127,7 +127,7 @@ func TestResolveEcosystemFilter_GradleAlias(t *testing.T) {
 	if len(filter.Include) != 1 {
 		t.Fatalf("expected 1 included ecosystem, got %v", filter.Include)
 	}
-	if !containsEcosystem(filter.Include, model.EcosystemMaven) {
+	if !containsEcosystem(filter.Include, sdk.EcosystemMaven) {
 		t.Fatalf("expected gradle alias to resolve to maven, got %v", filter.Include)
 	}
 }
@@ -155,7 +155,7 @@ func TestResolveEcosystemFilter_UnknownReturnsError(t *testing.T) {
 	}
 }
 
-func containsEcosystem(values []model.Ecosystem, target model.Ecosystem) bool {
+func containsEcosystem(values []sdk.Ecosystem, target sdk.Ecosystem) bool {
 	for _, value := range values {
 		if value == target {
 			return true

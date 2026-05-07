@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"strings"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
-func normalizeGraphPackageIdentity(src *model.Graph) (*model.Graph, error) {
+func normalizeGraphPackageIdentity(src *sdk.Graph) (*sdk.Graph, error) {
 	if src == nil {
 		return nil, nil
 	}
 
-	normalized := model.NewWithCapacity(src.Size())
+	normalized := sdk.NewWithCapacity(src.Size())
 	idMapping := make(map[string]string, src.Size())
 	for _, pkg := range src.Packages() {
 		if pkg == nil {
@@ -21,8 +21,8 @@ func normalizeGraphPackageIdentity(src *model.Graph) (*model.Graph, error) {
 		}
 
 		clone := pkg.Clone()
-		model.NormalizePackageIdentity(clone)
-		canonicalPURL := model.CanonicalPackageURLFromPackage(clone)
+		sdk.NormalizePackageIdentity(clone)
+		canonicalPURL := sdk.CanonicalPackageURLFromPackage(clone)
 		if canonicalPURL != "" {
 			clone.PURL = canonicalPURL
 			clone.ID = canonicalPURL
@@ -69,11 +69,11 @@ func normalizeGraphPackageIdentity(src *model.Graph) (*model.Graph, error) {
 	return normalized, nil
 }
 
-func canonicalPackageKey(pkg *model.Package) string {
+func canonicalPackageKey(pkg *sdk.Package) string {
 	if pkg == nil {
 		return ""
 	}
-	if purl := model.CanonicalPackageURLFromPackage(pkg); purl != "" {
+	if purl := sdk.CanonicalPackageURLFromPackage(pkg); purl != "" {
 		return "purl:" + strings.ToLower(strings.TrimSpace(purl))
 	}
 
@@ -89,12 +89,12 @@ func canonicalPackageKey(pkg *model.Package) string {
 	return strings.Join([]string{ecosystem, buildSystem, packageType, org, name, version}, "\x00")
 }
 
-func syncGraphEnrichmentByIdentity(dst, src *model.Graph) {
+func syncGraphEnrichmentByIdentity(dst, src *sdk.Graph) {
 	if dst == nil || src == nil {
 		return
 	}
 
-	sourceByKey := make(map[string]*model.Package)
+	sourceByKey := make(map[string]*sdk.Package)
 	for _, pkg := range src.Packages() {
 		key := canonicalPackageKey(pkg)
 		if key == "" {
@@ -118,12 +118,12 @@ func syncGraphEnrichmentByIdentity(dst, src *model.Graph) {
 	}
 }
 
-func syncPackageEnrichment(dst, src *model.Package) {
+func syncPackageEnrichment(dst, src *sdk.Package) {
 	if dst == nil || src == nil {
 		return
 	}
 	if len(dst.Licenses) == 0 && len(src.Licenses) > 0 {
-		dst.Licenses = append([]model.PackageLicense(nil), src.Licenses...)
+		dst.Licenses = append([]sdk.PackageLicense(nil), src.Licenses...)
 	}
 	if strings.TrimSpace(dst.Copyright) == "" && strings.TrimSpace(src.Copyright) != "" {
 		dst.Copyright = src.Copyright
@@ -161,7 +161,7 @@ func syncPackageEnrichment(dst, src *model.Package) {
 // SyncConsolidatedEnrichmentToManifests propagates enrichment from a fully consolidated graph
 // (matched, audited) back to each per-manifest entry graph so callers can render per-manifest
 // views with the enriched data.
-func SyncConsolidatedEnrichmentToManifests(consolidated *model.ConsolidatedGraph, graph *model.Graph) {
+func SyncConsolidatedEnrichmentToManifests(consolidated *sdk.ConsolidatedGraph, graph *sdk.Graph) {
 	if consolidated == nil || graph == nil {
 		return
 	}
@@ -174,12 +174,12 @@ func SyncConsolidatedEnrichmentToManifests(consolidated *model.ConsolidatedGraph
 	}
 }
 
-func addPackageIfMissing(g *model.Graph, pkg *model.Package) error {
+func addPackageIfMissing(g *sdk.Graph, pkg *sdk.Package) error {
 	if pkg == nil {
 		return nil
 	}
 	clone := pkg.Clone()
-	if err := g.AddPackage(clone); err != nil && !errors.Is(err, model.ErrPackageAlreadyExist) {
+	if err := g.AddPackage(clone); err != nil && !errors.Is(err, sdk.ErrPackageAlreadyExist) {
 		return fmt.Errorf("add package %q: %w", pkg.ID, err)
 	}
 	return nil

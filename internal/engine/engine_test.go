@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 type fakeDetector struct {
@@ -20,10 +20,10 @@ type fakeDetector struct {
 
 func (f fakeDetector) Descriptor() DetectorDescriptor { return f.descriptor }
 
-func (f fakeDetector) PackageManagerSupport() []model.PackageManagerSupport {
-	values := make([]model.PackageManagerSupport, 0, len(f.descriptor.SupportedManagers))
+func (f fakeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
+	values := make([]sdk.PackageManagerSupport, 0, len(f.descriptor.SupportedManagers))
 	for _, manager := range f.descriptor.SupportedManagers {
-		values = append(values, model.Support(manager))
+		values = append(values, sdk.Support(manager))
 	}
 	return values
 }

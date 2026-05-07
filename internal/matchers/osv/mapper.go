@@ -10,12 +10,12 @@ import (
 	gocvss31 "github.com/pandatix/go-cvss/31"
 	gocvss40 "github.com/pandatix/go-cvss/40"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // MapVulnerability converts one OsvVulnerability into package vulnerability enrichment.
-func MapVulnerability(v OsvVulnerability) model.PackageVulnerability {
-	return model.PackageVulnerability{
+func MapVulnerability(v OsvVulnerability) sdk.PackageVulnerability {
+	return sdk.PackageVulnerability{
 		ID:           v.ID,
 		Title:        firstNonEmpty(v.Summary, v.ID),
 		Severity:     extractSeverity(v.Severity),
@@ -25,7 +25,7 @@ func MapVulnerability(v OsvVulnerability) model.PackageVulnerability {
 		Source:       "osv",
 		CVSS:         buildCVSS(v.Severity),
 		FixedIn:      extractFixedVersion(v.Affected),
-		References:   []model.Reference{},
+		References:   []sdk.Reference{},
 		KEVExploited: false,
 	}
 }
@@ -157,17 +157,17 @@ func buildReasons(v OsvVulnerability) []string {
 	return reasons
 }
 
-func buildCVSS(severities []OsvSeverity) []model.CVSSScore {
+func buildCVSS(severities []OsvSeverity) []sdk.CVSSScore {
 	if len(severities) == 0 {
 		return nil
 	}
-	scores := make([]model.CVSSScore, 0, len(severities))
+	scores := make([]sdk.CVSSScore, 0, len(severities))
 	for _, severity := range severities {
 		score := parseCVSSScore(severity.Type, severity.Score)
 		if score <= 0 {
 			continue
 		}
-		scores = append(scores, model.CVSSScore{
+		scores = append(scores, sdk.CVSSScore{
 			Vector:  strings.TrimSpace(severity.Score),
 			Score:   score,
 			Version: strings.TrimSpace(severity.Type),

@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/bomly-dev/bomly-cli/internal/engine"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // Target describes one side of a diff pipeline run.
@@ -23,9 +23,9 @@ type Request struct {
 
 // Audit groups finding deltas between two audited dependency states.
 type Audit struct {
-	Introduced []model.Finding
-	Resolved   []model.Finding
-	Persisted  []model.Finding
+	Introduced []sdk.Finding
+	Resolved   []sdk.Finding
+	Persisted  []sdk.Finding
 }
 
 // Result contains fully resolved pipeline output for a dependency diff.
@@ -33,7 +33,7 @@ type Result struct {
 	Base     engine.PipelineResult
 	Head     engine.PipelineResult
 	Audit    *Audit
-	Findings []model.Finding
+	Findings []sdk.Finding
 }
 
 // Run executes the full pipeline for base and head targets and computes audit deltas.
@@ -60,29 +60,29 @@ func Run(ctx context.Context, req Request) (Result, error) {
 
 	if req.Base.Request.AuditEnabled || req.Head.Request.AuditEnabled {
 		result.Audit = AuditSummary(base.Findings, head.Findings)
-		result.Findings = append(append([]model.Finding{}, head.Findings...), base.Findings...)
+		result.Findings = append(append([]sdk.Finding{}, head.Findings...), base.Findings...)
 	}
 	return result, nil
 }
 
 // AuditSummary computes introduced, resolved, and persisted findings.
-func AuditSummary(baseFindings, headFindings []model.Finding) *Audit {
+func AuditSummary(baseFindings, headFindings []sdk.Finding) *Audit {
 	introduced, resolved, persisted := diffFindingSets(baseFindings, headFindings)
 	return &Audit{Introduced: introduced, Resolved: resolved, Persisted: persisted}
 }
 
-func diffFindingSets(baseFindings, headFindings []model.Finding) ([]model.Finding, []model.Finding, []model.Finding) {
-	baseByKey := make(map[string]model.Finding, len(baseFindings))
-	headByKey := make(map[string]model.Finding, len(headFindings))
+func diffFindingSets(baseFindings, headFindings []sdk.Finding) ([]sdk.Finding, []sdk.Finding, []sdk.Finding) {
+	baseByKey := make(map[string]sdk.Finding, len(baseFindings))
+	headByKey := make(map[string]sdk.Finding, len(headFindings))
 	for _, finding := range baseFindings {
 		baseByKey[diffFindingKey(finding)] = finding
 	}
 	for _, finding := range headFindings {
 		headByKey[diffFindingKey(finding)] = finding
 	}
-	introduced := make([]model.Finding, 0)
-	resolved := make([]model.Finding, 0)
-	persisted := make([]model.Finding, 0)
+	introduced := make([]sdk.Finding, 0)
+	resolved := make([]sdk.Finding, 0)
+	persisted := make([]sdk.Finding, 0)
 	for key, finding := range headByKey {
 		if _, ok := baseByKey[key]; ok {
 			persisted = append(persisted, finding)
@@ -99,7 +99,7 @@ func diffFindingSets(baseFindings, headFindings []model.Finding) ([]model.Findin
 	return introduced, resolved, persisted
 }
 
-func diffFindingKey(finding model.Finding) string {
+func diffFindingKey(finding sdk.Finding) string {
 	packageID := ""
 	if finding.Package != nil {
 		packageID = finding.Package.ID

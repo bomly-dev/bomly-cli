@@ -13,7 +13,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -37,14 +37,14 @@ type lockPackage struct {
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   model.Detector
+	Fallback   sdk.Detector
 }
 
 var evidencePatterns = []string{"composer.lock", "installed.json"}
 
 // PackageManagerSupport returns Composer package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []model.PackageManagerSupport {
-	return []model.PackageManagerSupport{model.Support(model.PackageManagerComposer, evidencePatterns...)}
+func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerComposer, evidencePatterns...)}
 }
 
 // Ready reports whether the detector can run in the current environment.
@@ -53,56 +53,56 @@ func (d Detector) Ready() bool {
 }
 
 // Applicable reports whether a Composer lockfile is present.
-func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
 	_ = ctx
 	return system.FileExists(filepath.Join(d.workingDir(req.ProjectPath), "composer.lock"))
 }
 
 // Descriptor describes the Composer detector.
-func (d Detector) Descriptor() model.DetectorDescriptor {
-	return model.DetectorDescriptor{
+func (d Detector) Descriptor() sdk.DetectorDescriptor {
+	return sdk.DetectorDescriptor{
 		Name:                detectors.NameComposer,
 		Enabled:             true,
-		Origin:              model.CoreOrigin,
-		Technique:           model.LockfileTechnique,
-		SupportedEcosystems: []model.Ecosystem{model.EcosystemPHP},
-		SupportedManagers:   []model.PackageManager{model.PackageManagerComposer},
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
+		Origin:              sdk.CoreOrigin,
+		Technique:           sdk.LockfileTechnique,
+		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemPHP},
+		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerComposer},
+		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
 	}
 }
 
 // ResolveGraph resolves a Composer dependency graph from composer.lock.
-func (d Detector) ResolveGraph(_ context.Context, req model.DetectionRequest) (model.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	workingDir := d.workingDir(req.ProjectPath)
 	manifest, err := readComposerManifest(filepath.Join(workingDir, "composer.json"))
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
 
 	lockPath := filepath.Join(d.workingDir(req.ProjectPath), "composer.lock")
 	data, err := os.ReadFile(lockPath)
 	if err != nil {
-		return model.DetectionResult{}, fmt.Errorf("read composer lockfile: %w", err)
+		return sdk.DetectionResult{}, fmt.Errorf("read composer lockfile: %w", err)
 	}
 
 	depsGraph, err := depGraphFromLock(data, manifest)
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
 
-	return model.DetectionResult{
-		Graphs: model.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, evidencePatterns)),
+	return sdk.DetectionResult{
+		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, evidencePatterns)),
 	}, nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d Detector) FallbackDetector() model.Detector {
+func (d Detector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
 // Install prepares Composer dependencies before graph resolution.
-func (d Detector) Install(_ context.Context, req model.DetectionRequest) error {
+func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -141,17 +141,17 @@ func (d Detector) workingDir(projectPath string) string {
 	return projectPath
 }
 
-func depGraphFromLock(raw []byte, manifest composerManifest) (*model.Graph, error) {
+func depGraphFromLock(raw []byte, manifest composerManifest) (*sdk.Graph, error) {
 	var lock lockFile
 	if err := json.Unmarshal(raw, &lock); err != nil {
 		return nil, fmt.Errorf("parse composer lockfile: %w", err)
 	}
 
-	depsGraph := model.New()
-	rootNode := model.NewPackage(model.Package{
-		Ecosystem:   string(model.EcosystemPHP),
+	depsGraph := sdk.New()
+	rootNode := sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemPHP),
 		Name:        "root",
-		BuildSystem: model.PackageManagerComposer.Name(),
+		BuildSystem: sdk.PackageManagerComposer.Name(),
 		Type:        "application",
 		Language:    "php",
 	})
@@ -203,7 +203,7 @@ func depGraphFromLock(raw []byte, manifest composerManifest) (*model.Graph, erro
 		pkg := packagesByName[name]
 		node := packageNode(pkg.Name, pkg.Version)
 		if existing, ok := depsGraph.Package(node.ID); ok {
-			model.MergePackageScope(existing, model.ScopeRuntime)
+			sdk.MergePackageScope(existing, sdk.ScopeRuntime)
 		}
 		if err := depsGraph.AddDependency(rootNode.ID, node.ID); err != nil {
 			return nil, fmt.Errorf("add root runtime dependency %q: %w", node.ID, err)
@@ -213,14 +213,14 @@ func depGraphFromLock(raw []byte, manifest composerManifest) (*model.Graph, erro
 		pkg := packagesByName[name]
 		node := packageNode(pkg.Name, pkg.Version)
 		if existing, ok := depsGraph.Package(node.ID); ok {
-			model.MergePackageScope(existing, model.ScopeDevelopment)
+			sdk.MergePackageScope(existing, sdk.ScopeDevelopment)
 		}
 		if err := depsGraph.AddDependency(rootNode.ID, node.ID); err != nil {
 			return nil, fmt.Errorf("add root development dependency %q: %w", node.ID, err)
 		}
 	}
 
-	propagateScope := func(startNames []string, scope model.Scope) error {
+	propagateScope := func(startNames []string, scope sdk.Scope) error {
 		visited := make(map[string]struct{}, len(packagesByName))
 		var walk func(string) error
 		walk = func(name string) error {
@@ -235,7 +235,7 @@ func depGraphFromLock(raw []byte, manifest composerManifest) (*model.Graph, erro
 			}
 			node := packageNode(pkg.Name, pkg.Version)
 			if existing, ok := depsGraph.Package(node.ID); ok {
-				model.MergePackageScope(existing, scope)
+				sdk.MergePackageScope(existing, scope)
 			}
 			for dependency := range pkg.Require {
 				if err := walk(dependency); err != nil {
@@ -252,24 +252,24 @@ func depGraphFromLock(raw []byte, manifest composerManifest) (*model.Graph, erro
 		return nil
 	}
 
-	if err := propagateScope(developmentRoots, model.ScopeDevelopment); err != nil {
+	if err := propagateScope(developmentRoots, sdk.ScopeDevelopment); err != nil {
 		return nil, err
 	}
-	if err := propagateScope(runtimeRoots, model.ScopeRuntime); err != nil {
+	if err := propagateScope(runtimeRoots, sdk.ScopeRuntime); err != nil {
 		return nil, err
 	}
 
 	return depsGraph, nil
 }
 
-func packageNode(name, version string) *model.Package {
+func packageNode(name, version string) *sdk.Package {
 	org, packageName := splitPackageName(name)
-	return model.NewPackage(model.Package{
-		Ecosystem:   string(model.EcosystemPHP),
+	return sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemPHP),
 		Org:         org,
 		Name:        packageName,
 		Version:     version,
-		BuildSystem: model.PackageManagerComposer.Name(),
+		BuildSystem: sdk.PackageManagerComposer.Name(),
 		Type:        "package",
 		Language:    "php",
 	})
@@ -283,7 +283,7 @@ func splitPackageName(value string) (string, string) {
 	return parts[0], parts[1]
 }
 
-func addNodeIfMissing(depsGraph *model.Graph, node *model.Package) error {
+func addNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Package) error {
 	if _, ok := depsGraph.Package(node.ID); ok {
 		return nil
 	}

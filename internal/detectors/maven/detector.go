@@ -15,7 +15,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -34,14 +34,14 @@ var mavenScopes = map[string]struct{}{
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   model.Detector
+	Fallback   sdk.Detector
 }
 
 var evidencePatterns = []string{"pom.xml", "*pom.xml"}
 
 // PackageManagerSupport returns Maven package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []model.PackageManagerSupport {
-	return []model.PackageManagerSupport{model.Support(model.PackageManagerMaven, evidencePatterns...)}
+func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerMaven, evidencePatterns...)}
 }
 
 // Ready reports whether a Maven wrapper is present or Maven is installed.
@@ -54,7 +54,7 @@ func (d Detector) Ready() bool {
 }
 
 // Applicable reports whether the project looks like a Maven project.
-func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
 	_ = ctx
 
 	workingDir := d.WorkingDir
@@ -67,37 +67,37 @@ func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (b
 }
 
 // Descriptor describes the Maven graph detector.
-func (d Detector) Descriptor() model.DetectorDescriptor {
-	return model.DetectorDescriptor{
+func (d Detector) Descriptor() sdk.DetectorDescriptor {
+	return sdk.DetectorDescriptor{
 		Name:                detectors.NameMaven,
 		Enabled:             true,
-		Origin:              model.CoreOrigin,
-		Technique:           model.BuildToolTechnique,
-		SupportedEcosystems: []model.Ecosystem{model.EcosystemMaven},
-		SupportedManagers:   []model.PackageManager{model.PackageManagerMaven},
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
+		Origin:              sdk.CoreOrigin,
+		Technique:           sdk.BuildToolTechnique,
+		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemMaven},
+		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerMaven},
+		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "component-targeting", "wrapper-detection"},
 	}
 }
 
 // ResolveGraph resolves a Maven dependency graph for the scan engine.
-func (d Detector) ResolveGraph(_ context.Context, req model.DetectionRequest) (model.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	depsGraph, err := d.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose)
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
 
-	return model.DetectionResult{
-		Graphs: model.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, evidencePatterns)),
+	return sdk.DetectionResult{
+		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, evidencePatterns)),
 	}, nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d Detector) FallbackDetector() model.Detector {
+func (d Detector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
-func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool) (*model.Graph, error) {
+func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool) (*sdk.Graph, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -191,12 +191,12 @@ func wrapperCandidates() []string {
 	return []string{"mvnw"}
 }
 
-func depGraphFromMavenTGF(raw []byte) (*model.Graph, error) {
+func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
 	scanner := bufio.NewScanner(strings.NewReader(string(raw)))
 	inEdges := false
 
-	tgfPackages := make(map[string]*model.Package)
-	tgfGraph := model.New()
+	tgfPackages := make(map[string]*sdk.Package)
+	tgfGraph := sdk.New()
 	type edge struct {
 		from string
 		to   string
@@ -223,8 +223,8 @@ func depGraphFromMavenTGF(raw []byte) (*model.Graph, error) {
 			}
 			tgfPackages[id] = node
 			if existing, ok := tgfGraph.Package(node.ID); ok {
-				model.MergePackageScope(existing, model.Scope(node.Scope))
-			} else if err := tgfGraph.AddPackage(node); err != nil && !errors.Is(err, model.ErrPackageAlreadyExist) {
+				sdk.MergePackageScope(existing, sdk.Scope(node.Scope))
+			} else if err := tgfGraph.AddPackage(node); err != nil && !errors.Is(err, sdk.ErrPackageAlreadyExist) {
 				return nil, fmt.Errorf("add maven package %q: %w", node.ID, err)
 			}
 			continue
@@ -309,7 +309,7 @@ func looksLikeMavenCoords(coords string) bool {
 	return strings.Count(coords, ":") >= 3
 }
 
-func parseTGFNodeLine(line string) (string, *model.Package, error) {
+func parseTGFNodeLine(line string) (string, *sdk.Package, error) {
 	parts := strings.Fields(line)
 	if len(parts) < 2 {
 		return "", nil, fmt.Errorf("parse maven tgf package %q: expected identifier and coordinates", line)
@@ -322,7 +322,7 @@ func parseTGFNodeLine(line string) (string, *model.Package, error) {
 	return parts[0], node, nil
 }
 
-func nodeFromMavenCoords(coords string) (*model.Package, error) {
+func nodeFromMavenCoords(coords string) (*sdk.Package, error) {
 	parts := strings.Split(coords, ":")
 	if len(parts) < 4 {
 		return nil, fmt.Errorf("parse maven coordinates %q: expected at least 4 segments", coords)
@@ -331,7 +331,7 @@ func nodeFromMavenCoords(coords string) (*model.Package, error) {
 	groupID := parts[0]
 	artifactID := parts[1]
 	versionIndex := len(parts) - 1
-	scope := model.ScopeUnknown
+	scope := sdk.ScopeUnknown
 	if _, ok := mavenScopes[parts[versionIndex]]; ok {
 		scope = scopeFromMavenScope(parts[versionIndex])
 		versionIndex--
@@ -348,29 +348,29 @@ func nodeFromMavenCoords(coords string) (*model.Package, error) {
 		}
 	}
 
-	return model.NewPackage(model.Package{
-		Ecosystem:   string(model.EcosystemMaven),
+	return sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemMaven),
 		Name:        name,
 		Version:     parts[versionIndex],
 		Scope:       string(scope),
 		Org:         groupID,
-		BuildSystem: model.PackageManagerMaven.Name(),
+		BuildSystem: sdk.PackageManagerMaven.Name(),
 	}), nil
 }
 
-func scopeFromMavenScope(value string) model.Scope {
+func scopeFromMavenScope(value string) sdk.Scope {
 	switch strings.ToLower(strings.TrimSpace(value)) {
 	case "test":
-		return model.ScopeDevelopment
+		return sdk.ScopeDevelopment
 	case "compile", "provided", "runtime", "system", "import":
-		return model.ScopeRuntime
+		return sdk.ScopeRuntime
 	default:
-		return model.ScopeUnknown
+		return sdk.ScopeUnknown
 	}
 }
 
 // Install prepares Maven dependencies before graph resolution.
-func (d Detector) Install(_ context.Context, req model.DetectionRequest) error {
+func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()

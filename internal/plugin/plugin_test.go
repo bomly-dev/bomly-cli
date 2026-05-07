@@ -13,7 +13,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
 	"github.com/bomly-dev/bomly-cli/internal/testutil"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -61,7 +61,7 @@ func TestInstallDevBinaryVerifyEnableDisableAndUninstall(t *testing.T) {
 	if len(installed) != 1 || installed[0].Enabled {
 		t.Fatalf("expected plugin to be disabled")
 	}
-	if got := installed[0].DetectorDescriptor.SupportedManagers; len(got) != 1 || got[0] != model.PackageManagerGoMod {
+	if got := installed[0].DetectorDescriptor.SupportedManagers; len(got) != 1 || got[0] != sdk.PackageManagerGoMod {
 		t.Fatalf("expected loaded manifest to derive supported manager gomod, got %#v", got)
 	}
 
@@ -212,14 +212,14 @@ func TestPrepareLoadsAndRunsExternalDetector(t *testing.T) {
 		t.Fatalf("RegisterRuntimePlugins() error = %v", err)
 	}
 	filtered := reg.Filter(engine.RegistryFilter{
-		DetectorFilter:  model.DetectorFilter{Include: []string{"acme.detector.gomod"}},
-		EcosystemFilter: model.EcosystemFilter{Include: []model.Ecosystem{model.EcosystemGo}},
+		DetectorFilter:  sdk.DetectorFilter{Include: []string{"acme.detector.gomod"}},
+		EcosystemFilter: sdk.EcosystemFilter{Include: []sdk.Ecosystem{sdk.EcosystemGo}},
 	})
 	subprojects, err := opts.PlanSubprojects(filtered, opts.Request{
 		Registry:        reg,
-		ExecutionTarget: model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: projectDir},
-		DetectorFilter:  model.DetectorFilter{Include: []string{"acme.detector.gomod"}},
-		EcosystemFilter: model.EcosystemFilter{Include: []model.Ecosystem{model.EcosystemGo}},
+		ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectDir},
+		DetectorFilter:  sdk.DetectorFilter{Include: []string{"acme.detector.gomod"}},
+		EcosystemFilter: sdk.EcosystemFilter{Include: []sdk.Ecosystem{sdk.EcosystemGo}},
 	})
 	if err != nil {
 		t.Fatalf("PlanSubprojects() error = %v", err)
@@ -231,24 +231,24 @@ func TestPrepareLoadsAndRunsExternalDetector(t *testing.T) {
 		t.Fatalf("expected external detector to be planned, got %q", subprojects[0].PrimaryDetector)
 	}
 
-	detectors := filtered.PlannedDetectors(model.DetectionRequest{
+	detectors := filtered.PlannedDetectors(sdk.DetectionRequest{
 		ProjectPath:     projectDir,
-		ExecutionTarget: model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: projectDir},
+		ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectDir},
 		Subproject:      subprojects[0],
-		Ecosystem:       model.EcosystemGo,
-		PackageManager:  model.PackageManagerGoMod,
-		Mode:            model.TargetModeFullGraph,
+		Ecosystem:       sdk.EcosystemGo,
+		PackageManager:  sdk.PackageManagerGoMod,
+		Mode:            sdk.TargetModeFullGraph,
 	}, []string{"acme.detector.gomod"})
 	if len(detectors) != 1 {
 		t.Fatalf("expected one planned detector, got %d", len(detectors))
 	}
-	result, err := detectors[0].ResolveGraph(context.Background(), model.DetectionRequest{
+	result, err := detectors[0].ResolveGraph(context.Background(), sdk.DetectionRequest{
 		ProjectPath:     projectDir,
-		ExecutionTarget: model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: projectDir},
+		ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectDir},
 		Subproject:      subprojects[0],
-		Ecosystem:       model.EcosystemGo,
-		PackageManager:  model.PackageManagerGoMod,
-		Mode:            model.TargetModeFullGraph,
+		Ecosystem:       sdk.EcosystemGo,
+		PackageManager:  sdk.PackageManagerGoMod,
+		Mode:            sdk.TargetModeFullGraph,
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)

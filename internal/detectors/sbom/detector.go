@@ -8,7 +8,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -20,8 +20,8 @@ type Detector struct {
 var evidencePatterns = []string{"*.syft.json", "*.bom.*", "*.bom", "bom", "*.sbom.*", "*.sbom", "sbom", "*.cdx.*", "*.cdx", "*.spdx.*", "*.spdx"}
 
 // PackageManagerSupport returns SBOM package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []model.PackageManagerSupport {
-	return []model.PackageManagerSupport{model.Support(model.PackageManagerSBOM, evidencePatterns...)}
+func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerSBOM, evidencePatterns...)}
 }
 
 // Ready reports whether the detector can run in the current environment.
@@ -30,10 +30,10 @@ func (d Detector) Ready() bool {
 }
 
 // Applicable reports whether the request targets an explicit SBOM file.
-func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
 	_ = ctx
 
-	if req.PackageManager != model.PackageManagerSBOM || req.ExecutionTarget.Kind != model.ExecutionTargetFilesystem {
+	if req.PackageManager != sdk.PackageManagerSBOM || req.ExecutionTarget.Kind != sdk.ExecutionTargetFilesystem {
 		return false, nil
 	}
 
@@ -45,21 +45,21 @@ func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (b
 }
 
 // Descriptor describes the first-party SBOM detector.
-func (d Detector) Descriptor() model.DetectorDescriptor {
-	return model.DetectorDescriptor{
+func (d Detector) Descriptor() sdk.DetectorDescriptor {
+	return sdk.DetectorDescriptor{
 		Name:                detectors.NameSBOM,
 		Enabled:             true,
-		Origin:              model.CoreOrigin,
-		Technique:           model.SBOMTechnique,
-		SupportedEcosystems: []model.Ecosystem{model.EcosystemSBOM},
-		SupportedManagers:   []model.PackageManager{model.PackageManagerSBOM},
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
+		Origin:              sdk.CoreOrigin,
+		Technique:           sdk.SBOMTechnique,
+		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemSBOM},
+		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerSBOM},
+		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "sbom-import"},
 	}
 }
 
 // ResolveGraph resolves a dependency graph from a supported SBOM file.
-func (d Detector) ResolveGraph(_ context.Context, req model.DetectionRequest) (model.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -71,39 +71,39 @@ func (d Detector) ResolveGraph(_ context.Context, req model.DetectionRequest) (m
 	}
 	data, err := os.ReadFile(sbomPath)
 	if err != nil {
-		return model.DetectionResult{}, fmt.Errorf("read sbom file %q: %w", sbomPath, err)
+		return sdk.DetectionResult{}, fmt.Errorf("read sbom file %q: %w", sbomPath, err)
 	}
 
 	doc, target, err := sbom.UnmarshalAutoJSON(data)
 	if err != nil {
 		switch {
 		case err == sbom.ErrMalformedJSON:
-			return model.DetectionResult{}, fmt.Errorf("parse sbom file %q: %w", sbomPath, err)
+			return sdk.DetectionResult{}, fmt.Errorf("parse sbom file %q: %w", sbomPath, err)
 		case err == sbom.ErrUnsupportedFormat:
-			return model.DetectionResult{}, fmt.Errorf("detect sbom format for %q: %w", sbomPath, err)
+			return sdk.DetectionResult{}, fmt.Errorf("detect sbom format for %q: %w", sbomPath, err)
 		default:
-			return model.DetectionResult{}, fmt.Errorf("decode sbom file %q: %w", sbomPath, err)
+			return sdk.DetectionResult{}, fmt.Errorf("decode sbom file %q: %w", sbomPath, err)
 		}
 	}
 
-	var graphs *model.GraphContainer
+	var graphs *sdk.GraphContainer
 	switch target {
 	case sbom.TargetSyftJSON:
 		var syftErr error
 		graphs, syftErr = decodeSyftJSONGraphs(data, sbomPath)
 		if syftErr != nil {
-			return model.DetectionResult{}, syftErr
+			return sdk.DetectionResult{}, syftErr
 		}
 	default:
 		depsGraph, err := sbom.ToGraph(doc)
 		if err != nil {
-			return model.DetectionResult{}, fmt.Errorf("convert sbom %q to graph: %w", sbomPath, err)
+			return sdk.DetectionResult{}, fmt.Errorf("convert sbom %q to graph: %w", sbomPath, err)
 		}
-		graphs = model.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, evidencePatterns))
+		graphs = sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, evidencePatterns))
 	}
 
 	logger.Debug("resolved explicit sbom file", zap.String("path", sbomPath), zap.String("format", string(target)))
-	return model.DetectionResult{
+	return sdk.DetectionResult{
 		SubprojectInfo: req.Subproject,
 		DetectorName:   d.Descriptor().Name,
 		Origin:         d.Descriptor().Origin,
@@ -112,11 +112,11 @@ func (d Detector) ResolveGraph(_ context.Context, req model.DetectionRequest) (m
 	}, nil
 }
 
-func normalizeSBOMManifestMetadata(container *model.GraphContainer, req model.DetectionRequest) *model.GraphContainer {
+func normalizeSBOMManifestMetadata(container *sdk.GraphContainer, req sdk.DetectionRequest) *sdk.GraphContainer {
 	if container == nil || len(container.Entries) == 0 {
 		return container
 	}
-	normalized := &model.GraphContainer{Entries: make([]model.GraphEntry, 0, len(container.Entries))}
+	normalized := &sdk.GraphContainer{Entries: make([]sdk.GraphEntry, 0, len(container.Entries))}
 	defaultManifest := detectors.InferManifestMetadata(req, evidencePatterns)
 	for _, entry := range container.Entries {
 		manifest := entry.Manifest
@@ -126,7 +126,7 @@ func normalizeSBOMManifestMetadata(container *model.GraphContainer, req model.De
 		if manifest.Kind == "" {
 			manifest.Kind = defaultManifest.Kind
 		}
-		normalized.Entries = append(normalized.Entries, model.GraphEntry{
+		normalized.Entries = append(normalized.Entries, sdk.GraphEntry{
 			Graph:    entry.Graph,
 			Manifest: manifest,
 		})
@@ -134,17 +134,17 @@ func normalizeSBOMManifestMetadata(container *model.GraphContainer, req model.De
 	return normalized
 }
 
-func normalizeSBOMGraphContainer(container *model.GraphContainer) *model.GraphContainer {
+func normalizeSBOMGraphContainer(container *sdk.GraphContainer) *sdk.GraphContainer {
 	if container == nil {
 		return nil
 	}
-	normalized := &model.GraphContainer{Entries: make([]model.GraphEntry, 0, len(container.Entries))}
+	normalized := &sdk.GraphContainer{Entries: make([]sdk.GraphEntry, 0, len(container.Entries))}
 	for _, entry := range container.Entries {
 		normalizedGraph, err := normalizeSBOMGraphIdentity(entry.Graph)
 		if err != nil {
 			normalizedGraph = entry.Graph
 		}
-		normalized.Entries = append(normalized.Entries, model.GraphEntry{
+		normalized.Entries = append(normalized.Entries, sdk.GraphEntry{
 			Graph:    normalizedGraph,
 			Manifest: entry.Manifest,
 		})
@@ -152,12 +152,12 @@ func normalizeSBOMGraphContainer(container *model.GraphContainer) *model.GraphCo
 	return normalized
 }
 
-func normalizeSBOMGraphIdentity(src *model.Graph) (*model.Graph, error) {
+func normalizeSBOMGraphIdentity(src *sdk.Graph) (*sdk.Graph, error) {
 	if src == nil {
 		return nil, nil
 	}
 
-	normalized := model.NewWithCapacity(src.Size())
+	normalized := sdk.NewWithCapacity(src.Size())
 	idMap := make(map[string]string, src.Size())
 	for _, pkg := range src.Packages() {
 		if pkg == nil {

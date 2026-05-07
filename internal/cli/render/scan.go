@@ -7,12 +7,12 @@ import (
 	"text/tabwriter"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // ScanGraphDisplayName returns a label for the scan target derived from g's
 // single root, or fallback when g has zero or multiple roots.
-func ScanGraphDisplayName(g *model.Graph, fallback string) string {
+func ScanGraphDisplayName(g *sdk.Graph, fallback string) string {
 	if g == nil {
 		return fallback
 	}
@@ -30,7 +30,7 @@ func ScanGraphDisplayName(g *model.Graph, fallback string) string {
 }
 
 // Scan returns the human-readable text report for a scan command.
-func Scan(manifests []output.ScanManifest, g *model.Graph, findings []model.Finding, enrichEnabled, auditEnabled bool) string {
+func Scan(manifests []output.ScanManifest, g *sdk.Graph, findings []sdk.Finding, enrichEnabled, auditEnabled bool) string {
 	var b strings.Builder
 
 	if g == nil {
@@ -62,7 +62,7 @@ func Scan(manifests []output.ScanManifest, g *model.Graph, findings []model.Find
 			b.WriteString("Policy evaluation not enabled. Run with --audit to create findings.\n")
 		}
 	} else {
-		sorted := make([]model.Finding, len(findings))
+		sorted := make([]sdk.Finding, len(findings))
 		copy(sorted, findings)
 		sort.Slice(sorted, func(i, j int) bool {
 			si := severityRankTable(sorted[i].Severity)
@@ -127,7 +127,7 @@ func severityRankTable(s string) int {
 	}
 }
 
-func renderUniqueLicensesTable(g *model.Graph) string {
+func renderUniqueLicensesTable(g *sdk.Graph) string {
 	if g == nil || g.Size() == 0 {
 		return "(no packages)\n"
 	}
@@ -230,7 +230,7 @@ func formatAuditSummary(summary *output.AuditSummary, auditEnabled bool) string 
 	return fmt.Sprintf("%d total (%s)", summary.Total, strings.Join(parts, ", "))
 }
 
-func formatEnrichmentSummary(g *model.Graph, enrichEnabled bool) string {
+func formatEnrichmentSummary(g *sdk.Graph, enrichEnabled bool) string {
 	if g == nil || g.Size() == 0 {
 		if !enrichEnabled {
 			return "disabled"
@@ -289,7 +289,7 @@ func renderScanManifestTable(manifests []output.ScanManifest) string {
 	return strings.TrimRight(b.String(), "\n") + "\n"
 }
 
-func scanRelationshipCounts(g *model.Graph) (roots, direct, transitive int) {
+func scanRelationshipCounts(g *sdk.Graph) (roots, direct, transitive int) {
 	if g == nil {
 		return 0, 0, 0
 	}
@@ -329,7 +329,7 @@ func scanRelationshipCounts(g *model.Graph) (roots, direct, transitive int) {
 	return roots, direct, transitive
 }
 
-func scanScopeCounts(g *model.Graph) (runtimeCount, developmentCount, unknownCount int) {
+func scanScopeCounts(g *sdk.Graph) (runtimeCount, developmentCount, unknownCount int) {
 	if g == nil {
 		return 0, 0, 0
 	}
@@ -338,9 +338,9 @@ func scanScopeCounts(g *model.Graph) (runtimeCount, developmentCount, unknownCou
 			continue
 		}
 		switch strings.ToLower(strings.TrimSpace(pkg.Scope)) {
-		case string(model.ScopeRuntime):
+		case string(sdk.ScopeRuntime):
 			runtimeCount++
-		case string(model.ScopeDevelopment):
+		case string(sdk.ScopeDevelopment):
 			developmentCount++
 		default:
 			unknownCount++
@@ -349,7 +349,7 @@ func scanScopeCounts(g *model.Graph) (runtimeCount, developmentCount, unknownCou
 	return runtimeCount, developmentCount, unknownCount
 }
 
-func scanUniqueLicenseCount(g *model.Graph) int {
+func scanUniqueLicenseCount(g *sdk.Graph) int {
 	if g == nil {
 		return 0
 	}
@@ -362,7 +362,7 @@ func scanUniqueLicenseCount(g *model.Graph) int {
 	return len(licenseSet)
 }
 
-func renderScanGraphTable(g *model.Graph) string {
+func renderScanGraphTable(g *sdk.Graph) string {
 	if g == nil || g.Size() == 0 {
 		return "(empty graph)"
 	}
@@ -434,7 +434,7 @@ func renderScanGraphTable(g *model.Graph) string {
 	return strings.TrimRight(b.String(), "\n")
 }
 
-func packageLicenseIdentifiers(pkg *model.Package) string {
+func packageLicenseIdentifiers(pkg *sdk.Package) string {
 	if pkg == nil || len(pkg.Licenses) == 0 {
 		return ""
 	}
@@ -451,7 +451,7 @@ func packageLicenseIdentifiers(pkg *model.Package) string {
 	return strings.Join(values, ", ")
 }
 
-func graphLicenseIdentifier(license model.PackageLicense) string {
+func graphLicenseIdentifier(license sdk.PackageLicense) string {
 	switch {
 	case strings.TrimSpace(license.SPDXExpression) != "":
 		return strings.TrimSpace(license.SPDXExpression)

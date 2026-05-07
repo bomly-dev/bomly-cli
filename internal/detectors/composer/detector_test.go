@@ -4,16 +4,16 @@ import (
 	"context"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	detector := Detector{WorkingDir: "testdata/project"}
-	result, err := detector.ResolveGraph(context.Background(), model.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
 		ProjectPath:     "testdata/project",
-		PackageManager:  model.PackageManagerComposer,
-		Ecosystem:       model.EcosystemPHP,
-		ExecutionTarget: model.ExecutionTarget{Location: "testdata/project"},
+		PackageManager:  sdk.PackageManagerComposer,
+		Ecosystem:       sdk.EcosystemPHP,
+		ExecutionTarget: sdk.ExecutionTarget{Location: "testdata/project"},
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -26,14 +26,14 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if !ok {
 		t.Fatal("expected monolog package")
 	}
-	if runtimePkg.Scope != string(model.ScopeRuntime) {
+	if runtimePkg.Scope != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope, got %q", runtimePkg.Scope)
 	}
 	devPkg, ok := g.Package("phpunit:phpunit@11.4.3")
 	if !ok {
 		t.Fatal("expected phpunit package")
 	}
-	if devPkg.Scope != string(model.ScopeDevelopment) {
+	if devPkg.Scope != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected development scope, got %q", devPkg.Scope)
 	}
 }
@@ -93,7 +93,7 @@ func TestDepGraphFromLock(t *testing.T) {
 	if !ok {
 		t.Fatal("expected shared package to exist")
 	}
-	if got := shared.Scope; got != string(model.ScopeRuntime) {
+	if got := shared.Scope; got != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected shared scope runtime, got %q", got)
 	}
 
@@ -101,7 +101,7 @@ func TestDepGraphFromLock(t *testing.T) {
 	if !ok {
 		t.Fatal("expected dev package to exist")
 	}
-	if got := devTool.Scope; got != string(model.ScopeDevelopment) {
+	if got := devTool.Scope; got != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected dev package scope development, got %q", got)
 	}
 }

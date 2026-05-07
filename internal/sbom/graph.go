@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"strings"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // ToGraph converts a neutral SBOM document back into a dependency graph.
-func ToGraph(doc *Document) (*model.Graph, error) {
+func ToGraph(doc *Document) (*sdk.Graph, error) {
 	if doc == nil {
 		return nil, ErrNilDocument
 	}
 
-	depsGraph := model.New()
+	depsGraph := sdk.New()
 	idMap := make(map[string]string, len(doc.Components))
 	for _, component := range doc.Components {
 		ecosystem := strings.TrimSpace(component.Ecosystem)
@@ -24,7 +24,7 @@ func ToGraph(doc *Document) (*model.Graph, error) {
 		}
 		buildSystem := strings.TrimSpace(component.PackageManager)
 		if buildSystem == "" {
-			if manager := packageManagerForPURL(component.PURL, ecosystem, component.PackageManager); manager != model.PackageManagerUnknown {
+			if manager := packageManagerForPURL(component.PURL, ecosystem, component.PackageManager); manager != sdk.PackageManagerUnknown {
 				buildSystem = manager.Name()
 			}
 		}
@@ -32,7 +32,7 @@ func ToGraph(doc *Document) (*model.Graph, error) {
 		if purl := strings.TrimSpace(component.PURL); purl != "" {
 			packageID = purl
 		}
-		pkg := model.NewPackageWithID(packageID, model.Package{
+		pkg := sdk.NewPackageWithID(packageID, sdk.Package{
 			Name:        component.Name,
 			Version:     component.Version,
 			Scope:       component.Scope,
@@ -67,13 +67,13 @@ func ToGraph(doc *Document) (*model.Graph, error) {
 	return depsGraph, nil
 }
 
-func graphLicenses(licenses []License) []model.PackageLicense {
+func graphLicenses(licenses []License) []sdk.PackageLicense {
 	if len(licenses) == 0 {
 		return nil
 	}
-	out := make([]model.PackageLicense, 0, len(licenses))
+	out := make([]sdk.PackageLicense, 0, len(licenses))
 	for _, license := range licenses {
-		out = append(out, model.PackageLicense{
+		out = append(out, sdk.PackageLicense{
 			Value:          license.Value,
 			SPDXExpression: license.SPDXExpression,
 			Type:           license.Type,

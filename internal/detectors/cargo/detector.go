@@ -13,7 +13,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -24,7 +24,7 @@ var cargoExecCommand = system.Command
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   model.Detector
+	Fallback   sdk.Detector
 }
 
 var evidencePatterns = []string{"Cargo.lock", "Cargo.toml"}
@@ -72,8 +72,8 @@ type metadataDepKind struct {
 }
 
 // PackageManagerSupport returns Cargo package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []model.PackageManagerSupport {
-	return []model.PackageManagerSupport{model.Support(model.PackageManagerCargo, evidencePatterns...)}
+func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerCargo, evidencePatterns...)}
 }
 
 // Ready reports whether Cargo is available.
@@ -82,40 +82,40 @@ func (d Detector) Ready() bool {
 }
 
 // Applicable reports whether Cargo manifests are present.
-func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
 	_ = ctx
 	return system.FileExists(filepath.Join(d.workingDir(req.ProjectPath), "Cargo.toml"))
 }
 
 // Descriptor describes the Cargo detector.
-func (d Detector) Descriptor() model.DetectorDescriptor {
-	return model.DetectorDescriptor{
+func (d Detector) Descriptor() sdk.DetectorDescriptor {
+	return sdk.DetectorDescriptor{
 		Name:                detectors.NameCargo,
 		Enabled:             true,
-		Origin:              model.CoreOrigin,
-		Technique:           model.LockfileTechnique,
-		SupportedEcosystems: []model.Ecosystem{model.EcosystemRust},
-		SupportedManagers:   []model.PackageManager{model.PackageManagerCargo},
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
+		Origin:              sdk.CoreOrigin,
+		Technique:           sdk.LockfileTechnique,
+		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemRust},
+		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerCargo},
+		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "component-targeting", "module-graph", "scope-annotation"},
 	}
 }
 
 // ResolveGraph resolves a Cargo dependency graph.
-func (d Detector) ResolveGraph(_ context.Context, req model.DetectionRequest) (model.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
 	}
 	if ok, err := system.FileExists(filepath.Join(d.workingDir(req.ProjectPath), "Cargo.lock")); err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	} else if ok {
 		return d.resolveFromLock(req)
 	}
 
 	cargoPath, err := cargoExecLookPath("cargo")
 	if err != nil {
-		return model.DetectionResult{}, fmt.Errorf("resolve cargo executable: %w", err)
+		return sdk.DetectionResult{}, fmt.Errorf("resolve cargo executable: %w", err)
 	}
 	args := []string{"metadata", "--format-version", "1", "--locked"}
 	cmd := cargoExecCommand(cargoPath, args...)
@@ -130,35 +130,35 @@ func (d Detector) ResolveGraph(_ context.Context, req model.DetectionRequest) (m
 			fields = append(fields, zap.String("stderr", commandStderr.String()))
 		}
 		logger.Debug("cargo detector failure details", fields...)
-		return model.DetectionResult{}, fmt.Errorf("run cargo metadata: %w", err)
+		return sdk.DetectionResult{}, fmt.Errorf("run cargo metadata: %w", err)
 	}
 	g, err := depGraphFromMetadata(raw)
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
-	return model.DetectionResult{Graphs: model.SingleGraphContainer(g, detectors.InferManifestMetadata(req, evidencePatterns))}, nil
+	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, evidencePatterns))}, nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d Detector) FallbackDetector() model.Detector {
+func (d Detector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
-func (d Detector) resolveFromLock(req model.DetectionRequest) (model.DetectionResult, error) {
+func (d Detector) resolveFromLock(req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	workingDir := d.workingDir(req.ProjectPath)
 	lockRaw, err := os.ReadFile(filepath.Join(workingDir, "Cargo.lock"))
 	if err != nil {
-		return model.DetectionResult{}, fmt.Errorf("read Cargo.lock: %w", err)
+		return sdk.DetectionResult{}, fmt.Errorf("read Cargo.lock: %w", err)
 	}
 	manifestRaw, err := os.ReadFile(filepath.Join(workingDir, "Cargo.toml"))
 	if err != nil {
-		return model.DetectionResult{}, fmt.Errorf("read Cargo.toml: %w", err)
+		return sdk.DetectionResult{}, fmt.Errorf("read Cargo.toml: %w", err)
 	}
 	g, err := depGraphFromLock(lockRaw, manifestRaw)
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
-	return model.DetectionResult{Graphs: model.SingleGraphContainer(g, detectors.InferManifestMetadata(req, evidencePatterns))}, nil
+	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, evidencePatterns))}, nil
 }
 
 func (d Detector) workingDir(projectPath string) string {
@@ -168,7 +168,7 @@ func (d Detector) workingDir(projectPath string) string {
 	return projectPath
 }
 
-func depGraphFromMetadata(raw []byte) (*model.Graph, error) {
+func depGraphFromMetadata(raw []byte) (*sdk.Graph, error) {
 	var out metadataOutput
 	dec := json.NewDecoder(bytes.NewReader(raw))
 	if err := dec.Decode(&out); err != nil {
@@ -189,8 +189,8 @@ func depGraphFromMetadata(raw []byte) (*model.Graph, error) {
 		workspace[id] = struct{}{}
 	}
 
-	g := model.New()
-	var root *model.Package
+	g := sdk.New()
+	var root *sdk.Package
 	if len(workspace) != 1 {
 		root = rootNode()
 		if err := g.AddPackage(root); err != nil {
@@ -231,47 +231,47 @@ func depGraphFromMetadata(raw []byte) (*model.Graph, error) {
 				return nil, fmt.Errorf("add Cargo dependency %q -> %q: %w", parent.ID, child.ID, err)
 			}
 			if existing, ok := g.Package(child.ID); ok {
-				model.MergePackageScope(existing, scopeForDepKinds(dep.DepKinds))
+				sdk.MergePackageScope(existing, scopeForDepKinds(dep.DepKinds))
 			}
 		}
 	}
 	return g, nil
 }
 
-func rootNode() *model.Package {
-	return model.NewPackage(model.Package{
-		Ecosystem:   string(model.EcosystemRust),
+func rootNode() *sdk.Package {
+	return sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemRust),
 		Name:        "root",
-		BuildSystem: model.PackageManagerCargo.Name(),
+		BuildSystem: sdk.PackageManagerCargo.Name(),
 		Type:        "application",
 		Language:    "rust",
 	})
 }
 
-func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}) *model.Package {
+func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}) *sdk.Package {
 	pkgType := "crate"
 	if _, ok := workspace[id]; ok {
 		pkgType = "application"
 	}
-	return model.NewPackage(model.Package{
-		Ecosystem:   string(model.EcosystemRust),
+	return sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemRust),
 		Name:        pkg.Name,
 		Version:     pkg.Version,
-		BuildSystem: model.PackageManagerCargo.Name(),
+		BuildSystem: sdk.PackageManagerCargo.Name(),
 		Type:        pkgType,
 		Language:    "rust",
-		PURL:        model.BuildPackageURL("cargo", "", pkg.Name, pkg.Version),
+		PURL:        sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version),
 		ResolvedURL: pkg.Source,
 	})
 }
 
-func scopeForDepKinds(kinds []metadataDepKind) model.Scope {
+func scopeForDepKinds(kinds []metadataDepKind) sdk.Scope {
 	for _, kind := range kinds {
 		if strings.EqualFold(kind.Kind, "dev") {
-			return model.ScopeDevelopment
+			return sdk.ScopeDevelopment
 		}
 	}
-	return model.ScopeRuntime
+	return sdk.ScopeRuntime
 }
 
 func sortedWorkspaceMembers(workspace map[string]struct{}) []string {
@@ -283,7 +283,7 @@ func sortedWorkspaceMembers(workspace map[string]struct{}) []string {
 	return values
 }
 
-func addNodeIfMissing(g *model.Graph, node *model.Package) error {
+func addNodeIfMissing(g *sdk.Graph, node *sdk.Package) error {
 	if _, ok := g.Package(node.ID); ok {
 		return nil
 	}
@@ -306,7 +306,7 @@ type cargoManifest struct {
 	DevDependencies []string
 }
 
-func depGraphFromLock(lockRaw, manifestRaw []byte) (*model.Graph, error) {
+func depGraphFromLock(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 	packages := parseCargoLockPackages(string(lockRaw))
 	if len(packages) == 0 {
 		return nil, fmt.Errorf("Cargo.lock does not contain any packages")
@@ -315,15 +315,15 @@ func depGraphFromLock(lockRaw, manifestRaw []byte) (*model.Graph, error) {
 	if manifest.Name == "" {
 		return nil, fmt.Errorf("Cargo.toml does not contain a package name")
 	}
-	g := model.New()
-	root := model.NewPackage(model.Package{
-		Ecosystem:   string(model.EcosystemRust),
+	g := sdk.New()
+	root := sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemRust),
 		Name:        manifest.Name,
 		Version:     manifest.Version,
-		BuildSystem: model.PackageManagerCargo.Name(),
+		BuildSystem: sdk.PackageManagerCargo.Name(),
 		Type:        "application",
 		Language:    "rust",
-		PURL:        model.BuildPackageURL("cargo", "", manifest.Name, manifest.Version),
+		PURL:        sdk.BuildPackageURL("cargo", "", manifest.Name, manifest.Version),
 	})
 	if err := g.AddPackage(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
@@ -362,7 +362,7 @@ func depGraphFromLock(lockRaw, manifestRaw []byte) (*model.Graph, error) {
 		}
 		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version}, pkg.Name+"@"+pkg.Version, nil)
 		if existing, ok := g.Package(node.ID); ok {
-			model.MergePackageScope(existing, model.ScopeRuntime)
+			sdk.MergePackageScope(existing, sdk.ScopeRuntime)
 		}
 		if err := g.AddDependency(root.ID, node.ID); err != nil {
 			return nil, fmt.Errorf("add Cargo root dependency %q: %w", node.ID, err)
@@ -375,7 +375,7 @@ func depGraphFromLock(lockRaw, manifestRaw []byte) (*model.Graph, error) {
 		}
 		node := packageNode(metadataPackage{Name: pkg.Name, Version: pkg.Version}, pkg.Name+"@"+pkg.Version, nil)
 		if existing, ok := g.Package(node.ID); ok {
-			model.MergePackageScope(existing, model.ScopeDevelopment)
+			sdk.MergePackageScope(existing, sdk.ScopeDevelopment)
 		}
 		if err := g.AddDependency(root.ID, node.ID); err != nil {
 			return nil, fmt.Errorf("add Cargo dev dependency %q: %w", node.ID, err)
@@ -459,7 +459,7 @@ func trimTomlString(value string) string {
 }
 
 // Install prepares Cargo dependencies before graph resolution.
-func (d Detector) Install(_ context.Context, req model.DetectionRequest) error {
+func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
 	cargoPath, err := cargoExecLookPath("cargo")
 	if err != nil {
 		return fmt.Errorf("resolve cargo executable: %w", err)

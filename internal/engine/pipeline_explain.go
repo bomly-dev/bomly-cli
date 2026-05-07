@@ -7,7 +7,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/engine/consolidation"
 	"github.com/bomly-dev/bomly-cli/internal/engine/explain"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // ExplainRequest defines input for an explain pipeline run.
@@ -18,19 +18,19 @@ type ExplainRequest struct {
 
 // ExplainTarget contains one selected manifest where the queried dependency exists.
 type ExplainTarget struct {
-	Manifest     model.ConsolidatedManifest
-	Dependency   *model.Package
+	Manifest     sdk.ConsolidatedManifest
+	Dependency   *sdk.Package
 	Paths        []explain.Path
-	Findings     []model.Finding
-	FocusedGraph *model.Graph
+	Findings     []sdk.Finding
+	FocusedGraph *sdk.Graph
 }
 
 // ExplainResult contains full and focused explain pipeline output.
 type ExplainResult struct {
 	PipelineResult
 	Targets             []ExplainTarget
-	FocusedConsolidated model.ConsolidatedGraph
-	FocusedGraph        *model.Graph
+	FocusedConsolidated sdk.ConsolidatedGraph
+	FocusedGraph        *sdk.Graph
 }
 
 // RunExplain resolves, enriches, and optionally audits selected manifests for an explain query.
@@ -56,8 +56,8 @@ func (p *Pipeline) RunExplain(ctx context.Context, req ExplainRequest) (ExplainR
 	p.runMatch(ctx, &base, pipeReq)
 
 	result := ExplainResult{PipelineResult: base}
-	focusedResults := make([]model.DetectionResult, 0, len(base.Consolidated.Manifests))
-	allFindings := make([]model.Finding, 0)
+	focusedResults := make([]sdk.DetectionResult, 0, len(base.Consolidated.Manifests))
+	allFindings := make([]sdk.Finding, 0)
 	auditorFindings := make(map[string]int)
 
 	for _, manifest := range base.Consolidated.Manifests {
@@ -70,7 +70,7 @@ func (p *Pipeline) RunExplain(ctx context.Context, req ExplainRequest) (ExplainR
 			return result, fmt.Errorf("explain dependency paths: %w", err)
 		}
 
-		var findings []model.Finding
+		var findings []sdk.Finding
 		if auditEnabled {
 			auditResult, warnings := p.auditComponent(ctx, g, dependency, pipeReq)
 			findings = auditResult.Findings
@@ -94,12 +94,12 @@ func (p *Pipeline) RunExplain(ctx context.Context, req ExplainRequest) (ExplainR
 			Findings:     findings,
 			FocusedGraph: focusedGraph,
 		})
-		focusedResults = append(focusedResults, model.DetectionResult{
+		focusedResults = append(focusedResults, sdk.DetectionResult{
 			SubprojectInfo: manifest.Subproject,
 			DetectorName:   manifest.DetectorName,
 			Origin:         manifest.Origin,
 			Technique:      manifest.Technique,
-			Graphs:         model.SingleGraphContainer(focusedGraph, manifest.Entry.Manifest),
+			Graphs:         sdk.SingleGraphContainer(focusedGraph, manifest.Entry.Manifest),
 		})
 	}
 

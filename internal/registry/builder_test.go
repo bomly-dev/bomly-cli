@@ -3,7 +3,7 @@ package registry
 import (
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -12,10 +12,10 @@ func TestBuildScanRegistryRegistersDetectorForEveryPackageManager(t *testing.T) 
 	builtins.Build()
 
 	for _, packageManager := range SupportedPackageManagers() {
-		detectorChain := builtins.Detectors(model.DetectionRequest{
+		detectorChain := builtins.Detectors(sdk.DetectionRequest{
 			Ecosystem:      packageManager.Ecosystem(),
 			PackageManager: packageManager,
-			Mode:           model.TargetModeFullGraph,
+			Mode:           sdk.TargetModeFullGraph,
 		})
 		if len(detectorChain) == 0 {
 			t.Fatalf("expected detectors for package manager %q", packageManager.Name())
@@ -27,16 +27,16 @@ func TestBuildScanRegistryUsesSyftForUnclaimedManagers(t *testing.T) {
 	builtins := NewRegistry(RegistryConfigs{}, *zap.NewNop())
 	builtins.Build()
 
-	detectorChain := builtins.Detectors(model.DetectionRequest{
-		Ecosystem:      model.PackageManagerTerraform.Ecosystem(),
-		PackageManager: model.PackageManagerTerraform,
-		Mode:           model.TargetModeFullGraph,
+	detectorChain := builtins.Detectors(sdk.DetectionRequest{
+		Ecosystem:      sdk.PackageManagerTerraform.Ecosystem(),
+		PackageManager: sdk.PackageManagerTerraform,
+		Mode:           sdk.TargetModeFullGraph,
 	})
 	if len(detectorChain) != 1 {
-		t.Fatalf("expected a single detector for %q, got %d", model.PackageManagerTerraform.Name(), len(detectorChain))
+		t.Fatalf("expected a single detector for %q, got %d", sdk.PackageManagerTerraform.Name(), len(detectorChain))
 	}
 	if got := detectorChain[0].Descriptor().Name; got != "syft-detector" {
-		t.Fatalf("expected syft detector for %q, got %q", model.PackageManagerTerraform.Name(), got)
+		t.Fatalf("expected syft detector for %q, got %q", sdk.PackageManagerTerraform.Name(), got)
 	}
 }
 
@@ -45,28 +45,28 @@ func TestBuildScanRegistryKeepsNativeDetectorFirstForNativeManagers(t *testing.T
 	builtins.Build()
 
 	testCases := []struct {
-		manager      model.PackageManager
+		manager      sdk.PackageManager
 		detectorName string
 	}{
-		{manager: model.PackageManagerNPM, detectorName: "npm-detector"},
-		{manager: model.PackageManagerComposer, detectorName: "composer-detector"},
-		{manager: model.PackageManagerBundler, detectorName: "bundler-detector"},
-		{manager: model.PackageManagerGitHubActions, detectorName: "github-actions-detector"},
-		{manager: model.PackageManagerNuGet, detectorName: "nuget-detector"},
-		{manager: model.PackageManagerCargo, detectorName: "cargo-detector"},
-		{manager: model.PackageManagerPub, detectorName: "pub-detector"},
-		{manager: model.PackageManagerCocoaPods, detectorName: "cocoapods-detector"},
-		{manager: model.PackageManagerSwiftPM, detectorName: "swiftpm-detector"},
-		{manager: model.PackageManagerMix, detectorName: "mix-detector"},
-		{manager: model.PackageManagerConan, detectorName: "conan-detector"},
-		{manager: model.PackageManagerSBT, detectorName: "sbt-detector"},
+		{manager: sdk.PackageManagerNPM, detectorName: "npm-detector"},
+		{manager: sdk.PackageManagerComposer, detectorName: "composer-detector"},
+		{manager: sdk.PackageManagerBundler, detectorName: "bundler-detector"},
+		{manager: sdk.PackageManagerGitHubActions, detectorName: "github-actions-detector"},
+		{manager: sdk.PackageManagerNuGet, detectorName: "nuget-detector"},
+		{manager: sdk.PackageManagerCargo, detectorName: "cargo-detector"},
+		{manager: sdk.PackageManagerPub, detectorName: "pub-detector"},
+		{manager: sdk.PackageManagerCocoaPods, detectorName: "cocoapods-detector"},
+		{manager: sdk.PackageManagerSwiftPM, detectorName: "swiftpm-detector"},
+		{manager: sdk.PackageManagerMix, detectorName: "mix-detector"},
+		{manager: sdk.PackageManagerConan, detectorName: "conan-detector"},
+		{manager: sdk.PackageManagerSBT, detectorName: "sbt-detector"},
 	}
 
 	for _, tc := range testCases {
-		detectorChain := builtins.Detectors(model.DetectionRequest{
+		detectorChain := builtins.Detectors(sdk.DetectionRequest{
 			Ecosystem:      tc.manager.Ecosystem(),
 			PackageManager: tc.manager,
-			Mode:           model.TargetModeFullGraph,
+			Mode:           sdk.TargetModeFullGraph,
 		})
 		if len(detectorChain) == 0 {
 			t.Fatalf("expected at least one detector for %q", tc.manager.Name())
@@ -85,7 +85,7 @@ func TestBuildScanRegistryRegistersContainerDiscoveryPlanForSyft(t *testing.T) {
 	if !ok {
 		t.Fatal("expected syft discovery plan to be registered")
 	}
-	if len(plan.TargetKinds) != 1 || plan.TargetKinds[0] != model.ExecutionTargetContainerImage {
+	if len(plan.TargetKinds) != 1 || plan.TargetKinds[0] != sdk.ExecutionTargetContainerImage {
 		t.Fatalf("expected syft container discovery plan, got %#v", plan.TargetKinds)
 	}
 }
@@ -94,7 +94,7 @@ func TestBuildScanRegistryRegistersBuiltInMatchers(t *testing.T) {
 	builtins := NewRegistry(RegistryConfigs{}, *zap.NewNop())
 	builtins.Build()
 
-	got := make(map[string]model.DetectorOrigin)
+	got := make(map[string]sdk.DetectorOrigin)
 	for _, descriptor := range builtins.MatcherDescriptors() {
 		got[descriptor.Name] = descriptor.Origin
 	}
@@ -105,7 +105,7 @@ func TestBuildScanRegistryRegistersBuiltInMatchers(t *testing.T) {
 		if !ok {
 			t.Fatalf("expected built-in matcher %q to be registered; got %#v", name, got)
 		}
-		if origin != model.BundledOrigin {
+		if origin != sdk.BundledOrigin {
 			t.Fatalf("expected matcher %q to be bundled origin, got %q", name, origin)
 		}
 	}
@@ -116,7 +116,7 @@ func TestBuildScanRegistryRegistersBuiltInMatchers(t *testing.T) {
 		if !ok {
 			t.Fatalf("expected built-in matcher %q to be registered; got %#v", name, got)
 		}
-		if origin != model.CoreOrigin {
+		if origin != sdk.CoreOrigin {
 			t.Fatalf("expected matcher %q to be core origin, got %q", name, origin)
 		}
 	}

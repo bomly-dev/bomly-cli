@@ -11,7 +11,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -19,7 +19,7 @@ import (
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   model.Detector
+	Fallback   sdk.Detector
 }
 
 var evidencePatterns = []string{"mix.lock", "mix.exs"}
@@ -28,7 +28,7 @@ type mixPackage struct {
 	Name    string
 	Version string
 	Source  string
-	Scope   model.Scope
+	Scope   sdk.Scope
 	Direct  bool
 }
 
@@ -39,8 +39,8 @@ var (
 )
 
 // PackageManagerSupport returns Mix package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []model.PackageManagerSupport {
-	return []model.PackageManagerSupport{model.Support(model.PackageManagerMix, evidencePatterns...)}
+func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerMix, evidencePatterns...)}
 }
 
 // Ready reports whether committed Mix files can be parsed.
@@ -49,7 +49,7 @@ func (d Detector) Ready() bool {
 }
 
 // Applicable reports whether Mix files are present.
-func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
 	_ = ctx
 	workingDir := d.workingDir(req.ProjectPath)
 	for _, name := range []string{"mix.lock", "mix.exs"} {
@@ -61,39 +61,39 @@ func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (b
 }
 
 // Descriptor describes the Mix detector.
-func (d Detector) Descriptor() model.DetectorDescriptor {
-	return model.DetectorDescriptor{
+func (d Detector) Descriptor() sdk.DetectorDescriptor {
+	return sdk.DetectorDescriptor{
 		Name:                detectors.NameMix,
 		Enabled:             true,
-		Origin:              model.CoreOrigin,
-		Technique:           model.LockfileTechnique,
-		SupportedEcosystems: []model.Ecosystem{model.EcosystemElixir},
-		SupportedManagers:   []model.PackageManager{model.PackageManagerMix},
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
+		Origin:              sdk.CoreOrigin,
+		Technique:           sdk.LockfileTechnique,
+		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemElixir},
+		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerMix},
+		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
 	}
 }
 
 // ResolveGraph resolves a Mix dependency graph.
-func (d Detector) ResolveGraph(_ context.Context, req model.DetectionRequest) (model.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	workingDir := d.workingDir(req.ProjectPath)
 	lockRaw, err := readOptional(filepath.Join(workingDir, "mix.lock"))
 	if err != nil {
-		return model.DetectionResult{}, fmt.Errorf("read mix.lock: %w", err)
+		return sdk.DetectionResult{}, fmt.Errorf("read mix.lock: %w", err)
 	}
 	manifestRaw, err := readOptional(filepath.Join(workingDir, "mix.exs"))
 	if err != nil {
-		return model.DetectionResult{}, fmt.Errorf("read mix.exs: %w", err)
+		return sdk.DetectionResult{}, fmt.Errorf("read mix.exs: %w", err)
 	}
 	g, err := depGraphFromMix(lockRaw, manifestRaw)
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
-	return model.DetectionResult{Graphs: model.SingleGraphContainer(g, detectors.InferManifestMetadata(req, evidencePatterns))}, nil
+	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, evidencePatterns))}, nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d Detector) FallbackDetector() model.Detector {
+func (d Detector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
@@ -112,7 +112,7 @@ func readOptional(path string) ([]byte, error) {
 	return os.ReadFile(path)
 }
 
-func depGraphFromMix(lockRaw, manifestRaw []byte) (*model.Graph, error) {
+func depGraphFromMix(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 	packages := parseMixLock(string(lockRaw))
 	for name, dep := range parseMixManifest(string(manifestRaw)) {
 		pkg := packages[name]
@@ -127,7 +127,7 @@ func depGraphFromMix(lockRaw, manifestRaw []byte) (*model.Graph, error) {
 		return nil, fmt.Errorf("Mix files do not contain any dependencies")
 	}
 
-	g := model.New()
+	g := sdk.New()
 	root := rootNode()
 	if err := g.AddPackage(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
@@ -140,7 +140,7 @@ func depGraphFromMix(lockRaw, manifestRaw []byte) (*model.Graph, error) {
 		}
 		if pkg.Scope != "" {
 			if existing, ok := g.Package(node.ID); ok {
-				model.MergePackageScope(existing, pkg.Scope)
+				sdk.MergePackageScope(existing, pkg.Scope)
 			}
 		}
 		if pkg.Direct {
@@ -179,14 +179,14 @@ func parseMixManifest(raw string) map[string]mixPackage {
 		if name == "" {
 			continue
 		}
-		scope := model.ScopeRuntime
+		scope := sdk.ScopeRuntime
 		onlyValues := match[0] + " " + match[3] + " " + match[4]
 		if strings.Contains(onlyValues, "test") || strings.Contains(onlyValues, "dev") {
-			scope = model.ScopeDevelopment
+			scope = sdk.ScopeDevelopment
 		}
 		for _, only := range mixOnlyAtomPattern.FindAllStringSubmatch(onlyValues, -1) {
 			if only[1] == "prod" {
-				scope = model.ScopeRuntime
+				scope = sdk.ScopeRuntime
 			}
 		}
 		packages[name] = mixPackage{Name: name, Direct: true, Scope: scope}
@@ -194,30 +194,30 @@ func parseMixManifest(raw string) map[string]mixPackage {
 	return packages
 }
 
-func rootNode() *model.Package {
-	return model.NewPackage(model.Package{
-		Ecosystem:   string(model.EcosystemElixir),
+func rootNode() *sdk.Package {
+	return sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemElixir),
 		Name:        "root",
-		BuildSystem: model.PackageManagerMix.Name(),
+		BuildSystem: sdk.PackageManagerMix.Name(),
 		Type:        "application",
 		Language:    "elixir",
 	})
 }
 
-func packageNode(pkg mixPackage) *model.Package {
+func packageNode(pkg mixPackage) *sdk.Package {
 	version := strings.TrimSpace(pkg.Version)
 	source := strings.TrimSpace(pkg.Source)
 	if source == "" {
 		source = "hex"
 	}
-	return model.NewPackage(model.Package{
-		Ecosystem:   string(model.EcosystemElixir),
+	return sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemElixir),
 		Name:        strings.TrimSpace(pkg.Name),
 		Version:     version,
-		BuildSystem: model.PackageManagerMix.Name(),
+		BuildSystem: sdk.PackageManagerMix.Name(),
 		Type:        "package",
 		Language:    "elixir",
-		PURL:        model.BuildPackageURL("hex", "", pkg.Name, version),
+		PURL:        sdk.BuildPackageURL("hex", "", pkg.Name, version),
 		Metadata: map[string]any{
 			"source": source,
 		},
@@ -233,7 +233,7 @@ func sortedMixNames(packages map[string]mixPackage) []string {
 	return values
 }
 
-func addNodeIfMissing(g *model.Graph, node *model.Package) error {
+func addNodeIfMissing(g *sdk.Graph, node *sdk.Package) error {
 	if _, ok := g.Package(node.ID); ok {
 		return nil
 	}

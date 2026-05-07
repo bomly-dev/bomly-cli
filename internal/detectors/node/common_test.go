@@ -10,7 +10,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/npm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/pnpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/yarn"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestAnnotateScopesFromPackageJSON(t *testing.T) {
@@ -28,13 +28,13 @@ func TestAnnotateScopesFromPackageJSON(t *testing.T) {
 		t.Fatalf("write package.json: %v", err)
 	}
 
-	depsGraph := model.New()
-	root := model.NewPackage(model.Package{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0"})
-	react := model.NewPackage(model.Package{Ecosystem: "npm", Name: "react", Version: "18.2.0"})
-	scheduler := model.NewPackage(model.Package{Ecosystem: "npm", Name: "scheduler", Version: "0.23.0"})
-	vitest := model.NewPackage(model.Package{Ecosystem: "npm", Name: "vitest", Version: "2.0.0"})
-	chai := model.NewPackage(model.Package{Ecosystem: "npm", Name: "chai", Version: "5.1.0"})
-	for _, pkg := range []*model.Package{root, react, scheduler, vitest, chai} {
+	depsGraph := sdk.New()
+	root := sdk.NewPackage(sdk.Package{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0"})
+	react := sdk.NewPackage(sdk.Package{Ecosystem: "npm", Name: "react", Version: "18.2.0"})
+	scheduler := sdk.NewPackage(sdk.Package{Ecosystem: "npm", Name: "scheduler", Version: "0.23.0"})
+	vitest := sdk.NewPackage(sdk.Package{Ecosystem: "npm", Name: "vitest", Version: "2.0.0"})
+	chai := sdk.NewPackage(sdk.Package{Ecosystem: "npm", Name: "chai", Version: "5.1.0"})
+	for _, pkg := range []*sdk.Package{root, react, scheduler, vitest, chai} {
 		if err := depsGraph.AddPackage(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.ID, err)
 		}
@@ -54,10 +54,10 @@ func TestAnnotateScopesFromPackageJSON(t *testing.T) {
 		t.Fatalf("AnnotateScopesFromPackageJSON() error = %v", err)
 	}
 
-	if react.Scope != string(model.ScopeRuntime) || scheduler.Scope != string(model.ScopeRuntime) {
+	if react.Scope != string(sdk.ScopeRuntime) || scheduler.Scope != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scopes for runtime chain, got react=%q scheduler=%q", react.Scope, scheduler.Scope)
 	}
-	if vitest.Scope != string(model.ScopeDevelopment) || chai.Scope != string(model.ScopeDevelopment) {
+	if vitest.Scope != string(sdk.ScopeDevelopment) || chai.Scope != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected development scopes for dev chain, got vitest=%q chai=%q", vitest.Scope, chai.Scope)
 	}
 }
@@ -261,7 +261,7 @@ loose-envify@^1.4.0:
 func TestLockfileDetectorsDoNotRequirePackageManagerBinaries(t *testing.T) {
 	t.Setenv("PATH", t.TempDir())
 
-	for name, detector := range map[string]model.Detector{
+	for name, detector := range map[string]sdk.Detector{
 		"npm":  npm.LockfileDetector{},
 		"pnpm": pnpm.LockfileDetector{},
 		"yarn": yarn.LockfileDetector{},
@@ -284,7 +284,7 @@ func TestLockfileDetectorsDoNotRequirePackageManagerBinaries(t *testing.T) {
 	}
 
 	detector := npm.LockfileDetector{}
-	applicable, err := detector.Applicable(context.Background(), model.DetectionRequest{ProjectPath: projectDir})
+	applicable, err := detector.Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -300,7 +300,7 @@ func TestLockfileDetectorRequiresLockfile(t *testing.T) {
 	}
 
 	detector := npm.LockfileDetector{}
-	applicable, err := detector.Applicable(context.Background(), model.DetectionRequest{ProjectPath: projectDir})
+	applicable, err := detector.Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -312,7 +312,7 @@ func TestLockfileDetectorRequiresLockfile(t *testing.T) {
 func TestNPMDetectorInstallDelegatesToFallback(t *testing.T) {
 	fallback := &installRecorderDetector{}
 	detector := npm.LockfileDetector{Fallback: fallback}
-	if err := detector.Install(context.Background(), model.DetectionRequest{}); err != nil {
+	if err := detector.Install(context.Background(), sdk.DetectionRequest{}); err != nil {
 		t.Fatalf("Install() error = %v", err)
 	}
 	if fallback.called != 1 {
@@ -324,20 +324,20 @@ type installRecorderDetector struct {
 	called int
 }
 
-func resolveTestGraph(t *testing.T, detector model.Detector, projectDir string) (*model.Graph, error) {
+func resolveTestGraph(t *testing.T, detector sdk.Detector, projectDir string) (*sdk.Graph, error) {
 	t.Helper()
-	result, err := detector.ResolveGraph(context.Background(), model.DetectionRequest{ProjectPath: projectDir})
+	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		return nil, err
 	}
 	return result.Graphs.ConsolidatedGraph()
 }
 
-func (d *installRecorderDetector) Descriptor() model.DetectorDescriptor {
-	return model.DetectorDescriptor{Name: "install-recorder"}
+func (d *installRecorderDetector) Descriptor() sdk.DetectorDescriptor {
+	return sdk.DetectorDescriptor{Name: "install-recorder"}
 }
 
-func (d *installRecorderDetector) PackageManagerSupport() []model.PackageManagerSupport {
+func (d *installRecorderDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 	return nil
 }
 
@@ -345,15 +345,15 @@ func (d *installRecorderDetector) Ready() bool {
 	return true
 }
 
-func (d *installRecorderDetector) Applicable(context.Context, model.DetectionRequest) (bool, error) {
+func (d *installRecorderDetector) Applicable(context.Context, sdk.DetectionRequest) (bool, error) {
 	return true, nil
 }
 
-func (d *installRecorderDetector) ResolveGraph(context.Context, model.DetectionRequest) (model.DetectionResult, error) {
-	return model.DetectionResult{}, nil
+func (d *installRecorderDetector) ResolveGraph(context.Context, sdk.DetectionRequest) (sdk.DetectionResult, error) {
+	return sdk.DetectionResult{}, nil
 }
 
-func (d *installRecorderDetector) Install(context.Context, model.DetectionRequest) error {
+func (d *installRecorderDetector) Install(context.Context, sdk.DetectionRequest) error {
 	d.called++
 	return nil
 }

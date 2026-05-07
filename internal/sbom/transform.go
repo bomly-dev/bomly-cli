@@ -6,13 +6,13 @@ import (
 	"sort"
 	"time"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 var ErrNilGraph = errors.New("dependency graph is nil")
 
 // FromDepGraph builds a neutral SBOM document from a dependency DAG.
-func FromDepGraph(g *model.Graph, opts BuildOptions) (*Document, error) {
+func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 	if g == nil {
 		return nil, ErrNilGraph
 	}
@@ -21,7 +21,7 @@ func FromDepGraph(g *model.Graph, opts BuildOptions) (*Document, error) {
 	components := make([]Component, 0, componentCount)
 	depsByRef := make(map[string][]string, componentCount)
 
-	g.WalkPackages(func(pkg *model.Package) bool {
+	g.WalkPackages(func(pkg *sdk.Package) bool {
 		components = append(components, Component{
 			ID:             pkg.ID,
 			Name:           pkg.QualifiedName(),
@@ -41,7 +41,7 @@ func FromDepGraph(g *model.Graph, opts BuildOptions) (*Document, error) {
 		return components[i].ID < components[j].ID
 	})
 
-	g.WalkRelationships(func(from, to *model.Package) bool {
+	g.WalkRelationships(func(from, to *sdk.Package) bool {
 		depsByRef[from.ID] = append(depsByRef[from.ID], to.ID)
 		return true
 	})
@@ -102,7 +102,7 @@ func FromDepGraph(g *model.Graph, opts BuildOptions) (*Document, error) {
 	}, nil
 }
 
-func componentLicenses(licenses []model.PackageLicense) []License {
+func componentLicenses(licenses []sdk.PackageLicense) []License {
 	if len(licenses) == 0 {
 		return nil
 	}

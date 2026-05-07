@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestMatchEnrichesPackageMetadata(t *testing.T) {
@@ -39,13 +39,13 @@ func TestMatchEnrichesPackageMetadata(t *testing.T) {
 		t.Fatalf("New() error = %v", err)
 	}
 
-	g := model.New()
-	pkg := model.NewPackage(model.Package{Ecosystem: "python", Name: "django", Version: "4.2.9"})
+	g := sdk.New()
+	pkg := sdk.NewPackage(sdk.Package{Ecosystem: "python", Name: "django", Version: "4.2.9"})
 	if err := g.AddPackage(pkg); err != nil {
 		t.Fatalf("AddPackage() error = %v", err)
 	}
 
-	_, err = checker.Match(context.Background(), model.MatchRequest{Graph: g, Mode: model.TargetModeFullGraph})
+	_, err = checker.Match(context.Background(), sdk.MatchRequest{Graph: g, Mode: sdk.TargetModeFullGraph})
 	if err != nil {
 		t.Fatalf("Match() error = %v", err)
 	}

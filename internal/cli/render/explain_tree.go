@@ -6,7 +6,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/engine/explain"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 type whyTreeNode struct {
@@ -127,11 +127,11 @@ func explainPackageDisplayName(ref output.PackageRef) string {
 
 // ExplainManifestMetadata returns the manifest metadata for the first entry
 // in result, falling back to subproject info when no entries are present.
-func ExplainManifestMetadata(result model.DetectionResult) model.ManifestMetadata {
+func ExplainManifestMetadata(result sdk.DetectionResult) sdk.ManifestMetadata {
 	if result.Graphs != nil && len(result.Graphs.Entries) > 0 {
 		return result.Graphs.Entries[0].Manifest
 	}
-	return model.ManifestMetadata{
+	return sdk.ManifestMetadata{
 		Path: result.SubprojectInfo.ExecutionTarget.Location,
 		Kind: result.SubprojectInfo.PrimaryPackageManager().Name(),
 	}

@@ -5,23 +5,23 @@ import (
 	"path/filepath"
 	"strings"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // InferManifestMetadata determines the manifest metadata for detectors that naturally resolve one graph.
-func InferManifestMetadata(req model.DetectionRequest, evidencePatterns []string) model.ManifestMetadata {
+func InferManifestMetadata(req sdk.DetectionRequest, evidencePatterns []string) sdk.ManifestMetadata {
 	path := inferManifestPath(req, evidencePatterns)
 	kind := manifestKindFromPath(path)
 	if kind == "" {
 		kind = req.PackageManager.Name()
 	}
-	return model.ManifestMetadata{
+	return sdk.ManifestMetadata{
 		Path: path,
 		Kind: kind,
 	}
 }
 
-func inferManifestPath(req model.DetectionRequest, evidencePatterns []string) string {
+func inferManifestPath(req sdk.DetectionRequest, evidencePatterns []string) string {
 	basePath := req.Subproject.ExecutionTarget.Location
 	if basePath == "" {
 		basePath = req.ProjectPath

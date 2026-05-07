@@ -7,31 +7,31 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/engine/consolidation"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestBuildScanResponseIncludesAuditData(t *testing.T) {
 	g := newViewTestGraph(t)
 	started := time.Now().Add(-2 * time.Second)
-	results := []model.DetectionResult{{
-		SubprojectInfo: model.Subproject{
+	results := []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
 			RelativePath:            ".",
 			PrimaryDetector:         "npm-detector",
-			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
-			Ecosystem:               model.EcosystemNPM,
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
 		},
 		DetectorName: "npm",
-		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
+		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
 			Graph:    g,
-			Manifest: model.ManifestMetadata{Path: "/tmp/demo/package-lock.json", Kind: "package-lock.json"},
+			Manifest: sdk.ManifestMetadata{Path: "/tmp/demo/package-lock.json", Kind: "package-lock.json"},
 		}}},
 	}}
 
-	findings := []model.Finding{{
+	findings := []sdk.Finding{{
 		ID:       "OSV-1",
-		Kind:     model.FindingKindVulnerability,
+		Kind:     sdk.FindingKindVulnerability,
 		Severity: "high",
-		Package:  model.NewPackageRef("react", "18.2.0"),
+		Package:  sdk.NewPackageRef("react", "18.2.0"),
 		Title:    "Prototype pollution",
 		Source:   "osv",
 	}}
@@ -64,8 +64,8 @@ func TestBuildScanResponseDeduplicatesManifestAndPrefersNative(t *testing.T) {
 	projectRoot := "/tmp/demo"
 	manifestPath := filepath.Join(projectRoot, "package-lock.json")
 
-	syftGraph := model.New()
-	if err := syftGraph.AddPackage(model.NewPackageWithID("123", model.Package{
+	syftGraph := sdk.New()
+	if err := syftGraph.AddPackage(sdk.NewPackageWithID("123", sdk.Package{
 		Name:      "demo-app",
 		Version:   "1.0.0",
 		Ecosystem: "npm",
@@ -75,37 +75,37 @@ func TestBuildScanResponseDeduplicatesManifestAndPrefersNative(t *testing.T) {
 	}
 
 	nativeGraph := newViewTestGraph(t)
-	results := []model.DetectionResult{
+	results := []sdk.DetectionResult{
 		{
-			SubprojectInfo: model.Subproject{
-				ExecutionTarget:         model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: projectRoot},
+			SubprojectInfo: sdk.Subproject{
+				ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectRoot},
 				RelativePath:            ".",
 				PrimaryDetector:         "npm-detector",
-				DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
-				Ecosystem:               model.EcosystemNPM,
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+				Ecosystem:               sdk.EcosystemNPM,
 			},
 			DetectorName: "syft-detector",
-			Origin:       model.BundledOrigin,
-			Technique:    model.MultipleTechnique,
-			Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
+			Origin:       sdk.BundledOrigin,
+			Technique:    sdk.MultipleTechnique,
+			Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
 				Graph:    syftGraph,
-				Manifest: model.ManifestMetadata{Path: manifestPath, Kind: "package-lock.json"},
+				Manifest: sdk.ManifestMetadata{Path: manifestPath, Kind: "package-lock.json"},
 			}}},
 		},
 		{
-			SubprojectInfo: model.Subproject{
-				ExecutionTarget:         model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: projectRoot},
+			SubprojectInfo: sdk.Subproject{
+				ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectRoot},
 				RelativePath:            ".",
 				PrimaryDetector:         "npm-detector",
-				DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
-				Ecosystem:               model.EcosystemNPM,
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+				Ecosystem:               sdk.EcosystemNPM,
 			},
 			DetectorName: "npm-detector",
-			Origin:       model.CoreOrigin,
-			Technique:    model.BuildToolTechnique,
-			Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
+			Origin:       sdk.CoreOrigin,
+			Technique:    sdk.BuildToolTechnique,
+			Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
 				Graph:    nativeGraph,
-				Manifest: model.ManifestMetadata{Path: manifestPath, Kind: "package-lock.json"},
+				Manifest: sdk.ManifestMetadata{Path: manifestPath, Kind: "package-lock.json"},
 			}}},
 		},
 	}
@@ -131,8 +131,8 @@ func TestBuildScanResponseDeduplicatesSameManifestWhenMetadataDiffers(t *testing
 	manifestPath := filepath.Join(projectRoot, "package-lock.json")
 
 	nativeGraph := newViewTestGraph(t)
-	syftGraph := model.New()
-	if err := syftGraph.AddPackage(model.NewPackageWithID("123", model.Package{
+	syftGraph := sdk.New()
+	if err := syftGraph.AddPackage(sdk.NewPackageWithID("123", sdk.Package{
 		Name:      "demo-app",
 		Version:   "1.0.0",
 		Ecosystem: "npm",
@@ -141,37 +141,37 @@ func TestBuildScanResponseDeduplicatesSameManifestWhenMetadataDiffers(t *testing
 		t.Fatalf("add syft package: %v", err)
 	}
 
-	results := []model.DetectionResult{
+	results := []sdk.DetectionResult{
 		{
-			SubprojectInfo: model.Subproject{
-				ExecutionTarget:         model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: projectRoot},
+			SubprojectInfo: sdk.Subproject{
+				ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectRoot},
 				RelativePath:            ".",
 				PrimaryDetector:         "npm-detector",
-				DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
-				Ecosystem:               model.EcosystemNPM,
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+				Ecosystem:               sdk.EcosystemNPM,
 			},
 			DetectorName: "npm-detector",
-			Origin:       model.CoreOrigin,
-			Technique:    model.BuildToolTechnique,
-			Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
+			Origin:       sdk.CoreOrigin,
+			Technique:    sdk.BuildToolTechnique,
+			Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
 				Graph:    nativeGraph,
-				Manifest: model.ManifestMetadata{Path: manifestPath, Kind: "package-lock.json"},
+				Manifest: sdk.ManifestMetadata{Path: manifestPath, Kind: "package-lock.json"},
 			}}},
 		},
 		{
-			SubprojectInfo: model.Subproject{
-				ExecutionTarget:         model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: projectRoot},
+			SubprojectInfo: sdk.Subproject{
+				ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectRoot},
 				RelativePath:            ".",
 				PrimaryDetector:         "npm-detector",
-				DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
-				Ecosystem:               model.EcosystemNPM,
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+				Ecosystem:               sdk.EcosystemNPM,
 			},
 			DetectorName: "syft-detector",
-			Origin:       model.BundledOrigin,
-			Technique:    model.MultipleTechnique,
-			Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
+			Origin:       sdk.BundledOrigin,
+			Technique:    sdk.MultipleTechnique,
+			Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
 				Graph:    syftGraph,
-				Manifest: model.ManifestMetadata{Path: "package-lock.json", Kind: "npm-lockfile"},
+				Manifest: sdk.ManifestMetadata{Path: "package-lock.json", Kind: "npm-lockfile"},
 			}}},
 		},
 	}
@@ -209,25 +209,25 @@ func TestBuildExplainResponseFlattensSingleTarget(t *testing.T) {
 func TestBuildDiffResponseAggregatesManifestChanges(t *testing.T) {
 	baseGraph := newViewTestGraph(t)
 	headGraph := newViewTestGraph(t)
-	if err := headGraph.AddPackage(model.NewPackageRef("newpkg", "1.0.0")); err != nil {
+	if err := headGraph.AddPackage(sdk.NewPackageRef("newpkg", "1.0.0")); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
 	if err := headGraph.AddDependency("app@1.0.0", "newpkg@1.0.0"); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 
-	baseResults := []model.DetectionResult{{
-		SubprojectInfo: model.Subproject{RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM}, Ecosystem: model.EcosystemNPM},
-		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
+	baseResults := []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM},
+		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
 			Graph:    baseGraph,
-			Manifest: model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
+			Manifest: sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
 		}}},
 	}}
-	headResults := []model.DetectionResult{{
-		SubprojectInfo: model.Subproject{RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM}, Ecosystem: model.EcosystemNPM},
-		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
+	headResults := []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM},
+		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
 			Graph:    headGraph,
-			Manifest: model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
+			Manifest: sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
 		}}},
 	}}
 
@@ -254,45 +254,45 @@ func TestBuildDiffResponseAggregatesManifestChanges(t *testing.T) {
 func TestBuildDiffResponseTreatsSBOMFilesAsSameManifestWhenOnlyEvidencePathDiffers(t *testing.T) {
 	baseGraph := newViewTestGraph(t)
 	headGraph := newViewTestGraph(t)
-	if err := headGraph.AddPackage(model.NewPackageRef("newpkg", "1.0.0")); err != nil {
+	if err := headGraph.AddPackage(sdk.NewPackageRef("newpkg", "1.0.0")); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
 	if err := headGraph.AddDependency("app@1.0.0", "newpkg@1.0.0"); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 
-	baseTarget := model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: "/tmp/base.spdx.json"}
-	headTarget := model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: "/tmp/head.spdx.json"}
-	baseResults := []model.DetectionResult{{
-		SubprojectInfo: model.Subproject{
+	baseTarget := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/base.spdx.json"}
+	headTarget := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/head.spdx.json"}
+	baseResults := []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
 			ExecutionTarget:         baseTarget,
 			RelativePath:            "base.spdx.json",
 			PrimaryDetector:         "sbom-detector",
-			DetectedPackageManagers: []model.PackageManager{model.PackageManagerSBOM},
-			Ecosystem:               model.EcosystemSBOM,
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerSBOM},
+			Ecosystem:               sdk.EcosystemSBOM,
 		},
 		DetectorName: "sbom-detector",
-		Origin:       model.CoreOrigin,
-		Technique:    model.SBOMTechnique,
-		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
+		Origin:       sdk.CoreOrigin,
+		Technique:    sdk.SBOMTechnique,
+		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
 			Graph:    baseGraph,
-			Manifest: model.ManifestMetadata{Path: baseTarget.Location, Kind: "github.spdx"},
+			Manifest: sdk.ManifestMetadata{Path: baseTarget.Location, Kind: "github.spdx"},
 		}}},
 	}}
-	headResults := []model.DetectionResult{{
-		SubprojectInfo: model.Subproject{
+	headResults := []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
 			ExecutionTarget:         headTarget,
 			RelativePath:            "head.spdx.json",
 			PrimaryDetector:         "sbom-detector",
-			DetectedPackageManagers: []model.PackageManager{model.PackageManagerSBOM},
-			Ecosystem:               model.EcosystemSBOM,
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerSBOM},
+			Ecosystem:               sdk.EcosystemSBOM,
 		},
 		DetectorName: "sbom-detector",
-		Origin:       model.CoreOrigin,
-		Technique:    model.SBOMTechnique,
-		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
+		Origin:       sdk.CoreOrigin,
+		Technique:    sdk.SBOMTechnique,
+		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
 			Graph:    headGraph,
-			Manifest: model.ManifestMetadata{Path: headTarget.Location, Kind: "bomly.spdx"},
+			Manifest: sdk.ManifestMetadata{Path: headTarget.Location, Kind: "bomly.spdx"},
 		}}},
 	}}
 
@@ -316,8 +316,8 @@ func TestBuildDiffResponseTreatsSBOMFilesAsSameManifestWhenOnlyEvidencePathDiffe
 
 func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t *testing.T) {
 	projectRoot := "/tmp/demo"
-	nativeGraph := model.New()
-	nativeApp := model.NewPackageWithID("pkg:npm/app@1.0.0", model.Package{
+	nativeGraph := sdk.New()
+	nativeApp := sdk.NewPackageWithID("pkg:npm/app@1.0.0", sdk.Package{
 		Ecosystem:   "npm",
 		BuildSystem: "npm",
 		Name:        "app",
@@ -327,7 +327,7 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 	if err := nativeGraph.AddPackage(nativeApp); err != nil {
 		t.Fatalf("add native app: %v", err)
 	}
-	nativeReact := model.NewPackageWithID("pkg:npm/react@18.2.0", model.Package{
+	nativeReact := sdk.NewPackageWithID("pkg:npm/react@18.2.0", sdk.Package{
 		Ecosystem:   "npm",
 		BuildSystem: "npm",
 		Name:        "react",
@@ -341,8 +341,8 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 		t.Fatalf("add native dependency: %v", err)
 	}
 
-	sbomGraph := model.New()
-	if err := sbomGraph.AddPackage(model.NewPackageWithID("SPDXRef-app", model.Package{
+	sbomGraph := sdk.New()
+	if err := sbomGraph.AddPackage(sdk.NewPackageWithID("SPDXRef-app", sdk.Package{
 		Ecosystem:   "npm",
 		BuildSystem: "npm",
 		Name:        "app",
@@ -351,7 +351,7 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 	})); err != nil {
 		t.Fatalf("add sbom app: %v", err)
 	}
-	if err := sbomGraph.AddPackage(model.NewPackageWithID("SPDXRef-react", model.Package{
+	if err := sbomGraph.AddPackage(sdk.NewPackageWithID("SPDXRef-react", sdk.Package{
 		Ecosystem:   "npm",
 		BuildSystem: "npm",
 		Name:        "react",
@@ -364,37 +364,37 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 		t.Fatalf("add sbom dependency: %v", err)
 	}
 
-	results := []model.DetectionResult{
+	results := []sdk.DetectionResult{
 		{
-			SubprojectInfo: model.Subproject{
-				ExecutionTarget:         model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: projectRoot},
+			SubprojectInfo: sdk.Subproject{
+				ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectRoot},
 				RelativePath:            ".",
 				PrimaryDetector:         "npm-detector",
-				DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
-				Ecosystem:               model.EcosystemNPM,
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+				Ecosystem:               sdk.EcosystemNPM,
 			},
 			DetectorName: "npm-detector",
-			Origin:       model.CoreOrigin,
-			Technique:    model.BuildToolTechnique,
-			Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
+			Origin:       sdk.CoreOrigin,
+			Technique:    sdk.BuildToolTechnique,
+			Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
 				Graph:    nativeGraph,
-				Manifest: model.ManifestMetadata{Path: filepath.Join(projectRoot, "package-lock.json"), Kind: "package-lock.json"},
+				Manifest: sdk.ManifestMetadata{Path: filepath.Join(projectRoot, "package-lock.json"), Kind: "package-lock.json"},
 			}}},
 		},
 		{
-			SubprojectInfo: model.Subproject{
-				ExecutionTarget:         model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: projectRoot},
+			SubprojectInfo: sdk.Subproject{
+				ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectRoot},
 				RelativePath:            "app.spdx.json",
 				PrimaryDetector:         "sbom-detector",
-				DetectedPackageManagers: []model.PackageManager{model.PackageManagerSBOM},
-				Ecosystem:               model.EcosystemSBOM,
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerSBOM},
+				Ecosystem:               sdk.EcosystemSBOM,
 			},
 			DetectorName: "sbom-detector",
-			Origin:       model.CoreOrigin,
-			Technique:    model.SBOMTechnique,
-			Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
+			Origin:       sdk.CoreOrigin,
+			Technique:    sdk.SBOMTechnique,
+			Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
 				Graph:    sbomGraph,
-				Manifest: model.ManifestMetadata{Path: filepath.Join(projectRoot, "app.spdx.json"), Kind: "spdx"},
+				Manifest: sdk.ManifestMetadata{Path: filepath.Join(projectRoot, "app.spdx.json"), Kind: "spdx"},
 			}}},
 		},
 	}
@@ -411,7 +411,7 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 	if !ok || pkg == nil {
 		t.Fatalf("expected enriched graph react package, got %s", enrichedGraph.PrettyString())
 	}
-	pkg.Licenses = []model.PackageLicense{{SPDXExpression: "MIT"}}
+	pkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
 	pkg.Matched = true
 	consolidation.SyncConsolidatedEnrichmentToManifests(&consolidated, enrichedGraph)
 
@@ -437,15 +437,15 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 }
 
 func TestBuildDiffResponseFuzzyReconcilesRenamedPackage(t *testing.T) {
-	baseGraph := model.New()
-	headGraph := model.New()
+	baseGraph := sdk.New()
+	headGraph := sdk.New()
 
-	baseApp := model.NewPackage(model.Package{Ecosystem: "npm", BuildSystem: "npm", Name: "app", Version: "1.0.0"})
-	baseDep := model.NewPackage(model.Package{Ecosystem: "npm", BuildSystem: "npm", Name: "left-pad", Version: "1.0.0"})
-	headApp := model.NewPackage(model.Package{Ecosystem: "npm", BuildSystem: "npm", Name: "app", Version: "1.0.0"})
-	headDep := model.NewPackage(model.Package{Ecosystem: "npm", BuildSystem: "npm", Name: "leftpad", Version: "1.1.0"})
+	baseApp := sdk.NewPackage(sdk.Package{Ecosystem: "npm", BuildSystem: "npm", Name: "app", Version: "1.0.0"})
+	baseDep := sdk.NewPackage(sdk.Package{Ecosystem: "npm", BuildSystem: "npm", Name: "left-pad", Version: "1.0.0"})
+	headApp := sdk.NewPackage(sdk.Package{Ecosystem: "npm", BuildSystem: "npm", Name: "app", Version: "1.0.0"})
+	headDep := sdk.NewPackage(sdk.Package{Ecosystem: "npm", BuildSystem: "npm", Name: "leftpad", Version: "1.1.0"})
 
-	for _, pkg := range []*model.Package{baseApp, baseDep} {
+	for _, pkg := range []*sdk.Package{baseApp, baseDep} {
 		if err := baseGraph.AddPackage(pkg); err != nil {
 			t.Fatalf("base AddPackage(%q) error = %v", pkg.ID, err)
 		}
@@ -453,7 +453,7 @@ func TestBuildDiffResponseFuzzyReconcilesRenamedPackage(t *testing.T) {
 	if err := baseGraph.AddDependency(baseApp.ID, baseDep.ID); err != nil {
 		t.Fatalf("base AddDependency() error = %v", err)
 	}
-	for _, pkg := range []*model.Package{headApp, headDep} {
+	for _, pkg := range []*sdk.Package{headApp, headDep} {
 		if err := headGraph.AddPackage(pkg); err != nil {
 			t.Fatalf("head AddPackage(%q) error = %v", pkg.ID, err)
 		}
@@ -462,30 +462,30 @@ func TestBuildDiffResponseFuzzyReconcilesRenamedPackage(t *testing.T) {
 		t.Fatalf("head AddDependency() error = %v", err)
 	}
 
-	baseResults := []model.DetectionResult{{
-		SubprojectInfo: model.Subproject{
-			ExecutionTarget:         model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: "/tmp/demo"},
+	baseResults := []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo"},
 			RelativePath:            ".",
 			PrimaryDetector:         "npm-detector",
-			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
-			Ecosystem:               model.EcosystemNPM,
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
 		},
-		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
+		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
 			Graph:    baseGraph,
-			Manifest: model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
+			Manifest: sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
 		}}},
 	}}
-	headResults := []model.DetectionResult{{
-		SubprojectInfo: model.Subproject{
-			ExecutionTarget:         model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: "/tmp/demo"},
+	headResults := []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo"},
 			RelativePath:            ".",
 			PrimaryDetector:         "npm-detector",
-			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
-			Ecosystem:               model.EcosystemNPM,
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
 		},
-		Graphs: &model.GraphContainer{Entries: []model.GraphEntry{{
+		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
 			Graph:    headGraph,
-			Manifest: model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
+			Manifest: sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
 		}}},
 	}}
 
@@ -517,14 +517,14 @@ func TestBuildDiffResponseFuzzyReconcilesRenamedPackage(t *testing.T) {
 	}
 }
 
-func newViewTestGraph(t *testing.T) *model.Graph {
+func newViewTestGraph(t *testing.T) *sdk.Graph {
 	t.Helper()
-	g := model.New()
-	for _, pkg := range []*model.Package{
-		model.NewPackageRef("app", "1.0.0"),
-		model.NewPackageRef("react", "18.2.0"),
-		model.NewPackageRef("zod", "3.23.0"),
-		model.NewPackageRef("loose-envify", "1.4.0"),
+	g := sdk.New()
+	for _, pkg := range []*sdk.Package{
+		sdk.NewPackageRef("app", "1.0.0"),
+		sdk.NewPackageRef("react", "18.2.0"),
+		sdk.NewPackageRef("zod", "3.23.0"),
+		sdk.NewPackageRef("loose-envify", "1.4.0"),
 	} {
 		if err := g.AddPackage(pkg); err != nil {
 			t.Fatalf("add package %s: %v", pkg.ID, err)

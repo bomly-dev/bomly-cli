@@ -4,14 +4,14 @@ import (
 	"context"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 type fakeMatcher struct {
 	name     string
 	enabled  bool
 	priority int
-	run      func(*model.Graph)
+	run      func(*sdk.Graph)
 }
 
 func (f fakeMatcher) Descriptor() MatcherDescriptor {
@@ -59,7 +59,7 @@ func TestRegistryMatchers_UsesEnabledDefaultsButAllowsExplicitInclude(t *testing
 
 	matchers = registry.Matchers(MatchRequest{
 		Mode:          TargetModeFullGraph,
-		MatcherFilter: model.MatcherFilter{Include: []string{"default-off"}},
+		MatcherFilter: sdk.MatcherFilter{Include: []string{"default-off"}},
 	})
 	if len(matchers) != 1 || matchers[0].Descriptor().Name != "default-off" {
 		t.Fatalf("expected explicit include to override disabled default, got %#v", matchers)
@@ -72,10 +72,10 @@ func TestEngineMatch_RunsMultipleMatchersWithoutOverwritingExistingLicenses(t *t
 		name:     "first",
 		enabled:  true,
 		priority: 100,
-		run: func(g *model.Graph) {
+		run: func(g *sdk.Graph) {
 			pkg, _ := g.Package("react@18.2.0")
 			if pkg != nil && len(pkg.Licenses) == 0 {
-				pkg.Licenses = []model.PackageLicense{{SPDXExpression: "MIT"}}
+				pkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
 			}
 		},
 	})
@@ -83,17 +83,17 @@ func TestEngineMatch_RunsMultipleMatchersWithoutOverwritingExistingLicenses(t *t
 		name:     "second",
 		enabled:  true,
 		priority: 90,
-		run: func(g *model.Graph) {
+		run: func(g *sdk.Graph) {
 			pkg, _ := g.Package("react@18.2.0")
 			if pkg != nil && len(pkg.Licenses) == 0 {
-				pkg.Licenses = []model.PackageLicense{{SPDXExpression: "Apache-2.0"}}
+				pkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "Apache-2.0"}}
 			}
 		},
 	})
 	engine := NewEngine(registry)
 
-	g := model.New()
-	pkg := model.NewPackage(model.Package{Ecosystem: "npm", Name: "react", Version: "18.2.0"})
+	g := sdk.New()
+	pkg := sdk.NewPackage(sdk.Package{Ecosystem: "npm", Name: "react", Version: "18.2.0"})
 	if err := g.AddPackage(pkg); err != nil {
 		t.Fatalf("add package: %v", err)
 	}

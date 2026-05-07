@@ -13,7 +13,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -59,7 +59,7 @@ func (d BaseDetector) ProjectDir(projectPath string) string {
 }
 
 // ResolveGraph runs a package-manager CLI command and maps its JSON output into a graph.
-func (d BaseDetector) ResolveGraph(stderr io.Writer, projectPath string, verbose bool, executable string, args []string, detectorName string, parse func([]byte) (*model.Graph, error)) (*model.Graph, error) {
+func (d BaseDetector) ResolveGraph(stderr io.Writer, projectPath string, verbose bool, executable string, args []string, detectorName string, parse func([]byte) (*sdk.Graph, error)) (*sdk.Graph, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -96,7 +96,7 @@ func (d BaseDetector) ResolveGraph(stderr io.Writer, projectPath string, verbose
 }
 
 // Install runs a package-manager install command for detectors that support install-first.
-func (d BaseDetector) Install(ctx context.Context, req model.DetectionRequest, executable string, defaultArgs []string, detectorName string) error {
+func (d BaseDetector) Install(ctx context.Context, req sdk.DetectionRequest, executable string, defaultArgs []string, detectorName string) error {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -123,7 +123,7 @@ func (d BaseDetector) Install(ctx context.Context, req model.DetectionRequest, e
 }
 
 // DepGraphFromNPMJSON maps npm list JSON output into a dependency graph.
-func DepGraphFromNPMJSON(raw []byte) (*model.Graph, error) {
+func DepGraphFromNPMJSON(raw []byte) (*sdk.Graph, error) {
 	var root NPMListNode
 	if err := json.Unmarshal(raw, &root); err != nil {
 		return nil, fmt.Errorf("parse npm json: %w", err)
@@ -132,18 +132,18 @@ func DepGraphFromNPMJSON(raw []byte) (*model.Graph, error) {
 }
 
 // DepGraphFromNPMNode maps a npm dependency tree node into a dependency graph.
-func DepGraphFromNPMNode(root *NPMListNode) (*model.Graph, error) {
+func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 	if root == nil {
 		return nil, errors.New("npm root node is nil")
 	}
 
-	depsGraph := model.New()
+	depsGraph := sdk.New()
 	rootName := root.Name
 	if rootName == "" {
 		rootName = "root"
 	}
-	rootNode := model.NewPackage(model.Package{
-		Ecosystem: string(model.EcosystemNPM),
+	rootNode := sdk.NewPackage(sdk.Package{
+		Ecosystem: string(sdk.EcosystemNPM),
 		Name:      rootName,
 		Version:   root.Version,
 	})
@@ -168,8 +168,8 @@ func DepGraphFromNPMNode(root *NPMListNode) (*model.Graph, error) {
 			if name == "" {
 				name = depName
 			}
-			node := model.NewPackage(model.Package{
-				Ecosystem: string(model.EcosystemNPM),
+			node := sdk.NewPackage(sdk.Package{
+				Ecosystem: string(sdk.EcosystemNPM),
 				Name:      name,
 				Version:   depNode.Version,
 			})
@@ -189,7 +189,7 @@ func DepGraphFromNPMNode(root *NPMListNode) (*model.Graph, error) {
 }
 
 // DepGraphFromPNPMJSON maps pnpm list JSON output into a dependency graph.
-func DepGraphFromPNPMJSON(raw []byte) (*model.Graph, error) {
+func DepGraphFromPNPMJSON(raw []byte) (*sdk.Graph, error) {
 	var roots []pnpmListNode
 	if err := json.Unmarshal(raw, &roots); err != nil {
 		return nil, fmt.Errorf("parse pnpm json: %w", err)
@@ -198,10 +198,10 @@ func DepGraphFromPNPMJSON(raw []byte) (*model.Graph, error) {
 		return nil, errors.New("pnpm output is empty")
 	}
 
-	depsGraph := model.New()
+	depsGraph := sdk.New()
 	for _, root := range roots {
-		rootNode := model.NewPackage(model.Package{
-			Ecosystem: string(model.EcosystemNPM),
+		rootNode := sdk.NewPackage(sdk.Package{
+			Ecosystem: string(sdk.EcosystemNPM),
 			Name:      root.Name,
 			Version:   root.Version,
 		})
@@ -215,7 +215,7 @@ func DepGraphFromPNPMJSON(raw []byte) (*model.Graph, error) {
 	return depsGraph, nil
 }
 
-func addPNPMDependencies(depsGraph *model.Graph, parentID string, deps map[string]*pnpmListNode) error {
+func addPNPMDependencies(depsGraph *sdk.Graph, parentID string, deps map[string]*pnpmListNode) error {
 	for depName, depNode := range deps {
 		if depNode == nil {
 			continue
@@ -224,8 +224,8 @@ func addPNPMDependencies(depsGraph *model.Graph, parentID string, deps map[strin
 		if name == "" {
 			name = depName
 		}
-		node := model.NewPackage(model.Package{
-			Ecosystem: string(model.EcosystemNPM),
+		node := sdk.NewPackage(sdk.Package{
+			Ecosystem: string(sdk.EcosystemNPM),
 			Name:      name,
 			Version:   depNode.Version,
 		})
@@ -243,7 +243,7 @@ func addPNPMDependencies(depsGraph *model.Graph, parentID string, deps map[strin
 }
 
 // DepGraphFromYarnJSON maps Yarn list JSON output into a dependency graph.
-func DepGraphFromYarnJSON(raw []byte) (*model.Graph, error) {
+func DepGraphFromYarnJSON(raw []byte) (*sdk.Graph, error) {
 	events := bytes.Split(raw, []byte{'\n'})
 	var treeData yarnListTreeData
 	for _, line := range events {
@@ -267,9 +267,9 @@ func DepGraphFromYarnJSON(raw []byte) (*model.Graph, error) {
 		return nil, errors.New("yarn tree output is empty")
 	}
 
-	depsGraph := model.New()
-	rootNode := model.NewPackage(model.Package{
-		Ecosystem: string(model.EcosystemNPM),
+	depsGraph := sdk.New()
+	rootNode := sdk.NewPackage(sdk.Package{
+		Ecosystem: string(sdk.EcosystemNPM),
 		Name:      "root",
 	})
 	if err := depsGraph.AddPackage(rootNode); err != nil {
@@ -283,13 +283,13 @@ func DepGraphFromYarnJSON(raw []byte) (*model.Graph, error) {
 	return depsGraph, nil
 }
 
-func addYarnTree(depsGraph *model.Graph, parentID string, tree yarnTreeNode) error {
+func addYarnTree(depsGraph *sdk.Graph, parentID string, tree yarnTreeNode) error {
 	name, version, err := splitYarnTreeName(tree.Name)
 	if err != nil {
 		return err
 	}
-	node := model.NewPackage(model.Package{
-		Ecosystem: string(model.EcosystemNPM),
+	node := sdk.NewPackage(sdk.Package{
+		Ecosystem: string(sdk.EcosystemNPM),
 		Name:      name,
 		Version:   version,
 	})
@@ -316,9 +316,9 @@ func splitYarnTreeName(value string) (string, string, error) {
 }
 
 // AddNodeIfMissing adds a package to a graph or merges scope into the existing package.
-func AddNodeIfMissing(depsGraph *model.Graph, node *model.Package) error {
+func AddNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Package) error {
 	if existing, ok := depsGraph.Package(node.ID); ok {
-		model.MergePackageScope(existing, model.Scope(node.Scope))
+		sdk.MergePackageScope(existing, sdk.Scope(node.Scope))
 		return nil
 	}
 	if err := depsGraph.AddPackage(node); err != nil {
@@ -338,7 +338,7 @@ type PackageJSONManifest struct {
 }
 
 // AnnotateScopesFromPackageJSON annotates graph packages using direct dependency scopes from package.json.
-func AnnotateScopesFromPackageJSON(projectPath string, depsGraph *model.Graph) error {
+func AnnotateScopesFromPackageJSON(projectPath string, depsGraph *sdk.Graph) error {
 	if depsGraph == nil {
 		return nil
 	}
@@ -356,11 +356,11 @@ func AnnotateScopesFromPackageJSON(projectPath string, depsGraph *model.Graph) e
 		return fmt.Errorf("parse package.json: %w", err)
 	}
 
-	directScopes := make(map[string]model.Scope, len(manifest.Dependencies)+len(manifest.OptionalDependencies)+len(manifest.PeerDependencies)+len(manifest.DevDependencies))
-	recordDirectScopes(directScopes, manifest.Dependencies, model.ScopeRuntime)
-	recordDirectScopes(directScopes, manifest.OptionalDependencies, model.ScopeRuntime)
-	recordDirectScopes(directScopes, manifest.PeerDependencies, model.ScopeRuntime)
-	recordDirectScopes(directScopes, manifest.DevDependencies, model.ScopeDevelopment)
+	directScopes := make(map[string]sdk.Scope, len(manifest.Dependencies)+len(manifest.OptionalDependencies)+len(manifest.PeerDependencies)+len(manifest.DevDependencies))
+	recordDirectScopes(directScopes, manifest.Dependencies, sdk.ScopeRuntime)
+	recordDirectScopes(directScopes, manifest.OptionalDependencies, sdk.ScopeRuntime)
+	recordDirectScopes(directScopes, manifest.PeerDependencies, sdk.ScopeRuntime)
+	recordDirectScopes(directScopes, manifest.DevDependencies, sdk.ScopeDevelopment)
 
 	rootID := ""
 	for _, root := range depsGraph.Roots() {
@@ -377,25 +377,25 @@ func AnnotateScopesFromPackageJSON(projectPath string, depsGraph *model.Graph) e
 	return nil
 }
 
-func recordDirectScopes(target map[string]model.Scope, dependencies map[string]string, scope model.Scope) {
+func recordDirectScopes(target map[string]sdk.Scope, dependencies map[string]string, scope sdk.Scope) {
 	for name := range dependencies {
 		key := name
 		if _, ok := target[key]; ok {
-			target[key] = model.MergeScope(target[key], scope)
+			target[key] = sdk.MergeScope(target[key], scope)
 			continue
 		}
 		target[key] = scope
 	}
 }
 
-func propagateScopesFromRootDependencies(depsGraph *model.Graph, rootID string, directScopes map[string]model.Scope) {
+func propagateScopesFromRootDependencies(depsGraph *sdk.Graph, rootID string, directScopes map[string]sdk.Scope) {
 	rootDeps, err := depsGraph.Dependencies(rootID)
 	if err != nil {
 		return
 	}
 
-	queue := make([]*model.Package, 0, len(rootDeps))
-	propagated := make(map[string]model.Scope, depsGraph.Size())
+	queue := make([]*sdk.Package, 0, len(rootDeps))
+	propagated := make(map[string]sdk.Scope, depsGraph.Size())
 	for _, dep := range rootDeps {
 		if dep == nil {
 			continue
@@ -404,11 +404,11 @@ func propagateScopesFromRootDependencies(depsGraph *model.Graph, rootID string, 
 		if !ok {
 			scope, ok = directScopes[dep.QualifiedName()]
 		}
-		if !ok || scope == model.ScopeUnknown {
+		if !ok || scope == sdk.ScopeUnknown {
 			continue
 		}
-		model.MergePackageScope(dep, scope)
-		propagated[dep.ID] = model.MergeScope(propagated[dep.ID], scope)
+		sdk.MergePackageScope(dep, scope)
+		propagated[dep.ID] = sdk.MergeScope(propagated[dep.ID], scope)
 		queue = append(queue, dep)
 	}
 
@@ -417,7 +417,7 @@ func propagateScopesFromRootDependencies(depsGraph *model.Graph, rootID string, 
 		queue = queue[1:]
 
 		scope := propagated[current.ID]
-		if scope == model.ScopeUnknown {
+		if scope == sdk.ScopeUnknown {
 			continue
 		}
 
@@ -429,12 +429,12 @@ func propagateScopesFromRootDependencies(depsGraph *model.Graph, rootID string, 
 			if child == nil {
 				continue
 			}
-			nextScope := model.MergeScope(propagated[child.ID], scope)
-			if nextScope == propagated[child.ID] && model.Scope(child.Scope) == nextScope {
+			nextScope := sdk.MergeScope(propagated[child.ID], scope)
+			if nextScope == propagated[child.ID] && sdk.Scope(child.Scope) == nextScope {
 				continue
 			}
 			propagated[child.ID] = nextScope
-			model.MergePackageScope(child, nextScope)
+			sdk.MergePackageScope(child, nextScope)
 			queue = append(queue, child)
 		}
 	}
@@ -442,7 +442,7 @@ func propagateScopesFromRootDependencies(depsGraph *model.Graph, rootID string, 
 
 // ApplyDirectDependencyScopes annotates direct root dependencies and their
 // transitive dependencies with normalized scopes.
-func ApplyDirectDependencyScopes(depsGraph *model.Graph, rootID string, directScopes map[string]model.Scope) {
+func ApplyDirectDependencyScopes(depsGraph *sdk.Graph, rootID string, directScopes map[string]sdk.Scope) {
 	if depsGraph == nil || rootID == "" || len(directScopes) == 0 {
 		return
 	}
@@ -450,11 +450,11 @@ func ApplyDirectDependencyScopes(depsGraph *model.Graph, rootID string, directSc
 }
 
 // DirectDependencyScopes builds direct dependency scopes from package.json dependency maps.
-func DirectDependencyScopes(manifest PackageJSONManifest) map[string]model.Scope {
-	directScopes := make(map[string]model.Scope, len(manifest.Dependencies)+len(manifest.OptionalDependencies)+len(manifest.PeerDependencies)+len(manifest.DevDependencies))
-	recordDirectScopes(directScopes, manifest.Dependencies, model.ScopeRuntime)
-	recordDirectScopes(directScopes, manifest.OptionalDependencies, model.ScopeRuntime)
-	recordDirectScopes(directScopes, manifest.PeerDependencies, model.ScopeRuntime)
-	recordDirectScopes(directScopes, manifest.DevDependencies, model.ScopeDevelopment)
+func DirectDependencyScopes(manifest PackageJSONManifest) map[string]sdk.Scope {
+	directScopes := make(map[string]sdk.Scope, len(manifest.Dependencies)+len(manifest.OptionalDependencies)+len(manifest.PeerDependencies)+len(manifest.DevDependencies))
+	recordDirectScopes(directScopes, manifest.Dependencies, sdk.ScopeRuntime)
+	recordDirectScopes(directScopes, manifest.OptionalDependencies, sdk.ScopeRuntime)
+	recordDirectScopes(directScopes, manifest.PeerDependencies, sdk.ScopeRuntime)
+	recordDirectScopes(directScopes, manifest.DevDependencies, sdk.ScopeDevelopment)
 	return directScopes
 }

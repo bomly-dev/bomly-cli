@@ -14,7 +14,7 @@ import (
 	"time"
 
 	matchercache "github.com/bomly-dev/bomly-cli/internal/matchers/cache"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -105,12 +105,12 @@ func New(config Config) (*Checker, error) {
 }
 
 // Descriptor returns matcher registration metadata.
-func (c *Checker) Descriptor() model.MatcherDescriptor {
-	return model.MatcherDescriptor{
+func (c *Checker) Descriptor() sdk.MatcherDescriptor {
+	return sdk.MatcherDescriptor{
 		Name:           "eol-checker",
 		Enabled:        false,
-		Origin:         model.CoreOrigin,
-		SupportedModes: []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
+		Origin:         sdk.CoreOrigin,
+		SupportedModes: []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Priority:       80,
 		Required:       false,
 		Capabilities:   []string{"eol-enrichment", "http-cache"},
@@ -123,27 +123,27 @@ func (c *Checker) Ready() bool {
 }
 
 // Applicable reports whether the checker applies to the request.
-func (c *Checker) Applicable(_ context.Context, req model.MatchRequest) (bool, error) {
+func (c *Checker) Applicable(_ context.Context, req sdk.MatchRequest) (bool, error) {
 	return req.Graph != nil, nil
 }
 
 // Match enriches packages with EOL status metadata.
-func (c *Checker) Match(ctx context.Context, req model.MatchRequest) (model.MatchResult, error) {
+func (c *Checker) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
 	if req.Graph == nil {
 		c.logger.Debug("eol: skipped because graph is nil")
-		return model.MatchResult{Graph: req.Graph, Target: req.Target}, nil
+		return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, nil
 	}
 
 	packages := req.Graph.Packages()
-	if req.Mode == model.TargetModeComponent && req.Target != nil {
-		packages = []*model.Package{req.Target}
+	if req.Mode == sdk.TargetModeComponent && req.Target != nil {
+		packages = []*sdk.Package{req.Target}
 	}
 	c.logger.Info("eol: matcher invoked", zap.String("mode", string(req.Mode)), zap.Int("packages", len(packages)))
 
 	products, err := c.fetchProducts(ctx)
 	if err != nil {
 		c.logger.Warn("eol: failed to fetch products", zap.Error(err))
-		return model.MatchResult{Graph: req.Graph, Target: req.Target}, err
+		return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, err
 	}
 
 	enrichedCount := 0
@@ -182,7 +182,7 @@ func (c *Checker) Match(ctx context.Context, req model.MatchRequest) (model.Matc
 		zap.Int("cycle_errors", cycleErrorCount),
 	)
 
-	return model.MatchResult{Graph: req.Graph, Target: req.Target}, nil
+	return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, nil
 }
 
 type dateOrBool struct {
@@ -299,7 +299,7 @@ func (c *Checker) fetchCycles(ctx context.Context, product string) ([]productCyc
 	return cycles, nil
 }
 
-func resolveProduct(pkg *model.Package, products map[string]struct{}) (string, bool) {
+func resolveProduct(pkg *sdk.Package, products map[string]struct{}) (string, bool) {
 	if pkg == nil || len(products) == 0 {
 		return "", false
 	}

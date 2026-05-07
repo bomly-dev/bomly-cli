@@ -13,7 +13,7 @@ import (
 	syftfile "github.com/anchore/syft/syft/file"
 	syftpkg "github.com/anchore/syft/syft/pkg"
 	syftsbom "github.com/anchore/syft/syft/sbom"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestDetectorApplicable(t *testing.T) {
@@ -23,7 +23,7 @@ func TestDetectorApplicable(t *testing.T) {
 	}
 
 	detector := Detector{}
-	applicable, err := detector.Applicable(context.Background(), model.DetectionRequest{ProjectPath: projectDir, PackageManager: model.PackageManagerNPM})
+	applicable, err := detector.Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir, PackageManager: sdk.PackageManagerNPM})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -34,7 +34,7 @@ func TestDetectorApplicable(t *testing.T) {
 
 func TestDetectorApplicable_ReturnsFalseWithoutNPMManifest(t *testing.T) {
 	detector := Detector{}
-	applicable, err := detector.Applicable(context.Background(), model.DetectionRequest{ProjectPath: t.TempDir(), PackageManager: model.PackageManagerNPM})
+	applicable, err := detector.Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: t.TempDir(), PackageManager: sdk.PackageManagerNPM})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -50,7 +50,7 @@ func TestDetectorApplicable_PythonManifest(t *testing.T) {
 	}
 
 	detector := Detector{}
-	applicable, err := detector.Applicable(context.Background(), model.DetectionRequest{ProjectPath: projectDir, PackageManager: model.PackageManagerPoetry})
+	applicable, err := detector.Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir, PackageManager: sdk.PackageManagerPoetry})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -66,7 +66,7 @@ func TestDetectorApplicable_RustManifest(t *testing.T) {
 	}
 
 	detector := Detector{}
-	applicable, err := detector.Applicable(context.Background(), model.DetectionRequest{ProjectPath: projectDir, PackageManager: model.PackageManagerCargo})
+	applicable, err := detector.Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir, PackageManager: sdk.PackageManagerCargo})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -77,9 +77,9 @@ func TestDetectorApplicable_RustManifest(t *testing.T) {
 
 func TestDetectorApplicable_ContainerTarget(t *testing.T) {
 	detector := Detector{}
-	applicable, err := detector.Applicable(context.Background(), model.DetectionRequest{
-		ExecutionTarget: model.ExecutionTarget{Kind: model.ExecutionTargetContainerImage, Location: "alpine:3.20"},
-		PackageManager:  model.PackageManagerRPM,
+	applicable, err := detector.Applicable(context.Background(), sdk.DetectionRequest{
+		ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetContainerImage, Location: "alpine:3.20"},
+		PackageManager:  sdk.PackageManagerRPM,
 	})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
@@ -104,7 +104,7 @@ func TestDetectorDescriptor_AdvertisesDetectorEnrichment(t *testing.T) {
 }
 
 func TestSyftCommandArgs_AddsEnrichmentFlagsWhenRequested(t *testing.T) {
-	args := syftCommandArgs(".", model.DetectionRequest{EnrichmentEnabled: true})
+	args := syftCommandArgs(".", sdk.DetectionRequest{EnrichmentEnabled: true})
 	want := []string{".", "-o", "spdx-json", "--enrich", "golang", "--enrich", "java", "--enrich", "javascript", "--enrich", "python"}
 	if len(args) != len(want) {
 		t.Fatalf("expected %d args, got %d: %#v", len(want), len(args), args)
@@ -117,7 +117,7 @@ func TestSyftCommandArgs_AddsEnrichmentFlagsWhenRequested(t *testing.T) {
 }
 
 func TestSyftCommandArgs_AddsCatalogerSelectionWhenPackageManagerIsFiltered(t *testing.T) {
-	args := syftCommandArgs(".", model.DetectionRequest{PackageManager: model.PackageManagerNPM})
+	args := syftCommandArgs(".", sdk.DetectionRequest{PackageManager: sdk.PackageManagerNPM})
 	want := []string{".", "-o", "spdx-json", "--select-catalogers", "npm"}
 	if len(args) != len(want) {
 		t.Fatalf("expected %d args, got %d: %#v", len(want), len(args), args)
@@ -130,21 +130,21 @@ func TestSyftCommandArgs_AddsCatalogerSelectionWhenPackageManagerIsFiltered(t *t
 }
 
 func TestSyftCreateSBOMConfig_AddsCatalogerSelectionWhenEcosystemIsFiltered(t *testing.T) {
-	cfg := syftCreateSBOMConfig(model.DetectionRequest{Ecosystem: model.EcosystemPython})
+	cfg := syftCreateSBOMConfig(sdk.DetectionRequest{Ecosystem: sdk.EcosystemPython})
 	if got := cfg.CatalogerSelection.SubSelectTags; len(got) != 1 || got[0] != "python" {
 		t.Fatalf("expected python sub-selection tag, got %#v", got)
 	}
 }
 
 func TestSyftCreateSBOMConfig_LeavesCatalogersBroadWithoutFilter(t *testing.T) {
-	cfg := syftCreateSBOMConfig(model.DetectionRequest{})
+	cfg := syftCreateSBOMConfig(sdk.DetectionRequest{})
 	if !cfg.CatalogerSelection.IsEmpty() {
 		t.Fatalf("expected no cataloger selection without filter, got %#v", cfg.CatalogerSelection)
 	}
 }
 
 func TestSyftCreateSBOMConfig_EnablesOfflineSafeDetectorEnrichment(t *testing.T) {
-	cfg := syftCreateSBOMConfig(model.DetectionRequest{EnrichmentEnabled: true})
+	cfg := syftCreateSBOMConfig(sdk.DetectionRequest{EnrichmentEnabled: true})
 	if !cfg.Packages.Golang.SearchLocalModCacheLicenses {
 		t.Fatal("expected golang local mod cache license enrichment to be enabled")
 	}
@@ -174,7 +174,7 @@ func TestSyftSourceInput_UsesFileSourceForSingleFileTargets(t *testing.T) {
 		t.Fatalf("write Cargo.lock: %v", err)
 	}
 
-	target, mode, cfg := syftSourceInput(model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: projectFile}, projectFile)
+	target, mode, cfg := syftSourceInput(sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectFile}, projectFile)
 	if target != projectFile {
 		t.Fatalf("expected target %q, got %q", projectFile, target)
 	}
@@ -189,7 +189,7 @@ func TestSyftSourceInput_UsesFileSourceForSingleFileTargets(t *testing.T) {
 func TestSyftSourceInput_UsesDirectorySourceForFilesystemTargets(t *testing.T) {
 	projectDir := t.TempDir()
 
-	target, mode, cfg := syftSourceInput(model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: projectDir}, filepath.Join(projectDir, "package.json"))
+	target, mode, cfg := syftSourceInput(sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectDir}, filepath.Join(projectDir, "package.json"))
 	if target != projectDir {
 		t.Fatalf("expected directory target %q, got %q", projectDir, target)
 	}
@@ -202,7 +202,7 @@ func TestSyftSourceInput_UsesDirectorySourceForFilesystemTargets(t *testing.T) {
 }
 
 func TestSyftSourceInput_UsesContainerReferenceForContainerTargets(t *testing.T) {
-	target, mode, cfg := syftSourceInput(model.ExecutionTarget{Kind: model.ExecutionTargetContainerImage, Location: "alpine:3.20"}, t.TempDir())
+	target, mode, cfg := syftSourceInput(sdk.ExecutionTarget{Kind: sdk.ExecutionTargetContainerImage, Location: "alpine:3.20"}, t.TempDir())
 	if target != "alpine:3.20" {
 		t.Fatalf("expected container target, got %q", target)
 	}
@@ -336,7 +336,7 @@ func TestGraphContainerFromSyftSBOM_SplitsGraphsByManifestPath(t *testing.T) {
 		},
 	}
 
-	container, err := graphContainerFromSyftSBOM(s, model.PackageManagerNPM)
+	container, err := graphContainerFromSyftSBOM(s, sdk.PackageManagerNPM)
 	if err != nil {
 		t.Fatalf("graphContainerFromSyftSBOM() error = %v", err)
 	}
@@ -354,11 +354,11 @@ func TestDetectorResolveGraph_UsesSyftLibrary(t *testing.T) {
 	projectDir := writeNPMProject(t)
 
 	detector := Detector{WorkingDir: projectDir}
-	result, err := detector.ResolveGraph(context.Background(), model.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
 		ProjectPath:    projectDir,
-		PackageManager: model.PackageManagerNPM,
-		Mode:           model.TargetModeComponent,
-		Query:          model.DependencyQuery{Name: "react"},
+		PackageManager: sdk.PackageManagerNPM,
+		Mode:           sdk.TargetModeComponent,
+		Query:          sdk.DependencyQuery{Name: "react"},
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)

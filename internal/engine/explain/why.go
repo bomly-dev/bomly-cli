@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // ErrDependencyNotFound indicates the requested package was not found.
@@ -17,7 +17,7 @@ var ErrDependencyNotFound = errors.New("dependency not found")
 type Path = output.DependencyPath
 
 // FindWhy resolves a target package and returns all root-to-target paths.
-func FindWhy(deps *model.Graph, query string) (output.PackageRef, []Path, error) {
+func FindWhy(deps *sdk.Graph, query string) (output.PackageRef, []Path, error) {
 	target, paths, err := FindWhyPackage(deps, query)
 	if err != nil {
 		return output.PackageRef{}, nil, err
@@ -26,7 +26,7 @@ func FindWhy(deps *model.Graph, query string) (output.PackageRef, []Path, error)
 }
 
 // FindWhyPackage resolves a target package and returns the package plus all root-to-target paths.
-func FindWhyPackage(deps *model.Graph, query string) (*model.Package, []Path, error) {
+func FindWhyPackage(deps *sdk.Graph, query string) (*sdk.Package, []Path, error) {
 	target, err := resolveTarget(deps, query)
 	if err != nil {
 		return nil, nil, err
@@ -48,9 +48,9 @@ func FindWhyPackage(deps *model.Graph, query string) (*model.Package, []Path, er
 	return target, paths, nil
 }
 
-func resolveTarget(deps *model.Graph, query string) (*model.Package, error) {
-	var exact *model.Package
-	var matches []*model.Package
+func resolveTarget(deps *sdk.Graph, query string) (*sdk.Package, error) {
+	var exact *sdk.Package
+	var matches []*sdk.Package
 	for _, pkg := range deps.Packages() {
 		if pkg.ID == query {
 			exact = pkg
@@ -70,7 +70,7 @@ func resolveTarget(deps *model.Graph, query string) (*model.Package, error) {
 	return matches[0], nil
 }
 
-func toPath(packages []*model.Package, cyclic bool, cycleTo string) Path {
+func toPath(packages []*sdk.Package, cyclic bool, cycleTo string) Path {
 	refs := make([]output.PackageRef, 0, len(packages))
 	for _, pkg := range packages {
 		refs = append(refs, output.PackageFromGraphPackage(pkg))
@@ -99,8 +99,8 @@ func pathKey(path Path) string {
 
 // GraphFromPaths returns a focused subgraph of source containing only the
 // packages and edges that appear in the supplied explain paths.
-func GraphFromPaths(source *model.Graph, paths []Path) (*model.Graph, error) {
-	focused := model.New()
+func GraphFromPaths(source *sdk.Graph, paths []Path) (*sdk.Graph, error) {
+	focused := sdk.New()
 	if source == nil {
 		return focused, nil
 	}
@@ -128,7 +128,7 @@ func GraphFromPaths(source *model.Graph, paths []Path) (*model.Graph, error) {
 					return nil, err
 				}
 			}
-			if err := focused.AddDependency(parent.ID, pkg.ID); err != nil && !errors.Is(err, model.ErrCycleDetected) {
+			if err := focused.AddDependency(parent.ID, pkg.ID); err != nil && !errors.Is(err, sdk.ErrCycleDetected) {
 				return nil, err
 			}
 		}

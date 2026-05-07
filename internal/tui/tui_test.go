@@ -8,15 +8,15 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/engine/consolidation"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 func TestInteractiveManifestRows_OnlyIncludesManifests(t *testing.T) {
-	g := model.New()
-	root := model.NewPackageRef("demo-app", "1.0.0")
-	direct := model.NewPackageRef("react", "18.2.0")
-	transitive := model.NewPackageRef("loose-envify", "1.4.0")
+	g := sdk.New()
+	root := sdk.NewPackageRef("demo-app", "1.0.0")
+	direct := sdk.NewPackageRef("react", "18.2.0")
+	transitive := sdk.NewPackageRef("loose-envify", "1.4.0")
 	if err := g.AddPackage(root); err != nil {
 		t.Fatalf("add root: %v", err)
 	}
@@ -33,17 +33,17 @@ func TestInteractiveManifestRows_OnlyIncludesManifests(t *testing.T) {
 		t.Fatalf("add direct->transitive: %v", err)
 	}
 
-	consolidated := consolidatedForInteractive(t, []model.DetectionResult{{
-		SubprojectInfo: model.Subproject{
-			ExecutionTarget:         model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
 			RelativePath:            ".",
 			PrimaryDetector:         "npm-detector",
-			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
-			Ecosystem:               model.EcosystemNPM,
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       model.CoreOrigin,
-		Graphs:       engine.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		Origin:       sdk.CoreOrigin,
+		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	rows := manifestRows(consolidated)
 	if len(rows) != 1 {
@@ -58,9 +58,9 @@ func TestInteractiveManifestRows_OnlyIncludesManifests(t *testing.T) {
 }
 
 func TestInteractiveListModel_ViewIncludesDetails(t *testing.T) {
-	g := model.New()
-	root := model.NewPackageRef("demo-app", "1.0.0")
-	dep := model.NewPackage(model.Package{Name: "react", Version: "18.2.0", Scope: "runtime"})
+	g := sdk.New()
+	root := sdk.NewPackageRef("demo-app", "1.0.0")
+	dep := sdk.NewPackage(sdk.Package{Name: "react", Version: "18.2.0", Scope: "runtime"})
 	if err := g.AddPackage(root); err != nil {
 		t.Fatalf("add root: %v", err)
 	}
@@ -71,17 +71,17 @@ func TestInteractiveListModel_ViewIncludesDetails(t *testing.T) {
 		t.Fatalf("add dependency: %v", err)
 	}
 
-	consolidated := consolidatedForInteractive(t, []model.DetectionResult{{
-		SubprojectInfo: model.Subproject{
-			ExecutionTarget:         model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
 			RelativePath:            ".",
 			PrimaryDetector:         "npm-detector",
-			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
-			Ecosystem:               model.EcosystemNPM,
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       model.CoreOrigin,
-		Graphs:       engine.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		Origin:       sdk.CoreOrigin,
+		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {
@@ -157,9 +157,9 @@ func TestNewDiffInteractiveModel_ViewIncludesManifestChanges(t *testing.T) {
 }
 
 func TestNewScanInteractiveModel_ViewIncludesGraphSummary(t *testing.T) {
-	g := model.New()
-	root := model.NewPackageRef("demo-app", "1.0.0")
-	dep := model.NewPackage(model.Package{Name: "react", Version: "18.2.0", Scope: "runtime"})
+	g := sdk.New()
+	root := sdk.NewPackageRef("demo-app", "1.0.0")
+	dep := sdk.NewPackage(sdk.Package{Name: "react", Version: "18.2.0", Scope: "runtime"})
 	if err := g.AddPackage(root); err != nil {
 		t.Fatalf("add root: %v", err)
 	}
@@ -170,17 +170,17 @@ func TestNewScanInteractiveModel_ViewIncludesGraphSummary(t *testing.T) {
 		t.Fatalf("add dependency: %v", err)
 	}
 
-	consolidated := consolidatedForInteractive(t, []model.DetectionResult{{
-		SubprojectInfo: model.Subproject{
-			ExecutionTarget:         model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
 			RelativePath:            ".",
 			PrimaryDetector:         "npm-detector",
-			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
-			Ecosystem:               model.EcosystemNPM,
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       model.CoreOrigin,
-		Graphs:       engine.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		Origin:       sdk.CoreOrigin,
+		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {
@@ -208,19 +208,19 @@ func TestNewScanInteractiveModel_ViewIncludesGraphSummary(t *testing.T) {
 }
 
 func TestInteractivePackageDisplayName_IncludesScope(t *testing.T) {
-	pkg := model.NewPackage(model.Package{Name: "react", Version: "18.2.0", Scope: "runtime"})
+	pkg := sdk.NewPackage(sdk.Package{Name: "react", Version: "18.2.0", Scope: "runtime"})
 	if got := packageDisplayName(pkg); got != "react@18.2.0 [runtime]" {
 		t.Fatalf("expected scoped display name, got %q", got)
 	}
 }
 
 func TestScanInteractiveModel_MultiManifestNavigation(t *testing.T) {
-	g := model.New()
-	r1 := model.NewPackageRef("web-app", "1.0.0")
-	r2 := model.NewPackageRef("api", "2.0.0")
-	c1 := model.NewPackageRef("react", "18.2.0")
-	c2 := model.NewPackageRef("zod", "3.23.0")
-	for _, pkg := range []*model.Package{r1, r2, c1, c2} {
+	g := sdk.New()
+	r1 := sdk.NewPackageRef("web-app", "1.0.0")
+	r2 := sdk.NewPackageRef("api", "2.0.0")
+	c1 := sdk.NewPackageRef("react", "18.2.0")
+	c2 := sdk.NewPackageRef("zod", "3.23.0")
+	for _, pkg := range []*sdk.Package{r1, r2, c1, c2} {
 		if err := g.AddPackage(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
@@ -231,30 +231,30 @@ func TestScanInteractiveModel_MultiManifestNavigation(t *testing.T) {
 	if err := g.AddDependency(r2.ID, c2.ID); err != nil {
 		t.Fatalf("add dependency r2: %v", err)
 	}
-	consolidated := consolidatedForInteractive(t, []model.DetectionResult{
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{
 		{
-			SubprojectInfo: model.Subproject{
-				ExecutionTarget:         model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: "/tmp/multi"},
+			SubprojectInfo: sdk.Subproject{
+				ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/multi"},
 				RelativePath:            ".",
 				PrimaryDetector:         "maven-detector",
-				DetectedPackageManagers: []model.PackageManager{model.PackageManagerMaven},
-				Ecosystem:               model.EcosystemMaven,
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerMaven},
+				Ecosystem:               sdk.EcosystemMaven,
 			},
 			DetectorName: "maven-detector",
-			Origin:       model.CoreOrigin,
-			Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r1, c1), model.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}),
+			Origin:       sdk.CoreOrigin,
+			Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r1, c1), sdk.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}),
 		},
 		{
-			SubprojectInfo: model.Subproject{
-				ExecutionTarget:         model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: "/tmp/multi"},
+			SubprojectInfo: sdk.Subproject{
+				ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/multi"},
 				RelativePath:            ".",
 				PrimaryDetector:         "npm-detector",
-				DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
-				Ecosystem:               model.EcosystemNPM,
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+				Ecosystem:               sdk.EcosystemNPM,
 			},
 			DetectorName: "npm-detector",
-			Origin:       model.CoreOrigin,
-			Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r2, c2), model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+			Origin:       sdk.CoreOrigin,
+			Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r2, c2), sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 		},
 	})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
@@ -284,10 +284,10 @@ func TestScanInteractiveModel_MultiManifestNavigation(t *testing.T) {
 }
 
 func TestScanInteractiveModel_SingleManifestAutoEntry_NoBackNavigation(t *testing.T) {
-	g := model.New()
-	r1 := model.NewPackageRef("web-app", "1.0.0")
-	c1 := model.NewPackageRef("react", "18.2.0")
-	for _, pkg := range []*model.Package{r1, c1} {
+	g := sdk.New()
+	r1 := sdk.NewPackageRef("web-app", "1.0.0")
+	c1 := sdk.NewPackageRef("react", "18.2.0")
+	for _, pkg := range []*sdk.Package{r1, c1} {
 		if err := g.AddPackage(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
@@ -295,17 +295,17 @@ func TestScanInteractiveModel_SingleManifestAutoEntry_NoBackNavigation(t *testin
 	if err := g.AddDependency(r1.ID, c1.ID); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
-	consolidated := consolidatedForInteractive(t, []model.DetectionResult{{
-		SubprojectInfo: model.Subproject{
-			ExecutionTarget:         model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: "/tmp/single"},
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/single"},
 			RelativePath:            ".",
 			PrimaryDetector:         "maven-detector",
-			DetectedPackageManagers: []model.PackageManager{model.PackageManagerMaven},
-			Ecosystem:               model.EcosystemMaven,
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerMaven},
+			Ecosystem:               sdk.EcosystemMaven,
 		},
 		DetectorName: "maven-detector",
-		Origin:       model.CoreOrigin,
-		Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r1, c1), model.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}),
+		Origin:       sdk.CoreOrigin,
+		Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r1, c1), sdk.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {
@@ -326,10 +326,10 @@ func TestScanInteractiveModel_SingleManifestAutoEntry_NoBackNavigation(t *testin
 	}
 }
 
-func graphFixtureForInteractive(t *testing.T, root, dep *model.Package) *model.Graph {
+func graphFixtureForInteractive(t *testing.T, root, dep *sdk.Package) *sdk.Graph {
 	t.Helper()
-	g := model.New()
-	for _, pkg := range []*model.Package{root, dep} {
+	g := sdk.New()
+	for _, pkg := range []*sdk.Package{root, dep} {
 		if err := g.AddPackage(pkg.Clone()); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
@@ -340,7 +340,7 @@ func graphFixtureForInteractive(t *testing.T, root, dep *model.Package) *model.G
 	return g
 }
 
-func consolidatedForInteractive(t *testing.T, results []model.DetectionResult) model.ConsolidatedGraph {
+func consolidatedForInteractive(t *testing.T, results []sdk.DetectionResult) sdk.ConsolidatedGraph {
 	t.Helper()
 	consolidated, err := consolidation.ConsolidateGraphs(results)
 	if err != nil {
@@ -626,11 +626,11 @@ func TestInteractiveListModel_HelpWrapsAcrossMultipleLines(t *testing.T) {
 }
 
 func TestScanInteractiveModel_FiltersAndScopeBadges(t *testing.T) {
-	g := model.New()
-	root := model.NewPackageRef("demo-app", "1.0.0")
-	runtimeDep := model.NewPackage(model.Package{Name: "react", Version: "18.2.0", Scope: "runtime"})
-	devDep := model.NewPackage(model.Package{Name: "vitest", Version: "2.0.0", Scope: "development"})
-	for _, pkg := range []*model.Package{root, runtimeDep, devDep} {
+	g := sdk.New()
+	root := sdk.NewPackageRef("demo-app", "1.0.0")
+	runtimeDep := sdk.NewPackage(sdk.Package{Name: "react", Version: "18.2.0", Scope: "runtime"})
+	devDep := sdk.NewPackage(sdk.Package{Name: "vitest", Version: "2.0.0", Scope: "development"})
+	for _, pkg := range []*sdk.Package{root, runtimeDep, devDep} {
 		if err := g.AddPackage(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
@@ -642,17 +642,17 @@ func TestScanInteractiveModel_FiltersAndScopeBadges(t *testing.T) {
 		t.Fatalf("add dependency development: %v", err)
 	}
 
-	consolidated := consolidatedForInteractive(t, []model.DetectionResult{{
-		SubprojectInfo: model.Subproject{
-			ExecutionTarget:         model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
 			RelativePath:            ".",
 			PrimaryDetector:         "npm-detector",
-			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
-			Ecosystem:               model.EcosystemNPM,
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       model.CoreOrigin,
-		Graphs:       engine.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		Origin:       sdk.CoreOrigin,
+		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {
@@ -767,21 +767,21 @@ func TestInteractiveListModel_SearchIgnoresDependencyDetailText(t *testing.T) {
 }
 
 func TestBuildLicensesListModel_GroupsByUniqueLicense(t *testing.T) {
-	g := model.New()
-	app := model.NewPackageRef("demo-app", "1.0.0")
-	react := model.NewPackage(model.Package{
+	g := sdk.New()
+	app := sdk.NewPackageRef("demo-app", "1.0.0")
+	react := sdk.NewPackage(sdk.Package{
 		Name:     "react",
 		Version:  "18.2.0",
 		Scope:    "runtime",
-		Licenses: []model.PackageLicense{{Value: "MIT"}},
+		Licenses: []sdk.PackageLicense{{Value: "MIT"}},
 	})
-	vite := model.NewPackage(model.Package{
+	vite := sdk.NewPackage(sdk.Package{
 		Name:     "vite",
 		Version:  "5.4.0",
 		Scope:    "development",
-		Licenses: []model.PackageLicense{{Value: "MIT"}, {Value: "Apache-2.0"}},
+		Licenses: []sdk.PackageLicense{{Value: "MIT"}, {Value: "Apache-2.0"}},
 	})
-	for _, pkg := range []*model.Package{app, react, vite} {
+	for _, pkg := range []*sdk.Package{app, react, vite} {
 		if err := g.AddPackage(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
@@ -793,17 +793,17 @@ func TestBuildLicensesListModel_GroupsByUniqueLicense(t *testing.T) {
 		t.Fatalf("add vite dependency: %v", err)
 	}
 
-	consolidated := consolidatedForInteractive(t, []model.DetectionResult{{
-		SubprojectInfo: model.Subproject{
-			ExecutionTarget:         model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
 			RelativePath:            ".",
 			PrimaryDetector:         "npm-detector",
-			DetectedPackageManagers: []model.PackageManager{model.PackageManagerNPM},
-			Ecosystem:               model.EcosystemNPM,
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       model.CoreOrigin,
-		Graphs:       engine.SingleGraphContainer(g, model.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		Origin:       sdk.CoreOrigin,
+		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {

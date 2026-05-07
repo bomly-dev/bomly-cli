@@ -17,7 +17,7 @@ import (
 	grypepkg "github.com/anchore/grype/grype/pkg"
 	syftPkg "github.com/anchore/syft/syft/pkg"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -25,10 +25,10 @@ import (
 var clioID = grypeclio.Identification{Name: "grype"}
 
 // Match attaches Grype vulnerability matches to packages in the graph.
-func (a Matcher) Match(_ context.Context, req model.MatchRequest) (model.MatchResult, error) {
+func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
 	started := time.Now()
 	if req.Graph == nil {
-		return model.MatchResult{}, nil
+		return sdk.MatchResult{}, nil
 	}
 
 	logger := a.logger()
@@ -55,15 +55,15 @@ func (a Matcher) Match(_ context.Context, req model.MatchRequest) (model.MatchRe
 		if needsDownload {
 			action = "downloading"
 		}
-		return model.MatchResult{Graph: req.Graph, Target: req.Target}, fmt.Errorf("grype vulnerability DB %s failed: %w", action, err)
+		return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, fmt.Errorf("grype vulnerability DB %s failed: %w", action, err)
 	}
 	if status != nil {
 		logger.Debug(fmt.Sprintf("Grype vulnerability DB loaded, built at %s", status.Built))
 	}
 
 	packages := req.Graph.Packages()
-	if req.Mode == model.TargetModeComponent && req.Target != nil {
-		packages = []*model.Package{req.Target}
+	if req.Mode == sdk.TargetModeComponent && req.Target != nil {
+		packages = []*sdk.Package{req.Target}
 	}
 	logger.Info(fmt.Sprintf("Grype enriching %d packages with vulnerability data", len(packages)))
 	grypePkgs := make([]grypepkg.Package, 0, len(packages))
@@ -82,18 +82,18 @@ func (a Matcher) Match(_ context.Context, req model.MatchRequest) (model.MatchRe
 
 	matches, _, err := vm.FindMatches(grypePkgs, grypepkg.Context{})
 	if err != nil {
-		return model.MatchResult{}, fmt.Errorf("grype: find matches: %w", err)
+		return sdk.MatchResult{}, fmt.Errorf("grype: find matches: %w", err)
 	}
 
 	applyMatches(matches, req.Graph)
 	logger.Info(fmt.Sprintf("Grype enrichment matched vulnerabilities in %s", logging.FormatDuration(time.Since(started))))
-	return model.MatchResult{
+	return sdk.MatchResult{
 		Graph:  req.Graph,
 		Target: req.Target,
 	}, nil
 }
 
-func graphPkgToGrypePkg(p *model.Package) grypepkg.Package {
+func graphPkgToGrypePkg(p *sdk.Package) grypepkg.Package {
 	return grypepkg.Package{
 		ID:       grypepkg.ID(p.ID),
 		Name:     p.Name,
@@ -181,12 +181,12 @@ func ecosystemToSyftLanguage(ecosystem string) syftPkg.Language {
 }
 
 // applyMatches converts Grype match results into first-class package vulnerability enrichment.
-func applyMatches(matches *grypematch.Matches, g *model.Graph) {
+func applyMatches(matches *grypematch.Matches, g *sdk.Graph) {
 	if matches == nil {
 		return
 	}
 
-	pkgByID := make(map[grypepkg.ID]*model.Package)
+	pkgByID := make(map[grypepkg.ID]*sdk.Package)
 	for _, p := range g.Packages() {
 		pkgByID[grypepkg.ID(p.ID)] = p
 	}
@@ -206,7 +206,7 @@ func applyMatches(matches *grypematch.Matches, g *model.Graph) {
 
 		graphPkg := pkgByID[m.Package.ID]
 		if graphPkg == nil {
-			graphPkg = &model.Package{
+			graphPkg = &sdk.Package{
 				ID:      string(m.Package.ID),
 				Name:    m.Package.Name,
 				Version: m.Package.Version,
@@ -220,7 +220,7 @@ func applyMatches(matches *grypematch.Matches, g *model.Graph) {
 		}
 
 		graphPkg.Matched = true
-		graphPkg.Vulnerabilities = appendUniqueVulnerability(graphPkg.Vulnerabilities, model.PackageVulnerability{
+		graphPkg.Vulnerabilities = appendUniqueVulnerability(graphPkg.Vulnerabilities, sdk.PackageVulnerability{
 			ID:          vuln.ID,
 			Title:       title,
 			Severity:    severity,

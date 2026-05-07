@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/registry"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // RenderSupportMatrixMarkdown renders the canonical markdown support matrix document.
@@ -61,7 +61,7 @@ func WriteSupportMatrix(outputPath string) error {
 }
 
 type groupedEntry struct {
-	ecosystem        model.Ecosystem
+	ecosystem        sdk.Ecosystem
 	managers         []string
 	patterns         []string
 	primaryPatterns  []string
@@ -71,7 +71,7 @@ type groupedEntry struct {
 // groupedNativeEntries reports the first Bomly-owned detector in each built-in
 // package-manager chain and, when present, the next Bomly-owned fallback.
 func groupedNativeEntries() []groupedEntry {
-	indexByEcosystem := make(map[model.Ecosystem]int)
+	indexByEcosystem := make(map[sdk.Ecosystem]int)
 	result := make([]groupedEntry, 0)
 	for _, entry := range registry.SupportEntries() {
 		primary, fallback := firstBuiltInDetectorPair(entry.Detectors)
@@ -101,7 +101,7 @@ func groupedNativeEntries() []groupedEntry {
 func firstBuiltInDetectorPair(detectors []string) (string, string) {
 	primary := ""
 	for _, detector := range detectors {
-		if registry.DetectorOriginForName(detector) == model.CoreOrigin {
+		if registry.DetectorOriginForName(detector) == sdk.CoreOrigin {
 			if primary == "" {
 				primary = detector
 				continue
@@ -113,9 +113,9 @@ func firstBuiltInDetectorPair(detectors []string) (string, string) {
 }
 
 func groupedMultipleTechniqueEntries() []groupedEntry {
-	indexByEcosystem := make(map[model.Ecosystem]int)
+	indexByEcosystem := make(map[sdk.Ecosystem]int)
 	result := make([]groupedEntry, 0)
-	for _, entry := range registry.SupportEntriesForTechnique(model.MultipleTechnique) {
+	for _, entry := range registry.SupportEntriesForTechnique(sdk.MultipleTechnique) {
 		idx, ok := indexByEcosystem[entry.Ecosystem]
 		if !ok {
 			idx = len(result)
@@ -163,17 +163,17 @@ func codeListOrDash(values []string) string {
 	return codeList(values)
 }
 
-func nativeDetectorLabel(ecosystem model.Ecosystem) string {
+func nativeDetectorLabel(ecosystem sdk.Ecosystem) string {
 	switch ecosystem {
-	case model.EcosystemNPM:
+	case sdk.EcosystemNPM:
 		return "Native Node detectors"
-	case model.EcosystemMaven:
+	case sdk.EcosystemMaven:
 		return "Native Maven and Gradle detectors"
-	case model.EcosystemGo:
+	case sdk.EcosystemGo:
 		return "Native Go detector"
-	case model.EcosystemPython:
+	case sdk.EcosystemPython:
 		return "Native Python detectors"
-	case model.EcosystemSBOM:
+	case sdk.EcosystemSBOM:
 		return "Native SBOM detector"
 	default:
 		return "Native detector"

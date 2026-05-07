@@ -6,11 +6,11 @@ import (
 	"sort"
 	"strings"
 
-	err2 "github.com/bomly-dev/bomly-cli/internal/cli/exit"
+	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	"github.com/bomly-dev/bomly-cli/internal/selector"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 type detectorOptionRow struct {
@@ -140,32 +140,32 @@ func buildEcosystemSelectorCatalog() selector.Catalog {
 	}
 }
 
-func resolveEcosystemFilter(raw string) (model.EcosystemFilter, error) {
+func resolveEcosystemFilter(raw string) (sdk.EcosystemFilter, error) {
 	catalog := buildEcosystemSelectorCatalog()
 	defaults := append([]string(nil), catalog.Available...)
 	includeNames, excludeNames, err := resolveSelector(raw, defaults, catalog, true)
 	if err != nil {
-		return model.EcosystemFilter{}, err
+		return sdk.EcosystemFilter{}, err
 	}
 	include, err := ecosystemStringSliceToValues(includeNames)
 	if err != nil {
-		return model.EcosystemFilter{}, err
+		return sdk.EcosystemFilter{}, err
 	}
 	exclude, err := ecosystemStringSliceToValues(excludeNames)
 	if err != nil {
-		return model.EcosystemFilter{}, err
+		return sdk.EcosystemFilter{}, err
 	}
-	return model.EcosystemFilter{Include: include, Exclude: exclude}, nil
+	return sdk.EcosystemFilter{Include: include, Exclude: exclude}, nil
 }
 
-func ecosystemStringSliceToValues(items []string) ([]model.Ecosystem, error) {
+func ecosystemStringSliceToValues(items []string) ([]sdk.Ecosystem, error) {
 	if len(items) == 0 {
 		return nil, nil
 	}
-	values := make([]model.Ecosystem, 0, len(items))
-	seen := make(map[model.Ecosystem]struct{}, len(items))
+	values := make([]sdk.Ecosystem, 0, len(items))
+	seen := make(map[sdk.Ecosystem]struct{}, len(items))
 	for _, name := range items {
-		eco, err := model.ParseEcosystem(name)
+		eco, err := sdk.ParseEcosystem(name)
 		if err != nil {
 			return nil, err
 		}
@@ -261,7 +261,7 @@ func resolveSelector(raw string, defaults []string, catalog selector.Catalog, im
 	}
 	var unknown *selector.UnknownSelectorError
 	if errors.As(err, &unknown) {
-		return nil, nil, err2.InvalidInputError(
+		return nil, nil, exit.InvalidInputError(
 			"unknown %s selector(s): %s\navailable %ss: %s\nrun `bomly scan --help` for full selector details",
 			unknown.Kind,
 			strings.Join(unknown.Unknown, ", "),
@@ -272,43 +272,43 @@ func resolveSelector(raw string, defaults []string, catalog selector.Catalog, im
 	return nil, nil, err
 }
 
-func resolveDetectorFilter(raw string, reg *engine.Registry) (model.DetectorFilter, error) {
+func resolveDetectorFilter(raw string, reg *engine.Registry) (sdk.DetectorFilter, error) {
 	catalog := buildDetectorSelectorCatalog(reg)
 	defaultSet := defaultEnabledDetectorNames(reg)
 	include, exclude, err := resolveSelector(raw, defaultSet, catalog, true)
 	if err != nil {
-		return model.DetectorFilter{}, err
+		return sdk.DetectorFilter{}, err
 	}
-	return model.DetectorFilter{Include: include, Exclude: exclude}, nil
+	return sdk.DetectorFilter{Include: include, Exclude: exclude}, nil
 }
 
-func ResolveAuditorFilter(raw string, reg *engine.Registry) (model.AuditorFilter, error) {
+func ResolveAuditorFilter(raw string, reg *engine.Registry) (sdk.AuditorFilter, error) {
 	if strings.TrimSpace(raw) == "" {
-		return model.AuditorFilter{}, nil
+		return sdk.AuditorFilter{}, nil
 	}
 	catalog := buildAuditorSelectorCatalog(reg)
 	defaultSet := defaultEnabledAuditorNames(reg)
 	include, exclude, err := resolveSelector(raw, defaultSet, catalog, false)
 	if err != nil {
-		return model.AuditorFilter{}, err
+		return sdk.AuditorFilter{}, err
 	}
-	return model.AuditorFilter{Include: include, Exclude: exclude}, nil
+	return sdk.AuditorFilter{Include: include, Exclude: exclude}, nil
 }
 
-func ResolveMatcherFilter(raw string, reg *engine.Registry) (model.MatcherFilter, error) {
+func ResolveMatcherFilter(raw string, reg *engine.Registry) (sdk.MatcherFilter, error) {
 	if strings.TrimSpace(raw) == "" {
-		return model.MatcherFilter{}, nil
+		return sdk.MatcherFilter{}, nil
 	}
 	catalog := buildMatcherSelectorCatalog(reg)
 	defaultSet := defaultEnabledMatcherNames(reg)
 	include, exclude, err := resolveSelector(raw, defaultSet, catalog, false)
 	if err != nil {
-		return model.MatcherFilter{}, err
+		return sdk.MatcherFilter{}, err
 	}
-	return model.MatcherFilter{Include: include, Exclude: exclude}, nil
+	return sdk.MatcherFilter{Include: include, Exclude: exclude}, nil
 }
 
-func resolveMatcherFilter(raw string, reg *engine.Registry) (model.MatcherFilter, error) {
+func resolveMatcherFilter(raw string, reg *engine.Registry) (sdk.MatcherFilter, error) {
 	return ResolveMatcherFilter(raw, reg)
 }
 
@@ -322,7 +322,7 @@ func filterAllowsName(include, exclude []string, name string) bool {
 	return true
 }
 
-func selectedDetectorNames(filter model.DetectorFilter, reg *engine.Registry) []string {
+func selectedDetectorNames(filter sdk.DetectorFilter, reg *engine.Registry) []string {
 	names := make([]string, 0)
 	for _, descriptor := range reg.DetectorDescriptors() {
 		if descriptor.Name == "" {

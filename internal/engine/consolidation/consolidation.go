@@ -5,19 +5,19 @@ import (
 	"fmt"
 	"strings"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // ConsolidateGraphs merges resolved subproject graph containers while preserving manifest roots.
-func ConsolidateGraphs(results []model.DetectionResult) (model.ConsolidatedGraph, error) {
-	consolidated := model.ConsolidatedGraph{
-		Graphs:      &model.GraphContainer{},
-		Manifests:   make([]model.ConsolidatedManifest, 0, len(results)),
-		Subprojects: make([]model.ConsolidatedSubproject, 0, len(results)),
+func ConsolidateGraphs(results []sdk.DetectionResult) (sdk.ConsolidatedGraph, error) {
+	consolidated := sdk.ConsolidatedGraph{
+		Graphs:      &sdk.GraphContainer{},
+		Manifests:   make([]sdk.ConsolidatedManifest, 0, len(results)),
+		Subprojects: make([]sdk.ConsolidatedSubproject, 0, len(results)),
 	}
 	selectedTarget, selectedManifests, err := selectManifestEntries(results)
 	if err != nil {
-		return model.ConsolidatedGraph{}, err
+		return sdk.ConsolidatedGraph{}, err
 	}
 	consolidated.ExecutionTarget = selectedTarget
 	consolidated.Manifests = selectedManifests
@@ -30,7 +30,7 @@ func ConsolidateGraphs(results []model.DetectionResult) (model.ConsolidatedGraph
 		idx, exists := subprojectIndex[subprojectKey]
 		if !exists {
 			subprojectIndex[subprojectKey] = len(consolidated.Subprojects)
-			consolidated.Subprojects = append(consolidated.Subprojects, model.ConsolidatedSubproject{
+			consolidated.Subprojects = append(consolidated.Subprojects, sdk.ConsolidatedSubproject{
 				Subproject:      selected.Subproject,
 				DetectorName:    selected.DetectorName,
 				RootManifestIDs: []string{selected.RootManifestID},
@@ -43,17 +43,17 @@ func ConsolidateGraphs(results []model.DetectionResult) (model.ConsolidatedGraph
 }
 
 type consolidatedEntryCandidate struct {
-	entry          model.GraphEntry
-	subproject     model.Subproject
+	entry          sdk.GraphEntry
+	subproject     sdk.Subproject
 	detectorName   string
-	origin         model.DetectorOrigin
-	technique      model.DetectorTechnique
+	origin         sdk.DetectorOrigin
+	technique      sdk.DetectorTechnique
 	rootManifestID string
 	priority       int
 }
 
-func selectManifestEntries(results []model.DetectionResult) (model.ExecutionTarget, []model.ConsolidatedManifest, error) {
-	var executionTarget model.ExecutionTarget
+func selectManifestEntries(results []sdk.DetectionResult) (sdk.ExecutionTarget, []sdk.ConsolidatedManifest, error) {
+	var executionTarget sdk.ExecutionTarget
 	selectedEntries := make([]consolidatedEntryCandidate, 0)
 	entryIndexByManifest := make(map[string]int)
 	for _, result := range results {
@@ -67,24 +67,24 @@ func selectManifestEntries(results []model.DetectionResult) (model.ExecutionTarg
 		if executionTarget.Kind == "" {
 			executionTarget = candidateTarget
 		} else if executionTarget != candidateTarget {
-			return model.ExecutionTarget{}, nil, fmt.Errorf("cannot consolidate graphs from multiple execution targets")
+			return sdk.ExecutionTarget{}, nil, fmt.Errorf("cannot consolidate graphs from multiple execution targets")
 		}
 
 		for idx, entry := range result.Graphs.Entries {
 			if err := validateGraphEntry(entry); err != nil {
-				return model.ExecutionTarget{}, nil, fmt.Errorf("subproject %s entry %d: %w", result.SubprojectInfo.RelativePath, idx, err)
+				return sdk.ExecutionTarget{}, nil, fmt.Errorf("subproject %s entry %d: %w", result.SubprojectInfo.RelativePath, idx, err)
 			}
 
 			normalizedGraph, err := normalizeGraphPackageIdentity(entry.Graph)
 			if err != nil {
-				return model.ExecutionTarget{}, nil, fmt.Errorf("normalize graph identity for %s entry %d: %w", result.SubprojectInfo.RelativePath, idx, err)
+				return sdk.ExecutionTarget{}, nil, fmt.Errorf("normalize graph identity for %s entry %d: %w", result.SubprojectInfo.RelativePath, idx, err)
 			}
 			manifest := normalizeSubprojectManifest(result.SubprojectInfo, entry.Manifest, idx, result.Origin, result.Technique)
 			if err := ensureEntryRoot(normalizedGraph, manifest, idx); err != nil {
-				return model.ExecutionTarget{}, nil, fmt.Errorf("ensure entry root for %s entry %d: %w", result.SubprojectInfo.RelativePath, idx, err)
+				return sdk.ExecutionTarget{}, nil, fmt.Errorf("ensure entry root for %s entry %d: %w", result.SubprojectInfo.RelativePath, idx, err)
 			}
 			candidate := consolidatedEntryCandidate{
-				entry: model.GraphEntry{
+				entry: sdk.GraphEntry{
 					Graph:    normalizedGraph,
 					Manifest: manifest,
 				},
@@ -110,9 +110,9 @@ func selectManifestEntries(results []model.DetectionResult) (model.ExecutionTarg
 		}
 	}
 
-	selectedManifests := make([]model.ConsolidatedManifest, 0, len(selectedEntries))
+	selectedManifests := make([]sdk.ConsolidatedManifest, 0, len(selectedEntries))
 	for _, selected := range selectedEntries {
-		selectedManifests = append(selectedManifests, model.ConsolidatedManifest{
+		selectedManifests = append(selectedManifests, sdk.ConsolidatedManifest{
 			Entry:          selected.entry,
 			Subproject:     selected.subproject,
 			DetectorName:   selected.detectorName,
@@ -124,7 +124,7 @@ func selectManifestEntries(results []model.DetectionResult) (model.ExecutionTarg
 	return executionTarget, selectedManifests, nil
 }
 
-func normalizeSubprojectManifest(subproject model.Subproject, manifest model.ManifestMetadata, idx int, origin model.DetectorOrigin, technique model.DetectorTechnique) model.ManifestMetadata {
+func normalizeSubprojectManifest(subproject sdk.Subproject, manifest sdk.ManifestMetadata, idx int, origin sdk.DetectorOrigin, technique sdk.DetectorTechnique) sdk.ManifestMetadata {
 	if strings.TrimSpace(manifest.Path) == "" {
 		manifest.Path = subprojectManifestPath(subproject, idx)
 	}
@@ -146,27 +146,27 @@ func normalizeSubprojectManifest(subproject model.Subproject, manifest model.Man
 // 0. External detectors
 // 1. Core detectors (Bomly-native implementations)
 // 2. Bundled third-party detectors (e.g. Syft fallback)
-func ManifestDedupPriority(origin model.DetectorOrigin, technique model.DetectorTechnique) int {
+func ManifestDedupPriority(origin sdk.DetectorOrigin, technique sdk.DetectorTechnique) int {
 	switch origin {
-	case model.ExternalOrigin:
+	case sdk.ExternalOrigin:
 		return 0
-	case model.CoreOrigin:
+	case sdk.CoreOrigin:
 		return 1
-	case model.BundledOrigin:
+	case sdk.BundledOrigin:
 		return 2
 	}
 	return 3
 }
 
-func isCoreDetector(origin model.DetectorOrigin) bool {
-	return origin == model.CoreOrigin
+func isCoreDetector(origin sdk.DetectorOrigin) bool {
+	return origin == sdk.CoreOrigin
 }
 
-func consolidatedSubprojectKey(subproject model.Subproject, detectorName string) string {
+func consolidatedSubprojectKey(subproject sdk.Subproject, detectorName string) string {
 	return strings.Join([]string{subproject.RelativePath, subproject.PrimaryPackageManager().Name(), detectorName, subproject.ExecutionTarget.Location}, "::")
 }
 
-func subprojectManifestPath(subproject model.Subproject, idx int) string {
+func subprojectManifestPath(subproject sdk.Subproject, idx int) string {
 	label := strings.TrimSpace(subproject.RelativePath)
 	if label == "" || label == "." {
 		label = strings.TrimSpace(subproject.ExecutionTarget.Location)
@@ -177,7 +177,7 @@ func subprojectManifestPath(subproject model.Subproject, idx int) string {
 	return strings.ReplaceAll(label, "\\", "/")
 }
 
-func validateGraphEntry(entry model.GraphEntry) error {
+func validateGraphEntry(entry sdk.GraphEntry) error {
 	if entry.Graph == nil {
 		return errors.New("graph entry graph is nil")
 	}

@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestDepGraphFromMavenTGF(t *testing.T) {
@@ -113,7 +113,7 @@ func TestNodeFromMavenCoords_WithClassifier(t *testing.T) {
 	if node.ID != "com.example:demo-artifact:sources@1.0.0" {
 		t.Fatalf("unexpected package id %q", node.ID)
 	}
-	if node.Scope != string(model.ScopeDevelopment) {
+	if node.Scope != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected development scope, got %q", node.Scope)
 	}
 }
@@ -125,7 +125,7 @@ func TestMavenDetectorApplicable(t *testing.T) {
 	}
 
 	detector := Detector{WorkingDir: projectDir}
-	applicable, err := detector.Applicable(context.Background(), model.DetectionRequest{ProjectPath: projectDir})
+	applicable, err := detector.Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}

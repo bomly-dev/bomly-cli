@@ -3,7 +3,7 @@ package engine
 import (
 	"strings"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // unwrapJoinedErrors splits an error returned by errors.Join into its parts.
@@ -46,17 +46,17 @@ func parseWarningSource(text, prefix string) (source, message string) {
 }
 
 // filterResultsByScope applies scope filtering to each graph entry in the results.
-func filterResultsByScope(results []model.DetectionResult, scope model.Scope) ([]model.DetectionResult, error) {
-	if scope == model.ScopeUnknown {
+func filterResultsByScope(results []sdk.DetectionResult, scope sdk.Scope) ([]sdk.DetectionResult, error) {
+	if scope == sdk.ScopeUnknown {
 		return results, nil
 	}
-	filtered := make([]model.DetectionResult, 0, len(results))
+	filtered := make([]sdk.DetectionResult, 0, len(results))
 	for _, result := range results {
 		if result.Graphs == nil {
 			filtered = append(filtered, result)
 			continue
 		}
-		entries := make([]model.GraphEntry, 0, len(result.Graphs.Entries))
+		entries := make([]sdk.GraphEntry, 0, len(result.Graphs.Entries))
 		for _, entry := range result.Graphs.Entries {
 			if entry.Graph == nil {
 				entries = append(entries, entry)
@@ -66,9 +66,9 @@ func filterResultsByScope(results []model.DetectionResult, scope model.Scope) ([
 			if err != nil {
 				return nil, err
 			}
-			entries = append(entries, model.GraphEntry{Graph: graphView, Manifest: entry.Manifest})
+			entries = append(entries, sdk.GraphEntry{Graph: graphView, Manifest: entry.Manifest})
 		}
-		result.Graphs = &model.GraphContainer{Entries: entries}
+		result.Graphs = &sdk.GraphContainer{Entries: entries}
 		filtered = append(filtered, result)
 	}
 	return filtered, nil

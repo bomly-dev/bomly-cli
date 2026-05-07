@@ -10,12 +10,12 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestVersionRequestFromPackage(t *testing.T) {
 	t.Run("npm scoped package", func(t *testing.T) {
-		req, _, ok := versionRequestFromPackage(&model.Package{
+		req, _, ok := versionRequestFromPackage(&sdk.Package{
 			Ecosystem: "npm",
 			Org:       "@types",
 			Name:      "node",
@@ -30,7 +30,7 @@ func TestVersionRequestFromPackage(t *testing.T) {
 	})
 
 	t.Run("maven from purl", func(t *testing.T) {
-		req, _, ok := versionRequestFromPackage(&model.Package{
+		req, _, ok := versionRequestFromPackage(&sdk.Package{
 			PURL:    "pkg:maven/org.slf4j/slf4j-api@2.0.13",
 			Version: "2.0.13",
 		})
@@ -43,7 +43,7 @@ func TestVersionRequestFromPackage(t *testing.T) {
 	})
 
 	t.Run("unsupported ecosystem", func(t *testing.T) {
-		if _, _, ok := versionRequestFromPackage(&model.Package{
+		if _, _, ok := versionRequestFromPackage(&sdk.Package{
 			Ecosystem: "php",
 			Name:      "symfony/console",
 			Version:   "7.1.0",
@@ -84,13 +84,13 @@ func TestCheckerMatch_EnrichesMissingOnly(t *testing.T) {
 		t.Fatalf("New() error = %v", err)
 	}
 
-	g := model.New()
-	missing := model.NewPackage(model.Package{Ecosystem: "npm", Name: "react", Version: "18.2.0"})
-	existing := model.NewPackage(model.Package{
+	g := sdk.New()
+	missing := sdk.NewPackage(sdk.Package{Ecosystem: "npm", Name: "react", Version: "18.2.0"})
+	existing := sdk.NewPackage(sdk.Package{
 		Ecosystem: "npm",
 		Name:      "zod",
 		Version:   "3.23.0",
-		Licenses:  []model.PackageLicense{{SPDXExpression: "Apache-2.0"}},
+		Licenses:  []sdk.PackageLicense{{SPDXExpression: "Apache-2.0"}},
 	})
 	if err := g.AddPackage(missing); err != nil {
 		t.Fatalf("add missing package: %v", err)
@@ -99,8 +99,8 @@ func TestCheckerMatch_EnrichesMissingOnly(t *testing.T) {
 		t.Fatalf("add existing package: %v", err)
 	}
 
-	result, err := checker.Match(context.Background(), model.MatchRequest{
-		Mode:  model.TargetModeFullGraph,
+	result, err := checker.Match(context.Background(), sdk.MatchRequest{
+		Mode:  sdk.TargetModeFullGraph,
 		Graph: g,
 	})
 	if err != nil {

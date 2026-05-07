@@ -11,24 +11,24 @@ import (
 	syftlib "github.com/anchore/syft/syft"
 	"github.com/anchore/syft/syft/cataloging/pkgcataloging"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	_ "github.com/glebarez/sqlite" // register "sqlite" driver required by syft's RPM cataloger
 	"go.uber.org/zap"
 )
 
 // ResolveGraph resolves a dependency graph by invoking the Syft Go library.
-func (d Detector) ResolveGraph(ctx context.Context, req model.DetectionRequest) (model.DetectionResult, error) {
+func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	workingDir := syftWorkingDir(d.WorkingDir, req)
 
 	graphs, err := d.resolveGraph(ctx, req, workingDir, req.Stderr)
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
 
-	return model.DetectionResult{Graphs: graphs}, nil
+	return sdk.DetectionResult{Graphs: graphs}, nil
 }
 
-func (d Detector) resolveGraph(ctx context.Context, req model.DetectionRequest, workingDir string, stderr io.Writer) (*model.GraphContainer, error) {
+func (d Detector) resolveGraph(ctx context.Context, req sdk.DetectionRequest, workingDir string, stderr io.Writer) (*sdk.GraphContainer, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -86,7 +86,7 @@ func (d Detector) resolveGraph(ctx context.Context, req model.DetectionRequest, 
 	return graphs, nil
 }
 
-func syftCreateSBOMConfig(req model.DetectionRequest) *syftlib.CreateSBOMConfig {
+func syftCreateSBOMConfig(req sdk.DetectionRequest) *syftlib.CreateSBOMConfig {
 	cfg := syftlib.DefaultCreateSBOMConfig()
 	cfg.CatalogerSelection = syftCatalogerSelection(req)
 	if !req.EnrichmentEnabled {
@@ -113,7 +113,7 @@ func syftCreateSBOMConfig(req model.DetectionRequest) *syftlib.CreateSBOMConfig 
 	return cfg
 }
 
-func syftSourceInput(executionTarget model.ExecutionTarget, workingDir string) (string, string, *syftlib.GetSourceConfig) {
+func syftSourceInput(executionTarget sdk.ExecutionTarget, workingDir string) (string, string, *syftlib.GetSourceConfig) {
 	target := workingDir
 	sourceMode := "dir"
 	if target == "" {
@@ -122,12 +122,12 @@ func syftSourceInput(executionTarget model.ExecutionTarget, workingDir string) (
 	config := syftlib.DefaultGetSourceConfig()
 
 	switch executionTarget.Kind {
-	case model.ExecutionTargetContainerImage:
+	case sdk.ExecutionTargetContainerImage:
 		if executionTarget.Location != "" {
 			target = executionTarget.Location
 		}
 		sourceMode = "container"
-	case model.ExecutionTargetFilesystem:
+	case sdk.ExecutionTargetFilesystem:
 		if executionTarget.Location != "" {
 			target = executionTarget.Location
 		}

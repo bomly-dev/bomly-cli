@@ -8,14 +8,14 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
-func NewScan(project output.ProjectDescriptor, consolidated model.ConsolidatedGraph, graphValue *model.Graph, findings []model.Finding) *scanModel {
+func NewScan(project output.ProjectDescriptor, consolidated sdk.ConsolidatedGraph, graphValue *sdk.Graph, findings []sdk.Finding) *scanModel {
 	return NewScanNavigator("Bomly Interactive Scan", project, consolidated, graphValue, findings)
 }
 
-func NewScanNavigator(titlePrefix string, project output.ProjectDescriptor, consolidated model.ConsolidatedGraph, graphValue *model.Graph, findings []model.Finding) *scanModel {
+func NewScanNavigator(titlePrefix string, project output.ProjectDescriptor, consolidated sdk.ConsolidatedGraph, graphValue *sdk.Graph, findings []sdk.Finding) *scanModel {
 	manifests := manifestRows(consolidated)
 	manifestByID := make(map[string]listPackageRow, len(manifests))
 	for _, manifest := range manifests {
@@ -260,9 +260,9 @@ func (m *scanModel) buildManifestListModel() *listModel {
 }
 
 func (m *scanModel) buildVulnsListModel() *listModel {
-	all := make([]model.Finding, 0, len(m.findings))
+	all := make([]sdk.Finding, 0, len(m.findings))
 	for _, f := range m.findings {
-		if f.Kind == model.FindingKindVulnerability {
+		if f.Kind == sdk.FindingKindVulnerability {
 			all = append(all, f)
 		}
 	}
@@ -270,7 +270,7 @@ func (m *scanModel) buildVulnsListModel() *listModel {
 	// Apply severity filter.
 	filtered := all
 	if m.severityFilter != "" {
-		filtered = make([]model.Finding, 0, len(all))
+		filtered = make([]sdk.Finding, 0, len(all))
 		for _, f := range all {
 			if strings.EqualFold(f.Severity, m.severityFilter) {
 				filtered = append(filtered, f)
@@ -364,7 +364,7 @@ type licensePackageRef struct {
 	scope       string
 }
 
-func licenseRows(graphValue *model.Graph) []licenseRow {
+func licenseRows(graphValue *sdk.Graph) []licenseRow {
 	if graphValue == nil {
 		return nil
 	}
@@ -614,7 +614,7 @@ func manifestIDFromTitle(value string) string {
 	return strings.TrimSpace(value[start+1 : end])
 }
 
-func manifestRows(consolidated model.ConsolidatedGraph) []listPackageRow {
+func manifestRows(consolidated sdk.ConsolidatedGraph) []listPackageRow {
 	if len(consolidated.Manifests) == 0 {
 		return nil
 	}
@@ -654,7 +654,7 @@ func manifestRows(consolidated model.ConsolidatedGraph) []listPackageRow {
 	return rows
 }
 
-func manifestDetails(graphValue *model.Graph, row listPackageRow) []string {
+func manifestDetails(graphValue *sdk.Graph, row listPackageRow) []string {
 	groups := rootDependencies(graphValue, row.rootID)
 	rootPkg, _ := graphValue.Package(row.rootID)
 	lines := []string{
@@ -675,7 +675,7 @@ func manifestDetails(graphValue *model.Graph, row listPackageRow) []string {
 	return lines
 }
 
-func manifestTargetID(graphValue *model.Graph) string {
+func manifestTargetID(graphValue *sdk.Graph) string {
 	if graphValue == nil {
 		return ""
 	}
@@ -696,7 +696,7 @@ func manifestTargetID(graphValue *model.Graph) string {
 	return leaves[0]
 }
 
-func packageRowFromGraph(pkg *model.Package, relationship string) listPackageRow {
+func packageRowFromGraph(pkg *sdk.Package, relationship string) listPackageRow {
 	if pkg == nil {
 		return listPackageRow{relationship: relationship}
 	}
@@ -716,7 +716,7 @@ func packageRowFromGraph(pkg *model.Package, relationship string) listPackageRow
 	}
 }
 
-func packageDisplayName(pkg *model.Package) string {
+func packageDisplayName(pkg *sdk.Package) string {
 	if pkg == nil {
 		return "-"
 	}
@@ -737,7 +737,7 @@ func componentBaseName(value string) string {
 	return value
 }
 
-func componentDetails(graphValue *model.Graph, row listPackageRow, manifest listPackageRow, findings []model.Finding) []string {
+func componentDetails(graphValue *sdk.Graph, row listPackageRow, manifest listPackageRow, findings []sdk.Finding) []string {
 	lines := []string{
 		render.Style("Component", render.Bold, render.Cyan),
 		render.Style("  Manifest: ", render.Dim) + manifest.displayName,
@@ -750,7 +750,7 @@ func componentDetails(graphValue *model.Graph, row listPackageRow, manifest list
 		"",
 	}
 
-	appendPackages := func(title string, packages []*model.Package) {
+	appendPackages := func(title string, packages []*sdk.Package) {
 		lines = append(lines, render.Style(title, render.Bold, render.Magenta))
 		if len(packages) == 0 {
 			lines = append(lines, render.Style("  (none)", render.Dim))
@@ -779,9 +779,9 @@ func componentDetails(graphValue *model.Graph, row listPackageRow, manifest list
 
 	// Vulnerabilities section
 	lines = append(lines, render.Style("Vulnerabilities", render.Bold, render.Cyan))
-	var pkgFindings []model.Finding
+	var pkgFindings []sdk.Finding
 	for _, f := range findings {
-		if f.Kind == model.FindingKindVulnerability && f.Package != nil && f.Package.ID == row.id {
+		if f.Kind == sdk.FindingKindVulnerability && f.Package != nil && f.Package.ID == row.id {
 			pkgFindings = append(pkgFindings, f)
 		}
 	}
@@ -815,7 +815,7 @@ func componentDetails(graphValue *model.Graph, row listPackageRow, manifest list
 
 	// Licenses section
 	lines = append(lines, render.Style("Licenses", render.Bold, render.Cyan))
-	var pkg *model.Package
+	var pkg *sdk.Package
 	if graphValue != nil {
 		pkg, _ = graphValue.Package(row.id)
 	}
@@ -838,7 +838,7 @@ func componentDetails(graphValue *model.Graph, row listPackageRow, manifest list
 	return lines
 }
 
-func rootDependencies(graphValue *model.Graph, rootID string) rootDependencyGroup {
+func rootDependencies(graphValue *sdk.Graph, rootID string) rootDependencyGroup {
 	if graphValue == nil || strings.TrimSpace(rootID) == "" {
 		return rootDependencyGroup{}
 	}
@@ -848,12 +848,12 @@ func rootDependencies(graphValue *model.Graph, rootID string) rootDependencyGrou
 		return rootDependencyGroup{}
 	}
 
-	directByID := make(map[string]*model.Package, len(direct))
+	directByID := make(map[string]*sdk.Package, len(direct))
 	for _, pkg := range direct {
 		directByID[pkg.ID] = pkg
 	}
 
-	transitiveByID := make(map[string]*model.Package)
+	transitiveByID := make(map[string]*sdk.Package)
 	visited := make(map[string]struct{}, len(direct)+1)
 	queue := make([]string, 0, len(direct))
 	visited[rootID] = struct{}{}
@@ -886,7 +886,7 @@ func rootDependencies(graphValue *model.Graph, rootID string) rootDependencyGrou
 		}
 	}
 
-	transitive := make([]*model.Package, 0, len(transitiveByID))
+	transitive := make([]*sdk.Package, 0, len(transitiveByID))
 	for _, pkg := range transitiveByID {
 		transitive = append(transitive, pkg)
 	}
@@ -900,7 +900,7 @@ func rootDependencies(graphValue *model.Graph, rootID string) rootDependencyGrou
 	return rootDependencyGroup{direct: direct, transitive: transitive}
 }
 
-func packageSortKey(pkg *model.Package) string {
+func packageSortKey(pkg *sdk.Package) string {
 	if pkg == nil {
 		return ""
 	}

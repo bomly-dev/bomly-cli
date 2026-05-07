@@ -14,13 +14,13 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/matchers"
-	matchercache "github.com/bomly-dev/bomly-cli/internal/matchers/cache"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/internal/matchers/cache"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
 const (
-	// SourceType identifies ClearlyDefined license provenance in model.PackageLicense.Type.
+	// SourceType identifies ClearlyDefined license provenance in sdk.PackageLicense.Type.
 	SourceType = "external-clearlydefined"
 
 	defaultAPIBase  = "https://api.clearlydefined.io"
@@ -56,7 +56,7 @@ func defaultCacheDir() string {
 // Checker enriches package licenses from ClearlyDefined definitions.
 type Checker struct {
 	client *http.Client
-	cache  *matchercache.FileCache
+	cache  *cache.FileCache
 	config Config
 	logger *zap.Logger
 }
@@ -84,7 +84,7 @@ func New(config Config) (*Checker, error) {
 	if strings.TrimSpace(config.CacheDir) == "" {
 		config.CacheDir = defaultCacheDir()
 	}
-	cache, err := matchercache.NewFileCache(config.CacheDir, config.CacheTTL)
+	cache, err := cache.NewFileCache(config.CacheDir, config.CacheTTL)
 	if err != nil {
 		return nil, fmt.Errorf("clearlydefined checker: %w", err)
 	}
@@ -105,12 +105,12 @@ func New(config Config) (*Checker, error) {
 }
 
 // Descriptor returns the matcher registration metadata.
-func (c *Checker) Descriptor() model.MatcherDescriptor {
-	return model.MatcherDescriptor{
+func (c *Checker) Descriptor() sdk.MatcherDescriptor {
+	return sdk.MatcherDescriptor{
 		Name:           "clearlydefined-license-checker",
 		Enabled:        false,
-		Origin:         model.CoreOrigin,
-		SupportedModes: []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
+		Origin:         sdk.CoreOrigin,
+		SupportedModes: []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Priority:       90,
 		Required:       false,
 		Capabilities:   []string{"license-enrichment", "http"},
@@ -123,18 +123,18 @@ func (c *Checker) Ready() bool {
 }
 
 // Applicable reports whether the checker applies to the request.
-func (c *Checker) Applicable(_ context.Context, req model.MatchRequest) (bool, error) {
+func (c *Checker) Applicable(_ context.Context, req sdk.MatchRequest) (bool, error) {
 	return req.Graph != nil, nil
 }
 
 // Match enriches missing package licenses via ClearlyDefined.
-func (c *Checker) Match(ctx context.Context, req model.MatchRequest) (model.MatchResult, error) {
+func (c *Checker) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
 	if req.Graph == nil {
-		return model.MatchResult{Graph: req.Graph, Target: req.Target}, nil
+		return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, nil
 	}
 	packages := req.Graph.Packages()
-	if req.Mode == model.TargetModeComponent && req.Target != nil {
-		packages = []*model.Package{req.Target}
+	if req.Mode == sdk.TargetModeComponent && req.Target != nil {
+		packages = []*sdk.Package{req.Target}
 	}
 	eligible := matchers.MissingLicensePackages(packages)
 	stats := checkStats{requested: len(eligible)}
@@ -144,7 +144,7 @@ func (c *Checker) Match(ctx context.Context, req model.MatchRequest) (model.Matc
 			stats.unsupported++
 			continue
 		}
-		if cached, hit := matchercache.Get[[]string](c.cache, cacheKey); hit {
+		if cached, hit := cache.Get[[]string](c.cache, cacheKey); hit {
 			stats.cacheHits++
 			if applyLicenses(pkg, cached) {
 				stats.cacheApplied++
@@ -155,12 +155,12 @@ func (c *Checker) Match(ctx context.Context, req model.MatchRequest) (model.Matc
 		stats.apiRequests++
 		values, err := c.fetchDefinition(ctx, coordinate)
 		if err != nil {
-			return model.MatchResult{Graph: req.Graph, Target: req.Target}, err
+			return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, err
 		}
 		if len(values) == 0 {
 			stats.notFound++
 		}
-		if err := matchercache.Set(c.cache, cacheKey, values); err != nil {
+		if err := cache.Set(c.cache, cacheKey, values); err != nil {
 			stats.cacheWriteFailures++
 			c.logger.Warn("clearlydefined: cache write failed", zap.Error(err))
 		}
@@ -180,7 +180,7 @@ func (c *Checker) Match(ctx context.Context, req model.MatchRequest) (model.Matc
 		zap.Int("cache_write_failures", stats.cacheWriteFailures),
 		zap.Int("unsupported", stats.unsupported),
 	)
-	return model.MatchResult{Graph: req.Graph, Target: req.Target}, nil
+	return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, nil
 }
 
 func (c *Checker) fetchDefinition(ctx context.Context, coordinate string) ([]string, error) {
@@ -209,7 +209,7 @@ func (c *Checker) fetchDefinition(ctx context.Context, coordinate string) ([]str
 	return definition.licenseValues(), nil
 }
 
-func applyLicenses(pkg *model.Package, values []string) bool {
+func applyLicenses(pkg *sdk.Package, values []string) bool {
 	if pkg == nil || len(pkg.Licenses) > 0 {
 		return false
 	}
@@ -222,22 +222,22 @@ func applyLicenses(pkg *model.Package, values []string) bool {
 	return true
 }
 
-func coordinateFromPackage(pkg *model.Package) (string, matchercache.Key, bool) {
+func coordinateFromPackage(pkg *sdk.Package) (string, cache.Key, bool) {
 	if pkg == nil || strings.TrimSpace(pkg.Version) == "" {
-		return "", matchercache.Key{}, false
+		return "", cache.Key{}, false
 	}
 	if parsed, ok := parsePURL(strings.TrimSpace(pkg.PURL)); ok {
 		if coordinate, ok := coordinateFromParsedPURL(parsed); ok {
-			return coordinate, matchercache.NewKey(pkg.PURL, "", "", ""), true
+			return coordinate, cache.NewKey(pkg.PURL, "", "", ""), true
 		}
 	}
 	if coordinate, ok := coordinateFromGraphPackage(pkg); ok {
-		return coordinate, matchercache.NewKey("", pkg.Name, pkg.Ecosystem, pkg.Version), true
+		return coordinate, cache.NewKey("", pkg.Name, pkg.Ecosystem, pkg.Version), true
 	}
-	return "", matchercache.Key{}, false
+	return "", cache.Key{}, false
 }
 
-func coordinateFromGraphPackage(pkg *model.Package) (string, bool) {
+func coordinateFromGraphPackage(pkg *sdk.Package) (string, bool) {
 	if pkg == nil {
 		return "", false
 	}

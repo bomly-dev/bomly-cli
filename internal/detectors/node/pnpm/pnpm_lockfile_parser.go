@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"gopkg.in/yaml.v3"
 )
 
@@ -50,7 +50,7 @@ type resolvedPackage struct {
 	version string
 }
 
-func depGraphFromPNPMLockfile(projectPath string) (*model.Graph, error) {
+func depGraphFromPNPMLockfile(projectPath string) (*sdk.Graph, error) {
 	raw, err := os.ReadFile(filepath.Join(projectPath, "pnpm-lock.yaml"))
 	if err != nil {
 		return nil, fmt.Errorf("read pnpm-lock.yaml: %w", err)
@@ -69,8 +69,8 @@ func depGraphFromPNPMLockfile(projectPath string) (*model.Graph, error) {
 	if rootName == "" {
 		rootName = "root"
 	}
-	rootNode := model.NewPackage(model.Package{Ecosystem: string(model.EcosystemNPM), Name: rootName, Version: manifest.Version})
-	depsGraph := model.New()
+	rootNode := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemNPM), Name: rootName, Version: manifest.Version})
+	depsGraph := sdk.New()
 	if err := depsGraph.AddPackage(rootNode); err != nil {
 		return nil, fmt.Errorf("add pnpm root node: %w", err)
 	}
@@ -89,23 +89,23 @@ func depGraphFromPNPMLockfile(projectPath string) (*model.Graph, error) {
 		if name == "" {
 			continue
 		}
-		pkg := model.Package{
-			Ecosystem:   string(model.EcosystemNPM),
+		pkg := sdk.Package{
+			Ecosystem:   string(sdk.EcosystemNPM),
 			Name:        name,
 			Version:     version,
 			ResolvedURL: entry.Resolution.Tarball,
 			Digests:     node.ParseIntegrityDigests(entry.Resolution.Integrity),
 		}
 		if entry.Resolution.Integrity == "" && entry.Resolution.Hash != "" {
-			pkg.Digests = []model.Digest{{Algorithm: "sha1", Value: entry.Resolution.Hash}}
+			pkg.Digests = []sdk.Digest{{Algorithm: "sha1", Value: entry.Resolution.Hash}}
 		}
 		if entry.License != "" {
-			pkg.Licenses = []model.PackageLicense{{Value: entry.License, Type: "declared"}}
+			pkg.Licenses = []sdk.PackageLicense{{Value: entry.License, Type: "declared"}}
 		}
 		if len(entry.Engines) > 0 {
-			pkg.Metadata = map[string]any{model.MetadataKeyNPM: &model.NPMPackageMetadata{Engines: entry.Engines}}
+			pkg.Metadata = map[string]any{sdk.MetadataKeyNPM: &sdk.NPMPackageMetadata{Engines: entry.Engines}}
 		}
-		pkgNode := model.NewPackage(pkg)
+		pkgNode := sdk.NewPackage(pkg)
 		if err := node.AddNodeIfMissing(depsGraph, pkgNode); err != nil {
 			return nil, err
 		}
@@ -123,7 +123,7 @@ func depGraphFromPNPMLockfile(projectPath string) (*model.Graph, error) {
 		for dependencyName, dependencyVersion := range node.MergeStringMaps(entry.Dependencies, entry.OptionalDependencies) {
 			resolved, ok := resolvePNPMDependency(byName, dependencyName, dependencyVersion)
 			if !ok {
-				synthetic := model.NewPackage(model.Package{Ecosystem: string(model.EcosystemNPM), Name: dependencyName, Version: node.NormalizeVersionToken(dependencyVersion)})
+				synthetic := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemNPM), Name: dependencyName, Version: node.NormalizeVersionToken(dependencyVersion)})
 				if err := node.AddNodeIfMissing(depsGraph, synthetic); err != nil {
 					return nil, err
 				}
@@ -183,25 +183,25 @@ func depGraphFromPNPMLockfile(projectPath string) (*model.Graph, error) {
 	return depsGraph, nil
 }
 
-func pnpmImporterDirectScopes(importer pnpmImporter) map[string]model.Scope {
-	directScopes := make(map[string]model.Scope, len(importer.Dependencies)+len(importer.OptionalDependencies)+len(importer.DevDependencies))
-	recordPNPMDependencyScopes(directScopes, importer.Dependencies, model.ScopeRuntime)
-	recordPNPMDependencyScopes(directScopes, importer.OptionalDependencies, model.ScopeRuntime)
-	recordPNPMDependencyScopes(directScopes, importer.DevDependencies, model.ScopeDevelopment)
+func pnpmImporterDirectScopes(importer pnpmImporter) map[string]sdk.Scope {
+	directScopes := make(map[string]sdk.Scope, len(importer.Dependencies)+len(importer.OptionalDependencies)+len(importer.DevDependencies))
+	recordPNPMDependencyScopes(directScopes, importer.Dependencies, sdk.ScopeRuntime)
+	recordPNPMDependencyScopes(directScopes, importer.OptionalDependencies, sdk.ScopeRuntime)
+	recordPNPMDependencyScopes(directScopes, importer.DevDependencies, sdk.ScopeDevelopment)
 	return directScopes
 }
 
-func pnpmRootDirectScopes(lockfile pnpmLockfile) map[string]model.Scope {
-	directScopes := make(map[string]model.Scope, len(lockfile.Dependencies)+len(lockfile.OptionalDependencies)+len(lockfile.DevDependencies))
-	recordPNPMDependencyScopes(directScopes, lockfile.Dependencies, model.ScopeRuntime)
-	recordPNPMDependencyScopes(directScopes, lockfile.OptionalDependencies, model.ScopeRuntime)
-	recordPNPMDependencyScopes(directScopes, lockfile.DevDependencies, model.ScopeDevelopment)
+func pnpmRootDirectScopes(lockfile pnpmLockfile) map[string]sdk.Scope {
+	directScopes := make(map[string]sdk.Scope, len(lockfile.Dependencies)+len(lockfile.OptionalDependencies)+len(lockfile.DevDependencies))
+	recordPNPMDependencyScopes(directScopes, lockfile.Dependencies, sdk.ScopeRuntime)
+	recordPNPMDependencyScopes(directScopes, lockfile.OptionalDependencies, sdk.ScopeRuntime)
+	recordPNPMDependencyScopes(directScopes, lockfile.DevDependencies, sdk.ScopeDevelopment)
 	return directScopes
 }
 
-func recordPNPMDependencyScopes(target map[string]model.Scope, dependencies map[string]any, scope model.Scope) {
+func recordPNPMDependencyScopes(target map[string]sdk.Scope, dependencies map[string]any, scope sdk.Scope) {
 	for name := range dependencies {
-		target[name] = model.MergeScope(target[name], scope)
+		target[name] = sdk.MergeScope(target[name], scope)
 	}
 }
 

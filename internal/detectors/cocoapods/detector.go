@@ -11,7 +11,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
@@ -20,7 +20,7 @@ import (
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   model.Detector
+	Fallback   sdk.Detector
 }
 
 var evidencePatterns = []string{"Podfile.lock", "Podfile"}
@@ -40,8 +40,8 @@ type podSpec struct {
 var podLinePattern = regexp.MustCompile(`^\s*([^()\s][^()]*)\s*(?:\(([^()]*)\))?\s*$`)
 
 // PackageManagerSupport returns CocoaPods package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []model.PackageManagerSupport {
-	return []model.PackageManagerSupport{model.Support(model.PackageManagerCocoaPods, evidencePatterns...)}
+func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerCocoaPods, evidencePatterns...)}
 }
 
 // Ready reports whether committed Podfile.lock files can be parsed.
@@ -50,41 +50,41 @@ func (d Detector) Ready() bool {
 }
 
 // Applicable reports whether Podfile.lock is present.
-func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
 	_ = ctx
 	return system.FileExists(filepath.Join(d.workingDir(req.ProjectPath), "Podfile.lock"))
 }
 
 // Descriptor describes the CocoaPods detector.
-func (d Detector) Descriptor() model.DetectorDescriptor {
-	return model.DetectorDescriptor{
+func (d Detector) Descriptor() sdk.DetectorDescriptor {
+	return sdk.DetectorDescriptor{
 		Name:                detectors.NameCocoaPods,
 		Enabled:             true,
-		Origin:              model.CoreOrigin,
-		Technique:           model.LockfileTechnique,
-		SupportedEcosystems: []model.Ecosystem{model.EcosystemSwift},
-		SupportedManagers:   []model.PackageManager{model.PackageManagerCocoaPods},
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
+		Origin:              sdk.CoreOrigin,
+		Technique:           sdk.LockfileTechnique,
+		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemSwift},
+		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerCocoaPods},
+		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "component-targeting", "lockfile-parsing"},
 	}
 }
 
 // ResolveGraph resolves a CocoaPods dependency graph.
-func (d Detector) ResolveGraph(_ context.Context, req model.DetectionRequest) (model.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	path := filepath.Join(d.workingDir(req.ProjectPath), "Podfile.lock")
 	raw, err := os.ReadFile(path)
 	if err != nil {
-		return model.DetectionResult{}, fmt.Errorf("read Podfile.lock: %w", err)
+		return sdk.DetectionResult{}, fmt.Errorf("read Podfile.lock: %w", err)
 	}
 	g, err := depGraphFromLock(raw)
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
-	return model.DetectionResult{Graphs: model.SingleGraphContainer(g, detectors.InferManifestMetadata(req, evidencePatterns))}, nil
+	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, evidencePatterns))}, nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d Detector) FallbackDetector() model.Detector {
+func (d Detector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
@@ -95,7 +95,7 @@ func (d Detector) workingDir(projectPath string) string {
 	return projectPath
 }
 
-func depGraphFromLock(raw []byte) (*model.Graph, error) {
+func depGraphFromLock(raw []byte) (*sdk.Graph, error) {
 	var lock podLock
 	if err := yaml.Unmarshal(raw, &lock); err != nil {
 		return nil, fmt.Errorf("parse Podfile.lock: %w", err)
@@ -104,7 +104,7 @@ func depGraphFromLock(raw []byte) (*model.Graph, error) {
 	if len(specs) == 0 {
 		return nil, fmt.Errorf("Podfile.lock does not contain any pods")
 	}
-	g := model.New()
+	g := sdk.New()
 	root := rootNode()
 	if err := g.AddPackage(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
@@ -138,7 +138,7 @@ func depGraphFromLock(raw []byte) (*model.Graph, error) {
 		}
 		node := packageNode(spec.Name, spec.Version, lock.Checksums[rootPodName(spec.Name)])
 		if existing, ok := g.Package(node.ID); ok {
-			model.MergePackageScope(existing, model.ScopeRuntime)
+			sdk.MergePackageScope(existing, sdk.ScopeRuntime)
 		}
 		if err := g.AddDependency(root.ID, node.ID); err != nil {
 			return nil, fmt.Errorf("add CocoaPods root dependency %q: %w", node.ID, err)
@@ -198,28 +198,28 @@ func rootDependencies(values []string) []string {
 	return roots
 }
 
-func rootNode() *model.Package {
-	return model.NewPackage(model.Package{
-		Ecosystem:   string(model.EcosystemSwift),
+func rootNode() *sdk.Package {
+	return sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemSwift),
 		Name:        "root",
-		BuildSystem: model.PackageManagerCocoaPods.Name(),
+		BuildSystem: sdk.PackageManagerCocoaPods.Name(),
 		Type:        "application",
 		Language:    "swift",
 	})
 }
 
-func packageNode(name, version, checksum string) *model.Package {
-	node := model.NewPackage(model.Package{
-		Ecosystem:   string(model.EcosystemSwift),
+func packageNode(name, version, checksum string) *sdk.Package {
+	node := sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemSwift),
 		Name:        name,
 		Version:     strings.TrimSpace(version),
-		BuildSystem: model.PackageManagerCocoaPods.Name(),
+		BuildSystem: sdk.PackageManagerCocoaPods.Name(),
 		Type:        "pod",
 		Language:    "swift",
-		PURL:        model.BuildPackageURL("cocoapods", "", name, version),
+		PURL:        sdk.BuildPackageURL("cocoapods", "", name, version),
 	})
 	if strings.TrimSpace(checksum) != "" {
-		node.Digests = append(node.Digests, model.Digest{Algorithm: "podspec-checksum", Value: strings.TrimSpace(checksum)})
+		node.Digests = append(node.Digests, sdk.Digest{Algorithm: "podspec-checksum", Value: strings.TrimSpace(checksum)})
 	}
 	return node
 }
@@ -254,7 +254,7 @@ func sortedPodNames(specs map[string]podSpec) []string {
 	return values
 }
 
-func addNodeIfMissing(g *model.Graph, node *model.Package) error {
+func addNodeIfMissing(g *sdk.Graph, node *sdk.Package) error {
 	if _, ok := g.Package(node.ID); ok {
 		return nil
 	}

@@ -6,15 +6,15 @@ import (
 	"strings"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestWriteSARIF_ValidDocument(t *testing.T) {
-	pkg := &model.Package{Name: "lodash", Version: "4.17.15"}
-	findings := []model.Finding{
+	pkg := &sdk.Package{Name: "lodash", Version: "4.17.15"}
+	findings := []sdk.Finding{
 		{
 			ID:       "CVE-2021-23337",
-			Kind:     model.FindingKindVulnerability,
+			Kind:     sdk.FindingKindVulnerability,
 			Package:  pkg,
 			Title:    "Prototype pollution in lodash",
 			Severity: "high",
@@ -23,7 +23,7 @@ func TestWriteSARIF_ValidDocument(t *testing.T) {
 		},
 		{
 			ID:       "CVE-2020-8203",
-			Kind:     model.FindingKindVulnerability,
+			Kind:     sdk.FindingKindVulnerability,
 			Package:  pkg,
 			Title:    "Prototype pollution",
 			Severity: "critical",
@@ -79,9 +79,9 @@ func TestWriteSARIF_ValidDocument(t *testing.T) {
 }
 
 func TestWriteSARIF_RuleDeduplication(t *testing.T) {
-	pkg := &model.Package{Name: "lodash", Version: "4.17.15"}
+	pkg := &sdk.Package{Name: "lodash", Version: "4.17.15"}
 	// Same finding ID appears twice (e.g. affects two packages).
-	findings := []model.Finding{
+	findings := []sdk.Finding{
 		{ID: "CVE-2021-23337", Package: pkg, Title: "Pollution", Severity: "high", Source: "osv"},
 		{ID: "CVE-2021-23337", Package: pkg, Title: "Pollution", Severity: "high", Source: "osv"},
 	}
@@ -133,8 +133,8 @@ func TestSeverityToSARIFLevel(t *testing.T) {
 }
 
 func TestWriteSARIF_OSVHelpURI(t *testing.T) {
-	pkg := &model.Package{Name: "lodash", Version: "4.17.15"}
-	findings := []model.Finding{
+	pkg := &sdk.Package{Name: "lodash", Version: "4.17.15"}
+	findings := []sdk.Finding{
 		{ID: "CVE-2021-23337", Package: pkg, Title: "Vuln", Severity: "high", Source: "osv"},
 	}
 	var buf bytes.Buffer

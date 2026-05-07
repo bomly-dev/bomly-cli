@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestDetectorApplicable_BuildGradleKTS(t *testing.T) {
@@ -17,7 +17,7 @@ func TestDetectorApplicable_BuildGradleKTS(t *testing.T) {
 	}
 
 	detector := Detector{WorkingDir: projectDir}
-	applicable, err := detector.Applicable(context.Background(), model.DetectionRequest{ProjectPath: projectDir})
+	applicable, err := detector.Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -98,14 +98,14 @@ testRuntimeClasspath - Test runtime classpath of source set 'test'.
 	if guava.Ecosystem != "maven" || guava.Org != "com.google.guava" || guava.Name != "guava" || guava.BuildSystem != "gradle" {
 		t.Fatalf("unexpected gradle coordinates: %#v", guava)
 	}
-	if guava.Scope != string(model.ScopeRuntime) {
+	if guava.Scope != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope for guava, got %q", guava.Scope)
 	}
 	junit, ok := g.Package("org.junit:junit-bom@5.10.2")
 	if !ok {
 		t.Fatal("expected junit package")
 	}
-	if junit.Scope != string(model.ScopeDevelopment) {
+	if junit.Scope != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected development scope for junit, got %q", junit.Scope)
 	}
 }

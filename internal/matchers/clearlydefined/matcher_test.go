@@ -10,12 +10,12 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestCoordinateFromPackage(t *testing.T) {
 	t.Run("composer package", func(t *testing.T) {
-		coordinate, _, ok := coordinateFromPackage(&model.Package{
+		coordinate, _, ok := coordinateFromPackage(&sdk.Package{
 			Ecosystem: "php",
 			Org:       "symfony",
 			Name:      "console",
@@ -48,7 +48,7 @@ func TestCoordinateFromPackage(t *testing.T) {
 	})
 
 	t.Run("unsupported ecosystem", func(t *testing.T) {
-		if _, _, ok := coordinateFromPackage(&model.Package{
+		if _, _, ok := coordinateFromPackage(&sdk.Package{
 			Ecosystem: "npm",
 			Name:      "react",
 			Version:   "18.2.0",
@@ -82,14 +82,14 @@ func TestCheckerMatch_EnrichesMissingOnly(t *testing.T) {
 		t.Fatalf("New() error = %v", err)
 	}
 
-	g := model.New()
-	missing := model.NewPackage(model.Package{Ecosystem: "php", Org: "symfony", Name: "console", Version: "7.1.0"})
-	existing := model.NewPackage(model.Package{
+	g := sdk.New()
+	missing := sdk.NewPackage(sdk.Package{Ecosystem: "php", Org: "symfony", Name: "console", Version: "7.1.0"})
+	existing := sdk.NewPackage(sdk.Package{
 		Ecosystem: "php",
 		Org:       "laravel",
 		Name:      "framework",
 		Version:   "11.0.0",
-		Licenses:  []model.PackageLicense{{SPDXExpression: "MIT"}},
+		Licenses:  []sdk.PackageLicense{{SPDXExpression: "MIT"}},
 	})
 	if err := g.AddPackage(missing); err != nil {
 		t.Fatalf("add missing package: %v", err)
@@ -98,8 +98,8 @@ func TestCheckerMatch_EnrichesMissingOnly(t *testing.T) {
 		t.Fatalf("add existing package: %v", err)
 	}
 
-	result, err := checker.Match(context.Background(), model.MatchRequest{
-		Mode:  model.TargetModeFullGraph,
+	result, err := checker.Match(context.Background(), sdk.MatchRequest{
+		Mode:  sdk.TargetModeFullGraph,
 		Graph: g,
 	})
 	if err != nil {

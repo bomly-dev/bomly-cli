@@ -6,7 +6,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/engine/consolidation"
 	"github.com/bomly-dev/bomly-cli/internal/engine/hooks"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -79,7 +79,7 @@ func (p *Pipeline) runResolve(ctx context.Context, result *PipelineResult, req P
 }
 
 func (p *Pipeline) runScopeFilter(result *PipelineResult, req PipelineRequest) error {
-	if req.ScopeFilter == model.ScopeUnknown {
+	if req.ScopeFilter == sdk.ScopeUnknown {
 		return nil
 	}
 	filtered, err := filterResultsByScope(result.ResolveResults, req.ScopeFilter)
@@ -101,7 +101,7 @@ func (p *Pipeline) runConsolidate(result *PipelineResult, req PipelineRequest) e
 	if err != nil {
 		return fmt.Errorf("consolidated graph: %w", err)
 	}
-	if req.ScopeFilter != model.ScopeUnknown {
+	if req.ScopeFilter != sdk.ScopeUnknown {
 		selectedGraph, err = FilterGraphByScope(selectedGraph, req.ScopeFilter)
 		if err != nil {
 			return fmt.Errorf("scope filter consolidated: %w", err)
@@ -186,10 +186,10 @@ func (p *Pipeline) match(ctx context.Context, result *PipelineResult, req Pipeli
 	if result.Graph == nil {
 		return
 	}
-	mReq := model.MatchRequest{
+	mReq := sdk.MatchRequest{
 		ProjectPath:     req.ProjectPath,
 		ExecutionTarget: req.ExecutionTarget,
-		Mode:            model.TargetModeFullGraph,
+		Mode:            sdk.TargetModeFullGraph,
 		Graph:           result.Graph,
 		MatcherFilter:   req.MatcherFilter,
 		Stderr:          req.Stderr,
@@ -206,11 +206,11 @@ func (p *Pipeline) match(ctx context.Context, result *PipelineResult, req Pipeli
 	}
 }
 
-func (p *Pipeline) audit(ctx context.Context, g *model.Graph, req PipelineRequest) (model.AuditResult, []PipelineWarning) {
-	auditReq := model.AuditRequest{
+func (p *Pipeline) audit(ctx context.Context, g *sdk.Graph, req PipelineRequest) (sdk.AuditResult, []PipelineWarning) {
+	auditReq := sdk.AuditRequest{
 		ProjectPath:     req.ProjectPath,
 		ExecutionTarget: req.ExecutionTarget,
-		Mode:            model.TargetModeFullGraph,
+		Mode:            sdk.TargetModeFullGraph,
 		Graph:           g,
 		AuditorFilter:   req.AuditorFilter,
 		Stderr:          req.Stderr,
@@ -224,17 +224,17 @@ func (p *Pipeline) audit(ctx context.Context, g *model.Graph, req PipelineReques
 	return result, warnings
 }
 
-func (p *Pipeline) auditComponent(ctx context.Context, g *model.Graph, target *model.Package, req PipelineRequest) (model.AuditResult, []PipelineWarning) {
+func (p *Pipeline) auditComponent(ctx context.Context, g *sdk.Graph, target *sdk.Package, req PipelineRequest) (sdk.AuditResult, []PipelineWarning) {
 	if g == nil || target == nil {
-		return model.AuditResult{}, nil
+		return sdk.AuditResult{}, nil
 	}
-	auditReq := model.AuditRequest{
+	auditReq := sdk.AuditRequest{
 		ProjectPath:     req.ProjectPath,
 		ExecutionTarget: req.ExecutionTarget,
-		Mode:            model.TargetModeComponent,
+		Mode:            sdk.TargetModeComponent,
 		Graph:           g,
 		Target:          target,
-		Ecosystem:       model.Ecosystem(target.Ecosystem),
+		Ecosystem:       sdk.Ecosystem(target.Ecosystem),
 		AuditorFilter:   req.AuditorFilter,
 		Stderr:          req.Stderr,
 	}

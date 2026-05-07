@@ -3,24 +3,24 @@ package engine
 import (
 	"fmt"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // MergeScope combines two normalized scopes, preferring runtime when a package
 // is reachable from both runtime and development roots.
-func MergeScope(current, next model.Scope) model.Scope {
-	return model.MergeScope(current, next)
+func MergeScope(current, next sdk.Scope) sdk.Scope {
+	return sdk.MergeScope(current, next)
 }
 
 // MergePackageScope updates pkg.Scope using normalized scope precedence rules.
-func MergePackageScope(pkg *model.Package, next model.Scope) {
-	model.MergePackageScope(pkg, next)
+func MergePackageScope(pkg *sdk.Package, next sdk.Scope) {
+	sdk.MergePackageScope(pkg, next)
 }
 
 // FilterGraphByScope returns a graph view containing roots plus packages whose
 // normalized scope matches the requested filter.
-func FilterGraphByScope(src *model.Graph, scope model.Scope) (*model.Graph, error) {
-	if src == nil || scope == model.ScopeUnknown {
+func FilterGraphByScope(src *sdk.Graph, scope sdk.Scope) (*sdk.Graph, error) {
+	if src == nil || scope == sdk.ScopeUnknown {
 		return src, nil
 	}
 
@@ -31,14 +31,14 @@ func FilterGraphByScope(src *model.Graph, scope model.Scope) (*model.Graph, erro
 		}
 		allowed[root.ID] = struct{}{}
 	}
-	src.WalkPackages(func(pkg *model.Package) bool {
-		if pkg != nil && model.Scope(pkg.Scope) == scope {
+	src.WalkPackages(func(pkg *sdk.Package) bool {
+		if pkg != nil && sdk.Scope(pkg.Scope) == scope {
 			allowed[pkg.ID] = struct{}{}
 		}
 		return true
 	})
 
-	filtered := model.NewWithCapacity(len(allowed))
+	filtered := sdk.NewWithCapacity(len(allowed))
 	for id := range allowed {
 		pkg, ok := src.Package(id)
 		if !ok {
@@ -50,7 +50,7 @@ func FilterGraphByScope(src *model.Graph, scope model.Scope) (*model.Graph, erro
 	}
 
 	var mergeErr error
-	src.WalkRelationships(func(from, to *model.Package) bool {
+	src.WalkRelationships(func(from, to *sdk.Package) bool {
 		if from == nil || to == nil {
 			return true
 		}

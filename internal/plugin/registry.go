@@ -7,14 +7,14 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/registry"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	plugschema "github.com/bomly-dev/bomly-cli/sdk"
 )
 
 type registryWriter interface {
-	RegisterDetector(model.Detector)
-	RegisterMatcher(model.Matcher)
-	RegisterAuditor(model.Auditor)
+	RegisterDetector(sdk.Detector)
+	RegisterMatcher(sdk.Matcher)
+	RegisterAuditor(sdk.Auditor)
 	RegisterDetectorDiscoveryPlan(string, registry.DetectorDiscoveryPlan)
 }
 
@@ -56,16 +56,16 @@ func (d externalDetector) Metadata(context.Context) (*plugschema.PluginMetadata,
 	return metadataFromPluginInfo(d.info), nil
 }
 
-func (d externalDetector) Descriptor() model.DetectorDescriptor {
+func (d externalDetector) Descriptor() sdk.DetectorDescriptor {
 	if d.info.DetectorDescriptor == nil {
-		return model.DetectorDescriptor{}
+		return sdk.DetectorDescriptor{}
 	}
 	desc := *cloneDetectorDescriptor(d.info.DetectorDescriptor)
-	desc.Origin = model.ExternalOrigin
+	desc.Origin = sdk.ExternalOrigin
 	return desc
 }
 
-func (d externalDetector) PackageManagerSupport() []model.PackageManagerSupport {
+func (d externalDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 	if d.info.Manifest.DetectorDescriptor == nil {
 		return nil
 	}
@@ -79,14 +79,14 @@ func (d externalDetector) Ready() bool {
 		return false
 	}
 	defer client.Close()
-	resp, err := client.Raw().DetectorReady(ctx, &model.DetectRequest{})
+	resp, err := client.Raw().DetectorReady(ctx, &sdk.DetectRequest{})
 	if err != nil {
 		return false
 	}
 	return resp != nil && resp.Ready
 }
 
-func (d externalDetector) Applicable(ctx context.Context, req model.DetectionRequest) (bool, error) {
+func (d externalDetector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
 	ctx = launchContext(ctx, d.launchCtx)
 	client, err := startPlugin(ctx, d.info.Entrypoint)
 	if err != nil {
@@ -100,7 +100,7 @@ func (d externalDetector) Applicable(ctx context.Context, req model.DetectionReq
 	return resp != nil && resp.Applicable, nil
 }
 
-func (d externalDetector) Install(ctx context.Context, req model.DetectionRequest) error {
+func (d externalDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 	ctx = launchContext(ctx, d.launchCtx)
 	client, err := startPlugin(ctx, d.info.Entrypoint)
 	if err != nil {
@@ -114,24 +114,24 @@ func (d externalDetector) Install(ctx context.Context, req model.DetectionReques
 	return nil
 }
 
-func (d externalDetector) ResolveGraph(ctx context.Context, req model.DetectionRequest) (model.DetectionResult, error) {
+func (d externalDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	ctx = launchContext(ctx, d.launchCtx)
 	client, err := startPlugin(ctx, d.info.Entrypoint)
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
 	defer client.Close()
 	resp, err := client.Raw().Detect(ctx, &req)
 	if err != nil {
-		return model.DetectionResult{}, fmt.Errorf("run external detector %s: %w", d.info.ID, err)
+		return sdk.DetectionResult{}, fmt.Errorf("run external detector %s: %w", d.info.ID, err)
 	}
 	if resp == nil {
-		return model.DetectionResult{}, nil
+		return sdk.DetectionResult{}, nil
 	}
 	return *resp, nil
 }
 
-func newExternalDetector(info PluginInfo, ctx context.Context) model.Detector {
+func newExternalDetector(info PluginInfo, ctx context.Context) sdk.Detector {
 	return externalDetector{info: info, launchCtx: launchContext(ctx, nil)}
 }
 
@@ -144,9 +144,9 @@ func (m externalMatcher) Metadata(context.Context) (*plugschema.PluginMetadata, 
 	return metadataFromPluginInfo(m.info), nil
 }
 
-func (m externalMatcher) Descriptor() model.MatcherDescriptor {
+func (m externalMatcher) Descriptor() sdk.MatcherDescriptor {
 	if m.info.MatcherDescriptor == nil {
-		return model.MatcherDescriptor{}
+		return sdk.MatcherDescriptor{}
 	}
 	return *cloneMatcherDescriptor(m.info.MatcherDescriptor)
 }
@@ -158,11 +158,11 @@ func (m externalMatcher) Ready() bool {
 		return false
 	}
 	defer client.Close()
-	resp, err := client.Raw().MatcherReady(ctx, &model.MatchRequest{})
+	resp, err := client.Raw().MatcherReady(ctx, &sdk.MatchRequest{})
 	return err == nil && resp != nil && resp.Ready
 }
 
-func (m externalMatcher) Applicable(ctx context.Context, req model.MatchRequest) (bool, error) {
+func (m externalMatcher) Applicable(ctx context.Context, req sdk.MatchRequest) (bool, error) {
 	ctx = launchContext(ctx, m.launchCtx)
 	client, err := startPlugin(ctx, m.info.Entrypoint)
 	if err != nil {
@@ -173,24 +173,24 @@ func (m externalMatcher) Applicable(ctx context.Context, req model.MatchRequest)
 	return resp != nil && resp.Applicable, err
 }
 
-func (m externalMatcher) Match(ctx context.Context, req model.MatchRequest) (model.MatchResult, error) {
+func (m externalMatcher) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
 	ctx = launchContext(ctx, m.launchCtx)
 	client, err := startPlugin(ctx, m.info.Entrypoint)
 	if err != nil {
-		return model.MatchResult{}, err
+		return sdk.MatchResult{}, err
 	}
 	defer client.Close()
 	resp, err := client.Raw().Match(ctx, &req)
 	if err != nil {
-		return model.MatchResult{}, fmt.Errorf("run external matcher %s: %w", m.info.ID, err)
+		return sdk.MatchResult{}, fmt.Errorf("run external matcher %s: %w", m.info.ID, err)
 	}
 	if resp == nil {
-		return model.MatchResult{}, nil
+		return sdk.MatchResult{}, nil
 	}
 	return *resp, nil
 }
 
-func newExternalMatcher(info PluginInfo, ctx context.Context) model.Matcher {
+func newExternalMatcher(info PluginInfo, ctx context.Context) sdk.Matcher {
 	return externalMatcher{info: info, launchCtx: launchContext(ctx, nil)}
 }
 
@@ -203,9 +203,9 @@ func (a externalAuditor) Metadata(context.Context) (*plugschema.PluginMetadata, 
 	return metadataFromPluginInfo(a.info), nil
 }
 
-func (a externalAuditor) Descriptor() model.AuditorDescriptor {
+func (a externalAuditor) Descriptor() sdk.AuditorDescriptor {
 	if a.info.AuditorDescriptor == nil {
-		return model.AuditorDescriptor{}
+		return sdk.AuditorDescriptor{}
 	}
 	return *cloneAuditorDescriptor(a.info.AuditorDescriptor)
 }
@@ -217,11 +217,11 @@ func (a externalAuditor) Ready() bool {
 		return false
 	}
 	defer client.Close()
-	resp, err := client.Raw().AuditorReady(ctx, &model.AuditRequest{})
+	resp, err := client.Raw().AuditorReady(ctx, &sdk.AuditRequest{})
 	return err == nil && resp != nil && resp.Ready
 }
 
-func (a externalAuditor) Applicable(ctx context.Context, req model.AuditRequest) (bool, error) {
+func (a externalAuditor) Applicable(ctx context.Context, req sdk.AuditRequest) (bool, error) {
 	ctx = launchContext(ctx, a.launchCtx)
 	client, err := startPlugin(ctx, a.info.Entrypoint)
 	if err != nil {
@@ -232,24 +232,24 @@ func (a externalAuditor) Applicable(ctx context.Context, req model.AuditRequest)
 	return resp != nil && resp.Applicable, err
 }
 
-func (a externalAuditor) Audit(ctx context.Context, req model.AuditRequest) (model.AuditResult, error) {
+func (a externalAuditor) Audit(ctx context.Context, req sdk.AuditRequest) (sdk.AuditResult, error) {
 	ctx = launchContext(ctx, a.launchCtx)
 	client, err := startPlugin(ctx, a.info.Entrypoint)
 	if err != nil {
-		return model.AuditResult{}, err
+		return sdk.AuditResult{}, err
 	}
 	defer client.Close()
 	resp, err := client.Raw().Audit(ctx, &req)
 	if err != nil {
-		return model.AuditResult{}, fmt.Errorf("run external auditor %s: %w", a.info.ID, err)
+		return sdk.AuditResult{}, fmt.Errorf("run external auditor %s: %w", a.info.ID, err)
 	}
 	if resp == nil {
-		return model.AuditResult{}, nil
+		return sdk.AuditResult{}, nil
 	}
 	return *resp, nil
 }
 
-func newExternalAuditor(info PluginInfo, ctx context.Context) model.Auditor {
+func newExternalAuditor(info PluginInfo, ctx context.Context) sdk.Auditor {
 	return externalAuditor{info: info, launchCtx: launchContext(ctx, nil)}
 }
 

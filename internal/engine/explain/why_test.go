@@ -3,16 +3,16 @@ package explain
 import (
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestFindWhy_MarksCyclicPaths(t *testing.T) {
-	deps := model.New()
-	app := model.NewPackageRef("app", "")
-	b := model.NewPackageRef("b", "")
-	c := model.NewPackageRef("c", "")
+	deps := sdk.New()
+	app := sdk.NewPackageRef("app", "")
+	b := sdk.NewPackageRef("b", "")
+	c := sdk.NewPackageRef("c", "")
 
-	for _, pkg := range []*model.Package{app, b, c} {
+	for _, pkg := range []*sdk.Package{app, b, c} {
 		if err := deps.AddPackage(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.ID, err)
 		}

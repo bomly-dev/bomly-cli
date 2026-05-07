@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // SchemaVersion is the current CLI output schema version.
@@ -44,19 +44,19 @@ func (l LicenseRef) Identifier() string {
 
 // VulnerabilityRef identifies one package vulnerability in command outputs.
 type VulnerabilityRef struct {
-	ID                   string            `json:"id"`
-	Source               string            `json:"source"`
-	Title                string            `json:"title,omitempty"`
-	Severity             string            `json:"severity,omitempty"`
-	SeveritySource       string            `json:"severity_source,omitempty"`
-	Aliases              []string          `json:"aliases,omitempty"`
-	Description          string            `json:"description,omitempty"`
-	Reasons              []string          `json:"reasons,omitempty"`
-	CVSS                 []model.CVSSScore `json:"cvss,omitempty"`
-	FixedIn              string            `json:"fixed_in,omitempty"`
-	AffectedVersionRange string            `json:"affected_version_range,omitempty"`
-	References           []model.Reference `json:"references,omitempty"`
-	KEVExploited         bool              `json:"kev_exploited,omitempty"`
+	ID                   string          `json:"id"`
+	Source               string          `json:"source"`
+	Title                string          `json:"title,omitempty"`
+	Severity             string          `json:"severity,omitempty"`
+	SeveritySource       string          `json:"severity_source,omitempty"`
+	Aliases              []string        `json:"aliases,omitempty"`
+	Description          string          `json:"description,omitempty"`
+	Reasons              []string        `json:"reasons,omitempty"`
+	CVSS                 []sdk.CVSSScore `json:"cvss,omitempty"`
+	FixedIn              string          `json:"fixed_in,omitempty"`
+	AffectedVersionRange string          `json:"affected_version_range,omitempty"`
+	References           []sdk.Reference `json:"references,omitempty"`
+	KEVExploited         bool            `json:"kev_exploited,omitempty"`
 }
 
 // PackageRef identifies a package in command outputs.
@@ -81,7 +81,7 @@ type DependencyPath struct {
 }
 
 // PackageFromGraphPackage converts a model package into a PackageRef.
-func PackageFromGraphPackage(pkg *model.Package) PackageRef {
+func PackageFromGraphPackage(pkg *sdk.Package) PackageRef {
 	if pkg == nil {
 		return PackageRef{Licenses: []LicenseRef{}, Vulnerabilities: []VulnerabilityRef{}}
 	}
@@ -109,7 +109,7 @@ func cloneRefMetadata(src map[string]any) map[string]any {
 }
 
 // LicenseRefsFromGraphLicenses converts graph licenses into output-friendly values.
-func LicenseRefsFromGraphLicenses(licenses []model.PackageLicense) []LicenseRef {
+func LicenseRefsFromGraphLicenses(licenses []sdk.PackageLicense) []LicenseRef {
 	if len(licenses) == 0 {
 		return []LicenseRef{}
 	}
@@ -125,7 +125,7 @@ func LicenseRefsFromGraphLicenses(licenses []model.PackageLicense) []LicenseRef 
 }
 
 // VulnerabilityRefsFromPackageVulnerabilities converts package vulnerability enrichment into output-friendly values.
-func VulnerabilityRefsFromPackageVulnerabilities(vulnerabilities []model.PackageVulnerability) []VulnerabilityRef {
+func VulnerabilityRefsFromPackageVulnerabilities(vulnerabilities []sdk.PackageVulnerability) []VulnerabilityRef {
 	if len(vulnerabilities) == 0 {
 		return []VulnerabilityRef{}
 	}
@@ -140,10 +140,10 @@ func VulnerabilityRefsFromPackageVulnerabilities(vulnerabilities []model.Package
 			Aliases:              append([]string(nil), vulnerability.Aliases...),
 			Description:          vulnerability.Description,
 			Reasons:              append([]string(nil), vulnerability.Reasons...),
-			CVSS:                 append([]model.CVSSScore(nil), vulnerability.CVSS...),
+			CVSS:                 append([]sdk.CVSSScore(nil), vulnerability.CVSS...),
 			FixedIn:              vulnerability.FixedIn,
 			AffectedVersionRange: vulnerability.AffectedVersionRange,
-			References:           append([]model.Reference(nil), vulnerability.References...),
+			References:           append([]sdk.Reference(nil), vulnerability.References...),
 			KEVExploited:         vulnerability.KEVExploited,
 		})
 	}
@@ -172,7 +172,7 @@ type AuditSummary struct {
 }
 
 // FindingsFromScan converts normalized findings into JSON-friendly DTOs.
-func FindingsFromScan(findings []model.Finding) []AuditFinding {
+func FindingsFromScan(findings []sdk.Finding) []AuditFinding {
 	result := make([]AuditFinding, 0, len(findings))
 	for _, f := range findings {
 		result = append(result, AuditFinding{
@@ -189,7 +189,7 @@ func FindingsFromScan(findings []model.Finding) []AuditFinding {
 }
 
 // SummaryFromFindings aggregates finding counts by severity band.
-func SummaryFromFindings(findings []model.Finding) *AuditSummary {
+func SummaryFromFindings(findings []sdk.Finding) *AuditSummary {
 	s := &AuditSummary{}
 	for _, f := range findings {
 		s.Total++
@@ -223,7 +223,7 @@ type ScanPackage struct {
 }
 
 // PackagesFromGraph converts a graph into stable scan package payloads.
-func PackagesFromGraph(g *model.Graph) []ScanPackage {
+func PackagesFromGraph(g *sdk.Graph) []ScanPackage {
 	if g == nil {
 		return nil
 	}

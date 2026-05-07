@@ -5,16 +5,16 @@ import (
 	"path/filepath"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	projectDir := filepath.Join("testdata", "project")
 	detector := Detector{}
-	result, err := detector.ResolveGraph(context.Background(), model.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
 		ProjectPath:    projectDir,
-		PackageManager: model.PackageManagerSwiftPM,
-		Ecosystem:      model.EcosystemSwift,
+		PackageManager: sdk.PackageManagerSwiftPM,
+		Ecosystem:      sdk.EcosystemSwift,
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph returned error: %v", err)

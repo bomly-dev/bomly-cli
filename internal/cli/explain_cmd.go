@@ -10,7 +10,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/tui"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/spf13/cobra"
 )
 
@@ -53,7 +53,7 @@ func newExplainCmd() *cobra.Command {
 			pipeline := engine.NewPipeline(context.Registry(), logger)
 			explainResult, err := pipeline.RunExplain(cmd.Context(), engine.ExplainRequest{
 				Query:    args[0],
-				Pipeline: context.PipelineRequest(model.ScopeUnknown, streams.notificationWriter()),
+				Pipeline: context.PipelineRequest(sdk.ScopeUnknown, streams.notificationWriter()),
 			})
 			if err != nil {
 				return exit.ResolutionFailureError(err)

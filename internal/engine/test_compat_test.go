@@ -3,62 +3,62 @@ package engine
 import (
 	"context"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
-type Detector = model.Detector
-type DetectorDescriptor = model.DetectorDescriptor
-type ResolveGraphRequest = model.DetectionRequest
-type ResolveGraphResult = model.DetectionResult
-type DetectorFilter = model.DetectorFilter
-type PackageManager = model.PackageManager
-type Ecosystem = model.Ecosystem
-type TargetMode = model.TargetMode
-type ComponentQuery = model.DependencyQuery
-type Scope = model.Scope
+type Detector = sdk.Detector
+type DetectorDescriptor = sdk.DetectorDescriptor
+type ResolveGraphRequest = sdk.DetectionRequest
+type ResolveGraphResult = sdk.DetectionResult
+type DetectorFilter = sdk.DetectorFilter
+type PackageManager = sdk.PackageManager
+type Ecosystem = sdk.Ecosystem
+type TargetMode = sdk.TargetMode
+type ComponentQuery = sdk.DependencyQuery
+type Scope = sdk.Scope
 
-type Auditor = model.Auditor
-type AuditorDescriptor = model.AuditorDescriptor
-type AuditRequest = model.AuditRequest
-type AuditResult = model.AuditResult
+type Auditor = sdk.Auditor
+type AuditorDescriptor = sdk.AuditorDescriptor
+type AuditRequest = sdk.AuditRequest
+type AuditResult = sdk.AuditResult
 
-type Matcher = model.Matcher
-type MatcherDescriptor = model.MatcherDescriptor
-type MatchRequest = model.MatchRequest
-type MatchResult = model.MatchResult
+type Matcher = sdk.Matcher
+type MatcherDescriptor = sdk.MatcherDescriptor
+type MatchRequest = sdk.MatchRequest
+type MatchResult = sdk.MatchResult
 
-type ExecutionTarget = model.ExecutionTarget
-type ExecutionTargetKind = model.ExecutionTargetKind
-type Subproject = model.Subproject
-type Finding = model.Finding
-type RiskScore = model.RiskScore
+type ExecutionTarget = sdk.ExecutionTarget
+type ExecutionTargetKind = sdk.ExecutionTargetKind
+type Subproject = sdk.Subproject
+type Finding = sdk.Finding
+type RiskScore = sdk.RiskScore
 
 const (
-	PackageManagerUnknown           = model.PackageManagerUnknown
-	PackageManagerNPM               = model.PackageManagerNPM
-	PackageManagerMaven             = model.PackageManagerMaven
-	PackageManagerGoMod             = model.PackageManagerGoMod
-	PackageManagerGitHubActions     = model.PackageManagerGitHubActions
-	PackageManagerRPM               = model.PackageManagerRPM
-	PackageManagerAPK               = model.PackageManagerAPK
-	PackageManagerSBOM              = model.PackageManagerSBOM
-	PackageManagerCargo             = model.PackageManagerCargo
-	EcosystemUnknown                = model.EcosystemUnknown
-	EcosystemNPM                    = model.EcosystemNPM
-	EcosystemMaven                  = model.EcosystemMaven
-	EcosystemGo                     = model.EcosystemGo
-	EcosystemGitHub                 = model.EcosystemGitHub
-	EcosystemRPM                    = model.EcosystemRPM
-	EcosystemAPK                    = model.EcosystemAPK
-	EcosystemSBOM                   = model.EcosystemSBOM
-	TargetModeFullGraph             = model.TargetModeFullGraph
-	TargetModeComponent             = model.TargetModeComponent
-	ExecutionTargetFilesystem       = model.ExecutionTargetFilesystem
-	ExecutionTargetWorkingDirectory = model.ExecutionTargetWorkingDirectory
-	ExecutionTargetContainerImage   = model.ExecutionTargetContainerImage
-	ScopeRuntime                    = model.ScopeRuntime
-	ScopeDevelopment                = model.ScopeDevelopment
+	PackageManagerUnknown           = sdk.PackageManagerUnknown
+	PackageManagerNPM               = sdk.PackageManagerNPM
+	PackageManagerMaven             = sdk.PackageManagerMaven
+	PackageManagerGoMod             = sdk.PackageManagerGoMod
+	PackageManagerGitHubActions     = sdk.PackageManagerGitHubActions
+	PackageManagerRPM               = sdk.PackageManagerRPM
+	PackageManagerAPK               = sdk.PackageManagerAPK
+	PackageManagerSBOM              = sdk.PackageManagerSBOM
+	PackageManagerCargo             = sdk.PackageManagerCargo
+	EcosystemUnknown                = sdk.EcosystemUnknown
+	EcosystemNPM                    = sdk.EcosystemNPM
+	EcosystemMaven                  = sdk.EcosystemMaven
+	EcosystemGo                     = sdk.EcosystemGo
+	EcosystemGitHub                 = sdk.EcosystemGitHub
+	EcosystemRPM                    = sdk.EcosystemRPM
+	EcosystemAPK                    = sdk.EcosystemAPK
+	EcosystemSBOM                   = sdk.EcosystemSBOM
+	TargetModeFullGraph             = sdk.TargetModeFullGraph
+	TargetModeComponent             = sdk.TargetModeComponent
+	ExecutionTargetFilesystem       = sdk.ExecutionTargetFilesystem
+	ExecutionTargetWorkingDirectory = sdk.ExecutionTargetWorkingDirectory
+	ExecutionTargetContainerImage   = sdk.ExecutionTargetContainerImage
+	ScopeRuntime                    = sdk.ScopeRuntime
+	ScopeDevelopment                = sdk.ScopeDevelopment
 )
 
 func newTestRegistry() *Registry {

@@ -1,16 +1,16 @@
 package cli
 
 import (
-	enginediff "github.com/bomly-dev/bomly-cli/internal/engine/diff"
+	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
-func diffAuditOutput(audit *enginediff.Audit) *output.DiffAudit {
+func diffAuditOutput(audit *diffengine.Audit) *output.DiffAudit {
 	if audit == nil {
 		return nil
 	}
-	combined := append(append([]model.Finding{}, audit.Introduced...), audit.Persisted...)
+	combined := append(append([]sdk.Finding{}, audit.Introduced...), audit.Persisted...)
 	combined = append(combined, audit.Resolved...)
 	return &output.DiffAudit{
 		Introduced:   output.FindingsFromScan(audit.Introduced),
@@ -20,7 +20,7 @@ func diffAuditOutput(audit *enginediff.Audit) *output.DiffAudit {
 	}
 }
 
-func explainPackageRef(pkg *model.Package) output.PackageRef {
+func explainPackageRef(pkg *sdk.Package) output.PackageRef {
 	ref := output.PackageFromGraphPackage(pkg)
 	if pkg == nil {
 		return ref

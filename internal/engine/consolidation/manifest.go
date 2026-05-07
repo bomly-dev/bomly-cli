@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
-func normalizeNativeManifestPath(subproject model.Subproject, manifestPath string) string {
+func normalizeNativeManifestPath(subproject sdk.Subproject, manifestPath string) string {
 	if manifestPath == "" {
 		return manifestPath
 	}
@@ -90,12 +90,12 @@ func splitPathVolume(value string) (string, string, bool) {
 	return "", value, false
 }
 
-func manifestDedupKey(subproject model.Subproject, manifest model.ManifestMetadata) string {
+func manifestDedupKey(subproject sdk.Subproject, manifest sdk.ManifestMetadata) string {
 	p := manifestDedupPath(subproject, manifest.Path)
 	return p
 }
 
-func manifestDedupPath(subproject model.Subproject, manifestPath string) string {
+func manifestDedupPath(subproject sdk.Subproject, manifestPath string) string {
 	p := strings.TrimSpace(strings.ReplaceAll(manifestPath, "\\", "/"))
 	if p == "" {
 		return p
@@ -125,7 +125,7 @@ func hasWindowsVolume(path string) bool {
 	return len(path) >= 3 && ((path[0] >= 'A' && path[0] <= 'Z') || (path[0] >= 'a' && path[0] <= 'z')) && path[1] == ':' && path[2] == '/'
 }
 
-func consolidatedEntryRootID(g *model.Graph, manifest model.ManifestMetadata, idx int) string {
+func consolidatedEntryRootID(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) string {
 	if g != nil {
 		roots := g.Roots()
 		if len(roots) > 0 && roots[0] != nil && strings.TrimSpace(roots[0].ID) != "" {
@@ -142,7 +142,7 @@ func consolidatedEntryRootID(g *model.Graph, manifest model.ManifestMetadata, id
 	return fmt.Sprintf("entry-%d", idx+1)
 }
 
-func ensureEntryRoot(g *model.Graph, manifest model.ManifestMetadata, idx int) error {
+func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error {
 	if g == nil || g.Size() == 0 {
 		return nil
 	}
@@ -162,7 +162,7 @@ func ensureEntryRoot(g *model.Graph, manifest model.ManifestMetadata, idx int) e
 		kind = "manifest"
 	}
 
-	virtualRoot := model.NewPackageWithID(rootID, model.Package{
+	virtualRoot := sdk.NewPackageWithID(rootID, sdk.Package{
 		Name:        manifestLabel,
 		Type:        "manifest",
 		BuildSystem: kind,
@@ -180,7 +180,7 @@ func ensureEntryRoot(g *model.Graph, manifest model.ManifestMetadata, idx int) e
 			continue
 		}
 		if err := g.AddDependency(rootID, target.ID); err != nil {
-			if errors.Is(err, model.ErrSelfDependency) {
+			if errors.Is(err, sdk.ErrSelfDependency) {
 				continue
 			}
 			return fmt.Errorf("attach virtual root %q -> %q: %w", rootID, target.ID, err)
@@ -190,7 +190,7 @@ func ensureEntryRoot(g *model.Graph, manifest model.ManifestMetadata, idx int) e
 	return nil
 }
 
-func hasSingleRoot(g *model.Graph) bool {
+func hasSingleRoot(g *sdk.Graph) bool {
 	if g == nil {
 		return false
 	}
@@ -198,7 +198,7 @@ func hasSingleRoot(g *model.Graph) bool {
 	return len(roots) == 1 && roots[0] != nil && strings.TrimSpace(roots[0].ID) != ""
 }
 
-func virtualManifestRootID(g *model.Graph, manifest model.ManifestMetadata, idx int) string {
+func virtualManifestRootID(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) string {
 	base := strings.TrimSpace(manifest.Path)
 	if base == "" {
 		base = fmt.Sprintf("entry-%d", idx+1)

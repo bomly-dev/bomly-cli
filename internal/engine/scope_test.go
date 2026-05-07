@@ -3,15 +3,15 @@ package engine
 import (
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestFilterGraphByScope(t *testing.T) {
-	depsGraph := model.New()
-	root := model.NewPackage(model.Package{Name: "app", Version: "1.0.0"})
-	runtimeDep := model.NewPackage(model.Package{Name: "react", Version: "18.2.0", Scope: string(ScopeRuntime)})
-	devDep := model.NewPackage(model.Package{Name: "vitest", Version: "2.0.0", Scope: string(ScopeDevelopment)})
-	for _, pkg := range []*model.Package{root, runtimeDep, devDep} {
+	depsGraph := sdk.New()
+	root := sdk.NewPackage(sdk.Package{Name: "app", Version: "1.0.0"})
+	runtimeDep := sdk.NewPackage(sdk.Package{Name: "react", Version: "18.2.0", Scope: string(ScopeRuntime)})
+	devDep := sdk.NewPackage(sdk.Package{Name: "vitest", Version: "2.0.0", Scope: string(ScopeDevelopment)})
+	for _, pkg := range []*sdk.Package{root, runtimeDep, devDep} {
 		if err := depsGraph.AddPackage(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.ID, err)
 		}

@@ -5,11 +5,11 @@ import (
 	"strings"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestPackageRefMarshalJSONAlwaysIncludesLicenses(t *testing.T) {
-	payload, err := json.Marshal(PackageFromGraphPackage(&model.Package{Name: "react", Version: "18.2.0"}))
+	payload, err := json.Marshal(PackageFromGraphPackage(&sdk.Package{Name: "react", Version: "18.2.0"}))
 	if err != nil {
 		t.Fatalf("Marshal() error = %v", err)
 	}
@@ -19,10 +19,10 @@ func TestPackageRefMarshalJSONAlwaysIncludesLicenses(t *testing.T) {
 }
 
 func TestPackageFromGraphPackageIncludesStructuredLicenses(t *testing.T) {
-	ref := PackageFromGraphPackage(&model.Package{
+	ref := PackageFromGraphPackage(&sdk.Package{
 		Name:    "react",
 		Version: "18.2.0",
-		Licenses: []model.PackageLicense{{
+		Licenses: []sdk.PackageLicense{{
 			Value:          "MIT License",
 			SPDXExpression: "MIT",
 			Type:           "external-depsdev",

@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"io"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -22,16 +22,16 @@ type Descriptor struct {
 
 // PreResolveContext provides inputs available before detection.
 type PreResolveContext struct {
-	ExecutionTarget model.ExecutionTarget
-	Subprojects     []model.Subproject
+	ExecutionTarget sdk.ExecutionTarget
+	Subprojects     []sdk.Subproject
 	ProjectPath     string
 	Stderr          io.Writer
 }
 
 // PostResolveContext provides inputs available after full resolution.
 type PostResolveContext struct {
-	Consolidated model.ConsolidatedGraph
-	Findings     []model.Finding
+	Consolidated sdk.ConsolidatedGraph
+	Findings     []sdk.Finding
 	ProjectPath  string
 	Stderr       io.Writer
 }

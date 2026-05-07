@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/anchore/syft/syft/format/syftjson"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 var (
@@ -106,7 +106,7 @@ func UnmarshalAutoJSON(data []byte) (*Document, Target, error) {
 }
 
 // MarshalDepGraphJSON converts a dependency graph directly into a target JSON SBOM.
-func MarshalDepGraphJSON(g *model.Graph, target Target, buildOpts BuildOptions, encodeOpts EncodeOptions) ([]byte, error) {
+func MarshalDepGraphJSON(g *sdk.Graph, target Target, buildOpts BuildOptions, encodeOpts EncodeOptions) ([]byte, error) {
 	doc, err := FromDepGraph(g, buildOpts)
 	if err != nil {
 		return nil, err

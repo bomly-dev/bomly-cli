@@ -4,7 +4,7 @@ import (
 	"sort"
 
 	"github.com/bomly-dev/bomly-cli/internal/registry"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -29,21 +29,21 @@ func NewRegistry(configs RegistryConfigs, logger zap.Logger) *Registry {
 	return &Registry{Registry: registry.NewRegistry(configs, logger)}
 }
 
-func (r *Registry) registerDetector(detector model.Detector) {
+func (r *Registry) registerDetector(detector sdk.Detector) {
 	if r == nil {
 		return
 	}
 	r.Registry.RegisterDetector(detector)
 }
 
-func (r *Registry) registerMatcher(matcher model.Matcher) {
+func (r *Registry) registerMatcher(matcher sdk.Matcher) {
 	if r == nil {
 		return
 	}
 	r.Registry.RegisterMatcher(matcher)
 }
 
-func (r *Registry) registerAuditor(auditor model.Auditor) {
+func (r *Registry) registerAuditor(auditor sdk.Auditor) {
 	if r == nil {
 		return
 	}

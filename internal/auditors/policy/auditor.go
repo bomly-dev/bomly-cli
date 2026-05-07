@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 const auditorName = "severity-policy"
@@ -16,13 +16,13 @@ type Auditor struct {
 }
 
 // Descriptor returns the registration metadata for the policy auditor.
-func (a Auditor) Descriptor() model.AuditorDescriptor {
-	return model.AuditorDescriptor{
+func (a Auditor) Descriptor() sdk.AuditorDescriptor {
+	return sdk.AuditorDescriptor{
 		Name:                auditorName,
 		Enabled:             true,
-		Origin:              model.CoreOrigin,
+		Origin:              sdk.CoreOrigin,
 		SupportedEcosystems: nil,
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
+		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 	}
 }
 
@@ -30,7 +30,7 @@ func (a Auditor) Ready() bool {
 	return true
 }
 
-func (a Auditor) Applicable(_ context.Context, req model.AuditRequest) (bool, error) {
+func (a Auditor) Applicable(_ context.Context, req sdk.AuditRequest) (bool, error) {
 	if len(req.AuditorFilter.Exclude) > 0 && req.AuditorFilter.Excludes(auditorName) {
 		return false, nil
 	}
@@ -41,22 +41,22 @@ func (a Auditor) Applicable(_ context.Context, req model.AuditRequest) (bool, er
 }
 
 // Audit evaluates enriched vulnerabilities and emits findings for entries that meet the configured threshold.
-func (a Auditor) Audit(_ context.Context, req model.AuditRequest) (model.AuditResult, error) {
+func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult, error) {
 	if req.Graph == nil {
-		return model.AuditResult{}, nil
+		return sdk.AuditResult{}, nil
 	}
 
 	threshold, err := ParseSeverityThreshold(a.FailOn)
 	if err != nil {
-		return model.AuditResult{}, fmt.Errorf("parse fail-on severity: %w", err)
+		return sdk.AuditResult{}, fmt.Errorf("parse fail-on severity: %w", err)
 	}
 
 	packages := req.Graph.Packages()
-	if req.Mode == model.TargetModeComponent && req.Target != nil {
-		packages = []*model.Package{req.Target}
+	if req.Mode == sdk.TargetModeComponent && req.Target != nil {
+		packages = []*sdk.Package{req.Target}
 	}
 
-	findings := make([]model.Finding, 0)
+	findings := make([]sdk.Finding, 0)
 	for _, pkg := range packages {
 		if pkg == nil {
 			continue
@@ -69,9 +69,9 @@ func (a Auditor) Audit(_ context.Context, req model.AuditRequest) (model.AuditRe
 			if title == "" {
 				title = vulnerability.ID
 			}
-			findings = append(findings, model.Finding{
+			findings = append(findings, sdk.Finding{
 				ID:                   vulnerability.ID,
-				Kind:                 model.FindingKindVulnerability,
+				Kind:                 sdk.FindingKindVulnerability,
 				Package:              pkg,
 				Title:                title,
 				Severity:             strings.ToLower(strings.TrimSpace(vulnerability.Severity)),
@@ -80,16 +80,16 @@ func (a Auditor) Audit(_ context.Context, req model.AuditRequest) (model.AuditRe
 				Aliases:              append([]string(nil), vulnerability.Aliases...),
 				Description:          vulnerability.Description,
 				SeveritySource:       vulnerability.SeveritySource,
-				CVSS:                 append([]model.CVSSScore(nil), vulnerability.CVSS...),
+				CVSS:                 append([]sdk.CVSSScore(nil), vulnerability.CVSS...),
 				FixedIn:              vulnerability.FixedIn,
 				AffectedVersionRange: vulnerability.AffectedVersionRange,
-				References:           append([]model.Reference(nil), vulnerability.References...),
+				References:           append([]sdk.Reference(nil), vulnerability.References...),
 				KEVExploited:         vulnerability.KEVExploited,
 			})
 		}
 	}
 
-	return model.AuditResult{
+	return sdk.AuditResult{
 		Graph:    req.Graph,
 		Target:   req.Target,
 		Findings: findings,
@@ -146,12 +146,12 @@ func severityRank(severity string) int {
 }
 
 // collapsePreferredVulnerabilities collapses multiple vulnerabilities with the same ID into a single entry.
-func collapsePreferredVulnerabilities(vulnerabilities []model.PackageVulnerability) []model.PackageVulnerability {
+func collapsePreferredVulnerabilities(vulnerabilities []sdk.PackageVulnerability) []sdk.PackageVulnerability {
 	type key struct {
 		id string
 	}
 	type choice struct {
-		entry model.PackageVulnerability
+		entry sdk.PackageVulnerability
 		rank  int
 	}
 	best := make(map[key]choice, len(vulnerabilities))
@@ -170,7 +170,7 @@ func collapsePreferredVulnerabilities(vulnerabilities []model.PackageVulnerabili
 		}
 	}
 
-	out := make([]model.PackageVulnerability, 0, len(best))
+	out := make([]sdk.PackageVulnerability, 0, len(best))
 	for _, k := range order {
 		out = append(out, best[k].entry)
 	}

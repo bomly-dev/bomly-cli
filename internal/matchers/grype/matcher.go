@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -26,7 +26,7 @@ type Matcher struct {
 	DistConfigOverride any
 }
 
-func appendUniqueVulnerability(existing []model.PackageVulnerability, entry model.PackageVulnerability) []model.PackageVulnerability {
+func appendUniqueVulnerability(existing []sdk.PackageVulnerability, entry sdk.PackageVulnerability) []sdk.PackageVulnerability {
 	for _, vulnerability := range existing {
 		if vulnerability.Source == entry.Source && vulnerability.ID == entry.ID {
 			return existing
@@ -36,13 +36,13 @@ func appendUniqueVulnerability(existing []model.PackageVulnerability, entry mode
 }
 
 // Descriptor returns the registration metadata for the Grype matcher.
-func (a Matcher) Descriptor() model.MatcherDescriptor {
-	return model.MatcherDescriptor{
+func (a Matcher) Descriptor() sdk.MatcherDescriptor {
+	return sdk.MatcherDescriptor{
 		Name:                matcherName,
 		Enabled:             true,
-		Origin:              model.BundledOrigin,
+		Origin:              sdk.BundledOrigin,
 		SupportedEcosystems: nil, // nil = all ecosystems
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
+		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Priority:            a.Priority,
 		Required:            false,
 	}
@@ -54,7 +54,7 @@ func (a Matcher) Ready() bool {
 	return err == nil && info.IsDir()
 }
 
-func (a Matcher) Applicable(_ context.Context, req model.MatchRequest) (bool, error) {
+func (a Matcher) Applicable(_ context.Context, req sdk.MatchRequest) (bool, error) {
 	return true, nil
 }
 

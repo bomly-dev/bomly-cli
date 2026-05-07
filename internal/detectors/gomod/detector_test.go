@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestDetectorApplicable_GoMod(t *testing.T) {
@@ -17,7 +17,7 @@ func TestDetectorApplicable_GoMod(t *testing.T) {
 	}
 
 	detector := Detector{WorkingDir: projectDir}
-	applicable, err := detector.Applicable(context.Background(), model.DetectionRequest{ProjectPath: projectDir})
+	applicable, err := detector.Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Applicable() error = %v", err)
 	}
@@ -107,7 +107,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 	if !ok {
 		t.Fatal("expected runtime dependency package")
 	}
-	if got := uuidNode.Scope; got != string(model.ScopeRuntime) {
+	if got := uuidNode.Scope; got != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope for uuid, got %q", got)
 	}
 
@@ -115,7 +115,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 	if !ok {
 		t.Fatal("expected transitive runtime dependency package")
 	}
-	if got := textNode.Scope; got != string(model.ScopeRuntime) {
+	if got := textNode.Scope; got != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope for golang.org/x/text, got %q", got)
 	}
 
@@ -123,7 +123,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 	if !ok {
 		t.Fatal("expected development dependency package")
 	}
-	if got := testifyNode.Scope; got != string(model.ScopeDevelopment) {
+	if got := testifyNode.Scope; got != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected development scope for testify, got %q", got)
 	}
 
@@ -131,7 +131,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 	if !ok {
 		t.Fatal("expected transitive development dependency package")
 	}
-	if got := spewNode.Scope; got != string(model.ScopeDevelopment) {
+	if got := spewNode.Scope; got != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected development scope for go-spew, got %q", got)
 	}
 
@@ -164,7 +164,7 @@ func TestDepGraphFromGoList_PrefersRuntimeScope(t *testing.T) {
 	if !ok {
 		t.Fatal("expected shared dependency package")
 	}
-	if got := shared.Scope; got != string(model.ScopeRuntime) {
+	if got := shared.Scope; got != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope to win, got %q", got)
 	}
 }

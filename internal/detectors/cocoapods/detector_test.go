@@ -4,16 +4,16 @@ import (
 	"context"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	detector := Detector{WorkingDir: "testdata/project"}
-	result, err := detector.ResolveGraph(context.Background(), model.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
 		ProjectPath:     "testdata/project",
-		PackageManager:  model.PackageManagerCocoaPods,
-		Ecosystem:       model.EcosystemSwift,
-		ExecutionTarget: model.ExecutionTarget{Location: "testdata/project"},
+		PackageManager:  sdk.PackageManagerCocoaPods,
+		Ecosystem:       sdk.EcosystemSwift,
+		ExecutionTarget: sdk.ExecutionTarget{Location: "testdata/project"},
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -26,7 +26,7 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if !ok {
 		t.Fatal("expected AppCenter/Analytics package")
 	}
-	if pkg.Scope != string(model.ScopeRuntime) {
+	if pkg.Scope != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope, got %q", pkg.Scope)
 	}
 }
@@ -63,7 +63,7 @@ SPEC CHECKSUMS:
 	if !ok {
 		t.Fatal("expected AppCenter/Analytics package")
 	}
-	if analytics.Scope != string(model.ScopeRuntime) {
+	if analytics.Scope != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope, got %q", analytics.Scope)
 	}
 	children, err := g.Dependencies(analytics.ID)

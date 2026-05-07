@@ -30,7 +30,7 @@ func ScanGraphDisplayName(g *sdk.Graph, fallback string) string {
 }
 
 // Scan returns the human-readable text report for a scan command.
-func Scan(manifests []output.ScanManifest, g *sdk.Graph, findings []sdk.Finding, enrichEnabled, auditEnabled bool) string {
+func Scan(manifests []output.ScanManifest, g *sdk.Graph, findings []sdk.Finding, enrichEnabled, auditEnabled, reachabilityEnabled bool) string {
 	var b strings.Builder
 
 	if g == nil {
@@ -46,6 +46,9 @@ func Scan(manifests []output.ScanManifest, g *sdk.Graph, findings []sdk.Finding,
 	fmt.Fprintf(&b, "  Scopes: %d runtime, %d development, %d unspecified\n", runtimeCount, developmentCount, unknownScopeCount)
 	fmt.Fprintf(&b, "  Vulnerability enrichment: %s\n", formatEnrichmentSummary(g, enrichEnabled))
 	fmt.Fprintf(&b, "  Policy findings: %s\n", formatAuditSummary(summary, auditEnabled))
+	if reachabilityEnabled {
+		fmt.Fprintf(&b, "  Reachability: %s\n", formatReachabilitySummary(g))
+	}
 	fmt.Fprintf(&b, "  Unique licenses: %d\n", scanUniqueLicenseCount(g))
 
 	b.WriteString("\nManifests\n")
@@ -83,7 +86,11 @@ func Scan(manifests []output.ScanManifest, g *sdk.Graph, findings []sdk.Finding,
 			return pkgI < pkgJ
 		})
 		tw := tabwriter.NewWriter(&b, 0, 0, 2, ' ', 0)
-		_, _ = fmt.Fprintln(tw, "SEVERITY\tID\tPACKAGE\tTITLE\tSOURCE")
+		if reachabilityEnabled {
+			_, _ = fmt.Fprintln(tw, "SEVERITY\tID\tPACKAGE\tREACHABILITY\tTITLE\tSOURCE")
+		} else {
+			_, _ = fmt.Fprintln(tw, "SEVERITY\tID\tPACKAGE\tTITLE\tSOURCE")
+		}
 		for _, f := range sorted {
 			pkgName := "-"
 			if f.Package != nil {
@@ -99,8 +106,13 @@ func Scan(manifests []output.ScanManifest, g *sdk.Graph, findings []sdk.Finding,
 			if len(title) > 60 {
 				title = title[:57] + "..."
 			}
-			_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n",
-				f.Severity, f.ID, pkgName, title, f.Source)
+			if reachabilityEnabled {
+				_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\n",
+					f.Severity, f.ID, pkgName, formatReachabilityCell(f.Reachability), title, f.Source)
+			} else {
+				_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n",
+					f.Severity, f.ID, pkgName, title, f.Source)
+			}
 		}
 		_ = tw.Flush()
 	}
@@ -228,6 +240,66 @@ func formatAuditSummary(summary *output.AuditSummary, auditEnabled bool) string 
 		parts = append(parts, fmt.Sprintf("%d unknown", summary.Unknown))
 	}
 	return fmt.Sprintf("%d total (%s)", summary.Total, strings.Join(parts, ", "))
+}
+
+// formatReachabilityCell renders one Reachability annotation for the
+// findings table. Returns "—" when no analyzer ran (nil reachability) so
+// the column reads cleanly when only a subset of findings is annotated.
+func formatReachabilityCell(r *sdk.Reachability) string {
+	if r == nil {
+		return "—"
+	}
+	if r.Tier == "" || r.Tier == sdk.TierNone {
+		return string(r.Status)
+	}
+	return fmt.Sprintf("%s (%s)", r.Status, r.Tier)
+}
+
+// formatReachabilitySummary tallies reachability outcomes across the
+// graph's package vulnerabilities for the executive summary.
+func formatReachabilitySummary(g *sdk.Graph) string {
+	if g == nil || g.Size() == 0 {
+		return "no vulnerabilities analyzed"
+	}
+	var reachable, unreachable, unknown, notApplicable, total int
+	for _, pkg := range g.Packages() {
+		if pkg == nil {
+			continue
+		}
+		for _, vuln := range pkg.Vulnerabilities {
+			if vuln.Reachability == nil {
+				continue
+			}
+			total++
+			switch vuln.Reachability.Status {
+			case sdk.ReachabilityReachable:
+				reachable++
+			case sdk.ReachabilityUnreachable:
+				unreachable++
+			case sdk.ReachabilityNotApplicable:
+				notApplicable++
+			default:
+				unknown++
+			}
+		}
+	}
+	if total == 0 {
+		return "enabled (no analyzer ran on any vulnerability)"
+	}
+	parts := make([]string, 0, 4)
+	if reachable > 0 {
+		parts = append(parts, fmt.Sprintf("%d reachable", reachable))
+	}
+	if unreachable > 0 {
+		parts = append(parts, fmt.Sprintf("%d unreachable", unreachable))
+	}
+	if unknown > 0 {
+		parts = append(parts, fmt.Sprintf("%d unknown", unknown))
+	}
+	if notApplicable > 0 {
+		parts = append(parts, fmt.Sprintf("%d not_applicable", notApplicable))
+	}
+	return fmt.Sprintf("%d analyzed (%s)", total, strings.Join(parts, ", "))
 }
 
 func formatEnrichmentSummary(g *sdk.Graph, enrichEnabled bool) string {

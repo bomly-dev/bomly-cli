@@ -107,7 +107,8 @@ func newScanCmd() *cobra.Command {
 				findings = pipeResult.Findings
 				progress.CompleteStep("Evaluated policy", auditProgressChildren(pipeResult.AuditorRuns, pipeResult.AuditorFindings, pipeResult.AuditWarnings))
 			}
-			payload := output.BuildScanResponse(commandCtx.ProjectDescriptor(), consolidated, findings, started)
+			payload := output.BuildScanResponse(commandCtx.ProjectDescriptor(), consolidated, findings, started).
+				WithAnalyzerRuns(pipeResult.AnalyzerRuns, pipeResult.AnalyzerStats)
 
 			if graphOutputFormat == output.FormatSARIF {
 				progress.Success("Resolved Graph")
@@ -140,7 +141,7 @@ func newScanCmd() *cobra.Command {
 							return err
 						}
 					}
-					_, err := io.WriteString(w, render.Scan(payload.Manifests, selectedGraph, findings, commandCtx.ResolvedConfig.Enrich, commandCtx.ResolvedConfig.Audit))
+					_, err := io.WriteString(w, render.Scan(payload.Manifests, selectedGraph, findings, commandCtx.ResolvedConfig.Enrich, commandCtx.ResolvedConfig.Audit, commandCtx.ResolvedConfig.Reachability))
 					return err
 				},
 			})

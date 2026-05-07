@@ -1,10 +1,12 @@
 package registry
 
-// registerGovulncheckAnalyzer is a placeholder until the govulncheck analyzer
-// implementation lands in internal/analyzers/govulncheck. The placeholder
-// allows the registry plumbing to compile and lets unrelated test runs
-// continue while the analyzer is developed in a follow-up commit on the
-// same branch.
+import (
+	"github.com/bomly-dev/bomly-cli/internal/analyzers/govulncheck"
+)
+
+// registerGovulncheckAnalyzer wires the Go reachability analyzer.
+// The runner implementation is selected at build time via the
+// bomly_external_govulncheck tag.
 func (r *Registry) registerGovulncheckAnalyzer() {
-	// no-op
+	r.RegisterAnalyzer(govulncheck.Analyzer{Logger: r.logger})
 }

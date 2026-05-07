@@ -10,6 +10,13 @@ import (
 type PackageLocation struct {
 	RealPath   string
 	AccessPath string
+	// Position optionally records the precise declaration site of the
+	// dependency within the lockfile or manifest at RealPath. Detectors
+	// that operate on positional ASTs (e.g. yaml.Node, encoding/json with a
+	// streaming decoder) populate this so output renderers can point users
+	// at the exact line. nil when unknown — most detectors do not yet emit
+	// a position.
+	Position *SourcePosition
 }
 
 // PackageLicense captures normalized license details for a package.
@@ -122,7 +129,14 @@ func (p *Package) Clone() *Package {
 		clone.Licenses = append([]PackageLicense(nil), p.Licenses...)
 	}
 	if len(p.Locations) > 0 {
-		clone.Locations = append([]PackageLocation(nil), p.Locations...)
+		clone.Locations = make([]PackageLocation, len(p.Locations))
+		for i, loc := range p.Locations {
+			clone.Locations[i] = loc
+			if loc.Position != nil {
+				pos := *loc.Position
+				clone.Locations[i].Position = &pos
+			}
+		}
 	}
 	if len(p.CPEs) > 0 {
 		clone.CPEs = append([]string(nil), p.CPEs...)

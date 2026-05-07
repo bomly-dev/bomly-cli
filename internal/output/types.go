@@ -12,8 +12,8 @@ const SchemaVersion = "1.0"
 
 // Metadata captures execution metadata shared by all command outputs.
 type Metadata struct {
-	DurationMS    int64                              `json:"duration_ms"`
-	AnalyzerRuns  []string                           `json:"analyzer_runs,omitempty"`
+	DurationMS    int64                            `json:"duration_ms"`
+	AnalyzerRuns  []string                         `json:"analyzer_runs,omitempty"`
 	AnalyzerStats map[string]sdk.ReachabilityStats `json:"analyzer_stats,omitempty"`
 }
 
@@ -169,13 +169,13 @@ func VulnerabilityRefsFromPackageVulnerabilities(vulnerabilities []sdk.PackageVu
 
 // AuditFinding is the serialized form of one normalized scan finding.
 type AuditFinding struct {
-	ID           string              `json:"id"`
-	Kind         string              `json:"kind"`
-	Severity     string              `json:"severity"`
-	Package      PackageRef          `json:"package"`
-	Title        string              `json:"title"`
-	Reasons      []string            `json:"reasons,omitempty"`
-	Source       string              `json:"source"`
+	ID           string            `json:"id"`
+	Kind         string            `json:"kind"`
+	Severity     string            `json:"severity"`
+	Package      PackageRef        `json:"package"`
+	Title        string            `json:"title"`
+	Reasons      []string          `json:"reasons,omitempty"`
+	Source       string            `json:"source"`
 	Reachability *sdk.Reachability `json:"reachability,omitempty"`
 }
 

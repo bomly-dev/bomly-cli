@@ -12,7 +12,9 @@ const SchemaVersion = "1.0"
 
 // Metadata captures execution metadata shared by all command outputs.
 type Metadata struct {
-	DurationMS int64 `json:"duration_ms"`
+	DurationMS    int64                              `json:"duration_ms"`
+	AnalyzerRuns  []string                           `json:"analyzer_runs,omitempty"`
+	AnalyzerStats map[string]sdk.ReachabilityStats `json:"analyzer_stats,omitempty"`
 }
 
 // ProjectDescriptor describes the project being analyzed.
@@ -44,19 +46,21 @@ func (l LicenseRef) Identifier() string {
 
 // VulnerabilityRef identifies one package vulnerability in command outputs.
 type VulnerabilityRef struct {
-	ID                   string          `json:"id"`
-	Source               string          `json:"source"`
-	Title                string          `json:"title,omitempty"`
-	Severity             string          `json:"severity,omitempty"`
-	SeveritySource       string          `json:"severity_source,omitempty"`
-	Aliases              []string        `json:"aliases,omitempty"`
-	Description          string          `json:"description,omitempty"`
-	Reasons              []string        `json:"reasons,omitempty"`
-	CVSS                 []sdk.CVSSScore `json:"cvss,omitempty"`
-	FixedIn              string          `json:"fixed_in,omitempty"`
-	AffectedVersionRange string          `json:"affected_version_range,omitempty"`
-	References           []sdk.Reference `json:"references,omitempty"`
-	KEVExploited         bool            `json:"kev_exploited,omitempty"`
+	ID                   string               `json:"id"`
+	Source               string               `json:"source"`
+	Title                string               `json:"title,omitempty"`
+	Severity             string               `json:"severity,omitempty"`
+	SeveritySource       string               `json:"severity_source,omitempty"`
+	Aliases              []string             `json:"aliases,omitempty"`
+	Description          string               `json:"description,omitempty"`
+	Reasons              []string             `json:"reasons,omitempty"`
+	CVSS                 []sdk.CVSSScore      `json:"cvss,omitempty"`
+	FixedIn              string               `json:"fixed_in,omitempty"`
+	AffectedVersionRange string               `json:"affected_version_range,omitempty"`
+	References           []sdk.Reference      `json:"references,omitempty"`
+	KEVExploited         bool                 `json:"kev_exploited,omitempty"`
+	AffectedSymbols      []sdk.AffectedSymbol `json:"affected_symbols,omitempty"`
+	Reachability         *sdk.Reachability    `json:"reachability,omitempty"`
 }
 
 // PackageRef identifies a package in command outputs.
@@ -95,6 +99,17 @@ func PackageFromGraphPackage(pkg *sdk.Package) PackageRef {
 		Licenses:        LicenseRefsFromGraphLicenses(pkg.Licenses),
 		Vulnerabilities: VulnerabilityRefsFromPackageVulnerabilities(pkg.Vulnerabilities),
 	}
+}
+
+func cloneAffectedSymbols(src []sdk.AffectedSymbol) []sdk.AffectedSymbol {
+	if len(src) == 0 {
+		return nil
+	}
+	out := make([]sdk.AffectedSymbol, 0, len(src))
+	for _, sym := range src {
+		out = append(out, sym.Clone())
+	}
+	return out
 }
 
 func cloneRefMetadata(src map[string]any) map[string]any {
@@ -142,6 +157,8 @@ func VulnerabilityRefsFromPackageVulnerabilities(vulnerabilities []sdk.PackageVu
 			Reasons:              append([]string(nil), vulnerability.Reasons...),
 			CVSS:                 append([]sdk.CVSSScore(nil), vulnerability.CVSS...),
 			FixedIn:              vulnerability.FixedIn,
+			AffectedSymbols:      cloneAffectedSymbols(vulnerability.AffectedSymbols),
+			Reachability:         vulnerability.Reachability.Clone(),
 			AffectedVersionRange: vulnerability.AffectedVersionRange,
 			References:           append([]sdk.Reference(nil), vulnerability.References...),
 			KEVExploited:         vulnerability.KEVExploited,
@@ -152,13 +169,14 @@ func VulnerabilityRefsFromPackageVulnerabilities(vulnerabilities []sdk.PackageVu
 
 // AuditFinding is the serialized form of one normalized scan finding.
 type AuditFinding struct {
-	ID       string     `json:"id"`
-	Kind     string     `json:"kind"`
-	Severity string     `json:"severity"`
-	Package  PackageRef `json:"package"`
-	Title    string     `json:"title"`
-	Reasons  []string   `json:"reasons,omitempty"`
-	Source   string     `json:"source"`
+	ID           string              `json:"id"`
+	Kind         string              `json:"kind"`
+	Severity     string              `json:"severity"`
+	Package      PackageRef          `json:"package"`
+	Title        string              `json:"title"`
+	Reasons      []string            `json:"reasons,omitempty"`
+	Source       string              `json:"source"`
+	Reachability *sdk.Reachability `json:"reachability,omitempty"`
 }
 
 // AuditSummary aggregates finding counts by severity.
@@ -176,13 +194,14 @@ func FindingsFromScan(findings []sdk.Finding) []AuditFinding {
 	result := make([]AuditFinding, 0, len(findings))
 	for _, f := range findings {
 		result = append(result, AuditFinding{
-			ID:       f.ID,
-			Kind:     string(f.Kind),
-			Severity: f.Severity,
-			Package:  PackageFromGraphPackage(f.Package),
-			Title:    f.Title,
-			Reasons:  f.Reasons,
-			Source:   f.Source,
+			ID:           f.ID,
+			Kind:         string(f.Kind),
+			Severity:     f.Severity,
+			Package:      PackageFromGraphPackage(f.Package),
+			Title:        f.Title,
+			Reasons:      f.Reasons,
+			Source:       f.Source,
+			Reachability: f.Reachability.Clone(),
 		})
 	}
 	return result

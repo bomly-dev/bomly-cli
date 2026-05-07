@@ -27,7 +27,7 @@ func TestRenderScanReportIncludesProfessionalSections(t *testing.T) {
 		Packages:       output.PackagesFromGraph(g),
 	}}
 
-	report := render.Scan(manifests, g, findings, true, true)
+	report := render.Scan(manifests, g, findings, true, true, false)
 	for _, want := range []string{
 		"Executive Summary",
 		"Manifests",
@@ -58,7 +58,7 @@ func TestRenderScanReportWithoutFindingsUsesCleanMessage(t *testing.T) {
 		Subproject:     ".",
 		PackageManager: "npm",
 		Packages:       output.PackagesFromGraph(g),
-	}}, g, nil, false, false)
+	}}, g, nil, false, false, false)
 	if !strings.Contains(report, "Policy evaluation not enabled") {
 		t.Fatalf("expected not-audited message, got:\n%s", report)
 	}

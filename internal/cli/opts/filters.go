@@ -312,6 +312,54 @@ func resolveMatcherFilter(raw string, reg *engine.Registry) (sdk.MatcherFilter, 
 	return ResolveMatcherFilter(raw, reg)
 }
 
+func buildAnalyzerSelectorCatalog(reg *engine.Registry) selector.Catalog {
+	available := make([]string, 0)
+	aliasToName := make(map[string]string)
+	for _, descriptor := range reg.AnalyzerDescriptors() {
+		name := strings.TrimSpace(descriptor.Name)
+		if name == "" {
+			continue
+		}
+		available = append(available, name)
+		aliasToName[name] = name
+	}
+	simplified := append([]string(nil), available...)
+	sort.Strings(available)
+	sort.Strings(simplified)
+	return selector.Catalog{Kind: "analyzer", Available: available, AliasToName: aliasToName, Items: simplified}
+}
+
+// ResolveAnalyzerFilter parses --analyzers and returns an AnalyzerFilter.
+// Empty input yields an empty filter so the registry's default-enabled set
+// applies.
+func ResolveAnalyzerFilter(raw string, reg *engine.Registry) (sdk.AnalyzerFilter, error) {
+	if strings.TrimSpace(raw) == "" {
+		return sdk.AnalyzerFilter{}, nil
+	}
+	catalog := buildAnalyzerSelectorCatalog(reg)
+	defaultSet := defaultEnabledAnalyzerNames(reg)
+	include, exclude, err := resolveSelector(raw, defaultSet, catalog, false)
+	if err != nil {
+		return sdk.AnalyzerFilter{}, err
+	}
+	return sdk.AnalyzerFilter{Include: include, Exclude: exclude}, nil
+}
+
+func defaultEnabledAnalyzerNames(reg *engine.Registry) []string {
+	if reg == nil {
+		return nil
+	}
+	names := make([]string, 0)
+	for _, descriptor := range reg.AnalyzerDescriptors() {
+		if descriptor.Name == "" || !descriptor.Enabled {
+			continue
+		}
+		names = append(names, descriptor.Name)
+	}
+	sort.Strings(names)
+	return names
+}
+
 func filterAllowsName(include, exclude []string, name string) bool {
 	if len(include) > 0 && !selector.Contains(include, name) {
 		return false

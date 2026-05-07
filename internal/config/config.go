@@ -26,7 +26,9 @@ type Resolved struct {
 	SBOM         bool     `doc:"Treat the selected filesystem target as an SBOM file" env:"BOMLY_SBOM"`
 	Enrich       bool     `doc:"Enrich packages with external license and vulnerability data" env:"BOMLY_ENRICH"`
 	Audit        bool     `doc:"Evaluate policy and create findings from package vulnerability data" env:"BOMLY_AUDIT"`
-	FailOn       string   `doc:"Minimum severity that should create findings in audit mode: any, low, medium, high, critical" env:"BOMLY_FAIL_ON" default:"any"`
+	Reachability bool     `doc:"Run code analysis to confirm whether vulnerabilities are reachable from application code" env:"BOMLY_REACHABILITY"`
+	FailOn       []string `doc:"Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable" env:"BOMLY_FAIL_ON"`
+	Analyzers    string   `doc:"Reachability analyzer selectors; supports +name and -name modifiers" env:"BOMLY_ANALYZERS"`
 	Format       string   `doc:"Primary report format: text, json, or sarif" env:"BOMLY_FORMAT"`
 	Interactive  bool     `doc:"Enable interactive TUI mode" env:"BOMLY_INTERACTIVE"`
 	Ecosystems   string   `doc:"Ecosystem selectors; supports +name and -name modifiers" env:"BOMLY_ECOSYSTEMS"`
@@ -61,26 +63,28 @@ type Resolved struct {
 // configref generator parses this struct's yaml tags to map each Resolved
 // field to its corresponding YAML key in the reference docs.
 type File struct {
-	Path         *string  `yaml:"path,omitempty"`
-	Container    *string  `yaml:"container,omitempty"`
-	URL          *string  `yaml:"url,omitempty"`
-	Ref          *string  `yaml:"ref,omitempty"`
-	SBOM         *bool    `yaml:"sbom,omitempty"`
-	Enrich       *bool    `yaml:"enrich,omitempty"`
-	Audit        *bool    `yaml:"audit,omitempty"`
-	FailOn       *string  `yaml:"fail_on,omitempty"`
-	Format       *string  `yaml:"format,omitempty"`
-	Interactive  *bool    `yaml:"interactive,omitempty"`
-	Ecosystems   *string  `yaml:"ecosystems,omitempty"`
-	Detectors    *string  `yaml:"detectors,omitempty"`
-	Auditors     *string  `yaml:"auditors,omitempty"`
-	Matchers     *string  `yaml:"matchers,omitempty"`
-	InstallFirst *bool    `yaml:"install_first,omitempty"`
-	InstallArgs  []string `yaml:"install_args,omitempty"`
-	Config       *string  `yaml:"config,omitempty"`
-	Quiet        *bool    `yaml:"quiet,omitempty"`
-	Verbosity    *int     `yaml:"verbosity,omitempty"`
-	Verbose      *bool    `yaml:"verbose,omitempty"`
+	Path         *string    `yaml:"path,omitempty"`
+	Container    *string    `yaml:"container,omitempty"`
+	URL          *string    `yaml:"url,omitempty"`
+	Ref          *string    `yaml:"ref,omitempty"`
+	SBOM         *bool      `yaml:"sbom,omitempty"`
+	Enrich       *bool      `yaml:"enrich,omitempty"`
+	Audit        *bool      `yaml:"audit,omitempty"`
+	Reachability *bool      `yaml:"reachability,omitempty"`
+	FailOn       FailOnList `yaml:"fail_on,omitempty"`
+	Analyzers    *string    `yaml:"analyzers,omitempty"`
+	Format       *string    `yaml:"format,omitempty"`
+	Interactive  *bool      `yaml:"interactive,omitempty"`
+	Ecosystems   *string    `yaml:"ecosystems,omitempty"`
+	Detectors    *string    `yaml:"detectors,omitempty"`
+	Auditors     *string    `yaml:"auditors,omitempty"`
+	Matchers     *string    `yaml:"matchers,omitempty"`
+	InstallFirst *bool      `yaml:"install_first,omitempty"`
+	InstallArgs  []string   `yaml:"install_args,omitempty"`
+	Config       *string    `yaml:"config,omitempty"`
+	Quiet        *bool      `yaml:"quiet,omitempty"`
+	Verbosity    *int       `yaml:"verbosity,omitempty"`
+	Verbose      *bool      `yaml:"verbose,omitempty"`
 
 	// OSV matcher settings
 	OsvAPIBase  *string `yaml:"osv_api_base,omitempty"`

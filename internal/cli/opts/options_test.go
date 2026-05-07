@@ -295,8 +295,8 @@ func TestCommandContextInitialize_AppliesConfigPrecedence(t *testing.T) {
 	}
 
 	got := options.GetConfig()
-	if got.FailOn != "low" {
-		t.Fatalf("expected flag fail_on override, got %q", got.FailOn)
+	if len(got.FailOn) != 1 || got.FailOn[0] != "low" {
+		t.Fatalf("expected flag fail_on override [low], got %v", got.FailOn)
 	}
 	if got.Ecosystems != "python" {
 		t.Fatalf("expected flag ecosystems override, got %q", got.Ecosystems)

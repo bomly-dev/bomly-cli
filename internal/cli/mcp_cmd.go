@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
@@ -75,7 +76,7 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(path, container, url, ref string,
 	applyStringOverride(&clone.ResolvedConfig.Container, container)
 	applyStringOverride(&clone.ResolvedConfig.URL, url)
 	applyStringOverride(&clone.ResolvedConfig.Ref, ref)
-	applyStringOverride(&clone.ResolvedConfig.FailOn, failOn)
+	applyFailOnOverride(&clone.ResolvedConfig.FailOn, failOn)
 	applyStringOverride(&clone.ResolvedConfig.Ecosystems, ecosystems)
 	if enrich {
 		clone.ResolvedConfig.Enrich = true
@@ -89,7 +90,7 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(path, container, url, ref string,
 	applyStringOverride(&resolved.Container, container)
 	applyStringOverride(&resolved.URL, url)
 	applyStringOverride(&resolved.Ref, ref)
-	applyStringOverride(&resolved.FailOn, failOn)
+	applyFailOnOverride(&resolved.FailOn, failOn)
 	applyStringOverride(&resolved.Ecosystems, ecosystems)
 	if enrich {
 		resolved.Enrich = true
@@ -106,6 +107,15 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(path, container, url, ref string,
 func applyStringOverride(target *string, value string) {
 	if value != "" {
 		*target = value
+	}
+}
+
+// applyFailOnOverride accepts the legacy single-string MCP fail-on value
+// and replaces target with a single-element slice when set. The MCP
+// adapter does not yet expose the multi-constraint form.
+func applyFailOnOverride(target *[]string, value string) {
+	if strings.TrimSpace(value) != "" {
+		*target = []string{value}
 	}
 }
 

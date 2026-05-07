@@ -23,13 +23,13 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/sbt"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/swiftpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/syft"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // PackageManagerSupport records Bomly's built-in support metadata for one package manager.
 type PackageManagerSupport struct {
-	Manager                    model.PackageManager
-	Ecosystem                  model.Ecosystem
+	Manager                    sdk.PackageManager
+	Ecosystem                  sdk.Ecosystem
 	Aliases                    []string
 	EvidencePatterns           []string
 	Detectors                  []string
@@ -63,8 +63,8 @@ var operatingSystemSupport = []OperatingSystemSupport{
 	{Name: "wolfi", Provider: "apk-db-cataloger", VersionSource: "/etc/os-release"},
 }
 
-func builtInSupportDetectors() []model.Detector {
-	return []model.Detector{
+func builtInSupportDetectors() []sdk.Detector {
+	return []sdk.Detector{
 		npm.LockfileDetector{},
 		npm.NativeDetector{},
 		pnpm.LockfileDetector{},
@@ -95,9 +95,9 @@ func builtInSupportDetectors() []model.Detector {
 }
 
 // SupportedPackageManagers returns package managers known to Bomly's built-in registry.
-func SupportedPackageManagers() []model.PackageManager {
-	values := make([]model.PackageManager, 0, len(packageManagerSupport))
-	for _, manager := range model.AllPackageManagers() {
+func SupportedPackageManagers() []sdk.PackageManager {
+	values := make([]sdk.PackageManager, 0, len(packageManagerSupport))
+	for _, manager := range sdk.AllPackageManagers() {
 		if _, ok := packageManagerSupport[manager]; ok {
 			values = append(values, manager)
 		}
@@ -106,12 +106,12 @@ func SupportedPackageManagers() []model.PackageManager {
 }
 
 // SupportedEcosystems returns ecosystems known to Bomly's built-in support catalog.
-func SupportedEcosystems() []model.Ecosystem {
-	seen := make(map[model.Ecosystem]struct{})
-	values := make([]model.Ecosystem, 0)
+func SupportedEcosystems() []sdk.Ecosystem {
+	seen := make(map[sdk.Ecosystem]struct{})
+	values := make([]sdk.Ecosystem, 0)
 	for _, manager := range SupportedPackageManagers() {
 		ecosystem := manager.Ecosystem()
-		if ecosystem == model.EcosystemUnknown {
+		if ecosystem == sdk.EcosystemUnknown {
 			continue
 		}
 		if _, ok := seen[ecosystem]; ok {
@@ -129,22 +129,22 @@ func EcosystemAliasMap() map[string]string {
 	for _, ecosystem := range SupportedEcosystems() {
 		aliases[string(ecosystem)] = string(ecosystem)
 	}
-	aliases[model.PackageManagerGradle.Name()] = string(model.EcosystemMaven)
+	aliases[sdk.PackageManagerGradle.Name()] = string(sdk.EcosystemMaven)
 	return aliases
 }
 
 // PreferredPackageManagerForEcosystem returns Bomly's default manager label for an ecosystem.
-func PreferredPackageManagerForEcosystem(ecosystem model.Ecosystem) (model.PackageManager, bool) {
+func PreferredPackageManagerForEcosystem(ecosystem sdk.Ecosystem) (sdk.PackageManager, bool) {
 	for _, manager := range SupportedPackageManagers() {
 		if manager.Ecosystem() == ecosystem {
 			return manager, true
 		}
 	}
-	return model.PackageManagerUnknown, false
+	return sdk.PackageManagerUnknown, false
 }
 
 // EvidencePatternsForPackageManager returns built-in discovery evidence patterns.
-func EvidencePatternsForPackageManager(manager model.PackageManager) []string {
+func EvidencePatternsForPackageManager(manager sdk.PackageManager) []string {
 	entry, ok := packageManagerSupport[manager]
 	if !ok {
 		return nil
@@ -153,7 +153,7 @@ func EvidencePatternsForPackageManager(manager model.PackageManager) []string {
 }
 
 // DetectorNamesForPackageManager returns the built-in detector chain for a package manager.
-func DetectorNamesForPackageManager(manager model.PackageManager) []string {
+func DetectorNamesForPackageManager(manager sdk.PackageManager) []string {
 	entry, ok := packageManagerSupport[manager]
 	if !ok {
 		return nil
@@ -162,7 +162,7 @@ func DetectorNamesForPackageManager(manager model.PackageManager) []string {
 }
 
 // PrimaryDetectorForPackageManager returns the preferred built-in detector for a package manager.
-func PrimaryDetectorForPackageManager(manager model.PackageManager) string {
+func PrimaryDetectorForPackageManager(manager sdk.PackageManager) string {
 	detectors := DetectorNamesForPackageManager(manager)
 	if len(detectors) == 0 {
 		return ""
@@ -171,8 +171,8 @@ func PrimaryDetectorForPackageManager(manager model.PackageManager) string {
 }
 
 // PackageManagersByDetector returns package managers whose built-in chain includes detectorName.
-func PackageManagersByDetector(detectorName string) ([]model.PackageManager, bool) {
-	values := make([]model.PackageManager, 0)
+func PackageManagersByDetector(detectorName string) ([]sdk.PackageManager, bool) {
+	values := make([]sdk.PackageManager, 0)
 	for _, manager := range SupportedPackageManagers() {
 		for _, detector := range DetectorNamesForPackageManager(manager) {
 			if detector == detectorName {
@@ -188,18 +188,18 @@ func PackageManagersByDetector(detectorName string) ([]model.PackageManager, boo
 }
 
 // SupportedPackageManagersForDetector returns package managers supported by a built-in detector.
-func SupportedPackageManagersForDetector(detectorName string) []model.PackageManager {
+func SupportedPackageManagersForDetector(detectorName string) []sdk.PackageManager {
 	values, _ := PackageManagersByDetector(detectorName)
 	return values
 }
 
 // SupportedEcosystemsForDetector returns ecosystems supported by a built-in detector.
-func SupportedEcosystemsForDetector(detectorName string) []model.Ecosystem {
-	seen := make(map[model.Ecosystem]struct{})
-	values := make([]model.Ecosystem, 0)
+func SupportedEcosystemsForDetector(detectorName string) []sdk.Ecosystem {
+	seen := make(map[sdk.Ecosystem]struct{})
+	values := make([]sdk.Ecosystem, 0)
 	for _, manager := range SupportedPackageManagersForDetector(detectorName) {
 		ecosystem := manager.Ecosystem()
-		if ecosystem == model.EcosystemUnknown {
+		if ecosystem == sdk.EcosystemUnknown {
 			continue
 		}
 		if _, ok := seen[ecosystem]; ok {
@@ -212,8 +212,8 @@ func SupportedEcosystemsForDetector(detectorName string) []model.Ecosystem {
 }
 
 // PreferredPackageManagersForDetector returns package managers whose preferred detector matches detectorName.
-func PreferredPackageManagersForDetector(detectorName string) []model.PackageManager {
-	values := make([]model.PackageManager, 0)
+func PreferredPackageManagersForDetector(detectorName string) []sdk.PackageManager {
+	values := make([]sdk.PackageManager, 0)
 	for _, manager := range SupportedPackageManagers() {
 		if PrimaryDetectorForPackageManager(manager) == detectorName {
 			values = append(values, manager)
@@ -223,12 +223,12 @@ func PreferredPackageManagersForDetector(detectorName string) []model.PackageMan
 }
 
 // PreferredEcosystemsForDetector returns ecosystems whose preferred package managers are backed by detectorName.
-func PreferredEcosystemsForDetector(detectorName string) []model.Ecosystem {
-	seen := make(map[model.Ecosystem]struct{})
-	values := make([]model.Ecosystem, 0)
+func PreferredEcosystemsForDetector(detectorName string) []sdk.Ecosystem {
+	seen := make(map[sdk.Ecosystem]struct{})
+	values := make([]sdk.Ecosystem, 0)
 	for _, manager := range PreferredPackageManagersForDetector(detectorName) {
 		ecosystem := manager.Ecosystem()
-		if ecosystem == model.EcosystemUnknown {
+		if ecosystem == sdk.EcosystemUnknown {
 			continue
 		}
 		if _, ok := seen[ecosystem]; ok {
@@ -241,19 +241,19 @@ func PreferredEcosystemsForDetector(detectorName string) []model.Ecosystem {
 }
 
 // DetectorOriginForName returns the origin for a built-in detector name.
-func DetectorOriginForName(name string) model.DetectorOrigin {
+func DetectorOriginForName(name string) sdk.DetectorOrigin {
 	return detectorOriginByName[strings.TrimSpace(name)]
 }
 
 // DetectorTechniqueForName returns the detection technique for a built-in detector name.
-func DetectorTechniqueForName(name string) model.DetectorTechnique {
+func DetectorTechniqueForName(name string) sdk.DetectorTechnique {
 	return detectorTechniqueByName[strings.TrimSpace(name)]
 }
 
 // SupportEntries returns Bomly's built-in package-manager support catalog.
 func SupportEntries() []PackageManagerSupport {
 	values := make([]PackageManagerSupport, 0, len(packageManagerSupport))
-	for _, manager := range model.AllPackageManagers() {
+	for _, manager := range sdk.AllPackageManagers() {
 		if entry, ok := packageManagerSupport[manager]; ok {
 			values = append(values, cloneSupport(entry))
 		}
@@ -262,7 +262,7 @@ func SupportEntries() []PackageManagerSupport {
 }
 
 // SupportEntriesForTechnique returns support entries backed by the requested detector technique.
-func SupportEntriesForTechnique(technique model.DetectorTechnique) []PackageManagerSupport {
+func SupportEntriesForTechnique(technique sdk.DetectorTechnique) []PackageManagerSupport {
 	values := make([]PackageManagerSupport, 0)
 	for _, entry := range SupportEntries() {
 		filtered := entry
@@ -293,19 +293,19 @@ func SupportedOperatingSystems() []OperatingSystemSupport {
 	return values
 }
 
-func buildPackageManagerSupportCatalog(detectorList []model.Detector) map[model.PackageManager]PackageManagerSupport {
-	catalog := make(map[model.PackageManager]PackageManagerSupport)
+func buildPackageManagerSupportCatalog(detectorList []sdk.Detector) map[sdk.PackageManager]PackageManagerSupport {
+	catalog := make(map[sdk.PackageManager]PackageManagerSupport)
 	for _, detector := range detectorList {
 		if detector == nil {
 			continue
 		}
 		descriptor := detector.Descriptor()
 		for _, support := range detector.PackageManagerSupport() {
-			if support.PackageManager == model.PackageManagerUnknown || support.PackageManager == model.PackageManagerOther {
+			if support.PackageManager == sdk.PackageManagerUnknown || support.PackageManager == sdk.PackageManagerOther {
 				continue
 			}
 			entry := catalog[support.PackageManager]
-			if entry.Manager == model.PackageManagerUnknown {
+			if entry.Manager == sdk.PackageManagerUnknown {
 				entry.Manager = support.PackageManager
 				entry.Ecosystem = support.PackageManager.Ecosystem()
 			}
@@ -321,8 +321,8 @@ func buildPackageManagerSupportCatalog(detectorList []model.Detector) map[model.
 	return catalog
 }
 
-func buildDetectorOriginCatalog(detectorList []model.Detector) map[string]model.DetectorOrigin {
-	catalog := make(map[string]model.DetectorOrigin, len(detectorList))
+func buildDetectorOriginCatalog(detectorList []sdk.Detector) map[string]sdk.DetectorOrigin {
+	catalog := make(map[string]sdk.DetectorOrigin, len(detectorList))
 	for _, detector := range detectorList {
 		if detector == nil {
 			continue
@@ -336,8 +336,8 @@ func buildDetectorOriginCatalog(detectorList []model.Detector) map[string]model.
 	return catalog
 }
 
-func buildDetectorTechniqueCatalog(detectorList []model.Detector) map[string]model.DetectorTechnique {
-	catalog := make(map[string]model.DetectorTechnique, len(detectorList))
+func buildDetectorTechniqueCatalog(detectorList []sdk.Detector) map[string]sdk.DetectorTechnique {
+	catalog := make(map[string]sdk.DetectorTechnique, len(detectorList))
 	for _, detector := range detectorList {
 		if detector == nil {
 			continue

@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
-	audcache "github.com/bomly-dev/bomly-cli/internal/matchers/cache"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/internal/matchers/cache"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -86,9 +86,9 @@ func defaultVulnDetailCacheDir() string {
 // Matcher implements matchers.Matcher using the OSV API.
 type Matcher struct {
 	client      *Client
-	cache       *audcache.FileCache
-	detailCache *audcache.FileCache // keyed by vuln ID; holds full OsvVulnerability
-	kevCache    *audcache.FileCache
+	cache       *cache.FileCache
+	detailCache *cache.FileCache // keyed by vuln ID; holds full OsvVulnerability
+	kevCache    *cache.FileCache
 	config      Config
 	logger      *zap.Logger
 }
@@ -139,16 +139,16 @@ func New(config Config) (*Matcher, error) {
 		clientConfig.APIBase = config.APIBase
 	}
 
-	cache, err := audcache.NewFileCache(config.CacheDir, config.CacheTTL)
+	c, err := cache.NewFileCache(config.CacheDir, config.CacheTTL)
 	if err != nil {
 		return nil, fmt.Errorf("osv auditor: %w", err)
 	}
-	kevCache, err := audcache.NewFileCache(config.KEVCacheDir, config.KEVCacheTTL)
+	kevCache, err := cache.NewFileCache(config.KEVCacheDir, config.KEVCacheTTL)
 	if err != nil {
 		// KEV cache init failure is non-fatal; we'll skip caching KEV results.
 		kevCache = nil
 	}
-	detailCache, err := audcache.NewFileCache(config.VulnDetailCacheDir, config.VulnDetailCacheTTL)
+	detailCache, err := cache.NewFileCache(config.VulnDetailCacheDir, config.VulnDetailCacheTTL)
 	if err != nil {
 		// Detail cache failure is non-fatal; we'll fetch without caching.
 		detailCache = nil
@@ -161,7 +161,7 @@ func New(config Config) (*Matcher, error) {
 
 	return &Matcher{
 		client:      NewClient(clientConfig),
-		cache:       cache,
+		cache:       c,
 		detailCache: detailCache,
 		kevCache:    kevCache,
 		config:      config,
@@ -170,17 +170,17 @@ func New(config Config) (*Matcher, error) {
 }
 
 // Descriptor returns the matcher registration metadata.
-func (a *Matcher) Descriptor() model.MatcherDescriptor {
-	return model.MatcherDescriptor{
+func (a *Matcher) Descriptor() sdk.MatcherDescriptor {
+	return sdk.MatcherDescriptor{
 		Name:    "osv",
 		Enabled: false,
-		Origin:  model.CoreOrigin,
+		Origin:  sdk.CoreOrigin,
 		// nil SupportedEcosystems means all ecosystems; OSV handles ecosystem
 		// selection internally via PURL or name+ecosystem queries.
 		SupportedEcosystems: nil,
-		SupportedModes: []model.TargetMode{
-			model.TargetModeFullGraph,
-			model.TargetModeComponent,
+		SupportedModes: []sdk.TargetMode{
+			sdk.TargetModeFullGraph,
+			sdk.TargetModeComponent,
 		},
 		Priority: 100,
 		Required: false,
@@ -193,36 +193,36 @@ func (a *Matcher) Ready() bool {
 }
 
 // Applicable reports whether this matcher applies to the given request.
-func (a *Matcher) Applicable(_ context.Context, req model.MatchRequest) (bool, error) {
-	return req.Mode == model.TargetModeFullGraph || req.Mode == model.TargetModeComponent, nil
+func (a *Matcher) Applicable(_ context.Context, req sdk.MatchRequest) (bool, error) {
+	return req.Mode == sdk.TargetModeFullGraph || req.Mode == sdk.TargetModeComponent, nil
 }
 
 // Match resolves vulnerabilities for all packages in the graph and attaches them to packages.
-func (a *Matcher) Match(_ context.Context, req model.MatchRequest) (model.MatchResult, error) {
+func (a *Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
 	started := time.Now()
 	if req.Graph == nil {
-		return model.MatchResult{}, nil
+		return sdk.MatchResult{}, nil
 	}
 
 	packages := req.Graph.Packages()
-	if req.Mode == model.TargetModeComponent && req.Target != nil {
-		packages = []*model.Package{req.Target}
+	if req.Mode == sdk.TargetModeComponent && req.Target != nil {
+		packages = []*sdk.Package{req.Target}
 	}
 	if len(packages) == 0 {
-		return model.MatchResult{Graph: req.Graph, Target: req.Target}, nil
+		return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, nil
 	}
 
 	stats := auditStats{requestedPackages: len(packages)}
 	a.logger.Info(fmt.Sprintf("OSV enriching %d packages with vulnerability data", len(packages)))
 
 	type indexedPkg struct {
-		pkg   *model.Package
-		key   audcache.Key
+		pkg   *sdk.Package
+		key   cache.Key
 		query BatchQuery
 	}
 
 	var toFetch []indexedPkg
-	enriched := make(map[string][]model.PackageVulnerability, len(packages))
+	enriched := make(map[string][]sdk.PackageVulnerability, len(packages))
 
 	// First pass: try cache
 	for _, pkg := range packages {
@@ -232,7 +232,7 @@ func (a *Matcher) Match(_ context.Context, req model.MatchRequest) (model.MatchR
 			continue
 		}
 		if !a.config.BypassCache {
-			if found, hit := audcache.Get[[]OsvVulnerability](a.cache, key); hit {
+			if found, hit := cache.Get[[]OsvVulnerability](a.cache, key); hit {
 				stats.cacheHits++
 				stats.cachedFindings += len(found)
 				for _, v := range found {
@@ -269,11 +269,11 @@ func (a *Matcher) Match(_ context.Context, req model.MatchRequest) (model.MatchR
 			if a.config.Stderr != nil {
 				_, err := fmt.Fprintf(a.config.Stderr, "warn: osv query failed: %v\n", err)
 				if err != nil {
-					return model.MatchResult{}, err
+					return sdk.MatchResult{}, err
 				}
 			}
 			applyPackageVulnerabilityEnrichment(packages, enriched)
-			return model.MatchResult{Graph: req.Graph, Target: req.Target, MatcherRuns: []string{"osv"}}, nil
+			return sdk.MatchResult{Graph: req.Graph, Target: req.Target, MatcherRuns: []string{"osv"}}, nil
 		}
 
 		for i, result := range results {
@@ -295,7 +295,7 @@ func (a *Matcher) Match(_ context.Context, req model.MatchRequest) (model.MatchR
 				}
 			}
 			// Cache the full objects at the package level (24 h TTL).
-			if err := audcache.Set(a.cache, item.key, vulns); err != nil {
+			if err := cache.Set(a.cache, item.key, vulns); err != nil {
 				stats.packageCacheWriteFails++
 			}
 			stats.apiFindings += len(vulns)
@@ -329,7 +329,7 @@ func (a *Matcher) Match(_ context.Context, req model.MatchRequest) (model.MatchR
 			if a.config.Stderr != nil {
 				_, err := fmt.Fprintf(a.config.Stderr, "warn: kev catalog unavailable: %v\n", err)
 				if err != nil {
-					return model.MatchResult{}, err
+					return sdk.MatchResult{}, err
 				}
 			}
 		} else {
@@ -339,7 +339,7 @@ func (a *Matcher) Match(_ context.Context, req model.MatchRequest) (model.MatchR
 	}
 
 	applyPackageVulnerabilityEnrichment(packages, enriched)
-	return model.MatchResult{
+	return sdk.MatchResult{
 		Graph:  req.Graph,
 		Target: req.Target,
 	}, nil
@@ -355,9 +355,9 @@ func (a *Matcher) fetchVulnDetails(ids []string, stats *auditStats) map[string]*
 		stats.detailRequested += len(ids)
 	}
 	for _, id := range ids {
-		key := audcache.NewKey(id, "", "", "")
+		key := cache.NewKey(id, "", "", "")
 		if a.detailCache != nil {
-			if found, hit := audcache.Get[OsvVulnerability](a.detailCache, key); hit {
+			if found, hit := cache.Get[OsvVulnerability](a.detailCache, key); hit {
 				if stats != nil {
 					stats.detailCacheHits++
 				}
@@ -397,9 +397,9 @@ func (a *Matcher) fetchVulnDetails(ids []string, stats *auditStats) map[string]*
 		if stats != nil {
 			stats.detailFetched++
 		}
-		key := audcache.NewKey(id, "", "", "")
+		key := cache.NewKey(id, "", "", "")
 		if a.detailCache != nil {
-			if err := audcache.Set(a.detailCache, key, *vuln); err != nil && stats != nil {
+			if err := cache.Set(a.detailCache, key, *vuln); err != nil && stats != nil {
 				stats.detailCacheWriteFails++
 			}
 		}
@@ -418,15 +418,15 @@ func statsValue(stats *auditStats, getter func(*auditStats) int) int {
 // buildQuery constructs a CacheKey and BatchQuery for a package.
 // Returns (key, query, true) when the package has enough information to query OSV.
 // Returns (_, _, false) when the package should be skipped.
-func buildQuery(pkg *model.Package) (audcache.Key, BatchQuery, bool) {
+func buildQuery(pkg *sdk.Package) (cache.Key, BatchQuery, bool) {
 	if pkg.Version == "" {
 		// OSV requires a version for meaningful results.
-		return audcache.Key{}, BatchQuery{}, false
+		return cache.Key{}, BatchQuery{}, false
 	}
 
 	// Prefer PURL
 	if pkg.PURL != "" {
-		key := audcache.NewKey(pkg.PURL, "", "", "")
+		key := cache.NewKey(pkg.PURL, "", "", "")
 		purlPkg := PurlPackage{Purl: pkg.PURL}
 		raw, _ := json.Marshal(purlPkg)
 		return key, BatchQuery{Package: raw}, true
@@ -435,10 +435,10 @@ func buildQuery(pkg *model.Package) (audcache.Key, BatchQuery, bool) {
 	// Fall back to name + ecosystem + version
 	ecosystem := ecosystemToOSV(pkg.Ecosystem)
 	if ecosystem == "" {
-		return audcache.Key{}, BatchQuery{}, false
+		return cache.Key{}, BatchQuery{}, false
 	}
 
-	key := audcache.NewKey("", pkg.Name, ecosystem, pkg.Version)
+	key := cache.NewKey("", pkg.Name, ecosystem, pkg.Version)
 	namePkg := NamePackage{Name: pkg.Name, Ecosystem: ecosystem}
 	raw, _ := json.Marshal(namePkg)
 	return key, BatchQuery{Package: raw, Version: pkg.Version}, true
@@ -478,7 +478,7 @@ func ecosystemToOSV(eco string) string {
 }
 
 // markKEVVulnerabilities appends KEV state to any vulnerability whose ID or aliases appear in the catalog.
-func markKEVVulnerabilities(vulnerabilities map[string][]model.PackageVulnerability, catalog *KEVCatalog) map[string][]model.PackageVulnerability {
+func markKEVVulnerabilities(vulnerabilities map[string][]sdk.PackageVulnerability, catalog *KEVCatalog) map[string][]sdk.PackageVulnerability {
 	for packageID := range vulnerabilities {
 		for idx := range vulnerabilities[packageID] {
 			if catalog.Contains(vulnerabilities[packageID][idx].ID, vulnerabilities[packageID][idx].Aliases) {
@@ -490,7 +490,7 @@ func markKEVVulnerabilities(vulnerabilities map[string][]model.PackageVulnerabil
 	return vulnerabilities
 }
 
-func markKEVFindings(findings []model.Finding, catalog *KEVCatalog) []model.Finding {
+func markKEVFindings(findings []sdk.Finding, catalog *KEVCatalog) []sdk.Finding {
 	for idx := range findings {
 		if catalog.Contains(findings[idx].ID, findings[idx].Aliases) {
 			findings[idx].KEVExploited = true
@@ -500,7 +500,7 @@ func markKEVFindings(findings []model.Finding, catalog *KEVCatalog) []model.Find
 	return findings
 }
 
-func applyPackageVulnerabilityEnrichment(packages []*model.Package, enriched map[string][]model.PackageVulnerability) {
+func applyPackageVulnerabilityEnrichment(packages []*sdk.Package, enriched map[string][]sdk.PackageVulnerability) {
 	for _, pkg := range packages {
 		if pkg == nil {
 			continue

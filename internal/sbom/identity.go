@@ -4,30 +4,30 @@ import (
 	"strings"
 
 	"github.com/anchore/packageurl-go"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func parsePURL(value string) *packageurl.PackageURL {
-	return model.ParsePackageURL(strings.TrimSpace(value))
+	return sdk.ParsePackageURL(strings.TrimSpace(value))
 }
 
-func ecosystemFromPURLType(purlType string) model.Ecosystem {
+func ecosystemFromPURLType(purlType string) sdk.Ecosystem {
 	normalized := strings.ToLower(strings.TrimSpace(purlType))
 	switch normalized {
 	case "golang":
-		return model.EcosystemGo
+		return sdk.EcosystemGo
 	case "":
-		return model.EcosystemUnknown
+		return sdk.EcosystemUnknown
 	default:
-		ecosystem, err := model.ParseEcosystem(normalized)
+		ecosystem, err := sdk.ParseEcosystem(normalized)
 		if err != nil {
-			return model.EcosystemUnknown
+			return sdk.EcosystemUnknown
 		}
 		return ecosystem
 	}
 }
 
-func packageManagerForPURL(value string, ecosystemHint, packageManagerHint string) model.PackageManager {
+func packageManagerForPURL(value string, ecosystemHint, packageManagerHint string) sdk.PackageManager {
 	if manager, ok := parsePackageManagerHint(packageManagerHint); ok {
 		return manager
 	}
@@ -41,39 +41,39 @@ func packageManagerForPURL(value string, ecosystemHint, packageManagerHint strin
 			return manager
 		}
 	}
-	return model.PackageManagerUnknown
+	return sdk.PackageManagerUnknown
 }
 
-func packageManagerForPURLType(purlType string) (model.PackageManager, bool) {
+func packageManagerForPURLType(purlType string) (sdk.PackageManager, bool) {
 	ecosystem := ecosystemFromPURLType(purlType)
-	if ecosystem == model.EcosystemUnknown {
-		return model.PackageManagerUnknown, false
+	if ecosystem == sdk.EcosystemUnknown {
+		return sdk.PackageManagerUnknown, false
 	}
 	manager, ok := preferredPackageManagerForEcosystem(ecosystem)
 	return manager, ok
 }
 
-func preferredPackageManagerForEcosystem(ecosystem model.Ecosystem) (model.PackageManager, bool) {
-	for _, manager := range model.AllPackageManagers() {
+func preferredPackageManagerForEcosystem(ecosystem sdk.Ecosystem) (sdk.PackageManager, bool) {
+	for _, manager := range sdk.AllPackageManagers() {
 		if manager.Ecosystem() == ecosystem {
 			return manager, true
 		}
 	}
-	return model.PackageManagerUnknown, false
+	return sdk.PackageManagerUnknown, false
 }
 
-func parsePackageManagerHint(value string) (model.PackageManager, bool) {
-	manager, err := model.ParsePackageManager(value)
+func parsePackageManagerHint(value string) (sdk.PackageManager, bool) {
+	manager, err := sdk.ParsePackageManager(value)
 	if err != nil {
-		return model.PackageManagerUnknown, false
+		return sdk.PackageManagerUnknown, false
 	}
 	return manager, true
 }
 
-func parseEcosystemHint(value string) (model.Ecosystem, bool) {
-	ecosystem, err := model.ParseEcosystem(value)
+func parseEcosystemHint(value string) (sdk.Ecosystem, bool) {
+	ecosystem, err := sdk.ParseEcosystem(value)
 	if err != nil {
-		return model.EcosystemUnknown, false
+		return sdk.EcosystemUnknown, false
 	}
 	return ecosystem, true
 }

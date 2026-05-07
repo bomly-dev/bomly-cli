@@ -14,10 +14,10 @@ import (
 	syftfile "github.com/anchore/syft/syft/file"
 	syftpkg "github.com/anchore/syft/syft/pkg"
 	syftsbom "github.com/anchore/syft/syft/sbom"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
-func graphFromSyftSBOM(s *syftsbom.SBOM) (*model.Graph, error) {
+func graphFromSyftSBOM(s *syftsbom.SBOM) (*sdk.Graph, error) {
 	if s == nil {
 		return nil, fmt.Errorf("syft sbom is nil")
 	}
@@ -27,7 +27,7 @@ func graphFromSyftSBOM(s *syftsbom.SBOM) (*model.Graph, error) {
 		packageCount = s.Artifacts.Packages.PackageCount()
 	}
 
-	depsGraph := model.NewWithCapacity(packageCount)
+	depsGraph := sdk.NewWithCapacity(packageCount)
 	if s.Artifacts.Packages != nil {
 		for _, pkg := range s.Artifacts.Packages.Sorted() {
 			node := graphFromSyftPackage(pkg)
@@ -56,27 +56,27 @@ func graphFromSyftSBOM(s *syftsbom.SBOM) (*model.Graph, error) {
 }
 
 // GraphContainerFromSBOM converts a Syft SBOM into one or more manifest-scoped graphs.
-func GraphContainerFromSBOM(s *syftsbom.SBOM, manager model.PackageManager) (*model.GraphContainer, error) {
+func GraphContainerFromSBOM(s *syftsbom.SBOM, manager sdk.PackageManager) (*sdk.GraphContainer, error) {
 	return graphContainerFromSyftSBOM(s, manager)
 }
 
-func graphContainerFromSyftSBOM(s *syftsbom.SBOM, manager model.PackageManager) (*model.GraphContainer, error) {
+func graphContainerFromSyftSBOM(s *syftsbom.SBOM, manager sdk.PackageManager) (*sdk.GraphContainer, error) {
 	depsGraph, err := graphFromSyftSBOM(s)
 	if err != nil {
 		return nil, err
 	}
 	if depsGraph == nil || depsGraph.Size() == 0 {
-		return model.SingleGraphContainer(nil, model.ManifestMetadata{}), nil
+		return sdk.SingleGraphContainer(nil, sdk.ManifestMetadata{}), nil
 	}
 
 	rootPackages := depsGraph.Roots()
 	if len(rootPackages) == 0 {
 		manifest := manifestMetadataFromPackages(depsGraph.Packages(), manager)
-		return model.SingleGraphContainer(depsGraph, manifest), nil
+		return sdk.SingleGraphContainer(depsGraph, manifest), nil
 	}
 
 	groupedRoots := make(map[string][]string, len(rootPackages))
-	groupedManifest := make(map[string]model.ManifestMetadata, len(rootPackages))
+	groupedManifest := make(map[string]sdk.ManifestMetadata, len(rootPackages))
 	groupOrder := make([]string, 0, len(rootPackages))
 	for _, rootPkg := range rootPackages {
 		manifest := manifestMetadataFromPackage(rootPkg, manager)
@@ -88,7 +88,7 @@ func graphContainerFromSyftSBOM(s *syftsbom.SBOM, manager model.PackageManager) 
 		groupedRoots[key] = append(groupedRoots[key], rootPkg.ID)
 	}
 
-	entries := make([]model.GraphEntry, 0, len(groupOrder))
+	entries := make([]sdk.GraphEntry, 0, len(groupOrder))
 	covered := make(map[string]struct{}, depsGraph.Size())
 	for _, key := range groupOrder {
 		entryGraph, visited, err := subgraphFromRoots(depsGraph, groupedRoots[key])
@@ -102,13 +102,13 @@ func graphContainerFromSyftSBOM(s *syftsbom.SBOM, manager model.PackageManager) 
 		if manifest.Path == "" {
 			manifest = manifestMetadataFromPackages(entryGraph.Packages(), manager)
 		}
-		entries = append(entries, model.GraphEntry{
+		entries = append(entries, sdk.GraphEntry{
 			Graph:    entryGraph,
 			Manifest: manifest,
 		})
 	}
 
-	leftovers := make([]*model.Package, 0)
+	leftovers := make([]*sdk.Package, 0)
 	for _, pkg := range depsGraph.Packages() {
 		if _, ok := covered[pkg.ID]; ok {
 			continue
@@ -120,21 +120,21 @@ func graphContainerFromSyftSBOM(s *syftsbom.SBOM, manager model.PackageManager) 
 		if err != nil {
 			return nil, err
 		}
-		entries = append(entries, model.GraphEntry{
+		entries = append(entries, sdk.GraphEntry{
 			Graph:    leftoverGraph,
 			Manifest: manifestMetadataFromPackages(leftovers, manager),
 		})
 	}
 
-	return &model.GraphContainer{Entries: entries}, nil
+	return &sdk.GraphContainer{Entries: entries}, nil
 }
 
-func graphFromSyftPackage(pkg syftpkg.Package) *model.Package {
+func graphFromSyftPackage(pkg syftpkg.Package) *sdk.Package {
 	licenses := pkg.Licenses.ToSlice()
 	locations := pkg.Locations.ToSlice()
 	parsedPURL := parsePackageURL(pkg.PURL)
 
-	node := model.NewPackageWithID(string(pkg.ID()), model.Package{
+	node := sdk.NewPackageWithID(string(pkg.ID()), sdk.Package{
 		Ecosystem:   syftEcosystem(pkg, parsedPURL),
 		Name:        pkg.Name,
 		Version:     pkg.Version,
@@ -168,14 +168,14 @@ func syftDependencyEdge(rel artifact.Relationship) (dependencyID string, parentI
 	return string(dependency.ID()), string(parent.ID()), true
 }
 
-func graphLicenses(licenses []syftpkg.License) []model.PackageLicense {
+func graphLicenses(licenses []syftpkg.License) []sdk.PackageLicense {
 	if len(licenses) == 0 {
 		return nil
 	}
 
-	out := make([]model.PackageLicense, 0, len(licenses))
+	out := make([]sdk.PackageLicense, 0, len(licenses))
 	for _, license := range licenses {
-		out = append(out, model.PackageLicense{
+		out = append(out, sdk.PackageLicense{
 			Value:          license.Value,
 			SPDXExpression: license.SPDXExpression,
 			Type:           string(license.Type),
@@ -193,14 +193,14 @@ func graphLicenses(licenses []syftpkg.License) []model.PackageLicense {
 	return out
 }
 
-func graphLocations(locations []syftfile.Location) []model.PackageLocation {
+func graphLocations(locations []syftfile.Location) []sdk.PackageLocation {
 	if len(locations) == 0 {
 		return nil
 	}
 
-	out := make([]model.PackageLocation, 0, len(locations))
+	out := make([]sdk.PackageLocation, 0, len(locations))
 	for _, location := range locations {
-		out = append(out, model.PackageLocation{
+		out = append(out, sdk.PackageLocation{
 			RealPath:   location.RealPath,
 			AccessPath: location.AccessPath,
 		})
@@ -257,7 +257,7 @@ func syftOrg(pkg syftpkg.Package, purl *packageurl.PackageURL) string {
 }
 
 func parsePackageURL(value string) *packageurl.PackageURL {
-	return model.ParsePackageURL(value)
+	return sdk.ParsePackageURL(value)
 }
 
 func syftNameAlreadyQualified(name string, purl packageurl.PackageURL) bool {
@@ -271,7 +271,7 @@ func syftNameAlreadyQualified(name string, purl packageurl.PackageURL) bool {
 		name == "@"+qualifiedName
 }
 
-func manifestGroupKey(manifest model.ManifestMetadata, fallbackID string) string {
+func manifestGroupKey(manifest sdk.ManifestMetadata, fallbackID string) string {
 	if manifest.Path != "" {
 		return manifest.Path
 	}
@@ -281,7 +281,7 @@ func manifestGroupKey(manifest model.ManifestMetadata, fallbackID string) string
 	return fallbackID
 }
 
-func manifestMetadataFromPackages(packages []*model.Package, manager model.PackageManager) model.ManifestMetadata {
+func manifestMetadataFromPackages(packages []*sdk.Package, manager sdk.PackageManager) sdk.ManifestMetadata {
 	for _, pkg := range packages {
 		manifest := manifestMetadataFromPackage(pkg, manager)
 		if manifest.Path != "" {
@@ -294,12 +294,12 @@ func manifestMetadataFromPackages(packages []*model.Package, manager model.Packa
 			return manifest
 		}
 	}
-	return model.ManifestMetadata{}
+	return sdk.ManifestMetadata{}
 }
 
-func manifestMetadataFromPackage(pkg *model.Package, manager model.PackageManager) model.ManifestMetadata {
+func manifestMetadataFromPackage(pkg *sdk.Package, manager sdk.PackageManager) sdk.ManifestMetadata {
 	if pkg == nil {
-		return model.ManifestMetadata{}
+		return sdk.ManifestMetadata{}
 	}
 
 	for _, location := range pkg.Locations {
@@ -307,7 +307,7 @@ func manifestMetadataFromPackage(pkg *model.Package, manager model.PackageManage
 		if candidate == "" {
 			continue
 		}
-		return model.ManifestMetadata{
+		return sdk.ManifestMetadata{
 			Path: normalizeGraphPath(candidate),
 			Kind: pkg.Type,
 		}
@@ -317,7 +317,7 @@ func manifestMetadataFromPackage(pkg *model.Package, manager model.PackageManage
 	if kind == "" {
 		kind = pkg.BuildSystem
 	}
-	return model.ManifestMetadata{Kind: kind}
+	return sdk.ManifestMetadata{Kind: kind}
 }
 
 func manifestLocationSuffixes(location string) []string {
@@ -344,7 +344,7 @@ func firstNonEmpty(values ...string) string {
 	return ""
 }
 
-func subgraphFromRoots(src *model.Graph, rootIDs []string) (*model.Graph, map[string]struct{}, error) {
+func subgraphFromRoots(src *sdk.Graph, rootIDs []string) (*sdk.Graph, map[string]struct{}, error) {
 	if src == nil {
 		return nil, nil, fmt.Errorf("source graph is nil")
 	}
@@ -379,7 +379,7 @@ func subgraphFromRoots(src *model.Graph, rootIDs []string) (*model.Graph, map[st
 		}
 	}
 
-	entryGraph := model.NewWithCapacity(len(visited))
+	entryGraph := sdk.NewWithCapacity(len(visited))
 	for id := range visited {
 		pkg, ok := src.Package(id)
 		if !ok {
@@ -408,7 +408,7 @@ func subgraphFromRoots(src *model.Graph, rootIDs []string) (*model.Graph, map[st
 	return entryGraph, visited, nil
 }
 
-func packageIDs(packages []*model.Package) []string {
+func packageIDs(packages []*sdk.Package) []string {
 	ids := make([]string, 0, len(packages))
 	for _, pkg := range packages {
 		if pkg == nil {

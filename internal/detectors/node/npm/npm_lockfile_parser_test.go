@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestNPMLockfileParserAllowsArrayEngines(t *testing.T) {
@@ -45,7 +45,7 @@ func TestNPMLockfileParserAllowsArrayEngines(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected benchmark@1.0.0 package")
 	}
-	if _, ok := pkg.Metadata[model.MetadataKeyNPM]; ok {
+	if _, ok := pkg.Metadata[sdk.MetadataKeyNPM]; ok {
 		t.Fatalf("expected array engines to be ignored, got metadata: %+v", pkg.Metadata)
 	}
 }

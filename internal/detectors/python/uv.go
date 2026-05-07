@@ -5,7 +5,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -13,14 +13,14 @@ import (
 type UVDetector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   model.Detector
+	Fallback   sdk.Detector
 }
 
 var uvEvidencePatterns = []string{"uv.lock", "pyproject.toml"}
 
 // PackageManagerSupport returns uv package-manager discovery metadata.
-func (d UVDetector) PackageManagerSupport() []model.PackageManagerSupport {
-	return []model.PackageManagerSupport{model.Support(model.PackageManagerUV, uvEvidencePatterns...)}
+func (d UVDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerUV, uvEvidencePatterns...)}
 }
 
 // Ready reports whether uv is available.
@@ -30,41 +30,41 @@ func (d UVDetector) Ready() bool {
 }
 
 // Applicable reports whether uv manifests are present.
-func (d UVDetector) Applicable(ctx context.Context, req model.DetectionRequest) (bool, error) {
+func (d UVDetector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
 	return d.base().applicable(ctx, req, "pyproject.toml", "uv.lock")
 }
 
 // Descriptor describes the uv detector.
-func (d UVDetector) Descriptor() model.DetectorDescriptor {
-	return model.DetectorDescriptor{
+func (d UVDetector) Descriptor() sdk.DetectorDescriptor {
+	return sdk.DetectorDescriptor{
 		Name:                detectors.NameUV,
 		Enabled:             true,
-		Origin:              model.CoreOrigin,
-		Technique:           model.BuildToolTechnique,
-		SupportedEcosystems: []model.Ecosystem{model.EcosystemPython},
-		SupportedManagers:   []model.PackageManager{model.PackageManagerUV},
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
+		Origin:              sdk.CoreOrigin,
+		Technique:           sdk.BuildToolTechnique,
+		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemPython},
+		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerUV},
+		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "component-targeting"},
 	}
 }
 
 // ResolveGraph resolves a Python dependency graph through uv.
-func (d UVDetector) ResolveGraph(_ context.Context, req model.DetectionRequest) (model.DetectionResult, error) {
+func (d UVDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	command, err := pipInspectCommand("uv", "run")
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
 	depsGraph, err := d.base().resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "uv detector", command)
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
-	return model.DetectionResult{
-		Graphs: model.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, uvEvidencePatterns)),
+	return sdk.DetectionResult{
+		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, uvEvidencePatterns)),
 	}, nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d UVDetector) FallbackDetector() model.Detector {
+func (d UVDetector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
@@ -76,6 +76,6 @@ func (d UVDetector) base() baseDetector {
 }
 
 // Install prepares uv dependencies before graph resolution.
-func (d UVDetector) Install(ctx context.Context, req model.DetectionRequest) error {
+func (d UVDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 	return d.base().install(ctx, req, "uv detector", []string{"uv", "sync"})
 }

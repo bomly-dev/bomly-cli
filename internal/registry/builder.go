@@ -31,7 +31,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/matchers/eol"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/grype"
 	osvmatcher "github.com/bomly-dev/bomly-cli/internal/matchers/osv"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -50,27 +50,27 @@ type RegistryConfigs struct {
 
 // RegistryFilter narrows a registry down to the runtime-relevant selections.
 type RegistryFilter struct {
-	DetectorFilter  model.DetectorFilter
-	AuditorFilter   model.AuditorFilter
-	MatcherFilter   model.MatcherFilter
-	EcosystemFilter model.EcosystemFilter
+	DetectorFilter  sdk.DetectorFilter
+	AuditorFilter   sdk.AuditorFilter
+	MatcherFilter   sdk.MatcherFilter
+	EcosystemFilter sdk.EcosystemFilter
 }
 
 // DetectorDiscoveryPlan describes how one detector participates in runtime planning.
 type DetectorDiscoveryPlan struct {
-	SupportedEcosystems []model.Ecosystem
-	SupportedManagers   []model.PackageManager
+	SupportedEcosystems []sdk.Ecosystem
+	SupportedManagers   []sdk.PackageManager
 	EvidencePatterns    []string
-	TargetKinds         []model.ExecutionTargetKind
+	TargetKinds         []sdk.ExecutionTargetKind
 }
 
 // Clone returns a deep copy of the discovery plan.
 func (p DetectorDiscoveryPlan) Clone() DetectorDiscoveryPlan {
 	return DetectorDiscoveryPlan{
-		SupportedEcosystems: append([]model.Ecosystem(nil), p.SupportedEcosystems...),
-		SupportedManagers:   append([]model.PackageManager(nil), p.SupportedManagers...),
+		SupportedEcosystems: append([]sdk.Ecosystem(nil), p.SupportedEcosystems...),
+		SupportedManagers:   append([]sdk.PackageManager(nil), p.SupportedManagers...),
 		EvidencePatterns:    append([]string(nil), p.EvidencePatterns...),
-		TargetKinds:         append([]model.ExecutionTargetKind(nil), p.TargetKinds...),
+		TargetKinds:         append([]sdk.ExecutionTargetKind(nil), p.TargetKinds...),
 	}
 }
 
@@ -78,9 +78,9 @@ func (p DetectorDiscoveryPlan) Clone() DetectorDiscoveryPlan {
 type Registry struct {
 	logger         *zap.Logger
 	configs        RegistryConfigs
-	detectors      []model.Detector
-	auditors       []model.Auditor
-	matchers       []model.Matcher
+	detectors      []sdk.Detector
+	auditors       []sdk.Auditor
+	matchers       []sdk.Matcher
 	discoveryPlans map[string]DetectorDiscoveryPlan
 }
 
@@ -109,7 +109,7 @@ func (r *Registry) registerDetectors() {
 }
 
 // RegisterDetector adds a detector to the registry.
-func (r *Registry) RegisterDetector(detector model.Detector) {
+func (r *Registry) RegisterDetector(detector sdk.Detector) {
 	if detector == nil {
 		return
 	}
@@ -125,7 +125,7 @@ func (r *Registry) registerMatchers() {
 }
 
 func (r *Registry) registerGrypeMatcher() {
-	for _, matcher := range builtInMatchers([]model.Matcher{grype.Matcher{Logger: r.logger}}) {
+	for _, matcher := range builtInMatchers([]sdk.Matcher{grype.Matcher{Logger: r.logger}}) {
 		r.RegisterMatcher(matcher)
 	}
 }
@@ -161,7 +161,7 @@ func (r *Registry) registerOSVMatcher() {
 	if err != nil {
 		r.logger.Warn("osv matcher unavailable", zap.Error(err))
 	} else {
-		for _, matcher := range builtInMatchers([]model.Matcher{osvMatcher}) {
+		for _, matcher := range builtInMatchers([]sdk.Matcher{osvMatcher}) {
 			r.RegisterMatcher(matcher)
 		}
 	}
@@ -187,7 +187,7 @@ func (r *Registry) registerEOLMatcher() {
 	if err != nil {
 		r.logger.Warn("endoflife.date checker unavailable", zap.Error(err))
 	} else {
-		for _, matcher := range builtInMatchers([]model.Matcher{eolChecker}) {
+		for _, matcher := range builtInMatchers([]sdk.Matcher{eolChecker}) {
 			r.RegisterMatcher(matcher)
 		}
 		r.logger.Debug("endoflife.date matcher configured",
@@ -205,7 +205,7 @@ func (r *Registry) registerDepsDevMatcher() {
 	if err != nil {
 		r.logger.Warn("deps.dev license checker unavailable", zap.Error(err))
 	} else {
-		for _, matcher := range builtInMatchers([]model.Matcher{depsDevChecker}) {
+		for _, matcher := range builtInMatchers([]sdk.Matcher{depsDevChecker}) {
 			r.RegisterMatcher(matcher)
 		}
 		r.logger.Debug("deps.dev matcher configured")
@@ -219,7 +219,7 @@ func (r *Registry) registerClearlyDefinedMatcher() {
 	if err != nil {
 		r.logger.Warn("ClearlyDefined license checker unavailable", zap.Error(err))
 	} else {
-		for _, matcher := range builtInMatchers([]model.Matcher{clearlyDefinedChecker}) {
+		for _, matcher := range builtInMatchers([]sdk.Matcher{clearlyDefinedChecker}) {
 			r.RegisterMatcher(matcher)
 		}
 		r.logger.Debug("ClearlyDefined matcher configured")
@@ -227,7 +227,7 @@ func (r *Registry) registerClearlyDefinedMatcher() {
 }
 
 // RegisterMatcher adds a matcher to the registry.
-func (r *Registry) RegisterMatcher(matcher model.Matcher) {
+func (r *Registry) RegisterMatcher(matcher sdk.Matcher) {
 	if matcher == nil {
 		return
 	}
@@ -235,13 +235,13 @@ func (r *Registry) RegisterMatcher(matcher model.Matcher) {
 }
 
 func (r *Registry) registerAuditors() {
-	for _, auditor := range builtInAuditors([]model.Auditor{policy.Auditor{FailOn: r.configs.FailOn}}) {
+	for _, auditor := range builtInAuditors([]sdk.Auditor{policy.Auditor{FailOn: r.configs.FailOn}}) {
 		r.RegisterAuditor(auditor)
 	}
 }
 
 // RegisterAuditor adds an auditor to the registry.
-func (r *Registry) RegisterAuditor(auditor model.Auditor) {
+func (r *Registry) RegisterAuditor(auditor sdk.Auditor) {
 	if auditor == nil {
 		return
 	}
@@ -252,7 +252,7 @@ func (r *Registry) registerDiscoveryPlans() {
 	r.RegisterDetectorDiscoveryPlan(detectors.NameSyft, DetectorDiscoveryPlan{
 		SupportedEcosystems: SupportedEcosystemsForDetector(detectors.NameSyft),
 		SupportedManagers:   SupportedPackageManagersForDetector(detectors.NameSyft),
-		TargetKinds:         []model.ExecutionTargetKind{model.ExecutionTargetContainerImage},
+		TargetKinds:         []sdk.ExecutionTargetKind{sdk.ExecutionTargetContainerImage},
 	})
 }
 
@@ -268,8 +268,8 @@ func (r *Registry) RegisterDetectorDiscoveryPlan(detectorName string, plan Detec
 }
 
 // DetectorDescriptors returns registered detector descriptors in registration order.
-func (r *Registry) DetectorDescriptors() []model.DetectorDescriptor {
-	descriptors := make([]model.DetectorDescriptor, 0, len(r.detectors))
+func (r *Registry) DetectorDescriptors() []sdk.DetectorDescriptor {
+	descriptors := make([]sdk.DetectorDescriptor, 0, len(r.detectors))
 	for _, detector := range r.detectors {
 		descriptors = append(descriptors, detector.Descriptor())
 	}
@@ -277,8 +277,8 @@ func (r *Registry) DetectorDescriptors() []model.DetectorDescriptor {
 }
 
 // AuditorDescriptors returns registered auditor descriptors sorted by name.
-func (r *Registry) AuditorDescriptors() []model.AuditorDescriptor {
-	descriptors := make([]model.AuditorDescriptor, 0, len(r.auditors))
+func (r *Registry) AuditorDescriptors() []sdk.AuditorDescriptor {
+	descriptors := make([]sdk.AuditorDescriptor, 0, len(r.auditors))
 	for _, auditor := range r.auditors {
 		descriptors = append(descriptors, auditor.Descriptor())
 	}
@@ -289,8 +289,8 @@ func (r *Registry) AuditorDescriptors() []model.AuditorDescriptor {
 }
 
 // MatcherDescriptors returns registered matcher descriptors sorted by name.
-func (r *Registry) MatcherDescriptors() []model.MatcherDescriptor {
-	descriptors := make([]model.MatcherDescriptor, 0, len(r.matchers))
+func (r *Registry) MatcherDescriptors() []sdk.MatcherDescriptor {
+	descriptors := make([]sdk.MatcherDescriptor, 0, len(r.matchers))
 	for _, matcher := range r.matchers {
 		descriptors = append(descriptors, matcher.Descriptor())
 	}
@@ -301,17 +301,17 @@ func (r *Registry) MatcherDescriptors() []model.MatcherDescriptor {
 }
 
 // Detectors returns matching detectors in registration order.
-func (r *Registry) Detectors(req model.DetectionRequest) []model.Detector {
-	matches := make([]model.Detector, 0, len(r.detectors))
+func (r *Registry) Detectors(req sdk.DetectionRequest) []sdk.Detector {
+	matches := make([]sdk.Detector, 0, len(r.detectors))
 	for _, detector := range r.detectors {
 		descriptor := detector.Descriptor()
 		if !detectorSelected(req.DetectorFilter, descriptor) {
 			continue
 		}
-		if req.Ecosystem != model.EcosystemUnknown && !supportsEcosystem(descriptor.SupportedEcosystems, req.Ecosystem) {
+		if req.Ecosystem != sdk.EcosystemUnknown && !supportsEcosystem(descriptor.SupportedEcosystems, req.Ecosystem) {
 			continue
 		}
-		if req.PackageManager != model.PackageManagerUnknown && !supportsPackageManager(descriptor.SupportedManagers, req.PackageManager) {
+		if req.PackageManager != sdk.PackageManagerUnknown && !supportsPackageManager(descriptor.SupportedManagers, req.PackageManager) {
 			continue
 		}
 		if !supportsMode(descriptor.SupportedModes, req.Mode) {
@@ -323,12 +323,12 @@ func (r *Registry) Detectors(req model.DetectionRequest) []model.Detector {
 }
 
 // PlannedDetectors returns detectors matching the requested names in the provided order.
-func (r *Registry) PlannedDetectors(req model.DetectionRequest, names []string) []model.Detector {
+func (r *Registry) PlannedDetectors(req sdk.DetectionRequest, names []string) []sdk.Detector {
 	if len(names) == 0 {
 		return r.Detectors(req)
 	}
 
-	available := make(map[string]model.Detector, len(r.detectors))
+	available := make(map[string]sdk.Detector, len(r.detectors))
 	for _, detector := range r.detectors {
 		descriptor := detector.Descriptor()
 		if !detectorSelected(req.DetectorFilter, descriptor) {
@@ -340,7 +340,7 @@ func (r *Registry) PlannedDetectors(req model.DetectionRequest, names []string) 
 		available[descriptor.Name] = detector
 	}
 
-	matches := make([]model.Detector, 0, len(names))
+	matches := make([]sdk.Detector, 0, len(names))
 	seen := make(map[string]struct{}, len(names))
 	for _, name := range names {
 		if name == "" {
@@ -360,8 +360,8 @@ func (r *Registry) PlannedDetectors(req model.DetectionRequest, names []string) 
 }
 
 // Auditors returns matching auditors sorted by priority descending then name.
-func (r *Registry) Auditors(req model.AuditRequest) []model.Auditor {
-	matches := make([]model.Auditor, 0, len(r.auditors))
+func (r *Registry) Auditors(req sdk.AuditRequest) []sdk.Auditor {
+	matches := make([]sdk.Auditor, 0, len(r.auditors))
 	for _, auditor := range r.auditors {
 		descriptor := auditor.Descriptor()
 		if !auditorSelected(req.AuditorFilter, descriptor) {
@@ -382,17 +382,17 @@ func (r *Registry) Auditors(req model.AuditRequest) []model.Auditor {
 }
 
 // Matchers returns matching matchers sorted by priority descending then name.
-func (r *Registry) Matchers(req model.MatchRequest) []model.Matcher {
-	matches := make([]model.Matcher, 0, len(r.matchers))
+func (r *Registry) Matchers(req sdk.MatchRequest) []sdk.Matcher {
+	matches := make([]sdk.Matcher, 0, len(r.matchers))
 	for _, matcher := range r.matchers {
 		descriptor := matcher.Descriptor()
 		if !matcherSelected(req.MatcherFilter, descriptor) {
 			continue
 		}
-		if req.Ecosystem != model.EcosystemUnknown && !supportsEcosystem(descriptor.SupportedEcosystems, req.Ecosystem) {
+		if req.Ecosystem != sdk.EcosystemUnknown && !supportsEcosystem(descriptor.SupportedEcosystems, req.Ecosystem) {
 			continue
 		}
-		if req.PackageManager != model.PackageManagerUnknown && !supportsPackageManager(descriptor.SupportedManagers, req.PackageManager) {
+		if req.PackageManager != sdk.PackageManagerUnknown && !supportsPackageManager(descriptor.SupportedManagers, req.PackageManager) {
 			continue
 		}
 		if !supportsMode(descriptor.SupportedModes, req.Mode) {
@@ -472,7 +472,7 @@ func (r *Registry) Filter(filter RegistryFilter) *Registry {
 	return filtered
 }
 
-func supportsEcosystem(supported []model.Ecosystem, ecosystem model.Ecosystem) bool {
+func supportsEcosystem(supported []sdk.Ecosystem, ecosystem sdk.Ecosystem) bool {
 	if len(supported) == 0 {
 		return true
 	}
@@ -484,7 +484,7 @@ func supportsEcosystem(supported []model.Ecosystem, ecosystem model.Ecosystem) b
 	return false
 }
 
-func supportsPackageManager(supported []model.PackageManager, manager model.PackageManager) bool {
+func supportsPackageManager(supported []sdk.PackageManager, manager sdk.PackageManager) bool {
 	if len(supported) == 0 {
 		return true
 	}
@@ -496,7 +496,7 @@ func supportsPackageManager(supported []model.PackageManager, manager model.Pack
 	return false
 }
 
-func supportsMode(supported []model.TargetMode, mode model.TargetMode) bool {
+func supportsMode(supported []sdk.TargetMode, mode sdk.TargetMode) bool {
 	for _, candidate := range supported {
 		if candidate == mode {
 			return true
@@ -505,7 +505,7 @@ func supportsMode(supported []model.TargetMode, mode model.TargetMode) bool {
 	return false
 }
 
-func detectorSelected(filter model.DetectorFilter, descriptor model.DetectorDescriptor) bool {
+func detectorSelected(filter sdk.DetectorFilter, descriptor sdk.DetectorDescriptor) bool {
 	if filter.Excludes(descriptor.Name) {
 		return false
 	}
@@ -515,7 +515,7 @@ func detectorSelected(filter model.DetectorFilter, descriptor model.DetectorDesc
 	return descriptor.Enabled
 }
 
-func auditorSelected(filter model.AuditorFilter, descriptor model.AuditorDescriptor) bool {
+func auditorSelected(filter sdk.AuditorFilter, descriptor sdk.AuditorDescriptor) bool {
 	if filter.Excludes(descriptor.Name) {
 		return false
 	}
@@ -525,7 +525,7 @@ func auditorSelected(filter model.AuditorFilter, descriptor model.AuditorDescrip
 	return descriptor.Enabled
 }
 
-func matcherSelected(filter model.MatcherFilter, descriptor model.MatcherDescriptor) bool {
+func matcherSelected(filter sdk.MatcherFilter, descriptor sdk.MatcherDescriptor) bool {
 	if filter.Excludes(descriptor.Name) {
 		return false
 	}
@@ -535,12 +535,12 @@ func matcherSelected(filter model.MatcherFilter, descriptor model.MatcherDescrip
 	return descriptor.Enabled
 }
 
-func descriptorAllowsEcosystem(supported []model.Ecosystem, ecosystemFilter model.EcosystemFilter) bool {
-	include := make(map[model.Ecosystem]struct{}, len(ecosystemFilter.Include))
+func descriptorAllowsEcosystem(supported []sdk.Ecosystem, ecosystemFilter sdk.EcosystemFilter) bool {
+	include := make(map[sdk.Ecosystem]struct{}, len(ecosystemFilter.Include))
 	for _, ecosystem := range ecosystemFilter.Include {
 		include[ecosystem] = struct{}{}
 	}
-	exclude := make(map[model.Ecosystem]struct{}, len(ecosystemFilter.Exclude))
+	exclude := make(map[sdk.Ecosystem]struct{}, len(ecosystemFilter.Exclude))
 	for _, ecosystem := range ecosystemFilter.Exclude {
 		exclude[ecosystem] = struct{}{}
 	}
@@ -572,16 +572,16 @@ func descriptorAllowsEcosystem(supported []model.Ecosystem, ecosystemFilter mode
 	return false
 }
 
-func mergeEcosystems(left, right []model.Ecosystem) []model.Ecosystem {
+func mergeEcosystems(left, right []sdk.Ecosystem) []sdk.Ecosystem {
 	if len(left) == 0 {
-		return append([]model.Ecosystem(nil), right...)
+		return append([]sdk.Ecosystem(nil), right...)
 	}
 	if len(right) == 0 {
-		return append([]model.Ecosystem(nil), left...)
+		return append([]sdk.Ecosystem(nil), left...)
 	}
 
-	merged := append([]model.Ecosystem(nil), left...)
-	seen := make(map[model.Ecosystem]struct{}, len(left)+len(right))
+	merged := append([]sdk.Ecosystem(nil), left...)
+	seen := make(map[sdk.Ecosystem]struct{}, len(left)+len(right))
 	for _, ecosystem := range left {
 		seen[ecosystem] = struct{}{}
 	}
@@ -595,9 +595,9 @@ func mergeEcosystems(left, right []model.Ecosystem) []model.Ecosystem {
 	return merged
 }
 
-func orderedBuiltInDetectors(logger *zap.Logger) []model.Detector {
+func orderedBuiltInDetectors(logger *zap.Logger) []sdk.Detector {
 	detectorsByName := builtInDetectorsByName(logger)
-	ordered := make([]model.Detector, 0, len(detectorsByName))
+	ordered := make([]sdk.Detector, 0, len(detectorsByName))
 	seen := make(map[string]struct{}, len(detectorsByName))
 
 	for _, manager := range SupportedPackageManagers() {
@@ -628,23 +628,23 @@ func orderedBuiltInDetectors(logger *zap.Logger) []model.Detector {
 // The priority is determined first by the origin (external vs built-in) and then by the technique,
 // with lockfile and build tool techniques prioritized over manifest, SBOM, binary, and container techniques,
 // which are in turn prioritized over multiple technique and other techniques.
-func componentPriority(origin model.DetectorOrigin, technique model.DetectorTechnique) int {
-	if origin == model.ExternalOrigin {
+func componentPriority(origin sdk.DetectorOrigin, technique sdk.DetectorTechnique) int {
+	if origin == sdk.ExternalOrigin {
 		return 0
 	}
 	switch technique {
-	case model.LockfileTechnique, model.BuildToolTechnique:
+	case sdk.LockfileTechnique, sdk.BuildToolTechnique:
 		return 1
-	case model.ManifestTechnique, model.SBOMTechnique, model.BinaryTechnique, model.ContainerTechnique:
+	case sdk.ManifestTechnique, sdk.SBOMTechnique, sdk.BinaryTechnique, sdk.ContainerTechnique:
 		return 2
-	case model.MultipleTechnique:
+	case sdk.MultipleTechnique:
 		return 3
 	default:
 		return 4
 	}
 }
 
-func builtInDetectorsByName(logger *zap.Logger) map[string]model.Detector {
+func builtInDetectorsByName(logger *zap.Logger) map[string]sdk.Detector {
 	syftFallback := syft.Detector{Logger: logger}
 	syftPrimary := syft.Detector{
 		Logger:              logger,
@@ -677,7 +677,7 @@ func builtInDetectorsByName(logger *zap.Logger) map[string]model.Detector {
 	conanDetector := conan.Detector{Logger: logger, Fallback: syftFallback}
 	sbtDetector := sbt.Detector{Logger: logger, Fallback: syftFallback}
 
-	return map[string]model.Detector{
+	return map[string]sdk.Detector{
 		sbomDetector.Descriptor().Name:          sbomDetector,
 		npmDetector.Descriptor().Name:           npmDetector,
 		pnpmDetector.Descriptor().Name:          pnpmDetector,
@@ -704,8 +704,8 @@ func builtInDetectorsByName(logger *zap.Logger) map[string]model.Detector {
 	}
 }
 
-func builtInDetectors(detectors []model.Detector) []model.Detector {
-	out := make([]model.Detector, 0, len(detectors))
+func builtInDetectors(detectors []sdk.Detector) []sdk.Detector {
+	out := make([]sdk.Detector, 0, len(detectors))
 	for _, detector := range detectors {
 		if detector == nil {
 			continue
@@ -715,8 +715,8 @@ func builtInDetectors(detectors []model.Detector) []model.Detector {
 	return out
 }
 
-func builtInMatchers(matchers []model.Matcher) []model.Matcher {
-	out := make([]model.Matcher, 0, len(matchers))
+func builtInMatchers(matchers []sdk.Matcher) []sdk.Matcher {
+	out := make([]sdk.Matcher, 0, len(matchers))
 	for _, matcher := range matchers {
 		if matcher == nil {
 			continue
@@ -726,8 +726,8 @@ func builtInMatchers(matchers []model.Matcher) []model.Matcher {
 	return out
 }
 
-func builtInAuditors(auditors []model.Auditor) []model.Auditor {
-	out := make([]model.Auditor, 0, len(auditors))
+func builtInAuditors(auditors []sdk.Auditor) []sdk.Auditor {
+	out := make([]sdk.Auditor, 0, len(auditors))
 	for _, auditor := range auditors {
 		if auditor == nil {
 			continue

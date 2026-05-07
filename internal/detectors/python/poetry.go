@@ -5,7 +5,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -13,14 +13,14 @@ import (
 type PoetryDetector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   model.Detector
+	Fallback   sdk.Detector
 }
 
 var poetryEvidencePatterns = []string{"poetry.lock", "pyproject.toml"}
 
 // PackageManagerSupport returns Poetry package-manager discovery metadata.
-func (d PoetryDetector) PackageManagerSupport() []model.PackageManagerSupport {
-	return []model.PackageManagerSupport{model.Support(model.PackageManagerPoetry, poetryEvidencePatterns...)}
+func (d PoetryDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerPoetry, poetryEvidencePatterns...)}
 }
 
 // Ready reports whether Poetry is available.
@@ -30,41 +30,41 @@ func (d PoetryDetector) Ready() bool {
 }
 
 // Applicable reports whether Poetry manifests are present.
-func (d PoetryDetector) Applicable(ctx context.Context, req model.DetectionRequest) (bool, error) {
+func (d PoetryDetector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
 	return d.base().applicable(ctx, req, "pyproject.toml", "poetry.lock")
 }
 
 // Descriptor describes the Poetry detector.
-func (d PoetryDetector) Descriptor() model.DetectorDescriptor {
-	return model.DetectorDescriptor{
+func (d PoetryDetector) Descriptor() sdk.DetectorDescriptor {
+	return sdk.DetectorDescriptor{
 		Name:                detectors.NamePoetry,
 		Enabled:             true,
-		Origin:              model.CoreOrigin,
-		Technique:           model.BuildToolTechnique,
-		SupportedEcosystems: []model.Ecosystem{model.EcosystemPython},
-		SupportedManagers:   []model.PackageManager{model.PackageManagerPoetry},
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
+		Origin:              sdk.CoreOrigin,
+		Technique:           sdk.BuildToolTechnique,
+		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemPython},
+		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerPoetry},
+		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "component-targeting"},
 	}
 }
 
 // ResolveGraph resolves a Python dependency graph through Poetry.
-func (d PoetryDetector) ResolveGraph(_ context.Context, req model.DetectionRequest) (model.DetectionResult, error) {
+func (d PoetryDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	command, err := pipInspectCommand("poetry", "run")
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
 	depsGraph, err := d.base().resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "Poetry detector", command)
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
-	return model.DetectionResult{
-		Graphs: model.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, poetryEvidencePatterns)),
+	return sdk.DetectionResult{
+		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, poetryEvidencePatterns)),
 	}, nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d PoetryDetector) FallbackDetector() model.Detector {
+func (d PoetryDetector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
@@ -76,6 +76,6 @@ func (d PoetryDetector) base() baseDetector {
 }
 
 // Install prepares Poetry dependencies before graph resolution.
-func (d PoetryDetector) Install(ctx context.Context, req model.DetectionRequest) error {
+func (d PoetryDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 	return d.base().install(ctx, req, "Poetry detector", []string{"poetry", "install"})
 }

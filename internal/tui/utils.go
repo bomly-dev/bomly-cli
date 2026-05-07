@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // Text-formatting helpers live in internal/cli/render. Thin shims keep
@@ -144,10 +144,10 @@ func nextSeverityFilter(current string) string {
 
 // maxSeverityByPkgID returns a map from package ID to the highest
 // severity found across all vulnerability findings for that package.
-func maxSeverityByPkgID(findings []model.Finding) map[string]string {
+func maxSeverityByPkgID(findings []sdk.Finding) map[string]string {
 	result := make(map[string]string)
 	for _, f := range findings {
-		if f.Kind != model.FindingKindVulnerability || f.Package == nil {
+		if f.Kind != sdk.FindingKindVulnerability || f.Package == nil {
 			continue
 		}
 		current := result[f.Package.ID]
@@ -190,7 +190,7 @@ func filterPackageRows(rows []listPackageRow, relationshipFilter, scopeFilter st
 	return filtered
 }
 
-func explainRelationships(graphValue *model.Graph, targetID string) (map[string]string, map[string]int) {
+func explainRelationships(graphValue *sdk.Graph, targetID string) (map[string]string, map[string]int) {
 	labels := make(map[string]string)
 	counts := map[string]int{
 		"self":     0,

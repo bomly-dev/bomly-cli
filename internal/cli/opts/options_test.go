@@ -9,7 +9,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -37,7 +37,7 @@ func TestCommandContextResolveExecutionTarget_Container(t *testing.T) {
 	if cleanup != nil {
 		t.Fatal("expected no cleanup for container target")
 	}
-	if target.Kind != model.ExecutionTargetContainerImage {
+	if target.Kind != sdk.ExecutionTargetContainerImage {
 		t.Fatalf("expected container execution target, got %#v", target)
 	}
 	if target.Location != "alpine:3.20" || location != "alpine:3.20" {
@@ -105,11 +105,11 @@ func TestDetectPackageManagers_FindsPythonManagers(t *testing.T) {
 		t.Fatalf("DetectPackageManagers() error = %v", err)
 	}
 
-	for _, want := range []model.PackageManager{
-		model.PackageManagerPip,
-		model.PackageManagerPipenv,
-		model.PackageManagerPoetry,
-		model.PackageManagerUV,
+	for _, want := range []sdk.PackageManager{
+		sdk.PackageManagerPip,
+		sdk.PackageManagerPipenv,
+		sdk.PackageManagerPoetry,
+		sdk.PackageManagerUV,
 	} {
 		if !containsManager(managers, want) {
 			t.Fatalf("expected package manager %q in %#v", want, managers)
@@ -137,11 +137,11 @@ func TestDetectPackageManagers_FindsSyftManagers(t *testing.T) {
 		t.Fatalf("DetectPackageManagers() error = %v", err)
 	}
 
-	for _, want := range []model.PackageManager{
-		model.PackageManagerCargo,
-		model.PackageManagerTerraform,
-		model.PackageManagerComposer,
-		model.PackageManagerPDM,
+	for _, want := range []sdk.PackageManager{
+		sdk.PackageManagerCargo,
+		sdk.PackageManagerTerraform,
+		sdk.PackageManagerComposer,
+		sdk.PackageManagerPDM,
 	} {
 		if !containsManager(managers, want) {
 			t.Fatalf("expected package manager %q in %#v", want, managers)
@@ -426,7 +426,7 @@ func containsOption(values []string, target string) bool {
 	return false
 }
 
-func containsManager(values []model.PackageManager, target model.PackageManager) bool {
+func containsManager(values []sdk.PackageManager, target sdk.PackageManager) bool {
 	for _, value := range values {
 		if value == target {
 			return true

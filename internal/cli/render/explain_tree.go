@@ -1,13 +1,12 @@
 package render
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/bomly-dev/bomly-cli/internal/explain"
+	"github.com/bomly-dev/bomly-cli/internal/engine/explain"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 type whyTreeNode struct {
@@ -126,52 +125,13 @@ func explainPackageDisplayName(ref output.PackageRef) string {
 	return name
 }
 
-// ExplainGraphFromPaths returns a focused subgraph of source containing only
-// the packages and edges that appear in the supplied explain paths.
-func ExplainGraphFromPaths(source *model.Graph, paths []explain.Path) (*model.Graph, error) {
-	focused := model.New()
-	if source == nil {
-		return focused, nil
-	}
-	for _, path := range paths {
-		for i, ref := range path.Packages {
-			pkg, ok := source.Package(ref.ID)
-			if !ok || pkg == nil {
-				continue
-			}
-			if _, exists := focused.Package(pkg.ID); !exists {
-				if err := focused.AddPackage(pkg.Clone()); err != nil {
-					return nil, err
-				}
-			}
-			if i == 0 {
-				continue
-			}
-			parentRef := path.Packages[i-1]
-			parent, ok := source.Package(parentRef.ID)
-			if !ok || parent == nil {
-				continue
-			}
-			if _, exists := focused.Package(parent.ID); !exists {
-				if err := focused.AddPackage(parent.Clone()); err != nil {
-					return nil, err
-				}
-			}
-			if err := focused.AddDependency(parent.ID, pkg.ID); err != nil && !errors.Is(err, model.ErrCycleDetected) {
-				return nil, err
-			}
-		}
-	}
-	return focused, nil
-}
-
 // ExplainManifestMetadata returns the manifest metadata for the first entry
 // in result, falling back to subproject info when no entries are present.
-func ExplainManifestMetadata(result model.DetectionResult) model.ManifestMetadata {
+func ExplainManifestMetadata(result sdk.DetectionResult) sdk.ManifestMetadata {
 	if result.Graphs != nil && len(result.Graphs.Entries) > 0 {
 		return result.Graphs.Entries[0].Manifest
 	}
-	return model.ManifestMetadata{
+	return sdk.ManifestMetadata{
 		Path: result.SubprojectInfo.ExecutionTarget.Location,
 		Kind: result.SubprojectInfo.PrimaryPackageManager().Name(),
 	}

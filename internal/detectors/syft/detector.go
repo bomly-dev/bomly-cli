@@ -8,7 +8,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -17,59 +17,59 @@ import (
 type Detector struct {
 	Logger              *zap.Logger
 	WorkingDir          string
-	SupportedEcosystems []model.Ecosystem
-	SupportedManagers   []model.PackageManager
+	SupportedEcosystems []sdk.Ecosystem
+	SupportedManagers   []sdk.PackageManager
 }
 
-var packageManagerSupport = []model.PackageManagerSupport{
-	model.Support(model.PackageManagerNPM, "package-lock.json", "package.json"),
-	model.Support(model.PackageManagerPNPM, "pnpm-lock.yaml", "package.json"),
-	model.Support(model.PackageManagerYarn, "yarn.lock", "package.json"),
-	model.Support(model.PackageManagerGradle, "build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts", "gradle.lockfile*"),
-	model.Support(model.PackageManagerMaven, "pom.xml", "*pom.xml"),
-	model.Support(model.PackageManagerGoMod, "go.mod"),
-	model.Support(model.PackageManagerPip, "requirements.txt", "requirements-dev.txt", "requirements.in", "requirements.lock", "*requirements*.txt"),
-	model.Support(model.PackageManagerPipenv, "Pipfile", "Pipfile.lock"),
-	model.Support(model.PackageManagerPoetry, "poetry.lock", "pyproject.toml"),
-	model.Support(model.PackageManagerUV, "uv.lock", "pyproject.toml"),
-	model.Support(model.PackageManagerALPM, "var/lib/pacman/local/*/desc"),
-	model.Support(model.PackageManagerAPK, "lib/apk/db/installed"),
-	model.Support(model.PackageManagerConan, "conan.lock", "conanfile.txt", "conaninfo.txt"),
-	model.Support(model.PackageManagerConda, "conda-meta/*.json"),
-	model.Support(model.PackageManagerPub, "pubspec.yml", "pubspec.yaml", "pubspec.lock"),
-	model.Support(model.PackageManagerDPKG, "lib/dpkg/status", "lib/dpkg/status.d/*", "lib/opkg/info/*.control", "lib/opkg/status"),
-	model.Support(model.PackageManagerMix, "mix.lock"),
-	model.Support(model.PackageManagerRebar, "rebar.lock"),
-	model.Support(model.PackageManagerOTP, "*.app"),
-	model.Support(model.PackageManagerGitHubActions, ".github/workflows/*.yaml", ".github/workflows/*.yml", ".github/actions/*/action.yml", ".github/actions/*/action.yaml"),
-	model.Support(model.PackageManagerCabal, "cabal.project.freeze"),
-	model.Support(model.PackageManagerStack, "stack.yaml", "stack.yaml.lock"),
-	model.Support(model.PackageManagerHomebrew, "Cellar/*/*/.brew/*.rb", "Library/Taps/*/*/Formula/*.rb"),
-	model.Support(model.PackageManagerLuaRocks, "*.rockspec"),
-	model.Support(model.PackageManagerNuGet, "packages.lock.json", "*.deps.json"),
-	model.Support(model.PackageManagerNix, "nix/var/nix/db/db.sqlite", "nix/store/*.drv"),
-	model.Support(model.PackageManagerOpam, "*opam"),
-	model.Support(model.PackageManagerComposer, "composer.lock", "installed.json"),
-	model.Support(model.PackageManagerPear, "php/.registry/**/*.reg"),
-	model.Support(model.PackageManagerPDM, "pdm.lock", "pyproject.toml"),
-	model.Support(model.PackageManagerPortage, "var/db/pkg/*/*/CONTENTS"),
-	model.Support(model.PackageManagerSWIPLPack, "pack.pl"),
-	model.Support(model.PackageManagerRPackage, "DESCRIPTION"),
-	model.Support(model.PackageManagerRPM, "var/lib/rpmmanifest/container-manifest-2", "var/lib/rpm/Packages", "var/lib/rpm/Packages.db", "var/lib/rpm/rpmdb.sqlite", "usr/share/rpm/Packages", "usr/share/rpm/Packages.db", "usr/share/rpm/rpmdb.sqlite", "usr/lib/sysimage/rpm/Packages", "usr/lib/sysimage/rpm/Packages.db", "usr/lib/sysimage/rpm/rpmdb.sqlite"),
-	model.Support(model.PackageManagerBundler, "Gemfile.lock", "Gemfile.next.lock"),
-	model.Support(model.PackageManagerGemspec, "*.gemspec"),
-	model.Support(model.PackageManagerCargo, "Cargo.lock"),
-	model.Support(model.PackageManagerSnap, "snap/snapcraft.yaml", "snap/manifest.yaml", "doc/linux-modules-*/changelog.Debian.gz", "usr/share/snappy/dpkg.yaml"),
-	model.Support(model.PackageManagerCocoaPods, "Podfile.lock"),
-	model.Support(model.PackageManagerSwiftPM, "Package.resolved", ".package.resolved"),
-	model.Support(model.PackageManagerTerraform, ".terraform.lock.hcl"),
-	model.Support(model.PackageManagerWordPress, "wp-content/plugins/*/*.php"),
-	model.Support(model.PackageManagerSetupPy, "setup.py"),
+var packageManagerSupport = []sdk.PackageManagerSupport{
+	sdk.Support(sdk.PackageManagerNPM, "package-lock.json", "package.json"),
+	sdk.Support(sdk.PackageManagerPNPM, "pnpm-lock.yaml", "package.json"),
+	sdk.Support(sdk.PackageManagerYarn, "yarn.lock", "package.json"),
+	sdk.Support(sdk.PackageManagerGradle, "build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts", "gradle.lockfile*"),
+	sdk.Support(sdk.PackageManagerMaven, "pom.xml", "*pom.xml"),
+	sdk.Support(sdk.PackageManagerGoMod, "go.mod"),
+	sdk.Support(sdk.PackageManagerPip, "requirements.txt", "requirements-dev.txt", "requirements.in", "requirements.lock", "*requirements*.txt"),
+	sdk.Support(sdk.PackageManagerPipenv, "Pipfile", "Pipfile.lock"),
+	sdk.Support(sdk.PackageManagerPoetry, "poetry.lock", "pyproject.toml"),
+	sdk.Support(sdk.PackageManagerUV, "uv.lock", "pyproject.toml"),
+	sdk.Support(sdk.PackageManagerALPM, "var/lib/pacman/local/*/desc"),
+	sdk.Support(sdk.PackageManagerAPK, "lib/apk/db/installed"),
+	sdk.Support(sdk.PackageManagerConan, "conan.lock", "conanfile.txt", "conaninfo.txt"),
+	sdk.Support(sdk.PackageManagerConda, "conda-meta/*.json"),
+	sdk.Support(sdk.PackageManagerPub, "pubspec.yml", "pubspec.yaml", "pubspec.lock"),
+	sdk.Support(sdk.PackageManagerDPKG, "lib/dpkg/status", "lib/dpkg/status.d/*", "lib/opkg/info/*.control", "lib/opkg/status"),
+	sdk.Support(sdk.PackageManagerMix, "mix.lock"),
+	sdk.Support(sdk.PackageManagerRebar, "rebar.lock"),
+	sdk.Support(sdk.PackageManagerOTP, "*.app"),
+	sdk.Support(sdk.PackageManagerGitHubActions, ".github/workflows/*.yaml", ".github/workflows/*.yml", ".github/actions/*/action.yml", ".github/actions/*/action.yaml"),
+	sdk.Support(sdk.PackageManagerCabal, "cabal.project.freeze"),
+	sdk.Support(sdk.PackageManagerStack, "stack.yaml", "stack.yaml.lock"),
+	sdk.Support(sdk.PackageManagerHomebrew, "Cellar/*/*/.brew/*.rb", "Library/Taps/*/*/Formula/*.rb"),
+	sdk.Support(sdk.PackageManagerLuaRocks, "*.rockspec"),
+	sdk.Support(sdk.PackageManagerNuGet, "packages.lock.json", "*.deps.json"),
+	sdk.Support(sdk.PackageManagerNix, "nix/var/nix/db/db.sqlite", "nix/store/*.drv"),
+	sdk.Support(sdk.PackageManagerOpam, "*opam"),
+	sdk.Support(sdk.PackageManagerComposer, "composer.lock", "installed.json"),
+	sdk.Support(sdk.PackageManagerPear, "php/.registry/**/*.reg"),
+	sdk.Support(sdk.PackageManagerPDM, "pdm.lock", "pyproject.toml"),
+	sdk.Support(sdk.PackageManagerPortage, "var/db/pkg/*/*/CONTENTS"),
+	sdk.Support(sdk.PackageManagerSWIPLPack, "pack.pl"),
+	sdk.Support(sdk.PackageManagerRPackage, "DESCRIPTION"),
+	sdk.Support(sdk.PackageManagerRPM, "var/lib/rpmmanifest/container-manifest-2", "var/lib/rpm/Packages", "var/lib/rpm/Packages.db", "var/lib/rpm/rpmdb.sqlite", "usr/share/rpm/Packages", "usr/share/rpm/Packages.db", "usr/share/rpm/rpmdb.sqlite", "usr/lib/sysimage/rpm/Packages", "usr/lib/sysimage/rpm/Packages.db", "usr/lib/sysimage/rpm/rpmdb.sqlite"),
+	sdk.Support(sdk.PackageManagerBundler, "Gemfile.lock", "Gemfile.next.lock"),
+	sdk.Support(sdk.PackageManagerGemspec, "*.gemspec"),
+	sdk.Support(sdk.PackageManagerCargo, "Cargo.lock"),
+	sdk.Support(sdk.PackageManagerSnap, "snap/snapcraft.yaml", "snap/manifest.yaml", "doc/linux-modules-*/changelog.Debian.gz", "usr/share/snappy/dpkg.yaml"),
+	sdk.Support(sdk.PackageManagerCocoaPods, "Podfile.lock"),
+	sdk.Support(sdk.PackageManagerSwiftPM, "Package.resolved", ".package.resolved"),
+	sdk.Support(sdk.PackageManagerTerraform, ".terraform.lock.hcl"),
+	sdk.Support(sdk.PackageManagerWordPress, "wp-content/plugins/*/*.php"),
+	sdk.Support(sdk.PackageManagerSetupPy, "setup.py"),
 }
 
 // PackageManagerSupport returns Syft package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []model.PackageManagerSupport {
-	values := make([]model.PackageManagerSupport, len(packageManagerSupport))
+func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
+	values := make([]sdk.PackageManagerSupport, len(packageManagerSupport))
 	copy(values, packageManagerSupport)
 	for idx := range values {
 		values[idx].EvidencePatterns = append([]string(nil), values[idx].EvidencePatterns...)
@@ -83,10 +83,10 @@ func (d Detector) Ready() bool {
 }
 
 // Applicable reports whether Syft should run for the requested project.
-func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
 	_ = ctx
 
-	if req.ExecutionTarget.Kind == model.ExecutionTargetContainerImage {
+	if req.ExecutionTarget.Kind == sdk.ExecutionTargetContainerImage {
 		return true, nil
 	}
 
@@ -109,22 +109,22 @@ func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (b
 }
 
 // Descriptor describes the Syft-backed detector.
-func (d Detector) Descriptor() model.DetectorDescriptor {
+func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	supportedEcosystems := d.SupportedEcosystems
 	supportedManagers := d.SupportedManagers
-	return model.DetectorDescriptor{
+	return sdk.DetectorDescriptor{
 		Name:                detectors.NameSyft,
 		Enabled:             true,
-		Origin:              model.BundledOrigin,
-		Technique:           model.MultipleTechnique,
+		Origin:              sdk.BundledOrigin,
+		Technique:           sdk.MultipleTechnique,
 		SupportedEcosystems: supportedEcosystems,
 		SupportedManagers:   supportedManagers,
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
+		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "component-targeting", "sbom-import", "detector-enrichment"},
 	}
 }
 
-func supportedFilesForManager(manager model.PackageManager) []string {
+func supportedFilesForManager(manager sdk.PackageManager) []string {
 	for _, support := range packageManagerSupport {
 		if support.PackageManager == manager {
 			return append([]string(nil), support.EvidencePatterns...)
@@ -145,7 +145,7 @@ func syftPatternExists(dir string, pattern string) (bool, error) {
 	return len(matches) > 0, nil
 }
 
-func syftWorkingDir(defaultWorkingDir string, req model.DetectionRequest) string {
+func syftWorkingDir(defaultWorkingDir string, req sdk.DetectionRequest) string {
 	if defaultWorkingDir != "" {
 		return defaultWorkingDir
 	}

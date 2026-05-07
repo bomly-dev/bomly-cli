@@ -14,7 +14,7 @@ import (
 	"github.com/anchore/syft/syft/format/syftjson"
 	syftpkg "github.com/anchore/syft/syft/pkg"
 	syftsbom "github.com/anchore/syft/syft/sbom"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/spdx/tools-golang/spdx/v2/common"
 	v23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
 )
@@ -64,11 +64,11 @@ func TestMarshalDepGraphJSON_SPDX23(t *testing.T) {
 }
 
 func TestMarshalDepGraphJSON_SPDX23Scope(t *testing.T) {
-	g := model.New()
-	app := model.NewPackageRef("app", "1.0.0")
-	react := model.NewPackage(model.Package{Name: "react", Version: "18.2.0", Scope: "runtime"})
-	vitest := model.NewPackage(model.Package{Name: "vitest", Version: "2.0.0", Scope: "development"})
-	for _, n := range []*model.Package{app, react, vitest} {
+	g := sdk.New()
+	app := sdk.NewPackageRef("app", "1.0.0")
+	react := sdk.NewPackage(sdk.Package{Name: "react", Version: "18.2.0", Scope: "runtime"})
+	vitest := sdk.NewPackage(sdk.Package{Name: "vitest", Version: "2.0.0", Scope: "development"})
+	for _, n := range []*sdk.Package{app, react, vitest} {
 		if err := g.AddPackage(n); err != nil {
 			t.Fatalf("add package %s: %v", n.ID, err)
 		}
@@ -111,15 +111,15 @@ func TestMarshalDepGraphJSON_SPDX23Scope(t *testing.T) {
 }
 
 func TestMarshalDepGraphJSON_SPDX23PreservesPURLAndCopyright(t *testing.T) {
-	g := model.New()
-	pkg := model.NewPackage(model.Package{
+	g := sdk.New()
+	pkg := sdk.NewPackage(sdk.Package{
 		Ecosystem:   "npm",
 		BuildSystem: "npm",
 		Name:        "accept",
 		Version:     "1.1.0",
 		PURL:        "pkg:npm/accept@1.1.0",
 		Copyright:   "Copyright (c) 2014, Walmart and other contributors.",
-		Licenses:    []model.PackageLicense{{SPDXExpression: "BSD-3-Clause"}},
+		Licenses:    []sdk.PackageLicense{{SPDXExpression: "BSD-3-Clause"}},
 	})
 	if err := g.AddPackage(pkg); err != nil {
 		t.Fatalf("add package: %v", err)
@@ -190,11 +190,11 @@ func TestMarshalDepGraphJSON_CycloneDXVersions(t *testing.T) {
 }
 
 func TestMarshalDepGraphJSON_CycloneDXScope(t *testing.T) {
-	g := model.New()
-	app := model.NewPackageRef("app", "1.0.0")
-	runtimeDep := model.NewPackage(model.Package{Name: "react", Version: "18.2.0", Scope: "runtime"})
-	devDep := model.NewPackage(model.Package{Name: "vitest", Version: "2.0.0", Scope: "development"})
-	for _, n := range []*model.Package{app, runtimeDep, devDep} {
+	g := sdk.New()
+	app := sdk.NewPackageRef("app", "1.0.0")
+	runtimeDep := sdk.NewPackage(sdk.Package{Name: "react", Version: "18.2.0", Scope: "runtime"})
+	devDep := sdk.NewPackage(sdk.Package{Name: "vitest", Version: "2.0.0", Scope: "development"})
+	for _, n := range []*sdk.Package{app, runtimeDep, devDep} {
 		if err := g.AddPackage(n); err != nil {
 			t.Fatalf("add package %s: %v", n.ID, err)
 		}
@@ -259,8 +259,8 @@ func TestUnmarshalJSON_RoundTripTargets(t *testing.T) {
 }
 
 func TestUnmarshalJSON_SPDX23RestoresPackageIdentityFromPURL(t *testing.T) {
-	g := model.New()
-	if err := g.AddPackage(model.NewPackage(model.Package{
+	g := sdk.New()
+	if err := g.AddPackage(sdk.NewPackage(sdk.Package{
 		Ecosystem:   "npm",
 		BuildSystem: "npm",
 		Name:        "accept",
@@ -315,8 +315,8 @@ func TestUnmarshalJSON_SPDX23RestoresPackageIdentityFromPURL(t *testing.T) {
 }
 
 func TestUnmarshalJSON_CycloneDXPreservesPURL(t *testing.T) {
-	g := model.New()
-	if err := g.AddPackage(model.NewPackage(model.Package{
+	g := sdk.New()
+	if err := g.AddPackage(sdk.NewPackage(sdk.Package{
 		Ecosystem:   "npm",
 		BuildSystem: "npm",
 		Name:        "accept",
@@ -414,15 +414,15 @@ func TestToGraph_AllowsCycles(t *testing.T) {
 	}
 }
 
-func mustGraph(t *testing.T) *model.Graph {
+func mustGraph(t *testing.T) *sdk.Graph {
 	t.Helper()
 
-	g := model.New()
-	app := model.NewPackageRef("app", "1.0.0")
-	react := model.NewPackageRef("react", "18.2.0")
-	zod := model.NewPackageRef("zod", "3.23.0")
+	g := sdk.New()
+	app := sdk.NewPackageRef("app", "1.0.0")
+	react := sdk.NewPackageRef("react", "18.2.0")
+	zod := sdk.NewPackageRef("zod", "3.23.0")
 
-	for _, n := range []*model.Package{app, react, zod} {
+	for _, n := range []*sdk.Package{app, react, zod} {
 		if err := g.AddPackage(n); err != nil {
 			t.Fatalf("add package %s: %v", n.ID, err)
 		}
@@ -436,7 +436,7 @@ func mustGraph(t *testing.T) *model.Graph {
 	return g
 }
 
-func idsOfPackages(packages []*model.Package) []string {
+func idsOfPackages(packages []*sdk.Package) []string {
 	ids := make([]string, 0, len(packages))
 	for _, pkg := range packages {
 		ids = append(ids, pkg.ID)

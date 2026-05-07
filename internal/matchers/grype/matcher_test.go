@@ -10,7 +10,7 @@ import (
 	"time"
 
 	v6dist "github.com/anchore/grype/grype/db/v6/distribution"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestDescriptor_Name(t *testing.T) {
@@ -29,7 +29,7 @@ func TestDescriptor_Name(t *testing.T) {
 
 func TestMatch_NilGraph_ReturnsEmpty(t *testing.T) {
 	a := Matcher{Priority: 90}
-	result, err := a.Match(context.Background(), model.MatchRequest{Graph: nil, Mode: model.TargetModeFullGraph})
+	result, err := a.Match(context.Background(), sdk.MatchRequest{Graph: nil, Mode: sdk.TargetModeFullGraph})
 	if err != nil {
 		t.Fatalf("Match with nil graph: %v", err)
 	}
@@ -66,13 +66,13 @@ func TestMatch_DBNotPresent_AttemptsDownloadAndReturnsEmpty(t *testing.T) {
 		DistConfigOverride: &badDist,
 	}
 
-	pkg := &model.Package{ID: "npm:lodash:4.17.15", Name: "lodash", Version: "4.17.15", PURL: "pkg:npm/lodash@4.17.15"}
-	g := model.New()
+	pkg := &sdk.Package{ID: "npm:lodash:4.17.15", Name: "lodash", Version: "4.17.15", PURL: "pkg:npm/lodash@4.17.15"}
+	g := sdk.New()
 	if err := g.AddPackage(pkg); err != nil {
 		t.Fatalf("AddPackage: %v", err)
 	}
 
-	result, err := a.Match(context.Background(), model.MatchRequest{Graph: g, Mode: model.TargetModeFullGraph})
+	result, err := a.Match(context.Background(), sdk.MatchRequest{Graph: g, Mode: sdk.TargetModeFullGraph})
 	if err == nil {
 		t.Fatal("expected non-nil error when DB download fails")
 	}
@@ -98,7 +98,7 @@ func TestDBDir_DefaultUsesOSCacheDir(t *testing.T) {
 }
 
 func TestGraphPkgToGrypePkg_FieldMapping(t *testing.T) {
-	p := &model.Package{
+	p := &sdk.Package{
 		ID:        "npm:lodash:4.17.15",
 		Name:      "lodash",
 		Version:   "4.17.15",

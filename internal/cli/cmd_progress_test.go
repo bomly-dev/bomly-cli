@@ -4,32 +4,32 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestMatchProgressChildren_ReportsMatcherCounts(t *testing.T) {
-	g := model.New()
-	for _, pkg := range []*model.Package{
-		model.NewPackage(model.Package{
+	g := sdk.New()
+	for _, pkg := range []*sdk.Package{
+		sdk.NewPackage(sdk.Package{
 			Name:    "react",
 			Version: "18.2.0",
-			Licenses: []model.PackageLicense{{
+			Licenses: []sdk.PackageLicense{{
 				Type:  "deps.dev",
 				Value: "MIT",
 			}},
-			Vulnerabilities: []model.PackageVulnerability{
+			Vulnerabilities: []sdk.PackageVulnerability{
 				{ID: "OSV-1", Source: "osv"},
 				{ID: "CVE-1", Source: "grype"},
 			},
 		}),
-		model.NewPackage(model.Package{
+		sdk.NewPackage(sdk.Package{
 			Name:    "zod",
 			Version: "3.23.0",
-			Licenses: []model.PackageLicense{{
+			Licenses: []sdk.PackageLicense{{
 				Type:  "ClearlyDefined",
 				Value: "Apache-2.0",
 			}},
-			Vulnerabilities: []model.PackageVulnerability{
+			Vulnerabilities: []sdk.PackageVulnerability{
 				{ID: "OSV-2", Source: "osv"},
 			},
 		}),

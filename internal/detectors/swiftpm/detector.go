@@ -12,7 +12,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -20,7 +20,7 @@ import (
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   model.Detector
+	Fallback   sdk.Detector
 }
 
 var evidencePatterns = []string{"Package.resolved", ".package.resolved", "Package.swift", "project.xcworkspace/xcshareddata/swiftpm/Package.resolved"}
@@ -61,8 +61,8 @@ type swiftPackage struct {
 var packageSwiftPattern = regexp.MustCompile(`\.package\s*\([^)]*(?:url:\s*"([^"]+)"|name:\s*"([^"]+)")[^)]*(?:from:|exact:|branch:|revision:)\s*"([^"]+)"`)
 
 // PackageManagerSupport returns SwiftPM package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []model.PackageManagerSupport {
-	return []model.PackageManagerSupport{model.Support(model.PackageManagerSwiftPM, evidencePatterns...)}
+func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerSwiftPM, evidencePatterns...)}
 }
 
 // Ready reports whether committed SwiftPM files can be parsed.
@@ -71,7 +71,7 @@ func (d Detector) Ready() bool {
 }
 
 // Applicable reports whether SwiftPM files are present.
-func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
 	_ = ctx
 	workingDir := d.workingDir(req.ProjectPath)
 	for _, name := range evidencePatterns {
@@ -83,43 +83,43 @@ func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (b
 }
 
 // Descriptor describes the SwiftPM detector.
-func (d Detector) Descriptor() model.DetectorDescriptor {
-	return model.DetectorDescriptor{
+func (d Detector) Descriptor() sdk.DetectorDescriptor {
+	return sdk.DetectorDescriptor{
 		Name:                detectors.NameSwiftPM,
 		Enabled:             true,
-		Origin:              model.CoreOrigin,
-		Technique:           model.LockfileTechnique,
-		SupportedEcosystems: []model.Ecosystem{model.EcosystemSwift},
-		SupportedManagers:   []model.PackageManager{model.PackageManagerSwiftPM},
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
+		Origin:              sdk.CoreOrigin,
+		Technique:           sdk.LockfileTechnique,
+		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemSwift},
+		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerSwiftPM},
+		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "component-targeting", "lockfile-parsing"},
 	}
 }
 
 // ResolveGraph resolves a SwiftPM dependency graph.
-func (d Detector) ResolveGraph(_ context.Context, req model.DetectionRequest) (model.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	workingDir := d.workingDir(req.ProjectPath)
 	resolvedRaw, resolvedPath, err := readFirstExisting(workingDir, []string{"Package.resolved", ".package.resolved", "project.xcworkspace/xcshareddata/swiftpm/Package.resolved"})
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
 	manifestRaw, err := readOptional(filepath.Join(workingDir, "Package.swift"))
 	if err != nil {
-		return model.DetectionResult{}, fmt.Errorf("read Package.swift: %w", err)
+		return sdk.DetectionResult{}, fmt.Errorf("read Package.swift: %w", err)
 	}
 	g, err := depGraphFromSwiftPM(resolvedRaw, manifestRaw)
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
 	metadataPatterns := evidencePatterns
 	if resolvedPath != "" {
 		metadataPatterns = append([]string{filepath.Base(resolvedPath)}, evidencePatterns...)
 	}
-	return model.DetectionResult{Graphs: model.SingleGraphContainer(g, detectors.InferManifestMetadata(req, metadataPatterns))}, nil
+	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, metadataPatterns))}, nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d Detector) FallbackDetector() model.Detector {
+func (d Detector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
@@ -130,7 +130,7 @@ func (d Detector) workingDir(projectPath string) string {
 	return projectPath
 }
 
-func depGraphFromSwiftPM(resolvedRaw, manifestRaw []byte) (*model.Graph, error) {
+func depGraphFromSwiftPM(resolvedRaw, manifestRaw []byte) (*sdk.Graph, error) {
 	packages, err := parseResolved(resolvedRaw)
 	if err != nil {
 		return nil, err
@@ -152,7 +152,7 @@ func depGraphFromSwiftPM(resolvedRaw, manifestRaw []byte) (*model.Graph, error) 
 	if len(packages) == 0 {
 		return nil, fmt.Errorf("SwiftPM files do not contain any dependencies")
 	}
-	g := model.New()
+	g := sdk.New()
 	root := rootNode()
 	if err := g.AddPackage(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
@@ -238,17 +238,17 @@ func readOptional(path string) ([]byte, error) {
 	return os.ReadFile(path)
 }
 
-func rootNode() *model.Package {
-	return model.NewPackage(model.Package{
-		Ecosystem:   string(model.EcosystemSwift),
+func rootNode() *sdk.Package {
+	return sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemSwift),
 		Name:        "root",
-		BuildSystem: model.PackageManagerSwiftPM.Name(),
+		BuildSystem: sdk.PackageManagerSwiftPM.Name(),
 		Type:        "application",
 		Language:    "swift",
 	})
 }
 
-func packageNode(pkg swiftPackage) *model.Package {
+func packageNode(pkg swiftPackage) *sdk.Package {
 	metadata := map[string]any{}
 	if pkg.Repository != "" {
 		metadata["repository"] = pkg.Repository
@@ -259,14 +259,14 @@ func packageNode(pkg swiftPackage) *model.Package {
 	if pkg.Requirement != "" {
 		metadata["requirement"] = pkg.Requirement
 	}
-	return model.NewPackage(model.Package{
-		Ecosystem:   string(model.EcosystemSwift),
+	return sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemSwift),
 		Name:        strings.TrimSpace(pkg.Name),
 		Version:     strings.TrimSpace(pkg.Version),
-		BuildSystem: model.PackageManagerSwiftPM.Name(),
+		BuildSystem: sdk.PackageManagerSwiftPM.Name(),
 		Type:        "package",
 		Language:    "swift",
-		PURL:        model.BuildPackageURL("swift", "", pkg.Name, pkg.Version),
+		PURL:        sdk.BuildPackageURL("swift", "", pkg.Name, pkg.Version),
 		ResolvedURL: strings.TrimSpace(pkg.Repository),
 		Metadata:    metadata,
 	})
@@ -302,7 +302,7 @@ func sortedNames(packages map[string]swiftPackage) []string {
 	return values
 }
 
-func addNodeIfMissing(g *model.Graph, node *model.Package) error {
+func addNodeIfMissing(g *sdk.Graph, node *sdk.Package) error {
 	if _, ok := g.Package(node.ID); ok {
 		return nil
 	}

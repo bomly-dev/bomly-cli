@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 type yarnLockEntry struct {
@@ -20,7 +20,7 @@ type yarnLockEntry struct {
 	Dependencies map[string]string
 }
 
-func depGraphFromYarnLockfile(projectPath string) (*model.Graph, error) {
+func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 	raw, err := os.ReadFile(filepath.Join(projectPath, "yarn.lock"))
 	if err != nil {
 		return nil, fmt.Errorf("read yarn.lock: %w", err)
@@ -39,8 +39,8 @@ func depGraphFromYarnLockfile(projectPath string) (*model.Graph, error) {
 		rootName = "root"
 	}
 
-	depsGraph := model.New()
-	rootNode := model.NewPackage(model.Package{Ecosystem: string(model.EcosystemNPM), Name: rootName, Version: manifest.Version})
+	depsGraph := sdk.New()
+	rootNode := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemNPM), Name: rootName, Version: manifest.Version})
 	if err := depsGraph.AddPackage(rootNode); err != nil {
 		return nil, fmt.Errorf("add yarn root node: %w", err)
 	}
@@ -48,14 +48,14 @@ func depGraphFromYarnLockfile(projectPath string) (*model.Graph, error) {
 	entryNodeByIndex := make(map[int]string, len(entries))
 	entriesByName := make(map[string][]int)
 	for idx, entry := range entries {
-		pkg := model.Package{
-			Ecosystem:   string(model.EcosystemNPM),
+		pkg := sdk.Package{
+			Ecosystem:   string(sdk.EcosystemNPM),
 			Name:        entry.Name,
 			Version:     entry.Version,
 			ResolvedURL: entry.Resolved,
 			Digests:     node.ParseIntegrityDigests(entry.Integrity),
 		}
-		pkgNode := model.NewPackage(pkg)
+		pkgNode := sdk.NewPackage(pkg)
 		if err := node.AddNodeIfMissing(depsGraph, pkgNode); err != nil {
 			return nil, err
 		}
@@ -96,7 +96,7 @@ func depGraphFromYarnLockfile(projectPath string) (*model.Graph, error) {
 				queue = append(queue, entryIdx)
 				continue
 			}
-			synthetic := model.NewPackage(model.Package{Ecosystem: string(model.EcosystemNPM), Name: dependencyName, Version: node.NormalizeVersionToken(requested)})
+			synthetic := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemNPM), Name: dependencyName, Version: node.NormalizeVersionToken(requested)})
 			if err := node.AddNodeIfMissing(depsGraph, synthetic); err != nil {
 				return nil, err
 			}

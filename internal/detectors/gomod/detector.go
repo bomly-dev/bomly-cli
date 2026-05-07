@@ -16,7 +16,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -55,21 +55,21 @@ type moduleNode struct {
 
 type queuedPackage struct {
 	pkg   goListPackage
-	scope model.Scope
+	scope sdk.Scope
 }
 
 // Detector resolves Go module dependency graphs by invoking the Go CLI.
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   model.Detector
+	Fallback   sdk.Detector
 }
 
 var evidencePatterns = []string{"go.mod"}
 
 // PackageManagerSupport returns Go module package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []model.PackageManagerSupport {
-	return []model.PackageManagerSupport{model.Support(model.PackageManagerGoMod, evidencePatterns...)}
+func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerGoMod, evidencePatterns...)}
 }
 
 // Ready reports whether the Go CLI is available.
@@ -79,7 +79,7 @@ func (d Detector) Ready() bool {
 }
 
 // Applicable reports whether the target project contains a go.mod file.
-func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
 	_ = ctx
 
 	workingDir := d.WorkingDir
@@ -91,37 +91,37 @@ func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (b
 }
 
 // Descriptor describes the Go CLI-backed detector.
-func (d Detector) Descriptor() model.DetectorDescriptor {
-	return model.DetectorDescriptor{
+func (d Detector) Descriptor() sdk.DetectorDescriptor {
+	return sdk.DetectorDescriptor{
 		Name:                detectors.NameGoMod,
 		Enabled:             true,
-		Origin:              model.CoreOrigin,
-		Technique:           model.BuildToolTechnique,
-		SupportedEcosystems: []model.Ecosystem{model.EcosystemGo},
-		SupportedManagers:   []model.PackageManager{model.PackageManagerGoMod},
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
+		Origin:              sdk.CoreOrigin,
+		Technique:           sdk.BuildToolTechnique,
+		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemGo},
+		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerGoMod},
+		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "component-targeting", "module-graph"},
 	}
 }
 
 // ResolveGraph resolves a Go module dependency graph for the scan engine.
-func (d Detector) ResolveGraph(_ context.Context, req model.DetectionRequest) (model.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	depsGraph, err := d.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose)
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
 
-	return model.DetectionResult{
-		Graphs: model.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, evidencePatterns)),
+	return sdk.DetectionResult{
+		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, evidencePatterns)),
 	}, nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d Detector) FallbackDetector() model.Detector {
+func (d Detector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
-func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool) (*model.Graph, error) {
+func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool) (*sdk.Graph, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -184,7 +184,7 @@ func buildGoListArgs() []string {
 	return append(args, "all")
 }
 
-func depGraphFromGoList(raw []byte, rootModule string) (*model.Graph, error) {
+func depGraphFromGoList(raw []byte, rootModule string) (*sdk.Graph, error) {
 	if strings.TrimSpace(rootModule) == "" {
 		return nil, errors.New("go module path is empty")
 	}
@@ -196,9 +196,9 @@ func depGraphFromGoList(raw []byte, rootModule string) (*model.Graph, error) {
 		return nil, errors.New("go list output is empty")
 	}
 
-	depsGraph := model.New()
-	rootNode := model.NewPackage(model.Package{
-		Ecosystem: string(model.EcosystemGo),
+	depsGraph := sdk.New()
+	rootNode := sdk.NewPackage(sdk.Package{
+		Ecosystem: string(sdk.EcosystemGo),
 		Name:      rootModule,
 	})
 	if err := depsGraph.AddPackage(rootNode); err != nil {
@@ -226,20 +226,20 @@ func depGraphFromGoList(raw []byte, rootModule string) (*model.Graph, error) {
 			continue
 		}
 
-		baseScope := model.ScopeRuntime
+		baseScope := sdk.ScopeRuntime
 		if strings.TrimSpace(pkg.ForTest) != "" {
-			baseScope = model.ScopeDevelopment
+			baseScope = sdk.ScopeDevelopment
 		}
 		queue = append(queue, queuedPackage{pkg: pkg, scope: baseScope})
 	}
 
-	visited := make(map[string]model.Scope, len(packages))
+	visited := make(map[string]sdk.Scope, len(packages))
 	for len(queue) > 0 {
 		current := queue[0]
 		queue = queue[1:]
 
 		visitKey := current.pkg.ImportPath + "|" + current.pkg.ForTest
-		mergedScope := model.MergeScope(visited[visitKey], current.scope)
+		mergedScope := sdk.MergeScope(visited[visitKey], current.scope)
 		if visited[visitKey] == mergedScope {
 			continue
 		}
@@ -259,10 +259,10 @@ func depGraphFromGoList(raw []byte, rootModule string) (*model.Graph, error) {
 		if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, mergedScope, current.pkg.Imports, packageRecords, packageModules, &queue); err != nil {
 			return nil, err
 		}
-		if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, model.ScopeDevelopment, current.pkg.TestImports, packageRecords, packageModules, &queue); err != nil {
+		if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.TestImports, packageRecords, packageModules, &queue); err != nil {
 			return nil, err
 		}
-		if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, model.ScopeDevelopment, current.pkg.XTestImports, packageRecords, packageModules, &queue); err != nil {
+		if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.XTestImports, packageRecords, packageModules, &queue); err != nil {
 			return nil, err
 		}
 	}
@@ -301,7 +301,7 @@ func moduleNodeFromPackage(pkg goListPackage, rootModule string) (moduleNode, bo
 	}, true
 }
 
-func enqueueImportedPackages(depsGraph *model.Graph, rootID string, from moduleNode, scope model.Scope, imports []string, packageRecords map[string]goListPackage, packageModules map[string]moduleNode, queue *[]queuedPackage) error {
+func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNode, scope sdk.Scope, imports []string, packageRecords map[string]goListPackage, packageModules map[string]moduleNode, queue *[]queuedPackage) error {
 	fromID := rootID
 	if !from.Main {
 		fromID = moduleNodeID(from)
@@ -332,9 +332,9 @@ func enqueueImportedPackages(depsGraph *model.Graph, rootID string, from moduleN
 	return nil
 }
 
-func packageFromModuleNode(node moduleNode, scope model.Scope) *model.Package {
-	return model.NewPackage(model.Package{
-		Ecosystem: string(model.EcosystemGo),
+func packageFromModuleNode(node moduleNode, scope sdk.Scope) *sdk.Package {
+	return sdk.NewPackage(sdk.Package{
+		Ecosystem: string(sdk.EcosystemGo),
 		Name:      node.Path,
 		Version:   node.Version,
 		Scope:     string(scope),
@@ -342,8 +342,8 @@ func packageFromModuleNode(node moduleNode, scope model.Scope) *model.Package {
 }
 
 func moduleNodeID(node moduleNode) string {
-	return model.NewPackage(model.Package{
-		Ecosystem: string(model.EcosystemGo),
+	return sdk.NewPackage(sdk.Package{
+		Ecosystem: string(sdk.EcosystemGo),
 		Name:      node.Path,
 		Version:   node.Version,
 	}).ID
@@ -409,7 +409,7 @@ func parseGoModFile(path string) (string, []moduleRef, error) {
 }
 
 // Install prepares Go module dependencies before graph resolution.
-func (d Detector) Install(_ context.Context, req model.DetectionRequest) error {
+func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -476,9 +476,9 @@ func appendUniqueModule(modules []moduleRef, seen map[string]struct{}, ref modul
 	return append(modules, ref)
 }
 
-func addOrMergeModuleNode(depsGraph *model.Graph, node *model.Package, scope model.Scope) error {
+func addOrMergeModuleNode(depsGraph *sdk.Graph, node *sdk.Package, scope sdk.Scope) error {
 	if existing, ok := depsGraph.Package(node.ID); ok {
-		model.MergePackageScope(existing, scope)
+		sdk.MergePackageScope(existing, scope)
 		return nil
 	}
 	if err := depsGraph.AddPackage(node); err != nil {

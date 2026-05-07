@@ -12,7 +12,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -20,7 +20,7 @@ import (
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   model.Detector
+	Fallback   sdk.Detector
 }
 
 var evidencePatterns = []string{"packages.lock.json", "packages.config", "*.csproj", "*.fsproj", "*.vbproj", "*.vcxproj", "project.assets.json"}
@@ -47,8 +47,8 @@ type packagesConfigPackage struct {
 }
 
 // PackageManagerSupport returns NuGet package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []model.PackageManagerSupport {
-	return []model.PackageManagerSupport{model.Support(model.PackageManagerNuGet, evidencePatterns...)}
+func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerNuGet, evidencePatterns...)}
 }
 
 // Ready reports whether the detector can parse committed NuGet files.
@@ -57,7 +57,7 @@ func (d Detector) Ready() bool {
 }
 
 // Applicable reports whether a NuGet lockfile or legacy packages.config is present.
-func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
 	_ = ctx
 	workingDir := d.workingDir(req.ProjectPath)
 	for _, name := range []string{"packages.lock.json", "packages.config"} {
@@ -69,51 +69,51 @@ func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (b
 }
 
 // Descriptor describes the NuGet detector.
-func (d Detector) Descriptor() model.DetectorDescriptor {
-	return model.DetectorDescriptor{
+func (d Detector) Descriptor() sdk.DetectorDescriptor {
+	return sdk.DetectorDescriptor{
 		Name:                detectors.NameNuGet,
 		Enabled:             true,
-		Origin:              model.CoreOrigin,
-		Technique:           model.LockfileTechnique,
-		SupportedEcosystems: []model.Ecosystem{model.EcosystemDotNet},
-		SupportedManagers:   []model.PackageManager{model.PackageManagerNuGet},
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
+		Origin:              sdk.CoreOrigin,
+		Technique:           sdk.LockfileTechnique,
+		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemDotNet},
+		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerNuGet},
+		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
 	}
 }
 
 // ResolveGraph resolves a NuGet dependency graph.
-func (d Detector) ResolveGraph(_ context.Context, req model.DetectionRequest) (model.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	workingDir := d.workingDir(req.ProjectPath)
 	lockPath := filepath.Join(workingDir, "packages.lock.json")
 	if ok, err := system.FileExists(lockPath); err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	} else if ok {
 		raw, err := os.ReadFile(lockPath)
 		if err != nil {
-			return model.DetectionResult{}, fmt.Errorf("read NuGet lockfile: %w", err)
+			return sdk.DetectionResult{}, fmt.Errorf("read NuGet lockfile: %w", err)
 		}
 		g, err := depGraphFromLock(raw)
 		if err != nil {
-			return model.DetectionResult{}, err
+			return sdk.DetectionResult{}, err
 		}
-		return model.DetectionResult{Graphs: model.SingleGraphContainer(g, detectors.InferManifestMetadata(req, []string{"packages.lock.json"}))}, nil
+		return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, []string{"packages.lock.json"}))}, nil
 	}
 
 	configPath := filepath.Join(workingDir, "packages.config")
 	raw, err := os.ReadFile(configPath)
 	if err != nil {
-		return model.DetectionResult{}, fmt.Errorf("read NuGet packages.config: %w", err)
+		return sdk.DetectionResult{}, fmt.Errorf("read NuGet packages.config: %w", err)
 	}
 	g, err := depGraphFromPackagesConfig(raw)
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
-	return model.DetectionResult{Graphs: model.SingleGraphContainer(g, detectors.InferManifestMetadata(req, []string{"packages.config"}))}, nil
+	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, []string{"packages.config"}))}, nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d Detector) FallbackDetector() model.Detector {
+func (d Detector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
@@ -124,12 +124,12 @@ func (d Detector) workingDir(projectPath string) string {
 	return projectPath
 }
 
-func depGraphFromLock(raw []byte) (*model.Graph, error) {
+func depGraphFromLock(raw []byte) (*sdk.Graph, error) {
 	var lock lockFile
 	if err := json.Unmarshal(raw, &lock); err != nil {
 		return nil, fmt.Errorf("parse NuGet lockfile: %w", err)
 	}
-	g := model.New()
+	g := sdk.New()
 	root := rootNode()
 	if err := g.AddPackage(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
@@ -183,19 +183,19 @@ func depGraphFromLock(raw []byte) (*model.Graph, error) {
 		pkg, _ := findNuGetPackage(packages, name)
 		node := packageNode(baseName(name), pkg.Resolved, pkg)
 		if existing, ok := g.Package(node.ID); ok {
-			model.MergePackageScope(existing, model.ScopeRuntime)
+			sdk.MergePackageScope(existing, sdk.ScopeRuntime)
 		}
 		if err := g.AddDependency(root.ID, node.ID); err != nil {
 			return nil, fmt.Errorf("add NuGet root dependency %q: %w", node.ID, err)
 		}
 	}
-	if err := propagateScope(g, packages, roots, model.ScopeRuntime); err != nil {
+	if err := propagateScope(g, packages, roots, sdk.ScopeRuntime); err != nil {
 		return nil, err
 	}
 	return g, nil
 }
 
-func depGraphFromPackagesConfig(raw []byte) (*model.Graph, error) {
+func depGraphFromPackagesConfig(raw []byte) (*sdk.Graph, error) {
 	var config packagesConfig
 	if err := xml.Unmarshal(raw, &config); err != nil {
 		return nil, fmt.Errorf("parse NuGet packages.config: %w", err)
@@ -203,7 +203,7 @@ func depGraphFromPackagesConfig(raw []byte) (*model.Graph, error) {
 	if len(config.Packages) == 0 {
 		return nil, fmt.Errorf("NuGet packages.config does not contain any packages")
 	}
-	g := model.New()
+	g := sdk.New()
 	root := rootNode()
 	if err := g.AddPackage(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
@@ -213,7 +213,7 @@ func depGraphFromPackagesConfig(raw []byte) (*model.Graph, error) {
 			continue
 		}
 		node := packageNode(pkg.ID, pkg.Version, lockPackage{})
-		model.MergePackageScope(node, model.ScopeRuntime)
+		sdk.MergePackageScope(node, sdk.ScopeRuntime)
 		if err := addNodeIfMissing(g, node); err != nil {
 			return nil, err
 		}
@@ -224,28 +224,28 @@ func depGraphFromPackagesConfig(raw []byte) (*model.Graph, error) {
 	return g, nil
 }
 
-func rootNode() *model.Package {
-	return model.NewPackage(model.Package{
-		Ecosystem:   string(model.EcosystemDotNet),
+func rootNode() *sdk.Package {
+	return sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemDotNet),
 		Name:        "root",
-		BuildSystem: model.PackageManagerNuGet.Name(),
+		BuildSystem: sdk.PackageManagerNuGet.Name(),
 		Type:        "application",
 		Language:    "dotnet",
 	})
 }
 
-func packageNode(name, version string, pkg lockPackage) *model.Package {
-	node := model.NewPackage(model.Package{
-		Ecosystem:   string(model.EcosystemDotNet),
+func packageNode(name, version string, pkg lockPackage) *sdk.Package {
+	node := sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemDotNet),
 		Name:        name,
 		Version:     version,
-		BuildSystem: model.PackageManagerNuGet.Name(),
+		BuildSystem: sdk.PackageManagerNuGet.Name(),
 		Type:        "package",
 		Language:    "dotnet",
-		PURL:        model.BuildPackageURL("nuget", "", name, version),
+		PURL:        sdk.BuildPackageURL("nuget", "", name, version),
 	})
 	if pkg.ContentHash != "" {
-		node.Digests = append(node.Digests, model.Digest{Algorithm: "nuget-content-hash", Value: pkg.ContentHash})
+		node.Digests = append(node.Digests, sdk.Digest{Algorithm: "nuget-content-hash", Value: pkg.ContentHash})
 	}
 	return node
 }
@@ -277,7 +277,7 @@ func baseName(name string) string {
 	return name
 }
 
-func propagateScope(g *model.Graph, packages map[string]lockPackage, roots []string, scope model.Scope) error {
+func propagateScope(g *sdk.Graph, packages map[string]lockPackage, roots []string, scope sdk.Scope) error {
 	visited := make(map[string]struct{}, len(packages))
 	var walk func(string) error
 	walk = func(name string) error {
@@ -291,7 +291,7 @@ func propagateScope(g *model.Graph, packages map[string]lockPackage, roots []str
 		}
 		node := packageNode(name, pkg.Resolved, pkg)
 		if existing, ok := g.Package(node.ID); ok {
-			model.MergePackageScope(existing, scope)
+			sdk.MergePackageScope(existing, scope)
 		}
 		for depName := range pkg.Dependencies {
 			if err := walk(depName); err != nil {
@@ -308,7 +308,7 @@ func propagateScope(g *model.Graph, packages map[string]lockPackage, roots []str
 	return nil
 }
 
-func addNodeIfMissing(g *model.Graph, node *model.Package) error {
+func addNodeIfMissing(g *sdk.Graph, node *sdk.Package) error {
 	if _, ok := g.Package(node.ID); ok {
 		return nil
 	}

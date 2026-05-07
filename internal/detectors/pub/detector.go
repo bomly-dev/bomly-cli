@@ -10,7 +10,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
@@ -19,7 +19,7 @@ import (
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   model.Detector
+	Fallback   sdk.Detector
 }
 
 var evidencePatterns = []string{"pubspec.lock", "pubspec.yaml", "pubspec.yml"}
@@ -43,8 +43,8 @@ type pubspec struct {
 }
 
 // PackageManagerSupport returns pub package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []model.PackageManagerSupport {
-	return []model.PackageManagerSupport{model.Support(model.PackageManagerPub, evidencePatterns...)}
+func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerPub, evidencePatterns...)}
 }
 
 // Ready reports whether committed pub lockfiles can be parsed.
@@ -53,7 +53,7 @@ func (d Detector) Ready() bool {
 }
 
 // Applicable reports whether pub manifests are present.
-func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
 	_ = ctx
 	workingDir := d.workingDir(req.ProjectPath)
 	for _, name := range []string{"pubspec.lock", "pubspec.yaml", "pubspec.yml"} {
@@ -65,40 +65,40 @@ func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (b
 }
 
 // Descriptor describes the pub detector.
-func (d Detector) Descriptor() model.DetectorDescriptor {
-	return model.DetectorDescriptor{
+func (d Detector) Descriptor() sdk.DetectorDescriptor {
+	return sdk.DetectorDescriptor{
 		Name:                detectors.NamePub,
 		Enabled:             true,
-		Origin:              model.CoreOrigin,
-		Technique:           model.LockfileTechnique,
-		SupportedEcosystems: []model.Ecosystem{model.EcosystemDart},
-		SupportedManagers:   []model.PackageManager{model.PackageManagerPub},
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
+		Origin:              sdk.CoreOrigin,
+		Technique:           sdk.LockfileTechnique,
+		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemDart},
+		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerPub},
+		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
 	}
 }
 
 // ResolveGraph resolves a pub dependency graph.
-func (d Detector) ResolveGraph(_ context.Context, req model.DetectionRequest) (model.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	workingDir := d.workingDir(req.ProjectPath)
 	lockPath := filepath.Join(workingDir, "pubspec.lock")
 	lockRaw, err := os.ReadFile(lockPath)
 	if err != nil {
-		return model.DetectionResult{}, fmt.Errorf("read pub lockfile: %w", err)
+		return sdk.DetectionResult{}, fmt.Errorf("read pub lockfile: %w", err)
 	}
 	manifest, err := readPubspec(workingDir)
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
 	g, err := depGraphFromLock(lockRaw, manifest)
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
-	return model.DetectionResult{Graphs: model.SingleGraphContainer(g, detectors.InferManifestMetadata(req, evidencePatterns))}, nil
+	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, evidencePatterns))}, nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d Detector) FallbackDetector() model.Detector {
+func (d Detector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
@@ -132,7 +132,7 @@ func readPubspec(workingDir string) (pubspec, error) {
 	return pubspec{}, nil
 }
 
-func depGraphFromLock(raw []byte, manifest pubspec) (*model.Graph, error) {
+func depGraphFromLock(raw []byte, manifest pubspec) (*sdk.Graph, error) {
 	var lock pubLock
 	if err := yaml.Unmarshal(raw, &lock); err != nil {
 		return nil, fmt.Errorf("parse pub lockfile: %w", err)
@@ -140,7 +140,7 @@ func depGraphFromLock(raw []byte, manifest pubspec) (*model.Graph, error) {
 	if len(lock.Packages) == 0 {
 		return nil, fmt.Errorf("pub lockfile does not contain any packages")
 	}
-	g := model.New()
+	g := sdk.New()
 	root := rootNode(manifest)
 	if err := g.AddPackage(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
@@ -150,7 +150,7 @@ func depGraphFromLock(raw []byte, manifest pubspec) (*model.Graph, error) {
 		node := packageNode(name, pkg)
 		scope := scopeForPackage(name, pkg, manifest)
 		if scope != "" {
-			model.MergePackageScope(node, scope)
+			sdk.MergePackageScope(node, scope)
 		}
 		if err := addNodeIfMissing(g, node); err != nil {
 			return nil, err
@@ -164,30 +164,30 @@ func depGraphFromLock(raw []byte, manifest pubspec) (*model.Graph, error) {
 	return g, nil
 }
 
-func rootNode(manifest pubspec) *model.Package {
+func rootNode(manifest pubspec) *sdk.Package {
 	name := strings.TrimSpace(manifest.Name)
 	if name == "" {
 		name = "root"
 	}
-	return model.NewPackage(model.Package{
-		Ecosystem:   string(model.EcosystemDart),
+	return sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemDart),
 		Name:        name,
 		Version:     strings.TrimSpace(manifest.Version),
-		BuildSystem: model.PackageManagerPub.Name(),
+		BuildSystem: sdk.PackageManagerPub.Name(),
 		Type:        "application",
 		Language:    "dart",
 	})
 }
 
-func packageNode(name string, pkg pubLockPackage) *model.Package {
-	node := model.NewPackage(model.Package{
-		Ecosystem:   string(model.EcosystemDart),
+func packageNode(name string, pkg pubLockPackage) *sdk.Package {
+	node := sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemDart),
 		Name:        name,
 		Version:     strings.TrimSpace(pkg.Version),
-		BuildSystem: model.PackageManagerPub.Name(),
+		BuildSystem: sdk.PackageManagerPub.Name(),
 		Type:        "package",
 		Language:    "dart",
-		PURL:        model.BuildPackageURL("pub", "", name, pkg.Version),
+		PURL:        sdk.BuildPackageURL("pub", "", name, pkg.Version),
 		Metadata: map[string]any{
 			"source": strings.TrimSpace(pkg.Source),
 		},
@@ -198,18 +198,18 @@ func packageNode(name string, pkg pubLockPackage) *model.Package {
 	return node
 }
 
-func scopeForPackage(name string, pkg pubLockPackage, manifest pubspec) model.Scope {
+func scopeForPackage(name string, pkg pubLockPackage, manifest pubspec) sdk.Scope {
 	if _, ok := manifest.DevDependencies[name]; ok {
-		return model.ScopeDevelopment
+		return sdk.ScopeDevelopment
 	}
 	if _, ok := manifest.Dependencies[name]; ok {
-		return model.ScopeRuntime
+		return sdk.ScopeRuntime
 	}
 	switch strings.TrimSpace(pkg.Dependency) {
 	case "direct dev":
-		return model.ScopeDevelopment
+		return sdk.ScopeDevelopment
 	case "direct main":
-		return model.ScopeRuntime
+		return sdk.ScopeRuntime
 	default:
 		return ""
 	}
@@ -247,7 +247,7 @@ func sortedPackageNames(packages map[string]pubLockPackage) []string {
 	return values
 }
 
-func addNodeIfMissing(g *model.Graph, node *model.Package) error {
+func addNodeIfMissing(g *sdk.Graph, node *sdk.Package) error {
 	if _, ok := g.Package(node.ID); ok {
 		return nil
 	}

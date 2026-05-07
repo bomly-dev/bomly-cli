@@ -8,33 +8,33 @@ import (
 	"testing"
 	"time"
 
-	bomlysbom "github.com/bomly-dev/bomly-cli/internal/sbom"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/internal/sbom"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestDetectorResolveGraph_SPDXJSON(t *testing.T) {
-	path := writeSBOMFixture(t, bomlysbom.TargetSPDX23JSON)
+	path := writeSBOMFixture(t, sbom.TargetSPDX23JSON)
 	result := resolveFixture(t, path)
 	verifyResolvedGraph(t, result, "react@18.2.0")
 }
 
 func TestDetectorResolveGraph_CycloneDXJSON(t *testing.T) {
-	path := writeSBOMFixture(t, bomlysbom.TargetCycloneDX16JSON)
+	path := writeSBOMFixture(t, sbom.TargetCycloneDX16JSON)
 	result := resolveFixture(t, path)
 	verifyResolvedGraph(t, result, "react@18.2.0")
 }
 
 func TestDetectorResolveGraph_NormalizesImportedComponentIDs(t *testing.T) {
-	doc := &bomlysbom.Document{
-		Components: []bomlysbom.Component{
+	doc := &sbom.Document{
+		Components: []sbom.Component{
 			{ID: "SPDXRef-demo-app-1.0.0", Name: "demo-app", Version: "1.0.0"},
 			{ID: "SPDXRef-react-18.2.0", Name: "react", Version: "18.2.0"},
 		},
-		Dependencies: []bomlysbom.Dependency{
+		Dependencies: []sbom.Dependency{
 			{Ref: "SPDXRef-demo-app-1.0.0", DependsOn: []string{"SPDXRef-react-18.2.0"}},
 		},
 	}
-	data, err := bomlysbom.MarshalJSON(doc, bomlysbom.TargetSPDX23JSON, bomlysbom.EncodeOptions{Pretty: true})
+	data, err := sbom.MarshalJSON(doc, sbom.TargetSPDX23JSON, sbom.EncodeOptions{Pretty: true})
 	if err != nil {
 		t.Fatalf("MarshalJSON() error = %v", err)
 	}
@@ -58,22 +58,22 @@ func TestDetectorResolveGraph_NormalizesImportedComponentIDs(t *testing.T) {
 }
 
 func TestDetectorResolveGraph_PrefersImportedPURLIdentity(t *testing.T) {
-	g := model.New()
-	app := model.NewPackage(model.Package{
+	g := sdk.New()
+	app := sdk.NewPackage(sdk.Package{
 		Ecosystem:   "npm",
 		BuildSystem: "npm",
 		Name:        "demo-app",
 		Version:     "1.0.0",
 		PURL:        "pkg:npm/demo-app@1.0.0",
 	})
-	react := model.NewPackage(model.Package{
+	react := sdk.NewPackage(sdk.Package{
 		Ecosystem:   "npm",
 		BuildSystem: "npm",
 		Name:        "react",
 		Version:     "18.2.0",
 		PURL:        "pkg:npm/react@18.2.0",
 	})
-	for _, pkg := range []*model.Package{app, react} {
+	for _, pkg := range []*sdk.Package{app, react} {
 		if err := g.AddPackage(pkg); err != nil {
 			t.Fatalf("add package %s: %v", pkg.ID, err)
 		}
@@ -82,10 +82,10 @@ func TestDetectorResolveGraph_PrefersImportedPURLIdentity(t *testing.T) {
 		t.Fatalf("add dependency: %v", err)
 	}
 
-	data, err := bomlysbom.MarshalDepGraphJSON(g, bomlysbom.TargetSPDX23JSON, bomlysbom.BuildOptions{
+	data, err := sbom.MarshalDepGraphJSON(g, sbom.TargetSPDX23JSON, sbom.BuildOptions{
 		DocumentName: "demo",
 		Created:      time.Date(2026, 4, 15, 0, 0, 0, 0, time.UTC),
-	}, bomlysbom.EncodeOptions{Pretty: true})
+	}, sbom.EncodeOptions{Pretty: true})
 	if err != nil {
 		t.Fatalf("marshal sbom fixture: %v", err)
 	}
@@ -134,7 +134,7 @@ func TestDetectorResolveGraph_RejectsUnsupportedOrMalformedJSON(t *testing.T) {
 	}
 }
 
-func resolveFixture(t *testing.T, path string) model.DetectionResult {
+func resolveFixture(t *testing.T, path string) sdk.DetectionResult {
 	t.Helper()
 	detector := Detector{}
 	result, err := detector.ResolveGraph(context.Background(), requestForSBOMPath(path))
@@ -144,30 +144,30 @@ func resolveFixture(t *testing.T, path string) model.DetectionResult {
 	return result
 }
 
-func requestForSBOMPath(path string) model.DetectionRequest {
-	executionTarget := model.ExecutionTarget{Kind: model.ExecutionTargetFilesystem, Location: path}
-	return model.DetectionRequest{
+func requestForSBOMPath(path string) sdk.DetectionRequest {
+	executionTarget := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: path}
+	return sdk.DetectionRequest{
 		ProjectPath:     path,
 		ExecutionTarget: executionTarget,
-		Subproject: model.Subproject{
+		Subproject: sdk.Subproject{
 			ExecutionTarget:         executionTarget,
 			RelativePath:            filepath.Base(path),
 			PrimaryDetector:         "sbom-detector",
-			DetectedPackageManagers: []model.PackageManager{model.PackageManagerSBOM},
-			Ecosystem:               model.EcosystemSBOM,
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerSBOM},
+			Ecosystem:               sdk.EcosystemSBOM,
 		},
-		PackageManager: model.PackageManagerSBOM,
-		Ecosystem:      model.EcosystemSBOM,
-		Mode:           model.TargetModeFullGraph,
+		PackageManager: sdk.PackageManagerSBOM,
+		Ecosystem:      sdk.EcosystemSBOM,
+		Mode:           sdk.TargetModeFullGraph,
 	}
 }
 
-func writeSBOMFixture(t *testing.T, target bomlysbom.Target) string {
+func writeSBOMFixture(t *testing.T, target sbom.Target) string {
 	t.Helper()
-	g := model.New()
-	app := model.NewPackageRef("demo-app", "1.0.0")
-	react := model.NewPackageRef("react", "18.2.0")
-	for _, pkg := range []*model.Package{app, react} {
+	g := sdk.New()
+	app := sdk.NewPackageRef("demo-app", "1.0.0")
+	react := sdk.NewPackageRef("react", "18.2.0")
+	for _, pkg := range []*sdk.Package{app, react} {
 		if err := g.AddPackage(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
@@ -176,10 +176,10 @@ func writeSBOMFixture(t *testing.T, target bomlysbom.Target) string {
 		t.Fatalf("add dependency: %v", err)
 	}
 
-	data, err := bomlysbom.MarshalDepGraphJSON(g, target, bomlysbom.BuildOptions{
+	data, err := sbom.MarshalDepGraphJSON(g, target, sbom.BuildOptions{
 		DocumentName: "demo",
 		Created:      time.Date(2026, 4, 15, 0, 0, 0, 0, time.UTC),
-	}, bomlysbom.EncodeOptions{Pretty: true})
+	}, sbom.EncodeOptions{Pretty: true})
 	if err != nil {
 		t.Fatalf("marshal sbom fixture: %v", err)
 	}
@@ -190,7 +190,7 @@ func writeSBOMFixture(t *testing.T, target bomlysbom.Target) string {
 	return path
 }
 
-func verifyResolvedGraph(t *testing.T, result model.DetectionResult, wantDependencyID string) {
+func verifyResolvedGraph(t *testing.T, result sdk.DetectionResult, wantDependencyID string) {
 	t.Helper()
 	g, err := result.ConsolidatedGraph()
 	if err != nil {

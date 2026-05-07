@@ -12,13 +12,13 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
 	audcache "github.com/bomly-dev/bomly-cli/internal/matchers/cache"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // --- buildQuery ---
 
 func TestBuildQuery_PURLBased(t *testing.T) {
-	pkg := &model.Package{
+	pkg := &sdk.Package{
 		Name:      "lodash",
 		Version:   "4.17.15",
 		PURL:      "pkg:npm/lodash@4.17.15",
@@ -44,7 +44,7 @@ func TestBuildQuery_PURLBased(t *testing.T) {
 }
 
 func TestBuildQuery_NameEcosystemVersion(t *testing.T) {
-	pkg := &model.Package{
+	pkg := &sdk.Package{
 		Name:      "requests",
 		Version:   "2.28.0",
 		PURL:      "",
@@ -73,7 +73,7 @@ func TestBuildQuery_NameEcosystemVersion(t *testing.T) {
 }
 
 func TestBuildQuery_SkipsNoVersion(t *testing.T) {
-	pkg := &model.Package{Name: "lodash", PURL: "", Ecosystem: "npm"}
+	pkg := &sdk.Package{Name: "lodash", PURL: "", Ecosystem: "npm"}
 	_, _, ok := buildQuery(pkg)
 	if ok {
 		t.Error("expected package without version to be skipped (no query built)")
@@ -81,7 +81,7 @@ func TestBuildQuery_SkipsNoVersion(t *testing.T) {
 }
 
 func TestBuildQuery_SkipsUnknownEcosystem(t *testing.T) {
-	pkg := &model.Package{Name: "my-pkg", Version: "1.0.0", PURL: "", Ecosystem: "unknown-eco"}
+	pkg := &sdk.Package{Name: "my-pkg", Version: "1.0.0", PURL: "", Ecosystem: "unknown-eco"}
 	_, _, ok := buildQuery(pkg)
 	if ok {
 		t.Error("expected package with unknown ecosystem and no PURL to be skipped")
@@ -112,13 +112,13 @@ func TestAudit_CacheHit_NoHTTPCall(t *testing.T) {
 		t.Fatalf("New: %v", err)
 	}
 
-	pkg := &model.Package{
+	pkg := &sdk.Package{
 		ID:        "npm:lodash:4.17.15",
 		Name:      "lodash",
 		Version:   "4.17.15",
 		PURL:      "pkg:npm/lodash@4.17.15",
 		Ecosystem: "npm",
-		Licenses:  []model.PackageLicense{{Value: "MIT"}},
+		Licenses:  []sdk.PackageLicense{{Value: "MIT"}},
 	}
 
 	// Pre-populate cache so the auditor won't need to call the server.
@@ -126,14 +126,14 @@ func TestAudit_CacheHit_NoHTTPCall(t *testing.T) {
 	cached := []OsvVulnerability{{ID: "CVE-2020-1234", Summary: "test vuln"}}
 	_ = audcache.Set(aud.cache, key, cached)
 
-	g := model.New()
+	g := sdk.New()
 	if err := g.AddPackage(pkg); err != nil {
 		t.Fatalf("AddPackage: %v", err)
 	}
 
-	req := model.MatchRequest{
+	req := sdk.MatchRequest{
 		Graph: g,
-		Mode:  model.TargetModeFullGraph,
+		Mode:  sdk.TargetModeFullGraph,
 	}
 	result, err := aud.Match(context.Background(), req)
 	if err != nil {
@@ -197,22 +197,22 @@ func TestAudit_OSVFailure_NonFatal(t *testing.T) {
 		t.Fatalf("New: %v", err)
 	}
 
-	pkg := &model.Package{
+	pkg := &sdk.Package{
 		ID:        "npm:lodash:4.17.15",
 		Name:      "lodash",
 		Version:   "4.17.15",
 		PURL:      "pkg:npm/lodash@4.17.15",
 		Ecosystem: "npm",
-		Licenses:  []model.PackageLicense{{Value: "MIT"}},
+		Licenses:  []sdk.PackageLicense{{Value: "MIT"}},
 	}
-	g := model.New()
+	g := sdk.New()
 	if err := g.AddPackage(pkg); err != nil {
 		t.Fatalf("AddPackage: %v", err)
 	}
 
-	result, err := aud.Match(context.Background(), model.MatchRequest{
+	result, err := aud.Match(context.Background(), sdk.MatchRequest{
 		Graph: g,
-		Mode:  model.TargetModeFullGraph,
+		Mode:  sdk.TargetModeFullGraph,
 	})
 	if err != nil {
 		t.Fatalf("Match returned error on API failure (should be non-fatal): %v", err)
@@ -225,7 +225,7 @@ func TestAudit_OSVFailure_NonFatal(t *testing.T) {
 func TestMarkKEVFindings_AppendsReason(t *testing.T) {
 	catalog := &KEVCatalog{ids: map[string]struct{}{"CVE-2021-44228": {}}}
 
-	findings := []model.Finding{
+	findings := []sdk.Finding{
 		{ID: "CVE-2021-44228", Severity: "critical", Reasons: []string{"existing reason"}},
 		{ID: "CVE-2099-9999", Severity: "medium", Reasons: nil},
 	}

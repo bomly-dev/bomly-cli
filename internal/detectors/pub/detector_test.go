@@ -4,16 +4,16 @@ import (
 	"context"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	detector := Detector{WorkingDir: "testdata/project"}
-	result, err := detector.ResolveGraph(context.Background(), model.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
 		ProjectPath:     "testdata/project",
-		PackageManager:  model.PackageManagerPub,
-		Ecosystem:       model.EcosystemDart,
-		ExecutionTarget: model.ExecutionTarget{Location: "testdata/project"},
+		PackageManager:  sdk.PackageManagerPub,
+		Ecosystem:       sdk.EcosystemDart,
+		ExecutionTarget: sdk.ExecutionTarget{Location: "testdata/project"},
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -26,7 +26,7 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if !ok {
 		t.Fatal("expected test package")
 	}
-	if pkg.Scope != string(model.ScopeDevelopment) {
+	if pkg.Scope != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected development scope, got %q", pkg.Scope)
 	}
 }
@@ -81,7 +81,7 @@ func TestDepGraphFromLockScopesDirectDependencies(t *testing.T) {
 	if !ok {
 		t.Fatal("expected test package")
 	}
-	if dev.Scope != string(model.ScopeDevelopment) {
+	if dev.Scope != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected dev scope, got %q", dev.Scope)
 	}
 	if dev.PURL != "pkg:pub/test@1.25.8" {

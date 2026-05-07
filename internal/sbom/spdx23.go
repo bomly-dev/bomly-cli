@@ -8,7 +8,7 @@ import (
 	"time"
 	"unicode"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/spdx/tools-golang/spdx/v2/common"
 	v23 "github.com/spdx/tools-golang/spdx/v2/v2_3"
 )
@@ -299,7 +299,7 @@ func parseSPDXPURL(refs []*v23.PackageExternalReference) string {
 
 func parseSPDXPackageManager(refs []*v23.PackageExternalReference) string {
 	purl := parseSPDXPURL(refs)
-	if manager := packageManagerForPURL(purl, "", ""); manager != model.PackageManagerUnknown {
+	if manager := packageManagerForPURL(purl, "", ""); manager != sdk.PackageManagerUnknown {
 		return manager.Name()
 	}
 	return ""

@@ -4,16 +4,16 @@ import (
 	"context"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	detector := Detector{WorkingDir: "testdata/project"}
-	result, err := detector.ResolveGraph(context.Background(), model.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
 		ProjectPath:     "testdata/project",
-		PackageManager:  model.PackageManagerNuGet,
-		Ecosystem:       model.EcosystemDotNet,
-		ExecutionTarget: model.ExecutionTarget{Location: "testdata/project"},
+		PackageManager:  sdk.PackageManagerNuGet,
+		Ecosystem:       sdk.EcosystemDotNet,
+		ExecutionTarget: sdk.ExecutionTarget{Location: "testdata/project"},
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -78,7 +78,7 @@ func TestDepGraphFromLockMultiTarget(t *testing.T) {
 	if !ok {
 		t.Fatal("expected System.Text.Json package")
 	}
-	if systemText.Scope != string(model.ScopeRuntime) {
+	if systemText.Scope != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected transitive runtime scope, got %q", systemText.Scope)
 	}
 }

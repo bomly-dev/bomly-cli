@@ -6,19 +6,19 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // IndexedDetectors describes a set of package managers that will be detected by the same primary detector.
 type IndexedDetectors struct {
 	Path            string
 	PrimaryDetector string
-	PackageManagers []model.PackageManager
+	PackageManagers []sdk.PackageManager
 }
 
 // packageManagerMatch describes a package manager that matches a set of evidence patterns.
 type packageManagerMatch struct {
-	manager         model.PackageManager
+	manager         sdk.PackageManager
 	matchedPatterns []string
 }
 
@@ -42,7 +42,7 @@ func IndexDetectors(candidatePath string) ([]IndexedDetectors, error) {
 			grouped = append(grouped, IndexedDetectors{
 				Path:            candidatePath,
 				PrimaryDetector: detectorName,
-				PackageManagers: []model.PackageManager{},
+				PackageManagers: []sdk.PackageManager{},
 			})
 		}
 		grouped[idx].PackageManagers = appendUniquePackageManager(grouped[idx].PackageManagers, manager)
@@ -51,13 +51,13 @@ func IndexDetectors(candidatePath string) ([]IndexedDetectors, error) {
 }
 
 // DetectPackageManagers identifies package managers for a filesystem path.
-func DetectPackageManagers(candidatePath string) ([]model.PackageManager, error) {
+func DetectPackageManagers(candidatePath string) ([]sdk.PackageManager, error) {
 	info, err := os.Stat(candidatePath)
 	if err != nil {
 		return nil, err
 	}
 	matches := detectPackageManagerMatches(candidatePath, info.IsDir())
-	managers := make([]model.PackageManager, 0, len(matches))
+	managers := make([]sdk.PackageManager, 0, len(matches))
 	for _, match := range deduplicateMatches(matches) {
 		managers = append(managers, match.manager)
 	}
@@ -93,7 +93,7 @@ func deduplicateMatches(matches []packageManagerMatch) []packageManagerMatch {
 
 	filtered := make([]packageManagerMatch, 0, len(matches))
 	for i, current := range matches {
-		if current.manager == model.PackageManagerUnknown {
+		if current.manager == sdk.PackageManagerUnknown {
 			continue
 		}
 		drop := false
@@ -157,11 +157,11 @@ func patternExists(dir string, pattern string) bool {
 	return err == nil && len(matches) > 0
 }
 
-func uniquePackageManagers(values []model.PackageManager) []model.PackageManager {
-	result := make([]model.PackageManager, 0, len(values))
-	seen := make(map[model.PackageManager]struct{}, len(values))
+func uniquePackageManagers(values []sdk.PackageManager) []sdk.PackageManager {
+	result := make([]sdk.PackageManager, 0, len(values))
+	seen := make(map[sdk.PackageManager]struct{}, len(values))
 	for _, value := range values {
-		if value == model.PackageManagerUnknown {
+		if value == sdk.PackageManagerUnknown {
 			continue
 		}
 		if _, ok := seen[value]; ok {
@@ -173,7 +173,7 @@ func uniquePackageManagers(values []model.PackageManager) []model.PackageManager
 	return result
 }
 
-func appendUniquePackageManager(values []model.PackageManager, value model.PackageManager) []model.PackageManager {
+func appendUniquePackageManager(values []sdk.PackageManager, value sdk.PackageManager) []sdk.PackageManager {
 	for _, existing := range values {
 		if existing == value {
 			return values

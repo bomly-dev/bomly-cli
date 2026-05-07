@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
+	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/progress"
-	"github.com/bomly-dev/bomly-cli/internal/scan"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // newCommandProgress constructs a Progress sourcing its writer + TTY-detection
@@ -19,7 +19,7 @@ func newCommandProgress(streams commandStreams, label string) *progress.Progress
 
 // warningProgressChildren converts pipeline warnings into ⚠ children using
 // the warning source as Label and the message as Detail.
-func warningProgressChildren(warnings []scan.PipelineWarning) []progress.Child {
+func warningProgressChildren(warnings []engine.PipelineWarning) []progress.Child {
 	children := make([]progress.Child, 0, len(warnings))
 	for _, w := range warnings {
 		label := w.Source
@@ -38,7 +38,7 @@ func warningProgressChildren(warnings []scan.PipelineWarning) []progress.Child {
 
 // subprojectProgressChildren returns one child per resolved subproject showing
 // the relative path and ecosystem.
-func subprojectProgressChildren(results []model.DetectionResult) []progress.Child {
+func subprojectProgressChildren(results []sdk.DetectionResult) []progress.Child {
 	children := make([]progress.Child, 0, len(results))
 	for _, r := range results {
 		label := r.SubprojectInfo.RelativePath
@@ -59,7 +59,7 @@ func subprojectProgressChildren(results []model.DetectionResult) []progress.Chil
 
 // detectorProgressChildren groups results by detector name, sums the total
 // package count per detector, and returns children with ✔ icon.
-func detectorProgressChildren(results []model.DetectionResult) []progress.Child {
+func detectorProgressChildren(results []sdk.DetectionResult) []progress.Child {
 	type detectorInfo struct {
 		name     string
 		packages int
@@ -95,7 +95,7 @@ func detectorProgressChildren(results []model.DetectionResult) []progress.Child 
 }
 
 // auditProgressChildren groups findings by source and returns children with ✔ icon.
-func auditProgressChildren(auditorRuns []string, auditorFindings map[string]int, warnings []scan.PipelineWarning) []progress.Child {
+func auditProgressChildren(auditorRuns []string, auditorFindings map[string]int, warnings []engine.PipelineWarning) []progress.Child {
 	children := make([]progress.Child, 0, len(auditorRuns)+len(warnings))
 	for _, name := range auditorRuns {
 		children = append(children, progress.Child{
@@ -110,7 +110,7 @@ func auditProgressChildren(auditorRuns []string, auditorFindings map[string]int,
 
 // matchProgressChildren returns ✔ children for each successful matcher run
 // and ⚠ children for each warning.
-func matchProgressChildren(g *model.Graph, runs []string, warnings []scan.PipelineWarning) []progress.Child {
+func matchProgressChildren(g *sdk.Graph, runs []string, warnings []engine.PipelineWarning) []progress.Child {
 	children := make([]progress.Child, 0, len(runs)+len(warnings))
 	for _, name := range runs {
 		children = append(children, progress.Child{
@@ -123,7 +123,7 @@ func matchProgressChildren(g *model.Graph, runs []string, warnings []scan.Pipeli
 	return children
 }
 
-func matcherProgressDetail(g *model.Graph, matcherName string) string {
+func matcherProgressDetail(g *sdk.Graph, matcherName string) string {
 	if g == nil {
 		return ""
 	}
@@ -180,7 +180,7 @@ func matcherProgressDetail(g *model.Graph, matcherName string) string {
 	}
 }
 
-func packageHasLicenseSource(pkg *model.Package, sourceType string) bool {
+func packageHasLicenseSource(pkg *sdk.Package, sourceType string) bool {
 	if pkg == nil {
 		return false
 	}

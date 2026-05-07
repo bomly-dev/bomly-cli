@@ -3,7 +3,7 @@
 // when the next step starts. Each completed step can carry a tree of Child rows describing
 // what happened (e.g. detector results, finding counts).
 //
-// Progress satisfies the scan.ProgressReporter interface (StartStage / AdvanceStage /
+// Progress satisfies the engine.ProgressReporter interface (StartStage / AdvanceStage /
 // CompleteStage), so it can drive the pipeline's coarse progress events while also being
 // used directly by command code for finer-grained step reporting.
 package progress
@@ -146,7 +146,7 @@ func (p *Progress) Stage(text string) {
 	p.mu.Unlock()
 }
 
-// StartStage / AdvanceStage / CompleteStage satisfy scan.ProgressReporter.
+// StartStage / AdvanceStage / CompleteStage satisfy engine.ProgressReporter.
 func (p *Progress) StartStage(label string, total int) {
 	p.setStageProgress(label, 0, total)
 }

@@ -14,7 +14,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -23,14 +23,14 @@ import (
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   model.Detector
+	Fallback   sdk.Detector
 }
 
 var evidencePatterns = []string{"build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts", "gradle.lockfile*"}
 
 // PackageManagerSupport returns Gradle package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []model.PackageManagerSupport {
-	return []model.PackageManagerSupport{model.Support(model.PackageManagerGradle, evidencePatterns...)}
+func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerGradle, evidencePatterns...)}
 }
 
 // Ready returns true if a Gradle wrapper is present for the project or gradle is on PATH.
@@ -43,7 +43,7 @@ func (d Detector) Ready() bool {
 }
 
 // Applicable returns true when the project looks like a Gradle build.
-func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
 	_ = ctx
 
 	workingDir := d.WorkingDir
@@ -65,37 +65,37 @@ func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (b
 }
 
 // Descriptor describes the Gradle graph detector.
-func (d Detector) Descriptor() model.DetectorDescriptor {
-	return model.DetectorDescriptor{
+func (d Detector) Descriptor() sdk.DetectorDescriptor {
+	return sdk.DetectorDescriptor{
 		Name:                detectors.NameGradle,
 		Enabled:             true,
-		Origin:              model.CoreOrigin,
-		Technique:           model.BuildToolTechnique,
-		SupportedEcosystems: []model.Ecosystem{model.EcosystemMaven},
-		SupportedManagers:   []model.PackageManager{model.PackageManagerGradle},
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
+		Origin:              sdk.CoreOrigin,
+		Technique:           sdk.BuildToolTechnique,
+		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemMaven},
+		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerGradle},
+		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "component-targeting"},
 	}
 }
 
 // ResolveGraph resolves a Gradle dependency graph for the scan engine.
-func (d Detector) ResolveGraph(_ context.Context, req model.DetectionRequest) (model.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	depsGraph, err := d.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose)
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
 
-	return model.DetectionResult{
-		Graphs: model.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, evidencePatterns)),
+	return sdk.DetectionResult{
+		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, evidencePatterns)),
 	}, nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d Detector) FallbackDetector() model.Detector {
+func (d Detector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
-func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool) (*model.Graph, error) {
+func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool) (*sdk.Graph, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -187,7 +187,7 @@ func isBatchFile(path string) bool {
 	return ext == ".bat" || ext == ".cmd"
 }
 
-func depGraphFromGradleOutput(raw []byte, rootName string) (*model.Graph, error) {
+func depGraphFromGradleOutput(raw []byte, rootName string) (*sdk.Graph, error) {
 	if len(bytes.TrimSpace(raw)) == 0 {
 		return nil, errors.New("gradle dependencies output is empty")
 	}
@@ -196,18 +196,18 @@ func depGraphFromGradleOutput(raw []byte, rootName string) (*model.Graph, error)
 		rootName = "root"
 	}
 
-	depsGraph := model.New()
-	rootNode := model.NewPackage(model.Package{
-		Ecosystem:   string(model.EcosystemMaven),
+	depsGraph := sdk.New()
+	rootNode := sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemMaven),
 		Name:        rootName,
-		BuildSystem: model.PackageManagerGradle.Name(),
+		BuildSystem: sdk.PackageManagerGradle.Name(),
 	})
 	if err := depsGraph.AddPackage(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
 	stack := []string{rootNode.ID}
-	currentScope := model.ScopeUnknown
+	currentScope := sdk.ScopeUnknown
 	for _, line := range strings.Split(strings.ReplaceAll(string(raw), "\r\n", "\n"), "\n") {
 		trimmed := strings.TrimSpace(line)
 		if trimmed == "" {
@@ -230,8 +230,8 @@ func depGraphFromGradleOutput(raw []byte, rootName string) (*model.Graph, error)
 		stack = stack[:depth+1]
 		parentID := stack[len(stack)-1]
 		if existing, ok := depsGraph.Package(node.ID); ok {
-			model.MergePackageScope(existing, model.Scope(node.Scope))
-		} else if err := depsGraph.AddPackage(node); err != nil && !errors.Is(err, model.ErrPackageAlreadyExist) {
+			sdk.MergePackageScope(existing, sdk.Scope(node.Scope))
+		} else if err := depsGraph.AddPackage(node); err != nil && !errors.Is(err, sdk.ErrPackageAlreadyExist) {
 			return nil, fmt.Errorf("add node %q: %w", node.ID, err)
 		}
 		if err := depsGraph.AddDependency(parentID, node.ID); err != nil {
@@ -254,7 +254,7 @@ func isGradleConfigurationHeader(line string) bool {
 	return strings.HasSuffix(line, "Classpath")
 }
 
-func parseGradleDependencyLine(line string, scope model.Scope) (*model.Package, int, bool) {
+func parseGradleDependencyLine(line string, scope sdk.Scope) (*sdk.Package, int, bool) {
 	idx := strings.Index(line, "+--- ")
 	if idx < 0 {
 		idx = strings.Index(line, "\\--- ")
@@ -309,17 +309,17 @@ func gradleDependencyToken(value string) string {
 	return token
 }
 
-func gradleNodeFromToken(token string, scope model.Scope) (*model.Package, bool) {
+func gradleNodeFromToken(token string, scope sdk.Scope) (*sdk.Package, bool) {
 	if strings.HasPrefix(token, "project ") {
 		name := strings.TrimSpace(strings.TrimPrefix(token, "project "))
 		if name == "" {
 			return nil, false
 		}
-		return model.NewPackage(model.Package{
-			Ecosystem:   string(model.EcosystemMaven),
+		return sdk.NewPackage(sdk.Package{
+			Ecosystem:   string(sdk.EcosystemMaven),
 			Name:        name,
 			Scope:       string(scope),
-			BuildSystem: model.PackageManagerGradle.Name(),
+			BuildSystem: sdk.PackageManagerGradle.Name(),
 		}), true
 	}
 
@@ -330,35 +330,35 @@ func gradleNodeFromToken(token string, scope model.Scope) (*model.Package, bool)
 
 	version := parts[len(parts)-1]
 	name := strings.Join(parts[1:len(parts)-1], ":")
-	return model.NewPackage(model.Package{
-		Ecosystem:   string(model.EcosystemMaven),
+	return sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemMaven),
 		Name:        name,
 		Version:     version,
 		Scope:       string(scope),
 		Org:         parts[0],
-		BuildSystem: model.PackageManagerGradle.Name(),
+		BuildSystem: sdk.PackageManagerGradle.Name(),
 	}), true
 }
 
-func scopeFromGradleConfiguration(value string) model.Scope {
+func scopeFromGradleConfiguration(value string) sdk.Scope {
 	normalized := strings.ToLower(strings.TrimSpace(value))
 	switch {
 	case strings.Contains(normalized, "test"):
-		return model.ScopeDevelopment
+		return sdk.ScopeDevelopment
 	case strings.Contains(normalized, "runtime"),
 		strings.Contains(normalized, "compile"),
 		strings.Contains(normalized, "implementation"),
 		strings.Contains(normalized, "api"),
 		strings.Contains(normalized, "classpath"),
 		strings.Contains(normalized, "annotationprocessor"):
-		return model.ScopeRuntime
+		return sdk.ScopeRuntime
 	default:
-		return model.ScopeUnknown
+		return sdk.ScopeUnknown
 	}
 }
 
 // Install prepares Gradle dependencies before graph resolution.
-func (d Detector) Install(_ context.Context, req model.DetectionRequest) error {
+func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()

@@ -9,7 +9,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	tea "github.com/charmbracelet/bubbletea"
 	"golang.org/x/term"
 )
@@ -98,8 +98,8 @@ type listPackageRow struct {
 }
 
 type rootDependencyGroup struct {
-	direct     []*model.Package
-	transitive []*model.Package
+	direct     []*sdk.Package
+	transitive []*sdk.Package
 }
 
 type scanMode string
@@ -120,13 +120,13 @@ const (
 type scanModel struct {
 	titlePrefix        string
 	project            output.ProjectDescriptor
-	graphValue         *model.Graph
+	graphValue         *sdk.Graph
 	explainMode        bool
 	manifests          []listPackageRow
 	manifestByID       map[string]listPackageRow
 	mode               scanMode
 	activeView         scanView
-	findings           []model.Finding
+	findings           []sdk.Finding
 	currentManifestID  string
 	allowManifestExit  bool
 	relationshipFilter string

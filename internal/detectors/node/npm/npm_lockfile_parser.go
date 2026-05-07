@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 type npmPackageLock struct {
@@ -67,13 +67,13 @@ func (e *npmEngines) UnmarshalJSON(raw []byte) error {
 
 // npmLockPackageMetadata builds an NPMPackageMetadata from a lockfile package entry.
 // Returns nil when there is no ecosystem-specific metadata worth recording.
-func npmLockPackageMetadata(entry npmLockPackage) *model.NPMPackageMetadata {
+func npmLockPackageMetadata(entry npmLockPackage) *sdk.NPMPackageMetadata {
 	if !entry.Bundled && !entry.Extraneous && !entry.HasInstallScript &&
 		len(entry.PeerDependencies) == 0 && len(entry.OptionalPeerDependencies) == 0 &&
 		len(entry.Engines) == 0 {
 		return nil
 	}
-	meta := &model.NPMPackageMetadata{
+	meta := &sdk.NPMPackageMetadata{
 		Bundled:                  entry.Bundled,
 		Extraneous:               entry.Extraneous,
 		HasInstallScript:         entry.HasInstallScript,
@@ -88,7 +88,7 @@ func npmLockPackageMetadata(entry npmLockPackage) *model.NPMPackageMetadata {
 	return meta
 }
 
-func depGraphFromNPMLockfile(projectPath string) (*model.Graph, error) {
+func depGraphFromNPMLockfile(projectPath string) (*sdk.Graph, error) {
 	raw, err := os.ReadFile(filepath.Join(projectPath, "package-lock.json"))
 	if err != nil {
 		return nil, fmt.Errorf("read package-lock.json: %w", err)
@@ -113,12 +113,12 @@ func depGraphFromNPMLockfile(projectPath string) (*model.Graph, error) {
 		return node.DepGraphFromNPMNode(root)
 	}
 
-	depsGraph := model.New()
+	depsGraph := sdk.New()
 	rootName := lockfile.Name
 	if rootName == "" {
 		rootName = "root"
 	}
-	rootNode := model.NewPackage(model.Package{Ecosystem: string(model.EcosystemNPM), Name: rootName, Version: lockfile.Version})
+	rootNode := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemNPM), Name: rootName, Version: lockfile.Version})
 	if err := depsGraph.AddPackage(rootNode); err != nil {
 		return nil, fmt.Errorf("add npm root node: %w", err)
 	}
@@ -142,8 +142,8 @@ func depGraphFromNPMLockfile(projectPath string) (*model.Graph, error) {
 		if name == "" {
 			continue
 		}
-		pkg := model.Package{
-			Ecosystem:   string(model.EcosystemNPM),
+		pkg := sdk.Package{
+			Ecosystem:   string(sdk.EcosystemNPM),
 			Name:        name,
 			Version:     entry.Version,
 			Scope:       string(scopeFromNPMLockPackage(entry)),
@@ -151,12 +151,12 @@ func depGraphFromNPMLockfile(projectPath string) (*model.Graph, error) {
 			Digests:     node.ParseIntegrityDigests(entry.Integrity),
 		}
 		if entry.License != "" {
-			pkg.Licenses = []model.PackageLicense{{Value: entry.License, Type: "declared"}}
+			pkg.Licenses = []sdk.PackageLicense{{Value: entry.License, Type: "declared"}}
 		}
 		if meta := npmLockPackageMetadata(entry); meta != nil {
-			pkg.Metadata = map[string]any{model.MetadataKeyNPM: meta}
+			pkg.Metadata = map[string]any{sdk.MetadataKeyNPM: meta}
 		}
-		pkgNode := model.NewPackage(pkg)
+		pkgNode := sdk.NewPackage(pkg)
 		if err := node.AddNodeIfMissing(depsGraph, pkgNode); err != nil {
 			return nil, err
 		}
@@ -176,7 +176,7 @@ func depGraphFromNPMLockfile(projectPath string) (*model.Graph, error) {
 		for dependencyName, dependencyVersion := range packageDependencyVersions(packagePath, entry) {
 			targetID, ok := resolveNPMLockDependencyID(packagePath, dependencyName, dependencyVersion, lockfile, pathToID)
 			if !ok {
-				synthetic := model.NewPackage(model.Package{Ecosystem: string(model.EcosystemNPM), Name: dependencyName, Version: node.NormalizeVersionToken(dependencyVersion)})
+				synthetic := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemNPM), Name: dependencyName, Version: node.NormalizeVersionToken(dependencyVersion)})
 				if err := node.AddNodeIfMissing(depsGraph, synthetic); err != nil {
 					return nil, err
 				}
@@ -202,18 +202,18 @@ func packageDependencyVersions(packagePath string, entry npmLockPackage) map[str
 	return deps
 }
 
-func npmRootDirectScopes(root npmLockPackage) map[string]model.Scope {
-	directScopes := make(map[string]model.Scope, len(root.Dependencies)+len(root.OptionalDependencies)+len(root.PeerDependencies)+len(root.DevDependencies))
-	recordDependencyScopes(directScopes, root.Dependencies, model.ScopeRuntime)
-	recordDependencyScopes(directScopes, root.OptionalDependencies, model.ScopeRuntime)
-	recordDependencyScopes(directScopes, root.PeerDependencies, model.ScopeRuntime)
-	recordDependencyScopes(directScopes, root.DevDependencies, model.ScopeDevelopment)
+func npmRootDirectScopes(root npmLockPackage) map[string]sdk.Scope {
+	directScopes := make(map[string]sdk.Scope, len(root.Dependencies)+len(root.OptionalDependencies)+len(root.PeerDependencies)+len(root.DevDependencies))
+	recordDependencyScopes(directScopes, root.Dependencies, sdk.ScopeRuntime)
+	recordDependencyScopes(directScopes, root.OptionalDependencies, sdk.ScopeRuntime)
+	recordDependencyScopes(directScopes, root.PeerDependencies, sdk.ScopeRuntime)
+	recordDependencyScopes(directScopes, root.DevDependencies, sdk.ScopeDevelopment)
 	return directScopes
 }
 
-func recordDependencyScopes(target map[string]model.Scope, dependencies map[string]string, scope model.Scope) {
+func recordDependencyScopes(target map[string]sdk.Scope, dependencies map[string]string, scope sdk.Scope) {
 	for name := range dependencies {
-		target[name] = model.MergeScope(target[name], scope)
+		target[name] = sdk.MergeScope(target[name], scope)
 	}
 }
 
@@ -282,15 +282,15 @@ func npmNameFromPackagePath(packagePath string) string {
 	return strings.TrimSpace(trimmed[idx+len("node_modules/"):])
 }
 
-func scopeFromNPMLockPackage(entry npmLockPackage) model.Scope {
+func scopeFromNPMLockPackage(entry npmLockPackage) sdk.Scope {
 	if entry.Dev {
 		if entry.Optional {
-			return model.ScopeDevelopment
+			return sdk.ScopeDevelopment
 		}
-		return model.ScopeDevelopment
+		return sdk.ScopeDevelopment
 	}
 	if entry.Optional {
-		return model.ScopeRuntime
+		return sdk.ScopeRuntime
 	}
-	return model.ScopeUnknown
+	return sdk.ScopeUnknown
 }

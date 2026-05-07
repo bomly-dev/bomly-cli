@@ -14,7 +14,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -52,7 +52,7 @@ func (d baseDetector) workingDir(projectPath string) string {
 	return projectPath
 }
 
-func (d baseDetector) applicable(ctx context.Context, req model.DetectionRequest, names ...string) (bool, error) {
+func (d baseDetector) applicable(ctx context.Context, req sdk.DetectionRequest, names ...string) (bool, error) {
 	_ = ctx
 	workingDir := d.workingDir(req.ProjectPath)
 	for _, name := range names {
@@ -67,7 +67,7 @@ func (d baseDetector) applicable(ctx context.Context, req model.DetectionRequest
 	return false, nil
 }
 
-func (d baseDetector) resolveGraph(stderr io.Writer, projectPath string, verbose bool, detectorName string, command []string) (*model.Graph, error) {
+func (d baseDetector) resolveGraph(stderr io.Writer, projectPath string, verbose bool, detectorName string, command []string) (*sdk.Graph, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -106,7 +106,7 @@ func (d baseDetector) resolveGraph(stderr io.Writer, projectPath string, verbose
 	return depsGraph, nil
 }
 
-func (d baseDetector) install(ctx context.Context, req model.DetectionRequest, detectorName string, command []string) error {
+func (d baseDetector) install(ctx context.Context, req sdk.DetectionRequest, detectorName string, command []string) error {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -156,7 +156,7 @@ func pipInspectCommand(prefix ...string) ([]string, error) {
 	return command, nil
 }
 
-func depGraphFromPipInspect(raw []byte) (*model.Graph, error) {
+func depGraphFromPipInspect(raw []byte) (*sdk.Graph, error) {
 	var report pipInspectReport
 	if err := json.Unmarshal(raw, &report); err != nil {
 		return nil, fmt.Errorf("parse pip inspect json: %w", err)
@@ -165,22 +165,22 @@ func depGraphFromPipInspect(raw []byte) (*model.Graph, error) {
 		return nil, errors.New("pip inspect output is empty")
 	}
 
-	depsGraph := model.New()
-	rootNode := model.NewPackage(model.Package{
-		Ecosystem: string(model.EcosystemPython),
+	depsGraph := sdk.New()
+	rootNode := sdk.NewPackage(sdk.Package{
+		Ecosystem: string(sdk.EcosystemPython),
 		Name:      "root",
 	})
 	if err := depsGraph.AddPackage(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
-	nodesByName := make(map[string]*model.Package, len(report.Installed))
+	nodesByName := make(map[string]*sdk.Package, len(report.Installed))
 	for _, pkg := range report.Installed {
 		if pkg.Metadata.Name == "" {
 			continue
 		}
-		node := model.NewPackage(model.Package{
-			Ecosystem: string(model.EcosystemPython),
+		node := sdk.NewPackage(sdk.Package{
+			Ecosystem: string(sdk.EcosystemPython),
 			Name:      normalizePythonName(pkg.Metadata.Name),
 			Version:   pkg.Metadata.Version,
 		})
@@ -247,7 +247,7 @@ func normalizePythonName(value string) string {
 	return strings.ToLower(strings.ReplaceAll(value, "_", "-"))
 }
 
-func addNodeIfMissing(depsGraph *model.Graph, node *model.Package) error {
+func addNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Package) error {
 	if _, ok := depsGraph.Package(node.ID); ok {
 		return nil
 	}

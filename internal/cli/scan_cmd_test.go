@@ -6,16 +6,16 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestRenderScanReportIncludesProfessionalSections(t *testing.T) {
 	g := newScanTestGraph(t)
-	findings := []model.Finding{{
+	findings := []sdk.Finding{{
 		ID:       "OSV-123",
-		Kind:     model.FindingKindVulnerability,
+		Kind:     sdk.FindingKindVulnerability,
 		Severity: "high",
-		Package:  model.NewPackageRef("react", "18.2.0"),
+		Package:  sdk.NewPackageRef("react", "18.2.0"),
 		Title:    "Prototype pollution in react",
 		Source:   "osv",
 	}}
@@ -67,14 +67,14 @@ func TestRenderScanReportWithoutFindingsUsesCleanMessage(t *testing.T) {
 	}
 }
 
-func newScanTestGraph(t *testing.T) *model.Graph {
+func newScanTestGraph(t *testing.T) *sdk.Graph {
 	t.Helper()
-	g := model.New()
-	for _, pkg := range []*model.Package{
-		{ID: "app@1.0.0", Name: "app", Version: "1.0.0", Scope: string(model.ScopeRuntime), Licenses: []model.PackageLicense{{Value: "MIT"}}},
-		{ID: "react@18.2.0", Name: "react", Version: "18.2.0", Scope: string(model.ScopeRuntime), Licenses: []model.PackageLicense{{SPDXExpression: "MIT"}}},
-		{ID: "zod@3.23.0", Name: "zod", Version: "3.23.0", Scope: string(model.ScopeDevelopment), Licenses: []model.PackageLicense{{SPDXExpression: "Apache-2.0"}}},
-		{ID: "loose-envify@1.4.0", Name: "loose-envify", Version: "1.4.0", Scope: string(model.ScopeRuntime)},
+	g := sdk.New()
+	for _, pkg := range []*sdk.Package{
+		{ID: "app@1.0.0", Name: "app", Version: "1.0.0", Scope: string(sdk.ScopeRuntime), Licenses: []sdk.PackageLicense{{Value: "MIT"}}},
+		{ID: "react@18.2.0", Name: "react", Version: "18.2.0", Scope: string(sdk.ScopeRuntime), Licenses: []sdk.PackageLicense{{SPDXExpression: "MIT"}}},
+		{ID: "zod@3.23.0", Name: "zod", Version: "3.23.0", Scope: string(sdk.ScopeDevelopment), Licenses: []sdk.PackageLicense{{SPDXExpression: "Apache-2.0"}}},
+		{ID: "loose-envify@1.4.0", Name: "loose-envify", Version: "1.4.0", Scope: string(sdk.ScopeRuntime)},
 	} {
 		if err := g.AddPackage(pkg); err != nil {
 			t.Fatalf("add package %s: %v", pkg.ID, err)

@@ -7,20 +7,20 @@ import (
 	"path/filepath"
 	"strings"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // ParseIntegrityDigests parses a space-separated integrity string (for example "sha512-abc sha1-xyz")
 // into Digest values. Returns nil when the string is empty.
-func ParseIntegrityDigests(integrity string) []model.Digest {
+func ParseIntegrityDigests(integrity string) []sdk.Digest {
 	if integrity == "" {
 		return nil
 	}
 	tokens := strings.Fields(integrity)
-	digests := make([]model.Digest, 0, len(tokens))
+	digests := make([]sdk.Digest, 0, len(tokens))
 	for _, token := range tokens {
 		if idx := strings.Index(token, "-"); idx > 0 {
-			digests = append(digests, model.Digest{Algorithm: token[:idx], Value: token[idx+1:]})
+			digests = append(digests, sdk.Digest{Algorithm: token[:idx], Value: token[idx+1:]})
 		}
 	}
 	return digests

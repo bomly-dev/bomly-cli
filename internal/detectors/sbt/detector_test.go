@@ -5,16 +5,16 @@ import (
 	"path/filepath"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	projectDir := filepath.Join("testdata", "project")
 	detector := Detector{}
-	result, err := detector.ResolveGraph(context.Background(), model.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
 		ProjectPath:    projectDir,
-		PackageManager: model.PackageManagerSBT,
-		Ecosystem:      model.EcosystemScala,
+		PackageManager: sdk.PackageManagerSBT,
+		Ecosystem:      sdk.EcosystemScala,
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph returned error: %v", err)
@@ -34,7 +34,7 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected scalatest package, got %v", graph.Packages())
 	}
-	if scalatest.Scope != string(model.ScopeDevelopment) {
+	if scalatest.Scope != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected scalatest development scope, got %q", scalatest.Scope)
 	}
 }

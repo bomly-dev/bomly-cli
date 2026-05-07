@@ -16,7 +16,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/registry"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	plugschema "github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -409,12 +409,12 @@ func detectorDiscoveryPlan(manifest Manifest) (registry.DetectorDiscoveryPlan, b
 		return registry.DetectorDiscoveryPlan{}, false
 	}
 	descriptor := manifest.DetectorDescriptor
-	managers := make([]model.PackageManager, 0, len(descriptor.PackageManagerSupport))
-	ecosystems := make([]model.Ecosystem, 0, len(manifest.DetectorDescriptor.SupportedEcosystems))
+	managers := make([]sdk.PackageManager, 0, len(descriptor.PackageManagerSupport))
+	ecosystems := make([]sdk.Ecosystem, 0, len(manifest.DetectorDescriptor.SupportedEcosystems))
 	patterns := make([]string, 0)
 	seenPatterns := make(map[string]struct{})
 	for _, support := range descriptor.PackageManagerSupport {
-		manager, err := model.ParsePackageManager(support.PackageManager.Name())
+		manager, err := sdk.ParsePackageManager(support.PackageManager.Name())
 		if err != nil {
 			continue
 		}
@@ -443,12 +443,12 @@ func detectorDiscoveryPlan(manifest Manifest) (registry.DetectorDiscoveryPlan, b
 		}
 	}
 	for _, raw := range manifest.DetectorDescriptor.SupportedEcosystems {
-		eco, err := model.ParseEcosystem(string(raw))
+		eco, err := sdk.ParseEcosystem(string(raw))
 		if err == nil && !slices.Contains(ecosystems, eco) {
 			ecosystems = append(ecosystems, eco)
 		}
 	}
-	targetKinds := []model.ExecutionTargetKind{model.ExecutionTargetFilesystem, model.ExecutionTargetGitRepository}
+	targetKinds := []sdk.ExecutionTargetKind{sdk.ExecutionTargetFilesystem, sdk.ExecutionTargetGitRepository}
 	if len(ecosystems) == 0 && len(managers) > 0 {
 		for _, manager := range managers {
 			eco := manager.Ecosystem()
@@ -457,7 +457,7 @@ func detectorDiscoveryPlan(manifest Manifest) (registry.DetectorDiscoveryPlan, b
 			}
 		}
 	}
-	if len(patterns) == 0 && !slices.Contains(targetKinds, model.ExecutionTargetContainerImage) {
+	if len(patterns) == 0 && !slices.Contains(targetKinds, sdk.ExecutionTargetContainerImage) {
 		return registry.DetectorDiscoveryPlan{}, false
 	}
 	return registry.DetectorDiscoveryPlan{

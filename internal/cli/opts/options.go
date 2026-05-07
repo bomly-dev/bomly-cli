@@ -10,10 +10,10 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/config"
+	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/git"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/plugin"
-	"github.com/bomly-dev/bomly-cli/internal/scan"
 	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/spf13/cobra"
@@ -24,7 +24,7 @@ import (
 // including configuration, registry, execution target, filters, output format, and cleanup logic.
 type Options struct {
 	ResolvedConfig  config.Resolved
-	registry        *scan.Registry
+	registry        *engine.Registry
 	executionTarget sdk.ExecutionTarget
 	subprojects     []sdk.Subproject
 	detectorFilter  sdk.DetectorFilter
@@ -74,7 +74,7 @@ func (o *Options) SetConfig(cfg config.Resolved) {
 }
 
 // Registry returns the filtered scan registry prepared for command execution.
-func (o Options) Registry() *scan.Registry {
+func (o Options) Registry() *engine.Registry {
 	return o.registry
 }
 
@@ -101,6 +101,25 @@ func (o Options) AuditorFilter() sdk.AuditorFilter {
 // MatcherFilter returns the matcher filter prepared for command execution.
 func (o Options) MatcherFilter() sdk.MatcherFilter {
 	return o.matcherFilter
+}
+
+// PipelineRequest builds the scan pipeline request for this prepared command context.
+func (o Options) PipelineRequest(scope sdk.Scope, stderr io.Writer) engine.PipelineRequest {
+	return engine.PipelineRequest{
+		ProjectPath:     o.executionTarget.Location,
+		ExecutionTarget: o.executionTarget,
+		Subprojects:     o.Subprojects(),
+		EnrichEnabled:   o.ResolvedConfig.Enrich,
+		AuditEnabled:    o.ResolvedConfig.Audit,
+		ScopeFilter:     scope,
+		AuditorFilter:   o.auditorFilter,
+		MatcherFilter:   o.matcherFilter,
+		DetectorFilter:  o.detectorFilter,
+		InstallFirst:    o.ResolvedConfig.InstallFirst,
+		InstallArgs:     append([]string(nil), o.ResolvedConfig.InstallArgs...),
+		Stderr:          stderr,
+		Verbose:         o.Verbose(),
+	}
 }
 
 // Verbose reports whether verbose command output is enabled.
@@ -161,17 +180,7 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 		return Options{}, exit.InvalidInputError("parse format: %v", err)
 	}
 
-	scanRegistry := scan.NewRegistry(scan.RegistryConfigs{
-		FailOn:      resolved.FailOn,
-		OsvAPIBase:  resolved.OsvAPIBase,
-		OsvCacheDir: resolved.OsvCacheDir,
-		OsvCacheTTL: resolved.OsvCacheTTL,
-		KEVCacheDir: resolved.KEVCacheDir,
-		KEVCacheTTL: resolved.KEVCacheTTL,
-		EOLAPIBase:  resolved.EOLAPIBase,
-		EOLCacheDir: resolved.EOLCacheDir,
-		EOLCacheTTL: resolved.EOLCacheTTL,
-	}, *logger)
+	scanRegistry := engine.NewRegistry(RegistryConfigsFromResolved(resolved), *logger)
 	scanRegistry.Build()
 
 	if err := o.registerInstalledPluginMetadata(ctx, scanRegistry); err != nil {
@@ -228,7 +237,7 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 		forcedPackageManager = sdk.PackageManagerSBOM
 	}
 
-	filteredRegistry := scanRegistry.Filter(scan.RegistryFilter{
+	filteredRegistry := scanRegistry.Filter(engine.RegistryFilter{
 		DetectorFilter:  detectorFilter,
 		AuditorFilter:   auditorFilter,
 		MatcherFilter:   matcherFilter,
@@ -466,7 +475,7 @@ func (o *Options) resolveExecutionTarget(logger *zap.Logger) (sdk.ExecutionTarge
 	return sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectPath}, projectPath, nil, nil
 }
 
-func (o *Options) registerInstalledPluginMetadata(ctx context.Context, reg *scan.Registry) error {
+func (o *Options) registerInstalledPluginMetadata(ctx context.Context, reg *engine.Registry) error {
 	if reg == nil {
 		return nil
 	}

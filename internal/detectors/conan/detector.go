@@ -12,7 +12,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/system"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
@@ -20,7 +20,7 @@ import (
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
-	Fallback   model.Detector
+	Fallback   sdk.Detector
 }
 
 var evidencePatterns = []string{"conan.lock", "conanfile.txt", "conanfile.py", "conaninfo.txt"}
@@ -58,8 +58,8 @@ type conanLock struct {
 var conanRefPattern = regexp.MustCompile(`([A-Za-z0-9_.+-]+)/([A-Za-z0-9_.+:-]+)`)
 
 // PackageManagerSupport returns Conan package-manager discovery metadata.
-func (d Detector) PackageManagerSupport() []model.PackageManagerSupport {
-	return []model.PackageManagerSupport{model.Support(model.PackageManagerConan, evidencePatterns...)}
+func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerConan, evidencePatterns...)}
 }
 
 // Ready reports whether committed Conan files can be parsed.
@@ -68,7 +68,7 @@ func (d Detector) Ready() bool {
 }
 
 // Applicable reports whether Conan files are present.
-func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (bool, error) {
+func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
 	_ = ctx
 	workingDir := d.workingDir(req.ProjectPath)
 	for _, name := range []string{"conan.lock", "conanfile.txt", "conanfile.py", "conaninfo.txt"} {
@@ -80,31 +80,31 @@ func (d Detector) Applicable(ctx context.Context, req model.DetectionRequest) (b
 }
 
 // Descriptor describes the Conan detector.
-func (d Detector) Descriptor() model.DetectorDescriptor {
-	return model.DetectorDescriptor{
+func (d Detector) Descriptor() sdk.DetectorDescriptor {
+	return sdk.DetectorDescriptor{
 		Name:                detectors.NameConan,
 		Enabled:             true,
-		Origin:              model.CoreOrigin,
-		Technique:           model.LockfileTechnique,
-		SupportedEcosystems: []model.Ecosystem{model.EcosystemCPP},
-		SupportedManagers:   []model.PackageManager{model.PackageManagerConan},
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
+		Origin:              sdk.CoreOrigin,
+		Technique:           sdk.LockfileTechnique,
+		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemCPP},
+		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerConan},
+		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
 	}
 }
 
 // ResolveGraph resolves a Conan dependency graph.
-func (d Detector) ResolveGraph(_ context.Context, req model.DetectionRequest) (model.DetectionResult, error) {
+func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	workingDir := d.workingDir(req.ProjectPath)
 	g, err := depGraphFromConanFiles(workingDir)
 	if err != nil {
-		return model.DetectionResult{}, err
+		return sdk.DetectionResult{}, err
 	}
-	return model.DetectionResult{Graphs: model.SingleGraphContainer(g, detectors.InferManifestMetadata(req, evidencePatterns))}, nil
+	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, evidencePatterns))}, nil
 }
 
 // FallbackDetector returns the configured fallback detector.
-func (d Detector) FallbackDetector() model.Detector {
+func (d Detector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
@@ -115,7 +115,7 @@ func (d Detector) workingDir(projectPath string) string {
 	return projectPath
 }
 
-func depGraphFromConanFiles(workingDir string) (*model.Graph, error) {
+func depGraphFromConanFiles(workingDir string) (*sdk.Graph, error) {
 	for _, name := range []string{"conan.lock"} {
 		raw, err := readOptional(filepath.Join(workingDir, name))
 		if err != nil {
@@ -131,7 +131,7 @@ func depGraphFromConanFiles(workingDir string) (*model.Graph, error) {
 	return depGraphFromManifestFiles(workingDir)
 }
 
-func depGraphFromJSON(raw []byte) (*model.Graph, error) {
+func depGraphFromJSON(raw []byte) (*sdk.Graph, error) {
 	var info graphInfo
 	if err := json.Unmarshal(raw, &info); err == nil && len(info.Graph.Nodes) > 0 {
 		return depGraphFromNodes(info.Graph.Nodes)
@@ -159,13 +159,13 @@ func depGraphFromJSON(raw []byte) (*model.Graph, error) {
 	}
 }
 
-func depGraphFromNodes(nodes map[string]graphNode) (*model.Graph, error) {
-	g := model.New()
+func depGraphFromNodes(nodes map[string]graphNode) (*sdk.Graph, error) {
+	g := sdk.New()
 	root := rootNode()
 	if err := g.AddPackage(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
-	nodePackages := make(map[string]*model.Package, len(nodes))
+	nodePackages := make(map[string]*sdk.Package, len(nodes))
 	for id, item := range nodes {
 		ref, ok := parseConanRef(item.Ref)
 		if !ok {
@@ -191,7 +191,7 @@ func depGraphFromNodes(nodes map[string]graphNode) (*model.Graph, error) {
 				continue
 			}
 			if containsString(item.BuildRequires, depID) {
-				model.MergePackageScope(child, model.ScopeDevelopment)
+				sdk.MergePackageScope(child, sdk.ScopeDevelopment)
 			}
 			if err := g.AddDependency(parent.ID, child.ID); err != nil {
 				return nil, fmt.Errorf("add Conan dependency %q -> %q: %w", parent.ID, child.ID, err)
@@ -201,7 +201,7 @@ func depGraphFromNodes(nodes map[string]graphNode) (*model.Graph, error) {
 	return g, nil
 }
 
-func depGraphFromManifestFiles(workingDir string) (*model.Graph, error) {
+func depGraphFromManifestFiles(workingDir string) (*sdk.Graph, error) {
 	var refs []conanRef
 	for _, name := range []string{"conanfile.txt", "conanfile.py", "conaninfo.txt"} {
 		raw, err := readOptional(filepath.Join(workingDir, name))
@@ -219,11 +219,11 @@ func depGraphFromManifestFiles(workingDir string) (*model.Graph, error) {
 	return depGraphFromRefs(refs)
 }
 
-func depGraphFromRefs(refs []conanRef) (*model.Graph, error) {
+func depGraphFromRefs(refs []conanRef) (*sdk.Graph, error) {
 	if len(refs) == 0 {
 		return nil, fmt.Errorf("Conan files do not contain any dependencies")
 	}
-	g := model.New()
+	g := sdk.New()
 	root := rootNode()
 	if err := g.AddPackage(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
@@ -274,33 +274,33 @@ func parseConanRef(value string) (conanRef, bool) {
 	return conanRef{Name: match[1], Version: match[2]}, true
 }
 
-func rootNode() *model.Package {
-	return model.NewPackage(model.Package{
-		Ecosystem:   string(model.EcosystemCPP),
+func rootNode() *sdk.Package {
+	return sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemCPP),
 		Name:        "root",
-		BuildSystem: model.PackageManagerConan.Name(),
+		BuildSystem: sdk.PackageManagerConan.Name(),
 		Type:        "application",
 		Language:    "cpp",
 	})
 }
 
-func packageNode(ref conanRef) *model.Package {
-	pkg := model.NewPackage(model.Package{
-		Ecosystem:   string(model.EcosystemCPP),
+func packageNode(ref conanRef) *sdk.Package {
+	pkg := sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemCPP),
 		Name:        strings.TrimSpace(ref.Name),
 		Version:     strings.TrimSpace(ref.Version),
-		BuildSystem: model.PackageManagerConan.Name(),
+		BuildSystem: sdk.PackageManagerConan.Name(),
 		Type:        "package",
 		Language:    "cpp",
-		PURL:        model.BuildPackageURL("conan", "", ref.Name, ref.Version),
+		PURL:        sdk.BuildPackageURL("conan", "", ref.Name, ref.Version),
 	})
 	if strings.EqualFold(strings.TrimSpace(ref.Context), "build") {
-		model.MergePackageScope(pkg, model.ScopeDevelopment)
+		sdk.MergePackageScope(pkg, sdk.ScopeDevelopment)
 	}
 	return pkg
 }
 
-func sortedNodeIDs(nodes map[string]*model.Package) []string {
+func sortedNodeIDs(nodes map[string]*sdk.Package) []string {
 	values := make([]string, 0, len(nodes))
 	for id := range nodes {
 		values = append(values, id)
@@ -318,7 +318,7 @@ func containsString(values []string, target string) bool {
 	return false
 }
 
-func addNodeIfMissing(g *model.Graph, node *model.Package) error {
+func addNodeIfMissing(g *sdk.Graph, node *sdk.Package) error {
 	if _, ok := g.Package(node.ID); ok {
 		return nil
 	}

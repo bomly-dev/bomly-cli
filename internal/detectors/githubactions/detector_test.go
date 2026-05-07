@@ -6,16 +6,16 @@ import (
 	"path/filepath"
 	"testing"
 
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	detector := Detector{}
-	result, err := detector.ResolveGraph(context.Background(), model.DetectionRequest{
+	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
 		ProjectPath:     "testdata/project",
-		PackageManager:  model.PackageManagerGitHubActions,
-		Ecosystem:       model.EcosystemGitHub,
-		ExecutionTarget: model.ExecutionTarget{Location: "testdata/project"},
+		PackageManager:  sdk.PackageManagerGitHubActions,
+		Ecosystem:       sdk.EcosystemGitHub,
+		ExecutionTarget: sdk.ExecutionTarget{Location: "testdata/project"},
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -68,7 +68,7 @@ func TestDepGraphFromRepository(t *testing.T) {
 	if !ok {
 		t.Fatal("expected actions/cache package")
 	}
-	if got := cache.Scope; got != string(model.ScopeRuntime) {
+	if got := cache.Scope; got != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope, got %q", got)
 	}
 

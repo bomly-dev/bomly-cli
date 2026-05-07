@@ -13,7 +13,7 @@ import (
 	"github.com/anchore/syft/syft/format/syftjson"
 	syftpkg "github.com/anchore/syft/syft/pkg"
 	syftsbom "github.com/anchore/syft/syft/sbom"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestDetectorResolveGraph_SyftJSON(t *testing.T) {
@@ -24,7 +24,7 @@ func TestDetectorResolveGraph_SyftJSON(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	var react *model.Package
+	var react *sdk.Package
 	for _, pkg := range g.Packages() {
 		if pkg != nil && pkg.Name == "react" && pkg.Version == "18.2.0" {
 			react = pkg

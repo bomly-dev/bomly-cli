@@ -7,19 +7,17 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
-	"github.com/bomly-dev/bomly-cli/internal/cli/resolve"
+	"github.com/bomly-dev/bomly-cli/internal/engine"
+	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
 	"github.com/bomly-dev/bomly-cli/internal/output"
-	"github.com/bomly-dev/bomly-cli/internal/scan"
-	"github.com/bomly-dev/bomly-cli/internal/scan/consolidation"
 	"github.com/bomly-dev/bomly-cli/internal/tui"
-	model "github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/spf13/cobra"
 )
 
 type diffResolvedTarget struct {
 	Context  opts.Options
-	Results  []model.DetectionResult
-	Warnings []scan.PipelineWarning
+	Warnings []engine.PipelineWarning
 }
 
 func (t diffResolvedTarget) close() error {
@@ -55,7 +53,6 @@ func newDiffCmd() *cobra.Command {
 				return exit.InvalidInputError("diff does not support --ref; use --base and --head")
 			}
 
-			// Validate SBOM diff mode vs git diff mode flag combinations.
 			if current.SBOM {
 				if baseRef == "" {
 					return exit.InvalidInputError("--base is required when --sbom is set")
@@ -89,7 +86,7 @@ func newDiffCmd() *cobra.Command {
 			projectIdentifier := ""
 			compBase := baseRef
 			compHead := headRef
-			var resolutionWarnings []scan.PipelineWarning
+			var resolutionWarnings []engine.PipelineWarning
 
 			switch {
 			case current.SBOM:
@@ -102,60 +99,47 @@ func newDiffCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			defer func() { _ = baseTarget.close() }()
+			defer func() { _ = headTarget.close() }()
 
-			baseResults := baseTarget.Results
-			headResults := headTarget.Results
-			allResults := append(append([]model.DetectionResult{}, baseResults...), headResults...)
+			diffResult, err := diffengine.Run(cmd.Context(), diffengine.Request{
+				Base: diffengine.Target{
+					Pipeline: engine.NewPipeline(baseTarget.Context.Registry(), logger),
+					Request:  baseTarget.Context.PipelineRequest(sdk.ScopeUnknown, streams.notificationWriter()),
+				},
+				Head: diffengine.Target{
+					Pipeline: engine.NewPipeline(headTarget.Context.Registry(), logger),
+					Request:  headTarget.Context.PipelineRequest(sdk.ScopeUnknown, streams.notificationWriter()),
+				},
+			})
+			if err != nil {
+				return exit.ResolutionFailureError(err)
+			}
+
+			allResults := append(append([]sdk.DetectionResult{}, diffResult.Base.ResolveResults...), diffResult.Head.ResolveResults...)
+			resolutionWarnings = append(resolutionWarnings, diffResult.Base.DetectorWarnings...)
+			resolutionWarnings = append(resolutionWarnings, diffResult.Head.DetectorWarnings...)
 			subprojectChildren := subprojectProgressChildren(allResults)
 			subprojectChildren = append(subprojectChildren, warningProgressChildren(resolutionWarnings)...)
 			progress.CompleteStep("Indexed subprojects", subprojectChildren)
 			progress.CompleteStep("Detected Dependencies", detectorProgressChildren(allResults))
 			if current.Enrich {
-				progress.Advance("Enriching diff targets")
-				baseResults = resolve.EnrichResolvedGraphs(baseTarget.Context, logger, baseResults, streams.notificationWriter())
-				headResults = resolve.EnrichResolvedGraphs(headTarget.Context, logger, headResults, streams.notificationWriter())
-				progress.CompleteStep("Enriched packages", matchProgressChildren(nil, []string{"matchers"}, nil))
+				runs := uniqueStrings(diffResult.Base.MatcherRuns, diffResult.Head.MatcherRuns)
+				warnings := append(append([]engine.PipelineWarning{}, diffResult.Base.MatchWarnings...), diffResult.Head.MatchWarnings...)
+				progress.CompleteStep("Enriched packages", matchProgressChildren(nil, runs, warnings))
 			}
 
-			baseConsolidated, err := consolidation.ConsolidateGraphs(baseResults)
-			if err != nil {
-				return exit.ResolutionFailureError(err)
-			}
-			headConsolidated, err := consolidation.ConsolidateGraphs(headResults)
-			if err != nil {
-				return exit.ResolutionFailureError(err)
-			}
-
-			var auditPayload *output.DiffAudit
-			var sarifFindings []model.Finding
+			auditPayload := diffAuditOutput(diffResult.Audit)
 			if current.Audit {
-				scanRegistry := scan.NewRegistry(resolve.RegistryBuilderConfig(current), *logger)
-				scanRegistry.Build()
-				auditorFilter, err := opts.ResolveAuditorFilter(current.Auditors, scanRegistry)
-				if err != nil {
-					return exit.InvalidInputError("%v", err)
-				}
-				progress.Advance("Evaluating policy")
-				baseGraph, err := baseConsolidated.Graphs.ConsolidatedGraph()
-				if err != nil {
-					return exit.ResolutionFailureError(err)
-				}
-				headGraph, err := headConsolidated.Graphs.ConsolidatedGraph()
-				if err != nil {
-					return exit.ResolutionFailureError(err)
-				}
-				baseAudit := resolve.AuditGraph(baseTarget.Context, logger, baseGraph, auditorFilter, streams.notificationWriter())
-				headAudit := resolve.AuditGraph(headTarget.Context, logger, headGraph, auditorFilter, streams.notificationWriter())
-				auditPayload = resolve.DiffAuditSummary(baseAudit.Findings, headAudit.Findings)
-				sarifFindings = append(append([]model.Finding{}, headAudit.Findings...), baseAudit.Findings...)
-				auditWarnings := resolve.AuditDataAvailabilityWarnings(baseGraph, headGraph)
-				progress.CompleteStep("Evaluated policy", auditProgressChildren([]string{opts.SeverityPolicyAuditorName}, map[string]int{opts.SeverityPolicyAuditorName: len(sarifFindings)}, auditWarnings))
+				runs, findings := combineAuditProgress(diffResult.Base, diffResult.Head)
+				warnings := append(append([]engine.PipelineWarning{}, diffResult.Base.AuditWarnings...), diffResult.Head.AuditWarnings...)
+				progress.CompleteStep("Evaluated policy", auditProgressChildren(runs, findings, warnings))
 			}
 
-			payload := output.BuildDiffResponse(projectIdentifier, compBase, compHead, baseConsolidated, headConsolidated, auditPayload, started)
+			payload := output.BuildDiffResponse(projectIdentifier, compBase, compHead, diffResult.Base.Consolidated, diffResult.Head.Consolidated, auditPayload, started)
 			if outputFormat == output.FormatSARIF {
 				progress.Success("Resolved Graph")
-				return output.WriteSARIF(streams.reportWriter(), sarifFindings, "bomly", cmd.Root().Version)
+				return output.WriteSARIF(streams.reportWriter(), diffResult.Findings, "bomly", cmd.Root().Version)
 			}
 			if current.Interactive {
 				progress.Stop()
@@ -183,4 +167,34 @@ func newDiffCmd() *cobra.Command {
 	cmd.Flags().StringVar(&baseRef, "base", "", "Base git reference to compare (or SBOM file path when --sbom is set)")
 	cmd.Flags().StringVar(&headRef, "head", "", "Head git reference to compare (or SBOM file path when --sbom is set)")
 	return cmd
+}
+
+func uniqueStrings(groups ...[]string) []string {
+	var out []string
+	seen := make(map[string]struct{})
+	for _, group := range groups {
+		for _, value := range group {
+			if value == "" {
+				continue
+			}
+			if _, ok := seen[value]; ok {
+				continue
+			}
+			seen[value] = struct{}{}
+			out = append(out, value)
+		}
+	}
+	return out
+}
+
+func combineAuditProgress(results ...engine.PipelineResult) ([]string, map[string]int) {
+	var runs []string
+	counts := make(map[string]int)
+	for _, result := range results {
+		runs = uniqueStrings(runs, result.AuditorRuns)
+		for name, count := range result.AuditorFindings {
+			counts[name] += count
+		}
+	}
+	return runs, counts
 }

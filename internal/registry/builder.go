@@ -37,7 +37,10 @@ import (
 
 // RegistryConfigs holds built-in registry wiring options resolved by the CLI layer.
 type RegistryConfigs struct {
-	FailOn      string
+	// FailOn is the parsed list of --fail-on constraints. The policy
+	// auditor evaluates findings against this AND-set; an empty slice
+	// preserves the historical behaviour of emitting every finding.
+	FailOn      []sdk.FailOnConstraint
 	OsvAPIBase  string
 	OsvCacheDir string
 	OsvCacheTTL string
@@ -258,7 +261,7 @@ func (r *Registry) RegisterAnalyzer(analyzer sdk.Analyzer) {
 }
 
 func (r *Registry) registerAuditors() {
-	for _, auditor := range builtInAuditors([]sdk.Auditor{policy.Auditor{FailOn: r.configs.FailOn}}) {
+	for _, auditor := range builtInAuditors([]sdk.Auditor{policy.Auditor{FailOn: append([]sdk.FailOnConstraint(nil), r.configs.FailOn...)}}) {
 		r.RegisterAuditor(auditor)
 	}
 }

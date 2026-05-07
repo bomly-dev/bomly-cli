@@ -30,6 +30,7 @@ type Options struct {
 	detectorFilter  sdk.DetectorFilter
 	auditorFilter   sdk.AuditorFilter
 	matcherFilter   sdk.MatcherFilter
+	analyzerFilter  sdk.AnalyzerFilter
 	ecosystemFilter sdk.EcosystemFilter
 	Format          output.Format
 	outputPath      string
@@ -103,22 +104,31 @@ func (o Options) MatcherFilter() sdk.MatcherFilter {
 	return o.matcherFilter
 }
 
+// AnalyzerFilter returns the analyzer filter prepared for command execution.
+func (o Options) AnalyzerFilter() sdk.AnalyzerFilter {
+	return o.analyzerFilter
+}
+
 // PipelineRequest builds the scan pipeline request for this prepared command context.
 func (o Options) PipelineRequest(scope sdk.Scope, stderr io.Writer) engine.PipelineRequest {
+	failOn, _ := sdk.ParseFailOnList(o.ResolvedConfig.FailOn)
 	return engine.PipelineRequest{
-		ProjectPath:     o.executionTarget.Location,
-		ExecutionTarget: o.executionTarget,
-		Subprojects:     o.Subprojects(),
-		EnrichEnabled:   o.ResolvedConfig.Enrich,
-		AuditEnabled:    o.ResolvedConfig.Audit,
-		ScopeFilter:     scope,
-		AuditorFilter:   o.auditorFilter,
-		MatcherFilter:   o.matcherFilter,
-		DetectorFilter:  o.detectorFilter,
-		InstallFirst:    o.ResolvedConfig.InstallFirst,
-		InstallArgs:     append([]string(nil), o.ResolvedConfig.InstallArgs...),
-		Stderr:          stderr,
-		Verbose:         o.Verbose(),
+		ProjectPath:                o.executionTarget.Location,
+		ExecutionTarget:            o.executionTarget,
+		Subprojects:                o.Subprojects(),
+		EnrichEnabled:              o.ResolvedConfig.Enrich,
+		AuditEnabled:               o.ResolvedConfig.Audit,
+		AnalyzeReachabilityEnabled: o.ResolvedConfig.Reachability,
+		ScopeFilter:                scope,
+		AuditorFilter:              o.auditorFilter,
+		MatcherFilter:              o.matcherFilter,
+		AnalyzerFilter:             o.analyzerFilter,
+		DetectorFilter:             o.detectorFilter,
+		FailOn:                     failOn,
+		InstallFirst:               o.ResolvedConfig.InstallFirst,
+		InstallArgs:                append([]string(nil), o.ResolvedConfig.InstallArgs...),
+		Stderr:                     stderr,
+		Verbose:                    o.Verbose(),
 	}
 }
 
@@ -180,6 +190,13 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 		return Options{}, exit.InvalidInputError("parse format: %v", err)
 	}
 
+	if _, err := sdk.ParseFailOnList(resolved.FailOn); err != nil {
+		if cleanup != nil {
+			_ = cleanup()
+		}
+		return Options{}, exit.InvalidInputError("%v", err)
+	}
+
 	scanRegistry := engine.NewRegistry(RegistryConfigsFromResolved(resolved), *logger)
 	scanRegistry.Build()
 
@@ -222,6 +239,14 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 		return Options{}, err
 	}
 
+	analyzerFilter, err := ResolveAnalyzerFilter(resolved.Analyzers, scanRegistry)
+	if err != nil {
+		if cleanup != nil {
+			_ = cleanup()
+		}
+		return Options{}, err
+	}
+
 	if len(resolved.InstallArgs) > 0 {
 		selectedDetectors := selectedDetectorNames(detectorFilter, scanRegistry)
 		if len(selectedDetectors) != 1 {
@@ -241,6 +266,7 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 		DetectorFilter:  detectorFilter,
 		AuditorFilter:   auditorFilter,
 		MatcherFilter:   matcherFilter,
+		AnalyzerFilter:  analyzerFilter,
 		EcosystemFilter: ecosystemFilter,
 	})
 
@@ -265,6 +291,7 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 		detectorFilter:  detectorFilter,
 		auditorFilter:   auditorFilter,
 		matcherFilter:   matcherFilter,
+		analyzerFilter:  analyzerFilter,
 		ecosystemFilter: ecosystemFilter,
 		ResolvedConfig:  resolved,
 		Format:          format,

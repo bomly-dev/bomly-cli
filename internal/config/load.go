@@ -80,6 +80,10 @@ func ApplyFileConfig(dst *Resolved, src File) {
 	if len(src.InstallArgs) > 0 {
 		dst.InstallArgs = append([]string(nil), src.InstallArgs...)
 	}
+	// FailOn is a custom-unmarshaled slice (FailOnList) — replace when set.
+	if len(src.FailOn) > 0 {
+		dst.FailOn = append([]string(nil), src.FailOn...)
+	}
 	// Verbose is a legacy shorthand; map it to Verbosity=1 if not already set.
 	if src.Verbose != nil && *src.Verbose && dst.Verbosity == 0 {
 		dst.Verbosity = 1

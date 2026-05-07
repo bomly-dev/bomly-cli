@@ -63,56 +63,60 @@ type packageManagerInfo struct {
 	Name      string
 	Ecosystem Ecosystem
 	Aliases   []string
+	// Languages lists the programming languages typically built with this
+	// package manager. Empty for OS-level managers that span many languages
+	// (e.g. apk, dpkg, rpm).
+	Languages []Language
 }
 
 var packageManagerInfoByID = [...]packageManagerInfo{
 	PackageManagerUnknown:       {},
-	PackageManagerNPM:           {Name: "npm", Ecosystem: EcosystemNPM},
-	PackageManagerPNPM:          {Name: "pnpm", Ecosystem: EcosystemNPM},
-	PackageManagerYarn:          {Name: "yarn", Ecosystem: EcosystemNPM},
-	PackageManagerGradle:        {Name: "gradle", Ecosystem: EcosystemMaven},
-	PackageManagerMaven:         {Name: "maven", Ecosystem: EcosystemMaven},
-	PackageManagerGoMod:         {Name: "gomod", Ecosystem: EcosystemGo},
-	PackageManagerPip:           {Name: "pip", Ecosystem: EcosystemPython},
-	PackageManagerPipenv:        {Name: "pipenv", Ecosystem: EcosystemPython},
-	PackageManagerPoetry:        {Name: "poetry", Ecosystem: EcosystemPython},
-	PackageManagerUV:            {Name: "uv", Ecosystem: EcosystemPython},
+	PackageManagerNPM:           {Name: "npm", Ecosystem: EcosystemNPM, Languages: []Language{LanguageJavaScript, LanguageTypeScript}},
+	PackageManagerPNPM:          {Name: "pnpm", Ecosystem: EcosystemNPM, Languages: []Language{LanguageJavaScript, LanguageTypeScript}},
+	PackageManagerYarn:          {Name: "yarn", Ecosystem: EcosystemNPM, Languages: []Language{LanguageJavaScript, LanguageTypeScript}},
+	PackageManagerGradle:        {Name: "gradle", Ecosystem: EcosystemMaven, Languages: []Language{LanguageJava, LanguageKotlin, LanguageGroovy, LanguageScala}},
+	PackageManagerMaven:         {Name: "maven", Ecosystem: EcosystemMaven, Languages: []Language{LanguageJava, LanguageKotlin, LanguageScala, LanguageGroovy}},
+	PackageManagerGoMod:         {Name: "gomod", Ecosystem: EcosystemGo, Languages: []Language{LanguageGo}},
+	PackageManagerPip:           {Name: "pip", Ecosystem: EcosystemPython, Languages: []Language{LanguagePython}},
+	PackageManagerPipenv:        {Name: "pipenv", Ecosystem: EcosystemPython, Languages: []Language{LanguagePython}},
+	PackageManagerPoetry:        {Name: "poetry", Ecosystem: EcosystemPython, Languages: []Language{LanguagePython}},
+	PackageManagerUV:            {Name: "uv", Ecosystem: EcosystemPython, Languages: []Language{LanguagePython}},
 	PackageManagerALPM:          {Name: "alpm", Ecosystem: EcosystemALPM},
 	PackageManagerAPK:           {Name: "apk", Ecosystem: EcosystemAPK},
-	PackageManagerConan:         {Name: "conan", Ecosystem: EcosystemCPP},
-	PackageManagerConda:         {Name: "conda", Ecosystem: EcosystemConda},
-	PackageManagerPub:           {Name: "pub", Ecosystem: EcosystemDart},
+	PackageManagerConan:         {Name: "conan", Ecosystem: EcosystemCPP, Languages: []Language{LanguageC, LanguageCPP}},
+	PackageManagerConda:         {Name: "conda", Ecosystem: EcosystemConda, Languages: []Language{LanguagePython, LanguageR, LanguageCPP}},
+	PackageManagerPub:           {Name: "pub", Ecosystem: EcosystemDart, Languages: []Language{LanguageDart}},
 	PackageManagerDPKG:          {Name: "dpkg", Ecosystem: EcosystemDPKG},
-	PackageManagerMix:           {Name: "mix", Ecosystem: EcosystemElixir},
-	PackageManagerRebar:         {Name: "rebar", Ecosystem: EcosystemErlang},
-	PackageManagerOTP:           {Name: "otp", Ecosystem: EcosystemErlang},
+	PackageManagerMix:           {Name: "mix", Ecosystem: EcosystemElixir, Languages: []Language{LanguageElixir}},
+	PackageManagerRebar:         {Name: "rebar", Ecosystem: EcosystemErlang, Languages: []Language{LanguageErlang}},
+	PackageManagerOTP:           {Name: "otp", Ecosystem: EcosystemErlang, Languages: []Language{LanguageErlang}},
 	PackageManagerGitHubActions: {Name: "github-actions", Ecosystem: EcosystemGitHub},
-	PackageManagerCabal:         {Name: "cabal", Ecosystem: EcosystemHaskell},
-	PackageManagerStack:         {Name: "stack", Ecosystem: EcosystemHaskell},
+	PackageManagerCabal:         {Name: "cabal", Ecosystem: EcosystemHaskell, Languages: []Language{LanguageHaskell}},
+	PackageManagerStack:         {Name: "stack", Ecosystem: EcosystemHaskell, Languages: []Language{LanguageHaskell}},
 	PackageManagerHomebrew:      {Name: "homebrew", Ecosystem: EcosystemHomebrew},
-	PackageManagerLuaRocks:      {Name: "luarocks", Ecosystem: EcosystemLua},
-	PackageManagerNuGet:         {Name: "nuget", Ecosystem: EcosystemDotNet},
+	PackageManagerLuaRocks:      {Name: "luarocks", Ecosystem: EcosystemLua, Languages: []Language{LanguageLua}},
+	PackageManagerNuGet:         {Name: "nuget", Ecosystem: EcosystemDotNet, Languages: []Language{LanguageCSharp, LanguageFSharp, LanguageVB}},
 	PackageManagerNix:           {Name: "nix", Ecosystem: EcosystemNix},
-	PackageManagerOpam:          {Name: "opam", Ecosystem: EcosystemOCaml},
-	PackageManagerComposer:      {Name: "composer", Ecosystem: EcosystemPHP},
-	PackageManagerPear:          {Name: "pear", Ecosystem: EcosystemPHP},
-	PackageManagerPDM:           {Name: "pdm", Ecosystem: EcosystemPython},
+	PackageManagerOpam:          {Name: "opam", Ecosystem: EcosystemOCaml, Languages: []Language{LanguageOCaml}},
+	PackageManagerComposer:      {Name: "composer", Ecosystem: EcosystemPHP, Languages: []Language{LanguagePHP}},
+	PackageManagerPear:          {Name: "pear", Ecosystem: EcosystemPHP, Languages: []Language{LanguagePHP}},
+	PackageManagerPDM:           {Name: "pdm", Ecosystem: EcosystemPython, Languages: []Language{LanguagePython}},
 	PackageManagerPortage:       {Name: "portage", Ecosystem: EcosystemPortage},
 	PackageManagerSWIPLPack:     {Name: "swipl-pack", Ecosystem: EcosystemProlog},
-	PackageManagerRPackage:      {Name: "r-package", Ecosystem: EcosystemR},
+	PackageManagerRPackage:      {Name: "r-package", Ecosystem: EcosystemR, Languages: []Language{LanguageR}},
 	PackageManagerRPM:           {Name: "rpm", Ecosystem: EcosystemRPM},
-	PackageManagerBundler:       {Name: "bundler", Ecosystem: EcosystemRuby},
-	PackageManagerGemspec:       {Name: "gemspec", Ecosystem: EcosystemRuby},
-	PackageManagerCargo:         {Name: "cargo", Ecosystem: EcosystemRust},
+	PackageManagerBundler:       {Name: "bundler", Ecosystem: EcosystemRuby, Languages: []Language{LanguageRuby}},
+	PackageManagerGemspec:       {Name: "gemspec", Ecosystem: EcosystemRuby, Languages: []Language{LanguageRuby}},
+	PackageManagerCargo:         {Name: "cargo", Ecosystem: EcosystemRust, Languages: []Language{LanguageRust}},
 	PackageManagerSBOM:          {Name: "sbom", Ecosystem: EcosystemSBOM},
 	PackageManagerSnap:          {Name: "snap", Ecosystem: EcosystemSnap},
-	PackageManagerCocoaPods:     {Name: "cocoapods", Ecosystem: EcosystemSwift},
-	PackageManagerSwiftPM:       {Name: "swiftpm", Ecosystem: EcosystemSwift},
+	PackageManagerCocoaPods:     {Name: "cocoapods", Ecosystem: EcosystemSwift, Languages: []Language{LanguageSwift, LanguageObjC}},
+	PackageManagerSwiftPM:       {Name: "swiftpm", Ecosystem: EcosystemSwift, Languages: []Language{LanguageSwift, LanguageObjC}},
 	PackageManagerTerraform:     {Name: "terraform", Ecosystem: EcosystemTerraform},
-	PackageManagerWordPress:     {Name: "wordpress", Ecosystem: EcosystemWordPress},
-	PackageManagerSetupPy:       {Name: "setuppy", Ecosystem: EcosystemPython},
+	PackageManagerWordPress:     {Name: "wordpress", Ecosystem: EcosystemWordPress, Languages: []Language{LanguagePHP}},
+	PackageManagerSetupPy:       {Name: "setuppy", Ecosystem: EcosystemPython, Languages: []Language{LanguagePython}},
 	PackageManagerOther:         {Name: "other", Ecosystem: EcosystemOther},
-	PackageManagerSBT:           {Name: "sbt", Ecosystem: EcosystemScala},
+	PackageManagerSBT:           {Name: "sbt", Ecosystem: EcosystemScala, Languages: []Language{LanguageScala, LanguageJava}},
 }
 
 var allPackageManagers = []PackageManager{
@@ -199,6 +203,22 @@ func (p PackageManager) Ecosystem() Ecosystem {
 		return EcosystemUnknown
 	}
 	return packageManagerInfoByID[p].Ecosystem
+}
+
+// Languages returns the programming languages typically built with this
+// package manager. The first entry is the most common / canonical language;
+// callers that need a single value should take Languages()[0]. Returns nil
+// for OS-level managers and any manager that does not have a meaningful
+// language association.
+func (p PackageManager) Languages() []Language {
+	if !p.valid() {
+		return nil
+	}
+	src := packageManagerInfoByID[p].Languages
+	if len(src) == 0 {
+		return nil
+	}
+	return append([]Language(nil), src...)
 }
 
 // ParsePackageManager normalizes a package-manager value.

@@ -124,11 +124,84 @@ func normalizeJSON(t *testing.T, raw []byte) []byte {
 		}
 	}
 
+	// Scrub volatile reachability fields (analyzer timestamps, file paths
+	// under temp clone dirs, line/column numbers that drift with upstream
+	// source) so the same golden file is stable across runs.
+	normalizeReachability(obj)
+
 	out, err := json.MarshalIndent(obj, "", "  ")
 	if err != nil {
 		t.Fatalf("normalizeJSON: marshal: %v", err)
 	}
 	return append(out, '\n')
+}
+
+// normalizeReachability walks the JSON tree and scrubs volatile fields
+// emitted by reachability analyzers (analyzed_at timestamps, frame
+// file/line/column positions). The walker is depth-first and tolerant of
+// shape variations between scan, diff, and explain responses; it looks
+// for any map containing reachability or analyzer_stats keys, plus
+// nested call_paths frames.
+func normalizeReachability(node any) {
+	switch v := node.(type) {
+	case map[string]any:
+		if r, ok := v["reachability"].(map[string]any); ok {
+			scrubReachabilityFields(r)
+		}
+		if r, ok := v["analyzed_at"].(string); ok && r != "" {
+			v["analyzed_at"] = "<timestamp>"
+		}
+		for _, child := range v {
+			normalizeReachability(child)
+		}
+	case []any:
+		for _, child := range v {
+			normalizeReachability(child)
+		}
+	}
+}
+
+// scrubReachabilityFields zeroes the volatile fields on a reachability
+// map: analyzed_at, every call_paths[*].frames[*].position file/line/column,
+// and any frame.position with absolute file paths.
+func scrubReachabilityFields(r map[string]any) {
+	if _, ok := r["analyzed_at"]; ok {
+		r["analyzed_at"] = "<timestamp>"
+	}
+	paths, ok := r["call_paths"].([]any)
+	if !ok {
+		return
+	}
+	for _, p := range paths {
+		path, ok := p.(map[string]any)
+		if !ok {
+			continue
+		}
+		frames, ok := path["frames"].([]any)
+		if !ok {
+			continue
+		}
+		for _, f := range frames {
+			frame, ok := f.(map[string]any)
+			if !ok {
+				continue
+			}
+			pos, ok := frame["position"].(map[string]any)
+			if !ok {
+				continue
+			}
+			if file, ok := pos["file"].(string); ok && file != "" {
+				if filepath.IsAbs(file) {
+					pos["file"] = "<repo>/" + filepath.Base(file)
+				}
+			}
+			pos["line"] = 0
+			pos["column"] = 0
+			if _, ok := pos["end_line"]; ok {
+				pos["end_line"] = 0
+			}
+		}
+	}
 }
 
 // normalizeManifestPaths normalizes path and subproject within a manifest map.

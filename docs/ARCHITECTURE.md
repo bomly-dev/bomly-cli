@@ -56,10 +56,11 @@ flowchart LR
     D[Scope filtering and command processing]
     E[Graph consolidation]
     F[Matchers]
+    F2[Analyzers]
     G[Auditors]
     H[Output rendering]
 
-    A --> B --> C --> D --> E --> F --> G --> H
+    A --> B --> C --> D --> E --> F --> F2 --> G --> H
 ```
 
 Stage summary:
@@ -70,10 +71,15 @@ Stage summary:
 4. Command processing applies scope filtering or focused queries when needed.
 5. Consolidation merges subproject graphs into a unified view.
 6. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records.
-7. Command processing applies focused graph transforms such as scope filtering or explain-path selection.
-8. Auditors evaluate policy against whatever vulnerability data is already present on packages and create findings when `--audit` is enabled.
-9. Users combine `--enrich --audit` when they want external matcher data to feed policy evaluation in the same run.
-10. Output rendering emits text, JSON, SARIF, or SBOM documents.
+7. Analyzers run when `--reachability` is set. They consume the matched graph and annotate `PackageVulnerability.Reachability` with status (reachable/unreachable/unknown), tier (symbol/module/package/none), and call paths. Failures degrade to `Status=unknown` rather than aborting the pipeline. See `docs/REACHABILITY.md` for ecosystem coverage and tier semantics.
+8. Command processing applies focused graph transforms such as scope filtering or explain-path selection.
+9. Auditors evaluate policy against whatever vulnerability data is already present on packages and create findings when `--audit` is enabled. The `severity-policy` auditor accepts a repeatable `--fail-on` constraint set composing severity and reachability conditions.
+10. Users combine `--enrich --audit` when they want external matcher data to feed policy evaluation in the same run.
+11. Output rendering emits text, JSON, SARIF, or SBOM documents.
+
+### Decision: Reachability annotates vulnerabilities, not findings
+
+Reachability data lives on `PackageVulnerability.Reachability` rather than only on `Finding.Reachability` because `--reachability` must be useful without `--audit`. Matchers attach the vulnerability; the analyzer enriches it; the policy auditor copies the annotation onto each emitted Finding when `--audit` runs. This keeps a single source of truth on the package graph and lets the consolidation layer's existing per-vuln merge propagate analyzer output to per-manifest entry graphs without bespoke wiring.
 
 ## Detector and Auditor Model
 
@@ -110,12 +116,12 @@ Native detector coverage is quality-of-graph coverage, not just support-matrix l
 
 ## Build Modes
 
-Syft and Grype support two build modes:
+Syft, Grype, and the govulncheck reachability analyzer each support two build modes:
 
-| Mode     | Build tags                                    | Behavior                                           |
-|----------|-----------------------------------------------|----------------------------------------------------|
-| Builtin  | default build                                 | Link Syft and Grype libraries directly             |
-| External | `bomly_external_syft`, `bomly_external_grype` | Shell out to `syft` and `grype` binaries on `PATH` |
+| Mode     | Build tags                                                                        | Behavior                                                                                                                                |
+|----------|-----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| Builtin  | default build                                                                     | Link Syft and Grype libraries directly. The govulncheck builtin runner currently shells out to `govulncheck` until its library lands.   |
+| External | `bomly_external_syft`, `bomly_external_grype`, `bomly_external_govulncheck`       | Shell out to `syft`, `grype`, and `govulncheck` binaries on `PATH`.                                                                     |
 
 `make build` produces both release variants. `make build-full` produces the default builtin binary, and `make build-lite` produces the smaller external-tool build.
 
@@ -153,6 +159,7 @@ Cache failures are non-fatal. The command should warn and continue rather than f
 | `internal/registry`   | Support metadata, package-manager discovery, and built-in detector, matcher, and auditor wiring |
 | `internal/detectors`  | Detector contracts and ecosystem implementations                                                |
 | `internal/auditors`   | Policy evaluators and finding creation                                                          |
+| `internal/analyzers`  | Reachability analyzers (govulncheck for Go) that annotate `PackageVulnerability.Reachability`   |
 | `internal/matchers`   | Matcher contracts plus shared enrichment helpers used by built-in matchers                      |
 | `internal/engine/diff` | Diff pipeline orchestration and audit delta classification                                    |
 | `internal/engine/explain` | Dependency path traversal                                                                   |

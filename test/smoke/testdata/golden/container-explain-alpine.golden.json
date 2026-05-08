@@ -9,7 +9,7 @@
   },
   "command": "explain",
   "dependency": {
-    "id": "92a9ba9988d4de22",
+    "id": "alpine:musl@1.2.5-r3",
     "licenses": [
       {
         "spdxExpression": "MIT",
@@ -27,10 +27,16 @@
   },
   "paths": [
     {
-      "introduced_via": "194e469765239c4e",
+      "introduced_via": "lib/apk/db/installed",
       "packages": [
         {
-          "id": "194e469765239c4e",
+          "id": "lib/apk/db/installed",
+          "licenses": [],
+          "name": "lib/apk/db/installed",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:alpine-baselayout@3.6.5-r0",
           "licenses": [
             {
               "spdxExpression": "GPL-2.0-only",
@@ -44,7 +50,7 @@
           "vulnerabilities": []
         },
         {
-          "id": "e4b41b4685cbca2e",
+          "id": "alpine:busybox-binsh@1.36.1-r31",
           "licenses": [
             {
               "spdxExpression": "GPL-2.0-only",
@@ -58,7 +64,7 @@
           "vulnerabilities": []
         },
         {
-          "id": "eb7a53da2e2526a9",
+          "id": "alpine:busybox@1.36.1-r31",
           "licenses": [
             {
               "spdxExpression": "GPL-2.0-only",
@@ -72,7 +78,7 @@
           "vulnerabilities": []
         },
         {
-          "id": "92a9ba9988d4de22",
+          "id": "alpine:musl@1.2.5-r3",
           "licenses": [
             {
               "spdxExpression": "MIT",
@@ -89,284 +95,16 @@
       "relationship": "transitive"
     },
     {
-      "introduced_via": "1c13012139492fbd",
+      "introduced_via": "lib/apk/db/installed",
       "packages": [
         {
-          "id": "1c13012139492fbd",
-          "licenses": [
-            {
-              "spdxExpression": "GPL-2.0-only",
-              "type": "declared",
-              "value": "GPL-2.0-only"
-            }
-          ],
-          "name": "alpine:ssl_client",
-          "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
-          "version": "1.36.1-r31",
+          "id": "lib/apk/db/installed",
+          "licenses": [],
+          "name": "lib/apk/db/installed",
           "vulnerabilities": []
         },
         {
-          "id": "447c8198d0b8f973",
-          "licenses": [
-            {
-              "spdxExpression": "Apache-2.0",
-              "type": "declared",
-              "value": "Apache-2.0"
-            }
-          ],
-          "name": "alpine:libcrypto3",
-          "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
-          "version": "3.3.7-r0",
-          "vulnerabilities": []
-        },
-        {
-          "id": "92a9ba9988d4de22",
-          "licenses": [
-            {
-              "spdxExpression": "MIT",
-              "type": "declared",
-              "value": "MIT"
-            }
-          ],
-          "name": "alpine:musl",
-          "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
-          "version": "1.2.5-r3",
-          "vulnerabilities": []
-        }
-      ],
-      "relationship": "transitive"
-    },
-    {
-      "introduced_via": "1c13012139492fbd",
-      "packages": [
-        {
-          "id": "1c13012139492fbd",
-          "licenses": [
-            {
-              "spdxExpression": "GPL-2.0-only",
-              "type": "declared",
-              "value": "GPL-2.0-only"
-            }
-          ],
-          "name": "alpine:ssl_client",
-          "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
-          "version": "1.36.1-r31",
-          "vulnerabilities": []
-        },
-        {
-          "id": "92a9ba9988d4de22",
-          "licenses": [
-            {
-              "spdxExpression": "MIT",
-              "type": "declared",
-              "value": "MIT"
-            }
-          ],
-          "name": "alpine:musl",
-          "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
-          "version": "1.2.5-r3",
-          "vulnerabilities": []
-        }
-      ],
-      "relationship": "direct"
-    },
-    {
-      "introduced_via": "1c13012139492fbd",
-      "packages": [
-        {
-          "id": "1c13012139492fbd",
-          "licenses": [
-            {
-              "spdxExpression": "GPL-2.0-only",
-              "type": "declared",
-              "value": "GPL-2.0-only"
-            }
-          ],
-          "name": "alpine:ssl_client",
-          "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
-          "version": "1.36.1-r31",
-          "vulnerabilities": []
-        },
-        {
-          "id": "d66895a2d8963917",
-          "licenses": [
-            {
-              "spdxExpression": "Apache-2.0",
-              "type": "declared",
-              "value": "Apache-2.0"
-            }
-          ],
-          "name": "alpine:libssl3",
-          "purl": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
-          "version": "3.3.7-r0",
-          "vulnerabilities": []
-        },
-        {
-          "id": "447c8198d0b8f973",
-          "licenses": [
-            {
-              "spdxExpression": "Apache-2.0",
-              "type": "declared",
-              "value": "Apache-2.0"
-            }
-          ],
-          "name": "alpine:libcrypto3",
-          "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
-          "version": "3.3.7-r0",
-          "vulnerabilities": []
-        },
-        {
-          "id": "92a9ba9988d4de22",
-          "licenses": [
-            {
-              "spdxExpression": "MIT",
-              "type": "declared",
-              "value": "MIT"
-            }
-          ],
-          "name": "alpine:musl",
-          "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
-          "version": "1.2.5-r3",
-          "vulnerabilities": []
-        }
-      ],
-      "relationship": "transitive"
-    },
-    {
-      "introduced_via": "1c13012139492fbd",
-      "packages": [
-        {
-          "id": "1c13012139492fbd",
-          "licenses": [
-            {
-              "spdxExpression": "GPL-2.0-only",
-              "type": "declared",
-              "value": "GPL-2.0-only"
-            }
-          ],
-          "name": "alpine:ssl_client",
-          "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
-          "version": "1.36.1-r31",
-          "vulnerabilities": []
-        },
-        {
-          "id": "d66895a2d8963917",
-          "licenses": [
-            {
-              "spdxExpression": "Apache-2.0",
-              "type": "declared",
-              "value": "Apache-2.0"
-            }
-          ],
-          "name": "alpine:libssl3",
-          "purl": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
-          "version": "3.3.7-r0",
-          "vulnerabilities": []
-        },
-        {
-          "id": "92a9ba9988d4de22",
-          "licenses": [
-            {
-              "spdxExpression": "MIT",
-              "type": "declared",
-              "value": "MIT"
-            }
-          ],
-          "name": "alpine:musl",
-          "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
-          "version": "1.2.5-r3",
-          "vulnerabilities": []
-        }
-      ],
-      "relationship": "transitive"
-    },
-    {
-      "introduced_via": "6b059823ff55511f",
-      "packages": [
-        {
-          "id": "6b059823ff55511f",
-          "licenses": [
-            {
-              "spdxExpression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
-              "type": "declared",
-              "value": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
-            }
-          ],
-          "name": "alpine:musl-utils",
-          "purl": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=musl",
-          "version": "1.2.5-r3",
-          "vulnerabilities": []
-        },
-        {
-          "id": "92a9ba9988d4de22",
-          "licenses": [
-            {
-              "spdxExpression": "MIT",
-              "type": "declared",
-              "value": "MIT"
-            }
-          ],
-          "name": "alpine:musl",
-          "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
-          "version": "1.2.5-r3",
-          "vulnerabilities": []
-        }
-      ],
-      "relationship": "direct"
-    },
-    {
-      "introduced_via": "6b059823ff55511f",
-      "packages": [
-        {
-          "id": "6b059823ff55511f",
-          "licenses": [
-            {
-              "spdxExpression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
-              "type": "declared",
-              "value": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
-            }
-          ],
-          "name": "alpine:musl-utils",
-          "purl": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=musl",
-          "version": "1.2.5-r3",
-          "vulnerabilities": []
-        },
-        {
-          "id": "9898bc37fd3ad7cd",
-          "licenses": [
-            {
-              "spdxExpression": "GPL-2.0-only",
-              "type": "declared",
-              "value": "GPL-2.0-only"
-            }
-          ],
-          "name": "alpine:scanelf",
-          "purl": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=pax-utils",
-          "version": "1.3.7-r2",
-          "vulnerabilities": []
-        },
-        {
-          "id": "92a9ba9988d4de22",
-          "licenses": [
-            {
-              "spdxExpression": "MIT",
-              "type": "declared",
-              "value": "MIT"
-            }
-          ],
-          "name": "alpine:musl",
-          "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
-          "version": "1.2.5-r3",
-          "vulnerabilities": []
-        }
-      ],
-      "relationship": "transitive"
-    },
-    {
-      "introduced_via": "710281953e1f8443",
-      "packages": [
-        {
-          "id": "710281953e1f8443",
+          "id": "alpine:apk-tools@2.14.4-r1",
           "licenses": [
             {
               "spdxExpression": "GPL-2.0-only",
@@ -380,7 +118,223 @@
           "vulnerabilities": []
         },
         {
-          "id": "41a1e1da43325d36",
+          "id": "alpine:libcrypto3@3.3.7-r0",
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "name": "alpine:libcrypto3",
+          "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
+          "version": "3.3.7-r0",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:musl@1.2.5-r3",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "name": "alpine:musl",
+          "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
+          "version": "1.2.5-r3",
+          "vulnerabilities": []
+        }
+      ],
+      "relationship": "transitive"
+    },
+    {
+      "introduced_via": "lib/apk/db/installed",
+      "packages": [
+        {
+          "id": "lib/apk/db/installed",
+          "licenses": [],
+          "name": "lib/apk/db/installed",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:apk-tools@2.14.4-r1",
+          "licenses": [
+            {
+              "spdxExpression": "GPL-2.0-only",
+              "type": "declared",
+              "value": "GPL-2.0-only"
+            }
+          ],
+          "name": "alpine:apk-tools",
+          "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+          "version": "2.14.4-r1",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:libssl3@3.3.7-r0",
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "name": "alpine:libssl3",
+          "purl": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
+          "version": "3.3.7-r0",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:libcrypto3@3.3.7-r0",
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "name": "alpine:libcrypto3",
+          "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
+          "version": "3.3.7-r0",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:musl@1.2.5-r3",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "name": "alpine:musl",
+          "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
+          "version": "1.2.5-r3",
+          "vulnerabilities": []
+        }
+      ],
+      "relationship": "transitive"
+    },
+    {
+      "introduced_via": "lib/apk/db/installed",
+      "packages": [
+        {
+          "id": "lib/apk/db/installed",
+          "licenses": [],
+          "name": "lib/apk/db/installed",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:apk-tools@2.14.4-r1",
+          "licenses": [
+            {
+              "spdxExpression": "GPL-2.0-only",
+              "type": "declared",
+              "value": "GPL-2.0-only"
+            }
+          ],
+          "name": "alpine:apk-tools",
+          "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+          "version": "2.14.4-r1",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:libssl3@3.3.7-r0",
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "name": "alpine:libssl3",
+          "purl": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
+          "version": "3.3.7-r0",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:musl@1.2.5-r3",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "name": "alpine:musl",
+          "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
+          "version": "1.2.5-r3",
+          "vulnerabilities": []
+        }
+      ],
+      "relationship": "transitive"
+    },
+    {
+      "introduced_via": "lib/apk/db/installed",
+      "packages": [
+        {
+          "id": "lib/apk/db/installed",
+          "licenses": [],
+          "name": "lib/apk/db/installed",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:apk-tools@2.14.4-r1",
+          "licenses": [
+            {
+              "spdxExpression": "GPL-2.0-only",
+              "type": "declared",
+              "value": "GPL-2.0-only"
+            }
+          ],
+          "name": "alpine:apk-tools",
+          "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+          "version": "2.14.4-r1",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:musl@1.2.5-r3",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "name": "alpine:musl",
+          "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
+          "version": "1.2.5-r3",
+          "vulnerabilities": []
+        }
+      ],
+      "relationship": "transitive"
+    },
+    {
+      "introduced_via": "lib/apk/db/installed",
+      "packages": [
+        {
+          "id": "lib/apk/db/installed",
+          "licenses": [],
+          "name": "lib/apk/db/installed",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:apk-tools@2.14.4-r1",
+          "licenses": [
+            {
+              "spdxExpression": "GPL-2.0-only",
+              "type": "declared",
+              "value": "GPL-2.0-only"
+            }
+          ],
+          "name": "alpine:apk-tools",
+          "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+          "version": "2.14.4-r1",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:zlib@1.3.2-r0",
           "licenses": [
             {
               "spdxExpression": "Zlib",
@@ -394,7 +348,7 @@
           "vulnerabilities": []
         },
         {
-          "id": "92a9ba9988d4de22",
+          "id": "alpine:musl@1.2.5-r3",
           "licenses": [
             {
               "spdxExpression": "MIT",
@@ -411,10 +365,70 @@
       "relationship": "transitive"
     },
     {
-      "introduced_via": "710281953e1f8443",
+      "introduced_via": "lib/apk/db/installed",
       "packages": [
         {
-          "id": "710281953e1f8443",
+          "id": "lib/apk/db/installed",
+          "licenses": [],
+          "name": "lib/apk/db/installed",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:musl-utils@1.2.5-r3",
+          "licenses": [
+            {
+              "spdxExpression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
+              "type": "declared",
+              "value": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
+            }
+          ],
+          "name": "alpine:musl-utils",
+          "purl": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=musl",
+          "version": "1.2.5-r3",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:musl@1.2.5-r3",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "name": "alpine:musl",
+          "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
+          "version": "1.2.5-r3",
+          "vulnerabilities": []
+        }
+      ],
+      "relationship": "transitive"
+    },
+    {
+      "introduced_via": "lib/apk/db/installed",
+      "packages": [
+        {
+          "id": "lib/apk/db/installed",
+          "licenses": [],
+          "name": "lib/apk/db/installed",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:musl-utils@1.2.5-r3",
+          "licenses": [
+            {
+              "spdxExpression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
+              "type": "declared",
+              "value": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
+            }
+          ],
+          "name": "alpine:musl-utils",
+          "purl": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=musl",
+          "version": "1.2.5-r3",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:scanelf@1.3.7-r2",
           "licenses": [
             {
               "spdxExpression": "GPL-2.0-only",
@@ -422,13 +436,53 @@
               "value": "GPL-2.0-only"
             }
           ],
-          "name": "alpine:apk-tools",
-          "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
-          "version": "2.14.4-r1",
+          "name": "alpine:scanelf",
+          "purl": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=pax-utils",
+          "version": "1.3.7-r2",
           "vulnerabilities": []
         },
         {
-          "id": "447c8198d0b8f973",
+          "id": "alpine:musl@1.2.5-r3",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "name": "alpine:musl",
+          "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
+          "version": "1.2.5-r3",
+          "vulnerabilities": []
+        }
+      ],
+      "relationship": "transitive"
+    },
+    {
+      "introduced_via": "lib/apk/db/installed",
+      "packages": [
+        {
+          "id": "lib/apk/db/installed",
+          "licenses": [],
+          "name": "lib/apk/db/installed",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:ssl_client@1.36.1-r31",
+          "licenses": [
+            {
+              "spdxExpression": "GPL-2.0-only",
+              "type": "declared",
+              "value": "GPL-2.0-only"
+            }
+          ],
+          "name": "alpine:ssl_client",
+          "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+          "version": "1.36.1-r31",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:libcrypto3@3.3.7-r0",
           "licenses": [
             {
               "spdxExpression": "Apache-2.0",
@@ -442,7 +496,7 @@
           "vulnerabilities": []
         },
         {
-          "id": "92a9ba9988d4de22",
+          "id": "alpine:musl@1.2.5-r3",
           "licenses": [
             {
               "spdxExpression": "MIT",
@@ -459,10 +513,16 @@
       "relationship": "transitive"
     },
     {
-      "introduced_via": "710281953e1f8443",
+      "introduced_via": "lib/apk/db/installed",
       "packages": [
         {
-          "id": "710281953e1f8443",
+          "id": "lib/apk/db/installed",
+          "licenses": [],
+          "name": "lib/apk/db/installed",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:ssl_client@1.36.1-r31",
           "licenses": [
             {
               "spdxExpression": "GPL-2.0-only",
@@ -470,47 +530,13 @@
               "value": "GPL-2.0-only"
             }
           ],
-          "name": "alpine:apk-tools",
-          "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
-          "version": "2.14.4-r1",
+          "name": "alpine:ssl_client",
+          "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+          "version": "1.36.1-r31",
           "vulnerabilities": []
         },
         {
-          "id": "92a9ba9988d4de22",
-          "licenses": [
-            {
-              "spdxExpression": "MIT",
-              "type": "declared",
-              "value": "MIT"
-            }
-          ],
-          "name": "alpine:musl",
-          "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
-          "version": "1.2.5-r3",
-          "vulnerabilities": []
-        }
-      ],
-      "relationship": "direct"
-    },
-    {
-      "introduced_via": "710281953e1f8443",
-      "packages": [
-        {
-          "id": "710281953e1f8443",
-          "licenses": [
-            {
-              "spdxExpression": "GPL-2.0-only",
-              "type": "declared",
-              "value": "GPL-2.0-only"
-            }
-          ],
-          "name": "alpine:apk-tools",
-          "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
-          "version": "2.14.4-r1",
-          "vulnerabilities": []
-        },
-        {
-          "id": "d66895a2d8963917",
+          "id": "alpine:libssl3@3.3.7-r0",
           "licenses": [
             {
               "spdxExpression": "Apache-2.0",
@@ -524,7 +550,7 @@
           "vulnerabilities": []
         },
         {
-          "id": "447c8198d0b8f973",
+          "id": "alpine:libcrypto3@3.3.7-r0",
           "licenses": [
             {
               "spdxExpression": "Apache-2.0",
@@ -538,7 +564,7 @@
           "vulnerabilities": []
         },
         {
-          "id": "92a9ba9988d4de22",
+          "id": "alpine:musl@1.2.5-r3",
           "licenses": [
             {
               "spdxExpression": "MIT",
@@ -555,10 +581,16 @@
       "relationship": "transitive"
     },
     {
-      "introduced_via": "710281953e1f8443",
+      "introduced_via": "lib/apk/db/installed",
       "packages": [
         {
-          "id": "710281953e1f8443",
+          "id": "lib/apk/db/installed",
+          "licenses": [],
+          "name": "lib/apk/db/installed",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:ssl_client@1.36.1-r31",
           "licenses": [
             {
               "spdxExpression": "GPL-2.0-only",
@@ -566,13 +598,13 @@
               "value": "GPL-2.0-only"
             }
           ],
-          "name": "alpine:apk-tools",
-          "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
-          "version": "2.14.4-r1",
+          "name": "alpine:ssl_client",
+          "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+          "version": "1.36.1-r31",
           "vulnerabilities": []
         },
         {
-          "id": "d66895a2d8963917",
+          "id": "alpine:libssl3@3.3.7-r0",
           "licenses": [
             {
               "spdxExpression": "Apache-2.0",
@@ -586,7 +618,47 @@
           "vulnerabilities": []
         },
         {
-          "id": "92a9ba9988d4de22",
+          "id": "alpine:musl@1.2.5-r3",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "name": "alpine:musl",
+          "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
+          "version": "1.2.5-r3",
+          "vulnerabilities": []
+        }
+      ],
+      "relationship": "transitive"
+    },
+    {
+      "introduced_via": "lib/apk/db/installed",
+      "packages": [
+        {
+          "id": "lib/apk/db/installed",
+          "licenses": [],
+          "name": "lib/apk/db/installed",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:ssl_client@1.36.1-r31",
+          "licenses": [
+            {
+              "spdxExpression": "GPL-2.0-only",
+              "type": "declared",
+              "value": "GPL-2.0-only"
+            }
+          ],
+          "name": "alpine:ssl_client",
+          "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+          "version": "1.36.1-r31",
+          "vulnerabilities": []
+        },
+        {
+          "id": "alpine:musl@1.2.5-r3",
           "licenses": [
             {
               "spdxExpression": "MIT",
@@ -623,7 +695,7 @@
         "unknown": 0
       },
       "dependency": {
-        "id": "92a9ba9988d4de22",
+        "id": "alpine:musl@1.2.5-r3",
         "licenses": [
           {
             "spdxExpression": "MIT",
@@ -639,10 +711,16 @@
       "detector": "syft-detector",
       "paths": [
         {
-          "introduced_via": "194e469765239c4e",
+          "introduced_via": "lib/apk/db/installed",
           "packages": [
             {
-              "id": "194e469765239c4e",
+              "id": "lib/apk/db/installed",
+              "licenses": [],
+              "name": "lib/apk/db/installed",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:alpine-baselayout@3.6.5-r0",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -656,7 +734,7 @@
               "vulnerabilities": []
             },
             {
-              "id": "e4b41b4685cbca2e",
+              "id": "alpine:busybox-binsh@1.36.1-r31",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -670,7 +748,7 @@
               "vulnerabilities": []
             },
             {
-              "id": "eb7a53da2e2526a9",
+              "id": "alpine:busybox@1.36.1-r31",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -684,7 +762,7 @@
               "vulnerabilities": []
             },
             {
-              "id": "92a9ba9988d4de22",
+              "id": "alpine:musl@1.2.5-r3",
               "licenses": [
                 {
                   "spdxExpression": "MIT",
@@ -701,284 +779,16 @@
           "relationship": "transitive"
         },
         {
-          "introduced_via": "1c13012139492fbd",
+          "introduced_via": "lib/apk/db/installed",
           "packages": [
             {
-              "id": "1c13012139492fbd",
-              "licenses": [
-                {
-                  "spdxExpression": "GPL-2.0-only",
-                  "type": "declared",
-                  "value": "GPL-2.0-only"
-                }
-              ],
-              "name": "alpine:ssl_client",
-              "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
-              "version": "1.36.1-r31",
+              "id": "lib/apk/db/installed",
+              "licenses": [],
+              "name": "lib/apk/db/installed",
               "vulnerabilities": []
             },
             {
-              "id": "447c8198d0b8f973",
-              "licenses": [
-                {
-                  "spdxExpression": "Apache-2.0",
-                  "type": "declared",
-                  "value": "Apache-2.0"
-                }
-              ],
-              "name": "alpine:libcrypto3",
-              "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
-              "version": "3.3.7-r0",
-              "vulnerabilities": []
-            },
-            {
-              "id": "92a9ba9988d4de22",
-              "licenses": [
-                {
-                  "spdxExpression": "MIT",
-                  "type": "declared",
-                  "value": "MIT"
-                }
-              ],
-              "name": "alpine:musl",
-              "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
-              "version": "1.2.5-r3",
-              "vulnerabilities": []
-            }
-          ],
-          "relationship": "transitive"
-        },
-        {
-          "introduced_via": "1c13012139492fbd",
-          "packages": [
-            {
-              "id": "1c13012139492fbd",
-              "licenses": [
-                {
-                  "spdxExpression": "GPL-2.0-only",
-                  "type": "declared",
-                  "value": "GPL-2.0-only"
-                }
-              ],
-              "name": "alpine:ssl_client",
-              "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
-              "version": "1.36.1-r31",
-              "vulnerabilities": []
-            },
-            {
-              "id": "92a9ba9988d4de22",
-              "licenses": [
-                {
-                  "spdxExpression": "MIT",
-                  "type": "declared",
-                  "value": "MIT"
-                }
-              ],
-              "name": "alpine:musl",
-              "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
-              "version": "1.2.5-r3",
-              "vulnerabilities": []
-            }
-          ],
-          "relationship": "direct"
-        },
-        {
-          "introduced_via": "1c13012139492fbd",
-          "packages": [
-            {
-              "id": "1c13012139492fbd",
-              "licenses": [
-                {
-                  "spdxExpression": "GPL-2.0-only",
-                  "type": "declared",
-                  "value": "GPL-2.0-only"
-                }
-              ],
-              "name": "alpine:ssl_client",
-              "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
-              "version": "1.36.1-r31",
-              "vulnerabilities": []
-            },
-            {
-              "id": "d66895a2d8963917",
-              "licenses": [
-                {
-                  "spdxExpression": "Apache-2.0",
-                  "type": "declared",
-                  "value": "Apache-2.0"
-                }
-              ],
-              "name": "alpine:libssl3",
-              "purl": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
-              "version": "3.3.7-r0",
-              "vulnerabilities": []
-            },
-            {
-              "id": "447c8198d0b8f973",
-              "licenses": [
-                {
-                  "spdxExpression": "Apache-2.0",
-                  "type": "declared",
-                  "value": "Apache-2.0"
-                }
-              ],
-              "name": "alpine:libcrypto3",
-              "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
-              "version": "3.3.7-r0",
-              "vulnerabilities": []
-            },
-            {
-              "id": "92a9ba9988d4de22",
-              "licenses": [
-                {
-                  "spdxExpression": "MIT",
-                  "type": "declared",
-                  "value": "MIT"
-                }
-              ],
-              "name": "alpine:musl",
-              "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
-              "version": "1.2.5-r3",
-              "vulnerabilities": []
-            }
-          ],
-          "relationship": "transitive"
-        },
-        {
-          "introduced_via": "1c13012139492fbd",
-          "packages": [
-            {
-              "id": "1c13012139492fbd",
-              "licenses": [
-                {
-                  "spdxExpression": "GPL-2.0-only",
-                  "type": "declared",
-                  "value": "GPL-2.0-only"
-                }
-              ],
-              "name": "alpine:ssl_client",
-              "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
-              "version": "1.36.1-r31",
-              "vulnerabilities": []
-            },
-            {
-              "id": "d66895a2d8963917",
-              "licenses": [
-                {
-                  "spdxExpression": "Apache-2.0",
-                  "type": "declared",
-                  "value": "Apache-2.0"
-                }
-              ],
-              "name": "alpine:libssl3",
-              "purl": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
-              "version": "3.3.7-r0",
-              "vulnerabilities": []
-            },
-            {
-              "id": "92a9ba9988d4de22",
-              "licenses": [
-                {
-                  "spdxExpression": "MIT",
-                  "type": "declared",
-                  "value": "MIT"
-                }
-              ],
-              "name": "alpine:musl",
-              "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
-              "version": "1.2.5-r3",
-              "vulnerabilities": []
-            }
-          ],
-          "relationship": "transitive"
-        },
-        {
-          "introduced_via": "6b059823ff55511f",
-          "packages": [
-            {
-              "id": "6b059823ff55511f",
-              "licenses": [
-                {
-                  "spdxExpression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
-                  "type": "declared",
-                  "value": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
-                }
-              ],
-              "name": "alpine:musl-utils",
-              "purl": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=musl",
-              "version": "1.2.5-r3",
-              "vulnerabilities": []
-            },
-            {
-              "id": "92a9ba9988d4de22",
-              "licenses": [
-                {
-                  "spdxExpression": "MIT",
-                  "type": "declared",
-                  "value": "MIT"
-                }
-              ],
-              "name": "alpine:musl",
-              "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
-              "version": "1.2.5-r3",
-              "vulnerabilities": []
-            }
-          ],
-          "relationship": "direct"
-        },
-        {
-          "introduced_via": "6b059823ff55511f",
-          "packages": [
-            {
-              "id": "6b059823ff55511f",
-              "licenses": [
-                {
-                  "spdxExpression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
-                  "type": "declared",
-                  "value": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
-                }
-              ],
-              "name": "alpine:musl-utils",
-              "purl": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=musl",
-              "version": "1.2.5-r3",
-              "vulnerabilities": []
-            },
-            {
-              "id": "9898bc37fd3ad7cd",
-              "licenses": [
-                {
-                  "spdxExpression": "GPL-2.0-only",
-                  "type": "declared",
-                  "value": "GPL-2.0-only"
-                }
-              ],
-              "name": "alpine:scanelf",
-              "purl": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=pax-utils",
-              "version": "1.3.7-r2",
-              "vulnerabilities": []
-            },
-            {
-              "id": "92a9ba9988d4de22",
-              "licenses": [
-                {
-                  "spdxExpression": "MIT",
-                  "type": "declared",
-                  "value": "MIT"
-                }
-              ],
-              "name": "alpine:musl",
-              "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
-              "version": "1.2.5-r3",
-              "vulnerabilities": []
-            }
-          ],
-          "relationship": "transitive"
-        },
-        {
-          "introduced_via": "710281953e1f8443",
-          "packages": [
-            {
-              "id": "710281953e1f8443",
+              "id": "alpine:apk-tools@2.14.4-r1",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -992,7 +802,223 @@
               "vulnerabilities": []
             },
             {
-              "id": "41a1e1da43325d36",
+              "id": "alpine:libcrypto3@3.3.7-r0",
+              "licenses": [
+                {
+                  "spdxExpression": "Apache-2.0",
+                  "type": "declared",
+                  "value": "Apache-2.0"
+                }
+              ],
+              "name": "alpine:libcrypto3",
+              "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
+              "version": "3.3.7-r0",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:musl@1.2.5-r3",
+              "licenses": [
+                {
+                  "spdxExpression": "MIT",
+                  "type": "declared",
+                  "value": "MIT"
+                }
+              ],
+              "name": "alpine:musl",
+              "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
+              "version": "1.2.5-r3",
+              "vulnerabilities": []
+            }
+          ],
+          "relationship": "transitive"
+        },
+        {
+          "introduced_via": "lib/apk/db/installed",
+          "packages": [
+            {
+              "id": "lib/apk/db/installed",
+              "licenses": [],
+              "name": "lib/apk/db/installed",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:apk-tools@2.14.4-r1",
+              "licenses": [
+                {
+                  "spdxExpression": "GPL-2.0-only",
+                  "type": "declared",
+                  "value": "GPL-2.0-only"
+                }
+              ],
+              "name": "alpine:apk-tools",
+              "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+              "version": "2.14.4-r1",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:libssl3@3.3.7-r0",
+              "licenses": [
+                {
+                  "spdxExpression": "Apache-2.0",
+                  "type": "declared",
+                  "value": "Apache-2.0"
+                }
+              ],
+              "name": "alpine:libssl3",
+              "purl": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
+              "version": "3.3.7-r0",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:libcrypto3@3.3.7-r0",
+              "licenses": [
+                {
+                  "spdxExpression": "Apache-2.0",
+                  "type": "declared",
+                  "value": "Apache-2.0"
+                }
+              ],
+              "name": "alpine:libcrypto3",
+              "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
+              "version": "3.3.7-r0",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:musl@1.2.5-r3",
+              "licenses": [
+                {
+                  "spdxExpression": "MIT",
+                  "type": "declared",
+                  "value": "MIT"
+                }
+              ],
+              "name": "alpine:musl",
+              "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
+              "version": "1.2.5-r3",
+              "vulnerabilities": []
+            }
+          ],
+          "relationship": "transitive"
+        },
+        {
+          "introduced_via": "lib/apk/db/installed",
+          "packages": [
+            {
+              "id": "lib/apk/db/installed",
+              "licenses": [],
+              "name": "lib/apk/db/installed",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:apk-tools@2.14.4-r1",
+              "licenses": [
+                {
+                  "spdxExpression": "GPL-2.0-only",
+                  "type": "declared",
+                  "value": "GPL-2.0-only"
+                }
+              ],
+              "name": "alpine:apk-tools",
+              "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+              "version": "2.14.4-r1",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:libssl3@3.3.7-r0",
+              "licenses": [
+                {
+                  "spdxExpression": "Apache-2.0",
+                  "type": "declared",
+                  "value": "Apache-2.0"
+                }
+              ],
+              "name": "alpine:libssl3",
+              "purl": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
+              "version": "3.3.7-r0",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:musl@1.2.5-r3",
+              "licenses": [
+                {
+                  "spdxExpression": "MIT",
+                  "type": "declared",
+                  "value": "MIT"
+                }
+              ],
+              "name": "alpine:musl",
+              "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
+              "version": "1.2.5-r3",
+              "vulnerabilities": []
+            }
+          ],
+          "relationship": "transitive"
+        },
+        {
+          "introduced_via": "lib/apk/db/installed",
+          "packages": [
+            {
+              "id": "lib/apk/db/installed",
+              "licenses": [],
+              "name": "lib/apk/db/installed",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:apk-tools@2.14.4-r1",
+              "licenses": [
+                {
+                  "spdxExpression": "GPL-2.0-only",
+                  "type": "declared",
+                  "value": "GPL-2.0-only"
+                }
+              ],
+              "name": "alpine:apk-tools",
+              "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+              "version": "2.14.4-r1",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:musl@1.2.5-r3",
+              "licenses": [
+                {
+                  "spdxExpression": "MIT",
+                  "type": "declared",
+                  "value": "MIT"
+                }
+              ],
+              "name": "alpine:musl",
+              "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
+              "version": "1.2.5-r3",
+              "vulnerabilities": []
+            }
+          ],
+          "relationship": "transitive"
+        },
+        {
+          "introduced_via": "lib/apk/db/installed",
+          "packages": [
+            {
+              "id": "lib/apk/db/installed",
+              "licenses": [],
+              "name": "lib/apk/db/installed",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:apk-tools@2.14.4-r1",
+              "licenses": [
+                {
+                  "spdxExpression": "GPL-2.0-only",
+                  "type": "declared",
+                  "value": "GPL-2.0-only"
+                }
+              ],
+              "name": "alpine:apk-tools",
+              "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
+              "version": "2.14.4-r1",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:zlib@1.3.2-r0",
               "licenses": [
                 {
                   "spdxExpression": "Zlib",
@@ -1006,7 +1032,7 @@
               "vulnerabilities": []
             },
             {
-              "id": "92a9ba9988d4de22",
+              "id": "alpine:musl@1.2.5-r3",
               "licenses": [
                 {
                   "spdxExpression": "MIT",
@@ -1023,10 +1049,70 @@
           "relationship": "transitive"
         },
         {
-          "introduced_via": "710281953e1f8443",
+          "introduced_via": "lib/apk/db/installed",
           "packages": [
             {
-              "id": "710281953e1f8443",
+              "id": "lib/apk/db/installed",
+              "licenses": [],
+              "name": "lib/apk/db/installed",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:musl-utils@1.2.5-r3",
+              "licenses": [
+                {
+                  "spdxExpression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
+                  "type": "declared",
+                  "value": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
+                }
+              ],
+              "name": "alpine:musl-utils",
+              "purl": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=musl",
+              "version": "1.2.5-r3",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:musl@1.2.5-r3",
+              "licenses": [
+                {
+                  "spdxExpression": "MIT",
+                  "type": "declared",
+                  "value": "MIT"
+                }
+              ],
+              "name": "alpine:musl",
+              "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
+              "version": "1.2.5-r3",
+              "vulnerabilities": []
+            }
+          ],
+          "relationship": "transitive"
+        },
+        {
+          "introduced_via": "lib/apk/db/installed",
+          "packages": [
+            {
+              "id": "lib/apk/db/installed",
+              "licenses": [],
+              "name": "lib/apk/db/installed",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:musl-utils@1.2.5-r3",
+              "licenses": [
+                {
+                  "spdxExpression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
+                  "type": "declared",
+                  "value": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
+                }
+              ],
+              "name": "alpine:musl-utils",
+              "purl": "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=musl",
+              "version": "1.2.5-r3",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:scanelf@1.3.7-r2",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -1034,13 +1120,53 @@
                   "value": "GPL-2.0-only"
                 }
               ],
-              "name": "alpine:apk-tools",
-              "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
-              "version": "2.14.4-r1",
+              "name": "alpine:scanelf",
+              "purl": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=pax-utils",
+              "version": "1.3.7-r2",
               "vulnerabilities": []
             },
             {
-              "id": "447c8198d0b8f973",
+              "id": "alpine:musl@1.2.5-r3",
+              "licenses": [
+                {
+                  "spdxExpression": "MIT",
+                  "type": "declared",
+                  "value": "MIT"
+                }
+              ],
+              "name": "alpine:musl",
+              "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
+              "version": "1.2.5-r3",
+              "vulnerabilities": []
+            }
+          ],
+          "relationship": "transitive"
+        },
+        {
+          "introduced_via": "lib/apk/db/installed",
+          "packages": [
+            {
+              "id": "lib/apk/db/installed",
+              "licenses": [],
+              "name": "lib/apk/db/installed",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:ssl_client@1.36.1-r31",
+              "licenses": [
+                {
+                  "spdxExpression": "GPL-2.0-only",
+                  "type": "declared",
+                  "value": "GPL-2.0-only"
+                }
+              ],
+              "name": "alpine:ssl_client",
+              "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+              "version": "1.36.1-r31",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:libcrypto3@3.3.7-r0",
               "licenses": [
                 {
                   "spdxExpression": "Apache-2.0",
@@ -1054,7 +1180,7 @@
               "vulnerabilities": []
             },
             {
-              "id": "92a9ba9988d4de22",
+              "id": "alpine:musl@1.2.5-r3",
               "licenses": [
                 {
                   "spdxExpression": "MIT",
@@ -1071,10 +1197,16 @@
           "relationship": "transitive"
         },
         {
-          "introduced_via": "710281953e1f8443",
+          "introduced_via": "lib/apk/db/installed",
           "packages": [
             {
-              "id": "710281953e1f8443",
+              "id": "lib/apk/db/installed",
+              "licenses": [],
+              "name": "lib/apk/db/installed",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:ssl_client@1.36.1-r31",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -1082,47 +1214,13 @@
                   "value": "GPL-2.0-only"
                 }
               ],
-              "name": "alpine:apk-tools",
-              "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
-              "version": "2.14.4-r1",
+              "name": "alpine:ssl_client",
+              "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+              "version": "1.36.1-r31",
               "vulnerabilities": []
             },
             {
-              "id": "92a9ba9988d4de22",
-              "licenses": [
-                {
-                  "spdxExpression": "MIT",
-                  "type": "declared",
-                  "value": "MIT"
-                }
-              ],
-              "name": "alpine:musl",
-              "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
-              "version": "1.2.5-r3",
-              "vulnerabilities": []
-            }
-          ],
-          "relationship": "direct"
-        },
-        {
-          "introduced_via": "710281953e1f8443",
-          "packages": [
-            {
-              "id": "710281953e1f8443",
-              "licenses": [
-                {
-                  "spdxExpression": "GPL-2.0-only",
-                  "type": "declared",
-                  "value": "GPL-2.0-only"
-                }
-              ],
-              "name": "alpine:apk-tools",
-              "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
-              "version": "2.14.4-r1",
-              "vulnerabilities": []
-            },
-            {
-              "id": "d66895a2d8963917",
+              "id": "alpine:libssl3@3.3.7-r0",
               "licenses": [
                 {
                   "spdxExpression": "Apache-2.0",
@@ -1136,7 +1234,7 @@
               "vulnerabilities": []
             },
             {
-              "id": "447c8198d0b8f973",
+              "id": "alpine:libcrypto3@3.3.7-r0",
               "licenses": [
                 {
                   "spdxExpression": "Apache-2.0",
@@ -1150,7 +1248,7 @@
               "vulnerabilities": []
             },
             {
-              "id": "92a9ba9988d4de22",
+              "id": "alpine:musl@1.2.5-r3",
               "licenses": [
                 {
                   "spdxExpression": "MIT",
@@ -1167,10 +1265,16 @@
           "relationship": "transitive"
         },
         {
-          "introduced_via": "710281953e1f8443",
+          "introduced_via": "lib/apk/db/installed",
           "packages": [
             {
-              "id": "710281953e1f8443",
+              "id": "lib/apk/db/installed",
+              "licenses": [],
+              "name": "lib/apk/db/installed",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:ssl_client@1.36.1-r31",
               "licenses": [
                 {
                   "spdxExpression": "GPL-2.0-only",
@@ -1178,13 +1282,13 @@
                   "value": "GPL-2.0-only"
                 }
               ],
-              "name": "alpine:apk-tools",
-              "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
-              "version": "2.14.4-r1",
+              "name": "alpine:ssl_client",
+              "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+              "version": "1.36.1-r31",
               "vulnerabilities": []
             },
             {
-              "id": "d66895a2d8963917",
+              "id": "alpine:libssl3@3.3.7-r0",
               "licenses": [
                 {
                   "spdxExpression": "Apache-2.0",
@@ -1198,7 +1302,47 @@
               "vulnerabilities": []
             },
             {
-              "id": "92a9ba9988d4de22",
+              "id": "alpine:musl@1.2.5-r3",
+              "licenses": [
+                {
+                  "spdxExpression": "MIT",
+                  "type": "declared",
+                  "value": "MIT"
+                }
+              ],
+              "name": "alpine:musl",
+              "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
+              "version": "1.2.5-r3",
+              "vulnerabilities": []
+            }
+          ],
+          "relationship": "transitive"
+        },
+        {
+          "introduced_via": "lib/apk/db/installed",
+          "packages": [
+            {
+              "id": "lib/apk/db/installed",
+              "licenses": [],
+              "name": "lib/apk/db/installed",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:ssl_client@1.36.1-r31",
+              "licenses": [
+                {
+                  "spdxExpression": "GPL-2.0-only",
+                  "type": "declared",
+                  "value": "GPL-2.0-only"
+                }
+              ],
+              "name": "alpine:ssl_client",
+              "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
+              "version": "1.36.1-r31",
+              "vulnerabilities": []
+            },
+            {
+              "id": "alpine:musl@1.2.5-r3",
               "licenses": [
                 {
                   "spdxExpression": "MIT",

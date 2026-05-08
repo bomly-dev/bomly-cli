@@ -23,6 +23,16 @@ type Analyzer struct {
 	// NewDefaultRunner(Logger) when nil.
 	Runner Runner
 	Logger *zap.Logger
+	// CacheDir overrides the default per-module result cache location.
+	// Empty means "use the OS user cache directory under bomly/analyzers/govulncheck".
+	CacheDir string
+	// CacheTTL overrides the default 24h cache lifetime. Zero means use
+	// the default. Negative values are treated as "no cache" (the cache
+	// helper coerces them to default; explicit disable is via DisableCache).
+	CacheTTL time.Duration
+	// DisableCache turns off the on-disk result cache entirely. Useful in
+	// CI smoke runs where freshness matters more than speed.
+	DisableCache bool
 }
 
 // Descriptor returns the registration metadata for the govulncheck analyzer.
@@ -76,43 +86,129 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		runner = NewDefaultRunner(logger)
 	}
 
+	overallStart := time.Now()
 	moduleRoots := discoverModuleRoots(req)
 	if len(moduleRoots) == 0 {
 		// No module roots discovered — annotate every Go vuln as
 		// Unknown so consumers know the analyzer was attempted.
+		logger.Info("govulncheck: no module roots discovered; marking all Go vulnerabilities as unknown")
 		annotateAllUnknown(req.Graph, "no-module-root-discovered", time.Now())
 		return resultFromGraph(req.Graph), nil
 	}
 
+	logger.Info("govulncheck: starting reachability analysis",
+		zap.String("runner", runner.Name()),
+		zap.Int("module_roots", len(moduleRoots)),
+		zap.Bool("cache_enabled", !a.DisableCache),
+	)
+	logger.Debug("govulncheck: discovered module roots", zap.Strings("paths", moduleRoots))
+
+	cache := a.cache()
 	stats := model.ReachabilityStats{}
+	cacheHits, cacheMisses := 0, 0
 	for _, root := range moduleRoots {
 		select {
 		case <-ctx.Done():
+			logger.Info("govulncheck: context cancelled; skipping module",
+				zap.String("module_root", root))
 			annotateModuleUnknown(req.Graph, root, "cancelled", time.Now())
 			continue
 		default:
 		}
 
-		runResult, err := runner.Run(ctx, root)
+		moduleStart := time.Now()
+		runResult, fromCache, err := a.runWithCache(ctx, runner, cache, root, logger)
 		if err != nil {
 			logger.Warn("govulncheck: runner failed",
 				zap.String("module_root", root),
 				zap.String("runner", runner.Name()),
+				zap.Duration("duration", time.Since(moduleStart)),
 				zap.Error(err))
 			reason := failureReason(err)
 			added := annotateModuleUnknown(req.Graph, root, reason, time.Now())
 			stats.Unknown += added
 			continue
 		}
+		if fromCache {
+			cacheHits++
+		} else {
+			cacheMisses++
+		}
 		applied := applyRunnerResult(req.Graph, root, runResult, runner.Name(), time.Now())
 		stats.Reachable += applied.reachable
 		stats.Unreachable += applied.unreachable
 		stats.Unknown += applied.unknown
+		logger.Info("govulncheck: completed module",
+			zap.String("module_root", root),
+			zap.String("runner", runner.Name()),
+			zap.Bool("cache_hit", fromCache),
+			zap.Int("findings", len(runResult.Findings)),
+			zap.Int("reachable", applied.reachable),
+			zap.Int("unreachable", applied.unreachable),
+			zap.Duration("duration", time.Since(moduleStart)),
+		)
 	}
+
+	logger.Info("govulncheck: completed reachability analysis",
+		zap.String("runner", runner.Name()),
+		zap.Int("modules", len(moduleRoots)),
+		zap.Int("cache_hits", cacheHits),
+		zap.Int("cache_misses", cacheMisses),
+		zap.Int("reachable", stats.Reachable),
+		zap.Int("unreachable", stats.Unreachable),
+		zap.Int("unknown", stats.Unknown),
+		zap.Duration("duration", time.Since(overallStart)),
+	)
 
 	out := resultFromGraph(req.Graph)
 	out.AnalyzerStats = map[string]model.ReachabilityStats{Name: stats}
 	return out, nil
+}
+
+// runWithCache returns (result, fromCache, error) for one module. Cache
+// failures are non-fatal — the runner still gets a chance to produce
+// fresh output. Cache writes after successful runs are also non-fatal.
+func (a Analyzer) runWithCache(
+	ctx context.Context,
+	runner Runner,
+	cache *resultCache,
+	moduleDir string,
+	logger *zap.Logger,
+) (RunnerResult, bool, error) {
+	if cache != nil {
+		if cached, ok := cache.get(moduleDir, runner.Name()); ok {
+			logger.Debug("govulncheck: cache hit",
+				zap.String("module_root", moduleDir),
+				zap.String("runner", runner.Name()),
+				zap.Int("findings", len(cached.Findings)))
+			return cached, true, nil
+		}
+		logger.Debug("govulncheck: cache miss",
+			zap.String("module_root", moduleDir),
+			zap.String("runner", runner.Name()))
+	}
+	result, err := runner.Run(ctx, moduleDir)
+	if err != nil {
+		return RunnerResult{}, false, err
+	}
+	if cache != nil {
+		if err := cache.set(moduleDir, runner.Name(), result); err != nil {
+			logger.Debug("govulncheck: cache write failed (non-fatal)",
+				zap.String("module_root", moduleDir),
+				zap.Error(err))
+		}
+	}
+	return result, false, nil
+}
+
+// cache returns the configured result cache, or nil when caching is
+// disabled. Cache construction errors are swallowed deliberately — they
+// degrade to "no cache" rather than failing the analyzer.
+func (a Analyzer) cache() *resultCache {
+	if a.DisableCache {
+		return nil
+	}
+	return newResultCache(a.CacheDir, a.CacheTTL)
 }
 
 func (a Analyzer) logger() *zap.Logger { return ensureLogger(a.Logger) }

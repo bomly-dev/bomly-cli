@@ -28,7 +28,12 @@ func (r externalRunner) Run(ctx context.Context, moduleDir string) (RunnerResult
 	if err != nil {
 		return RunnerResult{}, fmt.Errorf("govulncheck binary not found on PATH: %w", err)
 	}
-	cmd := exec.CommandContext(ctx, bin, "-json", "./...")
+	args := []string{"-json", "./..."}
+	r.logger.Debug("govulncheck: executing external runner",
+		zap.String("binary", bin),
+		zap.String("module_root", moduleDir),
+		zap.Strings("args", args))
+	cmd := exec.CommandContext(ctx, bin, args...)
 	cmd.Dir = moduleDir
 	stdout, err := cmd.Output()
 	if err != nil {
@@ -36,6 +41,9 @@ func (r externalRunner) Run(ctx context.Context, moduleDir string) (RunnerResult
 		// than failure. The streaming JSON parser tolerates trailing
 		// data, so try to parse stdout regardless.
 		if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() == 3 && len(stdout) > 0 {
+			r.logger.Debug("govulncheck: exit code 3 (vulnerabilities found); parsing stdout",
+				zap.String("module_root", moduleDir),
+				zap.Int("stdout_bytes", len(stdout)))
 			result, parseErr := parseGovulncheckJSON(stdout)
 			if parseErr != nil {
 				return RunnerResult{}, fmt.Errorf("parse govulncheck output: %w", parseErr)
@@ -44,5 +52,8 @@ func (r externalRunner) Run(ctx context.Context, moduleDir string) (RunnerResult
 		}
 		return RunnerResult{}, fmt.Errorf("govulncheck failed: %w", err)
 	}
+	r.logger.Debug("govulncheck: external runner produced output",
+		zap.String("module_root", moduleDir),
+		zap.Int("stdout_bytes", len(stdout)))
 	return parseGovulncheckJSON(stdout)
 }

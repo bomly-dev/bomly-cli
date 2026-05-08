@@ -104,6 +104,19 @@ func TestScan(t *testing.T) {
 			tools: []string{"go"},
 		},
 		{
+			// jsreach smoke pinned to snyk-labs/nodejs-goof, a real
+			// vulnerable demo Node.js todo app. The project's app.js
+			// imports a meaningful subset of its npm dependencies
+			// directly (mongoose, lodash, express-fileupload, etc.)
+			// while many transitive ones are unreachable from app
+			// code, so the smoke exercises both "reachable (package)"
+			// and "unreachable (package)" branches of the analyzer.
+			// Goldens scrub timestamps via normalizeReachability.
+			name:  "scan-npm-reachability",
+			args:  []string{"scan", "--url", "https://github.com/snyk-labs/nodejs-goof", "--ref", "add14ba59e98240d9e00a235dd7d42cd61ae9912", "--enrich", "--reachability", "--format", "json"},
+			tools: []string{"npm"},
+		},
+		{
 			name:  "scan-npm",
 			args:  []string{"scan", "--url", "https://github.com/ljharb/qs", "--ref", "v6.13.0", "--format", "json"},
 			tools: []string{"npm"},

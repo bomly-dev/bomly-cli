@@ -181,6 +181,17 @@ func walkJSONStrings(raw json.RawMessage, emit func(string)) {
 
 // defaultIndexCandidates lists the implicit entry locations Node and
 // most bundlers fall back to when no package.json field declares one.
+//
+// The first set is Node's official resolution algorithm — `index.*` at
+// the project root and under `src/`. The second set covers the common
+// Node-app conventions (`app.js`, `server.js`, `main.js`) where the
+// package.json typically wires them in via "scripts": {"start": "node
+// app.js"} rather than the "main" field. Parsing the scripts object is
+// fragile (start scripts can be arbitrary commands), so we instead
+// look for the file directly. False positives are harmless: if a
+// project happens to ship an unrelated `app.js` at the root, the
+// import graph it produces is still a reachable subset of the project.
+//
 // We return relative paths; the caller resolves them against
 // projectDir and filters by existence.
 func defaultIndexCandidates() []string {
@@ -194,6 +205,13 @@ func defaultIndexCandidates() []string {
 		filepath.Join("src", "index.mjs"),
 		filepath.Join("src", "index.ts"),
 		filepath.Join("src", "index.tsx"),
+		// Common Node-app conventions wired via scripts rather than main.
+		"app.js",
+		"app.ts",
+		"server.js",
+		"server.ts",
+		"main.js",
+		"main.ts",
 	}
 }
 

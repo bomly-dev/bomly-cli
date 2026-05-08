@@ -1,4 +1,4 @@
-package selector
+package opts
 
 import (
 	"errors"
@@ -7,8 +7,8 @@ import (
 )
 
 func TestResolve_Empty_ImplicitAll(t *testing.T) {
-	catalog := Catalog{Kind: "x", Available: []string{"a", "b"}, AliasToName: map[string]string{"a": "a", "b": "b"}, Items: []string{"a", "b"}}
-	include, exclude, err := Resolve("", []string{"a"}, catalog, true)
+	catalog := catalog{Kind: "x", Available: []string{"a", "b"}, AliasToName: map[string]string{"a": "a", "b": "b"}, Items: []string{"a", "b"}}
+	include, exclude, err := resolve("", []string{"a"}, catalog, true)
 	if err != nil {
 		t.Fatalf("Resolve() error = %v", err)
 	}
@@ -18,8 +18,8 @@ func TestResolve_Empty_ImplicitAll(t *testing.T) {
 }
 
 func TestResolve_Empty_ExplicitDefaults(t *testing.T) {
-	catalog := Catalog{Kind: "x", Available: []string{"a", "b", "c"}, AliasToName: map[string]string{"a": "a", "b": "b", "c": "c"}, Items: []string{"a", "b", "c"}}
-	_, exclude, err := Resolve("", []string{"a"}, catalog, false)
+	catalog := catalog{Kind: "x", Available: []string{"a", "b", "c"}, AliasToName: map[string]string{"a": "a", "b": "b", "c": "c"}, Items: []string{"a", "b", "c"}}
+	_, exclude, err := resolve("", []string{"a"}, catalog, false)
 	if err != nil {
 		t.Fatalf("Resolve() error = %v", err)
 	}
@@ -30,8 +30,8 @@ func TestResolve_Empty_ExplicitDefaults(t *testing.T) {
 }
 
 func TestResolve_Operators(t *testing.T) {
-	catalog := Catalog{Kind: "x", Available: []string{"a", "b", "c"}, AliasToName: map[string]string{"a": "a", "b": "b", "c": "c"}, Items: []string{"a", "b", "c"}}
-	_, exclude, err := Resolve("-b", []string{"a", "b"}, catalog, true)
+	catalog := catalog{Kind: "x", Available: []string{"a", "b", "c"}, AliasToName: map[string]string{"a": "a", "b": "b", "c": "c"}, Items: []string{"a", "b", "c"}}
+	_, exclude, err := resolve("-b", []string{"a", "b"}, catalog, true)
 	if err != nil {
 		t.Fatalf("Resolve() error = %v", err)
 	}
@@ -42,8 +42,8 @@ func TestResolve_Operators(t *testing.T) {
 }
 
 func TestResolve_PlainTokenReplaces(t *testing.T) {
-	catalog := Catalog{Kind: "x", Available: []string{"a", "b"}, AliasToName: map[string]string{"a": "a", "b": "b", "alpha": "a"}, Items: []string{"a", "b"}}
-	include, _, err := Resolve("alpha", []string{"a", "b"}, catalog, true)
+	catalog := catalog{Kind: "x", Available: []string{"a", "b"}, AliasToName: map[string]string{"a": "a", "b": "b", "alpha": "a"}, Items: []string{"a", "b"}}
+	include, _, err := resolve("alpha", []string{"a", "b"}, catalog, true)
 	if err != nil {
 		t.Fatalf("Resolve() error = %v", err)
 	}
@@ -54,12 +54,12 @@ func TestResolve_PlainTokenReplaces(t *testing.T) {
 }
 
 func TestResolve_UnknownReturnsTypedError(t *testing.T) {
-	catalog := Catalog{Kind: "ecosystem", Available: []string{"npm"}, AliasToName: map[string]string{"npm": "npm"}, Items: []string{"npm"}}
-	_, _, err := Resolve("not-a-thing", nil, catalog, false)
+	catalog := catalog{Kind: "ecosystem", Available: []string{"npm"}, AliasToName: map[string]string{"npm": "npm"}, Items: []string{"npm"}}
+	_, _, err := resolve("not-a-thing", nil, catalog, false)
 	if err == nil {
 		t.Fatal("expected error")
 	}
-	var unknown *UnknownSelectorError
+	var unknown *unknownSelectorError
 	if !errors.As(err, &unknown) {
 		t.Fatalf("expected *UnknownSelectorError, got %T", err)
 	}
@@ -72,24 +72,24 @@ func TestResolve_UnknownReturnsTypedError(t *testing.T) {
 }
 
 func TestParseCSV(t *testing.T) {
-	got := ParseCSV("  a , b ,  ,c")
+	got := parseCSV("  a , b ,  ,c")
 	want := []string{"a", "b", "c"}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("expected %v, got %v", want, got)
 	}
-	if ParseCSV("") != nil {
+	if parseCSV("") != nil {
 		t.Fatal("expected nil for empty input")
 	}
 }
 
 func TestAppendUniqueAndContains(t *testing.T) {
-	values := AppendUnique(nil, "a")
-	values = AppendUnique(values, "a")
-	values = AppendUnique(values, "b")
+	values := appendUnique(nil, "a")
+	values = appendUnique(values, "a")
+	values = appendUnique(values, "b")
 	if !reflect.DeepEqual(values, []string{"a", "b"}) {
 		t.Fatalf("AppendUnique produced %v", values)
 	}
-	if !Contains(values, "a") || Contains(values, "missing") {
+	if !contains(values, "a") || contains(values, "missing") {
 		t.Fatal("Contains returned wrong result")
 	}
 }

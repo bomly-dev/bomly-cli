@@ -66,37 +66,59 @@ type mcpOptionsAdapter struct {
 	version string
 }
 
+// mcpOverrides bundles every per-call value the MCP adapter layers on top
+// of the resolved CommandContext. Adding a new MCP flag is a one-line
+// addition here plus a one-line apply in cloneWithOverrides — no signature
+// churn at every callsite.
+type mcpOverrides struct {
+	Path         string
+	Container    string
+	URL          string
+	Ref          string
+	Enrich       bool
+	Audit        bool
+	Reachability bool
+	FailOn       string
+	Ecosystems   string
+}
+
 // cloneWithOverrides returns a copy of CommandContext with per-call values layered on top.
 // The copy is safe to use concurrently — each call gets its own context and pipeline.
-func (a *mcpOptionsAdapter) cloneWithOverrides(path, container, url, ref string, enrich, audit bool, failOn, ecosystems string) *opts.Options {
+func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 	clone := *a.options
 
 	resolved := clone.GetConfig()
-	applyStringOverride(&clone.ResolvedConfig.Path, path)
-	applyStringOverride(&clone.ResolvedConfig.Container, container)
-	applyStringOverride(&clone.ResolvedConfig.URL, url)
-	applyStringOverride(&clone.ResolvedConfig.Ref, ref)
-	applyFailOnOverride(&clone.ResolvedConfig.FailOn, failOn)
-	applyStringOverride(&clone.ResolvedConfig.Ecosystems, ecosystems)
-	if enrich {
+	applyStringOverride(&clone.ResolvedConfig.Path, o.Path)
+	applyStringOverride(&clone.ResolvedConfig.Container, o.Container)
+	applyStringOverride(&clone.ResolvedConfig.URL, o.URL)
+	applyStringOverride(&clone.ResolvedConfig.Ref, o.Ref)
+	applyFailOnOverride(&clone.ResolvedConfig.FailOn, o.FailOn)
+	applyStringOverride(&clone.ResolvedConfig.Ecosystems, o.Ecosystems)
+	if o.Enrich {
 		clone.ResolvedConfig.Enrich = true
 	}
-	if audit {
+	if o.Audit {
 		clone.ResolvedConfig.Audit = true
+	}
+	if o.Reachability {
+		clone.ResolvedConfig.Reachability = true
 	}
 	clone.ResolvedConfig.Interactive = false
 
-	applyStringOverride(&resolved.Path, path)
-	applyStringOverride(&resolved.Container, container)
-	applyStringOverride(&resolved.URL, url)
-	applyStringOverride(&resolved.Ref, ref)
-	applyFailOnOverride(&resolved.FailOn, failOn)
-	applyStringOverride(&resolved.Ecosystems, ecosystems)
-	if enrich {
+	applyStringOverride(&resolved.Path, o.Path)
+	applyStringOverride(&resolved.Container, o.Container)
+	applyStringOverride(&resolved.URL, o.URL)
+	applyStringOverride(&resolved.Ref, o.Ref)
+	applyFailOnOverride(&resolved.FailOn, o.FailOn)
+	applyStringOverride(&resolved.Ecosystems, o.Ecosystems)
+	if o.Enrich {
 		resolved.Enrich = true
 	}
-	if audit {
+	if o.Audit {
 		resolved.Audit = true
+	}
+	if o.Reachability {
+		resolved.Reachability = true
 	}
 	resolved.Interactive = false
 	clone.SetConfig(resolved)
@@ -121,7 +143,17 @@ func applyFailOnOverride(target *[]string, value string) {
 
 func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (output.ScanResponse, error) {
 	started := time.Now()
-	o := a.cloneWithOverrides(req.Path, req.Container, req.URL, req.Ref, req.Enrich, req.Audit, req.FailOn, req.Ecosystems)
+	o := a.cloneWithOverrides(mcpOverrides{
+		Path:         req.Path,
+		Container:    req.Container,
+		URL:          req.URL,
+		Ref:          req.Ref,
+		Enrich:       req.Enrich,
+		Audit:        req.Audit,
+		Reachability: req.Reachability,
+		FailOn:       req.FailOn,
+		Ecosystems:   req.Ecosystems,
+	})
 	cmdCtx, err := o.Prepare(ctx, a.logger)
 	if err != nil {
 		return output.ScanResponse{}, err
@@ -143,7 +175,12 @@ func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (o
 
 func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainRequest) (output.ExplainResponse, error) {
 	started := time.Now()
-	o := a.cloneWithOverrides(req.Path, "", "", "", req.Enrich, req.Audit, "", "")
+	o := a.cloneWithOverrides(mcpOverrides{
+		Path:         req.Path,
+		Enrich:       req.Enrich,
+		Audit:        req.Audit,
+		Reachability: req.Reachability,
+	})
 	cmdCtx, err := o.Prepare(ctx, a.logger)
 	if err != nil {
 		return output.ExplainResponse{}, err
@@ -174,7 +211,13 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 
 func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (output.DiffResponse, error) {
 	started := time.Now()
-	o := a.cloneWithOverrides(req.Path, req.Container, "", "", req.Enrich, req.Audit, "", "")
+	o := a.cloneWithOverrides(mcpOverrides{
+		Path:         req.Path,
+		Container:    req.Container,
+		Enrich:       req.Enrich,
+		Audit:        req.Audit,
+		Reachability: req.Reachability,
+	})
 	logger := a.logger
 
 	baseTarget, headTarget, projectIdentifier, _, err := resolveGitDiffGraphs(ctx, o, logger, req.Base, req.Head, io.Discard)
@@ -209,7 +252,7 @@ func (a *mcpOptionsAdapter) ListPlugins(_ context.Context) ([]plugin.PluginInfo,
 
 func (a *mcpOptionsAdapter) VulnFixContext(ctx context.Context, req mcp.VulnFixRequest) (mcp.VulnFixResult, error) {
 	// Force enrich=true — vulnerability data is required for fix context.
-	o := a.cloneWithOverrides(req.Path, "", "", "", true, false, "", "")
+	o := a.cloneWithOverrides(mcpOverrides{Path: req.Path, Enrich: true})
 	cmdCtx, err := o.Prepare(ctx, a.logger)
 	if err != nil {
 		return mcp.VulnFixResult{}, err

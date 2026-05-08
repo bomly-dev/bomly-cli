@@ -20,7 +20,8 @@ func registerDiffTool(s *server.MCPServer, mcpCtx MCPContext) {
 		),
 		mcplib.WithString("path", mcplib.Description("Local repository path (defaults to cwd)")),
 		mcplib.WithBoolean("enrich", mcplib.Description("Enrich packages with vulnerability and license data")),
-		mcplib.WithBoolean("audit", mcplib.Description("Include audit delta (introduced, resolved, and persisted findings)")),
+		mcplib.WithBoolean("audit", mcplib.Description("Include audit delta (introduced, resolved, and persisted findings) (requires enrich)")),
+		mcplib.WithBoolean("reachability", mcplib.Description("Run code analysis on each side and include reachability annotations on the audit delta (requires enrich)")),
 	)
 	s.AddTool(tool, func(ctx context.Context, req mcplib.CallToolRequest) (*mcplib.CallToolResult, error) {
 		base, err := req.RequireString("base")
@@ -32,11 +33,12 @@ func registerDiffTool(s *server.MCPServer, mcpCtx MCPContext) {
 			return mcplib.NewToolResultError(err.Error()), nil
 		}
 		diffReq := DiffRequest{
-			Base:   base,
-			Head:   head,
-			Path:   req.GetString("path", ""),
-			Enrich: req.GetBool("enrich", false),
-			Audit:  req.GetBool("audit", false),
+			Base:         base,
+			Head:         head,
+			Path:         req.GetString("path", ""),
+			Enrich:       req.GetBool("enrich", false),
+			Audit:        req.GetBool("audit", false),
+			Reachability: req.GetBool("reachability", false),
 		}
 		result, err := mcpCtx.Adapter.RunDiff(ctx, diffReq)
 		if err != nil {

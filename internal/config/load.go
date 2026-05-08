@@ -160,6 +160,17 @@ func Validate(cfg Resolved) error {
 	if cfg.Quiet && cfg.Verbosity > 0 {
 		return fmt.Errorf("--quiet cannot be combined with --verbose")
 	}
+	// Both --audit and --reachability operate on vulnerability data the
+	// matchers attach during enrichment. Without --enrich the matchers
+	// don't run and these flags would silently produce zero findings /
+	// no annotations, which is a confusing footgun. Require --enrich up
+	// front so the user gets a clear error instead.
+	if cfg.Audit && !cfg.Enrich {
+		return fmt.Errorf("--audit requires --enrich")
+	}
+	if cfg.Reachability && !cfg.Enrich {
+		return fmt.Errorf("--reachability requires --enrich")
+	}
 	return nil
 }
 

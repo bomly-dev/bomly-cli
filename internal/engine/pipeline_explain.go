@@ -38,7 +38,6 @@ func (p *Pipeline) RunExplain(ctx context.Context, req ExplainRequest) (ExplainR
 	pipeReq := req.Pipeline
 	auditEnabled := pipeReq.AuditEnabled
 	pipeReq.AuditEnabled = false
-	pipeReq.Processor = nil
 
 	base := PipelineResult{}
 	if err := p.runPre(ctx, pipeReq); err != nil {

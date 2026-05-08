@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"context"
 	"io"
 
 	"github.com/bomly-dev/bomly-cli/internal/engine/hooks"
@@ -19,16 +18,11 @@ type (
 	PostResolveHook    = hooks.PostResolveHook
 )
 
-// StageProcessor is a command-specific graph manipulation step injected into the
-// pipeline between consolidation and audit. Return a non-nil error to abort.
-type StageProcessor func(context.Context, *PipelineResult) error
-
 // PipelineRequest defines input for a full pipeline run.
 type PipelineRequest struct {
 	ProjectPath     string
 	ExecutionTarget sdk.ExecutionTarget
 	Subprojects     []sdk.Subproject
-	Processor       StageProcessor
 	EnrichEnabled   bool
 	MatchEnabled    bool
 	AuditEnabled    bool

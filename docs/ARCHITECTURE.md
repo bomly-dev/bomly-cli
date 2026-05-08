@@ -28,9 +28,8 @@ flowchart TD
     E --> F[Run detector chains]
     F --> G[Consolidate graph]
     G --> H[Optional package enrichment]
-    H --> I[Command-specific processing]
-    I --> J[Optional policy evaluation]
-    J --> K[Render report or SBOM]
+    H --> I[Optional policy evaluation]
+    I --> J[Render report or SBOM]
 ```
 
 ## Execution Targets
@@ -53,7 +52,7 @@ flowchart LR
     A[Runtime preparation]
     B[Subproject discovery]
     C[Detector chains]
-    D[Scope filtering and command processing]
+    D[Scope filtering]
     E[Graph consolidation]
     F[Matchers]
     G[Auditors]
@@ -67,13 +66,14 @@ Stage summary:
 1. Runtime preparation builds the filtered registry and execution plan.
 2. Subproject discovery finds supported package-manager roots for the target.
 3. Detector chains resolve dependency graphs per package manager.
-4. Command processing applies scope filtering or focused queries when needed.
+4. Scope filtering applies requested dependency scopes before consolidation.
 5. Consolidation merges subproject graphs into a unified view.
 6. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records.
-7. Command processing applies focused graph transforms such as scope filtering or explain-path selection.
-8. Auditors evaluate policy against whatever vulnerability data is already present on packages and create findings when `--audit` is enabled.
-9. Users combine `--enrich --audit` when they want external matcher data to feed policy evaluation in the same run.
-10. Output rendering emits text, JSON, SARIF, or SBOM documents.
+7. Auditors evaluate policy against whatever vulnerability data is already present on packages and create findings when `--audit` is enabled.
+8. Users combine `--enrich --audit` when they want external matcher data to feed policy evaluation in the same run.
+9. Output rendering emits text, JSON, SARIF, or SBOM documents.
+
+`bomly explain` reuses the same resolution, scope filtering, consolidation, and matching stages, then performs dependency path selection in its explain orchestration before optional component audit.
 
 ## Detector and Auditor Model
 

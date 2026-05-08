@@ -59,7 +59,7 @@ Phase A ships a single analyzer:
 
 | Ecosystem | Analyzer       | Tier     | Notes                                                                                                          |
 | --------- | -------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
-| Go        | `govulncheck`  | `symbol` | Backed by `golang.org/x/vuln`. Requires the `govulncheck` binary on PATH (vendored library is in a follow-up). |
+| Go        | `govulncheck`  | `symbol` | Backed by `golang.org/x/vuln/scan`. The default build runs in-process; the `bomly_external_govulncheck` lite build shells out to a `govulncheck` binary on PATH. |
 
 Other ecosystems (JavaScript/TypeScript, Python, Java, Rust) are tracked
 for follow-up phases. When `--reachability` is set on a project that has

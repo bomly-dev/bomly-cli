@@ -120,7 +120,7 @@ Syft, Grype, and the govulncheck reachability analyzer each support two build mo
 
 | Mode     | Build tags                                                                        | Behavior                                                                                                                                |
 |----------|-----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| Builtin  | default build                                                                     | Link Syft and Grype libraries directly. The govulncheck builtin runner currently shells out to `govulncheck` until its library lands.   |
+| Builtin  | default build                                                                     | Link Syft, Grype, and `golang.org/x/vuln/scan` (govulncheck) libraries directly. No external binary required.                          |
 | External | `bomly_external_syft`, `bomly_external_grype`, `bomly_external_govulncheck`       | Shell out to `syft`, `grype`, and `govulncheck` binaries on `PATH`.                                                                     |
 
 `make build` produces both release variants. `make build-full` produces the default builtin binary, and `make build-lite` produces the smaller external-tool build.

@@ -496,6 +496,7 @@ func TestRoot_DiffCommand_AuditUsesResolvedGitRefs(t *testing.T) {
 		"--ecosystems", "npm",
 		"--base", baseSHA,
 		"--head", headSHA,
+		"--enrich",
 		"--audit",
 		"--matchers", "grype,osv",
 		"--auditors", "severity-policy",

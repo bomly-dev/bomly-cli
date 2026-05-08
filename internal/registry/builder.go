@@ -242,10 +242,10 @@ func (r *Registry) RegisterMatcher(matcher sdk.Matcher) {
 
 // registerAnalyzers wires the built-in reachability analyzers. Concrete
 // analyzers are registered by separate methods so plugins (and lite builds)
-// can opt out via build tags. Phase A registers the govulncheck analyzer
-// only; future analyzers (jsreach, pyreach, ...) will append here.
+// can opt out via build tags.
 func (r *Registry) registerAnalyzers() {
 	r.registerGovulncheckAnalyzer()
+	r.registerJSReachAnalyzer()
 }
 
 // registerGovulncheckAnalyzer is provided by analyzers_govulncheck.go so the

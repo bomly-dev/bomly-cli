@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/engine"
-	"github.com/bomly-dev/bomly-cli/internal/selector"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
@@ -29,7 +28,7 @@ func TestResolveDetectorFilter_DefaultMinusToken(t *testing.T) {
 	if err != nil {
 		t.Fatalf("resolveDetectorFilter() error = %v", err)
 	}
-	if len(filter.Exclude) == 0 || !selector.Contains(filter.Exclude, "npm-detector") {
+	if len(filter.Exclude) == 0 || !contains(filter.Exclude, "npm-detector") {
 		t.Fatalf("expected npm-detector in exclusion list, got %#v", filter)
 	}
 }
@@ -81,7 +80,7 @@ func TestResolveMatcherFilter_PlusSyntaxAddsClearlyDefined(t *testing.T) {
 	if err != nil {
 		t.Fatalf("resolveMatcherFilter() error = %v", err)
 	}
-	if selector.Contains(filter.Exclude, clearlyDefinedCheckerName) {
+	if contains(filter.Exclude, clearlyDefinedCheckerName) {
 		t.Fatalf("expected clearlydefined matcher not to be excluded, got %#v", filter)
 	}
 }

@@ -20,6 +20,8 @@ type fakeRunner struct {
 
 func (f *fakeRunner) Name() string { return "fake" }
 
+func (f *fakeRunner) Version() string { return "fake-1.0" }
+
 func (f *fakeRunner) Run(_ context.Context, projectDir string) (RunnerResult, error) {
 	f.called++
 	f.last = projectDir

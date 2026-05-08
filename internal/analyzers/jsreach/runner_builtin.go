@@ -5,6 +5,7 @@ package jsreach
 import (
 	"context"
 	"fmt"
+	"runtime/debug"
 
 	"github.com/evanw/esbuild/pkg/api"
 	"go.uber.org/zap"
@@ -29,6 +30,28 @@ type builtinRunner struct {
 }
 
 func (builtinRunner) Name() string { return "builtin" }
+
+func (builtinRunner) Version() string { return esbuildVersion() }
+
+// esbuildVersion reads the linked esbuild version from the Go build
+// info so the cache key invalidates automatically on dep upgrades.
+// Returns "" when build info is unavailable (uncommon — Go binaries
+// always embed it unless built with -trimpath in odd setups).
+func esbuildVersion() string {
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		return ""
+	}
+	for _, dep := range info.Deps {
+		if dep == nil {
+			continue
+		}
+		if dep.Path == "github.com/evanw/esbuild" {
+			return dep.Version
+		}
+	}
+	return ""
+}
 
 func (r builtinRunner) Run(ctx context.Context, projectDir string) (RunnerResult, error) {
 	entries, err := discoverEntryPoints(projectDir)

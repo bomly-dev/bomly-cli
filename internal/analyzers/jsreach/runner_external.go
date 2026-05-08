@@ -28,6 +28,8 @@ type externalRunner struct {
 
 func (externalRunner) Name() string { return "external" }
 
+func (externalRunner) Version() string { return "" }
+
 func (r externalRunner) Run(_ context.Context, _ string) (RunnerResult, error) {
 	return RunnerResult{}, fmt.Errorf("jsreach external runner is not implemented in lite builds; use the default build for JavaScript reachability")
 }

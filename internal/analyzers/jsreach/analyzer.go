@@ -27,6 +27,17 @@ type Analyzer struct {
 	// NewDefaultRunner(Logger) when nil.
 	Runner Runner
 	Logger *zap.Logger
+	// CacheDir overrides the default per-project result cache
+	// location. Empty means "use the OS user cache directory under
+	// bomly/analyzers/jsreach".
+	CacheDir string
+	// CacheTTL overrides the default 24h cache lifetime. Zero means
+	// use the default.
+	CacheTTL time.Duration
+	// DisableCache turns off the on-disk result cache entirely.
+	// Useful in CI smoke runs where freshness matters more than
+	// speed.
+	DisableCache bool
 }
 
 // Descriptor returns the registration metadata for the jsreach analyzer.
@@ -90,11 +101,15 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 
 	logger.Info("jsreach: starting reachability analysis",
 		zap.String("runner", runner.Name()),
+		zap.String("runner_version", runner.Version()),
 		zap.Int("project_roots", len(projectRoots)),
+		zap.Bool("cache_enabled", !a.DisableCache),
 	)
 	logger.Debug("jsreach: discovered project roots", zap.Strings("paths", projectRoots))
 
+	cache := a.cache()
 	stats := model.ReachabilityStats{}
+	cacheHits, cacheMisses := 0, 0
 	for _, root := range projectRoots {
 		select {
 		case <-ctx.Done():
@@ -106,7 +121,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		}
 
 		projectStart := time.Now()
-		runResult, err := runner.Run(ctx, root)
+		runResult, fromCache, err := a.runWithCache(ctx, runner, cache, root, logger)
 		if err != nil {
 			logger.Warn("jsreach: runner failed",
 				zap.String("project_root", root),
@@ -118,6 +133,11 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 			stats.Unknown += added
 			continue
 		}
+		if fromCache {
+			cacheHits++
+		} else {
+			cacheMisses++
+		}
 		applied := applyRunnerResult(req.Graph, root, runResult, time.Now())
 		stats.Reachable += applied.reachable
 		stats.Unreachable += applied.unreachable
@@ -125,6 +145,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		logger.Info("jsreach: completed project",
 			zap.String("project_root", root),
 			zap.String("runner", runner.Name()),
+			zap.Bool("cache_hit", fromCache),
 			zap.Int("entry_points", len(runResult.EntryPoints)),
 			zap.Int("source_files", runResult.SourceFiles),
 			zap.Int("imported_packages", len(runResult.ImportedPackages)),
@@ -137,6 +158,8 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 	logger.Info("jsreach: completed reachability analysis",
 		zap.String("runner", runner.Name()),
 		zap.Int("projects", len(projectRoots)),
+		zap.Int("cache_hits", cacheHits),
+		zap.Int("cache_misses", cacheMisses),
 		zap.Int("reachable", stats.Reachable),
 		zap.Int("unreachable", stats.Unreachable),
 		zap.Int("unknown", stats.Unknown),
@@ -149,6 +172,53 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 }
 
 func (a Analyzer) logger() *zap.Logger { return ensureLogger(a.Logger) }
+
+// runWithCache returns (result, fromCache, error) for one project.
+// Cache failures are non-fatal — the runner still gets a chance to
+// produce fresh output. Cache writes after successful runs are also
+// non-fatal.
+func (a Analyzer) runWithCache(
+	ctx context.Context,
+	runner Runner,
+	cache *resultCache,
+	projectDir string,
+	logger *zap.Logger,
+) (RunnerResult, bool, error) {
+	if cache != nil {
+		if cached, ok := cache.get(projectDir, runner.Name(), runner.Version()); ok {
+			logger.Debug("jsreach: cache hit",
+				zap.String("project_root", projectDir),
+				zap.String("runner", runner.Name()),
+				zap.Int("imported_packages", len(cached.ImportedPackages)))
+			return cached, true, nil
+		}
+		logger.Debug("jsreach: cache miss",
+			zap.String("project_root", projectDir),
+			zap.String("runner", runner.Name()))
+	}
+	result, err := runner.Run(ctx, projectDir)
+	if err != nil {
+		return RunnerResult{}, false, err
+	}
+	if cache != nil {
+		if err := cache.set(projectDir, runner.Name(), runner.Version(), result); err != nil {
+			logger.Debug("jsreach: cache write failed (non-fatal)",
+				zap.String("project_root", projectDir),
+				zap.Error(err))
+		}
+	}
+	return result, false, nil
+}
+
+// cache returns the configured result cache, or nil when caching is
+// disabled. Cache construction errors are swallowed deliberately —
+// they degrade to "no cache" rather than failing the analyzer.
+func (a Analyzer) cache() *resultCache {
+	if a.DisableCache {
+		return nil
+	}
+	return newResultCache(a.CacheDir, a.CacheTTL)
+}
 
 func resultFromGraph(g *model.Graph) model.AnalyzeResult {
 	return model.AnalyzeResult{Graph: g, AnalyzerRuns: []string{Name}}

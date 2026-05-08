@@ -13,32 +13,35 @@ import (
 
 // ScanRequest holds per-call overrides for the bomly_scan tool.
 type ScanRequest struct {
-	Path       string `json:"path"`
-	Container  string `json:"container"`
-	URL        string `json:"url"`
-	Ref        string `json:"ref"`
-	Enrich     bool   `json:"enrich"`
-	Audit      bool   `json:"audit"`
-	FailOn     string `json:"fail_on"`
-	Ecosystems string `json:"ecosystems"`
+	Path         string `json:"path"`
+	Container    string `json:"container"`
+	URL          string `json:"url"`
+	Ref          string `json:"ref"`
+	Enrich       bool   `json:"enrich"`
+	Audit        bool   `json:"audit"`
+	Reachability bool   `json:"reachability"`
+	FailOn       string `json:"fail_on"`
+	Ecosystems   string `json:"ecosystems"`
 }
 
 // ExplainRequest holds per-call overrides for the bomly_explain tool.
 type ExplainRequest struct {
-	Package string `json:"package"`
-	Path    string `json:"path"`
-	Enrich  bool   `json:"enrich"`
-	Audit   bool   `json:"audit"`
+	Package      string `json:"package"`
+	Path         string `json:"path"`
+	Enrich       bool   `json:"enrich"`
+	Audit        bool   `json:"audit"`
+	Reachability bool   `json:"reachability"`
 }
 
 // DiffRequest holds per-call overrides for the bomly_diff tool.
 type DiffRequest struct {
-	Base      string `json:"base"`
-	Head      string `json:"head"`
-	Path      string `json:"path"`
-	Container string `json:"container"`
-	Enrich    bool   `json:"enrich"`
-	Audit     bool   `json:"audit"`
+	Base         string `json:"base"`
+	Head         string `json:"head"`
+	Path         string `json:"path"`
+	Container    string `json:"container"`
+	Enrich       bool   `json:"enrich"`
+	Audit        bool   `json:"audit"`
+	Reachability bool   `json:"reachability"`
 }
 
 // VulnFixRequest holds per-call overrides for the bomly_vuln_fix_context tool.

@@ -68,6 +68,7 @@ type Manifest struct {
 	DetectorDescriptor *plugschema.DetectorDescriptor `json:"detectorDescriptor,omitempty"`
 	MatcherDescriptor  *plugschema.MatcherDescriptor  `json:"matcherDescriptor,omitempty"`
 	AuditorDescriptor  *plugschema.AuditorDescriptor  `json:"auditorDescriptor,omitempty"`
+	AnalyzerDescriptor *plugschema.AnalyzerDescriptor `json:"analyzerDescriptor,omitempty"`
 	Source             string                         `json:"source,omitempty"`
 	Description        string                         `json:"description,omitempty"`
 	Homepage           string                         `json:"homepage,omitempty"`
@@ -781,5 +782,18 @@ func cloneAuditorDescriptor(descriptor *plugschema.AuditorDescriptor) *plugschem
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
 	copyValue.SupportedModes = append([]plugschema.TargetMode(nil), descriptor.SupportedModes...)
+	return &copyValue
+}
+
+func cloneAnalyzerDescriptor(descriptor *plugschema.AnalyzerDescriptor) *plugschema.AnalyzerDescriptor {
+	if descriptor == nil {
+		return nil
+	}
+	copyValue := *descriptor
+	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
+	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
+	copyValue.SupportedLanguages = append([]plugschema.Language(nil), descriptor.SupportedLanguages...)
+	copyValue.SupportedModes = append([]plugschema.TargetMode(nil), descriptor.SupportedModes...)
+	copyValue.SupportedTiers = append([]plugschema.ReachabilityTier(nil), descriptor.SupportedTiers...)
 	return &copyValue
 }

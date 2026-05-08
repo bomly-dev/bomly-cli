@@ -22,6 +22,9 @@ const (
 	PluginKindMatcher PluginKind = "matcher"
 	// PluginKindAuditor evaluates findings and risk.
 	PluginKindAuditor PluginKind = "auditor"
+	// PluginKindAnalyzer runs code analysis (e.g. reachability) over the
+	// matched graph and annotates PackageVulnerability entries.
+	PluginKindAnalyzer PluginKind = "analyzer"
 )
 
 // PluginTargetType identifies the discovery target families a plugin supports.

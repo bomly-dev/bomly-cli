@@ -44,6 +44,7 @@ func newPluginListCmd() *cobra.Command {
 	var includeDetectors bool
 	var includeMatchers bool
 	var includeAuditors bool
+	var includeAnalyzers bool
 	var format string
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -69,6 +70,7 @@ func newPluginListCmd() *cobra.Command {
 				detectors: includeDetectors,
 				matchers:  includeMatchers,
 				auditors:  includeAuditors,
+				analyzers: includeAnalyzers,
 			}
 			filtered := make([]managedplugin.PluginInfo, 0, len(all))
 			for _, info := range all {
@@ -109,6 +111,7 @@ func newPluginListCmd() *cobra.Command {
 	cmd.Flags().BoolVar(&includeDetectors, "detectors", false, "Show detector plugins")
 	cmd.Flags().BoolVar(&includeMatchers, "matchers", false, "Show matcher plugins")
 	cmd.Flags().BoolVar(&includeAuditors, "auditors", false, "Show auditor plugins")
+	cmd.Flags().BoolVar(&includeAnalyzers, "analyzers", false, "Show reachability analyzer plugins")
 	cmd.Flags().StringVar(&format, "format", pluginListFormatTable, "Render output format: table or json")
 	return cmd
 }
@@ -122,10 +125,11 @@ type pluginKindFilter struct {
 	detectors bool
 	matchers  bool
 	auditors  bool
+	analyzers bool
 }
 
 func (f pluginKindFilter) hasSelections() bool {
-	return f.detectors || f.matchers || f.auditors
+	return f.detectors || f.matchers || f.auditors || f.analyzers
 }
 
 func (f pluginKindFilter) includes(kind plugschema.PluginKind) bool {
@@ -139,6 +143,8 @@ func (f pluginKindFilter) includes(kind plugschema.PluginKind) bool {
 		return f.matchers
 	case plugschema.PluginKindAuditor:
 		return f.auditors
+	case plugschema.PluginKindAnalyzer:
+		return f.analyzers
 	default:
 		return false
 	}
@@ -367,6 +373,11 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 		metadata := builtInMetadata(d.Name, plugschema.PluginKindAuditor)
 		infos = append(infos, auditorPluginInfo(metadata, &d, coreVersion, d.Enabled))
 	}
+	for _, descriptor := range reg.AnalyzerDescriptors() {
+		d := descriptor
+		metadata := builtInMetadata(d.Name, plugschema.PluginKindAnalyzer)
+		infos = append(infos, analyzerPluginInfo(metadata, &d, coreVersion, d.Enabled))
+	}
 	return infos
 }
 
@@ -476,6 +487,27 @@ func auditorPluginInfo(metadata *plugschema.PluginMetadata, descriptor *plugsche
 	}
 }
 
+func analyzerPluginInfo(metadata *plugschema.PluginMetadata, descriptor *plugschema.AnalyzerDescriptor, coreVersion string, enabled bool) managedplugin.PluginInfo {
+	return managedplugin.PluginInfo{
+		Manifest: managedplugin.Manifest{
+			SchemaVersion:      plugschema.PackageManifestSchemaVersion,
+			ID:                 metadata.ID,
+			Name:               metadata.Name,
+			Version:            nonEmptyString(coreVersion, "unknown"),
+			Kind:               metadata.Kind,
+			Runtime:            "builtin",
+			PluginAPIVersion:   plugschema.PluginAPIVersion,
+			AnalyzerDescriptor: cloneAnalyzerDescriptor(descriptor),
+			Description:        metadata.Description,
+			Homepage:           metadata.Homepage,
+			License:            metadata.License,
+		},
+		BuiltIn:    true,
+		Enabled:    enabled,
+		SourceType: string(descriptor.Origin),
+	}
+}
+
 func cloneDetectorDescriptor(descriptor *plugschema.DetectorDescriptor) *plugschema.DetectorDescriptor {
 	if descriptor == nil {
 		return nil
@@ -550,6 +582,19 @@ func cloneAuditorDescriptor(descriptor *plugschema.AuditorDescriptor) *plugschem
 	return &copyValue
 }
 
+func cloneAnalyzerDescriptor(descriptor *plugschema.AnalyzerDescriptor) *plugschema.AnalyzerDescriptor {
+	if descriptor == nil {
+		return nil
+	}
+	copyValue := *descriptor
+	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
+	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
+	copyValue.SupportedLanguages = append([]plugschema.Language(nil), descriptor.SupportedLanguages...)
+	copyValue.SupportedModes = append([]plugschema.TargetMode(nil), descriptor.SupportedModes...)
+	copyValue.SupportedTiers = append([]plugschema.ReachabilityTier(nil), descriptor.SupportedTiers...)
+	return &copyValue
+}
+
 func writeJSON(w io.Writer, value any) error {
 	data, err := json.MarshalIndent(value, "", "  ")
 	if err != nil {
@@ -574,6 +619,9 @@ func renderPluginInfo(w io.Writer, info managedplugin.PluginInfo) error {
 	}
 	if managers := pluginInfoPackageManagers(info); len(managers) > 0 {
 		lines = append(lines, [2]string{"Package Managers", joinPackageManagers(managers)})
+	}
+	if languages := pluginInfoLanguages(info); len(languages) > 0 {
+		lines = append(lines, [2]string{"Languages", joinLanguages(languages)})
 	}
 	if features := pluginInfoFeatures(info); len(features) > 0 {
 		lines = append(lines, [2]string{"Features", strings.Join(features, ", ")})
@@ -618,6 +666,10 @@ func pluginInfoEcosystems(info managedplugin.PluginInfo) []plugschema.Ecosystem 
 		if info.AuditorDescriptor != nil {
 			return append([]plugschema.Ecosystem(nil), info.AuditorDescriptor.SupportedEcosystems...)
 		}
+	case plugschema.PluginKindAnalyzer:
+		if info.AnalyzerDescriptor != nil {
+			return append([]plugschema.Ecosystem(nil), info.AnalyzerDescriptor.SupportedEcosystems...)
+		}
 	}
 	return nil
 }
@@ -636,6 +688,20 @@ func pluginInfoPackageManagers(info managedplugin.PluginInfo) []plugschema.Packa
 		if info.AuditorDescriptor != nil {
 			return append([]plugschema.PackageManager(nil), info.AuditorDescriptor.SupportedManagers...)
 		}
+	case plugschema.PluginKindAnalyzer:
+		if info.AnalyzerDescriptor != nil {
+			return append([]plugschema.PackageManager(nil), info.AnalyzerDescriptor.SupportedManagers...)
+		}
+	}
+	return nil
+}
+
+// pluginInfoLanguages returns the SupportedLanguages list for plugin
+// kinds that carry one. Today only Analyzer plugins do; other kinds
+// return nil so `bomly plugin info` cleanly omits the Languages line.
+func pluginInfoLanguages(info managedplugin.PluginInfo) []plugschema.Language {
+	if info.Kind == plugschema.PluginKindAnalyzer && info.AnalyzerDescriptor != nil {
+		return append([]plugschema.Language(nil), info.AnalyzerDescriptor.SupportedLanguages...)
 	}
 	return nil
 }
@@ -712,10 +778,24 @@ func joinPackageManagers(values []plugschema.PackageManager) string {
 	return strings.Join(items, ", ")
 }
 
+func joinLanguages(values []plugschema.Language) string {
+	items := make([]string, 0, len(values))
+	for _, value := range values {
+		v := strings.TrimSpace(string(value))
+		if v == "" {
+			continue
+		}
+		items = append(items, v)
+	}
+	sort.Strings(items)
+	return strings.Join(items, ", ")
+}
+
 func renderPluginListTables(items []managedplugin.PluginInfo, kindFilter pluginKindFilter) string {
 	detectors := make([]managedplugin.PluginInfo, 0)
 	matchers := make([]managedplugin.PluginInfo, 0)
 	auditors := make([]managedplugin.PluginInfo, 0)
+	analyzers := make([]managedplugin.PluginInfo, 0)
 	for _, info := range items {
 		switch info.Kind {
 		case plugschema.PluginKindDetector:
@@ -724,6 +804,8 @@ func renderPluginListTables(items []managedplugin.PluginInfo, kindFilter pluginK
 			matchers = append(matchers, info)
 		case plugschema.PluginKindAuditor:
 			auditors = append(auditors, info)
+		case plugschema.PluginKindAnalyzer:
+			analyzers = append(analyzers, info)
 		}
 	}
 
@@ -748,6 +830,9 @@ func renderPluginListTables(items []managedplugin.PluginInfo, kindFilter pluginK
 	}
 	if kindFilter.includes(plugschema.PluginKindAuditor) {
 		appendTable("Auditors", []string{"NAME", "TYPE", "STATE"}, basicPluginRows(auditors))
+	}
+	if kindFilter.includes(plugschema.PluginKindAnalyzer) {
+		appendTable("Analyzers", []string{"LANGUAGES", "ECOSYSTEMS", "PACKAGE MANAGERS", "NAME", "TYPE", "STATE"}, analyzerPluginRows(analyzers))
 	}
 	if b.Len() > 0 {
 		b.WriteString("\n* Complete plugin metadata is available with --format json.\n")
@@ -774,6 +859,21 @@ func basicPluginRows(items []managedplugin.PluginInfo) [][]string {
 	rows := make([][]string, 0, len(items))
 	for _, info := range items {
 		rows = append(rows, []string{
+			pluginListName(info),
+			colorPluginType(pluginTypeValue(info), info),
+			colorPluginState(pluginStateValue(info)),
+		})
+	}
+	return rows
+}
+
+func analyzerPluginRows(items []managedplugin.PluginInfo) [][]string {
+	rows := make([][]string, 0, len(items))
+	for _, info := range items {
+		rows = append(rows, []string{
+			nonEmptyString(summarizePluginListValue(pluginAnalyzerLanguages(info), 6), "-"),
+			nonEmptyString(summarizePluginListValue(pluginAnalyzerEcosystems(info), 6), "-"),
+			nonEmptyString(summarizePluginListValue(pluginAnalyzerPackageManagers(info), 6), "-"),
 			pluginListName(info),
 			colorPluginType(pluginTypeValue(info), info),
 			colorPluginState(pluginStateValue(info)),
@@ -868,6 +968,8 @@ func pluginListTableMaxWidths(headers []string) []int {
 			widths[idx] = 28
 		case "ECOSYSTEMS":
 			widths[idx] = 28
+		case "LANGUAGES":
+			widths[idx] = 28
 		default:
 			widths[idx] = 0
 		}
@@ -959,6 +1061,60 @@ func pluginDetectorPackageManagers(info managedplugin.PluginInfo) string {
 			if !containsPluginValue(items, name) {
 				items = append(items, name)
 			}
+		}
+	}
+	sort.Strings(items)
+	return strings.Join(items, ", ")
+}
+
+func pluginAnalyzerLanguages(info managedplugin.PluginInfo) string {
+	if info.AnalyzerDescriptor == nil {
+		return ""
+	}
+	items := make([]string, 0, len(info.AnalyzerDescriptor.SupportedLanguages))
+	for _, language := range info.AnalyzerDescriptor.SupportedLanguages {
+		name := strings.TrimSpace(string(language))
+		if name == "" {
+			continue
+		}
+		if !containsPluginValue(items, name) {
+			items = append(items, name)
+		}
+	}
+	sort.Strings(items)
+	return strings.Join(items, ", ")
+}
+
+func pluginAnalyzerEcosystems(info managedplugin.PluginInfo) string {
+	if info.AnalyzerDescriptor == nil {
+		return ""
+	}
+	items := make([]string, 0, len(info.AnalyzerDescriptor.SupportedEcosystems))
+	for _, ecosystem := range info.AnalyzerDescriptor.SupportedEcosystems {
+		name := strings.TrimSpace(string(ecosystem))
+		if name == "" {
+			continue
+		}
+		if !containsPluginValue(items, name) {
+			items = append(items, name)
+		}
+	}
+	sort.Strings(items)
+	return strings.Join(items, ", ")
+}
+
+func pluginAnalyzerPackageManagers(info managedplugin.PluginInfo) string {
+	if info.AnalyzerDescriptor == nil {
+		return ""
+	}
+	items := make([]string, 0, len(info.AnalyzerDescriptor.SupportedManagers))
+	for _, manager := range info.AnalyzerDescriptor.SupportedManagers {
+		name := strings.TrimSpace(manager.Name())
+		if name == "" {
+			continue
+		}
+		if !containsPluginValue(items, name) {
+			items = append(items, name)
 		}
 	}
 	sort.Strings(items)

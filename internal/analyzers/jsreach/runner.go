@@ -42,6 +42,11 @@ type Runner interface {
 	// Name returns a stable identifier (e.g. "builtin", "external")
 	// used in telemetry and Reason fields.
 	Name() string
+	// Version returns the underlying tool version. The result cache
+	// folds it into its key so toolchain upgrades invalidate prior
+	// entries automatically. Empty string is acceptable; the cache
+	// treats it like any other distinct value.
+	Version() string
 	// Run walks projectDir and returns the bare-specifier import set
 	// found across every entry-reachable source file. projectDir must
 	// contain a package.json.

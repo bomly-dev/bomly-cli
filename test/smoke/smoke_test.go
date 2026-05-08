@@ -91,14 +91,16 @@ func TestScan(t *testing.T) {
 			tools: []string{"go"},
 		},
 		{
-			// Reachability smoke: --enrich + --reachability against the same
-			// pinned Go module. The fixture has no known vulnerabilities, so
-			// no reachability annotations end up on the package. The case
-			// exercises that the new flags parse, the analyze stage runs, and
-			// the JSON shape stays stable. A separate fixture with a real
-			// vulnerable Go dependency is tracked for a follow-up commit.
+			// Reachability smoke pinned to veracode/example-go-modules
+			// at the "Adding a known vulnerable method" commit. The
+			// repo deliberately calls into golang.org/x/text v0.3.5's
+			// language.Parse (GHSA-69ch-w2m2-3vjp / CVE-2022-32149),
+			// which the analyzer reports as reachable at the symbol
+			// tier with a non-empty call_paths slice. Goldens scrub
+			// volatile fields (call frame line numbers, file paths,
+			// analyzed_at) via normalizeReachability.
 			name:  "scan-go-reachability",
-			args:  []string{"scan", "--url", "https://github.com/google/uuid", "--ref", "v1.6.0", "--enrich", "--reachability", "--format", "json"},
+			args:  []string{"scan", "--url", "https://github.com/veracode/example-go-modules", "--ref", "555ebe70813318ce80f46e3c4fc6623012e0317d", "--enrich", "--reachability", "--format", "json"},
 			tools: []string{"go"},
 		},
 		{

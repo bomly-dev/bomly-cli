@@ -11,7 +11,7 @@ import (
 )
 
 // Pipeline orchestrates a full scan through a sequence of typed stages:
-// pre-resolve hooks -> detect -> consolidate -> match -> process -> audit -> post-resolve hooks.
+// pre-resolve hooks -> detect -> scope filter -> consolidate -> match -> audit -> post-resolve hooks.
 type Pipeline struct {
 	Registry *Registry
 	Logger   *zap.Logger
@@ -49,9 +49,6 @@ func (p *Pipeline) Run(ctx context.Context, req PipelineRequest) (PipelineResult
 		return result, err
 	}
 	p.runMatch(ctx, &result, req)
-	if err := p.runProcessor(ctx, &result, req); err != nil {
-		return result, err
-	}
 	p.runAudit(ctx, &result, req)
 	p.runPost(ctx, req, result)
 	return result, nil
@@ -122,16 +119,6 @@ func (p *Pipeline) runMatch(ctx context.Context, result *PipelineResult, req Pip
 	if req.Progress != nil {
 		req.Progress.CompleteStage("Enriching packages", 1)
 	}
-}
-
-func (p *Pipeline) runProcessor(ctx context.Context, result *PipelineResult, req PipelineRequest) error {
-	if req.Processor == nil {
-		return nil
-	}
-	if err := req.Processor(ctx, result); err != nil {
-		return fmt.Errorf("stage processor: %w", err)
-	}
-	return nil
 }
 
 func (p *Pipeline) runAudit(ctx context.Context, result *PipelineResult, req PipelineRequest) {

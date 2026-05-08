@@ -394,37 +394,6 @@ func TestPipeline_Run_ProducesConsolidatedResult(t *testing.T) {
 	}
 }
 
-func TestPipeline_Run_WithStageProcessor(t *testing.T) {
-	registry := newTestRegistry()
-	registry.registerDetector(fakeDetector{
-		descriptor: DetectorDescriptor{Name: "npm-detector", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}, SupportedModes: []TargetMode{TargetModeFullGraph}},
-		result:     ResolveGraphResult{Graphs: SingleGraphContainer(sdk.New(), sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
-	})
-
-	processorCalled := false
-	pipeline := NewPipeline(registry, zap.NewNop())
-	result, err := pipeline.Run(context.Background(), PipelineRequest{
-		Subprojects: []Subproject{{
-			ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
-			RelativePath:            ".",
-			PrimaryDetector:         "npm-detector",
-			DetectedPackageManagers: []PackageManager{PackageManagerNPM},
-			Ecosystem:               EcosystemNPM,
-		}},
-		Processor: func(_ context.Context, r *PipelineResult) error {
-			processorCalled = true
-			return nil
-		},
-	})
-	if err != nil {
-		t.Fatalf("Run() error = %v", err)
-	}
-	if !processorCalled {
-		t.Fatal("expected stage processor to be called")
-	}
-	_ = result
-}
-
 func TestPipeline_Run_DeduplicatesAuditFindings(t *testing.T) {
 	registry := newTestRegistry()
 	g := sdk.New()

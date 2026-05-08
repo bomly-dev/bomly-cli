@@ -12,6 +12,7 @@
     "id": "github.com/google/uuid",
     "licenses": [],
     "name": "github.com/google/uuid",
+    "purl": "pkg:golang/github.com/google/uuid",
     "vulnerabilities": []
   },
   "metadata": {
@@ -19,12 +20,13 @@
   },
   "paths": [
     {
-      "introduced_via": "github.com/google/uuid",
+      "introduced_via": "pkg:golang/github.com/google/uuid",
       "packages": [
         {
-          "id": "github.com/google/uuid",
+          "id": "pkg:golang/github.com/google/uuid",
           "licenses": [],
           "name": "github.com/google/uuid",
+          "purl": "pkg:golang/github.com/google/uuid",
           "vulnerabilities": []
         }
       ],
@@ -55,17 +57,19 @@
         "id": "github.com/google/uuid",
         "licenses": [],
         "name": "github.com/google/uuid",
+        "purl": "pkg:golang/github.com/google/uuid",
         "vulnerabilities": []
       },
       "detector": "go-detector",
       "paths": [
         {
-          "introduced_via": "github.com/google/uuid",
+          "introduced_via": "pkg:golang/github.com/google/uuid",
           "packages": [
             {
-              "id": "github.com/google/uuid",
+              "id": "pkg:golang/github.com/google/uuid",
               "licenses": [],
               "name": "github.com/google/uuid",
+              "purl": "pkg:golang/github.com/google/uuid",
               "vulnerabilities": []
             }
           ],

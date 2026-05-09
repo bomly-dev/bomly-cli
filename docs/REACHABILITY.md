@@ -67,15 +67,29 @@ vulnerabilities just keep their default `nil` reachability.
 
 ### A note on `jsreach` and Tier 3
 
-`jsreach` reports at the **package tier** today. "Reachable (package)"
-means the application source imports the affected npm package
-somewhere reachable from a real entry point. "Unreachable (package)"
-means the package is in the dependency graph (it's installed) but
-nothing in app source imports it — typically because it is a
-`devDependencies` entry, an indirect transitive of a runtime dep, or
-listed in `dependencies` but never `require`d.
+`jsreach` reports at the **package tier** today. The analyzer
+classifies a package as "reachable" when there is **any path** from
+app source to that package through the dependency graph the npm
+detector resolved from the lockfile:
 
-Two important caveats:
+- App source `require('express')` → `express` is reachable.
+- `express` depends on `body-parser` per the lockfile → `body-parser`
+  is reachable too, even if no app source file imports it directly.
+- `jest` (a devDependency) is in the lockfile but no source file
+  imports it → `jest` and everything reachable only through `jest`
+  stay unreachable.
+
+Concretely, esbuild walks the application's source tree (with
+`PackagesExternal`, so it stops at every bare specifier without
+opening `node_modules`), giving us the **directly-imported** set.
+The analyzer then expands that set transitively through the npm
+detector's existing dep graph (via `Graph.Dependencies`) before
+deciding each package's status. Packages can appear in the dep
+graph at multiple versions (a top-level `lodash@4` and a nested
+`lodash@3` inside some sub-tree); we key the closure by graph IDs,
+not names, so attribution stays version-correct.
+
+Three important caveats:
 
 1. **"Unreachable" is not "safe".** A server runtime can `require()`
    a package dynamically based on user input; a plugin loader can
@@ -90,6 +104,11 @@ Two important caveats:
    Symbol-tier resolution for npm is tracked for a future phase and
    would need a curated affected-symbols database (OSV / GHSA rarely
    carry that level of detail for npm).
+3. **The closure is only as accurate as the lockfile.** If the dep
+   graph is incomplete (e.g. a package was installed locally but
+   never recorded in the lockfile, or a package was installed via
+   `npm link`), the closure can't reach it. The npm / pnpm / yarn
+   detectors are the source of truth for what edges exist.
 
 ## Composing with `--fail-on`
 

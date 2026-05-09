@@ -211,6 +211,161 @@ func TestAnalyzerApplicableRequiresNPMVulns(t *testing.T) {
 	}
 }
 
+// TestAnalyzerMarksTransitiveDepReachable is the headline correctness
+// test for the closure expansion. esbuild stops at every bare
+// specifier (PackagesExternal), so the runner's import set only
+// contains directly-imported packages. The graph, however, captures
+// the full dep tree from the lockfile. A vulnerability in a package
+// reachable only through a chain of dep edges (app → express →
+// body-parser) must still be reported as reachable.
+func TestAnalyzerMarksTransitiveDepReachable(t *testing.T) {
+	projectDir := newNPMProjectDir(t)
+	expressVuln := model.PackageVulnerability{ID: "GHSA-direct", Source: "osv", Severity: "high"}
+	bodyParserVuln := model.PackageVulnerability{ID: "GHSA-transitive", Source: "osv", Severity: "high"}
+
+	g := model.New()
+	express := model.NewPackage(model.Package{
+		Name:            "express",
+		Version:         "4.0.0",
+		Ecosystem:       "npm",
+		BuildSystem:     "npm",
+		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}},
+		Vulnerabilities: []model.PackageVulnerability{expressVuln},
+	})
+	bodyParser := model.NewPackage(model.Package{
+		Name:            "body-parser",
+		Version:         "1.0.0",
+		Ecosystem:       "npm",
+		BuildSystem:     "npm",
+		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}},
+		Vulnerabilities: []model.PackageVulnerability{bodyParserVuln},
+	})
+	if err := g.AddPackage(express); err != nil {
+		t.Fatal(err)
+	}
+	if err := g.AddPackage(bodyParser); err != nil {
+		t.Fatal(err)
+	}
+	if err := g.AddDependency(express.ID, bodyParser.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	a := Analyzer{Runner: &fakeRunner{
+		result: RunnerResult{
+			// App source only imports express directly.
+			ImportedPackages: map[string]struct{}{"express": {}},
+			EntryPoints:      []string{filepath.Join(projectDir, "index.js")},
+			SourceFiles:      1,
+		},
+	}}
+
+	_, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: projectDir})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, pkg := range g.Packages() {
+		r := pkg.Vulnerabilities[0].Reachability
+		if r == nil {
+			t.Fatalf("%s: missing Reachability", pkg.Name)
+		}
+		if r.Status != model.ReachabilityReachable {
+			t.Errorf("%s: status = %q, want reachable (express directly imported, body-parser transitively)", pkg.Name, r.Status)
+		}
+	}
+}
+
+// TestAnalyzerDoesNotExpandThroughUnimportedRoots ensures the closure
+// only walks from the directly-imported seed set. A vulnerable
+// transitive dep that is NOT reachable from any imported package
+// should stay unreachable.
+func TestAnalyzerDoesNotExpandThroughUnimportedRoots(t *testing.T) {
+	projectDir := newNPMProjectDir(t)
+	devToolVuln := model.PackageVulnerability{ID: "GHSA-devtool", Source: "osv", Severity: "high"}
+	transitiveVuln := model.PackageVulnerability{ID: "GHSA-trans", Source: "osv", Severity: "high"}
+
+	g := model.New()
+	// jest is a devDependency that the runner's app-source walk does
+	// NOT find (test files aren't entry points by default).
+	jest := model.NewPackage(model.Package{
+		Name:            "jest",
+		Version:         "29.0.0",
+		Ecosystem:       "npm",
+		BuildSystem:     "npm",
+		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}},
+		Vulnerabilities: []model.PackageVulnerability{devToolVuln},
+	})
+	// jest depends on glob; if jest isn't reachable, glob shouldn't
+	// be either, even though glob is in the dep graph.
+	glob := model.NewPackage(model.Package{
+		Name:            "glob",
+		Version:         "8.0.0",
+		Ecosystem:       "npm",
+		BuildSystem:     "npm",
+		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}},
+		Vulnerabilities: []model.PackageVulnerability{transitiveVuln},
+	})
+	if err := g.AddPackage(jest); err != nil {
+		t.Fatal(err)
+	}
+	if err := g.AddPackage(glob); err != nil {
+		t.Fatal(err)
+	}
+	if err := g.AddDependency(jest.ID, glob.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	a := Analyzer{Runner: &fakeRunner{
+		result: RunnerResult{
+			ImportedPackages: map[string]struct{}{"react": {}}, // unrelated import
+			EntryPoints:      []string{filepath.Join(projectDir, "index.js")},
+			SourceFiles:      1,
+		},
+	}}
+	_, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: projectDir})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, pkg := range g.Packages() {
+		r := pkg.Vulnerabilities[0].Reachability
+		if r == nil {
+			t.Fatalf("%s: missing Reachability", pkg.Name)
+		}
+		if r.Status != model.ReachabilityUnreachable {
+			t.Errorf("%s: status = %q, want unreachable (neither directly imported nor reachable from any import)", pkg.Name, r.Status)
+		}
+	}
+}
+
+// TestComputeReachablePackageIDsHandlesCycles guards against the
+// classic BFS pitfall: a → b → a should not loop.
+func TestComputeReachablePackageIDsHandlesCycles(t *testing.T) {
+	g := model.New()
+	a := model.NewPackage(model.Package{Name: "a", Version: "1.0.0", Ecosystem: "npm"})
+	b := model.NewPackage(model.Package{Name: "b", Version: "1.0.0", Ecosystem: "npm"})
+	if err := g.AddPackage(a); err != nil {
+		t.Fatal(err)
+	}
+	if err := g.AddPackage(b); err != nil {
+		t.Fatal(err)
+	}
+	if err := g.AddDependency(a.ID, b.ID); err != nil {
+		t.Fatal(err)
+	}
+	if err := g.AddDependency(b.ID, a.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	got := computeReachablePackageIDs(g, map[string]struct{}{"a": {}})
+	if _, ok := got[a.ID]; !ok {
+		t.Errorf("expected a in reachable set: %v", got)
+	}
+	if _, ok := got[b.ID]; !ok {
+		t.Errorf("expected b (transitive of a) in reachable set: %v", got)
+	}
+}
+
 func TestAnalyzerMarksUnknownWhenNoProjectRootDiscovered(t *testing.T) {
 	// Project path doesn't contain a package.json — discoverProjectRoots
 	// returns empty so the analyzer should mark every npm vuln Unknown.

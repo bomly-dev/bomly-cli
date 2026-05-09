@@ -1,6 +1,8 @@
 module github.com/bomly-dev/bomly-cli
 
-go 1.25.8
+go 1.26.0
+
+toolchain go1.26.3
 
 require (
 	github.com/CycloneDX/cyclonedx-go v0.10.0

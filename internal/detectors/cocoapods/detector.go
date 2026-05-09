@@ -102,7 +102,7 @@ func depGraphFromLock(raw []byte) (*sdk.Graph, error) {
 	}
 	specs := parsePodSpecs(lock.Pods)
 	if len(specs) == 0 {
-		return nil, fmt.Errorf("Podfile.lock does not contain any pods")
+		return nil, fmt.Errorf("podfile.lock does not contain any pods")
 	}
 	g := sdk.New()
 	root := rootNode()

@@ -68,7 +68,7 @@ func ApplyFileConfig(dst *Resolved, src File) {
 	t := srcVal.Type()
 	for i := 0; i < t.NumField(); i++ {
 		sf := srcVal.Field(i)
-		if sf.Kind() != reflect.Ptr || sf.IsNil() {
+		if sf.Kind() != reflect.Pointer || sf.IsNil() {
 			continue
 		}
 		df := dstVal.FieldByName(t.Field(i).Name)

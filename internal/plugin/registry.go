@@ -8,7 +8,6 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	"github.com/bomly-dev/bomly-cli/sdk"
-	plugschema "github.com/bomly-dev/bomly-cli/sdk"
 )
 
 type registryWriter interface {
@@ -33,14 +32,14 @@ func RegisterRuntimePlugins(ctx context.Context, reg registryWriter, root string
 	}
 	for _, info := range infos {
 		switch info.Kind {
-		case plugschema.PluginKindDetector:
+		case sdk.PluginKindDetector:
 			reg.RegisterDetector(newExternalDetector(info, ctx))
 			if plan, ok := detectorDiscoveryPlan(info.Manifest); ok {
 				reg.RegisterDetectorDiscoveryPlan(info.ID, plan)
 			}
-		case plugschema.PluginKindMatcher:
+		case sdk.PluginKindMatcher:
 			reg.RegisterMatcher(newExternalMatcher(info, ctx))
-		case plugschema.PluginKindAuditor:
+		case sdk.PluginKindAuditor:
 			reg.RegisterAuditor(newExternalAuditor(info, ctx))
 		}
 	}
@@ -52,7 +51,7 @@ type externalDetector struct {
 	launchCtx context.Context
 }
 
-func (d externalDetector) Metadata(context.Context) (*plugschema.PluginMetadata, error) {
+func (d externalDetector) Metadata(context.Context) (*sdk.PluginMetadata, error) {
 	return metadataFromPluginInfo(d.info), nil
 }
 
@@ -66,10 +65,10 @@ func (d externalDetector) Descriptor() sdk.DetectorDescriptor {
 }
 
 func (d externalDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	if d.info.Manifest.DetectorDescriptor == nil {
+	if d.info.DetectorDescriptor == nil {
 		return nil
 	}
-	return clonePackageManagerSupport(d.info.Manifest.DetectorDescriptor.PackageManagerSupport)
+	return clonePackageManagerSupport(d.info.DetectorDescriptor.PackageManagerSupport)
 }
 
 func (d externalDetector) Ready() bool {
@@ -140,7 +139,7 @@ type externalMatcher struct {
 	launchCtx context.Context
 }
 
-func (m externalMatcher) Metadata(context.Context) (*plugschema.PluginMetadata, error) {
+func (m externalMatcher) Metadata(context.Context) (*sdk.PluginMetadata, error) {
 	return metadataFromPluginInfo(m.info), nil
 }
 
@@ -199,7 +198,7 @@ type externalAuditor struct {
 	launchCtx context.Context
 }
 
-func (a externalAuditor) Metadata(context.Context) (*plugschema.PluginMetadata, error) {
+func (a externalAuditor) Metadata(context.Context) (*sdk.PluginMetadata, error) {
 	return metadataFromPluginInfo(a.info), nil
 }
 
@@ -266,8 +265,8 @@ func launchContext(ctx context.Context, fallback context.Context) context.Contex
 	return WithLaunchOptions(ctx, LaunchOptions{})
 }
 
-func metadataFromPluginInfo(info PluginInfo) *plugschema.PluginMetadata {
-	return &plugschema.PluginMetadata{
+func metadataFromPluginInfo(info PluginInfo) *sdk.PluginMetadata {
+	return &sdk.PluginMetadata{
 		ID:                     info.ID,
 		Name:                   info.Name,
 		Version:                info.Version,

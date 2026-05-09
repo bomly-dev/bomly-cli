@@ -309,11 +309,11 @@ type cargoManifest struct {
 func depGraphFromLock(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 	packages := parseCargoLockPackages(string(lockRaw))
 	if len(packages) == 0 {
-		return nil, fmt.Errorf("Cargo.lock does not contain any packages")
+		return nil, fmt.Errorf("cargo.lock does not contain any packages")
 	}
 	manifest := parseCargoManifest(string(manifestRaw))
 	if manifest.Name == "" {
-		return nil, fmt.Errorf("Cargo.toml does not contain a package name")
+		return nil, fmt.Errorf("cargo.toml does not contain a package name")
 	}
 	g := sdk.New()
 	root := sdk.NewPackage(sdk.Package{

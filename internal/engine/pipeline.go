@@ -109,7 +109,7 @@ func (p *Pipeline) runConsolidate(result *PipelineResult, req PipelineRequest) e
 }
 
 func (p *Pipeline) runMatch(ctx context.Context, result *PipelineResult, req PipelineRequest) {
-	if !(req.EnrichEnabled || req.MatchEnabled) || result.Graph == nil {
+	if (!req.EnrichEnabled && !req.MatchEnabled) || result.Graph == nil {
 		return
 	}
 	if req.Progress != nil {

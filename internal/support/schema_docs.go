@@ -32,8 +32,8 @@ func WriteCommandSchemaDocs(outputDir string) ([]string, error) {
 func GenerateSchemaReferenceMarkdown(command string, root reflect.Type) string {
 	var builder strings.Builder
 	title := strings.ToUpper(command[:1]) + command[1:]
-	builder.WriteString(fmt.Sprintf("# Bomly %s JSON Schema Reference\n\n", title))
-	builder.WriteString(fmt.Sprintf("Complete reference for the `bomly %s` JSON output.\n\n", command))
+	fmt.Fprintf(&builder, "# Bomly %s JSON Schema Reference\n\n", title)
+	fmt.Fprintf(&builder, "Complete reference for the `bomly %s` JSON output.\n\n", command)
 
 	visited := map[reflect.Type]bool{}
 	collectStructTypes(root, visited)
@@ -53,7 +53,7 @@ func GenerateSchemaReferenceMarkdown(command string, root reflect.Type) string {
 
 		builder.WriteString("## Types\n\n")
 		for _, t := range types {
-			builder.WriteString(fmt.Sprintf("### `%s`\n\n", t.Name()))
+			fmt.Fprintf(&builder, "### `%s`\n\n", t.Name())
 			writeTypeTable(&builder, t)
 		}
 	}
@@ -79,7 +79,7 @@ func writeTypeTable(builder *strings.Builder, t reflect.Type) {
 		if jsonName == "" {
 			jsonName = field.Name
 		}
-		builder.WriteString(fmt.Sprintf("| `%s` | %s | |\n", jsonName, jsonTypeName(field.Type)))
+		fmt.Fprintf(builder, "| `%s` | %s | |\n", jsonName, jsonTypeName(field.Type))
 	}
 	builder.WriteString("\n")
 }
@@ -131,7 +131,7 @@ func jsonTypeName(t reflect.Type) string {
 func collectStructTypes(t reflect.Type, visited map[reflect.Type]bool) {
 	t = derefType(t)
 	if t.Kind() != reflect.Struct {
-		if t.Kind() == reflect.Slice || t.Kind() == reflect.Ptr {
+		if t.Kind() == reflect.Slice || t.Kind() == reflect.Pointer {
 			collectStructTypes(t.Elem(), visited)
 		}
 		return

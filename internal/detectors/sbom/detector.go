@@ -76,10 +76,10 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 
 	doc, target, err := sbom.UnmarshalAutoJSON(data)
 	if err != nil {
-		switch {
-		case err == sbom.ErrMalformedJSON:
+		switch err {
+		case sbom.ErrMalformedJSON:
 			return sdk.DetectionResult{}, fmt.Errorf("parse sbom file %q: %w", sbomPath, err)
-		case err == sbom.ErrUnsupportedFormat:
+		case sbom.ErrUnsupportedFormat:
 			return sdk.DetectionResult{}, fmt.Errorf("detect sbom format for %q: %w", sbomPath, err)
 		default:
 			return sdk.DetectionResult{}, fmt.Errorf("decode sbom file %q: %w", sbomPath, err)

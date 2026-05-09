@@ -24,7 +24,7 @@ func RenderSupportMatrixMarkdown() string {
 	builder.WriteString("| Ecosystem | Package managers | Primary detector files | Fallback detector files | Detector |\n")
 	builder.WriteString("| --- | --- | --- | --- | --- |\n")
 	for _, entry := range groupedNativeEntries() {
-		builder.WriteString(fmt.Sprintf("| `%s` | %s | %s | %s | %s |\n", entry.ecosystem, codeList(entry.managers), codeListOrDash(entry.primaryPatterns), codeListOrDash(entry.fallbackPatterns), nativeDetectorLabel(entry.ecosystem)))
+		fmt.Fprintf(&builder, "| `%s` | %s | %s | %s | %s |\n", entry.ecosystem, codeList(entry.managers), codeListOrDash(entry.primaryPatterns), codeListOrDash(entry.fallbackPatterns), nativeDetectorLabel(entry.ecosystem))
 	}
 	builder.WriteString("\n## Bundled Detectors\n\n")
 	builder.WriteString("The entries below show Syft-backed ecosystem coverage plus representative files Bomly uses during planning and discovery.\n\n")
@@ -32,7 +32,7 @@ func RenderSupportMatrixMarkdown() string {
 	builder.WriteString("| Ecosystem | Package managers | Representative file evidence |\n")
 	builder.WriteString("| --- | --- | --- |\n")
 	for _, entry := range groupedMultipleTechniqueEntries() {
-		builder.WriteString(fmt.Sprintf("| `%s` | %s | %s |\n", entry.ecosystem, codeList(entry.managers), codeList(entry.patterns)))
+		fmt.Fprintf(&builder, "| `%s` | %s | %s |\n", entry.ecosystem, codeList(entry.managers), codeList(entry.patterns))
 	}
 	builder.WriteString("\n## Notes\n\n")
 	builder.WriteString("- Bomly does not expose every Syft cataloger as a package manager.\n")
@@ -47,7 +47,7 @@ func RenderSupportMatrixMarkdown() string {
 		if len(item.Aliases) > 0 {
 			label = fmt.Sprintf("%s (%s)", item.Name, strings.Join(item.Aliases, ", "))
 		}
-		builder.WriteString(fmt.Sprintf("| `%s` | `%s` | `%s` |\n", label, item.Provider, item.VersionSource))
+		fmt.Fprintf(&builder, "| `%s` | `%s` | `%s` |\n", label, item.Provider, item.VersionSource)
 	}
 	return builder.String()
 }

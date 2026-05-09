@@ -155,7 +155,7 @@ func depGraphFromJSON(raw []byte) (*sdk.Graph, error) {
 		}
 		return depGraphFromRefs(refs)
 	default:
-		return nil, fmt.Errorf("Conan JSON does not contain graph nodes or requirements")
+		return nil, fmt.Errorf("conan JSON does not contain graph nodes or requirements")
 	}
 }
 
@@ -221,7 +221,7 @@ func depGraphFromManifestFiles(workingDir string) (*sdk.Graph, error) {
 
 func depGraphFromRefs(refs []conanRef) (*sdk.Graph, error) {
 	if len(refs) == 0 {
-		return nil, fmt.Errorf("Conan files do not contain any dependencies")
+		return nil, fmt.Errorf("conan files do not contain any dependencies")
 	}
 	g := sdk.New()
 	root := rootNode()

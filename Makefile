@@ -1,6 +1,6 @@
 BINARY_NAME=bomly
 LITE_BUILD_TAGS=bomly_external_syft,bomly_external_grype
-GOLANGCI_LINT_VERSION=v1.64.8
+GOLANGCI_LINT_VERSION=v2.12.0
 GO_LICENSES_VERSION=v1.6.0
 GOPATH_BIN=$(shell go env GOPATH)/bin
 EXE_SUFFIX=$(if $(filter Windows_NT,$(OS)),.exe,)
@@ -23,7 +23,7 @@ fmt-check:
 	go run ./internal/tools/gofmtcheck
 
 $(GOLANGCI_LINT): Makefile
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
 
 lint: $(GOLANGCI_LINT)
 	$(GOLANGCI_LINT) run

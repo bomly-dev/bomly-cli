@@ -196,7 +196,7 @@ func TestManifestDedupPriorityPrefersNativeOverSyft(t *testing.T) {
 	if got := ManifestDedupPriority(sdk.BundledOrigin, sdk.MultipleTechnique); got != 2 {
 		t.Fatalf("expected bundled multiple-technique detector priority 2, got %d", got)
 	}
-	if !(ManifestDedupPriority(sdk.CoreOrigin, sdk.BuildToolTechnique) < ManifestDedupPriority(sdk.BundledOrigin, sdk.MultipleTechnique)) {
+	if ManifestDedupPriority(sdk.CoreOrigin, sdk.BuildToolTechnique) >= ManifestDedupPriority(sdk.BundledOrigin, sdk.MultipleTechnique) {
 		t.Fatal("expected core detector to outrank bundled multiple-technique detector for manifest deduplication")
 	}
 }

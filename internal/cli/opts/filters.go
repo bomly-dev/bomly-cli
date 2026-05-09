@@ -189,9 +189,7 @@ func buildAuditorSelectorCatalog(reg *engine.Registry) catalog {
 		aliasToName[name] = name
 	}
 	simplified := make([]string, 0, len(available))
-	for _, name := range available {
-		simplified = append(simplified, name)
-	}
+	simplified = append(simplified, available...)
 	sort.Strings(available)
 	sort.Strings(simplified)
 	return catalog{Kind: "auditor", Available: available, AliasToName: aliasToName, Items: simplified}

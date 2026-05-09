@@ -124,7 +124,7 @@ func depGraphFromMix(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 		packages[name] = pkg
 	}
 	if len(packages) == 0 {
-		return nil, fmt.Errorf("Mix files do not contain any dependencies")
+		return nil, fmt.Errorf("mix files do not contain any dependencies")
 	}
 
 	g := sdk.New()

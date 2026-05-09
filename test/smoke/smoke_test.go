@@ -132,6 +132,21 @@ func TestScan(t *testing.T) {
 			tools: []string{"pip"},
 		},
 		{
+			// pyreach smoke pinned to veracode/example-python3-pip,
+			// a deliberately-vulnerable demo. main.py imports
+			// jwt / django / rsa / requests directly; requirements.txt
+			// pins ten more deps that are either unimported (feedparser,
+			// sgmllib3k) or reachable only transitively (urllib3, idna,
+			// chardet, certifi, pyasn1, pytz). Exercises the
+			// directly-imported, transitively-reachable, and
+			// unreachable branches plus the module-to-distribution
+			// override (jwt → pyjwt). Goldens scrub timestamps via
+			// normalizeReachability.
+			name:  "scan-python-pip-reachability",
+			args:  []string{"scan", "--url", "https://github.com/veracode/example-python3-pip", "--ref", "e19d10938caf3e06730c23047ae118cd59638e41", "--enrich", "--reachability", "--format", "json"},
+			tools: []string{"pip"},
+		},
+		{
 			name: "scan-composer",
 			args: []string{"scan", "--url", "https://github.com/guzzle/guzzle", "--ref", "7.9.2", "--format", "json"},
 			//tools: []string{"composer"},

@@ -28,14 +28,21 @@ jobs:
           cache-dependency-path: |
             go.sum
 
+      - name: Restore golangci-lint cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/golangci-lint
+            ~/go/bin
+          key: golangci-lint-${{ runner.os }}-${{ hashFiles('Makefile', '.golangci.yml', 'go.mod', 'go.sum') }}
+          restore-keys: |
+            golangci-lint-${{ runner.os }}-
+
       - name: Run golangci-lint
         run: make lint
 
       - name: Run unit and integration tests
         run: make test
-
-      - name: Run go vet
-        run: go vet ./...
 
       - name: Build default Bomly binary
         run: go build -o /tmp/bomly ./cmd/bomly

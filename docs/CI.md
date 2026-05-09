@@ -6,7 +6,7 @@ Bomly uses GitHub Actions for validation, security analysis, smoke coverage, and
 
 | Workflow               | Trigger                                        | Purpose                                                                                                                |
 |------------------------|------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
-| `CI`                   | Pull requests, pushes to `main`                | Fast validation: `golangci-lint`, `gofmt` drift checks, tests, `go vet`, build sanity, module drift, and generated-doc drift |
+| `CI`                   | Pull requests, pushes to `main`                | Fast validation: `golangci-lint`, `gofmt` drift checks, tests, build sanity, module drift, and generated-doc drift |
 | `Dependency Review`    | Pull requests touching `go.mod` or `go.sum`    | Review dependency changes before merge                                                                                 |
 | `Smoke`                | Merge queue, nightly schedule, manual dispatch | Slow end-to-end coverage against real repositories, SBOMs, and containers before merge, plus scheduled drift detection |
 | `Update Smoke Goldens` | Manual dispatch                                | Regenerate golden files on a chosen ref and open a PR when the changes are intentional                                 |
@@ -53,8 +53,8 @@ The repository also ships a pre-commit hook in `.githooks/pre-commit`. Run `make
 
 This repository is currently private, so the workflow set is intentionally lean:
 
-- `go vet` runs inside the main `CI` workflow instead of a separate quality workflow.
-- `golangci-lint` runs inside the main `CI` workflow via `make lint`, which uses the repository-pinned version and configuration from `.golangci.yml`.
+- `golangci-lint` runs inside the main `CI` workflow via `make lint`, with both its tool binary and analysis cache restored between runs.
+- Standalone `go vet ./...` is not run separately in `CI` because `.golangci.yml` already enables `govet`.
 - `go test -race` is not enabled in CI because it adds runtime cost and is best reintroduced later if we need the extra concurrency diagnostics.
 - CodeQL is disabled for now because it is not available for the current private-repo setup. It can be restored when the repository goes public or the GitHub plan changes.
 

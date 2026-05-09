@@ -29,13 +29,12 @@ jobs:
             go.sum
 
       - name: Run golangci-lint
-        run: make lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.64.8
 
       - name: Run unit and integration tests
         run: make test
-
-      - name: Run go vet
-        run: go vet ./...
 
       - name: Build default Bomly binary
         run: go build -o /tmp/bomly ./cmd/bomly

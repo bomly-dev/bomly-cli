@@ -59,8 +59,9 @@ degrade to `Status: unknown` with a stable, machine-readable `Reason`
 | -------------------- | ------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Go                   | `govulncheck` | `symbol`  | Backed by the vendored `golang.org/x/vuln/scan` library; runs in-process so users never need a `govulncheck` binary on PATH.                                                                                                                                     |
 | JavaScript / TypeScript | `jsreach`     | `package` | Backed by the vendored `github.com/evanw/esbuild/pkg/api` library. Walks app source from `package.json` entry points (`main`, `module`, `browser`, `exports`, `bin`, plus implicit `index.*` / `app.js` / `server.js` / `main.js` fallbacks) and reports each npm package as reachable iff it appears in the import set. |
+| Python               | `pyreach`     | `package` | In-process line-oriented import scanner. Walks every `.py` file under the project root (`pyproject.toml` / `setup.py` / `requirements*.txt` / `Pipfile` / `poetry.lock` / `pdm.lock` / `uv.lock`), records each top-level module from `import` and `from … import` statements, and maps module names to PyPI distribution names through a static override map (e.g. `yaml` → `PyYAML`) plus PEP 503 normalization. |
 
-Other ecosystems (Python, Java, Rust) are tracked for follow-up phases.
+Other ecosystems (Java, Rust) are tracked for follow-up phases.
 When `--reachability` is set on a project that has no applicable
 analyzer for the languages present, the pipeline still runs cleanly:
 vulnerabilities just keep their default `nil` reachability.
@@ -108,6 +109,56 @@ Three important caveats:
    graph is incomplete (e.g. a package was installed locally but
    never recorded in the lockfile, or a package was installed via
    `npm link`), the closure can't reach it. The npm / pnpm / yarn
+   detectors are the source of truth for what edges exist.
+
+### A note on `pyreach` and Tier 3
+
+`pyreach` reports at the **package tier** today using the same
+"directly-imported set + transitive closure" approach as `jsreach`.
+The analyzer walks every `.py` file under the project root, scans for
+`import x` / `from x import …` statements, maps top-level module names
+to PyPI distribution names, and then expands the resulting set
+transitively through the Python detector's dep graph (via
+`Graph.Dependencies`).
+
+The module-to-distribution mapping is the part Python forces on every
+static analyzer: imports use module names (`import yaml`,
+`from PIL import Image`), but PyPI uses distribution names (`PyYAML`,
+`Pillow`). The analyzer applies a layered mapping:
+
+1. A small static override table for the well-known mismatches
+   (`yaml → pyyaml`, `cv2 → opencv-python`, `sklearn → scikit-learn`,
+   `bs4 → beautifulsoup4`, `PIL → pillow`, `jwt → pyjwt`, …).
+2. PEP 503 identity normalization (lowercase, `_` / `.` → `-`) for
+   everything else, which catches the bulk of PyPI (`requests`,
+   `flask`, `numpy`, `pandas`, …).
+3. Stdlib modules (`os`, `sys`, `json`, …) are dropped from the
+   import set so they never affect the closure.
+
+The same three caveats from `jsreach` apply, with two extra Python
+specifics:
+
+1. **"Unreachable" is not "safe".** `importlib.import_module(…)` on
+   user input, plugin discovery via entry points, Django's
+   `INSTALLED_APPS` strings, and conditional `__import__` calls are
+   all invisible to a static scanner. Tier-3 unreachable is useful
+   for prioritizing dev-only / unused dependencies, not as a fix
+   substitute.
+2. **Submodule imports collapse to the distribution.** `from
+   urllib3.util import retry` attributes the whole `urllib3`
+   distribution as reachable, even if a CVE only affects a
+   different submodule. Symbol-tier resolution for Python is a
+   future phase.
+3. **A missing static-override entry produces a false negative for
+   direct imports.** If a project does `import some_obscure_module`
+   and the override map doesn't know it maps to `some-other-dist`,
+   the analyzer reports the distribution as unreachable when it
+   actually was imported. The BFS through the dep graph usually
+   recovers the case via a transitive edge from a correctly-mapped
+   neighbour. Adding an override is a one-line PR.
+4. **The closure is only as accurate as the lockfile.** Same as
+   `jsreach`: if the dep graph is incomplete, the closure can't
+   reach what isn't there. The pip / poetry / pipenv / uv / pdm
    detectors are the source of truth for what edges exist.
 
 ## Composing with `--fail-on`
@@ -179,6 +230,15 @@ Reachability data appears in three places:
   analyzer treats the directory containing `package.json` as a single
   project. Workspace-aware traversal (each workspace as its own
   project root with its own entry points) is a follow-up.
+- **`pyreach` does not follow dynamic imports.**
+  `importlib.import_module(name)` on user input, plugin discovery via
+  entry points, Django `INSTALLED_APPS` strings, conditional
+  `__import__` — none of these are visible to a static scanner. The
+  analyzer is a lower bound on what's actually reachable.
+- **`pyreach`'s module-to-distribution map is hand-curated.** Missing
+  an entry produces a false-negative for direct top-level imports.
+  PRs to extend `internal/analyzers/pyreach/moduletodist.go` are
+  welcome.
 
 ## Selecting analyzers
 
@@ -202,6 +262,8 @@ library:
 
 - `govulncheck` runs in-process via `golang.org/x/vuln/scan`.
 - `jsreach` runs in-process via `github.com/evanw/esbuild/pkg/api`.
+- `pyreach` runs in-process via an in-tree line-oriented import
+  scanner (no external dependency).
 
 Both libraries are small enough that vendoring them outweighs the
 maintenance cost of supporting an external/lite variant. Lite builds

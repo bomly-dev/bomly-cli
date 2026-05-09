@@ -231,11 +231,21 @@ type applyOutcome struct {
 
 // applyRunnerResult annotates every npm vulnerability whose owning
 // package is attributable to projectRoot. A package is "reachable" iff
-// its name (or any subpath) appears in the runner's import set;
-// otherwise it's marked Unreachable at TierPackage.
+// it is in the transitive closure of the runner's bare-specifier
+// import set walked through the dep graph; otherwise it is marked
+// Unreachable at TierPackage.
+//
+// The transitive closure is essential — esbuild stops at every bare
+// specifier (PackagesExternal), so the runner's import set only
+// captures packages directly imported from app source. A CVE in a
+// transitive dep (e.g. body-parser pulled in by express) would be
+// missed otherwise. The closure follows Graph.Dependencies edges, so
+// it sees exactly the dep tree the npm detector resolved from the
+// lockfile.
 func applyRunnerResult(g *model.Graph, projectRoot string, runRes RunnerResult, now time.Time) applyOutcome {
 	var outcome applyOutcome
 	timestamp := now.UTC().Format(time.RFC3339)
+	reachableIDs := computeReachablePackageIDs(g, runRes.ImportedPackages)
 	for _, pkg := range g.Packages() {
 		if pkg == nil || !isNPMPackage(pkg) {
 			continue
@@ -253,7 +263,7 @@ func applyRunnerResult(g *model.Graph, projectRoot string, runRes RunnerResult, 
 				AnalyzedAt: timestamp,
 				Tier:       model.TierPackage,
 			}
-			if isPackageImported(pkg, runRes.ImportedPackages) {
+			if _, ok := reachableIDs[pkg.ID]; ok {
 				r.Status = model.ReachabilityReachable
 				outcome.reachable++
 			} else {
@@ -267,8 +277,63 @@ func applyRunnerResult(g *model.Graph, projectRoot string, runRes RunnerResult, 
 	return outcome
 }
 
+// computeReachablePackageIDs returns the set of graph package IDs
+// reachable from the import set, expanded transitively through the
+// dep graph. The seed set is every npm package whose name (or
+// qualified scoped name) matches a bare specifier in imports; the
+// expansion walks Graph.Dependencies edges breadth-first.
+//
+// The result is keyed by package ID rather than name because npm
+// allows multiple versions of the same package to coexist (a top-
+// level lodash@4 and a nested lodash@3 inside some dep), and the
+// lockfile-derived graph captures that. Working in IDs keeps the
+// attribution honest.
+func computeReachablePackageIDs(g *model.Graph, imports map[string]struct{}) map[string]struct{} {
+	reachable := make(map[string]struct{})
+	if g == nil || len(imports) == 0 {
+		return reachable
+	}
+	queue := make([]string, 0)
+	// Seed: every npm package whose name matches the import set.
+	for _, pkg := range g.Packages() {
+		if pkg == nil || !isNPMPackage(pkg) {
+			continue
+		}
+		if !isPackageImported(pkg, imports) {
+			continue
+		}
+		if _, ok := reachable[pkg.ID]; ok {
+			continue
+		}
+		reachable[pkg.ID] = struct{}{}
+		queue = append(queue, pkg.ID)
+	}
+	// BFS: every dep edge from a reachable package adds its target to
+	// the reachable set.
+	for len(queue) > 0 {
+		id := queue[0]
+		queue = queue[1:]
+		deps, err := g.Dependencies(id)
+		if err != nil {
+			continue
+		}
+		for _, dep := range deps {
+			if dep == nil {
+				continue
+			}
+			if _, ok := reachable[dep.ID]; ok {
+				continue
+			}
+			reachable[dep.ID] = struct{}{}
+			queue = append(queue, dep.ID)
+		}
+	}
+	return reachable
+}
+
 // isPackageImported reports whether pkg's npm name (or qualified
 // scoped name) appears in the runner's bare-specifier import set.
+// Used as the seed predicate for the transitive walk.
 func isPackageImported(pkg *model.Package, imports map[string]struct{}) bool {
 	if pkg == nil || len(imports) == 0 {
 		return false

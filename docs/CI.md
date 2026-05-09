@@ -53,7 +53,7 @@ The repository also ships a pre-commit hook in `.githooks/pre-commit`. Run `make
 
 This repository is currently private, so the workflow set is intentionally lean:
 
-- `golangci-lint` runs inside the main `CI` workflow via `make lint`, with its analysis cache restored between runs.
+- `golangci-lint` runs inside the main `CI` workflow via `make lint`, with both its repo-local tool binary and analysis cache restored between runs.
 - Standalone `go vet ./...` is not run separately in `CI` because `.golangci.yml` already enables `govet`.
 - `go test -race` is not enabled in CI because it adds runtime cost and is best reintroduced later if we need the extra concurrency diagnostics.
 - CodeQL is disabled for now because it is not available for the current private-repo setup. It can be restored when the repository goes public or the GitHub plan changes.

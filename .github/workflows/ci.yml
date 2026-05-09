@@ -28,10 +28,16 @@ jobs:
           cache-dependency-path: |
             go.sum
 
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
+      - name: Restore golangci-lint cache
+        uses: actions/cache@v4
         with:
-          version: v1.64.8
+          path: ~/.cache/golangci-lint
+          key: golangci-lint-${{ runner.os }}-${{ hashFiles('.golangci.yml', 'go.mod', 'go.sum') }}
+          restore-keys: |
+            golangci-lint-${{ runner.os }}-
+
+      - name: Run golangci-lint
+        run: make lint
 
       - name: Run unit and integration tests
         run: make test

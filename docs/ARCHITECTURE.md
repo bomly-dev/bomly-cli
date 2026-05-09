@@ -116,12 +116,14 @@ Native detector coverage is quality-of-graph coverage, not just support-matrix l
 
 ## Build Modes
 
-Syft, Grype, and the reachability analyzers each support two build modes:
+Syft and Grype each support two build modes:
 
-| Mode     | Build tags                                                                                                  | Behavior                                                                                                                                                                                                                                |
-|----------|-------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Builtin  | default build                                                                                               | Link Syft, Grype, `golang.org/x/vuln/scan` (govulncheck), and `github.com/evanw/esbuild/pkg/api` (jsreach) libraries directly. No external binary required.                                                                            |
-| External | `bomly_external_syft`, `bomly_external_grype`, `bomly_external_govulncheck`, `bomly_external_jsreach`       | Shell out to `syft`, `grype`, `govulncheck`. The `jsreach` external tag is a no-op stub today — lite users who need JavaScript reachability should use the default build.                                                              |
+| Mode     | Build tags                                  | Behavior                                                                                                                                            |
+|----------|---------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| Builtin  | default build                               | Link Syft and Grype libraries directly. No external binary required.                                                                                |
+| External | `bomly_external_syft`, `bomly_external_grype` | Shell out to `syft` and `grype` binaries on PATH. Used by `make build-lite` to produce a smaller binary.                                          |
+
+The reachability analyzers are not split: `govulncheck` always uses the vendored `golang.org/x/vuln/scan` library and `jsreach` always uses the vendored `github.com/evanw/esbuild/pkg/api` library. Both libraries are small enough that vendoring them outweighs the maintenance cost of a build-tag split.
 
 `make build` produces both release variants. `make build-full` produces the default builtin binary, and `make build-lite` produces the smaller external-tool build.
 

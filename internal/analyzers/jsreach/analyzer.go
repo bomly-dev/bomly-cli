@@ -24,7 +24,7 @@ const Name = "jsreach"
 // docs/REACHABILITY.md is the authoritative source on this distinction.
 type Analyzer struct {
 	// Runner is the underlying esbuild driver. Defaults to
-	// NewDefaultRunner(Logger) when nil.
+	// NewRunner(Logger) when nil.
 	Runner Runner
 	Logger *zap.Logger
 	// CacheDir overrides the default per-project result cache
@@ -88,7 +88,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 	}
 	runner := a.Runner
 	if runner == nil {
-		runner = NewDefaultRunner(logger)
+		runner = NewRunner(logger)
 	}
 
 	overallStart := time.Now()

@@ -1,5 +1,3 @@
-//go:build !bomly_external_govulncheck
-
 package govulncheck
 
 import (
@@ -12,27 +10,28 @@ import (
 	govulnscan "golang.org/x/vuln/scan"
 )
 
-// NewDefaultRunner returns the runner selected at build time. The default
-// (non-external) build uses the builtin runner backed by golang.org/x/vuln/scan,
-// which executes govulncheck in-process and streams the same JSON output the
-// CLI binary would emit.
-func NewDefaultRunner(logger *zap.Logger) Runner {
-	return builtinRunner{logger: ensureLogger(logger)}
+// NewRunner returns the analyzer's Runner implementation, backed by the
+// vendored golang.org/x/vuln/scan library. The runner executes
+// govulncheck in-process and streams the same JSON output the CLI
+// binary would emit, so users never need a govulncheck binary on PATH.
+func NewRunner(logger *zap.Logger) Runner {
+	return libraryRunner{logger: ensureLogger(logger)}
 }
 
-// builtinRunner runs govulncheck through the vendored golang.org/x/vuln/scan
-// library so users on the default build do not need a govulncheck binary on
-// PATH. The output format and exit semantics match the external CLI exactly.
-type builtinRunner struct {
+// libraryRunner is the in-process implementation of Runner. The Runner
+// interface is preserved (rather than calling api.Build directly from
+// the analyzer) so unit tests can inject a fakeRunner for deterministic
+// behaviour without a real Go toolchain.
+type libraryRunner struct {
 	logger *zap.Logger
 }
 
-func (builtinRunner) Name() string { return "builtin" }
+func (libraryRunner) Name() string { return "library" }
 
-func (r builtinRunner) Run(ctx context.Context, moduleDir string) (RunnerResult, error) {
+func (r libraryRunner) Run(ctx context.Context, moduleDir string) (RunnerResult, error) {
 	// govulncheck has no Cmd.Dir field; pass -C <dir> instead.
 	args := []string{"-json", "-mode=source", "-C", moduleDir, "./..."}
-	r.logger.Debug("govulncheck: executing builtin runner",
+	r.logger.Debug("govulncheck: executing in-process runner",
 		zap.String("module_root", moduleDir),
 		zap.Strings("args", args))
 
@@ -46,7 +45,7 @@ func (r builtinRunner) Run(ctx context.Context, moduleDir string) (RunnerResult,
 		return RunnerResult{}, fmt.Errorf("govulncheck start: %w", err)
 	}
 	waitErr := cmd.Wait()
-	r.logger.Debug("govulncheck: builtin runner produced output",
+	r.logger.Debug("govulncheck: in-process runner produced output",
 		zap.String("module_root", moduleDir),
 		zap.Int("stdout_bytes", stdout.Len()),
 		zap.Int("stderr_bytes", stderr.Len()))

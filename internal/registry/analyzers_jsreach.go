@@ -5,9 +5,8 @@ import (
 )
 
 // registerJSReachAnalyzer wires the JavaScript Tier-3 reachability
-// analyzer. The runner implementation is selected at build time via
-// the bomly_external_jsreach tag (default: vendored esbuild library;
-// external: stub that reports "missing-toolchain").
+// analyzer. The runner is backed by the vendored
+// github.com/evanw/esbuild/pkg/api library and runs in-process.
 func (r *Registry) registerJSReachAnalyzer() {
 	r.RegisterAnalyzer(jsreach.Analyzer{Logger: r.logger})
 }

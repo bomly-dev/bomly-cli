@@ -1,5 +1,5 @@
 BINARY_NAME=bomly
-LITE_BUILD_TAGS=bomly_external_syft,bomly_external_grype,bomly_external_govulncheck,bomly_external_jsreach
+LITE_BUILD_TAGS=bomly_external_syft,bomly_external_grype
 GOLANGCI_LINT_VERSION=v1.64.8
 GO_LICENSES_VERSION=v1.6.0
 

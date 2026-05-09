@@ -1,9 +1,16 @@
 name: Auto Version
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version bump type
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 permissions:
   actions: write
@@ -15,7 +22,6 @@ concurrency:
 
 jobs:
   bump-tag-and-release:
-    if: github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, '[skip release]')
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -23,19 +29,28 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Require main branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF}" != "refs/heads/main" ]]; then
+            echo "Auto Version must be run from main, got ${GITHUB_REF}" >&2
+            exit 1
+          fi
+
       - name: Compute next version
         id: version
         shell: bash
+        env:
+          BUMP: ${{ inputs.bump }}
         run: |
           set -euo pipefail
 
           latest_tag="$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)"
           if [[ -n "${latest_tag}" ]]; then
             current="${latest_tag#v}"
-            messages="$(git log --format=%B "${latest_tag}..HEAD")"
           else
             current="$(sed -nE 's/^var version = "([^"]+)"/\1/p' cmd/bomly/main.go | head -n 1)"
-            messages="$(git log --format=%B -n 1 HEAD)"
           fi
 
           if [[ ! "${current}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -44,16 +59,24 @@ jobs:
           fi
 
           IFS=. read -r major minor patch <<< "${current}"
-          if grep -Eq '(^[a-zA-Z]+(\([^)]+\))?!:|BREAKING CHANGE:)' <<< "${messages}"; then
-            major=$((major + 1))
-            minor=0
-            patch=0
-          elif grep -Eq '^feat(\([^)]+\))?:' <<< "${messages}"; then
-            minor=$((minor + 1))
-            patch=0
-          else
-            patch=$((patch + 1))
-          fi
+          case "${BUMP}" in
+            major)
+              major=$((major + 1))
+              minor=0
+              patch=0
+              ;;
+            minor)
+              minor=$((minor + 1))
+              patch=0
+              ;;
+            patch)
+              patch=$((patch + 1))
+              ;;
+            *)
+              echo "Unsupported bump type ${BUMP}" >&2
+              exit 1
+              ;;
+          esac
 
           next="${major}.${minor}.${patch}"
           tag="v${next}"

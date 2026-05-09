@@ -62,7 +62,7 @@ func TestRenderScanReportWithoutFindingsUsesCleanMessage(t *testing.T) {
 	if !strings.Contains(report, "Policy evaluation not enabled") {
 		t.Fatalf("expected not-audited message, got:\n%s", report)
 	}
-	if strings.Contains(report, "â€”") || strings.Contains(report, "Ã¢â‚¬â€") {
+	if strings.Contains(report, "\u00e2\u20ac\u201d") || strings.Contains(report, "\u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d") {
 		t.Fatalf("expected mojibake to be removed, got:\n%s", report)
 	}
 }

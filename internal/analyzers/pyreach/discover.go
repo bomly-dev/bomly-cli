@@ -142,8 +142,5 @@ func isPythonPackage(pkg *model.Package) bool {
 	case "pip", "pipenv", "poetry", "uv", "pdm", "setuppy", "setup.py":
 		return true
 	}
-	if strings.EqualFold(pkg.Language, string(model.LanguagePython)) {
-		return true
-	}
-	return false
+	return strings.EqualFold(pkg.Language, string(model.LanguagePython))
 }

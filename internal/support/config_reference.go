@@ -197,7 +197,7 @@ func renderConfigMarkdown(fields []configField) string {
 			if envVar == "" {
 				envVar = "-"
 			}
-			builder.WriteString(fmt.Sprintf("| `%s` | `%s` | `%s` | %s | %s |\n", field.YAMLKey, envVar, field.GoType, defaultVal, field.Doc))
+			fmt.Fprintf(&builder, "| `%s` | `%s` | `%s` | %s | %s |\n", field.YAMLKey, envVar, field.GoType, defaultVal, field.Doc)
 		}
 		builder.WriteString("\n")
 	}
@@ -223,8 +223,8 @@ func renderConfigMarkdown(fields []configField) string {
 					value = "\"\""
 				}
 			}
-			builder.WriteString(fmt.Sprintf("# %s\n", field.Doc))
-			builder.WriteString(fmt.Sprintf("# %s: %s\n", field.YAMLKey, value))
+			fmt.Fprintf(&builder, "# %s\n", field.Doc)
+			fmt.Fprintf(&builder, "# %s: %s\n", field.YAMLKey, value)
 		}
 	}
 	builder.WriteString("```\n")

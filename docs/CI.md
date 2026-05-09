@@ -6,11 +6,11 @@ Bomly uses GitHub Actions for validation, security analysis, smoke coverage, and
 
 | Workflow               | Trigger                                        | Purpose                                                                                                                |
 |------------------------|------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
-| `CI`                   | Pull requests, pushes to `main`                | Fast validation: `golangci-lint`, `gofmt` drift checks, tests, `go vet`, build sanity, module drift, and generated-doc drift |
+| `CI`                   | Pull requests, pushes to `main`                | Fast validation: `golangci-lint`, `gofmt` drift checks, tests, build sanity, module drift, and generated-doc drift |
 | `Dependency Review`    | Pull requests touching `go.mod` or `go.sum`    | Review dependency changes before merge                                                                                 |
 | `Smoke`                | Merge queue, nightly schedule, manual dispatch | Slow end-to-end coverage against real repositories, SBOMs, and containers before merge, plus scheduled drift detection |
 | `Update Smoke Goldens` | Manual dispatch                                | Regenerate golden files on a chosen ref and open a PR when the changes are intentional                                 |
-| `Auto Version`         | Pushes to `main`                               | Bump `cmd/bomly/main.go`, create a semver tag, and start the release workflow                                          |
+| `Auto Version`         | Manual dispatch                                | Bump `cmd/bomly/main.go`, create a semver tag, and start the release workflow                                          |
 | `Release`              | Semver tags like `v1.2.3`, manual dispatch     | Cross-platform packaging, checksum generation, and draft GitHub prerelease publication                                 |
 
 ## Required Checks
@@ -53,8 +53,8 @@ The repository also ships a pre-commit hook in `.githooks/pre-commit`. Run `make
 
 This repository is currently private, so the workflow set is intentionally lean:
 
-- `go vet` runs inside the main `CI` workflow instead of a separate quality workflow.
-- `golangci-lint` runs inside the main `CI` workflow via `make lint`, which uses the repository-pinned version and configuration from `.golangci.yml`.
+- `golangci-lint` runs inside the main `CI` workflow with the official action, pinned to the repository's lint version and using the action's built-in cache.
+- Standalone `go vet ./...` is not run separately in `CI` because `.golangci.yml` already enables `govet`.
 - `go test -race` is not enabled in CI because it adds runtime cost and is best reintroduced later if we need the extra concurrency diagnostics.
 - CodeQL is disabled for now because it is not available for the current private-repo setup. It can be restored when the repository goes public or the GitHub plan changes.
 
@@ -84,30 +84,28 @@ go build -tags "bomly_external_syft,bomly_external_grype" -o bin/bomly-lite ./cm
 ## Release Process
 
 1. Merge to `main`.
-2. The `Auto Version` workflow computes the next semantic version from commit messages, updates `cmd/bomly/main.go`, commits the bump, creates a tag such as `v0.2.0`, and starts the `Release` workflow.
-3. The `Release` workflow reruns validation and then cross-compiles `bomly` and `bomly-lite`.
-4. The workflow packages archives for:
+2. When ready to publish, a maintainer runs the `Auto Version` workflow from `main` and chooses a `patch`, `minor`, or `major` bump.
+3. The `Auto Version` workflow updates `cmd/bomly/main.go`, commits the bump, creates a tag such as `v0.2.0`, and starts the `Release` workflow.
+4. The `Release` workflow reruns validation and then cross-compiles `bomly` and `bomly-lite`.
+5. The workflow packages archives for:
    - `linux/amd64`
    - `linux/arm64`
    - `darwin/amd64`
    - `darwin/arm64`
    - `windows/amd64`
    - `windows/arm64`
-5. The workflow generates `SHA256SUMS`.
-6. The workflow creates a **draft prerelease** in GitHub Releases and uploads all archives plus checksums.
+6. The workflow generates `SHA256SUMS`.
+7. The workflow creates a **draft prerelease** in GitHub Releases and uploads all archives plus checksums.
 
-Version bump rules follow conventional commit text in commits since the last `vX.Y.Z` tag:
+Version bump rules are chosen explicitly when running `Auto Version`:
 
-| Desired outcome | Commit message pattern                              | Example                              | Result                           |
-|-----------------|-----------------------------------------------------|--------------------------------------|----------------------------------|
-| Skip release    | Include `[skip release]` in the head commit message | `docs: update README [skip release]` | No version bump, tag, or release |
-| Patch release   | Any non-breaking commit that is not `feat:`         | `fix: handle empty SBOM input`       | `0.2.3` -> `0.2.4`               |
-| Minor release   | `feat:` or `feat(scope):`                           | `feat: add npm workspace detection`  | `0.2.3` -> `0.3.0`               |
-| Major release   | `type!:` or `BREAKING CHANGE:`                      | `feat!: change JSON output schema`   | `0.2.3` -> `1.0.0`               |
+| Selected bump | Result             |
+|---------------|--------------------|
+| `patch`       | `0.2.3` -> `0.2.4` |
+| `minor`       | `0.2.3` -> `0.3.0` |
+| `major`       | `0.2.3` -> `1.0.0` |
 
-The workflow evaluates the commit messages between the latest `vX.Y.Z` tag and `HEAD`. If any message is breaking, the release is major. Otherwise, if any message starts with `feat:`, the release is minor. Otherwise, the release is patch.
-
-When using GitHub squash merge, the final squash commit title and body are the important inputs. Before merging, make sure the squash message contains the intended `feat:`, `feat!:`, `BREAKING CHANGE:`, or `[skip release]` marker.
+The workflow uses the latest `vX.Y.Z` tag as the current version. If no tag exists yet, it falls back to the version in `cmd/bomly/main.go`. Manual dispatch is restricted to `main` so release tags are cut from the release branch.
 
 Archive naming follows this pattern:
 

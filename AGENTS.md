@@ -43,7 +43,7 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for full detail. Component ma
 | `internal/testutil`    | Test helpers (fake binary builder)                                                                |
 | `internal/system`      | OS-level helpers                                                                                  |
 
-Scan pipeline: `runtimePreparation → subprojectDiscovery → preResolveHooks → detect (per-package-manager chains) → scopeFilter → consolidate → match (license enrichment on the consolidated graph) → commandProcess → audit → postResolveHooks → format`.
+Scan pipeline: `runtimePreparation → subprojectDiscovery → preResolveHooks → detect (per-package-manager chains) → scopeFilter → consolidate → match (license enrichment on the consolidated graph) → audit → postResolveHooks → format`.
 
 Runtime preparation is owned by `internal/engine`: build the filtered registry once, index the execution target with that same registry, and reuse the prepared runtime for `scan`, `diff`, `explain`, license enrichment, and auditing. The CLI resolves raw execution targets and flags, but it must not discover subprojects with a separate registry.
 

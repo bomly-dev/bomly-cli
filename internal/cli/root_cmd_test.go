@@ -1550,7 +1550,7 @@ func TestRoot_ScanCommand_TextReportOutput(t *testing.T) {
 	if rootIdx == -1 || directIdx == -1 || transitiveIdx == -1 {
 		t.Fatalf("expected root, direct, and transitive rows in output, got: %s", out)
 	}
-	if !(rootIdx < directIdx && directIdx < transitiveIdx) {
+	if rootIdx >= directIdx || directIdx >= transitiveIdx {
 		t.Fatalf("expected root/direct/transitive order, got: %s", out)
 	}
 }

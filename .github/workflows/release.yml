@@ -57,6 +57,7 @@ jobs:
         with:
           name: licenses
           path: licenses/
+          retention-days: 1
 
   package:
     needs: [validate, licenses]
@@ -162,6 +163,7 @@ jobs:
         with:
           name: release-${{ matrix.goos }}-${{ matrix.goarch }}
           path: dist/*
+          retention-days: 1
 
   publish:
     needs: package

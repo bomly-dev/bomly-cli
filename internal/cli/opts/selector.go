@@ -1,8 +1,8 @@
-// Package selector resolves +/- selector expressions used by the CLI to filter
+// Package opts resolves +/- selector expressions used by the CLI to filter
 // detectors, auditors, matchers, and ecosystems. The resolver is generic: callers
-// build a Catalog of available items (with optional aliases) and pass a default set
+// build a catalog of available items (with optional aliases) and pass a default set
 // plus a raw expression — the resolver returns the include and exclude lists.
-package selector
+package opts
 
 import (
 	"fmt"
@@ -10,28 +10,28 @@ import (
 	"strings"
 )
 
-// Catalog enumerates the available items for one selector domain (detector,
+// catalog enumerates the available items for one selector domain (detector,
 // auditor, matcher, ecosystem) plus any user-facing aliases that resolve to a
 // canonical name. Kind is the noun used in error messages ("detector"). Items
 // are the user-facing labels shown in error hints — typically with the alias
 // in parentheses where one exists.
-type Catalog struct {
+type catalog struct {
 	Kind        string
 	Available   []string
 	AliasToName map[string]string
 	Items       []string
 }
 
-// UnknownSelectorError is returned when one or more selector tokens do not
+// unknownSelectorError is returned when one or more selector tokens do not
 // match any available name or alias in the catalog. The Kind, Unknown, and
 // Items fields let callers format a domain-specific help message.
-type UnknownSelectorError struct {
+type unknownSelectorError struct {
 	Kind    string
 	Unknown []string
 	Items   []string
 }
 
-func (e *UnknownSelectorError) Error() string {
+func (e *unknownSelectorError) Error() string {
 	return fmt.Sprintf(
 		"unknown %s selector(s): %s\navailable %ss: %s",
 		e.Kind,
@@ -41,7 +41,7 @@ func (e *UnknownSelectorError) Error() string {
 	)
 }
 
-// Resolve parses a comma-separated selector expression against the catalog and
+// resolve parses a comma-separated selector expression against the catalog and
 // returns the include and exclude lists.
 //
 // Behavior:
@@ -49,9 +49,9 @@ func (e *UnknownSelectorError) Error() string {
 //   - Empty raw expression with implicitAllWhenEmpty=false → exclude everything not in defaults.
 //   - Tokens with +/- prefix are operators applied against defaults.
 //   - Plain tokens (no operator) replace the default set entirely.
-//   - Unknown tokens return *UnknownSelectorError.
-func Resolve(raw string, defaults []string, catalog Catalog, implicitAllWhenEmpty bool) ([]string, []string, error) {
-	selectors := ParseCSV(raw)
+//   - Unknown tokens return *unknownSelectorError.
+func resolve(raw string, defaults []string, catalog catalog, implicitAllWhenEmpty bool) ([]string, []string, error) {
+	selectors := parseCSV(raw)
 	if len(selectors) == 0 {
 		if implicitAllWhenEmpty {
 			return nil, nil, nil
@@ -109,7 +109,7 @@ func Resolve(raw string, defaults []string, catalog Catalog, implicitAllWhenEmpt
 
 	if len(unknown) > 0 {
 		sort.Strings(unknown)
-		return nil, nil, &UnknownSelectorError{
+		return nil, nil, &unknownSelectorError{
 			Kind:    catalog.Kind,
 			Unknown: unknown,
 			Items:   catalog.Items,
@@ -142,8 +142,8 @@ func Resolve(raw string, defaults []string, catalog Catalog, implicitAllWhenEmpt
 	return include, nil, nil
 }
 
-// ParseCSV splits a comma-separated string into trimmed, non-empty tokens.
-func ParseCSV(value string) []string {
+// parseCSV splits a comma-separated string into trimmed, non-empty tokens.
+func parseCSV(value string) []string {
 	if value == "" {
 		return nil
 	}
@@ -158,8 +158,8 @@ func ParseCSV(value string) []string {
 	return out
 }
 
-// AppendUnique appends value to values if not already present.
-func AppendUnique(values []string, value string) []string {
+// appendUnique appends value to values if not already present.
+func appendUnique(values []string, value string) []string {
 	if value == "" {
 		return values
 	}
@@ -171,8 +171,8 @@ func AppendUnique(values []string, value string) []string {
 	return append(values, value)
 }
 
-// Contains reports whether value is in values.
-func Contains(values []string, value string) bool {
+// contains reports whether value is in values.
+func contains(values []string, value string) bool {
 	for _, existing := range values {
 		if existing == value {
 			return true

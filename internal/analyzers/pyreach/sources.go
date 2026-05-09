@@ -117,8 +117,5 @@ func shouldSkipDir(name string) bool {
 		"htmlcov", "coverage":
 		return true
 	}
-	if strings.HasSuffix(name, ".egg-info") {
-		return true
-	}
-	return false
+	return strings.HasSuffix(name, ".egg-info")
 }

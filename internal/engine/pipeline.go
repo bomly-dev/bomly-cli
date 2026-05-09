@@ -11,7 +11,7 @@ import (
 )
 
 // Pipeline orchestrates a full scan through a sequence of typed stages:
-// pre-resolve hooks -> detect -> consolidate -> match -> analyze -> process -> audit -> post-resolve hooks.
+// pre-resolve hooks -> detect -> scope filter -> consolidate -> match -> analyze -> audit -> post-resolve hooks.
 type Pipeline struct {
 	Registry *Registry
 	Logger   *zap.Logger
@@ -50,9 +50,6 @@ func (p *Pipeline) Run(ctx context.Context, req PipelineRequest) (PipelineResult
 	}
 	p.runMatch(ctx, &result, req)
 	p.runAnalyze(ctx, &result, req)
-	if err := p.runProcessor(ctx, &result, req); err != nil {
-		return result, err
-	}
 	p.runAudit(ctx, &result, req)
 	p.runPost(ctx, req, result)
 	return result, nil
@@ -113,7 +110,7 @@ func (p *Pipeline) runConsolidate(result *PipelineResult, req PipelineRequest) e
 }
 
 func (p *Pipeline) runMatch(ctx context.Context, result *PipelineResult, req PipelineRequest) {
-	if !(req.EnrichEnabled || req.MatchEnabled) || result.Graph == nil {
+	if (!req.EnrichEnabled && !req.MatchEnabled) || result.Graph == nil {
 		return
 	}
 	if req.Progress != nil {
@@ -166,16 +163,6 @@ func (p *Pipeline) analyze(ctx context.Context, result *PipelineResult, req Pipe
 		result.AnalyzeWarnings = PipelineWarningsFromError(err, "analyzer")
 		p.Logger.Warn("pipeline: reachability analysis errors", zap.Error(err))
 	}
-}
-
-func (p *Pipeline) runProcessor(ctx context.Context, result *PipelineResult, req PipelineRequest) error {
-	if req.Processor == nil {
-		return nil
-	}
-	if err := req.Processor(ctx, result); err != nil {
-		return fmt.Errorf("stage processor: %w", err)
-	}
-	return nil
 }
 
 func (p *Pipeline) runAudit(ctx context.Context, result *PipelineResult, req PipelineRequest) {

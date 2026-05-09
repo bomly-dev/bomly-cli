@@ -33,28 +33,28 @@ func (r *Registry) registerDetector(detector sdk.Detector) {
 	if r == nil {
 		return
 	}
-	r.Registry.RegisterDetector(detector)
+	r.RegisterDetector(detector)
 }
 
 func (r *Registry) registerMatcher(matcher sdk.Matcher) {
 	if r == nil {
 		return
 	}
-	r.Registry.RegisterMatcher(matcher)
+	r.RegisterMatcher(matcher)
 }
 
 func (r *Registry) registerAuditor(auditor sdk.Auditor) {
 	if r == nil {
 		return
 	}
-	r.Registry.RegisterAuditor(auditor)
+	r.RegisterAuditor(auditor)
 }
 
 func (r *Registry) registerDetectorDiscoveryPlan(detectorName string, plan DetectorDiscoveryPlan) {
 	if r == nil {
 		return
 	}
-	r.Registry.RegisterDetectorDiscoveryPlan(detectorName, plan)
+	r.RegisterDetectorDiscoveryPlan(detectorName, plan)
 }
 
 // RegisterPreResolveHook adds a pre-resolve hook to the registry.

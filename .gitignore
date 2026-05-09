@@ -1,9 +1,6 @@
 # Ignore build files
 /bin
 
-# Ignore locally installed development tools
-/.tools
-
 # Ignore generated third-party license notices (bundled into release archives)
 /licenses
 

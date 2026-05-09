@@ -33,8 +33,8 @@ jobs:
         with:
           path: |
             ~/.cache/golangci-lint
-            .tools/bin
-          key: golangci-lint-${{ runner.os }}-${{ hashFiles('.golangci.yml', 'go.mod', 'go.sum') }}
+            ~/go/bin
+          key: golangci-lint-${{ runner.os }}-${{ hashFiles('Makefile', '.golangci.yml', 'go.mod', 'go.sum') }}
           restore-keys: |
             golangci-lint-${{ runner.os }}-
 

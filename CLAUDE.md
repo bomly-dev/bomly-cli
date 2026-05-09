@@ -61,10 +61,11 @@ internal/registry/               Support/discovery registry; built-in wiring in 
 internal/matchers/*              External enrichment: osv, grype, deps.dev, ClearlyDefined, eol
 internal/matchers/cache          File-based cache shared by matchers
 internal/analyzers/*             Reachability analyzers (govulncheck — Go;
-                                 jsreach — JavaScript/TypeScript). Each is
-                                 backed by a single vendored library (no
-                                 builtin/external build-tag split). Run
-                                 after matchers; annotate
+                                 jsreach — JavaScript/TypeScript;
+                                 pyreach — Python). Each is backed by
+                                 a single in-process implementation
+                                 (no builtin/external build-tag split).
+                                 Run after matchers; annotate
                                  PackageVulnerability.Reachability and
                                  never abort the pipeline on failure
 internal/auditors/*              Policy evaluators (policy, noop)

@@ -246,6 +246,7 @@ func (r *Registry) RegisterMatcher(matcher sdk.Matcher) {
 func (r *Registry) registerAnalyzers() {
 	r.registerGovulncheckAnalyzer()
 	r.registerJSReachAnalyzer()
+	r.registerPyReachAnalyzer()
 }
 
 // registerGovulncheckAnalyzer is provided by analyzers_govulncheck.go so the

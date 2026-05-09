@@ -57,8 +57,8 @@ degrade to `Status: unknown` with a stable, machine-readable `Reason`
 
 | Ecosystem            | Analyzer      | Tier      | Notes                                                                                                                                                                                                                                                            |
 | -------------------- | ------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Go                   | `govulncheck` | `symbol`  | Backed by `golang.org/x/vuln/scan`. The default build runs in-process; the `bomly_external_govulncheck` lite build shells out to a `govulncheck` binary on PATH.                                                                                                  |
-| JavaScript / TypeScript | `jsreach`     | `package` | Backed by the vendored `github.com/evanw/esbuild/pkg/api` library. Walks app source from `package.json` entry points (`main`, `module`, `browser`, `exports`, `bin`, plus implicit `index.*` / `app.js` / `server.js` / `main.js` fallbacks) and reports each npm package as reachable iff it appears in the import set. The `bomly_external_jsreach` lite build is a no-op stub that reports `missing-toolchain`. |
+| Go                   | `govulncheck` | `symbol`  | Backed by the vendored `golang.org/x/vuln/scan` library; runs in-process so users never need a `govulncheck` binary on PATH.                                                                                                                                     |
+| JavaScript / TypeScript | `jsreach`     | `package` | Backed by the vendored `github.com/evanw/esbuild/pkg/api` library. Walks app source from `package.json` entry points (`main`, `module`, `browser`, `exports`, `bin`, plus implicit `index.*` / `app.js` / `server.js` / `main.js` fallbacks) and reports each npm package as reachable iff it appears in the import set. |
 
 Other ecosystems (Python, Java, Rust) are tracked for follow-up phases.
 When `--reachability` is set on a project that has no applicable
@@ -194,15 +194,15 @@ Selector syntax mirrors `--detectors`, `--matchers`, and `--auditors`:
 bare names are an explicit include set, `+name` appends to defaults,
 `-name` removes from defaults.
 
-## Build-tag layout
+## Build layout
 
-Analyzers follow the same builtin/external split as Syft and Grype:
+Unlike Syft and Grype, analyzers do not have a builtin/external build-tag
+split. Both ship a single in-process implementation backed by a vendored
+library:
 
-- Default build (`make build`): includes the in-tree analyzer
-  implementations. `govulncheck` runs in-process via
-  `golang.org/x/vuln/scan`; `jsreach` runs in-process via the vendored
-  esbuild library.
-- Lite build (`make build-lite`): adds `bomly_external_govulncheck`
-  (shells out to `govulncheck` on PATH) and `bomly_external_jsreach`
-  (no-op stub; lite users who need JS reachability should use the
-  default build) so the binary stays small.
+- `govulncheck` runs in-process via `golang.org/x/vuln/scan`.
+- `jsreach` runs in-process via `github.com/evanw/esbuild/pkg/api`.
+
+Both libraries are small enough that vendoring them outweighs the
+maintenance cost of supporting an external/lite variant. Lite builds
+(`make build-lite`) include the analyzers as-is.

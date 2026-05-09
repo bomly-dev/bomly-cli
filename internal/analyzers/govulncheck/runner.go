@@ -1,16 +1,11 @@
 // Package govulncheck implements a reachability analyzer for Go modules
 // backed by govulncheck (https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck).
 //
-// Two runner implementations are selected at build time:
-//
-//   - Default (no build tag): builtin runner. Currently a stub that
-//     reports Reason "builtin-not-yet-vendored"; a follow-up PR will
-//     vendor golang.org/x/vuln/scan and run the analysis in-process.
-//   - bomly_external_govulncheck: external runner. Execs the
-//     `govulncheck` binary on PATH and parses its -json output.
-//
-// Both runners produce the same RunnerResult shape so the analyzer logic
-// in analyzer.go is runner-agnostic.
+// The runner is backed by the vendored golang.org/x/vuln/scan library and
+// runs the analysis in-process so users never need a govulncheck binary on
+// PATH. The Runner interface is preserved (rather than calling scan.Source
+// directly from the analyzer) so unit tests can inject a fake runner for
+// deterministic behaviour.
 package govulncheck
 
 import (
@@ -25,8 +20,8 @@ import (
 // (RunnerResult, error) pair where the error is descriptive but does not
 // abort the pipeline.
 type Runner interface {
-	// Name returns a stable identifier (e.g. "builtin", "external") for
-	// telemetry and Reason fields.
+	// Name returns a stable identifier (e.g. "library") for telemetry and
+	// Reason fields.
 	Name() string
 	// Run executes govulncheck rooted at moduleDir and returns the parsed
 	// findings. moduleDir must contain a go.mod file.

@@ -11,19 +11,12 @@
 // — for example, a server runtime might dynamically require the package
 // based on user input. See docs/REACHABILITY.md for full semantics.
 //
-// Two runner implementations are selected at build time:
-//
-//   - Default (no build tag): the builtin runner uses the vendored
-//     github.com/evanw/esbuild/pkg/api library to walk the project's
-//     entry points in-process. esbuild handles ESM, CJS, TS/TSX/JSX,
-//     conditional exports, and subpath imports natively.
-//   - bomly_external_jsreach: the external runner is a no-op stub that
-//     always returns "missing-toolchain" so the lite build remains
-//     small. A future commit can switch this to shell out to a system
-//     esbuild binary if there is demand.
-//
-// Both runners produce the same RunnerResult so the analyzer logic in
-// analyzer.go is runner-agnostic.
+// The runner uses the vendored github.com/evanw/esbuild/pkg/api library
+// to walk the project's entry points in-process so users never need an
+// esbuild binary on PATH. esbuild handles ESM, CJS, TS/TSX/JSX,
+// conditional exports, and subpath imports natively. The Runner interface
+// is preserved (rather than calling api.Build directly from the analyzer)
+// so unit tests can inject a fake runner for deterministic behaviour.
 package jsreach
 
 import (
@@ -39,8 +32,8 @@ import (
 // error) pair where the error is descriptive but does not abort the
 // pipeline.
 type Runner interface {
-	// Name returns a stable identifier (e.g. "builtin", "external")
-	// used in telemetry and Reason fields.
+	// Name returns a stable identifier (e.g. "library") used in
+	// telemetry and Reason fields.
 	Name() string
 	// Version returns the underlying tool version. The result cache
 	// folds it into its key so toolchain upgrades invalidate prior

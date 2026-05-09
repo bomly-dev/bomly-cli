@@ -20,7 +20,7 @@ const Name = "govulncheck"
 // on Go packages with a Reachability result.
 type Analyzer struct {
 	// Runner is the underlying govulncheck driver. Defaults to
-	// NewDefaultRunner(Logger) when nil.
+	// NewRunner(Logger) when nil.
 	Runner Runner
 	Logger *zap.Logger
 	// CacheDir overrides the default per-module result cache location.
@@ -83,7 +83,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 	}
 	runner := a.Runner
 	if runner == nil {
-		runner = NewDefaultRunner(logger)
+		runner = NewRunner(logger)
 	}
 
 	overallStart := time.Now()

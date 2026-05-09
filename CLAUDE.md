@@ -60,10 +60,13 @@ internal/engine/hooks/           Pre-/post-resolve hook contract + executor (Des
 internal/registry/               Support/discovery registry; built-in wiring in builder.go
 internal/matchers/*              External enrichment: osv, grype, deps.dev, ClearlyDefined, eol
 internal/matchers/cache          File-based cache shared by matchers
-internal/analyzers/*             Reachability analyzers (govulncheck — Go).
-                                 Analyzers run after matchers; they annotate
-                                 PackageVulnerability.Reachability and never
-                                 abort the pipeline on failure
+internal/analyzers/*             Reachability analyzers (govulncheck — Go;
+                                 jsreach — JavaScript/TypeScript). Each is
+                                 backed by a single vendored library (no
+                                 builtin/external build-tag split). Run
+                                 after matchers; annotate
+                                 PackageVulnerability.Reachability and
+                                 never abort the pipeline on failure
 internal/auditors/*              Policy evaluators (policy, noop)
 internal/sbom/                   SPDX 2.3 / CycloneDX codec
 internal/output/                 Text, JSON, SARIF 2.1.0, SBOM rendering + schema generation
@@ -82,7 +85,7 @@ Runtime preparation is owned by `internal/engine` and is reached through CLI opt
 
 ### Package Boundaries
 
-- `internal/detectors/*` and `internal/analyzers/*` must not import `internal/engine`, `internal/engine/*`, or `internal/registry`. Analyzers depend only on `sdk` and may bring in their own runner-specific deps (e.g. govulncheck behind a build tag).
+- `internal/detectors/*` and `internal/analyzers/*` must not import `internal/engine`, `internal/engine/*`, or `internal/registry`. Analyzers depend only on `sdk` and the vendored library that backs their runner.
 - `sdk` owns neutral identifiers that would otherwise create import cycles.
 - `internal/registry` owns package-manager discovery, support lookups, and built-in wiring in `builder.go`. Do not create a separate `registrybuilder` package.
 - `internal/engine` (pipeline core) may import `internal/engine/consolidation`, `internal/engine/hooks`, `internal/engine/explain`, `internal/detectors`, and `internal/registry`.

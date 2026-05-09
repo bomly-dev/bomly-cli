@@ -1,5 +1,3 @@
-//go:build !bomly_external_jsreach
-
 package jsreach
 
 import (
@@ -11,27 +9,33 @@ import (
 	"go.uber.org/zap"
 )
 
-// NewDefaultRunner returns the runner selected at build time. The
-// default (non-external) build uses the builtin runner backed by the
-// vendored github.com/evanw/esbuild/pkg/api library, which walks the
-// project's entry points in-process and emits a metafile we parse for
-// the bare-specifier import set.
-func NewDefaultRunner(logger *zap.Logger) Runner {
-	return builtinRunner{logger: ensureLogger(logger)}
+// NewRunner returns the analyzer's Runner implementation, backed by
+// the vendored github.com/evanw/esbuild/pkg/api library. The runner
+// walks the project's entry points in-process and emits a metafile we
+// parse for the bare-specifier import set, so users never need an
+// esbuild binary on PATH.
+func NewRunner(logger *zap.Logger) Runner {
+	return libraryRunner{logger: ensureLogger(logger)}
 }
 
-// builtinRunner runs esbuild in-process. It does not bundle output —
-// PackagesExternal short-circuits package resolution so every bare
-// specifier is recorded in the metafile without esbuild ever opening
-// node_modules. This is far faster than a real bundle pass and keeps
-// us out of the dependency-of-dependency rabbit hole.
-type builtinRunner struct {
+// libraryRunner is the in-process implementation of Runner. It does
+// not bundle output — PackagesExternal short-circuits package
+// resolution so every bare specifier is recorded in the metafile
+// without esbuild ever opening node_modules. This is far faster than
+// a real bundle pass and keeps us out of the dependency-of-dependency
+// rabbit hole; the analyzer expands the resulting set transitively
+// through the npm detector's dep graph (see analyzer.go).
+//
+// The Runner interface is preserved (rather than calling api.Build
+// directly from the analyzer) so unit tests can inject a fakeRunner
+// for deterministic behaviour without invoking esbuild.
+type libraryRunner struct {
 	logger *zap.Logger
 }
 
-func (builtinRunner) Name() string { return "builtin" }
+func (libraryRunner) Name() string { return "library" }
 
-func (builtinRunner) Version() string { return esbuildVersion() }
+func (libraryRunner) Version() string { return esbuildVersion() }
 
 // esbuildVersion reads the linked esbuild version from the Go build
 // info so the cache key invalidates automatically on dep upgrades.
@@ -53,13 +57,13 @@ func esbuildVersion() string {
 	return ""
 }
 
-func (r builtinRunner) Run(ctx context.Context, projectDir string) (RunnerResult, error) {
+func (r libraryRunner) Run(ctx context.Context, projectDir string) (RunnerResult, error) {
 	entries, err := discoverEntryPoints(projectDir)
 	if err != nil {
 		return RunnerResult{}, fmt.Errorf("discover entry points: %w", err)
 	}
 
-	r.logger.Debug("jsreach: executing builtin runner",
+	r.logger.Debug("jsreach: executing in-process runner",
 		zap.String("project_dir", projectDir),
 		zap.Strings("entry_points", entries),
 		zap.String("packages_mode", "external"))
@@ -135,7 +139,7 @@ func (r builtinRunner) Run(ctx context.Context, projectDir string) (RunnerResult
 	if err != nil {
 		return RunnerResult{}, err
 	}
-	r.logger.Debug("jsreach: builtin runner completed",
+	r.logger.Debug("jsreach: in-process runner completed",
 		zap.String("project_dir", projectDir),
 		zap.Int("entry_points", len(entries)),
 		zap.Int("source_files", sourceFiles),

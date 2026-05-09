@@ -5,8 +5,8 @@ import (
 )
 
 // registerGovulncheckAnalyzer wires the Go reachability analyzer.
-// The runner implementation is selected at build time via the
-// bomly_external_govulncheck tag.
+// The runner is backed by the vendored golang.org/x/vuln/scan library
+// and runs in-process.
 func (r *Registry) registerGovulncheckAnalyzer() {
 	r.RegisterAnalyzer(govulncheck.Analyzer{Logger: r.logger})
 }

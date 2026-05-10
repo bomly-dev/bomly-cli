@@ -43,6 +43,8 @@ func NormalizePackageIdentity(pkg *Package) {
 		applied = append(applied, normMaven(pkg)...)
 	case string(EcosystemGo):
 		applied = append(applied, normGo(pkg)...)
+	case string(EcosystemPHP):
+		applied = append(applied, normComposer(pkg)...)
 	}
 
 	if normalizedVersion, changed := normVersion(pkg.Version); changed {
@@ -115,6 +117,14 @@ func normGo(pkg *Package) []string {
 	return applied
 }
 
+func normComposer(pkg *Package) []string {
+	if len(pkg.Version) > 1 && (pkg.Version[0] == 'v' || pkg.Version[0] == 'V') {
+		pkg.Version = pkg.Version[1:]
+		return []string{"version"}
+	}
+	return nil
+}
+
 func normEffectiveEcosystem(pkg *Package) string {
 	if pkg == nil {
 		return ""
@@ -143,6 +153,10 @@ func normEffectiveEcosystem(pkg *Package) string {
 			return string(EcosystemElixir)
 		case string(EcosystemScala), "sbt":
 			return string(EcosystemScala)
+		case string(EcosystemPHP), "composer":
+			return string(EcosystemPHP)
+		case string(EcosystemRuby), "gem", "bundler", "rubygems":
+			return string(EcosystemRuby)
 		}
 	}
 	return ""

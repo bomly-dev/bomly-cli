@@ -1,0 +1,97 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "detector": "syft-detector",
+      "ecosystem": "python",
+      "kind": "python",
+      "package_manager": "pipenv",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/django@1.7.1",
+          "licenses": [],
+          "name": "django",
+          "purl": "pkg:pypi/django@1.7.1",
+          "version": "1.7.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/feedparser@6.0.8",
+          "licenses": [],
+          "name": "feedparser",
+          "purl": "pkg:pypi/feedparser@6.0.8",
+          "version": "6.0.8",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/pyasn1@0.4.8",
+          "licenses": [],
+          "name": "pyasn1",
+          "purl": "pkg:pypi/pyasn1@0.4.8",
+          "version": "0.4.8",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/pycrypto@2.4",
+          "licenses": [],
+          "name": "pycrypto",
+          "purl": "pkg:pypi/pycrypto@2.4",
+          "version": "2.4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/pyjwt@0.4.2",
+          "licenses": [],
+          "name": "pyjwt",
+          "purl": "pkg:pypi/pyjwt@0.4.2",
+          "version": "0.4.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/requests@2.2.1",
+          "licenses": [],
+          "name": "requests",
+          "purl": "pkg:pypi/requests@2.2.1",
+          "version": "2.2.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/rsa@3.4",
+          "licenses": [],
+          "name": "rsa",
+          "purl": "pkg:pypi/rsa@3.4",
+          "version": "3.4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/sgmllib3k@1.0.0",
+          "licenses": [],
+          "name": "sgmllib3k",
+          "purl": "pkg:pypi/sgmllib3k@1.0.0",
+          "version": "1.0.0",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "Pipfile.lock",
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "duration_ms": 0
+  },
+  "project": {
+    "ecosystem": "python",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "pipenv",
+    "path": "\u003cnormalized\u003e"
+  },
+  "schema_version": "1.0"
+}

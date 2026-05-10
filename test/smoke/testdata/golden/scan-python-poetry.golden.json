@@ -1,0 +1,147 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "detector": "syft-detector",
+      "ecosystem": "python",
+      "kind": "python",
+      "package_manager": "poetry",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/certifi@2024.8.30",
+          "licenses": [],
+          "name": "certifi",
+          "purl": "pkg:pypi/certifi@2024.8.30",
+          "version": "2024.8.30",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/chardet@3.0.4",
+          "licenses": [],
+          "name": "chardet",
+          "purl": "pkg:pypi/chardet@3.0.4",
+          "version": "3.0.4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:pypi/pytz@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:pypi/django@1.11.29",
+          "licenses": [],
+          "name": "django",
+          "purl": "pkg:pypi/django@1.11.29",
+          "version": "1.11.29",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:pypi/sgmllib3k@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:pypi/feedparser@6.0.8",
+          "licenses": [],
+          "name": "feedparser",
+          "purl": "pkg:pypi/feedparser@6.0.8",
+          "version": "6.0.8",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/idna@2.8",
+          "licenses": [],
+          "name": "idna",
+          "purl": "pkg:pypi/idna@2.8",
+          "version": "2.8",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/pyasn1@0.6.0",
+          "licenses": [],
+          "name": "pyasn1",
+          "purl": "pkg:pypi/pyasn1@0.6.0",
+          "version": "0.6.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/pyjwt@0.4.2",
+          "licenses": [],
+          "name": "pyjwt",
+          "purl": "pkg:pypi/pyjwt@0.4.2",
+          "version": "0.4.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/pytz@2024.1",
+          "licenses": [],
+          "name": "pytz",
+          "purl": "pkg:pypi/pytz@2024.1",
+          "version": "2024.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:pypi/certifi@\u003cnormalized\u003e",
+            "pkg:pypi/chardet@\u003cnormalized\u003e",
+            "pkg:pypi/idna@\u003cnormalized\u003e",
+            "pkg:pypi/urllib3@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:pypi/requests@2.21.0",
+          "licenses": [],
+          "name": "requests",
+          "purl": "pkg:pypi/requests@2.21.0",
+          "version": "2.21.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:pypi/pyasn1@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:pypi/rsa@3.4",
+          "licenses": [],
+          "name": "rsa",
+          "purl": "pkg:pypi/rsa@3.4",
+          "version": "3.4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/sgmllib3k@1.0.0",
+          "licenses": [],
+          "name": "sgmllib3k",
+          "purl": "pkg:pypi/sgmllib3k@1.0.0",
+          "version": "1.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:pypi/certifi@\u003cnormalized\u003e",
+            "pkg:pypi/idna@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:pypi/urllib3@1.24.3",
+          "licenses": [],
+          "name": "urllib3",
+          "purl": "pkg:pypi/urllib3@1.24.3",
+          "version": "1.24.3",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "poetry.lock",
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "duration_ms": 0
+  },
+  "project": {
+    "ecosystem": "python",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "poetry",
+    "path": "\u003cnormalized\u003e"
+  },
+  "schema_version": "1.0"
+}

@@ -9,6 +9,7 @@ Bomly uses GitHub Actions for validation, security analysis, smoke coverage, and
 | `CI`                   | Pull requests, pushes to `main`                | Fast validation: `golangci-lint`, `gofmt` drift checks, tests, build sanity, module drift, and generated-doc drift |
 | `Dependency Review`    | Pull requests touching `go.mod` or `go.sum`    | Review dependency changes before merge                                                                                 |
 | `Smoke`                | Merge queue, nightly schedule, manual dispatch | Slow end-to-end coverage against real repositories, SBOMs, and containers before merge, plus scheduled drift detection |
+| `Dependency Graph QA`  | Manual dispatch                                | Dogfood Bomly against GitHub Dependency Graph SBOM exports and produce deterministic QA artifacts plus a Copilot report |
 | `Update Smoke Goldens` | Manual dispatch                                | Regenerate golden files on a chosen ref and open a PR when the changes are intentional                                 |
 | `Auto Version`         | Manual dispatch                                | Bump `cmd/bomly/main.go`, create a semver tag, and start the release workflow                                          |
 | `Release`              | Semver tags like `v1.2.3`, manual dispatch     | Cross-platform packaging, checksum generation, and draft GitHub prerelease publication                                 |
@@ -36,6 +37,100 @@ This split keeps the expensive real-world coverage close to merge time while pre
 When `Smoke` fails because golden files drift, the workflow automatically reruns the suite with `-update` and uploads candidate golden files plus a diff artifact. The job still fails, so regressions remain visible; the artifact is there to speed up review and intentional golden updates.
 
 After confirming that the failure is expected and not a regression, maintainers can run the `Update Smoke Goldens` workflow. It regenerates `test/smoke/testdata/golden` on the selected ref and opens a pull request only when the regenerated files differ from the committed golden set.
+
+## Smoke Test Framework
+
+Smoke tests live under `test/smoke` and are intentionally separate from fast unit tests. They exercise Bomly against real repositories, SBOM files, and container inputs, then compare normalized output with committed golden files.
+
+Run the full smoke suite locally with:
+
+```bash
+make smoke
+```
+
+Pass Go test arguments through `ARGS`:
+
+```bash
+make smoke ARGS="-run TestScan/scan-npm"
+```
+
+Regenerate smoke goldens only after confirming the behavior change is expected:
+
+```bash
+make smoke ARGS="-update"
+```
+
+The URL-backed scan cases are defined in `test/smoke/testdata/scan_targets.json`. Each target has:
+
+- `name`: stable test and artifact identity
+- `url`: public repository URL
+- `ref`: pinned smoke-test ref, preserving deterministic golden behavior
+- `args`: additional Bomly scan arguments
+- `tools`: package managers required for the case
+- `qa_enabled`: whether the same target can participate in Dependency Graph QA
+
+Smoke tests use the pinned `ref`. Dependency Graph QA intentionally does not, because GitHub's SBOM API exports the repository's current default-branch state.
+
+The GitHub Actions `Smoke` workflow calls `make smoke`; it does not call package-specific scripts directly. Keep that pattern when adding smoke coverage so local and CI behavior stay aligned.
+
+## Dependency Graph QA Framework
+
+Dependency Graph QA lives under `test/qa` and uses a `qa` build-tagged Go test entrypoint. The Makefile intentionally mirrors smoke-test semantics:
+
+```bash
+make qa
+```
+
+Run one or more cases locally with:
+
+```bash
+make qa ARGS="--case scan-gradle"
+make qa ARGS="--case scan-gradle,scan-yarn"
+```
+
+`make qa` builds `bin/bomly` first, then runs:
+
+```bash
+go test -tags "qa" ./test/qa/ -v -count=1 -timeout 15m
+```
+
+The QA harness reads the same `test/smoke/testdata/scan_targets.json` manifest and filters to `qa_enabled` cases. A full run clears `.qa-runs/latest/cases` before generating fresh artifacts. A selected run refreshes only the selected case directory and preserves existing artifacts for other cases, which makes local investigation less destructive.
+
+For each case, QA writes:
+
+- `bomly.sbom.json`: Bomly SPDX SBOM from scanning the repository default branch
+- `github.response.json`: raw GitHub Dependency Graph SBOM API response
+- `github.sbom.json`: unwrapped GitHub SPDX SBOM
+- `diff.json`: `bomly diff --sbom --base github.sbom.json --head bomly.sbom.json --format json`
+- `qa-summary.json`: deterministic package, relationship, and scope counts
+
+`diff.json` is the source for package presence, absence, and version changes. Relationship and scope evidence is derived from the SBOM documents themselves, because the diff output may not expose those deltas explicitly. Relationship comparison focuses on SPDX `DEPENDS_ON` edges normalized by package PURL when both sides have PURLs. Scope comparison is informational when GitHub does not expose equivalent scope metadata.
+
+GitHub SBOM requests can be unauthenticated, but local unauthenticated runs quickly hit GitHub's low public API rate limit. Use a fine-grained token with repository `Contents: read` permission:
+
+```bash
+export BOMLY_QA_GITHUB_TOKEN="<token>"
+make qa
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:BOMLY_QA_GITHUB_TOKEN = "<token>"
+make qa
+```
+
+The QA harness checks token environment variables in this order:
+
+1. `BOMLY_QA_GITHUB_TOKEN`
+2. `GITHUB_TOKEN`
+3. `GH_TOKEN`
+
+Failed GitHub API responses include the request URL, status, rate-limit headers, request id, response body, and the saved `github.response.json` path. Tokens are never printed.
+
+The GitHub Actions `Dependency Graph QA` workflow calls `make qa` and passes the default `GITHUB_TOKEN` for GitHub SBOM access. It uploads `.qa-runs/latest` as an artifact.
+
+The workflow can also generate `.qa-runs/latest/qa-report.md` with Copilot CLI. Configure a repository secret named `COPILOT_AGENT_TOKEN` containing a fine-grained personal access token from a Copilot-enabled user with account-level `Copilot Requests: read and write`. The workflow passes this token as `COPILOT_GITHUB_TOKEN`, runs `.github/prompts/bomly-qa-report.prompt.md`, prints the report to the Actions log, and uploads it with the QA artifacts.
 
 All workflows that build or test Go code use `actions/setup-go` with module and build cache enabled, keyed from `go.sum`, so runners do not need to download the full module set on every run.
 

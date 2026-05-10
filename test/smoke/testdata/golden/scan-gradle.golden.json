@@ -2,10 +2,10 @@
   "command": "scan",
   "manifests": [
     {
-      "detector": "maven-detector",
+      "detector": "gradle-detector",
       "ecosystem": "maven",
-      "kind": "pom.xml",
-      "package_manager": "maven",
+      "kind": "build.gradle",
+      "package_manager": "gradle",
       "packages": [
         {
           "dependencies": [],
@@ -19,8 +19,29 @@
         },
         {
           "dependencies": [
+            "pkg:maven/com.h2database/h2@\u003cnormalized\u003e",
+            "pkg:maven/com.orientechnologies/orientdb-server@\u003cnormalized\u003e",
+            "pkg:maven/junit/junit@\u003cnormalized\u003e",
+            "pkg:maven/net.bull.javamelody/javamelody-core@\u003cnormalized\u003e",
+            "pkg:maven/org.apache.kafka/kafka_2.11@\u003cnormalized\u003e",
+            "pkg:maven/org.apache.sling/org.apache.sling.engine@\u003cnormalized\u003e",
+            "pkg:maven/org.keycloak/keycloak-saml-core@\u003cnormalized\u003e",
+            "pkg:maven/org.mindrot/jbcrypt@\u003cnormalized\u003e",
+            "pkg:maven/org.neo4j/neo4j-jmx@\u003cnormalized\u003e",
+            "pkg:maven/org.springframework/spring-web@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:maven/bomly-git-\u003cnormalized\u003e",
+          "licenses": [],
+          "name": "bomly-git-\u003cnormalized\u003e",
+          "purl": "pkg:maven/bomly-git-\u003cnormalized\u003e",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
             "pkg:maven/log4j/log4j@\u003cnormalized\u003e",
-            "pkg:maven/org.slf4j/slf4j-api@\u003cnormalized\u003e"
+            "pkg:maven/org.apache.zookeeper/zookeeper@\u003cnormalized\u003e",
+            "pkg:maven/org.slf4j/slf4j-api@\u003cnormalized\u003e",
+            "pkg:maven/org.slf4j/slf4j-log4j12@\u003cnormalized\u003e"
           ],
           "id": "pkg:maven/com.101tec/zkclient@0.7",
           "licenses": [],
@@ -66,7 +87,8 @@
           "dependencies": [
             "pkg:maven/com.googlecode.concurrentlinkedhashmap/concurrentlinkedhashmap-lru@\u003cnormalized\u003e",
             "pkg:maven/net.java.dev.jna/jna-platform@\u003cnormalized\u003e",
-            "pkg:maven/net.java.dev.jna/jna@\u003cnormalized\u003e"
+            "pkg:maven/net.java.dev.jna/jna@\u003cnormalized\u003e",
+            "pkg:maven/org.xerial.snappy/snappy-java@\u003cnormalized\u003e"
           ],
           "id": "pkg:maven/com.orientechnologies/orientdb-core@2.1.9",
           "licenses": [],
@@ -103,33 +125,8 @@
         },
         {
           "dependencies": [
-            "pkg:maven/com.h2database/h2@\u003cnormalized\u003e",
-            "pkg:maven/com.orientechnologies/orientdb-server@\u003cnormalized\u003e",
-            "pkg:maven/junit/junit@\u003cnormalized\u003e",
-            "pkg:maven/net.bull.javamelody/javamelody-core@\u003cnormalized\u003e",
-            "pkg:maven/org.apache.kafka/kafka_2.11@\u003cnormalized\u003e",
-            "pkg:maven/org.apache.sling/org.apache.sling.engine@\u003cnormalized\u003e",
-            "pkg:maven/org.apache.struts/struts2-core@\u003cnormalized\u003e",
-            "pkg:maven/org.keycloak/keycloak-saml-core@\u003cnormalized\u003e",
-            "pkg:maven/org.mindrot/jbcrypt@\u003cnormalized\u003e",
-            "pkg:maven/org.neo4j/neo4j-jmx@\u003cnormalized\u003e",
-            "pkg:maven/org.springframework/spring-web@\u003cnormalized\u003e"
+            "pkg:maven/org.slf4j/slf4j-api@\u003cnormalized\u003e"
           ],
-          "id": "pkg:maven/com.srcclr/example-java-maven@1.0-snapshot",
-          "licenses": [],
-          "metadata": {
-            "bomly.normalization.applied": [
-              "version"
-            ],
-            "bomly.normalization.original_version": "1.0-SNAPSHOT"
-          },
-          "name": "com.srcclr:example-java-maven",
-          "purl": "pkg:maven/com.srcclr/example-java-maven@1.0-snapshot",
-          "version": "1.0-snapshot",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
           "id": "pkg:maven/com.yammer.metrics/metrics-core@2.2.0",
           "licenses": [],
           "name": "com.yammer.metrics:metrics-core",
@@ -149,23 +146,25 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
-          "id": "pkg:maven/commons-fileupload/commons-fileupload@1.3.3",
+          "dependencies": [
+            "pkg:maven/commons-io/commons-io@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:maven/commons-fileupload/commons-fileupload@1.1.1",
           "licenses": [],
           "name": "commons-fileupload:commons-fileupload",
-          "purl": "pkg:maven/commons-fileupload/commons-fileupload@1.3.3",
+          "purl": "pkg:maven/commons-fileupload/commons-fileupload@1.1.1",
           "scope": "\u003cnormalized\u003e",
-          "version": "1.3.3",
+          "version": "1.1.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:maven/commons-io/commons-io@2.5",
+          "id": "pkg:maven/commons-io/commons-io@1.1",
           "licenses": [],
           "name": "commons-io:commons-io",
-          "purl": "pkg:maven/commons-io/commons-io@2.5",
+          "purl": "pkg:maven/commons-io/commons-io@1.1",
           "scope": "\u003cnormalized\u003e",
-          "version": "2.5",
+          "version": "1.1",
           "vulnerabilities": []
         },
         {
@@ -227,7 +226,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:maven/junit/junit@\u003cnormalized\u003e"
+          ],
           "id": "pkg:maven/jline/jline@0.9.94",
           "licenses": [],
           "name": "jline:jline",
@@ -237,25 +238,35 @@
           "vulnerabilities": []
         },
         {
+          "dependencies": [],
+          "id": "pkg:maven/junit/junit@3.8.1",
+          "licenses": [],
+          "name": "junit:junit",
+          "purl": "pkg:maven/junit/junit@3.8.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.8.1",
+          "vulnerabilities": []
+        },
+        {
           "dependencies": [
             "pkg:maven/org.hamcrest/hamcrest-core@\u003cnormalized\u003e"
           ],
-          "id": "pkg:maven/junit/junit@4.12",
+          "id": "pkg:maven/junit/junit@4.11",
           "licenses": [],
           "name": "junit:junit",
-          "purl": "pkg:maven/junit/junit@4.12",
+          "purl": "pkg:maven/junit/junit@4.11",
           "scope": "\u003cnormalized\u003e",
-          "version": "4.12",
+          "version": "4.11",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:maven/log4j/log4j@1.2.15",
+          "id": "pkg:maven/log4j/log4j@1.2.17",
           "licenses": [],
           "name": "log4j:log4j",
-          "purl": "pkg:maven/log4j/log4j@1.2.15",
+          "purl": "pkg:maven/log4j/log4j@1.2.17",
           "scope": "\u003cnormalized\u003e",
-          "version": "1.2.15",
+          "version": "1.2.17",
           "vulnerabilities": []
         },
         {
@@ -271,7 +282,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:maven/net.java.dev.jna/jna@\u003cnormalized\u003e"
+          ],
           "id": "pkg:maven/net.java.dev.jna/jna-platform@4.0.0",
           "licenses": [],
           "name": "net.java.dev.jna:jna-platform",
@@ -311,28 +324,6 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [
-            "pkg:maven/org.javassist/javassist@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:maven/ognl/ognl@3.1.15",
-          "licenses": [],
-          "name": "ognl:ognl",
-          "purl": "pkg:maven/ognl/ognl@3.1.15",
-          "scope": "\u003cnormalized\u003e",
-          "version": "3.1.15",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:maven/org.apache.commons/commons-lang3@3.6",
-          "licenses": [],
-          "name": "org.apache.commons:commons-lang3",
-          "purl": "pkg:maven/org.apache.commons/commons-lang3@3.6",
-          "scope": "\u003cnormalized\u003e",
-          "version": "3.6",
-          "vulnerabilities": []
-        },
-        {
           "dependencies": [],
           "id": "pkg:maven/org.apache.jackrabbit/jackrabbit-api@1.4",
           "licenses": [],
@@ -345,7 +336,8 @@
         {
           "dependencies": [
             "pkg:maven/org.apache.jackrabbit/jackrabbit-api@\u003cnormalized\u003e",
-            "pkg:maven/org.apache.jackrabbit/jackrabbit-jcr-commons@\u003cnormalized\u003e"
+            "pkg:maven/org.apache.jackrabbit/jackrabbit-jcr-commons@\u003cnormalized\u003e",
+            "pkg:maven/org.slf4j/slf4j-api@\u003cnormalized\u003e"
           ],
           "id": "pkg:maven/org.apache.jackrabbit/jackrabbit-classloader@1.4",
           "licenses": [],
@@ -356,7 +348,10 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:maven/commons-collections/commons-collections@\u003cnormalized\u003e",
+            "pkg:maven/org.slf4j/slf4j-api@\u003cnormalized\u003e"
+          ],
           "id": "pkg:maven/org.apache.jackrabbit/jackrabbit-jcr-commons@1.4",
           "licenses": [],
           "name": "org.apache.jackrabbit:jackrabbit-jcr-commons",
@@ -368,6 +363,7 @@
         {
           "dependencies": [
             "pkg:maven/net.jpountz.lz4/lz4@\u003cnormalized\u003e",
+            "pkg:maven/org.slf4j/slf4j-api@\u003cnormalized\u003e",
             "pkg:maven/org.xerial.snappy/snappy-java@\u003cnormalized\u003e"
           ],
           "id": "pkg:maven/org.apache.kafka/kafka-clients@0.9.0.1",
@@ -399,17 +395,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
-          "id": "pkg:maven/org.apache.logging.log4j/log4j-api@2.8.2",
-          "licenses": [],
-          "name": "org.apache.logging.log4j:log4j-api",
-          "purl": "pkg:maven/org.apache.logging.log4j/log4j-api@2.8.2",
-          "scope": "\u003cnormalized\u003e",
-          "version": "2.8.2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:maven/commons-logging/commons-logging@\u003cnormalized\u003e"
+          ],
           "id": "pkg:maven/org.apache.santuario/xmlsec@1.5.1",
           "licenses": [],
           "name": "org.apache.santuario:xmlsec",
@@ -420,6 +408,7 @@
         },
         {
           "dependencies": [
+            "pkg:maven/org.apache.sling/org.apache.sling.api@\u003cnormalized\u003e",
             "pkg:maven/org.apache.sling/org.apache.sling.commons.osgi@\u003cnormalized\u003e"
           ],
           "id": "pkg:maven/org.apache.sling/org.apache.sling.adapter@2.0.2-incubator",
@@ -451,7 +440,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:maven/org.apache.sling/org.apache.sling.api@\u003cnormalized\u003e"
+          ],
           "id": "pkg:maven/org.apache.sling/org.apache.sling.commons.osgi@2.0.2-incubator",
           "licenses": [],
           "name": "org.apache.sling:org.apache.sling.commons.osgi",
@@ -463,6 +454,7 @@
         {
           "dependencies": [
             "pkg:maven/commons-collections/commons-collections@\u003cnormalized\u003e",
+            "pkg:maven/commons-fileupload/commons-fileupload@\u003cnormalized\u003e",
             "pkg:maven/org.apache.sling/org.apache.sling.api@\u003cnormalized\u003e",
             "pkg:maven/org.apache.sling/org.apache.sling.commons.mime@\u003cnormalized\u003e",
             "pkg:maven/org.apache.sling/org.apache.sling.jcr.api@\u003cnormalized\u003e",
@@ -491,7 +483,9 @@
         {
           "dependencies": [
             "pkg:maven/org.apache.jackrabbit/jackrabbit-classloader@\u003cnormalized\u003e",
-            "pkg:maven/org.apache.sling/org.apache.sling.adapter@\u003cnormalized\u003e"
+            "pkg:maven/org.apache.sling/org.apache.sling.adapter@\u003cnormalized\u003e",
+            "pkg:maven/org.apache.sling/org.apache.sling.api@\u003cnormalized\u003e",
+            "pkg:maven/org.apache.sling/org.apache.sling.jcr.api@\u003cnormalized\u003e"
           ],
           "id": "pkg:maven/org.apache.sling/org.apache.sling.jcr.resource@2.0.2-incubator",
           "licenses": [],
@@ -503,25 +497,11 @@
         },
         {
           "dependencies": [
-            "pkg:maven/commons-fileupload/commons-fileupload@\u003cnormalized\u003e",
-            "pkg:maven/commons-io/commons-io@\u003cnormalized\u003e",
-            "pkg:maven/ognl/ognl@\u003cnormalized\u003e",
-            "pkg:maven/org.apache.commons/commons-lang3@\u003cnormalized\u003e",
-            "pkg:maven/org.apache.logging.log4j/log4j-api@\u003cnormalized\u003e",
-            "pkg:maven/org.freemarker/freemarker@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:maven/org.apache.struts/struts2-core@2.5.13",
-          "licenses": [],
-          "name": "org.apache.struts:struts2-core",
-          "purl": "pkg:maven/org.apache.struts/struts2-core@2.5.13",
-          "scope": "\u003cnormalized\u003e",
-          "version": "2.5.13",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
             "pkg:maven/io.netty/netty@\u003cnormalized\u003e",
-            "pkg:maven/jline/jline@\u003cnormalized\u003e"
+            "pkg:maven/jline/jline@\u003cnormalized\u003e",
+            "pkg:maven/log4j/log4j@\u003cnormalized\u003e",
+            "pkg:maven/org.slf4j/slf4j-api@\u003cnormalized\u003e",
+            "pkg:maven/org.slf4j/slf4j-log4j12@\u003cnormalized\u003e"
           ],
           "id": "pkg:maven/org.apache.zookeeper/zookeeper@3.4.6",
           "licenses": [],
@@ -533,38 +513,12 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:maven/org.freemarker/freemarker@2.3.23",
-          "licenses": [],
-          "name": "org.freemarker:freemarker",
-          "purl": "pkg:maven/org.freemarker/freemarker@2.3.23",
-          "scope": "\u003cnormalized\u003e",
-          "version": "2.3.23",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
           "id": "pkg:maven/org.hamcrest/hamcrest-core@1.3",
           "licenses": [],
           "name": "org.hamcrest:hamcrest-core",
           "purl": "pkg:maven/org.hamcrest/hamcrest-core@1.3",
           "scope": "\u003cnormalized\u003e",
           "version": "1.3",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:maven/org.javassist/javassist@3.20.0-ga",
-          "licenses": [],
-          "metadata": {
-            "bomly.normalization.applied": [
-              "version"
-            ],
-            "bomly.normalization.original_version": "3.20.0-GA"
-          },
-          "name": "org.javassist:javassist",
-          "purl": "pkg:maven/org.javassist/javassist@3.20.0-ga",
-          "scope": "\u003cnormalized\u003e",
-          "version": "3.20.0-ga",
           "vulnerabilities": []
         },
         {
@@ -597,12 +551,12 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:maven/org.mindrot/jbcrypt@0.4",
+          "id": "pkg:maven/org.mindrot/jbcrypt@0.3m",
           "licenses": [],
           "name": "org.mindrot:jbcrypt",
-          "purl": "pkg:maven/org.mindrot/jbcrypt@0.4",
+          "purl": "pkg:maven/org.mindrot/jbcrypt@0.3m",
           "scope": "\u003cnormalized\u003e",
-          "version": "0.4",
+          "version": "0.3m",
           "vulnerabilities": []
         },
         {
@@ -616,7 +570,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:maven/org.scala-lang/scala-library@\u003cnormalized\u003e"
+          ],
           "id": "pkg:maven/org.scala-lang.modules/scala-parser-combinators_2.11@1.0.4",
           "licenses": [],
           "name": "org.scala-lang.modules:scala-parser-combinators_2.11",
@@ -626,7 +582,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:maven/org.scala-lang/scala-library@\u003cnormalized\u003e"
+          ],
           "id": "pkg:maven/org.scala-lang.modules/scala-xml_2.11@1.0.4",
           "licenses": [],
           "name": "org.scala-lang.modules:scala-xml_2.11",
@@ -647,16 +605,19 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:maven/org.slf4j/slf4j-api@1.6.1",
+          "id": "pkg:maven/org.slf4j/slf4j-api@1.7.6",
           "licenses": [],
           "name": "org.slf4j:slf4j-api",
-          "purl": "pkg:maven/org.slf4j/slf4j-api@1.6.1",
+          "purl": "pkg:maven/org.slf4j/slf4j-api@1.7.6",
           "scope": "\u003cnormalized\u003e",
-          "version": "1.6.1",
+          "version": "1.7.6",
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:maven/log4j/log4j@\u003cnormalized\u003e",
+            "pkg:maven/org.slf4j/slf4j-api@\u003cnormalized\u003e"
+          ],
           "id": "pkg:maven/org.slf4j/slf4j-log4j12@1.7.6",
           "licenses": [],
           "name": "org.slf4j:slf4j-log4j12",
@@ -666,7 +627,12 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:maven/aopalliance/aopalliance@\u003cnormalized\u003e",
+            "pkg:maven/org.springframework/spring-asm@\u003cnormalized\u003e",
+            "pkg:maven/org.springframework/spring-beans@\u003cnormalized\u003e",
+            "pkg:maven/org.springframework/spring-core@\u003cnormalized\u003e"
+          ],
           "id": "pkg:maven/org.springframework/spring-aop@3.1.1.release",
           "licenses": [],
           "metadata": {
@@ -698,7 +664,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:maven/org.springframework/spring-core@\u003cnormalized\u003e"
+          ],
           "id": "pkg:maven/org.springframework/spring-beans@3.1.1.release",
           "licenses": [],
           "metadata": {
@@ -717,6 +685,8 @@
           "dependencies": [
             "pkg:maven/org.springframework/spring-aop@\u003cnormalized\u003e",
             "pkg:maven/org.springframework/spring-asm@\u003cnormalized\u003e",
+            "pkg:maven/org.springframework/spring-beans@\u003cnormalized\u003e",
+            "pkg:maven/org.springframework/spring-core@\u003cnormalized\u003e",
             "pkg:maven/org.springframework/spring-expression@\u003cnormalized\u003e"
           ],
           "id": "pkg:maven/org.springframework/spring-context@3.1.1.release",
@@ -735,7 +705,8 @@
         },
         {
           "dependencies": [
-            "pkg:maven/commons-logging/commons-logging@\u003cnormalized\u003e"
+            "pkg:maven/commons-logging/commons-logging@\u003cnormalized\u003e",
+            "pkg:maven/org.springframework/spring-asm@\u003cnormalized\u003e"
           ],
           "id": "pkg:maven/org.springframework/spring-core@3.1.1.release",
           "licenses": [],
@@ -752,7 +723,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:maven/org.springframework/spring-core@\u003cnormalized\u003e"
+          ],
           "id": "pkg:maven/org.springframework/spring-expression@3.1.1.release",
           "licenses": [],
           "metadata": {
@@ -799,7 +772,7 @@
           "vulnerabilities": []
         }
       ],
-      "path": "pom.xml",
+      "path": "build.gradle",
       "subproject": "."
     }
   ],
@@ -809,7 +782,7 @@
   "project": {
     "ecosystem": "maven",
     "name": "\u003cnormalized\u003e",
-    "package_manager": "maven",
+    "package_manager": "gradle",
     "path": "\u003cnormalized\u003e"
   },
   "schema_version": "1.0"

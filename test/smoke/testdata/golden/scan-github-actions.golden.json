@@ -4,184 +4,21 @@
     {
       "detector": "github-actions-detector",
       "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
+      "kind": "github-actions-action",
       "package_manager": "github-actions",
       "packages": [
         {
-          "dependencies": [
-            "pkg:github-actions/actions/checkout@v4.1.6",
-            "pkg:github-actions/actions/setup-node@v4",
-            "pkg:github-actions/actions/upload-artifact@v4"
-          ],
-          "id": "pkg:github-actions/.github%2Fworkflows%2Fcheck-dist.yml@local",
+          "dependencies": [],
+          "id": "pkg:github-actions/.github%2Factions%2Fsourceclear@local",
           "licenses": [],
-          "name": ".github/workflows/check-dist.yml",
-          "purl": "pkg:github-actions/.github%2Fworkflows%2Fcheck-dist.yml@local",
-          "scope": "runtime",
+          "name": ".github/actions/sourceclear",
+          "purl": "pkg:github-actions/.github%2Factions%2Fsourceclear@local",
+          "scope": "\u003cnormalized\u003e",
           "version": "local",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:github-actions/actions/checkout@v4.1.6",
-          "licenses": [],
-          "name": "actions:checkout",
-          "purl": "pkg:github-actions/actions/checkout@v4.1.6",
-          "scope": "runtime",
-          "version": "v4.1.6",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:github-actions/actions/setup-node@v4",
-          "licenses": [],
-          "name": "actions:setup-node",
-          "purl": "pkg:github-actions/actions/setup-node@v4",
-          "scope": "runtime",
-          "version": "v4",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:github-actions/actions/upload-artifact@v4",
-          "licenses": [],
-          "name": "actions:upload-artifact",
-          "purl": "pkg:github-actions/actions/upload-artifact@v4",
-          "scope": "runtime",
-          "version": "v4",
           "vulnerabilities": []
         }
       ],
-      "path": ".github/workflows/check-dist.yml",
-      "subproject": "."
-    },
-    {
-      "detector": "github-actions-detector",
-      "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
-      "package_manager": "github-actions",
-      "packages": [
-        {
-          "dependencies": [
-            "pkg:github-actions/actions/checkout@v4.1.6",
-            "pkg:github-actions/github/codeql-action%2Fanalyze@v3",
-            "pkg:github-actions/github/codeql-action%2Finit@v3"
-          ],
-          "id": "pkg:github-actions/.github%2Fworkflows%2Fcodeql-analysis.yml@local",
-          "licenses": [],
-          "name": ".github/workflows/codeql-analysis.yml",
-          "purl": "pkg:github-actions/.github%2Fworkflows%2Fcodeql-analysis.yml@local",
-          "scope": "runtime",
-          "version": "local",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:github-actions/actions/checkout@v4.1.6",
-          "licenses": [],
-          "name": "actions:checkout",
-          "purl": "pkg:github-actions/actions/checkout@v4.1.6",
-          "scope": "runtime",
-          "version": "v4.1.6",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:github-actions/github/codeql-action%2Fanalyze@v3",
-          "licenses": [],
-          "name": "github:codeql-action/analyze",
-          "purl": "pkg:github-actions/github/codeql-action%2Fanalyze@v3",
-          "scope": "runtime",
-          "version": "v3",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:github-actions/github/codeql-action%2Finit@v3",
-          "licenses": [],
-          "name": "github:codeql-action/init",
-          "purl": "pkg:github-actions/github/codeql-action%2Finit@v3",
-          "scope": "runtime",
-          "version": "v3",
-          "vulnerabilities": []
-        }
-      ],
-      "path": ".github/workflows/codeql-analysis.yml",
-      "subproject": "."
-    },
-    {
-      "detector": "github-actions-detector",
-      "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
-      "package_manager": "github-actions",
-      "packages": [
-        {
-          "dependencies": [
-            "pkg:github-actions/actions/checkout@v4.1.6"
-          ],
-          "id": "pkg:github-actions/.github%2Fworkflows%2Flicensed.yml@local",
-          "licenses": [],
-          "name": ".github/workflows/licensed.yml",
-          "purl": "pkg:github-actions/.github%2Fworkflows%2Flicensed.yml@local",
-          "scope": "runtime",
-          "version": "local",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:github-actions/actions/checkout@v4.1.6",
-          "licenses": [],
-          "name": "actions:checkout",
-          "purl": "pkg:github-actions/actions/checkout@v4.1.6",
-          "scope": "runtime",
-          "version": "v4.1.6",
-          "vulnerabilities": []
-        }
-      ],
-      "path": ".github/workflows/licensed.yml",
-      "subproject": "."
-    },
-    {
-      "detector": "github-actions-detector",
-      "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
-      "package_manager": "github-actions",
-      "packages": [
-        {
-          "dependencies": [
-            "pkg:github-actions/actions/checkout@v4",
-            "pkg:github-actions/actions/publish-immutable-action@0.0.3"
-          ],
-          "id": "pkg:github-actions/.github%2Fworkflows%2Fpublish-immutable-actions.yml@local",
-          "licenses": [],
-          "name": ".github/workflows/publish-immutable-actions.yml",
-          "purl": "pkg:github-actions/.github%2Fworkflows%2Fpublish-immutable-actions.yml@local",
-          "scope": "runtime",
-          "version": "local",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:github-actions/actions/checkout@v4",
-          "licenses": [],
-          "name": "actions:checkout",
-          "purl": "pkg:github-actions/actions/checkout@v4",
-          "scope": "runtime",
-          "version": "v4",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:github-actions/actions/publish-immutable-action@0.0.3",
-          "licenses": [],
-          "name": "actions:publish-immutable-action",
-          "purl": "pkg:github-actions/actions/publish-immutable-action@0.0.3",
-          "scope": "runtime",
-          "version": "0.0.3",
-          "vulnerabilities": []
-        }
-      ],
-      "path": ".github/workflows/publish-immutable-actions.yml",
+      "path": ".github/actions/sourceclear/action.yml",
       "subproject": "."
     },
     {
@@ -192,147 +29,39 @@
       "packages": [
         {
           "dependencies": [],
-          "id": "pkg:github-actions/.@local",
+          "id": "pkg:github-actions/.github%2Factions%2Fsourceclear@local",
           "licenses": [],
-          "name": ".",
-          "purl": "pkg:github-actions/.@local",
-          "scope": "runtime",
+          "name": ".github/actions/sourceclear",
+          "purl": "pkg:github-actions/.github%2Factions%2Fsourceclear@local",
+          "scope": "\u003cnormalized\u003e",
           "version": "local",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:github-actions/.@local",
-            "pkg:github-actions/actions/checkout@v4.1.6",
-            "pkg:github-actions/actions/setup-node@v4",
-            "pkg:github-actions/localClone@local"
+            "pkg:github-actions/.github%2Factions%2Fsourceclear@\u003cnormalized\u003e",
+            "pkg:github-actions/actions/checkout@\u003cnormalized\u003e"
           ],
-          "id": "pkg:github-actions/.github%2Fworkflows%2Ftest.yml@local",
+          "id": "pkg:github-actions/.github%2Fworkflows%2Fmain.yml@local",
           "licenses": [],
-          "name": ".github/workflows/test.yml",
-          "purl": "pkg:github-actions/.github%2Fworkflows%2Ftest.yml@local",
-          "scope": "runtime",
+          "name": ".github/workflows/main.yml",
+          "purl": "pkg:github-actions/.github%2Fworkflows%2Fmain.yml@local",
+          "scope": "\u003cnormalized\u003e",
           "version": "local",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:github-actions/actions/checkout@v4.1.6",
+          "id": "pkg:github-actions/actions/checkout@v1",
           "licenses": [],
           "name": "actions:checkout",
-          "purl": "pkg:github-actions/actions/checkout@v4.1.6",
-          "scope": "runtime",
-          "version": "v4.1.6",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:github-actions/actions/setup-node@v4",
-          "licenses": [],
-          "name": "actions:setup-node",
-          "purl": "pkg:github-actions/actions/setup-node@v4",
-          "scope": "runtime",
-          "version": "v4",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:github-actions/localClone@local",
-          "licenses": [],
-          "name": "localClone",
-          "purl": "pkg:github-actions/localClone@local",
-          "scope": "runtime",
-          "version": "local",
+          "purl": "pkg:github-actions/actions/checkout@v1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "v1",
           "vulnerabilities": []
         }
       ],
-      "path": ".github/workflows/test.yml",
-      "subproject": "."
-    },
-    {
-      "detector": "github-actions-detector",
-      "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
-      "package_manager": "github-actions",
-      "packages": [
-        {
-          "dependencies": [
-            "pkg:github-actions/actions/checkout@v4.1.6"
-          ],
-          "id": "pkg:github-actions/.github%2Fworkflows%2Fupdate-main-version.yml@local",
-          "licenses": [],
-          "name": ".github/workflows/update-main-version.yml",
-          "purl": "pkg:github-actions/.github%2Fworkflows%2Fupdate-main-version.yml@local",
-          "scope": "runtime",
-          "version": "local",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:github-actions/actions/checkout@v4.1.6",
-          "licenses": [],
-          "name": "actions:checkout",
-          "purl": "pkg:github-actions/actions/checkout@v4.1.6",
-          "scope": "runtime",
-          "version": "v4.1.6",
-          "vulnerabilities": []
-        }
-      ],
-      "path": ".github/workflows/update-main-version.yml",
-      "subproject": "."
-    },
-    {
-      "detector": "github-actions-detector",
-      "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
-      "package_manager": "github-actions",
-      "packages": [
-        {
-          "dependencies": [
-            "pkg:github-actions/actions/checkout@v4",
-            "pkg:github-actions/docker/build-push-action@v6.5.0",
-            "pkg:github-actions/docker/login-action@v3.3.0"
-          ],
-          "id": "pkg:github-actions/.github%2Fworkflows%2Fupdate-test-ubuntu-git.yml@local",
-          "licenses": [],
-          "name": ".github/workflows/update-test-ubuntu-git.yml",
-          "purl": "pkg:github-actions/.github%2Fworkflows%2Fupdate-test-ubuntu-git.yml@local",
-          "scope": "runtime",
-          "version": "local",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:github-actions/actions/checkout@v4",
-          "licenses": [],
-          "name": "actions:checkout",
-          "purl": "pkg:github-actions/actions/checkout@v4",
-          "scope": "runtime",
-          "version": "v4",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:github-actions/docker/build-push-action@v6.5.0",
-          "licenses": [],
-          "name": "docker:build-push-action",
-          "purl": "pkg:github-actions/docker/build-push-action@v6.5.0",
-          "scope": "runtime",
-          "version": "v6.5.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:github-actions/docker/login-action@v3.3.0",
-          "licenses": [],
-          "name": "docker:login-action",
-          "purl": "pkg:github-actions/docker/login-action@v3.3.0",
-          "scope": "runtime",
-          "version": "v3.3.0",
-          "vulnerabilities": []
-        }
-      ],
-      "path": ".github/workflows/update-test-ubuntu-git.yml",
+      "path": ".github/workflows/main.yml",
       "subproject": "."
     }
   ],

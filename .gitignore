@@ -7,6 +7,9 @@
 # Ignore generated SBOM files
 /sboms
 
+# Ignore dependency graph QA artifacts
+/.qa-runs
+
 # Ignore test coverage files
 coverage
 

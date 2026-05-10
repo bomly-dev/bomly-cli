@@ -1,8 +1,8 @@
 {
   "command": "diff",
   "comparison": {
-    "base": "v6.12.0",
-    "head": "v6.13.0"
+    "base": "v0.9.0",
+    "head": "v1.0.0"
   },
   "metadata": {
     "duration_ms": 0
@@ -16,43 +16,33 @@
   "results": {
     "manifests": [
       {
-        "ecosystem": "github-actions",
-        "kind": "github-actions-workflow",
-        "package_manager": "github-actions",
-        "path": ".github/workflows/node-aught.yml",
-        "status": "unchanged",
-        "subproject": "."
-      },
-      {
-        "ecosystem": "github-actions",
-        "kind": "github-actions-workflow",
-        "package_manager": "github-actions",
-        "path": ".github/workflows/node-pretest.yml",
-        "status": "unchanged",
-        "subproject": "."
-      },
-      {
-        "ecosystem": "github-actions",
-        "kind": "github-actions-workflow",
-        "package_manager": "github-actions",
-        "path": ".github/workflows/node-tens.yml",
-        "status": "unchanged",
-        "subproject": "."
-      },
-      {
-        "ecosystem": "github-actions",
-        "kind": "github-actions-workflow",
-        "package_manager": "github-actions",
-        "path": ".github/workflows/rebase.yml",
-        "status": "unchanged",
-        "subproject": "."
-      },
-      {
-        "ecosystem": "github-actions",
-        "kind": "github-actions-workflow",
-        "package_manager": "github-actions",
-        "path": ".github/workflows/require-allow-edits.yml",
-        "status": "unchanged",
+        "changed": [
+          {
+            "after": {
+              "id": "pkg:npm/lodash@4.17.15",
+              "licenses": [],
+              "name": "lodash",
+              "purl": "pkg:npm/lodash@4.17.15",
+              "scope": "runtime",
+              "version": "4.17.15",
+              "vulnerabilities": []
+            },
+            "before": {
+              "id": "pkg:npm/lodash@4.17.14",
+              "licenses": [],
+              "name": "lodash",
+              "purl": "pkg:npm/lodash@4.17.14",
+              "scope": "runtime",
+              "version": "4.17.14",
+              "vulnerabilities": []
+            }
+          }
+        ],
+        "ecosystem": "npm",
+        "kind": "package-lock.json",
+        "package_manager": "npm",
+        "path": "package-lock.json",
+        "status": "changed",
         "subproject": "."
       }
     ]
@@ -61,10 +51,10 @@
   "summary": {
     "added_manifest_count": 0,
     "added_package_count": 0,
-    "changed_manifest_count": 0,
-    "changed_package_count": 0,
+    "changed_manifest_count": 1,
+    "changed_package_count": 1,
     "removed_manifest_count": 0,
     "removed_package_count": 0,
-    "unchanged_manifest_count": 5
+    "unchanged_manifest_count": 0
   }
 }

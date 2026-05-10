@@ -2,132 +2,79 @@
   "command": "scan",
   "manifests": [
     {
-      "detector": "github-actions-detector",
-      "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
-      "package_manager": "github-actions",
+      "detector": "composer-detector",
+      "ecosystem": "php",
+      "kind": "composer.lock",
+      "package_manager": "composer",
       "packages": [
         {
-          "dependencies": [
-            "pkg:github-actions/actions/checkout@v4"
-          ],
-          "id": "pkg:github-actions/.github%2Fworkflows%2Fchecks.yml@local",
+          "dependencies": [],
+          "id": "pkg:composer/appserver-io-psr/http-message@1.4.1",
           "licenses": [],
-          "name": ".github/workflows/checks.yml",
-          "purl": "pkg:github-actions/.github%2Fworkflows%2Fchecks.yml@local",
-          "scope": "runtime",
-          "version": "local",
+          "name": "appserver-io-psr:http-message",
+          "purl": "pkg:composer/appserver-io-psr/http-message@1.4.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.4.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:composer/appserver-io-psr/http-message@\u003cnormalized\u003e",
+            "pkg:composer/ircmaxell/password-compat@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:composer/appserver-io/http@1.1.6",
+          "licenses": [],
+          "name": "appserver-io:http",
+          "purl": "pkg:composer/appserver-io/http@1.1.6",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.1.6",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:github-actions/actions/checkout@v4",
+          "id": "pkg:composer/ircmaxell/password-compat@1.0.4",
           "licenses": [],
-          "name": "actions:checkout",
-          "purl": "pkg:github-actions/actions/checkout@v4",
-          "scope": "runtime",
-          "version": "v4",
+          "metadata": {
+            "bomly.normalization.applied": [
+              "version"
+            ],
+            "bomly.normalization.original_version": "v1.0.4"
+          },
+          "name": "ircmaxell:password-compat",
+          "purl": "pkg:composer/ircmaxell/password-compat@1.0.4",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.0.4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:composer/moodle/moodle@2.6.2",
+          "licenses": [],
+          "metadata": {
+            "bomly.normalization.applied": [
+              "version"
+            ],
+            "bomly.normalization.original_version": "v2.6.2"
+          },
+          "name": "moodle:moodle",
+          "purl": "pkg:composer/moodle/moodle@2.6.2",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.6.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:composer/appserver-io/http@\u003cnormalized\u003e",
+            "pkg:composer/moodle/moodle@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:composer/root",
+          "licenses": [],
+          "name": "root",
+          "purl": "pkg:composer/root",
           "vulnerabilities": []
         }
       ],
-      "path": ".github/workflows/checks.yml",
-      "subproject": "."
-    },
-    {
-      "detector": "github-actions-detector",
-      "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
-      "package_manager": "github-actions",
-      "packages": [
-        {
-          "dependencies": [
-            "pkg:github-actions/actions/checkout@v4",
-            "pkg:github-actions/actions/setup-node@v3",
-            "pkg:github-actions/shivammathur/setup-php@v2"
-          ],
-          "id": "pkg:github-actions/.github%2Fworkflows%2Fci.yml@local",
-          "licenses": [],
-          "name": ".github/workflows/ci.yml",
-          "purl": "pkg:github-actions/.github%2Fworkflows%2Fci.yml@local",
-          "scope": "runtime",
-          "version": "local",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:github-actions/actions/checkout@v4",
-          "licenses": [],
-          "name": "actions:checkout",
-          "purl": "pkg:github-actions/actions/checkout@v4",
-          "scope": "runtime",
-          "version": "v4",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:github-actions/actions/setup-node@v3",
-          "licenses": [],
-          "name": "actions:setup-node",
-          "purl": "pkg:github-actions/actions/setup-node@v3",
-          "scope": "runtime",
-          "version": "v3",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:github-actions/shivammathur/setup-php@v2",
-          "licenses": [],
-          "name": "shivammathur:setup-php",
-          "purl": "pkg:github-actions/shivammathur/setup-php@v2",
-          "scope": "runtime",
-          "version": "v2",
-          "vulnerabilities": []
-        }
-      ],
-      "path": ".github/workflows/ci.yml",
-      "subproject": "."
-    },
-    {
-      "detector": "github-actions-detector",
-      "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
-      "package_manager": "github-actions",
-      "packages": [
-        {
-          "dependencies": [
-            "pkg:github-actions/actions/checkout@v4",
-            "pkg:github-actions/shivammathur/setup-php@v2"
-          ],
-          "id": "pkg:github-actions/.github%2Fworkflows%2Fstatic.yml@local",
-          "licenses": [],
-          "name": ".github/workflows/static.yml",
-          "purl": "pkg:github-actions/.github%2Fworkflows%2Fstatic.yml@local",
-          "scope": "runtime",
-          "version": "local",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:github-actions/actions/checkout@v4",
-          "licenses": [],
-          "name": "actions:checkout",
-          "purl": "pkg:github-actions/actions/checkout@v4",
-          "scope": "runtime",
-          "version": "v4",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:github-actions/shivammathur/setup-php@v2",
-          "licenses": [],
-          "name": "shivammathur:setup-php",
-          "purl": "pkg:github-actions/shivammathur/setup-php@v2",
-          "scope": "runtime",
-          "version": "v2",
-          "vulnerabilities": []
-        }
-      ],
-      "path": ".github/workflows/static.yml",
+      "path": "composer.lock",
       "subproject": "."
     }
   ],
@@ -135,9 +82,9 @@
     "duration_ms": 0
   },
   "project": {
-    "ecosystem": "github-actions",
+    "ecosystem": "php",
     "name": "\u003cnormalized\u003e",
-    "package_manager": "github-actions",
+    "package_manager": "composer",
     "path": "\u003cnormalized\u003e"
   },
   "schema_version": "1.0"

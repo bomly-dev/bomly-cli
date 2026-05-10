@@ -1,0 +1,132 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "detector": "pnpm-detector",
+      "ecosystem": "npm",
+      "kind": "pnpm-lock.yaml",
+      "package_manager": "pnpm",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:npm/body-parser@1.20.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "name": "body-parser",
+          "purl": "pkg:npm/body-parser@1.20.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.20.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/express@\u003cnormalized\u003e",
+            "pkg:npm/jest@\u003cnormalized\u003e",
+            "pkg:npm/lodash@\u003cnormalized\u003e",
+            "pkg:npm/marked@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/example-javascript-pnpm@1.0.0",
+          "licenses": [],
+          "name": "example-javascript-pnpm",
+          "purl": "pkg:npm/example-javascript-pnpm@1.0.0",
+          "version": "1.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/body-parser@\u003cnormalized\u003e",
+            "pkg:npm/qs@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/express@4.18.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "name": "express",
+          "purl": "pkg:npm/express@4.18.2",
+          "scope": "\u003cnormalized\u003e",
+          "version": "4.18.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/jest@29.7.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "name": "jest",
+          "purl": "pkg:npm/jest@29.7.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "29.7.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/lodash@4.17.15",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "name": "lodash",
+          "purl": "pkg:npm/lodash@4.17.15",
+          "scope": "\u003cnormalized\u003e",
+          "version": "4.17.15",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/marked@0.3.19",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "name": "marked",
+          "purl": "pkg:npm/marked@0.3.19",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.3.19",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/qs@6.11.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "BSD-3-Clause"
+            }
+          ],
+          "name": "qs",
+          "purl": "pkg:npm/qs@6.11.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "6.11.0",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "pnpm-lock.yaml",
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "duration_ms": 0
+  },
+  "project": {
+    "ecosystem": "npm",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "pnpm",
+    "path": "\u003cnormalized\u003e"
+  },
+  "schema_version": "1.0"
+}

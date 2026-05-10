@@ -12,7 +12,13 @@
             "pkg:golang/github.com/bmizerany/assert@\u003cnormalized\u003e"
           ],
           "id": "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
           "name": "github.com/bitly/go-simplejson",
           "purl": "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
           "scope": "\u003cnormalized\u003e",
@@ -34,7 +40,13 @@
         {
           "dependencies": [],
           "id": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "ISC",
+              "type": "external-depsdev",
+              "value": "ISC"
+            }
+          ],
           "name": "github.com/davecgh/go-spew",
           "purl": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
           "scope": "\u003cnormalized\u003e",
@@ -47,7 +59,13 @@
             "pkg:golang/github.com/mattn/go-isatty@\u003cnormalized\u003e"
           ],
           "id": "pkg:golang/github.com/fatih/color@v1.7.0",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
           "name": "github.com/fatih/color",
           "purl": "pkg:golang/github.com/fatih/color@v1.7.0",
           "scope": "\u003cnormalized\u003e",
@@ -69,7 +87,13 @@
         {
           "dependencies": [],
           "id": "pkg:golang/github.com/google/go-querystring@v1.0.0",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "BSD-3-Clause",
+              "type": "external-depsdev",
+              "value": "BSD-3-Clause"
+            }
+          ],
           "name": "github.com/google/go-querystring",
           "purl": "pkg:golang/github.com/google/go-querystring@v1.0.0",
           "scope": "\u003cnormalized\u003e",
@@ -82,7 +106,13 @@
             "pkg:golang/github.com/rogpeppe/go-internal@\u003cnormalized\u003e"
           ],
           "id": "pkg:golang/github.com/kr/pretty@v0.3.1",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
           "name": "github.com/kr/pretty",
           "purl": "pkg:golang/github.com/kr/pretty@v0.3.1",
           "scope": "\u003cnormalized\u003e",
@@ -92,7 +122,13 @@
         {
           "dependencies": [],
           "id": "pkg:golang/github.com/kr/text@v0.2.0",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
           "name": "github.com/kr/text",
           "purl": "pkg:golang/github.com/kr/text@v0.2.0",
           "scope": "\u003cnormalized\u003e",
@@ -104,7 +140,13 @@
             "pkg:golang/github.com/mattn/go-isatty@\u003cnormalized\u003e"
           ],
           "id": "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
           "name": "github.com/mattn/go-colorable",
           "purl": "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
           "scope": "\u003cnormalized\u003e",
@@ -114,7 +156,13 @@
         {
           "dependencies": [],
           "id": "pkg:golang/github.com/mattn/go-isatty@v0.0.4",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
           "name": "github.com/mattn/go-isatty",
           "purl": "pkg:golang/github.com/mattn/go-isatty@v0.0.4",
           "scope": "\u003cnormalized\u003e",
@@ -124,7 +172,13 @@
         {
           "dependencies": [],
           "id": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
           "name": "github.com/mattn/go-runewidth",
           "purl": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
           "scope": "\u003cnormalized\u003e",
@@ -136,7 +190,13 @@
             "pkg:golang/github.com/mattn/go-runewidth@\u003cnormalized\u003e"
           ],
           "id": "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
           "name": "github.com/nsf/termbox-go",
           "purl": "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
           "scope": "\u003cnormalized\u003e",
@@ -148,7 +208,13 @@
             "pkg:golang/github.com/fatih/color@\u003cnormalized\u003e"
           ],
           "id": "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
           "name": "github.com/nwidger/jsoncolor",
           "purl": "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
           "scope": "\u003cnormalized\u003e",
@@ -158,7 +224,13 @@
         {
           "dependencies": [],
           "id": "pkg:golang/github.com/pkg/errors@v0.8.0",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "BSD-2-Clause",
+              "type": "external-depsdev",
+              "value": "BSD-2-Clause"
+            }
+          ],
           "name": "github.com/pkg/errors",
           "purl": "pkg:golang/github.com/pkg/errors@v0.8.0",
           "scope": "\u003cnormalized\u003e",
@@ -168,7 +240,13 @@
         {
           "dependencies": [],
           "id": "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "BSD-3-Clause",
+              "type": "external-depsdev",
+              "value": "BSD-3-Clause"
+            }
+          ],
           "name": "github.com/pmezard/go-difflib",
           "purl": "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
           "scope": "\u003cnormalized\u003e",
@@ -178,7 +256,13 @@
         {
           "dependencies": [],
           "id": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "BSD-3-Clause",
+              "type": "external-depsdev",
+              "value": "BSD-3-Clause"
+            }
+          ],
           "name": "github.com/rogpeppe/go-internal",
           "purl": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
           "scope": "\u003cnormalized\u003e",
@@ -195,7 +279,13 @@
             "pkg:golang/github.com/stretchr/testify@\u003cnormalized\u003e"
           ],
           "id": "pkg:golang/github.com/simeji/jid@v0.7.6",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
           "name": "github.com/simeji/jid",
           "purl": "pkg:golang/github.com/simeji/jid@v0.7.6",
           "scope": "\u003cnormalized\u003e",
@@ -222,7 +312,13 @@
             "pkg:golang/gopkg.in/yaml.v3@\u003cnormalized\u003e"
           ],
           "id": "pkg:golang/github.com/stretchr/testify@v1.8.2",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
           "name": "github.com/stretchr/testify",
           "purl": "pkg:golang/github.com/stretchr/testify@v1.8.2",
           "scope": "\u003cnormalized\u003e",
@@ -232,17 +328,187 @@
         {
           "dependencies": [],
           "id": "pkg:golang/golang.org/x/text@v0.3.5",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "BSD-3-Clause",
+              "type": "external-depsdev",
+              "value": "BSD-3-Clause"
+            }
+          ],
           "name": "golang.org/x/text",
           "purl": "pkg:golang/golang.org/x/text@v0.3.5",
           "scope": "\u003cnormalized\u003e",
           "version": "v0.3.5",
-          "vulnerabilities": []
+          "vulnerabilities": [
+            {
+              "description": "golang.org/x/text/language Denial of service via crafted Accept-Language header",
+              "id": "GHSA-69ch-w2m2-3vjp",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "govulncheck",
+                "call_paths": [
+                  {
+                    "frames": [
+                      {
+                        "position": {
+                          "column": 0,
+                          "line": 0
+                        }
+                      }
+                    ],
+                    "sink": {
+                      "module": "golang.org/x/text"
+                    }
+                  },
+                  {
+                    "frames": [
+                      {
+                        "package": "golang.org/x/text/language",
+                        "position": {
+                          "column": 0,
+                          "line": 0
+                        }
+                      }
+                    ],
+                    "sink": {
+                      "module": "golang.org/x/text",
+                      "package": "golang.org/x/text/language"
+                    }
+                  }
+                ],
+                "status": "reachable",
+                "symbols": [
+                  {
+                    "module": "golang.org/x/text"
+                  },
+                  {
+                    "module": "golang.org/x/text",
+                    "package": "golang.org/x/text/language"
+                  }
+                ],
+                "tier": "symbol"
+              },
+              "reasons": [
+                "https://github.com/golang/go/issues/56152",
+                "https://github.com/golang/text/commit/434eadcdbc3b0256971992e8c70027278364c72c",
+                "https://go.dev/cl/442235",
+                "https://go.dev/issue/56152",
+                "https://groups.google.com/g/golang-announce/c/-hjNw559_tE/m/KlGTfid5CAAJ",
+                "https://nvd.nist.gov/vuln/detail/CVE-2022-32149",
+                "https://pkg.go.dev/vuln/GO-2022-1059",
+                "https://security.netapp.com/advisory/ntap-20230203-0006"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "golang.org/x/text/language Denial of service via crafted Accept-Language header"
+            },
+            {
+              "description": "golang.org/x/text/language Out-of-bounds Read vulnerability",
+              "id": "GHSA-ppp9-7jff-5vj2",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "govulncheck",
+                "call_paths": [
+                  {
+                    "frames": [
+                      {
+                        "position": {
+                          "column": 0,
+                          "line": 0
+                        }
+                      }
+                    ],
+                    "sink": {
+                      "module": "golang.org/x/text"
+                    }
+                  },
+                  {
+                    "frames": [
+                      {
+                        "package": "golang.org/x/text/language",
+                        "position": {
+                          "column": 0,
+                          "line": 0
+                        }
+                      }
+                    ],
+                    "sink": {
+                      "module": "golang.org/x/text",
+                      "package": "golang.org/x/text/language"
+                    }
+                  },
+                  {
+                    "frames": [
+                      {
+                        "function": "Parse",
+                        "package": "golang.org/x/text/language",
+                        "position": {
+                          "column": 0,
+                          "file": "language/parse.go",
+                          "line": 0
+                        }
+                      },
+                      {
+                        "function": "Baz",
+                        "package": "github.com/srcclr/example-go-modules/sub3",
+                        "position": {
+                          "column": 0,
+                          "file": "sub3/sub3.go",
+                          "line": 0
+                        }
+                      }
+                    ],
+                    "sink": {
+                      "kind": "function",
+                      "module": "github.com/srcclr/example-go-modules",
+                      "package": "github.com/srcclr/example-go-modules/sub3",
+                      "symbol": "Baz"
+                    }
+                  }
+                ],
+                "status": "reachable",
+                "symbols": [
+                  {
+                    "module": "golang.org/x/text"
+                  },
+                  {
+                    "module": "golang.org/x/text",
+                    "package": "golang.org/x/text/language"
+                  },
+                  {
+                    "kind": "function",
+                    "module": "github.com/srcclr/example-go-modules",
+                    "package": "github.com/srcclr/example-go-modules/sub3",
+                    "symbol": "Baz"
+                  }
+                ],
+                "tier": "symbol"
+              },
+              "reasons": [
+                "https://deps.dev/advisory/OSV/GO-2021-0113",
+                "https://go.dev/cl/340830",
+                "https://go.googlesource.com/text/+/383b2e75a7a4198c42f8f87833eefb772868a56f",
+                "https://groups.google.com/g/golang-announce",
+                "https://nvd.nist.gov/vuln/detail/CVE-2021-38561",
+                "https://pkg.go.dev/golang.org/x/text/language",
+                "https://pkg.go.dev/vuln/GO-2021-0113"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "golang.org/x/text/language Out-of-bounds Read vulnerability"
+            }
+          ]
         },
         {
           "dependencies": [],
           "id": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "BSD-2-Clause",
+              "type": "external-depsdev",
+              "value": "BSD-2-Clause"
+            }
+          ],
           "name": "gopkg.in/check.v1",
           "purl": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
           "scope": "\u003cnormalized\u003e",
@@ -254,7 +520,18 @@
             "pkg:golang/gopkg.in/check.v1@\u003cnormalized\u003e"
           ],
           "id": "pkg:golang/gopkg.in/yaml.v3@v3.0.1",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            },
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "external-depsdev",
+              "value": "Apache-2.0"
+            }
+          ],
           "name": "gopkg.in/yaml.v3",
           "purl": "pkg:golang/gopkg.in/yaml.v3@v3.0.1",
           "scope": "\u003cnormalized\u003e",
@@ -267,6 +544,14 @@
     }
   ],
   "metadata": {
+    "analyzer_runs": [
+      "govulncheck"
+    ],
+    "analyzer_stats": {
+      "govulncheck": {
+        "reachable": 2
+      }
+    },
     "duration_ms": 0
   },
   "project": {

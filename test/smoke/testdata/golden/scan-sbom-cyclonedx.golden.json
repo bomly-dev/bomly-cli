@@ -9,14 +9,14 @@
       "packages": [
         {
           "dependencies": [
-            "pkg:golang/github.com/google/uuid@1.6.0",
-            "pkg:golang/github.com/pkg/errors@0.9.1"
+            "pkg:golang/github.com/google/uuid@\u003cnormalized\u003e",
+            "pkg:golang/github.com/pkg/errors@\u003cnormalized\u003e"
           ],
           "id": "pkg:golang/example.com/app@1.0.0",
           "licenses": [],
           "name": "example.com/app",
           "purl": "pkg:golang/example.com/app@1.0.0",
-          "scope": "required",
+          "scope": "\u003cnormalized\u003e",
           "version": "1.0.0",
           "vulnerabilities": []
         },
@@ -26,7 +26,7 @@
           "licenses": [],
           "name": "github.com/google/uuid",
           "purl": "pkg:golang/github.com/google/uuid@1.6.0",
-          "scope": "required",
+          "scope": "\u003cnormalized\u003e",
           "version": "1.6.0",
           "vulnerabilities": []
         },
@@ -36,7 +36,7 @@
           "licenses": [],
           "name": "github.com/pkg/errors",
           "purl": "pkg:golang/github.com/pkg/errors@0.9.1",
-          "scope": "required",
+          "scope": "\u003cnormalized\u003e",
           "version": "0.9.1",
           "vulnerabilities": []
         }

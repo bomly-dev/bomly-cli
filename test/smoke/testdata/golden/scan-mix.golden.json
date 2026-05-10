@@ -8,429 +8,67 @@
       "package_manager": "mix",
       "packages": [
         {
-          "dependencies": [
-            "pkg:hex/cowboy@2.10.0",
-            "pkg:hex/cowboy_telemetry@0.4.0",
-            "pkg:hex/cowlib@2.12.1",
-            "pkg:hex/db_connection@2.5.0",
-            "pkg:hex/decimal@2.1.1",
-            "pkg:hex/earmark_parser@1.4.39",
-            "pkg:hex/hpax@0.1.1",
-            "pkg:hex/makeup@1.1.2",
-            "pkg:hex/makeup_erlang@1.0.0",
-            "pkg:hex/makeup_html@0.1.1",
-            "pkg:hex/mime@2.0.5",
-            "pkg:hex/nimble_parsec@1.4.0",
-            "pkg:hex/ranch@1.8.0",
-            "pkg:hex/root",
-            "pkg:hex/websock@0.5.3"
-          ],
-          "id": "mix.lock",
-          "licenses": [],
-          "name": "mix.lock",
-          "vulnerabilities": []
-        },
-        {
           "dependencies": [],
-          "id": "pkg:hex/castore@0.1.22",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "castore",
-          "purl": "pkg:hex/castore@0.1.22",
-          "scope": "runtime",
-          "version": "0.1.22",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/cowboy@2.10.0",
+          "id": "pkg:hex/cowboy@2.9.0",
           "licenses": [],
           "metadata": {
             "source": "hex"
           },
           "name": "cowboy",
-          "purl": "pkg:hex/cowboy@2.10.0",
-          "version": "2.10.0",
+          "purl": "pkg:hex/cowboy@2.9.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.9.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:hex/cowboy_telemetry@0.4.0",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "cowboy_telemetry",
-          "purl": "pkg:hex/cowboy_telemetry@0.4.0",
-          "version": "0.4.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/cowlib@2.12.1",
+          "id": "pkg:hex/cowlib@2.11.0",
           "licenses": [],
           "metadata": {
             "source": "hex"
           },
           "name": "cowlib",
-          "purl": "pkg:hex/cowlib@2.12.1",
-          "version": "2.12.1",
+          "purl": "pkg:hex/cowlib@2.11.0",
+          "version": "2.11.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:hex/db_connection@2.5.0",
+          "id": "pkg:hex/credo@1.7.7",
           "licenses": [],
           "metadata": {
             "source": "hex"
           },
-          "name": "db_connection",
-          "purl": "pkg:hex/db_connection@2.5.0",
-          "version": "2.5.0",
+          "name": "credo",
+          "purl": "pkg:hex/credo@1.7.7",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.7.7",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:hex/decimal@2.1.1",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "decimal",
-          "purl": "pkg:hex/decimal@2.1.1",
-          "version": "2.1.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/earmark_parser@1.4.39",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "earmark_parser",
-          "purl": "pkg:hex/earmark_parser@1.4.39",
-          "version": "1.4.39",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/ecto@3.10.1",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "ecto",
-          "purl": "pkg:hex/ecto@3.10.1",
-          "scope": "runtime",
-          "version": "3.10.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/ecto_sql@3.10.1",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "ecto_sql",
-          "purl": "pkg:hex/ecto_sql@3.10.1",
-          "scope": "runtime",
-          "version": "3.10.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/esbuild@0.8.1",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "esbuild",
-          "purl": "pkg:hex/esbuild@0.8.1",
-          "scope": "development",
-          "version": "0.8.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/ex_doc@0.34.0",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "ex_doc",
-          "purl": "pkg:hex/ex_doc@0.34.0",
-          "scope": "runtime",
-          "version": "0.34.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/gettext@0.20.0",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "gettext",
-          "purl": "pkg:hex/gettext@0.20.0",
-          "scope": "runtime",
-          "version": "0.20.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/hpax@0.1.1",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "hpax",
-          "purl": "pkg:hex/hpax@0.1.1",
-          "version": "0.1.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/jason@1.4.0",
+          "id": "pkg:hex/jason@1.2.2",
           "licenses": [],
           "metadata": {
             "source": "hex"
           },
           "name": "jason",
-          "purl": "pkg:hex/jason@1.4.0",
-          "scope": "runtime",
-          "version": "1.4.0",
+          "purl": "pkg:hex/jason@1.2.2",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.2.2",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:hex/makeup@1.1.2",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "makeup",
-          "purl": "pkg:hex/makeup@1.1.2",
-          "version": "1.1.2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/makeup_diff@0.1.0",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "makeup_diff",
-          "purl": "pkg:hex/makeup_diff@0.1.0",
-          "scope": "runtime",
-          "version": "0.1.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/makeup_eex@0.1.1",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "makeup_eex",
-          "purl": "pkg:hex/makeup_eex@0.1.1",
-          "scope": "runtime",
-          "version": "0.1.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/makeup_elixir@0.16.2",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "makeup_elixir",
-          "purl": "pkg:hex/makeup_elixir@0.16.2",
-          "scope": "runtime",
-          "version": "0.16.2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/makeup_erlang@1.0.0",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "makeup_erlang",
-          "purl": "pkg:hex/makeup_erlang@1.0.0",
-          "version": "1.0.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/makeup_html@0.1.1",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "makeup_html",
-          "purl": "pkg:hex/makeup_html@0.1.1",
-          "version": "0.1.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/mime@2.0.5",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "mime",
-          "purl": "pkg:hex/mime@2.0.5",
-          "version": "2.0.5",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/mint@1.4.1",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "mint",
-          "purl": "pkg:hex/mint@1.4.1",
-          "scope": "development",
-          "version": "1.4.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/mint_web_socket@1.0.0",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "mint_web_socket",
-          "purl": "pkg:hex/mint_web_socket@1.0.0",
-          "scope": "development",
-          "version": "1.0.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/nimble_parsec@1.4.0",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "nimble_parsec",
-          "purl": "pkg:hex/nimble_parsec@1.4.0",
-          "version": "1.4.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/phoenix_html@4.0.0",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "phoenix_html",
-          "purl": "pkg:hex/phoenix_html@4.0.0",
-          "scope": "development",
-          "version": "4.0.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/phoenix_pubsub@2.1.3",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "phoenix_pubsub",
-          "purl": "pkg:hex/phoenix_pubsub@2.1.3",
-          "scope": "runtime",
-          "version": "2.1.3",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/phoenix_template@1.0.4",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "phoenix_template",
-          "purl": "pkg:hex/phoenix_template@1.0.4",
-          "scope": "runtime",
-          "version": "1.0.4",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/phoenix_view@2.0.3",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "phoenix_view",
-          "purl": "pkg:hex/phoenix_view@2.0.3",
-          "scope": "runtime",
-          "version": "2.0.3",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/phx_new",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "phx_new",
-          "purl": "pkg:hex/phx_new",
-          "scope": "development",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/plug@1.15.3",
+          "id": "pkg:hex/plug@1.7.0",
           "licenses": [],
           "metadata": {
             "source": "hex"
           },
           "name": "plug",
-          "purl": "pkg:hex/plug@1.15.3",
-          "scope": "runtime",
-          "version": "1.15.3",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/plug_cowboy@2.7.0",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "plug_cowboy",
-          "purl": "pkg:hex/plug_cowboy@2.7.0",
-          "scope": "runtime",
-          "version": "2.7.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/plug_crypto@2.0.0",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "plug_crypto",
-          "purl": "pkg:hex/plug_crypto@2.0.0",
-          "scope": "runtime",
-          "version": "2.0.0",
+          "purl": "pkg:hex/plug@1.7.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.7.0",
           "vulnerabilities": []
         },
         {
@@ -447,99 +85,15 @@
         },
         {
           "dependencies": [
-            "pkg:hex/castore@0.1.22",
-            "pkg:hex/ecto@3.10.1",
-            "pkg:hex/ecto_sql@3.10.1",
-            "pkg:hex/esbuild@0.8.1",
-            "pkg:hex/ex_doc@0.34.0",
-            "pkg:hex/gettext@0.20.0",
-            "pkg:hex/jason@1.4.0",
-            "pkg:hex/makeup_diff@0.1.0",
-            "pkg:hex/makeup_eex@0.1.1",
-            "pkg:hex/makeup_elixir@0.16.2",
-            "pkg:hex/mint@1.4.1",
-            "pkg:hex/mint_web_socket@1.0.0",
-            "pkg:hex/phoenix_html@4.0.0",
-            "pkg:hex/phoenix_pubsub@2.1.3",
-            "pkg:hex/phoenix_template@1.0.4",
-            "pkg:hex/phoenix_view@2.0.3",
-            "pkg:hex/phx_new",
-            "pkg:hex/plug@1.15.3",
-            "pkg:hex/plug_cowboy@2.7.0",
-            "pkg:hex/plug_crypto@2.0.0",
-            "pkg:hex/telemetry@1.2.1",
-            "pkg:hex/telemetry_metrics@1.0.0",
-            "pkg:hex/telemetry_poller@1.0.0",
-            "pkg:hex/websock_adapter@0.5.5"
+            "pkg:hex/cowboy@\u003cnormalized\u003e",
+            "pkg:hex/credo@\u003cnormalized\u003e",
+            "pkg:hex/jason@\u003cnormalized\u003e",
+            "pkg:hex/plug@\u003cnormalized\u003e"
           ],
           "id": "pkg:hex/root",
           "licenses": [],
           "name": "root",
           "purl": "pkg:hex/root",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/telemetry@1.2.1",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "telemetry",
-          "purl": "pkg:hex/telemetry@1.2.1",
-          "scope": "runtime",
-          "version": "1.2.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/telemetry_metrics@1.0.0",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "telemetry_metrics",
-          "purl": "pkg:hex/telemetry_metrics@1.0.0",
-          "scope": "runtime",
-          "version": "1.0.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/telemetry_poller@1.0.0",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "telemetry_poller",
-          "purl": "pkg:hex/telemetry_poller@1.0.0",
-          "scope": "runtime",
-          "version": "1.0.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/websock@0.5.3",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "websock",
-          "purl": "pkg:hex/websock@0.5.3",
-          "version": "0.5.3",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:hex/websock_adapter@0.5.5",
-          "licenses": [],
-          "metadata": {
-            "source": "hex"
-          },
-          "name": "websock_adapter",
-          "purl": "pkg:hex/websock_adapter@0.5.5",
-          "scope": "runtime",
-          "version": "0.5.5",
           "vulnerabilities": []
         }
       ],

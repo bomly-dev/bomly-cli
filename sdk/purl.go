@@ -88,6 +88,12 @@ func PackageURLTypeForValues(values ...string) string {
 			return "hex"
 		case "sbt", "scala":
 			return "maven"
+		case "ruby", "gem", "rubygems", "bundler":
+			return "gem"
+		case "php", "composer":
+			return "composer"
+		case "python", "pypi", "pip", "pipenv", "poetry", "uv":
+			return "pypi"
 		}
 	}
 	for _, value := range values {

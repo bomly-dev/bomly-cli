@@ -31,7 +31,7 @@ func TestNormalizeGraphPackageIdentity_CollapsesEquivalentPythonPackages(t *test
 	if normalized.Size() != 2 {
 		t.Fatalf("expected duplicate python packages to collapse to 2 nodes, got %d", normalized.Size())
 	}
-	depID := "pkg:python/requests-toolbelt@1.0.0rc1"
+	depID := "pkg:pypi/requests-toolbelt@1.0.0rc1"
 	dep, ok := normalized.Package(depID)
 	if !ok {
 		t.Fatalf("expected normalized python package %q", depID)

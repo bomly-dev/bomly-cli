@@ -18,6 +18,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"testing"
+
+	"github.com/bomly-dev/bomly-cli/test/qa"
 )
 
 // bomlyBin is the path to the compiled CLI binary, built once in TestMain.
@@ -83,138 +85,29 @@ func TestScan(t *testing.T) {
 	cases := []struct {
 		name  string
 		args  []string
-		tools []string // required tools — skip if any missing
+		tools []string // required tools - skip if any missing
+	}{}
+
+	targets, err := qa.LoadScanTargets(qa.DefaultTargetsPath(repoRoot(t)))
+	if err != nil {
+		t.Fatalf("load shared scan targets: %v", err)
+	}
+	for _, target := range targets {
+		cases = append(cases, struct {
+			name  string
+			args  []string
+			tools []string
+		}{
+			name:  target.Name,
+			args:  target.SmokeArgs(),
+			tools: target.Tools,
+		})
+	}
+	cases = append(cases, []struct {
+		name  string
+		args  []string
+		tools []string // required tools - skip if any missing
 	}{
-		{
-			name:  "scan-go",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-go-gomod", "--ref", "v1.0.0", "--format", "json"},
-			tools: []string{"go"},
-		},
-		{
-			// Reachability smoke: example-go-gomod v1.0.0 calls into
-			// golang.org/x/text v0.3.5 (GHSA-69ch-w2m2-3vjp /
-			// CVE-2022-32149) via language.Parse in sub3/sub3.go.
-			// Goldens scrub volatile fields (call frame line numbers,
-			// file paths, analyzed_at) via normalizeReachability.
-			name:  "scan-go-reachability",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-go-gomod", "--ref", "v1.0.0", "--enrich", "--reachability", "--format", "json"},
-			tools: []string{"go"},
-		},
-		{
-			// jsreach smoke: example-javascript-npm v1.0.0 imports lodash
-			// and marked directly (reachable), while many transitive deps
-			// are unreachable from app code. Exercises both "reachable"
-			// and "unreachable" branches of the analyzer.
-			// Goldens scrub timestamps via normalizeReachability.
-			name:  "scan-npm-reachability",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm", "--ref", "v1.0.0", "--enrich", "--reachability", "--format", "json"},
-			tools: []string{"npm"},
-		},
-		{
-			name:  "scan-npm",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm", "--ref", "v1.0.0", "--format", "json"},
-			tools: []string{"npm"},
-		},
-		{
-			name:  "scan-maven",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-java-maven", "--ref", "v1.0.0", "--format", "json"},
-			tools: []string{"mvn"},
-		},
-		{
-			name:  "scan-python-pip",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-python-pip", "--ref", "v1.0.0", "--format", "json"},
-			tools: []string{"pip"},
-		},
-		{
-			// pyreach smoke: example-python-pip v1.0.0 imports
-			// jwt / django / rsa / requests directly; requirements.txt
-			// pins more deps that are either unimported or transitively
-			// reachable. Exercises directly-imported, transitively-reachable,
-			// and unreachable branches plus the module-to-distribution
-			// override (jwt → pyjwt). Goldens scrub timestamps via
-			// normalizeReachability.
-			name:  "scan-python-pip-reachability",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-python-pip", "--ref", "v1.0.0", "--enrich", "--reachability", "--format", "json"},
-			tools: []string{"pip"},
-		},
-		{
-			name: "scan-composer",
-			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-php-composer", "--ref", "v1.0.0", "--format", "json"},
-		},
-		{
-			name: "scan-bundler",
-			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-ruby-bundler", "--ref", "v1.0.0", "--format", "json"},
-		},
-		{
-			name: "scan-github-actions",
-			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-github-actions", "--ref", "v1.0.0", "--format", "json", "--ecosystems", "github-actions"},
-		},
-		{
-			name: "scan-nuget",
-			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-dotnet-nuget", "--ref", "v1.0.0", "--format", "json", "--ecosystems", "dotnet"},
-		},
-		{
-			name: "scan-cargo",
-			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-rust-cargo", "--ref", "v1.0.0", "--format", "json", "--ecosystems", "rust"},
-		},
-		{
-			name: "scan-pub",
-			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-dart-pub", "--ref", "v1.0.0", "--format", "json", "--ecosystems", "dart"},
-		},
-		{
-			name: "scan-cocoapods",
-			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-swift-cocoapods", "--ref", "v1.0.0", "--format", "json", "--ecosystems", "swift"},
-		},
-		{
-			name: "scan-mix",
-			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-elixir-mix", "--ref", "v1.0.0", "--format", "json", "--ecosystems", "elixir"},
-		},
-		{
-			name: "scan-swiftpm",
-			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-swift-swiftpm", "--ref", "v1.0.0", "--format", "json", "--ecosystems", "swift"},
-		},
-		{
-			name: "scan-sbt",
-			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-scala-sbt", "--ref", "v1.0.0", "--format", "json", "--ecosystems", "scala"},
-		},
-		{
-			name:  "scan-yarn",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-yarn", "--ref", "v1.0.0", "--format", "json"},
-			tools: []string{"npm"},
-		},
-		{
-			name:  "scan-pnpm",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-pnpm", "--ref", "v1.0.0", "--format", "json"},
-			tools: []string{"npm"},
-		},
-		{
-			name: "scan-gradle",
-			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-java-gradle", "--ref", "v1.0.0", "--format", "json"},
-		},
-		{
-			name:  "scan-python-pipenv",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-python-pipenv", "--ref", "v1.0.0", "--format", "json"},
-			tools: []string{"pip"},
-		},
-		{
-			name:  "scan-python-poetry",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-python-poetry", "--ref", "v1.0.0", "--format", "json"},
-			tools: []string{"pip"},
-		},
-		{
-			name:  "scan-python-uv",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-python-uv", "--ref", "v1.0.0", "--format", "json"},
-			tools: []string{"uv"},
-		},
-		{
-			name: "scan-cpp-conan",
-			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-cpp-conan", "--ref", "v1.0.0", "--format", "json", "--ecosystems", "cpp"},
-		},
-		{
-			name:  "scan-npm-scope-runtime",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm", "--ref", "v1.0.0", "--format", "json", "--scope", "runtime"},
-			tools: []string{"npm"},
-		},
 		{
 			name: "scan-sbom-spdx",
 			args: []string{"scan", "--sbom", "--path", sbomFixture("go.spdx.json"), "--format", "json"},
@@ -223,7 +116,7 @@ func TestScan(t *testing.T) {
 			name: "scan-sbom-cyclonedx",
 			args: []string{"scan", "--sbom", "--path", sbomFixture("go.cdx.json"), "--format", "json"},
 		},
-	}
+	}...)
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

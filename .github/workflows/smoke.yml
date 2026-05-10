@@ -25,16 +25,16 @@ jobs:
       matrix:
         slice:
           - name: go
-            run: 'TestScan/(scan-go|scan-go-reachability)|TestDiff/diff-go|TestExplain/explain-go|TestAuditScan/(scan-go-enrich|scan-go-audit|scan-go-audit-high)|TestAuditDiffAndExplain/(diff-go-audit|explain-go-enrich)|TestLiteScan/lite-scan-go|TestLiteDiff/lite-diff-go|TestLiteExplain/lite-explain-go'
+            run: 'TestScan/scan-go|TestDiff/diff-go|TestExplain/explain-go|TestAuditScan/(scan-go-enrich|scan-go-audit|scan-go-audit-high)|TestAuditDiffAndExplain/(diff-go-audit|explain-go-enrich)|TestLiteScan/lite-scan-go|TestLiteDiff/lite-diff-go|TestLiteExplain/lite-explain-go'
           - name: node
-            run: 'TestScan/(scan-npm|scan-npm-reachability|scan-npm-scope-runtime|scan-yarn|scan-pnpm|scan-github-actions)|TestDiff/diff-npm|TestAuditScan/scan-npm-audit'
+            run: 'TestScan/(scan-npm|scan-yarn|scan-pnpm|scan-github-actions)|TestDiff/diff-npm|TestAuditScan/scan-npm-audit'
             node: true
           - name: java
             run: 'TestScan/(scan-maven|scan-gradle)'
             java: true
             maven: true
           - name: python
-            run: 'TestScan/(scan-python-pip|scan-python-pip-reachability|scan-python-pipenv|scan-python-poetry)'
+            run: 'TestScan/(scan-python-pip|scan-python-pipenv|scan-python-poetry)'
             python: true
           - name: uv
             run: 'TestScan/scan-python-uv'

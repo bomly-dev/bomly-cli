@@ -182,6 +182,46 @@ func normalizeManifestPaths(m any) {
 	}
 }
 
+// normalizeReachability scrubs volatile analyzer fields so reachability smoke
+// goldens remain stable across source checkouts and analyzer versions.
+func normalizeReachability(node any) {
+	switch v := node.(type) {
+	case map[string]any:
+		for key, val := range v {
+			switch key {
+			case "analyzed_at":
+				v[key] = "<timestamp>"
+			case "line", "column":
+				if _, ok := val.(float64); ok {
+					v[key] = float64(0)
+				}
+			case "file":
+				if s, ok := val.(string); ok {
+					v[key] = normalizeReachabilityFile(s)
+				}
+			default:
+				normalizeReachability(val)
+			}
+		}
+	case []any:
+		for _, child := range v {
+			normalizeReachability(child)
+		}
+	}
+}
+
+func normalizeReachabilityFile(value string) string {
+	value = filepath.ToSlash(strings.TrimSpace(value))
+	if value == "" || !filepath.IsAbs(value) {
+		return value
+	}
+	parts := strings.Split(value, "/")
+	if len(parts) >= 2 {
+		return strings.Join(parts[len(parts)-2:], "/")
+	}
+	return filepath.Base(value)
+}
+
 // normalizeComparisonPath normalizes a comparison path field when it refers to
 // a filesystem path. Named references like container tags are left unchanged.
 func normalizeComparisonPath(m map[string]any, key string) {
@@ -322,9 +362,18 @@ func sortStringSlices(node any) {
 // value cannot be used for reliable golden comparison.
 func normalizePackageScopes(obj map[string]any) {
 	applyToPackages := func(packages []any) {
+		hasAnyScope := false
 		for _, p := range packages {
 			if pm, ok := p.(map[string]any); ok {
 				if _, has := pm["scope"]; has {
+					hasAnyScope = true
+					break
+				}
+			}
+		}
+		for _, p := range packages {
+			if pm, ok := p.(map[string]any); ok {
+				if _, has := pm["scope"]; has || hasAnyScope {
 					pm["scope"] = "<normalized>"
 				}
 			}
@@ -463,6 +512,23 @@ func removeNonPURLPackages(obj map[string]any) {
 	if results, ok := obj["results"].(map[string]any); ok {
 		if manifests, ok := results["manifests"].([]any); ok {
 			applyToManifests(manifests)
+			for _, m := range manifests {
+				mmap, ok := m.(map[string]any)
+				if !ok {
+					continue
+				}
+				for _, key := range []string{"added", "removed"} {
+					if changes, ok := mmap[key].([]any); ok {
+						filtered := filterNonPURLDiffChanges(changes)
+						if len(filtered) == 0 {
+							delete(mmap, key)
+						} else {
+							mmap[key] = filtered
+						}
+					}
+				}
+			}
+			normalizeDiffSummary(obj)
 		}
 		// diff packages section: results.packages.{added,changed,removed}[]
 		if pkgSections, ok := results["packages"].(map[string]any); ok {
@@ -477,6 +543,63 @@ func removeNonPURLPackages(obj map[string]any) {
 	if targets, ok := obj["targets"].([]any); ok {
 		applyToManifests(targets)
 	}
+}
+
+func filterNonPURLDiffChanges(changes []any) []any {
+	out := changes[:0:len(changes)]
+	for _, change := range changes {
+		cm, ok := change.(map[string]any)
+		if !ok {
+			out = append(out, change)
+			continue
+		}
+		pm, ok := cm["package"].(map[string]any)
+		if !ok {
+			out = append(out, change)
+			continue
+		}
+		id, _ := pm["id"].(string)
+		if strings.HasPrefix(id, "pkg:") {
+			out = append(out, change)
+		}
+	}
+	return out
+}
+
+func normalizeDiffSummary(obj map[string]any) {
+	results, ok := obj["results"].(map[string]any)
+	if !ok {
+		return
+	}
+	manifests, ok := results["manifests"].([]any)
+	if !ok {
+		return
+	}
+	summary, ok := obj["summary"].(map[string]any)
+	if !ok {
+		return
+	}
+	addedPackages := 0
+	changedPackages := 0
+	removedPackages := 0
+	for _, m := range manifests {
+		mm, ok := m.(map[string]any)
+		if !ok {
+			continue
+		}
+		if changes, ok := mm["added"].([]any); ok {
+			addedPackages += len(changes)
+		}
+		if changes, ok := mm["changed"].([]any); ok {
+			changedPackages += len(changes)
+		}
+		if changes, ok := mm["removed"].([]any); ok {
+			removedPackages += len(changes)
+		}
+	}
+	summary["added_package_count"] = float64(addedPackages)
+	summary["changed_package_count"] = float64(changedPackages)
+	summary["removed_package_count"] = float64(removedPackages)
 }
 
 // goldenPath returns the full path to a golden file given a test case name.

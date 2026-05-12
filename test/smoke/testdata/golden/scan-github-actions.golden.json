@@ -9,10 +9,10 @@
       "packages": [
         {
           "dependencies": [],
-          "id": "pkg:github-actions/.github%2Factions%2Fsourceclear@local",
+          "id": "pkg:githubactions/.github%2Factions%2Fsourceclear@local",
           "licenses": [],
           "name": ".github/actions/sourceclear",
-          "purl": "pkg:github-actions/.github%2Factions%2Fsourceclear@local",
+          "purl": "pkg:githubactions/.github%2Factions%2Fsourceclear@local",
           "scope": "\u003cnormalized\u003e",
           "version": "local",
           "vulnerabilities": []
@@ -29,33 +29,33 @@
       "packages": [
         {
           "dependencies": [],
-          "id": "pkg:github-actions/.github%2Factions%2Fsourceclear@local",
+          "id": "pkg:githubactions/.github%2Factions%2Fsourceclear@local",
           "licenses": [],
           "name": ".github/actions/sourceclear",
-          "purl": "pkg:github-actions/.github%2Factions%2Fsourceclear@local",
+          "purl": "pkg:githubactions/.github%2Factions%2Fsourceclear@local",
           "scope": "\u003cnormalized\u003e",
           "version": "local",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:github-actions/.github%2Factions%2Fsourceclear@\u003cnormalized\u003e",
-            "pkg:github-actions/actions/checkout@\u003cnormalized\u003e"
+            "pkg:githubactions/.github%2Factions%2Fsourceclear@\u003cnormalized\u003e",
+            "pkg:githubactions/actions/checkout@\u003cnormalized\u003e"
           ],
-          "id": "pkg:github-actions/.github%2Fworkflows%2Fmain.yml@local",
+          "id": "pkg:githubactions/.github%2Fworkflows%2Fmain.yml@local",
           "licenses": [],
           "name": ".github/workflows/main.yml",
-          "purl": "pkg:github-actions/.github%2Fworkflows%2Fmain.yml@local",
+          "purl": "pkg:githubactions/.github%2Fworkflows%2Fmain.yml@local",
           "scope": "\u003cnormalized\u003e",
           "version": "local",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:github-actions/actions/checkout@v1",
+          "id": "pkg:githubactions/actions/checkout@v1",
           "licenses": [],
           "name": "actions:checkout",
-          "purl": "pkg:github-actions/actions/checkout@v1",
+          "purl": "pkg:githubactions/actions/checkout@v1",
           "scope": "\u003cnormalized\u003e",
           "version": "v1",
           "vulnerabilities": []

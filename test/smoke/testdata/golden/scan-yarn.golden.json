@@ -8,6 +8,101 @@
       "package_manager": "yarn",
       "packages": [
         {
+          "dependencies": [
+            "pkg:npm/%40google-cloud/common@\u003cnormalized\u003e",
+            "pkg:npm/dot-prop@\u003cnormalized\u003e",
+            "pkg:npm/duplexify@\u003cnormalized\u003e",
+            "pkg:npm/extend@\u003cnormalized\u003e",
+            "pkg:npm/google-proto-files@\u003cnormalized\u003e",
+            "pkg:npm/grpc@\u003cnormalized\u003e",
+            "pkg:npm/is@\u003cnormalized\u003e",
+            "pkg:npm/retry-request@\u003cnormalized\u003e",
+            "pkg:npm/through2@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/%40google-cloud/common-grpc@0.1.4",
+          "licenses": [],
+          "metadata": {
+            "bomly.normalization.applied": [
+              "npm-scope"
+            ],
+            "bomly.normalization.original_name": "@google-cloud/common-grpc",
+            "bomly.normalization.original_org": ""
+          },
+          "name": "google-cloud:common-grpc",
+          "purl": "pkg:npm/%40google-cloud/common-grpc@0.1.4",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.1.4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/array-uniq@\u003cnormalized\u003e",
+            "pkg:npm/arrify@\u003cnormalized\u003e",
+            "pkg:npm/concat-stream@\u003cnormalized\u003e",
+            "pkg:npm/create-error-class@\u003cnormalized\u003e",
+            "pkg:npm/dot-prop@\u003cnormalized\u003e",
+            "pkg:npm/duplexify@\u003cnormalized\u003e",
+            "pkg:npm/ent@\u003cnormalized\u003e",
+            "pkg:npm/extend@\u003cnormalized\u003e",
+            "pkg:npm/google-auto-auth@\u003cnormalized\u003e",
+            "pkg:npm/google-proto-files@\u003cnormalized\u003e",
+            "pkg:npm/is@\u003cnormalized\u003e",
+            "pkg:npm/log-driver@\u003cnormalized\u003e",
+            "pkg:npm/methmeth@\u003cnormalized\u003e",
+            "pkg:npm/modelo@\u003cnormalized\u003e",
+            "pkg:npm/request@\u003cnormalized\u003e",
+            "pkg:npm/retry-request@\u003cnormalized\u003e",
+            "pkg:npm/split-array-stream@\u003cnormalized\u003e",
+            "pkg:npm/stream-events@\u003cnormalized\u003e",
+            "pkg:npm/string-format-obj@\u003cnormalized\u003e",
+            "pkg:npm/through2@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/%40google-cloud/common@0.12.0",
+          "licenses": [],
+          "metadata": {
+            "bomly.normalization.applied": [
+              "npm-scope"
+            ],
+            "bomly.normalization.original_name": "@google-cloud/common",
+            "bomly.normalization.original_org": ""
+          },
+          "name": "google-cloud:common",
+          "purl": "pkg:npm/%40google-cloud/common@0.12.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.12.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/%40google-cloud/common-grpc@\u003cnormalized\u003e",
+            "pkg:npm/%40google-cloud/common@\u003cnormalized\u003e",
+            "pkg:npm/arrify@\u003cnormalized\u003e",
+            "pkg:npm/async@\u003cnormalized\u003e",
+            "pkg:npm/extend@\u003cnormalized\u003e",
+            "pkg:npm/google-gax@\u003cnormalized\u003e",
+            "pkg:npm/google-proto-files@\u003cnormalized\u003e",
+            "pkg:npm/is@\u003cnormalized\u003e",
+            "pkg:npm/propprop@\u003cnormalized\u003e",
+            "pkg:npm/request@\u003cnormalized\u003e",
+            "pkg:npm/rgb-hex@\u003cnormalized\u003e",
+            "pkg:npm/string-format-obj@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/%40google-cloud/vision@0.8.0",
+          "licenses": [],
+          "metadata": {
+            "bomly.normalization.applied": [
+              "npm-scope"
+            ],
+            "bomly.normalization.original_name": "@google-cloud/vision",
+            "bomly.normalization.original_org": ""
+          },
+          "name": "google-cloud:vision",
+          "purl": "pkg:npm/%40google-cloud/vision@0.8.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.8.0",
+          "vulnerabilities": []
+        },
+        {
           "dependencies": [],
           "id": "pkg:npm/abbrev@1.1.0",
           "licenses": [],
@@ -387,6 +482,7 @@
           "licenses": [],
           "name": "bcrypt-pbkdf",
           "purl": "pkg:npm/bcrypt-pbkdf@1.0.1",
+          "scope": "\u003cnormalized\u003e",
           "version": "1.0.1",
           "vulnerabilities": []
         },
@@ -1114,6 +1210,7 @@
           "licenses": [],
           "name": "ecc-jsbn",
           "purl": "pkg:npm/ecc-jsbn@0.1.1",
+          "scope": "\u003cnormalized\u003e",
           "version": "0.1.1",
           "vulnerabilities": []
         },
@@ -1260,12 +1357,12 @@
         },
         {
           "dependencies": [
+            "pkg:npm/%40google-cloud/vision@\u003cnormalized\u003e",
             "pkg:npm/angular@\u003cnormalized\u003e",
             "pkg:npm/boom@\u003cnormalized\u003e",
             "pkg:npm/console-io@\u003cnormalized\u003e",
             "pkg:npm/cookie-signature@\u003cnormalized\u003e",
             "pkg:npm/express@\u003cnormalized\u003e",
-            "pkg:npm/google-cloud/vision@\u003cnormalized\u003e",
             "pkg:npm/handlebars-ex@\u003cnormalized\u003e",
             "pkg:npm/jquery@\u003cnormalized\u003e",
             "pkg:npm/nodejs-repo-tools@\u003cnormalized\u003e",
@@ -1275,6 +1372,7 @@
           "licenses": [],
           "name": "example-javascript-yarn",
           "purl": "pkg:npm/example-javascript-yarn@0.0.1",
+          "scope": "\u003cnormalized\u003e",
           "version": "0.0.1",
           "vulnerabilities": []
         },
@@ -1665,101 +1763,6 @@
           "purl": "pkg:npm/google-auto-auth@0.5.2",
           "scope": "\u003cnormalized\u003e",
           "version": "0.5.2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/dot-prop@\u003cnormalized\u003e",
-            "pkg:npm/duplexify@\u003cnormalized\u003e",
-            "pkg:npm/extend@\u003cnormalized\u003e",
-            "pkg:npm/google-cloud/common@\u003cnormalized\u003e",
-            "pkg:npm/google-proto-files@\u003cnormalized\u003e",
-            "pkg:npm/grpc@\u003cnormalized\u003e",
-            "pkg:npm/is@\u003cnormalized\u003e",
-            "pkg:npm/retry-request@\u003cnormalized\u003e",
-            "pkg:npm/through2@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/google-cloud/common-grpc@0.1.4",
-          "licenses": [],
-          "metadata": {
-            "bomly.normalization.applied": [
-              "npm-scope"
-            ],
-            "bomly.normalization.original_name": "@google-cloud/common-grpc",
-            "bomly.normalization.original_org": ""
-          },
-          "name": "google-cloud:common-grpc",
-          "purl": "pkg:npm/google-cloud/common-grpc@0.1.4",
-          "scope": "\u003cnormalized\u003e",
-          "version": "0.1.4",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/array-uniq@\u003cnormalized\u003e",
-            "pkg:npm/arrify@\u003cnormalized\u003e",
-            "pkg:npm/concat-stream@\u003cnormalized\u003e",
-            "pkg:npm/create-error-class@\u003cnormalized\u003e",
-            "pkg:npm/dot-prop@\u003cnormalized\u003e",
-            "pkg:npm/duplexify@\u003cnormalized\u003e",
-            "pkg:npm/ent@\u003cnormalized\u003e",
-            "pkg:npm/extend@\u003cnormalized\u003e",
-            "pkg:npm/google-auto-auth@\u003cnormalized\u003e",
-            "pkg:npm/google-proto-files@\u003cnormalized\u003e",
-            "pkg:npm/is@\u003cnormalized\u003e",
-            "pkg:npm/log-driver@\u003cnormalized\u003e",
-            "pkg:npm/methmeth@\u003cnormalized\u003e",
-            "pkg:npm/modelo@\u003cnormalized\u003e",
-            "pkg:npm/request@\u003cnormalized\u003e",
-            "pkg:npm/retry-request@\u003cnormalized\u003e",
-            "pkg:npm/split-array-stream@\u003cnormalized\u003e",
-            "pkg:npm/stream-events@\u003cnormalized\u003e",
-            "pkg:npm/string-format-obj@\u003cnormalized\u003e",
-            "pkg:npm/through2@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/google-cloud/common@0.12.0",
-          "licenses": [],
-          "metadata": {
-            "bomly.normalization.applied": [
-              "npm-scope"
-            ],
-            "bomly.normalization.original_name": "@google-cloud/common",
-            "bomly.normalization.original_org": ""
-          },
-          "name": "google-cloud:common",
-          "purl": "pkg:npm/google-cloud/common@0.12.0",
-          "scope": "\u003cnormalized\u003e",
-          "version": "0.12.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/arrify@\u003cnormalized\u003e",
-            "pkg:npm/async@\u003cnormalized\u003e",
-            "pkg:npm/extend@\u003cnormalized\u003e",
-            "pkg:npm/google-cloud/common-grpc@\u003cnormalized\u003e",
-            "pkg:npm/google-cloud/common@\u003cnormalized\u003e",
-            "pkg:npm/google-gax@\u003cnormalized\u003e",
-            "pkg:npm/google-proto-files@\u003cnormalized\u003e",
-            "pkg:npm/is@\u003cnormalized\u003e",
-            "pkg:npm/propprop@\u003cnormalized\u003e",
-            "pkg:npm/request@\u003cnormalized\u003e",
-            "pkg:npm/rgb-hex@\u003cnormalized\u003e",
-            "pkg:npm/string-format-obj@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/google-cloud/vision@0.8.0",
-          "licenses": [],
-          "metadata": {
-            "bomly.normalization.applied": [
-              "npm-scope"
-            ],
-            "bomly.normalization.original_name": "@google-cloud/vision",
-            "bomly.normalization.original_org": ""
-          },
-          "name": "google-cloud:vision",
-          "purl": "pkg:npm/google-cloud/vision@0.8.0",
-          "scope": "\u003cnormalized\u003e",
-          "version": "0.8.0",
           "vulnerabilities": []
         },
         {
@@ -2274,6 +2277,7 @@
           "licenses": [],
           "name": "jodid25519",
           "purl": "pkg:npm/jodid25519@1.0.2",
+          "scope": "\u003cnormalized\u003e",
           "version": "1.0.2",
           "vulnerabilities": []
         },
@@ -2308,6 +2312,7 @@
           "licenses": [],
           "name": "jsbn",
           "purl": "pkg:npm/jsbn@0.1.1",
+          "scope": "\u003cnormalized\u003e",
           "version": "0.1.1",
           "vulnerabilities": []
         },
@@ -4205,6 +4210,7 @@
           "licenses": [],
           "name": "tweetnacl",
           "purl": "pkg:npm/tweetnacl@0.14.5",
+          "scope": "\u003cnormalized\u003e",
           "version": "0.14.5",
           "vulnerabilities": []
         },

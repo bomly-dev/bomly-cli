@@ -34,6 +34,7 @@
           "licenses": [],
           "name": "bomly-git-\u003cnormalized\u003e",
           "purl": "pkg:maven/bomly-git-\u003cnormalized\u003e",
+          "scope": "\u003cnormalized\u003e",
           "vulnerabilities": []
         },
         {

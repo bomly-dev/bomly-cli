@@ -6,19 +6,6 @@
       "kind": "apk",
       "packages": [
         {
-          "dependencies": [
-            "pkg:apk/alpine/alpine-baselayout@3.6.5-r0?arch=x86_64\u0026distro=alpine-3.20.10",
-            "pkg:apk/alpine/alpine-keys@2.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
-            "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
-            "pkg:apk/alpine/musl-utils@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=musl",
-            "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox"
-          ],
-          "id": "lib/apk/db/installed",
-          "licenses": [],
-          "name": "lib/apk/db/installed",
-          "vulnerabilities": []
-        },
-        {
           "dependencies": [],
           "id": "pkg:apk/alpine/alpine-baselayout-data@3.6.5-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=alpine-baselayout",
           "licenses": [

@@ -2,9 +2,9 @@
   "command": "scan",
   "manifests": [
     {
-      "detector": "poetry-detector",
+      "detector": "syft-detector",
       "ecosystem": "python",
-      "kind": "poetry.lock",
+      "kind": "python",
       "package_manager": "poetry",
       "packages": [
         {
@@ -95,27 +95,6 @@
           "name": "requests",
           "purl": "pkg:pypi/requests@2.21.0",
           "version": "2.21.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:pypi/certifi@\u003cnormalized\u003e",
-            "pkg:pypi/chardet@\u003cnormalized\u003e",
-            "pkg:pypi/django@\u003cnormalized\u003e",
-            "pkg:pypi/feedparser@\u003cnormalized\u003e",
-            "pkg:pypi/idna@\u003cnormalized\u003e",
-            "pkg:pypi/pyasn1@\u003cnormalized\u003e",
-            "pkg:pypi/pyjwt@\u003cnormalized\u003e",
-            "pkg:pypi/pytz@\u003cnormalized\u003e",
-            "pkg:pypi/requests@\u003cnormalized\u003e",
-            "pkg:pypi/rsa@\u003cnormalized\u003e",
-            "pkg:pypi/sgmllib3k@\u003cnormalized\u003e",
-            "pkg:pypi/urllib3@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:pypi/root",
-          "licenses": [],
-          "name": "root",
-          "purl": "pkg:pypi/root",
           "vulnerabilities": []
         },
         {

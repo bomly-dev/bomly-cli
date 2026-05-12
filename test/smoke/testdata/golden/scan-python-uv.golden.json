@@ -26,15 +26,6 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
-          "id": "pkg:pypi/colorama@0.4.6",
-          "licenses": [],
-          "name": "colorama",
-          "purl": "pkg:pypi/colorama@0.4.6",
-          "version": "0.4.6",
-          "vulnerabilities": []
-        },
-        {
           "dependencies": [
             "pkg:pypi/pytz@\u003cnormalized\u003e"
           ],
@@ -104,9 +95,7 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [
-            "pkg:pypi/colorama@\u003cnormalized\u003e"
-          ],
+          "dependencies": [],
           "id": "pkg:pypi/pygments@2.20.0",
           "licenses": [],
           "name": "pygments",
@@ -125,7 +114,6 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/colorama@\u003cnormalized\u003e",
             "pkg:pypi/iniconfig@\u003cnormalized\u003e",
             "pkg:pypi/packaging@\u003cnormalized\u003e",
             "pkg:pypi/pluggy@\u003cnormalized\u003e",
@@ -166,7 +154,6 @@
           "dependencies": [
             "pkg:pypi/certifi@\u003cnormalized\u003e",
             "pkg:pypi/chardet@\u003cnormalized\u003e",
-            "pkg:pypi/colorama@\u003cnormalized\u003e",
             "pkg:pypi/django@\u003cnormalized\u003e",
             "pkg:pypi/feedparser@\u003cnormalized\u003e",
             "pkg:pypi/idna@\u003cnormalized\u003e",

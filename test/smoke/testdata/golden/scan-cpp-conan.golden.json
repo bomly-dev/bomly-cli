@@ -25,6 +25,7 @@
           "licenses": [],
           "name": "openssl",
           "purl": "pkg:conan/openssl@1.1.1s",
+          "scope": "\u003cnormalized\u003e",
           "version": "1.1.1s",
           "vulnerabilities": []
         },
@@ -34,6 +35,7 @@
           "licenses": [],
           "name": "root",
           "purl": "pkg:conan/root",
+          "scope": "\u003cnormalized\u003e",
           "vulnerabilities": []
         },
         {
@@ -42,6 +44,7 @@
           "licenses": [],
           "name": "zlib",
           "purl": "pkg:conan/zlib@1.2.11",
+          "scope": "\u003cnormalized\u003e",
           "version": "1.2.11",
           "vulnerabilities": []
         }

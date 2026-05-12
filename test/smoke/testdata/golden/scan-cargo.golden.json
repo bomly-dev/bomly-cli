@@ -31,6 +31,7 @@
           "licenses": [],
           "name": "example-rust-cargo",
           "purl": "pkg:cargo/example-rust-cargo@0.1.0",
+          "scope": "\u003cnormalized\u003e",
           "version": "0.1.0",
           "vulnerabilities": []
         },
@@ -45,7 +46,9 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:cargo/serde@\u003cnormalized\u003e"
+          ],
           "id": "pkg:cargo/serde_json@1.0.127",
           "licenses": [],
           "metadata": {

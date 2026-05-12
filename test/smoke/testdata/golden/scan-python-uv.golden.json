@@ -26,15 +26,6 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
-          "id": "pkg:pypi/colorama@0.4.6",
-          "licenses": [],
-          "name": "colorama",
-          "purl": "pkg:pypi/colorama@0.4.6",
-          "version": "0.4.6",
-          "vulnerabilities": []
-        },
-        {
           "dependencies": [
             "pkg:pypi/pytz@2026.2"
           ],

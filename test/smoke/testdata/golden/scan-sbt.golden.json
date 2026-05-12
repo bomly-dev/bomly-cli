@@ -25,6 +25,7 @@
           "licenses": [],
           "name": "root",
           "purl": "pkg:maven/root",
+          "scope": "\u003cnormalized\u003e",
           "vulnerabilities": []
         }
       ],

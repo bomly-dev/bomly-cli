@@ -540,6 +540,7 @@
           "licenses": [],
           "name": "example-javascript-vulnerable-methods",
           "purl": "pkg:npm/example-javascript-vulnerable-methods@0.0.1",
+          "scope": "\u003cnormalized\u003e",
           "version": "0.0.1",
           "vulnerabilities": []
         },

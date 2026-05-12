@@ -33,6 +33,7 @@
           "licenses": [],
           "name": "example-javascript-pnpm",
           "purl": "pkg:npm/example-javascript-pnpm@1.0.0",
+          "scope": "\u003cnormalized\u003e",
           "version": "1.0.0",
           "vulnerabilities": []
         },

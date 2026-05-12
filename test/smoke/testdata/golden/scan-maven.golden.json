@@ -2,9 +2,9 @@
   "command": "scan",
   "manifests": [
     {
-      "detector": "maven-detector",
+      "detector": "syft-detector",
       "ecosystem": "maven",
-      "kind": "pom.xml",
+      "kind": "java-archive",
       "package_manager": "maven",
       "packages": [
         {
@@ -115,7 +115,7 @@
             "pkg:maven/org.neo4j/neo4j-jmx@1.3",
             "pkg:maven/org.springframework/spring-web@3.1.1.release"
           ],
-          "id": "pkg:maven/com.srcclr/example-java-maven@1.0-snapshot",
+          "id": "pkg:maven/com.srcclr/example-java-maven@1.0-SNAPSHOT",
           "licenses": [],
           "metadata": {
             "bomly.normalization.applied": [
@@ -124,7 +124,7 @@
             "bomly.normalization.original_version": "1.0-SNAPSHOT"
           },
           "name": "com.srcclr:example-java-maven",
-          "purl": "pkg:maven/com.srcclr/example-java-maven@1.0-snapshot",
+          "purl": "pkg:maven/com.srcclr/example-java-maven@1.0-SNAPSHOT",
           "version": "1.0-snapshot",
           "vulnerabilities": []
         },

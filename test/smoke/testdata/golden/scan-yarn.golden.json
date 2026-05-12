@@ -482,6 +482,7 @@
           "licenses": [],
           "name": "bcrypt-pbkdf",
           "purl": "pkg:npm/bcrypt-pbkdf@1.0.1",
+          "scope": "\u003cnormalized\u003e",
           "version": "1.0.1",
           "vulnerabilities": []
         },
@@ -1209,6 +1210,7 @@
           "licenses": [],
           "name": "ecc-jsbn",
           "purl": "pkg:npm/ecc-jsbn@0.1.1",
+          "scope": "\u003cnormalized\u003e",
           "version": "0.1.1",
           "vulnerabilities": []
         },
@@ -1370,6 +1372,7 @@
           "licenses": [],
           "name": "example-javascript-yarn",
           "purl": "pkg:npm/example-javascript-yarn@0.0.1",
+          "scope": "\u003cnormalized\u003e",
           "version": "0.0.1",
           "vulnerabilities": []
         },
@@ -2274,6 +2277,7 @@
           "licenses": [],
           "name": "jodid25519",
           "purl": "pkg:npm/jodid25519@1.0.2",
+          "scope": "\u003cnormalized\u003e",
           "version": "1.0.2",
           "vulnerabilities": []
         },
@@ -2308,6 +2312,7 @@
           "licenses": [],
           "name": "jsbn",
           "purl": "pkg:npm/jsbn@0.1.1",
+          "scope": "\u003cnormalized\u003e",
           "version": "0.1.1",
           "vulnerabilities": []
         },
@@ -4205,6 +4210,7 @@
           "licenses": [],
           "name": "tweetnacl",
           "purl": "pkg:npm/tweetnacl@0.14.5",
+          "scope": "\u003cnormalized\u003e",
           "version": "0.14.5",
           "vulnerabilities": []
         },

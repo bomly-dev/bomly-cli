@@ -2,9 +2,9 @@
   "command": "scan",
   "manifests": [
     {
-      "detector": "pip-detector",
+      "detector": "syft-detector",
       "ecosystem": "python",
-      "kind": "requirements.txt",
+      "kind": "python",
       "package_manager": "pip",
       "packages": [
         {
@@ -114,8 +114,9 @@
           ],
           "id": "pkg:pypi/root",
           "licenses": [],
-          "name": "root",
-          "purl": "pkg:pypi/root",
+          "name": "urllib3",
+          "purl": "pkg:pypi/urllib3@1.24.3",
+          "version": "1.24.3",
           "vulnerabilities": []
         },
         {

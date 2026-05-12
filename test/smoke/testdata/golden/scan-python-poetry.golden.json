@@ -2,9 +2,9 @@
   "command": "scan",
   "manifests": [
     {
-      "detector": "poetry-detector",
+      "detector": "syft-detector",
       "ecosystem": "python",
-      "kind": "poetry.lock",
+      "kind": "python",
       "package_manager": "poetry",
       "packages": [
         {

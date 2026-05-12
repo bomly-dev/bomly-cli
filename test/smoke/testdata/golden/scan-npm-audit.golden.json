@@ -9,13 +9,13 @@
       "packages": [
         {
           "dependencies": [
-            "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@\u003cnormalized\u003e"
+            "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main"
           ],
           "id": "pkg:githubactions/.github%2Fworkflows%2Fnode-aught.yml@local",
           "licenses": [],
           "name": ".github/workflows/node-aught.yml",
           "purl": "pkg:githubactions/.github%2Fworkflows%2Fnode-aught.yml@local",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "local",
           "vulnerabilities": []
         },
@@ -25,7 +25,7 @@
           "licenses": [],
           "name": "ljharb:actions/.github/workflows/node.yml",
           "purl": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "main",
           "vulnerabilities": []
         }
@@ -41,13 +41,13 @@
       "packages": [
         {
           "dependencies": [
-            "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fpretest.yml@\u003cnormalized\u003e"
+            "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fpretest.yml@main"
           ],
           "id": "pkg:githubactions/.github%2Fworkflows%2Fnode-pretest.yml@local",
           "licenses": [],
           "name": ".github/workflows/node-pretest.yml",
           "purl": "pkg:githubactions/.github%2Fworkflows%2Fnode-pretest.yml@local",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "local",
           "vulnerabilities": []
         },
@@ -57,7 +57,7 @@
           "licenses": [],
           "name": "ljharb:actions/.github/workflows/pretest.yml",
           "purl": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fpretest.yml@main",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "main",
           "vulnerabilities": []
         }
@@ -73,13 +73,13 @@
       "packages": [
         {
           "dependencies": [
-            "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@\u003cnormalized\u003e"
+            "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main"
           ],
           "id": "pkg:githubactions/.github%2Fworkflows%2Fnode-tens.yml@local",
           "licenses": [],
           "name": ".github/workflows/node-tens.yml",
           "purl": "pkg:githubactions/.github%2Fworkflows%2Fnode-tens.yml@local",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "local",
           "vulnerabilities": []
         },
@@ -89,7 +89,7 @@
           "licenses": [],
           "name": "ljharb:actions/.github/workflows/node.yml",
           "purl": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "main",
           "vulnerabilities": []
         }
@@ -105,14 +105,14 @@
       "packages": [
         {
           "dependencies": [
-            "pkg:githubactions/actions/checkout@\u003cnormalized\u003e",
-            "pkg:githubactions/ljharb/rebase@\u003cnormalized\u003e"
+            "pkg:githubactions/actions/checkout@v3",
+            "pkg:githubactions/ljharb/rebase@master"
           ],
           "id": "pkg:githubactions/.github%2Fworkflows%2Frebase.yml@local",
           "licenses": [],
           "name": ".github/workflows/rebase.yml",
           "purl": "pkg:githubactions/.github%2Fworkflows%2Frebase.yml@local",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "local",
           "vulnerabilities": []
         },
@@ -122,7 +122,7 @@
           "licenses": [],
           "name": "actions:checkout",
           "purl": "pkg:githubactions/actions/checkout@v3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "v3",
           "vulnerabilities": []
         },
@@ -132,7 +132,7 @@
           "licenses": [],
           "name": "ljharb:rebase",
           "purl": "pkg:githubactions/ljharb/rebase@master",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "master",
           "vulnerabilities": []
         }
@@ -148,13 +148,13 @@
       "packages": [
         {
           "dependencies": [
-            "pkg:githubactions/ljharb/require-allow-edits@\u003cnormalized\u003e"
+            "pkg:githubactions/ljharb/require-allow-edits@main"
           ],
           "id": "pkg:githubactions/.github%2Fworkflows%2Frequire-allow-edits.yml@local",
           "licenses": [],
           "name": ".github/workflows/require-allow-edits.yml",
           "purl": "pkg:githubactions/.github%2Fworkflows%2Frequire-allow-edits.yml@local",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "local",
           "vulnerabilities": []
         },
@@ -164,7 +164,7 @@
           "licenses": [],
           "name": "ljharb:require-allow-edits",
           "purl": "pkg:githubactions/ljharb/require-allow-edits@main",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "main",
           "vulnerabilities": []
         }

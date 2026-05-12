@@ -16,7 +16,7 @@
           },
           "name": "archive",
           "purl": "pkg:pub/archive@3.3.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.3.0",
           "vulnerabilities": []
         },
@@ -35,11 +35,11 @@
         },
         {
           "dependencies": [
-            "pkg:pub/archive@\u003cnormalized\u003e",
-            "pkg:pub/http@\u003cnormalized\u003e",
-            "pkg:pub/lints@\u003cnormalized\u003e",
-            "pkg:pub/path@\u003cnormalized\u003e",
-            "pkg:pub/test@\u003cnormalized\u003e"
+            "pkg:pub/archive@3.3.0",
+            "pkg:pub/http@0.12.0",
+            "pkg:pub/lints@3.0.0",
+            "pkg:pub/path@1.9.0",
+            "pkg:pub/test@1.25.8"
           ],
           "id": "pkg:pub/example_dart_pub@1.0.0",
           "licenses": [],
@@ -58,7 +58,7 @@
           },
           "name": "http",
           "purl": "pkg:pub/http@0.12.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.12.0",
           "vulnerabilities": []
         },
@@ -71,7 +71,7 @@
           },
           "name": "lints",
           "purl": "pkg:pub/lints@3.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.0.0",
           "vulnerabilities": []
         },
@@ -84,7 +84,7 @@
           },
           "name": "path",
           "purl": "pkg:pub/path@1.9.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.9.0",
           "vulnerabilities": []
         },
@@ -97,7 +97,7 @@
           },
           "name": "test",
           "purl": "pkg:pub/test@1.25.8",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.25.8",
           "vulnerabilities": []
         }

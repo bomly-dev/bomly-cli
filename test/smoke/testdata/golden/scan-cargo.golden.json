@@ -9,23 +9,23 @@
       "packages": [
         {
           "dependencies": [
-            "pkg:cargo/time@\u003cnormalized\u003e"
+            "pkg:cargo/time@0.1.44"
           ],
           "id": "pkg:cargo/chrono@0.4.19",
           "licenses": [],
           "name": "chrono",
           "purl": "pkg:cargo/chrono@0.4.19",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.4.19",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:cargo/chrono@\u003cnormalized\u003e",
-            "pkg:cargo/serde@\u003cnormalized\u003e",
-            "pkg:cargo/serde_json@\u003cnormalized\u003e",
-            "pkg:cargo/tempfile@\u003cnormalized\u003e",
-            "pkg:cargo/time@\u003cnormalized\u003e"
+            "pkg:cargo/chrono@0.4.19",
+            "pkg:cargo/serde@1.0.210",
+            "pkg:cargo/serde_json@1.0.127",
+            "pkg:cargo/tempfile@3.8.1",
+            "pkg:cargo/time@0.1.44"
           ],
           "id": "pkg:cargo/example-rust-cargo@0.1.0",
           "licenses": [],
@@ -41,7 +41,7 @@
           "licenses": [],
           "name": "serde",
           "purl": "pkg:cargo/serde@1.0.210",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.0.210",
           "vulnerabilities": []
         },
@@ -59,7 +59,7 @@
           },
           "name": "serde-json",
           "purl": "pkg:cargo/serde_json@1.0.127",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.0.127",
           "vulnerabilities": []
         },
@@ -69,7 +69,7 @@
           "licenses": [],
           "name": "tempfile",
           "purl": "pkg:cargo/tempfile@3.8.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.8.1",
           "vulnerabilities": []
         },
@@ -79,7 +79,7 @@
           "licenses": [],
           "name": "time",
           "purl": "pkg:cargo/time@0.1.44",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.1.44",
           "vulnerabilities": []
         }

@@ -16,7 +16,7 @@
           },
           "name": "cowboy",
           "purl": "pkg:hex/cowboy@2.9.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.9.0",
           "vulnerabilities": []
         },
@@ -42,7 +42,7 @@
           },
           "name": "credo",
           "purl": "pkg:hex/credo@1.7.7",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.7.7",
           "vulnerabilities": []
         },
@@ -55,7 +55,7 @@
           },
           "name": "jason",
           "purl": "pkg:hex/jason@1.2.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.2.2",
           "vulnerabilities": []
         },
@@ -68,7 +68,7 @@
           },
           "name": "plug",
           "purl": "pkg:hex/plug@1.7.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.7.0",
           "vulnerabilities": []
         },
@@ -87,10 +87,10 @@
         },
         {
           "dependencies": [
-            "pkg:hex/cowboy@\u003cnormalized\u003e",
-            "pkg:hex/credo@\u003cnormalized\u003e",
-            "pkg:hex/jason@\u003cnormalized\u003e",
-            "pkg:hex/plug@\u003cnormalized\u003e"
+            "pkg:hex/cowboy@2.9.0",
+            "pkg:hex/credo@1.7.7",
+            "pkg:hex/jason@1.2.2",
+            "pkg:hex/plug@1.7.0"
           ],
           "id": "pkg:hex/root",
           "licenses": [],

@@ -9,14 +9,14 @@
       "packages": [
         {
           "dependencies": [
-            "pkg:githubactions/actions/checkout@\u003cnormalized\u003e",
-            "pkg:githubactions/actions/setup-go@\u003cnormalized\u003e"
+            "pkg:githubactions/actions/checkout@v3",
+            "pkg:githubactions/actions/setup-go@v4"
           ],
           "id": "pkg:githubactions/.github%2Fworkflows%2Fapidiff.yaml@local",
           "licenses": [],
           "name": ".github/workflows/apidiff.yaml",
           "purl": "pkg:githubactions/.github%2Fworkflows%2Fapidiff.yaml@local",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "local",
           "vulnerabilities": []
         },
@@ -26,7 +26,7 @@
           "licenses": [],
           "name": "actions:checkout",
           "purl": "pkg:githubactions/actions/checkout@v3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "v3",
           "vulnerabilities": []
         },
@@ -36,7 +36,7 @@
           "licenses": [],
           "name": "actions:setup-go",
           "purl": "pkg:githubactions/actions/setup-go@v4",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "v4",
           "vulnerabilities": []
         }
@@ -52,14 +52,14 @@
       "packages": [
         {
           "dependencies": [
-            "pkg:githubactions/actions/checkout@\u003cnormalized\u003e",
-            "pkg:githubactions/actions/setup-go@\u003cnormalized\u003e"
+            "pkg:githubactions/actions/checkout@v3",
+            "pkg:githubactions/actions/setup-go@v4"
           ],
           "id": "pkg:githubactions/.github%2Fworkflows%2Ftests.yaml@local",
           "licenses": [],
           "name": ".github/workflows/tests.yaml",
           "purl": "pkg:githubactions/.github%2Fworkflows%2Ftests.yaml@local",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "local",
           "vulnerabilities": []
         },
@@ -69,7 +69,7 @@
           "licenses": [],
           "name": "actions:checkout",
           "purl": "pkg:githubactions/actions/checkout@v3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "v3",
           "vulnerabilities": []
         },
@@ -79,7 +79,7 @@
           "licenses": [],
           "name": "actions:setup-go",
           "purl": "pkg:githubactions/actions/setup-go@v4",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "v4",
           "vulnerabilities": []
         }

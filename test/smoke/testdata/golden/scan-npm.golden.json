@@ -13,7 +13,7 @@
           "licenses": [],
           "name": "algo-httpserv",
           "purl": "pkg:npm/algo-httpserv@1.1.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.1.1",
           "vulnerabilities": []
         },
@@ -30,7 +30,7 @@
           },
           "name": "ansi-colors",
           "purl": "pkg:npm/ansi-colors@3.2.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.2.3",
           "vulnerabilities": []
         },
@@ -47,7 +47,7 @@
           },
           "name": "ansi-regex",
           "purl": "pkg:npm/ansi-regex@3.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.0.0",
           "vulnerabilities": []
         },
@@ -64,13 +64,13 @@
           },
           "name": "ansi-regex",
           "purl": "pkg:npm/ansi-regex@4.1.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "4.1.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/color-convert@\u003cnormalized\u003e"
+            "pkg:npm/color-convert@1.9.3"
           ],
           "id": "pkg:npm/ansi-styles@3.2.1",
           "licenses": [],
@@ -83,14 +83,14 @@
           },
           "name": "ansi-styles",
           "purl": "pkg:npm/ansi-styles@3.2.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.2.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/normalize-path@\u003cnormalized\u003e",
-            "pkg:npm/picomatch@\u003cnormalized\u003e"
+            "pkg:npm/normalize-path@3.0.0",
+            "pkg:npm/picomatch@2.2.2"
           ],
           "id": "pkg:npm/anymatch@3.1.1",
           "licenses": [],
@@ -103,31 +103,31 @@
           },
           "name": "anymatch",
           "purl": "pkg:npm/anymatch@3.1.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.1.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/sprintf-js@\u003cnormalized\u003e"
+            "pkg:npm/sprintf-js@1.0.3"
           ],
           "id": "pkg:npm/argparse@1.0.10",
           "licenses": [],
           "name": "argparse",
           "purl": "pkg:npm/argparse@1.0.10",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.0.10",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/lodash@\u003cnormalized\u003e"
+            "pkg:npm/lodash@4.17.15"
           ],
           "id": "pkg:npm/async@2.6.3",
           "licenses": [],
           "name": "async",
           "purl": "pkg:npm/async@2.6.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.6.3",
           "vulnerabilities": []
         },
@@ -137,7 +137,7 @@
           "licenses": [],
           "name": "balanced-match",
           "purl": "pkg:npm/balanced-match@1.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.0.0",
           "vulnerabilities": []
         },
@@ -154,26 +154,26 @@
           },
           "name": "binary-extensions",
           "purl": "pkg:npm/binary-extensions@2.1.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "2.1.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/balanced-match@\u003cnormalized\u003e",
-            "pkg:npm/concat-map@\u003cnormalized\u003e"
+            "pkg:npm/balanced-match@1.0.0",
+            "pkg:npm/concat-map@0.0.1"
           ],
           "id": "pkg:npm/brace-expansion@1.1.11",
           "licenses": [],
           "name": "brace-expansion",
           "purl": "pkg:npm/brace-expansion@1.1.11",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.1.11",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/fill-range@\u003cnormalized\u003e"
+            "pkg:npm/fill-range@7.0.1"
           ],
           "id": "pkg:npm/braces@3.0.2",
           "licenses": [],
@@ -186,7 +186,7 @@
           },
           "name": "braces",
           "purl": "pkg:npm/braces@3.0.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.0.2",
           "vulnerabilities": []
         },
@@ -196,14 +196,14 @@
           "licenses": [],
           "name": "browser-stdout",
           "purl": "pkg:npm/browser-stdout@1.3.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.3.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/dicer@\u003cnormalized\u003e",
-            "pkg:npm/readable-stream@\u003cnormalized\u003e"
+            "pkg:npm/dicer@0.2.5",
+            "pkg:npm/readable-stream@1.1.14"
           ],
           "id": "pkg:npm/busboy@0.2.14",
           "licenses": [],
@@ -216,7 +216,7 @@
           },
           "name": "busboy",
           "purl": "pkg:npm/busboy@0.2.14",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.2.14",
           "vulnerabilities": []
         },
@@ -233,15 +233,15 @@
           },
           "name": "camelcase",
           "purl": "pkg:npm/camelcase@5.3.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "5.3.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/ansi-styles@\u003cnormalized\u003e",
-            "pkg:npm/escape-string-regexp@\u003cnormalized\u003e",
-            "pkg:npm/supports-color@\u003cnormalized\u003e"
+            "pkg:npm/ansi-styles@3.2.1",
+            "pkg:npm/escape-string-regexp@1.0.5",
+            "pkg:npm/supports-color@5.5.0"
           ],
           "id": "pkg:npm/chalk@2.4.2",
           "licenses": [],
@@ -254,20 +254,20 @@
           },
           "name": "chalk",
           "purl": "pkg:npm/chalk@2.4.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "2.4.2",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/anymatch@\u003cnormalized\u003e",
-            "pkg:npm/braces@\u003cnormalized\u003e",
-            "pkg:npm/fsevents@\u003cnormalized\u003e",
-            "pkg:npm/glob-parent@\u003cnormalized\u003e",
-            "pkg:npm/is-binary-path@\u003cnormalized\u003e",
-            "pkg:npm/is-glob@\u003cnormalized\u003e",
-            "pkg:npm/normalize-path@\u003cnormalized\u003e",
-            "pkg:npm/readdirp@\u003cnormalized\u003e"
+            "pkg:npm/anymatch@3.1.1",
+            "pkg:npm/braces@3.0.2",
+            "pkg:npm/fsevents@2.1.3",
+            "pkg:npm/glob-parent@5.1.1",
+            "pkg:npm/is-binary-path@2.1.0",
+            "pkg:npm/is-glob@4.0.1",
+            "pkg:npm/normalize-path@3.0.0",
+            "pkg:npm/readdirp@3.2.0"
           ],
           "id": "pkg:npm/chokidar@3.3.0",
           "licenses": [],
@@ -280,33 +280,33 @@
           },
           "name": "chokidar",
           "purl": "pkg:npm/chokidar@3.3.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.3.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/string-width@\u003cnormalized\u003e",
-            "pkg:npm/strip-ansi@\u003cnormalized\u003e",
-            "pkg:npm/wrap-ansi@\u003cnormalized\u003e"
+            "pkg:npm/string-width@3.1.0",
+            "pkg:npm/strip-ansi@5.2.0",
+            "pkg:npm/wrap-ansi@5.1.0"
           ],
           "id": "pkg:npm/cliui@5.0.0",
           "licenses": [],
           "name": "cliui",
           "purl": "pkg:npm/cliui@5.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "5.0.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/color-name@\u003cnormalized\u003e"
+            "pkg:npm/color-name@1.1.3"
           ],
           "id": "pkg:npm/color-convert@1.9.3",
           "licenses": [],
           "name": "color-convert",
           "purl": "pkg:npm/color-convert@1.9.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.9.3",
           "vulnerabilities": []
         },
@@ -316,7 +316,7 @@
           "licenses": [],
           "name": "color-name",
           "purl": "pkg:npm/color-name@1.1.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.1.3",
           "vulnerabilities": []
         },
@@ -326,7 +326,7 @@
           "licenses": [],
           "name": "concat-map",
           "purl": "pkg:npm/concat-map@0.0.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "0.0.1",
           "vulnerabilities": []
         },
@@ -336,19 +336,19 @@
           "licenses": [],
           "name": "core-util-is",
           "purl": "pkg:npm/core-util-is@1.0.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.0.2",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/ms@\u003cnormalized\u003e"
+            "pkg:npm/ms@2.1.1"
           ],
           "id": "pkg:npm/debug@3.2.6",
           "licenses": [],
           "name": "debug",
           "purl": "pkg:npm/debug@3.2.6",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.2.6",
           "vulnerabilities": []
         },
@@ -365,13 +365,13 @@
           },
           "name": "decamelize",
           "purl": "pkg:npm/decamelize@1.2.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.2.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/object-keys@\u003cnormalized\u003e"
+            "pkg:npm/object-keys@1.1.1"
           ],
           "id": "pkg:npm/define-properties@1.1.3",
           "licenses": [],
@@ -384,14 +384,14 @@
           },
           "name": "define-properties",
           "purl": "pkg:npm/define-properties@1.1.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.1.3",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/readable-stream@\u003cnormalized\u003e",
-            "pkg:npm/streamsearch@\u003cnormalized\u003e"
+            "pkg:npm/readable-stream@1.1.14",
+            "pkg:npm/streamsearch@0.1.2"
           ],
           "id": "pkg:npm/dicer@0.2.5",
           "licenses": [],
@@ -404,7 +404,7 @@
           },
           "name": "dicer",
           "purl": "pkg:npm/dicer@0.2.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.2.5",
           "vulnerabilities": []
         },
@@ -421,7 +421,7 @@
           },
           "name": "diff",
           "purl": "pkg:npm/diff@3.5.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.5.0",
           "vulnerabilities": []
         },
@@ -431,23 +431,23 @@
           "licenses": [],
           "name": "emoji-regex",
           "purl": "pkg:npm/emoji-regex@7.0.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "7.0.3",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/es-to-primitive@\u003cnormalized\u003e",
-            "pkg:npm/function-bind@\u003cnormalized\u003e",
-            "pkg:npm/has-symbols@\u003cnormalized\u003e",
-            "pkg:npm/has@\u003cnormalized\u003e",
-            "pkg:npm/is-callable@\u003cnormalized\u003e",
-            "pkg:npm/is-regex@\u003cnormalized\u003e",
-            "pkg:npm/object-inspect@\u003cnormalized\u003e",
-            "pkg:npm/object-keys@\u003cnormalized\u003e",
-            "pkg:npm/object.assign@\u003cnormalized\u003e",
-            "pkg:npm/string.prototype.trimend@\u003cnormalized\u003e",
-            "pkg:npm/string.prototype.trimstart@\u003cnormalized\u003e"
+            "pkg:npm/es-to-primitive@1.2.1",
+            "pkg:npm/function-bind@1.1.1",
+            "pkg:npm/has-symbols@1.0.1",
+            "pkg:npm/has@1.0.3",
+            "pkg:npm/is-callable@1.2.2",
+            "pkg:npm/is-regex@1.1.1",
+            "pkg:npm/object-inspect@1.8.0",
+            "pkg:npm/object-keys@1.1.1",
+            "pkg:npm/object.assign@4.1.0",
+            "pkg:npm/string.prototype.trimend@1.0.1",
+            "pkg:npm/string.prototype.trimstart@1.0.1"
           ],
           "id": "pkg:npm/es-abstract@1.17.6",
           "licenses": [],
@@ -460,15 +460,15 @@
           },
           "name": "es-abstract",
           "purl": "pkg:npm/es-abstract@1.17.6",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.17.6",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/is-callable@\u003cnormalized\u003e",
-            "pkg:npm/is-date-object@\u003cnormalized\u003e",
-            "pkg:npm/is-symbol@\u003cnormalized\u003e"
+            "pkg:npm/is-callable@1.2.2",
+            "pkg:npm/is-date-object@1.0.2",
+            "pkg:npm/is-symbol@1.0.3"
           ],
           "id": "pkg:npm/es-to-primitive@1.2.1",
           "licenses": [],
@@ -481,7 +481,7 @@
           },
           "name": "es-to-primitive",
           "purl": "pkg:npm/es-to-primitive@1.2.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.2.1",
           "vulnerabilities": []
         },
@@ -498,7 +498,7 @@
           },
           "name": "escape-string-regexp",
           "purl": "pkg:npm/escape-string-regexp@1.0.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.0.5",
           "vulnerabilities": []
         },
@@ -515,26 +515,26 @@
           },
           "name": "esprima",
           "purl": "pkg:npm/esprima@4.0.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.0.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/algo-httpserv@\u003cnormalized\u003e",
-            "pkg:npm/js-yaml@\u003cnormalized\u003e",
-            "pkg:npm/larvitbase@\u003cnormalized\u003e",
-            "pkg:npm/larvitfs@\u003cnormalized\u003e",
-            "pkg:npm/larvitreqparser@\u003cnormalized\u003e",
-            "pkg:npm/larvitrouter@\u003cnormalized\u003e",
-            "pkg:npm/larvitutils@\u003cnormalized\u003e",
-            "pkg:npm/lodash@\u003cnormalized\u003e",
-            "pkg:npm/marked@\u003cnormalized\u003e",
-            "pkg:npm/mocha@\u003cnormalized\u003e",
-            "pkg:npm/node-yaml-config@\u003cnormalized\u003e",
-            "pkg:npm/semver@\u003cnormalized\u003e",
-            "pkg:npm/to@\u003cnormalized\u003e",
-            "pkg:npm/url@\u003cnormalized\u003e"
+            "pkg:npm/algo-httpserv@1.1.1",
+            "pkg:npm/js-yaml@3.13.0",
+            "pkg:npm/larvitbase@3.1.3",
+            "pkg:npm/larvitfs@2.3.1",
+            "pkg:npm/larvitreqparser@0.2.1",
+            "pkg:npm/larvitrouter@3.0.2",
+            "pkg:npm/larvitutils@2.3.0",
+            "pkg:npm/lodash@4.17.15",
+            "pkg:npm/marked@0.3.19",
+            "pkg:npm/mocha@7.2.0",
+            "pkg:npm/node-yaml-config@0.0.5",
+            "pkg:npm/semver@5.7.1",
+            "pkg:npm/to@0.2.9",
+            "pkg:npm/url@0.11.0"
           ],
           "id": "pkg:npm/example-javascript-vulnerable-methods@0.0.1",
           "licenses": [],
@@ -546,7 +546,7 @@
         },
         {
           "dependencies": [
-            "pkg:npm/to-regex-range@\u003cnormalized\u003e"
+            "pkg:npm/to-regex-range@5.0.1"
           ],
           "id": "pkg:npm/fill-range@7.0.1",
           "licenses": [],
@@ -559,13 +559,13 @@
           },
           "name": "fill-range",
           "purl": "pkg:npm/fill-range@7.0.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "7.0.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/locate-path@\u003cnormalized\u003e"
+            "pkg:npm/locate-path@3.0.0"
           ],
           "id": "pkg:npm/find-up@3.0.0",
           "licenses": [],
@@ -578,27 +578,27 @@
           },
           "name": "find-up",
           "purl": "pkg:npm/find-up@3.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.0.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/is-buffer@\u003cnormalized\u003e"
+            "pkg:npm/is-buffer@2.0.4"
           ],
           "id": "pkg:npm/flat@4.1.0",
           "licenses": [],
           "name": "flat",
           "purl": "pkg:npm/flat@4.1.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "4.1.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/graceful-fs@\u003cnormalized\u003e",
-            "pkg:npm/jsonfile@\u003cnormalized\u003e",
-            "pkg:npm/universalify@\u003cnormalized\u003e"
+            "pkg:npm/graceful-fs@4.2.3",
+            "pkg:npm/jsonfile@4.0.0",
+            "pkg:npm/universalify@0.1.2"
           ],
           "id": "pkg:npm/fs-extra@7.0.1",
           "licenses": [],
@@ -611,7 +611,7 @@
           },
           "name": "fs-extra",
           "purl": "pkg:npm/fs-extra@7.0.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "7.0.1",
           "vulnerabilities": []
         },
@@ -621,7 +621,7 @@
           "licenses": [],
           "name": "fs.realpath",
           "purl": "pkg:npm/fs.realpath@1.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.0.0",
           "vulnerabilities": []
         },
@@ -639,7 +639,7 @@
           },
           "name": "fsevents",
           "purl": "pkg:npm/fsevents@2.1.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "2.1.3",
           "vulnerabilities": []
         },
@@ -649,7 +649,7 @@
           "licenses": [],
           "name": "function-bind",
           "purl": "pkg:npm/function-bind@1.1.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.1.1",
           "vulnerabilities": []
         },
@@ -666,13 +666,13 @@
           },
           "name": "get-caller-file",
           "purl": "pkg:npm/get-caller-file@2.0.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "2.0.5",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/is-glob@\u003cnormalized\u003e"
+            "pkg:npm/is-glob@4.0.1"
           ],
           "id": "pkg:npm/glob-parent@5.1.1",
           "licenses": [],
@@ -685,18 +685,18 @@
           },
           "name": "glob-parent",
           "purl": "pkg:npm/glob-parent@5.1.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "5.1.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/fs.realpath@\u003cnormalized\u003e",
-            "pkg:npm/inflight@\u003cnormalized\u003e",
-            "pkg:npm/inherits@\u003cnormalized\u003e",
-            "pkg:npm/minimatch@\u003cnormalized\u003e",
-            "pkg:npm/once@\u003cnormalized\u003e",
-            "pkg:npm/path-is-absolute@\u003cnormalized\u003e"
+            "pkg:npm/fs.realpath@1.0.0",
+            "pkg:npm/inflight@1.0.6",
+            "pkg:npm/inherits@2.0.4",
+            "pkg:npm/minimatch@3.0.4",
+            "pkg:npm/once@1.4.0",
+            "pkg:npm/path-is-absolute@1.0.1"
           ],
           "id": "pkg:npm/glob@7.1.3",
           "licenses": [],
@@ -709,7 +709,7 @@
           },
           "name": "glob",
           "purl": "pkg:npm/glob@7.1.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "7.1.3",
           "vulnerabilities": []
         },
@@ -719,7 +719,7 @@
           "licenses": [],
           "name": "graceful-fs",
           "purl": "pkg:npm/graceful-fs@4.2.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.2.3",
           "vulnerabilities": []
         },
@@ -736,7 +736,7 @@
           },
           "name": "growl",
           "purl": "pkg:npm/growl@1.10.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.10.5",
           "vulnerabilities": []
         },
@@ -753,7 +753,7 @@
           },
           "name": "handy",
           "purl": "pkg:npm/handy@0.0.13",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.0.13",
           "vulnerabilities": []
         },
@@ -770,7 +770,7 @@
           },
           "name": "has-flag",
           "purl": "pkg:npm/has-flag@3.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.0.0",
           "vulnerabilities": []
         },
@@ -787,13 +787,13 @@
           },
           "name": "has-symbols",
           "purl": "pkg:npm/has-symbols@1.0.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.0.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/function-bind@\u003cnormalized\u003e"
+            "pkg:npm/function-bind@1.1.1"
           ],
           "id": "pkg:npm/has@1.0.3",
           "licenses": [],
@@ -806,7 +806,7 @@
           },
           "name": "has",
           "purl": "pkg:npm/has@1.0.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.0.3",
           "vulnerabilities": []
         },
@@ -816,7 +816,7 @@
           "licenses": [],
           "name": "he",
           "purl": "pkg:npm/he@1.2.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.2.0",
           "vulnerabilities": []
         },
@@ -833,20 +833,20 @@
           },
           "name": "htmlparser",
           "purl": "pkg:npm/htmlparser@1.7.7",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.7.7",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/once@\u003cnormalized\u003e",
-            "pkg:npm/wrappy@\u003cnormalized\u003e"
+            "pkg:npm/once@1.4.0",
+            "pkg:npm/wrappy@1.0.2"
           ],
           "id": "pkg:npm/inflight@1.0.6",
           "licenses": [],
           "name": "inflight",
           "purl": "pkg:npm/inflight@1.0.6",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.0.6",
           "vulnerabilities": []
         },
@@ -856,13 +856,13 @@
           "licenses": [],
           "name": "inherits",
           "purl": "pkg:npm/inherits@2.0.4",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.0.4",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/binary-extensions@\u003cnormalized\u003e"
+            "pkg:npm/binary-extensions@2.1.0"
           ],
           "id": "pkg:npm/is-binary-path@2.1.0",
           "licenses": [],
@@ -875,7 +875,7 @@
           },
           "name": "is-binary-path",
           "purl": "pkg:npm/is-binary-path@2.1.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "2.1.0",
           "vulnerabilities": []
         },
@@ -892,7 +892,7 @@
           },
           "name": "is-buffer",
           "purl": "pkg:npm/is-buffer@2.0.4",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "2.0.4",
           "vulnerabilities": []
         },
@@ -909,7 +909,7 @@
           },
           "name": "is-callable",
           "purl": "pkg:npm/is-callable@1.2.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.2.2",
           "vulnerabilities": []
         },
@@ -926,7 +926,7 @@
           },
           "name": "is-date-object",
           "purl": "pkg:npm/is-date-object@1.0.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.0.2",
           "vulnerabilities": []
         },
@@ -943,7 +943,7 @@
           },
           "name": "is-extglob",
           "purl": "pkg:npm/is-extglob@2.1.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "2.1.1",
           "vulnerabilities": []
         },
@@ -960,13 +960,13 @@
           },
           "name": "is-fullwidth-code-point",
           "purl": "pkg:npm/is-fullwidth-code-point@2.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "2.0.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/is-extglob@\u003cnormalized\u003e"
+            "pkg:npm/is-extglob@2.1.1"
           ],
           "id": "pkg:npm/is-glob@4.0.1",
           "licenses": [],
@@ -979,7 +979,7 @@
           },
           "name": "is-glob",
           "purl": "pkg:npm/is-glob@4.0.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "4.0.1",
           "vulnerabilities": []
         },
@@ -996,13 +996,13 @@
           },
           "name": "is-number",
           "purl": "pkg:npm/is-number@7.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "7.0.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/has-symbols@\u003cnormalized\u003e"
+            "pkg:npm/has-symbols@1.0.1"
           ],
           "id": "pkg:npm/is-regex@1.1.1",
           "licenses": [],
@@ -1015,13 +1015,13 @@
           },
           "name": "is-regex",
           "purl": "pkg:npm/is-regex@1.1.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.1.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/has-symbols@\u003cnormalized\u003e"
+            "pkg:npm/has-symbols@1.0.1"
           ],
           "id": "pkg:npm/is-symbol@1.0.3",
           "licenses": [],
@@ -1034,7 +1034,7 @@
           },
           "name": "is-symbol",
           "purl": "pkg:npm/is-symbol@1.0.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.0.3",
           "vulnerabilities": []
         },
@@ -1051,7 +1051,7 @@
           },
           "name": "is",
           "purl": "pkg:npm/is@3.3.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.3.0",
           "vulnerabilities": []
         },
@@ -1061,7 +1061,7 @@
           "licenses": [],
           "name": "isarray",
           "purl": "pkg:npm/isarray@0.0.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.0.1",
           "vulnerabilities": []
         },
@@ -1071,100 +1071,100 @@
           "licenses": [],
           "name": "isexe",
           "purl": "pkg:npm/isexe@2.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "2.0.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/argparse@\u003cnormalized\u003e",
-            "pkg:npm/esprima@\u003cnormalized\u003e"
+            "pkg:npm/argparse@1.0.10",
+            "pkg:npm/esprima@4.0.1"
           ],
           "id": "pkg:npm/js-yaml@3.13.0",
           "licenses": [],
           "name": "js-yaml",
           "purl": "pkg:npm/js-yaml@3.13.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.13.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/argparse@\u003cnormalized\u003e",
-            "pkg:npm/esprima@\u003cnormalized\u003e"
+            "pkg:npm/argparse@1.0.10",
+            "pkg:npm/esprima@4.0.1"
           ],
           "id": "pkg:npm/js-yaml@3.13.1",
           "licenses": [],
           "name": "js-yaml",
           "purl": "pkg:npm/js-yaml@3.13.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.13.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/graceful-fs@\u003cnormalized\u003e"
+            "pkg:npm/graceful-fs@4.2.3"
           ],
           "id": "pkg:npm/jsonfile@4.0.0",
           "licenses": [],
           "name": "jsonfile",
           "purl": "pkg:npm/jsonfile@4.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.0.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/larvitutils@\u003cnormalized\u003e",
-            "pkg:npm/uuid@\u003cnormalized\u003e"
+            "pkg:npm/larvitutils@2.3.0",
+            "pkg:npm/uuid@3.4.0"
           ],
           "id": "pkg:npm/larvitbase@3.1.3",
           "licenses": [],
           "name": "larvitbase",
           "purl": "pkg:npm/larvitbase@3.1.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.1.3",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/larvitutils@\u003cnormalized\u003e"
+            "pkg:npm/larvitutils@2.3.0"
           ],
           "id": "pkg:npm/larvitfs@2.3.1",
           "licenses": [],
           "name": "larvitfs",
           "purl": "pkg:npm/larvitfs@2.3.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.3.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/async@\u003cnormalized\u003e",
-            "pkg:npm/busboy@\u003cnormalized\u003e",
-            "pkg:npm/fs-extra@\u003cnormalized\u003e",
-            "pkg:npm/larvitutils@\u003cnormalized\u003e",
-            "pkg:npm/qs@\u003cnormalized\u003e",
-            "pkg:npm/uuid@\u003cnormalized\u003e"
+            "pkg:npm/async@2.6.3",
+            "pkg:npm/busboy@0.2.14",
+            "pkg:npm/fs-extra@7.0.1",
+            "pkg:npm/larvitutils@2.3.0",
+            "pkg:npm/qs@6.9.1",
+            "pkg:npm/uuid@3.4.0"
           ],
           "id": "pkg:npm/larvitreqparser@0.2.1",
           "licenses": [],
           "name": "larvitreqparser",
           "purl": "pkg:npm/larvitreqparser@0.2.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.2.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/larvitfs@\u003cnormalized\u003e",
-            "pkg:npm/larvitutils@\u003cnormalized\u003e"
+            "pkg:npm/larvitfs@2.3.1",
+            "pkg:npm/larvitutils@2.3.0"
           ],
           "id": "pkg:npm/larvitrouter@3.0.2",
           "licenses": [],
           "name": "larvitrouter",
           "purl": "pkg:npm/larvitrouter@3.0.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.0.2",
           "vulnerabilities": []
         },
@@ -1174,14 +1174,14 @@
           "licenses": [],
           "name": "larvitutils",
           "purl": "pkg:npm/larvitutils@2.3.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.3.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/p-locate@\u003cnormalized\u003e",
-            "pkg:npm/path-exists@\u003cnormalized\u003e"
+            "pkg:npm/p-locate@3.0.0",
+            "pkg:npm/path-exists@3.0.0"
           ],
           "id": "pkg:npm/locate-path@3.0.0",
           "licenses": [],
@@ -1194,7 +1194,7 @@
           },
           "name": "locate-path",
           "purl": "pkg:npm/locate-path@3.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.0.0",
           "vulnerabilities": []
         },
@@ -1204,13 +1204,13 @@
           "licenses": [],
           "name": "lodash",
           "purl": "pkg:npm/lodash@4.17.15",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.17.15",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/chalk@\u003cnormalized\u003e"
+            "pkg:npm/chalk@2.4.2"
           ],
           "id": "pkg:npm/log-symbols@3.0.0",
           "licenses": [],
@@ -1223,7 +1223,7 @@
           },
           "name": "log-symbols",
           "purl": "pkg:npm/log-symbols@3.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.0.0",
           "vulnerabilities": []
         },
@@ -1240,13 +1240,13 @@
           },
           "name": "marked",
           "purl": "pkg:npm/marked@0.3.19",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.3.19",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/brace-expansion@\u003cnormalized\u003e"
+            "pkg:npm/brace-expansion@1.1.11"
           ],
           "id": "pkg:npm/minimatch@3.0.4",
           "licenses": [],
@@ -1259,7 +1259,7 @@
           },
           "name": "minimatch",
           "purl": "pkg:npm/minimatch@3.0.4",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.0.4",
           "vulnerabilities": []
         },
@@ -1269,7 +1269,7 @@
           "licenses": [],
           "name": "minimist",
           "purl": "pkg:npm/minimist@0.0.10",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.0.10",
           "vulnerabilities": []
         },
@@ -1279,48 +1279,48 @@
           "licenses": [],
           "name": "minimist",
           "purl": "pkg:npm/minimist@1.2.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.2.5",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/minimist@\u003cnormalized\u003e"
+            "pkg:npm/minimist@1.2.5"
           ],
           "id": "pkg:npm/mkdirp@0.5.5",
           "licenses": [],
           "name": "mkdirp",
           "purl": "pkg:npm/mkdirp@0.5.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "0.5.5",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/ansi-colors@\u003cnormalized\u003e",
-            "pkg:npm/browser-stdout@\u003cnormalized\u003e",
-            "pkg:npm/chokidar@\u003cnormalized\u003e",
-            "pkg:npm/debug@\u003cnormalized\u003e",
-            "pkg:npm/diff@\u003cnormalized\u003e",
-            "pkg:npm/escape-string-regexp@\u003cnormalized\u003e",
-            "pkg:npm/find-up@\u003cnormalized\u003e",
-            "pkg:npm/glob@\u003cnormalized\u003e",
-            "pkg:npm/growl@\u003cnormalized\u003e",
-            "pkg:npm/he@\u003cnormalized\u003e",
-            "pkg:npm/js-yaml@\u003cnormalized\u003e",
-            "pkg:npm/log-symbols@\u003cnormalized\u003e",
-            "pkg:npm/minimatch@\u003cnormalized\u003e",
-            "pkg:npm/mkdirp@\u003cnormalized\u003e",
-            "pkg:npm/ms@\u003cnormalized\u003e",
-            "pkg:npm/node-environment-flags@\u003cnormalized\u003e",
-            "pkg:npm/object.assign@\u003cnormalized\u003e",
-            "pkg:npm/strip-json-comments@\u003cnormalized\u003e",
-            "pkg:npm/supports-color@\u003cnormalized\u003e",
-            "pkg:npm/which@\u003cnormalized\u003e",
-            "pkg:npm/wide-align@\u003cnormalized\u003e",
-            "pkg:npm/yargs-parser@\u003cnormalized\u003e",
-            "pkg:npm/yargs-unparser@\u003cnormalized\u003e",
-            "pkg:npm/yargs@\u003cnormalized\u003e"
+            "pkg:npm/ansi-colors@3.2.3",
+            "pkg:npm/browser-stdout@1.3.1",
+            "pkg:npm/chokidar@3.3.0",
+            "pkg:npm/debug@3.2.6",
+            "pkg:npm/diff@3.5.0",
+            "pkg:npm/escape-string-regexp@1.0.5",
+            "pkg:npm/find-up@3.0.0",
+            "pkg:npm/glob@7.1.3",
+            "pkg:npm/growl@1.10.5",
+            "pkg:npm/he@1.2.0",
+            "pkg:npm/js-yaml@3.13.1",
+            "pkg:npm/log-symbols@3.0.0",
+            "pkg:npm/minimatch@3.0.4",
+            "pkg:npm/mkdirp@0.5.5",
+            "pkg:npm/ms@2.1.1",
+            "pkg:npm/node-environment-flags@1.0.6",
+            "pkg:npm/object.assign@4.1.0",
+            "pkg:npm/strip-json-comments@2.0.1",
+            "pkg:npm/supports-color@6.0.0",
+            "pkg:npm/which@1.3.1",
+            "pkg:npm/wide-align@1.1.3",
+            "pkg:npm/yargs-parser@13.1.2",
+            "pkg:npm/yargs-unparser@1.6.0",
+            "pkg:npm/yargs@13.3.2"
           ],
           "id": "pkg:npm/mocha@7.2.0",
           "licenses": [],
@@ -1333,7 +1333,7 @@
           },
           "name": "mocha",
           "purl": "pkg:npm/mocha@7.2.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "7.2.0",
           "vulnerabilities": []
         },
@@ -1343,40 +1343,40 @@
           "licenses": [],
           "name": "ms",
           "purl": "pkg:npm/ms@2.1.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "2.1.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/object.getownpropertydescriptors@\u003cnormalized\u003e",
-            "pkg:npm/semver@\u003cnormalized\u003e"
+            "pkg:npm/object.getownpropertydescriptors@2.1.0",
+            "pkg:npm/semver@5.7.1"
           ],
           "id": "pkg:npm/node-environment-flags@1.0.6",
           "licenses": [],
           "name": "node-environment-flags",
           "purl": "pkg:npm/node-environment-flags@1.0.6",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.0.6",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/js-yaml@\u003cnormalized\u003e",
-            "pkg:npm/node.extend@\u003cnormalized\u003e"
+            "pkg:npm/js-yaml@3.13.0",
+            "pkg:npm/node.extend@2.0.2"
           ],
           "id": "pkg:npm/node-yaml-config@0.0.5",
           "licenses": [],
           "name": "node-yaml-config",
           "purl": "pkg:npm/node-yaml-config@0.0.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.0.5",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/has@\u003cnormalized\u003e",
-            "pkg:npm/is@\u003cnormalized\u003e"
+            "pkg:npm/has@1.0.3",
+            "pkg:npm/is@3.3.0"
           ],
           "id": "pkg:npm/node.extend@2.0.2",
           "licenses": [],
@@ -1389,7 +1389,7 @@
           },
           "name": "node.extend",
           "purl": "pkg:npm/node.extend@2.0.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.0.2",
           "vulnerabilities": []
         },
@@ -1406,7 +1406,7 @@
           },
           "name": "normalize-path",
           "purl": "pkg:npm/normalize-path@3.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.0.0",
           "vulnerabilities": []
         },
@@ -1416,7 +1416,7 @@
           "licenses": [],
           "name": "object-inspect",
           "purl": "pkg:npm/object-inspect@1.8.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.8.0",
           "vulnerabilities": []
         },
@@ -1433,16 +1433,16 @@
           },
           "name": "object-keys",
           "purl": "pkg:npm/object-keys@1.1.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.1.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/define-properties@\u003cnormalized\u003e",
-            "pkg:npm/function-bind@\u003cnormalized\u003e",
-            "pkg:npm/has-symbols@\u003cnormalized\u003e",
-            "pkg:npm/object-keys@\u003cnormalized\u003e"
+            "pkg:npm/define-properties@1.1.3",
+            "pkg:npm/function-bind@1.1.1",
+            "pkg:npm/has-symbols@1.0.1",
+            "pkg:npm/object-keys@1.1.1"
           ],
           "id": "pkg:npm/object.assign@4.1.0",
           "licenses": [],
@@ -1455,14 +1455,14 @@
           },
           "name": "object.assign",
           "purl": "pkg:npm/object.assign@4.1.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "4.1.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/define-properties@\u003cnormalized\u003e",
-            "pkg:npm/es-abstract@\u003cnormalized\u003e"
+            "pkg:npm/define-properties@1.1.3",
+            "pkg:npm/es-abstract@1.17.6"
           ],
           "id": "pkg:npm/object.getownpropertydescriptors@2.1.0",
           "licenses": [],
@@ -1475,38 +1475,38 @@
           },
           "name": "object.getownpropertydescriptors",
           "purl": "pkg:npm/object.getownpropertydescriptors@2.1.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "2.1.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/wrappy@\u003cnormalized\u003e"
+            "pkg:npm/wrappy@1.0.2"
           ],
           "id": "pkg:npm/once@1.4.0",
           "licenses": [],
           "name": "once",
           "purl": "pkg:npm/once@1.4.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.4.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/minimist@\u003cnormalized\u003e",
-            "pkg:npm/wordwrap@\u003cnormalized\u003e"
+            "pkg:npm/minimist@0.0.10",
+            "pkg:npm/wordwrap@0.0.3"
           ],
           "id": "pkg:npm/optimist@0.6.1",
           "licenses": [],
           "name": "optimist",
           "purl": "pkg:npm/optimist@0.6.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.6.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/p-try@\u003cnormalized\u003e"
+            "pkg:npm/p-try@2.2.0"
           ],
           "id": "pkg:npm/p-limit@2.3.0",
           "licenses": [],
@@ -1519,13 +1519,13 @@
           },
           "name": "p-limit",
           "purl": "pkg:npm/p-limit@2.3.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "2.3.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/p-limit@\u003cnormalized\u003e"
+            "pkg:npm/p-limit@2.3.0"
           ],
           "id": "pkg:npm/p-locate@3.0.0",
           "licenses": [],
@@ -1538,7 +1538,7 @@
           },
           "name": "p-locate",
           "purl": "pkg:npm/p-locate@3.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.0.0",
           "vulnerabilities": []
         },
@@ -1555,7 +1555,7 @@
           },
           "name": "p-try",
           "purl": "pkg:npm/p-try@2.2.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "2.2.0",
           "vulnerabilities": []
         },
@@ -1572,7 +1572,7 @@
           },
           "name": "path-exists",
           "purl": "pkg:npm/path-exists@3.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.0.0",
           "vulnerabilities": []
         },
@@ -1589,7 +1589,7 @@
           },
           "name": "path-is-absolute",
           "purl": "pkg:npm/path-is-absolute@1.0.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.0.1",
           "vulnerabilities": []
         },
@@ -1606,7 +1606,7 @@
           },
           "name": "picomatch",
           "purl": "pkg:npm/picomatch@2.2.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "2.2.2",
           "vulnerabilities": []
         },
@@ -1616,7 +1616,7 @@
           "licenses": [],
           "name": "punycode",
           "purl": "pkg:npm/punycode@1.3.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.3.2",
           "vulnerabilities": []
         },
@@ -1633,7 +1633,7 @@
           },
           "name": "qs",
           "purl": "pkg:npm/qs@6.9.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "6.9.1",
           "vulnerabilities": []
         },
@@ -1650,28 +1650,28 @@
           },
           "name": "querystring",
           "purl": "pkg:npm/querystring@0.2.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.2.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/core-util-is@\u003cnormalized\u003e",
-            "pkg:npm/inherits@\u003cnormalized\u003e",
-            "pkg:npm/isarray@\u003cnormalized\u003e",
-            "pkg:npm/string_decoder@\u003cnormalized\u003e"
+            "pkg:npm/core-util-is@1.0.2",
+            "pkg:npm/inherits@2.0.4",
+            "pkg:npm/isarray@0.0.1",
+            "pkg:npm/string_decoder@0.10.31"
           ],
           "id": "pkg:npm/readable-stream@1.1.14",
           "licenses": [],
           "name": "readable-stream",
           "purl": "pkg:npm/readable-stream@1.1.14",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.1.14",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/picomatch@\u003cnormalized\u003e"
+            "pkg:npm/picomatch@2.2.2"
           ],
           "id": "pkg:npm/readdirp@3.2.0",
           "licenses": [],
@@ -1684,7 +1684,7 @@
           },
           "name": "readdirp",
           "purl": "pkg:npm/readdirp@3.2.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.2.0",
           "vulnerabilities": []
         },
@@ -1701,7 +1701,7 @@
           },
           "name": "require-directory",
           "purl": "pkg:npm/require-directory@2.1.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "2.1.1",
           "vulnerabilities": []
         },
@@ -1711,7 +1711,7 @@
           "licenses": [],
           "name": "require-main-filename",
           "purl": "pkg:npm/require-main-filename@2.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "2.0.0",
           "vulnerabilities": []
         },
@@ -1721,7 +1721,7 @@
           "licenses": [],
           "name": "semver",
           "purl": "pkg:npm/semver@5.7.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "5.7.1",
           "vulnerabilities": []
         },
@@ -1731,7 +1731,7 @@
           "licenses": [],
           "name": "set-blocking",
           "purl": "pkg:npm/set-blocking@2.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "2.0.0",
           "vulnerabilities": []
         },
@@ -1741,7 +1741,7 @@
           "licenses": [],
           "name": "sprintf-js",
           "purl": "pkg:npm/sprintf-js@1.0.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.0.3",
           "vulnerabilities": []
         },
@@ -1758,14 +1758,14 @@
           },
           "name": "streamsearch",
           "purl": "pkg:npm/streamsearch@0.1.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.1.2",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/is-fullwidth-code-point@\u003cnormalized\u003e",
-            "pkg:npm/strip-ansi@\u003cnormalized\u003e"
+            "pkg:npm/is-fullwidth-code-point@2.0.0",
+            "pkg:npm/strip-ansi@4.0.0"
           ],
           "id": "pkg:npm/string-width@2.1.1",
           "licenses": [],
@@ -1778,15 +1778,15 @@
           },
           "name": "string-width",
           "purl": "pkg:npm/string-width@2.1.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "2.1.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/emoji-regex@\u003cnormalized\u003e",
-            "pkg:npm/is-fullwidth-code-point@\u003cnormalized\u003e",
-            "pkg:npm/strip-ansi@\u003cnormalized\u003e"
+            "pkg:npm/emoji-regex@7.0.3",
+            "pkg:npm/is-fullwidth-code-point@2.0.0",
+            "pkg:npm/strip-ansi@5.2.0"
           ],
           "id": "pkg:npm/string-width@3.1.0",
           "licenses": [],
@@ -1799,33 +1799,33 @@
           },
           "name": "string-width",
           "purl": "pkg:npm/string-width@3.1.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.1.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/define-properties@\u003cnormalized\u003e",
-            "pkg:npm/es-abstract@\u003cnormalized\u003e"
+            "pkg:npm/define-properties@1.1.3",
+            "pkg:npm/es-abstract@1.17.6"
           ],
           "id": "pkg:npm/string.prototype.trimend@1.0.1",
           "licenses": [],
           "name": "string.prototype.trimend",
           "purl": "pkg:npm/string.prototype.trimend@1.0.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.0.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/define-properties@\u003cnormalized\u003e",
-            "pkg:npm/es-abstract@\u003cnormalized\u003e"
+            "pkg:npm/define-properties@1.1.3",
+            "pkg:npm/es-abstract@1.17.6"
           ],
           "id": "pkg:npm/string.prototype.trimstart@1.0.1",
           "licenses": [],
           "name": "string.prototype.trimstart",
           "purl": "pkg:npm/string.prototype.trimstart@1.0.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.0.1",
           "vulnerabilities": []
         },
@@ -1835,13 +1835,13 @@
           "licenses": [],
           "name": "string_decoder",
           "purl": "pkg:npm/string_decoder@0.10.31",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.10.31",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/ansi-regex@\u003cnormalized\u003e"
+            "pkg:npm/ansi-regex@3.0.0"
           ],
           "id": "pkg:npm/strip-ansi@4.0.0",
           "licenses": [],
@@ -1854,13 +1854,13 @@
           },
           "name": "strip-ansi",
           "purl": "pkg:npm/strip-ansi@4.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "4.0.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/ansi-regex@\u003cnormalized\u003e"
+            "pkg:npm/ansi-regex@4.1.0"
           ],
           "id": "pkg:npm/strip-ansi@5.2.0",
           "licenses": [],
@@ -1873,7 +1873,7 @@
           },
           "name": "strip-ansi",
           "purl": "pkg:npm/strip-ansi@5.2.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "5.2.0",
           "vulnerabilities": []
         },
@@ -1890,13 +1890,13 @@
           },
           "name": "strip-json-comments",
           "purl": "pkg:npm/strip-json-comments@2.0.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "2.0.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/has-flag@\u003cnormalized\u003e"
+            "pkg:npm/has-flag@3.0.0"
           ],
           "id": "pkg:npm/supports-color@5.5.0",
           "licenses": [],
@@ -1909,13 +1909,13 @@
           },
           "name": "supports-color",
           "purl": "pkg:npm/supports-color@5.5.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "5.5.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/has-flag@\u003cnormalized\u003e"
+            "pkg:npm/has-flag@3.0.0"
           ],
           "id": "pkg:npm/supports-color@6.0.0",
           "licenses": [],
@@ -1928,13 +1928,13 @@
           },
           "name": "supports-color",
           "purl": "pkg:npm/supports-color@6.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "6.0.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/is-number@\u003cnormalized\u003e"
+            "pkg:npm/is-number@7.0.0"
           ],
           "id": "pkg:npm/to-regex-range@5.0.1",
           "licenses": [],
@@ -1947,17 +1947,17 @@
           },
           "name": "to-regex-range",
           "purl": "pkg:npm/to-regex-range@5.0.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "5.0.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/handy@\u003cnormalized\u003e",
-            "pkg:npm/htmlparser@\u003cnormalized\u003e",
-            "pkg:npm/js-yaml@\u003cnormalized\u003e",
-            "pkg:npm/optimist@\u003cnormalized\u003e",
-            "pkg:npm/underscore@\u003cnormalized\u003e"
+            "pkg:npm/handy@0.0.13",
+            "pkg:npm/htmlparser@1.7.7",
+            "pkg:npm/js-yaml@3.13.0",
+            "pkg:npm/optimist@0.6.1",
+            "pkg:npm/underscore@1.9.2"
           ],
           "id": "pkg:npm/to@0.2.9",
           "licenses": [],
@@ -1970,7 +1970,7 @@
           },
           "name": "to",
           "purl": "pkg:npm/to@0.2.9",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.2.9",
           "vulnerabilities": []
         },
@@ -1980,7 +1980,7 @@
           "licenses": [],
           "name": "underscore",
           "purl": "pkg:npm/underscore@1.9.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.9.2",
           "vulnerabilities": []
         },
@@ -1997,20 +1997,20 @@
           },
           "name": "universalify",
           "purl": "pkg:npm/universalify@0.1.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.1.2",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/punycode@\u003cnormalized\u003e",
-            "pkg:npm/querystring@\u003cnormalized\u003e"
+            "pkg:npm/punycode@1.3.2",
+            "pkg:npm/querystring@0.2.0"
           ],
           "id": "pkg:npm/url@0.11.0",
           "licenses": [],
           "name": "url",
           "purl": "pkg:npm/url@0.11.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.11.0",
           "vulnerabilities": []
         },
@@ -2020,7 +2020,7 @@
           "licenses": [],
           "name": "uuid",
           "purl": "pkg:npm/uuid@3.4.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.4.0",
           "vulnerabilities": []
         },
@@ -2030,31 +2030,31 @@
           "licenses": [],
           "name": "which-module",
           "purl": "pkg:npm/which-module@2.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "2.0.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/isexe@\u003cnormalized\u003e"
+            "pkg:npm/isexe@2.0.0"
           ],
           "id": "pkg:npm/which@1.3.1",
           "licenses": [],
           "name": "which",
           "purl": "pkg:npm/which@1.3.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.3.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/string-width@\u003cnormalized\u003e"
+            "pkg:npm/string-width@3.1.0"
           ],
           "id": "pkg:npm/wide-align@1.1.3",
           "licenses": [],
           "name": "wide-align",
           "purl": "pkg:npm/wide-align@1.1.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.1.3",
           "vulnerabilities": []
         },
@@ -2071,15 +2071,15 @@
           },
           "name": "wordwrap",
           "purl": "pkg:npm/wordwrap@0.0.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.0.3",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/ansi-styles@\u003cnormalized\u003e",
-            "pkg:npm/string-width@\u003cnormalized\u003e",
-            "pkg:npm/strip-ansi@\u003cnormalized\u003e"
+            "pkg:npm/ansi-styles@3.2.1",
+            "pkg:npm/string-width@3.1.0",
+            "pkg:npm/strip-ansi@5.2.0"
           ],
           "id": "pkg:npm/wrap-ansi@5.1.0",
           "licenses": [],
@@ -2092,7 +2092,7 @@
           },
           "name": "wrap-ansi",
           "purl": "pkg:npm/wrap-ansi@5.1.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "5.1.0",
           "vulnerabilities": []
         },
@@ -2102,7 +2102,7 @@
           "licenses": [],
           "name": "wrappy",
           "purl": "pkg:npm/wrappy@1.0.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.0.2",
           "vulnerabilities": []
         },
@@ -2112,28 +2112,28 @@
           "licenses": [],
           "name": "y18n",
           "purl": "pkg:npm/y18n@4.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "4.0.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/camelcase@\u003cnormalized\u003e",
-            "pkg:npm/decamelize@\u003cnormalized\u003e"
+            "pkg:npm/camelcase@5.3.1",
+            "pkg:npm/decamelize@1.2.0"
           ],
           "id": "pkg:npm/yargs-parser@13.1.2",
           "licenses": [],
           "name": "yargs-parser",
           "purl": "pkg:npm/yargs-parser@13.1.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "13.1.2",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/flat@\u003cnormalized\u003e",
-            "pkg:npm/lodash@\u003cnormalized\u003e",
-            "pkg:npm/yargs@\u003cnormalized\u003e"
+            "pkg:npm/flat@4.1.0",
+            "pkg:npm/lodash@4.17.15",
+            "pkg:npm/yargs@13.3.2"
           ],
           "id": "pkg:npm/yargs-unparser@1.6.0",
           "licenses": [],
@@ -2146,28 +2146,28 @@
           },
           "name": "yargs-unparser",
           "purl": "pkg:npm/yargs-unparser@1.6.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.6.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/cliui@\u003cnormalized\u003e",
-            "pkg:npm/find-up@\u003cnormalized\u003e",
-            "pkg:npm/get-caller-file@\u003cnormalized\u003e",
-            "pkg:npm/require-directory@\u003cnormalized\u003e",
-            "pkg:npm/require-main-filename@\u003cnormalized\u003e",
-            "pkg:npm/set-blocking@\u003cnormalized\u003e",
-            "pkg:npm/string-width@\u003cnormalized\u003e",
-            "pkg:npm/which-module@\u003cnormalized\u003e",
-            "pkg:npm/y18n@\u003cnormalized\u003e",
-            "pkg:npm/yargs-parser@\u003cnormalized\u003e"
+            "pkg:npm/cliui@5.0.0",
+            "pkg:npm/find-up@3.0.0",
+            "pkg:npm/get-caller-file@2.0.5",
+            "pkg:npm/require-directory@2.1.1",
+            "pkg:npm/require-main-filename@2.0.0",
+            "pkg:npm/set-blocking@2.0.0",
+            "pkg:npm/string-width@3.1.0",
+            "pkg:npm/which-module@2.0.0",
+            "pkg:npm/y18n@4.0.0",
+            "pkg:npm/yargs-parser@13.1.2"
           ],
           "id": "pkg:npm/yargs@13.3.2",
           "licenses": [],
           "name": "yargs",
           "purl": "pkg:npm/yargs@13.3.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "13.3.2",
           "vulnerabilities": []
         }

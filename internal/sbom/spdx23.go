@@ -36,7 +36,7 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 			PackageVersion:            c.Version,
 			PackageDownloadLocation:   "NOASSERTION",
 			FilesAnalyzed:             false,
-			PackageComment:            spdxScopeComment(c.Scope),
+			PackageComment:            spdxPackageComment(c),
 			PackageLicenseDeclared:    spdxLicenseValue(c.Licenses),
 			PackageLicenseConcluded:   spdxLicenseValue(c.Licenses),
 			PackageCopyrightText:      spdxCopyrightValue(c.Copyright),
@@ -76,14 +76,16 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 		}
 	}
 
+	creators := make([]common.Creator, 0, len(doc.ToolNamesOrDefault()))
+	for _, tool := range doc.ToolNamesOrDefault() {
+		creators = append(creators, common.Creator{
+			CreatorType: "Tool",
+			Creator:     tool,
+		})
+	}
 	creation := &v23.CreationInfo{
-		Creators: []common.Creator{
-			{
-				CreatorType: "Tool",
-				Creator:     doc.ToolOrDefault(),
-			},
-		},
-		Created: doc.CreatedOrNow().Format("2006-01-02T15:04:05Z"),
+		Creators: creators,
+		Created:  doc.CreatedOrNow().Format("2006-01-02T15:04:05Z"),
 	}
 
 	spdxDoc := &v23.Document{
@@ -116,7 +118,8 @@ func (spdx23Codec) decodeJSON(data []byte) (*Document, error) {
 			ID:             id,
 			Name:           p.PackageName,
 			Version:        p.PackageVersion,
-			Scope:          parseSPDXScopeComment(p.PackageComment),
+			Scope:          parseSPDXCommentField(p.PackageComment, "scope"),
+			Type:           parseSPDXComponentType(p),
 			PURL:           parseSPDXPURL(p.PackageExternalReferences),
 			Ecosystem:      parseSPDXYcosystem(p.PackageExternalReferences),
 			PackageManager: parseSPDXPackageManager(p.PackageExternalReferences),
@@ -145,6 +148,14 @@ func (spdx23Codec) decodeJSON(data []byte) (*Document, error) {
 			}
 		case common.TypeRelationshipDependsOn:
 			depsByRef[a] = append(depsByRef[a], b)
+		case common.TypeRelationshipDependencyOf,
+			common.TypeRelationshipBuildDependencyOf,
+			common.TypeRelationshipDevDependencyOf,
+			common.TypeRelationshipOptionalDependencyOf,
+			common.TypeRelationshipProvidedDependencyOf,
+			common.TypeRelationshipRuntimeDependencyOf,
+			common.TypeRelationshipTestDependencyOf:
+			depsByRef[b] = append(depsByRef[b], a)
 		}
 	}
 
@@ -167,6 +178,7 @@ func (spdx23Codec) decodeJSON(data []byte) (*Document, error) {
 		Name:         spdxDoc.DocumentName,
 		Namespace:    spdxDoc.DocumentNamespace,
 		Tool:         extractSPDXToolName(spdxDoc.CreationInfo),
+		Tools:        extractSPDXToolNames(spdxDoc.CreationInfo),
 		Created:      parseSPDXCreated(spdxDoc.CreationInfo),
 		Components:   components,
 		Dependencies: dependencies,
@@ -201,15 +213,24 @@ func sanitizeSPDXID(raw string) string {
 }
 
 func extractSPDXToolName(ci *v23.CreationInfo) string {
-	if ci == nil {
-		return ""
-	}
-	for _, c := range ci.Creators {
-		if c.CreatorType == "Tool" {
-			return c.Creator
-		}
+	tools := extractSPDXToolNames(ci)
+	if len(tools) > 0 {
+		return tools[0]
 	}
 	return ""
+}
+
+func extractSPDXToolNames(ci *v23.CreationInfo) []string {
+	if ci == nil {
+		return nil
+	}
+	tools := make([]string, 0, len(ci.Creators))
+	for _, c := range ci.Creators {
+		if c.CreatorType == "Tool" {
+			tools = append(tools, c.Creator)
+		}
+	}
+	return tools
 }
 
 func parseSPDXCreated(ci *v23.CreationInfo) time.Time {
@@ -223,19 +244,45 @@ func parseSPDXCreated(ci *v23.CreationInfo) time.Time {
 	return t.UTC()
 }
 
-func spdxScopeComment(scope string) string {
-	if strings.TrimSpace(scope) == "" {
+func spdxPackageComment(component Component) string {
+	fields := make([]string, 0, 2)
+	if scope := strings.TrimSpace(component.Scope); scope != "" {
+		fields = append(fields, "scope="+scope)
+	}
+	if typ := strings.TrimSpace(component.Type); typ != "" && !strings.EqualFold(typ, "package") {
+		fields = append(fields, "type="+typ)
+	}
+	if len(fields) == 0 {
 		return ""
 	}
-	return "bomly:scope=" + strings.TrimSpace(scope)
+	return "bomly:" + strings.Join(fields, ";")
 }
 
-func parseSPDXScopeComment(comment string) string {
-	comment = strings.TrimSpace(comment)
-	if !strings.HasPrefix(comment, "bomly:scope=") {
+func parseSPDXComponentType(p *v23.Package) string {
+	if p == nil {
 		return ""
 	}
-	return strings.TrimSpace(strings.TrimPrefix(comment, "bomly:scope="))
+	if value := parseSPDXCommentField(p.PackageComment, "type"); value != "" {
+		return value
+	}
+	return strings.ToLower(strings.TrimSpace(p.PrimaryPackagePurpose))
+}
+
+func parseSPDXCommentField(comment, field string) string {
+	comment = strings.TrimSpace(comment)
+	if !strings.HasPrefix(comment, "bomly:") {
+		return ""
+	}
+	for _, part := range strings.Split(strings.TrimPrefix(comment, "bomly:"), ";") {
+		key, value, ok := strings.Cut(part, "=")
+		if !ok {
+			continue
+		}
+		if strings.EqualFold(strings.TrimSpace(key), field) {
+			return strings.TrimSpace(value)
+		}
+	}
+	return ""
 }
 
 func spdxLicenseValue(licenses []License) string {

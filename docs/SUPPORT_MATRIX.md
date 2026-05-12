@@ -17,7 +17,7 @@ Primary detector files are the preferred inputs for Bomly-owned resolution. Fall
 | --- | --- | --- | --- | --- |
 | `cpp` | `conan` | `conan.lock`, `conanfile.txt`, `conanfile.py`, `conaninfo.txt` | - | Native detector |
 | `dart` | `pub` | `pubspec.lock`, `pubspec.yaml`, `pubspec.yml` | - | Native detector |
-| `dotnet` | `nuget` | `packages.lock.json`, `packages.config`, `*.csproj`, `*.fsproj`, `*.vbproj`, `*.vcxproj`, `project.assets.json` | - | Native detector |
+| `dotnet` | `nuget` | `packages.lock.json`, `*.deps.json`, `packages.config`, `*.csproj`, `*.fsproj`, `*.vbproj`, `*.vcxproj`, `project.assets.json` | - | Native detector |
 | `elixir` | `mix` | `mix.lock`, `mix.exs` | - | Native detector |
 | `github-actions` | `github-actions` | `.github/workflows/*.yaml`, `.github/workflows/*.yml`, `.github/actions/*/action.yml`, `.github/actions/*/action.yaml` | - | Native detector |
 | `go` | `gomod` | `go.mod` | - | Native Go detector |

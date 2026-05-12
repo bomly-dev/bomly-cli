@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
@@ -24,10 +25,10 @@ type PackageDiffSummary struct {
 // RelationshipSummary describes PURL-normalized dependency edge overlap.
 type RelationshipSummary struct {
 	BomlyRelationshipCount  int `json:"bomly_relationship_count"`
-	GitHubRelationshipCount int `json:"github_relationship_count"`
+	SourceRelationshipCount int `json:"source_relationship_count"`
 	MatchedCount            int `json:"matched_count"`
 	BomlyOnlyCount          int `json:"bomly_only_count"`
-	GitHubOnlyCount         int `json:"github_only_count"`
+	SourceOnlyCount         int `json:"source_only_count"`
 }
 
 // ScopeSummary describes scope metadata availability for one SBOM source.
@@ -39,13 +40,34 @@ type ScopeSummary struct {
 
 // QASummary is the deterministic per-case dependency graph QA summary.
 type QASummary struct {
+	Case      string            `json:"case"`
+	Status    string            `json:"status"`
+	Reason    string            `json:"reason,omitempty"`
+	Sources   []QASourceSummary `json:"sources,omitempty"`
+	Detectors []string          `json:"used_detectors,omitempty"`
+}
+
+// QASourceSummary is the deterministic comparison summary for one baseline source.
+type QASourceSummary struct {
 	Case          string               `json:"case"`
+	Source        string               `json:"source"`
 	Status        string               `json:"status"`
 	Reason        string               `json:"reason,omitempty"`
+	Artifacts     SourceArtifacts      `json:"artifacts,omitempty"`
+	Detectors     []string             `json:"used_detectors,omitempty"`
 	PackageDiff   *PackageDiffSummary  `json:"package_diff,omitempty"`
 	Relationships *RelationshipSummary `json:"relationships,omitempty"`
 	BomlyScope    *ScopeSummary        `json:"bomly_scope,omitempty"`
-	GitHubScope   *ScopeSummary        `json:"github_scope,omitempty"`
+	SourceScope   *ScopeSummary        `json:"source_scope,omitempty"`
+}
+
+// SourceArtifacts records source-specific QA artifact paths relative to a case directory.
+type SourceArtifacts struct {
+	SBOM    string `json:"sbom,omitempty"`
+	Diff    string `json:"diff,omitempty"`
+	DiffLog string `json:"diff_log,omitempty"`
+	Log     string `json:"log,omitempty"`
+	Summary string `json:"summary,omitempty"`
 }
 
 // WriteStatusSummary writes a skipped or failed summary without requiring SBOM inputs.
@@ -54,35 +76,66 @@ func WriteStatusSummary(path, caseName, status, reason string) error {
 	return writeJSON(path, summary)
 }
 
-// BuildQASummary derives deterministic package, relationship, and scope counts.
-func BuildQASummary(caseName, bomlySBOMPath, githubSBOMPath, diffPath string) (QASummary, error) {
+// WriteSourceStatusSummary writes a skipped or failed source summary.
+func WriteSourceStatusSummary(path, caseName, sourceName, status, reason string, artifacts SourceArtifacts, detectors []string) error {
+	summary := QASourceSummary{Case: caseName, Source: sourceName, Status: status, Reason: reason, Artifacts: artifacts, Detectors: detectors}
+	return writeJSON(path, summary)
+}
+
+// BuildQASummary aggregates source summaries for one case.
+func BuildQASummary(caseName string, sourceSummaries []QASourceSummary, detectors []string) QASummary {
+	status := "completed"
+	for _, sourceSummary := range sourceSummaries {
+		if sourceSummary.Status == "failed" {
+			status = "failed"
+			break
+		}
+	}
+	return QASummary{
+		Case:      caseName,
+		Status:    status,
+		Sources:   sourceSummaries,
+		Detectors: detectors,
+	}
+}
+
+// BuildQASourceSummary derives deterministic package, relationship, and scope counts.
+func BuildQASourceSummary(caseName, sourceName, bomlySBOMPath, sourceSBOMPath, diffPath string, artifacts SourceArtifacts) (QASourceSummary, error) {
 	diffSummary, err := loadPackageDiffSummary(diffPath)
 	if err != nil {
-		return QASummary{}, err
+		return QASourceSummary{}, err
 	}
 	bomlyDoc, err := loadSBOMDocument(bomlySBOMPath)
 	if err != nil {
-		return QASummary{}, fmt.Errorf("load bomly sbom: %w", err)
+		return QASourceSummary{}, fmt.Errorf("load bomly sbom: %w", err)
 	}
-	githubDoc, err := loadSBOMDocument(githubSBOMPath)
+	sourceDoc, err := loadSBOMDocument(sourceSBOMPath)
 	if err != nil {
-		return QASummary{}, fmt.Errorf("load github sbom: %w", err)
+		return QASourceSummary{}, fmt.Errorf("load %s sbom: %w", sourceName, err)
 	}
-	relationshipSummary := compareRelationships(bomlyDoc, githubDoc)
+	relationshipSummary := compareRelationships(bomlyDoc, sourceDoc)
 	bomlyScope := summarizeScopes(bomlyDoc)
-	githubScope := summarizeScopes(githubDoc)
-	return QASummary{
+	sourceScope := summarizeScopes(sourceDoc)
+	return QASourceSummary{
 		Case:          caseName,
+		Source:        sourceName,
 		Status:        "completed",
+		Artifacts:     artifacts,
+		Detectors:     detectorCreators(bomlyDoc),
 		PackageDiff:   &diffSummary,
 		Relationships: &relationshipSummary,
 		BomlyScope:    &bomlyScope,
-		GitHubScope:   &githubScope,
+		SourceScope:   &sourceScope,
 	}, nil
 }
 
 // WriteQASummary writes a completed per-case summary to path.
 func WriteQASummary(path string, summary QASummary) error {
+	return writeJSON(path, summary)
+}
+
+// WriteQASourceSummary writes a completed per-source summary to path.
+func WriteQASourceSummary(path string, summary QASourceSummary) error {
 	return writeJSON(path, summary)
 }
 
@@ -137,12 +190,19 @@ func loadSBOMDocument(path string) (*sbom.Document, error) {
 	return doc, nil
 }
 
+func detectorsFromSBOM(path string) ([]string, error) {
+	doc, err := loadSBOMDocument(path)
+	if err != nil {
+		return nil, err
+	}
+	return detectorCreators(doc), nil
+}
 func compareRelationships(bomlyDoc, githubDoc *sbom.Document) RelationshipSummary {
 	bomlyEdges := purlDependencyEdges(bomlyDoc)
 	githubEdges := purlDependencyEdges(githubDoc)
 	summary := RelationshipSummary{
 		BomlyRelationshipCount:  len(bomlyEdges),
-		GitHubRelationshipCount: len(githubEdges),
+		SourceRelationshipCount: len(githubEdges),
 	}
 	for edge := range bomlyEdges {
 		if _, ok := githubEdges[edge]; ok {
@@ -153,12 +213,26 @@ func compareRelationships(bomlyDoc, githubDoc *sbom.Document) RelationshipSummar
 	}
 	for edge := range githubEdges {
 		if _, ok := bomlyEdges[edge]; !ok {
-			summary.GitHubOnlyCount++
+			summary.SourceOnlyCount++
 		}
 	}
 	return summary
 }
 
+func detectorCreators(doc *sbom.Document) []string {
+	if doc == nil {
+		return nil
+	}
+	out := make([]string, 0)
+	for _, tool := range doc.Tools {
+		name := strings.TrimPrefix(tool, "bomly-detector:")
+		if name == tool {
+			continue
+		}
+		out = append(out, name)
+	}
+	return out
+}
 func purlDependencyEdges(doc *sbom.Document) map[string]struct{} {
 	edges := make(map[string]struct{})
 	if doc == nil {
@@ -214,6 +288,9 @@ func writeJSON(path string, value any) error {
 		return fmt.Errorf("marshal json: %w", err)
 	}
 	raw = append(raw, '\n')
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return fmt.Errorf("create parent dir for %s: %w", path, err)
+	}
 	if err := os.WriteFile(path, raw, 0o644); err != nil {
 		return fmt.Errorf("write %s: %w", path, err)
 	}

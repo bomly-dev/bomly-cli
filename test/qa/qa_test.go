@@ -19,6 +19,7 @@ var (
 	qaRunDir   = flag.String("run-dir", "", "QA artifact output directory")
 	qaBomly    = flag.String("bomly", "", "bomly binary path")
 	qaCase     = flag.String("case", "", "comma-separated QA case names to run; omitted runs all QA cases")
+	qaSource   = flag.String("source", "", "comma-separated QA baseline sources to run; omitted runs all sources")
 )
 
 func TestDependencyGraphQA(t *testing.T) {
@@ -37,10 +38,11 @@ func TestDependencyGraphQA(t *testing.T) {
 	}
 
 	err := qa.Run(context.Background(), qa.RunOptions{
-		ManifestPath:  manifest,
-		RunDir:        runDir,
-		BomlyPath:     bomlyPath,
-		SelectedCases: qa.ParseCaseNames(*qaCase),
+		ManifestPath:    manifest,
+		RunDir:          runDir,
+		BomlyPath:       bomlyPath,
+		SelectedCases:   qa.ParseCaseNames(*qaCase),
+		SelectedSources: qa.ParseSourceNames(envOrDefault("BOMLY_QA_SOURCES", *qaSource)),
 	})
 	if err != nil {
 		t.Fatal(err)

@@ -117,6 +117,118 @@ func TestDetectPackageManagers_FindsPythonManagers(t *testing.T) {
 	}
 }
 
+func TestDetectPackageManagers_UsesPyprojectToolTables(t *testing.T) {
+	tests := []struct {
+		name    string
+		content string
+		want    sdk.PackageManager
+		block   sdk.PackageManager
+	}{
+		{
+			name:    "uv",
+			content: "[project]\nname = \"demo\"\n\n[tool.uv]\ndev-dependencies = []\n",
+			want:    sdk.PackageManagerUV,
+			block:   sdk.PackageManagerPoetry,
+		},
+		{
+			name:    "poetry",
+			content: "[tool.poetry]\nname = \"demo\"\nversion = \"1.0.0\"\n",
+			want:    sdk.PackageManagerPoetry,
+			block:   sdk.PackageManagerUV,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			projectDir := t.TempDir()
+			if err := os.WriteFile(filepath.Join(projectDir, "pyproject.toml"), []byte(tc.content), 0o644); err != nil {
+				t.Fatalf("write pyproject.toml: %v", err)
+			}
+
+			managers, err := registry.DetectPackageManagers(projectDir)
+			if err != nil {
+				t.Fatalf("DetectPackageManagers() error = %v", err)
+			}
+			if !containsManager(managers, tc.want) {
+				t.Fatalf("expected package manager %q in %#v", tc.want, managers)
+			}
+			if containsManager(managers, tc.block) {
+				t.Fatalf("did not expect package manager %q in %#v", tc.block, managers)
+			}
+		})
+	}
+}
+
+func TestDetectPackageManagers_PrefersSpecificEvidence(t *testing.T) {
+	tests := []struct {
+		name   string
+		files  map[string]string
+		want   sdk.PackageManager
+		reject []sdk.PackageManager
+	}{
+		{
+			name: "uv lock beats pyproject",
+			files: map[string]string{
+				"pyproject.toml": "[project]\nname = \"demo\"\n",
+				"uv.lock":        "version = 1\n",
+			},
+			want:   sdk.PackageManagerUV,
+			reject: []sdk.PackageManager{sdk.PackageManagerPoetry},
+		},
+		{
+			name: "poetry lock beats pyproject",
+			files: map[string]string{
+				"pyproject.toml": "[project]\nname = \"demo\"\n",
+				"poetry.lock":    "# lock\n",
+			},
+			want:   sdk.PackageManagerPoetry,
+			reject: []sdk.PackageManager{sdk.PackageManagerUV},
+		},
+		{
+			name: "pnpm lock beats package json",
+			files: map[string]string{
+				"package.json":   "{}\n",
+				"pnpm-lock.yaml": "lockfileVersion: '9.0'\n",
+			},
+			want:   sdk.PackageManagerPNPM,
+			reject: []sdk.PackageManager{sdk.PackageManagerNPM, sdk.PackageManagerYarn},
+		},
+		{
+			name: "yarn lock beats package json",
+			files: map[string]string{
+				"package.json": "{}\n",
+				"yarn.lock":    "# yarn lock\n",
+			},
+			want:   sdk.PackageManagerYarn,
+			reject: []sdk.PackageManager{sdk.PackageManagerNPM, sdk.PackageManagerPNPM},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			projectDir := t.TempDir()
+			for name, content := range tc.files {
+				if err := os.WriteFile(filepath.Join(projectDir, name), []byte(content), 0o644); err != nil {
+					t.Fatalf("write %s: %v", name, err)
+				}
+			}
+
+			managers, err := registry.DetectPackageManagers(projectDir)
+			if err != nil {
+				t.Fatalf("DetectPackageManagers() error = %v", err)
+			}
+			if !containsManager(managers, tc.want) {
+				t.Fatalf("expected package manager %q in %#v", tc.want, managers)
+			}
+			for _, reject := range tc.reject {
+				if containsManager(managers, reject) {
+					t.Fatalf("did not expect package manager %q in %#v", reject, managers)
+				}
+			}
+		})
+	}
+}
+
 func TestDetectPackageManagers_FindsSyftManagers(t *testing.T) {
 	projectDir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(projectDir, "Cargo.lock"), []byte("version = 3\n"), 0o644); err != nil {

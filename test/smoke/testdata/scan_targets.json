@@ -30,6 +30,9 @@
     "name": "scan-python-pip",
     "url": "https://github.com/bomly-dev/example-python-pip",
     "ref": "v1.0.0",
+    "args": [
+      "--install-first"
+    ],
     "tools": [
       "pip"
     ],
@@ -155,8 +158,11 @@
     "name": "scan-python-pipenv",
     "url": "https://github.com/bomly-dev/example-python-pipenv",
     "ref": "v1.0.0",
+    "args": [
+      "--install-first"
+    ],
     "tools": [
-      "pip"
+      "pipenv"
     ],
     "qa_enabled": true
   },
@@ -164,8 +170,11 @@
     "name": "scan-python-poetry",
     "url": "https://github.com/bomly-dev/example-python-poetry",
     "ref": "v1.0.0",
+    "args": [
+      "--install-first"
+    ],
     "tools": [
-      "pip"
+      "poetry"
     ],
     "qa_enabled": true
   },
@@ -173,6 +182,9 @@
     "name": "scan-python-uv",
     "url": "https://github.com/bomly-dev/example-python-uv",
     "ref": "v1.0.0",
+    "args": [
+      "--install-first"
+    ],
     "tools": [
       "uv"
     ],

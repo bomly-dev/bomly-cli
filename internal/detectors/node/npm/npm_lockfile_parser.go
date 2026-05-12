@@ -118,7 +118,7 @@ func depGraphFromNPMLockfile(projectPath string) (*sdk.Graph, error) {
 	if rootName == "" {
 		rootName = "root"
 	}
-	rootNode := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemNPM), Name: rootName, Version: lockfile.Version})
+	rootNode := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemNPM), Name: rootName, Version: lockfile.Version, Type: "application"})
 	if err := depsGraph.AddPackage(rootNode); err != nil {
 		return nil, fmt.Errorf("add npm root node: %w", err)
 	}

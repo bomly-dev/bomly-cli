@@ -2,6 +2,15 @@ name: Dependency Graph QA
 
 on:
   workflow_dispatch:
+    inputs:
+      cases:
+        description: "Optional comma-separated QA case names"
+        required: false
+        default: ""
+      sources:
+        description: "Optional comma-separated QA sources: github, syft, syft-cyclonedx"
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -59,11 +68,22 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y maven
+          python -m pip install --upgrade pip pipenv poetry
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sudo sh -s -- -b /usr/local/bin
+          syft version
 
       - name: Run dependency graph QA
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: make qa
+        run: |
+          args=()
+          if [ -n "${{ inputs.cases }}" ]; then
+            args+=("--case=${{ inputs.cases }}")
+          fi
+          if [ -n "${{ inputs.sources }}" ]; then
+            args+=("--source=${{ inputs.sources }}")
+          fi
+          make qa ARGS="${args[*]}"
 
       - name: Require Copilot agent token
         if: always() && env.HAS_COPILOT_AGENT_TOKEN != 'true'
@@ -81,7 +101,7 @@ jobs:
         env:
           COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_AGENT_TOKEN }}
         run: |
-          if ! compgen -G ".qa-runs/latest/cases/*/qa-summary.json" > /dev/null; then
+          if ! compgen -G ".qa-runs/latest/cases/*/sources/*/qa-summary.json" > /dev/null; then
             echo "No QA summaries found under .qa-runs/latest/cases."
             exit 1
           fi

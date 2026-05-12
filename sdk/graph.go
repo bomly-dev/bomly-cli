@@ -442,13 +442,33 @@ func indexDiffablePackages(g *Graph) map[string]*Package {
 		return indexed
 	}
 	g.WalkPackages(func(pkg *Package) bool {
-		if pkg == nil || strings.HasPrefix(pkg.ID, "subproject:") || strings.HasPrefix(pkg.ID, "manifest:") {
+		if pkg == nil || !PackageIsDiffable(pkg) {
 			return true
 		}
 		indexed[pkg.ID] = pkg
 		return true
 	})
 	return indexed
+}
+
+// PackageIsDiffable reports whether pkg should participate in package-level diffs.
+func PackageIsDiffable(pkg *Package) bool {
+	if pkg == nil || strings.HasPrefix(pkg.ID, "subproject:") || strings.HasPrefix(pkg.ID, "manifest:") {
+		return false
+	}
+	switch strings.ToLower(strings.TrimSpace(pkg.Type)) {
+	case "manifest", "application":
+		return false
+	}
+	name := strings.ToLower(strings.TrimSpace(pkg.Name))
+	switch name {
+	case "root", "package-lock.json", "yarn.lock", "pubspec.lock", "poetry.lock", "pipfile.lock", "mix.lock", "conan.lock", "requirements.txt", "requirements-dev.txt", "requirements.in", "requirements.lock":
+		return false
+	}
+	if strings.HasSuffix(name, ".sbom.json") || strings.HasSuffix(name, ".spdx.json") || strings.HasSuffix(name, ".cdx.json") {
+		return false
+	}
+	return true
 }
 
 func groupPackagesByIdentity(packages map[string]*Package) map[string][]*Package {

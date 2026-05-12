@@ -110,6 +110,31 @@ func TestBuildPackageURLFallbackForSwift(t *testing.T) {
 	}
 }
 
+func TestCanonicalizePackageURLNormalizesNPMScopes(t *testing.T) {
+	tests := map[string]string{
+		"pkg:npm/google-cloud/common@0.12.0":    "pkg:npm/%40google-cloud/common@0.12.0",
+		"pkg:npm/%40google-cloud/common@0.12.0": "pkg:npm/%40google-cloud/common@0.12.0",
+	}
+	for input, want := range tests {
+		if got := CanonicalizePackageURL(input); got != want {
+			t.Fatalf("CanonicalizePackageURL(%q) = %q, want %q", input, got, want)
+		}
+	}
+}
+
+func TestBuildPackageURLNormalizesNPMScopes(t *testing.T) {
+	got := BuildPackageURL("npm", "google-cloud", "common", "0.12.0")
+	if got != "pkg:npm/%40google-cloud/common@0.12.0" {
+		t.Fatalf("expected scoped npm package URL, got %q", got)
+	}
+}
+
+func TestPackageURLTypeForGitHubActions(t *testing.T) {
+	if got := PackageURLTypeForValues("github-actions"); got != "githubactions" {
+		t.Fatalf("expected GitHub Actions PURL type, got %q", got)
+	}
+}
+
 func TestAllPackageManagersReturnsCopy(t *testing.T) {
 	managers := AllPackageManagers()
 	if len(managers) == 0 {

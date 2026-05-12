@@ -1369,7 +1369,7 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:nuget/runtime.fedora.23-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "id": "pkg:nuget/recurly-api-client@1.8.0",
           "licenses": [],
           "name": "recurly-api-client",
           "purl": "pkg:nuget/recurly-api-client@1.8.0",

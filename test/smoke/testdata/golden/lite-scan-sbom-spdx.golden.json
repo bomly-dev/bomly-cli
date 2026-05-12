@@ -9,8 +9,8 @@
       "packages": [
         {
           "dependencies": [
-            "pkg:golang/github.com/google/uuid@\u003cnormalized\u003e",
-            "pkg:golang/github.com/pkg/errors@\u003cnormalized\u003e"
+            "pkg:golang/github.com/google/uuid@1.6.0",
+            "pkg:golang/github.com/pkg/errors@0.9.1"
           ],
           "id": "pkg:golang/example.com/app@1.0.0",
           "licenses": [],

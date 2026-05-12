@@ -71,7 +71,6 @@
           "licenses": [],
           "name": "root",
           "purl": "pkg:composer/root",
-          "scope": "\u003cnormalized\u003e",
           "vulnerabilities": []
         }
       ],

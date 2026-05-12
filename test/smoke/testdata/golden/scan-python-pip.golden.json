@@ -26,9 +26,7 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [
-            "pkg:pypi/pytz@2024.1"
-          ],
+          "dependencies": [],
           "id": "pkg:pypi/django@1.11.29",
           "licenses": [],
           "name": "django",
@@ -37,9 +35,7 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [
-            "pkg:pypi/sgmllib3k@1.0.0"
-          ],
+          "dependencies": [],
           "id": "pkg:pypi/feedparser@6.0.8",
           "licenses": [],
           "name": "feedparser",
@@ -84,12 +80,7 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [
-            "pkg:pypi/certifi@2024.8.30",
-            "pkg:pypi/chardet@3.0.4",
-            "pkg:pypi/idna@2.8",
-            "pkg:pypi/urllib3@1.24.3"
-          ],
+          "dependencies": [],
           "id": "pkg:pypi/requests@2.21.0",
           "licenses": [],
           "name": "requests",
@@ -98,31 +89,7 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [
-            "pkg:pypi/certifi@2024.8.30",
-            "pkg:pypi/chardet@3.0.4",
-            "pkg:pypi/django@1.11.29",
-            "pkg:pypi/feedparser@6.0.8",
-            "pkg:pypi/idna@2.8",
-            "pkg:pypi/pyasn1@0.6.0",
-            "pkg:pypi/pyjwt@0.4.2",
-            "pkg:pypi/pytz@2024.1",
-            "pkg:pypi/requests@2.21.0",
-            "pkg:pypi/rsa@3.4",
-            "pkg:pypi/sgmllib3k@1.0.0",
-            "pkg:pypi/urllib3@1.24.3"
-          ],
-          "id": "pkg:pypi/root",
-          "licenses": [],
-          "name": "urllib3",
-          "purl": "pkg:pypi/urllib3@1.24.3",
-          "version": "1.24.3",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:pypi/pyasn1@0.6.0"
-          ],
+          "dependencies": [],
           "id": "pkg:pypi/rsa@3.4",
           "licenses": [],
           "name": "rsa",
@@ -140,10 +107,7 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [
-            "pkg:pypi/certifi@2024.8.30",
-            "pkg:pypi/idna@2.8"
-          ],
+          "dependencies": [],
           "id": "pkg:pypi/urllib3@1.24.3",
           "licenses": [],
           "name": "urllib3",

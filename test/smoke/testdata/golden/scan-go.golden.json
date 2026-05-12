@@ -213,7 +213,6 @@
           "licenses": [],
           "name": "github.com/srcclr/example-go-modules",
           "purl": "pkg:golang/github.com/srcclr/example-go-modules",
-          "scope": "\u003cnormalized\u003e",
           "vulnerabilities": []
         },
         {

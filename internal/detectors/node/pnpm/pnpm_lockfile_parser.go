@@ -69,7 +69,7 @@ func depGraphFromPNPMLockfile(projectPath string) (*sdk.Graph, error) {
 	if rootName == "" {
 		rootName = "root"
 	}
-	rootNode := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemNPM), Name: rootName, Version: manifest.Version})
+	rootNode := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemNPM), Name: rootName, Version: manifest.Version, Type: "application"})
 	depsGraph := sdk.New()
 	if err := depsGraph.AddPackage(rootNode); err != nil {
 		return nil, fmt.Errorf("add pnpm root node: %w", err)

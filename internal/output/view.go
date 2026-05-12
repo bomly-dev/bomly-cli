@@ -324,6 +324,9 @@ func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.Consolid
 			summary.RemovedPackageCount += len(result.Removed)
 		case hasBase && hasHead:
 			manifestDiff := sdk.Compare(baseManifest.Graph, headManifest.Graph)
+			if isSBOMDiffManifest(baseManifest, headManifest) {
+				filterSBOMPseudoPackageDiff(&manifestDiff, baseManifest.Graph, headManifest.Graph)
+			}
 			reconcileDiffWithFuzzyMatches(&manifestDiff)
 			result := DiffManifestResult{
 				Status:         "unchanged",
@@ -525,6 +528,63 @@ func sbomManifestPathLooksDerived(manifest sdk.ConsolidatedManifest, candidate s
 
 func isSBOMManifest(subproject sdk.Subproject) bool {
 	return subproject.PrimaryPackageManager() == sdk.PackageManagerSBOM || subproject.Ecosystem == sdk.EcosystemSBOM
+}
+
+func isSBOMDiffManifest(base, head diffManifestSnapshot) bool {
+	return base.Manifest.PackageManager == sdk.PackageManagerSBOM.Name() || head.Manifest.PackageManager == sdk.PackageManagerSBOM.Name()
+}
+
+func filterSBOMPseudoPackageDiff(diff *sdk.Diff, baseGraph, headGraph *sdk.Graph) {
+	if diff == nil {
+		return
+	}
+	diff.Added = filterSBOMPseudoPackages(diff.Added, headGraph)
+	diff.Removed = filterSBOMPseudoPackages(diff.Removed, baseGraph)
+}
+
+func filterSBOMPseudoPackages(packages []*sdk.Package, graph *sdk.Graph) []*sdk.Package {
+	if len(packages) == 0 {
+		return packages
+	}
+	rootIDs := graphRootIDs(graph)
+	filtered := make([]*sdk.Package, 0, len(packages))
+	for _, pkg := range packages {
+		if isSBOMPseudoPackage(pkg, rootIDs) {
+			continue
+		}
+		filtered = append(filtered, pkg)
+	}
+	return filtered
+}
+
+func graphRootIDs(graph *sdk.Graph) map[string]struct{} {
+	roots := map[string]struct{}{}
+	if graph == nil {
+		return roots
+	}
+	for _, root := range graph.Roots() {
+		if root == nil {
+			continue
+		}
+		roots[root.ID] = struct{}{}
+	}
+	return roots
+}
+
+func isSBOMPseudoPackage(pkg *sdk.Package, rootIDs map[string]struct{}) bool {
+	if pkg == nil {
+		return false
+	}
+	if !sdk.PackageIsDiffable(pkg) {
+		return true
+	}
+	if _, ok := rootIDs[pkg.ID]; !ok {
+		return false
+	}
+	if purl := sdk.ParsePackageURL(pkg.PURL); purl != nil && strings.EqualFold(purl.Type, "github") {
+		return true
+	}
+	return false
 }
 
 func diffPackageChangesFromPackages(packages []*sdk.Package) []DiffPackageChange {

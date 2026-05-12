@@ -23,11 +23,14 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if graph == nil {
 		t.Fatal("expected graph")
 	}
-	pkg, ok := graph.Package("swift-argument-parser@1.3.0")
+	pkg, ok := graph.Package("github.com/apple:swift-argument-parser@1.3.0")
 	if !ok {
 		t.Fatalf("expected swift-argument-parser package, got %v", graph.Packages())
 	}
-	if pkg.PURL != "pkg:swift/swift-argument-parser@1.3.0" {
+	if pkg.Org != "github.com/apple" {
+		t.Fatalf("expected SwiftPM namespace, got %q", pkg.Org)
+	}
+	if pkg.PURL != "pkg:swift/github.com/apple/swift-argument-parser@1.3.0" {
 		t.Fatalf("expected SwiftPM PURL, got %q", pkg.PURL)
 	}
 	deps, err := graph.Dependencies("root")

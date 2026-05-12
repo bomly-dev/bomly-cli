@@ -1,6 +1,12 @@
 package python
 
-import "testing"
+import (
+	"os"
+	"path/filepath"
+	"testing"
+
+	"github.com/bomly-dev/bomly-cli/sdk"
+)
 
 func TestDepGraphFromPipInspect(t *testing.T) {
 	raw := []byte(`{
@@ -41,5 +47,94 @@ func TestDepGraphFromPipInspect(t *testing.T) {
 	}
 	if g.Size() != 4 {
 		t.Fatalf("expected 4 packages, got %d", g.Size())
+	}
+}
+
+func TestDepGraphFromPipfileLock(t *testing.T) {
+	path := t.TempDir() + "/Pipfile.lock"
+	raw := []byte(`{
+  "default": {
+    "requests": {"version": "==2.2.1"},
+    "Django": {"version": "==1.7.1"}
+  },
+  "develop": {
+    "pytest": {"version": "==9.0.3"}
+  }
+}`)
+	if err := os.WriteFile(path, raw, 0o644); err != nil {
+		t.Fatalf("write Pipfile.lock: %v", err)
+	}
+
+	g, err := depGraphFromPipfileLock(path)
+	if err != nil {
+		t.Fatalf("depGraphFromPipfileLock() error = %v", err)
+	}
+	if g.Size() != 4 {
+		t.Fatalf("expected root plus 3 packages, got %d", g.Size())
+	}
+	if _, ok := g.Package("requests@2.2.1"); !ok {
+		t.Fatalf("expected requests package, got %s", g.PrettyString())
+	}
+}
+
+func TestFilterPythonToolPackagesRemovesUndeclaredTools(t *testing.T) {
+	g := sdk.New()
+	root := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemPython), Name: "root"})
+	requests := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemPython), Name: "requests", Version: "2.32.0"})
+	pip := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemPython), Name: "pip", Version: "25.0"})
+	for _, pkg := range []*sdk.Package{root, requests, pip} {
+		if err := g.AddPackage(pkg); err != nil {
+			t.Fatalf("add package %q: %v", pkg.ID, err)
+		}
+	}
+	if err := g.AddDependency(root.ID, requests.ID); err != nil {
+		t.Fatalf("add requests dependency: %v", err)
+	}
+	if err := g.AddDependency(root.ID, pip.ID); err != nil {
+		t.Fatalf("add pip dependency: %v", err)
+	}
+
+	filtered, err := filterPythonToolPackages(g, t.TempDir())
+	if err != nil {
+		t.Fatalf("filterPythonToolPackages() error = %v", err)
+	}
+	if _, ok := filtered.Package("pip@25.0"); ok {
+		t.Fatalf("expected undeclared pip to be removed: %s", filtered.PrettyString())
+	}
+	if _, ok := filtered.Package("requests@2.32.0"); !ok {
+		t.Fatalf("expected application dependency to remain: %s", filtered.PrettyString())
+	}
+}
+
+func TestFilterPythonToolPackagesKeepsDeclaredTools(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "requirements.txt"), []byte("pip==25.0\nrequests==2.32.0\n"), 0o644); err != nil {
+		t.Fatalf("write requirements: %v", err)
+	}
+	g := sdk.New()
+	root := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemPython), Name: "root"})
+	pip := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemPython), Name: "pip", Version: "25.0"})
+	wheel := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemPython), Name: "wheel", Version: "0.45.0"})
+	for _, pkg := range []*sdk.Package{root, pip, wheel} {
+		if err := g.AddPackage(pkg); err != nil {
+			t.Fatalf("add package %q: %v", pkg.ID, err)
+		}
+	}
+	if err := g.AddDependency(root.ID, pip.ID); err != nil {
+		t.Fatalf("add pip dependency: %v", err)
+	}
+	if err := g.AddDependency(root.ID, wheel.ID); err != nil {
+		t.Fatalf("add wheel dependency: %v", err)
+	}
+
+	filtered, err := filterPythonToolPackages(g, dir)
+	if err != nil {
+		t.Fatalf("filterPythonToolPackages() error = %v", err)
+	}
+	if _, ok := filtered.Package("pip@25.0"); !ok {
+		t.Fatalf("expected declared pip to remain: %s", filtered.PrettyString())
+	}
+	if _, ok := filtered.Package("wheel@0.45.0"); ok {
+		t.Fatalf("expected undeclared wheel to be removed: %s", filtered.PrettyString())
 	}
 }

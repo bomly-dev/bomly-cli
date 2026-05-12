@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -259,17 +260,43 @@ func packageNode(pkg swiftPackage) *sdk.Package {
 	if pkg.Requirement != "" {
 		metadata["requirement"] = pkg.Requirement
 	}
+	namespace, name := packageIdentity(pkg.Repository, pkg.Name)
 	return sdk.NewPackage(sdk.Package{
 		Ecosystem:   string(sdk.EcosystemSwift),
-		Name:        strings.TrimSpace(pkg.Name),
+		Org:         namespace,
+		Name:        name,
 		Version:     strings.TrimSpace(pkg.Version),
 		BuildSystem: sdk.PackageManagerSwiftPM.Name(),
 		Type:        "package",
 		Language:    "swift",
-		PURL:        sdk.BuildPackageURL("swift", "", pkg.Name, pkg.Version),
+		PURL:        sdk.BuildPackageURL("swift", namespace, name, pkg.Version),
 		ResolvedURL: strings.TrimSpace(pkg.Repository),
 		Metadata:    metadata,
 	})
+}
+
+func packageIdentity(repository, fallbackName string) (string, string) {
+	name := strings.TrimSpace(fallbackName)
+	repository = strings.TrimSpace(repository)
+	if repository == "" {
+		return "", name
+	}
+	parsed, err := url.Parse(repository)
+	if err != nil || parsed.Host == "" {
+		return "", name
+	}
+	host := strings.ToLower(strings.TrimSpace(parsed.Host))
+	repoPath := strings.Trim(strings.TrimSuffix(parsed.Path, ".git"), "/")
+	if repoPath == "" {
+		return "", name
+	}
+	parts := strings.Split(repoPath, "/")
+	if len(parts) == 0 {
+		return "", name
+	}
+	name = parts[len(parts)-1]
+	namespaceParts := append([]string{host}, parts[:len(parts)-1]...)
+	return strings.Join(namespaceParts, "/"), name
 }
 
 func packageNameFromURL(value string) string {

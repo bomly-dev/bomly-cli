@@ -20,6 +20,7 @@ type IndexedDetectors struct {
 type packageManagerMatch struct {
 	manager         sdk.PackageManager
 	matchedPatterns []string
+	score           int
 }
 
 // IndexDetectors identifies detectors along with their package managers for a filesystem path.
@@ -72,15 +73,15 @@ func detectPackageManagerMatches(candidatePath string, isDir bool) []packageMana
 			continue
 		}
 		if isDir {
-			matchedPatterns := matchingPatternsInDirectory(candidatePath, patterns)
+			matchedPatterns := matchingPatternsInDirectory(candidatePath, manager, patterns)
 			if len(matchedPatterns) > 0 {
-				matches = append(matches, packageManagerMatch{manager: manager, matchedPatterns: matchedPatterns})
+				matches = append(matches, packageManagerMatch{manager: manager, matchedPatterns: matchedPatterns, score: evidenceScore(matchedPatterns)})
 			}
 			continue
 		}
-		matchedPatterns := matchingPatternsForFile(candidatePath, patterns)
+		matchedPatterns := matchingPatternsForFile(candidatePath, manager, patterns)
 		if len(matchedPatterns) > 0 {
-			matches = append(matches, packageManagerMatch{manager: manager, matchedPatterns: matchedPatterns})
+			matches = append(matches, packageManagerMatch{manager: manager, matchedPatterns: matchedPatterns, score: evidenceScore(matchedPatterns)})
 		}
 	}
 	return matches
@@ -101,11 +102,15 @@ func deduplicateMatches(matches []packageManagerMatch) []packageManagerMatch {
 			if i == j || current.manager.Ecosystem() != other.manager.Ecosystem() {
 				continue
 			}
+			if current.score < other.score {
+				drop = true
+				break
+			}
 			if isStrictSubset(current.matchedPatterns, other.matchedPatterns) {
 				drop = true
 				break
 			}
-			if sameStringSet(current.matchedPatterns, other.matchedPatterns) && current.manager > other.manager {
+			if sameStringSet(current.matchedPatterns, other.matchedPatterns) && current.score == other.score && current.manager > other.manager {
 				drop = true
 				break
 			}
@@ -117,28 +122,32 @@ func deduplicateMatches(matches []packageManagerMatch) []packageManagerMatch {
 	return filtered
 }
 
-func matchingPatternsInDirectory(dir string, patterns []string) []string {
+func matchingPatternsInDirectory(dir string, manager sdk.PackageManager, patterns []string) []string {
 	matched := make([]string, 0, len(patterns))
 	for _, pattern := range patterns {
-		if patternExists(dir, pattern) {
+		if patternMatchesDirectory(dir, manager, pattern) {
 			matched = append(matched, pattern)
 		}
 	}
 	return matched
 }
 
-func matchingPatternsForFile(path string, patterns []string) []string {
+func matchingPatternsForFile(path string, manager sdk.PackageManager, patterns []string) []string {
 	matched := make([]string, 0, len(patterns))
 	slashPath := filepath.ToSlash(path)
 	base := filepath.Base(slashPath)
 	for _, pattern := range patterns {
 		slashPattern := filepath.ToSlash(pattern)
 		if matchedPath, _ := filepath.Match(slashPattern, slashPath); matchedPath {
-			matched = append(matched, pattern)
+			if pyprojectPatternMatches(path, manager, pattern) {
+				matched = append(matched, pattern)
+			}
 			continue
 		}
 		if matchedBase, _ := filepath.Match(slashPattern, base); matchedBase {
-			matched = append(matched, pattern)
+			if pyprojectPatternMatches(path, manager, pattern) {
+				matched = append(matched, pattern)
+			}
 		}
 	}
 	return matched
@@ -155,6 +164,78 @@ func patternExists(dir string, pattern string) bool {
 	}
 	matches, err := filepath.Glob(filepath.Join(dir, filepath.FromSlash(pattern)))
 	return err == nil && len(matches) > 0
+}
+
+func patternMatchesDirectory(dir string, manager sdk.PackageManager, pattern string) bool {
+	if !patternExists(dir, pattern) {
+		return false
+	}
+	if !isPyprojectPattern(pattern) {
+		return true
+	}
+	return pyprojectBelongsToManager(filepath.Join(dir, filepath.FromSlash(pattern)), manager)
+}
+
+func pyprojectPatternMatches(path string, manager sdk.PackageManager, pattern string) bool {
+	if !isPyprojectPattern(pattern) {
+		return true
+	}
+	return pyprojectBelongsToManager(path, manager)
+}
+
+func isPyprojectPattern(pattern string) bool {
+	return filepath.ToSlash(pattern) == "pyproject.toml"
+}
+
+func evidenceScore(patterns []string) int {
+	score := 0
+	for _, pattern := range patterns {
+		if patternSpecificity(pattern) > score {
+			score = patternSpecificity(pattern)
+		}
+	}
+	return score
+}
+
+func patternSpecificity(pattern string) int {
+	switch filepath.ToSlash(pattern) {
+	case "package.json", "pyproject.toml":
+		return 1
+	default:
+		return 2
+	}
+}
+
+func pyprojectBelongsToManager(path string, manager sdk.PackageManager) bool {
+	switch manager {
+	case sdk.PackageManagerPoetry:
+		return pyprojectHasTable(path, "tool.poetry")
+	case sdk.PackageManagerUV:
+		return pyprojectHasTable(path, "tool.uv")
+	default:
+		return true
+	}
+}
+
+func pyprojectHasTable(path string, table string) bool {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return false
+	}
+	for _, line := range strings.Split(string(raw), "\n") {
+		trimmed := strings.TrimSpace(line)
+		if !strings.HasPrefix(trimmed, "[") || !strings.Contains(trimmed, "]") {
+			continue
+		}
+		trimmed = strings.TrimPrefix(trimmed, "[")
+		trimmed = strings.TrimPrefix(trimmed, "[")
+		trimmed = trimmed[:strings.Index(trimmed, "]")]
+		name := strings.TrimSpace(trimmed)
+		if strings.EqualFold(name, table) || strings.HasPrefix(strings.ToLower(name), strings.ToLower(table)+".") {
+			return true
+		}
+	}
+	return false
 }
 
 func uniquePackageManagers(values []sdk.PackageManager) []sdk.PackageManager {

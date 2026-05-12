@@ -2,6 +2,8 @@ package nuget
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
@@ -95,5 +97,139 @@ func TestDepGraphFromPackagesConfig(t *testing.T) {
 	}
 	if pkg.PURL != "pkg:nuget/NUnit@4.2.2" {
 		t.Fatalf("unexpected purl %q", pkg.PURL)
+	}
+}
+
+func TestDepGraphFromProjectFiles(t *testing.T) {
+	projectDir := t.TempDir()
+	projectPath := filepath.Join(projectDir, "example.csproj")
+	raw := []byte(`<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="System.Runtime.Extensions" Version="4.3.0" />
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>13.0.3</Version>
+    </PackageReference>
+  </ItemGroup>
+</Project>`)
+	if err := os.WriteFile(projectPath, raw, 0o644); err != nil {
+		t.Fatalf("write project file: %v", err)
+	}
+
+	g, err := depGraphFromProjectFiles([]string{projectPath})
+	if err != nil {
+		t.Fatalf("depGraphFromProjectFiles() error = %v", err)
+	}
+	for _, want := range []string{"System.Runtime.Extensions@4.3.0", "Newtonsoft.Json@13.0.3"} {
+		pkg, ok := g.Package(want)
+		if !ok {
+			t.Fatalf("expected package %q", want)
+		}
+		if pkg.Scope != string(sdk.ScopeRuntime) {
+			t.Fatalf("expected runtime scope for %q, got %q", want, pkg.Scope)
+		}
+	}
+}
+
+func TestDepGraphFromDepsFiles(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "example.deps.json")
+	raw := []byte(`{
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "demo/1.0.0": {
+        "dependencies": {
+          "System.Runtime.Extensions": "4.3.0",
+          "GSF.Core": "2.1.326-beta"
+        }
+      },
+      "System.Runtime.Extensions/4.3.0": {},
+      "GSF.Core/2.1.326-beta": {
+        "dependencies": {
+          "Antlr": "3.5.0.2",
+          "FSharp.Core": "6.0.7"
+        }
+      },
+      "Antlr/3.5.0.2": {},
+      "FSharp.Core/6.0.7": {}
+    }
+  },
+  "libraries": {
+    "demo/1.0.0": {"type": "project"},
+    "System.Runtime.Extensions/4.3.0": {"type": "package", "sha512": "sha512-runtimehash"},
+    "GSF.Core/2.1.326-beta": {"type": "package"},
+    "Antlr/3.5.0.2": {"type": "package"},
+    "FSharp.Core/6.0.7": {"type": "package"}
+  }
+}`)
+	if err := os.WriteFile(path, raw, 0o644); err != nil {
+		t.Fatalf("write deps file: %v", err)
+	}
+
+	g, err := depGraphFromDepsFiles([]string{path})
+	if err != nil {
+		t.Fatalf("depGraphFromDepsFiles() error = %v", err)
+	}
+	for _, want := range []string{"System.Runtime.Extensions@4.3.0", "GSF.Core@2.1.326-beta", "Antlr@3.5.0.2", "FSharp.Core@6.0.7"} {
+		if _, ok := g.Package(want); !ok {
+			t.Fatalf("expected package %q, got %s", want, g.PrettyString())
+		}
+	}
+	if _, ok := g.Package("demo@1.0.0"); ok {
+		t.Fatalf("project package should not be included: %s", g.PrettyString())
+	}
+	deps, err := g.Dependencies("GSF.Core@2.1.326-beta")
+	if err != nil {
+		t.Fatalf("GSF.Core dependencies: %v", err)
+	}
+	gotDeps := make(map[string]struct{}, len(deps))
+	for _, dep := range deps {
+		gotDeps[dep.ID] = struct{}{}
+	}
+	for _, want := range []string{"Antlr@3.5.0.2", "FSharp.Core@6.0.7"} {
+		if _, ok := gotDeps[want]; !ok {
+			t.Fatalf("expected GSF.Core -> %s, got %#v", want, deps)
+		}
+	}
+	runtime, ok := g.Package("System.Runtime.Extensions@4.3.0")
+	if !ok {
+		t.Fatal("expected System.Runtime.Extensions")
+	}
+	if runtime.Scope != string(sdk.ScopeRuntime) {
+		t.Fatalf("expected runtime scope, got %q", runtime.Scope)
+	}
+}
+
+func TestDetectorApplicableWithOnlyDepsJSON(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "example.deps.json"), []byte(`{"targets":{},"libraries":{}}`), 0o644); err != nil {
+		t.Fatalf("write deps file: %v", err)
+	}
+
+	ok, err := (Detector{}).Applicable(context.Background(), sdk.DetectionRequest{ProjectPath: dir})
+	if err != nil {
+		t.Fatalf("Applicable() error = %v", err)
+	}
+	if !ok {
+		t.Fatal("expected NuGet detector to apply to .deps.json-only project")
+	}
+}
+
+func TestNuGetProjectFilesFindsNestedProjects(t *testing.T) {
+	projectDir := t.TempDir()
+	nested := filepath.Join(projectDir, "src", "app")
+	if err := os.MkdirAll(nested, 0o755); err != nil {
+		t.Fatalf("create nested dir: %v", err)
+	}
+	projectPath := filepath.Join(nested, "app.csproj")
+	if err := os.WriteFile(projectPath, []byte(`<Project />`), 0o644); err != nil {
+		t.Fatalf("write project file: %v", err)
+	}
+
+	files, err := nugetProjectFiles(projectDir)
+	if err != nil {
+		t.Fatalf("nugetProjectFiles() error = %v", err)
+	}
+	if len(files) != 1 || files[0] != projectPath {
+		t.Fatalf("files = %#v, want %q", files, projectPath)
 	}
 }

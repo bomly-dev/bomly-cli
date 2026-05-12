@@ -314,6 +314,78 @@ func TestBuildDiffResponseTreatsSBOMFilesAsSameManifestWhenOnlyEvidencePathDiffe
 	}
 }
 
+func TestBuildDiffResponsePrunesSBOMPseudoRootPackages(t *testing.T) {
+	baseGraph := sdk.New()
+	githubRoot := sdk.NewPackageWithID("pkg:github/bomly-dev/example@main", sdk.Package{
+		Ecosystem:   "github-actions",
+		BuildSystem: "sbom",
+		Name:        "com.github.bomly-dev/example",
+		Version:     "main",
+		PURL:        "pkg:github/bomly-dev/example@main",
+	})
+	shared := sdk.NewPackageWithID("pkg:npm/react@18.2.0", sdk.Package{
+		Ecosystem:   "npm",
+		BuildSystem: "npm",
+		Name:        "react",
+		Version:     "18.2.0",
+		PURL:        "pkg:npm/react@18.2.0",
+	})
+	for _, pkg := range []*sdk.Package{githubRoot, shared} {
+		if err := baseGraph.AddPackage(pkg); err != nil {
+			t.Fatalf("base add package %q: %v", pkg.ID, err)
+		}
+	}
+	if err := baseGraph.AddDependency(githubRoot.ID, shared.ID); err != nil {
+		t.Fatalf("base add dependency: %v", err)
+	}
+
+	headGraph := sdk.New()
+	root := sdk.NewPackageWithID("pkg:generic/root", sdk.Package{Name: "root", PURL: "pkg:generic/root"})
+	lockfile := sdk.NewPackageWithID("pkg:generic/package-lock.json", sdk.Package{Name: "package-lock.json", PURL: "pkg:generic/package-lock.json"})
+	added := sdk.NewPackageWithID("pkg:npm/zod@3.23.0", sdk.Package{
+		Ecosystem:   "npm",
+		BuildSystem: "npm",
+		Name:        "zod",
+		Version:     "3.23.0",
+		PURL:        "pkg:npm/zod@3.23.0",
+	})
+	for _, pkg := range []*sdk.Package{root, lockfile, shared, added} {
+		if err := headGraph.AddPackage(pkg); err != nil {
+			t.Fatalf("head add package %q: %v", pkg.ID, err)
+		}
+	}
+	if err := headGraph.AddDependency(root.ID, shared.ID); err != nil {
+		t.Fatalf("head add root dependency: %v", err)
+	}
+	if err := headGraph.AddDependency(lockfile.ID, added.ID); err != nil {
+		t.Fatalf("head add lockfile dependency: %v", err)
+	}
+
+	baseConsolidated, err := consolidation.ConsolidateGraphs(sbomDiffResults(baseGraph, "/tmp/github.sbom.json", "github.sbom.json"))
+	if err != nil {
+		t.Fatalf("ConsolidateGraphs(base) error = %v", err)
+	}
+	headConsolidated, err := consolidation.ConsolidateGraphs(sbomDiffResults(headGraph, "/tmp/bomly.sbom.json", "bomly.sbom.json"))
+	if err != nil {
+		t.Fatalf("ConsolidateGraphs(head) error = %v", err)
+	}
+
+	response := output.BuildDiffResponse("/tmp/demo", "base", "head", baseConsolidated, headConsolidated, nil, time.Now().Add(-time.Second))
+	if response.Summary.AddedPackageCount != 1 || response.Summary.RemovedPackageCount != 0 {
+		t.Fatalf("expected only real added dependency, got %#v with manifests %#v", response.Summary, response.Results.Manifests)
+	}
+	if len(response.Results.Manifests) != 1 {
+		t.Fatalf("expected one manifest result, got %#v", response.Results.Manifests)
+	}
+	addedPackages := response.Results.Manifests[0].Added
+	if len(addedPackages) != 1 || addedPackages[0].Package.Purl != "pkg:npm/zod@3.23.0" {
+		t.Fatalf("expected zod as the only added package, got %#v", addedPackages)
+	}
+	if len(response.Results.Manifests[0].Removed) != 0 {
+		t.Fatalf("expected pseudo GitHub root to be pruned, got %#v", response.Results.Manifests[0].Removed)
+	}
+}
+
 func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t *testing.T) {
 	projectRoot := "/tmp/demo"
 	nativeGraph := sdk.New()
@@ -434,6 +506,25 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 			t.Fatalf("expected manifest %q to contain react package", manifest.Path)
 		}
 	}
+}
+
+func sbomDiffResults(graph *sdk.Graph, location, manifestPath string) []sdk.DetectionResult {
+	return []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: location},
+			RelativePath:            filepath.Base(location),
+			PrimaryDetector:         "sbom-detector",
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerSBOM},
+			Ecosystem:               sdk.EcosystemSBOM,
+		},
+		DetectorName: "sbom-detector",
+		Origin:       sdk.CoreOrigin,
+		Technique:    sdk.SBOMTechnique,
+		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+			Graph:    graph,
+			Manifest: sdk.ManifestMetadata{Path: manifestPath, Kind: "spdx"},
+		}}},
+	}}
 }
 
 func TestBuildDiffResponseFuzzyReconcilesRenamedPackage(t *testing.T) {

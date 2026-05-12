@@ -53,21 +53,81 @@ func TestBuildQASummaryDerivesRelationshipAndScopeCounts(t *testing.T) {
 }`)
 	writeFile(t, diffPath, `{"summary":{"added_package_count":1,"changed_package_count":2,"removed_package_count":3}}`)
 
-	summary, err := qa.BuildQASummary("scan-npm", bomlyPath, githubPath, diffPath)
+	summary, err := qa.BuildQASourceSummary("scan-npm", "github", bomlyPath, githubPath, diffPath, qa.SourceArtifacts{SBOM: "github.sbom.json", Diff: "github.diff.json", Summary: "github.qa-summary.json"})
 	if err != nil {
-		t.Fatalf("BuildQASummary() error = %v", err)
+		t.Fatalf("BuildQASourceSummary() error = %v", err)
+	}
+	if summary.Source != "github" {
+		t.Fatalf("Source = %q, want github", summary.Source)
 	}
 	if summary.PackageDiff.AddedPackageCount != 1 || summary.PackageDiff.ChangedPackageCount != 2 || summary.PackageDiff.RemovedPackageCount != 3 {
 		t.Fatalf("unexpected package summary: %#v", summary.PackageDiff)
 	}
-	if summary.Relationships.MatchedCount != 1 || summary.Relationships.BomlyOnlyCount != 1 || summary.Relationships.GitHubOnlyCount != 1 {
+	if summary.Relationships.MatchedCount != 1 || summary.Relationships.BomlyOnlyCount != 1 || summary.Relationships.SourceOnlyCount != 1 {
 		t.Fatalf("unexpected relationship summary: %#v", summary.Relationships)
 	}
 	if summary.BomlyScope.KnownScopeCount != 2 || summary.BomlyScope.UnknownScopeCount != 1 || summary.BomlyScope.Scopes["runtime"] != 1 {
 		t.Fatalf("unexpected bomly scope summary: %#v", summary.BomlyScope)
 	}
-	if summary.GitHubScope.KnownScopeCount != 0 || summary.GitHubScope.UnknownScopeCount != 3 {
-		t.Fatalf("unexpected github scope summary: %#v", summary.GitHubScope)
+	if summary.SourceScope.KnownScopeCount != 0 || summary.SourceScope.UnknownScopeCount != 3 {
+		t.Fatalf("unexpected source scope summary: %#v", summary.SourceScope)
+	}
+}
+
+func TestBuildQASourceSummaryExtractsUsedDetectors(t *testing.T) {
+	dir := t.TempDir()
+	bomlyPath := filepath.Join(dir, "bomly.sbom.json")
+	sourcePath := filepath.Join(dir, "source.sbom.json")
+	diffPath := filepath.Join(dir, "diff.json")
+	writeFile(t, bomlyPath, `{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "bomly",
+  "documentNamespace": "https://example.com/bomly",
+  "creationInfo": {"created": "2025-01-01T00:00:00Z", "creators": ["Tool: bomly-cli", "Tool: bomly-detector:npm-detector"]},
+  "packages": []
+}`)
+	writeFile(t, sourcePath, `{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "source",
+  "documentNamespace": "https://example.com/source",
+  "creationInfo": {"created": "2025-01-01T00:00:00Z", "creators": ["Tool: source"]},
+  "packages": []
+}`)
+	writeFile(t, diffPath, `{"summary":{}}`)
+
+	summary, err := qa.BuildQASourceSummary("scan-npm", "syft", bomlyPath, sourcePath, diffPath, qa.SourceArtifacts{})
+	if err != nil {
+		t.Fatalf("BuildQASourceSummary() error = %v", err)
+	}
+	if len(summary.Detectors) != 1 || summary.Detectors[0] != "npm-detector" {
+		t.Fatalf("Detectors = %#v, want npm-detector", summary.Detectors)
+	}
+}
+
+func TestBuildQASummaryAggregatesSourceStatuses(t *testing.T) {
+	summary := qa.BuildQASummary("scan-npm", []qa.QASourceSummary{
+		{Case: "scan-npm", Source: "github", Status: "completed"},
+		{Case: "scan-npm", Source: "syft", Status: "skipped", Reason: "missing required tool: syft"},
+	}, []string{"npm-detector"})
+	if summary.Status != "completed" {
+		t.Fatalf("Status = %q, want completed", summary.Status)
+	}
+	if len(summary.Sources) != 2 {
+		t.Fatalf("expected 2 source summaries, got %#v", summary.Sources)
+	}
+	if len(summary.Detectors) != 1 || summary.Detectors[0] != "npm-detector" {
+		t.Fatalf("Detectors = %#v", summary.Detectors)
+	}
+
+	summary = qa.BuildQASummary("scan-npm", []qa.QASourceSummary{
+		{Case: "scan-npm", Source: "github", Status: "failed"},
+	}, nil)
+	if summary.Status != "failed" {
+		t.Fatalf("Status = %q, want failed", summary.Status)
 	}
 }
 

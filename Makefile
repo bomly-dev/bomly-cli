@@ -11,10 +11,10 @@ GOLANGCI_LINT=$(GOPATH_BIN)/golangci-lint$(EXE_SUFFIX)
 build: build-full build-lite
 
 build-full:
-	go build -o bin/$(BINARY_NAME) ./cmd/bomly
+	go build -o bin/$(BINARY_NAME)$(EXE_SUFFIX) ./cmd/bomly
 
 build-lite:
-	go build -tags "$(LITE_BUILD_TAGS)" -o bin/$(BINARY_NAME)-lite ./cmd/bomly
+	go build -tags "$(LITE_BUILD_TAGS)" -o bin/$(BINARY_NAME)-lite$(EXE_SUFFIX) ./cmd/bomly
 
 fmt:
 	go run ./internal/tools/gofmtcheck -w
@@ -38,7 +38,7 @@ smoke:
 	go test -tags "smoke" ./test/smoke/ -v -count=1 -timeout 15m $(if $(ARGS),$(ARGS),)
 
 qa: build-full
-	go test -tags "qa" ./test/qa/ -v -count=1 -timeout 15m --bomly=$(CURDIR)/bin/$(BINARY_NAME)$(EXE_SUFFIX) $(if $(ARGS),$(ARGS),)
+	go test -tags "qa" ./test/qa/ -v -count=1 -run '^TestDependencyGraphQA$$' -timeout 15m --bomly=$(CURDIR)/bin/$(BINARY_NAME)$(EXE_SUFFIX) $(if $(ARGS),$(ARGS),)
 
 run:
 	go run ./cmd/bomly $(ARGS)

@@ -58,6 +58,10 @@ func (d PoetryDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
+	depsGraph, err = filterPythonToolPackages(depsGraph, d.base().workingDir(req.ProjectPath))
+	if err != nil {
+		return sdk.DetectionResult{}, err
+	}
 	return sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, poetryEvidencePatterns)),
 	}, nil
@@ -77,5 +81,5 @@ func (d PoetryDetector) base() baseDetector {
 
 // Install prepares Poetry dependencies before graph resolution.
 func (d PoetryDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
-	return d.base().install(ctx, req, "Poetry detector", []string{"poetry", "install"})
+	return d.base().install(ctx, req, "Poetry detector", []string{"poetry", "install", "--no-root"})
 }

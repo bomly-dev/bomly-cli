@@ -23,6 +23,14 @@ func TestParseCaseNames(t *testing.T) {
 	}
 }
 
+func TestParseSourceNames(t *testing.T) {
+	got := ParseSourceNames(" github,syft-cyclonedx, github,, ")
+	want := []string{"github", "syft-cyclonedx"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("ParseSourceNames() = %#v, want %#v", got, want)
+	}
+}
+
 func TestFilterScanTargets(t *testing.T) {
 	targets := []ScanTarget{
 		{Name: "scan-go"},
@@ -47,6 +55,55 @@ func TestFilterScanTargetsRejectsUnknownCase(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "unknown or non-QA-enabled case(s): scan-gradle") {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestFilterBaselineSources(t *testing.T) {
+	filtered, err := filterBaselineSources(defaultBaselineSources(), []string{"syft-cyclonedx", "github"})
+	if err != nil {
+		t.Fatalf("filterBaselineSources() error = %v", err)
+	}
+	got := []string{filtered[0].Name(), filtered[1].Name()}
+	want := []string{"syft-cyclonedx", "github"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("filtered source names = %#v, want %#v", got, want)
+	}
+	if filtered[0].BomlyFormat() != "cyclonedx-json" {
+		t.Fatalf("syft-cyclonedx BomlyFormat = %q", filtered[0].BomlyFormat())
+	}
+}
+
+func TestFilterBaselineSourcesRejectsUnknownSource(t *testing.T) {
+	_, err := filterBaselineSources(defaultBaselineSources(), []string{"unknown"})
+	if err == nil {
+		t.Fatal("expected unknown source error")
+	}
+	if !strings.Contains(err.Error(), "unknown QA source(s): unknown") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestSourceArtifactsAreGroupedBySource(t *testing.T) {
+	artifacts := sourceArtifacts("syft-cyclonedx")
+	if artifacts.SBOM != "sources/syft-cyclonedx/source.sbom.json" ||
+		artifacts.Diff != "sources/syft-cyclonedx/diff.json" ||
+		artifacts.DiffLog != "sources/syft-cyclonedx/diff.log" ||
+		artifacts.Summary != "sources/syft-cyclonedx/qa-summary.json" {
+		t.Fatalf("unexpected artifacts: %#v", artifacts)
+	}
+}
+
+func TestRequiredBomlySBOMsAreGroupedAsSource(t *testing.T) {
+	sources, err := filterBaselineSources(defaultBaselineSources(), []string{"github", "syft-cyclonedx"})
+	if err != nil {
+		t.Fatalf("filterBaselineSources() error = %v", err)
+	}
+	artifacts := requiredBomlySBOMs(sources)
+	if artifacts["spdx-json"].Artifact != "sources/bomly/spdx.sbom.json" {
+		t.Fatalf("spdx artifact = %q", artifacts["spdx-json"].Artifact)
+	}
+	if artifacts["cyclonedx-json"].Artifact != "sources/bomly/cyclonedx.sbom.json" {
+		t.Fatalf("cyclonedx artifact = %q", artifacts["cyclonedx-json"].Artifact)
 	}
 }
 

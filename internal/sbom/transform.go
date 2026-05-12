@@ -30,6 +30,7 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 			PURL:           pkg.PURL,
 			Ecosystem:      pkg.Ecosystem,
 			PackageManager: pkg.BuildSystem,
+			Type:           pkg.Type,
 			Copyright:      pkg.Copyright,
 			Licenses:       componentLicenses(pkg.Licenses),
 		})
@@ -89,17 +90,35 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 	if toolName == "" {
 		toolName = defaultToolName
 	}
+	toolNames := uniqueToolNames(append([]string{toolName}, opts.ToolNames...))
 
 	return &Document{
 		Name:         documentName,
 		Namespace:    documentNS,
 		Tool:         toolName,
+		Tools:        toolNames,
 		Created:      created,
 		SerialNumber: opts.SerialNumber,
 		Components:   components,
 		Dependencies: dependencies,
 		Roots:        rootIDs,
 	}, nil
+}
+
+func uniqueToolNames(values []string) []string {
+	out := make([]string, 0, len(values))
+	seen := make(map[string]struct{}, len(values))
+	for _, value := range values {
+		if value == "" {
+			continue
+		}
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		out = append(out, value)
+	}
+	return out
 }
 
 func componentLicenses(licenses []sdk.PackageLicense) []License {

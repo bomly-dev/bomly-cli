@@ -50,11 +50,15 @@ func (d UVDetector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a Python dependency graph through uv.
 func (d UVDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	command, err := pipInspectCommand("uv", "run")
+	command, err := pipInspectCommand("uv", "run", "--no-sync")
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
 	depsGraph, err := d.base().resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "uv detector", command)
+	if err != nil {
+		return sdk.DetectionResult{}, err
+	}
+	depsGraph, err = filterPythonToolPackages(depsGraph, d.base().workingDir(req.ProjectPath))
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
@@ -77,5 +81,9 @@ func (d UVDetector) base() baseDetector {
 
 // Install prepares uv dependencies before graph resolution.
 func (d UVDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
-	return d.base().install(ctx, req, "uv detector", []string{"uv", "sync"})
+	base := d.base()
+	if err := base.install(ctx, req, "uv detector", []string{"uv", "sync", "--no-install-project"}); err != nil {
+		return err
+	}
+	return base.install(ctx, req, "uv detector", []string{"uv", "pip", "install", "pip"})
 }

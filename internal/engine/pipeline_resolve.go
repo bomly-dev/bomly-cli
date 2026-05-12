@@ -219,6 +219,9 @@ func (p *Pipeline) resolveFallback(ctx context.Context, req sdk.DetectionRequest
 	if fallback == nil {
 		return nil, primaryErr
 	}
+	if !fallbackSelected(req.DetectorFilter, fallback.Descriptor()) {
+		return nil, primaryErr
+	}
 	results, fallbackErr := p.resolveDetector(ctx, req, fallback)
 	if primaryErr == nil {
 		return results, fallbackErr
@@ -227,4 +230,17 @@ func (p *Pipeline) resolveFallback(ctx context.Context, req sdk.DetectionRequest
 		return results, nil
 	}
 	return nil, errors.Join(primaryErr, fallbackErr)
+}
+
+func fallbackSelected(filter sdk.DetectorFilter, descriptor sdk.DetectorDescriptor) bool {
+	if descriptor.Name == "" {
+		return false
+	}
+	if filter.Excludes(descriptor.Name) {
+		return false
+	}
+	if len(filter.Include) > 0 && !filter.Includes(descriptor.Name) {
+		return false
+	}
+	return true
 }

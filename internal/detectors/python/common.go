@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -20,6 +21,14 @@ import (
 
 var pythonExecutables = []string{"python", "python3", "py"}
 var requirementNamePattern = regexp.MustCompile(`^[A-Za-z0-9._-]+`)
+var pythonToolPackageNames = map[string]struct{}{
+	"pip":        {},
+	"setuptools": {},
+	"wheel":      {},
+	"uv":         {},
+	"poetry":     {},
+	"pipenv":     {},
+}
 
 type baseDetector struct {
 	Logger     *zap.Logger
@@ -78,6 +87,7 @@ func (d baseDetector) resolveGraph(stderr io.Writer, projectPath string, verbose
 
 	cmd := system.Command(command[0], command[1:]...)
 	cmd.Dir = d.workingDir(projectPath)
+	cmd.Env = pythonCommandEnv()
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	commandStderr := logging.NewCommandStderr(stderr, verbose)
@@ -118,6 +128,7 @@ func (d baseDetector) install(ctx context.Context, req sdk.DetectionRequest, det
 	command = append(append([]string{}, command...), req.InstallArgs...)
 	cmd := system.Command(command[0], command[1:]...)
 	cmd.Dir = d.workingDir(req.ProjectPath)
+	cmd.Env = pythonCommandEnv()
 	commandStderr := logging.NewCommandStderr(req.Stderr, req.Verbose)
 	cmd.Stderr = commandStderr
 	started := time.Now()
@@ -133,6 +144,12 @@ func (d baseDetector) install(ctx context.Context, req sdk.DetectionRequest, det
 	}
 	logger.Info(fmt.Sprintf("%s install-first completed in %s", detectorName, logging.FormatDuration(time.Since(started))))
 	return nil
+}
+
+func pythonCommandEnv() []string {
+	env := os.Environ()
+	env = append(env, "PYTHONIOENCODING=utf-8", "PYTHONUTF8=1")
+	return env
 }
 
 func pythonCommand() ([]string, error) {
@@ -218,6 +235,97 @@ func depGraphFromPipInspect(raw []byte) (*sdk.Graph, error) {
 	}
 
 	return depsGraph, nil
+}
+
+func filterPythonToolPackages(depsGraph *sdk.Graph, projectPath string) (*sdk.Graph, error) {
+	if depsGraph == nil {
+		return depsGraph, nil
+	}
+	declared, err := declaredPythonDependencies(projectPath)
+	if err != nil {
+		return nil, err
+	}
+	for _, pkg := range depsGraph.Packages() {
+		if pkg == nil {
+			continue
+		}
+		name := normalizePythonName(pkg.Name)
+		if _, isTool := pythonToolPackageNames[name]; !isTool {
+			continue
+		}
+		if _, keep := declared[name]; keep {
+			continue
+		}
+		depsGraph.RemovePackage(pkg.ID)
+	}
+	return depsGraph, nil
+}
+
+func declaredPythonDependencies(projectPath string) (map[string]struct{}, error) {
+	declared := make(map[string]struct{})
+	if projectPath == "" {
+		return declared, nil
+	}
+	for _, name := range []string{"requirements.txt", "requirements-dev.txt", "requirements.in", "requirements.lock"} {
+		if err := collectRequirementFileDependencies(filepath.Join(projectPath, name), declared); err != nil {
+			return nil, err
+		}
+	}
+	for _, name := range []string{"pyproject.toml", "poetry.lock", "uv.lock", "Pipfile.lock", "Pipfile"} {
+		if err := collectLoosePythonManifestDependencies(filepath.Join(projectPath, name), declared); err != nil {
+			return nil, err
+		}
+	}
+	return declared, nil
+}
+
+func collectRequirementFileDependencies(path string, declared map[string]struct{}) error {
+	raw, err := os.ReadFile(path)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("read Python requirements %q: %w", path, err)
+	}
+	for _, line := range strings.Split(string(raw), "\n") {
+		line = strings.TrimSpace(strings.SplitN(line, "#", 2)[0])
+		if line == "" || strings.HasPrefix(line, "-") {
+			continue
+		}
+		addDeclaredPythonName(requirementName(line), declared)
+	}
+	return nil
+}
+
+func collectLoosePythonManifestDependencies(path string, declared map[string]struct{}) error {
+	raw, err := os.ReadFile(path)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("read Python manifest %q: %w", path, err)
+	}
+	for _, line := range strings.Split(string(raw), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		if strings.HasPrefix(line, "name = ") {
+			value := strings.Trim(strings.TrimSpace(strings.TrimPrefix(line, "name = ")), `"'`)
+			addDeclaredPythonName(value, declared)
+			continue
+		}
+		addDeclaredPythonName(requirementName(strings.Trim(line, `"',[]{} `)), declared)
+	}
+	return nil
+}
+
+func addDeclaredPythonName(name string, declared map[string]struct{}) {
+	name = normalizePythonName(name)
+	if name == "" {
+		return
+	}
+	declared[name] = struct{}{}
 }
 
 func requirementName(value string) string {

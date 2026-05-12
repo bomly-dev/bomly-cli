@@ -54,6 +54,35 @@ func TestDetectorCommandSpec_PrefersWrapper(t *testing.T) {
 	}
 }
 
+func TestDetectorCommandSpec_MakesUnixWrapperExecutable(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("unix-only executable-bit behavior")
+	}
+
+	projectDir := t.TempDir()
+	wrapperPath := filepath.Join(projectDir, "gradlew")
+	if err := os.WriteFile(wrapperPath, []byte("echo wrapper\n"), 0o644); err != nil {
+		t.Fatalf("write wrapper: %v", err)
+	}
+
+	detector := Detector{WorkingDir: projectDir}
+	executable, _, err := detector.commandSpec(projectDir)
+	if err != nil {
+		t.Fatalf("commandSpec() error = %v", err)
+	}
+	if executable != wrapperPath {
+		t.Fatalf("expected wrapper executable, got %q", executable)
+	}
+
+	info, err := os.Stat(wrapperPath)
+	if err != nil {
+		t.Fatalf("stat wrapper: %v", err)
+	}
+	if info.Mode()&0o111 == 0 {
+		t.Fatalf("expected wrapper to be executable, mode=%#o", info.Mode().Perm())
+	}
+}
+
 func TestDepGraphFromGradleOutput(t *testing.T) {
 	raw := []byte(`runtimeClasspath - Runtime classpath of source set 'main'.
 +--- org.springframework:spring-core:6.1.1

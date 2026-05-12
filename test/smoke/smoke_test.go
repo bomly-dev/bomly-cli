@@ -24,6 +24,10 @@ import (
 
 // bomlyBin is the path to the compiled CLI binary, built once in TestMain.
 var bomlyBin string
+var smokeRuntimeDir string
+var smokeGOPATH string
+var smokeGOMODCACHE string
+var smokeGOCACHE string
 
 func TestMain(m *testing.M) {
 	// Ensure git is available — all URL-based tests need it.
@@ -63,8 +67,27 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
+	smokeRuntimeDir, err = os.MkdirTemp("", "bomly-smoke-runtime-*")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "smoke: create runtime dir: %v\n", err)
+		_ = os.RemoveAll(dir)
+		os.Exit(1)
+	}
+	smokeGOPATH = filepath.Join(smokeRuntimeDir, "gopath")
+	smokeGOMODCACHE = filepath.Join(smokeGOPATH, "pkg", "mod")
+	smokeGOCACHE = filepath.Join(smokeRuntimeDir, "gocache")
+	for _, path := range []string{smokeGOPATH, smokeGOMODCACHE, smokeGOCACHE} {
+		if err := os.MkdirAll(path, 0o755); err != nil {
+			fmt.Fprintf(os.Stderr, "smoke: create runtime path %s: %v\n", path, err)
+			_ = os.RemoveAll(dir)
+			_ = os.RemoveAll(smokeRuntimeDir)
+			os.Exit(1)
+		}
+	}
+
 	code := m.Run()
 	_ = os.RemoveAll(dir)
+	_ = os.RemoveAll(smokeRuntimeDir)
 	os.Exit(code)
 }
 

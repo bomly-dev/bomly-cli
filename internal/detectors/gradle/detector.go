@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -149,6 +150,9 @@ func (d Detector) commandSpec(workingDir string) (string, []string, error) {
 		if runtime.GOOS == "windows" && isBatchFile(wrapperPath) {
 			return "cmd", append([]string{"/c", wrapperPath}, args...), nil
 		}
+		if err := ensureExecutableGradleWrapper(wrapperPath); err != nil {
+			return "", nil, err
+		}
 		return wrapperPath, args, nil
 	}
 
@@ -185,6 +189,24 @@ func wrapperCandidates() []string {
 func isBatchFile(path string) bool {
 	ext := strings.ToLower(filepath.Ext(path))
 	return ext == ".bat" || ext == ".cmd"
+}
+
+func ensureExecutableGradleWrapper(path string) error {
+	if runtime.GOOS == "windows" || isBatchFile(path) {
+		return nil
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("stat gradle wrapper: %w", err)
+	}
+	mode := info.Mode()
+	if mode&0o111 != 0 {
+		return nil
+	}
+	if err := os.Chmod(path, mode|0o755); err != nil {
+		return fmt.Errorf("chmod gradle wrapper executable: %w", err)
+	}
+	return nil
 }
 
 func depGraphFromGradleOutput(raw []byte, rootName string) (*sdk.Graph, error) {

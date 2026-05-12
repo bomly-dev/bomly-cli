@@ -109,6 +109,10 @@ jobs:
         if: matrix.slice.uv
         uses: astral-sh/setup-uv@v5
 
+      - name: Install Python smoke-test dependencies
+        if: matrix.slice.python
+        run: python -m pip install --upgrade pip pipenv poetry
+
       - name: Install smoke-test dependencies
         if: matrix.slice.maven
         run: |

@@ -23,14 +23,6 @@
         "removed": [
           {
             "package": {
-              "id": "go.mod",
-              "licenses": [],
-              "name": "go.mod",
-              "vulnerabilities": []
-            }
-          },
-          {
-            "package": {
               "id": "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869",
               "licenses": [],
               "name": "github.com/bmizerany/assert",
@@ -372,7 +364,7 @@
     "changed_manifest_count": 0,
     "changed_package_count": 0,
     "removed_manifest_count": 1,
-    "removed_package_count": 9,
+    "removed_package_count": 8,
     "unchanged_manifest_count": 0
   }
 }

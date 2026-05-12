@@ -13,13 +13,13 @@
           "licenses": [],
           "name": "cmake",
           "purl": "pkg:conan/cmake@3.27.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.27.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:conan/zlib@\u003cnormalized\u003e"
+            "pkg:conan/zlib@1.2.11"
           ],
           "id": "pkg:conan/openssl@1.1.1s",
           "licenses": [],

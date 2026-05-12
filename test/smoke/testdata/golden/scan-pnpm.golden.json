@@ -18,16 +18,16 @@
           ],
           "name": "body-parser",
           "purl": "pkg:npm/body-parser@1.20.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.20.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:npm/express@\u003cnormalized\u003e",
-            "pkg:npm/jest@\u003cnormalized\u003e",
-            "pkg:npm/lodash@\u003cnormalized\u003e",
-            "pkg:npm/marked@\u003cnormalized\u003e"
+            "pkg:npm/express@4.18.2",
+            "pkg:npm/jest@29.7.0",
+            "pkg:npm/lodash@4.17.15",
+            "pkg:npm/marked@0.3.19"
           ],
           "id": "pkg:npm/example-javascript-pnpm@1.0.0",
           "licenses": [],
@@ -38,8 +38,8 @@
         },
         {
           "dependencies": [
-            "pkg:npm/body-parser@\u003cnormalized\u003e",
-            "pkg:npm/qs@\u003cnormalized\u003e"
+            "pkg:npm/body-parser@1.20.1",
+            "pkg:npm/qs@6.11.0"
           ],
           "id": "pkg:npm/express@4.18.2",
           "licenses": [
@@ -50,7 +50,7 @@
           ],
           "name": "express",
           "purl": "pkg:npm/express@4.18.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.18.2",
           "vulnerabilities": []
         },
@@ -65,7 +65,7 @@
           ],
           "name": "jest",
           "purl": "pkg:npm/jest@29.7.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "29.7.0",
           "vulnerabilities": []
         },
@@ -80,7 +80,7 @@
           ],
           "name": "lodash",
           "purl": "pkg:npm/lodash@4.17.15",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.17.15",
           "vulnerabilities": []
         },
@@ -95,7 +95,7 @@
           ],
           "name": "marked",
           "purl": "pkg:npm/marked@0.3.19",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.3.19",
           "vulnerabilities": []
         },
@@ -110,7 +110,7 @@
           ],
           "name": "qs",
           "purl": "pkg:npm/qs@6.11.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "6.11.0",
           "vulnerabilities": []
         }

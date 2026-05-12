@@ -9,33 +9,33 @@
       "packages": [
         {
           "dependencies": [
-            "pkg:github-actions/actions/checkout@v3",
-            "pkg:github-actions/actions/setup-go@v4"
+            "pkg:githubactions/actions/checkout@v3",
+            "pkg:githubactions/actions/setup-go@v4"
           ],
-          "id": "pkg:github-actions/.github%2Fworkflows%2Fapidiff.yaml@local",
+          "id": "pkg:githubactions/.github%2Fworkflows%2Fapidiff.yaml@local",
           "licenses": [],
           "name": ".github/workflows/apidiff.yaml",
-          "purl": "pkg:github-actions/.github%2Fworkflows%2Fapidiff.yaml@local",
+          "purl": "pkg:githubactions/.github%2Fworkflows%2Fapidiff.yaml@local",
           "scope": "runtime",
           "version": "local",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:github-actions/actions/checkout@v3",
+          "id": "pkg:githubactions/actions/checkout@v3",
           "licenses": [],
           "name": "actions:checkout",
-          "purl": "pkg:github-actions/actions/checkout@v3",
+          "purl": "pkg:githubactions/actions/checkout@v3",
           "scope": "runtime",
           "version": "v3",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:github-actions/actions/setup-go@v4",
+          "id": "pkg:githubactions/actions/setup-go@v4",
           "licenses": [],
           "name": "actions:setup-go",
-          "purl": "pkg:github-actions/actions/setup-go@v4",
+          "purl": "pkg:githubactions/actions/setup-go@v4",
           "scope": "runtime",
           "version": "v4",
           "vulnerabilities": []
@@ -52,33 +52,33 @@
       "packages": [
         {
           "dependencies": [
-            "pkg:github-actions/actions/checkout@v3",
-            "pkg:github-actions/actions/setup-go@v4"
+            "pkg:githubactions/actions/checkout@v3",
+            "pkg:githubactions/actions/setup-go@v4"
           ],
-          "id": "pkg:github-actions/.github%2Fworkflows%2Ftests.yaml@local",
+          "id": "pkg:githubactions/.github%2Fworkflows%2Ftests.yaml@local",
           "licenses": [],
           "name": ".github/workflows/tests.yaml",
-          "purl": "pkg:github-actions/.github%2Fworkflows%2Ftests.yaml@local",
+          "purl": "pkg:githubactions/.github%2Fworkflows%2Ftests.yaml@local",
           "scope": "runtime",
           "version": "local",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:github-actions/actions/checkout@v3",
+          "id": "pkg:githubactions/actions/checkout@v3",
           "licenses": [],
           "name": "actions:checkout",
-          "purl": "pkg:github-actions/actions/checkout@v3",
+          "purl": "pkg:githubactions/actions/checkout@v3",
           "scope": "runtime",
           "version": "v3",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:github-actions/actions/setup-go@v4",
+          "id": "pkg:githubactions/actions/setup-go@v4",
           "licenses": [],
           "name": "actions:setup-go",
-          "purl": "pkg:github-actions/actions/setup-go@v4",
+          "purl": "pkg:githubactions/actions/setup-go@v4",
           "scope": "runtime",
           "version": "v4",
           "vulnerabilities": []

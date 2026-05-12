@@ -9,133 +9,133 @@
       "packages": [
         {
           "dependencies": [
-            "pkg:gem/actionpack@\u003cnormalized\u003e",
-            "pkg:gem/actionview@\u003cnormalized\u003e",
-            "pkg:gem/activejob@\u003cnormalized\u003e",
-            "pkg:gem/mail@\u003cnormalized\u003e",
-            "pkg:gem/rails-dom-testing@\u003cnormalized\u003e"
+            "pkg:gem/actionpack@4.2.5",
+            "pkg:gem/actionview@4.2.5",
+            "pkg:gem/activejob@4.2.5",
+            "pkg:gem/mail@2.6.4",
+            "pkg:gem/rails-dom-testing@1.0.7"
           ],
           "id": "pkg:gem/actionmailer@4.2.5",
           "licenses": [],
           "name": "actionmailer",
           "purl": "pkg:gem/actionmailer@4.2.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.2.5",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/actionview@\u003cnormalized\u003e",
-            "pkg:gem/activesupport@\u003cnormalized\u003e",
-            "pkg:gem/rack-test@\u003cnormalized\u003e",
-            "pkg:gem/rack@\u003cnormalized\u003e",
-            "pkg:gem/rails-dom-testing@\u003cnormalized\u003e",
-            "pkg:gem/rails-html-sanitizer@\u003cnormalized\u003e"
+            "pkg:gem/actionview@4.2.5",
+            "pkg:gem/activesupport@4.2.5",
+            "pkg:gem/rack-test@0.6.3",
+            "pkg:gem/rack@1.6.4",
+            "pkg:gem/rails-dom-testing@1.0.7",
+            "pkg:gem/rails-html-sanitizer@1.0.3"
           ],
           "id": "pkg:gem/actionpack@4.2.5",
           "licenses": [],
           "name": "actionpack",
           "purl": "pkg:gem/actionpack@4.2.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.2.5",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activesupport@\u003cnormalized\u003e",
-            "pkg:gem/builder@\u003cnormalized\u003e",
-            "pkg:gem/erubis@\u003cnormalized\u003e",
-            "pkg:gem/rails-dom-testing@\u003cnormalized\u003e",
-            "pkg:gem/rails-html-sanitizer@\u003cnormalized\u003e"
+            "pkg:gem/activesupport@4.2.5",
+            "pkg:gem/builder@3.2.2",
+            "pkg:gem/erubis@2.7.0",
+            "pkg:gem/rails-dom-testing@1.0.7",
+            "pkg:gem/rails-html-sanitizer@1.0.3"
           ],
           "id": "pkg:gem/actionview@4.2.5",
           "licenses": [],
           "name": "actionview",
           "purl": "pkg:gem/actionview@4.2.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.2.5",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activesupport@\u003cnormalized\u003e",
-            "pkg:gem/globalid@\u003cnormalized\u003e"
+            "pkg:gem/activesupport@4.2.5",
+            "pkg:gem/globalid@0.3.6"
           ],
           "id": "pkg:gem/activejob@4.2.5",
           "licenses": [],
           "name": "activejob",
           "purl": "pkg:gem/activejob@4.2.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.2.5",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activesupport@\u003cnormalized\u003e",
-            "pkg:gem/builder@\u003cnormalized\u003e",
-            "pkg:gem/i18n@\u003cnormalized\u003e",
-            "pkg:gem/nokogiri@\u003cnormalized\u003e"
+            "pkg:gem/activesupport@4.2.5",
+            "pkg:gem/builder@3.2.2",
+            "pkg:gem/i18n@0.7.0",
+            "pkg:gem/nokogiri@1.6.7.2"
           ],
           "id": "pkg:gem/activemerchant@1.47.0",
           "licenses": [],
           "name": "activemerchant",
           "purl": "pkg:gem/activemerchant@1.47.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.47.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activesupport@\u003cnormalized\u003e",
-            "pkg:gem/builder@\u003cnormalized\u003e"
+            "pkg:gem/activesupport@4.2.5",
+            "pkg:gem/builder@3.2.2"
           ],
           "id": "pkg:gem/activemodel@4.2.5",
           "licenses": [],
           "name": "activemodel",
           "purl": "pkg:gem/activemodel@4.2.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.2.5",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activemodel@\u003cnormalized\u003e",
-            "pkg:gem/activesupport@\u003cnormalized\u003e",
-            "pkg:gem/arel@\u003cnormalized\u003e"
+            "pkg:gem/activemodel@4.2.5",
+            "pkg:gem/activesupport@4.2.5",
+            "pkg:gem/arel@6.0.3"
           ],
           "id": "pkg:gem/activerecord@4.2.5",
           "licenses": [],
           "name": "activerecord",
           "purl": "pkg:gem/activerecord@4.2.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.2.5",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/i18n@\u003cnormalized\u003e",
-            "pkg:gem/json@\u003cnormalized\u003e",
-            "pkg:gem/minitest@\u003cnormalized\u003e",
-            "pkg:gem/thread_safe@\u003cnormalized\u003e",
-            "pkg:gem/tzinfo@\u003cnormalized\u003e"
+            "pkg:gem/i18n@0.7.0",
+            "pkg:gem/json@1.8.3",
+            "pkg:gem/minitest@5.9.0",
+            "pkg:gem/thread_safe@0.3.5",
+            "pkg:gem/tzinfo@1.2.2"
           ],
           "id": "pkg:gem/activesupport@4.2.5",
           "licenses": [],
           "name": "activesupport",
           "purl": "pkg:gem/activesupport@4.2.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.2.5",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activerecord@\u003cnormalized\u003e"
+            "pkg:gem/activerecord@4.2.5"
           ],
           "id": "pkg:gem/acts_as_list@0.7.4",
           "licenses": [],
           "name": "acts_as_list",
           "purl": "pkg:gem/acts_as_list@0.7.4",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.7.4",
           "vulnerabilities": []
         },
@@ -145,28 +145,28 @@
           "licenses": [],
           "name": "addressable",
           "purl": "pkg:gem/addressable@2.4.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.4.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/autoprefixer-rails@\u003cnormalized\u003e",
-            "pkg:gem/datetime_picker_rails@\u003cnormalized\u003e",
-            "pkg:gem/jquery-rails@\u003cnormalized\u003e",
-            "pkg:gem/kaminari@\u003cnormalized\u003e",
-            "pkg:gem/momentjs-rails@\u003cnormalized\u003e",
-            "pkg:gem/neat@\u003cnormalized\u003e",
-            "pkg:gem/normalize-rails@\u003cnormalized\u003e",
-            "pkg:gem/rails@\u003cnormalized\u003e",
-            "pkg:gem/sass-rails@\u003cnormalized\u003e",
-            "pkg:gem/selectize-rails@\u003cnormalized\u003e"
+            "pkg:gem/autoprefixer-rails@6.3.6.1",
+            "pkg:gem/datetime_picker_rails@0.0.7",
+            "pkg:gem/jquery-rails@4.1.1",
+            "pkg:gem/kaminari@0.16.3",
+            "pkg:gem/momentjs-rails@2.11.1",
+            "pkg:gem/neat@1.7.4",
+            "pkg:gem/normalize-rails@3.0.3",
+            "pkg:gem/rails@4.2.5",
+            "pkg:gem/sass-rails@5.0.4",
+            "pkg:gem/selectize-rails@0.12.1"
           ],
           "id": "pkg:gem/administrate@0.1.4",
           "licenses": [],
           "name": "administrate",
           "purl": "pkg:gem/administrate@0.1.4",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.1.4",
           "vulnerabilities": []
         },
@@ -176,7 +176,7 @@
           "licenses": [],
           "name": "allison",
           "purl": "pkg:gem/allison@2.0.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.0.3",
           "vulnerabilities": []
         },
@@ -186,44 +186,44 @@
           "licenses": [],
           "name": "arel",
           "purl": "pkg:gem/arel@6.0.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "6.0.3",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activesupport@\u003cnormalized\u003e",
-            "pkg:gem/echoe@\u003cnormalized\u003e"
+            "pkg:gem/activesupport@4.2.5",
+            "pkg:gem/echoe@4.6.6"
           ],
           "id": "pkg:gem/authlogic@1.4.3",
           "licenses": [],
           "name": "authlogic",
           "purl": "pkg:gem/authlogic@1.4.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.4.3",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/execjs@\u003cnormalized\u003e"
+            "pkg:gem/execjs@2.7.0"
           ],
           "id": "pkg:gem/autoprefixer-rails@6.3.6.1",
           "licenses": [],
           "name": "autoprefixer-rails",
           "purl": "pkg:gem/autoprefixer-rails@6.3.6.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "6.3.6.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activerecord@\u003cnormalized\u003e"
+            "pkg:gem/activerecord@4.2.5"
           ],
           "id": "pkg:gem/awesome_nested_set@3.0.3",
           "licenses": [],
           "name": "awesome_nested_set",
           "purl": "pkg:gem/awesome_nested_set@3.0.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.0.3",
           "vulnerabilities": []
         },
@@ -233,33 +233,33 @@
           "licenses": [],
           "name": "bcrypt",
           "purl": "pkg:gem/bcrypt@3.1.11",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.1.11",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/autoprefixer-rails@\u003cnormalized\u003e",
-            "pkg:gem/sass@\u003cnormalized\u003e"
+            "pkg:gem/autoprefixer-rails@6.3.6.1",
+            "pkg:gem/sass@3.4.22"
           ],
           "id": "pkg:gem/bootstrap-sass@3.3.6",
           "licenses": [],
           "name": "bootstrap-sass",
           "purl": "pkg:gem/bootstrap-sass@3.3.6",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.3.6",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/sass@\u003cnormalized\u003e",
-            "pkg:gem/thor@\u003cnormalized\u003e"
+            "pkg:gem/sass@3.4.22",
+            "pkg:gem/thor@0.19.1"
           ],
           "id": "pkg:gem/bourbon@4.2.7",
           "licenses": [],
           "name": "bourbon",
           "purl": "pkg:gem/bourbon@4.2.7",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.2.7",
           "vulnerabilities": []
         },
@@ -269,7 +269,7 @@
           "licenses": [],
           "name": "builder",
           "purl": "pkg:gem/builder@3.2.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.2.2",
           "vulnerabilities": []
         },
@@ -279,7 +279,7 @@
           "licenses": [],
           "name": "byebug",
           "purl": "pkg:gem/byebug@9.0.4",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "9.0.4",
           "vulnerabilities": []
         },
@@ -289,7 +289,7 @@
           "licenses": [],
           "name": "camertron-eprun",
           "purl": "pkg:gem/camertron-eprun@1.1.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.1.0",
           "vulnerabilities": []
         },
@@ -299,31 +299,31 @@
           "licenses": [],
           "name": "cancancan",
           "purl": "pkg:gem/cancancan@1.10.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.10.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/rails@\u003cnormalized\u003e"
+            "pkg:gem/rails@4.2.5"
           ],
           "id": "pkg:gem/canonical-rails@0.0.11",
           "licenses": [],
           "name": "canonical-rails",
           "purl": "pkg:gem/canonical-rails@0.0.11",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.0.11",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activesupport@\u003cnormalized\u003e"
+            "pkg:gem/activesupport@4.2.5"
           ],
           "id": "pkg:gem/carmen@1.0.2",
           "licenses": [],
           "name": "carmen",
           "purl": "pkg:gem/carmen@1.0.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.0.2",
           "vulnerabilities": []
         },
@@ -333,44 +333,44 @@
           "licenses": [],
           "name": "cldr-plurals-runtime-rb",
           "purl": "pkg:gem/cldr-plurals-runtime-rb@1.0.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.0.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activesupport@\u003cnormalized\u003e"
+            "pkg:gem/activesupport@4.2.5"
           ],
           "id": "pkg:gem/climate_control@0.0.3",
           "licenses": [],
           "name": "climate_control",
           "purl": "pkg:gem/climate_control@0.0.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.0.3",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/climate_control@\u003cnormalized\u003e"
+            "pkg:gem/climate_control@0.0.3"
           ],
           "id": "pkg:gem/cocaine@0.5.8",
           "licenses": [],
           "name": "cocaine",
           "purl": "pkg:gem/cocaine@0.5.8",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.5.8",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/coffee-script@\u003cnormalized\u003e",
-            "pkg:gem/railties@\u003cnormalized\u003e"
+            "pkg:gem/coffee-script@2.4.1",
+            "pkg:gem/railties@4.2.5"
           ],
           "id": "pkg:gem/coffee-rails@4.1.1",
           "licenses": [],
           "name": "coffee-rails",
           "purl": "pkg:gem/coffee-rails@4.1.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.1.1",
           "vulnerabilities": []
         },
@@ -380,20 +380,20 @@
           "licenses": [],
           "name": "coffee-script-source",
           "purl": "pkg:gem/coffee-script-source@1.10.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.10.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/coffee-script-source@\u003cnormalized\u003e",
-            "pkg:gem/execjs@\u003cnormalized\u003e"
+            "pkg:gem/coffee-script-source@1.10.0",
+            "pkg:gem/execjs@2.7.0"
           ],
           "id": "pkg:gem/coffee-script@2.4.1",
           "licenses": [],
           "name": "coffee-script",
           "purl": "pkg:gem/coffee-script@2.4.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.4.1",
           "vulnerabilities": []
         },
@@ -403,7 +403,7 @@
           "licenses": [],
           "name": "colorize",
           "purl": "pkg:gem/colorize@0.7.7",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.7.7",
           "vulnerabilities": []
         },
@@ -413,31 +413,31 @@
           "licenses": [],
           "name": "concurrent-ruby",
           "purl": "pkg:gem/concurrent-ruby@1.0.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.0.2",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/addressable@\u003cnormalized\u003e"
+            "pkg:gem/addressable@2.4.0"
           ],
           "id": "pkg:gem/css_parser@1.4.1",
           "licenses": [],
           "name": "css_parser",
           "purl": "pkg:gem/css_parser@1.4.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.4.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/momentjs-rails@\u003cnormalized\u003e"
+            "pkg:gem/momentjs-rails@2.11.1"
           ],
           "id": "pkg:gem/datetime_picker_rails@0.0.7",
           "licenses": [],
           "name": "datetime_picker_rails",
           "purl": "pkg:gem/datetime_picker_rails@0.0.7",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.0.7",
           "vulnerabilities": []
         },
@@ -447,66 +447,66 @@
           "licenses": [],
           "name": "debug_inspector",
           "purl": "pkg:gem/debug_inspector@0.0.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "0.0.2",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/colorize@\u003cnormalized\u003e",
-            "pkg:gem/nokogiri@\u003cnormalized\u003e",
-            "pkg:gem/polyglot@\u003cnormalized\u003e",
-            "pkg:gem/rails@\u003cnormalized\u003e"
+            "pkg:gem/colorize@0.7.7",
+            "pkg:gem/nokogiri@1.6.7.2",
+            "pkg:gem/polyglot@0.3.5",
+            "pkg:gem/rails@4.2.5"
           ],
           "id": "pkg:gem/deface@1.0.2",
           "licenses": [],
           "name": "deface",
           "purl": "pkg:gem/deface@1.0.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.0.2",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/bcrypt@\u003cnormalized\u003e",
-            "pkg:gem/orm_adapter@\u003cnormalized\u003e",
-            "pkg:gem/railties@\u003cnormalized\u003e",
-            "pkg:gem/responders@\u003cnormalized\u003e",
-            "pkg:gem/warden@\u003cnormalized\u003e"
+            "pkg:gem/bcrypt@3.1.11",
+            "pkg:gem/orm_adapter@0.5.0",
+            "pkg:gem/railties@4.2.5",
+            "pkg:gem/responders@2.2.0",
+            "pkg:gem/warden@1.2.6"
           ],
           "id": "pkg:gem/devise@4.1.1",
           "licenses": [],
           "name": "devise",
           "purl": "pkg:gem/devise@4.1.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.1.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/actionmailer@\u003cnormalized\u003e",
-            "pkg:gem/devise@\u003cnormalized\u003e"
+            "pkg:gem/actionmailer@4.2.5",
+            "pkg:gem/devise@4.1.1"
           ],
           "id": "pkg:gem/devise_invitable@1.3.4",
           "licenses": [],
           "name": "devise_invitable",
           "purl": "pkg:gem/devise_invitable@1.3.4",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.3.4",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/allison@\u003cnormalized\u003e",
-            "pkg:gem/rake@\u003cnormalized\u003e",
-            "pkg:gem/rdoc@\u003cnormalized\u003e",
-            "pkg:gem/rubyforge@\u003cnormalized\u003e"
+            "pkg:gem/allison@2.0.3",
+            "pkg:gem/rake@11.1.2",
+            "pkg:gem/rdoc@4.2.2",
+            "pkg:gem/rubyforge@2.0.4"
           ],
           "id": "pkg:gem/echoe@4.6.6",
           "licenses": [],
           "name": "echoe",
           "purl": "pkg:gem/echoe@4.6.6",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.6.6",
           "vulnerabilities": []
         },
@@ -516,7 +516,7 @@
           "licenses": [],
           "name": "erubis",
           "purl": "pkg:gem/erubis@2.7.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.7.0",
           "vulnerabilities": []
         },
@@ -526,19 +526,19 @@
           "licenses": [],
           "name": "execjs",
           "purl": "pkg:gem/execjs@2.7.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.7.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/hoe@\u003cnormalized\u003e"
+            "pkg:gem/hoe@3.15.0"
           ],
           "id": "pkg:gem/festivaltts4r@0.2.0",
           "licenses": [],
           "name": "festivaltts4r",
           "purl": "pkg:gem/festivaltts4r@0.2.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.2.0",
           "vulnerabilities": []
         },
@@ -548,43 +548,43 @@
           "licenses": [],
           "name": "ffaker",
           "purl": "pkg:gem/ffaker@1.32.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.32.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/railties@\u003cnormalized\u003e"
+            "pkg:gem/railties@4.2.5"
           ],
           "id": "pkg:gem/font-awesome-rails@4.6.3.0",
           "licenses": [],
           "name": "font-awesome-rails",
           "purl": "pkg:gem/font-awesome-rails@4.6.3.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.6.3.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activerecord@\u003cnormalized\u003e"
+            "pkg:gem/activerecord@4.2.5"
           ],
           "id": "pkg:gem/friendly_id@5.1.0",
           "licenses": [],
           "name": "friendly_id",
           "purl": "pkg:gem/friendly_id@5.1.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "5.1.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activesupport@\u003cnormalized\u003e"
+            "pkg:gem/activesupport@4.2.5"
           ],
           "id": "pkg:gem/globalid@0.3.6",
           "licenses": [],
           "name": "globalid",
           "purl": "pkg:gem/globalid@0.3.6",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.3.6",
           "vulnerabilities": []
         },
@@ -594,19 +594,19 @@
           "licenses": [],
           "name": "highline",
           "purl": "pkg:gem/highline@1.6.21",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.6.21",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/rake@\u003cnormalized\u003e"
+            "pkg:gem/rake@11.1.2"
           ],
           "id": "pkg:gem/hoe@3.15.0",
           "licenses": [],
           "name": "hoe",
           "purl": "pkg:gem/hoe@3.15.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.15.0",
           "vulnerabilities": []
         },
@@ -616,20 +616,20 @@
           "licenses": [],
           "name": "htmlentities",
           "purl": "pkg:gem/htmlentities@4.3.4",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.3.4",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/json@\u003cnormalized\u003e",
-            "pkg:gem/multi_xml@\u003cnormalized\u003e"
+            "pkg:gem/json@1.8.3",
+            "pkg:gem/multi_xml@0.5.5"
           ],
           "id": "pkg:gem/httparty@0.13.7",
           "licenses": [],
           "name": "httparty",
           "purl": "pkg:gem/httparty@0.13.7",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.13.7",
           "vulnerabilities": []
         },
@@ -639,46 +639,46 @@
           "licenses": [],
           "name": "i18n",
           "purl": "pkg:gem/i18n@0.7.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.7.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activesupport@\u003cnormalized\u003e",
-            "pkg:gem/multi_json@\u003cnormalized\u003e"
+            "pkg:gem/activesupport@4.2.5",
+            "pkg:gem/multi_json@1.12.1"
           ],
           "id": "pkg:gem/jbuilder@2.4.1",
           "licenses": [],
           "name": "jbuilder",
           "purl": "pkg:gem/jbuilder@2.4.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.4.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/rails-dom-testing@\u003cnormalized\u003e",
-            "pkg:gem/railties@\u003cnormalized\u003e",
-            "pkg:gem/thor@\u003cnormalized\u003e"
+            "pkg:gem/rails-dom-testing@1.0.7",
+            "pkg:gem/railties@4.2.5",
+            "pkg:gem/thor@0.19.1"
           ],
           "id": "pkg:gem/jquery-rails@4.1.1",
           "licenses": [],
           "name": "jquery-rails",
           "purl": "pkg:gem/jquery-rails@4.1.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.1.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/railties@\u003cnormalized\u003e"
+            "pkg:gem/railties@4.2.5"
           ],
           "id": "pkg:gem/jquery-ui-rails@5.0.5",
           "licenses": [],
           "name": "jquery-ui-rails",
           "purl": "pkg:gem/jquery-ui-rails@5.0.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "5.0.5",
           "vulnerabilities": []
         },
@@ -688,7 +688,7 @@
           "licenses": [],
           "name": "json",
           "purl": "pkg:gem/json@1.8.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.8.3",
           "vulnerabilities": []
         },
@@ -698,56 +698,56 @@
           "licenses": [],
           "name": "json_pure",
           "purl": "pkg:gem/json_pure@1.8.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.8.3",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/actionpack@\u003cnormalized\u003e",
-            "pkg:gem/activesupport@\u003cnormalized\u003e"
+            "pkg:gem/actionpack@4.2.5",
+            "pkg:gem/activesupport@4.2.5"
           ],
           "id": "pkg:gem/kaminari@0.16.3",
           "licenses": [],
           "name": "kaminari",
           "purl": "pkg:gem/kaminari@0.16.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.16.3",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/httparty@\u003cnormalized\u003e"
+            "pkg:gem/httparty@0.13.7"
           ],
           "id": "pkg:gem/lingq@0.3.1",
           "licenses": [],
           "name": "lingq",
           "purl": "pkg:gem/lingq@0.3.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.3.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/nokogiri@\u003cnormalized\u003e"
+            "pkg:gem/nokogiri@1.6.7.2"
           ],
           "id": "pkg:gem/loofah@2.0.3",
           "licenses": [],
           "name": "loofah",
           "purl": "pkg:gem/loofah@2.0.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.0.3",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/mime-types@\u003cnormalized\u003e"
+            "pkg:gem/mime-types@3.1"
           ],
           "id": "pkg:gem/mail@2.6.4",
           "licenses": [],
           "name": "mail",
           "purl": "pkg:gem/mail@2.6.4",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.6.4",
           "vulnerabilities": []
         },
@@ -757,19 +757,19 @@
           "licenses": [],
           "name": "mime-types-data",
           "purl": "pkg:gem/mime-types-data@3.2016.0521",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.2016.0521",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/mime-types-data@\u003cnormalized\u003e"
+            "pkg:gem/mime-types-data@3.2016.0521"
           ],
           "id": "pkg:gem/mime-types@3.1",
           "licenses": [],
           "name": "mime-types",
           "purl": "pkg:gem/mime-types@3.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.1",
           "vulnerabilities": []
         },
@@ -779,7 +779,7 @@
           "licenses": [],
           "name": "mini_portile2",
           "purl": "pkg:gem/mini_portile2@2.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.0.0",
           "vulnerabilities": []
         },
@@ -789,44 +789,44 @@
           "licenses": [],
           "name": "minitest",
           "purl": "pkg:gem/minitest@5.9.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "5.9.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/railties@\u003cnormalized\u003e"
+            "pkg:gem/railties@4.2.5"
           ],
           "id": "pkg:gem/momentjs-rails@2.11.1",
           "licenses": [],
           "name": "momentjs-rails",
           "purl": "pkg:gem/momentjs-rails@2.11.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.11.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/money@\u003cnormalized\u003e"
+            "pkg:gem/money@6.7.1"
           ],
           "id": "pkg:gem/monetize@1.4.0",
           "licenses": [],
           "name": "monetize",
           "purl": "pkg:gem/monetize@1.4.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.4.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/i18n@\u003cnormalized\u003e",
-            "pkg:gem/sixarm_ruby_unaccent@\u003cnormalized\u003e"
+            "pkg:gem/i18n@0.7.0",
+            "pkg:gem/sixarm_ruby_unaccent@1.1.1"
           ],
           "id": "pkg:gem/money@6.7.1",
           "licenses": [],
           "name": "money",
           "purl": "pkg:gem/money@6.7.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "6.7.1",
           "vulnerabilities": []
         },
@@ -836,7 +836,7 @@
           "licenses": [],
           "name": "multi_json",
           "purl": "pkg:gem/multi_json@1.12.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.12.1",
           "vulnerabilities": []
         },
@@ -846,32 +846,32 @@
           "licenses": [],
           "name": "multi_xml",
           "purl": "pkg:gem/multi_xml@0.5.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.5.5",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/bourbon@\u003cnormalized\u003e",
-            "pkg:gem/sass@\u003cnormalized\u003e"
+            "pkg:gem/bourbon@4.2.7",
+            "pkg:gem/sass@3.4.22"
           ],
           "id": "pkg:gem/neat@1.7.4",
           "licenses": [],
           "name": "neat",
           "purl": "pkg:gem/neat@1.7.4",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.7.4",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/mini_portile2@\u003cnormalized\u003e"
+            "pkg:gem/mini_portile2@2.0.0"
           ],
           "id": "pkg:gem/nokogiri@1.6.7.2",
           "licenses": [],
           "name": "nokogiri",
           "purl": "pkg:gem/nokogiri@1.6.7.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.6.7.2",
           "vulnerabilities": []
         },
@@ -881,7 +881,7 @@
           "licenses": [],
           "name": "normalize-rails",
           "purl": "pkg:gem/normalize-rails@3.0.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.0.3",
           "vulnerabilities": []
         },
@@ -891,46 +891,46 @@
           "licenses": [],
           "name": "orm_adapter",
           "purl": "pkg:gem/orm_adapter@0.5.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.5.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activemodel@\u003cnormalized\u003e",
-            "pkg:gem/activesupport@\u003cnormalized\u003e",
-            "pkg:gem/cocaine@\u003cnormalized\u003e",
-            "pkg:gem/mime-types@\u003cnormalized\u003e"
+            "pkg:gem/activemodel@4.2.5",
+            "pkg:gem/activesupport@4.2.5",
+            "pkg:gem/cocaine@0.5.8",
+            "pkg:gem/mime-types@3.1"
           ],
           "id": "pkg:gem/paperclip@4.2.4",
           "licenses": [],
           "name": "paperclip",
           "purl": "pkg:gem/paperclip@4.2.4",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.2.4",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activerecord@\u003cnormalized\u003e"
+            "pkg:gem/activerecord@4.2.5"
           ],
           "id": "pkg:gem/paranoia@2.1.5",
           "licenses": [],
           "name": "paranoia",
           "purl": "pkg:gem/paranoia@2.1.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.1.5",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activerecord@\u003cnormalized\u003e"
+            "pkg:gem/activerecord@4.2.5"
           ],
           "id": "pkg:gem/polyamorous@1.3.0",
           "licenses": [],
           "name": "polyamorous",
           "purl": "pkg:gem/polyamorous@1.3.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.3.0",
           "vulnerabilities": []
         },
@@ -940,33 +940,33 @@
           "licenses": [],
           "name": "polyglot",
           "purl": "pkg:gem/polyglot@0.3.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.3.5",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/actionmailer@\u003cnormalized\u003e",
-            "pkg:gem/premailer@\u003cnormalized\u003e"
+            "pkg:gem/actionmailer@4.2.5",
+            "pkg:gem/premailer@1.8.6"
           ],
           "id": "pkg:gem/premailer-rails@1.9.2",
           "licenses": [],
           "name": "premailer-rails",
           "purl": "pkg:gem/premailer-rails@1.9.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.9.2",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/css_parser@\u003cnormalized\u003e",
-            "pkg:gem/htmlentities@\u003cnormalized\u003e"
+            "pkg:gem/css_parser@1.4.1",
+            "pkg:gem/htmlentities@4.3.4"
           ],
           "id": "pkg:gem/premailer@1.8.6",
           "licenses": [],
           "name": "premailer",
           "purl": "pkg:gem/premailer@1.8.6",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.8.6",
           "vulnerabilities": []
         },
@@ -976,43 +976,43 @@
           "licenses": [],
           "name": "puma",
           "purl": "pkg:gem/puma@3.4.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.4.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activesupport@\u003cnormalized\u003e"
+            "pkg:gem/activesupport@4.2.5"
           ],
           "id": "pkg:gem/rabl@0.11.8",
           "licenses": [],
           "name": "rabl",
           "purl": "pkg:gem/rabl@0.11.8",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.11.8",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/rack@\u003cnormalized\u003e"
+            "pkg:gem/rack@1.6.4"
           ],
           "id": "pkg:gem/rack-ssl@1.0.0",
           "licenses": [],
           "name": "rack-ssl",
           "purl": "pkg:gem/rack-ssl@1.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.0.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/rack@\u003cnormalized\u003e"
+            "pkg:gem/rack@1.6.4"
           ],
           "id": "pkg:gem/rack-test@0.6.3",
           "licenses": [],
           "name": "rack-test",
           "purl": "pkg:gem/rack-test@0.6.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.6.3",
           "vulnerabilities": []
         },
@@ -1022,80 +1022,80 @@
           "licenses": [],
           "name": "rack",
           "purl": "pkg:gem/rack@1.6.4",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.6.4",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activesupport@\u003cnormalized\u003e"
+            "pkg:gem/activesupport@4.2.5"
           ],
           "id": "pkg:gem/rails-deprecated_sanitizer@1.0.3",
           "licenses": [],
           "name": "rails-deprecated_sanitizer",
           "purl": "pkg:gem/rails-deprecated_sanitizer@1.0.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.0.3",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activesupport@\u003cnormalized\u003e",
-            "pkg:gem/nokogiri@\u003cnormalized\u003e",
-            "pkg:gem/rails-deprecated_sanitizer@\u003cnormalized\u003e"
+            "pkg:gem/activesupport@4.2.5",
+            "pkg:gem/nokogiri@1.6.7.2",
+            "pkg:gem/rails-deprecated_sanitizer@1.0.3"
           ],
           "id": "pkg:gem/rails-dom-testing@1.0.7",
           "licenses": [],
           "name": "rails-dom-testing",
           "purl": "pkg:gem/rails-dom-testing@1.0.7",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.0.7",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/loofah@\u003cnormalized\u003e"
+            "pkg:gem/loofah@2.0.3"
           ],
           "id": "pkg:gem/rails-html-sanitizer@1.0.3",
           "licenses": [],
           "name": "rails-html-sanitizer",
           "purl": "pkg:gem/rails-html-sanitizer@1.0.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.0.3",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/actionmailer@\u003cnormalized\u003e",
-            "pkg:gem/actionpack@\u003cnormalized\u003e",
-            "pkg:gem/actionview@\u003cnormalized\u003e",
-            "pkg:gem/activejob@\u003cnormalized\u003e",
-            "pkg:gem/activemodel@\u003cnormalized\u003e",
-            "pkg:gem/activerecord@\u003cnormalized\u003e",
-            "pkg:gem/activesupport@\u003cnormalized\u003e",
-            "pkg:gem/railties@\u003cnormalized\u003e",
-            "pkg:gem/sprockets-rails@\u003cnormalized\u003e"
+            "pkg:gem/actionmailer@4.2.5",
+            "pkg:gem/actionpack@4.2.5",
+            "pkg:gem/actionview@4.2.5",
+            "pkg:gem/activejob@4.2.5",
+            "pkg:gem/activemodel@4.2.5",
+            "pkg:gem/activerecord@4.2.5",
+            "pkg:gem/activesupport@4.2.5",
+            "pkg:gem/railties@4.2.5",
+            "pkg:gem/sprockets-rails@2.3.3"
           ],
           "id": "pkg:gem/rails@4.2.5",
           "licenses": [],
           "name": "rails",
           "purl": "pkg:gem/rails@4.2.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.2.5",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/actionpack@\u003cnormalized\u003e",
-            "pkg:gem/activesupport@\u003cnormalized\u003e",
-            "pkg:gem/rake@\u003cnormalized\u003e",
-            "pkg:gem/thor@\u003cnormalized\u003e"
+            "pkg:gem/actionpack@4.2.5",
+            "pkg:gem/activesupport@4.2.5",
+            "pkg:gem/rake@11.1.2",
+            "pkg:gem/thor@0.19.1"
           ],
           "id": "pkg:gem/railties@4.2.5",
           "licenses": [],
           "name": "railties",
           "purl": "pkg:gem/railties@4.2.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.2.5",
           "vulnerabilities": []
         },
@@ -1105,71 +1105,71 @@
           "licenses": [],
           "name": "rake",
           "purl": "pkg:gem/rake@11.1.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "11.1.2",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/actionpack@\u003cnormalized\u003e",
-            "pkg:gem/activerecord@\u003cnormalized\u003e",
-            "pkg:gem/activesupport@\u003cnormalized\u003e",
-            "pkg:gem/i18n@\u003cnormalized\u003e",
-            "pkg:gem/polyamorous@\u003cnormalized\u003e"
+            "pkg:gem/actionpack@4.2.5",
+            "pkg:gem/activerecord@4.2.5",
+            "pkg:gem/activesupport@4.2.5",
+            "pkg:gem/i18n@0.7.0",
+            "pkg:gem/polyamorous@1.3.0"
           ],
           "id": "pkg:gem/ransack@1.4.1",
           "licenses": [],
           "name": "ransack",
           "purl": "pkg:gem/ransack@1.4.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.4.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/json@\u003cnormalized\u003e"
+            "pkg:gem/json@1.8.3"
           ],
           "id": "pkg:gem/rdoc@4.2.2",
           "licenses": [],
           "name": "rdoc",
           "purl": "pkg:gem/rdoc@4.2.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.2.2",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/railties@\u003cnormalized\u003e"
+            "pkg:gem/railties@4.2.5"
           ],
           "id": "pkg:gem/responders@2.2.0",
           "licenses": [],
           "name": "responders",
           "purl": "pkg:gem/responders@2.2.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.2.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/administrate@\u003cnormalized\u003e",
-            "pkg:gem/authlogic@\u003cnormalized\u003e",
-            "pkg:gem/byebug@\u003cnormalized\u003e",
-            "pkg:gem/devise_invitable@\u003cnormalized\u003e",
-            "pkg:gem/festivaltts4r@\u003cnormalized\u003e",
-            "pkg:gem/jbuilder@\u003cnormalized\u003e",
-            "pkg:gem/jquery-rails@\u003cnormalized\u003e",
-            "pkg:gem/lingq@\u003cnormalized\u003e",
-            "pkg:gem/puma@\u003cnormalized\u003e",
-            "pkg:gem/rack-ssl@\u003cnormalized\u003e",
-            "pkg:gem/rails@\u003cnormalized\u003e",
-            "pkg:gem/sinatra@\u003cnormalized\u003e",
-            "pkg:gem/spree@\u003cnormalized\u003e",
-            "pkg:gem/spring@\u003cnormalized\u003e",
-            "pkg:gem/sqlite3@\u003cnormalized\u003e",
-            "pkg:gem/turbolinks@\u003cnormalized\u003e",
+            "pkg:gem/administrate@0.1.4",
+            "pkg:gem/authlogic@1.4.3",
+            "pkg:gem/byebug@9.0.4",
+            "pkg:gem/devise_invitable@1.3.4",
+            "pkg:gem/festivaltts4r@0.2.0",
+            "pkg:gem/jbuilder@2.4.1",
+            "pkg:gem/jquery-rails@4.1.1",
+            "pkg:gem/lingq@0.3.1",
+            "pkg:gem/puma@3.4.0",
+            "pkg:gem/rack-ssl@1.0.0",
+            "pkg:gem/rails@4.2.5",
+            "pkg:gem/sinatra@1.1.4",
+            "pkg:gem/spree@3.0.7",
+            "pkg:gem/spring@1.7.1",
+            "pkg:gem/sqlite3@1.3.11",
+            "pkg:gem/turbolinks@2.5.3",
             "pkg:gem/tzinfo-data",
-            "pkg:gem/uglifier@\u003cnormalized\u003e",
-            "pkg:gem/web-console@\u003cnormalized\u003e"
+            "pkg:gem/uglifier@3.0.0",
+            "pkg:gem/web-console@3.1.1"
           ],
           "id": "pkg:gem/root",
           "licenses": [],
@@ -1179,29 +1179,29 @@
         },
         {
           "dependencies": [
-            "pkg:gem/json_pure@\u003cnormalized\u003e"
+            "pkg:gem/json_pure@1.8.3"
           ],
           "id": "pkg:gem/rubyforge@2.0.4",
           "licenses": [],
           "name": "rubyforge",
           "purl": "pkg:gem/rubyforge@2.0.4",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.0.4",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/railties@\u003cnormalized\u003e",
-            "pkg:gem/sass@\u003cnormalized\u003e",
-            "pkg:gem/sprockets-rails@\u003cnormalized\u003e",
-            "pkg:gem/sprockets@\u003cnormalized\u003e",
-            "pkg:gem/tilt@\u003cnormalized\u003e"
+            "pkg:gem/railties@4.2.5",
+            "pkg:gem/sass@3.4.22",
+            "pkg:gem/sprockets-rails@2.3.3",
+            "pkg:gem/sprockets@3.6.0",
+            "pkg:gem/tilt@1.4.1"
           ],
           "id": "pkg:gem/sass-rails@5.0.4",
           "licenses": [],
           "name": "sass-rails",
           "purl": "pkg:gem/sass-rails@5.0.4",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "5.0.4",
           "vulnerabilities": []
         },
@@ -1211,19 +1211,19 @@
           "licenses": [],
           "name": "sass",
           "purl": "pkg:gem/sass@3.4.22",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.4.22",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/thor@\u003cnormalized\u003e"
+            "pkg:gem/thor@0.19.1"
           ],
           "id": "pkg:gem/select2-rails@3.5.9.1",
           "licenses": [],
           "name": "select2-rails",
           "purl": "pkg:gem/select2-rails@3.5.9.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.5.9.1",
           "vulnerabilities": []
         },
@@ -1233,20 +1233,20 @@
           "licenses": [],
           "name": "selectize-rails",
           "purl": "pkg:gem/selectize-rails@0.12.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.12.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/rack@\u003cnormalized\u003e",
-            "pkg:gem/tilt@\u003cnormalized\u003e"
+            "pkg:gem/rack@1.6.4",
+            "pkg:gem/tilt@1.4.1"
           ],
           "id": "pkg:gem/sinatra@1.1.4",
           "licenses": [],
           "name": "sinatra",
           "purl": "pkg:gem/sinatra@1.1.4",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.1.4",
           "vulnerabilities": []
         },
@@ -1256,130 +1256,130 @@
           "licenses": [],
           "name": "sixarm_ruby_unaccent",
           "purl": "pkg:gem/sixarm_ruby_unaccent@1.1.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.1.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/spree_api@\u003cnormalized\u003e",
-            "pkg:gem/spree_backend@\u003cnormalized\u003e",
-            "pkg:gem/spree_cmd@\u003cnormalized\u003e",
-            "pkg:gem/spree_core@\u003cnormalized\u003e",
-            "pkg:gem/spree_frontend@\u003cnormalized\u003e",
-            "pkg:gem/spree_sample@\u003cnormalized\u003e"
+            "pkg:gem/spree_api@3.0.7",
+            "pkg:gem/spree_backend@3.0.7",
+            "pkg:gem/spree_cmd@3.0.7",
+            "pkg:gem/spree_core@3.0.7",
+            "pkg:gem/spree_frontend@3.0.7",
+            "pkg:gem/spree_sample@3.0.7"
           ],
           "id": "pkg:gem/spree@3.0.7",
           "licenses": [],
           "name": "spree",
           "purl": "pkg:gem/spree@3.0.7",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.0.7",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/rabl@\u003cnormalized\u003e",
-            "pkg:gem/spree_core@\u003cnormalized\u003e",
-            "pkg:gem/versioncake@\u003cnormalized\u003e"
+            "pkg:gem/rabl@0.11.8",
+            "pkg:gem/spree_core@3.0.7",
+            "pkg:gem/versioncake@2.3.1"
           ],
           "id": "pkg:gem/spree_api@3.0.7",
           "licenses": [],
           "name": "spree_api",
           "purl": "pkg:gem/spree_api@3.0.7",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.0.7",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/bootstrap-sass@\u003cnormalized\u003e",
-            "pkg:gem/jquery-rails@\u003cnormalized\u003e",
-            "pkg:gem/jquery-ui-rails@\u003cnormalized\u003e",
-            "pkg:gem/select2-rails@\u003cnormalized\u003e",
-            "pkg:gem/spree_api@\u003cnormalized\u003e",
-            "pkg:gem/spree_core@\u003cnormalized\u003e"
+            "pkg:gem/bootstrap-sass@3.3.6",
+            "pkg:gem/jquery-rails@4.1.1",
+            "pkg:gem/jquery-ui-rails@5.0.5",
+            "pkg:gem/select2-rails@3.5.9.1",
+            "pkg:gem/spree_api@3.0.7",
+            "pkg:gem/spree_core@3.0.7"
           ],
           "id": "pkg:gem/spree_backend@3.0.7",
           "licenses": [],
           "name": "spree_backend",
           "purl": "pkg:gem/spree_backend@3.0.7",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.0.7",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/thor@\u003cnormalized\u003e"
+            "pkg:gem/thor@0.19.1"
           ],
           "id": "pkg:gem/spree_cmd@3.0.7",
           "licenses": [],
           "name": "spree_cmd",
           "purl": "pkg:gem/spree_cmd@3.0.7",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.0.7",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activemerchant@\u003cnormalized\u003e",
-            "pkg:gem/acts_as_list@\u003cnormalized\u003e",
-            "pkg:gem/awesome_nested_set@\u003cnormalized\u003e",
-            "pkg:gem/cancancan@\u003cnormalized\u003e",
-            "pkg:gem/carmen@\u003cnormalized\u003e",
-            "pkg:gem/deface@\u003cnormalized\u003e",
-            "pkg:gem/ffaker@\u003cnormalized\u003e",
-            "pkg:gem/font-awesome-rails@\u003cnormalized\u003e",
-            "pkg:gem/friendly_id@\u003cnormalized\u003e",
-            "pkg:gem/highline@\u003cnormalized\u003e",
-            "pkg:gem/json@\u003cnormalized\u003e",
-            "pkg:gem/kaminari@\u003cnormalized\u003e",
-            "pkg:gem/monetize@\u003cnormalized\u003e",
-            "pkg:gem/paperclip@\u003cnormalized\u003e",
-            "pkg:gem/paranoia@\u003cnormalized\u003e",
-            "pkg:gem/premailer-rails@\u003cnormalized\u003e",
-            "pkg:gem/rails@\u003cnormalized\u003e",
-            "pkg:gem/ransack@\u003cnormalized\u003e",
-            "pkg:gem/responders@\u003cnormalized\u003e",
-            "pkg:gem/sprockets-rails@\u003cnormalized\u003e",
-            "pkg:gem/state_machines-activerecord@\u003cnormalized\u003e",
-            "pkg:gem/stringex@\u003cnormalized\u003e",
-            "pkg:gem/truncate_html@\u003cnormalized\u003e",
-            "pkg:gem/twitter_cldr@\u003cnormalized\u003e"
+            "pkg:gem/activemerchant@1.47.0",
+            "pkg:gem/acts_as_list@0.7.4",
+            "pkg:gem/awesome_nested_set@3.0.3",
+            "pkg:gem/cancancan@1.10.1",
+            "pkg:gem/carmen@1.0.2",
+            "pkg:gem/deface@1.0.2",
+            "pkg:gem/ffaker@1.32.1",
+            "pkg:gem/font-awesome-rails@4.6.3.0",
+            "pkg:gem/friendly_id@5.1.0",
+            "pkg:gem/highline@1.6.21",
+            "pkg:gem/json@1.8.3",
+            "pkg:gem/kaminari@0.16.3",
+            "pkg:gem/monetize@1.4.0",
+            "pkg:gem/paperclip@4.2.4",
+            "pkg:gem/paranoia@2.1.5",
+            "pkg:gem/premailer-rails@1.9.2",
+            "pkg:gem/rails@4.2.5",
+            "pkg:gem/ransack@1.4.1",
+            "pkg:gem/responders@2.2.0",
+            "pkg:gem/sprockets-rails@2.3.3",
+            "pkg:gem/state_machines-activerecord@0.4.0",
+            "pkg:gem/stringex@2.6.0",
+            "pkg:gem/truncate_html@0.9.2",
+            "pkg:gem/twitter_cldr@3.3.0"
           ],
           "id": "pkg:gem/spree_core@3.0.7",
           "licenses": [],
           "name": "spree_core",
           "purl": "pkg:gem/spree_core@3.0.7",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.0.7",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/bootstrap-sass@\u003cnormalized\u003e",
-            "pkg:gem/canonical-rails@\u003cnormalized\u003e",
-            "pkg:gem/jquery-rails@\u003cnormalized\u003e",
-            "pkg:gem/spree_api@\u003cnormalized\u003e",
-            "pkg:gem/spree_core@\u003cnormalized\u003e"
+            "pkg:gem/bootstrap-sass@3.3.6",
+            "pkg:gem/canonical-rails@0.0.11",
+            "pkg:gem/jquery-rails@4.1.1",
+            "pkg:gem/spree_api@3.0.7",
+            "pkg:gem/spree_core@3.0.7"
           ],
           "id": "pkg:gem/spree_frontend@3.0.7",
           "licenses": [],
           "name": "spree_frontend",
           "purl": "pkg:gem/spree_frontend@3.0.7",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.0.7",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/spree_core@\u003cnormalized\u003e"
+            "pkg:gem/spree_core@3.0.7"
           ],
           "id": "pkg:gem/spree_sample@3.0.7",
           "licenses": [],
           "name": "spree_sample",
           "purl": "pkg:gem/spree_sample@3.0.7",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.0.7",
           "vulnerabilities": []
         },
@@ -1389,34 +1389,34 @@
           "licenses": [],
           "name": "spring",
           "purl": "pkg:gem/spring@1.7.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "1.7.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/actionpack@\u003cnormalized\u003e",
-            "pkg:gem/activesupport@\u003cnormalized\u003e",
-            "pkg:gem/sprockets@\u003cnormalized\u003e"
+            "pkg:gem/actionpack@4.2.5",
+            "pkg:gem/activesupport@4.2.5",
+            "pkg:gem/sprockets@3.6.0"
           ],
           "id": "pkg:gem/sprockets-rails@2.3.3",
           "licenses": [],
           "name": "sprockets-rails",
           "purl": "pkg:gem/sprockets-rails@2.3.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.3.3",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/concurrent-ruby@\u003cnormalized\u003e",
-            "pkg:gem/rack@\u003cnormalized\u003e"
+            "pkg:gem/concurrent-ruby@1.0.2",
+            "pkg:gem/rack@1.6.4"
           ],
           "id": "pkg:gem/sprockets@3.6.0",
           "licenses": [],
           "name": "sprockets",
           "purl": "pkg:gem/sprockets@3.6.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.6.0",
           "vulnerabilities": []
         },
@@ -1426,33 +1426,33 @@
           "licenses": [],
           "name": "sqlite3",
           "purl": "pkg:gem/sqlite3@1.3.11",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.3.11",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activemodel@\u003cnormalized\u003e",
-            "pkg:gem/state_machines@\u003cnormalized\u003e"
+            "pkg:gem/activemodel@4.2.5",
+            "pkg:gem/state_machines@0.4.0"
           ],
           "id": "pkg:gem/state_machines-activemodel@0.4.0",
           "licenses": [],
           "name": "state_machines-activemodel",
           "purl": "pkg:gem/state_machines-activemodel@0.4.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.4.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activerecord@\u003cnormalized\u003e",
-            "pkg:gem/state_machines-activemodel@\u003cnormalized\u003e"
+            "pkg:gem/activerecord@4.2.5",
+            "pkg:gem/state_machines-activemodel@0.4.0"
           ],
           "id": "pkg:gem/state_machines-activerecord@0.4.0",
           "licenses": [],
           "name": "state_machines-activerecord",
           "purl": "pkg:gem/state_machines-activerecord@0.4.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.4.0",
           "vulnerabilities": []
         },
@@ -1462,7 +1462,7 @@
           "licenses": [],
           "name": "state_machines",
           "purl": "pkg:gem/state_machines@0.4.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.4.0",
           "vulnerabilities": []
         },
@@ -1472,7 +1472,7 @@
           "licenses": [],
           "name": "stringex",
           "purl": "pkg:gem/stringex@2.6.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.6.0",
           "vulnerabilities": []
         },
@@ -1482,7 +1482,7 @@
           "licenses": [],
           "name": "thor",
           "purl": "pkg:gem/thor@0.19.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.19.1",
           "vulnerabilities": []
         },
@@ -1492,7 +1492,7 @@
           "licenses": [],
           "name": "thread_safe",
           "purl": "pkg:gem/thread_safe@0.3.5",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.3.5",
           "vulnerabilities": []
         },
@@ -1502,7 +1502,7 @@
           "licenses": [],
           "name": "tilt",
           "purl": "pkg:gem/tilt@1.4.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.4.1",
           "vulnerabilities": []
         },
@@ -1512,34 +1512,34 @@
           "licenses": [],
           "name": "truncate_html",
           "purl": "pkg:gem/truncate_html@0.9.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.9.2",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/coffee-rails@\u003cnormalized\u003e"
+            "pkg:gem/coffee-rails@4.1.1"
           ],
           "id": "pkg:gem/turbolinks@2.5.3",
           "licenses": [],
           "name": "turbolinks",
           "purl": "pkg:gem/turbolinks@2.5.3",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.5.3",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/camertron-eprun@\u003cnormalized\u003e",
-            "pkg:gem/cldr-plurals-runtime-rb@\u003cnormalized\u003e",
-            "pkg:gem/json@\u003cnormalized\u003e",
-            "pkg:gem/tzinfo@\u003cnormalized\u003e"
+            "pkg:gem/camertron-eprun@1.1.0",
+            "pkg:gem/cldr-plurals-runtime-rb@1.0.1",
+            "pkg:gem/json@1.8.3",
+            "pkg:gem/tzinfo@1.2.2"
           ],
           "id": "pkg:gem/twitter_cldr@3.3.0",
           "licenses": [],
           "name": "twitter_cldr",
           "purl": "pkg:gem/twitter_cldr@3.3.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.3.0",
           "vulnerabilities": []
         },
@@ -1549,71 +1549,71 @@
           "licenses": [],
           "name": "tzinfo-data",
           "purl": "pkg:gem/tzinfo-data",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/thread_safe@\u003cnormalized\u003e"
+            "pkg:gem/thread_safe@0.3.5"
           ],
           "id": "pkg:gem/tzinfo@1.2.2",
           "licenses": [],
           "name": "tzinfo",
           "purl": "pkg:gem/tzinfo@1.2.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.2.2",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/execjs@\u003cnormalized\u003e"
+            "pkg:gem/execjs@2.7.0"
           ],
           "id": "pkg:gem/uglifier@3.0.0",
           "licenses": [],
           "name": "uglifier",
           "purl": "pkg:gem/uglifier@3.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.0.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/actionpack@\u003cnormalized\u003e",
-            "pkg:gem/activesupport@\u003cnormalized\u003e",
-            "pkg:gem/railties@\u003cnormalized\u003e",
-            "pkg:gem/tzinfo@\u003cnormalized\u003e"
+            "pkg:gem/actionpack@4.2.5",
+            "pkg:gem/activesupport@4.2.5",
+            "pkg:gem/railties@4.2.5",
+            "pkg:gem/tzinfo@1.2.2"
           ],
           "id": "pkg:gem/versioncake@2.3.1",
           "licenses": [],
           "name": "versioncake",
           "purl": "pkg:gem/versioncake@2.3.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.3.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/rack@\u003cnormalized\u003e"
+            "pkg:gem/rack@1.6.4"
           ],
           "id": "pkg:gem/warden@1.2.6",
           "licenses": [],
           "name": "warden",
           "purl": "pkg:gem/warden@1.2.6",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.2.6",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:gem/activemodel@\u003cnormalized\u003e",
-            "pkg:gem/debug_inspector@\u003cnormalized\u003e",
-            "pkg:gem/railties@\u003cnormalized\u003e"
+            "pkg:gem/activemodel@4.2.5",
+            "pkg:gem/debug_inspector@0.0.2",
+            "pkg:gem/railties@4.2.5"
           ],
           "id": "pkg:gem/web-console@3.1.1",
           "licenses": [],
           "name": "web-console",
           "purl": "pkg:gem/web-console@3.1.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "development",
           "version": "3.1.1",
           "vulnerabilities": []
         }

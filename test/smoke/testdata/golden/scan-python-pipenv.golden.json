@@ -13,7 +13,7 @@
           "licenses": [],
           "name": "django",
           "purl": "pkg:pypi/django@1.7.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.7.1",
           "vulnerabilities": []
         },
@@ -23,7 +23,7 @@
           "licenses": [],
           "name": "feedparser",
           "purl": "pkg:pypi/feedparser@6.0.8",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "6.0.8",
           "vulnerabilities": []
         },
@@ -33,7 +33,7 @@
           "licenses": [],
           "name": "pyasn1",
           "purl": "pkg:pypi/pyasn1@0.4.8",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.4.8",
           "vulnerabilities": []
         },
@@ -43,7 +43,7 @@
           "licenses": [],
           "name": "pycrypto",
           "purl": "pkg:pypi/pycrypto@2.4",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.4",
           "vulnerabilities": []
         },
@@ -53,7 +53,7 @@
           "licenses": [],
           "name": "pyjwt",
           "purl": "pkg:pypi/pyjwt@0.4.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.4.2",
           "vulnerabilities": []
         },
@@ -63,26 +63,25 @@
           "licenses": [],
           "name": "requests",
           "purl": "pkg:pypi/requests@2.2.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.2.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:pypi/django@\u003cnormalized\u003e",
-            "pkg:pypi/feedparser@\u003cnormalized\u003e",
-            "pkg:pypi/pyasn1@\u003cnormalized\u003e",
-            "pkg:pypi/pycrypto@\u003cnormalized\u003e",
-            "pkg:pypi/pyjwt@\u003cnormalized\u003e",
-            "pkg:pypi/requests@\u003cnormalized\u003e",
-            "pkg:pypi/rsa@\u003cnormalized\u003e",
-            "pkg:pypi/sgmllib3k@\u003cnormalized\u003e"
+            "pkg:pypi/django@1.7.1",
+            "pkg:pypi/feedparser@6.0.8",
+            "pkg:pypi/pyasn1@0.4.8",
+            "pkg:pypi/pycrypto@2.4",
+            "pkg:pypi/pyjwt@0.4.2",
+            "pkg:pypi/requests@2.2.1",
+            "pkg:pypi/rsa@3.4",
+            "pkg:pypi/sgmllib3k@1.0.0"
           ],
           "id": "pkg:pypi/root",
           "licenses": [],
           "name": "root",
           "purl": "pkg:pypi/root",
-          "scope": "\u003cnormalized\u003e",
           "vulnerabilities": []
         },
         {
@@ -91,7 +90,7 @@
           "licenses": [],
           "name": "rsa",
           "purl": "pkg:pypi/rsa@3.4",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "3.4",
           "vulnerabilities": []
         },
@@ -101,7 +100,7 @@
           "licenses": [],
           "name": "sgmllib3k",
           "purl": "pkg:pypi/sgmllib3k@1.0.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.0.0",
           "vulnerabilities": []
         }

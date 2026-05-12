@@ -235,7 +235,16 @@ func resolveNPMLockDependencyID(parentPath string, dependencyName string, depend
 	}
 
 	normalizedDepVersion := node.NormalizeVersionToken(dependencyVersion)
-	for packagePath, entry := range lockfile.Packages {
+	paths := make([]string, 0, len(lockfile.Packages))
+	for packagePath := range lockfile.Packages {
+		if packagePath == "" {
+			continue
+		}
+		paths = append(paths, packagePath)
+	}
+	sort.Strings(paths)
+	for _, packagePath := range paths {
+		entry := lockfile.Packages[packagePath]
 		if packagePath == "" {
 			continue
 		}
@@ -252,7 +261,8 @@ func resolveNPMLockDependencyID(parentPath string, dependencyName string, depend
 			}
 		}
 	}
-	for packagePath, entry := range lockfile.Packages {
+	for _, packagePath := range paths {
+		entry := lockfile.Packages[packagePath]
 		if packagePath == "" {
 			continue
 		}

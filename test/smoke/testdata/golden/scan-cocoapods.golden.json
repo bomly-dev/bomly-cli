@@ -13,7 +13,7 @@
           "licenses": [],
           "name": "Alamofire",
           "purl": "pkg:cocoapods/Alamofire@4.3.0",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "4.3.0",
           "vulnerabilities": []
         },
@@ -23,7 +23,7 @@
           "licenses": [],
           "name": "HockeyKit",
           "purl": "pkg:cocoapods/HockeyKit@2.0.7",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.0.7",
           "vulnerabilities": []
         },
@@ -33,25 +33,25 @@
           "licenses": [],
           "name": "OpenSSL-Static",
           "purl": "pkg:cocoapods/OpenSSL-Static@1.0.2.c1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.0.2.c1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:cocoapods/ReactiveSwift@\u003cnormalized\u003e"
+            "pkg:cocoapods/ReactiveSwift@1.0.0"
           ],
           "id": "pkg:cocoapods/ReactiveCocoa@5.0.0-rc.1",
           "licenses": [],
           "name": "ReactiveCocoa",
           "purl": "pkg:cocoapods/ReactiveCocoa@5.0.0-rc.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "5.0.0-rc.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:cocoapods/Result@\u003cnormalized\u003e"
+            "pkg:cocoapods/Result@3.1.0"
           ],
           "id": "pkg:cocoapods/ReactiveSwift@1.0.0",
           "licenses": [],
@@ -71,10 +71,10 @@
         },
         {
           "dependencies": [
-            "pkg:cocoapods/Alamofire@\u003cnormalized\u003e",
-            "pkg:cocoapods/HockeyKit@\u003cnormalized\u003e",
-            "pkg:cocoapods/OpenSSL-Static@\u003cnormalized\u003e",
-            "pkg:cocoapods/ReactiveCocoa@\u003cnormalized\u003e"
+            "pkg:cocoapods/Alamofire@4.3.0",
+            "pkg:cocoapods/HockeyKit@2.0.7",
+            "pkg:cocoapods/OpenSSL-Static@1.0.2.c1",
+            "pkg:cocoapods/ReactiveCocoa@5.0.0-rc.1"
           ],
           "id": "pkg:cocoapods/root",
           "licenses": [],

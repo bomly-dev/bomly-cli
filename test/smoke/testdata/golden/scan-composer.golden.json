@@ -13,20 +13,20 @@
           "licenses": [],
           "name": "appserver-io-psr:http-message",
           "purl": "pkg:composer/appserver-io-psr/http-message@1.4.1",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.4.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:composer/appserver-io-psr/http-message@\u003cnormalized\u003e",
-            "pkg:composer/ircmaxell/password-compat@\u003cnormalized\u003e"
+            "pkg:composer/appserver-io-psr/http-message@1.4.1",
+            "pkg:composer/ircmaxell/password-compat@1.0.4"
           ],
           "id": "pkg:composer/appserver-io/http@1.1.6",
           "licenses": [],
           "name": "appserver-io:http",
           "purl": "pkg:composer/appserver-io/http@1.1.6",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.1.6",
           "vulnerabilities": []
         },
@@ -42,7 +42,7 @@
           },
           "name": "ircmaxell:password-compat",
           "purl": "pkg:composer/ircmaxell/password-compat@1.0.4",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "1.0.4",
           "vulnerabilities": []
         },
@@ -58,14 +58,14 @@
           },
           "name": "moodle:moodle",
           "purl": "pkg:composer/moodle/moodle@2.6.2",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "2.6.2",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:composer/appserver-io/http@\u003cnormalized\u003e",
-            "pkg:composer/moodle/moodle@\u003cnormalized\u003e"
+            "pkg:composer/appserver-io/http@1.1.6",
+            "pkg:composer/moodle/moodle@2.6.2"
           ],
           "id": "pkg:composer/root",
           "licenses": [],

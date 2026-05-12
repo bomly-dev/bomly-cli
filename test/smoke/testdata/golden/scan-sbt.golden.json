@@ -13,13 +13,13 @@
           "licenses": [],
           "name": "org.mindrot:jbcrypt",
           "purl": "pkg:maven/org.mindrot/jbcrypt@0.3m",
-          "scope": "\u003cnormalized\u003e",
+          "scope": "runtime",
           "version": "0.3m",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:maven/org.mindrot/jbcrypt@\u003cnormalized\u003e"
+            "pkg:maven/org.mindrot/jbcrypt@0.3m"
           ],
           "id": "pkg:maven/root",
           "licenses": [],

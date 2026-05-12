@@ -27,7 +27,7 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/pytz@\u003cnormalized\u003e"
+            "pkg:pypi/pytz@2024.1"
           ],
           "id": "pkg:pypi/django@1.11.29",
           "licenses": [],
@@ -38,7 +38,7 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/sgmllib3k@\u003cnormalized\u003e"
+            "pkg:pypi/sgmllib3k@1.0.0"
           ],
           "id": "pkg:pypi/feedparser@6.0.8",
           "licenses": [],
@@ -85,10 +85,10 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/certifi@\u003cnormalized\u003e",
-            "pkg:pypi/chardet@\u003cnormalized\u003e",
-            "pkg:pypi/idna@\u003cnormalized\u003e",
-            "pkg:pypi/urllib3@\u003cnormalized\u003e"
+            "pkg:pypi/certifi@2024.8.30",
+            "pkg:pypi/chardet@3.0.4",
+            "pkg:pypi/idna@2.8",
+            "pkg:pypi/urllib3@1.24.3"
           ],
           "id": "pkg:pypi/requests@2.21.0",
           "licenses": [],
@@ -99,18 +99,18 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/certifi@\u003cnormalized\u003e",
-            "pkg:pypi/chardet@\u003cnormalized\u003e",
-            "pkg:pypi/django@\u003cnormalized\u003e",
-            "pkg:pypi/feedparser@\u003cnormalized\u003e",
-            "pkg:pypi/idna@\u003cnormalized\u003e",
-            "pkg:pypi/pyasn1@\u003cnormalized\u003e",
-            "pkg:pypi/pyjwt@\u003cnormalized\u003e",
-            "pkg:pypi/pytz@\u003cnormalized\u003e",
-            "pkg:pypi/requests@\u003cnormalized\u003e",
-            "pkg:pypi/rsa@\u003cnormalized\u003e",
-            "pkg:pypi/sgmllib3k@\u003cnormalized\u003e",
-            "pkg:pypi/urllib3@\u003cnormalized\u003e"
+            "pkg:pypi/certifi@2024.8.30",
+            "pkg:pypi/chardet@3.0.4",
+            "pkg:pypi/django@1.11.29",
+            "pkg:pypi/feedparser@6.0.8",
+            "pkg:pypi/idna@2.8",
+            "pkg:pypi/pyasn1@0.6.0",
+            "pkg:pypi/pyjwt@0.4.2",
+            "pkg:pypi/pytz@2024.1",
+            "pkg:pypi/requests@2.21.0",
+            "pkg:pypi/rsa@3.4",
+            "pkg:pypi/sgmllib3k@1.0.0",
+            "pkg:pypi/urllib3@1.24.3"
           ],
           "id": "pkg:pypi/root",
           "licenses": [],
@@ -120,7 +120,7 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/pyasn1@\u003cnormalized\u003e"
+            "pkg:pypi/pyasn1@0.6.0"
           ],
           "id": "pkg:pypi/rsa@3.4",
           "licenses": [],
@@ -140,8 +140,8 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/certifi@\u003cnormalized\u003e",
-            "pkg:pypi/idna@\u003cnormalized\u003e"
+            "pkg:pypi/certifi@2024.8.30",
+            "pkg:pypi/idna@2.8"
           ],
           "id": "pkg:pypi/urllib3@1.24.3",
           "licenses": [],

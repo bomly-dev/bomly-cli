@@ -107,7 +107,7 @@ jobs:
 
       - name: Set up uv
         if: matrix.slice.uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
 
       - name: Install smoke-test dependencies
         if: matrix.slice.maven

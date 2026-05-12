@@ -2,18 +2,18 @@
   "command": "scan",
   "manifests": [
     {
-      "detector": "poetry-detector",
+      "detector": "uv-detector",
       "ecosystem": "python",
-      "kind": "poetry.lock",
-      "package_manager": "poetry",
+      "kind": "uv.lock",
+      "package_manager": "uv",
       "packages": [
         {
           "dependencies": [],
-          "id": "pkg:pypi/certifi@2024.8.30",
+          "id": "pkg:pypi/certifi@2026.4.22",
           "licenses": [],
           "name": "certifi",
-          "purl": "pkg:pypi/certifi@2024.8.30",
-          "version": "2024.8.30",
+          "purl": "pkg:pypi/certifi@2026.4.22",
+          "version": "2026.4.22",
           "vulnerabilities": []
         },
         {
@@ -23,6 +23,15 @@
           "name": "chardet",
           "purl": "pkg:pypi/chardet@3.0.4",
           "version": "3.0.4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/colorama@0.4.6",
+          "licenses": [],
+          "name": "colorama",
+          "purl": "pkg:pypi/colorama@0.4.6",
+          "version": "0.4.6",
           "vulnerabilities": []
         },
         {
@@ -58,11 +67,51 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/pyasn1@0.6.0",
+          "id": "pkg:pypi/iniconfig@2.3.0",
+          "licenses": [],
+          "name": "iniconfig",
+          "purl": "pkg:pypi/iniconfig@2.3.0",
+          "version": "2.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/packaging@26.2",
+          "licenses": [],
+          "name": "packaging",
+          "purl": "pkg:pypi/packaging@26.2",
+          "version": "26.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:pypi/pytest@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:pypi/pluggy@1.6.0",
+          "licenses": [],
+          "name": "pluggy",
+          "purl": "pkg:pypi/pluggy@1.6.0",
+          "version": "1.6.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/pyasn1@0.6.3",
           "licenses": [],
           "name": "pyasn1",
-          "purl": "pkg:pypi/pyasn1@0.6.0",
-          "version": "0.6.0",
+          "purl": "pkg:pypi/pyasn1@0.6.3",
+          "version": "0.6.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:pypi/colorama@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:pypi/pygments@2.20.0",
+          "licenses": [],
+          "name": "pygments",
+          "purl": "pkg:pypi/pygments@2.20.0",
+          "version": "2.20.0",
           "vulnerabilities": []
         },
         {
@@ -75,12 +124,28 @@
           "vulnerabilities": []
         },
         {
+          "dependencies": [
+            "pkg:pypi/colorama@\u003cnormalized\u003e",
+            "pkg:pypi/iniconfig@\u003cnormalized\u003e",
+            "pkg:pypi/packaging@\u003cnormalized\u003e",
+            "pkg:pypi/pluggy@\u003cnormalized\u003e",
+            "pkg:pypi/pygments@\u003cnormalized\u003e",
+            "pkg:pypi/requests@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:pypi/pytest@9.0.3",
+          "licenses": [],
+          "name": "pytest",
+          "purl": "pkg:pypi/pytest@9.0.3",
+          "version": "9.0.3",
+          "vulnerabilities": []
+        },
+        {
           "dependencies": [],
-          "id": "pkg:pypi/pytz@2024.1",
+          "id": "pkg:pypi/pytz@2026.2",
           "licenses": [],
           "name": "pytz",
-          "purl": "pkg:pypi/pytz@2024.1",
-          "version": "2024.1",
+          "purl": "pkg:pypi/pytz@2026.2",
+          "version": "2026.2",
           "vulnerabilities": []
         },
         {
@@ -101,11 +166,17 @@
           "dependencies": [
             "pkg:pypi/certifi@\u003cnormalized\u003e",
             "pkg:pypi/chardet@\u003cnormalized\u003e",
+            "pkg:pypi/colorama@\u003cnormalized\u003e",
             "pkg:pypi/django@\u003cnormalized\u003e",
             "pkg:pypi/feedparser@\u003cnormalized\u003e",
             "pkg:pypi/idna@\u003cnormalized\u003e",
+            "pkg:pypi/iniconfig@\u003cnormalized\u003e",
+            "pkg:pypi/packaging@\u003cnormalized\u003e",
+            "pkg:pypi/pluggy@\u003cnormalized\u003e",
             "pkg:pypi/pyasn1@\u003cnormalized\u003e",
+            "pkg:pypi/pygments@\u003cnormalized\u003e",
             "pkg:pypi/pyjwt@\u003cnormalized\u003e",
+            "pkg:pypi/pytest@\u003cnormalized\u003e",
             "pkg:pypi/pytz@\u003cnormalized\u003e",
             "pkg:pypi/requests@\u003cnormalized\u003e",
             "pkg:pypi/rsa@\u003cnormalized\u003e",
@@ -151,7 +222,7 @@
           "vulnerabilities": []
         }
       ],
-      "path": "poetry.lock",
+      "path": "uv.lock",
       "subproject": "."
     }
   ],
@@ -161,7 +232,7 @@
   "project": {
     "ecosystem": "python",
     "name": "\u003cnormalized\u003e",
-    "package_manager": "poetry",
+    "package_manager": "uv",
     "path": "\u003cnormalized\u003e"
   },
   "schema_version": "1.0"

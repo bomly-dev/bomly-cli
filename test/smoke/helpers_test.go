@@ -42,6 +42,15 @@ func runBomlyWithEnv(t *testing.T, env []string, args ...string) (stdout, stderr
 	if runtime.GOOS == "windows" {
 		cmd.Env = append(cmd.Env, "USERPROFILE="+tempHome)
 	}
+	if smokeGOPATH != "" {
+		cmd.Env = append(cmd.Env, "GOPATH="+smokeGOPATH)
+	}
+	if smokeGOMODCACHE != "" {
+		cmd.Env = append(cmd.Env, "GOMODCACHE="+smokeGOMODCACHE)
+	}
+	if smokeGOCACHE != "" {
+		cmd.Env = append(cmd.Env, "GOCACHE="+smokeGOCACHE)
+	}
 
 	var outBuf, errBuf bytes.Buffer
 	cmd.Stdout = &outBuf

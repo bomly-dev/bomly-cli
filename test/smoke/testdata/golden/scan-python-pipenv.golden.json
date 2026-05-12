@@ -2,9 +2,9 @@
   "command": "scan",
   "manifests": [
     {
-      "detector": "syft-detector",
+      "detector": "pipenv-detector",
       "ecosystem": "python",
-      "kind": "python",
+      "kind": "Pipfile",
       "package_manager": "pipenv",
       "packages": [
         {
@@ -13,6 +13,7 @@
           "licenses": [],
           "name": "django",
           "purl": "pkg:pypi/django@1.7.1",
+          "scope": "\u003cnormalized\u003e",
           "version": "1.7.1",
           "vulnerabilities": []
         },
@@ -22,6 +23,7 @@
           "licenses": [],
           "name": "feedparser",
           "purl": "pkg:pypi/feedparser@6.0.8",
+          "scope": "\u003cnormalized\u003e",
           "version": "6.0.8",
           "vulnerabilities": []
         },
@@ -31,6 +33,7 @@
           "licenses": [],
           "name": "pyasn1",
           "purl": "pkg:pypi/pyasn1@0.4.8",
+          "scope": "\u003cnormalized\u003e",
           "version": "0.4.8",
           "vulnerabilities": []
         },
@@ -40,6 +43,7 @@
           "licenses": [],
           "name": "pycrypto",
           "purl": "pkg:pypi/pycrypto@2.4",
+          "scope": "\u003cnormalized\u003e",
           "version": "2.4",
           "vulnerabilities": []
         },
@@ -49,6 +53,7 @@
           "licenses": [],
           "name": "pyjwt",
           "purl": "pkg:pypi/pyjwt@0.4.2",
+          "scope": "\u003cnormalized\u003e",
           "version": "0.4.2",
           "vulnerabilities": []
         },
@@ -58,7 +63,26 @@
           "licenses": [],
           "name": "requests",
           "purl": "pkg:pypi/requests@2.2.1",
+          "scope": "\u003cnormalized\u003e",
           "version": "2.2.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:pypi/django@\u003cnormalized\u003e",
+            "pkg:pypi/feedparser@\u003cnormalized\u003e",
+            "pkg:pypi/pyasn1@\u003cnormalized\u003e",
+            "pkg:pypi/pycrypto@\u003cnormalized\u003e",
+            "pkg:pypi/pyjwt@\u003cnormalized\u003e",
+            "pkg:pypi/requests@\u003cnormalized\u003e",
+            "pkg:pypi/rsa@\u003cnormalized\u003e",
+            "pkg:pypi/sgmllib3k@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:pypi/root",
+          "licenses": [],
+          "name": "root",
+          "purl": "pkg:pypi/root",
+          "scope": "\u003cnormalized\u003e",
           "vulnerabilities": []
         },
         {
@@ -67,6 +91,7 @@
           "licenses": [],
           "name": "rsa",
           "purl": "pkg:pypi/rsa@3.4",
+          "scope": "\u003cnormalized\u003e",
           "version": "3.4",
           "vulnerabilities": []
         },
@@ -76,11 +101,12 @@
           "licenses": [],
           "name": "sgmllib3k",
           "purl": "pkg:pypi/sgmllib3k@1.0.0",
+          "scope": "\u003cnormalized\u003e",
           "version": "1.0.0",
           "vulnerabilities": []
         }
       ],
-      "path": "Pipfile.lock",
+      "path": "Pipfile",
       "subproject": "."
     }
   ],

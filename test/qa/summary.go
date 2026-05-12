@@ -197,7 +197,6 @@ func detectorsFromSBOM(path string) ([]string, error) {
 	}
 	return detectorCreators(doc), nil
 }
-
 func compareRelationships(bomlyDoc, githubDoc *sbom.Document) RelationshipSummary {
 	bomlyEdges := purlDependencyEdges(bomlyDoc)
 	githubEdges := purlDependencyEdges(githubDoc)
@@ -234,7 +233,6 @@ func detectorCreators(doc *sbom.Document) []string {
 	}
 	return out
 }
-
 func purlDependencyEdges(doc *sbom.Document) map[string]struct{} {
 	edges := make(map[string]struct{})
 	if doc == nil {

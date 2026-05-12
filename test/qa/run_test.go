@@ -30,7 +30,6 @@ func TestParseSourceNames(t *testing.T) {
 		t.Fatalf("ParseSourceNames() = %#v, want %#v", got, want)
 	}
 }
-
 func TestFilterScanTargets(t *testing.T) {
 	targets := []ScanTarget{
 		{Name: "scan-go"},
@@ -106,7 +105,6 @@ func TestRequiredBomlySBOMsAreGroupedAsSource(t *testing.T) {
 		t.Fatalf("cyclonedx artifact = %q", artifacts["cyclonedx-json"].Artifact)
 	}
 }
-
 func TestPrepareCasesDirPreservesUnselectedCasesForSelectedRun(t *testing.T) {
 	casesDir := filepath.Join(t.TempDir(), "cases")
 	writeTestFile(t, filepath.Join(casesDir, "scan-go", "qa-summary.json"), "{}")

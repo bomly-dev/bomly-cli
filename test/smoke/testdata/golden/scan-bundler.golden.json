@@ -1175,7 +1175,6 @@
           "licenses": [],
           "name": "root",
           "purl": "pkg:gem/root",
-          "scope": "\u003cnormalized\u003e",
           "vulnerabilities": []
         },
         {

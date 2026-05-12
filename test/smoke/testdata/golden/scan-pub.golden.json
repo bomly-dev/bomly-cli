@@ -29,7 +29,6 @@
           },
           "name": "collection",
           "purl": "pkg:pub/collection@1.18.0",
-          "scope": "\u003cnormalized\u003e",
           "version": "1.18.0",
           "vulnerabilities": []
         },
@@ -45,7 +44,6 @@
           "licenses": [],
           "name": "example_dart_pub",
           "purl": "pkg:pub/example_dart_pub@1.0.0",
-          "scope": "\u003cnormalized\u003e",
           "version": "1.0.0",
           "vulnerabilities": []
         },

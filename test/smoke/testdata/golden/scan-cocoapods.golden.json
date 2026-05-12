@@ -57,7 +57,6 @@
           "licenses": [],
           "name": "ReactiveSwift",
           "purl": "pkg:cocoapods/ReactiveSwift@1.0.0",
-          "scope": "\u003cnormalized\u003e",
           "version": "1.0.0",
           "vulnerabilities": []
         },
@@ -67,7 +66,6 @@
           "licenses": [],
           "name": "Result",
           "purl": "pkg:cocoapods/Result@3.1.0",
-          "scope": "\u003cnormalized\u003e",
           "version": "3.1.0",
           "vulnerabilities": []
         },
@@ -82,7 +80,6 @@
           "licenses": [],
           "name": "root",
           "purl": "pkg:cocoapods/root",
-          "scope": "\u003cnormalized\u003e",
           "vulnerabilities": []
         }
       ],

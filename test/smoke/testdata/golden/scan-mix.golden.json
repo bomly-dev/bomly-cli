@@ -29,7 +29,6 @@
           },
           "name": "cowlib",
           "purl": "pkg:hex/cowlib@2.11.0",
-          "scope": "\u003cnormalized\u003e",
           "version": "2.11.0",
           "vulnerabilities": []
         },
@@ -81,7 +80,6 @@
           },
           "name": "ranch",
           "purl": "pkg:hex/ranch@1.8.0",
-          "scope": "\u003cnormalized\u003e",
           "version": "1.8.0",
           "vulnerabilities": []
         },
@@ -96,7 +94,6 @@
           "licenses": [],
           "name": "root",
           "purl": "pkg:hex/root",
-          "scope": "\u003cnormalized\u003e",
           "vulnerabilities": []
         }
       ],

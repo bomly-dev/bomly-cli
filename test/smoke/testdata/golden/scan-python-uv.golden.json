@@ -95,9 +95,7 @@
           "vulnerabilities": []
         },
         {
-          "dependencies": [
-            "pkg:pypi/colorama@0.4.6"
-          ],
+          "dependencies": [],
           "id": "pkg:pypi/pygments@2.20.0",
           "licenses": [],
           "name": "pygments",
@@ -116,7 +114,6 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/colorama@0.4.6",
             "pkg:pypi/iniconfig@2.3.0",
             "pkg:pypi/packaging@26.2",
             "pkg:pypi/pluggy@1.6.0",
@@ -157,7 +154,6 @@
           "dependencies": [
             "pkg:pypi/certifi@2026.4.22",
             "pkg:pypi/chardet@3.0.4",
-            "pkg:pypi/colorama@0.4.6",
             "pkg:pypi/django@1.11.29",
             "pkg:pypi/feedparser@6.0.8",
             "pkg:pypi/idna@2.8",

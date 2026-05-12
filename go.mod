@@ -6,7 +6,7 @@ toolchain go1.26.3
 
 require (
 	github.com/CycloneDX/cyclonedx-go v0.10.0
-	github.com/Masterminds/semver/v3 v3.4.0
+	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/anchore/clio v0.1.0
 	github.com/anchore/grype v0.112.0
 	github.com/anchore/packageurl-go v0.2.0

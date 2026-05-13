@@ -65,6 +65,18 @@ func statusBar(value string, width int) string {
 	return render.Style(padRight(truncateToWidth(value, width), width), render.BgBlue, render.White)
 }
 
+func centerLine(value string, width int) string {
+	if width <= 0 {
+		return ""
+	}
+	value = truncateToWidth(value, width)
+	visible := len([]rune(render.StripANSI(value)))
+	if visible >= width {
+		return value
+	}
+	return strings.Repeat(" ", (width-visible)/2) + value
+}
+
 func joinColumns(left, right []string, leftWidth, rightWidth int) []string {
 	height := len(left)
 	if len(right) > height {

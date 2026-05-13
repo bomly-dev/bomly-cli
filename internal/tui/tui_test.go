@@ -95,8 +95,9 @@ func TestInteractiveListModel_ViewIncludesDetails(t *testing.T) {
 	plain := render.StripANSI(view)
 	for _, want := range []string{
 		"Bomly Interactive Scan: demo-app",
-		"Manifest  package-lock.json",
-		"Root      demo-app@1.0.0",
+		"Components (2)",
+		"Manifest: package-lock.json",
+		"Component Details",
 		"Component",
 		"react@18.2.0",
 		"Scope: runtime",
@@ -198,10 +199,10 @@ func TestNewScanInteractiveModel_ViewIncludesGraphSummary(t *testing.T) {
 
 	for _, want := range []string{
 		"Bomly Interactive Scan: demo-app",
-		"Manifest  package-lock.json",
-		"Direct    1",
-		"Transitive 0",
-		"Project   /tmp/demo-app",
+		"Components (2)",
+		"Component Details",
+		"Group: Dependency",
+		"Manifest: package-lock.json",
 	} {
 		if !strings.Contains(plain, want) {
 			t.Fatalf("expected view to contain %q, got:\n%s", want, view)
@@ -275,14 +276,14 @@ func TestScanInteractiveModel_MultiManifestNavigation(t *testing.T) {
 	updated, _ = wrapper.Update(tea.KeyMsg{Type: tea.KeyEnter})
 	wrapper = updated.(*teaModel)
 	plain = render.StripANSI(wrapper.View())
-	if !strings.Contains(plain, "Direct") {
+	if !strings.Contains(plain, "Relationship: root") || !strings.Contains(plain, "zod@3.23.0") {
 		t.Fatalf("expected component view after Enter, got:\n%s", plain)
 	}
 
 	updated, _ = wrapper.Update(tea.KeyMsg{Type: tea.KeyBackspace})
 	wrapper = updated.(*teaModel)
 	plain = render.StripANSI(wrapper.View())
-	if !strings.Contains(plain, "Manifests 2") {
+	if !strings.Contains(plain, "Manifests (2)") {
 		t.Fatalf("expected back navigation to manifest list, got:\n%s", plain)
 	}
 }
@@ -939,12 +940,12 @@ func TestBuildLicensesListModel_GroupsByUniqueLicense(t *testing.T) {
 	if len(list.items) != 2 {
 		t.Fatalf("expected 2 unique license rows, got %d", len(list.items))
 	}
-	plain := render.StripANSI(list.View(100, 20))
+	plain := render.StripANSI(list.View(100, 28))
 	for _, want := range []string{
-		"Unique licenses 2",
+		"Licenses (2)",
 		"Apache-2.0",
 		"MIT",
-		"Packages Using This License",
+		"Components (1)",
 	} {
 		if !strings.Contains(plain, want) {
 			t.Fatalf("expected license view to contain %q, got:\n%s", want, plain)

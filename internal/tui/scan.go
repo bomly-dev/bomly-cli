@@ -23,18 +23,20 @@ func NewScanNavigator(titlePrefix string, project output.ProjectDescriptor, cons
 	}
 
 	model := &scanModel{
-		titlePrefix:       titlePrefix,
-		project:           project,
-		graphValue:        graphValue,
-		explainMode:       strings.Contains(strings.ToLower(titlePrefix), "explain"),
-		manifests:         manifests,
-		manifestByID:      manifestByID,
-		mode:              interactiveScanModeManifests,
-		allowManifestExit: len(manifests) > 1,
-		findings:          findings,
-		activeView:        interactiveScanViewOverview,
-		sourceExpanded:    map[string]bool{"root": true},
-		componentExpanded: map[string]bool{},
+		titlePrefix:           titlePrefix,
+		project:               project,
+		graphValue:            graphValue,
+		explainMode:           strings.Contains(strings.ToLower(titlePrefix), "explain"),
+		manifests:             manifests,
+		manifestByID:          manifestByID,
+		mode:                  interactiveScanModeManifests,
+		allowManifestExit:     len(manifests) > 1,
+		findings:              findings,
+		activeView:            interactiveScanViewOverview,
+		sourceExpanded:        map[string]bool{"root": true},
+		componentExpanded:     map[string]bool{},
+		vulnerabilityGroup:    "component",
+		vulnerabilityExpanded: map[string]bool{},
 	}
 	if len(manifests) == 1 {
 		model.mode = interactiveScanModeComponents
@@ -163,6 +165,11 @@ func (m *scanModel) ToggleSelected() {
 		m.list = m.buildCurrentListModel()
 		return
 	}
+	if m.activeView == interactiveScanViewVulns && item.canOpen && item.key != "" {
+		m.vulnerabilityExpanded[item.key] = !item.expanded
+		m.list = m.buildCurrentListModel()
+		return
+	}
 	if m.activeView != interactiveScanViewSource {
 		return
 	}
@@ -171,6 +178,22 @@ func (m *scanModel) ToggleSelected() {
 		key = sourceKey(item.title)
 	}
 	m.sourceExpanded[key] = !m.sourceExpanded[key]
+	m.list = m.buildCurrentListModel()
+}
+
+func (m *scanModel) CycleGroup() {
+	if m == nil || m.activeView != interactiveScanViewVulns {
+		return
+	}
+	values := []string{"component", "severity", "ecosystem"}
+	for idx, value := range values {
+		if m.vulnerabilityGroup == value {
+			m.vulnerabilityGroup = values[(idx+1)%len(values)]
+			m.list = m.buildCurrentListModel()
+			return
+		}
+	}
+	m.vulnerabilityGroup = values[0]
 	m.list = m.buildCurrentListModel()
 }
 
@@ -293,8 +316,9 @@ func (m *scanModel) scanSummaryLines(active scanView) []string {
 			render.Style("SCAN", render.BgBlue, render.White, render.Bold) + " " +
 			render.Style(valueOrDash(m.project.Name), render.White, render.Bold) + " " +
 			render.Style(targetKindLabel(m.project), render.Dim),
+		"",
 		m.tabLine(active),
-		m.scanStatusLine(),
+		"",
 	}
 }
 
@@ -352,7 +376,7 @@ func (m *scanModel) scanLegend() string {
 func (m *scanModel) scanFooterLines(width int) []string {
 	return []string{
 		statusBar(m.scanFooterSummary(), width),
-		truncateToWidth(m.scanLegend(), width),
+		centerLine(m.scanLegend(), width),
 	}
 }
 
@@ -365,14 +389,36 @@ func (m *scanModel) withScanFooter(list *listModel) *listModel {
 	return list
 }
 
+func (m *scanModel) componentControlsLine() string {
+	return render.Style("Group: ", render.Dim) + render.Style("Dependency", render.BgYellow, render.Bold) +
+		render.Style(" | Filter: ", render.Dim) + render.Style(valueOrDefault(m.relationshipFilter, "All"), render.BgYellow, render.Bold) +
+		render.Style(" | Scope: ", render.Dim) + render.Style(valueOrDefault(m.scopeFilter, "All"), render.BgYellow, render.Bold) +
+		render.Style(" | Severity: ", render.Dim) + render.Style(valueOrDefault(m.severityFilter, "All"), render.BgYellow, render.Bold) +
+		render.Style(" | ", render.Dim) + keyHint("/", "search") + " " + keyHint("r", "relationship") + " " + keyHint("s", "scope") + " " + keyHint("v", "severity")
+}
+
 func (m *scanModel) buildManifestListModel() *listModel {
-	items := make([]listItem, 0, len(m.manifests))
-	for _, manifest := range m.manifests {
-		title := manifest.displayName + " [" + manifest.id + "]"
+	items := make([]listItem, 0, len(m.manifests)+1)
+	items = append(items, listItem{
+		title:    fmt.Sprintf("%s (%d manifests)", valueOrDash(m.project.Name), len(m.manifests)),
+		subtitle: "project",
+		details:  projectDetails(m, packageCount(m.graphValue)),
+		key:      "project",
+		canOpen:  true,
+		expanded: true,
+	})
+	for idx, manifest := range m.manifests {
+		title := fmt.Sprintf("%s (%s, %d components) [%s]", manifest.displayName, manifestEcosystem(m.graphValue, manifest), manifestComponentCount(m.graphValue, manifest.rootID), manifest.id)
+		tree := "├─ "
+		if idx == len(m.manifests)-1 {
+			tree = "└─ "
+		}
 		items = append(items, listItem{
 			title:    title,
 			subtitle: "manifest",
 			details:  manifestDetails(m.graphValue, manifest),
+			tree:     tree,
+			depth:    1,
 		})
 	}
 
@@ -381,19 +427,64 @@ func (m *scanModel) buildManifestListModel() *listModel {
 		packageCount = m.graphValue.Size()
 	}
 
+	selected := 0
+	if len(items) > 1 {
+		selected = 1
+	}
 	return &listModel{
-		title: fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
-		summary: append(m.scanSummaryLines(interactiveScanViewPackages), []string{
-			render.Style(fmt.Sprintf("Manifests %d", len(m.manifests)), render.Cyan, render.Bold),
-			render.Style(fmt.Sprintf("Packages  %d", packageCount), render.Cyan, render.Bold),
-			render.Style("Project   ", render.Dim) + m.project.Path,
-			render.Style("Ecosystem ", render.Dim) + valueOrDash(m.project.Ecosystem),
-		}...),
+		title:          fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
+		summary:        m.scanSummaryLines(interactiveScanViewPackages),
+		controls:       []string{m.componentControlsLine() + render.Style(" | Components: ", render.Dim) + fmt.Sprintf("%d", packageCount)},
+		listTitle:      fmt.Sprintf("Manifests (%d)", len(m.manifests)),
+		detailTitle:    "Manifest Details",
 		navigationHelp: interactiveCommonNavigationHelp + "; Enter opens selected manifest",
 		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; 1-6 switch tabs",
 		emptyState:     "No manifests were found in the dependency graph.",
 		items:          items,
+		selected:       selected,
 	}
+}
+
+func projectDetails(m *scanModel, components int) []string {
+	return []string{
+		render.Style("Project", render.Bold, render.Cyan),
+		"",
+		render.Style("  Name: ", render.Dim) + valueOrDash(m.project.Name),
+		render.Style("  Path: ", render.Dim) + valueOrDash(m.project.Path),
+		render.Style("  Type: ", render.Dim) + targetKindLabel(m.project),
+		render.Style("  Manifests: ", render.Dim) + fmt.Sprintf("%d", len(m.manifests)),
+		render.Style("  Components: ", render.Dim) + fmt.Sprintf("%d", components),
+	}
+}
+
+func packageCount(graphValue *sdk.Graph) int {
+	if graphValue == nil {
+		return 0
+	}
+	return graphValue.Size()
+}
+
+func manifestComponentCount(graphValue *sdk.Graph, rootID string) int {
+	if graphValue == nil || rootID == "" {
+		return 0
+	}
+	rows := rootDependencies(graphValue, rootID)
+	count := 0
+	if _, ok := graphValue.Package(rootID); ok {
+		count = 1
+	}
+	return count + len(rows.direct) + len(rows.transitive)
+}
+
+func manifestEcosystem(graphValue *sdk.Graph, row listPackageRow) string {
+	if graphValue == nil {
+		return "unknown"
+	}
+	pkg, ok := graphValue.Package(row.rootID)
+	if !ok || pkg == nil {
+		return "unknown"
+	}
+	return valueOrDefault(pkg.Ecosystem, "unknown")
 }
 
 func (m *scanModel) buildOverviewListModel() *listModel {
@@ -474,42 +565,68 @@ func (m *scanModel) overviewDashboardView(width, height int) string {
 	}
 
 	stats := scanStats(m.graphValue, m.findings)
-	cardHeight := 5
+	cardHeight := 8
 	gap := 1
-	cardWidth := (width - 3*gap) / 4
+	leftHalf := (width - gap) / 2
+	summaryWidth := (leftHalf - 2*gap) / 3
+	targetWidth := width - leftHalf - gap
 	cards := [][]string{
 		boxView("Components", []string{
 			render.Style(fmt.Sprintf("%d", stats.components), render.Cyan, render.Bold),
 			fmt.Sprintf("%d ecosystems", len(stats.ecosystems)),
-		}, cardWidth, cardHeight, render.Cyan),
+			fmt.Sprintf("%d manifests", len(m.manifests)),
+		}, summaryWidth, cardHeight, render.Cyan),
 		boxView("Vulnerabilities", []string{
-			severityText(fmt.Sprintf("%d", stats.vulnerabilities)),
-			severityTinySummary(severityDistribution(m.findings)),
-		}, cardWidth, cardHeight, render.Red),
+			severityCardLine(m.findings, "critical"),
+			severityCardLine(m.findings, "high"),
+			severityCardLine(m.findings, "medium"),
+			severityCardLine(m.findings, "low"),
+			severityCardLine(m.findings, "unknown"),
+		}, summaryWidth, cardHeight, render.Red),
 		boxView("Licenses", []string{
 			render.Style(fmt.Sprintf("%d", stats.licenses), render.Yellow, render.Bold),
 			"unique licenses",
-		}, cardWidth, cardHeight, render.Yellow),
+			fmt.Sprintf("%d unknown", unknownLicenseCount(m.graphValue)),
+			fmt.Sprintf("%d unrecognized", unrecognizedLicenseCount(m.graphValue)),
+		}, summaryWidth, cardHeight, render.Yellow),
 		boxView("Target", []string{
-			valueOrDash(m.project.Name),
-			targetKindLabel(m.project),
-		}, width-cardWidth*3-gap*3, cardHeight, render.Green),
+			render.Style("Name: ", render.Dim) + valueOrDash(m.project.Name),
+			render.Style("Type: ", render.Dim) + targetKindLabel(m.project),
+			render.Style("Path: ", render.Dim) + valueOrDash(m.project.Path),
+			render.Style("Ecosystem: ", render.Dim) + valueOrDash(m.project.Ecosystem),
+			render.Style("Package manager: ", render.Dim) + valueOrDash(m.project.PackageManager),
+			render.Style("Manifests: ", render.Dim) + fmt.Sprintf("%d", len(m.manifests)),
+		}, targetWidth, cardHeight, render.Green),
 	}
 	for idx := 0; idx < cardHeight; idx++ {
 		lines = append(lines, cards[0][idx]+" "+cards[1][idx]+" "+cards[2][idx]+" "+cards[3][idx])
 	}
+	lines = append(lines, "")
 
-	remaining := bodyHeight - cardHeight
+	remaining := bodyHeight - cardHeight - 1
 	leftWidth := width / 2
 	rightWidth := width - leftWidth - 1
-	leftContent := append(
-		boxView("Vulnerability Severity", compactDistributionLines(severityDistribution(m.findings), 6), leftWidth, remaining/3, render.Red),
-		boxView("Ecosystem Distribution", compactDistributionLines(stats.ecosystems, 6), leftWidth, remaining/3, render.Cyan)...,
+	topVuln := topVulnerableComponentStats(m.graphValue, m.findings, 8)
+	topDeps := topDependedOnComponentStats(m.graphValue, m.findings, 8)
+	leftA := remaining / 3
+	leftB := remaining / 3
+	leftC := remaining - leftA - leftB - 2
+	if leftC < 4 {
+		leftC = 4
+	}
+	leftContent := stackBoxes(
+		boxView("Vulnerability Severity", severityDistributionLines(m.findings, leftWidth-2), leftWidth, leftA, render.Red),
+		boxView("Ecosystem Distribution", coloredDistributionLines(stats.ecosystems, stats.components, 8, leftWidth-2), leftWidth, leftB, render.Cyan),
+		boxView("License Distribution", coloredDistributionLines(groupedLicenseCounts(m.graphValue, 10), stats.components, 10, leftWidth-2), leftWidth, leftC, render.Yellow),
 	)
-	leftContent = append(leftContent, boxView("License Distribution", compactLicenseLines(m.graphValue, 8), leftWidth, remaining-len(leftContent), render.Yellow)...)
-	rightContent := append(
-		boxView("Top Vulnerable Components", compactDistributionLines(topVulnerableCounts(m.findings), 8), rightWidth, remaining/2, render.Red),
-		boxView("Top Depended-On Components", compactDistributionLines(topDependedOnCounts(m.graphValue), 8), rightWidth, remaining-remaining/2, render.Green)...,
+	rightA := remaining / 2
+	rightB := remaining - rightA - 1
+	if rightB < 4 {
+		rightB = 4
+	}
+	rightContent := stackBoxes(
+		boxView(fmt.Sprintf("Top Vulnerable Components (%d)", vulnerableComponentTotal(m.graphValue, m.findings)), topVulnerableTableLines(topVuln, rightWidth-2), rightWidth, rightA, render.Red),
+		boxView(fmt.Sprintf("Top Depended-On Components (%d)", dependedOnComponentTotal(m.graphValue)), topDependedOnTableLines(topDeps, rightWidth-2), rightWidth, rightB, render.Green),
 	)
 	lines = append(lines, joinColumns(leftContent, rightContent, leftWidth, rightWidth)...)
 	lines = append(lines, footerLines...)
@@ -543,68 +660,266 @@ func (m *scanModel) buildVulnsListModel() *listModel {
 		return filtered[i].ID < filtered[j].ID
 	})
 
-	items := make([]listItem, 0, len(filtered))
-	for _, f := range filtered {
-		pkgName := ""
-		if f.Package != nil {
-			pkgName = f.Package.Name
-			if f.Package.Version != "" {
-				pkgName += "@" + f.Package.Version
-			}
-		}
-		// Append pkgName directly to the title so it renders as plain (white)
-		// text without any background-color badge that causes contrast issues.
-		titleStr := f.ID
-		if pkgName != "" {
-			titleStr += "  " + pkgName
-		}
-		items = append(items, listItem{
-			title:  titleStr,
-			badges: []badge{{label: f.Severity, kind: "severity-" + strings.ToLower(f.Severity)}},
-			details: []string{
-				render.Style("ID        ", render.Dim) + valueOrDash(f.ID),
-				render.Style("Severity  ", render.Dim) + severityText(f.Severity),
-				render.Style("Package   ", render.Dim) + valueOrDash(pkgName),
-				render.Style("Title     ", render.Dim) + valueOrDash(f.Title),
-				render.Style("Source    ", render.Dim) + valueOrDash(f.Source),
-			},
-		})
-	}
+	items := m.vulnerabilityItems(filtered)
 
 	return &listModel{
-		title: fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
-		summary: append(m.scanSummaryLines(interactiveScanViewVulns), []string{
-			render.Style("Filter severity ", render.Dim) + valueOrDash(m.severityFilter),
-			render.Style(fmt.Sprintf("Showing %d / %d", len(filtered), len(all)), render.Cyan, render.Bold),
-		}...),
+		title:       fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
+		summary:     m.scanSummaryLines(interactiveScanViewVulns),
+		controls:    []string{m.vulnerabilityControlsLine(len(filtered), len(all))},
+		listTitle:   fmt.Sprintf("Vulnerabilities (%d)", len(filtered)),
+		listHeader:  "Vulnerability ID / Group",
+		detailTitle: "Vulnerability Details",
+		topPanels: []listPanel{
+			{title: "Severity Summary", lines: vulnerabilitySummaryLines(filtered), color: render.Red, weight: 1},
+			{title: "Top Affected", lines: topAffectedLines(filtered, 5, 60), color: render.Green, weight: 2},
+		},
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; v cycles severity filter; 1-6 switch tabs",
+		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; v cycles severity filter; g groups vulnerabilities; 1-6 switch tabs",
 		emptyState:     "No policy findings found. Run with --audit to evaluate enriched vulnerability data.",
 		items:          items,
 	}
 }
 
+func (m *scanModel) vulnerabilityItems(findings []sdk.Finding) []listItem {
+	group := strings.TrimSpace(m.vulnerabilityGroup)
+	if group == "" {
+		group = "component"
+	}
+	groups := make(map[string][]sdk.Finding)
+	for _, finding := range findings {
+		key := vulnerabilityGroupKey(finding, group)
+		groups[key] = append(groups[key], finding)
+	}
+	keys := sortedFindingGroupKeys(groups)
+	items := make([]listItem, 0, len(findings)+len(keys))
+	for _, key := range keys {
+		groupKey := group + ":" + key
+		expanded, ok := m.vulnerabilityExpanded[groupKey]
+		if !ok {
+			expanded = true
+		}
+		groupFindings := groups[key]
+		items = append(items, listItem{
+			title:    fmt.Sprintf("%s (%d)", key, len(groupFindings)),
+			subtitle: "group",
+			details:  vulnerabilityGroupDetails(key, group, groupFindings),
+			key:      groupKey,
+			canOpen:  true,
+			expanded: expanded,
+		})
+		if !expanded {
+			continue
+		}
+		for idx, finding := range groupFindings {
+			title := finding.ID
+			if group != "component" {
+				if pkgName := findingPackageName(finding); pkgName != "" {
+					title += "  " + pkgName
+				}
+			}
+			badges := []badge{}
+			if group != "severity" {
+				badges = append(badges, badge{label: finding.Severity, kind: "severity-" + strings.ToLower(finding.Severity)})
+			}
+			items = append(items, listItem{
+				title:   title,
+				badges:  badges,
+				details: vulnerabilityDetails(finding),
+				tree:    treePrefix(nil, idx == len(groupFindings)-1, 1),
+				depth:   1,
+			})
+		}
+	}
+	return items
+}
+
+func sortedFindingGroupKeys(groups map[string][]sdk.Finding) []string {
+	keys := make([]string, 0, len(groups))
+	for key := range groups {
+		keys = append(keys, key)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		if len(groups[keys[i]]) != len(groups[keys[j]]) {
+			return len(groups[keys[i]]) > len(groups[keys[j]])
+		}
+		return keys[i] < keys[j]
+	})
+	return keys
+}
+
+func vulnerabilityGroupKey(finding sdk.Finding, group string) string {
+	switch group {
+	case "severity":
+		return titleCase(valueOrDefault(finding.Severity, "unknown"))
+	case "ecosystem":
+		if finding.Package != nil {
+			return valueOrDefault(finding.Package.Ecosystem, "unknown")
+		}
+		return "unknown"
+	default:
+		return valueOrDefault(findingPackageName(finding), "unknown component")
+	}
+}
+
+func findingPackageName(finding sdk.Finding) string {
+	if finding.Package == nil {
+		return ""
+	}
+	return packageDisplayName(finding.Package)
+}
+
+func (m *scanModel) vulnerabilityControlsLine(showing, total int) string {
+	return render.Style("Filter: ", render.Dim) + render.Style(valueOrDefault(m.severityFilter, "All"), render.BgYellow, render.Bold) +
+		render.Style(" | Group: ", render.Dim) + render.Style(valueOrDefault(m.vulnerabilityGroup, "component"), render.BgYellow, render.Bold) +
+		render.Style(" | Showing: ", render.Dim) + fmt.Sprintf("%d/%d", showing, total) +
+		render.Style(" | ", render.Dim) + keyHint("g", "group") + " " + keyHint("v", "severity") + " " + keyHint("/", "search")
+}
+
+func vulnerabilitySummaryLines(findings []sdk.Finding) []string {
+	counts := severityDistribution(findings)
+	affected := make(map[string]struct{})
+	for _, finding := range findings {
+		if name := findingPackageName(finding); name != "" {
+			affected[name] = struct{}{}
+		}
+	}
+	return []string{
+		severityColor("critical", fmt.Sprintf("%d Critical", counts["critical"])),
+		severityColor("high", fmt.Sprintf("%d High", counts["high"])),
+		severityColor("medium", fmt.Sprintf("%d Medium", counts["medium"])),
+		severityColor("low", fmt.Sprintf("%d Low", counts["low"])),
+		render.Style("Affected components: ", render.Dim) + fmt.Sprintf("%d", len(affected)),
+	}
+}
+
+func topAffectedLines(findings []sdk.Finding, limit, width int) []string {
+	counts := make(map[string]int)
+	for _, finding := range findings {
+		if name := findingPackageName(finding); name != "" {
+			counts[name]++
+		}
+	}
+	keys := sortedCountKeys(counts)
+	if len(keys) > limit {
+		keys = keys[:limit]
+	}
+	if len(keys) == 0 {
+		return []string{render.Style("(none)", render.Dim)}
+	}
+	max := maxCount(counts)
+	lines := make([]string, 0, len(keys))
+	for _, key := range keys {
+		labelWidth := width - 22
+		if labelWidth < 12 {
+			labelWidth = 12
+		}
+		lines = append(lines, padRight(truncateToWidth(key, labelWidth), labelWidth)+padRight(fmt.Sprintf("%d", counts[key]), 6)+coloredBarLine(counts[key], max, 14, render.Green))
+	}
+	return lines
+}
+
+func vulnerabilityGroupDetails(key, group string, findings []sdk.Finding) []string {
+	lines := []string{
+		render.Style("Group", render.Bold, render.Cyan),
+		"",
+		render.Style("  Name: ", render.Dim) + key,
+		render.Style("  Grouping: ", render.Dim) + group,
+		render.Style("  Vulnerabilities: ", render.Dim) + fmt.Sprintf("%d", len(findings)),
+		"",
+		render.Style(fmt.Sprintf("CVEs (%d)", len(findings)), render.Bold, render.Magenta),
+	}
+	for _, finding := range findings {
+		lines = append(lines, render.Style("  - ", render.Dim)+finding.ID+" "+valueOrDash(finding.Title))
+	}
+	return lines
+}
+
+func vulnerabilityDetails(finding sdk.Finding) []string {
+	lines := []string{
+		render.Style("Vulnerability", render.Bold, render.Cyan),
+		"",
+		render.Style("  ID: ", render.Dim) + valueOrDash(finding.ID),
+		render.Style("  Severity: ", render.Dim) + severityText(finding.Severity),
+		render.Style("  Source: ", render.Dim) + valueOrDash(finding.Source),
+		render.Style("  Package: ", render.Dim) + valueOrDash(findingPackageName(finding)),
+		render.Style("  Title: ", render.Dim) + valueOrDash(finding.Title),
+		render.Style("  KEV exploited: ", render.Dim) + fmt.Sprintf("%t", finding.KEVExploited),
+		"",
+		render.Style("Description", render.Bold, render.Magenta),
+		"",
+		render.Style("  ", render.Dim) + valueOrDash(finding.Description),
+		"",
+		render.Style("Versions", render.Bold, render.Magenta),
+		"",
+		render.Style("  Affected: ", render.Dim) + valueOrDash(finding.AffectedVersionRange),
+		render.Style("  Fixed in: ", render.Dim) + valueOrDash(finding.FixedIn),
+		"",
+		render.Style(fmt.Sprintf("CVSS (%d)", len(finding.CVSS)), render.Bold, render.Magenta),
+	}
+	if len(finding.CVSS) == 0 {
+		lines = append(lines, render.Style("  (none)", render.Dim))
+	} else {
+		for _, score := range finding.CVSS {
+			lines = append(lines, render.Style("  - ", render.Dim)+fmt.Sprintf("%.1f %s %s", score.Score, valueOrDash(score.Version), valueOrDash(score.Vector)))
+		}
+	}
+	lines = append(lines, "", render.Style(fmt.Sprintf("References (%d)", len(finding.References)), render.Bold, render.Magenta))
+	if len(finding.References) == 0 {
+		lines = append(lines, render.Style("  (none)", render.Dim))
+	} else {
+		for _, ref := range finding.References {
+			lines = append(lines, render.Style("  - ", render.Dim)+valueOrDash(ref.URL)+" "+render.Style(valueOrDash(ref.Type), render.Dim))
+		}
+	}
+	lines = append(lines, "", render.Style(fmt.Sprintf("Reasons (%d)", len(finding.Reasons)), render.Bold, render.Magenta))
+	if len(finding.Reasons) == 0 {
+		lines = append(lines, render.Style("  (none)", render.Dim))
+	} else {
+		lines = append(lines, indentLines(finding.Reasons)...)
+	}
+	return lines
+}
+
 func (m *scanModel) buildLicensesListModel() *listModel {
 	rows := licenseRows(m.graphValue)
+	totalComponents := graphSize(m.graphValue)
 	items := make([]listItem, 0, len(rows))
 	for _, row := range rows {
+		title := licenseTableRow(row, totalComponents, 48)
 		items = append(items, listItem{
-			title:    row.license,
+			title:    title,
 			subtitle: fmt.Sprintf("%d package(s)", len(row.packages)),
 			details:  licenseDetails(row),
 		})
 	}
 
 	return &listModel{
-		title: fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
-		summary: append(m.scanSummaryLines(interactiveScanViewLicenses), []string{
-			render.Style(fmt.Sprintf("Unique licenses %d", len(rows)), render.Cyan, render.Bold),
-		}...),
+		title:          fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
+		summary:        m.scanSummaryLines(interactiveScanViewLicenses),
+		controls:       []string{render.Style("Group: ", render.Dim) + render.Style("License", render.BgYellow, render.Bold) + render.Style(" | ", render.Dim) + keyHint("/", "search") + " " + keyHint("Enter", "inspect")},
+		listTitle:      fmt.Sprintf("Licenses (%d)", len(rows)),
+		listHeader:     padRight("License", 22) + padRight("Components", 11) + "Percentage",
+		detailTitle:    "License Details",
 		navigationHelp: interactiveCommonNavigationHelp,
 		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; 1-6 switch tabs",
 		emptyState:     "No license information found.",
 		items:          items,
 	}
+}
+
+func licenseTableRow(row licenseRow, totalComponents int, width int) string {
+	percent := 0
+	if totalComponents > 0 {
+		percent = len(row.packages) * 100 / totalComponents
+	}
+	nameWidth := width - 28
+	if nameWidth < 18 {
+		nameWidth = 18
+	}
+	return padRight(truncateToWidth(row.license, nameWidth), nameWidth) +
+		padRight(fmt.Sprintf("%d", len(row.packages)), 7) +
+		coloredBarLine(len(row.packages), totalComponents, 12, render.Yellow) +
+		fmt.Sprintf(" %d%%", percent)
 }
 
 func (m *scanModel) buildFindingsListModel() *listModel {
@@ -616,14 +931,17 @@ func (m *scanModel) buildFindingsListModel() *listModel {
 		}
 		details := []string{
 			render.Style("Finding", render.Bold, render.Cyan),
+			"",
 			render.Style("  ID: ", render.Dim) + valueOrDash(finding.ID),
 			render.Style("  Kind: ", render.Dim) + valueOrDash(string(finding.Kind)),
 			render.Style("  Severity: ", render.Dim) + severityText(finding.Severity),
 			render.Style("  Package: ", render.Dim) + valueOrDash(pkg),
 			render.Style("  Title: ", render.Dim) + valueOrDash(finding.Title),
 			render.Style("  Source: ", render.Dim) + valueOrDash(finding.Source),
+			render.Style("  Description: ", render.Dim) + valueOrDash(finding.Description),
 			"",
-			render.Style("Reasons", render.Bold, render.Magenta),
+			render.Style(fmt.Sprintf("Reasons (%d)", len(finding.Reasons)), render.Bold, render.Magenta),
+			"",
 		}
 		details = append(details, indentLines(finding.Reasons)...)
 		items = append(items, listItem{
@@ -636,11 +954,31 @@ func (m *scanModel) buildFindingsListModel() *listModel {
 	return &listModel{
 		title:          fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
 		summary:        m.scanSummaryLines(interactiveScanViewFindings),
+		controls:       []string{render.Style("Filter: ", render.Dim) + render.Style("All", render.BgYellow, render.Bold) + render.Style(" | ", render.Dim) + keyHint("/", "search") + " " + keyHint("Enter", "inspect")},
+		listTitle:      fmt.Sprintf("Findings (%d)", len(m.findings)),
+		listHeader:     "Finding",
+		detailTitle:    "Finding Details",
+		topPanels:      []listPanel{{title: "Findings Summary", lines: findingSummaryLines(m.findings), color: render.Red, weight: 1}},
 		navigationHelp: interactiveCommonNavigationHelp,
 		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; 1-6 switch tabs",
 		emptyState:     "No findings found. Run with --audit to evaluate available vulnerability data.",
 		items:          items,
 	}
+}
+
+func findingSummaryLines(findings []sdk.Finding) []string {
+	counts := make(map[string]int)
+	for _, finding := range findings {
+		counts[string(finding.Kind)]++
+	}
+	lines := []string{render.Style("Total: ", render.Dim) + fmt.Sprintf("%d", len(findings))}
+	for _, key := range sortedCountKeys(counts) {
+		lines = append(lines, fmt.Sprintf("%d %s", counts[key], titleCase(key)))
+	}
+	if len(lines) == 1 {
+		lines = append(lines, render.Style("(none)", render.Dim))
+	}
+	return lines
 }
 
 func (m *scanModel) buildSourceListModel() *listModel {
@@ -689,11 +1027,21 @@ func (m *scanModel) buildSourceListModel() *listModel {
 	return &listModel{
 		title:          fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
 		summary:        m.scanSummaryLines(interactiveScanViewSource),
+		controls:       []string{render.Style("Mode: ", render.Dim) + render.Style("Tree", render.BgYellow, render.Bold) + render.Style(" | Nodes: ", render.Dim) + fmt.Sprintf("%d", sourceNodeCount(m)) + render.Style(" | ", render.Dim) + keyHint("Enter", "toggle") + " " + keyHint("/", "search")},
+		listTitle:      fmt.Sprintf("Source (%d nodes)", sourceNodeCount(m)),
+		detailTitle:    "Source Details",
 		navigationHelp: interactiveCommonNavigationHelp + "; Enter expands/collapses source nodes",
 		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; 1-6 switch tabs; e export; ? help",
 		emptyState:     "No source data is available.",
 		items:          items,
 	}
+}
+
+func sourceNodeCount(m *scanModel) int {
+	if m == nil {
+		return 0
+	}
+	return 1 + len(m.manifests) + graphSize(m.graphValue) + relationshipCount(m.graphValue)
 }
 
 type licenseRow struct {
@@ -766,10 +1114,16 @@ func licenseRows(graphValue *sdk.Graph) []licenseRow {
 func licenseDetails(row licenseRow) []string {
 	lines := []string{
 		render.Style("License", render.Bold, render.Cyan),
+		"",
 		render.Style("  Identifier: ", render.Dim) + valueOrDash(row.license),
+		render.Style("  Full name: ", render.Dim) + licenseFullName(row.license),
+		render.Style("  Text: ", render.Dim) + licenseTextURL(row.license),
+		render.Style("  Category: ", render.Dim) + licenseCategory(row.license),
+		render.Style("  Recognition: ", render.Dim) + licenseRecognition(row.license),
 		render.Style("  Package count: ", render.Dim) + fmt.Sprintf("%d", len(row.packages)),
 		"",
-		render.Style("Packages Using This License", render.Bold, render.Magenta),
+		render.Style(fmt.Sprintf("Components (%d)", len(row.packages)), render.Bold, render.Magenta),
+		"",
 	}
 	if len(row.packages) == 0 {
 		lines = append(lines, render.Style("  (none)", render.Dim))
@@ -788,12 +1142,50 @@ func licenseDetails(row licenseRow) []string {
 	return lines
 }
 
+func licenseFullName(value string) string {
+	if isUnknownLicense(value) {
+		return "Unknown"
+	}
+	return value
+}
+
+func licenseTextURL(value string) string {
+	if isUnknownLicense(value) || !looksLikeSPDXLicense(value) {
+		return "-"
+	}
+	return "https://spdx.org/licenses/" + value + ".html"
+}
+
+func licenseCategory(value string) string {
+	lower := strings.ToLower(value)
+	switch {
+	case isUnknownLicense(value):
+		return "Unknown"
+	case strings.Contains(lower, "gpl") || strings.Contains(lower, "lgpl") || strings.Contains(lower, "agpl"):
+		return "Copyleft"
+	case strings.Contains(lower, "mit") || strings.Contains(lower, "apache") || strings.Contains(lower, "bsd") || strings.Contains(lower, "isc"):
+		return "Permissive"
+	default:
+		return "Unclassified"
+	}
+}
+
+func licenseRecognition(value string) string {
+	switch {
+	case isUnknownLicense(value):
+		return render.Style("unknown", render.Yellow, render.Bold)
+	case looksLikeSPDXLicense(value):
+		return render.Style("recognized", render.Green, render.Bold)
+	default:
+		return render.Style("unrecognized expression", render.Yellow, render.Bold)
+	}
+}
+
 func (m *scanModel) buildComponentListModel(manifest listPackageRow) *listModel {
 	if m.explainMode {
 		return m.buildExplainComponentListModel(manifest)
 	}
 	rootPkg, _ := m.graphValue.Package(manifest.rootID)
-	groups := rootDependencies(m.graphValue, manifest.rootID)
 
 	rows := m.componentTreeRows(manifest.rootID)
 	rows = filterPackageRows(rows, m.relationshipFilter, m.scopeFilter)
@@ -859,17 +1251,11 @@ func (m *scanModel) buildComponentListModel(manifest listPackageRow) *listModel 
 	}
 
 	return &listModel{
-		title: fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
-		summary: append(m.scanSummaryLines(interactiveScanViewPackages), []string{
-			render.Style("Manifest  ", render.Dim) + manifest.displayName,
-			render.Style("Root      ", render.Dim) + packageDisplayName(rootPkg),
-			render.Style("Filter relationship ", render.Dim) + valueOrDash(m.relationshipFilter),
-			render.Style("Filter scope ", render.Dim) + valueOrDash(m.scopeFilter),
-			render.Style("Filter severity ", render.Dim) + valueOrDash(m.severityFilter),
-			render.Style(fmt.Sprintf("Direct    %d", len(groups.direct)), render.Cyan, render.Bold),
-			render.Style(fmt.Sprintf("Transitive %d", len(groups.transitive)), render.Cyan, render.Bold),
-			render.Style("Project   ", render.Dim) + m.project.Path,
-		}...),
+		title:          fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
+		summary:        m.scanSummaryLines(interactiveScanViewPackages),
+		controls:       []string{m.componentControlsLine() + render.Style(" | Manifest: ", render.Dim) + manifest.displayName + render.Style(" | Root: ", render.Dim) + packageDisplayName(rootPkg)},
+		listTitle:      fmt.Sprintf("Components (%d)", len(rows)),
+		detailTitle:    "Component Details",
 		navigationHelp: navigationHelp,
 		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; r relationship; s scope; v severity; 1-6 tabs",
 		emptyState:     "No components were found for this manifest.",
@@ -927,19 +1313,11 @@ func (m *scanModel) buildExplainComponentListModel(manifest listPackageRow) *lis
 	}
 	targetPkg, _ := m.graphValue.Package(manifest.targetID)
 	return &listModel{
-		title: fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
-		summary: append(m.scanSummaryLines(interactiveScanViewPackages), []string{
-			render.Style("Manifest  ", render.Dim) + manifest.displayName,
-			render.Style("Target    ", render.Dim) + packageDisplayName(targetPkg),
-			render.Style("Filter relationship ", render.Dim) + valueOrDash(m.relationshipFilter),
-			render.Style("Filter scope ", render.Dim) + valueOrDash(m.scopeFilter),
-			render.Style("Filter severity ", render.Dim) + valueOrDash(m.severityFilter),
-			render.Style(fmt.Sprintf("Self      %d", counts["self"]), render.Cyan, render.Bold),
-			render.Style(fmt.Sprintf("Parents   %d", counts["parent"]), render.Cyan, render.Bold),
-			render.Style(fmt.Sprintf("Ancestors %d", counts["ancestor"]), render.Cyan, render.Bold),
-			render.Style(fmt.Sprintf("Roots     %d", counts["root"]), render.Cyan, render.Bold),
-			render.Style("Project   ", render.Dim) + m.project.Path,
-		}...),
+		title:          fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
+		summary:        m.scanSummaryLines(interactiveScanViewPackages),
+		controls:       []string{m.componentControlsLine() + render.Style(" | Target: ", render.Dim) + packageDisplayName(targetPkg) + render.Style(" | Self/Parents/Ancestors/Roots: ", render.Dim) + fmt.Sprintf("%d/%d/%d/%d", counts["self"], counts["parent"], counts["ancestor"], counts["root"])},
+		listTitle:      fmt.Sprintf("Components (%d)", len(rows)),
+		detailTitle:    "Component Details",
 		navigationHelp: interactiveCommonNavigationHelp,
 		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; r relationship; s scope; v severity; 1-6 tabs",
 		emptyState:     "No components were found for this explanation.",
@@ -1172,6 +1550,7 @@ func componentBaseName(value string) string {
 func componentDetails(graphValue *sdk.Graph, row listPackageRow, manifest listPackageRow, findings []sdk.Finding) []string {
 	lines := []string{
 		render.Style("Component", render.Bold, render.Cyan),
+		"",
 		render.Style("  Manifest: ", render.Dim) + manifest.displayName,
 		render.Style("  Name: ", render.Dim) + componentBaseName(row.displayName),
 		render.Style("  ID: ", render.Dim) + valueOrDash(row.id),
@@ -1183,7 +1562,7 @@ func componentDetails(graphValue *sdk.Graph, row listPackageRow, manifest listPa
 	}
 
 	appendPackages := func(title string, packages []*sdk.Package) {
-		lines = append(lines, render.Style(title, render.Bold, render.Magenta))
+		lines = append(lines, render.Style(fmt.Sprintf("%s (%d)", title, len(packages)), render.Bold, render.Magenta), "")
 		if len(packages) == 0 {
 			lines = append(lines, render.Style("  (none)", render.Dim))
 			lines = append(lines, "")
@@ -1210,13 +1589,13 @@ func componentDetails(graphValue *sdk.Graph, row listPackageRow, manifest listPa
 	}
 
 	// Vulnerabilities section
-	lines = append(lines, render.Style("Vulnerabilities", render.Bold, render.Cyan))
 	var pkgFindings []sdk.Finding
 	for _, f := range findings {
 		if f.Kind == sdk.FindingKindVulnerability && f.Package != nil && f.Package.ID == row.id {
 			pkgFindings = append(pkgFindings, f)
 		}
 	}
+	lines = append(lines, render.Style(fmt.Sprintf("Vulnerabilities (%d)", len(pkgFindings)), render.Bold, render.Cyan), "")
 	if len(pkgFindings) == 0 {
 		lines = append(lines, render.Style("  (none)", render.Dim))
 	} else {
@@ -1246,11 +1625,15 @@ func componentDetails(graphValue *sdk.Graph, row listPackageRow, manifest listPa
 	lines = append(lines, "")
 
 	// Licenses section
-	lines = append(lines, render.Style("Licenses", render.Bold, render.Cyan))
 	var pkg *sdk.Package
 	if graphValue != nil {
 		pkg, _ = graphValue.Package(row.id)
 	}
+	licenseCount := 0
+	if pkg != nil {
+		licenseCount = len(pkg.Licenses)
+	}
+	lines = append(lines, render.Style(fmt.Sprintf("Licenses (%d)", licenseCount), render.Bold, render.Cyan), "")
 	if pkg == nil || len(pkg.Licenses) == 0 {
 		lines = append(lines, render.Style("  (none)", render.Dim))
 	} else {
@@ -1361,6 +1744,314 @@ func severityTinySummary(counts map[string]int) string {
 	return strings.Join(parts, " ")
 }
 
+func severityCardLine(findings []sdk.Finding, severity string) string {
+	counts := severityDistribution(findings)
+	label := titleCase(severity)
+	return severityColor(severity, fmt.Sprintf("%d %s", counts[severity], label))
+}
+
+func severityDistributionLines(findings []sdk.Finding, width int) []string {
+	counts := severityDistribution(findings)
+	total := 0
+	for _, severity := range []string{"critical", "high", "medium", "low", "unknown"} {
+		total += counts[severity]
+	}
+	max := maxCount(counts)
+	lines := make([]string, 0, 5)
+	for _, severity := range []string{"critical", "high", "medium", "low", "unknown"} {
+		label := titleCase(severity)
+		lines = append(lines, distributionLine(label, counts[severity], total, max, severityColorCode(severity), width))
+	}
+	return lines
+}
+
+func coloredDistributionLines(counts map[string]int, total, limit, width int) []string {
+	keys := sortedCountKeys(counts)
+	if len(keys) > limit {
+		keys = keys[:limit]
+	}
+	if len(keys) == 0 {
+		return []string{render.Style("(none)", render.Dim)}
+	}
+	max := maxCount(counts)
+	lines := make([]string, 0, len(keys))
+	for idx, key := range keys {
+		lines = append(lines, distributionLine(key, counts[key], total, max, paletteColor(idx), width))
+	}
+	return lines
+}
+
+func distributionLine(label string, value, total, max int, color string, width int) string {
+	if width < 32 {
+		width = 32
+	}
+	percent := 0
+	if total > 0 {
+		percent = value * 100 / total
+	}
+	text := fmt.Sprintf("%d %s (%d%%)", value, label, percent)
+	barWidth := width - 26
+	if barWidth < 8 {
+		barWidth = 8
+	}
+	return padRight(truncateToWidth(text, 22), 24) + coloredBarLine(value, max, barWidth, color)
+}
+
+func coloredBarLine(value, max, width int, color string) string {
+	filled := 0
+	if max > 0 {
+		filled = value * width / max
+		if value > 0 && filled == 0 {
+			filled = 1
+		}
+	}
+	if color == "" {
+		color = render.Green
+	}
+	return render.Style(strings.Repeat("█", filled), color) + render.Style(strings.Repeat("░", width-filled), render.Dim)
+}
+
+func severityColor(severity, value string) string {
+	return render.Style(value, severityColorCode(severity), render.Bold)
+}
+
+func severityColorCode(severity string) string {
+	switch strings.ToLower(strings.TrimSpace(severity)) {
+	case "critical":
+		return render.Magenta
+	case "high":
+		return render.Red
+	case "medium":
+		return render.Yellow
+	case "low":
+		return render.Cyan
+	default:
+		return render.Gray
+	}
+}
+
+func titleCase(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+	return strings.ToUpper(value[:1]) + strings.ToLower(value[1:])
+}
+
+func paletteColor(idx int) string {
+	palette := []string{render.Green, render.Cyan, render.Yellow, render.Red, render.Blue, render.Magenta}
+	return palette[idx%len(palette)]
+}
+
+func unknownLicenseCount(graphValue *sdk.Graph) int {
+	count := 0
+	for _, row := range licenseRows(graphValue) {
+		if isUnknownLicense(row.license) {
+			count += len(row.packages)
+		}
+	}
+	return count
+}
+
+func unrecognizedLicenseCount(graphValue *sdk.Graph) int {
+	count := 0
+	for _, row := range licenseRows(graphValue) {
+		if !isUnknownLicense(row.license) && !looksLikeSPDXLicense(row.license) {
+			count += len(row.packages)
+		}
+	}
+	return count
+}
+
+func isUnknownLicense(value string) bool {
+	value = strings.ToLower(strings.TrimSpace(value))
+	return value == "" || value == "unknown" || value == "noassertion" || value == "none"
+}
+
+func looksLikeSPDXLicense(value string) bool {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return false
+	}
+	if strings.Contains(value, " ") || strings.Contains(value, "(") || strings.Contains(value, ")") {
+		return false
+	}
+	return strings.Contains(value, "-") || strings.EqualFold(value, "MIT") || strings.EqualFold(value, "ISC") || strings.EqualFold(value, "BSD")
+}
+
+func groupedLicenseCounts(graphValue *sdk.Graph, limit int) map[string]int {
+	counts := make(map[string]int)
+	for _, row := range licenseRows(graphValue) {
+		counts[row.license] = len(row.packages)
+	}
+	keys := sortedCountKeys(counts)
+	if len(keys) <= limit {
+		return counts
+	}
+	grouped := make(map[string]int, limit)
+	keep := limit - 1
+	if keep < 1 {
+		keep = 1
+	}
+	for idx, key := range keys {
+		if idx < keep {
+			grouped[key] = counts[key]
+		} else {
+			grouped["Other"] += counts[key]
+		}
+	}
+	return grouped
+}
+
+type componentStat struct {
+	name          string
+	vulns         int
+	maxSeverity   string
+	dependents    int
+	displayVulns  int
+	displayPctMax int
+}
+
+func topVulnerableComponentStats(graphValue *sdk.Graph, findings []sdk.Finding, limit int) []componentStat {
+	counts, severities := packageVulnerabilityStats(graphValue, findings)
+	stats := make([]componentStat, 0, len(counts))
+	for name, count := range counts {
+		stats = append(stats, componentStat{name: name, vulns: count, maxSeverity: severities[name]})
+	}
+	sort.Slice(stats, func(i, j int) bool {
+		if stats[i].vulns != stats[j].vulns {
+			return stats[i].vulns > stats[j].vulns
+		}
+		if severityRank(stats[i].maxSeverity) != severityRank(stats[j].maxSeverity) {
+			return severityRank(stats[i].maxSeverity) < severityRank(stats[j].maxSeverity)
+		}
+		return stats[i].name < stats[j].name
+	})
+	if len(stats) > limit {
+		stats = stats[:limit]
+	}
+	return stats
+}
+
+func topDependedOnComponentStats(graphValue *sdk.Graph, findings []sdk.Finding, limit int) []componentStat {
+	vulnCounts, _ := packageVulnerabilityStats(graphValue, findings)
+	stats := make([]componentStat, 0)
+	if graphValue != nil {
+		for _, pkg := range graphValue.Packages() {
+			if pkg == nil {
+				continue
+			}
+			dependents, err := graphValue.Dependents(pkg.ID)
+			if err != nil || len(dependents) == 0 {
+				continue
+			}
+			name := packageDisplayName(pkg)
+			stats = append(stats, componentStat{name: name, dependents: len(dependents), vulns: vulnCounts[name]})
+		}
+	}
+	sort.Slice(stats, func(i, j int) bool {
+		if stats[i].dependents != stats[j].dependents {
+			return stats[i].dependents > stats[j].dependents
+		}
+		return stats[i].name < stats[j].name
+	})
+	if len(stats) > limit {
+		stats = stats[:limit]
+	}
+	return stats
+}
+
+func packageVulnerabilityStats(graphValue *sdk.Graph, findings []sdk.Finding) (map[string]int, map[string]string) {
+	counts := make(map[string]int)
+	severities := make(map[string]string)
+	if graphValue != nil {
+		for _, pkg := range graphValue.Packages() {
+			if pkg == nil || len(pkg.Vulnerabilities) == 0 {
+				continue
+			}
+			name := packageDisplayName(pkg)
+			counts[name] += len(pkg.Vulnerabilities)
+			for _, vuln := range pkg.Vulnerabilities {
+				if severityRank(vuln.Severity) < severityRank(severities[name]) {
+					severities[name] = vuln.Severity
+				}
+			}
+		}
+	}
+	for _, finding := range findings {
+		if finding.Package == nil {
+			continue
+		}
+		name := packageDisplayName(finding.Package)
+		counts[name]++
+		if severityRank(finding.Severity) < severityRank(severities[name]) {
+			severities[name] = finding.Severity
+		}
+	}
+	return counts, severities
+}
+
+func topVulnerableTableLines(stats []componentStat, width int) []string {
+	if len(stats) == 0 {
+		return []string{render.Style("(none)", render.Dim)}
+	}
+	lines := []string{render.Style(padRight("Component", width-22)+padRight("Vulns", 8)+"Max Severity", render.Dim)}
+	for _, stat := range stats {
+		line := padRight(truncateToWidth(stat.name, width-22), width-22) +
+			padRight(fmt.Sprintf("%d", stat.vulns), 8) +
+			severityText(valueOrDash(stat.maxSeverity))
+		lines = append(lines, line)
+	}
+	return lines
+}
+
+func topDependedOnTableLines(stats []componentStat, width int) []string {
+	if len(stats) == 0 {
+		return []string{render.Style("(none)", render.Dim)}
+	}
+	lines := []string{render.Style(padRight("Component", width-22)+padRight("Deps", 8)+"Vulns", render.Dim)}
+	for _, stat := range stats {
+		line := padRight(truncateToWidth(stat.name, width-22), width-22) +
+			padRight(fmt.Sprintf("%d", stat.dependents), 8) +
+			fmt.Sprintf("%d", stat.vulns)
+		lines = append(lines, line)
+	}
+	return lines
+}
+
+func vulnerableComponentTotal(graphValue *sdk.Graph, findings []sdk.Finding) int {
+	counts, _ := packageVulnerabilityStats(graphValue, findings)
+	return len(counts)
+}
+
+func dependedOnComponentTotal(graphValue *sdk.Graph) int {
+	count := 0
+	if graphValue == nil {
+		return count
+	}
+	for _, pkg := range graphValue.Packages() {
+		if pkg == nil {
+			continue
+		}
+		dependents, err := graphValue.Dependents(pkg.ID)
+		if err == nil && len(dependents) > 0 {
+			count++
+		}
+	}
+	return count
+}
+
+func stackBoxes(boxes ...[]string) []string {
+	out := make([]string, 0)
+	for idx, box := range boxes {
+		if idx > 0 {
+			out = append(out, "")
+		}
+		out = append(out, box...)
+	}
+	return out
+}
+
 func licenseDistributionDetails(graphValue *sdk.Graph) []string {
 	counts := make(map[string]int)
 	for _, row := range licenseRows(graphValue) {
@@ -1468,10 +2159,13 @@ func sourceKey(title string) string {
 func sourceRootDetails(m *scanModel) []string {
 	return []string{
 		render.Style("SBOM Source Map", render.Bold, render.Cyan),
+		"",
 		render.Style("  Target: ", render.Dim) + valueOrDash(m.project.Name),
+		render.Style("  Type: ", render.Dim) + targetKindLabel(m.project),
 		render.Style("  Packages: ", render.Dim) + fmt.Sprintf("%d", graphSize(m.graphValue)),
 		render.Style("  Relationships: ", render.Dim) + fmt.Sprintf("%d", relationshipCount(m.graphValue)),
 		render.Style("  Manifests: ", render.Dim) + fmt.Sprintf("%d", len(m.manifests)),
+		render.Style("  Nodes: ", render.Dim) + fmt.Sprintf("%d", sourceNodeCount(m)),
 		"",
 		render.Style("Press Enter to expand or collapse source nodes.", render.Dim),
 	}
@@ -1480,15 +2174,17 @@ func sourceRootDetails(m *scanModel) []string {
 func sourceTargetDetails(m *scanModel) []string {
 	return []string{
 		render.Style("Target", render.Bold, render.Cyan),
+		"",
 		render.Style("  Name: ", render.Dim) + valueOrDash(m.project.Name),
 		render.Style("  Path: ", render.Dim) + valueOrDash(m.project.Path),
+		render.Style("  Type: ", render.Dim) + targetKindLabel(m.project),
 		render.Style("  Ecosystem: ", render.Dim) + valueOrDash(m.project.Ecosystem),
 		render.Style("  Package manager: ", render.Dim) + valueOrDash(m.project.PackageManager),
 	}
 }
 
 func sourceManifestDetails(m *scanModel) []string {
-	lines := []string{render.Style("Manifests", render.Bold, render.Cyan)}
+	lines := []string{render.Style(fmt.Sprintf("Manifests (%d)", len(m.manifests)), render.Bold, render.Cyan), ""}
 	for _, manifest := range m.manifests {
 		lines = append(lines, render.Style("  - ", render.Dim)+manifest.id)
 	}

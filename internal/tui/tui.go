@@ -61,6 +61,10 @@ type toggleModel interface {
 	ToggleSelected()
 }
 
+type groupModel interface {
+	CycleGroup()
+}
+
 type detailScrollModel interface {
 	ScrollDetails(delta int)
 }
@@ -86,9 +90,14 @@ type badge struct {
 type listModel struct {
 	title          string
 	summary        []string
+	controls       []string
 	navigationHelp string
 	filterHelp     string
 	emptyState     string
+	listTitle      string
+	listHeader     string
+	detailTitle    string
+	topPanels      []listPanel
 	items          []listItem
 	selected       int
 	scrollOffset   int
@@ -98,6 +107,13 @@ type listModel struct {
 	searchMatch    bool
 	footerSummary  string
 	legend         string
+}
+
+type listPanel struct {
+	title  string
+	lines  []string
+	color  string
+	weight int
 }
 
 const interactiveCommonNavigationHelp = "Up/Down or j/k move; PgUp/PgDn or Ctrl+u/Ctrl+d scroll details; Home/End or g/G jump; q quits"
@@ -139,23 +155,25 @@ const (
 )
 
 type scanModel struct {
-	titlePrefix        string
-	project            output.ProjectDescriptor
-	graphValue         *sdk.Graph
-	explainMode        bool
-	manifests          []listPackageRow
-	manifestByID       map[string]listPackageRow
-	mode               scanMode
-	activeView         scanView
-	findings           []sdk.Finding
-	currentManifestID  string
-	allowManifestExit  bool
-	relationshipFilter string
-	scopeFilter        string
-	severityFilter     string
-	sourceExpanded     map[string]bool
-	componentExpanded  map[string]bool
-	list               *listModel
+	titlePrefix           string
+	project               output.ProjectDescriptor
+	graphValue            *sdk.Graph
+	explainMode           bool
+	manifests             []listPackageRow
+	manifestByID          map[string]listPackageRow
+	mode                  scanMode
+	activeView            scanView
+	findings              []sdk.Finding
+	currentManifestID     string
+	allowManifestExit     bool
+	relationshipFilter    string
+	scopeFilter           string
+	severityFilter        string
+	sourceExpanded        map[string]bool
+	componentExpanded     map[string]bool
+	vulnerabilityGroup    string
+	vulnerabilityExpanded map[string]bool
+	list                  *listModel
 }
 
 type teaModel struct {
@@ -245,6 +263,12 @@ func (m *teaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if filterModel, ok := m.inner.(filterModel); ok {
 				filterModel.CycleScopeFilter()
 			}
+		case "g":
+			if groupModel, ok := m.inner.(groupModel); ok {
+				groupModel.CycleGroup()
+			} else {
+				m.inner.Home()
+			}
 		case "v":
 			if filterModel, ok := m.inner.(filterModel); ok {
 				filterModel.CycleSeverityFilter()
@@ -284,7 +308,7 @@ func (m *teaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if detailModel, ok := m.inner.(detailScrollModel); ok {
 				detailModel.ScrollDetails(1)
 			}
-		case "home", "g":
+		case "home":
 			m.inner.Home()
 		case "end", "G", "shift+g":
 			m.inner.End()
@@ -448,11 +472,26 @@ func (m *listModel) View(width, height int) string {
 	if m.searching {
 		lines = append(lines, truncateToWidth(m.searchLine(width), width))
 	}
+	if len(m.controls) > 0 {
+		for _, controlLine := range m.controls {
+			lines = append(lines, truncateToWidth(controlLine, width))
+		}
+		lines = append(lines, "")
+	}
 	footerLines := m.footerLines(width)
 
 	bodyHeight := height - len(lines) - len(footerLines)
+	topPanelLines := renderListPanels(m.topPanels, width)
+	if len(topPanelLines) > 0 {
+		bodyHeight -= len(topPanelLines) + 1
+	}
 	if bodyHeight < 10 {
 		bodyHeight = 10
+	}
+
+	if len(topPanelLines) > 0 {
+		lines = append(lines, topPanelLines...)
+		lines = append(lines, "")
 	}
 
 	visible := m.visibleItemIndices()
@@ -477,17 +516,21 @@ func (m *listModel) View(width, height int) string {
 	if contentHeight < 1 {
 		contentHeight = 1
 	}
-	listLines := m.visibleListLines(listWidth-2, contentHeight, visible)
+	listContentHeight := contentHeight
+	if strings.TrimSpace(m.listHeader) != "" {
+		listContentHeight--
+	}
+	listLines := m.visibleListLines(listWidth-2, listContentHeight, visible)
+	if strings.TrimSpace(m.listHeader) != "" {
+		listLines = append([]string{render.Style(truncateToWidth(m.listHeader, listWidth-2), render.Dim, render.Bold)}, listLines...)
+	}
 	detailLines := m.visibleDetailLines(m.items[selectedIndex].details, detailWidth-2, contentHeight)
 	if len(detailLines) < bodyHeight {
 		detailLines = append(detailLines, make([]string, bodyHeight-len(detailLines))...)
 	}
 
-	leftTitle := "Items"
-	rightTitle := "Details"
-	if m.title != "" {
-		leftTitle = "List"
-	}
+	leftTitle := valueOrDefault(m.listTitle, "List")
+	rightTitle := valueOrDefault(m.detailTitle, "Details")
 	leftBox := boxView(leftTitle, listLines, listWidth, bodyHeight, render.Cyan)
 	rightBox := boxView(rightTitle, detailLines, detailWidth, bodyHeight, render.Magenta)
 	for idx := 0; idx < bodyHeight; idx++ {
@@ -498,6 +541,65 @@ func (m *listModel) View(width, height int) string {
 	return strings.Join(lines, "\n")
 }
 
+func renderListPanels(panels []listPanel, width int) []string {
+	if len(panels) == 0 {
+		return nil
+	}
+	gap := 1
+	totalGap := gap * (len(panels) - 1)
+	available := width - totalGap
+	if available < len(panels)*12 {
+		return nil
+	}
+	totalWeight := 0
+	maxContent := 1
+	for _, panel := range panels {
+		weight := panel.weight
+		if weight <= 0 {
+			weight = 1
+		}
+		totalWeight += weight
+		if len(panel.lines) > maxContent {
+			maxContent = len(panel.lines)
+		}
+	}
+	panelHeight := maxContent + 2
+	rendered := make([][]string, 0, len(panels))
+	used := 0
+	for idx, panel := range panels {
+		weight := panel.weight
+		if weight <= 0 {
+			weight = 1
+		}
+		panelWidth := available * weight / totalWeight
+		if idx == len(panels)-1 {
+			panelWidth = available - used
+		}
+		used += panelWidth
+		color := panel.color
+		if color == "" {
+			color = render.Cyan
+		}
+		rendered = append(rendered, boxView(panel.title, panel.lines, panelWidth, panelHeight, color))
+	}
+	out := make([]string, 0, panelHeight)
+	for row := 0; row < panelHeight; row++ {
+		parts := make([]string, 0, len(rendered))
+		for idx := range rendered {
+			parts = append(parts, rendered[idx][row])
+		}
+		out = append(out, strings.Join(parts, strings.Repeat(" ", gap)))
+	}
+	return out
+}
+
+func valueOrDefault(value, fallback string) string {
+	if strings.TrimSpace(value) == "" {
+		return fallback
+	}
+	return value
+}
+
 func (m *listModel) footerLines(width int) []string {
 	if strings.TrimSpace(m.footerSummary) != "" || strings.TrimSpace(m.legend) != "" {
 		lines := make([]string, 0, 2)
@@ -505,7 +607,7 @@ func (m *listModel) footerLines(width int) []string {
 			lines = append(lines, statusBar(m.footerSummary, width))
 		}
 		if strings.TrimSpace(m.legend) != "" {
-			lines = append(lines, truncateToWidth(m.legend, width))
+			lines = append(lines, centerLine(m.legend, width))
 		}
 		return lines
 	}

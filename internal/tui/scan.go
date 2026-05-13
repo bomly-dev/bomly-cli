@@ -251,26 +251,29 @@ func (m *scanModel) CanGoBack() bool {
 }
 
 func (m *scanModel) buildCurrentListModel() *listModel {
+	var list *listModel
 	switch m.activeView {
 	case interactiveScanViewOverview:
-		return m.buildOverviewListModel()
+		list = m.buildOverviewListModel()
 	case interactiveScanViewVulns:
-		return m.buildVulnsListModel()
+		list = m.buildVulnsListModel()
 	case interactiveScanViewLicenses:
-		return m.buildLicensesListModel()
+		list = m.buildLicensesListModel()
 	case interactiveScanViewFindings:
-		return m.buildFindingsListModel()
+		list = m.buildFindingsListModel()
 	case interactiveScanViewSource:
-		return m.buildSourceListModel()
+		list = m.buildSourceListModel()
 	default:
 		if m.mode == interactiveScanModeComponents {
 			manifest, ok := m.manifestByID[m.currentManifestID]
 			if ok {
-				return m.buildComponentListModel(manifest)
+				list = m.buildComponentListModel(manifest)
+				break
 			}
 		}
-		return m.buildManifestListModel()
+		list = m.buildManifestListModel()
 	}
+	return m.withScanFooter(list)
 }
 
 func scanViews() []scanView {
@@ -325,6 +328,41 @@ func (m *scanModel) scanStatusLine() string {
 		render.Style(" | Vulns: ", render.Dim) + severityText(fmt.Sprintf("%d", stats.vulnerabilities)) +
 		render.Style(" | Licenses: ", render.Dim) + render.Style(fmt.Sprintf("%d", stats.licenses), render.Cyan, render.Bold) +
 		render.Style(" | Findings: ", render.Dim) + render.Style(fmt.Sprintf("%d", len(m.findings)), render.Cyan, render.Bold)
+}
+
+func (m *scanModel) scanFooterSummary() string {
+	stats := scanStats(m.graphValue, m.findings)
+	return fmt.Sprintf("Components: %d | Vulns: %d | Licenses: %d | Findings: %d", stats.components, stats.vulnerabilities, stats.licenses, len(m.findings))
+}
+
+func (m *scanModel) scanLegend() string {
+	return strings.Join([]string{
+		keyHint("Tab", "switch"),
+		keyHint("/", "search"),
+		keyHint("Enter", "select"),
+		keyHint("r", "relationship"),
+		keyHint("s", "scope"),
+		keyHint("v", "severity"),
+		keyHint("e", "export"),
+		keyHint("?", "help"),
+		keyHint("q", "quit"),
+	}, " ")
+}
+
+func (m *scanModel) scanFooterLines(width int) []string {
+	return []string{
+		statusBar(m.scanFooterSummary(), width),
+		truncateToWidth(m.scanLegend(), width),
+	}
+}
+
+func (m *scanModel) withScanFooter(list *listModel) *listModel {
+	if list == nil {
+		return nil
+	}
+	list.footerSummary = m.scanFooterSummary()
+	list.legend = m.scanLegend()
+	return list
 }
 
 func (m *scanModel) buildManifestListModel() *listModel {
@@ -429,8 +467,8 @@ func (m *scanModel) overviewDashboardView(width, height int) string {
 	for _, summaryLine := range m.scanSummaryLines(interactiveScanViewOverview) {
 		lines = append(lines, truncateToWidth(summaryLine, width))
 	}
-	helpLines := helpLines(interactiveCommonNavigationHelp, "Tab or 1-6 switches tabs; / search; e export; ? help", width)
-	bodyHeight := height - len(lines) - len(helpLines) - 1
+	footerLines := m.scanFooterLines(width)
+	bodyHeight := height - len(lines) - len(footerLines)
 	if bodyHeight < 12 {
 		return m.list.View(width, height)
 	}
@@ -474,10 +512,7 @@ func (m *scanModel) overviewDashboardView(width, height int) string {
 		boxView("Top Depended-On Components", compactDistributionLines(topDependedOnCounts(m.graphValue), 8), rightWidth, remaining-remaining/2, render.Green)...,
 	)
 	lines = append(lines, joinColumns(leftContent, rightContent, leftWidth, rightWidth)...)
-	lines = append(lines, render.Style(strings.Repeat("-", width), render.Dim, render.Gray))
-	for _, helpLine := range helpLines {
-		lines = append(lines, truncateToWidth(render.Style(helpLine, render.Dim), width))
-	}
+	lines = append(lines, footerLines...)
 	return strings.Join(lines, "\n")
 }
 
@@ -623,6 +658,7 @@ func (m *scanModel) buildSourceListModel() *listModel {
 			subtitle: "node",
 			details:  sourceTargetDetails(m),
 			key:      "target",
+			tree:     "├─ ",
 			depth:    1,
 		})
 		items = append(items, listItem{
@@ -630,6 +666,7 @@ func (m *scanModel) buildSourceListModel() *listModel {
 			subtitle: "node",
 			details:  sourceManifestDetails(m),
 			key:      "manifests",
+			tree:     "├─ ",
 			depth:    1,
 		})
 		items = append(items, listItem{
@@ -637,6 +674,7 @@ func (m *scanModel) buildSourceListModel() *listModel {
 			subtitle: "node",
 			details:  sourcePackageDetails(m.graphValue),
 			key:      "packages",
+			tree:     "├─ ",
 			depth:    1,
 		})
 		items = append(items, listItem{
@@ -644,6 +682,7 @@ func (m *scanModel) buildSourceListModel() *listModel {
 			subtitle: "node",
 			details:  sourceRelationshipDetails(m.graphValue),
 			key:      "relationships",
+			tree:     "└─ ",
 			depth:    1,
 		})
 	}
@@ -807,6 +846,7 @@ func (m *scanModel) buildComponentListModel(manifest listPackageRow) *listModel 
 			badges:   badges,
 			details:  componentDetails(m.graphValue, row, manifest, m.findings),
 			key:      row.id,
+			tree:     row.tree,
 			depth:    row.depth,
 			canOpen:  len(deps) > 0,
 			expanded: expanded,
@@ -1027,8 +1067,8 @@ func (m *scanModel) componentTreeRows(rootID string) []listPackageRow {
 		return nil
 	}
 	rows := make([]listPackageRow, 0)
-	var walk func(pkg *sdk.Package, depth int, visited map[string]struct{})
-	walk = func(pkg *sdk.Package, depth int, visited map[string]struct{}) {
+	var walk func(pkg *sdk.Package, depth int, ancestors []bool, last bool, visited map[string]struct{})
+	walk = func(pkg *sdk.Package, depth int, ancestors []bool, last bool, visited map[string]struct{}) {
 		if pkg == nil {
 			return
 		}
@@ -1041,6 +1081,7 @@ func (m *scanModel) componentTreeRows(rootID string) []listPackageRow {
 		}
 		row := packageRowFromGraph(pkg, relationship)
 		row.depth = depth
+		row.tree = treePrefix(ancestors, last, depth)
 		rows = append(rows, row)
 
 		expanded := m.componentExpanded[pkg.ID]
@@ -1065,6 +1106,7 @@ func (m *scanModel) componentTreeRows(rootID string) []listPackageRow {
 			nextVisited[key] = struct{}{}
 		}
 		nextVisited[pkg.ID] = struct{}{}
+		children := make([]*sdk.Package, 0, len(deps))
 		for _, dep := range deps {
 			if dep == nil {
 				continue
@@ -1072,11 +1114,38 @@ func (m *scanModel) componentTreeRows(rootID string) []listPackageRow {
 			if _, seen := nextVisited[dep.ID]; seen {
 				continue
 			}
-			walk(dep, depth+1, nextVisited)
+			children = append(children, dep)
+		}
+		childAncestors := ancestors
+		if depth > 0 {
+			childAncestors = append(append([]bool(nil), ancestors...), last)
+		}
+		for idx, dep := range children {
+			walk(dep, depth+1, childAncestors, idx == len(children)-1, nextVisited)
 		}
 	}
-	walk(rootPkg, 0, map[string]struct{}{})
+	walk(rootPkg, 0, nil, true, map[string]struct{}{})
 	return rows
+}
+
+func treePrefix(ancestors []bool, last bool, depth int) string {
+	if depth <= 0 {
+		return ""
+	}
+	var b strings.Builder
+	for _, ancestorLast := range ancestors {
+		if ancestorLast {
+			b.WriteString("   ")
+		} else {
+			b.WriteString("│  ")
+		}
+	}
+	if last {
+		b.WriteString("└─ ")
+	} else {
+		b.WriteString("├─ ")
+	}
+	return b.String()
 }
 
 func packageDisplayName(pkg *sdk.Package) string {
@@ -1384,7 +1453,7 @@ func barLine(value, max int) string {
 			filled = 1
 		}
 	}
-	return render.Style(strings.Repeat("=", filled), render.Green) + render.Style(strings.Repeat(".", width-filled), render.Dim) + fmt.Sprintf(" %d", value)
+	return render.Style(strings.Repeat("█", filled), render.Green) + render.Style(strings.Repeat("░", width-filled), render.Dim) + fmt.Sprintf(" %d", value)
 }
 
 func sourceKey(title string) string {

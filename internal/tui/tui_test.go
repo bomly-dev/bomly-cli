@@ -733,6 +733,9 @@ func TestScanInteractiveModel_ComponentTreeExpandsSelectedNode(t *testing.T) {
 	if !strings.Contains(plain, "loose-envify@1.4.0") {
 		t.Fatalf("expected expanded transitive dependency, got:\n%s", plain)
 	}
+	if !strings.Contains(plain, "└─") && !strings.Contains(plain, "├─") {
+		t.Fatalf("expected component tree to use box-drawing connectors, got:\n%s", plain)
+	}
 }
 
 func TestScanInteractiveModel_OverviewDashboardUsesBordersAndBars(t *testing.T) {
@@ -767,11 +770,14 @@ func TestScanInteractiveModel_OverviewDashboardUsesBordersAndBars(t *testing.T) 
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
 	plain := render.StripANSI(model.View(120, 32))
 	for _, want := range []string{
-		"+ Components ",
-		"+ Vulnerability Severity ",
+		"┌ Components ",
+		"┌ Vulnerability Severity ",
 		"License Distribution",
 		"MIT",
-		"==================",
+		"██████████████████",
+		"Components: 2 | Vulns: 0 | Licenses: 1 | Findings: 0",
+		" Tab switch",
+		" ? help",
 	} {
 		if !strings.Contains(plain, want) {
 			t.Fatalf("expected overview dashboard to contain %q, got:\n%s", want, plain)
@@ -785,6 +791,9 @@ func TestScanInteractiveModel_SourceTreeCollapsesRoot(t *testing.T) {
 	plain := render.StripANSI(model.View(100, 20))
 	if !strings.Contains(plain, "packages (0)") {
 		t.Fatalf("expected expanded source root, got:\n%s", plain)
+	}
+	if !strings.Contains(plain, "├─ packages (0)") {
+		t.Fatalf("expected source tree to use structured connectors, got:\n%s", plain)
 	}
 	model.ToggleSelected()
 	plain = render.StripANSI(model.View(100, 20))

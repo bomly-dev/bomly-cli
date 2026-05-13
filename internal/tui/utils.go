@@ -41,17 +41,28 @@ func boxView(title string, content []string, width, height int, color string) []
 		}
 		return render.Style(value, color)
 	}
-	lines := []string{border("+" + topLabel + strings.Repeat("-", topFill) + "+")}
+	lines := []string{border("┌" + topLabel + strings.Repeat("─", topFill) + "┐")}
 	contentHeight := height - 2
 	for idx := 0; idx < contentHeight; idx++ {
 		line := ""
 		if idx < len(content) {
 			line = content[idx]
 		}
-		lines = append(lines, border("|")+padRight(truncateToWidth(line, inner), inner)+border("|"))
+		lines = append(lines, border("│")+padRight(truncateToWidth(line, inner), inner)+border("│"))
 	}
-	lines = append(lines, border("+"+strings.Repeat("-", inner)+"+"))
+	lines = append(lines, border("└"+strings.Repeat("─", inner)+"┘"))
 	return lines
+}
+
+func keyHint(key, label string) string {
+	return render.Style(" "+key+" ", render.BgYellow, render.Bold) + label
+}
+
+func statusBar(value string, width int) string {
+	if width <= 0 {
+		return ""
+	}
+	return render.Style(padRight(truncateToWidth(value, width), width), render.BgBlue, render.White)
 }
 
 func joinColumns(left, right []string, leftWidth, rightWidth int) []string {

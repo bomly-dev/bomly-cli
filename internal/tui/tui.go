@@ -73,6 +73,7 @@ type listItem struct {
 	children []listItem
 	expanded bool
 	key      string
+	tree     string
 	depth    int
 	canOpen  bool
 }
@@ -95,6 +96,8 @@ type listModel struct {
 	searching      bool
 	searchQuery    string
 	searchMatch    bool
+	footerSummary  string
+	legend         string
 }
 
 const interactiveCommonNavigationHelp = "Up/Down or j/k move; PgUp/PgDn or Ctrl+u/Ctrl+d scroll details; Home/End or g/G jump; q quits"
@@ -109,6 +112,7 @@ type listPackageRow struct {
 	relationship string
 	purl         string
 	depth        int
+	tree         string
 }
 
 type rootDependencyGroup struct {
@@ -444,12 +448,9 @@ func (m *listModel) View(width, height int) string {
 	if m.searching {
 		lines = append(lines, truncateToWidth(m.searchLine(width), width))
 	}
-	helpLines := helpLines(m.navigationHelp, m.filterHelp, width)
-	if len(helpLines) == 0 {
-		helpLines = []string{""}
-	}
+	footerLines := m.footerLines(width)
 
-	bodyHeight := height - len(lines) - len(helpLines) - 1
+	bodyHeight := height - len(lines) - len(footerLines)
 	if bodyHeight < 10 {
 		bodyHeight = 10
 	}
@@ -457,10 +458,7 @@ func (m *listModel) View(width, height int) string {
 	visible := m.visibleItemIndices()
 	if len(visible) == 0 {
 		lines = append(lines, boxView("Empty", []string{render.Style(m.emptyState, render.Yellow, render.Bold)}, width, bodyHeight, render.Yellow)...)
-		lines = append(lines, render.Style(strings.Repeat("-", width), render.Dim, render.Gray))
-		for _, helpLine := range helpLines {
-			lines = append(lines, truncateToWidth(render.Style(helpLine, render.Dim), width))
-		}
+		lines = append(lines, footerLines...)
 		return strings.Join(lines, "\n")
 	}
 
@@ -496,11 +494,29 @@ func (m *listModel) View(width, height int) string {
 		lines = append(lines, leftBox[idx]+" "+rightBox[idx])
 	}
 
-	lines = append(lines, render.Style(strings.Repeat("-", width), render.Dim, render.Gray))
-	for _, helpLine := range helpLines {
-		lines = append(lines, truncateToWidth(render.Style(helpLine, render.Dim), width))
-	}
+	lines = append(lines, footerLines...)
 	return strings.Join(lines, "\n")
+}
+
+func (m *listModel) footerLines(width int) []string {
+	if strings.TrimSpace(m.footerSummary) != "" || strings.TrimSpace(m.legend) != "" {
+		lines := make([]string, 0, 2)
+		if strings.TrimSpace(m.footerSummary) != "" {
+			lines = append(lines, statusBar(m.footerSummary, width))
+		}
+		if strings.TrimSpace(m.legend) != "" {
+			lines = append(lines, truncateToWidth(m.legend, width))
+		}
+		return lines
+	}
+	lines := helpLines(m.navigationHelp, m.filterHelp, width)
+	if len(lines) == 0 {
+		return []string{""}
+	}
+	for idx, line := range lines {
+		lines[idx] = truncateToWidth(render.Style(line, render.Dim), width)
+	}
+	return lines
 }
 
 func helpLines(navigationHelp, filterHelp string, width int) []string {
@@ -559,24 +575,23 @@ func (m *listModel) visibleListLines(width, height int, visible []int) []string 
 	for visibleIdx := m.scrollOffset; visibleIdx < end; visibleIdx++ {
 		idx := visible[visibleIdx]
 		item := m.items[idx]
-		prefix := render.Style(strings.Repeat("  ", item.depth)+"  ", render.Dim)
-		if item.canOpen {
-			marker := "+"
-			if item.expanded {
-				marker = "-"
-			}
-			prefix = render.Style(strings.Repeat("  ", item.depth)+marker+" ", render.Dim)
+		tree := item.tree
+		if tree == "" && item.depth > 0 {
+			tree = strings.Repeat("   ", item.depth)
 		}
+		marker := ""
+		if item.canOpen {
+			marker = "▸ "
+			if item.expanded {
+				marker = "▾ "
+			}
+		}
+		selector := "  "
+		prefix := render.Style(selector+tree+marker, render.Dim)
 		title := render.Style(m.items[idx].title, render.White)
 		if idx == m.selected {
-			prefix = render.Style(strings.Repeat("  ", item.depth)+"> ", render.BgBlue, render.White, render.Bold)
-			if item.canOpen {
-				marker := "+"
-				if item.expanded {
-					marker = "-"
-				}
-				prefix = render.Style(strings.Repeat("  ", item.depth)+marker+" ", render.BgBlue, render.White, render.Bold)
-			}
+			selector = "> "
+			prefix = render.Style(selector+tree+marker, render.BgBlue, render.White, render.Bold)
 			title = render.Style(m.items[idx].title, render.White, render.Bold)
 		}
 		line := prefix + title

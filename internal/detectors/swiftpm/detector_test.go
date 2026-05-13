@@ -41,3 +41,41 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 		t.Fatalf("expected one direct dependency, got %d", len(deps))
 	}
 }
+
+func TestDepGraphFromSwiftShowDepsBuildsTransitiveGraph(t *testing.T) {
+	raw := []byte(`{
+  "name": "Demo",
+  "dependencies": [
+    {
+      "name": "swift-argument-parser",
+      "url": "https://github.com/apple/swift-argument-parser.git",
+      "version": "1.3.0",
+      "dependencies": [
+        {
+          "name": "swift-system",
+          "url": "https://github.com/apple/swift-system.git",
+          "version": "1.2.0",
+          "dependencies": []
+        }
+      ]
+    }
+  ]
+}`)
+	graph, err := depGraphFromSwiftShowDeps(raw)
+	if err != nil {
+		t.Fatalf("depGraphFromSwiftShowDeps() error = %v", err)
+	}
+
+	parentID := "github.com/apple:swift-argument-parser@1.3.0"
+	parent, ok := graph.Package(parentID)
+	if !ok {
+		t.Fatalf("expected swift-argument-parser package, got %v", graph.Packages())
+	}
+	children, err := graph.Dependencies(parent.ID)
+	if err != nil {
+		t.Fatalf("swift-argument-parser dependencies: %v", err)
+	}
+	if len(children) != 1 || children[0].ID != "github.com/apple:swift-system@1.2.0" {
+		t.Fatalf("expected swift-system transitive dependency, got %#v", children)
+	}
+}

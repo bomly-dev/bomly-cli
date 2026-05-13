@@ -25,11 +25,16 @@
           "licenses": [],
           "name": "openssl",
           "purl": "pkg:conan/openssl@1.1.1s",
+          "scope": "runtime",
           "version": "1.1.1s",
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:conan/cmake@3.27.0",
+            "pkg:conan/openssl@1.1.1s",
+            "pkg:conan/zlib@1.2.11"
+          ],
           "id": "pkg:conan/root",
           "licenses": [],
           "name": "root",
@@ -42,6 +47,7 @@
           "licenses": [],
           "name": "zlib",
           "purl": "pkg:conan/zlib@1.2.11",
+          "scope": "runtime",
           "version": "1.2.11",
           "vulnerabilities": []
         }

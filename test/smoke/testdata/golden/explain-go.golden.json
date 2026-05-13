@@ -22,13 +22,13 @@
   },
   "paths": [
     {
-      "introduced_via": "pkg:golang/github.com/srcclr/example-go-modules",
+      "introduced_via": "pkg:golang/github.com/bomly/example-go-modules",
       "packages": [
         {
-          "id": "pkg:golang/github.com/srcclr/example-go-modules",
+          "id": "pkg:golang/github.com/bomly/example-go-modules",
           "licenses": [],
-          "name": "github.com/srcclr/example-go-modules",
-          "purl": "pkg:golang/github.com/srcclr/example-go-modules",
+          "name": "github.com/bomly/example-go-modules",
+          "purl": "pkg:golang/github.com/bomly/example-go-modules",
           "vulnerabilities": []
         },
         {
@@ -76,13 +76,13 @@
       "detector": "go-detector",
       "paths": [
         {
-          "introduced_via": "pkg:golang/github.com/srcclr/example-go-modules",
+          "introduced_via": "pkg:golang/github.com/bomly/example-go-modules",
           "packages": [
             {
-              "id": "pkg:golang/github.com/srcclr/example-go-modules",
+              "id": "pkg:golang/github.com/bomly/example-go-modules",
               "licenses": [],
-              "name": "github.com/srcclr/example-go-modules",
-              "purl": "pkg:golang/github.com/srcclr/example-go-modules",
+              "name": "github.com/bomly/example-go-modules",
+              "purl": "pkg:golang/github.com/bomly/example-go-modules",
               "vulnerabilities": []
             },
             {

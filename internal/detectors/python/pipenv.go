@@ -55,22 +55,33 @@ func (d PipenvDetector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a Python dependency graph through Pipenv.
 func (d PipenvDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	if depsGraph, err := depGraphFromPipfileLock(filepath.Join(d.base().workingDir(req.ProjectPath), "Pipfile.lock")); err == nil {
+	workingDir := d.base().workingDir(req.ProjectPath)
+
+	// Try pip inspect first: it can build a full transitive tree via RequiresDist.
+	// Pipfile.lock is flat (no parent-child edges), so the build tool wins here.
+	// Only attempt pip inspect when a venv is already populated; otherwise `pipenv run`
+	// silently creates an empty venv and pip inspect returns only bootstrap packages.
+	if pipenvVenvExists(workingDir) {
+		command, err := pipInspectCommand("pipenv", "run")
+		if err == nil {
+			if depsGraph, err := d.base().resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "Pipenv detector", command); err == nil {
+				annotateGraphScopes(depsGraph, workingDir)
+				return sdk.DetectionResult{
+					Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, pipenvEvidencePatterns)),
+				}, nil
+			}
+		}
+	}
+
+	// Fallback: parse Pipfile.lock (flat graph, but always available offline).
+	if depsGraph, err := depGraphFromPipfileLock(filepath.Join(workingDir, "Pipfile.lock")); err == nil {
+		annotateGraphScopes(depsGraph, workingDir)
 		return sdk.DetectionResult{
 			Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, pipenvEvidencePatterns)),
 		}, nil
 	}
-	command, err := pipInspectCommand("pipenv", "run")
-	if err != nil {
-		return sdk.DetectionResult{}, err
-	}
-	depsGraph, err := d.base().resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "Pipenv detector", command)
-	if err != nil {
-		return sdk.DetectionResult{}, err
-	}
-	return sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, pipenvEvidencePatterns)),
-	}, nil
+
+	return sdk.DetectionResult{}, fmt.Errorf("pipenv detector: unable to resolve dependency graph")
 }
 
 // FallbackDetector returns the configured fallback detector.
@@ -87,12 +98,24 @@ func (d PipenvDetector) base() baseDetector {
 
 // Install prepares Pipenv dependencies before graph resolution.
 func (d PipenvDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
-	if exists, err := system.FileExists(filepath.Join(d.base().workingDir(req.ProjectPath), "Pipfile.lock")); err != nil {
-		return err
-	} else if exists {
-		return nil
-	}
 	return d.base().install(ctx, req, "Pipenv detector", []string{"pipenv", "install"})
+}
+
+// pipenvVenvExists checks whether a pipenv virtual environment has been created
+// for the given working directory. It avoids triggering lazy venv creation.
+func pipenvVenvExists(workingDir string) bool {
+	cmd := system.Command("pipenv", "--venv")
+	cmd.Dir = workingDir
+	out, err := cmd.Output()
+	if err != nil {
+		return false
+	}
+	venvPath := strings.TrimSpace(string(out))
+	if venvPath == "" {
+		return false
+	}
+	ok, err := system.FileExists(venvPath)
+	return err == nil && ok
 }
 
 type pipfileLock struct {

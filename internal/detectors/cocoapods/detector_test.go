@@ -2,6 +2,8 @@ package cocoapods
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
@@ -44,7 +46,7 @@ SPEC CHECKSUMS:
   Alamofire: abc123
   AppCenter: def456
 `)
-	g, err := depGraphFromLock(raw)
+	g, err := depGraphFromLock(raw, nil)
 	if err != nil {
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
@@ -75,5 +77,31 @@ SPEC CHECKSUMS:
 	}
 	if analytics.PURL != "pkg:cocoapods/AppCenter%2FAnalytics@5.0.6" {
 		t.Fatalf("unexpected purl %q", analytics.PURL)
+	}
+}
+
+func TestParsePodfileTestTargetsOnlyReturnsTestOnlyPods(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "Podfile")
+	raw := []byte(`target 'DemoApp' do
+  pod 'AFNetworking'
+  pod 'SharedPod'
+
+  target 'DemoAppTests' do
+    pod 'OCMock'
+    pod 'SharedPod'
+  end
+end
+`)
+	if err := os.WriteFile(path, raw, 0o600); err != nil {
+		t.Fatalf("write Podfile: %v", err)
+	}
+
+	testPods := parsePodfileTestTargets(path)
+	if !testPods["OCMock"] {
+		t.Fatalf("expected OCMock to be test-only, got %#v", testPods)
+	}
+	if testPods["SharedPod"] {
+		t.Fatalf("did not expect SharedPod to be test-only, got %#v", testPods)
 	}
 }

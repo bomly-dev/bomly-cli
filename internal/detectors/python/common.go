@@ -220,6 +220,12 @@ func depGraphFromPipInspect(raw []byte) (*sdk.Graph, error) {
 			}
 		}
 		for _, requirement := range pkg.Metadata.RequiresDist {
+			// Skip extras-conditional requirements (e.g. "pytest; extra == 'test'").
+			// These are optional and should not create graph edges that override
+			// explicitly-scoped dev dependencies.
+			if isExtrasRequirement(requirement) {
+				continue
+			}
 			dependencyName := requirementName(requirement)
 			if dependencyName == "" {
 				continue
@@ -337,6 +343,17 @@ func requirementName(value string) string {
 	return normalizePythonName(match)
 }
 
+// isExtrasRequirement reports whether a PEP 508 requirement string is gated
+// behind an extras marker (e.g. `pytest; extra == "test"`). Such requirements
+// are optional and should not create transitive graph edges.
+func isExtrasRequirement(requirement string) bool {
+	if idx := strings.Index(requirement, ";"); idx >= 0 {
+		marker := strings.ToLower(requirement[idx+1:])
+		return strings.Contains(marker, "extra")
+	}
+	return false
+}
+
 func installRequirementsPath(projectPath string) (string, error) {
 	for _, name := range []string{"requirements.txt", "requirements-dev.txt", "requirements.in", "requirements.lock"} {
 		candidate := filepath.Join(projectPath, name)
@@ -363,4 +380,213 @@ func addNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Package) error {
 		return fmt.Errorf("add node %q: %w", node.ID, err)
 	}
 	return nil
+}
+
+// annotateGraphScopes assigns runtime/development scope to packages in a pip-inspect-built
+// graph. All non-root packages default to ScopeRuntime; packages declared as dev dependencies
+// in pyproject.toml (Poetry / UV) or Pipfile are marked ScopeDevelopment. Scope is propagated
+// transitively: a package reachable from a runtime path is always runtime.
+func annotateGraphScopes(depsGraph *sdk.Graph, projectPath string) {
+	if depsGraph == nil {
+		return
+	}
+	roots := depsGraph.Roots()
+	if len(roots) == 0 {
+		return
+	}
+	rootID := ""
+	for _, root := range roots {
+		if root != nil {
+			rootID = root.ID
+			break
+		}
+	}
+	if rootID == "" {
+		return
+	}
+
+	devDeps := collectPythonDevDependencies(projectPath)
+
+	directDeps, err := depsGraph.Dependencies(rootID)
+	if err != nil || len(directDeps) == 0 {
+		// Fall back: graph has no edges from root — use devDeps by name for best-effort scoping.
+		for _, pkg := range depsGraph.Packages() {
+			if pkg == nil || pkg.ID == rootID {
+				continue
+			}
+			name := normalizePythonName(pkg.Name)
+			if _, isDev := devDeps[name]; isDev {
+				sdk.MergePackageScope(pkg, sdk.ScopeDevelopment)
+			} else if sdk.Scope(pkg.Scope) == sdk.ScopeUnknown {
+				sdk.MergePackageScope(pkg, sdk.ScopeRuntime)
+			}
+		}
+		return
+	}
+
+	directScopes := make(map[string]sdk.Scope, len(directDeps))
+	for _, dep := range directDeps {
+		if dep == nil {
+			continue
+		}
+		name := normalizePythonName(dep.Name)
+		scope := sdk.ScopeRuntime
+		if _, isDev := devDeps[name]; isDev {
+			scope = sdk.ScopeDevelopment
+		}
+		directScopes[dep.Name] = scope
+		directScopes[name] = scope
+	}
+
+	// BFS from root, propagating scopes. Runtime always wins over development.
+	propagated := make(map[string]sdk.Scope, depsGraph.Size())
+	queue := make([]*sdk.Package, 0, len(directDeps))
+	for _, dep := range directDeps {
+		if dep == nil {
+			continue
+		}
+		scope := directScopes[dep.Name]
+		if scope == sdk.ScopeUnknown {
+			scope = sdk.ScopeRuntime
+		}
+		sdk.MergePackageScope(dep, scope)
+		propagated[dep.ID] = sdk.MergeScope(propagated[dep.ID], scope)
+		queue = append(queue, dep)
+	}
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+		scope := propagated[current.ID]
+		if scope == sdk.ScopeUnknown {
+			continue
+		}
+		children, err := depsGraph.Dependencies(current.ID)
+		if err != nil {
+			continue
+		}
+		for _, child := range children {
+			if child == nil || child.ID == rootID {
+				continue
+			}
+			nextScope := sdk.MergeScope(propagated[child.ID], scope)
+			if nextScope == propagated[child.ID] && sdk.Scope(child.Scope) == nextScope {
+				continue
+			}
+			propagated[child.ID] = nextScope
+			sdk.MergePackageScope(child, nextScope)
+			queue = append(queue, child)
+		}
+	}
+	// Any remaining unscoped non-root packages get runtime.
+	for _, pkg := range depsGraph.Packages() {
+		if pkg != nil && pkg.ID != rootID && sdk.Scope(pkg.Scope) == sdk.ScopeUnknown {
+			sdk.MergePackageScope(pkg, sdk.ScopeRuntime)
+		}
+	}
+}
+
+// collectPythonDevDependencies returns the normalized names of packages declared as
+// development dependencies in pyproject.toml (Poetry/UV) or Pipfile.
+func collectPythonDevDependencies(projectPath string) map[string]struct{} {
+	devDeps := make(map[string]struct{})
+	if projectPath == "" {
+		return devDeps
+	}
+
+	// poetry / uv via pyproject.toml
+	if raw, err := os.ReadFile(filepath.Join(projectPath, "pyproject.toml")); err == nil {
+		section := ""
+		inDevArray := false
+		for _, line := range strings.Split(string(raw), "\n") {
+			trimmed := strings.TrimSpace(line)
+			if strings.HasPrefix(trimmed, "[") {
+				section = strings.ToLower(strings.Trim(trimmed, "[]"))
+				inDevArray = false
+				continue
+			}
+			// Poetry: [tool.poetry.dev-dependencies] and [tool.poetry.group.dev.dependencies]
+			if strings.Contains(section, "dev-dependencies") || strings.Contains(section, "group.dev") {
+				name := requirementName(strings.SplitN(trimmed, "=", 2)[0])
+				if name != "" {
+					devDeps[name] = struct{}{}
+				}
+				continue
+			}
+			// UV: [tool.uv] dev-dependencies = [...] multiline array
+			if section == "tool.uv" {
+				if strings.HasPrefix(trimmed, "dev-dependencies") {
+					inDevArray = true
+					// handle inline items after "="
+					if idx := strings.Index(trimmed, "["); idx >= 0 {
+						parseDevArrayItems(trimmed[idx:], devDeps)
+					}
+					continue
+				}
+			}
+			// PEP 735 [dependency-groups] dev = [...]
+			if section == "dependency-groups" {
+				if strings.HasPrefix(trimmed, "dev") {
+					inDevArray = true
+					if idx := strings.Index(trimmed, "["); idx >= 0 {
+						parseDevArrayItems(trimmed[idx:], devDeps)
+					}
+					continue
+				}
+			}
+			if inDevArray {
+				if strings.HasSuffix(trimmed, "]") {
+					parseDevArrayItems(trimmed, devDeps)
+					inDevArray = false
+					continue
+				}
+				parseDevArrayItems(trimmed, devDeps)
+			}
+		}
+	}
+
+	// Pipfile [dev-packages]
+	if raw, err := os.ReadFile(filepath.Join(projectPath, "Pipfile")); err == nil {
+		inDev := false
+		for _, line := range strings.Split(string(raw), "\n") {
+			trimmed := strings.TrimSpace(line)
+			if strings.HasPrefix(trimmed, "[") {
+				inDev = strings.ToLower(strings.Trim(trimmed, "[]")) == "dev-packages"
+				continue
+			}
+			if inDev {
+				name := requirementName(strings.SplitN(trimmed, "=", 2)[0])
+				if name != "" {
+					devDeps[name] = struct{}{}
+				}
+			}
+		}
+	}
+
+	// pip: requirements-dev.txt (plain list of dev packages)
+	if raw, err := os.ReadFile(filepath.Join(projectPath, "requirements-dev.txt")); err == nil {
+		for _, line := range strings.Split(string(raw), "\n") {
+			trimmed := strings.TrimSpace(line)
+			if trimmed == "" || strings.HasPrefix(trimmed, "#") || strings.HasPrefix(trimmed, "-") {
+				continue
+			}
+			name := requirementName(trimmed)
+			if name != "" {
+				devDeps[name] = struct{}{}
+			}
+		}
+	}
+
+	return devDeps
+}
+
+func parseDevArrayItems(text string, devDeps map[string]struct{}) {
+	// Extract quoted package names from a TOML array fragment like ["pytest>=7", "black"]
+	for _, part := range strings.FieldsFunc(text, func(r rune) bool {
+		return r == '[' || r == ']' || r == ',' || r == '"' || r == '\''
+	}) {
+		name := requirementName(strings.TrimSpace(part))
+		if name != "" {
+			devDeps[name] = struct{}{}
+		}
+	}
 }

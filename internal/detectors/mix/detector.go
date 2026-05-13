@@ -30,12 +30,16 @@ type mixPackage struct {
 	Source  string
 	Scope   sdk.Scope
 	Direct  bool
+	Deps    []string
 }
 
 var (
 	mixLockHexPattern  = regexp.MustCompile(`"([^"]+)"\s*:\s*\{:(?:hex)\s*,\s*:([A-Za-z0-9_.-]+)\s*,\s*"([^"]+)"`)
 	mixDepPattern      = regexp.MustCompile(`\{(?:\s*:([A-Za-z0-9_.-]+)|\s*"([^"]+)")\s*,[^}\n]*(?:only:\s*(?::([A-Za-z0-9_]+)|\[([^\]]+)\]))?`)
 	mixOnlyAtomPattern = regexp.MustCompile(`:([A-Za-z0-9_]+)`)
+	// mixLockDepAtomPattern extracts a hex dep atom name from inside a dep tuple
+	// like `{:cowlib, "~> 2.11.0", [hex: :cowlib, ...]}` — we only want :cowlib.
+	mixLockDepAtomPattern = regexp.MustCompile(`\{\s*:([A-Za-z0-9_]+)`)
 )
 
 // PackageManagerSupport returns Mix package-manager discovery metadata.
@@ -132,6 +136,9 @@ func depGraphFromMix(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 	if err := g.AddPackage(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
+
+	// Add all package nodes first.
+	nodesByName := make(map[string]*sdk.Package, len(packages))
 	for _, name := range sortedMixNames(packages) {
 		pkg := packages[name]
 		node := packageNode(pkg)
@@ -143,10 +150,95 @@ func depGraphFromMix(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 				sdk.MergePackageScope(existing, pkg.Scope)
 			}
 		}
-		if pkg.Direct {
-			if err := g.AddDependency(root.ID, node.ID); err != nil {
-				return nil, fmt.Errorf("add Mix root dependency %q: %w", node.ID, err)
+		nodesByName[name] = node
+	}
+
+	// Wire root → direct deps only.
+	for _, name := range sortedMixNames(packages) {
+		pkg := packages[name]
+		if !pkg.Direct {
+			continue
+		}
+		node := nodesByName[name]
+		if node == nil {
+			continue
+		}
+		if err := g.AddDependency(root.ID, node.ID); err != nil {
+			return nil, fmt.Errorf("add Mix root dependency %q: %w", node.ID, err)
+		}
+	}
+
+	// Wire transitive edges from the dep list recorded in each lock entry.
+	for _, name := range sortedMixNames(packages) {
+		pkg := packages[name]
+		parent := nodesByName[name]
+		if parent == nil {
+			continue
+		}
+		for _, depName := range pkg.Deps {
+			child := nodesByName[depName]
+			if child == nil || child.ID == root.ID || child.ID == parent.ID {
+				continue
 			}
+			_ = g.AddDependency(parent.ID, child.ID)
+		}
+	}
+
+	// Connect any orphan packages (no parents at all) directly to root.
+	for _, node := range nodesByName {
+		if node == nil {
+			continue
+		}
+		dependents, _ := g.Dependents(node.ID)
+		if len(dependents) == 0 {
+			_ = g.AddDependency(root.ID, node.ID)
+		}
+	}
+
+	// BFS scope propagation: runtime always beats development.
+	directDeps, _ := g.Dependencies(root.ID)
+	propagated := make(map[string]sdk.Scope, g.Size())
+	queue := make([]*sdk.Package, 0, len(directDeps))
+	for _, dep := range directDeps {
+		if dep == nil {
+			continue
+		}
+		scope := sdk.Scope(dep.Scope)
+		if scope == sdk.ScopeUnknown {
+			scope = sdk.ScopeRuntime
+		}
+		propagated[dep.ID] = sdk.MergeScope(propagated[dep.ID], scope)
+		sdk.MergePackageScope(dep, propagated[dep.ID])
+		queue = append(queue, dep)
+	}
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+		scope := propagated[current.ID]
+		if scope == sdk.ScopeUnknown {
+			continue
+		}
+		children, err := g.Dependencies(current.ID)
+		if err != nil {
+			continue
+		}
+		for _, child := range children {
+			if child == nil || child.ID == root.ID {
+				continue
+			}
+			next := sdk.MergeScope(propagated[child.ID], scope)
+			if next == propagated[child.ID] && sdk.Scope(child.Scope) == next {
+				continue
+			}
+			propagated[child.ID] = next
+			sdk.MergePackageScope(child, next)
+			queue = append(queue, child)
+		}
+	}
+	// Any remaining unscoped non-root packages default to runtime.
+	for _, pkg := range g.Packages() {
+		if pkg != nil && pkg.ID != root.ID && sdk.Scope(pkg.Scope) == sdk.ScopeUnknown {
+			sdk.MergePackageScope(pkg, sdk.ScopeRuntime)
 		}
 	}
 	return g, nil
@@ -154,19 +246,105 @@ func depGraphFromMix(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 
 func parseMixLock(raw string) map[string]mixPackage {
 	packages := make(map[string]mixPackage)
-	for _, match := range mixLockHexPattern.FindAllStringSubmatch(raw, -1) {
+	for _, loc := range mixLockHexPattern.FindAllStringIndex(raw, -1) {
+		match := mixLockHexPattern.FindStringSubmatch(raw[loc[0]:loc[1]])
+		if match == nil {
+			continue
+		}
 		lockName := strings.TrimSpace(match[1])
 		name := strings.TrimSpace(match[2])
 		if name == "" {
 			name = lockName
 		}
+		// Extract the full line so we can parse the dep list at field index 5.
+		lineEnd := strings.Index(raw[loc[0]:], "\n")
+		var line string
+		if lineEnd < 0 {
+			line = raw[loc[0]:]
+		} else {
+			line = raw[loc[0] : loc[0]+lineEnd]
+		}
 		packages[name] = mixPackage{
 			Name:    name,
 			Version: strings.TrimSpace(match[3]),
 			Source:  "hex",
+			Deps:    extractMixLockDeps(line),
 		}
 	}
 	return packages
+}
+
+// extractMixLockDeps extracts the dependency names from a single mix.lock line.
+// Each line has the shape:
+//
+//	"name": {:hex, :atom, "version", "hash", [tools], [{:dep, ...}, ...], "repo", "cksum"}
+//
+// Field index 5 (0-based, separated by top-level commas) is the deps list.
+// We extract it by tracking bracket/brace depth and counting top-level commas,
+// then apply a simple regex to pull out dep atom names.
+func extractMixLockDeps(line string) []string {
+	// Find the opening '{' of the outer tuple.
+	start := strings.Index(line, "{")
+	if start < 0 {
+		return nil
+	}
+
+	depth := 0
+	commaCount := 0
+	capturing := false
+	var captured strings.Builder
+
+	for i := start; i < len(line); i++ {
+		ch := line[i]
+		switch ch {
+		case '{', '[':
+			depth++
+			if capturing {
+				captured.WriteByte(ch)
+			}
+		case '}', ']':
+			if capturing && depth == 1 {
+				// Closing bracket ends the dep list field.
+				capturing = false
+			} else if capturing {
+				captured.WriteByte(ch)
+			}
+			depth--
+		case ',':
+			if depth == 1 {
+				commaCount++
+				if commaCount == 5 {
+					// Next content is field 5 — the deps list.
+					capturing = true
+				} else if commaCount > 5 && capturing {
+					// Moved past field 5.
+					capturing = false
+				}
+			} else if capturing {
+				captured.WriteByte(ch)
+			}
+		default:
+			if capturing {
+				captured.WriteByte(ch)
+			}
+		}
+	}
+
+	field := captured.String()
+	if field == "" {
+		return nil
+	}
+	matches := mixLockDepAtomPattern.FindAllStringSubmatch(field, -1)
+	if len(matches) == 0 {
+		return nil
+	}
+	deps := make([]string, 0, len(matches))
+	for _, m := range matches {
+		if name := strings.TrimSpace(m[1]); name != "" {
+			deps = append(deps, name)
+		}
+	}
+	return deps
 }
 
 func parseMixManifest(raw string) map[string]mixPackage {

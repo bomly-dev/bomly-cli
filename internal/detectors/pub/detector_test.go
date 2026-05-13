@@ -74,8 +74,8 @@ func TestDepGraphFromLockScopesDirectDependencies(t *testing.T) {
 	if err != nil {
 		t.Fatalf("root dependencies: %v", err)
 	}
-	if len(deps) != 2 {
-		t.Fatalf("expected two direct dependencies, got %d", len(deps))
+	if len(deps) != 3 {
+		t.Fatalf("expected three direct dependencies, got %d", len(deps))
 	}
 	dev, ok := g.Package("test@1.25.8")
 	if !ok {
@@ -86,5 +86,37 @@ func TestDepGraphFromLockScopesDirectDependencies(t *testing.T) {
 	}
 	if dev.PURL != "pkg:pub/test@1.25.8" {
 		t.Fatalf("unexpected purl %q", dev.PURL)
+	}
+}
+
+func TestDepGraphFromPubDepsJSONBuildsTransitiveScopes(t *testing.T) {
+	raw := []byte(`{
+  "root": "demo",
+  "packages": [
+    {"name": "demo", "version": "1.0.0", "kind": "root", "source": "root", "dependencies": ["path", "test"]},
+    {"name": "path", "version": "1.9.0", "kind": "direct", "source": "hosted", "dependencies": ["collection"]},
+    {"name": "test", "version": "1.25.8", "kind": "dev", "source": "hosted", "dependencies": ["collection"]},
+    {"name": "collection", "version": "1.18.0", "kind": "transitive", "source": "hosted", "dependencies": []}
+  ]
+}`)
+	graph, err := depGraphFromPubDepsJSON(raw)
+	if err != nil {
+		t.Fatalf("depGraphFromPubDepsJSON() error = %v", err)
+	}
+
+	collection, ok := graph.Package("collection@1.18.0")
+	if !ok {
+		t.Fatalf("expected collection package, got %v", graph.Packages())
+	}
+	if collection.Scope != string(sdk.ScopeRuntime) {
+		t.Fatalf("expected shared transitive dependency to be runtime, got %q", collection.Scope)
+	}
+
+	testPkg, ok := graph.Package("test@1.25.8")
+	if !ok {
+		t.Fatal("expected test package")
+	}
+	if testPkg.Scope != string(sdk.ScopeDevelopment) {
+		t.Fatalf("expected dev direct dependency, got %q", testPkg.Scope)
 	}
 }

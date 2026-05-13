@@ -32,6 +32,19 @@
           "vulnerabilities": []
         },
         {
+          "dependencies": [
+            "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
+            "pkg:golang/github.com/google/go-querystring@v1.0.0",
+            "pkg:golang/github.com/simeji/jid@v0.7.6",
+            "pkg:golang/golang.org/x/text@v0.3.5"
+          ],
+          "id": "pkg:golang/github.com/bomly/example-go-modules",
+          "licenses": [],
+          "name": "github.com/bomly/example-go-modules",
+          "purl": "pkg:golang/github.com/bomly/example-go-modules",
+          "vulnerabilities": []
+        },
+        {
           "dependencies": [],
           "id": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
           "licenses": [],
@@ -200,19 +213,6 @@
           "purl": "pkg:golang/github.com/simeji/jid@v0.7.6",
           "scope": "runtime",
           "version": "v0.7.6",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
-            "pkg:golang/github.com/google/go-querystring@v1.0.0",
-            "pkg:golang/github.com/simeji/jid@v0.7.6",
-            "pkg:golang/golang.org/x/text@v0.3.5"
-          ],
-          "id": "pkg:golang/github.com/srcclr/example-go-modules",
-          "licenses": [],
-          "name": "github.com/srcclr/example-go-modules",
-          "purl": "pkg:golang/github.com/srcclr/example-go-modules",
           "vulnerabilities": []
         },
         {

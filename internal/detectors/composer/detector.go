@@ -269,6 +269,7 @@ func packageNode(name, version string) *sdk.Package {
 		Org:         org,
 		Name:        packageName,
 		Version:     version,
+		PURL:        sdk.BuildPackageURL("composer", org, packageName, version),
 		BuildSystem: sdk.PackageManagerComposer.Name(),
 		Type:        "package",
 		Language:    "php",

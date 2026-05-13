@@ -321,6 +321,14 @@ func depsDevSystem(ecosystem string) (string, bool) {
 		return "RUBYGEMS", true
 	case "rust", "cargo":
 		return "CARGO", true
+	case "php", "composer":
+		return "PACKAGIST", true
+	case "elixir", "mix", "hex":
+		return "HEXPM", true
+	case "dart", "pub":
+		return "PUB", true
+	case "swift", "cocoapods":
+		return "COCOAPODS", true
 	default:
 		return "", false
 	}
@@ -360,6 +368,13 @@ func depsDevName(pkg *sdk.Package) (string, bool) {
 	case "python", "pypi":
 		return strings.ToLower(name), name != ""
 	case "dotnet", "nuget":
+		return strings.ToLower(name), name != ""
+	case "php", "composer":
+		if org != "" {
+			return org + "/" + name, name != ""
+		}
+		return name, name != ""
+	case "elixir", "mix", "hex":
 		return strings.ToLower(name), name != ""
 	default:
 		return name, name != ""
@@ -458,6 +473,18 @@ func versionKeyFromParsedPURL(p parsedPURL) (versionKey, bool) {
 		return versionKey{System: "RUBYGEMS", Name: p.Name, Version: version}, true
 	case "cargo":
 		return versionKey{System: "CARGO", Name: p.Name, Version: version}, true
+	case "composer":
+		name := p.Name
+		if p.Namespace != "" {
+			name = p.Namespace + "/" + p.Name
+		}
+		return versionKey{System: "PACKAGIST", Name: name, Version: version}, true
+	case "hex":
+		return versionKey{System: "HEXPM", Name: strings.ToLower(p.Name), Version: version}, true
+	case "pub":
+		return versionKey{System: "PUB", Name: p.Name, Version: version}, true
+	case "cocoapods":
+		return versionKey{System: "COCOAPODS", Name: p.Name, Version: version}, true
 	default:
 		return versionKey{}, false
 	}

@@ -2,8 +2,10 @@ package python
 
 import (
 	"context"
+	"path/filepath"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
+	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
@@ -61,6 +63,7 @@ func (d PipDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
+	annotateGraphScopes(depsGraph, d.base().workingDir(req.ProjectPath))
 	return sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, pipEvidencePatterns)),
 	}, nil
@@ -80,7 +83,8 @@ func (d PipDetector) base() baseDetector {
 
 // Install prepares pip dependencies before graph resolution.
 func (d PipDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
-	requirementsFile, err := installRequirementsPath(d.base().workingDir(req.ProjectPath))
+	workingDir := d.base().workingDir(req.ProjectPath)
+	requirementsFile, err := installRequirementsPath(workingDir)
 	if err != nil {
 		return err
 	}
@@ -89,5 +93,20 @@ func (d PipDetector) Install(ctx context.Context, req sdk.DetectionRequest) erro
 		return err
 	}
 	command = append(command, "-m", "pip", "install", "-r", requirementsFile)
-	return d.base().install(ctx, req, "pip detector", command)
+	if err := d.base().install(ctx, req, "pip detector", command); err != nil {
+		return err
+	}
+	// Also install requirements-dev.txt when present alongside the primary file.
+	devReqPath := filepath.Join(workingDir, "requirements-dev.txt")
+	if exists, _ := system.FileExists(devReqPath); exists && requirementsFile != "requirements-dev.txt" {
+		devCommand, err := pythonCommand()
+		if err != nil {
+			return err
+		}
+		devCommand = append(devCommand, "-m", "pip", "install", "-r", "requirements-dev.txt")
+		if err := d.base().install(ctx, req, "pip detector (dev)", devCommand); err != nil {
+			return err
+		}
+	}
+	return nil
 }

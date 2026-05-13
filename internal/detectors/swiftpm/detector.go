@@ -164,10 +164,8 @@ func depGraphFromSwiftPM(resolvedRaw, manifestRaw []byte) (*sdk.Graph, error) {
 		if err := addNodeIfMissing(g, node); err != nil {
 			return nil, err
 		}
-		if pkg.Direct || len(manifestRaw) == 0 {
-			if err := g.AddDependency(root.ID, node.ID); err != nil {
-				return nil, fmt.Errorf("add SwiftPM root dependency %q: %w", node.ID, err)
-			}
+		if err := g.AddDependency(root.ID, node.ID); err != nil {
+			return nil, fmt.Errorf("add SwiftPM root dependency %q: %w", node.ID, err)
 		}
 	}
 	return g, nil
@@ -261,7 +259,7 @@ func packageNode(pkg swiftPackage) *sdk.Package {
 		metadata["requirement"] = pkg.Requirement
 	}
 	namespace, name := packageIdentity(pkg.Repository, pkg.Name)
-	return sdk.NewPackage(sdk.Package{
+	node := sdk.NewPackage(sdk.Package{
 		Ecosystem:   string(sdk.EcosystemSwift),
 		Org:         namespace,
 		Name:        name,
@@ -273,6 +271,9 @@ func packageNode(pkg swiftPackage) *sdk.Package {
 		ResolvedURL: strings.TrimSpace(pkg.Repository),
 		Metadata:    metadata,
 	})
+	// SwiftPM does not distinguish dev scope; all packages are runtime.
+	sdk.MergePackageScope(node, sdk.ScopeRuntime)
+	return node
 }
 
 func packageIdentity(repository, fallbackName string) (string, string) {

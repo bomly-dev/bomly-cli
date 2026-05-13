@@ -67,8 +67,55 @@ type PackageRef struct {
 	Purl            string             `json:"purl,omitempty"`
 	ID              string             `json:"id,omitempty"`
 	Metadata        map[string]any     `json:"metadata,omitempty"`
+	Locations       []LocationRef      `json:"locations,omitempty"`
 	Licenses        []LicenseRef       `json:"licenses"`
 	Vulnerabilities []VulnerabilityRef `json:"vulnerabilities"`
+}
+
+// LocationRef points at where a package was declared in a lockfile
+// or manifest. Detectors populate this when their input format makes
+// position cheaply recoverable; consumers (SARIF / explain output /
+// IDE plugins) use it to deep-link into the source.
+type LocationRef struct {
+	RealPath   string       `json:"real_path,omitempty"`
+	AccessPath string       `json:"access_path,omitempty"`
+	Position   *PositionRef `json:"position,omitempty"`
+}
+
+// PositionRef is the JSON shape of sdk.SourcePosition.
+type PositionRef struct {
+	File    string `json:"file,omitempty"`
+	Line    int    `json:"line,omitempty"`
+	Column  int    `json:"column,omitempty"`
+	EndLine int    `json:"end_line,omitempty"`
+}
+
+// LocationRefsFromGraphLocations converts SDK locations into
+// output-friendly values, dropping entries with no useful content.
+func LocationRefsFromGraphLocations(locations []sdk.PackageLocation) []LocationRef {
+	if len(locations) == 0 {
+		return nil
+	}
+	out := make([]LocationRef, 0, len(locations))
+	for _, loc := range locations {
+		ref := LocationRef{RealPath: loc.RealPath, AccessPath: loc.AccessPath}
+		if loc.Position != nil {
+			ref.Position = &PositionRef{
+				File:    loc.Position.File,
+				Line:    loc.Position.Line,
+				Column:  loc.Position.Column,
+				EndLine: loc.Position.EndLine,
+			}
+		}
+		if ref.RealPath == "" && ref.AccessPath == "" && ref.Position == nil {
+			continue
+		}
+		out = append(out, ref)
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
 }
 
 // DependencyPath describes one resolved dependency path returned by the explain command.
@@ -92,6 +139,7 @@ func PackageFromGraphPackage(pkg *sdk.Package) PackageRef {
 		Purl:            pkg.PURL,
 		ID:              pkg.ID,
 		Metadata:        cloneRefMetadata(pkg.Metadata),
+		Locations:       LocationRefsFromGraphLocations(pkg.Locations),
 		Licenses:        LicenseRefsFromGraphLicenses(pkg.Licenses),
 		Vulnerabilities: VulnerabilityRefsFromPackageVulnerabilities(pkg.Vulnerabilities),
 	}

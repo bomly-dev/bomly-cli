@@ -136,6 +136,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
+	AttachCargoLockPositions(g, d.workingDir(req.ProjectPath))
 	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, evidencePatterns))}, nil
 }
 
@@ -158,6 +159,7 @@ func (d Detector) resolveFromLock(req sdk.DetectionRequest) (sdk.DetectionResult
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
+	AttachCargoLockPositions(g, workingDir)
 	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, evidencePatterns))}, nil
 }
 

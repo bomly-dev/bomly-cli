@@ -6,10 +6,28 @@ import (
 	"strings"
 )
 
+// SourcePosition points at a specific location in a source file. Used
+// by detectors to record where in a lockfile or manifest a dependency
+// is declared so consumers (SARIF, explain output, IDE plugins) can
+// deep-link into the source. All numeric fields are 1-based; a zero
+// value means "unknown".
+type SourcePosition struct {
+	File    string `json:"file,omitempty"`     // path, typically project-relative
+	Line    int    `json:"line,omitempty"`     // 1-based; 0 = unknown
+	Column  int    `json:"column,omitempty"`   // 1-based; 0 = unknown
+	EndLine int    `json:"end_line,omitempty"` // optional range end
+}
+
 // PackageLocation captures where a package was discovered.
 type PackageLocation struct {
 	RealPath   string
 	AccessPath string
+	// Position optionally points at the exact line / column in
+	// RealPath where the package is declared. Detectors populate it
+	// when their input format makes the position cheaply recoverable
+	// (e.g. line-oriented manifests like go.mod or requirements.txt).
+	// nil when unknown.
+	Position *SourcePosition
 }
 
 // PackageLicense captures normalized license details for a package.
@@ -122,7 +140,14 @@ func (p *Package) Clone() *Package {
 		clone.Licenses = append([]PackageLicense(nil), p.Licenses...)
 	}
 	if len(p.Locations) > 0 {
-		clone.Locations = append([]PackageLocation(nil), p.Locations...)
+		clone.Locations = make([]PackageLocation, len(p.Locations))
+		for i, loc := range p.Locations {
+			clone.Locations[i] = loc
+			if loc.Position != nil {
+				pos := *loc.Position
+				clone.Locations[i].Position = &pos
+			}
+		}
 	}
 	if len(p.CPEs) > 0 {
 		clone.CPEs = append([]string(nil), p.CPEs...)

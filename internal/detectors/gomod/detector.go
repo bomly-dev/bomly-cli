@@ -27,6 +27,10 @@ var goLookupEnv = os.LookupEnv
 type moduleRef struct {
 	Path    string
 	Version string
+	// Line is the 1-based line number in go.mod where this require
+	// directive appears. 0 means the line was not captured (e.g.
+	// the module is a transitive dep go.mod does not declare).
+	Line int
 }
 
 type goListPackage struct {
@@ -132,7 +136,7 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 		workingDir = projectPath
 	}
 
-	modulePath, _, err := parseGoModFile(filepath.Join(workingDir, "go.mod"))
+	modulePath, directRequires, err := parseGoModFile(filepath.Join(workingDir, "go.mod"))
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +165,7 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 		return nil, fmt.Errorf("run go list -deps -json all: %w", err)
 	}
 
-	depsGraph, err := depGraphFromGoList(raw, modulePath)
+	depsGraph, err := depGraphFromGoList(raw, modulePath, directRequires)
 	if err != nil {
 		logger.Error(fmt.Sprintf("Failed to map Go module output to a dependency graph: %v", err))
 		logger.Debug("go module output mapping failed", zap.Error(err))
@@ -184,13 +188,22 @@ func buildGoListArgs() []string {
 	return append(args, "all")
 }
 
-func depGraphFromGoList(raw []byte, rootModule string) (*sdk.Graph, error) {
+func depGraphFromGoList(raw []byte, rootModule string, directRequires []moduleRef) (*sdk.Graph, error) {
 	if strings.TrimSpace(rootModule) == "" {
 		return nil, errors.New("go module path is empty")
 	}
 	packages, err := parseGoListPackages(raw)
 	if err != nil {
 		return nil, err
+	}
+	// Build a module-path -> go.mod line index so packageFromModuleNode
+	// can attach a SourcePosition to direct deps. Transitive deps that
+	// don't appear in go.mod get nil Position (their Line is 0).
+	directLines := make(map[string]int, len(directRequires))
+	for _, ref := range directRequires {
+		if ref.Path != "" && ref.Line > 0 {
+			directLines[ref.Path] = ref.Line
+		}
 	}
 	if len(packages) == 0 {
 		return nil, errors.New("go list output is empty")
@@ -250,19 +263,19 @@ func depGraphFromGoList(raw []byte, rootModule string) (*sdk.Graph, error) {
 			continue
 		}
 		if !currentModule.Main {
-			currentNode := packageFromModuleNode(currentModule, mergedScope)
+			currentNode := packageFromModuleNode(currentModule, mergedScope, directLines)
 			if err := addOrMergeModuleNode(depsGraph, currentNode, mergedScope); err != nil {
 				return nil, err
 			}
 		}
 
-		if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, mergedScope, current.pkg.Imports, packageRecords, packageModules, &queue); err != nil {
+		if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, mergedScope, current.pkg.Imports, packageRecords, packageModules, directLines, &queue); err != nil {
 			return nil, err
 		}
-		if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.TestImports, packageRecords, packageModules, &queue); err != nil {
+		if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.TestImports, packageRecords, packageModules, directLines, &queue); err != nil {
 			return nil, err
 		}
-		if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.XTestImports, packageRecords, packageModules, &queue); err != nil {
+		if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.XTestImports, packageRecords, packageModules, directLines, &queue); err != nil {
 			return nil, err
 		}
 	}
@@ -301,7 +314,7 @@ func moduleNodeFromPackage(pkg goListPackage, rootModule string) (moduleNode, bo
 	}, true
 }
 
-func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNode, scope sdk.Scope, imports []string, packageRecords map[string]goListPackage, packageModules map[string]moduleNode, queue *[]queuedPackage) error {
+func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNode, scope sdk.Scope, imports []string, packageRecords map[string]goListPackage, packageModules map[string]moduleNode, directLines map[string]int, queue *[]queuedPackage) error {
 	fromID := rootID
 	if !from.Main {
 		fromID = moduleNodeID(from)
@@ -317,7 +330,7 @@ func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNod
 			continue
 		}
 		if !to.Main {
-			pkg := packageFromModuleNode(to, scope)
+			pkg := packageFromModuleNode(to, scope, directLines)
 			if err := addOrMergeModuleNode(depsGraph, pkg, scope); err != nil {
 				return err
 			}
@@ -332,13 +345,23 @@ func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNod
 	return nil
 }
 
-func packageFromModuleNode(node moduleNode, scope sdk.Scope) *sdk.Package {
-	return sdk.NewPackage(sdk.Package{
+func packageFromModuleNode(node moduleNode, scope sdk.Scope, directLines map[string]int) *sdk.Package {
+	pkg := sdk.Package{
 		Ecosystem: string(sdk.EcosystemGo),
 		Name:      node.Path,
 		Version:   node.Version,
 		Scope:     string(scope),
-	})
+	}
+	if line, ok := directLines[node.Path]; ok && line > 0 {
+		pkg.Locations = []sdk.PackageLocation{
+			{
+				RealPath:   "go.mod",
+				AccessPath: "go.mod",
+				Position:   &sdk.SourcePosition{File: "go.mod", Line: line},
+			},
+		}
+	}
+	return sdk.NewPackage(pkg)
 }
 
 func moduleNodeID(node moduleNode) string {
@@ -361,8 +384,11 @@ func parseGoModFile(path string) (string, []moduleRef, error) {
 	seen := make(map[string]struct{})
 
 	scanner := bufio.NewScanner(strings.NewReader(strings.ReplaceAll(string(data), "\r\n", "\n")))
+	lineNum := 0
 	for scanner.Scan() {
-		line := stripLineComment(scanner.Text())
+		lineNum++
+		raw := scanner.Text()
+		line := stripLineComment(raw)
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
@@ -385,6 +411,7 @@ func parseGoModFile(path string) (string, []moduleRef, error) {
 				return "", nil, err
 			}
 			if ok {
+				ref.Line = lineNum
 				requires = appendUniqueModule(requires, seen, ref)
 			}
 		case inRequireBlock:
@@ -393,6 +420,7 @@ func parseGoModFile(path string) (string, []moduleRef, error) {
 				return "", nil, err
 			}
 			if ok {
+				ref.Line = lineNum
 				requires = appendUniqueModule(requires, seen, ref)
 			}
 		}

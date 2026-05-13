@@ -86,7 +86,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 {"ImportPath":"github.com/davecgh/go-spew/spew","Module":{"Path":"github.com/davecgh/go-spew","Version":"v1.1.1"}}
 `)
 
-	g, err := depGraphFromGoList(raw, "example.com/demo")
+	g, err := depGraphFromGoList(raw, "example.com/demo", nil)
 	if err != nil {
 		t.Fatalf("depGraphFromGoList() error = %v", err)
 	}
@@ -155,7 +155,7 @@ func TestDepGraphFromGoList_PrefersRuntimeScope(t *testing.T) {
 {"ImportPath":"example.com/shared/pkg","Module":{"Path":"example.com/shared","Version":"v1.2.3"}}
 `)
 
-	g, err := depGraphFromGoList(raw, "example.com/demo")
+	g, err := depGraphFromGoList(raw, "example.com/demo", nil)
 	if err != nil {
 		t.Fatalf("depGraphFromGoList() error = %v", err)
 	}
@@ -175,7 +175,7 @@ func TestDepGraphFromGoList_UsesOriginalModuleIdentityForReplace(t *testing.T) {
 {"ImportPath":"example.com/original/pkg","Module":{"Path":"example.com/original","Version":"v1.2.3","Replace":{"Path":"../local/original"}}}
 `)
 
-	g, err := depGraphFromGoList(raw, "example.com/demo")
+	g, err := depGraphFromGoList(raw, "example.com/demo", nil)
 	if err != nil {
 		t.Fatalf("depGraphFromGoList() error = %v", err)
 	}
@@ -186,7 +186,7 @@ func TestDepGraphFromGoList_UsesOriginalModuleIdentityForReplace(t *testing.T) {
 }
 
 func TestDepGraphFromGoList_EmptyOutput(t *testing.T) {
-	if _, err := depGraphFromGoList(nil, "example.com/demo"); err == nil {
+	if _, err := depGraphFromGoList(nil, "example.com/demo", nil); err == nil {
 		t.Fatal("expected empty go list output to fail")
 	}
 }
@@ -223,5 +223,61 @@ require golang.org/x/text v0.14.0
 	}
 	if requires[2].Path != "golang.org/x/text" || requires[2].Version != "v0.14.0" {
 		t.Fatalf("unexpected final require: %#v", requires[2])
+	}
+	// Line numbers from the go.mod fixture:
+	//   1: module example.com/demo
+	//   2: (blank)
+	//   3: go 1.22.0
+	//   4: (blank)
+	//   5: require (
+	//   6:   github.com/google/uuid v1.6.0
+	//   7:   rsc.io/quote v1.5.2 // indirect
+	//   8: )
+	//   9: (blank)
+	//  10: require golang.org/x/text v0.14.0
+	if requires[0].Line != 6 {
+		t.Errorf("require[0] line = %d, want 6", requires[0].Line)
+	}
+	if requires[1].Line != 7 {
+		t.Errorf("require[1] line = %d, want 7", requires[1].Line)
+	}
+	if requires[2].Line != 10 {
+		t.Errorf("require[2] line = %d, want 10", requires[2].Line)
+	}
+}
+
+func TestDepGraphFromGoList_AttachesPositionToDirectDeps(t *testing.T) {
+	raw := []byte(`
+{"ImportPath":"example.com/demo","Module":{"Path":"example.com/demo","Main":true},"Imports":["github.com/direct/dep","example.com/trans/dep"]}
+{"ImportPath":"github.com/direct/dep","Module":{"Path":"github.com/direct/dep","Version":"v1.0.0"},"Imports":["example.com/trans/dep"]}
+{"ImportPath":"example.com/trans/dep","Module":{"Path":"example.com/trans/dep","Version":"v2.0.0"}}
+`)
+	directRequires := []moduleRef{
+		{Path: "github.com/direct/dep", Version: "v1.0.0", Line: 7},
+	}
+	g, err := depGraphFromGoList(raw, "example.com/demo", directRequires)
+	if err != nil {
+		t.Fatalf("depGraphFromGoList: %v", err)
+	}
+	direct, ok := g.Package("github.com/direct/dep@v1.0.0")
+	if !ok {
+		t.Fatal("direct dep missing from graph")
+	}
+	if len(direct.Locations) != 1 {
+		t.Fatalf("direct dep Locations = %d, want 1", len(direct.Locations))
+	}
+	loc := direct.Locations[0]
+	if loc.RealPath != "go.mod" {
+		t.Errorf("direct dep RealPath = %q, want go.mod", loc.RealPath)
+	}
+	if loc.Position == nil || loc.Position.Line != 7 || loc.Position.File != "go.mod" {
+		t.Errorf("direct dep Position = %+v, want {File: go.mod, Line: 7}", loc.Position)
+	}
+	trans, ok := g.Package("example.com/trans/dep@v2.0.0")
+	if !ok {
+		t.Fatal("transitive dep missing from graph")
+	}
+	if len(trans.Locations) != 0 {
+		t.Errorf("transitive dep should have no Locations (not in go.mod); got %+v", trans.Locations)
 	}
 }

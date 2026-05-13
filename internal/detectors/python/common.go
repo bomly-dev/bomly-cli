@@ -303,6 +303,91 @@ func collectRequirementFileDependencies(path string, declared map[string]struct{
 	return nil
 }
 
+// declaredPythonPositions walks every requirements*.txt file in
+// projectPath and returns a map from normalized package name to the
+// declaration site (file + line). Used to attach
+// PackageLocation.Position to graph packages so SARIF / explain
+// output can deep-link into the user's lockfile. Loose manifests
+// (pyproject.toml, poetry.lock, etc.) are not handled here yet —
+// they need a positional decoder per format.
+func declaredPythonPositions(projectPath string) map[string]*sdk.SourcePosition {
+	positions := make(map[string]*sdk.SourcePosition)
+	if projectPath == "" {
+		return positions
+	}
+	for _, name := range []string{"requirements.txt", "requirements-dev.txt", "requirements.in", "requirements.lock"} {
+		collectRequirementFilePositions(filepath.Join(projectPath, name), name, positions)
+	}
+	return positions
+}
+
+func collectRequirementFilePositions(path, relPath string, positions map[string]*sdk.SourcePosition) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return
+	}
+	for i, raw := range strings.Split(string(raw), "\n") {
+		line := strings.TrimSpace(strings.SplitN(raw, "#", 2)[0])
+		if line == "" || strings.HasPrefix(line, "-") {
+			continue
+		}
+		name := requirementName(line)
+		if name == "" {
+			continue
+		}
+		normalized := normalizePythonName(name)
+		if normalized == "" {
+			continue
+		}
+		// Don't overwrite an earlier file's match (requirements.txt
+		// wins over requirements-dev.txt for the same package).
+		if _, exists := positions[normalized]; exists {
+			continue
+		}
+		positions[normalized] = &sdk.SourcePosition{File: relPath, Line: i + 1}
+	}
+}
+
+// attachDeclaredPositions populates PackageLocation.Position on
+// graph packages whose normalized name appears in a requirements
+// file. Transitive deps that are not declared anywhere get no
+// Locations entry from this pass.
+func attachDeclaredPositions(depsGraph *sdk.Graph, projectPath string) {
+	if depsGraph == nil {
+		return
+	}
+	positions := declaredPythonPositions(projectPath)
+	if len(positions) == 0 {
+		return
+	}
+	for _, pkg := range depsGraph.Packages() {
+		if pkg == nil {
+			continue
+		}
+		pos, ok := positions[normalizePythonName(pkg.Name)]
+		if !ok {
+			continue
+		}
+		// Avoid duplicating if a Location with the same RealPath
+		// already exists.
+		duplicate := false
+		for _, loc := range pkg.Locations {
+			if loc.RealPath == pos.File {
+				duplicate = true
+				break
+			}
+		}
+		if duplicate {
+			continue
+		}
+		pkg.Locations = append(pkg.Locations, sdk.PackageLocation{
+			RealPath:   pos.File,
+			AccessPath: pos.File,
+			Position:   pos,
+		})
+	}
+}
+
 func collectLoosePythonManifestDependencies(path string, declared map[string]struct{}) error {
 	raw, err := os.ReadFile(path)
 	if os.IsNotExist(err) {

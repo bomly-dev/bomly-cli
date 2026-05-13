@@ -67,6 +67,7 @@ func (d LockfileDetector) ResolveGraph(_ context.Context, req sdk.DetectionReque
 	if err := node.AnnotateScopesFromPackageJSON(d.base().ProjectDir(req.ProjectPath), depsGraph); err != nil {
 		return sdk.DetectionResult{}, err
 	}
+	AttachPackageLockPositions(depsGraph, d.base().ProjectDir(req.ProjectPath))
 	return sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, npmManifestMetadataPatterns)),
 	}, nil

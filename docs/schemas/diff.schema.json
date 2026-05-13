@@ -66,6 +66,37 @@
                     },
                     "type": "array"
                   },
+                  "locations": {
+                    "items": {
+                      "properties": {
+                        "access_path": {
+                          "type": "string"
+                        },
+                        "position": {
+                          "properties": {
+                            "column": {
+                              "type": "integer"
+                            },
+                            "end_line": {
+                              "type": "integer"
+                            },
+                            "file": {
+                              "type": "string"
+                            },
+                            "line": {
+                              "type": "integer"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "real_path": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
                   "metadata": {
                     "additionalProperties": {},
                     "type": "object"
@@ -244,6 +275,37 @@
                     },
                     "type": "array"
                   },
+                  "locations": {
+                    "items": {
+                      "properties": {
+                        "access_path": {
+                          "type": "string"
+                        },
+                        "position": {
+                          "properties": {
+                            "column": {
+                              "type": "integer"
+                            },
+                            "end_line": {
+                              "type": "integer"
+                            },
+                            "file": {
+                              "type": "string"
+                            },
+                            "line": {
+                              "type": "integer"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "real_path": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
                   "metadata": {
                     "additionalProperties": {},
                     "type": "object"
@@ -415,6 +477,37 @@
                           "type": "string"
                         },
                         "value": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "locations": {
+                    "items": {
+                      "properties": {
+                        "access_path": {
+                          "type": "string"
+                        },
+                        "position": {
+                          "properties": {
+                            "column": {
+                              "type": "integer"
+                            },
+                            "end_line": {
+                              "type": "integer"
+                            },
+                            "file": {
+                              "type": "string"
+                            },
+                            "line": {
+                              "type": "integer"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "real_path": {
                           "type": "string"
                         }
                       },
@@ -652,6 +745,37 @@
                           },
                           "type": "array"
                         },
+                        "locations": {
+                          "items": {
+                            "properties": {
+                              "access_path": {
+                                "type": "string"
+                              },
+                              "position": {
+                                "properties": {
+                                  "column": {
+                                    "type": "integer"
+                                  },
+                                  "end_line": {
+                                    "type": "integer"
+                                  },
+                                  "file": {
+                                    "type": "string"
+                                  },
+                                  "line": {
+                                    "type": "integer"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "real_path": {
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
                         "metadata": {
                           "additionalProperties": {},
                           "type": "object"
@@ -804,6 +928,37 @@
                           },
                           "type": "array"
                         },
+                        "locations": {
+                          "items": {
+                            "properties": {
+                              "access_path": {
+                                "type": "string"
+                              },
+                              "position": {
+                                "properties": {
+                                  "column": {
+                                    "type": "integer"
+                                  },
+                                  "end_line": {
+                                    "type": "integer"
+                                  },
+                                  "file": {
+                                    "type": "string"
+                                  },
+                                  "line": {
+                                    "type": "integer"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "real_path": {
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
                         "metadata": {
                           "additionalProperties": {},
                           "type": "object"
@@ -938,6 +1093,37 @@
                                 "type": "string"
                               },
                               "value": {
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "locations": {
+                          "items": {
+                            "properties": {
+                              "access_path": {
+                                "type": "string"
+                              },
+                              "position": {
+                                "properties": {
+                                  "column": {
+                                    "type": "integer"
+                                  },
+                                  "end_line": {
+                                    "type": "integer"
+                                  },
+                                  "file": {
+                                    "type": "string"
+                                  },
+                                  "line": {
+                                    "type": "integer"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "real_path": {
                                 "type": "string"
                               }
                             },
@@ -1103,6 +1289,37 @@
                                 "type": "string"
                               },
                               "value": {
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "locations": {
+                          "items": {
+                            "properties": {
+                              "access_path": {
+                                "type": "string"
+                              },
+                              "position": {
+                                "properties": {
+                                  "column": {
+                                    "type": "integer"
+                                  },
+                                  "end_line": {
+                                    "type": "integer"
+                                  },
+                                  "file": {
+                                    "type": "string"
+                                  },
+                                  "line": {
+                                    "type": "integer"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "real_path": {
                                 "type": "string"
                               }
                             },

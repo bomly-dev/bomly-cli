@@ -77,6 +77,7 @@ func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 		return sdk.DetectionResult{}, fmt.Errorf("parse sbt dependencyTree output: %w", err)
 	}
 	logger.Info(fmt.Sprintf("sbt native detector found %d dependencies in %s", g.Size(), logging.FormatDuration(time.Since(started))))
+	AttachSBTPositions(g, workingDir)
 	return sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, evidencePatterns)),
 	}, nil

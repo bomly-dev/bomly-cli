@@ -64,6 +64,8 @@ func (d PipDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (
 		return sdk.DetectionResult{}, err
 	}
 	annotateGraphScopes(depsGraph, d.base().workingDir(req.ProjectPath))
+	attachDeclaredPositions(depsGraph, d.base().workingDir(req.ProjectPath))
+	attachLoosePythonPositions(depsGraph, d.base().workingDir(req.ProjectPath))
 	return sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, pipEvidencePatterns)),
 	}, nil

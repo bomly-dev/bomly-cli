@@ -9,6 +9,32 @@
       "packages": [
         {
           "dependencies": [],
+          "id": "pkg:pub/_fe_analyzer_shared@67.0.0",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "_fe_analyzer_shared",
+          "purl": "pkg:pub/_fe_analyzer_shared@67.0.0",
+          "scope": "runtime",
+          "version": "67.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/analyzer@6.4.1",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "analyzer",
+          "purl": "pkg:pub/analyzer@6.4.1",
+          "scope": "runtime",
+          "version": "6.4.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
           "id": "pkg:pub/archive@3.3.0",
           "licenses": [],
           "metadata": {
@@ -22,6 +48,123 @@
         },
         {
           "dependencies": [],
+          "id": "pkg:pub/args@2.7.0",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "args",
+          "purl": "pkg:pub/args@2.7.0",
+          "scope": "runtime",
+          "version": "2.7.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/async@2.13.1",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "async",
+          "purl": "pkg:pub/async@2.13.1",
+          "scope": "runtime",
+          "version": "2.13.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/boolean_selector@2.1.2",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "boolean_selector",
+          "purl": "pkg:pub/boolean_selector@2.1.2",
+          "scope": "runtime",
+          "version": "2.1.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/build@2.4.1",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "build",
+          "purl": "pkg:pub/build@2.4.1",
+          "scope": "runtime",
+          "version": "2.4.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/built_collection@5.1.1",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "built_collection",
+          "purl": "pkg:pub/built_collection@5.1.1",
+          "scope": "runtime",
+          "version": "5.1.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/built_value@8.12.6",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "built_value",
+          "purl": "pkg:pub/built_value@8.12.6",
+          "scope": "runtime",
+          "version": "8.12.6",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/cli_config@0.2.0",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "cli_config",
+          "purl": "pkg:pub/cli_config@0.2.0",
+          "scope": "runtime",
+          "version": "0.2.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/clock@1.1.2",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "clock",
+          "purl": "pkg:pub/clock@1.1.2",
+          "scope": "runtime",
+          "version": "1.1.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/code_builder@4.10.1",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "code_builder",
+          "purl": "pkg:pub/code_builder@4.10.1",
+          "scope": "runtime",
+          "version": "4.10.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
           "id": "pkg:pub/collection@1.18.0",
           "licenses": [],
           "metadata": {
@@ -29,16 +172,125 @@
           },
           "name": "collection",
           "purl": "pkg:pub/collection@1.18.0",
+          "scope": "runtime",
           "version": "1.18.0",
           "vulnerabilities": []
         },
         {
+          "dependencies": [],
+          "id": "pkg:pub/convert@3.1.2",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "convert",
+          "purl": "pkg:pub/convert@3.1.2",
+          "scope": "runtime",
+          "version": "3.1.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/coverage@1.15.0",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "coverage",
+          "purl": "pkg:pub/coverage@1.15.0",
+          "scope": "runtime",
+          "version": "1.15.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/crypto@3.0.7",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "crypto",
+          "purl": "pkg:pub/crypto@3.0.7",
+          "scope": "runtime",
+          "version": "3.0.7",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/dart_style@2.3.6",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "dart_style",
+          "purl": "pkg:pub/dart_style@2.3.6",
+          "scope": "runtime",
+          "version": "2.3.6",
+          "vulnerabilities": []
+        },
+        {
           "dependencies": [
+            "pkg:pub/_fe_analyzer_shared@67.0.0",
+            "pkg:pub/analyzer@6.4.1",
             "pkg:pub/archive@3.3.0",
-            "pkg:pub/http@0.12.0",
+            "pkg:pub/args@2.7.0",
+            "pkg:pub/async@2.13.1",
+            "pkg:pub/boolean_selector@2.1.2",
+            "pkg:pub/build@2.4.1",
+            "pkg:pub/built_collection@5.1.1",
+            "pkg:pub/built_value@8.12.6",
+            "pkg:pub/cli_config@0.2.0",
+            "pkg:pub/clock@1.1.2",
+            "pkg:pub/code_builder@4.10.1",
+            "pkg:pub/collection@1.18.0",
+            "pkg:pub/convert@3.1.2",
+            "pkg:pub/coverage@1.15.0",
+            "pkg:pub/crypto@3.0.7",
+            "pkg:pub/dart_style@2.3.6",
+            "pkg:pub/file@7.0.1",
+            "pkg:pub/fixnum@1.1.1",
+            "pkg:pub/frontend_server_client@4.0.0",
+            "pkg:pub/glob@2.1.3",
+            "pkg:pub/http@1.6.0",
+            "pkg:pub/http_multi_server@3.2.2",
+            "pkg:pub/http_parser@4.0.2",
+            "pkg:pub/intl@0.18.1",
+            "pkg:pub/io@1.0.5",
+            "pkg:pub/js@0.7.2",
             "pkg:pub/lints@3.0.0",
+            "pkg:pub/logging@1.3.0",
+            "pkg:pub/matcher@0.12.16%2B1",
+            "pkg:pub/meta@1.18.2",
+            "pkg:pub/mime@2.0.0",
+            "pkg:pub/mockito@5.4.4",
+            "pkg:pub/node_preamble@2.0.2",
+            "pkg:pub/package_config@2.2.0",
             "pkg:pub/path@1.9.0",
-            "pkg:pub/test@1.25.8"
+            "pkg:pub/pool@1.5.2",
+            "pkg:pub/pub_semver@2.2.0",
+            "pkg:pub/shelf@1.4.1",
+            "pkg:pub/shelf_packages_handler@3.0.2",
+            "pkg:pub/shelf_static@1.1.3",
+            "pkg:pub/shelf_web_socket@2.0.1",
+            "pkg:pub/source_gen@1.5.0",
+            "pkg:pub/source_map_stack_trace@2.1.2",
+            "pkg:pub/source_maps@0.10.13",
+            "pkg:pub/source_span@1.10.2",
+            "pkg:pub/stack_trace@1.12.1",
+            "pkg:pub/stream_channel@2.1.4",
+            "pkg:pub/string_scanner@1.4.1",
+            "pkg:pub/term_glyph@1.2.2",
+            "pkg:pub/test@1.25.8",
+            "pkg:pub/test_api@0.7.3",
+            "pkg:pub/test_core@0.6.5",
+            "pkg:pub/typed_data@1.4.0",
+            "pkg:pub/vm_service@14.3.1",
+            "pkg:pub/watcher@1.2.1",
+            "pkg:pub/web@1.1.1",
+            "pkg:pub/web_socket@1.0.1",
+            "pkg:pub/web_socket_channel@3.0.3",
+            "pkg:pub/webkit_inspection_protocol@1.2.1",
+            "pkg:pub/yaml@3.1.3"
           ],
           "id": "pkg:pub/example_dart_pub@1.0.0",
           "licenses": [],
@@ -49,15 +301,132 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pub/http@0.12.0",
+          "id": "pkg:pub/file@7.0.1",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "file",
+          "purl": "pkg:pub/file@7.0.1",
+          "scope": "runtime",
+          "version": "7.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/fixnum@1.1.1",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "fixnum",
+          "purl": "pkg:pub/fixnum@1.1.1",
+          "scope": "runtime",
+          "version": "1.1.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/frontend_server_client@4.0.0",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "frontend_server_client",
+          "purl": "pkg:pub/frontend_server_client@4.0.0",
+          "scope": "runtime",
+          "version": "4.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/glob@2.1.3",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "glob",
+          "purl": "pkg:pub/glob@2.1.3",
+          "scope": "runtime",
+          "version": "2.1.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/http@1.6.0",
           "licenses": [],
           "metadata": {
             "source": "hosted"
           },
           "name": "http",
-          "purl": "pkg:pub/http@0.12.0",
+          "purl": "pkg:pub/http@1.6.0",
           "scope": "runtime",
-          "version": "0.12.0",
+          "version": "1.6.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/http_multi_server@3.2.2",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "http_multi_server",
+          "purl": "pkg:pub/http_multi_server@3.2.2",
+          "scope": "runtime",
+          "version": "3.2.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/http_parser@4.0.2",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "http_parser",
+          "purl": "pkg:pub/http_parser@4.0.2",
+          "scope": "runtime",
+          "version": "4.0.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/intl@0.18.1",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "intl",
+          "purl": "pkg:pub/intl@0.18.1",
+          "scope": "runtime",
+          "version": "0.18.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/io@1.0.5",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "io",
+          "purl": "pkg:pub/io@1.0.5",
+          "scope": "runtime",
+          "version": "1.0.5",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/js@0.7.2",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "js",
+          "purl": "pkg:pub/js@0.7.2",
+          "scope": "runtime",
+          "version": "0.7.2",
           "vulnerabilities": []
         },
         {
@@ -75,6 +444,97 @@
         },
         {
           "dependencies": [],
+          "id": "pkg:pub/logging@1.3.0",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "logging",
+          "purl": "pkg:pub/logging@1.3.0",
+          "scope": "runtime",
+          "version": "1.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/matcher@0.12.16%2B1",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "matcher",
+          "purl": "pkg:pub/matcher@0.12.16%2B1",
+          "scope": "runtime",
+          "version": "0.12.16+1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/meta@1.18.2",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "meta",
+          "purl": "pkg:pub/meta@1.18.2",
+          "scope": "runtime",
+          "version": "1.18.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/mime@2.0.0",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "mime",
+          "purl": "pkg:pub/mime@2.0.0",
+          "scope": "runtime",
+          "version": "2.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/mockito@5.4.4",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "mockito",
+          "purl": "pkg:pub/mockito@5.4.4",
+          "scope": "development",
+          "version": "5.4.4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/node_preamble@2.0.2",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "node_preamble",
+          "purl": "pkg:pub/node_preamble@2.0.2",
+          "scope": "runtime",
+          "version": "2.0.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/package_config@2.2.0",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "package_config",
+          "purl": "pkg:pub/package_config@2.2.0",
+          "scope": "runtime",
+          "version": "2.2.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
           "id": "pkg:pub/path@1.9.0",
           "licenses": [],
           "metadata": {
@@ -88,6 +548,188 @@
         },
         {
           "dependencies": [],
+          "id": "pkg:pub/pool@1.5.2",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "pool",
+          "purl": "pkg:pub/pool@1.5.2",
+          "scope": "runtime",
+          "version": "1.5.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/pub_semver@2.2.0",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "pub_semver",
+          "purl": "pkg:pub/pub_semver@2.2.0",
+          "scope": "runtime",
+          "version": "2.2.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/shelf@1.4.1",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "shelf",
+          "purl": "pkg:pub/shelf@1.4.1",
+          "scope": "runtime",
+          "version": "1.4.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/shelf_packages_handler@3.0.2",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "shelf_packages_handler",
+          "purl": "pkg:pub/shelf_packages_handler@3.0.2",
+          "scope": "runtime",
+          "version": "3.0.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/shelf_static@1.1.3",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "shelf_static",
+          "purl": "pkg:pub/shelf_static@1.1.3",
+          "scope": "runtime",
+          "version": "1.1.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/shelf_web_socket@2.0.1",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "shelf_web_socket",
+          "purl": "pkg:pub/shelf_web_socket@2.0.1",
+          "scope": "runtime",
+          "version": "2.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/source_gen@1.5.0",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "source_gen",
+          "purl": "pkg:pub/source_gen@1.5.0",
+          "scope": "runtime",
+          "version": "1.5.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/source_map_stack_trace@2.1.2",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "source_map_stack_trace",
+          "purl": "pkg:pub/source_map_stack_trace@2.1.2",
+          "scope": "runtime",
+          "version": "2.1.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/source_maps@0.10.13",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "source_maps",
+          "purl": "pkg:pub/source_maps@0.10.13",
+          "scope": "runtime",
+          "version": "0.10.13",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/source_span@1.10.2",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "source_span",
+          "purl": "pkg:pub/source_span@1.10.2",
+          "scope": "runtime",
+          "version": "1.10.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/stack_trace@1.12.1",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "stack_trace",
+          "purl": "pkg:pub/stack_trace@1.12.1",
+          "scope": "runtime",
+          "version": "1.12.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/stream_channel@2.1.4",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "stream_channel",
+          "purl": "pkg:pub/stream_channel@2.1.4",
+          "scope": "runtime",
+          "version": "2.1.4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/string_scanner@1.4.1",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "string_scanner",
+          "purl": "pkg:pub/string_scanner@1.4.1",
+          "scope": "runtime",
+          "version": "1.4.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/term_glyph@1.2.2",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "term_glyph",
+          "purl": "pkg:pub/term_glyph@1.2.2",
+          "scope": "runtime",
+          "version": "1.2.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
           "id": "pkg:pub/test@1.25.8",
           "licenses": [],
           "metadata": {
@@ -97,6 +739,136 @@
           "purl": "pkg:pub/test@1.25.8",
           "scope": "development",
           "version": "1.25.8",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/test_api@0.7.3",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "test_api",
+          "purl": "pkg:pub/test_api@0.7.3",
+          "scope": "runtime",
+          "version": "0.7.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/test_core@0.6.5",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "test_core",
+          "purl": "pkg:pub/test_core@0.6.5",
+          "scope": "runtime",
+          "version": "0.6.5",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/typed_data@1.4.0",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "typed_data",
+          "purl": "pkg:pub/typed_data@1.4.0",
+          "scope": "runtime",
+          "version": "1.4.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/vm_service@14.3.1",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "vm_service",
+          "purl": "pkg:pub/vm_service@14.3.1",
+          "scope": "runtime",
+          "version": "14.3.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/watcher@1.2.1",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "watcher",
+          "purl": "pkg:pub/watcher@1.2.1",
+          "scope": "runtime",
+          "version": "1.2.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/web@1.1.1",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "web",
+          "purl": "pkg:pub/web@1.1.1",
+          "scope": "runtime",
+          "version": "1.1.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/web_socket@1.0.1",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "web_socket",
+          "purl": "pkg:pub/web_socket@1.0.1",
+          "scope": "runtime",
+          "version": "1.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/web_socket_channel@3.0.3",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "web_socket_channel",
+          "purl": "pkg:pub/web_socket_channel@3.0.3",
+          "scope": "runtime",
+          "version": "3.0.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/webkit_inspection_protocol@1.2.1",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "webkit_inspection_protocol",
+          "purl": "pkg:pub/webkit_inspection_protocol@1.2.1",
+          "scope": "runtime",
+          "version": "1.2.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pub/yaml@3.1.3",
+          "licenses": [],
+          "metadata": {
+            "source": "hosted"
+          },
+          "name": "yaml",
+          "purl": "pkg:pub/yaml@3.1.3",
+          "scope": "runtime",
+          "version": "3.1.3",
           "vulnerabilities": []
         }
       ],

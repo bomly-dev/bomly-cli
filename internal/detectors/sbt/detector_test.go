@@ -38,3 +38,29 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 		t.Fatalf("expected scalatest development scope, got %q", scalatest.Scope)
 	}
 }
+
+func TestDepGraphFromSBTDependencyTreePreservesScalaArtifactSuffix(t *testing.T) {
+	raw := []byte(`[info] +-org.typelevel:cats-core_2.13:2.10.0 [S]
+[info]   +-org.typelevel:cats-kernel_2.13:2.10.0 [S]
+`)
+	graph, err := depGraphFromSBTDependencyTree(raw)
+	if err != nil {
+		t.Fatalf("depGraphFromSBTDependencyTree returned error: %v", err)
+	}
+
+	core, ok := graph.Package("org.typelevel:cats-core_2.13@2.10.0")
+	if !ok {
+		t.Fatalf("expected cats-core_2.13 package, got %v", graph.Packages())
+	}
+	if core.PURL != "pkg:maven/org.typelevel/cats-core_2.13@2.10.0" {
+		t.Fatalf("expected suffixed Maven PURL, got %q", core.PURL)
+	}
+
+	children, err := graph.Dependencies(core.ID)
+	if err != nil {
+		t.Fatalf("core dependencies: %v", err)
+	}
+	if len(children) != 1 || children[0].Name != "cats-kernel_2.13" {
+		t.Fatalf("expected cats-kernel_2.13 child, got %#v", children)
+	}
+}

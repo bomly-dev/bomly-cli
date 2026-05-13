@@ -8,6 +8,78 @@
       "package_manager": "cocoapods",
       "packages": [
         {
+          "dependencies": [
+            "pkg:cocoapods/AFNetworking%2FReachability@3.2.1",
+            "pkg:cocoapods/AFNetworking%2FSecurity@3.2.1",
+            "pkg:cocoapods/AFNetworking%2FSerialization@3.2.1"
+          ],
+          "id": "pkg:cocoapods/AFNetworking%2FNSURLSession@3.2.1",
+          "licenses": [],
+          "name": "AFNetworking/NSURLSession",
+          "purl": "pkg:cocoapods/AFNetworking%2FNSURLSession@3.2.1",
+          "scope": "runtime",
+          "version": "3.2.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:cocoapods/AFNetworking%2FReachability@3.2.1",
+          "licenses": [],
+          "name": "AFNetworking/Reachability",
+          "purl": "pkg:cocoapods/AFNetworking%2FReachability@3.2.1",
+          "scope": "runtime",
+          "version": "3.2.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:cocoapods/AFNetworking%2FSecurity@3.2.1",
+          "licenses": [],
+          "name": "AFNetworking/Security",
+          "purl": "pkg:cocoapods/AFNetworking%2FSecurity@3.2.1",
+          "scope": "runtime",
+          "version": "3.2.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:cocoapods/AFNetworking%2FSerialization@3.2.1",
+          "licenses": [],
+          "name": "AFNetworking/Serialization",
+          "purl": "pkg:cocoapods/AFNetworking%2FSerialization@3.2.1",
+          "scope": "runtime",
+          "version": "3.2.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:cocoapods/AFNetworking%2FNSURLSession@3.2.1"
+          ],
+          "id": "pkg:cocoapods/AFNetworking%2FUIKit@3.2.1",
+          "licenses": [],
+          "name": "AFNetworking/UIKit",
+          "purl": "pkg:cocoapods/AFNetworking%2FUIKit@3.2.1",
+          "scope": "runtime",
+          "version": "3.2.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:cocoapods/AFNetworking%2FNSURLSession@3.2.1",
+            "pkg:cocoapods/AFNetworking%2FReachability@3.2.1",
+            "pkg:cocoapods/AFNetworking%2FSecurity@3.2.1",
+            "pkg:cocoapods/AFNetworking%2FSerialization@3.2.1",
+            "pkg:cocoapods/AFNetworking%2FUIKit@3.2.1"
+          ],
+          "id": "pkg:cocoapods/AFNetworking@3.2.1",
+          "licenses": [],
+          "name": "AFNetworking",
+          "purl": "pkg:cocoapods/AFNetworking@3.2.1",
+          "scope": "runtime",
+          "version": "3.2.1",
+          "vulnerabilities": []
+        },
+        {
           "dependencies": [],
           "id": "pkg:cocoapods/Alamofire@4.3.0",
           "licenses": [],
@@ -19,12 +91,42 @@
         },
         {
           "dependencies": [],
+          "id": "pkg:cocoapods/Expecta@1.0.6",
+          "licenses": [],
+          "name": "Expecta",
+          "purl": "pkg:cocoapods/Expecta@1.0.6",
+          "scope": "development",
+          "version": "1.0.6",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
           "id": "pkg:cocoapods/HockeyKit@2.0.7",
           "licenses": [],
           "name": "HockeyKit",
           "purl": "pkg:cocoapods/HockeyKit@2.0.7",
           "scope": "runtime",
           "version": "2.0.7",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:cocoapods/KIF@3.7.7",
+          "licenses": [],
+          "name": "KIF",
+          "purl": "pkg:cocoapods/KIF@3.7.7",
+          "scope": "development",
+          "version": "3.7.7",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:cocoapods/OCMock@3.4.3",
+          "licenses": [],
+          "name": "OCMock",
+          "purl": "pkg:cocoapods/OCMock@3.4.3",
+          "scope": "development",
+          "version": "3.4.3",
           "vulnerabilities": []
         },
         {
@@ -57,6 +159,7 @@
           "licenses": [],
           "name": "ReactiveSwift",
           "purl": "pkg:cocoapods/ReactiveSwift@1.0.0",
+          "scope": "runtime",
           "version": "1.0.0",
           "vulnerabilities": []
         },
@@ -66,15 +169,31 @@
           "licenses": [],
           "name": "Result",
           "purl": "pkg:cocoapods/Result@3.1.0",
+          "scope": "runtime",
           "version": "3.1.0",
           "vulnerabilities": []
         },
         {
+          "dependencies": [],
+          "id": "pkg:cocoapods/Specta@1.0.7",
+          "licenses": [],
+          "name": "Specta",
+          "purl": "pkg:cocoapods/Specta@1.0.7",
+          "scope": "development",
+          "version": "1.0.7",
+          "vulnerabilities": []
+        },
+        {
           "dependencies": [
+            "pkg:cocoapods/AFNetworking@3.2.1",
             "pkg:cocoapods/Alamofire@4.3.0",
+            "pkg:cocoapods/Expecta@1.0.6",
             "pkg:cocoapods/HockeyKit@2.0.7",
+            "pkg:cocoapods/KIF@3.7.7",
+            "pkg:cocoapods/OCMock@3.4.3",
             "pkg:cocoapods/OpenSSL-Static@1.0.2.c1",
-            "pkg:cocoapods/ReactiveCocoa@5.0.0-rc.1"
+            "pkg:cocoapods/ReactiveCocoa@5.0.0-rc.1",
+            "pkg:cocoapods/Specta@1.0.7"
           ],
           "id": "pkg:cocoapods/root",
           "licenses": [],

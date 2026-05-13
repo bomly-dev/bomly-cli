@@ -54,12 +54,12 @@ func TestBuildScanRegistryKeepsNativeDetectorFirstForNativeManagers(t *testing.T
 		{manager: sdk.PackageManagerGitHubActions, detectorName: "github-actions-detector"},
 		{manager: sdk.PackageManagerNuGet, detectorName: "nuget-detector"},
 		{manager: sdk.PackageManagerCargo, detectorName: "cargo-detector"},
-		{manager: sdk.PackageManagerPub, detectorName: "pub-detector"},
+		{manager: sdk.PackageManagerPub, detectorName: "pub-native-detector"},
 		{manager: sdk.PackageManagerCocoaPods, detectorName: "cocoapods-detector"},
-		{manager: sdk.PackageManagerSwiftPM, detectorName: "swiftpm-detector"},
+		{manager: sdk.PackageManagerSwiftPM, detectorName: "swiftpm-native-detector"},
 		{manager: sdk.PackageManagerMix, detectorName: "mix-detector"},
 		{manager: sdk.PackageManagerConan, detectorName: "conan-detector"},
-		{manager: sdk.PackageManagerSBT, detectorName: "sbt-detector"},
+		{manager: sdk.PackageManagerSBT, detectorName: "sbt-native-detector"},
 	}
 
 	for _, tc := range testCases {

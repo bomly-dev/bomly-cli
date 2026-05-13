@@ -44,9 +44,9 @@ func TestVersionRequestFromPackage(t *testing.T) {
 
 	t.Run("unsupported ecosystem", func(t *testing.T) {
 		if _, _, ok := versionRequestFromPackage(&sdk.Package{
-			Ecosystem: "php",
-			Name:      "symfony/console",
-			Version:   "7.1.0",
+			Ecosystem: "conan",
+			Name:      "openssl",
+			Version:   "1.1.1s",
 		}); ok {
 			t.Fatal("expected unsupported ecosystem to be rejected")
 		}

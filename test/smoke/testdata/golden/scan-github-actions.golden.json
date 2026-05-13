@@ -9,16 +9,16 @@
       "packages": [
         {
           "dependencies": [],
-          "id": "pkg:githubactions/.github%2Factions%2Fsourceclear@local",
+          "id": "pkg:githubactions/.github%2Factions%2Fbomly@local",
           "licenses": [],
-          "name": ".github/actions/sourceclear",
-          "purl": "pkg:githubactions/.github%2Factions%2Fsourceclear@local",
+          "name": ".github/actions/bomly",
+          "purl": "pkg:githubactions/.github%2Factions%2Fbomly@local",
           "scope": "runtime",
           "version": "local",
           "vulnerabilities": []
         }
       ],
-      "path": ".github/actions/sourceclear/action.yml",
+      "path": ".github/actions/bomly/action.yml",
       "subproject": "."
     },
     {
@@ -29,17 +29,17 @@
       "packages": [
         {
           "dependencies": [],
-          "id": "pkg:githubactions/.github%2Factions%2Fsourceclear@local",
+          "id": "pkg:githubactions/.github%2Factions%2Fbomly@local",
           "licenses": [],
-          "name": ".github/actions/sourceclear",
-          "purl": "pkg:githubactions/.github%2Factions%2Fsourceclear@local",
+          "name": ".github/actions/bomly",
+          "purl": "pkg:githubactions/.github%2Factions%2Fbomly@local",
           "scope": "runtime",
           "version": "local",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:githubactions/.github%2Factions%2Fsourceclear@local",
+            "pkg:githubactions/.github%2Factions%2Fbomly@local",
             "pkg:githubactions/actions/checkout@v1"
           ],
           "id": "pkg:githubactions/.github%2Fworkflows%2Fmain.yml@local",

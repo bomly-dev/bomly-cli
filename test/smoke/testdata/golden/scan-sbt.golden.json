@@ -9,6 +9,72 @@
       "packages": [
         {
           "dependencies": [],
+          "id": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.10",
+          "licenses": [],
+          "name": "com.fasterxml.jackson.core:jackson-databind",
+          "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.10",
+          "scope": "runtime",
+          "version": "2.9.10",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/com.typesafe.play/play_2.12@2.6.7",
+          "licenses": [],
+          "name": "com.typesafe.play:play_2.12",
+          "purl": "pkg:maven/com.typesafe.play/play_2.12@2.6.7",
+          "scope": "runtime",
+          "version": "2.6.7",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/commons-codec/commons-codec@1.11",
+          "licenses": [],
+          "name": "commons-codec:commons-codec",
+          "purl": "pkg:maven/commons-codec/commons-codec@1.11",
+          "scope": "runtime",
+          "version": "1.11",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/commons-collections/commons-collections@3.2.1",
+          "licenses": [],
+          "name": "commons-collections:commons-collections",
+          "purl": "pkg:maven/commons-collections/commons-collections@3.2.1",
+          "scope": "runtime",
+          "version": "3.2.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/log4j/log4j@1.2.17",
+          "licenses": [],
+          "name": "log4j:log4j",
+          "purl": "pkg:maven/log4j/log4j@1.2.17",
+          "scope": "runtime",
+          "version": "1.2.17",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/net.liftweb/lift-webkit_2.12@3.2.0-M3",
+          "licenses": [],
+          "metadata": {
+            "bomly.normalization.applied": [
+              "version"
+            ],
+            "bomly.normalization.original_version": "3.2.0-M3"
+          },
+          "name": "net.liftweb:lift-webkit_2.12",
+          "purl": "pkg:maven/net.liftweb/lift-webkit_2.12@3.2.0-M3",
+          "scope": "runtime",
+          "version": "3.2.0-m3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
           "id": "pkg:maven/org.mindrot/jbcrypt@0.3m",
           "licenses": [],
           "name": "org.mindrot:jbcrypt",
@@ -18,8 +84,47 @@
           "vulnerabilities": []
         },
         {
+          "dependencies": [],
+          "id": "pkg:maven/org.mockito/mockito-core@4.11.0",
+          "licenses": [],
+          "name": "org.mockito:mockito-core",
+          "purl": "pkg:maven/org.mockito/mockito-core@4.11.0",
+          "scope": "development",
+          "version": "4.11.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/org.scalatestplus.play/scalatestplus-play_2.12@3.1.2",
+          "licenses": [],
+          "name": "org.scalatestplus.play:scalatestplus-play_2.12",
+          "purl": "pkg:maven/org.scalatestplus.play/scalatestplus-play_2.12@3.1.2",
+          "scope": "development",
+          "version": "3.1.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:maven/org.springframework/spring-core@5.3.16",
+          "licenses": [],
+          "name": "org.springframework:spring-core",
+          "purl": "pkg:maven/org.springframework/spring-core@5.3.16",
+          "scope": "runtime",
+          "version": "5.3.16",
+          "vulnerabilities": []
+        },
+        {
           "dependencies": [
-            "pkg:maven/org.mindrot/jbcrypt@0.3m"
+            "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.10",
+            "pkg:maven/com.typesafe.play/play_2.12@2.6.7",
+            "pkg:maven/commons-codec/commons-codec@1.11",
+            "pkg:maven/commons-collections/commons-collections@3.2.1",
+            "pkg:maven/log4j/log4j@1.2.17",
+            "pkg:maven/net.liftweb/lift-webkit_2.12@3.2.0-M3",
+            "pkg:maven/org.mindrot/jbcrypt@0.3m",
+            "pkg:maven/org.mockito/mockito-core@4.11.0",
+            "pkg:maven/org.scalatestplus.play/scalatestplus-play_2.12@3.1.2",
+            "pkg:maven/org.springframework/spring-core@5.3.16"
           ],
           "id": "pkg:maven/root",
           "licenses": [],

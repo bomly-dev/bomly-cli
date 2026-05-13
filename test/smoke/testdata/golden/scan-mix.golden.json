@@ -9,6 +9,22 @@
       "packages": [
         {
           "dependencies": [],
+          "id": "pkg:hex/bunt@1.0.0",
+          "licenses": [],
+          "metadata": {
+            "source": "hex"
+          },
+          "name": "bunt",
+          "purl": "pkg:hex/bunt@1.0.0",
+          "scope": "development",
+          "version": "1.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:hex/cowlib@2.11.0",
+            "pkg:hex/ranch@1.8.0"
+          ],
           "id": "pkg:hex/cowboy@2.9.0",
           "licenses": [],
           "metadata": {
@@ -29,11 +45,16 @@
           },
           "name": "cowlib",
           "purl": "pkg:hex/cowlib@2.11.0",
+          "scope": "runtime",
           "version": "2.11.0",
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
+          "dependencies": [
+            "pkg:hex/bunt@1.0.0",
+            "pkg:hex/file_system@1.0.1",
+            "pkg:hex/jason@1.2.2"
+          ],
           "id": "pkg:hex/credo@1.7.7",
           "licenses": [],
           "metadata": {
@@ -47,6 +68,34 @@
         },
         {
           "dependencies": [],
+          "id": "pkg:hex/decimal@2.1.1",
+          "licenses": [],
+          "metadata": {
+            "source": "hex"
+          },
+          "name": "decimal",
+          "purl": "pkg:hex/decimal@2.1.1",
+          "scope": "runtime",
+          "version": "2.1.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:hex/file_system@1.0.1",
+          "licenses": [],
+          "metadata": {
+            "source": "hex"
+          },
+          "name": "file_system",
+          "purl": "pkg:hex/file_system@1.0.1",
+          "scope": "development",
+          "version": "1.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:hex/decimal@2.1.1"
+          ],
           "id": "pkg:hex/jason@1.2.2",
           "licenses": [],
           "metadata": {
@@ -60,6 +109,22 @@
         },
         {
           "dependencies": [],
+          "id": "pkg:hex/mime@1.6.0",
+          "licenses": [],
+          "metadata": {
+            "source": "hex"
+          },
+          "name": "mime",
+          "purl": "pkg:hex/mime@1.6.0",
+          "scope": "runtime",
+          "version": "1.6.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:hex/mime@1.6.0",
+            "pkg:hex/plug_crypto@0.2.3"
+          ],
           "id": "pkg:hex/plug@1.7.0",
           "licenses": [],
           "metadata": {
@@ -73,6 +138,19 @@
         },
         {
           "dependencies": [],
+          "id": "pkg:hex/plug_crypto@0.2.3",
+          "licenses": [],
+          "metadata": {
+            "source": "hex"
+          },
+          "name": "plug_crypto",
+          "purl": "pkg:hex/plug_crypto@0.2.3",
+          "scope": "runtime",
+          "version": "0.2.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
           "id": "pkg:hex/ranch@1.8.0",
           "licenses": [],
           "metadata": {
@@ -80,6 +158,7 @@
           },
           "name": "ranch",
           "purl": "pkg:hex/ranch@1.8.0",
+          "scope": "runtime",
           "version": "1.8.0",
           "vulnerabilities": []
         },

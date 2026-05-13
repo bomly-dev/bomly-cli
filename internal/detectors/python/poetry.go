@@ -50,6 +50,19 @@ func (d PoetryDetector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a Python dependency graph through Poetry.
 func (d PoetryDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+	workingDir := d.base().workingDir(req.ProjectPath)
+
+	// Fast-path: poetry.lock has full transitive tree and group-based scope.
+	// This avoids executing `poetry run pip inspect`, which marks every package
+	// as requested=true (no transitive information).
+	if lockPath := poetryLockFilePath(workingDir); lockPath != "" {
+		if depsGraph, err := depGraphFromPoetryLock(lockPath, workingDir); err == nil {
+			return sdk.DetectionResult{
+				Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, poetryEvidencePatterns)),
+			}, nil
+		}
+	}
+
 	command, err := pipInspectCommand("poetry", "run")
 	if err != nil {
 		return sdk.DetectionResult{}, err
@@ -62,6 +75,7 @@ func (d PoetryDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
+	annotateGraphScopes(depsGraph, d.base().workingDir(req.ProjectPath))
 	return sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, poetryEvidencePatterns)),
 	}, nil

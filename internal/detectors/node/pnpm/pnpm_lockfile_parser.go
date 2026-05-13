@@ -27,6 +27,8 @@ type pnpmLockfile struct {
 	DevDependencies      map[string]any             `yaml:"devDependencies"`
 	OptionalDependencies map[string]any             `yaml:"optionalDependencies"`
 	Packages             map[string]pnpmLockPackage `yaml:"packages"`
+	// pnpm v9+: package metadata and dependency edges are split across packages and snapshots.
+	Snapshots map[string]pnpmLockPackage `yaml:"snapshots"`
 }
 
 type pnpmImporter struct {
@@ -62,6 +64,13 @@ func depGraphFromPNPMLockfile(projectPath string) (*sdk.Graph, error) {
 	}
 	if len(lockfile.Packages) == 0 {
 		return nil, errors.New("pnpm-lock.yaml has no packages")
+	}
+
+	// In pnpm v9+, packages section has metadata (resolution, license) and snapshots
+	// section has dependency edges. Use snapshots for dependency edges when available.
+	edgeSource := lockfile.Packages
+	if len(lockfile.Snapshots) > 0 {
+		edgeSource = lockfile.Snapshots
 	}
 
 	manifest, _ := node.ReadPackageJSONManifest(projectPath)
@@ -114,9 +123,27 @@ func depGraphFromPNPMLockfile(projectPath string) (*sdk.Graph, error) {
 		byName[name] = append(byName[name], resolved)
 	}
 
-	for _, key := range keys {
-		entry := lockfile.Packages[key]
-		parent, ok := byKey[key]
+	// Build the set of all edge-source keys (snapshots in v9, packages in older versions).
+	// When using snapshots, we may have keys that differ from packages keys (e.g. with peer suffix).
+	// Iterate over edgeSource keys for dependency resolution.
+	edgeKeys := keys
+	if len(lockfile.Snapshots) > 0 {
+		edgeKeys = make([]string, 0, len(lockfile.Snapshots))
+		for key := range lockfile.Snapshots {
+			edgeKeys = append(edgeKeys, key)
+		}
+		sort.Strings(edgeKeys)
+	}
+
+	for _, key := range edgeKeys {
+		entry := edgeSource[key]
+		// Map snapshot keys back to packages keys for parent lookup.
+		// Snapshot keys may have a peer-suffix like "foo@1.0.0(bar@2.0.0)"; strip it.
+		packageKey := pnpmStripPeerSuffix(key)
+		parent, ok := byKey[packageKey]
+		if !ok {
+			parent, ok = byKey[key]
+		}
 		if !ok {
 			continue
 		}
@@ -259,4 +286,14 @@ func mergeAnyMaps(left map[string]any, right map[string]any) map[string]string {
 		out[key] = versionFromPNPMAny(value)
 	}
 	return out
+}
+
+// pnpmStripPeerSuffix strips the peer dependency suffix from a pnpm v9 snapshot key.
+// For example: "express@4.18.2(peer-dep@1.0.0)" -> "express@4.18.2".
+func pnpmStripPeerSuffix(key string) string {
+	idx := strings.Index(key, "(")
+	if idx < 0 {
+		return key
+	}
+	return key[:idx]
 }

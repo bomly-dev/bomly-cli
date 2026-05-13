@@ -1177,6 +1177,16 @@
           "vulnerabilities": []
         },
         {
+          "dependencies": [],
+          "id": "pkg:npm/diff@3.2.2",
+          "licenses": [],
+          "name": "diff",
+          "purl": "pkg:npm/diff@3.2.2",
+          "scope": "development",
+          "version": "3.2.2",
+          "vulnerabilities": []
+        },
+        {
           "dependencies": [
             "pkg:npm/is-obj@1.0.1"
           ],
@@ -1363,6 +1373,7 @@
             "pkg:npm/express@4.1.1",
             "pkg:npm/handlebars-ex@0.0.2",
             "pkg:npm/jquery@3.0.0-alpha1",
+            "pkg:npm/mocha@3.5.3",
             "pkg:npm/nodejs-repo-tools@1.0.0",
             "pkg:npm/tinymce@4.2.3"
           ],
@@ -1833,6 +1844,16 @@
           "vulnerabilities": []
         },
         {
+          "dependencies": [],
+          "id": "pkg:npm/growl@1.9.2",
+          "licenses": [],
+          "name": "growl",
+          "purl": "pkg:npm/growl@1.9.2",
+          "scope": "development",
+          "version": "1.9.2",
+          "vulnerabilities": []
+        },
+        {
           "dependencies": [
             "pkg:npm/arguejs@0.2.3",
             "pkg:npm/lodash@4.17.4",
@@ -1932,6 +1953,16 @@
           "purl": "pkg:npm/has-cors@1.1.0",
           "scope": "runtime",
           "version": "1.1.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/has-flag@1.0.0",
+          "licenses": [],
+          "name": "has-flag",
+          "purl": "pkg:npm/has-flag@1.0.0",
+          "scope": "development",
+          "version": "1.0.0",
           "vulnerabilities": []
         },
         {
@@ -2695,6 +2726,26 @@
           "purl": "pkg:npm/mkdirp@0.5.1",
           "scope": "runtime",
           "version": "0.5.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/commander@2.9.0",
+            "pkg:npm/debug@2.6.1",
+            "pkg:npm/diff@3.2.2",
+            "pkg:npm/escape-string-regexp@1.0.5",
+            "pkg:npm/glob@7.0.6",
+            "pkg:npm/growl@1.9.2",
+            "pkg:npm/he@1.1.1",
+            "pkg:npm/mkdirp@0.5.1",
+            "pkg:npm/supports-color@3.2.3"
+          ],
+          "id": "pkg:npm/mocha@3.5.3",
+          "licenses": [],
+          "name": "mocha",
+          "purl": "pkg:npm/mocha@3.5.3",
+          "scope": "development",
+          "version": "3.5.3",
           "vulnerabilities": []
         },
         {
@@ -4074,6 +4125,18 @@
           "purl": "pkg:npm/supports-color@2.0.0",
           "scope": "runtime",
           "version": "2.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/has-flag@1.0.0"
+          ],
+          "id": "pkg:npm/supports-color@3.2.3",
+          "licenses": [],
+          "name": "supports-color",
+          "purl": "pkg:npm/supports-color@3.2.3",
+          "scope": "development",
+          "version": "3.2.3",
           "vulnerabilities": []
         },
         {

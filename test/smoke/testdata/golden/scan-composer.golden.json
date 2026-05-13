@@ -8,69 +8,160 @@
       "package_manager": "composer",
       "packages": [
         {
-          "dependencies": [],
-          "id": "pkg:composer/appserver-io-psr/http-message@1.4.1",
-          "licenses": [],
-          "name": "appserver-io-psr:http-message",
-          "purl": "pkg:composer/appserver-io-psr/http-message@1.4.1",
-          "scope": "runtime",
-          "version": "1.4.1",
-          "vulnerabilities": []
-        },
-        {
           "dependencies": [
-            "pkg:composer/appserver-io-psr/http-message@1.4.1",
-            "pkg:composer/ircmaxell/password-compat@1.0.4"
+            "pkg:composer/guzzlehttp/promises@1.5.3",
+            "pkg:composer/guzzlehttp/psr7@1.9.1"
           ],
-          "id": "pkg:composer/appserver-io/http@1.1.6",
+          "id": "pkg:composer/guzzlehttp/guzzle@6.2.3",
           "licenses": [],
-          "name": "appserver-io:http",
-          "purl": "pkg:composer/appserver-io/http@1.1.6",
+          "name": "guzzlehttp:guzzle",
+          "purl": "pkg:composer/guzzlehttp/guzzle@6.2.3",
           "scope": "runtime",
-          "version": "1.1.6",
+          "version": "6.2.3",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:composer/ircmaxell/password-compat@1.0.4",
+          "id": "pkg:composer/guzzlehttp/promises@1.5.3",
           "licenses": [],
-          "metadata": {
-            "bomly.normalization.applied": [
-              "version"
-            ],
-            "bomly.normalization.original_version": "v1.0.4"
-          },
-          "name": "ircmaxell:password-compat",
-          "purl": "pkg:composer/ircmaxell/password-compat@1.0.4",
+          "name": "guzzlehttp:promises",
+          "purl": "pkg:composer/guzzlehttp/promises@1.5.3",
           "scope": "runtime",
-          "version": "1.0.4",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:composer/moodle/moodle@2.6.2",
-          "licenses": [],
-          "metadata": {
-            "bomly.normalization.applied": [
-              "version"
-            ],
-            "bomly.normalization.original_version": "v2.6.2"
-          },
-          "name": "moodle:moodle",
-          "purl": "pkg:composer/moodle/moodle@2.6.2",
-          "scope": "runtime",
-          "version": "2.6.2",
+          "version": "1.5.3",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:composer/appserver-io/http@1.1.6",
-            "pkg:composer/moodle/moodle@2.6.2"
+            "pkg:composer/psr/http-message@1.1",
+            "pkg:composer/ralouphie/getallheaders@3.0.3"
+          ],
+          "id": "pkg:composer/guzzlehttp/psr7@1.9.1",
+          "licenses": [],
+          "name": "guzzlehttp:psr7",
+          "purl": "pkg:composer/guzzlehttp/psr7@1.9.1",
+          "scope": "runtime",
+          "version": "1.9.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:composer/phpunit/php-file-iterator@1.4.5",
+          "licenses": [],
+          "name": "phpunit:php-file-iterator",
+          "purl": "pkg:composer/phpunit/php-file-iterator@1.4.5",
+          "scope": "development",
+          "version": "1.4.5",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:composer/phpunit/php-text-template@1.2.1",
+          "licenses": [],
+          "name": "phpunit:php-text-template",
+          "purl": "pkg:composer/phpunit/php-text-template@1.2.1",
+          "scope": "development",
+          "version": "1.2.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:composer/phpunit/php-timer@1.0.9",
+          "licenses": [],
+          "name": "phpunit:php-timer",
+          "purl": "pkg:composer/phpunit/php-timer@1.0.9",
+          "scope": "development",
+          "version": "1.0.9",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:composer/phpunit/php-file-iterator@1.4.5",
+            "pkg:composer/phpunit/php-text-template@1.2.1",
+            "pkg:composer/phpunit/php-timer@1.0.9",
+            "pkg:composer/symfony/yaml@v2.8.52"
+          ],
+          "id": "pkg:composer/phpunit/phpunit@4.8.36",
+          "licenses": [],
+          "name": "phpunit:phpunit",
+          "purl": "pkg:composer/phpunit/phpunit@4.8.36",
+          "scope": "development",
+          "version": "4.8.36",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:composer/psr/http-message@1.1",
+          "licenses": [],
+          "name": "psr:http-message",
+          "purl": "pkg:composer/psr/http-message@1.1",
+          "scope": "runtime",
+          "version": "1.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:composer/ralouphie/getallheaders@3.0.3",
+          "licenses": [],
+          "name": "ralouphie:getallheaders",
+          "purl": "pkg:composer/ralouphie/getallheaders@3.0.3",
+          "scope": "runtime",
+          "version": "3.0.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:composer/guzzlehttp/guzzle@6.2.3",
+            "pkg:composer/phpunit/phpunit@4.8.36",
+            "pkg:composer/twig/twig@1.44.7"
           ],
           "id": "pkg:composer/root",
           "licenses": [],
           "name": "root",
           "purl": "pkg:composer/root",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:composer/symfony/polyfill-mbstring@v1.28.0",
+          "licenses": [],
+          "metadata": {
+            "bomly.normalization.applied": [
+              "version"
+            ],
+            "bomly.normalization.original_version": "v1.28.0"
+          },
+          "name": "symfony:polyfill-mbstring",
+          "purl": "pkg:composer/symfony/polyfill-mbstring@v1.28.0",
+          "scope": "runtime",
+          "version": "1.28.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:composer/symfony/yaml@v2.8.52",
+          "licenses": [],
+          "metadata": {
+            "bomly.normalization.applied": [
+              "version"
+            ],
+            "bomly.normalization.original_version": "v2.8.52"
+          },
+          "name": "symfony:yaml",
+          "purl": "pkg:composer/symfony/yaml@v2.8.52",
+          "scope": "development",
+          "version": "2.8.52",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:composer/symfony/polyfill-mbstring@v1.28.0"
+          ],
+          "id": "pkg:composer/twig/twig@1.44.7",
+          "licenses": [],
+          "name": "twig:twig",
+          "purl": "pkg:composer/twig/twig@1.44.7",
+          "scope": "runtime",
+          "version": "1.44.7",
           "vulnerabilities": []
         }
       ],

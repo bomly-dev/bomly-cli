@@ -9,6 +9,16 @@
       "packages": [
         {
           "dependencies": [],
+          "id": "pkg:pypi/colorama@0.4.6",
+          "licenses": [],
+          "name": "colorama",
+          "purl": "pkg:pypi/colorama@0.4.6",
+          "scope": "runtime",
+          "version": "0.4.6",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
           "id": "pkg:pypi/django@1.7.1",
           "licenses": [],
           "name": "django",
@@ -29,22 +39,52 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/pyasn1@0.4.8",
+          "id": "pkg:pypi/iniconfig@2.3.0",
           "licenses": [],
-          "name": "pyasn1",
-          "purl": "pkg:pypi/pyasn1@0.4.8",
+          "name": "iniconfig",
+          "purl": "pkg:pypi/iniconfig@2.3.0",
           "scope": "runtime",
-          "version": "0.4.8",
+          "version": "2.3.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/pycrypto@2.4",
+          "id": "pkg:pypi/packaging@26.2",
           "licenses": [],
-          "name": "pycrypto",
-          "purl": "pkg:pypi/pycrypto@2.4",
+          "name": "packaging",
+          "purl": "pkg:pypi/packaging@26.2",
           "scope": "runtime",
-          "version": "2.4",
+          "version": "26.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/pluggy@1.6.0",
+          "licenses": [],
+          "name": "pluggy",
+          "purl": "pkg:pypi/pluggy@1.6.0",
+          "scope": "runtime",
+          "version": "1.6.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/pyasn1@0.6.3",
+          "licenses": [],
+          "name": "pyasn1",
+          "purl": "pkg:pypi/pyasn1@0.6.3",
+          "scope": "runtime",
+          "version": "0.6.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/pygments@2.20.0",
+          "licenses": [],
+          "name": "pygments",
+          "purl": "pkg:pypi/pygments@2.20.0",
+          "scope": "runtime",
+          "version": "2.20.0",
           "vulnerabilities": []
         },
         {
@@ -59,6 +99,26 @@
         },
         {
           "dependencies": [],
+          "id": "pkg:pypi/pytest@9.0.3",
+          "licenses": [],
+          "name": "pytest",
+          "purl": "pkg:pypi/pytest@9.0.3",
+          "scope": "development",
+          "version": "9.0.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/pyyaml@5.3",
+          "licenses": [],
+          "name": "pyyaml",
+          "purl": "pkg:pypi/pyyaml@5.3",
+          "scope": "runtime",
+          "version": "5.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
           "id": "pkg:pypi/requests@2.2.1",
           "licenses": [],
           "name": "requests",
@@ -69,11 +129,17 @@
         },
         {
           "dependencies": [
+            "pkg:pypi/colorama@0.4.6",
             "pkg:pypi/django@1.7.1",
             "pkg:pypi/feedparser@6.0.8",
-            "pkg:pypi/pyasn1@0.4.8",
-            "pkg:pypi/pycrypto@2.4",
+            "pkg:pypi/iniconfig@2.3.0",
+            "pkg:pypi/packaging@26.2",
+            "pkg:pypi/pluggy@1.6.0",
+            "pkg:pypi/pyasn1@0.6.3",
+            "pkg:pypi/pygments@2.20.0",
             "pkg:pypi/pyjwt@0.4.2",
+            "pkg:pypi/pytest@9.0.3",
+            "pkg:pypi/pyyaml@5.3",
             "pkg:pypi/requests@2.2.1",
             "pkg:pypi/rsa@3.4",
             "pkg:pypi/sgmllib3k@1.0.0"

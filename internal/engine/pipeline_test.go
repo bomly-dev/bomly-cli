@@ -18,6 +18,17 @@ func (f fakeFallbackDetector) FallbackDetector() Detector {
 	return f.fallback
 }
 
+type recordingProgress struct {
+	details []string
+}
+
+func (p *recordingProgress) StartStage(string, int)        {}
+func (p *recordingProgress) AdvanceStage(string, int, int) {}
+func (p *recordingProgress) CompleteStage(string, int)     {}
+func (p *recordingProgress) Detail(label, detail string) {
+	p.details = append(p.details, label+": "+detail)
+}
+
 // ---------------------------------------------------------------------------
 // Detector resolution tests
 // ---------------------------------------------------------------------------
@@ -38,7 +49,7 @@ func TestResolveDetectors_RunsMatchingDetector(t *testing.T) {
 		PackageManager: PackageManagerNPM,
 		Mode:           TargetModeFullGraph,
 	}
-	results, err := pipeline.resolveDetectors(context.Background(), req, registry.Detectors(req))
+	results, err := pipeline.resolveDetectors(context.Background(), req, registry.Detectors(req), nil)
 	if err != nil {
 		t.Fatalf("resolveDetectors() error = %v", err)
 	}
@@ -47,6 +58,43 @@ func TestResolveDetectors_RunsMatchingDetector(t *testing.T) {
 	}
 	if results[0].DetectorName != "npm-native" {
 		t.Fatalf("expected npm-native result, got %q", results[0].DetectorName)
+	}
+}
+
+func TestResolveDetectors_ReportsDetectorDetail(t *testing.T) {
+	registry := newTestRegistry()
+	graph := sdk.New()
+	if err := graph.AddPackage(sdk.NewPackageRef("app", "1.0.0")); err != nil {
+		t.Fatalf("add package: %v", err)
+	}
+
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "npm-native", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}, SupportedModes: []TargetMode{TargetModeFullGraph}},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+	})
+
+	progress := &recordingProgress{}
+	pipeline := NewPipeline(registry, zap.NewNop())
+	req := ResolveGraphRequest{
+		Ecosystem:      EcosystemNPM,
+		PackageManager: PackageManagerNPM,
+		Mode:           TargetModeFullGraph,
+		Subproject: Subproject{
+			ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo/app"},
+			RelativePath:            ".",
+			DetectedPackageManagers: []PackageManager{PackageManagerNPM},
+			Ecosystem:               EcosystemNPM,
+		},
+	}
+
+	if _, err := pipeline.resolveDetectors(context.Background(), req, registry.Detectors(req), progress); err != nil {
+		t.Fatalf("resolveDetectors() error = %v", err)
+	}
+	if len(progress.details) == 0 {
+		t.Fatal("expected detector detail progress")
+	}
+	if got := progress.details[len(progress.details)-1]; got != "Detecting dependencies: npm-native - app (npm)" {
+		t.Fatalf("unexpected detector detail %q", got)
 	}
 }
 
@@ -72,7 +120,7 @@ func TestResolveDetectors_FallsBackWhenPrimaryFails(t *testing.T) {
 		PackageManager: PackageManagerGoMod,
 		Mode:           TargetModeFullGraph,
 	}
-	results, err := pipeline.resolveDetectors(context.Background(), req, registry.Detectors(req))
+	results, err := pipeline.resolveDetectors(context.Background(), req, registry.Detectors(req), nil)
 	if err != nil {
 		t.Fatalf("resolveDetectors() error = %v", err)
 	}
@@ -107,7 +155,7 @@ func TestResolveDetectors_DoesNotRunExcludedFallback(t *testing.T) {
 		Mode:           TargetModeFullGraph,
 		DetectorFilter: DetectorFilter{Exclude: []string{"syft-detector"}},
 	}
-	results, err := pipeline.resolveDetectors(context.Background(), req, registry.Detectors(req))
+	results, err := pipeline.resolveDetectors(context.Background(), req, registry.Detectors(req), nil)
 	if err == nil {
 		t.Fatal("expected primary detector error when fallback is excluded")
 	}

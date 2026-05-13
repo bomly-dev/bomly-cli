@@ -63,11 +63,22 @@ type sarifLocation struct {
 
 type sarifPhysicalLocation struct {
 	ArtifactLocation sarifArtifactLocation `json:"artifactLocation"`
+	Region           *sarifRegion          `json:"region,omitempty"`
 }
 
 type sarifArtifactLocation struct {
 	URI       string `json:"uri"`
 	URIBaseID string `json:"uriBaseId,omitempty"`
+}
+
+// sarifRegion is the SARIF 2.1.0 region descriptor. All numeric
+// fields are 1-based; omitted when unknown. Used to deep-link from
+// a result to the line in the lockfile where the affected
+// dependency is declared.
+type sarifRegion struct {
+	StartLine   int `json:"startLine,omitempty"`
+	StartColumn int `json:"startColumn,omitempty"`
+	EndLine     int `json:"endLine,omitempty"`
 }
 
 type sarifMessage struct {
@@ -110,21 +121,11 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, toolName, toolVersion strin
 		if pkgName != "" {
 			msgText = fmt.Sprintf("%s in %s@%s", f.Title, pkgName, pkgVersion)
 		}
-		artifactURI := pkgName
-		if artifactURI == "" {
-			artifactURI = f.ID
-		}
 		results = append(results, sarifResult{
-			RuleID:  f.ID,
-			Level:   severityToSARIFLevel(f.Severity),
-			Message: sarifMessage{Text: msgText},
-			Locations: []sarifLocation{
-				{
-					PhysicalLocation: sarifPhysicalLocation{
-						ArtifactLocation: sarifArtifactLocation{URI: artifactURI},
-					},
-				},
-			},
+			RuleID:    f.ID,
+			Level:     severityToSARIFLevel(f.Severity),
+			Message:   sarifMessage{Text: msgText},
+			Locations: sarifLocationsForFinding(f, pkgName),
 		})
 	}
 
@@ -149,6 +150,62 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, toolName, toolVersion strin
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
 	return enc.Encode(log)
+}
+
+// sarifLocationsForFinding builds the SARIF Locations array for a
+// finding. When the finding's package carries one or more
+// PackageLocation entries with a non-nil Position, one SARIF
+// location per entry is emitted with artifactLocation pointing at
+// the source file and a region carrying the line / column. When the
+// package has no positions, a single synthetic location is emitted
+// with the package's qualified name as URI — preserves backward
+// compat for SARIF consumers that already keyed on the package URI.
+//
+// PackageLocations without a Position but with a non-empty RealPath
+// still get a SARIF location with artifactLocation.uri = RealPath
+// and no region. This is honest: we know which file the dep lives
+// in but not exactly where.
+func sarifLocationsForFinding(f sdk.Finding, fallbackURI string) []sarifLocation {
+	if f.Package != nil && len(f.Package.Locations) > 0 {
+		locations := make([]sarifLocation, 0, len(f.Package.Locations))
+		for _, loc := range f.Package.Locations {
+			uri := strings.TrimSpace(loc.RealPath)
+			if uri == "" {
+				uri = strings.TrimSpace(loc.AccessPath)
+			}
+			if uri == "" {
+				continue
+			}
+			pl := sarifPhysicalLocation{
+				ArtifactLocation: sarifArtifactLocation{URI: uri},
+			}
+			if loc.Position != nil && (loc.Position.Line > 0 || loc.Position.Column > 0 || loc.Position.EndLine > 0) {
+				pl.Region = &sarifRegion{
+					StartLine:   loc.Position.Line,
+					StartColumn: loc.Position.Column,
+					EndLine:     loc.Position.EndLine,
+				}
+			}
+			locations = append(locations, sarifLocation{PhysicalLocation: pl})
+		}
+		if len(locations) > 0 {
+			return locations
+		}
+	}
+	// Fallback: emit a synthetic location keyed on the package name
+	// so SARIF consumers always have a non-empty Locations array
+	// (the SARIF spec requires one).
+	uri := strings.TrimSpace(fallbackURI)
+	if uri == "" {
+		uri = f.ID
+	}
+	return []sarifLocation{
+		{
+			PhysicalLocation: sarifPhysicalLocation{
+				ArtifactLocation: sarifArtifactLocation{URI: uri},
+			},
+		},
+	}
 }
 
 func severityToSARIFLevel(severity string) string {

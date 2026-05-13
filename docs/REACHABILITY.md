@@ -60,6 +60,7 @@ degrade to `Status: unknown` with a stable, machine-readable `Reason`
 | Go                   | `govulncheck` | `symbol`  | Backed by the vendored `golang.org/x/vuln/scan` library; runs in-process so users never need a `govulncheck` binary on PATH.                                                                                                                                     |
 | JavaScript / TypeScript | `jsreach`     | `package` | Backed by the vendored `github.com/evanw/esbuild/pkg/api` library. Walks app source from `package.json` entry points (`main`, `module`, `browser`, `exports`, `bin`, plus implicit `index.*` / `app.js` / `server.js` / `main.js` fallbacks) and reports each npm package as reachable iff it appears in the import set. |
 | Python               | `pyreach`     | `package` | In-process line-oriented import scanner. Walks every `.py` file under the project root (`pyproject.toml` / `setup.py` / `requirements*.txt` / `Pipfile` / `poetry.lock` / `pdm.lock` / `uv.lock`), records each top-level module from `import` and `from … import` statements, and maps module names to PyPI distribution names through a static override map (e.g. `yaml` → `PyYAML`) plus PEP 503 normalization. |
+| Java / Kotlin / Scala / Groovy | `jvmreach`    | `package` | In-process line-oriented import scanner for JVM ecosystems (Maven, Gradle, SBT). Walks `.java` / `.kt` / `.kts` / `.scala` / `.groovy` source under the project root, scans top-of-file `import` statements (including Java `static`, Kotlin aliases, Scala selectors and wildcards), and maps Java/Kotlin/Scala package prefixes to Maven coordinates (`groupId:artifactId`) through a curated longest-prefix map. |
 
 Other ecosystems (Java, Rust) are tracked for follow-up phases.
 When `--reachability` is set on a project that has no applicable
@@ -161,6 +162,45 @@ specifics:
    reach what isn't there. The pip / poetry / pipenv / uv / pdm
    detectors are the source of truth for what edges exist.
 
+### A note on `jvmreach` and Tier 3
+
+`jvmreach` is the third Tier-3 analyzer and follows the same
+"directly-imported set + transitive closure" shape as `jsreach`
+and `pyreach`. It walks `.java` / `.kt` / `.kts` / `.scala` /
+`.groovy` files under the project root, parses each top-of-file
+`import` statement, and maps the FQN prefix to a Maven artifact
+coordinate (`groupId:artifactId`) via a curated longest-prefix
+map. The closure is then expanded transitively through
+`Graph.Dependencies`.
+
+The Java/Maven mapping problem is genuinely harder than Python's.
+Python's `module → distribution` relationship is usually identity
+modulo a small override table. The Java `package → Maven artifact`
+relationship has no naming convention at all — `org.apache.commons`
+covers ten different distributions, `com.google.common` is one
+specific distribution, and there is no rule that holds in general.
+Consequences:
+
+1. **"Unreachable" is not "safe".** All the standard caveats apply:
+   reflection, `ServiceLoader`, Spring component scanning, OSGi
+   bundles, JPMS layers, and class-loader gymnastics are invisible
+   to a static scanner. Annotation processors that generate code at
+   build time also escape detection.
+2. **The curated prefix map is small and biased toward popular
+   libraries.** A missing prefix produces a false-negative for
+   direct imports. The dep-graph BFS usually catches the case via
+   a transitive edge from a correctly-mapped neighbour, but unlike
+   Python there is no identity-normalization fallback. Adding a
+   prefix is a one-line PR in
+   `internal/analyzers/jvmreach/prefixmap.go`.
+3. **Sub-package imports collapse to the artifact.** Importing
+   `com.fasterxml.jackson.databind.ObjectMapper` flips the whole
+   `jackson-databind` artifact reachable, even if the advisory
+   affects only a different class in that artifact.
+4. **The closure is only as accurate as the build manifest.** Same
+   as `jsreach` / `pyreach`: if the Maven / Gradle / SBT detector
+   doesn't see an edge, the closure can't follow it.
+
 ## Composing with `--fail-on`
 
 `--fail-on` is repeatable; constraints AND together. Two kinds are
@@ -239,6 +279,18 @@ Reachability data appears in three places:
   an entry produces a false-negative for direct top-level imports.
   PRs to extend `internal/analyzers/pyreach/moduletodist.go` are
   welcome.
+- **`jvmreach` does not follow reflection or runtime class loading.**
+  Spring component scanning, `ServiceLoader`, OSGi, JPMS dynamic
+  layers, and annotation-processed code are invisible to a static
+  scanner.
+- **`jvmreach`'s package-prefix map is hand-curated.** The Java
+  `package → Maven artifact` relationship has no naming convention,
+  so missing prefixes do not have an identity fallback. PRs to
+  extend `internal/analyzers/jvmreach/prefixmap.go` are welcome.
+- **`jvmreach` does not handle Gradle / Maven multi-module projects
+  yet.** Each pom.xml / build.gradle root is treated as one
+  project; modules under a parent are detected separately but
+  attribution between modules is best-effort.
 
 ## Selecting analyzers
 
@@ -263,6 +315,8 @@ library:
 - `govulncheck` runs in-process via `golang.org/x/vuln/scan`.
 - `jsreach` runs in-process via `github.com/evanw/esbuild/pkg/api`.
 - `pyreach` runs in-process via an in-tree line-oriented import
+  scanner (no external dependency).
+- `jvmreach` runs in-process via an in-tree line-oriented import
   scanner (no external dependency).
 
 Both libraries are small enough that vendoring them outweighs the

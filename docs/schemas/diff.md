@@ -118,6 +118,14 @@ Complete reference for the `bomly diff` JSON output.
 | `spdxExpression` | `string` | |
 | `type` | `string` | |
 
+### `LocationRef`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `real_path` | `string` | |
+| `access_path` | `string` | |
+| `position` | [`PositionRef`](#positionref) | |
+
 ### `Metadata`
 
 | Field | Type | Description |
@@ -134,8 +142,18 @@ Complete reference for the `bomly diff` JSON output.
 | `purl` | `string` | |
 | `id` | `string` | |
 | `metadata` | `object` | |
+| `locations` | Array<[`LocationRef`](#locationref)> | |
 | `licenses` | Array<[`LicenseRef`](#licenseref)> | |
 | `vulnerabilities` | Array<[`VulnerabilityRef`](#vulnerabilityref)> | |
+
+### `PositionRef`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `file` | `string` | |
+| `line` | `integer` | |
+| `column` | `integer` | |
+| `end_line` | `integer` | |
 
 ### `ProjectDescriptor`
 

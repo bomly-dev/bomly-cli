@@ -87,7 +87,7 @@ Runtime preparation is owned by `internal/engine` and is reached through CLI opt
 - `internal/tui` may import `internal/cli/render` (for ANSI primitives, text helpers, and shared sort/format helpers used by both the TUI and the text reports).
 - `cmd/bomly/main.go` is the only file outside `internal/cli` that imports `internal/cli`.
 
-Detector registration priority (lower = higher priority): native → lockfile-parser → third-party → plugin.
+Detector chains are explicit in `internal/registry/support.go` and `internal/registry/builder.go`; do not infer priority from technique alone. Some native detectors are build-tool-backed primaries (`pub-native`, `swiftpm-native`, `sbt-native`) with committed-file fallbacks, so graph-shape smoke/QA updates for those ecosystems should run with `dart`, `swift`, or `sbt` on `PATH`.
 
 ## Non-Negotiables
 

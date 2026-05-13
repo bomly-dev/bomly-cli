@@ -21,6 +21,7 @@ func RenderSupportMatrixMarkdown() string {
 	builder.WriteString("- Bundled detectors based on third-party tools that are distributed with Bomly and maintained by the Bomly team.\n\n")
 	builder.WriteString("## Core Detectors\n\n")
 	builder.WriteString("Primary detector files are the preferred inputs for Bomly-owned resolution. Fallback detector files are inputs for the next built-in Bomly detector in the same chain; Syft-only backstops are omitted here and listed under Bundled detectors support.\n\n")
+	builder.WriteString("Some primary detectors execute the ecosystem build tool to recover richer dependency edges than a committed lockfile or manifest can provide. When the tool is not installed or the build-tool command fails, Bomly falls back to the next detector in the chain. For reproducible QA of those richer graphs, make sure the relevant tools are on `PATH` before running smoke or QA scans.\n\n")
 	builder.WriteString("| Ecosystem | Package managers | Primary detector files | Fallback detector files | Detector |\n")
 	builder.WriteString("| --- | --- | --- | --- | --- |\n")
 	for _, entry := range groupedNativeEntries() {
@@ -37,6 +38,7 @@ func RenderSupportMatrixMarkdown() string {
 	builder.WriteString("\n## Notes\n\n")
 	builder.WriteString("- Bomly does not expose every Syft cataloger as a package manager.\n")
 	builder.WriteString("- Some OS image and binary catalogers are intentionally omitted when they do not map cleanly to Bomly's ecosystem and package-manager model.\n")
+	builder.WriteString("- Build-tool-backed detectors currently include Pub (`dart`), SwiftPM (`swift`), and SBT (`sbt`) for richer transitive graph resolution when those tools are available.\n")
 	builder.WriteString("\n## Syft Container OS Support\n\n")
 	builder.WriteString("These OS families are listed separately because they describe container base-image detection rather than language-specific package managers.\n\n")
 	builder.WriteString("Source: https://oss.anchore.com/docs/capabilities/all-os/\n\n")

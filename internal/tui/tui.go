@@ -37,6 +37,10 @@ type tabbedModel interface {
 	CycleView()
 }
 
+type numberedTabModel interface {
+	SelectView(index int)
+}
+
 type searchModel interface {
 	Model
 	BeginSearch()
@@ -53,6 +57,10 @@ type navigationModel interface {
 	CanGoBack() bool
 }
 
+type toggleModel interface {
+	ToggleSelected()
+}
+
 type detailScrollModel interface {
 	ScrollDetails(delta int)
 }
@@ -62,6 +70,8 @@ type listItem struct {
 	subtitle string
 	badges   []badge
 	details  []string
+	children []listItem
+	expanded bool
 }
 
 type badge struct {
@@ -112,9 +122,12 @@ const (
 type scanView string
 
 const (
+	interactiveScanViewOverview scanView = "overview"
 	interactiveScanViewPackages scanView = "packages"
 	interactiveScanViewVulns    scanView = "vulnerabilities"
 	interactiveScanViewLicenses scanView = "licenses"
+	interactiveScanViewFindings scanView = "findings"
+	interactiveScanViewSource   scanView = "source"
 )
 
 type scanModel struct {
@@ -132,6 +145,7 @@ type scanModel struct {
 	relationshipFilter string
 	scopeFilter        string
 	severityFilter     string
+	sourceExpanded     map[string]bool
 	list               *listModel
 }
 
@@ -231,8 +245,15 @@ func (m *teaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.quitting = true
 				return m, tea.Quit
 			}
+			if toggleModel, ok := m.inner.(toggleModel); ok {
+				toggleModel.ToggleSelected()
+			}
 			if navigationModel, ok := m.inner.(navigationModel); ok {
 				navigationModel.OpenSelected()
+			}
+		case "1", "2", "3", "4", "5", "6":
+			if tabModel, ok := m.inner.(numberedTabModel); ok {
+				tabModel.SelectView(int(msg.String()[0] - '0'))
 			}
 		case "left", "h", "backspace":
 			if m.confirmQuit {

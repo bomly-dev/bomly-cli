@@ -88,8 +88,9 @@ func TestInteractiveListModel_ViewIncludesDetails(t *testing.T) {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
+	model.SelectView(2)
 	model.Move(1)
-	view := model.View(90, 20)
+	view := model.View(90, 26)
 
 	plain := render.StripANSI(view)
 	for _, want := range []string{
@@ -191,6 +192,7 @@ func TestNewScanInteractiveModel_ViewIncludesGraphSummary(t *testing.T) {
 		Path:      "/tmp/demo-app",
 		Ecosystem: "npm",
 	}, consolidated, graphValue, nil)
+	model.SelectView(2)
 	view := model.View(100, 20)
 	plain := render.StripANSI(view)
 
@@ -263,12 +265,14 @@ func TestScanInteractiveModel_MultiManifestNavigation(t *testing.T) {
 	}
 	model := NewScan(output.ProjectDescriptor{Name: "multi", Path: "/tmp/multi"}, consolidated, graphValue, nil)
 	plain := render.StripANSI(model.View(100, 20))
-	if !strings.Contains(plain, "Manifests 2") {
-		t.Fatalf("expected manifest list view, got:\n%s", plain)
+	if !strings.Contains(plain, "[1] Overview") || !strings.Contains(plain, "Manifests: 2") {
+		t.Fatalf("expected overview view, got:\n%s", plain)
 	}
 
 	wrapper := &teaModel{inner: model, width: 100, height: 20}
-	updated, _ := wrapper.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	updated, _ := wrapper.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("2")})
+	wrapper = updated.(*teaModel)
+	updated, _ = wrapper.Update(tea.KeyMsg{Type: tea.KeyEnter})
 	wrapper = updated.(*teaModel)
 	plain = render.StripANSI(wrapper.View())
 	if !strings.Contains(plain, "Direct") {
@@ -659,6 +663,7 @@ func TestScanInteractiveModel_FiltersAndScopeBadges(t *testing.T) {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
+	model.SelectView(2)
 
 	plain := render.StripANSI(model.View(100, 20))
 	if !strings.Contains(plain, "react@18.2.0") || !strings.Contains(plain, "vitest@2.0.0") {

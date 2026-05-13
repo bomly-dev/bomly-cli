@@ -32,7 +32,8 @@ func NewScanNavigator(titlePrefix string, project output.ProjectDescriptor, cons
 		mode:              interactiveScanModeManifests,
 		allowManifestExit: len(manifests) > 1,
 		findings:          findings,
-		activeView:        interactiveScanViewPackages,
+		activeView:        interactiveScanViewOverview,
+		sourceExpanded:    map[string]bool{"root": true},
 	}
 	if len(manifests) == 1 {
 		model.mode = interactiveScanModeComponents
@@ -123,14 +124,41 @@ func (m *scanModel) CycleView() {
 	if m == nil {
 		return
 	}
-	switch m.activeView {
-	case interactiveScanViewPackages:
-		m.activeView = interactiveScanViewVulns
-	case interactiveScanViewVulns:
-		m.activeView = interactiveScanViewLicenses
-	default:
-		m.activeView = interactiveScanViewPackages
+	views := scanViews()
+	for idx, view := range views {
+		if view == m.activeView {
+			m.activeView = views[(idx+1)%len(views)]
+			m.list = m.buildCurrentListModel()
+			return
+		}
 	}
+	m.activeView = interactiveScanViewOverview
+	m.list = m.buildCurrentListModel()
+}
+
+func (m *scanModel) SelectView(index int) {
+	views := scanViews()
+	if m == nil || index < 1 || index > len(views) {
+		return
+	}
+	m.activeView = views[index-1]
+	m.list = m.buildCurrentListModel()
+}
+
+func (m *scanModel) ToggleSelected() {
+	if m == nil || m.list == nil || m.activeView != interactiveScanViewSource {
+		return
+	}
+	visible := m.list.visibleItemIndices()
+	if len(visible) == 0 {
+		return
+	}
+	item := m.list.items[visible[m.list.selectedVisibleIndex(visible)]]
+	key := sourceKey(item.title)
+	if key == "" {
+		return
+	}
+	m.sourceExpanded[key] = !m.sourceExpanded[key]
 	m.list = m.buildCurrentListModel()
 }
 
@@ -212,10 +240,16 @@ func (m *scanModel) CanGoBack() bool {
 
 func (m *scanModel) buildCurrentListModel() *listModel {
 	switch m.activeView {
+	case interactiveScanViewOverview:
+		return m.buildOverviewListModel()
 	case interactiveScanViewVulns:
 		return m.buildVulnsListModel()
 	case interactiveScanViewLicenses:
 		return m.buildLicensesListModel()
+	case interactiveScanViewFindings:
+		return m.buildFindingsListModel()
+	case interactiveScanViewSource:
+		return m.buildSourceListModel()
 	default:
 		if m.mode == interactiveScanModeComponents {
 			manifest, ok := m.manifestByID[m.currentManifestID]
@@ -225,6 +259,60 @@ func (m *scanModel) buildCurrentListModel() *listModel {
 		}
 		return m.buildManifestListModel()
 	}
+}
+
+func scanViews() []scanView {
+	return []scanView{
+		interactiveScanViewOverview,
+		interactiveScanViewPackages,
+		interactiveScanViewVulns,
+		interactiveScanViewLicenses,
+		interactiveScanViewFindings,
+		interactiveScanViewSource,
+	}
+}
+
+func (m *scanModel) scanSummaryLines(active scanView) []string {
+	return []string{
+		render.Style(" bomly ", render.BgCyan, render.Blue, render.Bold) + " " +
+			render.Style("SCAN", render.BgBlue, render.White, render.Bold) + " " +
+			render.Style(valueOrDash(m.project.Name), render.White, render.Bold) + " " +
+			render.Style(targetKindLabel(m.project), render.Dim),
+		m.tabLine(active),
+		m.scanStatusLine(),
+	}
+}
+
+func (m *scanModel) tabLine(active scanView) string {
+	labels := []struct {
+		view  scanView
+		label string
+	}{
+		{interactiveScanViewOverview, "Overview"},
+		{interactiveScanViewPackages, "Components"},
+		{interactiveScanViewVulns, "Vulns"},
+		{interactiveScanViewLicenses, "Licenses"},
+		{interactiveScanViewFindings, "Findings"},
+		{interactiveScanViewSource, "Source"},
+	}
+	parts := make([]string, 0, len(labels))
+	for idx, item := range labels {
+		text := fmt.Sprintf("[%d] %s", idx+1, item.label)
+		if item.view == active {
+			parts = append(parts, render.Style(text, render.Yellow, render.Bold))
+		} else {
+			parts = append(parts, render.Style(text, render.Dim))
+		}
+	}
+	return strings.Join(parts, render.Style(" | ", render.Dim))
+}
+
+func (m *scanModel) scanStatusLine() string {
+	stats := scanStats(m.graphValue, m.findings)
+	return render.Style("Components: ", render.Dim) + render.Style(fmt.Sprintf("%d", stats.components), render.Cyan, render.Bold) +
+		render.Style(" | Vulns: ", render.Dim) + severityText(fmt.Sprintf("%d", stats.vulnerabilities)) +
+		render.Style(" | Licenses: ", render.Dim) + render.Style(fmt.Sprintf("%d", stats.licenses), render.Cyan, render.Bold) +
+		render.Style(" | Findings: ", render.Dim) + render.Style(fmt.Sprintf("%d", len(m.findings)), render.Cyan, render.Bold)
 }
 
 func (m *scanModel) buildManifestListModel() *listModel {
@@ -245,16 +333,78 @@ func (m *scanModel) buildManifestListModel() *listModel {
 
 	return &listModel{
 		title: fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
-		summary: []string{
-			render.Style("Tab: [PACKAGES] | Vulnerabilities | Licenses", render.Dim),
+		summary: append(m.scanSummaryLines(interactiveScanViewPackages), []string{
 			render.Style(fmt.Sprintf("Manifests %d", len(m.manifests)), render.Cyan, render.Bold),
 			render.Style(fmt.Sprintf("Packages  %d", packageCount), render.Cyan, render.Bold),
 			render.Style("Project   ", render.Dim) + m.project.Path,
 			render.Style("Ecosystem ", render.Dim) + valueOrDash(m.project.Ecosystem),
-		},
+		}...),
 		navigationHelp: interactiveCommonNavigationHelp + "; Enter opens selected manifest",
-		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search",
+		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; 1-6 switch tabs",
 		emptyState:     "No manifests were found in the dependency graph.",
+		items:          items,
+	}
+}
+
+func (m *scanModel) buildOverviewListModel() *listModel {
+	stats := scanStats(m.graphValue, m.findings)
+	items := []listItem{
+		{
+			title:    "Target Information",
+			subtitle: "overview",
+			details: []string{
+				render.Style("Target", render.Bold, render.Cyan),
+				render.Style("  Name: ", render.Dim) + valueOrDash(m.project.Name),
+				render.Style("  Path: ", render.Dim) + valueOrDash(m.project.Path),
+				render.Style("  Ecosystem: ", render.Dim) + valueOrDash(m.project.Ecosystem),
+				render.Style("  Package manager: ", render.Dim) + valueOrDash(m.project.PackageManager),
+				render.Style("  Manifests: ", render.Dim) + fmt.Sprintf("%d", len(m.manifests)),
+			},
+		},
+		{
+			title:    "Summary Counts",
+			subtitle: "cards",
+			details: []string{
+				render.Style("Summary", render.Bold, render.Cyan),
+				render.Style("  Components: ", render.Dim) + fmt.Sprintf("%d", stats.components),
+				render.Style("  Ecosystems: ", render.Dim) + fmt.Sprintf("%d", len(stats.ecosystems)),
+				render.Style("  Vulnerabilities: ", render.Dim) + fmt.Sprintf("%d", stats.vulnerabilities),
+				render.Style("  Unique licenses: ", render.Dim) + fmt.Sprintf("%d", stats.licenses),
+				render.Style("  Findings: ", render.Dim) + fmt.Sprintf("%d", len(m.findings)),
+			},
+		},
+		{
+			title:    "Vulnerabilities by Severity",
+			subtitle: "distribution",
+			details:  distributionDetails("Vulnerability Severity", severityDistribution(m.findings)),
+		},
+		{
+			title:    "Components by Ecosystem",
+			subtitle: "distribution",
+			details:  distributionDetails("Ecosystem Distribution", stats.ecosystems),
+		},
+		{
+			title:    "Components by License",
+			subtitle: "distribution",
+			details:  licenseDistributionDetails(m.graphValue),
+		},
+		{
+			title:    "Top Vulnerable Components",
+			subtitle: "top",
+			details:  topVulnerableComponentDetails(m.findings),
+		},
+		{
+			title:    "Top Depended-On Components",
+			subtitle: "top",
+			details:  topDependedOnDetails(m.graphValue),
+		},
+	}
+	return &listModel{
+		title:          fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
+		summary:        m.scanSummaryLines(interactiveScanViewOverview),
+		navigationHelp: interactiveCommonNavigationHelp,
+		filterHelp:     "Use / to search; Tab or 1-6 switches tabs; e export; ? help",
+		emptyState:     "No scan overview is available.",
 		items:          items,
 	}
 }
@@ -316,13 +466,12 @@ func (m *scanModel) buildVulnsListModel() *listModel {
 
 	return &listModel{
 		title: fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
-		summary: []string{
-			render.Style("Tab: Packages | [VULNERABILITIES] | Licenses", render.Dim),
+		summary: append(m.scanSummaryLines(interactiveScanViewVulns), []string{
 			render.Style("Filter severity ", render.Dim) + valueOrDash(m.severityFilter),
 			render.Style(fmt.Sprintf("Showing %d / %d", len(filtered), len(all)), render.Cyan, render.Bold),
-		},
+		}...),
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; v cycles severity filter",
+		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; v cycles severity filter; 1-6 switch tabs",
 		emptyState:     "No policy findings found. Run with --audit to evaluate enriched vulnerability data.",
 		items:          items,
 	}
@@ -341,13 +490,86 @@ func (m *scanModel) buildLicensesListModel() *listModel {
 
 	return &listModel{
 		title: fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
-		summary: []string{
-			render.Style("Tab: Packages | Vulnerabilities | [LICENSES]", render.Dim),
+		summary: append(m.scanSummaryLines(interactiveScanViewLicenses), []string{
 			render.Style(fmt.Sprintf("Unique licenses %d", len(rows)), render.Cyan, render.Bold),
-		},
+		}...),
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search",
+		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; 1-6 switch tabs",
 		emptyState:     "No license information found.",
+		items:          items,
+	}
+}
+
+func (m *scanModel) buildFindingsListModel() *listModel {
+	items := make([]listItem, 0, len(m.findings))
+	for _, finding := range m.findings {
+		pkg := ""
+		if finding.Package != nil {
+			pkg = packageDisplayName(finding.Package)
+		}
+		details := []string{
+			render.Style("Finding", render.Bold, render.Cyan),
+			render.Style("  ID: ", render.Dim) + valueOrDash(finding.ID),
+			render.Style("  Kind: ", render.Dim) + valueOrDash(string(finding.Kind)),
+			render.Style("  Severity: ", render.Dim) + severityText(finding.Severity),
+			render.Style("  Package: ", render.Dim) + valueOrDash(pkg),
+			render.Style("  Title: ", render.Dim) + valueOrDash(finding.Title),
+			render.Style("  Source: ", render.Dim) + valueOrDash(finding.Source),
+			"",
+			render.Style("Reasons", render.Bold, render.Magenta),
+		}
+		details = append(details, indentLines(finding.Reasons)...)
+		items = append(items, listItem{
+			title:    finding.ID,
+			subtitle: string(finding.Kind),
+			badges:   []badge{{label: finding.Severity, kind: "severity-" + strings.ToLower(finding.Severity)}},
+			details:  details,
+		})
+	}
+	return &listModel{
+		title:          fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
+		summary:        m.scanSummaryLines(interactiveScanViewFindings),
+		navigationHelp: interactiveCommonNavigationHelp,
+		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; 1-6 switch tabs",
+		emptyState:     "No findings found. Run with --audit to evaluate available vulnerability data.",
+		items:          items,
+	}
+}
+
+func (m *scanModel) buildSourceListModel() *listModel {
+	items := []listItem{{
+		title:    sourceTitle("root", "root"),
+		subtitle: "source",
+		details:  sourceRootDetails(m),
+	}}
+	if m.sourceExpanded["root"] {
+		items = append(items, listItem{
+			title:    sourceTitle("target", "  target"),
+			subtitle: "node",
+			details:  sourceTargetDetails(m),
+		})
+		items = append(items, listItem{
+			title:    sourceTitle("manifests", fmt.Sprintf("  manifests (%d)", len(m.manifests))),
+			subtitle: "node",
+			details:  sourceManifestDetails(m),
+		})
+		items = append(items, listItem{
+			title:    sourceTitle("packages", fmt.Sprintf("  packages (%d)", graphSize(m.graphValue))),
+			subtitle: "node",
+			details:  sourcePackageDetails(m.graphValue),
+		})
+		items = append(items, listItem{
+			title:    sourceTitle("relationships", fmt.Sprintf("  relationships (%d)", relationshipCount(m.graphValue))),
+			subtitle: "node",
+			details:  sourceRelationshipDetails(m.graphValue),
+		})
+	}
+	return &listModel{
+		title:          fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
+		summary:        m.scanSummaryLines(interactiveScanViewSource),
+		navigationHelp: interactiveCommonNavigationHelp + "; Enter expands/collapses source nodes",
+		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; 1-6 switch tabs; e export; ? help",
+		emptyState:     "No source data is available.",
 		items:          items,
 	}
 }
@@ -516,8 +738,7 @@ func (m *scanModel) buildComponentListModel(manifest listPackageRow) *listModel 
 
 	return &listModel{
 		title: fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
-		summary: []string{
-			render.Style("Tab: [PACKAGES] | Vulnerabilities | Licenses", render.Dim),
+		summary: append(m.scanSummaryLines(interactiveScanViewPackages), []string{
 			render.Style("Manifest  ", render.Dim) + manifest.displayName,
 			render.Style("Root      ", render.Dim) + packageDisplayName(rootPkg),
 			render.Style("Filter relationship ", render.Dim) + valueOrDash(m.relationshipFilter),
@@ -526,9 +747,9 @@ func (m *scanModel) buildComponentListModel(manifest listPackageRow) *listModel 
 			render.Style(fmt.Sprintf("Direct    %d", len(groups.direct)), render.Cyan, render.Bold),
 			render.Style(fmt.Sprintf("Transitive %d", len(groups.transitive)), render.Cyan, render.Bold),
 			render.Style("Project   ", render.Dim) + m.project.Path,
-		},
+		}...),
 		navigationHelp: navigationHelp,
-		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; r cycles relationship filter; s cycles scope filter; v cycles severity filter",
+		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; r relationship; s scope; v severity; 1-6 tabs",
 		emptyState:     "No components were found for this manifest.",
 		items:          items,
 	}
@@ -585,8 +806,7 @@ func (m *scanModel) buildExplainComponentListModel(manifest listPackageRow) *lis
 	targetPkg, _ := m.graphValue.Package(manifest.targetID)
 	return &listModel{
 		title: fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
-		summary: []string{
-			render.Style("Tab: [PACKAGES] | Vulnerabilities | Licenses", render.Dim),
+		summary: append(m.scanSummaryLines(interactiveScanViewPackages), []string{
 			render.Style("Manifest  ", render.Dim) + manifest.displayName,
 			render.Style("Target    ", render.Dim) + packageDisplayName(targetPkg),
 			render.Style("Filter relationship ", render.Dim) + valueOrDash(m.relationshipFilter),
@@ -597,9 +817,9 @@ func (m *scanModel) buildExplainComponentListModel(manifest listPackageRow) *lis
 			render.Style(fmt.Sprintf("Ancestors %d", counts["ancestor"]), render.Cyan, render.Bold),
 			render.Style(fmt.Sprintf("Roots     %d", counts["root"]), render.Cyan, render.Bold),
 			render.Style("Project   ", render.Dim) + m.project.Path,
-		},
+		}...),
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; r cycles relationship filter; s cycles scope filter; v cycles severity filter",
+		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; r relationship; s scope; v severity; 1-6 tabs",
 		emptyState:     "No components were found for this explanation.",
 		items:          items,
 	}
@@ -836,6 +1056,268 @@ func componentDetails(graphValue *sdk.Graph, row listPackageRow, manifest listPa
 	lines = append(lines, "")
 
 	return lines
+}
+
+type scanOverviewStats struct {
+	components      int
+	vulnerabilities int
+	licenses        int
+	ecosystems      map[string]int
+}
+
+func scanStats(graphValue *sdk.Graph, findings []sdk.Finding) scanOverviewStats {
+	stats := scanOverviewStats{ecosystems: make(map[string]int)}
+	licenseSet := make(map[string]struct{})
+	if graphValue != nil {
+		stats.components = graphValue.Size()
+		for _, pkg := range graphValue.Packages() {
+			if pkg == nil {
+				continue
+			}
+			if pkg.Ecosystem != "" {
+				stats.ecosystems[pkg.Ecosystem]++
+			} else {
+				stats.ecosystems["unknown"]++
+			}
+			for _, licenseValue := range pkg.LicenseValues() {
+				licenseSet[licenseValue] = struct{}{}
+			}
+			stats.vulnerabilities += len(pkg.Vulnerabilities)
+		}
+	}
+	for _, finding := range findings {
+		if finding.Kind == sdk.FindingKindVulnerability && stats.vulnerabilities == 0 {
+			stats.vulnerabilities++
+		}
+	}
+	stats.licenses = len(licenseSet)
+	return stats
+}
+
+func severityDistribution(findings []sdk.Finding) map[string]int {
+	counts := map[string]int{"critical": 0, "high": 0, "medium": 0, "low": 0, "unknown": 0}
+	for _, finding := range findings {
+		sev := strings.ToLower(strings.TrimSpace(finding.Severity))
+		if _, ok := counts[sev]; !ok {
+			sev = "unknown"
+		}
+		counts[sev]++
+	}
+	return counts
+}
+
+func distributionDetails(title string, counts map[string]int) []string {
+	lines := []string{render.Style(title, render.Bold, render.Cyan)}
+	for _, key := range sortedCountKeys(counts) {
+		lines = append(lines, render.Style("  "+key+": ", render.Dim)+barLine(counts[key], maxCount(counts)))
+	}
+	if len(lines) == 1 {
+		lines = append(lines, render.Style("  (none)", render.Dim))
+	}
+	return lines
+}
+
+func licenseDistributionDetails(graphValue *sdk.Graph) []string {
+	counts := make(map[string]int)
+	for _, row := range licenseRows(graphValue) {
+		counts[row.license] = len(row.packages)
+	}
+	return distributionDetails("License Distribution", counts)
+}
+
+func topVulnerableComponentDetails(findings []sdk.Finding) []string {
+	counts := make(map[string]int)
+	for _, finding := range findings {
+		if finding.Package == nil {
+			continue
+		}
+		counts[packageDisplayName(finding.Package)]++
+	}
+	return distributionDetails("Top Vulnerable Components", topCounts(counts, 10))
+}
+
+func topDependedOnDetails(graphValue *sdk.Graph) []string {
+	counts := make(map[string]int)
+	if graphValue != nil {
+		for _, pkg := range graphValue.Packages() {
+			if pkg == nil {
+				continue
+			}
+			dependents, err := graphValue.Dependents(pkg.ID)
+			if err == nil && len(dependents) > 0 {
+				counts[packageDisplayName(pkg)] = len(dependents)
+			}
+		}
+	}
+	return distributionDetails("Top Depended-On Components", topCounts(counts, 10))
+}
+
+func topCounts(counts map[string]int, limit int) map[string]int {
+	keys := sortedCountKeys(counts)
+	if len(keys) > limit {
+		keys = keys[:limit]
+	}
+	out := make(map[string]int, len(keys))
+	for _, key := range keys {
+		out[key] = counts[key]
+	}
+	return out
+}
+
+func sortedCountKeys(counts map[string]int) []string {
+	keys := make([]string, 0, len(counts))
+	for key, value := range counts {
+		if value == 0 {
+			continue
+		}
+		keys = append(keys, key)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		if counts[keys[i]] != counts[keys[j]] {
+			return counts[keys[i]] > counts[keys[j]]
+		}
+		return keys[i] < keys[j]
+	})
+	return keys
+}
+
+func maxCount(counts map[string]int) int {
+	max := 0
+	for _, value := range counts {
+		if value > max {
+			max = value
+		}
+	}
+	return max
+}
+
+func barLine(value, max int) string {
+	width := 18
+	filled := 0
+	if max > 0 {
+		filled = value * width / max
+		if value > 0 && filled == 0 {
+			filled = 1
+		}
+	}
+	return render.Style(strings.Repeat("=", filled), render.Green) + render.Style(strings.Repeat(".", width-filled), render.Dim) + fmt.Sprintf(" %d", value)
+}
+
+func sourceTitle(key, label string) string {
+	return label + " [" + key + "]"
+}
+
+func sourceKey(title string) string {
+	start := strings.LastIndex(title, "[")
+	end := strings.LastIndex(title, "]")
+	if start == -1 || end <= start+1 {
+		return ""
+	}
+	return strings.TrimSpace(title[start+1 : end])
+}
+
+func sourceRootDetails(m *scanModel) []string {
+	return []string{
+		render.Style("SBOM Source Map", render.Bold, render.Cyan),
+		render.Style("  Target: ", render.Dim) + valueOrDash(m.project.Name),
+		render.Style("  Packages: ", render.Dim) + fmt.Sprintf("%d", graphSize(m.graphValue)),
+		render.Style("  Relationships: ", render.Dim) + fmt.Sprintf("%d", relationshipCount(m.graphValue)),
+		render.Style("  Manifests: ", render.Dim) + fmt.Sprintf("%d", len(m.manifests)),
+		"",
+		render.Style("Press Enter to expand or collapse source nodes.", render.Dim),
+	}
+}
+
+func sourceTargetDetails(m *scanModel) []string {
+	return []string{
+		render.Style("Target", render.Bold, render.Cyan),
+		render.Style("  Name: ", render.Dim) + valueOrDash(m.project.Name),
+		render.Style("  Path: ", render.Dim) + valueOrDash(m.project.Path),
+		render.Style("  Ecosystem: ", render.Dim) + valueOrDash(m.project.Ecosystem),
+		render.Style("  Package manager: ", render.Dim) + valueOrDash(m.project.PackageManager),
+	}
+}
+
+func sourceManifestDetails(m *scanModel) []string {
+	lines := []string{render.Style("Manifests", render.Bold, render.Cyan)}
+	for _, manifest := range m.manifests {
+		lines = append(lines, render.Style("  - ", render.Dim)+manifest.id)
+	}
+	if len(lines) == 1 {
+		lines = append(lines, render.Style("  (none)", render.Dim))
+	}
+	return lines
+}
+
+func sourcePackageDetails(graphValue *sdk.Graph) []string {
+	lines := []string{render.Style("Packages", render.Bold, render.Cyan)}
+	if graphValue != nil {
+		for _, pkg := range graphValue.Packages() {
+			lines = append(lines, render.Style("  - ", render.Dim)+packageDisplayName(pkg))
+			if len(lines) >= 32 {
+				lines = append(lines, render.Style("  ...", render.Dim))
+				break
+			}
+		}
+	}
+	if len(lines) == 1 {
+		lines = append(lines, render.Style("  (none)", render.Dim))
+	}
+	return lines
+}
+
+func sourceRelationshipDetails(graphValue *sdk.Graph) []string {
+	lines := []string{render.Style("Relationships", render.Bold, render.Cyan)}
+	if graphValue != nil {
+		graphValue.WalkRelationships(func(from, to *sdk.Package) bool {
+			lines = append(lines, render.Style("  - ", render.Dim)+packageDisplayName(from)+" -> "+packageDisplayName(to))
+			return len(lines) < 32
+		})
+	}
+	if len(lines) == 1 {
+		lines = append(lines, render.Style("  (none)", render.Dim))
+	}
+	return lines
+}
+
+func graphSize(graphValue *sdk.Graph) int {
+	if graphValue == nil {
+		return 0
+	}
+	return graphValue.Size()
+}
+
+func relationshipCount(graphValue *sdk.Graph) int {
+	count := 0
+	if graphValue != nil {
+		graphValue.WalkRelationships(func(_, _ *sdk.Package) bool {
+			count++
+			return true
+		})
+	}
+	return count
+}
+
+func indentLines(values []string) []string {
+	if len(values) == 0 {
+		return []string{render.Style("  (none)", render.Dim)}
+	}
+	lines := make([]string, 0, len(values))
+	for _, value := range values {
+		lines = append(lines, render.Style("  - ", render.Dim)+value)
+	}
+	return lines
+}
+
+func targetKindLabel(project output.ProjectDescriptor) string {
+	switch {
+	case project.PackageManager != "":
+		return project.PackageManager
+	case project.Ecosystem != "":
+		return project.Ecosystem
+	default:
+		return "dependency graph"
+	}
 }
 
 func rootDependencies(graphValue *sdk.Graph, rootID string) rootDependencyGroup {

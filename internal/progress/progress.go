@@ -146,6 +146,20 @@ func (p *Progress) Stage(text string) {
 	p.mu.Unlock()
 }
 
+// Detail updates the active spinner with a concise current-operation hint.
+func (p *Progress) Detail(label, detail string) {
+	if !p.enabled {
+		return
+	}
+	p.mu.Lock()
+	if label != "" {
+		p.label = label
+	}
+	p.stage = strings.TrimSpace(detail)
+	p.mu.Unlock()
+	p.renderActive(spinnerFrames[0])
+}
+
 // StartStage / AdvanceStage / CompleteStage satisfy engine.ProgressReporter.
 func (p *Progress) StartStage(label string, total int) {
 	p.setStageProgress(label, 0, total)

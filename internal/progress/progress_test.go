@@ -73,3 +73,18 @@ func TestStageShowsBarAndPercent(t *testing.T) {
 		t.Fatalf("expected rendered percentage, got %q", rendered)
 	}
 }
+
+func TestDetailUpdatesActiveHint(t *testing.T) {
+	var buf bytes.Buffer
+	progress := &Progress{writer: &buf, enabled: true}
+
+	progress.Detail("Detecting dependencies", "go-detector - root (gomod)")
+
+	rendered := buf.String()
+	if !strings.Contains(rendered, "Detecting dependencies") {
+		t.Fatalf("expected detail label, got %q", rendered)
+	}
+	if !strings.Contains(rendered, "go-detector - root (gomod)") {
+		t.Fatalf("expected detail text, got %q", rendered)
+	}
+}

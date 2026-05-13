@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
@@ -45,6 +47,7 @@ func (p *Pipeline) resolveAll(ctx context.Context, req PipelineRequest) ([]sdk.D
 			defer wg.Done()
 			for idx := range jobs {
 				sub := req.Subprojects[idx]
+				reportProgressDetail(req.Progress, "Detecting dependencies", subprojectProgressDetail(sub))
 				subResults, err := p.resolveSubproject(ctx, req, sub)
 				ordered[idx] = subprojectResolution{results: subResults, err: err}
 				if req.Progress != nil {
@@ -125,10 +128,16 @@ func (p *Pipeline) resolveSubproject(ctx context.Context, req PipelineRequest, s
 	detectorNames := sub.PlannedDetectors
 	detectorList := p.Registry.PlannedDetectors(baseReq, detectorNames)
 	if len(detectorList) == 0 {
+		p.Logger.Warn("pipeline: no detector registered for subproject",
+			zap.String("path", sub.RelativePath),
+			zap.String("ecosystem", string(sub.Ecosystem)),
+			zap.String("package_manager", sub.PrimaryPackageManager().Name()),
+			zap.Strings("planned_detectors", detectorNames),
+		)
 		return nil, fmt.Errorf("no detector registered for ecosystem %q and package manager %q", sub.Ecosystem, sub.PrimaryPackageManager())
 	}
 
-	results, err := p.resolveDetectors(ctx, baseReq, detectorList[:1])
+	results, err := p.resolveDetectors(ctx, baseReq, detectorList[:1], req.Progress)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +149,7 @@ func (p *Pipeline) resolveSubproject(ctx context.Context, req PipelineRequest, s
 
 // resolveDetectors runs matched detectors in priority order. Detectors may
 // provide their own fallback detector when they cannot produce a result.
-func (p *Pipeline) resolveDetectors(ctx context.Context, req sdk.DetectionRequest, detectorList []sdk.Detector) ([]sdk.DetectionResult, error) {
+func (p *Pipeline) resolveDetectors(ctx context.Context, req sdk.DetectionRequest, detectorList []sdk.Detector, progress ProgressReporter) ([]sdk.DetectionResult, error) {
 	var results []sdk.DetectionResult
 	var errs []error
 	succeeded := make(map[string]struct{}, len(detectorList))
@@ -150,7 +159,7 @@ func (p *Pipeline) resolveDetectors(ctx context.Context, req sdk.DetectionReques
 		if _, ok := succeeded[descriptor.Name]; ok {
 			continue
 		}
-		detectorResults, err := p.resolveDetector(ctx, req, detector)
+		detectorResults, err := p.resolveDetector(ctx, req, detector, progress)
 		if err != nil {
 			errs = append(errs, err)
 			continue
@@ -169,48 +178,88 @@ func (p *Pipeline) resolveDetectors(ctx context.Context, req sdk.DetectionReques
 	return results, nil
 }
 
-func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest, detector sdk.Detector) ([]sdk.DetectionResult, error) {
+func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest, detector sdk.Detector, progress ProgressReporter) ([]sdk.DetectionResult, error) {
 	descriptor := detector.Descriptor()
+	support := detector.PackageManagerSupport()
+	reportProgressDetail(progress, "Detecting dependencies", detectorProgressDetail(req.Subproject, descriptor.Name))
+	p.Logger.Debug("pipeline: detector starting",
+		zap.String("detector", descriptor.Name),
+		zap.String("subproject", req.Subproject.RelativePath),
+		zap.String("ecosystem", string(req.Ecosystem)),
+		zap.String("package_manager", req.PackageManager.Name()),
+		zap.Strings("evidence_patterns", evidencePatternsForSupport(support, req.PackageManager)),
+		zap.Bool("install_first_requested", req.InstallFirst),
+		zap.Bool("install_first_supported", descriptor.SupportsInstallFirst),
+	)
 
 	if !detector.Ready() {
-		p.Logger.Debug("pipeline: detector not ready", zap.String("detector", descriptor.Name))
-		return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: not ready", descriptor.Name))
+		p.Logger.Debug("pipeline: detector not ready",
+			zap.String("detector", descriptor.Name),
+			zap.String("subproject", req.Subproject.RelativePath),
+		)
+		return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: not ready", descriptor.Name), progress)
 	}
 
 	applicable, err := detector.Applicable(ctx, req)
 	if err != nil {
-		return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: applicability check failed: %w", descriptor.Name, err))
+		return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: applicability check failed: %w", descriptor.Name, err), progress)
 	}
 	if !applicable {
-		p.Logger.Debug("pipeline: detector not applicable", zap.String("detector", descriptor.Name))
-		return p.resolveFallback(ctx, req, detector, nil)
+		p.Logger.Debug("pipeline: detector not applicable",
+			zap.String("detector", descriptor.Name),
+			zap.String("subproject", req.Subproject.RelativePath),
+		)
+		return p.resolveFallback(ctx, req, detector, nil, progress)
 	}
 
 	if req.InstallFirst {
 		if installer, ok := detector.(sdk.InstallFirstDetector); ok {
+			p.Logger.Debug("pipeline: running detector install-first",
+				zap.String("detector", descriptor.Name),
+				zap.String("subproject", req.Subproject.RelativePath),
+				zap.Strings("install_args", req.InstallArgs),
+			)
 			if err := installer.Install(ctx, req); err != nil {
-				return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: install-first failed: %w", descriptor.Name, err))
+				return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: install-first failed: %w", descriptor.Name, err), progress)
 			}
+		} else {
+			p.Logger.Debug("pipeline: detector does not support install-first",
+				zap.String("detector", descriptor.Name),
+				zap.String("subproject", req.Subproject.RelativePath),
+			)
 		}
+	} else if descriptor.SupportsInstallFirst {
+		p.Logger.Debug("pipeline: detector supports install-first",
+			zap.String("detector", descriptor.Name),
+			zap.String("subproject", req.Subproject.RelativePath),
+			zap.String("hint", "use --install-first when dependencies must be installed before graph resolution"),
+		)
 	}
 
 	result, err := detector.ResolveGraph(ctx, req)
 	if err != nil {
-		return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: %w", descriptor.Name, err))
+		return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: %w", descriptor.Name, err), progress)
 	}
 	if result.Graphs == nil || result.Graphs.Len() == 0 {
-		return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: no graph data", descriptor.Name))
+		return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: no graph data", descriptor.Name), progress)
 	}
 
 	result.SubprojectInfo = req.Subproject
 	result.DetectorName = descriptor.Name
 	result.Origin = descriptor.Origin
 	result.Technique = descriptor.Technique
-	p.Logger.Debug("pipeline: detector succeeded", zap.String("detector", descriptor.Name))
+	packages, edges := graphContainerStats(result.Graphs)
+	p.Logger.Debug("pipeline: detector succeeded",
+		zap.String("detector", descriptor.Name),
+		zap.String("subproject", req.Subproject.RelativePath),
+		zap.Int("graphs", result.Graphs.Len()),
+		zap.Int("packages", packages),
+		zap.Int("edges", edges),
+	)
 	return []sdk.DetectionResult{result}, nil
 }
 
-func (p *Pipeline) resolveFallback(ctx context.Context, req sdk.DetectionRequest, detector sdk.Detector, primaryErr error) ([]sdk.DetectionResult, error) {
+func (p *Pipeline) resolveFallback(ctx context.Context, req sdk.DetectionRequest, detector sdk.Detector, primaryErr error, progress ProgressReporter) ([]sdk.DetectionResult, error) {
 	fallbackProvider, ok := detector.(sdk.FallbackDetector)
 	if !ok {
 		return nil, primaryErr
@@ -220,9 +269,20 @@ func (p *Pipeline) resolveFallback(ctx context.Context, req sdk.DetectionRequest
 		return nil, primaryErr
 	}
 	if !fallbackSelected(req.DetectorFilter, fallback.Descriptor()) {
+		p.Logger.Debug("pipeline: fallback detector skipped by filter",
+			zap.String("detector", detector.Descriptor().Name),
+			zap.String("fallback_detector", fallback.Descriptor().Name),
+			zap.String("subproject", req.Subproject.RelativePath),
+		)
 		return nil, primaryErr
 	}
-	results, fallbackErr := p.resolveDetector(ctx, req, fallback)
+	p.Logger.Debug("pipeline: trying fallback detector",
+		zap.String("detector", detector.Descriptor().Name),
+		zap.String("fallback_detector", fallback.Descriptor().Name),
+		zap.String("subproject", req.Subproject.RelativePath),
+		zap.Error(primaryErr),
+	)
+	results, fallbackErr := p.resolveDetector(ctx, req, fallback, progress)
 	if primaryErr == nil {
 		return results, fallbackErr
 	}
@@ -230,6 +290,85 @@ func (p *Pipeline) resolveFallback(ctx context.Context, req sdk.DetectionRequest
 		return results, nil
 	}
 	return nil, errors.Join(primaryErr, fallbackErr)
+}
+
+func reportProgressDetail(progress ProgressReporter, label, detail string) {
+	if reporter, ok := progress.(DetailProgressReporter); ok {
+		reporter.Detail(label, detail)
+	}
+}
+
+func subprojectProgressDetail(sub sdk.Subproject) string {
+	label := strings.TrimSpace(sub.RelativePath)
+	if label == "" || label == "." {
+		label = filepath.Base(sub.ExecutionTarget.Location)
+	}
+	if label == "" || label == "." {
+		label = "root"
+	}
+	manager := sub.PrimaryPackageManager().Name()
+	if manager == "" {
+		return label
+	}
+	return fmt.Sprintf("%s (%s)", label, manager)
+}
+
+func detectorProgressDetail(sub sdk.Subproject, detectorName string) string {
+	detail := subprojectProgressDetail(sub)
+	if detectorName == "" {
+		return detail
+	}
+	return detectorName + " - " + detail
+}
+
+func evidencePatternsForSupport(support []sdk.PackageManagerSupport, manager sdk.PackageManager) []string {
+	var values []string
+	for _, entry := range support {
+		if manager != sdk.PackageManagerUnknown && entry.PackageManager != manager {
+			continue
+		}
+		values = append(values, entry.EvidencePatterns...)
+	}
+	if len(values) == 0 {
+		for _, entry := range support {
+			values = append(values, entry.EvidencePatterns...)
+		}
+	}
+	return dedupeStrings(values)
+}
+
+func dedupeStrings(values []string) []string {
+	seen := make(map[string]struct{}, len(values))
+	out := make([]string, 0, len(values))
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value == "" {
+			continue
+		}
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		out = append(out, value)
+	}
+	return out
+}
+
+func graphContainerStats(container *sdk.GraphContainer) (packages, edges int) {
+	if container == nil {
+		return 0, 0
+	}
+	for _, entry := range container.Entries {
+		if entry.Graph == nil {
+			continue
+		}
+		packages += entry.Graph.Size()
+		entry.Graph.WalkRelationships(func(_, _ *sdk.Package) bool {
+			edges++
+			return true
+		})
+	}
+	return packages, edges
 }
 
 func fallbackSelected(filter sdk.DetectorFilter, descriptor sdk.DetectorDescriptor) bool {

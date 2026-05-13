@@ -45,6 +45,13 @@ type ProgressReporter interface {
 	CompleteStage(label string, total int)
 }
 
+// DetailProgressReporter is optionally implemented by progress renderers that
+// can show the current subproject or detector without expanding the public
+// coarse progress contract.
+type DetailProgressReporter interface {
+	Detail(label, detail string)
+}
+
 // PipelineWarning is a structured warning captured during a pipeline stage.
 type PipelineWarning struct {
 	Source  string // detector, auditor, or matcher name

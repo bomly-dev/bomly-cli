@@ -16,6 +16,64 @@ func truncateToWidth(value string, width int) string { return render.TruncateToW
 func padRight(value string, width int) string        { return render.PadRight(value, width) }
 func valueOrDash(value string) string                { return render.ValueOrDash(value) }
 
+func boxView(title string, content []string, width, height int, color string) []string {
+	if width < 4 {
+		width = 4
+	}
+	if height < 2 {
+		height = 2
+	}
+	inner := width - 2
+	topLabel := ""
+	if strings.TrimSpace(title) != "" {
+		topLabel = " " + title + " "
+		if len(render.StripANSI(topLabel)) > inner {
+			topLabel = truncateToWidth(topLabel, inner)
+		}
+	}
+	topFill := inner - len(render.StripANSI(topLabel))
+	if topFill < 0 {
+		topFill = 0
+	}
+	border := func(value string) string {
+		if color == "" {
+			return render.Style(value, render.Dim, render.Gray)
+		}
+		return render.Style(value, color)
+	}
+	lines := []string{border("+" + topLabel + strings.Repeat("-", topFill) + "+")}
+	contentHeight := height - 2
+	for idx := 0; idx < contentHeight; idx++ {
+		line := ""
+		if idx < len(content) {
+			line = content[idx]
+		}
+		lines = append(lines, border("|")+padRight(truncateToWidth(line, inner), inner)+border("|"))
+	}
+	lines = append(lines, border("+"+strings.Repeat("-", inner)+"+"))
+	return lines
+}
+
+func joinColumns(left, right []string, leftWidth, rightWidth int) []string {
+	height := len(left)
+	if len(right) > height {
+		height = len(right)
+	}
+	out := make([]string, 0, height)
+	for idx := 0; idx < height; idx++ {
+		l := ""
+		if idx < len(left) {
+			l = left[idx]
+		}
+		r := ""
+		if idx < len(right) {
+			r = right[idx]
+		}
+		out = append(out, padRight(l, leftWidth)+" "+padRight(r, rightWidth))
+	}
+	return out
+}
+
 func statusBadge(status string) string {
 	label := " " + strings.ToUpper(valueOrDash(status)) + " "
 	switch strings.ToLower(strings.TrimSpace(status)) {

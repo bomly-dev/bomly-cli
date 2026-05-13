@@ -138,7 +138,7 @@ func TestNewDiffInteractiveModel_ViewIncludesManifestChanges(t *testing.T) {
 		},
 	})
 
-	view := model.View(100, 18)
+	view := model.View(100, 26)
 	for _, want := range []string{
 		"Bomly Interactive Diff: base -> head",
 		"package.json (npm)",
@@ -681,6 +681,115 @@ func TestScanInteractiveModel_FiltersAndScopeBadges(t *testing.T) {
 	plain = render.StripANSI(model.View(100, 20))
 	if strings.Contains(plain, "demo-app@1.0.0  ROOT") || !strings.Contains(plain, "react@18.2.0") {
 		t.Fatalf("expected direct relationship filter to hide root row, got:\n%s", plain)
+	}
+}
+
+func TestScanInteractiveModel_ComponentTreeExpandsSelectedNode(t *testing.T) {
+	g := sdk.New()
+	root := sdk.NewPackageRef("demo-app", "1.0.0")
+	direct := sdk.NewPackage(sdk.Package{Name: "react", Version: "18.2.0", Scope: "runtime"})
+	transitive := sdk.NewPackage(sdk.Package{Name: "loose-envify", Version: "1.4.0", Scope: "runtime"})
+	for _, pkg := range []*sdk.Package{root, direct, transitive} {
+		if err := g.AddPackage(pkg); err != nil {
+			t.Fatalf("add package: %v", err)
+		}
+	}
+	if err := g.AddDependency(root.ID, direct.ID); err != nil {
+		t.Fatalf("add root dependency: %v", err)
+	}
+	if err := g.AddDependency(direct.ID, transitive.ID); err != nil {
+		t.Fatalf("add transitive dependency: %v", err)
+	}
+
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
+			RelativePath:            ".",
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
+		},
+		DetectorName: "npm-detector",
+		Origin:       sdk.CoreOrigin,
+		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+	}})
+	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+
+	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
+	model.SelectView(2)
+	plain := render.StripANSI(model.View(100, 24))
+	if !strings.Contains(plain, "react@18.2.0") {
+		t.Fatalf("expected direct dependency in component tree, got:\n%s", plain)
+	}
+	if strings.Contains(plain, "loose-envify@1.4.0") {
+		t.Fatalf("expected transitive dependency to be collapsed initially, got:\n%s", plain)
+	}
+
+	model.Move(1)
+	model.ToggleSelected()
+	plain = render.StripANSI(model.View(100, 24))
+	if !strings.Contains(plain, "loose-envify@1.4.0") {
+		t.Fatalf("expected expanded transitive dependency, got:\n%s", plain)
+	}
+}
+
+func TestScanInteractiveModel_OverviewDashboardUsesBordersAndBars(t *testing.T) {
+	g := sdk.New()
+	root := sdk.NewPackage(sdk.Package{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"})
+	dep := sdk.NewPackage(sdk.Package{Name: "react", Version: "18.2.0", Ecosystem: "npm", Licenses: []sdk.PackageLicense{{Value: "MIT"}}})
+	for _, pkg := range []*sdk.Package{root, dep} {
+		if err := g.AddPackage(pkg); err != nil {
+			t.Fatalf("add package: %v", err)
+		}
+	}
+	if err := g.AddDependency(root.ID, dep.ID); err != nil {
+		t.Fatalf("add dependency: %v", err)
+	}
+
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
+			RelativePath:            ".",
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
+		},
+		DetectorName: "npm-detector",
+		Origin:       sdk.CoreOrigin,
+		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+	}})
+	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+
+	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
+	plain := render.StripANSI(model.View(120, 32))
+	for _, want := range []string{
+		"+ Components ",
+		"+ Vulnerability Severity ",
+		"License Distribution",
+		"MIT",
+		"==================",
+	} {
+		if !strings.Contains(plain, want) {
+			t.Fatalf("expected overview dashboard to contain %q, got:\n%s", want, plain)
+		}
+	}
+}
+
+func TestScanInteractiveModel_SourceTreeCollapsesRoot(t *testing.T) {
+	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, sdk.ConsolidatedGraph{}, sdk.New(), nil)
+	model.SelectView(6)
+	plain := render.StripANSI(model.View(100, 20))
+	if !strings.Contains(plain, "packages (0)") {
+		t.Fatalf("expected expanded source root, got:\n%s", plain)
+	}
+	model.ToggleSelected()
+	plain = render.StripANSI(model.View(100, 20))
+	if strings.Contains(plain, "packages (0)") {
+		t.Fatalf("expected collapsed source root to hide packages, got:\n%s", plain)
 	}
 }
 

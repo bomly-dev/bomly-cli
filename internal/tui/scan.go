@@ -34,6 +34,7 @@ func NewScanNavigator(titlePrefix string, project output.ProjectDescriptor, cons
 		findings:          findings,
 		activeView:        interactiveScanViewOverview,
 		sourceExpanded:    map[string]bool{"root": true},
+		componentExpanded: map[string]bool{},
 	}
 	if len(manifests) == 1 {
 		model.mode = interactiveScanModeComponents
@@ -46,6 +47,9 @@ func NewScanNavigator(titlePrefix string, project output.ProjectDescriptor, cons
 func (m *scanModel) View(width, height int) string {
 	if m == nil || m.list == nil {
 		return ""
+	}
+	if m.activeView == interactiveScanViewOverview && !m.IsSearching() {
+		return m.overviewDashboardView(width, height)
 	}
 	return m.list.View(width, height)
 }
@@ -146,7 +150,7 @@ func (m *scanModel) SelectView(index int) {
 }
 
 func (m *scanModel) ToggleSelected() {
-	if m == nil || m.list == nil || m.activeView != interactiveScanViewSource {
+	if m == nil || m.list == nil {
 		return
 	}
 	visible := m.list.visibleItemIndices()
@@ -154,9 +158,17 @@ func (m *scanModel) ToggleSelected() {
 		return
 	}
 	item := m.list.items[visible[m.list.selectedVisibleIndex(visible)]]
-	key := sourceKey(item.title)
-	if key == "" {
+	if m.activeView == interactiveScanViewPackages && m.mode == interactiveScanModeComponents && item.canOpen && item.key != "" {
+		m.componentExpanded[item.key] = !item.expanded
+		m.list = m.buildCurrentListModel()
 		return
+	}
+	if m.activeView != interactiveScanViewSource {
+		return
+	}
+	key := item.key
+	if key == "" {
+		key = sourceKey(item.title)
 	}
 	m.sourceExpanded[key] = !m.sourceExpanded[key]
 	m.list = m.buildCurrentListModel()
@@ -409,6 +421,66 @@ func (m *scanModel) buildOverviewListModel() *listModel {
 	}
 }
 
+func (m *scanModel) overviewDashboardView(width, height int) string {
+	if width < 80 || height < 22 {
+		return m.list.View(width, height)
+	}
+	var lines []string
+	for _, summaryLine := range m.scanSummaryLines(interactiveScanViewOverview) {
+		lines = append(lines, truncateToWidth(summaryLine, width))
+	}
+	helpLines := helpLines(interactiveCommonNavigationHelp, "Tab or 1-6 switches tabs; / search; e export; ? help", width)
+	bodyHeight := height - len(lines) - len(helpLines) - 1
+	if bodyHeight < 12 {
+		return m.list.View(width, height)
+	}
+
+	stats := scanStats(m.graphValue, m.findings)
+	cardHeight := 5
+	gap := 1
+	cardWidth := (width - 3*gap) / 4
+	cards := [][]string{
+		boxView("Components", []string{
+			render.Style(fmt.Sprintf("%d", stats.components), render.Cyan, render.Bold),
+			fmt.Sprintf("%d ecosystems", len(stats.ecosystems)),
+		}, cardWidth, cardHeight, render.Cyan),
+		boxView("Vulnerabilities", []string{
+			severityText(fmt.Sprintf("%d", stats.vulnerabilities)),
+			severityTinySummary(severityDistribution(m.findings)),
+		}, cardWidth, cardHeight, render.Red),
+		boxView("Licenses", []string{
+			render.Style(fmt.Sprintf("%d", stats.licenses), render.Yellow, render.Bold),
+			"unique licenses",
+		}, cardWidth, cardHeight, render.Yellow),
+		boxView("Target", []string{
+			valueOrDash(m.project.Name),
+			targetKindLabel(m.project),
+		}, width-cardWidth*3-gap*3, cardHeight, render.Green),
+	}
+	for idx := 0; idx < cardHeight; idx++ {
+		lines = append(lines, cards[0][idx]+" "+cards[1][idx]+" "+cards[2][idx]+" "+cards[3][idx])
+	}
+
+	remaining := bodyHeight - cardHeight
+	leftWidth := width / 2
+	rightWidth := width - leftWidth - 1
+	leftContent := append(
+		boxView("Vulnerability Severity", compactDistributionLines(severityDistribution(m.findings), 6), leftWidth, remaining/3, render.Red),
+		boxView("Ecosystem Distribution", compactDistributionLines(stats.ecosystems, 6), leftWidth, remaining/3, render.Cyan)...,
+	)
+	leftContent = append(leftContent, boxView("License Distribution", compactLicenseLines(m.graphValue, 8), leftWidth, remaining-len(leftContent), render.Yellow)...)
+	rightContent := append(
+		boxView("Top Vulnerable Components", compactDistributionLines(topVulnerableCounts(m.findings), 8), rightWidth, remaining/2, render.Red),
+		boxView("Top Depended-On Components", compactDistributionLines(topDependedOnCounts(m.graphValue), 8), rightWidth, remaining-remaining/2, render.Green)...,
+	)
+	lines = append(lines, joinColumns(leftContent, rightContent, leftWidth, rightWidth)...)
+	lines = append(lines, render.Style(strings.Repeat("-", width), render.Dim, render.Gray))
+	for _, helpLine := range helpLines {
+		lines = append(lines, truncateToWidth(render.Style(helpLine, render.Dim), width))
+	}
+	return strings.Join(lines, "\n")
+}
+
 func (m *scanModel) buildVulnsListModel() *listModel {
 	all := make([]sdk.Finding, 0, len(m.findings))
 	for _, f := range m.findings {
@@ -538,30 +610,41 @@ func (m *scanModel) buildFindingsListModel() *listModel {
 
 func (m *scanModel) buildSourceListModel() *listModel {
 	items := []listItem{{
-		title:    sourceTitle("root", "root"),
+		title:    "root",
 		subtitle: "source",
 		details:  sourceRootDetails(m),
+		key:      "root",
+		canOpen:  true,
+		expanded: m.sourceExpanded["root"],
 	}}
 	if m.sourceExpanded["root"] {
 		items = append(items, listItem{
-			title:    sourceTitle("target", "  target"),
+			title:    "target",
 			subtitle: "node",
 			details:  sourceTargetDetails(m),
+			key:      "target",
+			depth:    1,
 		})
 		items = append(items, listItem{
-			title:    sourceTitle("manifests", fmt.Sprintf("  manifests (%d)", len(m.manifests))),
+			title:    fmt.Sprintf("manifests (%d)", len(m.manifests)),
 			subtitle: "node",
 			details:  sourceManifestDetails(m),
+			key:      "manifests",
+			depth:    1,
 		})
 		items = append(items, listItem{
-			title:    sourceTitle("packages", fmt.Sprintf("  packages (%d)", graphSize(m.graphValue))),
+			title:    fmt.Sprintf("packages (%d)", graphSize(m.graphValue)),
 			subtitle: "node",
 			details:  sourcePackageDetails(m.graphValue),
+			key:      "packages",
+			depth:    1,
 		})
 		items = append(items, listItem{
-			title:    sourceTitle("relationships", fmt.Sprintf("  relationships (%d)", relationshipCount(m.graphValue))),
+			title:    fmt.Sprintf("relationships (%d)", relationshipCount(m.graphValue)),
 			subtitle: "node",
 			details:  sourceRelationshipDetails(m.graphValue),
+			key:      "relationships",
+			depth:    1,
 		})
 	}
 	return &listModel{
@@ -673,20 +756,7 @@ func (m *scanModel) buildComponentListModel(manifest listPackageRow) *listModel 
 	rootPkg, _ := m.graphValue.Package(manifest.rootID)
 	groups := rootDependencies(m.graphValue, manifest.rootID)
 
-	// Build rows: root first, then direct, then transitive
-	rows := make([]listPackageRow, 0, 1+len(groups.direct)+len(groups.transitive))
-
-	// Add root package first
-	if rootPkg != nil {
-		rows = append(rows, packageRowFromGraph(rootPkg, "root"))
-	}
-
-	for _, pkg := range groups.direct {
-		rows = append(rows, packageRowFromGraph(pkg, "direct"))
-	}
-	for _, pkg := range groups.transitive {
-		rows = append(rows, packageRowFromGraph(pkg, "transitive"))
-	}
+	rows := m.componentTreeRows(manifest.rootID)
 	rows = filterPackageRows(rows, m.relationshipFilter, m.scopeFilter)
 
 	// Compute highest severity per package for badge display, filtering, and sorting.
@@ -723,11 +793,23 @@ func (m *scanModel) buildComponentListModel(manifest listPackageRow) *listModel 
 			// Prepend the severity badge so it appears before the scope badge.
 			badges = append([]badge{{label: sev, kind: "severity-" + strings.ToLower(sev)}}, badges...)
 		}
+		deps, _ := m.graphValue.Dependencies(row.id)
+		expanded := m.componentExpanded[row.id]
+		if row.relationship == "root" {
+			expanded = true
+			if _, ok := m.componentExpanded[row.id]; ok {
+				expanded = m.componentExpanded[row.id]
+			}
+		}
 		items = append(items, listItem{
 			title:    row.displayName,
 			subtitle: row.relationship,
 			badges:   badges,
 			details:  componentDetails(m.graphValue, row, manifest, m.findings),
+			key:      row.id,
+			depth:    row.depth,
+			canOpen:  len(deps) > 0,
+			expanded: expanded,
 		})
 	}
 
@@ -936,6 +1018,67 @@ func packageRowFromGraph(pkg *sdk.Package, relationship string) listPackageRow {
 	}
 }
 
+func (m *scanModel) componentTreeRows(rootID string) []listPackageRow {
+	if m == nil || m.graphValue == nil || strings.TrimSpace(rootID) == "" {
+		return nil
+	}
+	rootPkg, ok := m.graphValue.Package(rootID)
+	if !ok || rootPkg == nil {
+		return nil
+	}
+	rows := make([]listPackageRow, 0)
+	var walk func(pkg *sdk.Package, depth int, visited map[string]struct{})
+	walk = func(pkg *sdk.Package, depth int, visited map[string]struct{}) {
+		if pkg == nil {
+			return
+		}
+		relationship := "transitive"
+		switch depth {
+		case 0:
+			relationship = "root"
+		case 1:
+			relationship = "direct"
+		}
+		row := packageRowFromGraph(pkg, relationship)
+		row.depth = depth
+		rows = append(rows, row)
+
+		expanded := m.componentExpanded[pkg.ID]
+		if depth == 0 {
+			expanded = true
+			if _, ok := m.componentExpanded[pkg.ID]; ok {
+				expanded = m.componentExpanded[pkg.ID]
+			}
+		}
+		if !expanded {
+			return
+		}
+		deps, err := m.graphValue.Dependencies(pkg.ID)
+		if err != nil || len(deps) == 0 {
+			return
+		}
+		sort.Slice(deps, func(i, j int) bool {
+			return packageSortKey(deps[i]) < packageSortKey(deps[j])
+		})
+		nextVisited := make(map[string]struct{}, len(visited)+1)
+		for key := range visited {
+			nextVisited[key] = struct{}{}
+		}
+		nextVisited[pkg.ID] = struct{}{}
+		for _, dep := range deps {
+			if dep == nil {
+				continue
+			}
+			if _, seen := nextVisited[dep.ID]; seen {
+				continue
+			}
+			walk(dep, depth+1, nextVisited)
+		}
+	}
+	walk(rootPkg, 0, map[string]struct{}{})
+	return rows
+}
+
 func packageDisplayName(pkg *sdk.Package) string {
 	if pkg == nil {
 		return "-"
@@ -1117,6 +1260,38 @@ func distributionDetails(title string, counts map[string]int) []string {
 	return lines
 }
 
+func compactDistributionLines(counts map[string]int, limit int) []string {
+	keys := sortedCountKeys(counts)
+	if len(keys) > limit {
+		keys = keys[:limit]
+	}
+	if len(keys) == 0 {
+		return []string{render.Style("(none)", render.Dim)}
+	}
+	max := maxCount(counts)
+	lines := make([]string, 0, len(keys))
+	for _, key := range keys {
+		lines = append(lines, padRight(key, 18)+barLine(counts[key], max))
+	}
+	return lines
+}
+
+func compactLicenseLines(graphValue *sdk.Graph, limit int) []string {
+	counts := make(map[string]int)
+	for _, row := range licenseRows(graphValue) {
+		counts[row.license] = len(row.packages)
+	}
+	return compactDistributionLines(counts, limit)
+}
+
+func severityTinySummary(counts map[string]int) string {
+	parts := make([]string, 0, 4)
+	for _, key := range []string{"critical", "high", "medium", "low"} {
+		parts = append(parts, fmt.Sprintf("%s %d", strings.ToUpper(key[:1]), counts[key]))
+	}
+	return strings.Join(parts, " ")
+}
+
 func licenseDistributionDetails(graphValue *sdk.Graph) []string {
 	counts := make(map[string]int)
 	for _, row := range licenseRows(graphValue) {
@@ -1126,6 +1301,14 @@ func licenseDistributionDetails(graphValue *sdk.Graph) []string {
 }
 
 func topVulnerableComponentDetails(findings []sdk.Finding) []string {
+	return distributionDetails("Top Vulnerable Components", topCounts(topVulnerableCounts(findings), 10))
+}
+
+func topDependedOnDetails(graphValue *sdk.Graph) []string {
+	return distributionDetails("Top Depended-On Components", topCounts(topDependedOnCounts(graphValue), 10))
+}
+
+func topVulnerableCounts(findings []sdk.Finding) map[string]int {
 	counts := make(map[string]int)
 	for _, finding := range findings {
 		if finding.Package == nil {
@@ -1133,23 +1316,24 @@ func topVulnerableComponentDetails(findings []sdk.Finding) []string {
 		}
 		counts[packageDisplayName(finding.Package)]++
 	}
-	return distributionDetails("Top Vulnerable Components", topCounts(counts, 10))
+	return counts
 }
 
-func topDependedOnDetails(graphValue *sdk.Graph) []string {
+func topDependedOnCounts(graphValue *sdk.Graph) map[string]int {
 	counts := make(map[string]int)
-	if graphValue != nil {
-		for _, pkg := range graphValue.Packages() {
-			if pkg == nil {
-				continue
-			}
-			dependents, err := graphValue.Dependents(pkg.ID)
-			if err == nil && len(dependents) > 0 {
-				counts[packageDisplayName(pkg)] = len(dependents)
-			}
+	if graphValue == nil {
+		return counts
+	}
+	for _, pkg := range graphValue.Packages() {
+		if pkg == nil {
+			continue
+		}
+		dependents, err := graphValue.Dependents(pkg.ID)
+		if err == nil && len(dependents) > 0 {
+			counts[packageDisplayName(pkg)] = len(dependents)
 		}
 	}
-	return distributionDetails("Top Depended-On Components", topCounts(counts, 10))
+	return counts
 }
 
 func topCounts(counts map[string]int, limit int) map[string]int {
@@ -1201,10 +1385,6 @@ func barLine(value, max int) string {
 		}
 	}
 	return render.Style(strings.Repeat("=", filled), render.Green) + render.Style(strings.Repeat(".", width-filled), render.Dim) + fmt.Sprintf(" %d", value)
-}
-
-func sourceTitle(key, label string) string {
-	return label + " [" + key + "]"
 }
 
 func sourceKey(title string) string {

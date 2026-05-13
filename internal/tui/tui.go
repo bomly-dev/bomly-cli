@@ -72,6 +72,9 @@ type listItem struct {
 	details  []string
 	children []listItem
 	expanded bool
+	key      string
+	depth    int
+	canOpen  bool
 }
 
 type badge struct {
@@ -105,6 +108,7 @@ type listPackageRow struct {
 	scope        string
 	relationship string
 	purl         string
+	depth        int
 }
 
 type rootDependencyGroup struct {
@@ -146,6 +150,7 @@ type scanModel struct {
 	scopeFilter        string
 	severityFilter     string
 	sourceExpanded     map[string]bool
+	componentExpanded  map[string]bool
 	list               *listModel
 }
 
@@ -439,21 +444,20 @@ func (m *listModel) View(width, height int) string {
 	if m.searching {
 		lines = append(lines, truncateToWidth(m.searchLine(width), width))
 	}
-	lines = append(lines, render.Style(strings.Repeat("=", width), render.Dim, render.Gray))
 	helpLines := helpLines(m.navigationHelp, m.filterHelp, width)
 	if len(helpLines) == 0 {
 		helpLines = []string{""}
 	}
 
-	bodyHeight := height - len(lines) - 2
-	if bodyHeight < 4 {
-		bodyHeight = 4
+	bodyHeight := height - len(lines) - len(helpLines) - 1
+	if bodyHeight < 10 {
+		bodyHeight = 10
 	}
 
 	visible := m.visibleItemIndices()
 	if len(visible) == 0 {
-		lines = append(lines, truncateToWidth(render.Style(m.emptyState, render.Yellow, render.Bold), width))
-		lines = append(lines, render.Style(strings.Repeat("=", width), render.Dim, render.Gray))
+		lines = append(lines, boxView("Empty", []string{render.Style(m.emptyState, render.Yellow, render.Bold)}, width, bodyHeight, render.Yellow)...)
+		lines = append(lines, render.Style(strings.Repeat("-", width), render.Dim, render.Gray))
 		for _, helpLine := range helpLines {
 			lines = append(lines, truncateToWidth(render.Style(helpLine, render.Dim), width))
 		}
@@ -464,32 +468,35 @@ func (m *listModel) View(width, height int) string {
 	if listWidth < 28 {
 		listWidth = 28
 	}
-	detailWidth := width - listWidth - 3
+	detailWidth := width - listWidth - 1
 	if detailWidth < 20 {
 		detailWidth = 20
-		listWidth = width - detailWidth - 3
+		listWidth = width - detailWidth - 1
 	}
 
 	selectedIndex := visible[m.selectedVisibleIndex(visible)]
-	listLines := m.visibleListLines(listWidth, bodyHeight, visible)
-	detailLines := m.visibleDetailLines(m.items[selectedIndex].details, detailWidth, bodyHeight)
+	contentHeight := bodyHeight - 2
+	if contentHeight < 1 {
+		contentHeight = 1
+	}
+	listLines := m.visibleListLines(listWidth-2, contentHeight, visible)
+	detailLines := m.visibleDetailLines(m.items[selectedIndex].details, detailWidth-2, contentHeight)
 	if len(detailLines) < bodyHeight {
 		detailLines = append(detailLines, make([]string, bodyHeight-len(detailLines))...)
 	}
 
+	leftTitle := "Items"
+	rightTitle := "Details"
+	if m.title != "" {
+		leftTitle = "List"
+	}
+	leftBox := boxView(leftTitle, listLines, listWidth, bodyHeight, render.Cyan)
+	rightBox := boxView(rightTitle, detailLines, detailWidth, bodyHeight, render.Magenta)
 	for idx := 0; idx < bodyHeight; idx++ {
-		left := ""
-		if idx < len(listLines) {
-			left = listLines[idx]
-		}
-		right := ""
-		if idx < len(detailLines) {
-			right = detailLines[idx]
-		}
-		lines = append(lines, padRight(left, listWidth)+" "+render.Style("|", render.Dim, render.Gray)+" "+padRight(right, detailWidth))
+		lines = append(lines, leftBox[idx]+" "+rightBox[idx])
 	}
 
-	lines = append(lines, render.Style(strings.Repeat("=", width), render.Dim, render.Gray))
+	lines = append(lines, render.Style(strings.Repeat("-", width), render.Dim, render.Gray))
 	for _, helpLine := range helpLines {
 		lines = append(lines, truncateToWidth(render.Style(helpLine, render.Dim), width))
 	}
@@ -551,10 +558,25 @@ func (m *listModel) visibleListLines(width, height int, visible []int) []string 
 	}
 	for visibleIdx := m.scrollOffset; visibleIdx < end; visibleIdx++ {
 		idx := visible[visibleIdx]
-		prefix := render.Style("  ", render.Dim)
+		item := m.items[idx]
+		prefix := render.Style(strings.Repeat("  ", item.depth)+"  ", render.Dim)
+		if item.canOpen {
+			marker := "+"
+			if item.expanded {
+				marker = "-"
+			}
+			prefix = render.Style(strings.Repeat("  ", item.depth)+marker+" ", render.Dim)
+		}
 		title := render.Style(m.items[idx].title, render.White)
 		if idx == m.selected {
-			prefix = render.Style("> ", render.BgBlue, render.White, render.Bold)
+			prefix = render.Style(strings.Repeat("  ", item.depth)+"> ", render.BgBlue, render.White, render.Bold)
+			if item.canOpen {
+				marker := "+"
+				if item.expanded {
+					marker = "-"
+				}
+				prefix = render.Style(strings.Repeat("  ", item.depth)+marker+" ", render.BgBlue, render.White, render.Bold)
+			}
 			title = render.Style(m.items[idx].title, render.White, render.Bold)
 		}
 		line := prefix + title

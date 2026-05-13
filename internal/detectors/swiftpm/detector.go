@@ -116,6 +116,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	if resolvedPath != "" {
 		metadataPatterns = append([]string{filepath.Base(resolvedPath)}, evidencePatterns...)
 	}
+	AttachPackageResolvedPositions(g, workingDir)
 	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, metadataPatterns))}, nil
 }
 

@@ -94,6 +94,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
+	AttachPubspecLockPositions(g, workingDir)
 	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, evidencePatterns))}, nil
 }
 

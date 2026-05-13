@@ -141,6 +141,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 		if err != nil {
 			return sdk.DetectionResult{}, err
 		}
+		AttachNugetPositions(g, workingDir)
 		return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, []string{"packages.lock.json"}))}, nil
 	}
 
@@ -153,6 +154,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 		if err != nil {
 			return sdk.DetectionResult{}, err
 		}
+		AttachNugetPositions(g, workingDir)
 		return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, []string{"*.deps.json"}))}, nil
 	}
 
@@ -163,6 +165,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 		if err != nil {
 			return sdk.DetectionResult{}, err
 		}
+		AttachNugetPositions(g, workingDir)
 		return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, []string{"packages.config"}))}, nil
 	}
 	if !os.IsNotExist(err) {
@@ -177,6 +180,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
+	AttachNugetPositions(g, workingDir)
 	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, projectFilePatterns))}, nil
 }
 

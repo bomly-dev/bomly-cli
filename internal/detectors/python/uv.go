@@ -77,6 +77,8 @@ func (d UVDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (s
 		return sdk.DetectionResult{}, err
 	}
 	annotateGraphScopes(depsGraph, workingDir)
+	attachDeclaredPositions(depsGraph, workingDir)
+	attachLoosePythonPositions(depsGraph, workingDir)
 	return sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, uvEvidencePatterns)),
 	}, nil

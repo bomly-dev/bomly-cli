@@ -82,6 +82,11 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
+	if graphs != nil {
+		for i := range graphs.Entries {
+			AttachWorkflowPositions(graphs.Entries[i].Graph, req.ProjectPath)
+		}
+	}
 	return sdk.DetectionResult{
 		Graphs: graphs,
 	}, nil

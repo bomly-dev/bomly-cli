@@ -91,6 +91,8 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 		return sdk.DetectionResult{}, err
 	}
 
+	AttachComposerLockPositions(depsGraph, workingDir)
+
 	return sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, evidencePatterns)),
 	}, nil

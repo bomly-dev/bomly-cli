@@ -66,6 +66,8 @@ func (d PipenvDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 		if err == nil {
 			if depsGraph, err := d.base().resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "Pipenv detector", command); err == nil {
 				annotateGraphScopes(depsGraph, workingDir)
+				attachDeclaredPositions(depsGraph, workingDir)
+				attachLoosePythonPositions(depsGraph, workingDir)
 				return sdk.DetectionResult{
 					Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, pipenvEvidencePatterns)),
 				}, nil
@@ -76,6 +78,8 @@ func (d PipenvDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 	// Fallback: parse Pipfile.lock (flat graph, but always available offline).
 	if depsGraph, err := depGraphFromPipfileLock(filepath.Join(workingDir, "Pipfile.lock")); err == nil {
 		annotateGraphScopes(depsGraph, workingDir)
+		attachDeclaredPositions(depsGraph, workingDir)
+		attachLoosePythonPositions(depsGraph, workingDir)
 		return sdk.DetectionResult{
 			Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, pipenvEvidencePatterns)),
 		}, nil

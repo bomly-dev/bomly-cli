@@ -3,6 +3,79 @@
   "manifests": [
     {
       "detector": "syft-detector",
+      "kind": "binary",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:generic/bash@5.2.15",
+          "licenses": [],
+          "name": "bash",
+          "purl": "pkg:generic/bash@5.2.15",
+          "version": "5.2.15",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "usr/bin/bash",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "kind": "binary",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:generic/util-linux@2.38.1",
+          "licenses": [],
+          "name": "util-linux",
+          "purl": "pkg:generic/util-linux@2.38.1",
+          "version": "2.38.1",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "usr/bin/getopt",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "kind": "binary",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:generic/gzip@1.12",
+          "licenses": [],
+          "name": "gzip",
+          "purl": "pkg:generic/gzip@1.12",
+          "version": "1.12",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "usr/bin/gzip",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "kind": "deb",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:deb/debian/systemd@252.39-1~deb12u1?distro=Debian",
+          "licenses": [],
+          "metadata": {
+            "bomly.normalization.applied": [
+              "purl"
+            ]
+          },
+          "name": "debian:systemd",
+          "purl": "pkg:deb/debian/systemd@252.39-1~deb12u1?distro=Debian",
+          "version": "252.39-1~deb12u1",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "usr/lib/x86_64-linux-gnu/libsystemd.so.0.35.0",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
       "kind": "deb",
       "packages": [
         {

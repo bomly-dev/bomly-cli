@@ -4,449 +4,1583 @@
     {
       "detector": "nuget-detector",
       "ecosystem": "dotnet",
-      "kind": "packages.config",
+      "kind": "example-dotnet.deps.json",
       "package_manager": "nuget",
       "packages": [
         {
           "dependencies": [],
-          "id": "pkg:nuget/CsQuery@1.3.5-beta5",
+          "id": "pkg:nuget/Antlr@3.5.0.2",
           "licenses": [],
-          "name": "CsQuery",
-          "purl": "pkg:nuget/CsQuery@1.3.5-beta5",
+          "name": "Antlr",
+          "purl": "pkg:nuget/Antlr@3.5.0.2",
           "scope": "runtime",
-          "version": "1.3.5-beta5",
+          "version": "3.5.0.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Security.Cryptography.Algorithms@4.3.0"
+          ],
+          "id": "pkg:nuget/BCrypt.Net-Core@1.2.0-CI00005",
+          "licenses": [],
+          "metadata": {
+            "bomly.normalization.applied": [
+              "version"
+            ],
+            "bomly.normalization.original_version": "1.2.0-CI00005"
+          },
+          "name": "BCrypt.Net-Core",
+          "purl": "pkg:nuget/BCrypt.Net-Core@1.2.0-CI00005",
+          "scope": "runtime",
+          "version": "1.2.0-ci00005",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:nuget/Font.Awesome@4.7.0",
+          "id": "pkg:nuget/DotNetZip@1.10.0",
           "licenses": [],
-          "name": "Font.Awesome",
-          "purl": "pkg:nuget/Font.Awesome@4.7.0",
+          "name": "DotNetZip",
+          "purl": "pkg:nuget/DotNetZip@1.10.0",
           "scope": "runtime",
-          "version": "4.7.0",
+          "version": "1.10.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Antlr@3.5.0.2"
+          ],
+          "id": "pkg:nuget/ExpressionEvaluator@2.0.3",
+          "licenses": [],
+          "name": "ExpressionEvaluator",
+          "purl": "pkg:nuget/ExpressionEvaluator@2.0.3",
+          "scope": "runtime",
+          "version": "2.0.3",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:nuget/FontAwesome@4.7.0",
+          "id": "pkg:nuget/FSharp.Core@6.0.7",
           "licenses": [],
-          "name": "FontAwesome",
-          "purl": "pkg:nuget/FontAwesome@4.7.0",
+          "name": "FSharp.Core",
+          "purl": "pkg:nuget/FSharp.Core@6.0.7",
           "scope": "runtime",
-          "version": "4.7.0",
+          "version": "6.0.7",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/ExpressionEvaluator@2.0.3"
+          ],
+          "id": "pkg:nuget/GSF.Core@2.1.326-beta",
+          "licenses": [],
+          "name": "GSF.Core",
+          "purl": "pkg:nuget/GSF.Core@2.1.326-beta",
+          "scope": "runtime",
+          "version": "2.1.326-beta",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/GSF.Core@2.1.326-beta"
+          ],
+          "id": "pkg:nuget/GSF.Security@2.1.326-beta",
+          "licenses": [],
+          "name": "GSF.Security",
+          "purl": "pkg:nuget/GSF.Security@2.1.326-beta",
+          "scope": "runtime",
+          "version": "2.1.326-beta",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:nuget/Microsoft.AspNet.SignalR.Core@2.4.3",
+          "id": "pkg:nuget/Google.Protobuf@3.5.1",
           "licenses": [],
-          "name": "Microsoft.AspNet.SignalR.Core",
-          "purl": "pkg:nuget/Microsoft.AspNet.SignalR.Core@2.4.3",
+          "name": "Google.Protobuf",
+          "purl": "pkg:nuget/Google.Protobuf@3.5.1",
           "scope": "runtime",
-          "version": "2.4.3",
+          "version": "3.5.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:nuget/Microsoft.AspNet.SignalR.JS@2.4.3",
+          "id": "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
           "licenses": [],
-          "name": "Microsoft.AspNet.SignalR.JS",
-          "purl": "pkg:nuget/Microsoft.AspNet.SignalR.JS@2.4.3",
-          "scope": "runtime",
-          "version": "2.4.3",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Microsoft.AspNet.SignalR.Owin@1.2.2",
-          "licenses": [],
-          "name": "Microsoft.AspNet.SignalR.Owin",
-          "purl": "pkg:nuget/Microsoft.AspNet.SignalR.Owin@1.2.2",
-          "scope": "runtime",
-          "version": "1.2.2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Microsoft.AspNet.SignalR.Sample@1.1.2",
-          "licenses": [],
-          "name": "Microsoft.AspNet.SignalR.Sample",
-          "purl": "pkg:nuget/Microsoft.AspNet.SignalR.Sample@1.1.2",
-          "scope": "runtime",
-          "version": "1.1.2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Microsoft.AspNet.SignalR.SelfHost@2.4.3",
-          "licenses": [],
-          "name": "Microsoft.AspNet.SignalR.SelfHost",
-          "purl": "pkg:nuget/Microsoft.AspNet.SignalR.SelfHost@2.4.3",
-          "scope": "runtime",
-          "version": "2.4.3",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Microsoft.AspNet.SignalR.SqlServer@2.4.3",
-          "licenses": [],
-          "name": "Microsoft.AspNet.SignalR.SqlServer",
-          "purl": "pkg:nuget/Microsoft.AspNet.SignalR.SqlServer@2.4.3",
-          "scope": "runtime",
-          "version": "2.4.3",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Microsoft.AspNet.SignalR.SystemWeb@2.4.3",
-          "licenses": [],
-          "name": "Microsoft.AspNet.SignalR.SystemWeb",
-          "purl": "pkg:nuget/Microsoft.AspNet.SignalR.SystemWeb@2.4.3",
-          "scope": "runtime",
-          "version": "2.4.3",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Microsoft.AspNet.SignalR@1.1.3",
-          "licenses": [],
-          "name": "Microsoft.AspNet.SignalR",
-          "purl": "pkg:nuget/Microsoft.AspNet.SignalR@1.1.3",
-          "scope": "runtime",
-          "version": "1.1.3",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Microsoft.AspNet.Web.Optimization@1.0.0",
-          "licenses": [],
-          "name": "Microsoft.AspNet.Web.Optimization",
-          "purl": "pkg:nuget/Microsoft.AspNet.Web.Optimization@1.0.0",
-          "scope": "runtime",
-          "version": "1.0.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Microsoft.Owin.Diagnostics@2.1.0",
-          "licenses": [],
-          "name": "Microsoft.Owin.Diagnostics",
-          "purl": "pkg:nuget/Microsoft.Owin.Diagnostics@2.1.0",
-          "scope": "runtime",
-          "version": "2.1.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Microsoft.Owin.Host.HttpListener@2.1.0",
-          "licenses": [],
-          "name": "Microsoft.Owin.Host.HttpListener",
-          "purl": "pkg:nuget/Microsoft.Owin.Host.HttpListener@2.1.0",
-          "scope": "runtime",
-          "version": "2.1.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Microsoft.Owin.Host.SystemWeb@4.2.2",
-          "licenses": [],
-          "name": "Microsoft.Owin.Host.SystemWeb",
-          "purl": "pkg:nuget/Microsoft.Owin.Host.SystemWeb@4.2.2",
-          "scope": "runtime",
-          "version": "4.2.2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Microsoft.Owin.Hosting@2.1.0",
-          "licenses": [],
-          "name": "Microsoft.Owin.Hosting",
-          "purl": "pkg:nuget/Microsoft.Owin.Hosting@2.1.0",
-          "scope": "runtime",
-          "version": "2.1.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Microsoft.Owin.Security@2.1.0",
-          "licenses": [],
-          "name": "Microsoft.Owin.Security",
-          "purl": "pkg:nuget/Microsoft.Owin.Security@2.1.0",
-          "scope": "runtime",
-          "version": "2.1.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Microsoft.Owin.SelfHost@2.1.0",
-          "licenses": [],
-          "name": "Microsoft.Owin.SelfHost",
-          "purl": "pkg:nuget/Microsoft.Owin.SelfHost@2.1.0",
-          "scope": "runtime",
-          "version": "2.1.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Microsoft.Owin@4.2.2",
-          "licenses": [],
-          "name": "Microsoft.Owin",
-          "purl": "pkg:nuget/Microsoft.Owin@4.2.2",
-          "scope": "runtime",
-          "version": "4.2.2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Microsoft.Web.Infrastructure@1.0.0.0",
-          "licenses": [],
-          "name": "Microsoft.Web.Infrastructure",
-          "purl": "pkg:nuget/Microsoft.Web.Infrastructure@1.0.0.0",
-          "scope": "runtime",
-          "version": "1.0.0.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Newtonsoft.Json@13.0.1",
-          "licenses": [],
-          "name": "Newtonsoft.Json",
-          "purl": "pkg:nuget/Newtonsoft.Json@13.0.1",
-          "scope": "runtime",
-          "version": "13.0.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Owin.AutoStartup@1.0.0",
-          "licenses": [],
-          "name": "Owin.AutoStartup",
-          "purl": "pkg:nuget/Owin.AutoStartup@1.0.0",
-          "scope": "runtime",
-          "version": "1.0.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Owin@1.0",
-          "licenses": [],
-          "name": "Owin",
-          "purl": "pkg:nuget/Owin@1.0",
-          "scope": "runtime",
-          "version": "1.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Select2-Bootstrap-Theme@1.0.0.4",
-          "licenses": [],
-          "name": "Select2-Bootstrap-Theme",
-          "purl": "pkg:nuget/Select2-Bootstrap-Theme@1.0.0.4",
-          "scope": "runtime",
-          "version": "1.0.0.4",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Select2-Bootstrap@1.2.0",
-          "licenses": [],
-          "name": "Select2-Bootstrap",
-          "purl": "pkg:nuget/Select2-Bootstrap@1.2.0",
-          "scope": "runtime",
-          "version": "1.2.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Select2.js@4.0.0",
-          "licenses": [],
-          "name": "Select2.js",
-          "purl": "pkg:nuget/Select2.js@4.0.0",
-          "scope": "runtime",
-          "version": "4.0.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Skybrud.Social@0.9.6.0",
-          "licenses": [],
-          "name": "Skybrud.Social",
-          "purl": "pkg:nuget/Skybrud.Social@0.9.6.0",
-          "scope": "runtime",
-          "version": "0.9.6.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Smile.InstagramWrapper@1.0.0",
-          "licenses": [],
-          "name": "Smile.InstagramWrapper",
-          "purl": "pkg:nuget/Smile.InstagramWrapper@1.0.0",
-          "scope": "runtime",
-          "version": "1.0.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/System.Runtime.CompilerServices.Unsafe@4.5.3",
-          "licenses": [],
-          "name": "System.Runtime.CompilerServices.Unsafe",
-          "purl": "pkg:nuget/System.Runtime.CompilerServices.Unsafe@4.5.3",
-          "scope": "runtime",
-          "version": "4.5.3",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/System.Threading.Tasks.Extensions@4.5.4",
-          "licenses": [],
-          "name": "System.Threading.Tasks.Extensions",
-          "purl": "pkg:nuget/System.Threading.Tasks.Extensions@4.5.4",
-          "scope": "runtime",
-          "version": "4.5.4",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/TaskParallelLibrary@1.0.2856.0",
-          "licenses": [],
-          "name": "TaskParallelLibrary",
-          "purl": "pkg:nuget/TaskParallelLibrary@1.0.2856.0",
-          "scope": "runtime",
-          "version": "1.0.2856.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/Twitter.Bootstrap@2.3.2",
-          "licenses": [],
-          "name": "Twitter.Bootstrap",
-          "purl": "pkg:nuget/Twitter.Bootstrap@2.3.2",
-          "scope": "runtime",
-          "version": "2.3.2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/WebActivatorEx@2.0.1",
-          "licenses": [],
-          "name": "WebActivatorEx",
-          "purl": "pkg:nuget/WebActivatorEx@2.0.1",
-          "scope": "runtime",
-          "version": "2.0.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/WebGrease@1.1.0",
-          "licenses": [],
-          "name": "WebGrease",
-          "purl": "pkg:nuget/WebGrease@1.1.0",
-          "scope": "runtime",
-          "version": "1.1.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/bootstrap@4.0.0-alpha6",
-          "licenses": [],
-          "name": "bootstrap",
-          "purl": "pkg:nuget/bootstrap@4.0.0-alpha6",
-          "scope": "runtime",
-          "version": "4.0.0-alpha6",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/jQuery.Color@2.1.2",
-          "licenses": [],
-          "name": "jQuery.Color",
-          "purl": "pkg:nuget/jQuery.Color@2.1.2",
+          "name": "Microsoft.NETCore.Platforms",
+          "purl": "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
           "scope": "runtime",
           "version": "2.1.2",
           "vulnerabilities": []
         },
         {
-          "dependencies": [],
-          "id": "pkg:nuget/jQuery.UI.Combined@1.12.1",
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/Microsoft.Win32.Primitives@4.0.1",
           "licenses": [],
-          "name": "jQuery.UI.Combined",
-          "purl": "pkg:nuget/jQuery.UI.Combined@1.12.1",
+          "name": "Microsoft.Win32.Primitives",
+          "purl": "pkg:nuget/Microsoft.Win32.Primitives@4.0.1",
           "scope": "runtime",
-          "version": "1.12.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/jQuery.Validation@1.16.0",
-          "licenses": [],
-          "name": "jQuery.Validation",
-          "purl": "pkg:nuget/jQuery.Validation@1.16.0",
-          "scope": "runtime",
-          "version": "1.16.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:nuget/jQuery@3.1.1",
-          "licenses": [],
-          "name": "jQuery",
-          "purl": "pkg:nuget/jQuery@3.1.1",
-          "scope": "runtime",
-          "version": "3.1.1",
+          "version": "4.0.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:nuget/CsQuery@1.3.5-beta5",
-            "pkg:nuget/Font.Awesome@4.7.0",
-            "pkg:nuget/FontAwesome@4.7.0",
-            "pkg:nuget/Microsoft.AspNet.SignalR.Core@2.4.3",
-            "pkg:nuget/Microsoft.AspNet.SignalR.JS@2.4.3",
-            "pkg:nuget/Microsoft.AspNet.SignalR.Owin@1.2.2",
-            "pkg:nuget/Microsoft.AspNet.SignalR.Sample@1.1.2",
-            "pkg:nuget/Microsoft.AspNet.SignalR.SelfHost@2.4.3",
-            "pkg:nuget/Microsoft.AspNet.SignalR.SqlServer@2.4.3",
-            "pkg:nuget/Microsoft.AspNet.SignalR.SystemWeb@2.4.3",
-            "pkg:nuget/Microsoft.AspNet.SignalR@1.1.3",
-            "pkg:nuget/Microsoft.AspNet.Web.Optimization@1.0.0",
-            "pkg:nuget/Microsoft.Owin.Diagnostics@2.1.0",
-            "pkg:nuget/Microsoft.Owin.Host.HttpListener@2.1.0",
-            "pkg:nuget/Microsoft.Owin.Host.SystemWeb@4.2.2",
-            "pkg:nuget/Microsoft.Owin.Hosting@2.1.0",
-            "pkg:nuget/Microsoft.Owin.Security@2.1.0",
-            "pkg:nuget/Microsoft.Owin.SelfHost@2.1.0",
-            "pkg:nuget/Microsoft.Owin@4.2.2",
-            "pkg:nuget/Microsoft.Web.Infrastructure@1.0.0.0",
-            "pkg:nuget/Newtonsoft.Json@13.0.1",
-            "pkg:nuget/Owin.AutoStartup@1.0.0",
-            "pkg:nuget/Owin@1.0",
-            "pkg:nuget/Select2-Bootstrap-Theme@1.0.0.4",
-            "pkg:nuget/Select2-Bootstrap@1.2.0",
-            "pkg:nuget/Select2.js@4.0.0",
-            "pkg:nuget/Skybrud.Social@0.9.6.0",
-            "pkg:nuget/Smile.InstagramWrapper@1.0.0",
-            "pkg:nuget/System.Runtime.CompilerServices.Unsafe@4.5.3",
-            "pkg:nuget/System.Threading.Tasks.Extensions@4.5.4",
-            "pkg:nuget/TaskParallelLibrary@1.0.2856.0",
-            "pkg:nuget/Twitter.Bootstrap@2.3.2",
-            "pkg:nuget/WebActivatorEx@2.0.1",
-            "pkg:nuget/WebGrease@1.1.0",
-            "pkg:nuget/bootstrap@4.0.0-alpha6",
-            "pkg:nuget/jQuery.Color@2.1.2",
-            "pkg:nuget/jQuery.UI.Combined@1.12.1",
-            "pkg:nuget/jQuery.Validation@1.16.0",
-            "pkg:nuget/jQuery@3.1.1"
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.Globalization@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime.Handles@4.3.0",
+            "pkg:nuget/System.Runtime.InteropServices@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/Microsoft.Win32.Registry@4.0.0",
+          "licenses": [],
+          "name": "Microsoft.Win32.Registry",
+          "purl": "pkg:nuget/Microsoft.Win32.Registry@4.0.0",
+          "scope": "runtime",
+          "version": "4.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Google.Protobuf@3.5.1",
+            "pkg:nuget/System.Configuration.ConfigurationManager@4.4.0",
+            "pkg:nuget/System.Security.Permissions@4.4.0",
+            "pkg:nuget/System.Text.Encoding.CodePages@4.5.1"
+          ],
+          "id": "pkg:nuget/MySql.Data@8.0.11",
+          "licenses": [],
+          "name": "MySql.Data",
+          "purl": "pkg:nuget/MySql.Data@8.0.11",
+          "scope": "runtime",
+          "version": "8.0.11",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:nuget/NUnit@3.10.1",
+          "licenses": [],
+          "name": "NUnit",
+          "purl": "pkg:nuget/NUnit@3.10.1",
+          "scope": "runtime",
+          "version": "3.10.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:nuget/Newtonsoft.Json@11.0.2",
+          "licenses": [],
+          "name": "Newtonsoft.Json",
+          "purl": "pkg:nuget/Newtonsoft.Json@11.0.2",
+          "scope": "runtime",
+          "version": "11.0.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:nuget/SharpCompress@0.17.1",
+          "licenses": [],
+          "name": "SharpCompress",
+          "purl": "pkg:nuget/SharpCompress@0.17.1",
+          "scope": "runtime",
+          "version": "0.17.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:nuget/SharpZipLib@1.0.0-alpha1",
+          "licenses": [],
+          "name": "SharpZipLib",
+          "purl": "pkg:nuget/SharpZipLib@1.0.0-alpha1",
+          "scope": "runtime",
+          "version": "1.0.0-alpha1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.AppContext@4.1.0",
+          "licenses": [],
+          "name": "System.AppContext",
+          "purl": "pkg:nuget/System.AppContext@4.1.0",
+          "scope": "runtime",
+          "version": "4.1.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.Diagnostics.Debug@4.3.0",
+            "pkg:nuget/System.Diagnostics.Tracing@4.3.0",
+            "pkg:nuget/System.Globalization@4.3.0",
+            "pkg:nuget/System.Reflection@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Threading.Tasks@4.3.0",
+            "pkg:nuget/System.Threading@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Collections.Concurrent@4.3.0",
+          "licenses": [],
+          "name": "System.Collections.Concurrent",
+          "purl": "pkg:nuget/System.Collections.Concurrent@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.Diagnostics.Debug@4.3.0",
+            "pkg:nuget/System.Globalization@4.3.0",
+            "pkg:nuget/System.Linq@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Threading@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Collections.Immutable@1.2.0",
+          "licenses": [],
+          "name": "System.Collections.Immutable",
+          "purl": "pkg:nuget/System.Collections.Immutable@1.2.0",
+          "scope": "runtime",
+          "version": "1.2.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Diagnostics.Debug@4.3.0",
+            "pkg:nuget/System.Globalization@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Threading@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Collections.NonGeneric@4.0.1",
+          "licenses": [],
+          "name": "System.Collections.NonGeneric",
+          "purl": "pkg:nuget/System.Collections.NonGeneric@4.0.1",
+          "scope": "runtime",
+          "version": "4.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Collections@4.3.0",
+          "licenses": [],
+          "name": "System.Collections",
+          "purl": "pkg:nuget/System.Collections@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Security.Cryptography.ProtectedData@4.4.0"
+          ],
+          "id": "pkg:nuget/System.Configuration.ConfigurationManager@4.4.0",
+          "licenses": [],
+          "name": "System.Configuration.ConfigurationManager",
+          "purl": "pkg:nuget/System.Configuration.ConfigurationManager@4.4.0",
+          "scope": "runtime",
+          "version": "4.4.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.IO@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Text.Encoding@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Console@4.0.0",
+          "licenses": [],
+          "name": "System.Console",
+          "purl": "pkg:nuget/System.Console@4.0.0",
+          "scope": "runtime",
+          "version": "4.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Diagnostics.Debug@4.3.0",
+          "licenses": [],
+          "name": "System.Diagnostics.Debug",
+          "purl": "pkg:nuget/System.Diagnostics.Debug@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.Diagnostics.Tracing@4.3.0",
+            "pkg:nuget/System.Reflection@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Threading@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Diagnostics.DiagnosticSource@4.0.0",
+          "licenses": [],
+          "name": "System.Diagnostics.DiagnosticSource",
+          "purl": "pkg:nuget/System.Diagnostics.DiagnosticSource@4.0.0",
+          "scope": "runtime",
+          "version": "4.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/Microsoft.Win32.Primitives@4.0.1",
+            "pkg:nuget/Microsoft.Win32.Registry@4.0.0",
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.Diagnostics.Debug@4.3.0",
+            "pkg:nuget/System.Globalization@4.3.0",
+            "pkg:nuget/System.IO.FileSystem.Primitives@4.0.1",
+            "pkg:nuget/System.IO.FileSystem@4.0.1",
+            "pkg:nuget/System.IO@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime.Handles@4.3.0",
+            "pkg:nuget/System.Runtime.InteropServices@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Text.Encoding.Extensions@4.0.11",
+            "pkg:nuget/System.Text.Encoding@4.3.0",
+            "pkg:nuget/System.Threading.Tasks@4.3.0",
+            "pkg:nuget/System.Threading.Thread@4.0.0",
+            "pkg:nuget/System.Threading.ThreadPool@4.0.10",
+            "pkg:nuget/System.Threading@4.3.0",
+            "pkg:nuget/runtime.native.System@4.0.0"
+          ],
+          "id": "pkg:nuget/System.Diagnostics.Process@4.1.0",
+          "licenses": [],
+          "name": "System.Diagnostics.Process",
+          "purl": "pkg:nuget/System.Diagnostics.Process@4.1.0",
+          "scope": "runtime",
+          "version": "4.1.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Collections.Immutable@1.2.0",
+            "pkg:nuget/System.IO.FileSystem@4.0.1",
+            "pkg:nuget/System.Reflection.Metadata@1.3.0",
+            "pkg:nuget/System.Reflection@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Diagnostics.StackTrace@4.0.1",
+          "licenses": [],
+          "name": "System.Diagnostics.StackTrace",
+          "purl": "pkg:nuget/System.Diagnostics.StackTrace@4.0.1",
+          "scope": "runtime",
+          "version": "4.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.Diagnostics.Debug@4.3.0",
+            "pkg:nuget/System.Globalization@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Threading@4.3.0",
+            "pkg:nuget/runtime.native.System@4.0.0"
+          ],
+          "id": "pkg:nuget/System.Diagnostics.TraceSource@4.0.0",
+          "licenses": [],
+          "name": "System.Diagnostics.TraceSource",
+          "purl": "pkg:nuget/System.Diagnostics.TraceSource@4.0.0",
+          "scope": "runtime",
+          "version": "4.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Diagnostics.Tracing@4.3.0",
+          "licenses": [],
+          "name": "System.Diagnostics.Tracing",
+          "purl": "pkg:nuget/System.Diagnostics.Tracing@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Globalization@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Globalization.Calendars@4.0.1",
+          "licenses": [],
+          "name": "System.Globalization.Calendars",
+          "purl": "pkg:nuget/System.Globalization.Calendars@4.0.1",
+          "scope": "runtime",
+          "version": "4.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Globalization@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime.InteropServices@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Globalization.Extensions@4.0.1",
+          "licenses": [],
+          "name": "System.Globalization.Extensions",
+          "purl": "pkg:nuget/System.Globalization.Extensions@4.0.1",
+          "scope": "runtime",
+          "version": "4.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Globalization@4.3.0",
+          "licenses": [],
+          "name": "System.Globalization",
+          "purl": "pkg:nuget/System.Globalization@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.IO.FileSystem.Primitives@4.0.1",
+          "licenses": [],
+          "name": "System.IO.FileSystem.Primitives",
+          "purl": "pkg:nuget/System.IO.FileSystem.Primitives@4.0.1",
+          "scope": "runtime",
+          "version": "4.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/Microsoft.Win32.Primitives@4.0.1",
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.IO.FileSystem.Primitives@4.0.1",
+            "pkg:nuget/System.IO.FileSystem@4.0.1",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime.Handles@4.3.0",
+            "pkg:nuget/System.Runtime.InteropServices@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Text.Encoding@4.3.0",
+            "pkg:nuget/System.Threading.Overlapped@4.0.1",
+            "pkg:nuget/System.Threading.Tasks@4.3.0",
+            "pkg:nuget/System.Threading.Thread@4.0.0",
+            "pkg:nuget/System.Threading@4.3.0",
+            "pkg:nuget/runtime.native.System@4.0.0"
+          ],
+          "id": "pkg:nuget/System.IO.FileSystem.Watcher@4.0.0",
+          "licenses": [],
+          "name": "System.IO.FileSystem.Watcher",
+          "purl": "pkg:nuget/System.IO.FileSystem.Watcher@4.0.0",
+          "scope": "runtime",
+          "version": "4.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.IO.FileSystem.Primitives@4.0.1",
+            "pkg:nuget/System.IO@4.3.0",
+            "pkg:nuget/System.Runtime.Handles@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Text.Encoding@4.3.0",
+            "pkg:nuget/System.Threading.Tasks@4.3.0"
+          ],
+          "id": "pkg:nuget/System.IO.FileSystem@4.0.1",
+          "licenses": [],
+          "name": "System.IO.FileSystem",
+          "purl": "pkg:nuget/System.IO.FileSystem@4.0.1",
+          "scope": "runtime",
+          "version": "4.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Text.Encoding@4.3.0",
+            "pkg:nuget/System.Threading.Tasks@4.3.0"
+          ],
+          "id": "pkg:nuget/System.IO@4.3.0",
+          "licenses": [],
+          "name": "System.IO",
+          "purl": "pkg:nuget/System.IO@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.Diagnostics.Debug@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Linq@4.3.0",
+          "licenses": [],
+          "name": "System.Linq",
+          "purl": "pkg:nuget/System.Linq@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.Diagnostics.Debug@4.3.0",
+            "pkg:nuget/System.Diagnostics.DiagnosticSource@4.0.0",
+            "pkg:nuget/System.Diagnostics.Tracing@4.3.0",
+            "pkg:nuget/System.Globalization.Extensions@4.0.1",
+            "pkg:nuget/System.Globalization@4.3.0",
+            "pkg:nuget/System.IO.FileSystem@4.0.1",
+            "pkg:nuget/System.IO@4.3.0",
+            "pkg:nuget/System.Net.Primitives@4.0.11",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime.Handles@4.3.0",
+            "pkg:nuget/System.Runtime.InteropServices@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Security.Cryptography.Algorithms@4.3.0",
+            "pkg:nuget/System.Security.Cryptography.Encoding@4.3.0",
+            "pkg:nuget/System.Security.Cryptography.OpenSsl@4.0.0",
+            "pkg:nuget/System.Security.Cryptography.Primitives@4.3.0",
+            "pkg:nuget/System.Security.Cryptography.X509Certificates@4.1.0",
+            "pkg:nuget/System.Text.Encoding@4.3.0",
+            "pkg:nuget/System.Threading.Tasks@4.3.0",
+            "pkg:nuget/System.Threading@4.3.0",
+            "pkg:nuget/runtime.native.System.Net.Http@4.0.1",
+            "pkg:nuget/runtime.native.System.Security.Cryptography@4.0.0",
+            "pkg:nuget/runtime.native.System@4.0.0"
+          ],
+          "id": "pkg:nuget/System.Net.Http@4.1.0",
+          "licenses": [],
+          "name": "System.Net.Http",
+          "purl": "pkg:nuget/System.Net.Http@4.1.0",
+          "scope": "runtime",
+          "version": "4.1.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.Diagnostics.Tracing@4.3.0",
+            "pkg:nuget/System.Globalization@4.3.0",
+            "pkg:nuget/System.Net.Primitives@4.0.11",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime.Handles@4.3.0",
+            "pkg:nuget/System.Runtime.InteropServices@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Security.Principal.Windows@4.4.0",
+            "pkg:nuget/System.Threading.Tasks@4.3.0",
+            "pkg:nuget/System.Threading@4.3.0",
+            "pkg:nuget/runtime.native.System@4.0.0"
+          ],
+          "id": "pkg:nuget/System.Net.NameResolution@4.0.0",
+          "licenses": [],
+          "name": "System.Net.NameResolution",
+          "purl": "pkg:nuget/System.Net.NameResolution@4.0.0",
+          "scope": "runtime",
+          "version": "4.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Runtime.Handles@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Net.Primitives@4.0.11",
+          "licenses": [],
+          "name": "System.Net.Primitives",
+          "purl": "pkg:nuget/System.Net.Primitives@4.0.11",
+          "scope": "runtime",
+          "version": "4.0.11",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.Diagnostics.Debug@4.3.0",
+            "pkg:nuget/System.Diagnostics.Tracing@4.3.0",
+            "pkg:nuget/System.Globalization@4.3.0",
+            "pkg:nuget/System.IO@4.3.0",
+            "pkg:nuget/System.Net.Http@4.1.0",
+            "pkg:nuget/System.Net.Primitives@4.0.11",
+            "pkg:nuget/System.Net.WebHeaderCollection@4.0.1",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Threading.Tasks@4.3.0",
+            "pkg:nuget/System.Threading@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Net.Requests@4.0.11",
+          "licenses": [],
+          "name": "System.Net.Requests",
+          "purl": "pkg:nuget/System.Net.Requests@4.0.11",
+          "scope": "runtime",
+          "version": "4.0.11",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.IO@4.3.0",
+            "pkg:nuget/System.Net.Primitives@4.0.11",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Threading.Tasks@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Net.Sockets@4.1.0",
+          "licenses": [],
+          "name": "System.Net.Sockets",
+          "purl": "pkg:nuget/System.Net.Sockets@4.1.0",
+          "scope": "runtime",
+          "version": "4.1.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Net.WebHeaderCollection@4.0.1",
+          "licenses": [],
+          "name": "System.Net.WebHeaderCollection",
+          "purl": "pkg:nuget/System.Net.WebHeaderCollection@4.0.1",
+          "scope": "runtime",
+          "version": "4.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Reflection@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Reflection.Extensions@4.0.1",
+          "licenses": [],
+          "name": "System.Reflection.Extensions",
+          "purl": "pkg:nuget/System.Reflection.Extensions@4.0.1",
+          "scope": "runtime",
+          "version": "4.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Collections.Immutable@1.2.0",
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.Diagnostics.Debug@4.3.0",
+            "pkg:nuget/System.IO@4.3.0",
+            "pkg:nuget/System.Linq@4.3.0",
+            "pkg:nuget/System.Reflection.Extensions@4.0.1",
+            "pkg:nuget/System.Reflection.Primitives@4.3.0",
+            "pkg:nuget/System.Reflection@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime.InteropServices@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Text.Encoding.Extensions@4.0.11",
+            "pkg:nuget/System.Text.Encoding@4.3.0",
+            "pkg:nuget/System.Threading@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Reflection.Metadata@1.3.0",
+          "licenses": [],
+          "name": "System.Reflection.Metadata",
+          "purl": "pkg:nuget/System.Reflection.Metadata@1.3.0",
+          "scope": "runtime",
+          "version": "1.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Reflection.Primitives@4.3.0",
+          "licenses": [],
+          "name": "System.Reflection.Primitives",
+          "purl": "pkg:nuget/System.Reflection.Primitives@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Reflection@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Reflection.TypeExtensions@4.1.0",
+          "licenses": [],
+          "name": "System.Reflection.TypeExtensions",
+          "purl": "pkg:nuget/System.Reflection.TypeExtensions@4.1.0",
+          "scope": "runtime",
+          "version": "4.1.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.IO@4.3.0",
+            "pkg:nuget/System.Reflection.Primitives@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Reflection@4.3.0",
+          "licenses": [],
+          "name": "System.Reflection",
+          "purl": "pkg:nuget/System.Reflection@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Globalization@4.3.0",
+            "pkg:nuget/System.Reflection@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+          "licenses": [],
+          "name": "System.Resources.ResourceManager",
+          "purl": "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:nuget/System.Runtime.CompilerServices.Unsafe@4.5.2",
+          "licenses": [],
+          "name": "System.Runtime.CompilerServices.Unsafe",
+          "purl": "pkg:nuget/System.Runtime.CompilerServices.Unsafe@4.5.2",
+          "scope": "runtime",
+          "version": "4.5.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Runtime.Extensions@4.3.0",
+          "licenses": [],
+          "name": "System.Runtime.Extensions",
+          "purl": "pkg:nuget/System.Runtime.Extensions@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Runtime.Handles@4.3.0",
+          "licenses": [],
+          "name": "System.Runtime.Handles",
+          "purl": "pkg:nuget/System.Runtime.Handles@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Reflection@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.InteropServices@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Threading@4.3.0",
+            "pkg:nuget/runtime.native.System@4.0.0"
+          ],
+          "id": "pkg:nuget/System.Runtime.InteropServices.RuntimeInformation@4.0.0",
+          "licenses": [],
+          "name": "System.Runtime.InteropServices.RuntimeInformation",
+          "purl": "pkg:nuget/System.Runtime.InteropServices.RuntimeInformation@4.0.0",
+          "scope": "runtime",
+          "version": "4.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Reflection.Primitives@4.3.0",
+            "pkg:nuget/System.Reflection@4.3.0",
+            "pkg:nuget/System.Runtime.Handles@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Runtime.InteropServices@4.3.0",
+          "licenses": [],
+          "name": "System.Runtime.InteropServices",
+          "purl": "pkg:nuget/System.Runtime.InteropServices@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Globalization@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Runtime.Numerics@4.3.0",
+          "licenses": [],
+          "name": "System.Runtime.Numerics",
+          "purl": "pkg:nuget/System.Runtime.Numerics@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.Reflection@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Serialization.Primitives@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Runtime.Serialization.Formatters@4.3.0",
+          "licenses": [],
+          "name": "System.Runtime.Serialization.Formatters",
+          "purl": "pkg:nuget/System.Runtime.Serialization.Formatters@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Runtime.Serialization.Primitives@4.3.0",
+          "licenses": [],
+          "name": "System.Runtime.Serialization.Primitives",
+          "purl": "pkg:nuget/System.Runtime.Serialization.Primitives@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2"
+          ],
+          "id": "pkg:nuget/System.Runtime@4.3.0",
+          "licenses": [],
+          "name": "System.Runtime",
+          "purl": "pkg:nuget/System.Runtime@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Security.Principal.Windows@4.4.0"
+          ],
+          "id": "pkg:nuget/System.Security.AccessControl@4.4.0",
+          "licenses": [],
+          "name": "System.Security.AccessControl",
+          "purl": "pkg:nuget/System.Security.AccessControl@4.4.0",
+          "scope": "runtime",
+          "version": "4.4.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.IO@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime.Handles@4.3.0",
+            "pkg:nuget/System.Runtime.InteropServices@4.3.0",
+            "pkg:nuget/System.Runtime.Numerics@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Security.Cryptography.Encoding@4.3.0",
+            "pkg:nuget/System.Security.Cryptography.Primitives@4.3.0",
+            "pkg:nuget/System.Text.Encoding@4.3.0",
+            "pkg:nuget/runtime.native.System.Security.Cryptography.Apple@4.3.0",
+            "pkg:nuget/runtime.native.System.Security.Cryptography.OpenSsl@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Security.Cryptography.Algorithms@4.3.0",
+          "licenses": [],
+          "name": "System.Security.Cryptography.Algorithms",
+          "purl": "pkg:nuget/System.Security.Cryptography.Algorithms@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.IO@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime.Handles@4.3.0",
+            "pkg:nuget/System.Runtime.InteropServices@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Security.Cryptography.Algorithms@4.3.0",
+            "pkg:nuget/System.Security.Cryptography.Encoding@4.3.0",
+            "pkg:nuget/System.Security.Cryptography.Primitives@4.3.0",
+            "pkg:nuget/System.Text.Encoding@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Security.Cryptography.Cng@4.2.0",
+          "licenses": [],
+          "name": "System.Security.Cryptography.Cng",
+          "purl": "pkg:nuget/System.Security.Cryptography.Cng@4.2.0",
+          "scope": "runtime",
+          "version": "4.2.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.IO@4.3.0",
+            "pkg:nuget/System.Reflection@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime.Handles@4.3.0",
+            "pkg:nuget/System.Runtime.InteropServices@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Security.Cryptography.Algorithms@4.3.0",
+            "pkg:nuget/System.Security.Cryptography.Encoding@4.3.0",
+            "pkg:nuget/System.Security.Cryptography.Primitives@4.3.0",
+            "pkg:nuget/System.Text.Encoding@4.3.0",
+            "pkg:nuget/System.Threading@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Security.Cryptography.Csp@4.0.0",
+          "licenses": [],
+          "name": "System.Security.Cryptography.Csp",
+          "purl": "pkg:nuget/System.Security.Cryptography.Csp@4.0.0",
+          "scope": "runtime",
+          "version": "4.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Collections.Concurrent@4.3.0",
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.Linq@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime.Handles@4.3.0",
+            "pkg:nuget/System.Runtime.InteropServices@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Security.Cryptography.Primitives@4.3.0",
+            "pkg:nuget/System.Text.Encoding@4.3.0",
+            "pkg:nuget/runtime.native.System.Security.Cryptography.OpenSsl@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Security.Cryptography.Encoding@4.3.0",
+          "licenses": [],
+          "name": "System.Security.Cryptography.Encoding",
+          "purl": "pkg:nuget/System.Security.Cryptography.Encoding@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.IO@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime.Handles@4.3.0",
+            "pkg:nuget/System.Runtime.InteropServices@4.3.0",
+            "pkg:nuget/System.Runtime.Numerics@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Security.Cryptography.Algorithms@4.3.0",
+            "pkg:nuget/System.Security.Cryptography.Encoding@4.3.0",
+            "pkg:nuget/System.Security.Cryptography.Primitives@4.3.0",
+            "pkg:nuget/System.Text.Encoding@4.3.0",
+            "pkg:nuget/runtime.native.System.Security.Cryptography@4.0.0"
+          ],
+          "id": "pkg:nuget/System.Security.Cryptography.OpenSsl@4.0.0",
+          "licenses": [],
+          "name": "System.Security.Cryptography.OpenSsl",
+          "purl": "pkg:nuget/System.Security.Cryptography.OpenSsl@4.0.0",
+          "scope": "runtime",
+          "version": "4.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Diagnostics.Debug@4.3.0",
+            "pkg:nuget/System.Globalization@4.3.0",
+            "pkg:nuget/System.IO@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Threading.Tasks@4.3.0",
+            "pkg:nuget/System.Threading@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Security.Cryptography.Primitives@4.3.0",
+          "licenses": [],
+          "name": "System.Security.Cryptography.Primitives",
+          "purl": "pkg:nuget/System.Security.Cryptography.Primitives@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:nuget/System.Security.Cryptography.ProtectedData@4.4.0",
+          "licenses": [],
+          "name": "System.Security.Cryptography.ProtectedData",
+          "purl": "pkg:nuget/System.Security.Cryptography.ProtectedData@4.4.0",
+          "scope": "runtime",
+          "version": "4.4.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.Diagnostics.Debug@4.3.0",
+            "pkg:nuget/System.Globalization.Calendars@4.0.1",
+            "pkg:nuget/System.Globalization@4.3.0",
+            "pkg:nuget/System.IO.FileSystem.Primitives@4.0.1",
+            "pkg:nuget/System.IO.FileSystem@4.0.1",
+            "pkg:nuget/System.IO@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime.Handles@4.3.0",
+            "pkg:nuget/System.Runtime.InteropServices@4.3.0",
+            "pkg:nuget/System.Runtime.Numerics@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Security.Cryptography.Algorithms@4.3.0",
+            "pkg:nuget/System.Security.Cryptography.Cng@4.2.0",
+            "pkg:nuget/System.Security.Cryptography.Csp@4.0.0",
+            "pkg:nuget/System.Security.Cryptography.Encoding@4.3.0",
+            "pkg:nuget/System.Security.Cryptography.OpenSsl@4.0.0",
+            "pkg:nuget/System.Security.Cryptography.Primitives@4.3.0",
+            "pkg:nuget/System.Text.Encoding@4.3.0",
+            "pkg:nuget/System.Threading@4.3.0",
+            "pkg:nuget/runtime.native.System.Net.Http@4.0.1",
+            "pkg:nuget/runtime.native.System.Security.Cryptography@4.0.0",
+            "pkg:nuget/runtime.native.System@4.0.0"
+          ],
+          "id": "pkg:nuget/System.Security.Cryptography.X509Certificates@4.1.0",
+          "licenses": [],
+          "name": "System.Security.Cryptography.X509Certificates",
+          "purl": "pkg:nuget/System.Security.Cryptography.X509Certificates@4.1.0",
+          "scope": "runtime",
+          "version": "4.1.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Security.AccessControl@4.4.0"
+          ],
+          "id": "pkg:nuget/System.Security.Permissions@4.4.0",
+          "licenses": [],
+          "name": "System.Security.Permissions",
+          "purl": "pkg:nuget/System.Security.Permissions@4.4.0",
+          "scope": "runtime",
+          "version": "4.4.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2"
+          ],
+          "id": "pkg:nuget/System.Security.Principal.Windows@4.4.0",
+          "licenses": [],
+          "name": "System.Security.Principal.Windows",
+          "purl": "pkg:nuget/System.Security.Principal.Windows@4.4.0",
+          "scope": "runtime",
+          "version": "4.4.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Runtime.CompilerServices.Unsafe@4.5.2"
+          ],
+          "id": "pkg:nuget/System.Text.Encoding.CodePages@4.5.1",
+          "licenses": [],
+          "name": "System.Text.Encoding.CodePages",
+          "purl": "pkg:nuget/System.Text.Encoding.CodePages@4.5.1",
+          "scope": "runtime",
+          "version": "4.5.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Text.Encoding@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Text.Encoding.Extensions@4.0.11",
+          "licenses": [],
+          "name": "System.Text.Encoding.Extensions",
+          "purl": "pkg:nuget/System.Text.Encoding.Extensions@4.0.11",
+          "scope": "runtime",
+          "version": "4.0.11",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Text.Encoding@4.3.0",
+          "licenses": [],
+          "name": "System.Text.Encoding",
+          "purl": "pkg:nuget/System.Text.Encoding@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.Globalization@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Threading@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Text.RegularExpressions@4.1.0",
+          "licenses": [],
+          "name": "System.Text.RegularExpressions",
+          "purl": "pkg:nuget/System.Text.RegularExpressions@4.1.0",
+          "scope": "runtime",
+          "version": "4.1.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Handles@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Threading.Overlapped@4.0.1",
+          "licenses": [],
+          "name": "System.Threading.Overlapped",
+          "purl": "pkg:nuget/System.Threading.Overlapped@4.0.1",
+          "scope": "runtime",
+          "version": "4.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Threading.Tasks@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Threading.Tasks.Extensions@4.0.0",
+          "licenses": [],
+          "name": "System.Threading.Tasks.Extensions",
+          "purl": "pkg:nuget/System.Threading.Tasks.Extensions@4.0.0",
+          "scope": "runtime",
+          "version": "4.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Threading.Tasks@4.3.0",
+          "licenses": [],
+          "name": "System.Threading.Tasks",
+          "purl": "pkg:nuget/System.Threading.Tasks@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Threading.Thread@4.0.0",
+          "licenses": [],
+          "name": "System.Threading.Thread",
+          "purl": "pkg:nuget/System.Threading.Thread@4.0.0",
+          "scope": "runtime",
+          "version": "4.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Runtime.Handles@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Threading.ThreadPool@4.0.10",
+          "licenses": [],
+          "name": "System.Threading.ThreadPool",
+          "purl": "pkg:nuget/System.Threading.ThreadPool@4.0.10",
+          "scope": "runtime",
+          "version": "4.0.10",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2",
+            "pkg:nuget/System.Runtime@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Threading.Timer@4.0.1",
+          "licenses": [],
+          "name": "System.Threading.Timer",
+          "purl": "pkg:nuget/System.Threading.Timer@4.0.1",
+          "scope": "runtime",
+          "version": "4.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Threading.Tasks@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Threading@4.3.0",
+          "licenses": [],
+          "name": "System.Threading",
+          "purl": "pkg:nuget/System.Threading@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.Diagnostics.Debug@4.3.0",
+            "pkg:nuget/System.Globalization@4.3.0",
+            "pkg:nuget/System.IO.FileSystem.Primitives@4.0.1",
+            "pkg:nuget/System.IO.FileSystem@4.0.1",
+            "pkg:nuget/System.IO@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime.InteropServices@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Text.Encoding.Extensions@4.0.11",
+            "pkg:nuget/System.Text.Encoding@4.3.0",
+            "pkg:nuget/System.Text.RegularExpressions@4.1.0",
+            "pkg:nuget/System.Threading.Tasks.Extensions@4.0.0",
+            "pkg:nuget/System.Threading.Tasks@4.3.0"
+          ],
+          "id": "pkg:nuget/System.Xml.ReaderWriter@4.0.11",
+          "licenses": [],
+          "name": "System.Xml.ReaderWriter",
+          "purl": "pkg:nuget/System.Xml.ReaderWriter@4.0.11",
+          "scope": "runtime",
+          "version": "4.0.11",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.Collections@4.3.0",
+            "pkg:nuget/System.Diagnostics.Debug@4.3.0",
+            "pkg:nuget/System.Globalization@4.3.0",
+            "pkg:nuget/System.IO@4.3.0",
+            "pkg:nuget/System.Resources.ResourceManager@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime@4.3.0",
+            "pkg:nuget/System.Text.Encoding@4.3.0",
+            "pkg:nuget/System.Threading@4.3.0",
+            "pkg:nuget/System.Xml.ReaderWriter@4.0.11"
+          ],
+          "id": "pkg:nuget/System.Xml.XmlDocument@4.0.1",
+          "licenses": [],
+          "name": "System.Xml.XmlDocument",
+          "purl": "pkg:nuget/System.Xml.XmlDocument@4.0.1",
+          "scope": "runtime",
+          "version": "4.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:nuget/YamlDotNet@3.7.0",
+          "licenses": [],
+          "name": "YamlDotNet",
+          "purl": "pkg:nuget/YamlDotNet@3.7.0",
+          "scope": "runtime",
+          "version": "3.7.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/System.AppContext@4.1.0",
+            "pkg:nuget/System.Collections.NonGeneric@4.0.1",
+            "pkg:nuget/System.Console@4.0.0",
+            "pkg:nuget/System.Diagnostics.Debug@4.3.0",
+            "pkg:nuget/System.Diagnostics.Process@4.1.0",
+            "pkg:nuget/System.Diagnostics.StackTrace@4.0.1",
+            "pkg:nuget/System.Diagnostics.TraceSource@4.0.0",
+            "pkg:nuget/System.IO.FileSystem.Watcher@4.0.0",
+            "pkg:nuget/System.IO.FileSystem@4.0.1",
+            "pkg:nuget/System.Linq@4.3.0",
+            "pkg:nuget/System.Net.NameResolution@4.0.0",
+            "pkg:nuget/System.Net.Requests@4.0.11",
+            "pkg:nuget/System.Net.Sockets@4.1.0",
+            "pkg:nuget/System.Reflection.Extensions@4.0.1",
+            "pkg:nuget/System.Reflection.TypeExtensions@4.1.0",
+            "pkg:nuget/System.Reflection@4.3.0",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Runtime.InteropServices.RuntimeInformation@4.0.0",
+            "pkg:nuget/System.Runtime.InteropServices@4.3.0",
+            "pkg:nuget/System.Runtime.Serialization.Formatters@4.3.0",
+            "pkg:nuget/System.Text.RegularExpressions@4.1.0",
+            "pkg:nuget/System.Threading.Thread@4.0.0",
+            "pkg:nuget/System.Threading.Timer@4.0.1",
+            "pkg:nuget/System.Threading@4.3.0",
+            "pkg:nuget/System.Xml.ReaderWriter@4.0.11",
+            "pkg:nuget/System.Xml.XmlDocument@4.0.1"
+          ],
+          "id": "pkg:nuget/log4net@2.0.8",
+          "licenses": [],
+          "name": "log4net",
+          "purl": "pkg:nuget/log4net@2.0.8",
+          "scope": "runtime",
+          "version": "2.0.8",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:nuget/recurly-api-client@1.8.0",
+          "licenses": [],
+          "name": "recurly-api-client",
+          "purl": "pkg:nuget/recurly-api-client@1.8.0",
+          "scope": "runtime",
+          "version": "1.8.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/BCrypt.Net-Core@1.2.0-CI00005",
+            "pkg:nuget/DotNetZip@1.10.0",
+            "pkg:nuget/FSharp.Core@6.0.7",
+            "pkg:nuget/GSF.Security@2.1.326-beta",
+            "pkg:nuget/MySql.Data@8.0.11",
+            "pkg:nuget/NUnit@3.10.1",
+            "pkg:nuget/Newtonsoft.Json@11.0.2",
+            "pkg:nuget/SharpCompress@0.17.1",
+            "pkg:nuget/SharpZipLib@1.0.0-alpha1",
+            "pkg:nuget/System.Runtime.Extensions@4.3.0",
+            "pkg:nuget/System.Text.Encoding.CodePages@4.5.1",
+            "pkg:nuget/YamlDotNet@3.7.0",
+            "pkg:nuget/log4net@2.0.8",
+            "pkg:nuget/recurly-api-client@1.8.0"
           ],
           "id": "pkg:nuget/root",
           "licenses": [],
           "name": "root",
           "purl": "pkg:nuget/root",
           "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:nuget/runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "licenses": [],
+          "name": "runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+          "purl": "pkg:nuget/runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:nuget/runtime.fedora.23-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "licenses": [],
+          "name": "runtime.fedora.23-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+          "purl": "pkg:nuget/runtime.fedora.23-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:nuget/runtime.fedora.24-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "licenses": [],
+          "name": "runtime.fedora.24-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+          "purl": "pkg:nuget/runtime.fedora.24-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2"
+          ],
+          "id": "pkg:nuget/runtime.native.System.Net.Http@4.0.1",
+          "licenses": [],
+          "name": "runtime.native.System.Net.Http",
+          "purl": "pkg:nuget/runtime.native.System.Net.Http@4.0.1",
+          "scope": "runtime",
+          "version": "4.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.Apple@4.3.0"
+          ],
+          "id": "pkg:nuget/runtime.native.System.Security.Cryptography.Apple@4.3.0",
+          "licenses": [],
+          "name": "runtime.native.System.Security.Cryptography.Apple",
+          "purl": "pkg:nuget/runtime.native.System.Security.Cryptography.Apple@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "pkg:nuget/runtime.fedora.23-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "pkg:nuget/runtime.fedora.24-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "pkg:nuget/runtime.opensuse.13.2-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "pkg:nuget/runtime.opensuse.42.1-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "pkg:nuget/runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "pkg:nuget/runtime.rhel.7-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "pkg:nuget/runtime.ubuntu.14.04-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "pkg:nuget/runtime.ubuntu.16.04-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+            "pkg:nuget/runtime.ubuntu.16.10-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0"
+          ],
+          "id": "pkg:nuget/runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "licenses": [],
+          "name": "runtime.native.System.Security.Cryptography.OpenSsl",
+          "purl": "pkg:nuget/runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2"
+          ],
+          "id": "pkg:nuget/runtime.native.System.Security.Cryptography@4.0.0",
+          "licenses": [],
+          "name": "runtime.native.System.Security.Cryptography",
+          "purl": "pkg:nuget/runtime.native.System.Security.Cryptography@4.0.0",
+          "scope": "runtime",
+          "version": "4.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:nuget/Microsoft.NETCore.Platforms@2.1.2"
+          ],
+          "id": "pkg:nuget/runtime.native.System@4.0.0",
+          "licenses": [],
+          "name": "runtime.native.System",
+          "purl": "pkg:nuget/runtime.native.System@4.0.0",
+          "scope": "runtime",
+          "version": "4.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:nuget/runtime.opensuse.13.2-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "licenses": [],
+          "name": "runtime.opensuse.13.2-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+          "purl": "pkg:nuget/runtime.opensuse.13.2-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:nuget/runtime.opensuse.42.1-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "licenses": [],
+          "name": "runtime.opensuse.42.1-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+          "purl": "pkg:nuget/runtime.opensuse.42.1-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:nuget/runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.Apple@4.3.0",
+          "licenses": [],
+          "name": "runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.Apple",
+          "purl": "pkg:nuget/runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.Apple@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:nuget/runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "licenses": [],
+          "name": "runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+          "purl": "pkg:nuget/runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:nuget/runtime.rhel.7-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "licenses": [],
+          "name": "runtime.rhel.7-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+          "purl": "pkg:nuget/runtime.rhel.7-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:nuget/runtime.ubuntu.14.04-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "licenses": [],
+          "name": "runtime.ubuntu.14.04-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+          "purl": "pkg:nuget/runtime.ubuntu.14.04-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:nuget/runtime.ubuntu.16.04-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "licenses": [],
+          "name": "runtime.ubuntu.16.04-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+          "purl": "pkg:nuget/runtime.ubuntu.16.04-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:nuget/runtime.ubuntu.16.10-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "licenses": [],
+          "name": "runtime.ubuntu.16.10-x64.runtime.native.System.Security.Cryptography.OpenSsl",
+          "purl": "pkg:nuget/runtime.ubuntu.16.10-x64.runtime.native.System.Security.Cryptography.OpenSsl@4.3.0",
+          "scope": "runtime",
+          "version": "4.3.0",
+          "vulnerabilities": []
         }
       ],
-      "path": "packages.config",
+      "path": "example-dotnet.deps.json",
       "subproject": "."
     }
   ],

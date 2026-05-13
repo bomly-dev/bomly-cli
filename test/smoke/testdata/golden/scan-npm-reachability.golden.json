@@ -1,0 +1,3722 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "detector": "npm-detector",
+      "ecosystem": "npm",
+      "kind": "package-lock.json",
+      "package_manager": "npm",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:npm/algo-httpserv@1.1.1",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "algo-httpserv",
+          "purl": "pkg:npm/algo-httpserv@1.1.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.1.1",
+          "vulnerabilities": [
+            {
+              "description": "Path Traversal in algo-httpserv",
+              "id": "GHSA-cgjv-rghq-qhgp",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/AlgoRythm-Dylan/httpserv/commit/bcfe9d4316c2b59aab3a64a38905376026888735",
+                "https://snyk.io/vuln/SNYK-JS-ALGOHTTPSERV-174741",
+                "https://www.npmjs.com/advisories/889"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "Path Traversal in algo-httpserv"
+            }
+          ]
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/ansi-colors@3.2.3",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=6"
+              }
+            }
+          },
+          "name": "ansi-colors",
+          "purl": "pkg:npm/ansi-colors@3.2.3",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.2.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/ansi-regex@3.0.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=4"
+              }
+            }
+          },
+          "name": "ansi-regex",
+          "purl": "pkg:npm/ansi-regex@3.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.0.0",
+          "vulnerabilities": [
+            {
+              "description": "Inefficient Regular Expression Complexity in chalk/ansi-regex",
+              "id": "GHSA-93q8-gq69-wqmw",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://app.snyk.io/vuln/SNYK-JS-ANSIREGEX-1583908",
+                "https://github.com/chalk/ansi-regex/commit/419250fa510bf31b4cc672e76537a64f9332e1f1",
+                "https://github.com/chalk/ansi-regex/commit/75a657da7af875b2e2724fd6331bf0a4b23d3c9a",
+                "https://github.com/chalk/ansi-regex/commit/8d1d7cdb586269882c4bdc1b7325d0c58c8f76f9",
+                "https://github.com/chalk/ansi-regex/commit/c3c0b3f2736b9c01feec0fef33980c43720dcde8",
+                "https://github.com/chalk/ansi-regex/issues/38#issuecomment-924086311",
+                "https://github.com/chalk/ansi-regex/issues/38#issuecomment-925924774",
+                "https://github.com/chalk/ansi-regex/releases/tag/v6.0.1",
+                "https://huntr.dev/bounties/5b3cf33b-ede0-4398-9974-800876dfd994",
+                "https://nvd.nist.gov/vuln/detail/CVE-2021-3807",
+                "https://security.netapp.com/advisory/ntap-20221014-0002/",
+                "https://www.oracle.com/security-alerts/cpuapr2022.html"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "Inefficient Regular Expression Complexity in chalk/ansi-regex"
+            }
+          ]
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/ansi-regex@4.1.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=6"
+              }
+            }
+          },
+          "name": "ansi-regex",
+          "purl": "pkg:npm/ansi-regex@4.1.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "4.1.0",
+          "vulnerabilities": [
+            {
+              "description": "Inefficient Regular Expression Complexity in chalk/ansi-regex",
+              "id": "GHSA-93q8-gq69-wqmw",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://app.snyk.io/vuln/SNYK-JS-ANSIREGEX-1583908",
+                "https://github.com/chalk/ansi-regex/commit/419250fa510bf31b4cc672e76537a64f9332e1f1",
+                "https://github.com/chalk/ansi-regex/commit/75a657da7af875b2e2724fd6331bf0a4b23d3c9a",
+                "https://github.com/chalk/ansi-regex/commit/8d1d7cdb586269882c4bdc1b7325d0c58c8f76f9",
+                "https://github.com/chalk/ansi-regex/commit/c3c0b3f2736b9c01feec0fef33980c43720dcde8",
+                "https://github.com/chalk/ansi-regex/issues/38#issuecomment-924086311",
+                "https://github.com/chalk/ansi-regex/issues/38#issuecomment-925924774",
+                "https://github.com/chalk/ansi-regex/releases/tag/v6.0.1",
+                "https://huntr.dev/bounties/5b3cf33b-ede0-4398-9974-800876dfd994",
+                "https://nvd.nist.gov/vuln/detail/CVE-2021-3807",
+                "https://security.netapp.com/advisory/ntap-20221014-0002/",
+                "https://www.oracle.com/security-alerts/cpuapr2022.html"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "Inefficient Regular Expression Complexity in chalk/ansi-regex"
+            }
+          ]
+        },
+        {
+          "dependencies": [
+            "pkg:npm/color-convert@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/ansi-styles@3.2.1",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=4"
+              }
+            }
+          },
+          "name": "ansi-styles",
+          "purl": "pkg:npm/ansi-styles@3.2.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.2.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/normalize-path@\u003cnormalized\u003e",
+            "pkg:npm/picomatch@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/anymatch@3.1.1",
+          "licenses": [
+            {
+              "spdxExpression": "ISC",
+              "type": "external-depsdev",
+              "value": "ISC"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e= 8"
+              }
+            }
+          },
+          "name": "anymatch",
+          "purl": "pkg:npm/anymatch@3.1.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.1.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/sprintf-js@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/argparse@1.0.10",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "argparse",
+          "purl": "pkg:npm/argparse@1.0.10",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.0.10",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/lodash@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/async@2.6.3",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "async",
+          "purl": "pkg:npm/async@2.6.3",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.6.3",
+          "vulnerabilities": [
+            {
+              "description": "Prototype Pollution in async",
+              "id": "GHSA-fwr7-v2mv-hh25",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/caolan/async/blob/master/lib/internal/iterator.js",
+                "https://github.com/caolan/async/blob/master/lib/mapValuesLimit.js",
+                "https://github.com/caolan/async/blob/v2.6.4/CHANGELOG.md#v264",
+                "https://github.com/caolan/async/commit/8f7f90342a6571ba1c197d747ebed30c368096d2",
+                "https://github.com/caolan/async/commit/e1ecdbf79264f9ab488c7799f4c76996d5dca66d",
+                "https://github.com/caolan/async/compare/v2.6.3...v2.6.4",
+                "https://github.com/caolan/async/pull/1828",
+                "https://jsfiddle.net/oz5twjd9",
+                "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/MTEUUTNIEBHGKUKKLNUZSV7IEP6IP3Q3",
+                "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/UM6XJ73Q3NAM5KSGCOKJ2ZIA6GUWUJLK",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/MTEUUTNIEBHGKUKKLNUZSV7IEP6IP3Q3",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/UM6XJ73Q3NAM5KSGCOKJ2ZIA6GUWUJLK",
+                "https://nvd.nist.gov/vuln/detail/CVE-2021-43138",
+                "https://security.netapp.com/advisory/ntap-20240621-0006"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "Prototype Pollution in async"
+            }
+          ]
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/balanced-match@1.0.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "balanced-match",
+          "purl": "pkg:npm/balanced-match@1.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/binary-extensions@2.1.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=8"
+              }
+            }
+          },
+          "name": "binary-extensions",
+          "purl": "pkg:npm/binary-extensions@2.1.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.1.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/balanced-match@\u003cnormalized\u003e",
+            "pkg:npm/concat-map@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/brace-expansion@1.1.11",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "brace-expansion",
+          "purl": "pkg:npm/brace-expansion@1.1.11",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.1.11",
+          "vulnerabilities": [
+            {
+              "description": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
+              "id": "GHSA-f886-m6hf-6m8v",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/juliangruber/brace-expansion/blob/daa71bcb4a30a2df9bcb7f7b8daaf2ab30e5794a/src/index.ts#L107-L113",
+                "https://github.com/juliangruber/brace-expansion/blob/daa71bcb4a30a2df9bcb7f7b8daaf2ab30e5794a/src/index.ts#L184",
+                "https://github.com/juliangruber/brace-expansion/commit/311ac0d54994158c0a384e286a7d6cbb17ee8ed5",
+                "https://github.com/juliangruber/brace-expansion/commit/7fd684f89fdde3549563d0a6522226a9189472a2",
+                "https://github.com/juliangruber/brace-expansion/commit/b9cacd9e55e7a1fa588fe4b7bb1159d52f1d902a",
+                "https://github.com/juliangruber/brace-expansion/issues/98",
+                "https://github.com/juliangruber/brace-expansion/pull/95",
+                "https://github.com/juliangruber/brace-expansion/pull/96",
+                "https://github.com/juliangruber/brace-expansion/pull/97",
+                "https://github.com/juliangruber/brace-expansion/security/advisories/GHSA-f886-m6hf-6m8v",
+                "https://nvd.nist.gov/vuln/detail/CVE-2026-33750"
+              ],
+              "severity": "medium",
+              "source": "grype",
+              "title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion"
+            },
+            {
+              "description": "brace-expansion Regular Expression Denial of Service vulnerability",
+              "id": "GHSA-v6h2-p8h4-qcjw",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://gist.github.com/mmmsssttt404/37a40ce7d6e5ca604858fe30814d9466",
+                "https://github.com/juliangruber/brace-expansion/commit/0b6a9781e18e9d2769bb2931f4856d1360243ed2",
+                "https://github.com/juliangruber/brace-expansion/commit/15f9b3c75ebf5988198241fecaebdc45eff28a9f",
+                "https://github.com/juliangruber/brace-expansion/commit/36603d5f3599a37af9e85eda30acd7d28599c36e",
+                "https://github.com/juliangruber/brace-expansion/commit/c3c73c8b088defc70851843be88ccc3af08e7217",
+                "https://github.com/juliangruber/brace-expansion/pull/65/commits/a5b98a4f30d7813266b221435e1eaaf25a1b0ac5",
+                "https://nvd.nist.gov/vuln/detail/CVE-2025-5889",
+                "https://vuldb.com/?ctiid.311660",
+                "https://vuldb.com/?id.311660",
+                "https://vuldb.com/?submit.585717"
+              ],
+              "severity": "low",
+              "source": "grype",
+              "title": "brace-expansion Regular Expression Denial of Service vulnerability"
+            }
+          ]
+        },
+        {
+          "dependencies": [
+            "pkg:npm/fill-range@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/braces@3.0.2",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=8"
+              }
+            }
+          },
+          "name": "braces",
+          "purl": "pkg:npm/braces@3.0.2",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.0.2",
+          "vulnerabilities": [
+            {
+              "description": "Uncontrolled resource consumption in braces",
+              "id": "GHSA-grv7-fg5c-xmjg",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://devhub.checkmarx.com/cve-details/CVE-2024-4068",
+                "https://github.com/micromatch/braces/blob/98414f9f1fabe021736e26836d8306d5de747e0d/lib/parse.js#L308",
+                "https://github.com/micromatch/braces/commit/415d660c3002d1ab7e63dbf490c9851da80596ff",
+                "https://github.com/micromatch/braces/issues/35",
+                "https://github.com/micromatch/braces/pull/37",
+                "https://github.com/micromatch/braces/pull/40",
+                "https://nvd.nist.gov/vuln/detail/CVE-2024-4068"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "Uncontrolled resource consumption in braces"
+            }
+          ]
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/browser-stdout@1.3.1",
+          "licenses": [
+            {
+              "spdxExpression": "ISC",
+              "type": "external-depsdev",
+              "value": "ISC"
+            }
+          ],
+          "name": "browser-stdout",
+          "purl": "pkg:npm/browser-stdout@1.3.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.3.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/dicer@\u003cnormalized\u003e",
+            "pkg:npm/readable-stream@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/busboy@0.2.14",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=0.8.0"
+              }
+            }
+          },
+          "name": "busboy",
+          "purl": "pkg:npm/busboy@0.2.14",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.2.14",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/camelcase@5.3.1",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=6"
+              }
+            }
+          },
+          "name": "camelcase",
+          "purl": "pkg:npm/camelcase@5.3.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "5.3.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/ansi-styles@\u003cnormalized\u003e",
+            "pkg:npm/escape-string-regexp@\u003cnormalized\u003e",
+            "pkg:npm/supports-color@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/chalk@2.4.2",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=4"
+              }
+            }
+          },
+          "name": "chalk",
+          "purl": "pkg:npm/chalk@2.4.2",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.4.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/anymatch@\u003cnormalized\u003e",
+            "pkg:npm/braces@\u003cnormalized\u003e",
+            "pkg:npm/fsevents@\u003cnormalized\u003e",
+            "pkg:npm/glob-parent@\u003cnormalized\u003e",
+            "pkg:npm/is-binary-path@\u003cnormalized\u003e",
+            "pkg:npm/is-glob@\u003cnormalized\u003e",
+            "pkg:npm/normalize-path@\u003cnormalized\u003e",
+            "pkg:npm/readdirp@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/chokidar@3.3.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e= 8.10.0"
+              }
+            }
+          },
+          "name": "chokidar",
+          "purl": "pkg:npm/chokidar@3.3.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/string-width@\u003cnormalized\u003e",
+            "pkg:npm/strip-ansi@\u003cnormalized\u003e",
+            "pkg:npm/wrap-ansi@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/cliui@5.0.0",
+          "licenses": [
+            {
+              "spdxExpression": "ISC",
+              "type": "external-depsdev",
+              "value": "ISC"
+            }
+          ],
+          "name": "cliui",
+          "purl": "pkg:npm/cliui@5.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "5.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/color-name@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/color-convert@1.9.3",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "color-convert",
+          "purl": "pkg:npm/color-convert@1.9.3",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.9.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/color-name@1.1.3",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "color-name",
+          "purl": "pkg:npm/color-name@1.1.3",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.1.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/concat-map@0.0.1",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "concat-map",
+          "purl": "pkg:npm/concat-map@0.0.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/core-util-is@1.0.2",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "core-util-is",
+          "purl": "pkg:npm/core-util-is@1.0.2",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.0.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/ms@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/debug@3.2.6",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "debug",
+          "purl": "pkg:npm/debug@3.2.6",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.2.6",
+          "vulnerabilities": [
+            {
+              "description": "Regular Expression Denial of Service in debug",
+              "id": "GHSA-gxpj-cx7g-858c",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/debug-js/debug/commit/4e2150207c568adb9ead8f4c4528016081c88020",
+                "https://github.com/debug-js/debug/commit/71169065b5262f9858ac78cc0b688c84a438f290",
+                "https://github.com/debug-js/debug/commit/b6d12fdbc63b483e5c969da33ea6adc09946b5ac",
+                "https://github.com/debug-js/debug/commit/f53962e944a87e6ca9bb622a2a12dffc22a9bb5a",
+                "https://github.com/debug-js/debug/issues/797",
+                "https://github.com/visionmedia/debug/issues/501",
+                "https://github.com/visionmedia/debug/pull/504",
+                "https://lists.apache.org/thread.html/r8ba4c628fba7181af58817d452119481adce4ba92e889c643e4c7dd3@%3Ccommits.netbeans.apache.org%3E",
+                "https://lists.apache.org/thread.html/rb5ac16fad337d1f3bb7079549f97d8166d0ef3082629417c39f12d63@%3Cnotifications.netbeans.apache.org%3E",
+                "https://nvd.nist.gov/vuln/detail/CVE-2017-16137"
+              ],
+              "severity": "low",
+              "source": "grype",
+              "title": "Regular Expression Denial of Service in debug"
+            }
+          ]
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/decamelize@1.2.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=0.10.0"
+              }
+            }
+          },
+          "name": "decamelize",
+          "purl": "pkg:npm/decamelize@1.2.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.2.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/object-keys@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/define-properties@1.1.3",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e= 0.4"
+              }
+            }
+          },
+          "name": "define-properties",
+          "purl": "pkg:npm/define-properties@1.1.3",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.1.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/readable-stream@\u003cnormalized\u003e",
+            "pkg:npm/streamsearch@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/dicer@0.2.5",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=0.8.0"
+              }
+            }
+          },
+          "name": "dicer",
+          "purl": "pkg:npm/dicer@0.2.5",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.2.5",
+          "vulnerabilities": [
+            {
+              "description": "Crash in HeaderParser in dicer",
+              "id": "GHSA-wm7h-9275-46v2",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/mscdex/busboy/issues/250",
+                "https://github.com/mscdex/dicer/commit/b7fca2e93e8e9d4439d8acc5c02f5e54a0112dac",
+                "https://github.com/mscdex/dicer/pull/22",
+                "https://nvd.nist.gov/vuln/detail/CVE-2022-24434",
+                "https://snyk.io/vuln/SNYK-JAVA-ORGWEBJARSNPM-2838865",
+                "https://snyk.io/vuln/SNYK-JS-DICER-2311764"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "Crash in HeaderParser in dicer"
+            }
+          ]
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/diff@3.5.0",
+          "licenses": [
+            {
+              "spdxExpression": "BSD-3-Clause",
+              "type": "external-depsdev",
+              "value": "BSD-3-Clause"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=0.3.1"
+              }
+            }
+          },
+          "name": "diff",
+          "purl": "pkg:npm/diff@3.5.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.5.0",
+          "vulnerabilities": [
+            {
+              "description": "jsdiff has a Denial of Service vulnerability in parsePatch and applyPatch",
+              "id": "GHSA-73rr-hh4g-fpgx",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/kpdecker/jsdiff/commit/15a1585230748c8ae6f8274c202e0c87309142f5",
+                "https://github.com/kpdecker/jsdiff/issues/653",
+                "https://github.com/kpdecker/jsdiff/pull/649",
+                "https://github.com/kpdecker/jsdiff/security/advisories/GHSA-73rr-hh4g-fpgx",
+                "https://nvd.nist.gov/vuln/detail/CVE-2026-24001"
+              ],
+              "severity": "low",
+              "source": "grype",
+              "title": "jsdiff has a Denial of Service vulnerability in parsePatch and applyPatch"
+            }
+          ]
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/emoji-regex@7.0.3",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "emoji-regex",
+          "purl": "pkg:npm/emoji-regex@7.0.3",
+          "scope": "\u003cnormalized\u003e",
+          "version": "7.0.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/es-to-primitive@\u003cnormalized\u003e",
+            "pkg:npm/function-bind@\u003cnormalized\u003e",
+            "pkg:npm/has-symbols@\u003cnormalized\u003e",
+            "pkg:npm/has@\u003cnormalized\u003e",
+            "pkg:npm/is-callable@\u003cnormalized\u003e",
+            "pkg:npm/is-regex@\u003cnormalized\u003e",
+            "pkg:npm/object-inspect@\u003cnormalized\u003e",
+            "pkg:npm/object-keys@\u003cnormalized\u003e",
+            "pkg:npm/object.assign@\u003cnormalized\u003e",
+            "pkg:npm/string.prototype.trimend@\u003cnormalized\u003e",
+            "pkg:npm/string.prototype.trimstart@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/es-abstract@1.17.6",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e= 0.4"
+              }
+            }
+          },
+          "name": "es-abstract",
+          "purl": "pkg:npm/es-abstract@1.17.6",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.17.6",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/is-callable@\u003cnormalized\u003e",
+            "pkg:npm/is-date-object@\u003cnormalized\u003e",
+            "pkg:npm/is-symbol@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/es-to-primitive@1.2.1",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e= 0.4"
+              }
+            }
+          },
+          "name": "es-to-primitive",
+          "purl": "pkg:npm/es-to-primitive@1.2.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.2.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/escape-string-regexp@1.0.5",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=0.8.0"
+              }
+            }
+          },
+          "name": "escape-string-regexp",
+          "purl": "pkg:npm/escape-string-regexp@1.0.5",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.0.5",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/esprima@4.0.1",
+          "licenses": [
+            {
+              "spdxExpression": "BSD-2-Clause",
+              "type": "external-depsdev",
+              "value": "BSD-2-Clause"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=4"
+              }
+            }
+          },
+          "name": "esprima",
+          "purl": "pkg:npm/esprima@4.0.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "4.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/algo-httpserv@\u003cnormalized\u003e",
+            "pkg:npm/js-yaml@\u003cnormalized\u003e",
+            "pkg:npm/larvitbase@\u003cnormalized\u003e",
+            "pkg:npm/larvitfs@\u003cnormalized\u003e",
+            "pkg:npm/larvitreqparser@\u003cnormalized\u003e",
+            "pkg:npm/larvitrouter@\u003cnormalized\u003e",
+            "pkg:npm/larvitutils@\u003cnormalized\u003e",
+            "pkg:npm/lodash@\u003cnormalized\u003e",
+            "pkg:npm/marked@\u003cnormalized\u003e",
+            "pkg:npm/mocha@\u003cnormalized\u003e",
+            "pkg:npm/node-yaml-config@\u003cnormalized\u003e",
+            "pkg:npm/semver@\u003cnormalized\u003e",
+            "pkg:npm/to@\u003cnormalized\u003e",
+            "pkg:npm/url@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/example-javascript-vulnerable-methods@0.0.1",
+          "licenses": [],
+          "name": "example-javascript-vulnerable-methods",
+          "purl": "pkg:npm/example-javascript-vulnerable-methods@0.0.1",
+          "version": "0.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/to-regex-range@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/fill-range@7.0.1",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=8"
+              }
+            }
+          },
+          "name": "fill-range",
+          "purl": "pkg:npm/fill-range@7.0.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "7.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/locate-path@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/find-up@3.0.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=6"
+              }
+            }
+          },
+          "name": "find-up",
+          "purl": "pkg:npm/find-up@3.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/is-buffer@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/flat@4.1.0",
+          "licenses": [
+            {
+              "spdxExpression": "BSD-3-Clause",
+              "type": "external-depsdev",
+              "value": "BSD-3-Clause"
+            }
+          ],
+          "name": "flat",
+          "purl": "pkg:npm/flat@4.1.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "4.1.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/graceful-fs@\u003cnormalized\u003e",
+            "pkg:npm/jsonfile@\u003cnormalized\u003e",
+            "pkg:npm/universalify@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/fs-extra@7.0.1",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=6 \u003c7 || \u003e=8"
+              }
+            }
+          },
+          "name": "fs-extra",
+          "purl": "pkg:npm/fs-extra@7.0.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "7.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/fs.realpath@1.0.0",
+          "licenses": [
+            {
+              "spdxExpression": "ISC",
+              "type": "external-depsdev",
+              "value": "ISC"
+            }
+          ],
+          "name": "fs.realpath",
+          "purl": "pkg:npm/fs.realpath@1.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/fsevents@2.1.3",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "^8.16.0 || ^10.6.0 || \u003e=11.0.0"
+              },
+              "hasInstallScript": true
+            }
+          },
+          "name": "fsevents",
+          "purl": "pkg:npm/fsevents@2.1.3",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.1.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/function-bind@1.1.1",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "function-bind",
+          "purl": "pkg:npm/function-bind@1.1.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.1.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/get-caller-file@2.0.5",
+          "licenses": [
+            {
+              "spdxExpression": "ISC",
+              "type": "external-depsdev",
+              "value": "ISC"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "6.* || 8.* || \u003e= 10.*"
+              }
+            }
+          },
+          "name": "get-caller-file",
+          "purl": "pkg:npm/get-caller-file@2.0.5",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.0.5",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/is-glob@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/glob-parent@5.1.1",
+          "licenses": [
+            {
+              "spdxExpression": "ISC",
+              "type": "external-depsdev",
+              "value": "ISC"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e= 6"
+              }
+            }
+          },
+          "name": "glob-parent",
+          "purl": "pkg:npm/glob-parent@5.1.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "5.1.1",
+          "vulnerabilities": [
+            {
+              "description": "glob-parent vulnerable to Regular Expression Denial of Service in enclosure regex",
+              "id": "GHSA-ww39-953v-wcq6",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/gulpjs/glob-parent/blob/6ce8d11f2f1ed8e80a9526b1dc8cf3aa71f43474/index.js%23L9",
+                "https://github.com/gulpjs/glob-parent/commit/4a80667c69355c76a572a5892b0f133c8e1f457e",
+                "https://github.com/gulpjs/glob-parent/pull/36",
+                "https://github.com/gulpjs/glob-parent/pull/36/commits/c6db86422a9731d4f3d332ce4a81c27ea6b0ee46",
+                "https://github.com/gulpjs/glob-parent/releases/tag/v5.1.2",
+                "https://nvd.nist.gov/vuln/detail/CVE-2020-28469",
+                "https://snyk.io/vuln/SNYK-JAVA-ORGWEBJARSBOWERGITHUBES128-1059093",
+                "https://snyk.io/vuln/SNYK-JAVA-ORGWEBJARSNPM-1059092",
+                "https://snyk.io/vuln/SNYK-JS-GLOBPARENT-1016905",
+                "https://www.oracle.com/security-alerts/cpujan2022.html"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "glob-parent vulnerable to Regular Expression Denial of Service in enclosure regex"
+            }
+          ]
+        },
+        {
+          "dependencies": [
+            "pkg:npm/fs.realpath@\u003cnormalized\u003e",
+            "pkg:npm/inflight@\u003cnormalized\u003e",
+            "pkg:npm/inherits@\u003cnormalized\u003e",
+            "pkg:npm/minimatch@\u003cnormalized\u003e",
+            "pkg:npm/once@\u003cnormalized\u003e",
+            "pkg:npm/path-is-absolute@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/glob@7.1.3",
+          "licenses": [
+            {
+              "spdxExpression": "ISC",
+              "type": "external-depsdev",
+              "value": "ISC"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "*"
+              }
+            }
+          },
+          "name": "glob",
+          "purl": "pkg:npm/glob@7.1.3",
+          "scope": "\u003cnormalized\u003e",
+          "version": "7.1.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/graceful-fs@4.2.3",
+          "licenses": [
+            {
+              "spdxExpression": "ISC",
+              "type": "external-depsdev",
+              "value": "ISC"
+            }
+          ],
+          "name": "graceful-fs",
+          "purl": "pkg:npm/graceful-fs@4.2.3",
+          "scope": "\u003cnormalized\u003e",
+          "version": "4.2.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/growl@1.10.5",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=4.x"
+              }
+            }
+          },
+          "name": "growl",
+          "purl": "pkg:npm/growl@1.10.5",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.10.5",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/handy@0.0.13",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e= 0.8.0"
+              }
+            }
+          },
+          "name": "handy",
+          "purl": "pkg:npm/handy@0.0.13",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.0.13",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/has-flag@3.0.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=4"
+              }
+            }
+          },
+          "name": "has-flag",
+          "purl": "pkg:npm/has-flag@3.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/has-symbols@1.0.1",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e= 0.4"
+              }
+            }
+          },
+          "name": "has-symbols",
+          "purl": "pkg:npm/has-symbols@1.0.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/function-bind@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/has@1.0.3",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e= 0.4.0"
+              }
+            }
+          },
+          "name": "has",
+          "purl": "pkg:npm/has@1.0.3",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.0.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/he@1.2.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "he",
+          "purl": "pkg:npm/he@1.2.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.2.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/htmlparser@1.7.7",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=0.1.33"
+              }
+            }
+          },
+          "name": "htmlparser",
+          "purl": "pkg:npm/htmlparser@1.7.7",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.7.7",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/once@\u003cnormalized\u003e",
+            "pkg:npm/wrappy@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/inflight@1.0.6",
+          "licenses": [
+            {
+              "spdxExpression": "ISC",
+              "type": "external-depsdev",
+              "value": "ISC"
+            }
+          ],
+          "name": "inflight",
+          "purl": "pkg:npm/inflight@1.0.6",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.0.6",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/inherits@2.0.4",
+          "licenses": [
+            {
+              "spdxExpression": "ISC",
+              "type": "external-depsdev",
+              "value": "ISC"
+            }
+          ],
+          "name": "inherits",
+          "purl": "pkg:npm/inherits@2.0.4",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.0.4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/binary-extensions@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/is-binary-path@2.1.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=8"
+              }
+            }
+          },
+          "name": "is-binary-path",
+          "purl": "pkg:npm/is-binary-path@2.1.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.1.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/is-buffer@2.0.4",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=4"
+              }
+            }
+          },
+          "name": "is-buffer",
+          "purl": "pkg:npm/is-buffer@2.0.4",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.0.4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/is-callable@1.2.2",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e= 0.4"
+              }
+            }
+          },
+          "name": "is-callable",
+          "purl": "pkg:npm/is-callable@1.2.2",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.2.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/is-date-object@1.0.2",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e= 0.4"
+              }
+            }
+          },
+          "name": "is-date-object",
+          "purl": "pkg:npm/is-date-object@1.0.2",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.0.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/is-extglob@2.1.1",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=0.10.0"
+              }
+            }
+          },
+          "name": "is-extglob",
+          "purl": "pkg:npm/is-extglob@2.1.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.1.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/is-fullwidth-code-point@2.0.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=4"
+              }
+            }
+          },
+          "name": "is-fullwidth-code-point",
+          "purl": "pkg:npm/is-fullwidth-code-point@2.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/is-extglob@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/is-glob@4.0.1",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=0.10.0"
+              }
+            }
+          },
+          "name": "is-glob",
+          "purl": "pkg:npm/is-glob@4.0.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "4.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/is-number@7.0.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=0.12.0"
+              }
+            }
+          },
+          "name": "is-number",
+          "purl": "pkg:npm/is-number@7.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "7.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/has-symbols@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/is-regex@1.1.1",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e= 0.4"
+              }
+            }
+          },
+          "name": "is-regex",
+          "purl": "pkg:npm/is-regex@1.1.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.1.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/has-symbols@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/is-symbol@1.0.3",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e= 0.4"
+              }
+            }
+          },
+          "name": "is-symbol",
+          "purl": "pkg:npm/is-symbol@1.0.3",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.0.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/is@3.3.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "*"
+              }
+            }
+          },
+          "name": "is",
+          "purl": "pkg:npm/is@3.3.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/isarray@0.0.1",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "isarray",
+          "purl": "pkg:npm/isarray@0.0.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/isexe@2.0.0",
+          "licenses": [
+            {
+              "spdxExpression": "ISC",
+              "type": "external-depsdev",
+              "value": "ISC"
+            }
+          ],
+          "name": "isexe",
+          "purl": "pkg:npm/isexe@2.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/argparse@\u003cnormalized\u003e",
+            "pkg:npm/esprima@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/js-yaml@3.13.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "js-yaml",
+          "purl": "pkg:npm/js-yaml@3.13.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.13.0",
+          "vulnerabilities": [
+            {
+              "description": "Code Injection in js-yaml",
+              "id": "GHSA-8j8c-7jfh-h6hx",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/nodeca/js-yaml/pull/480",
+                "https://github.com/nodeca/js-yaml/pull/480/commits/e18afbf1edcafb7add2c4c7b22abc8d6ebc2fa61",
+                "https://www.npmjs.com/advisories/813"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "Code Injection in js-yaml"
+            },
+            {
+              "description": "js-yaml has prototype pollution in merge (\u003c\u003c)",
+              "id": "GHSA-mh29-5h37-fv8m",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/nodeca/js-yaml/commit/383665ff4248ec2192d1274e934462bb30426879",
+                "https://github.com/nodeca/js-yaml/commit/5278870a17454fe8621dbd8c445c412529525266",
+                "https://github.com/nodeca/js-yaml/issues/730#issuecomment-3549635876",
+                "https://github.com/nodeca/js-yaml/security/advisories/GHSA-mh29-5h37-fv8m",
+                "https://nvd.nist.gov/vuln/detail/CVE-2025-64718"
+              ],
+              "severity": "medium",
+              "source": "grype",
+              "title": "js-yaml has prototype pollution in merge (\u003c\u003c)"
+            }
+          ]
+        },
+        {
+          "dependencies": [
+            "pkg:npm/argparse@\u003cnormalized\u003e",
+            "pkg:npm/esprima@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/js-yaml@3.13.1",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "js-yaml",
+          "purl": "pkg:npm/js-yaml@3.13.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.13.1",
+          "vulnerabilities": [
+            {
+              "description": "js-yaml has prototype pollution in merge (\u003c\u003c)",
+              "id": "GHSA-mh29-5h37-fv8m",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/nodeca/js-yaml/commit/383665ff4248ec2192d1274e934462bb30426879",
+                "https://github.com/nodeca/js-yaml/commit/5278870a17454fe8621dbd8c445c412529525266",
+                "https://github.com/nodeca/js-yaml/issues/730#issuecomment-3549635876",
+                "https://github.com/nodeca/js-yaml/security/advisories/GHSA-mh29-5h37-fv8m",
+                "https://nvd.nist.gov/vuln/detail/CVE-2025-64718"
+              ],
+              "severity": "medium",
+              "source": "grype",
+              "title": "js-yaml has prototype pollution in merge (\u003c\u003c)"
+            }
+          ]
+        },
+        {
+          "dependencies": [
+            "pkg:npm/graceful-fs@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/jsonfile@4.0.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "jsonfile",
+          "purl": "pkg:npm/jsonfile@4.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "4.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/larvitutils@\u003cnormalized\u003e",
+            "pkg:npm/uuid@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/larvitbase@3.1.3",
+          "licenses": [
+            {
+              "spdxExpression": "ISC",
+              "type": "external-depsdev",
+              "value": "ISC"
+            }
+          ],
+          "name": "larvitbase",
+          "purl": "pkg:npm/larvitbase@3.1.3",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.1.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/larvitutils@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/larvitfs@2.3.1",
+          "licenses": [
+            {
+              "spdxExpression": "ISC",
+              "type": "external-depsdev",
+              "value": "ISC"
+            }
+          ],
+          "name": "larvitfs",
+          "purl": "pkg:npm/larvitfs@2.3.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.3.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/async@\u003cnormalized\u003e",
+            "pkg:npm/busboy@\u003cnormalized\u003e",
+            "pkg:npm/fs-extra@\u003cnormalized\u003e",
+            "pkg:npm/larvitutils@\u003cnormalized\u003e",
+            "pkg:npm/qs@\u003cnormalized\u003e",
+            "pkg:npm/uuid@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/larvitreqparser@0.2.1",
+          "licenses": [
+            {
+              "spdxExpression": "ISC",
+              "type": "external-depsdev",
+              "value": "ISC"
+            }
+          ],
+          "name": "larvitreqparser",
+          "purl": "pkg:npm/larvitreqparser@0.2.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.2.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/larvitfs@\u003cnormalized\u003e",
+            "pkg:npm/larvitutils@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/larvitrouter@3.0.2",
+          "licenses": [
+            {
+              "spdxExpression": "ISC",
+              "type": "external-depsdev",
+              "value": "ISC"
+            }
+          ],
+          "name": "larvitrouter",
+          "purl": "pkg:npm/larvitrouter@3.0.2",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.0.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/larvitutils@2.3.0",
+          "licenses": [
+            {
+              "spdxExpression": "ISC",
+              "type": "external-depsdev",
+              "value": "ISC"
+            }
+          ],
+          "name": "larvitutils",
+          "purl": "pkg:npm/larvitutils@2.3.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/p-locate@\u003cnormalized\u003e",
+            "pkg:npm/path-exists@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/locate-path@3.0.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=6"
+              }
+            }
+          },
+          "name": "locate-path",
+          "purl": "pkg:npm/locate-path@3.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/lodash@4.17.15",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "lodash",
+          "purl": "pkg:npm/lodash@4.17.15",
+          "scope": "\u003cnormalized\u003e",
+          "version": "4.17.15",
+          "vulnerabilities": [
+            {
+              "description": "Regular Expression Denial of Service (ReDoS) in lodash",
+              "id": "GHSA-29mw-wpgm-hmr9",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://cert-portal.siemens.com/productcert/pdf/ssa-637483.pdf",
+                "https://github.com/github/advisory-database/pull/6139",
+                "https://github.com/lodash/lodash/blob/npm/trimEnd.js%23L8",
+                "https://github.com/lodash/lodash/commit/c4847ebe7d14540bb28a8b932a9ce1b9ecbfee1a",
+                "https://github.com/lodash/lodash/pull/5065",
+                "https://github.com/lodash/lodash/pull/5065/commits/02906b8191d3c100c193fe6f7b27d1c40f200bb7",
+                "https://github.com/rubysec/ruby-advisory-db/blob/master/gems/lodash-rails/CVE-2020-28500.yml",
+                "https://nvd.nist.gov/vuln/detail/CVE-2020-28500",
+                "https://security.netapp.com/advisory/ntap-20210312-0006",
+                "https://snyk.io/vuln/SNYK-JAVA-ORGFUJIONWEBJARS-1074896",
+                "https://snyk.io/vuln/SNYK-JAVA-ORGWEBJARS-1074894",
+                "https://snyk.io/vuln/SNYK-JAVA-ORGWEBJARSBOWER-1074892",
+                "https://snyk.io/vuln/SNYK-JAVA-ORGWEBJARSBOWERGITHUBLODASH-1074895",
+                "https://snyk.io/vuln/SNYK-JAVA-ORGWEBJARSNPM-1074893",
+                "https://snyk.io/vuln/SNYK-JS-LODASH-1018905",
+                "https://www.oracle.com//security-alerts/cpujul2021.html",
+                "https://www.oracle.com/security-alerts/cpujan2022.html",
+                "https://www.oracle.com/security-alerts/cpujul2022.html",
+                "https://www.oracle.com/security-alerts/cpuoct2021.html"
+              ],
+              "severity": "medium",
+              "source": "grype",
+              "title": "Regular Expression Denial of Service (ReDoS) in lodash"
+            },
+            {
+              "description": "Command Injection in lodash",
+              "id": "GHSA-35jh-r3h4-6jhm",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://cert-portal.siemens.com/productcert/pdf/ssa-637483.pdf",
+                "https://github.com/lodash/lodash/blob/ddfd9b11a0126db2302cb70ec9973b66baec0975/lodash.js#L14851",
+                "https://github.com/lodash/lodash/commit/3469357cff396a26c363f8c1b5a91dde28ba4b1c",
+                "https://github.com/rubysec/ruby-advisory-db/blob/master/gems/lodash-rails/CVE-2021-23337.yml",
+                "https://nvd.nist.gov/vuln/detail/CVE-2021-23337",
+                "https://security.netapp.com/advisory/ntap-20210312-0006",
+                "https://snyk.io/vuln/SNYK-JAVA-ORGFUJIONWEBJARS-1074932",
+                "https://snyk.io/vuln/SNYK-JAVA-ORGWEBJARS-1074930",
+                "https://snyk.io/vuln/SNYK-JAVA-ORGWEBJARSBOWER-1074928",
+                "https://snyk.io/vuln/SNYK-JAVA-ORGWEBJARSBOWERGITHUBLODASH-1074931",
+                "https://snyk.io/vuln/SNYK-JAVA-ORGWEBJARSNPM-1074929",
+                "https://snyk.io/vuln/SNYK-JS-LODASH-1040724",
+                "https://www.oracle.com//security-alerts/cpujul2021.html",
+                "https://www.oracle.com/security-alerts/cpujan2022.html",
+                "https://www.oracle.com/security-alerts/cpujul2022.html",
+                "https://www.oracle.com/security-alerts/cpuoct2021.html"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "Command Injection in lodash"
+            },
+            {
+              "description": "lodash vulnerable to Prototype Pollution via array path bypass in `_.unset` and `_.omit`",
+              "id": "GHSA-f23m-r3pf-42rh",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/lodash/lodash/security/advisories/GHSA-f23m-r3pf-42rh",
+                "https://github.com/lodash/lodash/security/advisories/GHSA-xxjr-mmjv-4gpg",
+                "https://nvd.nist.gov/vuln/detail/CVE-2026-2950"
+              ],
+              "severity": "medium",
+              "source": "grype",
+              "title": "lodash vulnerable to Prototype Pollution via array path bypass in `_.unset` and `_.omit`"
+            },
+            {
+              "description": "Prototype Pollution in lodash",
+              "id": "GHSA-p6mc-m468-83gw",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/github/advisory-database/pull/2884",
+                "https://github.com/lodash/lodash/commit/c84fe82760fb2d3e03a63379b297a1cc1a2fce12",
+                "https://github.com/lodash/lodash/issues/4744",
+                "https://github.com/lodash/lodash/issues/4874",
+                "https://github.com/lodash/lodash/wiki/Changelog#v41719",
+                "https://github.com/rubysec/ruby-advisory-db/blob/master/gems/lodash-rails/CVE-2020-8203.yml",
+                "https://hackerone.com/reports/712065",
+                "https://hackerone.com/reports/864701",
+                "https://nvd.nist.gov/vuln/detail/CVE-2020-8203",
+                "https://security.netapp.com/advisory/ntap-20200724-0006",
+                "https://web.archive.org/web/20210914001339/https://github.com/lodash/lodash/issues/4744"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "Prototype Pollution in lodash"
+            },
+            {
+              "description": "lodash vulnerable to Code Injection via `_.template` imports key names",
+              "id": "GHSA-r5fr-rjxr-66jc",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://cna.openjsf.org/security-advisories.html",
+                "https://github.com/advisories/GHSA-35jh-r3h4-6jhm",
+                "https://github.com/lodash/lodash/commit/3469357cff396a26c363f8c1b5a91dde28ba4b1c",
+                "https://github.com/lodash/lodash/security/advisories/GHSA-r5fr-rjxr-66jc",
+                "https://nvd.nist.gov/vuln/detail/CVE-2026-4800"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "lodash vulnerable to Code Injection via `_.template` imports key names"
+            },
+            {
+              "description": "Lodash has Prototype Pollution Vulnerability in `_.unset` and `_.omit` functions",
+              "id": "GHSA-xxjr-mmjv-4gpg",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/lodash/lodash/commit/edadd452146f7e4bad4ea684e955708931d84d81",
+                "https://github.com/lodash/lodash/security/advisories/GHSA-xxjr-mmjv-4gpg",
+                "https://nvd.nist.gov/vuln/detail/CVE-2025-13465"
+              ],
+              "severity": "medium",
+              "source": "grype",
+              "title": "Lodash has Prototype Pollution Vulnerability in `_.unset` and `_.omit` functions"
+            }
+          ]
+        },
+        {
+          "dependencies": [
+            "pkg:npm/chalk@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/log-symbols@3.0.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=8"
+              }
+            }
+          },
+          "name": "log-symbols",
+          "purl": "pkg:npm/log-symbols@3.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/marked@0.3.19",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=0.10.0"
+              }
+            }
+          },
+          "name": "marked",
+          "purl": "pkg:npm/marked@0.3.19",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.3.19",
+          "vulnerabilities": [
+            {
+              "description": "Inefficient Regular Expression Complexity in marked",
+              "id": "GHSA-5v2h-r2cx-5xgj",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/markedjs/marked/commit/8f806573a3f6c6b7a39b8cdb66ab5ebb8d55a5f5",
+                "https://github.com/markedjs/marked/commit/c4a3ccd344b6929afa8a1d50ac54a721e57012c0",
+                "https://github.com/markedjs/marked/security/advisories/GHSA-5v2h-r2cx-5xgj",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/AIXDMC3CSHYW3YWVSQOXAWLUYQHAO5UX/",
+                "https://nvd.nist.gov/vuln/detail/CVE-2022-21681"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "Inefficient Regular Expression Complexity in marked"
+            },
+            {
+              "description": "Inefficient Regular Expression Complexity in marked",
+              "id": "GHSA-rrrm-qjm4-v8hf",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/markedjs/marked/commit/c4a3ccd344b6929afa8a1d50ac54a721e57012c0",
+                "https://github.com/markedjs/marked/releases/tag/v4.0.10",
+                "https://github.com/markedjs/marked/security/advisories/GHSA-rrrm-qjm4-v8hf",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/AIXDMC3CSHYW3YWVSQOXAWLUYQHAO5UX/",
+                "https://nvd.nist.gov/vuln/detail/CVE-2022-21680"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "Inefficient Regular Expression Complexity in marked"
+            },
+            {
+              "description": "Marked ReDoS due to email addresses being evaluated in quadratic time",
+              "id": "GHSA-xf5p-87ch-gxw2",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/markedjs/marked/commit/b15e42b67cec9ded8505e9d68bb8741ad7a9590d",
+                "https://github.com/markedjs/marked/pull/1460",
+                "https://github.com/markedjs/marked/releases/tag/v0.6.2",
+                "https://snyk.io/vuln/SNYK-JS-MARKED-174116",
+                "https://www.npmjs.com/advisories/812"
+              ],
+              "severity": "medium",
+              "source": "grype",
+              "title": "Marked ReDoS due to email addresses being evaluated in quadratic time"
+            }
+          ]
+        },
+        {
+          "dependencies": [
+            "pkg:npm/brace-expansion@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/minimatch@3.0.4",
+          "licenses": [
+            {
+              "spdxExpression": "ISC",
+              "type": "external-depsdev",
+              "value": "ISC"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "*"
+              }
+            }
+          },
+          "name": "minimatch",
+          "purl": "pkg:npm/minimatch@3.0.4",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.0.4",
+          "vulnerabilities": [
+            {
+              "description": "minimatch ReDoS: nested *() extglobs generate catastrophically backtracking regular expressions",
+              "id": "GHSA-23c5-xmqv-rm74",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/isaacs/minimatch/commit/11d0df6165d15a955462316b26d52e5efae06fce",
+                "https://github.com/isaacs/minimatch/security/advisories/GHSA-23c5-xmqv-rm74",
+                "https://nvd.nist.gov/vuln/detail/CVE-2026-27904"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "minimatch ReDoS: nested *() extglobs generate catastrophically backtracking regular expressions"
+            },
+            {
+              "description": "minimatch has a ReDoS via repeated wildcards with non-matching literal in pattern",
+              "id": "GHSA-3ppc-4f35-3m26",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/isaacs/minimatch/commit/2e111f3a79abc00fa73110195de2c0f2351904f5",
+                "https://github.com/isaacs/minimatch/security/advisories/GHSA-3ppc-4f35-3m26",
+                "https://nvd.nist.gov/vuln/detail/CVE-2026-26996"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "minimatch has a ReDoS via repeated wildcards with non-matching literal in pattern"
+            },
+            {
+              "description": "minimatch has ReDoS: matchOne() combinatorial backtracking via multiple non-adjacent GLOBSTAR segments",
+              "id": "GHSA-7r86-cg39-jmmj",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/isaacs/minimatch/commit/0bf499aa45f5059b56809cc3b75ff3eafeb8d748",
+                "https://github.com/isaacs/minimatch/security/advisories/GHSA-7r86-cg39-jmmj",
+                "https://nvd.nist.gov/vuln/detail/CVE-2026-27903"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "minimatch has ReDoS: matchOne() combinatorial backtracking via multiple non-adjacent GLOBSTAR segments"
+            },
+            {
+              "description": "minimatch ReDoS vulnerability",
+              "id": "GHSA-f8q6-p94x-37v3",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/grafana/grafana-image-renderer/issues/329",
+                "https://github.com/isaacs/minimatch/commit/a8763f4388e51956be62dc6025cec1126beeb5e6",
+                "https://github.com/nodejs/node/issues/42510",
+                "https://lists.debian.org/debian-lts-announce/2023/01/msg00011.html",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/MTEUUTNIEBHGKUKKLNUZSV7IEP6IP3Q3",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/UM6XJ73Q3NAM5KSGCOKJ2ZIA6GUWUJLK",
+                "https://nvd.nist.gov/vuln/detail/CVE-2022-3517"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "minimatch ReDoS vulnerability"
+            }
+          ]
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/minimist@0.0.10",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "minimist",
+          "purl": "pkg:npm/minimist@0.0.10",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.0.10",
+          "vulnerabilities": [
+            {
+              "description": "Prototype Pollution in minimist",
+              "id": "GHSA-vh95-rmgr-6w4m",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "http://lists.opensuse.org/opensuse-security-announce/2020-06/msg00024.html",
+                "https://github.com/minimistjs/minimist/commit/10bd4cdf49d9686d48214be9d579a9cdfda37c68",
+                "https://github.com/minimistjs/minimist/commit/38a4d1caead72ef99e824bb420a2528eec03d9ab",
+                "https://github.com/minimistjs/minimist/commit/4cf1354839cb972e38496d35e12f806eea92c11f#diff-a1e0ee62c91705696ddb71aa30ad4f95",
+                "https://github.com/minimistjs/minimist/commit/63e7ed05aa4b1889ec2f3b196426db4500cbda94",
+                "https://nvd.nist.gov/vuln/detail/CVE-2020-7598",
+                "https://snyk.io/vuln/SNYK-JS-MINIMIST-559764",
+                "https://www.npmjs.com/advisories/1179"
+              ],
+              "severity": "medium",
+              "source": "grype",
+              "title": "Prototype Pollution in minimist"
+            },
+            {
+              "description": "Prototype Pollution in minimist",
+              "id": "GHSA-xvch-5gv4-984h",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/Marynk/JavaScript-vulnerability-detection/blob/main/minimist%20PoC.zip",
+                "https://github.com/minimistjs/minimist/commit/34e20b8461118608703d6485326abbb8e35e1703",
+                "https://github.com/minimistjs/minimist/commit/bc8ecee43875261f4f17eb20b1243d3ed15e70eb",
+                "https://github.com/minimistjs/minimist/commit/c2b981977fa834b223b408cfb860f933c9811e4d",
+                "https://github.com/minimistjs/minimist/commit/ef9153fc52b6cea0744b2239921c5dcae4697f11",
+                "https://github.com/minimistjs/minimist/commits/v0.2.4",
+                "https://github.com/minimistjs/minimist/issues/11",
+                "https://github.com/minimistjs/minimist/pull/24",
+                "https://github.com/substack/minimist/blob/master/index.js#L69",
+                "https://github.com/substack/minimist/issues/164",
+                "https://nvd.nist.gov/vuln/detail/CVE-2021-44906",
+                "https://security.netapp.com/advisory/ntap-20240621-0006",
+                "https://snyk.io/vuln/SNYK-JS-MINIMIST-559764",
+                "https://stackoverflow.com/questions/8588563/adding-custom-properties-to-a-function/20278068#20278068"
+              ],
+              "severity": "critical",
+              "source": "grype",
+              "title": "Prototype Pollution in minimist"
+            }
+          ]
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/minimist@1.2.5",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "minimist",
+          "purl": "pkg:npm/minimist@1.2.5",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.2.5",
+          "vulnerabilities": [
+            {
+              "description": "Prototype Pollution in minimist",
+              "id": "GHSA-xvch-5gv4-984h",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/Marynk/JavaScript-vulnerability-detection/blob/main/minimist%20PoC.zip",
+                "https://github.com/minimistjs/minimist/commit/34e20b8461118608703d6485326abbb8e35e1703",
+                "https://github.com/minimistjs/minimist/commit/bc8ecee43875261f4f17eb20b1243d3ed15e70eb",
+                "https://github.com/minimistjs/minimist/commit/c2b981977fa834b223b408cfb860f933c9811e4d",
+                "https://github.com/minimistjs/minimist/commit/ef9153fc52b6cea0744b2239921c5dcae4697f11",
+                "https://github.com/minimistjs/minimist/commits/v0.2.4",
+                "https://github.com/minimistjs/minimist/issues/11",
+                "https://github.com/minimistjs/minimist/pull/24",
+                "https://github.com/substack/minimist/blob/master/index.js#L69",
+                "https://github.com/substack/minimist/issues/164",
+                "https://nvd.nist.gov/vuln/detail/CVE-2021-44906",
+                "https://security.netapp.com/advisory/ntap-20240621-0006",
+                "https://snyk.io/vuln/SNYK-JS-MINIMIST-559764",
+                "https://stackoverflow.com/questions/8588563/adding-custom-properties-to-a-function/20278068#20278068"
+              ],
+              "severity": "critical",
+              "source": "grype",
+              "title": "Prototype Pollution in minimist"
+            }
+          ]
+        },
+        {
+          "dependencies": [
+            "pkg:npm/minimist@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/mkdirp@0.5.5",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "mkdirp",
+          "purl": "pkg:npm/mkdirp@0.5.5",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.5.5",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/ansi-colors@\u003cnormalized\u003e",
+            "pkg:npm/browser-stdout@\u003cnormalized\u003e",
+            "pkg:npm/chokidar@\u003cnormalized\u003e",
+            "pkg:npm/debug@\u003cnormalized\u003e",
+            "pkg:npm/diff@\u003cnormalized\u003e",
+            "pkg:npm/escape-string-regexp@\u003cnormalized\u003e",
+            "pkg:npm/find-up@\u003cnormalized\u003e",
+            "pkg:npm/glob@\u003cnormalized\u003e",
+            "pkg:npm/growl@\u003cnormalized\u003e",
+            "pkg:npm/he@\u003cnormalized\u003e",
+            "pkg:npm/js-yaml@\u003cnormalized\u003e",
+            "pkg:npm/log-symbols@\u003cnormalized\u003e",
+            "pkg:npm/minimatch@\u003cnormalized\u003e",
+            "pkg:npm/mkdirp@\u003cnormalized\u003e",
+            "pkg:npm/ms@\u003cnormalized\u003e",
+            "pkg:npm/node-environment-flags@\u003cnormalized\u003e",
+            "pkg:npm/object.assign@\u003cnormalized\u003e",
+            "pkg:npm/strip-json-comments@\u003cnormalized\u003e",
+            "pkg:npm/supports-color@\u003cnormalized\u003e",
+            "pkg:npm/which@\u003cnormalized\u003e",
+            "pkg:npm/wide-align@\u003cnormalized\u003e",
+            "pkg:npm/yargs-parser@\u003cnormalized\u003e",
+            "pkg:npm/yargs-unparser@\u003cnormalized\u003e",
+            "pkg:npm/yargs@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/mocha@7.2.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e= 8.10.0"
+              }
+            }
+          },
+          "name": "mocha",
+          "purl": "pkg:npm/mocha@7.2.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "7.2.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/ms@2.1.1",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "ms",
+          "purl": "pkg:npm/ms@2.1.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.1.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/object.getownpropertydescriptors@\u003cnormalized\u003e",
+            "pkg:npm/semver@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/node-environment-flags@1.0.6",
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "external-depsdev",
+              "value": "Apache-2.0"
+            }
+          ],
+          "name": "node-environment-flags",
+          "purl": "pkg:npm/node-environment-flags@1.0.6",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.0.6",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/js-yaml@\u003cnormalized\u003e",
+            "pkg:npm/node.extend@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/node-yaml-config@0.0.5",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "node-yaml-config",
+          "purl": "pkg:npm/node-yaml-config@0.0.5",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.0.5",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/has@\u003cnormalized\u003e",
+            "pkg:npm/is@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/node.extend@2.0.2",
+          "licenses": [
+            {
+              "spdxExpression": "GPL-2.0 OR MIT",
+              "type": "external-depsdev",
+              "value": "GPL-2.0 OR MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=0.4.0"
+              }
+            }
+          },
+          "name": "node.extend",
+          "purl": "pkg:npm/node.extend@2.0.2",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.0.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/normalize-path@3.0.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=0.10.0"
+              }
+            }
+          },
+          "name": "normalize-path",
+          "purl": "pkg:npm/normalize-path@3.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/object-inspect@1.8.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "object-inspect",
+          "purl": "pkg:npm/object-inspect@1.8.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.8.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/object-keys@1.1.1",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e= 0.4"
+              }
+            }
+          },
+          "name": "object-keys",
+          "purl": "pkg:npm/object-keys@1.1.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.1.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/define-properties@\u003cnormalized\u003e",
+            "pkg:npm/function-bind@\u003cnormalized\u003e",
+            "pkg:npm/has-symbols@\u003cnormalized\u003e",
+            "pkg:npm/object-keys@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/object.assign@4.1.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e= 0.4"
+              }
+            }
+          },
+          "name": "object.assign",
+          "purl": "pkg:npm/object.assign@4.1.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "4.1.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/define-properties@\u003cnormalized\u003e",
+            "pkg:npm/es-abstract@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/object.getownpropertydescriptors@2.1.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e= 0.8"
+              }
+            }
+          },
+          "name": "object.getownpropertydescriptors",
+          "purl": "pkg:npm/object.getownpropertydescriptors@2.1.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.1.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/wrappy@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/once@1.4.0",
+          "licenses": [
+            {
+              "spdxExpression": "ISC",
+              "type": "external-depsdev",
+              "value": "ISC"
+            }
+          ],
+          "name": "once",
+          "purl": "pkg:npm/once@1.4.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.4.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/minimist@\u003cnormalized\u003e",
+            "pkg:npm/wordwrap@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/optimist@0.6.1",
+          "licenses": [
+            {
+              "spdxExpression": "MIT OR X11",
+              "type": "external-depsdev",
+              "value": "MIT OR X11"
+            }
+          ],
+          "name": "optimist",
+          "purl": "pkg:npm/optimist@0.6.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.6.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/p-try@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/p-limit@2.3.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=6"
+              }
+            }
+          },
+          "name": "p-limit",
+          "purl": "pkg:npm/p-limit@2.3.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/p-limit@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/p-locate@3.0.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=6"
+              }
+            }
+          },
+          "name": "p-locate",
+          "purl": "pkg:npm/p-locate@3.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/p-try@2.2.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=6"
+              }
+            }
+          },
+          "name": "p-try",
+          "purl": "pkg:npm/p-try@2.2.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.2.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/path-exists@3.0.0",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=4"
+              }
+            }
+          },
+          "name": "path-exists",
+          "purl": "pkg:npm/path-exists@3.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/path-is-absolute@1.0.1",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=0.10.0"
+              }
+            }
+          },
+          "name": "path-is-absolute",
+          "purl": "pkg:npm/path-is-absolute@1.0.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/picomatch@2.2.2",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=8.6"
+              }
+            }
+          },
+          "name": "picomatch",
+          "purl": "pkg:npm/picomatch@2.2.2",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.2.2",
+          "vulnerabilities": [
+            {
+              "description": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
+              "id": "GHSA-3v7f-55p6-f55p",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/micromatch/picomatch/commit/4516eb521f13a46b2fe1a1d2c9ef6b20ddc0e903",
+                "https://github.com/micromatch/picomatch/security/advisories/GHSA-3v7f-55p6-f55p",
+                "https://nvd.nist.gov/vuln/detail/CVE-2026-33672"
+              ],
+              "severity": "medium",
+              "source": "grype",
+              "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching"
+            },
+            {
+              "description": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
+              "id": "GHSA-c2c7-rcm5-vvqj",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/micromatch/picomatch/commit/5eceecd27543b8e056b9307d69e105ea03618a7d",
+                "https://github.com/micromatch/picomatch/security/advisories/GHSA-c2c7-rcm5-vvqj",
+                "https://nvd.nist.gov/vuln/detail/CVE-2026-33671"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers"
+            }
+          ]
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/punycode@1.3.2",
+          "licenses": [],
+          "name": "punycode",
+          "purl": "pkg:npm/punycode@1.3.2",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.3.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/qs@6.9.1",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=0.6"
+              }
+            }
+          },
+          "name": "qs",
+          "purl": "pkg:npm/qs@6.9.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "6.9.1",
+          "vulnerabilities": [
+            {
+              "description": "qs's arrayLimit bypass in its bracket notation allows DoS via memory exhaustion",
+              "id": "GHSA-6rw7-vpxm-498p",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/ljharb/qs/commit/3086902ecf7f088d0d1803887643ac6c03d415b9",
+                "https://github.com/ljharb/qs/security/advisories/GHSA-6rw7-vpxm-498p",
+                "https://nvd.nist.gov/vuln/detail/CVE-2025-15284"
+              ],
+              "severity": "medium",
+              "source": "grype",
+              "title": "qs's arrayLimit bypass in its bracket notation allows DoS via memory exhaustion"
+            },
+            {
+              "description": "qs vulnerable to Prototype Pollution",
+              "id": "GHSA-hrpp-h998-j3pp",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/expressjs/express/releases/tag/4.17.3",
+                "https://github.com/ljharb/qs/commit/4310742efbd8c03f6495f07906b45213da0a32ec",
+                "https://github.com/ljharb/qs/commit/727ef5d34605108acb3513f72d5435972ed15b68",
+                "https://github.com/ljharb/qs/commit/73205259936317b40f447c5cdb71c5b341848e1b",
+                "https://github.com/ljharb/qs/commit/8b4cc14cda94a5c89341b77e5fe435ec6c41be2d",
+                "https://github.com/ljharb/qs/commit/ba24e74dd17931f825adb52f5633e48293b584e1",
+                "https://github.com/ljharb/qs/commit/e799ba57e573a30c14b67c1889c7c04d508b9105",
+                "https://github.com/ljharb/qs/commit/ed0f5dcbef4b168a8ae299d78b1e4a2e9b1baf1f",
+                "https://github.com/ljharb/qs/commit/f945393cfe442fe8c6e62b4156fd35452c0686ee",
+                "https://github.com/ljharb/qs/commit/fc3682776670524a42e19709ec4a8138d0d7afda",
+                "https://github.com/ljharb/qs/pull/428",
+                "https://github.com/n8tz/CVE-2022-24999",
+                "https://lists.debian.org/debian-lts-announce/2023/01/msg00039.html",
+                "https://nvd.nist.gov/vuln/detail/CVE-2022-24999",
+                "https://security.netapp.com/advisory/ntap-20230908-0005"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "qs vulnerable to Prototype Pollution"
+            },
+            {
+              "description": "qs's arrayLimit bypass in comma parsing allows denial of service",
+              "id": "GHSA-w7fw-mjwx-w883",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/ljharb/qs/commit/f6a7abff1f13d644db9b05fe4f2c98ada6bf8482",
+                "https://github.com/ljharb/qs/security/advisories/GHSA-w7fw-mjwx-w883",
+                "https://nvd.nist.gov/vuln/detail/CVE-2026-2391"
+              ],
+              "severity": "low",
+              "source": "grype",
+              "title": "qs's arrayLimit bypass in comma parsing allows denial of service"
+            }
+          ]
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/querystring@0.2.0",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=0.4.x"
+              }
+            }
+          },
+          "name": "querystring",
+          "purl": "pkg:npm/querystring@0.2.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.2.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/core-util-is@\u003cnormalized\u003e",
+            "pkg:npm/inherits@\u003cnormalized\u003e",
+            "pkg:npm/isarray@\u003cnormalized\u003e",
+            "pkg:npm/string_decoder@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/readable-stream@1.1.14",
+          "licenses": [],
+          "name": "readable-stream",
+          "purl": "pkg:npm/readable-stream@1.1.14",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.1.14",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/picomatch@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/readdirp@3.2.0",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e= 8"
+              }
+            }
+          },
+          "name": "readdirp",
+          "purl": "pkg:npm/readdirp@3.2.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.2.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/require-directory@2.1.1",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=0.10.0"
+              }
+            }
+          },
+          "name": "require-directory",
+          "purl": "pkg:npm/require-directory@2.1.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.1.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/require-main-filename@2.0.0",
+          "licenses": [],
+          "name": "require-main-filename",
+          "purl": "pkg:npm/require-main-filename@2.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/semver@5.7.1",
+          "licenses": [],
+          "name": "semver",
+          "purl": "pkg:npm/semver@5.7.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "5.7.1",
+          "vulnerabilities": [
+            {
+              "description": "semver vulnerable to Regular Expression Denial of Service",
+              "id": "GHSA-c2qf-rxjj-qqgw",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/npm/node-semver/blob/main/classes/range.js#L97-L104",
+                "https://github.com/npm/node-semver/blob/main/classes/range.js%23L97-L104",
+                "https://github.com/npm/node-semver/blob/main/internal/re.js#L138",
+                "https://github.com/npm/node-semver/blob/main/internal/re.js#L160",
+                "https://github.com/npm/node-semver/blob/main/internal/re.js%23L138",
+                "https://github.com/npm/node-semver/blob/main/internal/re.js%23L160",
+                "https://github.com/npm/node-semver/commit/2f8fd41487acf380194579ecb6f8b1bbfe116be0",
+                "https://github.com/npm/node-semver/commit/717534ee353682f3bcf33e60a8af4292626d4441",
+                "https://github.com/npm/node-semver/commit/928e56d21150da0413a3333a3148b20e741a920c",
+                "https://github.com/npm/node-semver/pull/564",
+                "https://github.com/npm/node-semver/pull/585",
+                "https://github.com/npm/node-semver/pull/593",
+                "https://nvd.nist.gov/vuln/detail/CVE-2022-25883",
+                "https://security.netapp.com/advisory/ntap-20241025-0004",
+                "https://security.snyk.io/vuln/SNYK-JS-SEMVER-3247795"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "semver vulnerable to Regular Expression Denial of Service"
+            }
+          ]
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/set-blocking@2.0.0",
+          "licenses": [],
+          "name": "set-blocking",
+          "purl": "pkg:npm/set-blocking@2.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/sprintf-js@1.0.3",
+          "licenses": [],
+          "name": "sprintf-js",
+          "purl": "pkg:npm/sprintf-js@1.0.3",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.0.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/streamsearch@0.1.2",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=0.8.0"
+              }
+            }
+          },
+          "name": "streamsearch",
+          "purl": "pkg:npm/streamsearch@0.1.2",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.1.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/is-fullwidth-code-point@\u003cnormalized\u003e",
+            "pkg:npm/strip-ansi@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/string-width@2.1.1",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=4"
+              }
+            }
+          },
+          "name": "string-width",
+          "purl": "pkg:npm/string-width@2.1.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.1.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/emoji-regex@\u003cnormalized\u003e",
+            "pkg:npm/is-fullwidth-code-point@\u003cnormalized\u003e",
+            "pkg:npm/strip-ansi@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/string-width@3.1.0",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=6"
+              }
+            }
+          },
+          "name": "string-width",
+          "purl": "pkg:npm/string-width@3.1.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.1.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/define-properties@\u003cnormalized\u003e",
+            "pkg:npm/es-abstract@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/string.prototype.trimend@1.0.1",
+          "licenses": [],
+          "name": "string.prototype.trimend",
+          "purl": "pkg:npm/string.prototype.trimend@1.0.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/define-properties@\u003cnormalized\u003e",
+            "pkg:npm/es-abstract@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/string.prototype.trimstart@1.0.1",
+          "licenses": [],
+          "name": "string.prototype.trimstart",
+          "purl": "pkg:npm/string.prototype.trimstart@1.0.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/string_decoder@0.10.31",
+          "licenses": [],
+          "name": "string_decoder",
+          "purl": "pkg:npm/string_decoder@0.10.31",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.10.31",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/ansi-regex@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/strip-ansi@4.0.0",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=4"
+              }
+            }
+          },
+          "name": "strip-ansi",
+          "purl": "pkg:npm/strip-ansi@4.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "4.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/ansi-regex@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/strip-ansi@5.2.0",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=6"
+              }
+            }
+          },
+          "name": "strip-ansi",
+          "purl": "pkg:npm/strip-ansi@5.2.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "5.2.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/strip-json-comments@2.0.1",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=0.10.0"
+              }
+            }
+          },
+          "name": "strip-json-comments",
+          "purl": "pkg:npm/strip-json-comments@2.0.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/has-flag@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/supports-color@5.5.0",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=4"
+              }
+            }
+          },
+          "name": "supports-color",
+          "purl": "pkg:npm/supports-color@5.5.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "5.5.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/has-flag@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/supports-color@6.0.0",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=6"
+              }
+            }
+          },
+          "name": "supports-color",
+          "purl": "pkg:npm/supports-color@6.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "6.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/is-number@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/to-regex-range@5.0.1",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=8.0"
+              }
+            }
+          },
+          "name": "to-regex-range",
+          "purl": "pkg:npm/to-regex-range@5.0.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "5.0.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/handy@\u003cnormalized\u003e",
+            "pkg:npm/htmlparser@\u003cnormalized\u003e",
+            "pkg:npm/js-yaml@\u003cnormalized\u003e",
+            "pkg:npm/optimist@\u003cnormalized\u003e",
+            "pkg:npm/underscore@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/to@0.2.9",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e= 0.8.0"
+              }
+            }
+          },
+          "name": "to",
+          "purl": "pkg:npm/to@0.2.9",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.2.9",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/underscore@1.9.2",
+          "licenses": [],
+          "name": "underscore",
+          "purl": "pkg:npm/underscore@1.9.2",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.9.2",
+          "vulnerabilities": [
+            {
+              "description": "Arbitrary Code Execution in underscore",
+              "id": "GHSA-cf4h-3jhx-xvhq",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "http://seclists.org/fulldisclosure/2025/Apr/14",
+                "https://github.com/jashkenas/underscore/blob/master/modules/template.js%23L71",
+                "https://github.com/jashkenas/underscore/commit/4c73526d43838ad6ab43a6134728776632adeb66",
+                "https://github.com/jashkenas/underscore/pull/2917",
+                "https://github.com/jashkenas/underscore/releases/tag/1.12.1",
+                "https://lists.apache.org/thread.html/r5df90c46f7000c4aab246e947f62361ecfb849c5a553dcdb0ef545e1%40%3Cissues.cordova.apache.org%3E",
+                "https://lists.apache.org/thread.html/r5df90c46f7000c4aab246e947f62361ecfb849c5a553dcdb0ef545e1@%3Cissues.cordova.apache.org%3E",
+                "https://lists.apache.org/thread.html/r770f910653772317b117ab4472b0a32c266ee4abbafda28b8a6f9306%40%3Cissues.cordova.apache.org%3E",
+                "https://lists.apache.org/thread.html/r770f910653772317b117ab4472b0a32c266ee4abbafda28b8a6f9306@%3Cissues.cordova.apache.org%3E",
+                "https://lists.apache.org/thread.html/raae088abdfa4fbd84e1d19d7a7ffe52bf8e426b83e6599ea9a734dba%40%3Cissues.cordova.apache.org%3E",
+                "https://lists.apache.org/thread.html/raae088abdfa4fbd84e1d19d7a7ffe52bf8e426b83e6599ea9a734dba@%3Cissues.cordova.apache.org%3E",
+                "https://lists.apache.org/thread.html/rbc84926bacd377503a3f5c37b923c1931f9d343754488d94e6f08039%40%3Cissues.cordova.apache.org%3E",
+                "https://lists.apache.org/thread.html/rbc84926bacd377503a3f5c37b923c1931f9d343754488d94e6f08039@%3Cissues.cordova.apache.org%3E",
+                "https://lists.apache.org/thread.html/re69ee408b3983b43e9c4a82a9a17cbbf8681bb91a4b61b46f365aeaf%40%3Cissues.cordova.apache.org%3E",
+                "https://lists.apache.org/thread.html/re69ee408b3983b43e9c4a82a9a17cbbf8681bb91a4b61b46f365aeaf@%3Cissues.cordova.apache.org%3E",
+                "https://lists.debian.org/debian-lts-announce/2021/03/msg00038.html",
+                "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/EOKATXXETD2PF3OR36Q5PD2VSVAR6J5Z",
+                "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/FGEE7U4Z655A2MK5EW4UQQZ7B64XJWBV",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/EOKATXXETD2PF3OR36Q5PD2VSVAR6J5Z",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/FGEE7U4Z655A2MK5EW4UQQZ7B64XJWBV",
+                "https://nvd.nist.gov/vuln/detail/CVE-2021-23358",
+                "https://security.netapp.com/advisory/ntap-20240808-0003",
+                "https://security.netapp.com/advisory/ntap-20241108-0002",
+                "https://snyk.io/vuln/SNYK-JAVA-ORGWEBJARSBOWER-1081504",
+                "https://snyk.io/vuln/SNYK-JAVA-ORGWEBJARSBOWERGITHUBJASHKENAS-1081505",
+                "https://snyk.io/vuln/SNYK-JAVA-ORGWEBJARSNPM-1081503",
+                "https://snyk.io/vuln/SNYK-JS-UNDERSCORE-1080984",
+                "https://www.debian.org/security/2021/dsa-4883",
+                "https://www.npmjs.com/package/underscore",
+                "https://www.tenable.com/security/tns-2021-14"
+              ],
+              "severity": "critical",
+              "source": "grype",
+              "title": "Arbitrary Code Execution in underscore"
+            },
+            {
+              "description": "Underscore has unlimited recursion in _.flatten and _.isEqual, potential for DoS attack",
+              "id": "GHSA-qpx9-hpmf-5gmw",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/jashkenas/underscore/commit/411e222eb0ca5d570cc4f6315c02c05b830ed2b4",
+                "https://github.com/jashkenas/underscore/commit/a6e23ae9647461ec33ad9f92a2ecfc220eea0a84",
+                "https://github.com/jashkenas/underscore/issues/3011",
+                "https://github.com/jashkenas/underscore/security/advisories/GHSA-qpx9-hpmf-5gmw",
+                "https://nvd.nist.gov/vuln/detail/CVE-2026-27601",
+                "https://underscorejs.org/#1.13.8",
+                "https://underscorejs.org/#flatten",
+                "https://underscorejs.org/#isEqual"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "Underscore has unlimited recursion in _.flatten and _.isEqual, potential for DoS attack"
+            }
+          ]
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/universalify@0.1.2",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e= 4.0.0"
+              }
+            }
+          },
+          "name": "universalify",
+          "purl": "pkg:npm/universalify@0.1.2",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.1.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/punycode@\u003cnormalized\u003e",
+            "pkg:npm/querystring@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/url@0.11.0",
+          "licenses": [],
+          "name": "url",
+          "purl": "pkg:npm/url@0.11.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.11.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/uuid@3.4.0",
+          "licenses": [],
+          "name": "uuid",
+          "purl": "pkg:npm/uuid@3.4.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "3.4.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/which-module@2.0.0",
+          "licenses": [],
+          "name": "which-module",
+          "purl": "pkg:npm/which-module@2.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "2.0.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/isexe@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/which@1.3.1",
+          "licenses": [],
+          "name": "which",
+          "purl": "pkg:npm/which@1.3.1",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.3.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/string-width@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/wide-align@1.1.3",
+          "licenses": [],
+          "name": "wide-align",
+          "purl": "pkg:npm/wide-align@1.1.3",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.1.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/wordwrap@0.0.3",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=0.4.0"
+              }
+            }
+          },
+          "name": "wordwrap",
+          "purl": "pkg:npm/wordwrap@0.0.3",
+          "scope": "\u003cnormalized\u003e",
+          "version": "0.0.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/ansi-styles@\u003cnormalized\u003e",
+            "pkg:npm/string-width@\u003cnormalized\u003e",
+            "pkg:npm/strip-ansi@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/wrap-ansi@5.1.0",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=6"
+              }
+            }
+          },
+          "name": "wrap-ansi",
+          "purl": "pkg:npm/wrap-ansi@5.1.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "5.1.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/wrappy@1.0.2",
+          "licenses": [],
+          "name": "wrappy",
+          "purl": "pkg:npm/wrappy@1.0.2",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.0.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:npm/y18n@4.0.0",
+          "licenses": [],
+          "name": "y18n",
+          "purl": "pkg:npm/y18n@4.0.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "4.0.0",
+          "vulnerabilities": [
+            {
+              "description": "Prototype Pollution in y18n",
+              "id": "GHSA-c4w7-xm78-47vh",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "jsreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://cert-portal.siemens.com/productcert/pdf/ssa-389290.pdf",
+                "https://github.com/yargs/y18n/commit/90401eea9062ad498f4f792e3fff8008c4c193a3",
+                "https://github.com/yargs/y18n/commit/a9ac604abf756dec9687be3843e2c93bfe581f25",
+                "https://github.com/yargs/y18n/issues/96",
+                "https://github.com/yargs/y18n/pull/108",
+                "https://nvd.nist.gov/vuln/detail/CVE-2020-7774",
+                "https://snyk.io/vuln/SNYK-JAVA-ORGWEBJARSNPM-1038306",
+                "https://snyk.io/vuln/SNYK-JS-Y18N-1021887",
+                "https://www.oracle.com/security-alerts/cpuApr2021.html"
+              ],
+              "severity": "high",
+              "source": "grype",
+              "title": "Prototype Pollution in y18n"
+            }
+          ]
+        },
+        {
+          "dependencies": [
+            "pkg:npm/camelcase@\u003cnormalized\u003e",
+            "pkg:npm/decamelize@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/yargs-parser@13.1.2",
+          "licenses": [],
+          "name": "yargs-parser",
+          "purl": "pkg:npm/yargs-parser@13.1.2",
+          "scope": "\u003cnormalized\u003e",
+          "version": "13.1.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/flat@\u003cnormalized\u003e",
+            "pkg:npm/lodash@\u003cnormalized\u003e",
+            "pkg:npm/yargs@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/yargs-unparser@1.6.0",
+          "licenses": [],
+          "metadata": {
+            "npm": {
+              "engines": {
+                "node": "\u003e=6"
+              }
+            }
+          },
+          "name": "yargs-unparser",
+          "purl": "pkg:npm/yargs-unparser@1.6.0",
+          "scope": "\u003cnormalized\u003e",
+          "version": "1.6.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:npm/cliui@\u003cnormalized\u003e",
+            "pkg:npm/find-up@\u003cnormalized\u003e",
+            "pkg:npm/get-caller-file@\u003cnormalized\u003e",
+            "pkg:npm/require-directory@\u003cnormalized\u003e",
+            "pkg:npm/require-main-filename@\u003cnormalized\u003e",
+            "pkg:npm/set-blocking@\u003cnormalized\u003e",
+            "pkg:npm/string-width@\u003cnormalized\u003e",
+            "pkg:npm/which-module@\u003cnormalized\u003e",
+            "pkg:npm/y18n@\u003cnormalized\u003e",
+            "pkg:npm/yargs-parser@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:npm/yargs@13.3.2",
+          "licenses": [],
+          "name": "yargs",
+          "purl": "pkg:npm/yargs@13.3.2",
+          "scope": "\u003cnormalized\u003e",
+          "version": "13.3.2",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "package-lock.json",
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "analyzer_runs": [
+      "jsreach"
+    ],
+    "analyzer_stats": {
+      "jsreach": {
+        "reachable": 17,
+        "unreachable": 22
+      }
+    },
+    "duration_ms": 0
+  },
+  "project": {
+    "ecosystem": "npm",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "npm",
+    "path": "\u003cnormalized\u003e"
+  },
+  "schema_version": "1.0"
+}

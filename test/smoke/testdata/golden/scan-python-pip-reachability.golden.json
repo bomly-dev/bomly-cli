@@ -1,0 +1,79 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "detector": "pip-detector",
+      "ecosystem": "python",
+      "kind": "requirements.txt",
+      "package_manager": "pip",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/pip@25.3",
+          "licenses": [
+            {
+              "spdxExpression": "MIT",
+              "type": "external-depsdev",
+              "value": "MIT"
+            }
+          ],
+          "name": "pip",
+          "purl": "pkg:pypi/pip@25.3",
+          "version": "25.3",
+          "vulnerabilities": [
+            {
+              "description": "pip Path Traversal vulnerability",
+              "id": "GHSA-6vgw-5pg2-w6jp",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "https://github.com/pypa/pip/commit/8e227a9be4faa9594e05d02ca05a413a2a4e7735",
+                "https://github.com/pypa/pip/pull/13777",
+                "https://mail.python.org/archives/list/security-announce@python.org/thread/WIEA34D4TABF2UNQJAOMXKCICSPBE2DJ",
+                "https://nvd.nist.gov/vuln/detail/CVE-2026-1703"
+              ],
+              "severity": "low",
+              "source": "grype",
+              "title": "pip Path Traversal vulnerability"
+            }
+          ]
+        },
+        {
+          "dependencies": [
+            "pkg:pypi/pip@\u003cnormalized\u003e"
+          ],
+          "id": "pkg:pypi/root",
+          "licenses": [],
+          "name": "root",
+          "purl": "pkg:pypi/root",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "requirements.txt",
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "analyzer_runs": [
+      "pyreach"
+    ],
+    "analyzer_stats": {
+      "pyreach": {
+        "unreachable": 1
+      }
+    },
+    "duration_ms": 0
+  },
+  "project": {
+    "ecosystem": "python",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "pip",
+    "path": "\u003cnormalized\u003e"
+  },
+  "schema_version": "1.0"
+}

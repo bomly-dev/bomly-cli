@@ -87,8 +87,9 @@ func newScanCmd() *cobra.Command {
 			if len(outputSpecs) > 0 {
 				progress.Advance("Writing SBOM output")
 				stdout := streams.reportWriter()
+				sbomBuildOpts := sbom.BuildOptions{ToolNames: sbomToolNames(resolved)}
 				for _, spec := range outputSpecs {
-					rawDocument, err := sbom.MarshalDepGraphJSON(selectedGraph, spec.Target, sbom.BuildOptions{}, sbom.EncodeOptions{Pretty: true})
+					rawDocument, err := sbom.MarshalDepGraphJSON(selectedGraph, spec.Target, sbomBuildOpts, sbom.EncodeOptions{Pretty: true})
 					if err != nil {
 						return fmt.Errorf("marshal %s sbom: %w", spec.Label, err)
 					}
@@ -154,4 +155,21 @@ func newScanCmd() *cobra.Command {
 	cmd.Flags().StringArrayVarP(&outputs, "sbom-output", "o", nil, "SBOM output target as <format> or <format>=<path>; repeat for multiple outputs")
 	cmd.Flags().StringVar(&scopeValue, "scope", "", "Filter dependencies by scope: runtime or development")
 	return cmd
+}
+
+func sbomToolNames(results []sdk.DetectionResult) []string {
+	tools := make([]string, 0, len(results))
+	seen := make(map[string]struct{}, len(results))
+	for _, result := range results {
+		if result.DetectorName == "" {
+			continue
+		}
+		name := "bomly-detector:" + result.DetectorName
+		if _, ok := seen[name]; ok {
+			continue
+		}
+		seen[name] = struct{}{}
+		tools = append(tools, name)
+	}
+	return tools
 }

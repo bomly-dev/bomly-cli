@@ -20,6 +20,7 @@ type BuildOptions struct {
 	DocumentName    string
 	DocumentNS      string
 	ToolName        string
+	ToolNames       []string
 	Created         time.Time
 	RootComponentID string
 	SerialNumber    string
@@ -35,6 +36,7 @@ type Document struct {
 	Name         string
 	Namespace    string
 	Tool         string
+	Tools        []string
 	Created      time.Time
 	SerialNumber string
 
@@ -52,6 +54,7 @@ type Component struct {
 	PURL           string
 	Ecosystem      string
 	PackageManager string
+	Type           string
 	Copyright      string
 	Licenses       []License
 }
@@ -99,6 +102,14 @@ func (d *Document) ToolOrDefault() string {
 		return d.Tool
 	}
 	return defaultToolName
+}
+
+// ToolNamesOrDefault returns all producing tool labels, defaulting to Bomly's tool label.
+func (d *Document) ToolNamesOrDefault() []string {
+	if len(d.Tools) > 0 {
+		return append([]string(nil), d.Tools...)
+	}
+	return []string{d.ToolOrDefault()}
 }
 
 // CreatedOrNow returns the document timestamp in UTC, defaulting to the current time.

@@ -488,6 +488,41 @@ func TestCompare_IgnoresSyntheticSubprojectRoots(t *testing.T) {
 	}
 }
 
+func TestCompareIgnoresManifestAndRootPackages(t *testing.T) {
+	base := New()
+	head := New()
+	for _, pkg := range []*Package{
+		NewPackageWithID("pkg:generic/root", Package{Name: "root", PURL: "pkg:generic/root"}),
+		NewPackageWithID("pkg:generic/requirements.txt", Package{Name: "requirements.txt", PURL: "pkg:generic/requirements.txt"}),
+		NewPackageWithID("pkg:npm/react@18.2.0", Package{Ecosystem: "npm", BuildSystem: "npm", Name: "react", Version: "18.2.0", PURL: "pkg:npm/react@18.2.0"}),
+	} {
+		if err := head.AddPackage(pkg); err != nil {
+			t.Fatalf("head add package %q: %v", pkg.ID, err)
+		}
+	}
+	if err := base.AddPackage(NewPackageWithID("pkg:npm/react@18.2.0", Package{Ecosystem: "npm", BuildSystem: "npm", Name: "react", Version: "18.2.0", PURL: "pkg:npm/react@18.2.0"})); err != nil {
+		t.Fatalf("base add package: %v", err)
+	}
+
+	diff := Compare(base, head)
+	if len(diff.Added) != 0 || len(diff.Removed) != 0 || len(diff.Updated) != 0 {
+		t.Fatalf("expected manifest/root packages to be ignored, got %#v", diff)
+	}
+}
+
+func TestCompareIgnoresApplicationPackages(t *testing.T) {
+	base := New()
+	head := New()
+	if err := head.AddPackage(NewPackageWithID("pkg:npm/demo@1.0.0", Package{Ecosystem: "npm", BuildSystem: "npm", Name: "demo", Version: "1.0.0", Type: "application", PURL: "pkg:npm/demo@1.0.0"})); err != nil {
+		t.Fatalf("head add application: %v", err)
+	}
+
+	diff := Compare(base, head)
+	if len(diff.Added) != 0 || len(diff.Removed) != 0 || len(diff.Updated) != 0 {
+		t.Fatalf("expected application package to be ignored, got %#v", diff)
+	}
+}
+
 func TestPackageHelpers(t *testing.T) {
 	pkg := &Package{
 		ID:      "pkg:generic/acme/demo@1.0.0",

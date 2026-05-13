@@ -381,6 +381,48 @@ func depGraphFromLock(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 			return nil, fmt.Errorf("add Cargo dev dependency %q: %w", node.ID, err)
 		}
 	}
+
+	// BFS: propagate runtime/development scope from direct deps into the transitive tree.
+	// Runtime always wins over development.
+	directDeps, _ := g.Dependencies(root.ID)
+	propagated := make(map[string]sdk.Scope, g.Size())
+	queue := make([]*sdk.Package, 0, len(directDeps))
+	for _, dep := range directDeps {
+		if dep == nil {
+			continue
+		}
+		scope := sdk.Scope(dep.Scope)
+		if scope == sdk.ScopeUnknown {
+			scope = sdk.ScopeRuntime
+		}
+		propagated[dep.ID] = scope
+		queue = append(queue, dep)
+	}
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+		scope := propagated[current.ID]
+		if scope == sdk.ScopeUnknown {
+			continue
+		}
+		children, err := g.Dependencies(current.ID)
+		if err != nil {
+			continue
+		}
+		for _, child := range children {
+			if child == nil || child.ID == root.ID {
+				continue
+			}
+			nextScope := sdk.MergeScope(propagated[child.ID], scope)
+			if nextScope == propagated[child.ID] && sdk.Scope(child.Scope) == nextScope {
+				continue
+			}
+			propagated[child.ID] = nextScope
+			sdk.MergePackageScope(child, nextScope)
+			queue = append(queue, child)
+		}
+	}
+
 	return g, nil
 }
 

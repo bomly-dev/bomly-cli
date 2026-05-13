@@ -18,10 +18,16 @@ import (
 	"path/filepath"
 	"runtime"
 	"testing"
+
+	"github.com/bomly-dev/bomly-cli/test/qa"
 )
 
 // bomlyBin is the path to the compiled CLI binary, built once in TestMain.
 var bomlyBin string
+var smokeRuntimeDir string
+var smokeGOPATH string
+var smokeGOMODCACHE string
+var smokeGOCACHE string
 
 func TestMain(m *testing.M) {
 	// Ensure git is available — all URL-based tests need it.
@@ -61,8 +67,27 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
+	smokeRuntimeDir, err = os.MkdirTemp("", "bomly-smoke-runtime-*")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "smoke: create runtime dir: %v\n", err)
+		_ = os.RemoveAll(dir)
+		os.Exit(1)
+	}
+	smokeGOPATH = filepath.Join(smokeRuntimeDir, "gopath")
+	smokeGOMODCACHE = filepath.Join(smokeGOPATH, "pkg", "mod")
+	smokeGOCACHE = filepath.Join(smokeRuntimeDir, "gocache")
+	for _, path := range []string{smokeGOPATH, smokeGOMODCACHE, smokeGOCACHE} {
+		if err := os.MkdirAll(path, 0o755); err != nil {
+			fmt.Fprintf(os.Stderr, "smoke: create runtime path %s: %v\n", path, err)
+			_ = os.RemoveAll(dir)
+			_ = os.RemoveAll(smokeRuntimeDir)
+			os.Exit(1)
+		}
+	}
+
 	code := m.Run()
 	_ = os.RemoveAll(dir)
+	_ = os.RemoveAll(smokeRuntimeDir)
 	os.Exit(code)
 }
 
@@ -83,13 +108,29 @@ func TestScan(t *testing.T) {
 	cases := []struct {
 		name  string
 		args  []string
-		tools []string // required tools — skip if any missing
+		tools []string // required tools - skip if any missing
+	}{}
+
+	targets, err := qa.LoadScanTargets(qa.DefaultTargetsPath(repoRoot(t)))
+	if err != nil {
+		t.Fatalf("load shared scan targets: %v", err)
+	}
+	for _, target := range targets {
+		cases = append(cases, struct {
+			name  string
+			args  []string
+			tools []string
+		}{
+			name:  target.Name,
+			args:  target.SmokeArgs(),
+			tools: target.Tools,
+		})
+	}
+	cases = append(cases, []struct {
+		name  string
+		args  []string
+		tools []string // required tools - skip if any missing
 	}{
-		{
-			name:  "scan-go",
-			args:  []string{"scan", "--url", "https://github.com/google/uuid", "--ref", "v1.6.0", "--format", "json"},
-			tools: []string{"go"},
-		},
 		{
 			// Reachability smoke pinned to veracode/example-go-modules
 			// at the "Adding a known vulnerable method" commit. The
@@ -117,21 +158,6 @@ func TestScan(t *testing.T) {
 			tools: []string{"npm"},
 		},
 		{
-			name:  "scan-npm",
-			args:  []string{"scan", "--url", "https://github.com/ljharb/qs", "--ref", "v6.13.0", "--format", "json"},
-			tools: []string{"npm"},
-		},
-		{
-			name:  "scan-maven",
-			args:  []string{"scan", "--url", "https://github.com/google/gson", "--ref", "gson-parent-2.11.0", "--format", "json"},
-			tools: []string{"mvn"},
-		},
-		{
-			name:  "scan-python-pip",
-			args:  []string{"scan", "--url", "https://github.com/psf/requests", "--ref", "v2.32.3", "--format", "json"},
-			tools: []string{"pip"},
-		},
-		{
 			// pyreach smoke pinned to veracode/example-python3-pip,
 			// a deliberately-vulnerable demo. main.py imports
 			// jwt / django / rsa / requests directly; requirements.txt
@@ -147,48 +173,6 @@ func TestScan(t *testing.T) {
 			tools: []string{"pip"},
 		},
 		{
-			name: "scan-composer",
-			args: []string{"scan", "--url", "https://github.com/guzzle/guzzle", "--ref", "7.9.2", "--format", "json"},
-			//tools: []string{"composer"},
-		},
-		{
-			name: "scan-bundler",
-			args: []string{"scan", "--url", "https://github.com/rack/rack", "--ref", "v3.1.8", "--format", "json"},
-			//tools: []string{"bundle"},
-		},
-		{
-			name: "scan-github-actions",
-			args: []string{"scan", "--url", "https://github.com/actions/checkout", "--ref", "v4.2.2", "--format", "json", "--ecosystems", "github-actions"},
-		},
-		{
-			name: "scan-nuget",
-			args: []string{"scan", "--url", "https://github.com/pi-apps/SilkRoad", "--ref", "8c273f35c4a021ba73482f06636e730dd24b080d", "--format", "json", "--ecosystems", "dotnet"},
-		},
-		{
-			name: "scan-cargo",
-			args: []string{"scan", "--url", "https://github.com/BurntSushi/ripgrep", "--ref", "4519153e5e461527f4bca45b042fff45c4ec6fb9", "--format", "json", "--ecosystems", "rust"},
-		},
-		{
-			name: "scan-pub",
-			args: []string{"scan", "--url", "https://github.com/KhoaSuperman/findseat", "--ref", "53007f252ec7143718e3f273a802e26b67cf2739", "--format", "json", "--ecosystems", "dart"},
-		},
-		{
-			name: "scan-cocoapods",
-			args: []string{"scan", "--url", "https://github.com/material-motion/motion-interchange-objc", "--ref", "835474053336d2004c079f7d6580f582a7a2b85a", "--format", "json", "--ecosystems", "swift"},
-		},
-		{
-			name: "scan-mix",
-			args: []string{"scan", "--url", "https://github.com/phoenixframework/phoenix", "--ref", "05e0b5b26a65124e768e0ab55b86bba30a531e14", "--format", "json", "--ecosystems", "elixir"},
-		},
-		{
-			name: "scan-swiftpm",
-			args: []string{"scan", "--url", "https://github.com/vapor/vapor", "--ref", "ebbe71c89aa1b76a0920277760b12be7a2ec7c70", "--format", "json", "--ecosystems", "swift"},
-		},
-		{
-			name: "scan-sbt",
-			args: []string{"scan", "--url", "https://github.com/ucb-bar/chiseltest", "--ref", "8315873827715841f75af9b2d73e49214a1373d6", "--format", "json", "--ecosystems", "scala"},
-		},
-		{
 			name:  "scan-npm-scope-runtime",
 			args:  []string{"scan", "--url", "https://github.com/ljharb/qs", "--ref", "v6.13.0", "--format", "json", "--scope", "runtime"},
 			tools: []string{"npm"},
@@ -201,7 +185,7 @@ func TestScan(t *testing.T) {
 			name: "scan-sbom-cyclonedx",
 			args: []string{"scan", "--sbom", "--path", sbomFixture("go.cdx.json"), "--format", "json"},
 		},
-	}
+	}...)
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -235,12 +219,12 @@ func TestDiff(t *testing.T) {
 	}{
 		{
 			name:  "diff-go",
-			args:  []string{"diff", "--url", "https://github.com/google/uuid", "--base", "v1.5.0", "--head", "v1.6.0", "--format", "json"},
+			args:  []string{"diff", "--url", "https://github.com/bomly-dev/example-go-gomod", "--base", "v0.9.0", "--head", "v1.0.0", "--format", "json"},
 			tools: []string{"go"},
 		},
 		{
 			name:  "diff-npm",
-			args:  []string{"diff", "--url", "https://github.com/ljharb/qs", "--base", "v6.12.0", "--head", "v6.13.0", "--format", "json"},
+			args:  []string{"diff", "--url", "https://github.com/bomly-dev/example-javascript-npm", "--base", "v0.9.0", "--head", "v1.0.0", "--format", "json"},
 			tools: []string{"npm"},
 		},
 		{
@@ -281,7 +265,7 @@ func TestExplain(t *testing.T) {
 	}{
 		{
 			name:  "explain-go",
-			args:  []string{"explain", "github.com/google/uuid", "--url", "https://github.com/google/uuid", "--ref", "v1.6.0", "--format", "json"},
+			args:  []string{"explain", "golang.org/x/text", "--url", "https://github.com/bomly-dev/example-go-gomod", "--ref", "v1.0.0", "--ecosystems", "go", "--format", "json"},
 			tools: []string{"go"},
 		},
 	}

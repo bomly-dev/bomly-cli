@@ -25,6 +25,7 @@ func CanonicalizePackageURL(value string) string {
 	if parsed == nil {
 		return ""
 	}
+	normalizePackageURLParts(parsed)
 	if err := parsed.Normalize(); err != nil {
 		return ""
 	}
@@ -44,10 +45,23 @@ func BuildPackageURL(purlType, namespace, name, version string) string {
 	if purl == nil {
 		return ""
 	}
+	normalizePackageURLParts(purl)
 	if err := purl.Normalize(); err != nil {
 		return buildPackageURLFallback(purlType, namespace, name, version)
 	}
 	return purl.ToString()
+}
+
+func normalizePackageURLParts(purl *packageurl.PackageURL) {
+	if purl == nil {
+		return
+	}
+	if strings.EqualFold(strings.TrimSpace(purl.Type), "npm") {
+		namespace := strings.TrimSpace(purl.Namespace)
+		if namespace != "" && !strings.HasPrefix(namespace, "@") && !strings.HasPrefix(strings.ToLower(namespace), "%40") {
+			purl.Namespace = "@" + namespace
+		}
+	}
 }
 
 func buildPackageURLFallback(purlType, namespace, name, version string) string {
@@ -82,12 +96,20 @@ func PackageURLTypeForValues(values ...string) string {
 			return "cocoapods"
 		case "swiftpm":
 			return "swift"
+		case "github-actions", "githubactions":
+			return "githubactions"
 		case "conan":
 			return "conan"
 		case "mix", "hex":
 			return "hex"
 		case "sbt", "scala":
 			return "maven"
+		case "ruby", "gem", "rubygems", "bundler":
+			return "gem"
+		case "php", "composer":
+			return "composer"
+		case "python", "pypi", "pip", "pipenv", "poetry", "uv":
+			return "pypi"
 		}
 	}
 	for _, value := range values {

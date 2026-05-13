@@ -1,0 +1,188 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "detector": "pipenv-detector",
+      "ecosystem": "python",
+      "kind": "Pipfile",
+      "package_manager": "pipenv",
+      "packages": [
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/colorama@0.4.6",
+          "licenses": [],
+          "name": "colorama",
+          "purl": "pkg:pypi/colorama@0.4.6",
+          "scope": "runtime",
+          "version": "0.4.6",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/django@1.7.1",
+          "licenses": [],
+          "name": "django",
+          "purl": "pkg:pypi/django@1.7.1",
+          "scope": "runtime",
+          "version": "1.7.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/feedparser@6.0.8",
+          "licenses": [],
+          "name": "feedparser",
+          "purl": "pkg:pypi/feedparser@6.0.8",
+          "scope": "runtime",
+          "version": "6.0.8",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/iniconfig@2.3.0",
+          "licenses": [],
+          "name": "iniconfig",
+          "purl": "pkg:pypi/iniconfig@2.3.0",
+          "scope": "runtime",
+          "version": "2.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/packaging@26.2",
+          "licenses": [],
+          "name": "packaging",
+          "purl": "pkg:pypi/packaging@26.2",
+          "scope": "runtime",
+          "version": "26.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/pluggy@1.6.0",
+          "licenses": [],
+          "name": "pluggy",
+          "purl": "pkg:pypi/pluggy@1.6.0",
+          "scope": "runtime",
+          "version": "1.6.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/pyasn1@0.6.3",
+          "licenses": [],
+          "name": "pyasn1",
+          "purl": "pkg:pypi/pyasn1@0.6.3",
+          "scope": "runtime",
+          "version": "0.6.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/pygments@2.20.0",
+          "licenses": [],
+          "name": "pygments",
+          "purl": "pkg:pypi/pygments@2.20.0",
+          "scope": "runtime",
+          "version": "2.20.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/pyjwt@0.4.2",
+          "licenses": [],
+          "name": "pyjwt",
+          "purl": "pkg:pypi/pyjwt@0.4.2",
+          "scope": "runtime",
+          "version": "0.4.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/pytest@9.0.3",
+          "licenses": [],
+          "name": "pytest",
+          "purl": "pkg:pypi/pytest@9.0.3",
+          "scope": "development",
+          "version": "9.0.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/pyyaml@5.3",
+          "licenses": [],
+          "name": "pyyaml",
+          "purl": "pkg:pypi/pyyaml@5.3",
+          "scope": "runtime",
+          "version": "5.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/requests@2.2.1",
+          "licenses": [],
+          "name": "requests",
+          "purl": "pkg:pypi/requests@2.2.1",
+          "scope": "runtime",
+          "version": "2.2.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:pypi/colorama@0.4.6",
+            "pkg:pypi/django@1.7.1",
+            "pkg:pypi/feedparser@6.0.8",
+            "pkg:pypi/iniconfig@2.3.0",
+            "pkg:pypi/packaging@26.2",
+            "pkg:pypi/pluggy@1.6.0",
+            "pkg:pypi/pyasn1@0.6.3",
+            "pkg:pypi/pygments@2.20.0",
+            "pkg:pypi/pyjwt@0.4.2",
+            "pkg:pypi/pytest@9.0.3",
+            "pkg:pypi/pyyaml@5.3",
+            "pkg:pypi/requests@2.2.1",
+            "pkg:pypi/rsa@3.4",
+            "pkg:pypi/sgmllib3k@1.0.0"
+          ],
+          "id": "pkg:pypi/root",
+          "licenses": [],
+          "name": "root",
+          "purl": "pkg:pypi/root",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/rsa@3.4",
+          "licenses": [],
+          "name": "rsa",
+          "purl": "pkg:pypi/rsa@3.4",
+          "scope": "runtime",
+          "version": "3.4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:pypi/sgmllib3k@1.0.0",
+          "licenses": [],
+          "name": "sgmllib3k",
+          "purl": "pkg:pypi/sgmllib3k@1.0.0",
+          "scope": "runtime",
+          "version": "1.0.0",
+          "vulnerabilities": []
+        }
+      ],
+      "path": "Pipfile",
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "duration_ms": 0
+  },
+  "project": {
+    "ecosystem": "python",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "pipenv",
+    "path": "\u003cnormalized\u003e"
+  },
+  "schema_version": "1.0"
+}

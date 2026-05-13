@@ -9,10 +9,12 @@
   },
   "command": "explain",
   "dependency": {
-    "id": "github.com/google/uuid",
+    "id": "golang.org/x/text@v0.3.5",
     "licenses": [],
-    "name": "github.com/google/uuid",
-    "purl": "pkg:golang/github.com/google/uuid",
+    "name": "golang.org/x/text",
+    "purl": "pkg:golang/golang.org/x/text@v0.3.5",
+    "scope": "runtime",
+    "version": "v0.3.5",
     "vulnerabilities": []
   },
   "metadata": {
@@ -20,13 +22,22 @@
   },
   "paths": [
     {
-      "introduced_via": "pkg:golang/github.com/google/uuid",
+      "introduced_via": "pkg:golang/github.com/bomly/example-go-modules",
       "packages": [
         {
-          "id": "pkg:golang/github.com/google/uuid",
+          "id": "pkg:golang/github.com/bomly/example-go-modules",
           "licenses": [],
-          "name": "github.com/google/uuid",
-          "purl": "pkg:golang/github.com/google/uuid",
+          "name": "github.com/bomly/example-go-modules",
+          "purl": "pkg:golang/github.com/bomly/example-go-modules",
+          "vulnerabilities": []
+        },
+        {
+          "id": "golang.org/x/text@v0.3.5",
+          "licenses": [],
+          "name": "golang.org/x/text",
+          "purl": "pkg:golang/golang.org/x/text@v0.3.5",
+          "scope": "runtime",
+          "version": "v0.3.5",
           "vulnerabilities": []
         }
       ],
@@ -34,13 +45,13 @@
     }
   ],
   "project": {
-    "ecosystem": "multiple",
+    "ecosystem": "go",
     "name": "\u003cnormalized\u003e",
-    "package_manager": "multiple",
+    "package_manager": "gomod",
     "path": "\u003cnormalized\u003e"
   },
   "query": {
-    "name": "github.com/google/uuid"
+    "name": "golang.org/x/text"
   },
   "schema_version": "1.0",
   "targets": [
@@ -54,22 +65,33 @@
         "unknown": 0
       },
       "dependency": {
-        "id": "github.com/google/uuid",
+        "id": "golang.org/x/text@v0.3.5",
         "licenses": [],
-        "name": "github.com/google/uuid",
-        "purl": "pkg:golang/github.com/google/uuid",
+        "name": "golang.org/x/text",
+        "purl": "pkg:golang/golang.org/x/text@v0.3.5",
+        "scope": "runtime",
+        "version": "v0.3.5",
         "vulnerabilities": []
       },
       "detector": "go-detector",
       "paths": [
         {
-          "introduced_via": "pkg:golang/github.com/google/uuid",
+          "introduced_via": "pkg:golang/github.com/bomly/example-go-modules",
           "packages": [
             {
-              "id": "pkg:golang/github.com/google/uuid",
+              "id": "pkg:golang/github.com/bomly/example-go-modules",
               "licenses": [],
-              "name": "github.com/google/uuid",
-              "purl": "pkg:golang/github.com/google/uuid",
+              "name": "github.com/bomly/example-go-modules",
+              "purl": "pkg:golang/github.com/bomly/example-go-modules",
+              "vulnerabilities": []
+            },
+            {
+              "id": "golang.org/x/text@v0.3.5",
+              "licenses": [],
+              "name": "golang.org/x/text",
+              "purl": "pkg:golang/golang.org/x/text@v0.3.5",
+              "scope": "runtime",
+              "version": "v0.3.5",
               "vulnerabilities": []
             }
           ],

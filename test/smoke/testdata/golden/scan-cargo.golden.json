@@ -8,636 +8,237 @@
       "package_manager": "cargo",
       "packages": [
         {
-          "dependencies": [
-            "pkg:cargo/ripgrep@15.1.0%22%20%20%23%3Aversion",
-            "pkg:cargo/tikv-jemallocator@0.6.1"
-          ],
-          "id": "Cargo.lock",
+          "dependencies": [],
+          "id": "pkg:cargo/autocfg@1.4.0",
           "licenses": [],
-          "name": "Cargo.lock",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/memchr@2.7.6"
-          ],
-          "id": "pkg:cargo/aho-corasick@1.1.3",
-          "licenses": [],
-          "name": "aho-corasick",
-          "purl": "pkg:cargo/aho-corasick@1.1.3",
-          "version": "1.1.3",
+          "name": "autocfg",
+          "purl": "pkg:cargo/autocfg@1.4.0",
+          "version": "1.4.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:cargo/anyhow@1.0.100",
+          "id": "pkg:cargo/bitflags@1.3.2",
           "licenses": [],
-          "name": "anyhow",
-          "purl": "pkg:cargo/anyhow@1.0.100",
-          "scope": "runtime",
-          "version": "1.0.100",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/derive_arbitrary@1.4.2"
-          ],
-          "id": "pkg:cargo/arbitrary@1.4.2",
-          "licenses": [],
-          "name": "arbitrary",
-          "purl": "pkg:cargo/arbitrary@1.4.2",
-          "version": "1.4.2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/memchr@2.7.6",
-            "pkg:cargo/regex-automata@0.4.13",
-            "pkg:cargo/serde@1.0.228"
-          ],
-          "id": "pkg:cargo/bstr@1.12.0",
-          "licenses": [],
-          "name": "bstr",
-          "purl": "pkg:cargo/bstr@1.12.0",
-          "scope": "runtime",
-          "version": "1.12.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/find-msvc-tools@0.1.4",
-            "pkg:cargo/jobserver@0.1.34",
-            "pkg:cargo/libc@0.2.177",
-            "pkg:cargo/shlex@1.3.0"
-          ],
-          "id": "pkg:cargo/cc@1.2.41",
-          "licenses": [],
-          "name": "cc",
-          "purl": "pkg:cargo/cc@1.2.41",
-          "version": "1.2.41",
+          "name": "bitflags",
+          "purl": "pkg:cargo/bitflags@1.3.2",
+          "version": "1.3.2",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:cargo/cfg-if@1.0.4",
+          "id": "pkg:cargo/bytes@0.5.6",
+          "licenses": [],
+          "name": "bytes",
+          "purl": "pkg:cargo/bytes@0.5.6",
+          "version": "0.5.6",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:cargo/cfg-if@1.0.0",
           "licenses": [],
           "name": "cfg-if",
-          "purl": "pkg:cargo/cfg-if@1.0.4",
-          "version": "1.0.4",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/crossbeam-utils@0.8.21"
-          ],
-          "id": "pkg:cargo/crossbeam-channel@0.5.15",
-          "licenses": [],
-          "name": "crossbeam-channel",
-          "purl": "pkg:cargo/crossbeam-channel@0.5.15",
-          "version": "0.5.15",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/crossbeam-epoch@0.9.18",
-            "pkg:cargo/crossbeam-utils@0.8.21"
-          ],
-          "id": "pkg:cargo/crossbeam-deque@0.8.6",
-          "licenses": [],
-          "name": "crossbeam-deque",
-          "purl": "pkg:cargo/crossbeam-deque@0.8.6",
-          "version": "0.8.6",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/crossbeam-utils@0.8.21"
-          ],
-          "id": "pkg:cargo/crossbeam-epoch@0.9.18",
-          "licenses": [],
-          "name": "crossbeam-epoch",
-          "purl": "pkg:cargo/crossbeam-epoch@0.9.18",
-          "version": "0.9.18",
+          "purl": "pkg:cargo/cfg-if@1.0.0",
+          "version": "1.0.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:cargo/crossbeam-utils@0.8.21",
+          "id": "pkg:cargo/chrono@0.4.19",
           "licenses": [],
-          "name": "crossbeam-utils",
-          "purl": "pkg:cargo/crossbeam-utils@0.8.21",
-          "version": "0.8.21",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/proc-macro2@1.0.101",
-            "pkg:cargo/quote@1.0.41",
-            "pkg:cargo/syn@2.0.107"
-          ],
-          "id": "pkg:cargo/derive_arbitrary@1.4.2",
-          "licenses": [],
-          "metadata": {
-            "bomly.normalization.applied": [
-              "name"
-            ],
-            "bomly.normalization.original_name": "derive_arbitrary"
-          },
-          "name": "derive-arbitrary",
-          "purl": "pkg:cargo/derive_arbitrary@1.4.2",
-          "version": "1.4.2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/cfg-if@1.0.4"
-          ],
-          "id": "pkg:cargo/encoding_rs@0.8.35",
-          "licenses": [],
-          "metadata": {
-            "bomly.normalization.applied": [
-              "name"
-            ],
-            "bomly.normalization.original_name": "encoding_rs"
-          },
-          "name": "encoding-rs",
-          "purl": "pkg:cargo/encoding_rs@0.8.35",
-          "version": "0.8.35",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/encoding_rs@0.8.35"
-          ],
-          "id": "pkg:cargo/encoding_rs_io@0.1.7",
-          "licenses": [],
-          "metadata": {
-            "bomly.normalization.applied": [
-              "name"
-            ],
-            "bomly.normalization.original_name": "encoding_rs_io"
-          },
-          "name": "encoding-rs-io",
-          "purl": "pkg:cargo/encoding_rs_io@0.1.7",
-          "version": "0.1.7",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:cargo/find-msvc-tools@0.1.4",
-          "licenses": [],
-          "name": "find-msvc-tools",
-          "purl": "pkg:cargo/find-msvc-tools@0.1.4",
-          "version": "0.1.4",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/cfg-if@1.0.4",
-            "pkg:cargo/libc@0.2.177",
-            "pkg:cargo/r-efi@5.3.0",
-            "pkg:cargo/wasip2@1.0.1%2Bwasi-0.2.4"
-          ],
-          "id": "pkg:cargo/getrandom@0.3.4",
-          "licenses": [],
-          "name": "getrandom",
-          "purl": "pkg:cargo/getrandom@0.3.4",
-          "version": "0.3.4",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:cargo/glob@0.3.3",
-          "licenses": [],
-          "name": "glob",
-          "purl": "pkg:cargo/glob@0.3.3",
-          "version": "0.3.3",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/aho-corasick@1.1.3",
-            "pkg:cargo/arbitrary@1.4.2",
-            "pkg:cargo/bstr@1.12.0",
-            "pkg:cargo/glob@0.3.3",
-            "pkg:cargo/log@0.4.28",
-            "pkg:cargo/regex-automata@0.4.13",
-            "pkg:cargo/regex-syntax@0.8.8",
-            "pkg:cargo/serde@1.0.228",
-            "pkg:cargo/serde_json@1.0.145"
-          ],
-          "id": "pkg:cargo/globset@0.4.18",
-          "licenses": [],
-          "name": "globset",
-          "purl": "pkg:cargo/globset@0.4.18",
-          "version": "0.4.18",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/bstr@1.12.0",
-            "pkg:cargo/globset@0.4.18",
-            "pkg:cargo/libc@0.2.177",
-            "pkg:cargo/log@0.4.28",
-            "pkg:cargo/termcolor@1.4.1",
-            "pkg:cargo/winapi-util@0.1.11"
-          ],
-          "id": "pkg:cargo/grep-cli@0.1.12",
-          "licenses": [],
-          "name": "grep-cli",
-          "purl": "pkg:cargo/grep-cli@0.1.12",
-          "version": "0.1.12",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/memchr@2.7.6",
-            "pkg:cargo/regex@1.12.2"
-          ],
-          "id": "pkg:cargo/grep-matcher@0.1.8",
-          "licenses": [],
-          "name": "grep-matcher",
-          "purl": "pkg:cargo/grep-matcher@0.1.8",
-          "version": "0.1.8",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/grep-matcher@0.1.8",
-            "pkg:cargo/log@0.4.28",
-            "pkg:cargo/pcre2@0.2.11"
-          ],
-          "id": "pkg:cargo/grep-pcre2@0.1.9",
-          "licenses": [],
-          "name": "grep-pcre2",
-          "purl": "pkg:cargo/grep-pcre2@0.1.9",
-          "version": "0.1.9",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/bstr@1.12.0",
-            "pkg:cargo/grep-matcher@0.1.8",
-            "pkg:cargo/grep-regex@0.1.14",
-            "pkg:cargo/grep-searcher@0.1.16",
-            "pkg:cargo/log@0.4.28",
-            "pkg:cargo/serde@1.0.228",
-            "pkg:cargo/serde_json@1.0.145",
-            "pkg:cargo/termcolor@1.4.1"
-          ],
-          "id": "pkg:cargo/grep-printer@0.3.1",
-          "licenses": [],
-          "name": "grep-printer",
-          "purl": "pkg:cargo/grep-printer@0.3.1",
-          "version": "0.3.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/bstr@1.12.0",
-            "pkg:cargo/grep-matcher@0.1.8",
-            "pkg:cargo/log@0.4.28",
-            "pkg:cargo/regex-automata@0.4.13",
-            "pkg:cargo/regex-syntax@0.8.8"
-          ],
-          "id": "pkg:cargo/grep-regex@0.1.14",
-          "licenses": [],
-          "name": "grep-regex",
-          "purl": "pkg:cargo/grep-regex@0.1.14",
-          "version": "0.1.14",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/bstr@1.12.0",
-            "pkg:cargo/encoding_rs@0.8.35",
-            "pkg:cargo/encoding_rs_io@0.1.7",
-            "pkg:cargo/grep-matcher@0.1.8",
-            "pkg:cargo/grep-regex@0.1.14",
-            "pkg:cargo/log@0.4.28",
-            "pkg:cargo/memchr@2.7.6",
-            "pkg:cargo/memmap2@0.9.9",
-            "pkg:cargo/regex@1.12.2"
-          ],
-          "id": "pkg:cargo/grep-searcher@0.1.16",
-          "licenses": [],
-          "name": "grep-searcher",
-          "purl": "pkg:cargo/grep-searcher@0.1.16",
-          "version": "0.1.16",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/grep-cli@0.1.12",
-            "pkg:cargo/grep-matcher@0.1.8",
-            "pkg:cargo/grep-pcre2@0.1.9",
-            "pkg:cargo/grep-printer@0.3.1",
-            "pkg:cargo/grep-regex@0.1.14",
-            "pkg:cargo/grep-searcher@0.1.16",
-            "pkg:cargo/termcolor@1.4.1",
-            "pkg:cargo/walkdir@2.5.0"
-          ],
-          "id": "pkg:cargo/grep@0.4.1",
-          "licenses": [],
-          "name": "grep",
-          "purl": "pkg:cargo/grep@0.4.1",
+          "name": "chrono",
+          "purl": "pkg:cargo/chrono@0.4.19",
           "scope": "runtime",
-          "version": "0.4.1",
+          "version": "0.4.19",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:cargo/bstr@1.12.0",
-            "pkg:cargo/crossbeam-channel@0.5.15",
-            "pkg:cargo/crossbeam-deque@0.8.6",
-            "pkg:cargo/globset@0.4.18",
-            "pkg:cargo/log@0.4.28",
-            "pkg:cargo/memchr@2.7.6",
-            "pkg:cargo/regex-automata@0.4.13",
-            "pkg:cargo/same-file@1.0.6",
-            "pkg:cargo/walkdir@2.5.0",
-            "pkg:cargo/winapi-util@0.1.11"
+            "pkg:cargo/chrono@0.4.19",
+            "pkg:cargo/hyper@0.13.0",
+            "pkg:cargo/openssl@0.10.48",
+            "pkg:cargo/serde_json@1.0.127",
+            "pkg:cargo/tempfile@3.8.1",
+            "pkg:cargo/tokio@1.36.0"
           ],
-          "id": "pkg:cargo/ignore@0.4.25",
+          "id": "pkg:cargo/example-rust-cargo@0.1.0",
           "licenses": [],
-          "name": "ignore",
-          "purl": "pkg:cargo/ignore@0.4.25",
-          "scope": "runtime",
-          "version": "0.4.25",
+          "name": "example-rust-cargo",
+          "purl": "pkg:cargo/example-rust-cargo@0.1.0",
+          "version": "0.1.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:cargo/itoa@1.0.15",
+          "id": "pkg:cargo/fnv@1.0.7",
+          "licenses": [],
+          "name": "fnv",
+          "purl": "pkg:cargo/fnv@1.0.7",
+          "version": "1.0.7",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:cargo/foreign-types-shared@0.1.1",
+          "licenses": [],
+          "name": "foreign-types-shared",
+          "purl": "pkg:cargo/foreign-types-shared@0.1.1",
+          "version": "0.1.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:cargo/foreign-types@0.3.2",
+          "licenses": [],
+          "name": "foreign-types",
+          "purl": "pkg:cargo/foreign-types@0.3.2",
+          "version": "0.3.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:cargo/h2@0.2.7",
+          "licenses": [],
+          "name": "h2",
+          "purl": "pkg:cargo/h2@0.2.7",
+          "version": "0.2.7",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:cargo/http@0.2.12",
+          "licenses": [],
+          "name": "http",
+          "purl": "pkg:cargo/http@0.2.12",
+          "version": "0.2.12",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:cargo/hyper@0.13.0",
+          "licenses": [],
+          "name": "hyper",
+          "purl": "pkg:cargo/hyper@0.13.0",
+          "scope": "runtime",
+          "version": "0.13.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:cargo/indexmap@1.9.3",
+          "licenses": [],
+          "name": "indexmap",
+          "purl": "pkg:cargo/indexmap@1.9.3",
+          "version": "1.9.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:cargo/itoa@1.0.11",
           "licenses": [],
           "name": "itoa",
-          "purl": "pkg:cargo/itoa@1.0.15",
-          "version": "1.0.15",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/getrandom@0.3.4",
-            "pkg:cargo/libc@0.2.177"
-          ],
-          "id": "pkg:cargo/jobserver@0.1.34",
-          "licenses": [],
-          "name": "jobserver",
-          "purl": "pkg:cargo/jobserver@0.1.34",
-          "version": "0.1.34",
+          "purl": "pkg:cargo/itoa@1.0.11",
+          "version": "1.0.11",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:cargo/lexopt@0.3.1",
-          "licenses": [],
-          "name": "lexopt",
-          "purl": "pkg:cargo/lexopt@0.3.1",
-          "scope": "runtime",
-          "version": "0.3.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:cargo/libc@0.2.177",
+          "id": "pkg:cargo/libc@0.2.153",
           "licenses": [],
           "name": "libc",
-          "purl": "pkg:cargo/libc@0.2.177",
-          "version": "0.2.177",
+          "purl": "pkg:cargo/libc@0.2.153",
+          "version": "0.2.153",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:cargo/log@0.4.28",
+          "id": "pkg:cargo/lock_api@0.4.12",
           "licenses": [],
-          "name": "log",
-          "purl": "pkg:cargo/log@0.4.28",
+          "metadata": {
+            "bomly.normalization.applied": [
+              "name"
+            ],
+            "bomly.normalization.original_name": "lock_api"
+          },
+          "name": "lock-api",
+          "purl": "pkg:cargo/lock_api@0.4.12",
+          "version": "0.4.12",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:cargo/mio@0.7.14",
+          "licenses": [],
+          "name": "mio",
+          "purl": "pkg:cargo/mio@0.7.14",
+          "version": "0.7.14",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:cargo/openssl-sys@0.9.90",
+          "licenses": [],
+          "name": "openssl-sys",
+          "purl": "pkg:cargo/openssl-sys@0.9.90",
+          "version": "0.9.90",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:cargo/openssl@0.10.48",
+          "licenses": [],
+          "name": "openssl",
+          "purl": "pkg:cargo/openssl@0.10.48",
           "scope": "runtime",
-          "version": "0.4.28",
+          "version": "0.10.48",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:cargo/memchr@2.7.6",
+          "id": "pkg:cargo/parking_lot_core@0.9.10",
           "licenses": [],
-          "name": "memchr",
-          "purl": "pkg:cargo/memchr@2.7.6",
-          "version": "2.7.6",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/libc@0.2.177"
-          ],
-          "id": "pkg:cargo/memmap2@0.9.9",
-          "licenses": [],
-          "name": "memmap2",
-          "purl": "pkg:cargo/memmap2@0.9.9",
-          "version": "0.9.9",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/cc@1.2.41",
-            "pkg:cargo/libc@0.2.177",
-            "pkg:cargo/pkg-config@0.3.32"
-          ],
-          "id": "pkg:cargo/pcre2-sys@0.2.10",
-          "licenses": [],
-          "name": "pcre2-sys",
-          "purl": "pkg:cargo/pcre2-sys@0.2.10",
-          "version": "0.2.10",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/libc@0.2.177",
-            "pkg:cargo/log@0.4.28",
-            "pkg:cargo/pcre2-sys@0.2.10"
-          ],
-          "id": "pkg:cargo/pcre2@0.2.11",
-          "licenses": [],
-          "name": "pcre2",
-          "purl": "pkg:cargo/pcre2@0.2.11",
-          "version": "0.2.11",
+          "metadata": {
+            "bomly.normalization.applied": [
+              "name"
+            ],
+            "bomly.normalization.original_name": "parking_lot_core"
+          },
+          "name": "parking-lot-core",
+          "purl": "pkg:cargo/parking_lot_core@0.9.10",
+          "version": "0.9.10",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:cargo/pkg-config@0.3.32",
+          "id": "pkg:cargo/pin-project-lite@0.2.13",
           "licenses": [],
-          "name": "pkg-config",
-          "purl": "pkg:cargo/pkg-config@0.3.32",
-          "version": "0.3.32",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/unicode-ident@1.0.20"
-          ],
-          "id": "pkg:cargo/proc-macro2@1.0.101",
-          "licenses": [],
-          "name": "proc-macro2",
-          "purl": "pkg:cargo/proc-macro2@1.0.101",
-          "version": "1.0.101",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/proc-macro2@1.0.101"
-          ],
-          "id": "pkg:cargo/quote@1.0.41",
-          "licenses": [],
-          "name": "quote",
-          "purl": "pkg:cargo/quote@1.0.41",
-          "version": "1.0.41",
+          "name": "pin-project-lite",
+          "purl": "pkg:cargo/pin-project-lite@0.2.13",
+          "version": "0.2.13",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:cargo/r-efi@5.3.0",
+          "id": "pkg:cargo/scopeguard@1.2.0",
           "licenses": [],
-          "name": "r-efi",
-          "purl": "pkg:cargo/r-efi@5.3.0",
-          "version": "5.3.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/aho-corasick@1.1.3",
-            "pkg:cargo/memchr@2.7.6",
-            "pkg:cargo/regex-syntax@0.8.8"
-          ],
-          "id": "pkg:cargo/regex-automata@0.4.13",
-          "licenses": [],
-          "name": "regex-automata",
-          "purl": "pkg:cargo/regex-automata@0.4.13",
-          "version": "0.4.13",
+          "name": "scopeguard",
+          "purl": "pkg:cargo/scopeguard@1.2.0",
+          "version": "1.2.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:cargo/regex-syntax@0.8.8",
-          "licenses": [],
-          "name": "regex-syntax",
-          "purl": "pkg:cargo/regex-syntax@0.8.8",
-          "version": "0.8.8",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/aho-corasick@1.1.3",
-            "pkg:cargo/memchr@2.7.6",
-            "pkg:cargo/regex-automata@0.4.13",
-            "pkg:cargo/regex-syntax@0.8.8"
-          ],
-          "id": "pkg:cargo/regex@1.12.2",
-          "licenses": [],
-          "name": "regex",
-          "purl": "pkg:cargo/regex@1.12.2",
-          "version": "1.12.2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/anyhow@1.0.100",
-            "pkg:cargo/bstr@1.12.0",
-            "pkg:cargo/grep@0.4.1",
-            "pkg:cargo/ignore@0.4.25",
-            "pkg:cargo/lexopt@0.3.1",
-            "pkg:cargo/log@0.4.28",
-            "pkg:cargo/serde@1.0.228",
-            "pkg:cargo/serde_derive@1.0.228",
-            "pkg:cargo/serde_json@1.0.145",
-            "pkg:cargo/termcolor@1.4.1",
-            "pkg:cargo/textwrap@0.16.2",
-            "pkg:cargo/walkdir@2.5.0"
-          ],
-          "id": "pkg:cargo/ripgrep@15.1.0%22%20%20%23%3Aversion",
-          "licenses": [],
-          "name": "ripgrep",
-          "purl": "pkg:cargo/ripgrep@15.1.0%22%20%20%23%3Aversion",
-          "version": "15.1.0\"  #:version",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:cargo/ryu@1.0.20",
-          "licenses": [],
-          "name": "ryu",
-          "purl": "pkg:cargo/ryu@1.0.20",
-          "version": "1.0.20",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/winapi-util@0.1.11"
-          ],
-          "id": "pkg:cargo/same-file@1.0.6",
-          "licenses": [],
-          "name": "same-file",
-          "purl": "pkg:cargo/same-file@1.0.6",
-          "version": "1.0.6",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/serde_core@1.0.228"
-          ],
-          "id": "pkg:cargo/serde@1.0.228",
+          "id": "pkg:cargo/serde@1.0.210",
           "licenses": [],
           "name": "serde",
-          "purl": "pkg:cargo/serde@1.0.228",
-          "scope": "development",
-          "version": "1.0.228",
+          "purl": "pkg:cargo/serde@1.0.210",
+          "version": "1.0.210",
           "vulnerabilities": []
         },
         {
-          "dependencies": [
-            "pkg:cargo/serde_derive@1.0.228"
-          ],
-          "id": "pkg:cargo/serde_core@1.0.228",
-          "licenses": [],
-          "metadata": {
-            "bomly.normalization.applied": [
-              "name"
-            ],
-            "bomly.normalization.original_name": "serde_core"
-          },
-          "name": "serde-core",
-          "purl": "pkg:cargo/serde_core@1.0.228",
-          "version": "1.0.228",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/proc-macro2@1.0.101",
-            "pkg:cargo/quote@1.0.41",
-            "pkg:cargo/syn@2.0.107"
-          ],
-          "id": "pkg:cargo/serde_derive@1.0.228",
-          "licenses": [],
-          "metadata": {
-            "bomly.normalization.applied": [
-              "name"
-            ],
-            "bomly.normalization.original_name": "serde_derive"
-          },
-          "name": "serde-derive",
-          "purl": "pkg:cargo/serde_derive@1.0.228",
-          "scope": "development",
-          "version": "1.0.228",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/itoa@1.0.15",
-            "pkg:cargo/memchr@2.7.6",
-            "pkg:cargo/ryu@1.0.20",
-            "pkg:cargo/serde@1.0.228",
-            "pkg:cargo/serde_core@1.0.228"
-          ],
-          "id": "pkg:cargo/serde_json@1.0.145",
+          "dependencies": [],
+          "id": "pkg:cargo/serde_json@1.0.127",
           "licenses": [],
           "metadata": {
             "bomly.normalization.applied": [
@@ -646,150 +247,38 @@
             "bomly.normalization.original_name": "serde_json"
           },
           "name": "serde-json",
-          "purl": "pkg:cargo/serde_json@1.0.145",
+          "purl": "pkg:cargo/serde_json@1.0.127",
           "scope": "runtime",
-          "version": "1.0.145",
+          "version": "1.0.127",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:cargo/shlex@1.3.0",
+          "id": "pkg:cargo/tempfile@3.8.1",
           "licenses": [],
-          "name": "shlex",
-          "purl": "pkg:cargo/shlex@1.3.0",
-          "version": "1.3.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/proc-macro2@1.0.101",
-            "pkg:cargo/quote@1.0.41",
-            "pkg:cargo/unicode-ident@1.0.20"
-          ],
-          "id": "pkg:cargo/syn@2.0.107",
-          "licenses": [],
-          "name": "syn",
-          "purl": "pkg:cargo/syn@2.0.107",
-          "version": "2.0.107",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/winapi-util@0.1.11"
-          ],
-          "id": "pkg:cargo/termcolor@1.4.1",
-          "licenses": [],
-          "name": "termcolor",
-          "purl": "pkg:cargo/termcolor@1.4.1",
-          "scope": "runtime",
-          "version": "1.4.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:cargo/textwrap@0.16.2",
-          "licenses": [],
-          "name": "textwrap",
-          "purl": "pkg:cargo/textwrap@0.16.2",
-          "scope": "runtime",
-          "version": "0.16.2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/cc@1.2.41",
-            "pkg:cargo/libc@0.2.177"
-          ],
-          "id": "pkg:cargo/tikv-jemalloc-sys@0.6.1%2B5.3.0-1-ge13ca993e8ccb9ba9847cc330696e02839f328f7",
-          "licenses": [],
-          "name": "tikv-jemalloc-sys",
-          "purl": "pkg:cargo/tikv-jemalloc-sys@0.6.1%2B5.3.0-1-ge13ca993e8ccb9ba9847cc330696e02839f328f7",
-          "version": "0.6.1+5.3.0-1-ge13ca993e8ccb9ba9847cc330696e02839f328f7",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/libc@0.2.177",
-            "pkg:cargo/tikv-jemalloc-sys@0.6.1%2B5.3.0-1-ge13ca993e8ccb9ba9847cc330696e02839f328f7"
-          ],
-          "id": "pkg:cargo/tikv-jemallocator@0.6.1",
-          "licenses": [],
-          "name": "tikv-jemallocator",
-          "purl": "pkg:cargo/tikv-jemallocator@0.6.1",
-          "version": "0.6.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:cargo/unicode-ident@1.0.20",
-          "licenses": [],
-          "name": "unicode-ident",
-          "purl": "pkg:cargo/unicode-ident@1.0.20",
-          "version": "1.0.20",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/same-file@1.0.6",
-            "pkg:cargo/winapi-util@0.1.11"
-          ],
-          "id": "pkg:cargo/walkdir@2.5.0",
-          "licenses": [],
-          "name": "walkdir",
-          "purl": "pkg:cargo/walkdir@2.5.0",
+          "name": "tempfile",
+          "purl": "pkg:cargo/tempfile@3.8.1",
           "scope": "development",
-          "version": "2.5.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/wit-bindgen@0.46.0"
-          ],
-          "id": "pkg:cargo/wasip2@1.0.1%2Bwasi-0.2.4",
-          "licenses": [],
-          "name": "wasip2",
-          "purl": "pkg:cargo/wasip2@1.0.1%2Bwasi-0.2.4",
-          "version": "1.0.1+wasi-0.2.4",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/windows-sys@0.61.2"
-          ],
-          "id": "pkg:cargo/winapi-util@0.1.11",
-          "licenses": [],
-          "name": "winapi-util",
-          "purl": "pkg:cargo/winapi-util@0.1.11",
-          "version": "0.1.11",
+          "version": "3.8.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:cargo/windows-link@0.2.1",
+          "id": "pkg:cargo/time@0.1.44",
           "licenses": [],
-          "name": "windows-link",
-          "purl": "pkg:cargo/windows-link@0.2.1",
-          "version": "0.2.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:cargo/windows-link@0.2.1"
-          ],
-          "id": "pkg:cargo/windows-sys@0.61.2",
-          "licenses": [],
-          "name": "windows-sys",
-          "purl": "pkg:cargo/windows-sys@0.61.2",
-          "version": "0.61.2",
+          "name": "time",
+          "purl": "pkg:cargo/time@0.1.44",
+          "version": "0.1.44",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:cargo/wit-bindgen@0.46.0",
+          "id": "pkg:cargo/tokio@1.36.0",
           "licenses": [],
-          "name": "wit-bindgen",
-          "purl": "pkg:cargo/wit-bindgen@0.46.0",
-          "version": "0.46.0",
+          "name": "tokio",
+          "purl": "pkg:cargo/tokio@1.36.0",
+          "scope": "development",
+          "version": "1.36.0",
           "vulnerabilities": []
         }
       ],

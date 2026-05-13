@@ -146,6 +146,7 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 		Ecosystem: string(sdk.EcosystemNPM),
 		Name:      rootName,
 		Version:   root.Version,
+		Type:      "application",
 	})
 	if err := depsGraph.AddPackage(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
@@ -204,6 +205,7 @@ func DepGraphFromPNPMJSON(raw []byte) (*sdk.Graph, error) {
 			Ecosystem: string(sdk.EcosystemNPM),
 			Name:      root.Name,
 			Version:   root.Version,
+			Type:      "application",
 		})
 		if err := AddNodeIfMissing(depsGraph, rootNode); err != nil {
 			return nil, err
@@ -271,6 +273,7 @@ func DepGraphFromYarnJSON(raw []byte) (*sdk.Graph, error) {
 	rootNode := sdk.NewPackage(sdk.Package{
 		Ecosystem: string(sdk.EcosystemNPM),
 		Name:      "root",
+		Type:      "application",
 	})
 	if err := depsGraph.AddPackage(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)

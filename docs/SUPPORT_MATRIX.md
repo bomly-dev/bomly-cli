@@ -13,11 +13,13 @@ Bomly groups support into two implementation paths:
 
 Primary detector files are the preferred inputs for Bomly-owned resolution. Fallback detector files are inputs for the next built-in Bomly detector in the same chain; Syft-only backstops are omitted here and listed under Bundled detectors support.
 
+Some primary detectors execute the ecosystem build tool to recover richer dependency edges than a committed lockfile or manifest can provide. When the tool is not installed or the build-tool command fails, Bomly falls back to the next detector in the chain. For reproducible QA of those richer graphs, make sure the relevant tools are on `PATH` before running smoke or QA scans.
+
 | Ecosystem | Package managers | Primary detector files | Fallback detector files | Detector |
 | --- | --- | --- | --- | --- |
 | `cpp` | `conan` | `conan.lock`, `conanfile.txt`, `conanfile.py`, `conaninfo.txt` | - | Native detector |
-| `dart` | `pub` | `pubspec.lock`, `pubspec.yaml`, `pubspec.yml` | - | Native detector |
-| `dotnet` | `nuget` | `packages.lock.json`, `packages.config`, `*.csproj`, `*.fsproj`, `*.vbproj`, `*.vcxproj`, `project.assets.json` | - | Native detector |
+| `dart` | `pub` | `pubspec.lock`, `pubspec.yaml`, `pubspec.yml` | `pubspec.lock`, `pubspec.yaml`, `pubspec.yml` | Native detector |
+| `dotnet` | `nuget` | `packages.lock.json`, `*.deps.json`, `packages.config`, `*.csproj`, `*.fsproj`, `*.vbproj`, `*.vcxproj`, `project.assets.json` | - | Native detector |
 | `elixir` | `mix` | `mix.lock`, `mix.exs` | - | Native detector |
 | `github-actions` | `github-actions` | `.github/workflows/*.yaml`, `.github/workflows/*.yml`, `.github/actions/*/action.yml`, `.github/actions/*/action.yaml` | - | Native detector |
 | `go` | `gomod` | `go.mod` | - | Native Go detector |
@@ -28,8 +30,8 @@ Primary detector files are the preferred inputs for Bomly-owned resolution. Fall
 | `ruby` | `bundler` | `Gemfile.lock`, `Gemfile.next.lock` | - | Native detector |
 | `rust` | `cargo` | `Cargo.lock`, `Cargo.toml` | - | Native detector |
 | `sbom` | `sbom` | `*.syft.json`, `*.bom.*`, `*.bom`, `bom`, `*.sbom.*`, `*.sbom`, `sbom`, `*.cdx.*`, `*.cdx`, `*.spdx.*`, `*.spdx` | - | Native SBOM detector |
-| `scala` | `sbt` | `build.sbt`, `project/plugins.sbt`, `project/build.properties` | - | Native detector |
-| `swift` | `cocoapods`, `swiftpm` | `Podfile.lock`, `Podfile`, `Package.resolved`, `.package.resolved`, `Package.swift`, `project.xcworkspace/xcshareddata/swiftpm/Package.resolved` | - | Native detector |
+| `scala` | `sbt` | `build.sbt`, `project/plugins.sbt`, `project/build.properties` | `build.sbt`, `project/plugins.sbt`, `project/build.properties` | Native detector |
+| `swift` | `cocoapods`, `swiftpm` | `Podfile.lock`, `Podfile`, `Package.resolved`, `.package.resolved`, `Package.swift`, `project.xcworkspace/xcshareddata/swiftpm/Package.resolved` | `Package.resolved`, `.package.resolved`, `Package.swift`, `project.xcworkspace/xcshareddata/swiftpm/Package.resolved` | Native detector |
 
 ## Bundled Detectors
 
@@ -74,6 +76,7 @@ Source: https://oss.anchore.com/docs/capabilities/all-packages/
 
 - Bomly does not expose every Syft cataloger as a package manager.
 - Some OS image and binary catalogers are intentionally omitted when they do not map cleanly to Bomly's ecosystem and package-manager model.
+- Build-tool-backed detectors currently include Pub (`dart`), SwiftPM (`swift`), and SBT (`sbt`) for richer transitive graph resolution when those tools are available.
 
 ## Syft Container OS Support
 

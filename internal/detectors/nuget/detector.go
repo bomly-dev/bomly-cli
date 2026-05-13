@@ -16,14 +16,15 @@ import (
 	"go.uber.org/zap"
 )
 
-// Detector resolves NuGet dependency graphs from committed lockfiles.
+// Detector resolves NuGet dependency graphs from committed NuGet manifests.
 type Detector struct {
 	Logger     *zap.Logger
 	WorkingDir string
 	Fallback   sdk.Detector
 }
 
-var evidencePatterns = []string{"packages.lock.json", "packages.config", "*.csproj", "*.fsproj", "*.vbproj", "*.vcxproj", "project.assets.json"}
+var evidencePatterns = []string{"packages.lock.json", "*.deps.json", "packages.config", "*.csproj", "*.fsproj", "*.vbproj", "*.vcxproj", "project.assets.json"}
+var projectFilePatterns = []string{"*.csproj", "*.fsproj", "*.vbproj", "*.vcxproj"}
 
 type lockFile struct {
 	Dependencies map[string]map[string]lockPackage `json:"dependencies"`
@@ -37,6 +38,20 @@ type lockPackage struct {
 	Dependencies map[string]string `json:"dependencies"`
 }
 
+type depsFile struct {
+	Targets   map[string]map[string]depsTarget `json:"targets"`
+	Libraries map[string]depsLibrary           `json:"libraries"`
+}
+
+type depsTarget struct {
+	Dependencies map[string]string `json:"dependencies"`
+}
+
+type depsLibrary struct {
+	Type   string `json:"type"`
+	SHA512 string `json:"sha512"`
+}
+
 type packagesConfig struct {
 	Packages []packagesConfigPackage `xml:"package"`
 }
@@ -44,6 +59,21 @@ type packagesConfig struct {
 type packagesConfigPackage struct {
 	ID      string `xml:"id,attr"`
 	Version string `xml:"version,attr"`
+}
+
+type projectFile struct {
+	ItemGroups []projectItemGroup `xml:"ItemGroup"`
+}
+
+type projectItemGroup struct {
+	PackageReferences []projectPackageReference `xml:"PackageReference"`
+}
+
+type projectPackageReference struct {
+	Include        string `xml:"Include,attr"`
+	Update         string `xml:"Update,attr"`
+	Version        string `xml:"Version,attr"`
+	VersionElement string `xml:"Version"`
 }
 
 // PackageManagerSupport returns NuGet package-manager discovery metadata.
@@ -56,7 +86,7 @@ func (d Detector) Ready() bool {
 	return true
 }
 
-// Applicable reports whether a NuGet lockfile or legacy packages.config is present.
+// Applicable reports whether a NuGet lockfile, legacy packages.config, or project file is present.
 func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
 	_ = ctx
 	workingDir := d.workingDir(req.ProjectPath)
@@ -64,6 +94,20 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 		if ok, err := system.FileExists(filepath.Join(workingDir, name)); ok || err != nil {
 			return ok, err
 		}
+	}
+	depsFiles, err := nugetDepsFiles(workingDir)
+	if err != nil {
+		return false, err
+	}
+	if len(depsFiles) > 0 {
+		return true, nil
+	}
+	projectFiles, err := nugetProjectFiles(workingDir)
+	if err != nil {
+		return false, err
+	}
+	if len(projectFiles) > 0 {
+		return true, nil
 	}
 	return false, nil
 }
@@ -100,16 +144,40 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 		return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, []string{"packages.lock.json"}))}, nil
 	}
 
-	configPath := filepath.Join(workingDir, "packages.config")
-	raw, err := os.ReadFile(configPath)
-	if err != nil {
-		return sdk.DetectionResult{}, fmt.Errorf("read NuGet packages.config: %w", err)
-	}
-	g, err := depGraphFromPackagesConfig(raw)
+	depsFiles, err := nugetDepsFiles(workingDir)
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
-	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, []string{"packages.config"}))}, nil
+	if len(depsFiles) > 0 {
+		g, err := depGraphFromDepsFiles(depsFiles)
+		if err != nil {
+			return sdk.DetectionResult{}, err
+		}
+		return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, []string{"*.deps.json"}))}, nil
+	}
+
+	configPath := filepath.Join(workingDir, "packages.config")
+	raw, err := os.ReadFile(configPath)
+	if err == nil {
+		g, err := depGraphFromPackagesConfig(raw)
+		if err != nil {
+			return sdk.DetectionResult{}, err
+		}
+		return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, []string{"packages.config"}))}, nil
+	}
+	if !os.IsNotExist(err) {
+		return sdk.DetectionResult{}, fmt.Errorf("read NuGet packages.config: %w", err)
+	}
+
+	projectFiles, err := nugetProjectFiles(workingDir)
+	if err != nil {
+		return sdk.DetectionResult{}, err
+	}
+	g, err := depGraphFromProjectFiles(projectFiles)
+	if err != nil {
+		return sdk.DetectionResult{}, err
+	}
+	return sdk.DetectionResult{Graphs: sdk.SingleGraphContainer(g, detectors.InferManifestMetadata(req, projectFilePatterns))}, nil
 }
 
 // FallbackDetector returns the configured fallback detector.
@@ -224,6 +292,196 @@ func depGraphFromPackagesConfig(raw []byte) (*sdk.Graph, error) {
 	return g, nil
 }
 
+func depGraphFromDepsFiles(paths []string) (*sdk.Graph, error) {
+	g := sdk.New()
+	root := rootNode()
+	if err := g.AddPackage(root); err != nil {
+		return nil, fmt.Errorf("add root node: %w", err)
+	}
+	packageEntries := make(map[string]lockPackage)
+	rootDeps := make(map[string]string)
+	for _, path := range paths {
+		raw, err := os.ReadFile(path)
+		if err != nil {
+			return nil, fmt.Errorf("read NuGet deps file %q: %w", path, err)
+		}
+		var deps depsFile
+		if err := json.Unmarshal(raw, &deps); err != nil {
+			return nil, fmt.Errorf("parse NuGet deps file %q: %w", path, err)
+		}
+		for _, targetPackages := range deps.Targets {
+			for key, target := range targetPackages {
+				name, version, ok := splitDepsPackageKey(key)
+				if !ok {
+					continue
+				}
+				library := deps.Libraries[key]
+				if !strings.EqualFold(strings.TrimSpace(library.Type), "package") {
+					for depName, depVersion := range target.Dependencies {
+						rootDeps[depName] = depVersion
+					}
+					continue
+				}
+				pkg := lockPackage{
+					Type:         "transitive",
+					Resolved:     version,
+					ContentHash:  strings.TrimPrefix(library.SHA512, "sha512-"),
+					Dependencies: target.Dependencies,
+				}
+				packageEntries[name] = pkg
+			}
+		}
+	}
+	if len(packageEntries) == 0 {
+		return nil, fmt.Errorf("NuGet deps files do not contain package entries")
+	}
+	selected := reachableNuGetPackages(packageEntries, rootDeps)
+	for name, pkg := range selected {
+		if err := addNodeIfMissing(g, packageNode(name, pkg.Resolved, pkg)); err != nil {
+			return nil, err
+		}
+	}
+	for name, pkg := range selected {
+		parent := packageNode(name, pkg.Resolved, pkg)
+		for depName := range pkg.Dependencies {
+			depPkg, ok := findNuGetPackage(selected, depName)
+			if !ok {
+				continue
+			}
+			child := packageNode(depName, depPkg.Resolved, depPkg)
+			if err := addNodeIfMissing(g, child); err != nil {
+				return nil, err
+			}
+			if err := g.AddDependency(parent.ID, child.ID); err != nil {
+				return nil, fmt.Errorf("add NuGet deps dependency %q -> %q: %w", parent.ID, child.ID, err)
+			}
+		}
+	}
+	roots := make([]string, 0, len(rootDeps))
+	for depName := range rootDeps {
+		pkg, ok := findNuGetPackage(selected, depName)
+		if !ok {
+			continue
+		}
+		node := packageNode(depName, pkg.Resolved, pkg)
+		if existing, ok := g.Package(node.ID); ok {
+			sdk.MergePackageScope(existing, sdk.ScopeRuntime)
+		}
+		if err := g.AddDependency(root.ID, node.ID); err != nil {
+			return nil, fmt.Errorf("add NuGet deps root dependency %q: %w", node.ID, err)
+		}
+		roots = append(roots, depName)
+	}
+	sort.Strings(roots)
+	if err := propagateScope(g, selected, roots, sdk.ScopeRuntime); err != nil {
+		return nil, err
+	}
+	return g, nil
+}
+
+func depGraphFromProjectFiles(paths []string) (*sdk.Graph, error) {
+	g := sdk.New()
+	root := rootNode()
+	if err := g.AddPackage(root); err != nil {
+		return nil, fmt.Errorf("add root node: %w", err)
+	}
+	seen := make(map[string]struct{})
+	for _, path := range paths {
+		raw, err := os.ReadFile(path)
+		if err != nil {
+			return nil, fmt.Errorf("read NuGet project file %q: %w", path, err)
+		}
+		var project projectFile
+		if err := xml.Unmarshal(raw, &project); err != nil {
+			return nil, fmt.Errorf("parse NuGet project file %q: %w", path, err)
+		}
+		for _, ref := range project.packageReferences() {
+			name := strings.TrimSpace(firstNonEmpty(ref.Include, ref.Update))
+			version := strings.TrimSpace(firstNonEmpty(ref.Version, ref.VersionElement))
+			if name == "" || version == "" {
+				continue
+			}
+			node := packageNode(name, version, lockPackage{})
+			sdk.MergePackageScope(node, sdk.ScopeRuntime)
+			if _, ok := seen[node.ID]; ok {
+				continue
+			}
+			seen[node.ID] = struct{}{}
+			if err := addNodeIfMissing(g, node); err != nil {
+				return nil, err
+			}
+			if err := g.AddDependency(root.ID, node.ID); err != nil {
+				return nil, fmt.Errorf("add NuGet project dependency %q: %w", node.ID, err)
+			}
+		}
+	}
+	if len(seen) == 0 {
+		return nil, fmt.Errorf("NuGet project files do not contain any PackageReference entries")
+	}
+	return g, nil
+}
+
+func (p projectFile) packageReferences() []projectPackageReference {
+	values := make([]projectPackageReference, 0)
+	for _, group := range p.ItemGroups {
+		values = append(values, group.PackageReferences...)
+	}
+	return values
+}
+
+func nugetProjectFiles(dir string) ([]string, error) {
+	return nugetFilesByPattern(dir, isNuGetProjectFile, "match NuGet project files")
+}
+
+func nugetDepsFiles(dir string) ([]string, error) {
+	return nugetFilesByPattern(dir, func(path string) bool {
+		return strings.HasSuffix(strings.ToLower(filepath.Base(path)), ".deps.json")
+	}, "match NuGet deps files")
+}
+
+func nugetFilesByPattern(dir string, match func(string) bool, context string) ([]string, error) {
+	files := make([]string, 0)
+	err := filepath.WalkDir(dir, func(path string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry == nil || entry.IsDir() {
+			if entry != nil && strings.EqualFold(entry.Name(), ".git") {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if match(path) {
+			files = append(files, path)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", context, err)
+	}
+	sort.Strings(files)
+	return files, nil
+}
+
+func isNuGetProjectFile(path string) bool {
+	ext := strings.ToLower(filepath.Ext(path))
+	switch ext {
+	case ".csproj", ".fsproj", ".vbproj", ".vcxproj":
+		return true
+	default:
+		return false
+	}
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if strings.TrimSpace(value) != "" {
+			return value
+		}
+	}
+	return ""
+}
+
 func rootNode() *sdk.Package {
 	return sdk.NewPackage(sdk.Package{
 		Ecosystem:   string(sdk.EcosystemDotNet),
@@ -261,6 +519,36 @@ func directNuGetRoots(packages map[string]lockPackage) []string {
 	return values
 }
 
+func reachableNuGetPackages(packages map[string]lockPackage, roots map[string]string) map[string]lockPackage {
+	if len(roots) == 0 {
+		return packages
+	}
+	selected := make(map[string]lockPackage, len(packages))
+	var walk func(string)
+	walk = func(name string) {
+		for candidate, pkg := range packages {
+			if !strings.EqualFold(baseName(candidate), name) {
+				continue
+			}
+			if _, ok := selected[candidate]; ok {
+				return
+			}
+			selected[candidate] = pkg
+			for depName := range pkg.Dependencies {
+				walk(depName)
+			}
+			return
+		}
+	}
+	for name := range roots {
+		walk(name)
+	}
+	if len(selected) == 0 {
+		return packages
+	}
+	return selected
+}
+
 func findNuGetPackage(packages map[string]lockPackage, name string) (lockPackage, bool) {
 	for candidate, pkg := range packages {
 		if strings.EqualFold(baseName(candidate), name) {
@@ -275,6 +563,13 @@ func baseName(name string) string {
 		return name[:i]
 	}
 	return name
+}
+
+func splitDepsPackageKey(value string) (string, string, bool) {
+	name, version, ok := strings.Cut(strings.TrimSpace(value), "/")
+	name = strings.TrimSpace(name)
+	version = strings.TrimSpace(version)
+	return name, version, ok && name != "" && version != ""
 }
 
 func propagateScope(g *sdk.Graph, packages map[string]lockPackage, roots []string, scope sdk.Scope) error {

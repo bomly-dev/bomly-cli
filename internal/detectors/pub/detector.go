@@ -155,10 +155,8 @@ func depGraphFromLock(raw []byte, manifest pubspec) (*sdk.Graph, error) {
 		if err := addNodeIfMissing(g, node); err != nil {
 			return nil, err
 		}
-		if isDirectPubDependency(name, pkg, manifest) {
-			if err := g.AddDependency(root.ID, node.ID); err != nil {
-				return nil, fmt.Errorf("add pub root dependency %q: %w", node.ID, err)
-			}
+		if err := g.AddDependency(root.ID, node.ID); err != nil {
+			return nil, fmt.Errorf("add pub dependency %q: %w", node.ID, err)
 		}
 	}
 	return g, nil
@@ -211,7 +209,7 @@ func scopeForPackage(name string, pkg pubLockPackage, manifest pubspec) sdk.Scop
 	case "direct main":
 		return sdk.ScopeRuntime
 	default:
-		return ""
+		return sdk.ScopeRuntime
 	}
 }
 

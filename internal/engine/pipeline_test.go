@@ -84,6 +84,38 @@ func TestResolveDetectors_FallsBackWhenPrimaryFails(t *testing.T) {
 	}
 }
 
+func TestResolveDetectors_DoesNotRunExcludedFallback(t *testing.T) {
+	registry := newTestRegistry()
+	fallbackGraph := sdk.New()
+	fallbackGraph.AddPackage(sdk.NewPackageRef("app", "1.0.0"))
+
+	registry.registerDetector(fakeFallbackDetector{
+		fakeDetector: fakeDetector{
+			descriptor: DetectorDescriptor{Name: "go-native", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}, SupportedModes: []TargetMode{TargetModeFullGraph}},
+			err:        errors.New("go not installed"),
+		},
+		fallback: fakeDetector{
+			descriptor: DetectorDescriptor{Name: "syft-detector", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}, SupportedModes: []TargetMode{TargetModeFullGraph}},
+			result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
+		},
+	})
+
+	pipeline := NewPipeline(registry, zap.NewNop())
+	req := ResolveGraphRequest{
+		Ecosystem:      EcosystemGo,
+		PackageManager: PackageManagerGoMod,
+		Mode:           TargetModeFullGraph,
+		DetectorFilter: DetectorFilter{Exclude: []string{"syft-detector"}},
+	}
+	results, err := pipeline.resolveDetectors(context.Background(), req, registry.Detectors(req))
+	if err == nil {
+		t.Fatal("expected primary detector error when fallback is excluded")
+	}
+	if len(results) != 0 {
+		t.Fatalf("expected no fallback results, got %#v", results)
+	}
+}
+
 func TestPipeline_UsesPlannedDetectorChainWithoutEagerFallbackExecution(t *testing.T) {
 	registry := newTestRegistry()
 	fallbackGraph := sdk.New()

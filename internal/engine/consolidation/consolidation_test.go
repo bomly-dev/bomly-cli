@@ -31,7 +31,7 @@ func TestNormalizeGraphPackageIdentity_CollapsesEquivalentPythonPackages(t *test
 	if normalized.Size() != 2 {
 		t.Fatalf("expected duplicate python packages to collapse to 2 nodes, got %d", normalized.Size())
 	}
-	depID := "pkg:python/requests-toolbelt@1.0.0rc1"
+	depID := "pkg:pypi/requests-toolbelt@1.0.0rc1"
 	dep, ok := normalized.Package(depID)
 	if !ok {
 		t.Fatalf("expected normalized python package %q", depID)
@@ -60,8 +60,8 @@ func TestNormalizeGraphPackageIdentity_NormalizesScopedNPMPackage(t *testing.T) 
 	if err != nil {
 		t.Fatalf("normalizeGraphPackageIdentity() error = %v", err)
 	}
-	if _, ok := normalized.Package("pkg:npm/types/node@20.11.30"); !ok {
-		t.Fatal("expected scoped npm package to normalize to lowercase namespace and name")
+	if _, ok := normalized.Package("pkg:npm/%40types/node@20.11.30"); !ok {
+		t.Fatal("expected scoped npm package to normalize to canonical namespace and name")
 	}
 }
 

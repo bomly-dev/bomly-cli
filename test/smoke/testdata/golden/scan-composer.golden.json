@@ -2,132 +2,170 @@
   "command": "scan",
   "manifests": [
     {
-      "detector": "github-actions-detector",
-      "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
-      "package_manager": "github-actions",
+      "detector": "composer-detector",
+      "ecosystem": "php",
+      "kind": "composer.lock",
+      "package_manager": "composer",
       "packages": [
         {
           "dependencies": [
-            "pkg:github-actions/actions/checkout@v4"
+            "pkg:composer/guzzlehttp/promises@1.5.3",
+            "pkg:composer/guzzlehttp/psr7@1.9.1"
           ],
-          "id": "pkg:github-actions/.github%2Fworkflows%2Fchecks.yml@local",
+          "id": "pkg:composer/guzzlehttp/guzzle@6.2.3",
           "licenses": [],
-          "name": ".github/workflows/checks.yml",
-          "purl": "pkg:github-actions/.github%2Fworkflows%2Fchecks.yml@local",
+          "name": "guzzlehttp:guzzle",
+          "purl": "pkg:composer/guzzlehttp/guzzle@6.2.3",
           "scope": "runtime",
-          "version": "local",
+          "version": "6.2.3",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:github-actions/actions/checkout@v4",
+          "id": "pkg:composer/guzzlehttp/promises@1.5.3",
           "licenses": [],
-          "name": "actions:checkout",
-          "purl": "pkg:github-actions/actions/checkout@v4",
+          "name": "guzzlehttp:promises",
+          "purl": "pkg:composer/guzzlehttp/promises@1.5.3",
           "scope": "runtime",
-          "version": "v4",
+          "version": "1.5.3",
           "vulnerabilities": []
-        }
-      ],
-      "path": ".github/workflows/checks.yml",
-      "subproject": "."
-    },
-    {
-      "detector": "github-actions-detector",
-      "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
-      "package_manager": "github-actions",
-      "packages": [
+        },
         {
           "dependencies": [
-            "pkg:github-actions/actions/checkout@v4",
-            "pkg:github-actions/actions/setup-node@v3",
-            "pkg:github-actions/shivammathur/setup-php@v2"
+            "pkg:composer/psr/http-message@1.1",
+            "pkg:composer/ralouphie/getallheaders@3.0.3"
           ],
-          "id": "pkg:github-actions/.github%2Fworkflows%2Fci.yml@local",
+          "id": "pkg:composer/guzzlehttp/psr7@1.9.1",
           "licenses": [],
-          "name": ".github/workflows/ci.yml",
-          "purl": "pkg:github-actions/.github%2Fworkflows%2Fci.yml@local",
+          "name": "guzzlehttp:psr7",
+          "purl": "pkg:composer/guzzlehttp/psr7@1.9.1",
           "scope": "runtime",
-          "version": "local",
+          "version": "1.9.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:github-actions/actions/checkout@v4",
+          "id": "pkg:composer/phpunit/php-file-iterator@1.4.5",
           "licenses": [],
-          "name": "actions:checkout",
-          "purl": "pkg:github-actions/actions/checkout@v4",
-          "scope": "runtime",
-          "version": "v4",
+          "name": "phpunit:php-file-iterator",
+          "purl": "pkg:composer/phpunit/php-file-iterator@1.4.5",
+          "scope": "development",
+          "version": "1.4.5",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:github-actions/actions/setup-node@v3",
+          "id": "pkg:composer/phpunit/php-text-template@1.2.1",
           "licenses": [],
-          "name": "actions:setup-node",
-          "purl": "pkg:github-actions/actions/setup-node@v3",
-          "scope": "runtime",
-          "version": "v3",
+          "name": "phpunit:php-text-template",
+          "purl": "pkg:composer/phpunit/php-text-template@1.2.1",
+          "scope": "development",
+          "version": "1.2.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:github-actions/shivammathur/setup-php@v2",
+          "id": "pkg:composer/phpunit/php-timer@1.0.9",
           "licenses": [],
-          "name": "shivammathur:setup-php",
-          "purl": "pkg:github-actions/shivammathur/setup-php@v2",
-          "scope": "runtime",
-          "version": "v2",
+          "name": "phpunit:php-timer",
+          "purl": "pkg:composer/phpunit/php-timer@1.0.9",
+          "scope": "development",
+          "version": "1.0.9",
           "vulnerabilities": []
-        }
-      ],
-      "path": ".github/workflows/ci.yml",
-      "subproject": "."
-    },
-    {
-      "detector": "github-actions-detector",
-      "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
-      "package_manager": "github-actions",
-      "packages": [
+        },
         {
           "dependencies": [
-            "pkg:github-actions/actions/checkout@v4",
-            "pkg:github-actions/shivammathur/setup-php@v2"
+            "pkg:composer/phpunit/php-file-iterator@1.4.5",
+            "pkg:composer/phpunit/php-text-template@1.2.1",
+            "pkg:composer/phpunit/php-timer@1.0.9",
+            "pkg:composer/symfony/yaml@v2.8.52"
           ],
-          "id": "pkg:github-actions/.github%2Fworkflows%2Fstatic.yml@local",
+          "id": "pkg:composer/phpunit/phpunit@4.8.36",
           "licenses": [],
-          "name": ".github/workflows/static.yml",
-          "purl": "pkg:github-actions/.github%2Fworkflows%2Fstatic.yml@local",
-          "scope": "runtime",
-          "version": "local",
+          "name": "phpunit:phpunit",
+          "purl": "pkg:composer/phpunit/phpunit@4.8.36",
+          "scope": "development",
+          "version": "4.8.36",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:github-actions/actions/checkout@v4",
+          "id": "pkg:composer/psr/http-message@1.1",
           "licenses": [],
-          "name": "actions:checkout",
-          "purl": "pkg:github-actions/actions/checkout@v4",
+          "name": "psr:http-message",
+          "purl": "pkg:composer/psr/http-message@1.1",
           "scope": "runtime",
-          "version": "v4",
+          "version": "1.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:github-actions/shivammathur/setup-php@v2",
+          "id": "pkg:composer/ralouphie/getallheaders@3.0.3",
           "licenses": [],
-          "name": "shivammathur:setup-php",
-          "purl": "pkg:github-actions/shivammathur/setup-php@v2",
+          "name": "ralouphie:getallheaders",
+          "purl": "pkg:composer/ralouphie/getallheaders@3.0.3",
           "scope": "runtime",
-          "version": "v2",
+          "version": "3.0.3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:composer/guzzlehttp/guzzle@6.2.3",
+            "pkg:composer/phpunit/phpunit@4.8.36",
+            "pkg:composer/twig/twig@1.44.7"
+          ],
+          "id": "pkg:composer/root",
+          "licenses": [],
+          "name": "root",
+          "purl": "pkg:composer/root",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:composer/symfony/polyfill-mbstring@v1.28.0",
+          "licenses": [],
+          "metadata": {
+            "bomly.normalization.applied": [
+              "version"
+            ],
+            "bomly.normalization.original_version": "v1.28.0"
+          },
+          "name": "symfony:polyfill-mbstring",
+          "purl": "pkg:composer/symfony/polyfill-mbstring@v1.28.0",
+          "scope": "runtime",
+          "version": "1.28.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:composer/symfony/yaml@v2.8.52",
+          "licenses": [],
+          "metadata": {
+            "bomly.normalization.applied": [
+              "version"
+            ],
+            "bomly.normalization.original_version": "v2.8.52"
+          },
+          "name": "symfony:yaml",
+          "purl": "pkg:composer/symfony/yaml@v2.8.52",
+          "scope": "development",
+          "version": "2.8.52",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [
+            "pkg:composer/symfony/polyfill-mbstring@v1.28.0"
+          ],
+          "id": "pkg:composer/twig/twig@1.44.7",
+          "licenses": [],
+          "name": "twig:twig",
+          "purl": "pkg:composer/twig/twig@1.44.7",
+          "scope": "runtime",
+          "version": "1.44.7",
           "vulnerabilities": []
         }
       ],
-      "path": ".github/workflows/static.yml",
+      "path": "composer.lock",
       "subproject": "."
     }
   ],
@@ -135,9 +173,9 @@
     "duration_ms": 0
   },
   "project": {
-    "ecosystem": "github-actions",
+    "ecosystem": "php",
     "name": "\u003cnormalized\u003e",
-    "package_manager": "github-actions",
+    "package_manager": "composer",
     "path": "\u003cnormalized\u003e"
   },
   "schema_version": "1.0"

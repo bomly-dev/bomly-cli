@@ -48,7 +48,7 @@ func TestSupportCatalogDetectorChainOrdering(t *testing.T) {
 	}
 
 	chain = DetectorNamesForPackageManager(sdk.PackageManagerSBT)
-	want = []string{detectors.NameSBT}
+	want = []string{detectors.NameSBTNative, detectors.NameSBT}
 	if !reflect.DeepEqual(chain, want) {
 		t.Fatalf("expected sbt detector chain %v, got %v", want, chain)
 	}
@@ -58,14 +58,21 @@ func TestSupportCatalogDetectorChainOrdering(t *testing.T) {
 		native  string
 	}{
 		{manager: sdk.PackageManagerNuGet, native: detectors.NameNuGet},
-		{manager: sdk.PackageManagerPub, native: detectors.NamePub},
+		{manager: sdk.PackageManagerPub, native: detectors.NamePubNative},
 		{manager: sdk.PackageManagerCocoaPods, native: detectors.NameCocoaPods},
-		{manager: sdk.PackageManagerSwiftPM, native: detectors.NameSwiftPM},
+		{manager: sdk.PackageManagerSwiftPM, native: detectors.NameSwiftPMNative},
 		{manager: sdk.PackageManagerMix, native: detectors.NameMix},
 		{manager: sdk.PackageManagerConan, native: detectors.NameConan},
 	} {
 		chain = DetectorNamesForPackageManager(tc.manager)
-		want = []string{tc.native, detectors.NameSyft}
+		want = []string{tc.native}
+		if tc.manager == sdk.PackageManagerPub {
+			want = append(want, detectors.NamePub)
+		}
+		if tc.manager == sdk.PackageManagerSwiftPM {
+			want = append(want, detectors.NameSwiftPM)
+		}
+		want = append(want, detectors.NameSyft)
 		if !reflect.DeepEqual(chain, want) {
 			t.Fatalf("expected %s detector chain %v, got %v", tc.manager.Name(), want, chain)
 		}
@@ -81,6 +88,30 @@ func TestSupportEntriesForTechniqueFiltersEvidencePatterns(t *testing.T) {
 		wantEvidence   []string
 		rejectEvidence []string
 	}{
+		{
+			name:           "pub native",
+			manager:        sdk.PackageManagerPub,
+			technique:      sdk.BuildToolTechnique,
+			wantDetectors:  []string{detectors.NamePubNative},
+			wantEvidence:   []string{"pubspec.lock", "pubspec.yaml", "pubspec.yml"},
+			rejectEvidence: []string{},
+		},
+		{
+			name:           "swiftpm native",
+			manager:        sdk.PackageManagerSwiftPM,
+			technique:      sdk.BuildToolTechnique,
+			wantDetectors:  []string{detectors.NameSwiftPMNative},
+			wantEvidence:   []string{"Package.resolved", ".package.resolved", "Package.swift", "project.xcworkspace/xcshareddata/swiftpm/Package.resolved"},
+			rejectEvidence: []string{},
+		},
+		{
+			name:           "sbt native",
+			manager:        sdk.PackageManagerSBT,
+			technique:      sdk.BuildToolTechnique,
+			wantDetectors:  []string{detectors.NameSBTNative},
+			wantEvidence:   []string{"build.sbt", "project/plugins.sbt", "project/build.properties"},
+			rejectEvidence: []string{},
+		},
 		{
 			name:           "npm native fallback",
 			manager:        sdk.PackageManagerNPM,

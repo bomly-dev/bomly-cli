@@ -63,6 +63,40 @@ func TestMarshalDepGraphJSON_SPDX23(t *testing.T) {
 	}
 }
 
+func TestMarshalDepGraphJSON_SPDX23ToolCreators(t *testing.T) {
+	g := mustGraph(t)
+	out, err := MarshalDepGraphJSON(g, TargetSPDX23JSON, BuildOptions{
+		ToolName:  "bomly-cli-test",
+		ToolNames: []string{"bomly-detector:npm-detector", "bomly-detector:go-detector"},
+		Created:   time.Date(2026, 2, 28, 12, 0, 0, 0, time.UTC),
+	}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal spdx: %v", err)
+	}
+
+	var d v23.Document
+	if err := json.Unmarshal(out, &d); err != nil {
+		t.Fatalf("unmarshal spdx: %v", err)
+	}
+	got := make([]string, 0, len(d.CreationInfo.Creators))
+	for _, creator := range d.CreationInfo.Creators {
+		if creator.CreatorType == "Tool" {
+			got = append(got, creator.Creator)
+		}
+	}
+	want := []string{"bomly-cli-test", "bomly-detector:npm-detector", "bomly-detector:go-detector"}
+	if !equalStringSlices(got, want) {
+		t.Fatalf("tools = %#v, want %#v", got, want)
+	}
+	doc, _, err := UnmarshalAutoJSON(out)
+	if err != nil {
+		t.Fatalf("unmarshal auto: %v", err)
+	}
+	if !equalStringSlices(doc.Tools, want) {
+		t.Fatalf("decoded tools = %#v, want %#v", doc.Tools, want)
+	}
+}
+
 func TestMarshalDepGraphJSON_SPDX23Scope(t *testing.T) {
 	g := sdk.New()
 	app := sdk.NewPackageRef("app", "1.0.0")
@@ -107,6 +141,45 @@ func TestMarshalDepGraphJSON_SPDX23Scope(t *testing.T) {
 	}
 	if comments["vitest"] != "bomly:scope=development" {
 		t.Fatalf("expected vitest SPDX package comment to include development scope, got %q", comments["vitest"])
+	}
+}
+
+func TestMarshalDepGraphJSON_SPDX23PreservesPackageType(t *testing.T) {
+	g := sdk.New()
+	app := sdk.NewPackage(sdk.Package{
+		Ecosystem: "npm",
+		Name:      "demo",
+		Version:   "1.0.0",
+		Type:      "application",
+		PURL:      "pkg:npm/demo@1.0.0",
+	})
+	if err := g.AddPackage(app); err != nil {
+		t.Fatalf("add app: %v", err)
+	}
+
+	out, err := MarshalDepGraphJSON(g, TargetSPDX23JSON, BuildOptions{
+		DocumentName: "test-doc",
+		DocumentNS:   "https://example.com/spdx/test-doc",
+		ToolName:     "bomly-cli-test",
+		Created:      time.Date(2026, 2, 28, 12, 0, 0, 0, time.UTC),
+	}, EncodeOptions{})
+	if err != nil {
+		t.Fatalf("marshal spdx: %v", err)
+	}
+	doc, _, err := UnmarshalAutoJSON(out)
+	if err != nil {
+		t.Fatalf("unmarshal spdx: %v", err)
+	}
+	graph, err := ToGraph(doc)
+	if err != nil {
+		t.Fatalf("to graph: %v", err)
+	}
+	pkg, ok := graph.Package("pkg:npm/demo@1.0.0")
+	if !ok {
+		t.Fatalf("expected demo package, got %v", graph.Packages())
+	}
+	if pkg.Type != "application" {
+		t.Fatalf("expected application type, got %q", pkg.Type)
 	}
 }
 
@@ -414,6 +487,118 @@ func TestToGraph_AllowsCycles(t *testing.T) {
 	}
 }
 
+func TestToGraph_MergesDuplicatePURLComponents(t *testing.T) {
+	doc := &Document{
+		Components: []Component{
+			{
+				ID:      "SPDXRef-Package-python-certifi-from-lock",
+				Name:    "certifi",
+				Version: "2026.4.22",
+				PURL:    "pkg:pypi/certifi@2026.4.22",
+			},
+			{
+				ID:      "SPDXRef-Package-python-certifi-from-metadata",
+				Name:    "certifi",
+				Version: "2026.4.22",
+				PURL:    "pkg:pypi/certifi@2026.4.22",
+			},
+			{
+				ID:      "SPDXRef-Package-python-requests",
+				Name:    "requests",
+				Version: "2.21.0",
+				PURL:    "pkg:pypi/requests@2.21.0",
+			},
+		},
+		Dependencies: []Dependency{
+			{Ref: "SPDXRef-Package-python-requests", DependsOn: []string{"SPDXRef-Package-python-certifi-from-lock"}},
+			{Ref: "SPDXRef-Package-python-certifi-from-lock", DependsOn: []string{"SPDXRef-Package-python-certifi-from-metadata"}},
+		},
+	}
+
+	depsGraph, err := ToGraph(doc)
+	if err != nil {
+		t.Fatalf("ToGraph(): %v", err)
+	}
+	if depsGraph.Size() != 2 {
+		t.Fatalf("expected duplicate PURL components to merge to 2 packages, got %d", depsGraph.Size())
+	}
+	deps, err := depsGraph.Dependencies("pkg:pypi/requests@2.21.0")
+	if err != nil {
+		t.Fatalf("Dependencies(): %v", err)
+	}
+	if got := idsOfPackages(deps); len(got) != 1 || got[0] != "pkg:pypi/certifi@2026.4.22" {
+		t.Fatalf("expected requests -> certifi, got %#v", got)
+	}
+}
+
+func TestToGraph_SkipsDocumentRootPseudoPackage(t *testing.T) {
+	doc := &Document{
+		Components: []Component{
+			{ID: "SPDXRef-DocumentRoot-Directory-demo", Name: "/tmp/demo", Type: "file"},
+			{ID: "SPDXRef-Package-react", Name: "react", Version: "18.2.0", PURL: "pkg:npm/react@18.2.0"},
+		},
+		Dependencies: []Dependency{
+			{Ref: "SPDXRef-DocumentRoot-Directory-demo", DependsOn: []string{"SPDXRef-Package-react"}},
+		},
+	}
+
+	depsGraph, err := ToGraph(doc)
+	if err != nil {
+		t.Fatalf("ToGraph(): %v", err)
+	}
+	if depsGraph.Size() != 1 {
+		t.Fatalf("expected only real package, got %d: %s", depsGraph.Size(), depsGraph.PrettyString())
+	}
+	if _, ok := depsGraph.Package("pkg:npm/react@18.2.0"); !ok {
+		t.Fatalf("expected react package, got %s", depsGraph.PrettyString())
+	}
+}
+
+func TestUnmarshalJSON_SPDX23ParsesDependencyOfAndPrimaryPackagePurpose(t *testing.T) {
+	raw := []byte(`{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "syft",
+  "documentNamespace": "https://example.com/syft",
+  "creationInfo": {"created": "2025-01-01T00:00:00Z", "creators": ["Tool: syft"]},
+  "packages": [
+    {"SPDXID": "SPDXRef-root", "name": "/tmp/demo", "downloadLocation": "NOASSERTION", "filesAnalyzed": false, "primaryPackagePurpose": "FILE"},
+    {"SPDXID": "SPDXRef-app", "name": "app", "versionInfo": "1.0.0", "downloadLocation": "NOASSERTION", "filesAnalyzed": false, "externalRefs": [{"referenceCategory": "PACKAGE-MANAGER", "referenceType": "purl", "referenceLocator": "pkg:npm/app@1.0.0"}]},
+    {"SPDXID": "SPDXRef-dep", "name": "dep", "versionInfo": "1.0.0", "downloadLocation": "NOASSERTION", "filesAnalyzed": false, "externalRefs": [{"referenceCategory": "PACKAGE-MANAGER", "referenceType": "purl", "referenceLocator": "pkg:npm/dep@1.0.0"}]}
+  ],
+  "relationships": [
+    {"spdxElementId": "SPDXRef-DOCUMENT", "relatedSpdxElement": "SPDXRef-root", "relationshipType": "DESCRIBES"},
+    {"spdxElementId": "SPDXRef-dep", "relatedSpdxElement": "SPDXRef-app", "relationshipType": "DEPENDENCY_OF"}
+  ]
+}`)
+
+	doc, err := UnmarshalJSON(raw, TargetSPDX23JSON)
+	if err != nil {
+		t.Fatalf("UnmarshalJSON(): %v", err)
+	}
+	var rootType string
+	for _, component := range doc.Components {
+		if component.ID == "SPDXRef-root" {
+			rootType = component.Type
+		}
+	}
+	if rootType != "file" {
+		t.Fatalf("expected root component type file, got %q", rootType)
+	}
+	depsGraph, err := ToGraph(doc)
+	if err != nil {
+		t.Fatalf("ToGraph(): %v", err)
+	}
+	deps, err := depsGraph.Dependencies("pkg:npm/app@1.0.0")
+	if err != nil {
+		t.Fatalf("Dependencies(): %v", err)
+	}
+	if got := idsOfPackages(deps); len(got) != 1 || got[0] != "pkg:npm/dep@1.0.0" {
+		t.Fatalf("expected app -> dep, got %#v", got)
+	}
+}
+
 func mustGraph(t *testing.T) *sdk.Graph {
 	t.Helper()
 
@@ -434,6 +619,18 @@ func mustGraph(t *testing.T) *sdk.Graph {
 		t.Fatalf("add edge app->zod: %v", err)
 	}
 	return g
+}
+
+func equalStringSlices(left, right []string) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	for i := range left {
+		if left[i] != right[i] {
+			return false
+		}
+	}
+	return true
 }
 
 func idsOfPackages(packages []*sdk.Package) []string {

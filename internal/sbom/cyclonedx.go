@@ -3,6 +3,7 @@ package sbom
 import (
 	"bytes"
 	"sort"
+	"strings"
 	"time"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
@@ -20,7 +21,7 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 	for _, comp := range doc.Components {
 		component := cdx.Component{
 			BOMRef:     comp.ID,
-			Type:       cdx.ComponentTypeLibrary,
+			Type:       cycloneDXComponentType(comp.Type),
 			Name:       comp.NameOrID(),
 			Scope:      cycloneDXScope(comp.Scope),
 			Version:    comp.Version,
@@ -46,18 +47,20 @@ func (c cycloneDXCodec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, e
 	}
 	bom.Dependencies = &deps
 
+	metadata := &cdx.Metadata{
+		Timestamp: doc.CreatedOrNow().Format(time.RFC3339),
+		Tools:     cycloneDXTools(doc.ToolNamesOrDefault()),
+	}
 	if root := chooseRoot(doc); root != nil {
-		bom.Metadata = &cdx.Metadata{
-			Timestamp: doc.CreatedOrNow().Format(time.RFC3339),
-			Component: &cdx.Component{
-				BOMRef:  root.ID,
-				Type:    cdx.ComponentTypeApplication,
-				Name:    root.NameOrID(),
-				Scope:   cycloneDXScope(root.Scope),
-				Version: root.Version,
-			},
+		metadata.Component = &cdx.Component{
+			BOMRef:  root.ID,
+			Type:    cycloneDXComponentType(firstNonEmpty(root.Type, "application")),
+			Name:    root.NameOrID(),
+			Scope:   cycloneDXScope(root.Scope),
+			Version: root.Version,
 		}
 	}
+	bom.Metadata = metadata
 
 	var out bytes.Buffer
 	enc := cdx.NewBOMEncoder(&out, cdx.BOMFileFormatJSON).SetPretty(opts.Pretty)
@@ -80,6 +83,7 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 			componentByID[comp.BOMRef] = Component{
 				ID:        comp.BOMRef,
 				Name:      comp.Name,
+				Type:      string(comp.Type),
 				Scope:     string(comp.Scope),
 				Version:   comp.Version,
 				PURL:      comp.PackageURL,
@@ -115,6 +119,7 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 		componentByID[root.BOMRef] = Component{
 			ID:        root.BOMRef,
 			Name:      root.Name,
+			Type:      string(root.Type),
 			Scope:     string(root.Scope),
 			Version:   root.Version,
 			PURL:      root.PackageURL,
@@ -154,13 +159,94 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 
 	return &Document{
 		Name:         defaultDocumentName,
-		Tool:         defaultToolName,
+		Tool:         cycloneDXPrimaryToolName(bom.Metadata),
+		Tools:        cycloneDXToolNames(bom.Metadata),
 		Created:      created,
 		SerialNumber: bom.SerialNumber,
 		Components:   components,
 		Dependencies: dependencies,
 		Roots:        roots,
 	}, nil
+}
+
+func cycloneDXTools(names []string) *cdx.ToolsChoice {
+	if len(names) == 0 {
+		return nil
+	}
+	components := make([]cdx.Component, 0, len(names))
+	for _, name := range names {
+		if strings.TrimSpace(name) == "" {
+			continue
+		}
+		components = append(components, cdx.Component{
+			Type: cdx.ComponentTypeApplication,
+			Name: name,
+		})
+	}
+	if len(components) == 0 {
+		return nil
+	}
+	return &cdx.ToolsChoice{Components: &components}
+}
+
+func cycloneDXToolNames(metadata *cdx.Metadata) []string {
+	if metadata == nil || metadata.Tools == nil {
+		return nil
+	}
+	names := make([]string, 0)
+	if metadata.Tools.Components != nil {
+		for _, tool := range *metadata.Tools.Components {
+			if strings.TrimSpace(tool.Name) != "" {
+				names = append(names, tool.Name)
+			}
+		}
+	}
+	if metadata.Tools.Tools != nil {
+		for _, tool := range *metadata.Tools.Tools {
+			if strings.TrimSpace(tool.Name) != "" {
+				names = append(names, tool.Name)
+			}
+		}
+	}
+	return names
+}
+
+func cycloneDXPrimaryToolName(metadata *cdx.Metadata) string {
+	names := cycloneDXToolNames(metadata)
+	if len(names) > 0 {
+		return names[0]
+	}
+	return defaultToolName
+}
+
+func cycloneDXComponentType(value string) cdx.ComponentType {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "application":
+		return cdx.ComponentTypeApplication
+	case "framework":
+		return cdx.ComponentTypeFramework
+	case "container":
+		return cdx.ComponentTypeContainer
+	case "operating-system":
+		return cdx.ComponentTypeOS
+	case "device":
+		return cdx.ComponentTypeDevice
+	case "file":
+		return cdx.ComponentTypeFile
+	case "firmware":
+		return cdx.ComponentTypeFirmware
+	default:
+		return cdx.ComponentTypeLibrary
+	}
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if strings.TrimSpace(value) != "" {
+			return strings.TrimSpace(value)
+		}
+	}
+	return ""
 }
 
 func cycloneDXScope(value string) cdx.Scope {

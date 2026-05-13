@@ -50,7 +50,21 @@ func (d UVDetector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a Python dependency graph through uv.
 func (d UVDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	command, err := pipInspectCommand("uv", "run")
+	workingDir := d.base().workingDir(req.ProjectPath)
+
+	// Prefer the native uv.lock parser: it produces a proper transitive graph
+	// with runtime/development scope from the lock file's dependency groups.
+	if lockPath := uvLockFilePath(workingDir); lockPath != "" {
+		depsGraph, err := depGraphFromUVLock(lockPath)
+		if err == nil {
+			return sdk.DetectionResult{
+				Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, uvEvidencePatterns)),
+			}, nil
+		}
+		// Fall through to pip-inspect on parse failure.
+	}
+
+	command, err := pipInspectCommand("uv", "run", "--no-sync")
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
@@ -58,6 +72,11 @@ func (d UVDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (s
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
+	depsGraph, err = filterPythonToolPackages(depsGraph, workingDir)
+	if err != nil {
+		return sdk.DetectionResult{}, err
+	}
+	annotateGraphScopes(depsGraph, workingDir)
 	return sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, uvEvidencePatterns)),
 	}, nil
@@ -77,5 +96,9 @@ func (d UVDetector) base() baseDetector {
 
 // Install prepares uv dependencies before graph resolution.
 func (d UVDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
-	return d.base().install(ctx, req, "uv detector", []string{"uv", "sync"})
+	base := d.base()
+	if err := base.install(ctx, req, "uv detector", []string{"uv", "sync", "--no-install-project"}); err != nil {
+		return err
+	}
+	return base.install(ctx, req, "uv detector", []string{"uv", "pip", "install", "pip"})
 }

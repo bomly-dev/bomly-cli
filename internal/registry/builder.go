@@ -770,11 +770,14 @@ func builtInDetectorsByName(logger *zap.Logger) map[string]sdk.Detector {
 	nugetDetector := nuget.Detector{Logger: logger, Fallback: syftFallback}
 	cargoDetector := cargo.Detector{Logger: logger, Fallback: syftFallback}
 	pubDetector := pub.Detector{Logger: logger, Fallback: syftFallback}
+	pubNativeDetector := pub.NativeDetector{Logger: logger, Fallback: pubDetector}
 	cocoaPodsDetector := cocoapods.Detector{Logger: logger, Fallback: syftFallback}
 	swiftPMDetector := swiftpm.Detector{Logger: logger, Fallback: syftFallback}
+	swiftPMNativeDetector := swiftpm.NativeDetector{Logger: logger, Fallback: swiftPMDetector}
 	mixDetector := mix.Detector{Logger: logger, Fallback: syftFallback}
 	conanDetector := conan.Detector{Logger: logger, Fallback: syftFallback}
 	sbtDetector := sbt.Detector{Logger: logger, Fallback: syftFallback}
+	sbtNativeDetector := sbt.NativeDetector{Logger: logger, Fallback: sbtDetector}
 
 	return map[string]sdk.Detector{
 		sbomDetector.Descriptor().Name:          sbomDetector,
@@ -794,11 +797,14 @@ func builtInDetectorsByName(logger *zap.Logger) map[string]sdk.Detector {
 		nugetDetector.Descriptor().Name:         nugetDetector,
 		cargoDetector.Descriptor().Name:         cargoDetector,
 		pubDetector.Descriptor().Name:           pubDetector,
+		pubNativeDetector.Descriptor().Name:     pubNativeDetector,
 		cocoaPodsDetector.Descriptor().Name:     cocoaPodsDetector,
 		swiftPMDetector.Descriptor().Name:       swiftPMDetector,
+		swiftPMNativeDetector.Descriptor().Name: swiftPMNativeDetector,
 		mixDetector.Descriptor().Name:           mixDetector,
 		conanDetector.Descriptor().Name:         conanDetector,
 		sbtDetector.Descriptor().Name:           sbtDetector,
+		sbtNativeDetector.Descriptor().Name:     sbtNativeDetector,
 		syftPrimary.Descriptor().Name:           syftPrimary,
 	}
 }

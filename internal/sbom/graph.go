@@ -15,7 +15,12 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 
 	depsGraph := sdk.New()
 	idMap := make(map[string]string, len(doc.Components))
+	skipped := make(map[string]struct{})
 	for _, component := range doc.Components {
+		if isDocumentRootPseudoPackage(component) {
+			skipped[component.ID] = struct{}{}
+			continue
+		}
 		ecosystem := strings.TrimSpace(component.Ecosystem)
 		if ecosystem == "" {
 			if purl := parsePURL(component.PURL); purl != nil {
@@ -38,25 +43,37 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 			Scope:       component.Scope,
 			Ecosystem:   ecosystem,
 			BuildSystem: buildSystem,
+			Type:        component.Type,
 			PURL:        strings.TrimSpace(component.PURL),
 			Copyright:   component.Copyright,
 			Licenses:    graphLicenses(component.Licenses),
 		})
-		if err := depsGraph.AddPackage(pkg); err != nil {
-			return nil, fmt.Errorf("add package %q: %w", component.ID, err)
+		if _, exists := depsGraph.Package(packageID); !exists {
+			if err := depsGraph.AddPackage(pkg); err != nil {
+				return nil, fmt.Errorf("add package %q: %w", component.ID, err)
+			}
 		}
 		idMap[component.ID] = packageID
 	}
 
 	for _, dependency := range doc.Dependencies {
+		if _, ok := skipped[dependency.Ref]; ok {
+			continue
+		}
 		fromID := dependency.Ref
 		if mapped := idMap[fromID]; mapped != "" {
 			fromID = mapped
 		}
 		for _, child := range dependency.DependsOn {
+			if _, ok := skipped[child]; ok {
+				continue
+			}
 			toID := child
 			if mapped := idMap[toID]; mapped != "" {
 				toID = mapped
+			}
+			if fromID == toID {
+				continue
 			}
 			if err := depsGraph.AddDependency(fromID, toID); err != nil {
 				return nil, fmt.Errorf("add dependency %q -> %q: %w", fromID, toID, err)
@@ -65,6 +82,20 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 	}
 
 	return depsGraph, nil
+}
+
+func isDocumentRootPseudoPackage(component Component) bool {
+	if strings.TrimSpace(component.PURL) != "" {
+		return false
+	}
+	id := strings.TrimSpace(component.ID)
+	if strings.HasPrefix(id, "SPDXRef-DocumentRoot-") {
+		return true
+	}
+	if strings.EqualFold(strings.TrimSpace(component.Type), "file") && strings.TrimSpace(component.Version) == "" {
+		return true
+	}
+	return false
 }
 
 func graphLicenses(licenses []License) []sdk.PackageLicense {

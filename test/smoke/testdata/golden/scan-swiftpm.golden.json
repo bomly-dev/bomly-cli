@@ -4,215 +4,232 @@
     {
       "detector": "swiftpm-detector",
       "ecosystem": "swift",
-      "kind": "Package.swift",
+      "kind": "Package.resolved",
       "package_manager": "swiftpm",
       "packages": [
         {
           "dependencies": [],
-          "id": "pkg:swift/async-http-client",
+          "id": "pkg:swift/github.com/apple/swift-argument-parser@1.3.0",
+          "licenses": [],
+          "metadata": {
+            "repository": "https://github.com/apple/swift-argument-parser.git",
+            "requirement": "1.3.0",
+            "revision": "dd134522e7c27d46c5e3b5a9c2fc9a7d9dfe0d7d"
+          },
+          "name": "github.com/apple:swift-argument-parser",
+          "purl": "pkg:swift/github.com/apple/swift-argument-parser@1.3.0",
+          "scope": "runtime",
+          "version": "1.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:swift/github.com/apple/swift-collections@1.1.4",
+          "licenses": [],
+          "metadata": {
+            "repository": "https://github.com/apple/swift-collections.git",
+            "revision": "6f8b0d2f4b6f8b0d2f4b6f8b0d2f4b6f8b0d2f4b"
+          },
+          "name": "github.com/apple:swift-collections",
+          "purl": "pkg:swift/github.com/apple/swift-collections@1.1.4",
+          "scope": "runtime",
+          "version": "1.1.4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:swift/github.com/apple/swift-crypto@3.3.0",
+          "licenses": [],
+          "metadata": {
+            "repository": "https://github.com/apple/swift-crypto.git",
+            "revision": "5e7d9f1b3e5d7f9b1d3e5d7f9b1d3e5d7f9b1d3e"
+          },
+          "name": "github.com/apple:swift-crypto",
+          "purl": "pkg:swift/github.com/apple/swift-crypto@3.3.0",
+          "scope": "runtime",
+          "version": "3.3.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:swift/github.com/apple/swift-log@1.5.4",
+          "licenses": [],
+          "metadata": {
+            "repository": "https://github.com/apple/swift-log.git",
+            "revision": "4d6f8b0c2e4d6f8b0c2e4d6f8b0c2e4d6f8b0c2e"
+          },
+          "name": "github.com/apple:swift-log",
+          "purl": "pkg:swift/github.com/apple/swift-log@1.5.4",
+          "scope": "runtime",
+          "version": "1.5.4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:swift/github.com/apple/swift-nio-http2@1.30.0",
+          "licenses": [],
+          "metadata": {
+            "repository": "https://github.com/apple/swift-nio-http2.git",
+            "revision": "3c5e7f9b1d3f5b7d9f1b3d5f7b9d1f3b5d7f9b1d"
+          },
+          "name": "github.com/apple:swift-nio-http2",
+          "purl": "pkg:swift/github.com/apple/swift-nio-http2@1.30.0",
+          "scope": "runtime",
+          "version": "1.30.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:swift/github.com/apple/swift-nio-ssl@2.27.2",
+          "licenses": [],
+          "metadata": {
+            "repository": "https://github.com/apple/swift-nio-ssl.git",
+            "revision": "2b4d6f8a0c2e4f6a8c0e2f4a6c8e0a2c4e6f8a0c"
+          },
+          "name": "github.com/apple:swift-nio-ssl",
+          "purl": "pkg:swift/github.com/apple/swift-nio-ssl@2.27.2",
+          "scope": "runtime",
+          "version": "2.27.2",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:swift/github.com/apple/swift-nio@2.65.0",
+          "licenses": [],
+          "metadata": {
+            "repository": "https://github.com/apple/swift-nio.git",
+            "revision": "1a3c5e7d9f1b3c5e7d9f1b3c5e7d9f1b3c5e7d9f"
+          },
+          "name": "github.com/apple:swift-nio",
+          "purl": "pkg:swift/github.com/apple/swift-nio@2.65.0",
+          "scope": "runtime",
+          "version": "2.65.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:swift/github.com/swift-server/async-http-client@1.23.0",
           "licenses": [],
           "metadata": {
             "repository": "https://github.com/swift-server/async-http-client.git",
-            "requirement": "1.19.0"
+            "revision": "d6f7df9de09d4e4d14f3f9ee0a6c8d68f14a0a1b"
           },
-          "name": "async-http-client",
-          "purl": "pkg:swift/async-http-client",
+          "name": "github.com/swift-server:async-http-client",
+          "purl": "pkg:swift/github.com/swift-server/async-http-client@1.23.0",
+          "scope": "runtime",
+          "version": "1.23.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:swift/async-kit",
+          "id": "pkg:swift/github.com/vapor/async-kit@1.20.0",
           "licenses": [],
           "metadata": {
             "repository": "https://github.com/vapor/async-kit.git",
-            "requirement": "1.15.0"
+            "revision": "8d0a90e72b66e42f5a80c5c64e20f8f78d8d6e8c"
           },
-          "name": "async-kit",
-          "purl": "pkg:swift/async-kit",
+          "name": "github.com/vapor:async-kit",
+          "purl": "pkg:swift/github.com/vapor/async-kit@1.20.0",
+          "scope": "runtime",
+          "version": "1.20.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:swift/console-kit",
+          "id": "pkg:swift/github.com/vapor/console-kit@4.14.2",
           "licenses": [],
           "metadata": {
             "repository": "https://github.com/vapor/console-kit.git",
-            "requirement": "4.14.0"
+            "revision": "4a9c6e8f1a7d8e2b94f5c60e3d7a1b4f2c9e5d8a"
           },
-          "name": "console-kit",
-          "purl": "pkg:swift/console-kit",
+          "name": "github.com/vapor:console-kit",
+          "purl": "pkg:swift/github.com/vapor/console-kit@4.14.2",
+          "scope": "runtime",
+          "version": "4.14.2",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:swift/multipart-kit",
+          "id": "pkg:swift/github.com/vapor/multipart-kit@4.5.4",
           "licenses": [],
           "metadata": {
             "repository": "https://github.com/vapor/multipart-kit.git",
-            "requirement": "4.2.1"
+            "revision": "7b3d9f5c2e1a6d8b4f9c0e5a3b7d1f6e8a2c4b0e"
           },
-          "name": "multipart-kit",
-          "purl": "pkg:swift/multipart-kit",
+          "name": "github.com/vapor:multipart-kit",
+          "purl": "pkg:swift/github.com/vapor/multipart-kit@4.5.4",
+          "scope": "runtime",
+          "version": "4.5.4",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:swift/github.com/vapor/routing-kit@4.9.1",
+          "licenses": [],
+          "metadata": {
+            "repository": "https://github.com/vapor/routing-kit.git",
+            "revision": "2c1e3a8f6b4d0e9c7f5b1a3d6e8f0c2a4b6d8e0f"
+          },
+          "name": "github.com/vapor:routing-kit",
+          "purl": "pkg:swift/github.com/vapor/routing-kit@4.9.1",
+          "scope": "runtime",
+          "version": "4.9.1",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:swift/github.com/vapor/vapor@4.89.0",
+          "licenses": [],
+          "metadata": {
+            "repository": "https://github.com/vapor/vapor.git",
+            "requirement": "4.89.0",
+            "revision": "3b5fc5af1c32b1a11e4d7cfad5c6bb00a7f14e8c"
+          },
+          "name": "github.com/vapor:vapor",
+          "purl": "pkg:swift/github.com/vapor/vapor@4.89.0",
+          "scope": "runtime",
+          "version": "4.89.0",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:swift/github.com/vapor/websocket-kit@2.15.0",
+          "licenses": [],
+          "metadata": {
+            "repository": "https://github.com/vapor/websocket-kit.git",
+            "revision": "5e7c1a9d3f5b0e2c8a6f4b2d0e8c3a7f5b1d9e3c"
+          },
+          "name": "github.com/vapor:websocket-kit",
+          "purl": "pkg:swift/github.com/vapor/websocket-kit@2.15.0",
+          "scope": "runtime",
+          "version": "2.15.0",
           "vulnerabilities": []
         },
         {
           "dependencies": [
-            "pkg:swift/async-http-client",
-            "pkg:swift/async-kit",
-            "pkg:swift/console-kit",
-            "pkg:swift/multipart-kit",
-            "pkg:swift/routing-kit",
-            "pkg:swift/swift-algorithms",
-            "pkg:swift/swift-atomics",
-            "pkg:swift/swift-backtrace",
-            "pkg:swift/swift-log",
-            "pkg:swift/swift-metrics",
-            "pkg:swift/swift-nio",
-            "pkg:swift/swift-nio-extras",
-            "pkg:swift/swift-nio-http2",
-            "pkg:swift/swift-nio-ssl",
-            "pkg:swift/websocket-kit"
+            "pkg:swift/github.com/apple/swift-argument-parser@1.3.0",
+            "pkg:swift/github.com/apple/swift-collections@1.1.4",
+            "pkg:swift/github.com/apple/swift-crypto@3.3.0",
+            "pkg:swift/github.com/apple/swift-log@1.5.4",
+            "pkg:swift/github.com/apple/swift-nio-http2@1.30.0",
+            "pkg:swift/github.com/apple/swift-nio-ssl@2.27.2",
+            "pkg:swift/github.com/apple/swift-nio@2.65.0",
+            "pkg:swift/github.com/swift-server/async-http-client@1.23.0",
+            "pkg:swift/github.com/vapor/async-kit@1.20.0",
+            "pkg:swift/github.com/vapor/console-kit@4.14.2",
+            "pkg:swift/github.com/vapor/multipart-kit@4.5.4",
+            "pkg:swift/github.com/vapor/routing-kit@4.9.1",
+            "pkg:swift/github.com/vapor/vapor@4.89.0",
+            "pkg:swift/github.com/vapor/websocket-kit@2.15.0"
           ],
           "id": "pkg:swift/root",
           "licenses": [],
           "name": "root",
           "purl": "pkg:swift/root",
           "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:swift/routing-kit",
-          "licenses": [],
-          "metadata": {
-            "repository": "https://github.com/vapor/routing-kit.git",
-            "requirement": "4.9.0"
-          },
-          "name": "routing-kit",
-          "purl": "pkg:swift/routing-kit",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:swift/swift-algorithms",
-          "licenses": [],
-          "metadata": {
-            "repository": "https://github.com/apple/swift-algorithms.git",
-            "requirement": "1.0.0"
-          },
-          "name": "swift-algorithms",
-          "purl": "pkg:swift/swift-algorithms",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:swift/swift-atomics",
-          "licenses": [],
-          "metadata": {
-            "repository": "https://github.com/apple/swift-atomics.git",
-            "requirement": "1.1.0"
-          },
-          "name": "swift-atomics",
-          "purl": "pkg:swift/swift-atomics",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:swift/swift-backtrace",
-          "licenses": [],
-          "metadata": {
-            "repository": "https://github.com/swift-server/swift-backtrace.git",
-            "requirement": "1.1.1"
-          },
-          "name": "swift-backtrace",
-          "purl": "pkg:swift/swift-backtrace",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:swift/swift-log",
-          "licenses": [],
-          "metadata": {
-            "repository": "https://github.com/apple/swift-log.git",
-            "requirement": "1.0.0"
-          },
-          "name": "swift-log",
-          "purl": "pkg:swift/swift-log",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:swift/swift-metrics",
-          "licenses": [],
-          "metadata": {
-            "repository": "https://github.com/apple/swift-metrics.git",
-            "requirement": "2.0.0"
-          },
-          "name": "swift-metrics",
-          "purl": "pkg:swift/swift-metrics",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:swift/swift-nio",
-          "licenses": [],
-          "metadata": {
-            "repository": "https://github.com/apple/swift-nio.git",
-            "requirement": "2.67.0"
-          },
-          "name": "swift-nio",
-          "purl": "pkg:swift/swift-nio",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:swift/swift-nio-extras",
-          "licenses": [],
-          "metadata": {
-            "repository": "https://github.com/apple/swift-nio-extras.git",
-            "requirement": "1.19.0"
-          },
-          "name": "swift-nio-extras",
-          "purl": "pkg:swift/swift-nio-extras",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:swift/swift-nio-http2",
-          "licenses": [],
-          "metadata": {
-            "repository": "https://github.com/apple/swift-nio-http2.git",
-            "requirement": "1.28.0"
-          },
-          "name": "swift-nio-http2",
-          "purl": "pkg:swift/swift-nio-http2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:swift/swift-nio-ssl",
-          "licenses": [],
-          "metadata": {
-            "repository": "https://github.com/apple/swift-nio-ssl.git",
-            "requirement": "2.8.0"
-          },
-          "name": "swift-nio-ssl",
-          "purl": "pkg:swift/swift-nio-ssl",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:swift/websocket-kit",
-          "licenses": [],
-          "metadata": {
-            "repository": "https://github.com/vapor/websocket-kit.git",
-            "requirement": "2.13.0"
-          },
-          "name": "websocket-kit",
-          "purl": "pkg:swift/websocket-kit",
-          "vulnerabilities": []
         }
       ],
-      "path": "Package.swift",
+      "path": "Package.resolved",
       "subproject": "."
     }
   ],

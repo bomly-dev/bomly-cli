@@ -49,3 +49,30 @@ func TestNPMLockfileParserAllowsArrayEngines(t *testing.T) {
 		t.Fatalf("expected array engines to be ignored, got metadata: %+v", pkg.Metadata)
 	}
 }
+
+func TestResolveNPMLockDependencyIDFallsBackDeterministically(t *testing.T) {
+	lockfile := npmPackageLock{
+		Packages: map[string]npmLockPackage{
+			"node_modules/z-parent/node_modules/shared": {
+				Name:    "shared",
+				Version: "1.2.3",
+			},
+			"node_modules/a-parent/node_modules/shared": {
+				Name:    "shared",
+				Version: "1.2.3",
+			},
+		},
+	}
+	pathToID := map[string]string{
+		"node_modules/z-parent/node_modules/shared": "pkg:npm/shared@1.2.3-z",
+		"node_modules/a-parent/node_modules/shared": "pkg:npm/shared@1.2.3-a",
+	}
+
+	got, ok := resolveNPMLockDependencyID("node_modules/example", "shared", "1.2.3", lockfile, pathToID)
+	if !ok {
+		t.Fatal("expected fallback dependency resolution to succeed")
+	}
+	if got != "pkg:npm/shared@1.2.3-a" {
+		t.Fatalf("expected lexicographically first package path to win, got %q", got)
+	}
+}

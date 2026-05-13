@@ -71,12 +71,15 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a CocoaPods dependency graph.
 func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	path := filepath.Join(d.workingDir(req.ProjectPath), "Podfile.lock")
-	raw, err := os.ReadFile(path)
+	workingDir := d.workingDir(req.ProjectPath)
+	raw, err := os.ReadFile(filepath.Join(workingDir, "Podfile.lock"))
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("read Podfile.lock: %w", err)
 	}
-	g, err := depGraphFromLock(raw)
+	// Optionally parse the Podfile to identify pods that belong only to test
+	// targets, so they can be annotated as development-scope.
+	testPods := parsePodfileTestTargets(filepath.Join(workingDir, "Podfile"))
+	g, err := depGraphFromLock(raw, testPods)
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
@@ -95,7 +98,10 @@ func (d Detector) workingDir(projectPath string) string {
 	return projectPath
 }
 
-func depGraphFromLock(raw []byte) (*sdk.Graph, error) {
+// depGraphFromLock builds a dependency graph from Podfile.lock.
+// testPods is the set of pod root-names that appear ONLY in test targets in the
+// Podfile; they are annotated as ScopeDevelopment. If nil, all pods are runtime.
+func depGraphFromLock(raw []byte, testPods map[string]bool) (*sdk.Graph, error) {
 	var lock podLock
 	if err := yaml.Unmarshal(raw, &lock); err != nil {
 		return nil, fmt.Errorf("parse Podfile.lock: %w", err)
@@ -137,14 +143,122 @@ func depGraphFromLock(raw []byte) (*sdk.Graph, error) {
 			continue
 		}
 		node := packageNode(spec.Name, spec.Version, lock.Checksums[rootPodName(spec.Name)])
+		scope := sdk.ScopeRuntime
+		if testPods[rootPodName(dep)] {
+			scope = sdk.ScopeDevelopment
+		}
 		if existing, ok := g.Package(node.ID); ok {
-			sdk.MergePackageScope(existing, sdk.ScopeRuntime)
+			sdk.MergePackageScope(existing, scope)
 		}
 		if err := g.AddDependency(root.ID, node.ID); err != nil {
 			return nil, fmt.Errorf("add CocoaPods root dependency %q: %w", node.ID, err)
 		}
 	}
+	// BFS scope propagation: runtime always beats development.
+	directDeps, _ := g.Dependencies(root.ID)
+	propagated := make(map[string]sdk.Scope, g.Size())
+	queue := make([]*sdk.Package, 0, len(directDeps))
+	for _, dep := range directDeps {
+		if dep == nil {
+			continue
+		}
+		scope := sdk.Scope(dep.Scope)
+		if scope == sdk.ScopeUnknown {
+			scope = sdk.ScopeRuntime
+		}
+		propagated[dep.ID] = sdk.MergeScope(propagated[dep.ID], scope)
+		sdk.MergePackageScope(dep, propagated[dep.ID])
+		queue = append(queue, dep)
+	}
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+		scope := propagated[current.ID]
+		if scope == sdk.ScopeUnknown {
+			continue
+		}
+		children, err := g.Dependencies(current.ID)
+		if err != nil {
+			continue
+		}
+		for _, child := range children {
+			if child == nil || child.ID == root.ID {
+				continue
+			}
+			next := sdk.MergeScope(propagated[child.ID], scope)
+			if next == propagated[child.ID] && sdk.Scope(child.Scope) == next {
+				continue
+			}
+			propagated[child.ID] = next
+			sdk.MergePackageScope(child, next)
+			queue = append(queue, child)
+		}
+	}
+	// Any pods still without scope default to runtime.
+	for _, pkg := range g.Packages() {
+		if pkg != nil && pkg.ID != root.ID && sdk.Scope(pkg.Scope) == sdk.ScopeUnknown {
+			sdk.MergePackageScope(pkg, sdk.ScopeRuntime)
+		}
+	}
 	return g, nil
+}
+
+var podfileTargetHeadPattern = regexp.MustCompile(`(?i)target\s+'([^']+)'\s+do`)
+var podfilePodNamePattern = regexp.MustCompile(`(?i)^\s*pod\s+'([^']+)'`)
+
+// parsePodfileTestTargets parses the Podfile and returns the root pod names that
+// appear ONLY inside test target blocks (blocks whose name contains "test" or "spec").
+// Pods that appear in both test and non-test targets are treated as runtime.
+// Returns nil if the Podfile cannot be read.
+func parsePodfileTestTargets(path string) map[string]bool {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil
+	}
+
+	type frame struct{ isTest bool }
+	stack := []frame{}
+	mainPods := make(map[string]bool)
+	testPods := make(map[string]bool)
+
+	isTestName := func(name string) bool {
+		lower := strings.ToLower(name)
+		return strings.Contains(lower, "test") || strings.Contains(lower, "spec")
+	}
+
+	for _, line := range strings.Split(string(raw), "\n") {
+		trimmed := strings.TrimSpace(line)
+		if m := podfileTargetHeadPattern.FindStringSubmatch(line); m != nil {
+			parentIsTest := len(stack) > 0 && stack[len(stack)-1].isTest
+			stack = append(stack, frame{isTest: parentIsTest || isTestName(m[1])})
+			continue
+		}
+		if trimmed == "end" {
+			if len(stack) > 0 {
+				stack = stack[:len(stack)-1]
+			}
+			continue
+		}
+		if m := podfilePodNamePattern.FindStringSubmatch(line); m != nil {
+			podName := rootPodName(m[1])
+			if len(stack) > 0 && stack[len(stack)-1].isTest {
+				testPods[podName] = true
+			} else {
+				mainPods[podName] = true
+			}
+		}
+	}
+
+	result := make(map[string]bool)
+	for name := range testPods {
+		if !mainPods[name] {
+			result[name] = true
+		}
+	}
+	if len(result) == 0 {
+		return nil
+	}
+	return result
 }
 
 func parsePodSpecs(items []any) map[string]podSpec {
@@ -208,7 +322,7 @@ func rootNode() *sdk.Package {
 	})
 }
 
-func packageNode(name, version, checksum string) *sdk.Package {
+func packageNode(name, version, checksum string) *sdk.Package { //nolint:unparam
 	node := sdk.NewPackage(sdk.Package{
 		Ecosystem:   string(sdk.EcosystemSwift),
 		Name:        name,

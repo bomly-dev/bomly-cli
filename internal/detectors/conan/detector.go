@@ -169,6 +169,7 @@ func depGraphFromNodes(nodes map[string]graphNode) (*sdk.Graph, error) {
 	for id, item := range nodes {
 		ref, ok := parseConanRef(item.Ref)
 		if !ok {
+			// Node "0" is the project root (empty ref); skip adding it as a package.
 			continue
 		}
 		ref.Context = item.Context
@@ -178,13 +179,32 @@ func depGraphFromNodes(nodes map[string]graphNode) (*sdk.Graph, error) {
 			return nil, err
 		}
 	}
+	// Wire up root → direct deps from node "0" (the project root node).
+	if rootItem, ok := nodes["0"]; ok {
+		for _, depID := range rootItem.Requires {
+			child, ok := nodePackages[depID]
+			if !ok {
+				continue
+			}
+			sdk.MergePackageScope(child, sdk.ScopeRuntime)
+			if err := g.AddDependency(root.ID, child.ID); err != nil {
+				return nil, fmt.Errorf("add Conan root dep %q: %w", child.ID, err)
+			}
+		}
+		for _, depID := range rootItem.BuildRequires {
+			child, ok := nodePackages[depID]
+			if !ok {
+				continue
+			}
+			sdk.MergePackageScope(child, sdk.ScopeDevelopment)
+			if err := g.AddDependency(root.ID, child.ID); err != nil {
+				return nil, fmt.Errorf("add Conan root build dep %q: %w", child.ID, err)
+			}
+		}
+	}
 	for _, id := range sortedNodeIDs(nodePackages) {
 		node := nodePackages[id]
 		item := nodes[id]
-		parent := root
-		if id != "0" {
-			parent = node
-		}
 		for _, depID := range append(item.Requires, item.BuildRequires...) {
 			child, ok := nodePackages[depID]
 			if !ok {
@@ -192,9 +212,11 @@ func depGraphFromNodes(nodes map[string]graphNode) (*sdk.Graph, error) {
 			}
 			if containsString(item.BuildRequires, depID) {
 				sdk.MergePackageScope(child, sdk.ScopeDevelopment)
+			} else {
+				sdk.MergePackageScope(child, sdk.ScopeRuntime)
 			}
-			if err := g.AddDependency(parent.ID, child.ID); err != nil {
-				return nil, fmt.Errorf("add Conan dependency %q -> %q: %w", parent.ID, child.ID, err)
+			if err := g.AddDependency(node.ID, child.ID); err != nil {
+				return nil, fmt.Errorf("add Conan dependency %q -> %q: %w", node.ID, child.ID, err)
 			}
 		}
 	}

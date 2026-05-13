@@ -108,7 +108,7 @@ func ecosystemToSyftType(ecosystem string) syftPkg.Type {
 	switch strings.ToLower(ecosystem) {
 	case "npm", "nodejs":
 		return syftPkg.NpmPkg
-	case "maven", "java", "gradle":
+	case "maven", "java", "gradle", "scala", "sbt":
 		return syftPkg.JavaPkg
 	case "go", "golang":
 		return syftPkg.GoModulePkg
@@ -149,7 +149,7 @@ func ecosystemToSyftLanguage(ecosystem string) syftPkg.Language {
 	switch strings.ToLower(ecosystem) {
 	case "npm", "nodejs":
 		return syftPkg.JavaScript
-	case "maven", "java", "gradle":
+	case "maven", "java", "gradle", "scala", "sbt":
 		return syftPkg.Java
 	case "go", "golang":
 		return syftPkg.Go

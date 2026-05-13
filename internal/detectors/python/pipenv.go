@@ -2,6 +2,11 @@ package python
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/system"
@@ -50,17 +55,33 @@ func (d PipenvDetector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a Python dependency graph through Pipenv.
 func (d PipenvDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	command, err := pipInspectCommand("pipenv", "run")
-	if err != nil {
-		return sdk.DetectionResult{}, err
+	workingDir := d.base().workingDir(req.ProjectPath)
+
+	// Try pip inspect first: it can build a full transitive tree via RequiresDist.
+	// Pipfile.lock is flat (no parent-child edges), so the build tool wins here.
+	// Only attempt pip inspect when a venv is already populated; otherwise `pipenv run`
+	// silently creates an empty venv and pip inspect returns only bootstrap packages.
+	if pipenvVenvExists(workingDir) {
+		command, err := pipInspectCommand("pipenv", "run")
+		if err == nil {
+			if depsGraph, err := d.base().resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "Pipenv detector", command); err == nil {
+				annotateGraphScopes(depsGraph, workingDir)
+				return sdk.DetectionResult{
+					Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, pipenvEvidencePatterns)),
+				}, nil
+			}
+		}
 	}
-	depsGraph, err := d.base().resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "Pipenv detector", command)
-	if err != nil {
-		return sdk.DetectionResult{}, err
+
+	// Fallback: parse Pipfile.lock (flat graph, but always available offline).
+	if depsGraph, err := depGraphFromPipfileLock(filepath.Join(workingDir, "Pipfile.lock")); err == nil {
+		annotateGraphScopes(depsGraph, workingDir)
+		return sdk.DetectionResult{
+			Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, pipenvEvidencePatterns)),
+		}, nil
 	}
-	return sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, pipenvEvidencePatterns)),
-	}, nil
+
+	return sdk.DetectionResult{}, fmt.Errorf("pipenv detector: unable to resolve dependency graph")
 }
 
 // FallbackDetector returns the configured fallback detector.
@@ -78,4 +99,83 @@ func (d PipenvDetector) base() baseDetector {
 // Install prepares Pipenv dependencies before graph resolution.
 func (d PipenvDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 	return d.base().install(ctx, req, "Pipenv detector", []string{"pipenv", "install"})
+}
+
+// pipenvVenvExists checks whether a pipenv virtual environment has been created
+// for the given working directory. It avoids triggering lazy venv creation.
+func pipenvVenvExists(workingDir string) bool {
+	cmd := system.Command("pipenv", "--venv")
+	cmd.Dir = workingDir
+	out, err := cmd.Output()
+	if err != nil {
+		return false
+	}
+	venvPath := strings.TrimSpace(string(out))
+	if venvPath == "" {
+		return false
+	}
+	ok, err := system.FileExists(venvPath)
+	return err == nil && ok
+}
+
+type pipfileLock struct {
+	Default map[string]pipfileLockPackage `json:"default"`
+	Develop map[string]pipfileLockPackage `json:"develop"`
+}
+
+type pipfileLockPackage struct {
+	Version string `json:"version"`
+}
+
+func depGraphFromPipfileLock(path string) (*sdk.Graph, error) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("read Pipfile.lock: %w", err)
+	}
+	var lock pipfileLock
+	if err := json.Unmarshal(raw, &lock); err != nil {
+		return nil, fmt.Errorf("parse Pipfile.lock: %w", err)
+	}
+	if len(lock.Default) == 0 && len(lock.Develop) == 0 {
+		return nil, fmt.Errorf("pipfile.lock does not contain dependencies")
+	}
+	depsGraph := sdk.New()
+	root := sdk.NewPackage(sdk.Package{
+		Ecosystem:   string(sdk.EcosystemPython),
+		BuildSystem: sdk.PackageManagerPipenv.Name(),
+		Name:        "root",
+		Type:        "project",
+	})
+	if err := depsGraph.AddPackage(root); err != nil {
+		return nil, fmt.Errorf("add root package: %w", err)
+	}
+	if err := addPipfileLockPackages(depsGraph, root, lock.Default, sdk.ScopeRuntime); err != nil {
+		return nil, err
+	}
+	if err := addPipfileLockPackages(depsGraph, root, lock.Develop, sdk.ScopeDevelopment); err != nil {
+		return nil, err
+	}
+	return depsGraph, nil
+}
+
+func addPipfileLockPackages(depsGraph *sdk.Graph, root *sdk.Package, packages map[string]pipfileLockPackage, scope sdk.Scope) error {
+	for name, pkg := range packages {
+		normalizedName := normalizePythonName(name)
+		node := sdk.NewPackage(sdk.Package{
+			Ecosystem:   string(sdk.EcosystemPython),
+			BuildSystem: sdk.PackageManagerPipenv.Name(),
+			Name:        normalizedName,
+			Version:     strings.TrimPrefix(pkg.Version, "=="),
+			Scope:       string(scope),
+		})
+		if _, exists := depsGraph.Package(node.ID); !exists {
+			if err := depsGraph.AddPackage(node); err != nil {
+				return fmt.Errorf("add Pipfile.lock package %q: %w", normalizedName, err)
+			}
+		}
+		if err := depsGraph.AddDependency(root.ID, node.ID); err != nil {
+			return fmt.Errorf("add Pipfile.lock dependency %q: %w", normalizedName, err)
+		}
+	}
+	return nil
 }

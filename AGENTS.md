@@ -109,7 +109,8 @@ Cache failures are **non-fatal** — log a warning and continue without caching.
 - Detectors may implement `ReadyDetector`, `ApplicableDetector`, and `InstallFirstDetector`; auditors and matchers have parallel `Ready*` / `Applicable*` hooks.
 - Register built-ins in `internal/registry/builder.go`, which wires concrete detectors, auditors, matchers, and plugin stages into `engine.Registry`.
 - External enrichment is matcher-based; see `internal/matchers/depsdev`, `internal/matchers/clearlydefined`, `internal/matchers/osv`, `internal/matchers/grype`, and `internal/matchers/eol`.
-- Priority order (lower = higher priority): native → lockfile-parser → third-party → plugin.
+- Detector chains are explicit in `internal/registry/support.go` and `internal/registry/builder.go`; do not infer priority from technique alone.
+- Some native detectors are build-tool-backed primaries (`pub-native`, `swiftpm-native`, `sbt-native`) with committed-file fallbacks. Run smoke/QA with `dart`, `swift`, or `sbt` on `PATH` before updating graph-shape goldens for those ecosystems.
 
 ### Terminal Output
 

@@ -247,6 +247,7 @@ func (r *Registry) registerAnalyzers() {
 	r.registerGovulncheckAnalyzer()
 	r.registerJSReachAnalyzer()
 	r.registerPyReachAnalyzer()
+	r.registerJVMReachAnalyzer()
 }
 
 // registerGovulncheckAnalyzer is provided by analyzers_govulncheck.go so the

@@ -173,6 +173,21 @@ func TestScan(t *testing.T) {
 			tools: []string{"pip"},
 		},
 		{
+			// jvmreach smoke pinned to veracode/example-java-maven, a
+			// deliberately-vulnerable Maven demo. Main.java imports
+			// Apache Commons FileUpload, Apache XMLSec, jBCrypt, and
+			// Spring Web. requirements include Struts2, Keycloak,
+			// H2, Kafka, OrientDB, JavaMelody, Sling — most of which
+			// are unimported from app source but reachable through
+			// dep edges. Exercises directly-imported, transitively-
+			// reachable, and unreachable branches plus the
+			// package-prefix map. Goldens scrub timestamps via
+			// normalizeReachability.
+			name:  "scan-java-maven-reachability",
+			args:  []string{"scan", "--url", "https://github.com/veracode/example-java-maven", "--ref", "509948ba5a02ffab48e7260031d4a1e78d010891", "--enrich", "--reachability", "--format", "json"},
+			tools: []string{"mvn"},
+		},
+		{
 			name:  "scan-npm-scope-runtime",
 			args:  []string{"scan", "--url", "https://github.com/ljharb/qs", "--ref", "v6.13.0", "--format", "json", "--scope", "runtime"},
 			tools: []string{"npm"},

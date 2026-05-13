@@ -62,12 +62,13 @@ internal/matchers/*              External enrichment: osv, grype, deps.dev, Clea
 internal/matchers/cache          File-based cache shared by matchers
 internal/analyzers/*             Reachability analyzers (govulncheck — Go;
                                  jsreach — JavaScript/TypeScript;
-                                 pyreach — Python). Each is backed by
-                                 a single in-process implementation
-                                 (no builtin/external build-tag split).
-                                 Run after matchers; annotate
-                                 PackageVulnerability.Reachability and
-                                 never abort the pipeline on failure
+                                 pyreach — Python;
+                                 jvmreach — Java/Kotlin/Scala/Groovy).
+                                 Each is backed by a single in-process
+                                 implementation (no builtin/external
+                                 build-tag split). Run after matchers;
+                                 annotate PackageVulnerability.Reachability
+                                 and never abort the pipeline on failure
 internal/auditors/*              Policy evaluators (policy, noop)
 internal/sbom/                   SPDX 2.3 / CycloneDX codec
 internal/output/                 Text, JSON, SARIF 2.1.0, SBOM rendering + schema generation

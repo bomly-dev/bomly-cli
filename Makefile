@@ -6,7 +6,7 @@ GOPATH_BIN=$(shell go env GOPATH)/bin
 EXE_SUFFIX=$(if $(filter Windows_NT,$(OS)),.exe,)
 GOLANGCI_LINT=$(GOPATH_BIN)/golangci-lint$(EXE_SUFFIX)
 
-.PHONY: build build-full build-lite fmt fmt-check lint install-hooks test run generate docs-config docs-schema docs-schema-md docs-support-matrix smoke qa licenses
+.PHONY: build build-full build-lite fmt fmt-check lint install-hooks test run generate docs-config docs-schema docs-schema-md docs-support-matrix docs-components smoke qa licenses
 
 build: build-full build-lite
 
@@ -43,7 +43,7 @@ qa: build-full
 run:
 	go run ./cmd/bomly $(ARGS)
 
-generate: docs-config docs-schema docs-schema-md docs-support-matrix
+generate: docs-config docs-schema docs-schema-md docs-support-matrix docs-components
 
 docs-config:
 	go run ./internal/support/cmd/configref
@@ -56,6 +56,9 @@ docs-schema-md:
 
 docs-support-matrix:
 	go run ./internal/support/cmd/supportmatrix
+
+docs-components:
+	go run ./internal/support/cmd/componentdocs
 
 licenses:
 	go run github.com/google/go-licenses@$(GO_LICENSES_VERSION) save ./... \

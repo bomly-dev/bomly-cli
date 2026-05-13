@@ -68,3 +68,31 @@ func TestRenderSupportMatrixMarkdown_DocumentMatches(t *testing.T) {
 		t.Fatalf("support matrix document is out of sync with registry\n\nwant:\n%s\n\ngot:\n%s", want, got)
 	}
 }
+
+func TestRenderComponentDocs_IncludeGeneratedGuides(t *testing.T) {
+	detectors := RenderDetectorsOverviewMarkdown()
+	if !strings.Contains(detectors, "Detector Chains") {
+		t.Fatalf("detector overview missing chain guidance:\n%s", detectors)
+	}
+
+	matchers := RenderMatchersOverviewMarkdown()
+	if !strings.Contains(matchers, "offline-safe by default") {
+		t.Fatalf("matcher overview missing offline guidance:\n%s", matchers)
+	}
+
+	tmp := t.TempDir()
+	if err := WriteComponentDocs(tmp); err != nil {
+		t.Fatalf("write component docs: %v", err)
+	}
+	for _, path := range []string{
+		filepath.Join(tmp, "DETECTORS.md"),
+		filepath.Join(tmp, "MATCHERS.md"),
+		filepath.Join(tmp, "AUDITORS.md"),
+		filepath.Join(tmp, "detectors", "ecosystems", "go.md"),
+		filepath.Join(tmp, "matchers", "osv.md"),
+	} {
+		if _, err := os.Stat(path); err != nil {
+			t.Fatalf("expected generated doc %s: %v", path, err)
+		}
+	}
+}

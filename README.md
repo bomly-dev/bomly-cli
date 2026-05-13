@@ -111,6 +111,14 @@ Bomly has native detectors for:
 
 Bomly also supports many additional ecosystems through Syft-backed detection. See [docs/SUPPORT_MATRIX.md](docs/SUPPORT_MATRIX.md) for the generated matrix.
 
+For user-friendly component guides, see:
+
+- [Detectors](docs/DETECTORS.md): how Bomly finds package-manager evidence and builds dependency graphs
+- [Matcher guides](docs/MATCHERS.md): how optional enrichment adds vulnerabilities, licenses, and lifecycle data
+- [Auditors](docs/AUDITORS.md): how `--audit` turns existing vulnerability data into findings
+- [Detector ecosystem guides](docs/detectors/ecosystems/README.md): generated per-ecosystem detector chains and evidence patterns
+- [Matcher reference](docs/matchers/README.md): generated per-matcher behavior and output notes
+
 ## Core Commands
 
 ### `bomly scan`
@@ -129,7 +137,12 @@ bomly scan --sbom --path ./existing-sbom.json
 
 # Filter to runtime dependencies only
 bomly scan --scope runtime
+
+# Explore the result in the interactive terminal UI
+bomly scan --interactive
 ```
+
+`scan` is offline-safe unless you opt into enrichment. Use `--enrich` when you want Bomly to call external vulnerability, license, or lifecycle services. Use `--audit` when you want Bomly to evaluate vulnerability data that already exists on packages. Use both together when you want fetched vulnerability data evaluated in one run.
 
 ### `bomly explain`
 

@@ -37,6 +37,10 @@ type tabbedModel interface {
 	CycleView()
 }
 
+type numberedTabModel interface {
+	SelectView(index int)
+}
+
 type searchModel interface {
 	Model
 	BeginSearch()
@@ -53,6 +57,21 @@ type navigationModel interface {
 	CanGoBack() bool
 }
 
+type toggleModel interface {
+	ToggleSelected()
+}
+
+type treeControlModel interface {
+	ExpandSelected()
+	CollapseSelected()
+	ExpandAll()
+	CollapseAll()
+}
+
+type groupModel interface {
+	CycleGroup()
+}
+
 type detailScrollModel interface {
 	ScrollDetails(delta int)
 }
@@ -62,6 +81,12 @@ type listItem struct {
 	subtitle string
 	badges   []badge
 	details  []string
+	children []listItem
+	expanded bool
+	key      string
+	tree     string
+	depth    int
+	canOpen  bool
 }
 
 type badge struct {
@@ -72,9 +97,14 @@ type badge struct {
 type listModel struct {
 	title          string
 	summary        []string
+	controls       []string
 	navigationHelp string
 	filterHelp     string
 	emptyState     string
+	listTitle      string
+	listHeader     string
+	detailTitle    string
+	topPanels      []listPanel
 	items          []listItem
 	selected       int
 	scrollOffset   int
@@ -82,6 +112,15 @@ type listModel struct {
 	searching      bool
 	searchQuery    string
 	searchMatch    bool
+	footerSummary  string
+	legend         string
+}
+
+type listPanel struct {
+	title  string
+	lines  []string
+	color  string
+	weight int
 }
 
 const interactiveCommonNavigationHelp = "Up/Down or j/k move; PgUp/PgDn or Ctrl+u/Ctrl+d scroll details; Home/End or g/G jump; q quits"
@@ -95,6 +134,8 @@ type listPackageRow struct {
 	scope        string
 	relationship string
 	purl         string
+	depth        int
+	tree         string
 }
 
 type rootDependencyGroup struct {
@@ -112,27 +153,38 @@ const (
 type scanView string
 
 const (
+	interactiveScanViewOverview scanView = "overview"
 	interactiveScanViewPackages scanView = "packages"
 	interactiveScanViewVulns    scanView = "vulnerabilities"
 	interactiveScanViewLicenses scanView = "licenses"
+	interactiveScanViewFindings scanView = "findings"
+	interactiveScanViewSource   scanView = "source"
 )
 
 type scanModel struct {
-	titlePrefix        string
-	project            output.ProjectDescriptor
-	graphValue         *sdk.Graph
-	explainMode        bool
-	manifests          []listPackageRow
-	manifestByID       map[string]listPackageRow
-	mode               scanMode
-	activeView         scanView
-	findings           []sdk.Finding
-	currentManifestID  string
-	allowManifestExit  bool
-	relationshipFilter string
-	scopeFilter        string
-	severityFilter     string
-	list               *listModel
+	titlePrefix           string
+	project               output.ProjectDescriptor
+	graphValue            *sdk.Graph
+	explainMode           bool
+	manifests             []listPackageRow
+	manifestByID          map[string]listPackageRow
+	mode                  scanMode
+	activeView            scanView
+	findings              []sdk.Finding
+	currentManifestID     string
+	allowManifestExit     bool
+	relationshipFilter    string
+	scopeFilter           string
+	severityFilter        string
+	sourceExpanded        map[string]bool
+	componentExpanded     map[string]bool
+	vulnerabilityGroup    string
+	vulnerabilityExpanded map[string]bool
+	licenseGroup          string
+	licenseExpanded       map[string]bool
+	findingGroup          string
+	findingExpanded       map[string]bool
+	list                  *listModel
 }
 
 type teaModel struct {
@@ -222,6 +274,12 @@ func (m *teaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if filterModel, ok := m.inner.(filterModel); ok {
 				filterModel.CycleScopeFilter()
 			}
+		case "g":
+			if groupModel, ok := m.inner.(groupModel); ok {
+				groupModel.CycleGroup()
+			} else {
+				m.inner.Home()
+			}
 		case "v":
 			if filterModel, ok := m.inner.(filterModel); ok {
 				filterModel.CycleSeverityFilter()
@@ -231,10 +289,37 @@ func (m *teaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.quitting = true
 				return m, tea.Quit
 			}
+			if toggleModel, ok := m.inner.(toggleModel); ok {
+				toggleModel.ToggleSelected()
+			}
 			if navigationModel, ok := m.inner.(navigationModel); ok {
 				navigationModel.OpenSelected()
 			}
-		case "left", "h", "backspace":
+		case "1", "2", "3", "4", "5", "6":
+			if tabModel, ok := m.inner.(numberedTabModel); ok {
+				tabModel.SelectView(int(msg.String()[0] - '0'))
+			}
+		case "right", "l":
+			if treeModel, ok := m.inner.(treeControlModel); ok {
+				treeModel.ExpandSelected()
+			}
+		case "]":
+			if treeModel, ok := m.inner.(treeControlModel); ok {
+				treeModel.ExpandAll()
+			}
+		case "[":
+			if treeModel, ok := m.inner.(treeControlModel); ok {
+				treeModel.CollapseAll()
+			}
+		case "left":
+			if m.confirmQuit {
+				m.confirmQuit = false
+				return m, nil
+			}
+			if treeModel, ok := m.inner.(treeControlModel); ok {
+				treeModel.CollapseSelected()
+			}
+		case "h", "backspace":
 			if m.confirmQuit {
 				m.confirmQuit = false
 				return m, nil
@@ -254,7 +339,7 @@ func (m *teaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if detailModel, ok := m.inner.(detailScrollModel); ok {
 				detailModel.ScrollDetails(1)
 			}
-		case "home", "g":
+		case "home":
 			m.inner.Home()
 		case "end", "G", "shift+g":
 			m.inner.End()
@@ -411,68 +496,185 @@ func (m *listModel) View(width, height int) string {
 	}
 
 	var lines []string
-	lines = append(lines, truncateToWidth(render.Style(" "+m.title+" ", render.BgBlue, render.White, render.Bold), width))
+	if strings.TrimSpace(m.title) != "" {
+		lines = append(lines, truncateToWidth(render.Style(" "+m.title+" ", render.BgBlue, render.White, render.Bold), width))
+	}
 	for _, summaryLine := range m.summary {
 		lines = append(lines, truncateToWidth(summaryLine, width))
 	}
+	if len(m.controls) > 0 {
+		for idx, controlLine := range m.controls {
+			lines = append(lines, truncateToWidth(controlLine, width))
+			if idx < len(m.controls)-1 {
+				lines = append(lines, "")
+			}
+		}
+	}
 	if m.searching {
+		if len(m.controls) > 0 {
+			lines = append(lines, "")
+		}
 		lines = append(lines, truncateToWidth(m.searchLine(width), width))
 	}
-	lines = append(lines, render.Style(strings.Repeat("=", width), render.Dim, render.Gray))
-	helpLines := helpLines(m.navigationHelp, m.filterHelp, width)
-	if len(helpLines) == 0 {
-		helpLines = []string{""}
+	if len(m.controls) > 0 || m.searching {
+		lines = append(lines, "")
+	}
+	footerLines := m.footerLines(width)
+
+	bodyHeight := height - len(lines) - len(footerLines)
+	topPanelLines := renderListPanels(m.topPanels, width)
+	if len(topPanelLines) > 0 {
+		bodyHeight -= len(topPanelLines) + 1
+	}
+	if bodyHeight < 10 {
+		bodyHeight = 10
 	}
 
-	bodyHeight := height - len(lines) - 2
-	if bodyHeight < 4 {
-		bodyHeight = 4
+	if len(topPanelLines) > 0 {
+		lines = append(lines, topPanelLines...)
+		lines = append(lines, "")
 	}
 
 	visible := m.visibleItemIndices()
 	if len(visible) == 0 {
-		lines = append(lines, truncateToWidth(render.Style(m.emptyState, render.Yellow, render.Bold), width))
-		lines = append(lines, render.Style(strings.Repeat("=", width), render.Dim, render.Gray))
-		for _, helpLine := range helpLines {
-			lines = append(lines, truncateToWidth(render.Style(helpLine, render.Dim), width))
-		}
+		lines = append(lines, boxView("Empty", []string{render.Style(m.emptyState, render.Yellow, render.Bold)}, width, bodyHeight, render.Yellow)...)
+		lines = append(lines, footerLines...)
 		return strings.Join(lines, "\n")
 	}
 
+	fullWidthList := strings.TrimSpace(m.detailTitle) == "-"
 	listWidth := width / 2
-	if listWidth < 28 {
-		listWidth = 28
-	}
-	detailWidth := width - listWidth - 3
-	if detailWidth < 20 {
-		detailWidth = 20
-		listWidth = width - detailWidth - 3
+	detailWidth := width - listWidth - 1
+	if fullWidthList {
+		listWidth = width
+		detailWidth = 0
+	} else {
+		if listWidth < 28 {
+			listWidth = 28
+		}
+		if detailWidth < 20 {
+			detailWidth = 20
+			listWidth = width - detailWidth - 1
+		}
 	}
 
 	selectedIndex := visible[m.selectedVisibleIndex(visible)]
-	listLines := m.visibleListLines(listWidth, bodyHeight, visible)
-	detailLines := m.visibleDetailLines(m.items[selectedIndex].details, detailWidth, bodyHeight)
+	contentHeight := bodyHeight - 2
+	if contentHeight < 1 {
+		contentHeight = 1
+	}
+	listContentHeight := contentHeight
+	if strings.TrimSpace(m.listHeader) != "" {
+		listContentHeight--
+	}
+	listLines := m.visibleListLines(listWidth-2, listContentHeight, visible)
+	if strings.TrimSpace(m.listHeader) != "" {
+		listLines = append([]string{render.Style(truncateToWidth(m.listHeader, listWidth-2), render.Dim, render.Bold)}, listLines...)
+	}
+	detailLines := []string{}
+	if !fullWidthList {
+		detailLines = m.visibleDetailLines(m.items[selectedIndex].details, detailWidth-2, contentHeight)
+	}
 	if len(detailLines) < bodyHeight {
 		detailLines = append(detailLines, make([]string, bodyHeight-len(detailLines))...)
 	}
 
-	for idx := 0; idx < bodyHeight; idx++ {
-		left := ""
-		if idx < len(listLines) {
-			left = listLines[idx]
+	leftTitle := valueOrDefault(m.listTitle, "List")
+	rightTitle := valueOrDefault(m.detailTitle, "Details")
+	leftBox := boxView(leftTitle, listLines, listWidth, bodyHeight, render.Cyan)
+	if strings.TrimSpace(m.detailTitle) == "-" {
+		for idx := 0; idx < bodyHeight; idx++ {
+			lines = append(lines, leftBox[idx])
 		}
-		right := ""
-		if idx < len(detailLines) {
-			right = detailLines[idx]
+	} else {
+		rightBox := boxView(rightTitle, detailLines, detailWidth, bodyHeight, render.Magenta)
+		for idx := 0; idx < bodyHeight; idx++ {
+			lines = append(lines, leftBox[idx]+" "+rightBox[idx])
 		}
-		lines = append(lines, padRight(left, listWidth)+" "+render.Style("|", render.Dim, render.Gray)+" "+padRight(right, detailWidth))
 	}
 
-	lines = append(lines, render.Style(strings.Repeat("=", width), render.Dim, render.Gray))
-	for _, helpLine := range helpLines {
-		lines = append(lines, truncateToWidth(render.Style(helpLine, render.Dim), width))
-	}
+	lines = append(lines, footerLines...)
 	return strings.Join(lines, "\n")
+}
+
+func renderListPanels(panels []listPanel, width int) []string {
+	if len(panels) == 0 {
+		return nil
+	}
+	gap := 1
+	totalGap := gap * (len(panels) - 1)
+	available := width - totalGap
+	if available < len(panels)*12 {
+		return nil
+	}
+	totalWeight := 0
+	maxContent := 1
+	for _, panel := range panels {
+		weight := panel.weight
+		if weight <= 0 {
+			weight = 1
+		}
+		totalWeight += weight
+		if len(panel.lines) > maxContent {
+			maxContent = len(panel.lines)
+		}
+	}
+	panelHeight := maxContent + 2
+	rendered := make([][]string, 0, len(panels))
+	used := 0
+	for idx, panel := range panels {
+		weight := panel.weight
+		if weight <= 0 {
+			weight = 1
+		}
+		panelWidth := available * weight / totalWeight
+		if idx == len(panels)-1 {
+			panelWidth = available - used
+		}
+		used += panelWidth
+		color := panel.color
+		if color == "" {
+			color = render.Cyan
+		}
+		rendered = append(rendered, boxView(panel.title, panel.lines, panelWidth, panelHeight, color))
+	}
+	out := make([]string, 0, panelHeight)
+	for row := 0; row < panelHeight; row++ {
+		parts := make([]string, 0, len(rendered))
+		for idx := range rendered {
+			parts = append(parts, rendered[idx][row])
+		}
+		out = append(out, strings.Join(parts, strings.Repeat(" ", gap)))
+	}
+	return out
+}
+
+func valueOrDefault(value, fallback string) string {
+	if strings.TrimSpace(value) == "" {
+		return fallback
+	}
+	return value
+}
+
+func (m *listModel) footerLines(width int) []string {
+	if strings.TrimSpace(m.footerSummary) != "" || strings.TrimSpace(m.legend) != "" {
+		lines := make([]string, 0, 2)
+		if strings.TrimSpace(m.footerSummary) != "" {
+			lines = append(lines, statusBar(m.footerSummary, width))
+		}
+		if strings.TrimSpace(m.legend) != "" {
+			lines = append(lines, centerLine(m.legend, width))
+		}
+		return lines
+	}
+	lines := helpLines(m.navigationHelp, m.filterHelp, width)
+	if len(lines) == 0 {
+		return []string{""}
+	}
+	for idx, line := range lines {
+		lines[idx] = truncateToWidth(render.Style(line, render.Dim), width)
+	}
+	return lines
 }
 
 func helpLines(navigationHelp, filterHelp string, width int) []string {
@@ -530,10 +732,24 @@ func (m *listModel) visibleListLines(width, height int, visible []int) []string 
 	}
 	for visibleIdx := m.scrollOffset; visibleIdx < end; visibleIdx++ {
 		idx := visible[visibleIdx]
-		prefix := render.Style("  ", render.Dim)
+		item := m.items[idx]
+		tree := item.tree
+		if tree == "" && item.depth > 0 {
+			tree = strings.Repeat("   ", item.depth)
+		}
+		marker := "  "
+		if item.canOpen {
+			marker = "▸ "
+			if item.expanded {
+				marker = "▾ "
+			}
+		}
+		selector := "  "
+		prefix := render.Style(selector+tree+marker, render.Dim)
 		title := render.Style(m.items[idx].title, render.White)
 		if idx == m.selected {
-			prefix = render.Style("> ", render.BgBlue, render.White, render.Bold)
+			selector = "> "
+			prefix = render.Style(selector+tree+marker, render.BgBlue, render.White, render.Bold)
 			title = render.Style(m.items[idx].title, render.White, render.Bold)
 		}
 		line := prefix + title

@@ -88,14 +88,15 @@ func TestInteractiveListModel_ViewIncludesDetails(t *testing.T) {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
-	model.Move(1)
-	view := model.View(90, 20)
+	model.SelectView(2)
+	model.Move(3)
+	view := model.View(90, 26)
 
 	plain := render.StripANSI(view)
 	for _, want := range []string{
-		"Bomly Interactive Scan: demo-app",
-		"Manifest  package-lock.json",
-		"Root      demo-app@1.0.0",
+		"Components (2)",
+		"Manifest: package-lock.json",
+		"Component Details",
 		"Component",
 		"react@18.2.0",
 		"Scope: runtime",
@@ -137,7 +138,7 @@ func TestNewDiffInteractiveModel_ViewIncludesManifestChanges(t *testing.T) {
 		},
 	})
 
-	view := model.View(100, 18)
+	view := model.View(100, 26)
 	for _, want := range []string{
 		"Bomly Interactive Diff: base -> head",
 		"package.json (npm)",
@@ -191,15 +192,15 @@ func TestNewScanInteractiveModel_ViewIncludesGraphSummary(t *testing.T) {
 		Path:      "/tmp/demo-app",
 		Ecosystem: "npm",
 	}, consolidated, graphValue, nil)
+	model.SelectView(2)
 	view := model.View(100, 20)
 	plain := render.StripANSI(view)
 
 	for _, want := range []string{
-		"Bomly Interactive Scan: demo-app",
-		"Manifest  package-lock.json",
-		"Direct    1",
-		"Transitive 0",
-		"Project   /tmp/demo-app",
+		"Components (2)",
+		"Component Details",
+		"Group: Dependency",
+		"demo-app (1 manifests)",
 	} {
 		if !strings.Contains(plain, want) {
 			t.Fatalf("expected view to contain %q, got:\n%s", want, view)
@@ -262,24 +263,24 @@ func TestScanInteractiveModel_MultiManifestNavigation(t *testing.T) {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 	model := NewScan(output.ProjectDescriptor{Name: "multi", Path: "/tmp/multi"}, consolidated, graphValue, nil)
-	plain := render.StripANSI(model.View(100, 20))
-	if !strings.Contains(plain, "Manifests 2") {
-		t.Fatalf("expected manifest list view, got:\n%s", plain)
+	plain := render.StripANSI(model.View(100, 30))
+	if !strings.Contains(plain, "[1] Overview") || !strings.Contains(plain, "Manifests: 2") {
+		t.Fatalf("expected overview view, got:\n%s", plain)
 	}
 
 	wrapper := &teaModel{inner: model, width: 100, height: 20}
-	updated, _ := wrapper.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	updated, _ := wrapper.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("2")})
 	wrapper = updated.(*teaModel)
 	plain = render.StripANSI(wrapper.View())
-	if !strings.Contains(plain, "Direct") {
-		t.Fatalf("expected component view after Enter, got:\n%s", plain)
+	if !strings.Contains(plain, "multi (2 manifests)") || !strings.Contains(plain, "zod@3.23.0") {
+		t.Fatalf("expected unified component tree, got:\n%s", plain)
 	}
 
 	updated, _ = wrapper.Update(tea.KeyMsg{Type: tea.KeyBackspace})
 	wrapper = updated.(*teaModel)
 	plain = render.StripANSI(wrapper.View())
-	if !strings.Contains(plain, "Manifests 2") {
-		t.Fatalf("expected back navigation to manifest list, got:\n%s", plain)
+	if !strings.Contains(plain, "Components (4)") {
+		t.Fatalf("expected backspace to keep unified component tree, got:\n%s", plain)
 	}
 }
 
@@ -659,23 +660,175 @@ func TestScanInteractiveModel_FiltersAndScopeBadges(t *testing.T) {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
+	model.SelectView(2)
 
-	plain := render.StripANSI(model.View(100, 20))
+	plain := render.StripANSI(model.View(100, 30))
 	if !strings.Contains(plain, "react@18.2.0") || !strings.Contains(plain, "vitest@2.0.0") {
 		t.Fatalf("expected scoped component rows, got:\n%s", plain)
 	}
 
 	model.CycleScopeFilter()
-	plain = render.StripANSI(model.View(100, 20))
+	plain = render.StripANSI(model.View(100, 30))
 	if !strings.Contains(plain, "react@18.2.0") || strings.Contains(plain, "vitest@2.0.0") {
 		t.Fatalf("expected runtime scope filter to keep only runtime packages, got:\n%s", plain)
+	}
+	if !strings.Contains(plain, "Components (1)") || !strings.Contains(plain, "Components: 1 of 3") || !strings.Contains(plain, "package-lock.json") {
+		t.Fatalf("expected component counts to reflect runtime scope filter while keeping manifest visible, got:\n%s", plain)
 	}
 
 	model.CycleRelationshipFilter()
 	model.CycleRelationshipFilter()
-	plain = render.StripANSI(model.View(100, 20))
+	plain = render.StripANSI(model.View(100, 30))
 	if strings.Contains(plain, "demo-app@1.0.0  ROOT") || !strings.Contains(plain, "react@18.2.0") {
 		t.Fatalf("expected direct relationship filter to hide root row, got:\n%s", plain)
+	}
+}
+
+func TestTopDependedOnComponentStats_UsesTransitiveDependents(t *testing.T) {
+	g := sdk.New()
+	root := sdk.NewPackageRef("root", "1.0.0")
+	altRoot := sdk.NewPackageRef("alt-root", "1.0.0")
+	mid := sdk.NewPackageRef("mid", "1.0.0")
+	leaf := sdk.NewPackageRef("leaf", "1.0.0")
+	for _, pkg := range []*sdk.Package{root, altRoot, mid, leaf} {
+		if err := g.AddPackage(pkg); err != nil {
+			t.Fatalf("add package: %v", err)
+		}
+	}
+	for _, edge := range [][2]string{
+		{root.ID, mid.ID},
+		{altRoot.ID, mid.ID},
+		{mid.ID, leaf.ID},
+	} {
+		if err := g.AddDependency(edge[0], edge[1]); err != nil {
+			t.Fatalf("add dependency: %v", err)
+		}
+	}
+
+	stats := topDependedOnComponentStats(g, nil, 3)
+	if len(stats) == 0 {
+		t.Fatalf("expected depended-on component stats")
+	}
+	if stats[0].name != "leaf@1.0.0" || stats[0].dependents != 3 {
+		t.Fatalf("expected leaf to include transitive dependents from both roots, got %+v", stats[0])
+	}
+}
+
+func TestScanInteractiveModel_ComponentTreeExpandsSelectedNode(t *testing.T) {
+	g := sdk.New()
+	root := sdk.NewPackageRef("demo-app", "1.0.0")
+	direct := sdk.NewPackage(sdk.Package{Name: "react", Version: "18.2.0", Scope: "runtime"})
+	transitive := sdk.NewPackage(sdk.Package{Name: "loose-envify", Version: "1.4.0", Scope: "runtime"})
+	for _, pkg := range []*sdk.Package{root, direct, transitive} {
+		if err := g.AddPackage(pkg); err != nil {
+			t.Fatalf("add package: %v", err)
+		}
+	}
+	if err := g.AddDependency(root.ID, direct.ID); err != nil {
+		t.Fatalf("add root dependency: %v", err)
+	}
+	if err := g.AddDependency(direct.ID, transitive.ID); err != nil {
+		t.Fatalf("add transitive dependency: %v", err)
+	}
+
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
+			RelativePath:            ".",
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
+		},
+		DetectorName: "npm-detector",
+		Origin:       sdk.CoreOrigin,
+		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+	}})
+	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+
+	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
+	model.SelectView(2)
+	plain := render.StripANSI(model.View(100, 24))
+	if !strings.Contains(plain, "react@18.2.0") {
+		t.Fatalf("expected direct dependency in component tree, got:\n%s", plain)
+	}
+	if strings.Contains(plain, "loose-envify@1.4.0") {
+		t.Fatalf("expected transitive dependency to be collapsed initially, got:\n%s", plain)
+	}
+
+	model.Move(3)
+	model.ToggleSelected()
+	plain = render.StripANSI(model.View(100, 24))
+	if !strings.Contains(plain, "loose-envify@1.4.0") {
+		t.Fatalf("expected expanded transitive dependency, got:\n%s", plain)
+	}
+	if !strings.Contains(plain, "└─") && !strings.Contains(plain, "├─") {
+		t.Fatalf("expected component tree to use box-drawing connectors, got:\n%s", plain)
+	}
+}
+
+func TestScanInteractiveModel_OverviewDashboardUsesBordersAndBars(t *testing.T) {
+	g := sdk.New()
+	root := sdk.NewPackage(sdk.Package{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"})
+	dep := sdk.NewPackage(sdk.Package{Name: "react", Version: "18.2.0", Ecosystem: "npm", Licenses: []sdk.PackageLicense{{Value: "MIT"}}})
+	for _, pkg := range []*sdk.Package{root, dep} {
+		if err := g.AddPackage(pkg); err != nil {
+			t.Fatalf("add package: %v", err)
+		}
+	}
+	if err := g.AddDependency(root.ID, dep.ID); err != nil {
+		t.Fatalf("add dependency: %v", err)
+	}
+
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
+			RelativePath:            ".",
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
+		},
+		DetectorName: "npm-detector",
+		Origin:       sdk.CoreOrigin,
+		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+	}})
+	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+
+	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
+	plain := render.StripANSI(model.View(120, 32))
+	for _, want := range []string{
+		"┌ Components ",
+		"┌ Vulnerability Severity ",
+		"License Distribution",
+		"MIT",
+		"██████████████████",
+		"Components: 2 | Vulns: 0 | Licenses: 1 | Findings: 0",
+		" Tab switch",
+		" ← collapse",
+	} {
+		if !strings.Contains(plain, want) {
+			t.Fatalf("expected overview dashboard to contain %q, got:\n%s", want, plain)
+		}
+	}
+}
+
+func TestScanInteractiveModel_SourceTreeCollapsesRoot(t *testing.T) {
+	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, sdk.ConsolidatedGraph{}, sdk.New(), nil)
+	model.SelectView(6)
+	plain := render.StripANSI(model.View(100, 30))
+	if !strings.Contains(plain, "packages: [] (0 items)") {
+		t.Fatalf("expected expanded source root, got:\n%s", plain)
+	}
+	if !strings.Contains(plain, "├─ ▸ packages: [] (0 items)") {
+		t.Fatalf("expected source tree to use structured connectors, got:\n%s", plain)
+	}
+	model.ToggleSelected()
+	plain = render.StripANSI(model.View(100, 30))
+	if strings.Contains(plain, "packages: [] (0 items)") {
+		t.Fatalf("expected collapsed source root to hide packages, got:\n%s", plain)
 	}
 }
 
@@ -816,12 +969,12 @@ func TestBuildLicensesListModel_GroupsByUniqueLicense(t *testing.T) {
 	if len(list.items) != 2 {
 		t.Fatalf("expected 2 unique license rows, got %d", len(list.items))
 	}
-	plain := render.StripANSI(list.View(100, 20))
+	plain := render.StripANSI(list.View(100, 28))
 	for _, want := range []string{
-		"Unique licenses 2",
+		"Licenses (2)",
 		"Apache-2.0",
 		"MIT",
-		"Packages Using This License",
+		"Components (1)",
 	} {
 		if !strings.Contains(plain, want) {
 			t.Fatalf("expected license view to contain %q, got:\n%s", want, plain)

@@ -344,9 +344,12 @@ func (o *Options) ProjectDescriptor() output.ProjectDescriptor {
 		ecosystem = string(o.subprojects[0].Ecosystem)
 		packageManager = o.subprojects[0].PrimaryPackageManager().Name()
 	}
+	location := displayTargetLocation(o.executionTarget)
 	return output.ProjectDescriptor{
-		Name:           filepath.Base(o.executionTarget.Location),
-		Path:           o.executionTarget.Location,
+		Name:           displayTargetName(o.executionTarget),
+		Path:           location,
+		TargetType:     displayTargetType(o.executionTarget),
+		TargetRef:      o.executionTarget.Ref,
 		Ecosystem:      ecosystem,
 		PackageManager: packageManager,
 	}
@@ -358,13 +361,50 @@ func (o *Options) ProjectDescriptor() output.ProjectDescriptor {
 func (o *Options) ProjectDescriptorForSubproject(subproject sdk.Subproject) output.ProjectDescriptor {
 	name := filepath.Base(subproject.ExecutionTarget.Location)
 	if subproject.RelativePath == "." {
-		name = filepath.Base(o.executionTarget.Location)
+		name = displayTargetName(o.executionTarget)
 	}
 	return output.ProjectDescriptor{
 		Name:           name,
-		Path:           subproject.ExecutionTarget.Location,
+		Path:           displayTargetLocation(subproject.ExecutionTarget),
+		TargetType:     displayTargetType(subproject.ExecutionTarget),
+		TargetRef:      subproject.ExecutionTarget.Ref,
 		Ecosystem:      string(subproject.Ecosystem),
 		PackageManager: subproject.PrimaryPackageManager().Name(),
+	}
+}
+
+func displayTargetLocation(target sdk.ExecutionTarget) string {
+	if target.Kind == sdk.ExecutionTargetGitRepository && strings.TrimSpace(target.RepositoryURL) != "" {
+		return strings.TrimSpace(target.RepositoryURL)
+	}
+	return target.Location
+}
+
+func displayTargetName(target sdk.ExecutionTarget) string {
+	location := displayTargetLocation(target)
+	if strings.TrimSpace(location) == "" {
+		return ""
+	}
+	if target.Kind == sdk.ExecutionTargetContainerImage || target.Kind == sdk.ExecutionTargetGitRepository {
+		return location
+	}
+	trimmed := strings.TrimSuffix(strings.TrimRight(location, `/\`), ".git")
+	if idx := strings.LastIndexAny(trimmed, `/\`); idx >= 0 && idx < len(trimmed)-1 {
+		return trimmed[idx+1:]
+	}
+	return filepath.Base(trimmed)
+}
+
+func displayTargetType(target sdk.ExecutionTarget) string {
+	switch target.Kind {
+	case sdk.ExecutionTargetGitRepository:
+		return "git repository"
+	case sdk.ExecutionTargetContainerImage:
+		return "container image"
+	case sdk.ExecutionTargetFilesystem:
+		return "filesystem"
+	default:
+		return string(target.Kind)
 	}
 }
 

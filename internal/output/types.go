@@ -21,6 +21,8 @@ type Metadata struct {
 type ProjectDescriptor struct {
 	Name           string `json:"name,omitempty"`
 	Path           string `json:"path"`
+	TargetType     string `json:"target_type,omitempty"`
+	TargetRef      string `json:"target_ref,omitempty"`
 	Ecosystem      string `json:"ecosystem"`
 	PackageManager string `json:"package_manager,omitempty"`
 }

@@ -1368,6 +1368,12 @@
         },
         "path": {
           "type": "string"
+        },
+        "target_ref": {
+          "type": "string"
+        },
+        "target_type": {
+          "type": "string"
         }
       },
       "required": [
@@ -2721,6 +2727,12 @@
                 "type": "string"
               },
               "path": {
+                "type": "string"
+              },
+              "target_ref": {
+                "type": "string"
+              },
+              "target_type": {
                 "type": "string"
               }
             },

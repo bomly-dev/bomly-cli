@@ -31,6 +31,7 @@ type filterModel interface {
 	CycleRelationshipFilter()
 	CycleScopeFilter()
 	CycleSeverityFilter()
+	CycleEcosystemFilter()
 }
 
 type tabbedModel interface {
@@ -126,16 +127,26 @@ type listPanel struct {
 const interactiveCommonNavigationHelp = "Up/Down or j/k move; PgUp/PgDn or Ctrl+u/Ctrl+d scroll details; Home/End or g/G jump; q quits"
 
 type listPackageRow struct {
-	id           string
-	rootID       string
-	targetID     string
-	displayName  string
-	version      string
-	scope        string
-	relationship string
-	purl         string
-	depth        int
-	tree         string
+	id               string
+	rootID           string
+	targetID         string
+	displayName      string
+	version          string
+	scope            string
+	ecosystem        string
+	relationship     string
+	purl             string
+	repeated         bool
+	detectorName     string
+	origin           string
+	technique        string
+	packageManagers  string
+	plannedDetectors string
+	relativePath     string
+	targetKind       string
+	targetLocation   string
+	depth            int
+	tree             string
 }
 
 type rootDependencyGroup struct {
@@ -176,6 +187,8 @@ type scanModel struct {
 	relationshipFilter    string
 	scopeFilter           string
 	severityFilter        string
+	ecosystemFilter       string
+	explainQuery          string
 	sourceExpanded        map[string]bool
 	componentExpanded     map[string]bool
 	vulnerabilityGroup    string
@@ -283,6 +296,10 @@ func (m *teaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "v":
 			if filterModel, ok := m.inner.(filterModel); ok {
 				filterModel.CycleSeverityFilter()
+			}
+		case "e":
+			if filterModel, ok := m.inner.(filterModel); ok {
+				filterModel.CycleEcosystemFilter()
 			}
 		case "enter":
 			if m.confirmQuit {

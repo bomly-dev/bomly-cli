@@ -151,6 +151,8 @@ func badgeView(badge badge) string {
 		return render.Style(label, render.BgYellow, render.Bold)
 	case "severity-low":
 		return render.Style(label, render.BgCyan, render.Blue, render.Bold)
+	case "repeated":
+		return render.Style(label, render.BgBlue, render.White)
 	default:
 		return render.Style(label, render.BgCyan, render.Blue, render.Bold)
 	}
@@ -342,6 +344,9 @@ func packageBadges(row listPackageRow) []badge {
 		badges = append(badges, badge{label: row.scope, kind: "scope-runtime"})
 	case "development":
 		badges = append(badges, badge{label: row.scope, kind: "scope-development"})
+	}
+	if row.repeated {
+		badges = append(badges, badge{label: "repeated", kind: "repeated"})
 	}
 	return badges
 }

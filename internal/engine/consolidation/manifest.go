@@ -150,6 +150,22 @@ func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error
 		return nil
 	}
 
+	roots := g.Roots()
+	if preferred := selectApplicationRoot(roots); preferred != nil {
+		for _, target := range roots {
+			if target == nil || target.ID == preferred.ID {
+				continue
+			}
+			if err := g.AddDependency(preferred.ID, target.ID); err != nil {
+				if errors.Is(err, sdk.ErrSelfDependency) {
+					continue
+				}
+				return fmt.Errorf("attach application root %q -> %q: %w", preferred.ID, target.ID, err)
+			}
+		}
+		return nil
+	}
+
 	rootID := virtualManifestRootID(g, manifest, idx)
 	manifestLabel := strings.TrimSpace(manifest.Path)
 	if manifestLabel == "" {
@@ -187,6 +203,18 @@ func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error
 		}
 	}
 
+	return nil
+}
+
+func selectApplicationRoot(roots []*sdk.Package) *sdk.Package {
+	for _, root := range roots {
+		if root == nil {
+			continue
+		}
+		if strings.EqualFold(strings.TrimSpace(root.Type), "application") {
+			return root
+		}
+	}
 	return nil
 }
 

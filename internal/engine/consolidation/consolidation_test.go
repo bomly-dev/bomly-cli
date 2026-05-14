@@ -253,6 +253,62 @@ func TestConsolidateGraphs_SynthesizesManifestRootWhenEntryHasMultipleRoots(t *t
 	}
 }
 
+func TestConsolidateGraphs_PrefersApplicationRootWhenEntryHasMultipleRoots(t *testing.T) {
+	npmGraph := sdk.New()
+	app := sdk.NewPackage(sdk.Package{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0", Type: "application"})
+	react := sdk.NewPackage(sdk.Package{Ecosystem: "npm", Name: "react", Version: "18.2.0"})
+	orphan := sdk.NewPackage(sdk.Package{Ecosystem: "npm", Name: "string-width", Version: "2.1.1"})
+	for _, pkg := range []*sdk.Package{app, react, orphan} {
+		if err := npmGraph.AddPackage(pkg); err != nil {
+			t.Fatalf("add %s: %v", pkg.ID, err)
+		}
+	}
+	if err := npmGraph.AddDependency(app.ID, react.ID); err != nil {
+		t.Fatalf("link app->react: %v", err)
+	}
+
+	consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"},
+			RelativePath:            ".",
+			PrimaryDetector:         "npm-detector",
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
+		},
+		DetectorName: "npm-detector",
+		Graphs: sdk.SingleGraphContainer(npmGraph, sdk.ManifestMetadata{
+			Path: "package-lock.json",
+			Kind: "package-lock.json",
+		}),
+	}})
+	if err != nil {
+		t.Fatalf("ConsolidateGraphs() error = %v", err)
+	}
+
+	if len(consolidated.Manifests) != 1 {
+		t.Fatalf("expected 1 manifest, got %d", len(consolidated.Manifests))
+	}
+	if consolidated.Manifests[0].RootManifestID != "pkg:npm/demo-app@1.0.0" {
+		t.Fatalf("expected root manifest ID to be application package, got %q", consolidated.Manifests[0].RootManifestID)
+	}
+
+	mergedGraph, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	if _, ok := mergedGraph.Package("package-lock.json"); ok {
+		t.Fatal("did not expect synthesized manifest package for npm graph with application root")
+	}
+
+	deps, err := mergedGraph.Dependencies("pkg:npm/demo-app@1.0.0")
+	if err != nil {
+		t.Fatalf("Dependencies(app) error = %v", err)
+	}
+	if len(deps) != 2 {
+		t.Fatalf("expected application root to depend on both original roots, got %d", len(deps))
+	}
+}
+
 type nodeFixture struct {
 	id      string
 	name    string

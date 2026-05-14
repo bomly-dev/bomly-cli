@@ -191,6 +191,20 @@ func TestNPMLockfileV3_Metadata(t *testing.T) {
 	}
 }
 
+func TestNPMLockfileV3_SingleApplicationRoot(t *testing.T) {
+	g, err := resolveLockfileGraph(t, npm.LockfileDetector{}, fixture("npm-v3"))
+	if err != nil {
+		t.Fatalf("depGraphFromNPMLockfile(npm-v3): %v", err)
+	}
+	roots := g.Roots()
+	if len(roots) != 1 {
+		t.Fatalf("expected exactly one root package, got %d: %v", len(roots), graphPackageIDs(g))
+	}
+	if roots[0].ID != stableID("demo-app", "3.0.0") {
+		t.Fatalf("expected npm root %q, got %q", stableID("demo-app", "3.0.0"), roots[0].ID)
+	}
+}
+
 // ---- pnpm v5 (old format, no importers) ------------------------------------
 
 func TestPNPMLockfileV5_OldFormat(t *testing.T) {
@@ -307,6 +321,20 @@ func TestYarnLockfileV1_Metadata(t *testing.T) {
 	}
 	requireResolvedURL(t, g, "react", "18.2.0")
 	requireDigest(t, g, "react", "18.2.0", "sha512")
+}
+
+func TestYarnLockfileV1_SingleApplicationRoot(t *testing.T) {
+	g, err := resolveLockfileGraph(t, yarn.LockfileDetector{}, fixture("yarn-v1"))
+	if err != nil {
+		t.Fatalf("depGraphFromYarnLockfile(yarn-v1): %v", err)
+	}
+	roots := g.Roots()
+	if len(roots) != 1 {
+		t.Fatalf("expected exactly one root package, got %d: %v", len(roots), graphPackageIDs(g))
+	}
+	if roots[0].ID != stableID("demo-app", "1.0.0") {
+		t.Fatalf("expected yarn root %q, got %q", stableID("demo-app", "1.0.0"), roots[0].ID)
+	}
 }
 
 // ---- yarn Berry (v2+) ------------------------------------------------------

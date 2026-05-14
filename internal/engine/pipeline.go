@@ -3,6 +3,7 @@ package engine
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/engine/consolidation"
 	"github.com/bomly-dev/bomly-cli/internal/engine/hooks"
@@ -65,6 +66,7 @@ func (p *Pipeline) runPre(ctx context.Context, req PipelineRequest) error {
 func (p *Pipeline) runResolve(ctx context.Context, result *PipelineResult, req PipelineRequest) error {
 	resolveResults, resolveErr := p.resolveAll(ctx, req)
 	result.ResolveResults = resolveResults
+	p.logUnexpectedMultiRootResolveGraphs(resolveResults)
 	if resolveErr != nil && len(resolveResults) == 0 {
 		return fmt.Errorf("dependency resolution: %w", resolveErr)
 	}
@@ -106,7 +108,58 @@ func (p *Pipeline) runConsolidate(result *PipelineResult, req PipelineRequest) e
 		}
 	}
 	result.Graph = selectedGraph
+	p.logUnexpectedMultiRootGraph("consolidated", "", "", selectedGraph, sdk.ManifestMetadata{})
 	return nil
+}
+
+func (p *Pipeline) logUnexpectedMultiRootResolveGraphs(results []sdk.DetectionResult) {
+	for _, result := range results {
+		if result.Graphs == nil {
+			continue
+		}
+		for _, entry := range result.Graphs.Entries {
+			p.logUnexpectedMultiRootGraph(
+				"resolve",
+				result.DetectorName,
+				result.SubprojectInfo.RelativePath,
+				entry.Graph,
+				entry.Manifest,
+			)
+		}
+	}
+}
+
+func (p *Pipeline) logUnexpectedMultiRootGraph(stage, detector, subproject string, graph *sdk.Graph, manifest sdk.ManifestMetadata) {
+	if p == nil || p.Logger == nil || graph == nil {
+		return
+	}
+	roots := graph.Roots()
+	if len(roots) <= 1 {
+		return
+	}
+	hasApplicationRoot := false
+	rootIDs := make([]string, 0, len(roots))
+	for _, root := range roots {
+		if root == nil {
+			continue
+		}
+		rootIDs = append(rootIDs, root.ID)
+		if strings.EqualFold(strings.TrimSpace(root.Type), "application") {
+			hasApplicationRoot = true
+		}
+	}
+	if !hasApplicationRoot {
+		return
+	}
+	p.Logger.Warn(
+		"pipeline: unexpected multi-root graph detected",
+		zap.String("stage", stage),
+		zap.String("detector", detector),
+		zap.String("subproject", subproject),
+		zap.String("manifest_path", strings.TrimSpace(manifest.Path)),
+		zap.Int("root_count", len(roots)),
+		zap.Strings("root_ids", rootIDs),
+	)
 }
 
 func (p *Pipeline) runMatch(ctx context.Context, result *PipelineResult, req PipelineRequest) {

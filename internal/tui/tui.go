@@ -61,6 +61,11 @@ type toggleModel interface {
 	ToggleSelected()
 }
 
+type treeControlModel interface {
+	ExpandSelected()
+	CollapseSelected()
+}
+
 type groupModel interface {
 	CycleGroup()
 }
@@ -288,7 +293,19 @@ func (m *teaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if tabModel, ok := m.inner.(numberedTabModel); ok {
 				tabModel.SelectView(int(msg.String()[0] - '0'))
 			}
-		case "left", "h", "backspace":
+		case "right", "l":
+			if treeModel, ok := m.inner.(treeControlModel); ok {
+				treeModel.ExpandSelected()
+			}
+		case "left":
+			if m.confirmQuit {
+				m.confirmQuit = false
+				return m, nil
+			}
+			if treeModel, ok := m.inner.(treeControlModel); ok {
+				treeModel.CollapseSelected()
+			}
+		case "h", "backspace":
 			if m.confirmQuit {
 				m.confirmQuit = false
 				return m, nil
@@ -465,17 +482,21 @@ func (m *listModel) View(width, height int) string {
 	}
 
 	var lines []string
-	lines = append(lines, truncateToWidth(render.Style(" "+m.title+" ", render.BgBlue, render.White, render.Bold), width))
+	if strings.TrimSpace(m.title) != "" {
+		lines = append(lines, truncateToWidth(render.Style(" "+m.title+" ", render.BgBlue, render.White, render.Bold), width))
+	}
 	for _, summaryLine := range m.summary {
 		lines = append(lines, truncateToWidth(summaryLine, width))
-	}
-	if m.searching {
-		lines = append(lines, truncateToWidth(m.searchLine(width), width))
 	}
 	if len(m.controls) > 0 {
 		for _, controlLine := range m.controls {
 			lines = append(lines, truncateToWidth(controlLine, width))
 		}
+	}
+	if m.searching {
+		lines = append(lines, truncateToWidth(m.searchLine(width), width))
+	}
+	if len(m.controls) > 0 || m.searching {
 		lines = append(lines, "")
 	}
 	footerLines := m.footerLines(width)
@@ -501,14 +522,20 @@ func (m *listModel) View(width, height int) string {
 		return strings.Join(lines, "\n")
 	}
 
+	fullWidthList := strings.TrimSpace(m.detailTitle) == "-"
 	listWidth := width / 2
-	if listWidth < 28 {
-		listWidth = 28
-	}
 	detailWidth := width - listWidth - 1
-	if detailWidth < 20 {
-		detailWidth = 20
-		listWidth = width - detailWidth - 1
+	if fullWidthList {
+		listWidth = width
+		detailWidth = 0
+	} else {
+		if listWidth < 28 {
+			listWidth = 28
+		}
+		if detailWidth < 20 {
+			detailWidth = 20
+			listWidth = width - detailWidth - 1
+		}
 	}
 
 	selectedIndex := visible[m.selectedVisibleIndex(visible)]
@@ -524,7 +551,10 @@ func (m *listModel) View(width, height int) string {
 	if strings.TrimSpace(m.listHeader) != "" {
 		listLines = append([]string{render.Style(truncateToWidth(m.listHeader, listWidth-2), render.Dim, render.Bold)}, listLines...)
 	}
-	detailLines := m.visibleDetailLines(m.items[selectedIndex].details, detailWidth-2, contentHeight)
+	detailLines := []string{}
+	if !fullWidthList {
+		detailLines = m.visibleDetailLines(m.items[selectedIndex].details, detailWidth-2, contentHeight)
+	}
 	if len(detailLines) < bodyHeight {
 		detailLines = append(detailLines, make([]string, bodyHeight-len(detailLines))...)
 	}
@@ -532,9 +562,15 @@ func (m *listModel) View(width, height int) string {
 	leftTitle := valueOrDefault(m.listTitle, "List")
 	rightTitle := valueOrDefault(m.detailTitle, "Details")
 	leftBox := boxView(leftTitle, listLines, listWidth, bodyHeight, render.Cyan)
-	rightBox := boxView(rightTitle, detailLines, detailWidth, bodyHeight, render.Magenta)
-	for idx := 0; idx < bodyHeight; idx++ {
-		lines = append(lines, leftBox[idx]+" "+rightBox[idx])
+	if strings.TrimSpace(m.detailTitle) == "-" {
+		for idx := 0; idx < bodyHeight; idx++ {
+			lines = append(lines, leftBox[idx])
+		}
+	} else {
+		rightBox := boxView(rightTitle, detailLines, detailWidth, bodyHeight, render.Magenta)
+		for idx := 0; idx < bodyHeight; idx++ {
+			lines = append(lines, leftBox[idx]+" "+rightBox[idx])
+		}
 	}
 
 	lines = append(lines, footerLines...)

@@ -89,12 +89,11 @@ func TestInteractiveListModel_ViewIncludesDetails(t *testing.T) {
 	}
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
 	model.SelectView(2)
-	model.Move(1)
+	model.Move(3)
 	view := model.View(90, 26)
 
 	plain := render.StripANSI(view)
 	for _, want := range []string{
-		"Bomly Interactive Scan: demo-app",
 		"Components (2)",
 		"Manifest: package-lock.json",
 		"Component Details",
@@ -198,11 +197,10 @@ func TestNewScanInteractiveModel_ViewIncludesGraphSummary(t *testing.T) {
 	plain := render.StripANSI(view)
 
 	for _, want := range []string{
-		"Bomly Interactive Scan: demo-app",
 		"Components (2)",
 		"Component Details",
 		"Group: Dependency",
-		"Manifest: package-lock.json",
+		"demo-app (1 manifests)",
 	} {
 		if !strings.Contains(plain, want) {
 			t.Fatalf("expected view to contain %q, got:\n%s", want, view)
@@ -273,18 +271,16 @@ func TestScanInteractiveModel_MultiManifestNavigation(t *testing.T) {
 	wrapper := &teaModel{inner: model, width: 100, height: 20}
 	updated, _ := wrapper.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("2")})
 	wrapper = updated.(*teaModel)
-	updated, _ = wrapper.Update(tea.KeyMsg{Type: tea.KeyEnter})
-	wrapper = updated.(*teaModel)
 	plain = render.StripANSI(wrapper.View())
-	if !strings.Contains(plain, "Relationship: root") || !strings.Contains(plain, "zod@3.23.0") {
-		t.Fatalf("expected component view after Enter, got:\n%s", plain)
+	if !strings.Contains(plain, "multi (2 manifests)") || !strings.Contains(plain, "zod@3.23.0") {
+		t.Fatalf("expected unified component tree, got:\n%s", plain)
 	}
 
 	updated, _ = wrapper.Update(tea.KeyMsg{Type: tea.KeyBackspace})
 	wrapper = updated.(*teaModel)
 	plain = render.StripANSI(wrapper.View())
-	if !strings.Contains(plain, "Manifests (2)") {
-		t.Fatalf("expected back navigation to manifest list, got:\n%s", plain)
+	if !strings.Contains(plain, "Components (4)") {
+		t.Fatalf("expected backspace to keep unified component tree, got:\n%s", plain)
 	}
 }
 
@@ -728,7 +724,7 @@ func TestScanInteractiveModel_ComponentTreeExpandsSelectedNode(t *testing.T) {
 		t.Fatalf("expected transitive dependency to be collapsed initially, got:\n%s", plain)
 	}
 
-	model.Move(1)
+	model.Move(3)
 	model.ToggleSelected()
 	plain = render.StripANSI(model.View(100, 24))
 	if !strings.Contains(plain, "loose-envify@1.4.0") {
@@ -778,7 +774,7 @@ func TestScanInteractiveModel_OverviewDashboardUsesBordersAndBars(t *testing.T) 
 		"██████████████████",
 		"Components: 2 | Vulns: 0 | Licenses: 1 | Findings: 0",
 		" Tab switch",
-		" ? help",
+		" ← collapse",
 	} {
 		if !strings.Contains(plain, want) {
 			t.Fatalf("expected overview dashboard to contain %q, got:\n%s", want, plain)
@@ -790,15 +786,15 @@ func TestScanInteractiveModel_SourceTreeCollapsesRoot(t *testing.T) {
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, sdk.ConsolidatedGraph{}, sdk.New(), nil)
 	model.SelectView(6)
 	plain := render.StripANSI(model.View(100, 20))
-	if !strings.Contains(plain, "packages (0)") {
+	if !strings.Contains(plain, "packages: [] (0 items)") {
 		t.Fatalf("expected expanded source root, got:\n%s", plain)
 	}
-	if !strings.Contains(plain, "├─ packages (0)") {
+	if !strings.Contains(plain, "├─ ▸ packages: [] (0 items)") {
 		t.Fatalf("expected source tree to use structured connectors, got:\n%s", plain)
 	}
 	model.ToggleSelected()
 	plain = render.StripANSI(model.View(100, 20))
-	if strings.Contains(plain, "packages (0)") {
+	if strings.Contains(plain, "packages: [] (0 items)") {
 		t.Fatalf("expected collapsed source root to hide packages, got:\n%s", plain)
 	}
 }

@@ -48,6 +48,14 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 	entryNodeByIndex := make(map[int]string, len(entries))
 	entriesByName := make(map[string][]int)
 	for idx, entry := range entries {
+		entriesByName[entry.Name] = append(entriesByName[entry.Name], idx)
+	}
+
+	addEntryNode := func(idx int) (string, error) {
+		if id, ok := entryNodeByIndex[idx]; ok {
+			return id, nil
+		}
+		entry := entries[idx]
 		pkg := sdk.Package{
 			Ecosystem:   string(sdk.EcosystemNPM),
 			Name:        entry.Name,
@@ -57,10 +65,10 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 		}
 		pkgNode := sdk.NewPackage(pkg)
 		if err := node.AddNodeIfMissing(depsGraph, pkgNode); err != nil {
-			return nil, err
+			return "", err
 		}
 		entryNodeByIndex[idx] = pkgNode.ID
-		entriesByName[entry.Name] = append(entriesByName[entry.Name], idx)
+		return pkgNode.ID, nil
 	}
 
 	runtimeDeps := node.MergeStringMaps(manifest.Dependencies, node.MergeStringMaps(manifest.OptionalDependencies, manifest.PeerDependencies))
@@ -72,8 +80,12 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 		if !ok {
 			continue
 		}
-		if err := depsGraph.AddDependency(rootNode.ID, entryNodeByIndex[entryIdx]); err != nil {
-			return nil, fmt.Errorf("add yarn root dependency %q -> %q: %w", rootNode.ID, entryNodeByIndex[entryIdx], err)
+		entryID, err := addEntryNode(entryIdx)
+		if err != nil {
+			return nil, err
+		}
+		if err := depsGraph.AddDependency(rootNode.ID, entryID); err != nil {
+			return nil, fmt.Errorf("add yarn root dependency %q -> %q: %w", rootNode.ID, entryID, err)
 		}
 		queue = append(queue, entryIdx)
 	}
@@ -86,12 +98,19 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 		}
 		seen[current] = struct{}{}
 
-		parentID := entryNodeByIndex[current]
+		parentID, err := addEntryNode(current)
+		if err != nil {
+			return nil, err
+		}
 		for dependencyName, requested := range entries[current].Dependencies {
 			entryIdx, ok := selectYarnEntry(entries, entriesByName, dependencyName, requested)
 			if ok {
-				if err := depsGraph.AddDependency(parentID, entryNodeByIndex[entryIdx]); err != nil {
-					return nil, fmt.Errorf("add yarn dependency %q -> %q: %w", parentID, entryNodeByIndex[entryIdx], err)
+				entryID, err := addEntryNode(entryIdx)
+				if err != nil {
+					return nil, err
+				}
+				if err := depsGraph.AddDependency(parentID, entryID); err != nil {
+					return nil, fmt.Errorf("add yarn dependency %q -> %q: %w", parentID, entryID, err)
 				}
 				queue = append(queue, entryIdx)
 				continue

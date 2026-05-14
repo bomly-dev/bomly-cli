@@ -218,7 +218,7 @@ func recordDependencyScopes(target map[string]sdk.Scope, dependencies map[string
 }
 
 func resolveNPMLockDependencyID(parentPath string, dependencyName string, dependencyVersion string, lockfile npmPackageLock, pathToID map[string]string) (string, bool) {
-	searchBase := parentPath
+	searchBase := strings.TrimPrefix(strings.TrimSpace(strings.ReplaceAll(parentPath, "\\", "/")), "./")
 	for {
 		candidate := "node_modules/" + dependencyName
 		if searchBase != "" {
@@ -227,11 +227,18 @@ func resolveNPMLockDependencyID(parentPath string, dependencyName string, depend
 		if id, ok := pathToID[candidate]; ok {
 			return id, true
 		}
-		idx := strings.LastIndex(searchBase, "/node_modules/")
-		if idx < 0 {
+		if searchBase == "" {
 			break
 		}
-		searchBase = searchBase[:idx]
+		if idx := strings.LastIndex(searchBase, "/node_modules/"); idx >= 0 {
+			searchBase = searchBase[:idx]
+			continue
+		}
+		if strings.HasPrefix(searchBase, "node_modules/") {
+			searchBase = ""
+			continue
+		}
+		break
 	}
 
 	normalizedDepVersion := node.NormalizeVersionToken(dependencyVersion)

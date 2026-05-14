@@ -76,3 +76,30 @@ func TestResolveNPMLockDependencyIDFallsBackDeterministically(t *testing.T) {
 		t.Fatalf("expected lexicographically first package path to win, got %q", got)
 	}
 }
+
+func TestResolveNPMLockDependencyIDResolvesHoistedFromTopLevelParent(t *testing.T) {
+	lockfile := npmPackageLock{
+		Packages: map[string]npmLockPackage{
+			"node_modules/cliui/node_modules/string-width": {
+				Name:    "string-width",
+				Version: "3.1.0",
+			},
+			"node_modules/string-width": {
+				Name:    "string-width",
+				Version: "2.1.1",
+			},
+		},
+	}
+	pathToID := map[string]string{
+		"node_modules/cliui/node_modules/string-width": "pkg:npm/string-width@3.1.0",
+		"node_modules/string-width":                    "pkg:npm/string-width@2.1.1",
+	}
+
+	got, ok := resolveNPMLockDependencyID("node_modules/wide-align", "string-width", "^1.0.2 || 2", lockfile, pathToID)
+	if !ok {
+		t.Fatal("expected hoisted dependency resolution to succeed")
+	}
+	if got != "pkg:npm/string-width@2.1.1" {
+		t.Fatalf("expected top-level hoisted package to be selected, got %q", got)
+	}
+}

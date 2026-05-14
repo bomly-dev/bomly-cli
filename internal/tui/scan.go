@@ -525,7 +525,7 @@ func (m *scanModel) buildManifestListModel() *listModel {
 	items = append(items, listItem{
 		title:    fmt.Sprintf("%s (%d manifests)", valueOrDash(m.project.Name), len(m.manifests)),
 		subtitle: "project",
-		details:  projectDetails(m, packageCount(m.graphValue)),
+		details:  projectDetails(m, packageCount(m.graphValue), packageCount(m.graphValue)),
 		key:      "project",
 		canOpen:  true,
 		expanded: true,
@@ -570,18 +570,19 @@ func (m *scanModel) buildManifestListModel() *listModel {
 
 func (m *scanModel) buildComponentsTreeListModel() *listModel {
 	totalComponents := packageCount(m.graphValue)
+	maxSevByID := maxSeverityByPkgID(m.findings)
+	filteredComponentCount := m.filteredComponentCount(maxSevByID)
 	items := make([]listItem, 0, totalComponents+len(m.manifests)+1)
 	projectKey := "project"
 	projectExpanded := expandedValue(m.componentExpanded, projectKey, true)
 	items = append(items, listItem{
 		title:    fmt.Sprintf("%s (%d manifests)", valueOrDash(m.project.Name), len(m.manifests)),
 		subtitle: "project",
-		details:  projectDetails(m, totalComponents),
+		details:  projectDetails(m, filteredComponentCount, totalComponents),
 		key:      projectKey,
 		canOpen:  len(m.manifests) > 0,
 		expanded: projectExpanded,
 	})
-	maxSevByID := maxSeverityByPkgID(m.findings)
 	if projectExpanded {
 		for idx, manifest := range m.manifests {
 			manifestLast := idx == len(m.manifests)-1
@@ -592,7 +593,7 @@ func (m *scanModel) buildComponentsTreeListModel() *listModel {
 				manifestTree = "└─ "
 			}
 			items = append(items, listItem{
-				title:    fmt.Sprintf("%s (%s, %d components)", manifest.displayName, manifestEcosystem(m.graphValue, manifest), manifestComponentCount(m.graphValue, manifest.rootID)),
+				title:    fmt.Sprintf("%s (%s, %d components)", manifest.displayName, manifestEcosystem(m.graphValue, manifest), m.filteredManifestComponentCount(manifest.rootID, maxSevByID)),
 				subtitle: "manifest",
 				details:  manifestDetails(m.graphValue, manifest),
 				key:      manifestKey,
@@ -639,8 +640,8 @@ func (m *scanModel) buildComponentsTreeListModel() *listModel {
 	return &listModel{
 		title:          fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
 		summary:        m.scanSummaryLines(interactiveScanViewPackages),
-		controls:       []string{m.componentControlsLine(), m.componentStateLine(fmt.Sprintf("Components: %d", totalComponents))},
-		listTitle:      fmt.Sprintf("Components (%d)", totalComponents),
+		controls:       []string{m.componentControlsLine(), m.componentStateLine(fmt.Sprintf("Components: %d of %d", filteredComponentCount, totalComponents))},
+		listTitle:      fmt.Sprintf("Components (%d)", filteredComponentCount),
 		detailTitle:    "Component Details",
 		navigationHelp: interactiveCommonNavigationHelp,
 		filterHelp:     "Use / to search; Enter/Right/Left expands and collapses; r relationship; s scope; v severity; 1-6 tabs",
@@ -667,7 +668,7 @@ func componentForestPrefix(manifestLast bool, row listPackageRow) string {
 	return manifestPrefix + "   " + row.tree
 }
 
-func projectDetails(m *scanModel, components int) []string {
+func projectDetails(m *scanModel, filteredComponents, totalComponents int) []string {
 	return []string{
 		render.Style("Project", render.Bold, render.Cyan),
 		"",
@@ -675,7 +676,7 @@ func projectDetails(m *scanModel, components int) []string {
 		render.Style("  Path: ", render.Dim) + valueOrDash(m.project.Path),
 		render.Style("  Type: ", render.Dim) + targetKindLabel(m.project),
 		render.Style("  Manifests: ", render.Dim) + fmt.Sprintf("%d", len(m.manifests)),
-		render.Style("  Components: ", render.Dim) + fmt.Sprintf("%d", components),
+		render.Style("  Components: ", render.Dim) + fmt.Sprintf("%d of %d", filteredComponents, totalComponents),
 	}
 }
 
@@ -696,6 +697,64 @@ func manifestComponentCount(graphValue *sdk.Graph, rootID string) int {
 		count = 1
 	}
 	return count + len(rows.direct) + len(rows.transitive)
+}
+
+func (m *scanModel) filteredComponentCount(maxSevByID map[string]string) int {
+	if m == nil {
+		return 0
+	}
+	seen := make(map[string]struct{})
+	for _, manifest := range m.manifests {
+		for _, row := range m.filteredManifestComponentRows(manifest.rootID, maxSevByID) {
+			seen[row.id] = struct{}{}
+		}
+	}
+	return len(seen)
+}
+
+func (m *scanModel) filteredManifestComponentCount(rootID string, maxSevByID map[string]string) int {
+	return len(m.filteredManifestComponentRows(rootID, maxSevByID))
+}
+
+func (m *scanModel) filteredManifestComponentRows(rootID string, maxSevByID map[string]string) []listPackageRow {
+	if m == nil || m.graphValue == nil || rootID == "" {
+		return nil
+	}
+	rows := componentCountRows(m.graphValue, rootID)
+	rows = filterPackageRows(rows, m.relationshipFilter, m.scopeFilter)
+	if m.severityFilter == "" {
+		return rows
+	}
+	kept := rows[:0]
+	for _, row := range rows {
+		if strings.EqualFold(maxSevByID[row.id], m.severityFilter) {
+			kept = append(kept, row)
+		}
+	}
+	return kept
+}
+
+func componentCountRows(graphValue *sdk.Graph, rootID string) []listPackageRow {
+	if graphValue == nil || strings.TrimSpace(rootID) == "" {
+		return nil
+	}
+	rootPkg, ok := graphValue.Package(rootID)
+	if !ok || rootPkg == nil {
+		return nil
+	}
+	rows := []listPackageRow{packageRowFromGraph(rootPkg, "root")}
+	groups := rootDependencies(graphValue, rootID)
+	for _, pkg := range groups.direct {
+		if pkg != nil {
+			rows = append(rows, packageRowFromGraph(pkg, "direct"))
+		}
+	}
+	for _, pkg := range groups.transitive {
+		if pkg != nil {
+			rows = append(rows, packageRowFromGraph(pkg, "transitive"))
+		}
+	}
+	return rows
 }
 
 func manifestEcosystem(graphValue *sdk.Graph, row listPackageRow) string {
@@ -793,24 +852,20 @@ func (m *scanModel) overviewDashboardView(width, height int) string {
 	summaryWidth := (leftHalf - 2*gap) / 3
 	targetWidth := width - leftHalf - gap
 	cards := [][]string{
-		boxView("Components", []string{
-			centerLine(render.Style(fmt.Sprintf("%d", stats.components), render.Cyan, render.Bold), summaryWidth-2),
+		boxView("Components", summaryCountCardLines(stats.components, "Components", summaryWidth-2, render.Cyan,
 			fmt.Sprintf("%d ecosystems", len(stats.ecosystems)),
 			fmt.Sprintf("%d manifests", len(m.manifests)),
-		}, summaryWidth, cardHeight, render.Cyan),
-		boxView("Vulnerabilities", []string{
-			centerLine(severityText(fmt.Sprintf("%d", stats.vulnerabilities)), summaryWidth-2),
+		), summaryWidth, cardHeight, render.Cyan),
+		boxView("Vulnerabilities", summaryCountCardLines(stats.vulnerabilities, "Vulnerabilities", summaryWidth-2, render.Red,
 			severityCardLine(m.findings, "critical"),
 			severityCardLine(m.findings, "high"),
 			severityCardLine(m.findings, "medium"),
 			severityCardLine(m.findings, "low"),
-		}, summaryWidth, cardHeight, render.Red),
-		boxView("Licenses", []string{
-			centerLine(render.Style(fmt.Sprintf("%d", stats.licenses), render.Yellow, render.Bold), summaryWidth-2),
-			"unique licenses",
+		), summaryWidth, cardHeight, render.Red),
+		boxView("Licenses", summaryCountCardLines(stats.licenses, "Unique Licenses", summaryWidth-2, render.Yellow,
 			fmt.Sprintf("%d unknown", unknownLicenseCount(m.graphValue)),
 			fmt.Sprintf("%d unrecognized", unrecognizedLicenseCount(m.graphValue)),
-		}, summaryWidth, cardHeight, render.Yellow),
+		), summaryWidth, cardHeight, render.Yellow),
 		boxView("Target", []string{
 			render.Style("Name: ", render.Dim) + valueOrDash(m.project.Name),
 			render.Style("Type: ", render.Dim) + targetKindLabel(m.project),
@@ -1036,7 +1091,7 @@ func topAffectedLines(findings []sdk.Finding, limit, width int) []string {
 	}
 	max := maxCount(counts)
 	lines := make([]string, 0, len(keys))
-	for _, key := range keys {
+	for idx, key := range keys {
 		labelWidth := width / 3
 		if labelWidth < 18 {
 			labelWidth = 18
@@ -1048,7 +1103,7 @@ func topAffectedLines(findings []sdk.Finding, limit, width int) []string {
 		if barWidth < 10 {
 			barWidth = 10
 		}
-		lines = append(lines, padRight(truncateToWidth(key, labelWidth), labelWidth)+render.Style(" ", render.Dim)+coloredBarLine(counts[key], max, barWidth, render.Green)+" "+fmt.Sprintf("%d", counts[key]))
+		lines = append(lines, padRight(truncateToWidth(key, labelWidth), labelWidth)+render.Style(" ", render.Dim)+coloredBarLine(counts[key], max, barWidth, paletteColor(idx))+" "+fmt.Sprintf("%d", counts[key]))
 	}
 	return lines
 }
@@ -2217,6 +2272,14 @@ func severityTinySummary(counts map[string]int) string {
 	return strings.Join(parts, " ")
 }
 
+func summaryCountCardLines(count int, unit string, width int, color string, extra ...string) []string {
+	lines := []string{
+		centerLine(render.Style(fmt.Sprintf("%d", count), color, render.Bold), width),
+		centerLine(render.Style(unit, render.Dim), width),
+	}
+	return append(lines, extra...)
+}
+
 func severityCardLine(findings []sdk.Finding, severity string) string {
 	counts := severityDistribution(findings)
 	label := titleCase(severity)
@@ -2293,11 +2356,11 @@ func severityColorCode(severity string) string {
 	case "critical":
 		return render.Purple
 	case "high":
-		return render.Magenta
+		return render.Red
 	case "medium":
 		return render.Orange
 	case "low":
-		return render.Cyan
+		return render.Green
 	default:
 		return render.Gray
 	}
@@ -2414,12 +2477,12 @@ func topDependedOnComponentStats(graphValue *sdk.Graph, findings []sdk.Finding, 
 			if pkg == nil {
 				continue
 			}
-			dependents, err := graphValue.Dependents(pkg.ID)
-			if err != nil || len(dependents) == 0 {
+			dependents := transitiveDependentCount(graphValue, pkg.ID)
+			if dependents == 0 {
 				continue
 			}
 			name := packageDisplayName(pkg)
-			stats = append(stats, componentStat{name: name, dependents: len(dependents), vulns: vulnCounts[name]})
+			stats = append(stats, componentStat{name: name, dependents: dependents, vulns: vulnCounts[name]})
 		}
 	}
 	sort.Slice(stats, func(i, j int) bool {
@@ -2506,12 +2569,38 @@ func dependedOnComponentTotal(graphValue *sdk.Graph) int {
 		if pkg == nil {
 			continue
 		}
-		dependents, err := graphValue.Dependents(pkg.ID)
-		if err == nil && len(dependents) > 0 {
+		if transitiveDependentCount(graphValue, pkg.ID) > 0 {
 			count++
 		}
 	}
 	return count
+}
+
+func transitiveDependentCount(graphValue *sdk.Graph, packageID string) int {
+	if graphValue == nil || strings.TrimSpace(packageID) == "" {
+		return 0
+	}
+	seen := make(map[string]struct{})
+	queue := []string{packageID}
+	for len(queue) > 0 {
+		currentID := queue[0]
+		queue = queue[1:]
+		dependents, err := graphValue.Dependents(currentID)
+		if err != nil {
+			continue
+		}
+		for _, dependent := range dependents {
+			if dependent == nil || dependent.ID == packageID {
+				continue
+			}
+			if _, ok := seen[dependent.ID]; ok {
+				continue
+			}
+			seen[dependent.ID] = struct{}{}
+			queue = append(queue, dependent.ID)
+		}
+	}
+	return len(seen)
 }
 
 func stackBoxes(boxes ...[]string) []string {

@@ -672,12 +672,45 @@ func TestScanInteractiveModel_FiltersAndScopeBadges(t *testing.T) {
 	if !strings.Contains(plain, "react@18.2.0") || strings.Contains(plain, "vitest@2.0.0") {
 		t.Fatalf("expected runtime scope filter to keep only runtime packages, got:\n%s", plain)
 	}
+	if !strings.Contains(plain, "Components (1)") || !strings.Contains(plain, "Components: 1 of 3") || !strings.Contains(plain, "package-lock.json") {
+		t.Fatalf("expected component counts to reflect runtime scope filter while keeping manifest visible, got:\n%s", plain)
+	}
 
 	model.CycleRelationshipFilter()
 	model.CycleRelationshipFilter()
 	plain = render.StripANSI(model.View(100, 30))
 	if strings.Contains(plain, "demo-app@1.0.0  ROOT") || !strings.Contains(plain, "react@18.2.0") {
 		t.Fatalf("expected direct relationship filter to hide root row, got:\n%s", plain)
+	}
+}
+
+func TestTopDependedOnComponentStats_UsesTransitiveDependents(t *testing.T) {
+	g := sdk.New()
+	root := sdk.NewPackageRef("root", "1.0.0")
+	altRoot := sdk.NewPackageRef("alt-root", "1.0.0")
+	mid := sdk.NewPackageRef("mid", "1.0.0")
+	leaf := sdk.NewPackageRef("leaf", "1.0.0")
+	for _, pkg := range []*sdk.Package{root, altRoot, mid, leaf} {
+		if err := g.AddPackage(pkg); err != nil {
+			t.Fatalf("add package: %v", err)
+		}
+	}
+	for _, edge := range [][2]string{
+		{root.ID, mid.ID},
+		{altRoot.ID, mid.ID},
+		{mid.ID, leaf.ID},
+	} {
+		if err := g.AddDependency(edge[0], edge[1]); err != nil {
+			t.Fatalf("add dependency: %v", err)
+		}
+	}
+
+	stats := topDependedOnComponentStats(g, nil, 3)
+	if len(stats) == 0 {
+		t.Fatalf("expected depended-on component stats")
+	}
+	if stats[0].name != "leaf@1.0.0" || stats[0].dependents != 3 {
+		t.Fatalf("expected leaf to include transitive dependents from both roots, got %+v", stats[0])
 	}
 }
 

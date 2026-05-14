@@ -28,7 +28,8 @@
     "ecosystem": "go",
     "name": "\u003cnormalized\u003e",
     "package_manager": "gomod",
-    "path": "\u003cnormalized\u003e"
+    "path": "\u003cnormalized\u003e",
+    "target_type": "filesystem"
   },
   "schema_version": "1.0"
 }

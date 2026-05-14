@@ -11,6 +11,16 @@
           "dependencies": [],
           "id": "pkg:npm/algo-httpserv@1.1.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "algo-httpserv",
           "purl": "pkg:npm/algo-httpserv@1.1.1",
           "scope": "runtime",
@@ -21,6 +31,16 @@
           "dependencies": [],
           "id": "pkg:npm/ansi-colors@3.2.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -38,6 +58,16 @@
           "dependencies": [],
           "id": "pkg:npm/ansi-regex@3.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -55,6 +85,16 @@
           "dependencies": [],
           "id": "pkg:npm/ansi-regex@4.1.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -74,6 +114,16 @@
           ],
           "id": "pkg:npm/ansi-styles@3.2.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -94,6 +144,16 @@
           ],
           "id": "pkg:npm/anymatch@3.1.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -113,6 +173,16 @@
           ],
           "id": "pkg:npm/argparse@1.0.10",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "argparse",
           "purl": "pkg:npm/argparse@1.0.10",
           "scope": "runtime",
@@ -125,6 +195,16 @@
           ],
           "id": "pkg:npm/async@2.6.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "async",
           "purl": "pkg:npm/async@2.6.3",
           "scope": "runtime",
@@ -135,6 +215,16 @@
           "dependencies": [],
           "id": "pkg:npm/balanced-match@1.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "balanced-match",
           "purl": "pkg:npm/balanced-match@1.0.0",
           "scope": "development",
@@ -145,6 +235,16 @@
           "dependencies": [],
           "id": "pkg:npm/binary-extensions@2.1.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -165,6 +265,16 @@
           ],
           "id": "pkg:npm/brace-expansion@1.1.11",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "brace-expansion",
           "purl": "pkg:npm/brace-expansion@1.1.11",
           "scope": "development",
@@ -177,6 +287,16 @@
           ],
           "id": "pkg:npm/braces@3.0.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -194,6 +314,16 @@
           "dependencies": [],
           "id": "pkg:npm/browser-stdout@1.3.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "browser-stdout",
           "purl": "pkg:npm/browser-stdout@1.3.1",
           "scope": "development",
@@ -207,6 +337,16 @@
           ],
           "id": "pkg:npm/busboy@0.2.14",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -224,6 +364,16 @@
           "dependencies": [],
           "id": "pkg:npm/camelcase@5.3.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -245,6 +395,16 @@
           ],
           "id": "pkg:npm/chalk@2.4.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -271,6 +431,16 @@
           ],
           "id": "pkg:npm/chokidar@3.3.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -292,6 +462,16 @@
           ],
           "id": "pkg:npm/cliui@5.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "cliui",
           "purl": "pkg:npm/cliui@5.0.0",
           "scope": "development",
@@ -304,6 +484,16 @@
           ],
           "id": "pkg:npm/color-convert@1.9.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "color-convert",
           "purl": "pkg:npm/color-convert@1.9.3",
           "scope": "development",
@@ -314,6 +504,16 @@
           "dependencies": [],
           "id": "pkg:npm/color-name@1.1.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "color-name",
           "purl": "pkg:npm/color-name@1.1.3",
           "scope": "development",
@@ -324,6 +524,16 @@
           "dependencies": [],
           "id": "pkg:npm/concat-map@0.0.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "concat-map",
           "purl": "pkg:npm/concat-map@0.0.1",
           "scope": "development",
@@ -334,6 +544,16 @@
           "dependencies": [],
           "id": "pkg:npm/core-util-is@1.0.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "core-util-is",
           "purl": "pkg:npm/core-util-is@1.0.2",
           "scope": "runtime",
@@ -346,6 +566,16 @@
           ],
           "id": "pkg:npm/debug@3.2.6",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "debug",
           "purl": "pkg:npm/debug@3.2.6",
           "scope": "development",
@@ -356,6 +586,16 @@
           "dependencies": [],
           "id": "pkg:npm/decamelize@1.2.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -375,6 +615,16 @@
           ],
           "id": "pkg:npm/define-properties@1.1.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -395,6 +645,16 @@
           ],
           "id": "pkg:npm/dicer@0.2.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -412,6 +672,16 @@
           "dependencies": [],
           "id": "pkg:npm/diff@3.5.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -429,6 +699,16 @@
           "dependencies": [],
           "id": "pkg:npm/emoji-regex@7.0.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "emoji-regex",
           "purl": "pkg:npm/emoji-regex@7.0.3",
           "scope": "development",
@@ -451,6 +731,16 @@
           ],
           "id": "pkg:npm/es-abstract@1.17.6",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -472,6 +762,16 @@
           ],
           "id": "pkg:npm/es-to-primitive@1.2.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -489,6 +789,16 @@
           "dependencies": [],
           "id": "pkg:npm/escape-string-regexp@1.0.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -506,6 +816,16 @@
           "dependencies": [],
           "id": "pkg:npm/esprima@4.0.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -549,6 +869,16 @@
           ],
           "id": "pkg:npm/fill-range@7.0.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -568,6 +898,16 @@
           ],
           "id": "pkg:npm/find-up@3.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -587,6 +927,16 @@
           ],
           "id": "pkg:npm/flat@4.1.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "flat",
           "purl": "pkg:npm/flat@4.1.0",
           "scope": "development",
@@ -601,6 +951,16 @@
           ],
           "id": "pkg:npm/fs-extra@7.0.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -618,6 +978,16 @@
           "dependencies": [],
           "id": "pkg:npm/fs.realpath@1.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "fs.realpath",
           "purl": "pkg:npm/fs.realpath@1.0.0",
           "scope": "development",
@@ -628,6 +998,16 @@
           "dependencies": [],
           "id": "pkg:npm/fsevents@2.1.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -646,6 +1026,16 @@
           "dependencies": [],
           "id": "pkg:npm/function-bind@1.1.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "function-bind",
           "purl": "pkg:npm/function-bind@1.1.1",
           "scope": "runtime",
@@ -656,6 +1046,16 @@
           "dependencies": [],
           "id": "pkg:npm/get-caller-file@2.0.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -675,6 +1075,16 @@
           ],
           "id": "pkg:npm/glob-parent@5.1.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -699,6 +1109,16 @@
           ],
           "id": "pkg:npm/glob@7.1.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -716,6 +1136,16 @@
           "dependencies": [],
           "id": "pkg:npm/graceful-fs@4.2.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "graceful-fs",
           "purl": "pkg:npm/graceful-fs@4.2.3",
           "scope": "runtime",
@@ -726,6 +1156,16 @@
           "dependencies": [],
           "id": "pkg:npm/growl@1.10.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -743,6 +1183,16 @@
           "dependencies": [],
           "id": "pkg:npm/handy@0.0.13",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -760,6 +1210,16 @@
           "dependencies": [],
           "id": "pkg:npm/has-flag@3.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -777,6 +1237,16 @@
           "dependencies": [],
           "id": "pkg:npm/has-symbols@1.0.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -796,6 +1266,16 @@
           ],
           "id": "pkg:npm/has@1.0.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -813,6 +1293,16 @@
           "dependencies": [],
           "id": "pkg:npm/he@1.2.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "he",
           "purl": "pkg:npm/he@1.2.0",
           "scope": "development",
@@ -823,6 +1313,16 @@
           "dependencies": [],
           "id": "pkg:npm/htmlparser@1.7.7",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -843,6 +1343,16 @@
           ],
           "id": "pkg:npm/inflight@1.0.6",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "inflight",
           "purl": "pkg:npm/inflight@1.0.6",
           "scope": "development",
@@ -853,6 +1363,16 @@
           "dependencies": [],
           "id": "pkg:npm/inherits@2.0.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "inherits",
           "purl": "pkg:npm/inherits@2.0.4",
           "scope": "runtime",
@@ -865,6 +1385,16 @@
           ],
           "id": "pkg:npm/is-binary-path@2.1.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -882,6 +1412,16 @@
           "dependencies": [],
           "id": "pkg:npm/is-buffer@2.0.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -899,6 +1439,16 @@
           "dependencies": [],
           "id": "pkg:npm/is-callable@1.2.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -916,6 +1466,16 @@
           "dependencies": [],
           "id": "pkg:npm/is-date-object@1.0.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -933,6 +1493,16 @@
           "dependencies": [],
           "id": "pkg:npm/is-extglob@2.1.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -950,6 +1520,16 @@
           "dependencies": [],
           "id": "pkg:npm/is-fullwidth-code-point@2.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -969,6 +1549,16 @@
           ],
           "id": "pkg:npm/is-glob@4.0.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -986,6 +1576,16 @@
           "dependencies": [],
           "id": "pkg:npm/is-number@7.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1005,6 +1605,16 @@
           ],
           "id": "pkg:npm/is-regex@1.1.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1024,6 +1634,16 @@
           ],
           "id": "pkg:npm/is-symbol@1.0.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1041,6 +1661,16 @@
           "dependencies": [],
           "id": "pkg:npm/is@3.3.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1058,6 +1688,16 @@
           "dependencies": [],
           "id": "pkg:npm/isarray@0.0.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "isarray",
           "purl": "pkg:npm/isarray@0.0.1",
           "scope": "runtime",
@@ -1068,6 +1708,16 @@
           "dependencies": [],
           "id": "pkg:npm/isexe@2.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "isexe",
           "purl": "pkg:npm/isexe@2.0.0",
           "scope": "development",
@@ -1081,6 +1731,16 @@
           ],
           "id": "pkg:npm/js-yaml@3.13.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "js-yaml",
           "purl": "pkg:npm/js-yaml@3.13.0",
           "scope": "runtime",
@@ -1094,6 +1754,16 @@
           ],
           "id": "pkg:npm/js-yaml@3.13.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "js-yaml",
           "purl": "pkg:npm/js-yaml@3.13.1",
           "scope": "development",
@@ -1106,6 +1776,16 @@
           ],
           "id": "pkg:npm/jsonfile@4.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "jsonfile",
           "purl": "pkg:npm/jsonfile@4.0.0",
           "scope": "runtime",
@@ -1119,6 +1799,16 @@
           ],
           "id": "pkg:npm/larvitbase@3.1.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "larvitbase",
           "purl": "pkg:npm/larvitbase@3.1.3",
           "scope": "runtime",
@@ -1131,6 +1821,16 @@
           ],
           "id": "pkg:npm/larvitfs@2.3.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "larvitfs",
           "purl": "pkg:npm/larvitfs@2.3.1",
           "scope": "runtime",
@@ -1148,6 +1848,16 @@
           ],
           "id": "pkg:npm/larvitreqparser@0.2.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "larvitreqparser",
           "purl": "pkg:npm/larvitreqparser@0.2.1",
           "scope": "runtime",
@@ -1161,6 +1871,16 @@
           ],
           "id": "pkg:npm/larvitrouter@3.0.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "larvitrouter",
           "purl": "pkg:npm/larvitrouter@3.0.2",
           "scope": "runtime",
@@ -1171,6 +1891,16 @@
           "dependencies": [],
           "id": "pkg:npm/larvitutils@2.3.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "larvitutils",
           "purl": "pkg:npm/larvitutils@2.3.0",
           "scope": "runtime",
@@ -1184,6 +1914,16 @@
           ],
           "id": "pkg:npm/locate-path@3.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1201,6 +1941,16 @@
           "dependencies": [],
           "id": "pkg:npm/lodash@4.17.15",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "lodash",
           "purl": "pkg:npm/lodash@4.17.15",
           "scope": "runtime",
@@ -1213,6 +1963,16 @@
           ],
           "id": "pkg:npm/log-symbols@3.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1230,6 +1990,16 @@
           "dependencies": [],
           "id": "pkg:npm/marked@0.3.19",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1249,6 +2019,16 @@
           ],
           "id": "pkg:npm/minimatch@3.0.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1266,6 +2046,16 @@
           "dependencies": [],
           "id": "pkg:npm/minimist@0.0.10",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "minimist",
           "purl": "pkg:npm/minimist@0.0.10",
           "scope": "runtime",
@@ -1276,6 +2066,16 @@
           "dependencies": [],
           "id": "pkg:npm/minimist@1.2.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "minimist",
           "purl": "pkg:npm/minimist@1.2.5",
           "scope": "development",
@@ -1288,6 +2088,16 @@
           ],
           "id": "pkg:npm/mkdirp@0.5.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "mkdirp",
           "purl": "pkg:npm/mkdirp@0.5.5",
           "scope": "development",
@@ -1323,6 +2133,16 @@
           ],
           "id": "pkg:npm/mocha@7.2.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1340,6 +2160,16 @@
           "dependencies": [],
           "id": "pkg:npm/ms@2.1.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "ms",
           "purl": "pkg:npm/ms@2.1.1",
           "scope": "development",
@@ -1353,6 +2183,16 @@
           ],
           "id": "pkg:npm/node-environment-flags@1.0.6",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "node-environment-flags",
           "purl": "pkg:npm/node-environment-flags@1.0.6",
           "scope": "development",
@@ -1366,6 +2206,16 @@
           ],
           "id": "pkg:npm/node-yaml-config@0.0.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "node-yaml-config",
           "purl": "pkg:npm/node-yaml-config@0.0.5",
           "scope": "runtime",
@@ -1379,6 +2229,16 @@
           ],
           "id": "pkg:npm/node.extend@2.0.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1396,6 +2256,16 @@
           "dependencies": [],
           "id": "pkg:npm/normalize-path@3.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1413,6 +2283,16 @@
           "dependencies": [],
           "id": "pkg:npm/object-inspect@1.8.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "object-inspect",
           "purl": "pkg:npm/object-inspect@1.8.0",
           "scope": "development",
@@ -1423,6 +2303,16 @@
           "dependencies": [],
           "id": "pkg:npm/object-keys@1.1.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1445,6 +2335,16 @@
           ],
           "id": "pkg:npm/object.assign@4.1.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1465,6 +2365,16 @@
           ],
           "id": "pkg:npm/object.getownpropertydescriptors@2.1.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1484,6 +2394,16 @@
           ],
           "id": "pkg:npm/once@1.4.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "once",
           "purl": "pkg:npm/once@1.4.0",
           "scope": "development",
@@ -1497,6 +2417,16 @@
           ],
           "id": "pkg:npm/optimist@0.6.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "optimist",
           "purl": "pkg:npm/optimist@0.6.1",
           "scope": "runtime",
@@ -1509,6 +2439,16 @@
           ],
           "id": "pkg:npm/p-limit@2.3.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1528,6 +2468,16 @@
           ],
           "id": "pkg:npm/p-locate@3.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1545,6 +2495,16 @@
           "dependencies": [],
           "id": "pkg:npm/p-try@2.2.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1562,6 +2522,16 @@
           "dependencies": [],
           "id": "pkg:npm/path-exists@3.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1579,6 +2549,16 @@
           "dependencies": [],
           "id": "pkg:npm/path-is-absolute@1.0.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1596,6 +2576,16 @@
           "dependencies": [],
           "id": "pkg:npm/picomatch@2.2.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1613,6 +2603,16 @@
           "dependencies": [],
           "id": "pkg:npm/punycode@1.3.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "punycode",
           "purl": "pkg:npm/punycode@1.3.2",
           "scope": "runtime",
@@ -1623,6 +2623,16 @@
           "dependencies": [],
           "id": "pkg:npm/qs@6.9.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1640,6 +2650,16 @@
           "dependencies": [],
           "id": "pkg:npm/querystring@0.2.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1662,6 +2682,16 @@
           ],
           "id": "pkg:npm/readable-stream@1.1.14",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "readable-stream",
           "purl": "pkg:npm/readable-stream@1.1.14",
           "scope": "runtime",
@@ -1674,6 +2704,16 @@
           ],
           "id": "pkg:npm/readdirp@3.2.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1691,6 +2731,16 @@
           "dependencies": [],
           "id": "pkg:npm/require-directory@2.1.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1708,6 +2758,16 @@
           "dependencies": [],
           "id": "pkg:npm/require-main-filename@2.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "require-main-filename",
           "purl": "pkg:npm/require-main-filename@2.0.0",
           "scope": "development",
@@ -1718,6 +2778,16 @@
           "dependencies": [],
           "id": "pkg:npm/semver@5.7.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "semver",
           "purl": "pkg:npm/semver@5.7.1",
           "scope": "runtime",
@@ -1728,6 +2798,16 @@
           "dependencies": [],
           "id": "pkg:npm/set-blocking@2.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "set-blocking",
           "purl": "pkg:npm/set-blocking@2.0.0",
           "scope": "development",
@@ -1738,6 +2818,16 @@
           "dependencies": [],
           "id": "pkg:npm/sprintf-js@1.0.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "sprintf-js",
           "purl": "pkg:npm/sprintf-js@1.0.3",
           "scope": "runtime",
@@ -1748,6 +2838,16 @@
           "dependencies": [],
           "id": "pkg:npm/streamsearch@0.1.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1768,6 +2868,16 @@
           ],
           "id": "pkg:npm/string-width@2.1.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1789,6 +2899,16 @@
           ],
           "id": "pkg:npm/string-width@3.1.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1809,6 +2929,16 @@
           ],
           "id": "pkg:npm/string.prototype.trimend@1.0.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "string.prototype.trimend",
           "purl": "pkg:npm/string.prototype.trimend@1.0.1",
           "scope": "development",
@@ -1822,6 +2952,16 @@
           ],
           "id": "pkg:npm/string.prototype.trimstart@1.0.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "string.prototype.trimstart",
           "purl": "pkg:npm/string.prototype.trimstart@1.0.1",
           "scope": "development",
@@ -1832,6 +2972,16 @@
           "dependencies": [],
           "id": "pkg:npm/string_decoder@0.10.31",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "string_decoder",
           "purl": "pkg:npm/string_decoder@0.10.31",
           "scope": "runtime",
@@ -1844,6 +2994,16 @@
           ],
           "id": "pkg:npm/strip-ansi@4.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1863,6 +3023,16 @@
           ],
           "id": "pkg:npm/strip-ansi@5.2.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1880,6 +3050,16 @@
           "dependencies": [],
           "id": "pkg:npm/strip-json-comments@2.0.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1899,6 +3079,16 @@
           ],
           "id": "pkg:npm/supports-color@5.5.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1918,6 +3108,16 @@
           ],
           "id": "pkg:npm/supports-color@6.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1937,6 +3137,16 @@
           ],
           "id": "pkg:npm/to-regex-range@5.0.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1960,6 +3170,16 @@
           ],
           "id": "pkg:npm/to@0.2.9",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -1977,6 +3197,16 @@
           "dependencies": [],
           "id": "pkg:npm/underscore@1.9.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "underscore",
           "purl": "pkg:npm/underscore@1.9.2",
           "scope": "runtime",
@@ -1987,6 +3217,16 @@
           "dependencies": [],
           "id": "pkg:npm/universalify@0.1.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -2007,6 +3247,16 @@
           ],
           "id": "pkg:npm/url@0.11.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "url",
           "purl": "pkg:npm/url@0.11.0",
           "scope": "runtime",
@@ -2017,6 +3267,16 @@
           "dependencies": [],
           "id": "pkg:npm/uuid@3.4.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "uuid",
           "purl": "pkg:npm/uuid@3.4.0",
           "scope": "runtime",
@@ -2027,6 +3287,16 @@
           "dependencies": [],
           "id": "pkg:npm/which-module@2.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "which-module",
           "purl": "pkg:npm/which-module@2.0.0",
           "scope": "development",
@@ -2039,6 +3309,16 @@
           ],
           "id": "pkg:npm/which@1.3.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "which",
           "purl": "pkg:npm/which@1.3.1",
           "scope": "development",
@@ -2047,10 +3327,20 @@
         },
         {
           "dependencies": [
-            "pkg:npm/string-width@3.1.0"
+            "pkg:npm/string-width@2.1.1"
           ],
           "id": "pkg:npm/wide-align@1.1.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "wide-align",
           "purl": "pkg:npm/wide-align@1.1.3",
           "scope": "development",
@@ -2061,6 +3351,16 @@
           "dependencies": [],
           "id": "pkg:npm/wordwrap@0.0.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -2082,6 +3382,16 @@
           ],
           "id": "pkg:npm/wrap-ansi@5.1.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -2099,6 +3409,16 @@
           "dependencies": [],
           "id": "pkg:npm/wrappy@1.0.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "wrappy",
           "purl": "pkg:npm/wrappy@1.0.2",
           "scope": "development",
@@ -2109,6 +3429,16 @@
           "dependencies": [],
           "id": "pkg:npm/y18n@4.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "y18n",
           "purl": "pkg:npm/y18n@4.0.0",
           "scope": "development",
@@ -2122,6 +3452,16 @@
           ],
           "id": "pkg:npm/yargs-parser@13.1.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "yargs-parser",
           "purl": "pkg:npm/yargs-parser@13.1.2",
           "scope": "development",
@@ -2136,6 +3476,16 @@
           ],
           "id": "pkg:npm/yargs-unparser@1.6.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "metadata": {
             "npm": {
               "engines": {
@@ -2164,6 +3514,16 @@
           ],
           "id": "pkg:npm/yargs@13.3.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
           "name": "yargs",
           "purl": "pkg:npm/yargs@13.3.2",
           "scope": "development",
@@ -2182,7 +3542,9 @@
     "ecosystem": "npm",
     "name": "\u003cnormalized\u003e",
     "package_manager": "npm",
-    "path": "\u003cnormalized\u003e"
+    "path": "\u003cnormalized\u003e",
+    "target_ref": "v1.0.0",
+    "target_type": "git repository"
   },
   "schema_version": "1.0"
 }

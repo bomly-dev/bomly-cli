@@ -2,667 +2,174 @@
   "command": "scan",
   "manifests": [
     {
-      "detector": "npm-detector",
-      "ecosystem": "npm",
-      "kind": "package-lock.json",
-      "package_manager": "npm",
+      "detector": "github-actions-detector",
+      "ecosystem": "github-actions",
+      "kind": "github-actions-workflow",
+      "package_manager": "github-actions",
       "packages": [
         {
-          "dependencies": [],
-          "id": "pkg:npm/algo-httpserv@1.1.1",
-          "licenses": [],
-          "name": "algo-httpserv",
-          "purl": "pkg:npm/algo-httpserv@1.1.1",
-          "scope": "\u003cnormalized\u003e",
-          "version": "1.1.1",
-          "vulnerabilities": []
-        },
-        {
           "dependencies": [
-            "pkg:npm/sprintf-js@\u003cnormalized\u003e"
+            "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main"
           ],
-          "id": "pkg:npm/argparse@1.0.10",
+          "id": "pkg:githubactions/.github%2Fworkflows%2Fnode-aught.yml@local",
           "licenses": [],
-          "name": "argparse",
-          "purl": "pkg:npm/argparse@1.0.10",
-          "scope": "\u003cnormalized\u003e",
-          "version": "1.0.10",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/lodash@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/async@2.6.3",
-          "licenses": [],
-          "name": "async",
-          "purl": "pkg:npm/async@2.6.3",
-          "scope": "\u003cnormalized\u003e",
-          "version": "2.6.3",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/dicer@\u003cnormalized\u003e",
-            "pkg:npm/readable-stream@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/busboy@0.2.14",
-          "licenses": [],
-          "metadata": {
-            "npm": {
-              "engines": {
-                "node": "\u003e=0.8.0"
-              }
-            }
-          },
-          "name": "busboy",
-          "purl": "pkg:npm/busboy@0.2.14",
-          "scope": "\u003cnormalized\u003e",
-          "version": "0.2.14",
+          "name": ".github/workflows/node-aught.yml",
+          "purl": "pkg:githubactions/.github%2Fworkflows%2Fnode-aught.yml@local",
+          "scope": "runtime",
+          "version": "local",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
-          "id": "pkg:npm/core-util-is@1.0.2",
+          "id": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main",
           "licenses": [],
-          "name": "core-util-is",
-          "purl": "pkg:npm/core-util-is@1.0.2",
-          "scope": "\u003cnormalized\u003e",
-          "version": "1.0.2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/readable-stream@\u003cnormalized\u003e",
-            "pkg:npm/streamsearch@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/dicer@0.2.5",
-          "licenses": [],
-          "metadata": {
-            "npm": {
-              "engines": {
-                "node": "\u003e=0.8.0"
-              }
-            }
-          },
-          "name": "dicer",
-          "purl": "pkg:npm/dicer@0.2.5",
-          "scope": "\u003cnormalized\u003e",
-          "version": "0.2.5",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/esprima@4.0.1",
-          "licenses": [],
-          "metadata": {
-            "npm": {
-              "engines": {
-                "node": "\u003e=4"
-              }
-            }
-          },
-          "name": "esprima",
-          "purl": "pkg:npm/esprima@4.0.1",
-          "scope": "\u003cnormalized\u003e",
-          "version": "4.0.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/algo-httpserv@\u003cnormalized\u003e",
-            "pkg:npm/js-yaml@\u003cnormalized\u003e",
-            "pkg:npm/larvitbase@\u003cnormalized\u003e",
-            "pkg:npm/larvitfs@\u003cnormalized\u003e",
-            "pkg:npm/larvitreqparser@\u003cnormalized\u003e",
-            "pkg:npm/larvitrouter@\u003cnormalized\u003e",
-            "pkg:npm/larvitutils@\u003cnormalized\u003e",
-            "pkg:npm/lodash@\u003cnormalized\u003e",
-            "pkg:npm/marked@\u003cnormalized\u003e",
-            "pkg:npm/node-yaml-config@\u003cnormalized\u003e",
-            "pkg:npm/semver@\u003cnormalized\u003e",
-            "pkg:npm/to@\u003cnormalized\u003e",
-            "pkg:npm/url@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/example-javascript-vulnerable-methods@0.0.1",
-          "licenses": [],
-          "name": "example-javascript-vulnerable-methods",
-          "purl": "pkg:npm/example-javascript-vulnerable-methods@0.0.1",
-          "version": "0.0.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/graceful-fs@\u003cnormalized\u003e",
-            "pkg:npm/jsonfile@\u003cnormalized\u003e",
-            "pkg:npm/universalify@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/fs-extra@7.0.1",
-          "licenses": [],
-          "metadata": {
-            "npm": {
-              "engines": {
-                "node": "\u003e=6 \u003c7 || \u003e=8"
-              }
-            }
-          },
-          "name": "fs-extra",
-          "purl": "pkg:npm/fs-extra@7.0.1",
-          "scope": "\u003cnormalized\u003e",
-          "version": "7.0.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/function-bind@1.1.1",
-          "licenses": [],
-          "name": "function-bind",
-          "purl": "pkg:npm/function-bind@1.1.1",
-          "scope": "\u003cnormalized\u003e",
-          "version": "1.1.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/graceful-fs@4.2.3",
-          "licenses": [],
-          "name": "graceful-fs",
-          "purl": "pkg:npm/graceful-fs@4.2.3",
-          "scope": "\u003cnormalized\u003e",
-          "version": "4.2.3",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/handy@0.0.13",
-          "licenses": [],
-          "metadata": {
-            "npm": {
-              "engines": {
-                "node": "\u003e= 0.8.0"
-              }
-            }
-          },
-          "name": "handy",
-          "purl": "pkg:npm/handy@0.0.13",
-          "scope": "\u003cnormalized\u003e",
-          "version": "0.0.13",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/function-bind@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/has@1.0.3",
-          "licenses": [],
-          "metadata": {
-            "npm": {
-              "engines": {
-                "node": "\u003e= 0.4.0"
-              }
-            }
-          },
-          "name": "has",
-          "purl": "pkg:npm/has@1.0.3",
-          "scope": "\u003cnormalized\u003e",
-          "version": "1.0.3",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/htmlparser@1.7.7",
-          "licenses": [],
-          "metadata": {
-            "npm": {
-              "engines": {
-                "node": "\u003e=0.1.33"
-              }
-            }
-          },
-          "name": "htmlparser",
-          "purl": "pkg:npm/htmlparser@1.7.7",
-          "scope": "\u003cnormalized\u003e",
-          "version": "1.7.7",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/inherits@2.0.4",
-          "licenses": [],
-          "name": "inherits",
-          "purl": "pkg:npm/inherits@2.0.4",
-          "scope": "\u003cnormalized\u003e",
-          "version": "2.0.4",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/is@3.3.0",
-          "licenses": [],
-          "metadata": {
-            "npm": {
-              "engines": {
-                "node": "*"
-              }
-            }
-          },
-          "name": "is",
-          "purl": "pkg:npm/is@3.3.0",
-          "scope": "\u003cnormalized\u003e",
-          "version": "3.3.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/isarray@0.0.1",
-          "licenses": [],
-          "name": "isarray",
-          "purl": "pkg:npm/isarray@0.0.1",
-          "scope": "\u003cnormalized\u003e",
-          "version": "0.0.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/argparse@\u003cnormalized\u003e",
-            "pkg:npm/esprima@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/js-yaml@3.13.0",
-          "licenses": [],
-          "name": "js-yaml",
-          "purl": "pkg:npm/js-yaml@3.13.0",
-          "scope": "\u003cnormalized\u003e",
-          "version": "3.13.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/argparse@\u003cnormalized\u003e",
-            "pkg:npm/esprima@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/js-yaml@3.13.1",
-          "licenses": [],
-          "name": "js-yaml",
-          "purl": "pkg:npm/js-yaml@3.13.1",
-          "scope": "\u003cnormalized\u003e",
-          "version": "3.13.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/graceful-fs@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/jsonfile@4.0.0",
-          "licenses": [],
-          "name": "jsonfile",
-          "purl": "pkg:npm/jsonfile@4.0.0",
-          "scope": "\u003cnormalized\u003e",
-          "version": "4.0.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/larvitutils@\u003cnormalized\u003e",
-            "pkg:npm/uuid@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/larvitbase@3.1.3",
-          "licenses": [],
-          "name": "larvitbase",
-          "purl": "pkg:npm/larvitbase@3.1.3",
-          "scope": "\u003cnormalized\u003e",
-          "version": "3.1.3",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/larvitutils@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/larvitfs@2.3.1",
-          "licenses": [],
-          "name": "larvitfs",
-          "purl": "pkg:npm/larvitfs@2.3.1",
-          "scope": "\u003cnormalized\u003e",
-          "version": "2.3.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/async@\u003cnormalized\u003e",
-            "pkg:npm/busboy@\u003cnormalized\u003e",
-            "pkg:npm/fs-extra@\u003cnormalized\u003e",
-            "pkg:npm/larvitutils@\u003cnormalized\u003e",
-            "pkg:npm/qs@\u003cnormalized\u003e",
-            "pkg:npm/uuid@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/larvitreqparser@0.2.1",
-          "licenses": [],
-          "name": "larvitreqparser",
-          "purl": "pkg:npm/larvitreqparser@0.2.1",
-          "scope": "\u003cnormalized\u003e",
-          "version": "0.2.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/larvitfs@\u003cnormalized\u003e",
-            "pkg:npm/larvitutils@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/larvitrouter@3.0.2",
-          "licenses": [],
-          "name": "larvitrouter",
-          "purl": "pkg:npm/larvitrouter@3.0.2",
-          "scope": "\u003cnormalized\u003e",
-          "version": "3.0.2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/larvitutils@2.3.0",
-          "licenses": [],
-          "name": "larvitutils",
-          "purl": "pkg:npm/larvitutils@2.3.0",
-          "scope": "\u003cnormalized\u003e",
-          "version": "2.3.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/lodash@4.17.15",
-          "licenses": [],
-          "name": "lodash",
-          "purl": "pkg:npm/lodash@4.17.15",
-          "scope": "\u003cnormalized\u003e",
-          "version": "4.17.15",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/marked@0.3.19",
-          "licenses": [],
-          "metadata": {
-            "npm": {
-              "engines": {
-                "node": "\u003e=0.10.0"
-              }
-            }
-          },
-          "name": "marked",
-          "purl": "pkg:npm/marked@0.3.19",
-          "scope": "\u003cnormalized\u003e",
-          "version": "0.3.19",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/minimist@0.0.10",
-          "licenses": [],
-          "name": "minimist",
-          "purl": "pkg:npm/minimist@0.0.10",
-          "scope": "\u003cnormalized\u003e",
-          "version": "0.0.10",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/js-yaml@\u003cnormalized\u003e",
-            "pkg:npm/node.extend@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/node-yaml-config@0.0.5",
-          "licenses": [],
-          "name": "node-yaml-config",
-          "purl": "pkg:npm/node-yaml-config@0.0.5",
-          "scope": "\u003cnormalized\u003e",
-          "version": "0.0.5",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/has@\u003cnormalized\u003e",
-            "pkg:npm/is@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/node.extend@2.0.2",
-          "licenses": [],
-          "metadata": {
-            "npm": {
-              "engines": {
-                "node": "\u003e=0.4.0"
-              }
-            }
-          },
-          "name": "node.extend",
-          "purl": "pkg:npm/node.extend@2.0.2",
-          "scope": "\u003cnormalized\u003e",
-          "version": "2.0.2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/minimist@\u003cnormalized\u003e",
-            "pkg:npm/wordwrap@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/optimist@0.6.1",
-          "licenses": [],
-          "name": "optimist",
-          "purl": "pkg:npm/optimist@0.6.1",
-          "scope": "\u003cnormalized\u003e",
-          "version": "0.6.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/punycode@1.3.2",
-          "licenses": [],
-          "name": "punycode",
-          "purl": "pkg:npm/punycode@1.3.2",
-          "scope": "\u003cnormalized\u003e",
-          "version": "1.3.2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/qs@6.9.1",
-          "licenses": [],
-          "metadata": {
-            "npm": {
-              "engines": {
-                "node": "\u003e=0.6"
-              }
-            }
-          },
-          "name": "qs",
-          "purl": "pkg:npm/qs@6.9.1",
-          "scope": "\u003cnormalized\u003e",
-          "version": "6.9.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/querystring@0.2.0",
-          "licenses": [],
-          "metadata": {
-            "npm": {
-              "engines": {
-                "node": "\u003e=0.4.x"
-              }
-            }
-          },
-          "name": "querystring",
-          "purl": "pkg:npm/querystring@0.2.0",
-          "scope": "\u003cnormalized\u003e",
-          "version": "0.2.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/core-util-is@\u003cnormalized\u003e",
-            "pkg:npm/inherits@\u003cnormalized\u003e",
-            "pkg:npm/isarray@\u003cnormalized\u003e",
-            "pkg:npm/string_decoder@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/readable-stream@1.1.14",
-          "licenses": [],
-          "name": "readable-stream",
-          "purl": "pkg:npm/readable-stream@1.1.14",
-          "scope": "\u003cnormalized\u003e",
-          "version": "1.1.14",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/semver@5.7.1",
-          "licenses": [],
-          "name": "semver",
-          "purl": "pkg:npm/semver@5.7.1",
-          "scope": "\u003cnormalized\u003e",
-          "version": "5.7.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/sprintf-js@1.0.3",
-          "licenses": [],
-          "name": "sprintf-js",
-          "purl": "pkg:npm/sprintf-js@1.0.3",
-          "scope": "\u003cnormalized\u003e",
-          "version": "1.0.3",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/streamsearch@0.1.2",
-          "licenses": [],
-          "metadata": {
-            "npm": {
-              "engines": {
-                "node": "\u003e=0.8.0"
-              }
-            }
-          },
-          "name": "streamsearch",
-          "purl": "pkg:npm/streamsearch@0.1.2",
-          "scope": "\u003cnormalized\u003e",
-          "version": "0.1.2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/string-width@2.1.1",
-          "licenses": [],
-          "metadata": {
-            "npm": {
-              "engines": {
-                "node": "\u003e=4"
-              }
-            }
-          },
-          "name": "string-width",
-          "purl": "pkg:npm/string-width@2.1.1",
-          "scope": "\u003cnormalized\u003e",
-          "version": "2.1.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/string_decoder@0.10.31",
-          "licenses": [],
-          "name": "string_decoder",
-          "purl": "pkg:npm/string_decoder@0.10.31",
-          "scope": "\u003cnormalized\u003e",
-          "version": "0.10.31",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/handy@\u003cnormalized\u003e",
-            "pkg:npm/htmlparser@\u003cnormalized\u003e",
-            "pkg:npm/js-yaml@\u003cnormalized\u003e",
-            "pkg:npm/optimist@\u003cnormalized\u003e",
-            "pkg:npm/underscore@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/to@0.2.9",
-          "licenses": [],
-          "metadata": {
-            "npm": {
-              "engines": {
-                "node": "\u003e= 0.8.0"
-              }
-            }
-          },
-          "name": "to",
-          "purl": "pkg:npm/to@0.2.9",
-          "scope": "\u003cnormalized\u003e",
-          "version": "0.2.9",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/underscore@1.9.2",
-          "licenses": [],
-          "name": "underscore",
-          "purl": "pkg:npm/underscore@1.9.2",
-          "scope": "\u003cnormalized\u003e",
-          "version": "1.9.2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/universalify@0.1.2",
-          "licenses": [],
-          "metadata": {
-            "npm": {
-              "engines": {
-                "node": "\u003e= 4.0.0"
-              }
-            }
-          },
-          "name": "universalify",
-          "purl": "pkg:npm/universalify@0.1.2",
-          "scope": "\u003cnormalized\u003e",
-          "version": "0.1.2",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [
-            "pkg:npm/punycode@\u003cnormalized\u003e",
-            "pkg:npm/querystring@\u003cnormalized\u003e"
-          ],
-          "id": "pkg:npm/url@0.11.0",
-          "licenses": [],
-          "name": "url",
-          "purl": "pkg:npm/url@0.11.0",
-          "scope": "\u003cnormalized\u003e",
-          "version": "0.11.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/uuid@3.4.0",
-          "licenses": [],
-          "name": "uuid",
-          "purl": "pkg:npm/uuid@3.4.0",
-          "scope": "\u003cnormalized\u003e",
-          "version": "3.4.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:npm/wordwrap@0.0.3",
-          "licenses": [],
-          "metadata": {
-            "npm": {
-              "engines": {
-                "node": "\u003e=0.4.0"
-              }
-            }
-          },
-          "name": "wordwrap",
-          "purl": "pkg:npm/wordwrap@0.0.3",
-          "scope": "\u003cnormalized\u003e",
-          "version": "0.0.3",
+          "name": "ljharb:actions/.github/workflows/node.yml",
+          "purl": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main",
+          "scope": "runtime",
+          "version": "main",
           "vulnerabilities": []
         }
       ],
-      "path": "package-lock.json",
+      "path": ".github/workflows/node-aught.yml",
+      "subproject": "."
+    },
+    {
+      "detector": "github-actions-detector",
+      "ecosystem": "github-actions",
+      "kind": "github-actions-workflow",
+      "package_manager": "github-actions",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fpretest.yml@main"
+          ],
+          "id": "pkg:githubactions/.github%2Fworkflows%2Fnode-pretest.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/node-pretest.yml",
+          "purl": "pkg:githubactions/.github%2Fworkflows%2Fnode-pretest.yml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fpretest.yml@main",
+          "licenses": [],
+          "name": "ljharb:actions/.github/workflows/pretest.yml",
+          "purl": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fpretest.yml@main",
+          "scope": "runtime",
+          "version": "main",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/node-pretest.yml",
+      "subproject": "."
+    },
+    {
+      "detector": "github-actions-detector",
+      "ecosystem": "github-actions",
+      "kind": "github-actions-workflow",
+      "package_manager": "github-actions",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main"
+          ],
+          "id": "pkg:githubactions/.github%2Fworkflows%2Fnode-tens.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/node-tens.yml",
+          "purl": "pkg:githubactions/.github%2Fworkflows%2Fnode-tens.yml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main",
+          "licenses": [],
+          "name": "ljharb:actions/.github/workflows/node.yml",
+          "purl": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main",
+          "scope": "runtime",
+          "version": "main",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/node-tens.yml",
+      "subproject": "."
+    },
+    {
+      "detector": "github-actions-detector",
+      "ecosystem": "github-actions",
+      "kind": "github-actions-workflow",
+      "package_manager": "github-actions",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:githubactions/actions/checkout@v3",
+            "pkg:githubactions/ljharb/rebase@master"
+          ],
+          "id": "pkg:githubactions/.github%2Fworkflows%2Frebase.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/rebase.yml",
+          "purl": "pkg:githubactions/.github%2Fworkflows%2Frebase.yml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:githubactions/actions/checkout@v3",
+          "licenses": [],
+          "name": "actions:checkout",
+          "purl": "pkg:githubactions/actions/checkout@v3",
+          "scope": "runtime",
+          "version": "v3",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:githubactions/ljharb/rebase@master",
+          "licenses": [],
+          "name": "ljharb:rebase",
+          "purl": "pkg:githubactions/ljharb/rebase@master",
+          "scope": "runtime",
+          "version": "master",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/rebase.yml",
+      "subproject": "."
+    },
+    {
+      "detector": "github-actions-detector",
+      "ecosystem": "github-actions",
+      "kind": "github-actions-workflow",
+      "package_manager": "github-actions",
+      "packages": [
+        {
+          "dependencies": [
+            "pkg:githubactions/ljharb/require-allow-edits@main"
+          ],
+          "id": "pkg:githubactions/.github%2Fworkflows%2Frequire-allow-edits.yml@local",
+          "licenses": [],
+          "name": ".github/workflows/require-allow-edits.yml",
+          "purl": "pkg:githubactions/.github%2Fworkflows%2Frequire-allow-edits.yml@local",
+          "scope": "runtime",
+          "version": "local",
+          "vulnerabilities": []
+        },
+        {
+          "dependencies": [],
+          "id": "pkg:githubactions/ljharb/require-allow-edits@main",
+          "licenses": [],
+          "name": "ljharb:require-allow-edits",
+          "purl": "pkg:githubactions/ljharb/require-allow-edits@main",
+          "scope": "runtime",
+          "version": "main",
+          "vulnerabilities": []
+        }
+      ],
+      "path": ".github/workflows/require-allow-edits.yml",
       "subproject": "."
     }
   ],
@@ -670,10 +177,12 @@
     "duration_ms": 0
   },
   "project": {
-    "ecosystem": "npm",
+    "ecosystem": "multiple",
     "name": "\u003cnormalized\u003e",
-    "package_manager": "npm",
-    "path": "\u003cnormalized\u003e"
+    "package_manager": "multiple",
+    "path": "\u003cnormalized\u003e",
+    "target_ref": "v6.13.0",
+    "target_type": "git repository"
   },
   "schema_version": "1.0"
 }

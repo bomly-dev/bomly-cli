@@ -15,6 +15,16 @@
           ],
           "id": "pkg:cocoapods/AFNetworking%2FNSURLSession@3.2.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Podfile.lock",
+              "position": {
+                "file": "Podfile.lock",
+                "line": 0
+              },
+              "real_path": "Podfile.lock"
+            }
+          ],
           "name": "AFNetworking/NSURLSession",
           "purl": "pkg:cocoapods/AFNetworking%2FNSURLSession@3.2.1",
           "scope": "runtime",
@@ -25,6 +35,16 @@
           "dependencies": [],
           "id": "pkg:cocoapods/AFNetworking%2FReachability@3.2.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Podfile.lock",
+              "position": {
+                "file": "Podfile.lock",
+                "line": 0
+              },
+              "real_path": "Podfile.lock"
+            }
+          ],
           "name": "AFNetworking/Reachability",
           "purl": "pkg:cocoapods/AFNetworking%2FReachability@3.2.1",
           "scope": "runtime",
@@ -35,6 +55,16 @@
           "dependencies": [],
           "id": "pkg:cocoapods/AFNetworking%2FSecurity@3.2.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Podfile.lock",
+              "position": {
+                "file": "Podfile.lock",
+                "line": 0
+              },
+              "real_path": "Podfile.lock"
+            }
+          ],
           "name": "AFNetworking/Security",
           "purl": "pkg:cocoapods/AFNetworking%2FSecurity@3.2.1",
           "scope": "runtime",
@@ -45,6 +75,16 @@
           "dependencies": [],
           "id": "pkg:cocoapods/AFNetworking%2FSerialization@3.2.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Podfile.lock",
+              "position": {
+                "file": "Podfile.lock",
+                "line": 0
+              },
+              "real_path": "Podfile.lock"
+            }
+          ],
           "name": "AFNetworking/Serialization",
           "purl": "pkg:cocoapods/AFNetworking%2FSerialization@3.2.1",
           "scope": "runtime",
@@ -57,6 +97,16 @@
           ],
           "id": "pkg:cocoapods/AFNetworking%2FUIKit@3.2.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Podfile.lock",
+              "position": {
+                "file": "Podfile.lock",
+                "line": 0
+              },
+              "real_path": "Podfile.lock"
+            }
+          ],
           "name": "AFNetworking/UIKit",
           "purl": "pkg:cocoapods/AFNetworking%2FUIKit@3.2.1",
           "scope": "runtime",
@@ -73,6 +123,16 @@
           ],
           "id": "pkg:cocoapods/AFNetworking@3.2.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Podfile.lock",
+              "position": {
+                "file": "Podfile.lock",
+                "line": 0
+              },
+              "real_path": "Podfile.lock"
+            }
+          ],
           "name": "AFNetworking",
           "purl": "pkg:cocoapods/AFNetworking@3.2.1",
           "scope": "runtime",
@@ -83,6 +143,16 @@
           "dependencies": [],
           "id": "pkg:cocoapods/Alamofire@4.3.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Podfile.lock",
+              "position": {
+                "file": "Podfile.lock",
+                "line": 0
+              },
+              "real_path": "Podfile.lock"
+            }
+          ],
           "name": "Alamofire",
           "purl": "pkg:cocoapods/Alamofire@4.3.0",
           "scope": "runtime",
@@ -93,6 +163,16 @@
           "dependencies": [],
           "id": "pkg:cocoapods/Expecta@1.0.6",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Podfile.lock",
+              "position": {
+                "file": "Podfile.lock",
+                "line": 0
+              },
+              "real_path": "Podfile.lock"
+            }
+          ],
           "name": "Expecta",
           "purl": "pkg:cocoapods/Expecta@1.0.6",
           "scope": "development",
@@ -103,6 +183,16 @@
           "dependencies": [],
           "id": "pkg:cocoapods/HockeyKit@2.0.7",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Podfile.lock",
+              "position": {
+                "file": "Podfile.lock",
+                "line": 0
+              },
+              "real_path": "Podfile.lock"
+            }
+          ],
           "name": "HockeyKit",
           "purl": "pkg:cocoapods/HockeyKit@2.0.7",
           "scope": "runtime",
@@ -113,6 +203,16 @@
           "dependencies": [],
           "id": "pkg:cocoapods/KIF@3.7.7",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Podfile.lock",
+              "position": {
+                "file": "Podfile.lock",
+                "line": 0
+              },
+              "real_path": "Podfile.lock"
+            }
+          ],
           "name": "KIF",
           "purl": "pkg:cocoapods/KIF@3.7.7",
           "scope": "development",
@@ -123,6 +223,16 @@
           "dependencies": [],
           "id": "pkg:cocoapods/OCMock@3.4.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Podfile.lock",
+              "position": {
+                "file": "Podfile.lock",
+                "line": 0
+              },
+              "real_path": "Podfile.lock"
+            }
+          ],
           "name": "OCMock",
           "purl": "pkg:cocoapods/OCMock@3.4.3",
           "scope": "development",
@@ -133,6 +243,16 @@
           "dependencies": [],
           "id": "pkg:cocoapods/OpenSSL-Static@1.0.2.c1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Podfile.lock",
+              "position": {
+                "file": "Podfile.lock",
+                "line": 0
+              },
+              "real_path": "Podfile.lock"
+            }
+          ],
           "name": "OpenSSL-Static",
           "purl": "pkg:cocoapods/OpenSSL-Static@1.0.2.c1",
           "scope": "runtime",
@@ -145,6 +265,16 @@
           ],
           "id": "pkg:cocoapods/ReactiveCocoa@5.0.0-rc.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Podfile.lock",
+              "position": {
+                "file": "Podfile.lock",
+                "line": 0
+              },
+              "real_path": "Podfile.lock"
+            }
+          ],
           "name": "ReactiveCocoa",
           "purl": "pkg:cocoapods/ReactiveCocoa@5.0.0-rc.1",
           "scope": "runtime",
@@ -157,6 +287,16 @@
           ],
           "id": "pkg:cocoapods/ReactiveSwift@1.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Podfile.lock",
+              "position": {
+                "file": "Podfile.lock",
+                "line": 0
+              },
+              "real_path": "Podfile.lock"
+            }
+          ],
           "name": "ReactiveSwift",
           "purl": "pkg:cocoapods/ReactiveSwift@1.0.0",
           "scope": "runtime",
@@ -167,6 +307,16 @@
           "dependencies": [],
           "id": "pkg:cocoapods/Result@3.1.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Podfile.lock",
+              "position": {
+                "file": "Podfile.lock",
+                "line": 0
+              },
+              "real_path": "Podfile.lock"
+            }
+          ],
           "name": "Result",
           "purl": "pkg:cocoapods/Result@3.1.0",
           "scope": "runtime",
@@ -177,6 +327,16 @@
           "dependencies": [],
           "id": "pkg:cocoapods/Specta@1.0.7",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Podfile.lock",
+              "position": {
+                "file": "Podfile.lock",
+                "line": 0
+              },
+              "real_path": "Podfile.lock"
+            }
+          ],
           "name": "Specta",
           "purl": "pkg:cocoapods/Specta@1.0.7",
           "scope": "development",
@@ -213,7 +373,9 @@
     "ecosystem": "swift",
     "name": "\u003cnormalized\u003e",
     "package_manager": "cocoapods",
-    "path": "\u003cnormalized\u003e"
+    "path": "\u003cnormalized\u003e",
+    "target_ref": "v1.0.0",
+    "target_type": "git repository"
   },
   "schema_version": "1.0"
 }

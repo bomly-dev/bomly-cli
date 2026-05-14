@@ -11,6 +11,16 @@
           "dependencies": [],
           "id": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.10",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "build.sbt",
+              "position": {
+                "file": "build.sbt",
+                "line": 0
+              },
+              "real_path": "build.sbt"
+            }
+          ],
           "name": "com.fasterxml.jackson.core:jackson-databind",
           "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.10",
           "scope": "runtime",
@@ -31,6 +41,16 @@
           "dependencies": [],
           "id": "pkg:maven/commons-codec/commons-codec@1.11",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "build.sbt",
+              "position": {
+                "file": "build.sbt",
+                "line": 0
+              },
+              "real_path": "build.sbt"
+            }
+          ],
           "name": "commons-codec:commons-codec",
           "purl": "pkg:maven/commons-codec/commons-codec@1.11",
           "scope": "runtime",
@@ -41,6 +61,16 @@
           "dependencies": [],
           "id": "pkg:maven/commons-collections/commons-collections@3.2.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "build.sbt",
+              "position": {
+                "file": "build.sbt",
+                "line": 0
+              },
+              "real_path": "build.sbt"
+            }
+          ],
           "name": "commons-collections:commons-collections",
           "purl": "pkg:maven/commons-collections/commons-collections@3.2.1",
           "scope": "runtime",
@@ -51,6 +81,16 @@
           "dependencies": [],
           "id": "pkg:maven/log4j/log4j@1.2.17",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "build.sbt",
+              "position": {
+                "file": "build.sbt",
+                "line": 0
+              },
+              "real_path": "build.sbt"
+            }
+          ],
           "name": "log4j:log4j",
           "purl": "pkg:maven/log4j/log4j@1.2.17",
           "scope": "runtime",
@@ -77,6 +117,16 @@
           "dependencies": [],
           "id": "pkg:maven/org.mindrot/jbcrypt@0.3m",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "build.sbt",
+              "position": {
+                "file": "build.sbt",
+                "line": 0
+              },
+              "real_path": "build.sbt"
+            }
+          ],
           "name": "org.mindrot:jbcrypt",
           "purl": "pkg:maven/org.mindrot/jbcrypt@0.3m",
           "scope": "runtime",
@@ -87,6 +137,16 @@
           "dependencies": [],
           "id": "pkg:maven/org.mockito/mockito-core@4.11.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "build.sbt",
+              "position": {
+                "file": "build.sbt",
+                "line": 0
+              },
+              "real_path": "build.sbt"
+            }
+          ],
           "name": "org.mockito:mockito-core",
           "purl": "pkg:maven/org.mockito/mockito-core@4.11.0",
           "scope": "development",
@@ -107,6 +167,16 @@
           "dependencies": [],
           "id": "pkg:maven/org.springframework/spring-core@5.3.16",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "build.sbt",
+              "position": {
+                "file": "build.sbt",
+                "line": 0
+              },
+              "real_path": "build.sbt"
+            }
+          ],
           "name": "org.springframework:spring-core",
           "purl": "pkg:maven/org.springframework/spring-core@5.3.16",
           "scope": "runtime",
@@ -144,7 +214,9 @@
     "ecosystem": "scala",
     "name": "\u003cnormalized\u003e",
     "package_manager": "sbt",
-    "path": "\u003cnormalized\u003e"
+    "path": "\u003cnormalized\u003e",
+    "target_ref": "v1.0.0",
+    "target_type": "git repository"
   },
   "schema_version": "1.0"
 }

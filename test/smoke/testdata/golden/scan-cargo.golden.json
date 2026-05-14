@@ -11,6 +11,16 @@
           "dependencies": [],
           "id": "pkg:cargo/autocfg@1.4.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "autocfg",
           "purl": "pkg:cargo/autocfg@1.4.0",
           "scope": "runtime",
@@ -21,6 +31,16 @@
           "dependencies": [],
           "id": "pkg:cargo/bitflags@1.3.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "bitflags",
           "purl": "pkg:cargo/bitflags@1.3.2",
           "scope": "runtime",
@@ -31,6 +51,16 @@
           "dependencies": [],
           "id": "pkg:cargo/bytes@0.5.6",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "bytes",
           "purl": "pkg:cargo/bytes@0.5.6",
           "scope": "runtime",
@@ -41,6 +71,16 @@
           "dependencies": [],
           "id": "pkg:cargo/cfg-if@1.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "cfg-if",
           "purl": "pkg:cargo/cfg-if@1.0.0",
           "scope": "runtime",
@@ -53,6 +93,16 @@
           ],
           "id": "pkg:cargo/chrono@0.4.19",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "chrono",
           "purl": "pkg:cargo/chrono@0.4.19",
           "scope": "runtime",
@@ -70,6 +120,16 @@
           ],
           "id": "pkg:cargo/example-rust-cargo@0.1.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "example-rust-cargo",
           "purl": "pkg:cargo/example-rust-cargo@0.1.0",
           "version": "0.1.0",
@@ -79,6 +139,16 @@
           "dependencies": [],
           "id": "pkg:cargo/fnv@1.0.7",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "fnv",
           "purl": "pkg:cargo/fnv@1.0.7",
           "scope": "runtime",
@@ -89,6 +159,16 @@
           "dependencies": [],
           "id": "pkg:cargo/foreign-types-shared@0.1.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "foreign-types-shared",
           "purl": "pkg:cargo/foreign-types-shared@0.1.1",
           "scope": "runtime",
@@ -101,6 +181,16 @@
           ],
           "id": "pkg:cargo/foreign-types@0.3.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "foreign-types",
           "purl": "pkg:cargo/foreign-types@0.3.2",
           "scope": "runtime",
@@ -116,6 +206,16 @@
           ],
           "id": "pkg:cargo/h2@0.2.7",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "h2",
           "purl": "pkg:cargo/h2@0.2.7",
           "scope": "runtime",
@@ -130,6 +230,16 @@
           ],
           "id": "pkg:cargo/http@0.2.12",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "http",
           "purl": "pkg:cargo/http@0.2.12",
           "scope": "runtime",
@@ -145,6 +255,16 @@
           ],
           "id": "pkg:cargo/hyper@0.13.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "hyper",
           "purl": "pkg:cargo/hyper@0.13.0",
           "scope": "runtime",
@@ -157,6 +277,16 @@
           ],
           "id": "pkg:cargo/indexmap@1.9.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "indexmap",
           "purl": "pkg:cargo/indexmap@1.9.3",
           "scope": "runtime",
@@ -167,6 +297,16 @@
           "dependencies": [],
           "id": "pkg:cargo/itoa@1.0.11",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "itoa",
           "purl": "pkg:cargo/itoa@1.0.11",
           "scope": "runtime",
@@ -177,6 +317,16 @@
           "dependencies": [],
           "id": "pkg:cargo/libc@0.2.153",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "libc",
           "purl": "pkg:cargo/libc@0.2.153",
           "scope": "runtime",
@@ -190,6 +340,16 @@
           ],
           "id": "pkg:cargo/lock_api@0.4.12",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "metadata": {
             "bomly.normalization.applied": [
               "name"
@@ -208,6 +368,16 @@
           ],
           "id": "pkg:cargo/mio@0.7.14",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "mio",
           "purl": "pkg:cargo/mio@0.7.14",
           "scope": "runtime",
@@ -220,6 +390,16 @@
           ],
           "id": "pkg:cargo/openssl-sys@0.9.90",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "openssl-sys",
           "purl": "pkg:cargo/openssl-sys@0.9.90",
           "scope": "runtime",
@@ -236,6 +416,16 @@
           ],
           "id": "pkg:cargo/openssl@0.10.48",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "openssl",
           "purl": "pkg:cargo/openssl@0.10.48",
           "scope": "runtime",
@@ -250,6 +440,16 @@
           ],
           "id": "pkg:cargo/parking_lot_core@0.9.10",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "metadata": {
             "bomly.normalization.applied": [
               "name"
@@ -266,6 +466,16 @@
           "dependencies": [],
           "id": "pkg:cargo/pin-project-lite@0.2.13",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "pin-project-lite",
           "purl": "pkg:cargo/pin-project-lite@0.2.13",
           "scope": "runtime",
@@ -276,6 +486,16 @@
           "dependencies": [],
           "id": "pkg:cargo/scopeguard@1.2.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "scopeguard",
           "purl": "pkg:cargo/scopeguard@1.2.0",
           "scope": "runtime",
@@ -286,6 +506,16 @@
           "dependencies": [],
           "id": "pkg:cargo/serde@1.0.210",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "serde",
           "purl": "pkg:cargo/serde@1.0.210",
           "scope": "runtime",
@@ -299,6 +529,16 @@
           ],
           "id": "pkg:cargo/serde_json@1.0.127",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "metadata": {
             "bomly.normalization.applied": [
               "name"
@@ -315,6 +555,16 @@
           "dependencies": [],
           "id": "pkg:cargo/tempfile@3.8.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "tempfile",
           "purl": "pkg:cargo/tempfile@3.8.1",
           "scope": "development",
@@ -325,6 +575,16 @@
           "dependencies": [],
           "id": "pkg:cargo/time@0.1.44",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "time",
           "purl": "pkg:cargo/time@0.1.44",
           "scope": "runtime",
@@ -340,6 +600,16 @@
           ],
           "id": "pkg:cargo/tokio@1.36.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
           "name": "tokio",
           "purl": "pkg:cargo/tokio@1.36.0",
           "scope": "runtime",
@@ -358,7 +628,9 @@
     "ecosystem": "rust",
     "name": "\u003cnormalized\u003e",
     "package_manager": "cargo",
-    "path": "\u003cnormalized\u003e"
+    "path": "\u003cnormalized\u003e",
+    "target_ref": "v1.0.0",
+    "target_type": "git repository"
   },
   "schema_version": "1.0"
 }

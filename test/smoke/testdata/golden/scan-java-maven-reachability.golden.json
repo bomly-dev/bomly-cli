@@ -8,42 +8,46 @@
       "package_manager": "maven",
       "packages": [
         {
-          "dependencies": [
-            "pkg:maven/com.h2database/h2@1.3.176",
-            "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
-            "pkg:maven/junit/junit@4.12",
-            "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0",
-            "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
-            "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
-            "pkg:maven/org.apache.struts/struts2-core@2.5.13",
-            "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
-            "pkg:maven/org.mindrot/jbcrypt@0.4",
-            "pkg:maven/org.neo4j/neo4j-jmx@1.3",
-            "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
-          ],
-          "id": "pkg:maven/com.bomly/example-java-maven@1.0-SNAPSHOT",
-          "licenses": [],
-          "locations": [
+          "dependencies": [],
+          "id": "pkg:maven/io.takari/maven-wrapper@0.4.0",
+          "licenses": [
             {
-              "access_path": "/pom.xml",
-              "real_path": "/pom.xml"
+              "spdxExpression": "Apache-2.0",
+              "type": "external-depsdev",
+              "value": "Apache-2.0"
             }
           ],
-          "metadata": {
-            "bomly.normalization.applied": [
-              "version"
-            ],
-            "bomly.normalization.original_version": "1.0-SNAPSHOT"
-          },
-          "name": "com.bomly:example-java-maven",
-          "purl": "pkg:maven/com.bomly/example-java-maven@1.0-SNAPSHOT",
-          "version": "1.0-snapshot",
+          "locations": [
+            {
+              "access_path": "/.mvn/wrapper/maven-wrapper.jar",
+              "real_path": "/.mvn/wrapper/maven-wrapper.jar"
+            }
+          ],
+          "name": "io.takari:maven-wrapper",
+          "purl": "pkg:maven/io.takari/maven-wrapper@0.4.0",
+          "version": "0.4.0",
           "vulnerabilities": []
-        },
+        }
+      ],
+      "path": ".mvn/wrapper/maven-wrapper.jar",
+      "subproject": "."
+    },
+    {
+      "detector": "syft-detector",
+      "ecosystem": "maven",
+      "kind": "java-archive",
+      "package_manager": "maven",
+      "packages": [
         {
           "dependencies": [],
           "id": "pkg:maven/com.h2database/h2@1.3.176",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "non-standard",
+              "type": "external-depsdev",
+              "value": "non-standard"
+            }
+          ],
           "locations": [
             {
               "access_path": "/pom.xml",
@@ -58,7 +62,13 @@
         {
           "dependencies": [],
           "id": "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "external-depsdev",
+              "value": "Apache-2.0"
+            }
+          ],
           "locations": [
             {
               "access_path": "/pom.xml",
@@ -71,9 +81,48 @@
           "vulnerabilities": []
         },
         {
+          "dependencies": [
+            "pkg:maven/com.h2database/h2@1.3.176",
+            "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
+            "pkg:maven/junit/junit@4.12",
+            "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0",
+            "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
+            "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
+            "pkg:maven/org.apache.struts/struts2-core@2.5.12",
+            "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
+            "pkg:maven/org.mindrot/jbcrypt@0.3m",
+            "pkg:maven/org.neo4j/neo4j-jmx@1.3",
+            "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
+          ],
+          "id": "pkg:maven/com.srcclr/example-java-maven@1.0-SNAPSHOT",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "/pom.xml",
+              "real_path": "/pom.xml"
+            }
+          ],
+          "metadata": {
+            "bomly.normalization.applied": [
+              "version"
+            ],
+            "bomly.normalization.original_version": "1.0-SNAPSHOT"
+          },
+          "name": "com.srcclr:example-java-maven",
+          "purl": "pkg:maven/com.srcclr/example-java-maven@1.0-SNAPSHOT",
+          "version": "1.0-snapshot",
+          "vulnerabilities": []
+        },
+        {
           "dependencies": [],
           "id": "pkg:maven/junit/junit@4.12",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "non-standard",
+              "type": "external-depsdev",
+              "value": "non-standard"
+            }
+          ],
           "locations": [
             {
               "access_path": "/pom.xml",
@@ -88,7 +137,13 @@
         {
           "dependencies": [],
           "id": "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "non-standard",
+              "type": "external-depsdev",
+              "value": "non-standard"
+            }
+          ],
           "locations": [
             {
               "access_path": "/pom.xml",
@@ -103,7 +158,13 @@
         {
           "dependencies": [],
           "id": "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "external-depsdev",
+              "value": "Apache-2.0"
+            }
+          ],
           "locations": [
             {
               "access_path": "/pom.xml",
@@ -118,7 +179,13 @@
         {
           "dependencies": [],
           "id": "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "external-depsdev",
+              "value": "Apache-2.0"
+            }
+          ],
           "locations": [
             {
               "access_path": "/pom.xml",
@@ -132,8 +199,14 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:maven/org.apache.struts/struts2-core@2.5.13",
-          "licenses": [],
+          "id": "pkg:maven/org.apache.struts/struts2-core@2.5.12",
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "external-depsdev",
+              "value": "Apache-2.0"
+            }
+          ],
           "locations": [
             {
               "access_path": "/pom.xml",
@@ -141,14 +214,20 @@
             }
           ],
           "name": "org.apache.struts:struts2-core",
-          "purl": "pkg:maven/org.apache.struts/struts2-core@2.5.13",
-          "version": "2.5.13",
+          "purl": "pkg:maven/org.apache.struts/struts2-core@2.5.12",
+          "version": "2.5.12",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
           "id": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "external-depsdev",
+              "value": "Apache-2.0"
+            }
+          ],
           "locations": [
             {
               "access_path": "/pom.xml",
@@ -168,8 +247,14 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:maven/org.mindrot/jbcrypt@0.4",
-          "licenses": [],
+          "id": "pkg:maven/org.mindrot/jbcrypt@0.3m",
+          "licenses": [
+            {
+              "spdxExpression": "non-standard",
+              "type": "external-depsdev",
+              "value": "non-standard"
+            }
+          ],
           "locations": [
             {
               "access_path": "/pom.xml",
@@ -177,14 +262,20 @@
             }
           ],
           "name": "org.mindrot:jbcrypt",
-          "purl": "pkg:maven/org.mindrot/jbcrypt@0.4",
-          "version": "0.4",
+          "purl": "pkg:maven/org.mindrot/jbcrypt@0.3m",
+          "version": "0.3m",
           "vulnerabilities": []
         },
         {
           "dependencies": [],
           "id": "pkg:maven/org.neo4j/neo4j-jmx@1.3",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "GPL-3.0",
+              "type": "external-depsdev",
+              "value": "GPL-3.0"
+            }
+          ],
           "locations": [
             {
               "access_path": "/pom.xml",
@@ -199,7 +290,13 @@
         {
           "dependencies": [],
           "id": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
-          "licenses": [],
+          "licenses": [
+            {
+              "spdxExpression": "Apache-2.0",
+              "type": "external-depsdev",
+              "value": "Apache-2.0"
+            }
+          ],
           "locations": [
             {
               "access_path": "/pom.xml",
@@ -230,7 +327,7 @@
     "name": "\u003cnormalized\u003e",
     "package_manager": "maven",
     "path": "\u003cnormalized\u003e",
-    "target_ref": "v1.0.0",
+    "target_ref": "509948ba5a02ffab48e7260031d4a1e78d010891",
     "target_type": "git repository"
   },
   "schema_version": "1.0"

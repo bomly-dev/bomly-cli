@@ -145,3 +145,122 @@ func TestWriteSARIF_OSVHelpURI(t *testing.T) {
 		t.Error("expected OSV help URI in SARIF output")
 	}
 }
+
+func TestWriteSARIF_EmitsRegionFromPackageLocation(t *testing.T) {
+	pkg := &sdk.Package{
+		Name:    "lodash",
+		Version: "4.17.15",
+		Locations: []sdk.PackageLocation{
+			{
+				RealPath:   "package-lock.json",
+				AccessPath: "package-lock.json",
+				Position: &sdk.SourcePosition{
+					File: "package-lock.json",
+					Line: 142,
+				},
+			},
+		},
+	}
+	findings := []sdk.Finding{
+		{ID: "CVE-2021-23337", Kind: sdk.FindingKindVulnerability, Package: pkg, Title: "Vuln", Severity: "high", Source: "osv"},
+	}
+
+	var buf bytes.Buffer
+	if err := WriteSARIF(&buf, findings, "bomly", "0.1.0"); err != nil {
+		t.Fatalf("WriteSARIF: %v", err)
+	}
+	var doc map[string]any
+	if err := json.Unmarshal(buf.Bytes(), &doc); err != nil {
+		t.Fatalf("invalid JSON: %v", err)
+	}
+
+	results := doc["runs"].([]any)[0].(map[string]any)["results"].([]any)
+	if len(results) != 1 {
+		t.Fatalf("results = %d, want 1", len(results))
+	}
+	locations := results[0].(map[string]any)["locations"].([]any)
+	if len(locations) != 1 {
+		t.Fatalf("locations = %d, want 1", len(locations))
+	}
+	pl := locations[0].(map[string]any)["physicalLocation"].(map[string]any)
+	if pl["artifactLocation"].(map[string]any)["uri"] != "package-lock.json" {
+		t.Errorf("artifactLocation.uri = %v, want package-lock.json", pl["artifactLocation"])
+	}
+	region, ok := pl["region"].(map[string]any)
+	if !ok {
+		t.Fatal("expected physicalLocation.region")
+	}
+	if region["startLine"] != float64(142) {
+		t.Errorf("region.startLine = %v, want 142", region["startLine"])
+	}
+}
+
+func TestWriteSARIF_EmitsMultipleLocationsWhenPackageHasSeveral(t *testing.T) {
+	pkg := &sdk.Package{
+		Name:    "express",
+		Version: "4.18.0",
+		Locations: []sdk.PackageLocation{
+			{RealPath: "package-lock.json", Position: &sdk.SourcePosition{File: "package-lock.json", Line: 50}},
+			{RealPath: "apps/api/package-lock.json", Position: &sdk.SourcePosition{File: "apps/api/package-lock.json", Line: 12}},
+		},
+	}
+	findings := []sdk.Finding{
+		{ID: "CVE-test", Kind: sdk.FindingKindVulnerability, Package: pkg, Title: "Vuln", Severity: "high"},
+	}
+	var buf bytes.Buffer
+	if err := WriteSARIF(&buf, findings, "bomly", "0.1.0"); err != nil {
+		t.Fatalf("WriteSARIF: %v", err)
+	}
+	var doc map[string]any
+	_ = json.Unmarshal(buf.Bytes(), &doc)
+	locations := doc["runs"].([]any)[0].(map[string]any)["results"].([]any)[0].(map[string]any)["locations"].([]any)
+	if len(locations) != 2 {
+		t.Fatalf("locations = %d, want 2", len(locations))
+	}
+}
+
+func TestWriteSARIF_FallsBackToPackageNameWhenNoLocations(t *testing.T) {
+	pkg := &sdk.Package{Name: "lodash", Version: "4.17.15"}
+	findings := []sdk.Finding{
+		{ID: "CVE-2021-23337", Kind: sdk.FindingKindVulnerability, Package: pkg, Title: "Vuln", Severity: "high"},
+	}
+	var buf bytes.Buffer
+	if err := WriteSARIF(&buf, findings, "bomly", "0.1.0"); err != nil {
+		t.Fatalf("WriteSARIF: %v", err)
+	}
+	var doc map[string]any
+	_ = json.Unmarshal(buf.Bytes(), &doc)
+	pl := doc["runs"].([]any)[0].(map[string]any)["results"].([]any)[0].(map[string]any)["locations"].([]any)[0].(map[string]any)["physicalLocation"].(map[string]any)
+	if pl["artifactLocation"].(map[string]any)["uri"] != "lodash" {
+		t.Errorf("fallback uri = %v, want package qualified name", pl["artifactLocation"])
+	}
+	if _, hasRegion := pl["region"]; hasRegion {
+		t.Errorf("fallback location should have no region")
+	}
+}
+
+func TestWriteSARIF_LocationWithoutPositionSkipsRegion(t *testing.T) {
+	pkg := &sdk.Package{
+		Name:    "lodash",
+		Version: "4.17.15",
+		Locations: []sdk.PackageLocation{
+			{RealPath: "package-lock.json"},
+		},
+	}
+	findings := []sdk.Finding{
+		{ID: "CVE-2021-23337", Kind: sdk.FindingKindVulnerability, Package: pkg, Title: "Vuln", Severity: "high"},
+	}
+	var buf bytes.Buffer
+	if err := WriteSARIF(&buf, findings, "bomly", "0.1.0"); err != nil {
+		t.Fatalf("WriteSARIF: %v", err)
+	}
+	var doc map[string]any
+	_ = json.Unmarshal(buf.Bytes(), &doc)
+	pl := doc["runs"].([]any)[0].(map[string]any)["results"].([]any)[0].(map[string]any)["locations"].([]any)[0].(map[string]any)["physicalLocation"].(map[string]any)
+	if pl["artifactLocation"].(map[string]any)["uri"] != "package-lock.json" {
+		t.Errorf("uri = %v, want package-lock.json", pl["artifactLocation"])
+	}
+	if _, hasRegion := pl["region"]; hasRegion {
+		t.Error("location without Position should not have a region")
+	}
+}

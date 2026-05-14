@@ -138,6 +138,76 @@ Core passes these env vars. Plugin discovery: `~/.bomly/plugins/bomly-*` overrid
 - Fake binaries (npm, go, Gradle, plugin) are built in `TestMain` — see `internal/cli/root_test_main_test.go`.
 - No test conditionally skipped without a recorded reason.
 
+## Feature Checklist
+
+When adding a new user-visible feature (new CLI flag, new component class, new pipeline stage, new analyzer, etc.), walk this checklist before requesting review. The surfaces forgotten most often are **MCP**, **plugin command**, and **smoke test**.
+
+### CLI surface
+
+- Flag declared in `internal/cli/opts/flag_options.go` with override propagation in `applyFlagOverrides`.
+- Config field added to `internal/config/config.go` `Resolved` (with `doc:`/`env:`/`default:` tags) and `File` (with `yaml:` tag and matching pointer/slice shape).
+- Flag interactions (requires / conflicts / modifies semantics) get a check in `config.Validate` plus a unit test in `internal/config/validate_test.go`. Error messages must be actionable (`"--audit requires --enrich"`, not `"invalid combination"`).
+- If the flag drives a pipeline stage, propagate the value through `internal/cli/opts/options.go`'s `PipelineRequest` builder.
+- If the flag accepts a selector list, register an `available<Thing>Options` helper in `flag_options.go` for shell completion.
+
+### MCP
+
+Every new flag on `bomly scan` / `bomly explain` / `bomly diff` must be reachable from the matching MCP tool. AI agents won't get the feature otherwise.
+
+- Add the field to `ScanRequest` / `ExplainRequest` / `DiffRequest` in `internal/mcp/server.go`.
+- Register the `mcplib.WithBoolean` / `WithString` argument in `tool_scan.go` / `tool_explain.go` / `tool_diff.go`. Mirror the CLI flag's help text and call out any prerequisite ("requires enrich").
+- Wire the field through `mcpOptionsAdapter` in `internal/cli/mcp_cmd.go`. Add it to the `mcpOverrides` struct (so future additions stay one-line) and apply it in `cloneWithOverrides`.
+
+### Plugin command
+
+When adding a new component class (a new sibling of Detector / Matcher / Auditor / Analyzer):
+
+- Add a `PluginKind*` constant in `sdk/plugin.go` and accept it in `sdk/validate.go::ValidateMetadata`.
+- Add the descriptor pointer to `internal/plugin/types.go::Manifest` plus a `clone<Kind>Descriptor` helper that deep-copies every slice field.
+- In `internal/cli/plugin_cmd.go`:
+  - Extend `pluginKindFilter` and add a `--<kind>s` filter flag.
+  - Iterate the new descriptors in `builtInPluginInfos`; emit one `PluginInfo` per registered instance.
+  - Add a `<kind>PluginInfo` constructor and the matching local clone helper.
+  - Extend `pluginInfoEcosystems`, `pluginInfoPackageManagers`, and `pluginInfoFeatures` with the new case.
+  - Add a new section to `renderPluginListTables` with sensible columns. If the descriptor exposes axes the existing kinds don't (e.g. analyzers have `SupportedLanguages`), add new columns and corresponding `pluginInfo<X>` / `join<X>` helpers.
+  - Update `renderPluginInfo` to emit any new lines when present.
+
+External plugin install/load (gRPC handshake, runtime descriptor fetch) is a separate, larger change and can land in a follow-up PR. Built-in listing is the minimum bar.
+
+### Logging
+
+Analyzers, matchers, auditors, and any new long-running stage must be observable at `-v` (INFO) and debuggable at `-vv` (DEBUG):
+
+- **INFO** at natural boundaries: stage start (with key inputs — module count, item count, runner name, cache enabled), per-major-unit completion (cache hit/miss, counts per outcome, duration), final summary (totals, overall duration).
+- **DEBUG** for low-level detail: discovered inputs (module roots, manifest paths), exact command lines including args and working dir, cache key components, byte counts of subprocess output, branch decisions worth reproducing.
+- **WARN** for recoverable errors (analyzer failed, cache write failed). Never abort the pipeline for these; degrade and continue.
+
+When invoking subprocesses, the DEBUG line MUST include the binary path, args, and working dir so a user with `-vv` can copy/paste the command to reproduce outside Bomly.
+
+### Caching
+
+If a new analyzer / matcher / detector produces deterministic output for a fixed `(input, schema version)` pair, wrap it with `internal/matchers/cache.FileCache`:
+
+- Cache key folds: schema version (so we can bump and invalidate), input fingerprint (lockfile content hash), runtime version when the underlying tool is sensitive to it, and the runner name when multiple implementations exist.
+- Default location: `~/.cache/bomly/<area>/<subarea>/`.
+- Default TTL: 24h (matches OSV / EOL).
+- Cache failures are non-fatal — log a warning and proceed.
+- Expose `CacheDir`, `CacheTTL`, and `DisableCache` fields on the component for tests + opt-out.
+
+### Smoke tests
+
+- Use a **real public repo** pinned to a specific tag or commit SHA via `--url --ref`. Do not add local Go modules / npm packages / etc. under `test/smoke/testdata/`. The only acceptable testdata files are SBOM fixtures and similar non-project inputs.
+- The pinned ref must exercise the feature meaningfully. For reachability that means a repo with at least one symbol-tier reachable advisory; for a new ecosystem detector that means a repo whose lockfile actually parses.
+- Update `test/smoke/helpers_test.go::normalizeJSON` (or the more specific normalizers it calls) to scrub any new volatile fields (timestamps, line numbers, file paths under temp clone dirs) before they reach goldens.
+- Run `make smoke ARGS="-update"` to regenerate goldens. Commit the regenerated `.golden.json` in the same PR.
+
+### Documentation
+
+- `make generate` regenerates `docs/CONFIG_REFERENCE.md`, `docs/schemas/*`, and `docs/SUPPORT_MATRIX.md` from struct tags. Run it whenever `internal/config/config.go`, `internal/output/*`, or `sdk/catalog.go` / `sdk/support_matrix.go` change.
+- Add or update a feature page under `docs/` (e.g. `docs/REACHABILITY.md`) with quick-start usage, semantics, ecosystem coverage, output shape, and limitations. Be explicit about safety caveats (e.g. "tier-3 unreachable does not mean safe").
+- `docs/ARCHITECTURE.md`: update the pipeline diagram if the stage list changed; add a decision-log entry for non-obvious design choices.
+- `CLAUDE.md` and `AGENTS.md`: update the architecture tree and package-boundary list when introducing a new internal package.
+
 ## Reference Docs
 
 | Doc                                                    | Covers                                                                                  |

@@ -16,7 +16,8 @@ func registerExplainTool(s *server.MCPServer, mcpCtx MCPContext) {
 		),
 		mcplib.WithString("path", mcplib.Description("Filesystem path to scan (defaults to cwd)")),
 		mcplib.WithBoolean("enrich", mcplib.Description("Enrich packages with vulnerability and license data")),
-		mcplib.WithBoolean("audit", mcplib.Description("Evaluate policy on the target package")),
+		mcplib.WithBoolean("audit", mcplib.Description("Evaluate policy on the target package (requires enrich)")),
+		mcplib.WithBoolean("reachability", mcplib.Description("Run code analysis to confirm whether vulnerabilities on the target package are reachable from application code (requires enrich)")),
 	)
 	s.AddTool(tool, func(ctx context.Context, req mcplib.CallToolRequest) (*mcplib.CallToolResult, error) {
 		pkg, err := req.RequireString("package")
@@ -24,10 +25,11 @@ func registerExplainTool(s *server.MCPServer, mcpCtx MCPContext) {
 			return mcplib.NewToolResultError(err.Error()), nil
 		}
 		explainReq := ExplainRequest{
-			Package: pkg,
-			Path:    req.GetString("path", ""),
-			Enrich:  req.GetBool("enrich", false),
-			Audit:   req.GetBool("audit", false),
+			Package:      pkg,
+			Path:         req.GetString("path", ""),
+			Enrich:       req.GetBool("enrich", false),
+			Audit:        req.GetBool("audit", false),
+			Reachability: req.GetBool("reachability", false),
 		}
 		result, err := mcpCtx.Adapter.RunExplain(ctx, explainReq)
 		if err != nil {

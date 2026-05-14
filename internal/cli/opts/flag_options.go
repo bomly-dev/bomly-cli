@@ -19,7 +19,9 @@ func bindFlagOptions(cmd *cobra.Command, cfg *config.Resolved) error {
 	flags.BoolVar(&cfg.SBOM, "sbom", false, "Treat the selected filesystem target as an SBOM file")
 	flags.BoolVar(&cfg.Enrich, "enrich", false, "Enrich packages with external license and vulnerability data")
 	flags.BoolVar(&cfg.Audit, "audit", false, "Evaluate policy and create findings from package vulnerability data")
-	flags.StringVar(&cfg.FailOn, "fail-on", "", "Minimum severity that should create findings in audit mode: any, low, medium, high, critical")
+	flags.BoolVar(&cfg.Reachability, "reachability", false, "Run code analysis to confirm whether vulnerabilities are reachable from application code")
+	flags.StringArrayVar(&cfg.FailOn, "fail-on", nil, "Constraint(s) for which findings should be created. Repeatable; constraints AND together. Severity: any|low|medium|high|critical. Reachability: reachable. Example: --fail-on low --fail-on reachable")
+	flags.StringVar(&cfg.Analyzers, "analyzers", "", "Reachability analyzer selectors. Use names. Prefix with '+' to append defaults or '-' to remove from defaults")
 	flags.StringVarP(&cfg.Format, "format", "f", "", "Output format: text, json, sarif")
 	flags.BoolVar(&cfg.Interactive, "interactive", false, "Open an interactive terminal UI")
 	flags.StringVar(&cfg.Ecosystems, "ecosystems", "", "Ecosystems to use; supports +name/-name to add/remove from all")
@@ -61,8 +63,14 @@ func applyFlagOverrides(dst *config.Resolved, flags config.Resolved, cmd *cobra.
 	if flagChanged(cmd, "audit") {
 		dst.Audit = flags.Audit
 	}
+	if flagChanged(cmd, "reachability") {
+		dst.Reachability = flags.Reachability
+	}
 	if flagChanged(cmd, "fail-on") {
-		dst.FailOn = flags.FailOn
+		dst.FailOn = append([]string(nil), flags.FailOn...)
+	}
+	if flagChanged(cmd, "analyzers") {
+		dst.Analyzers = flags.Analyzers
 	}
 	if flagChanged(cmd, "format") {
 		dst.Format = flags.Format
@@ -117,6 +125,7 @@ func bindDynamicFlagOptions(cmd *cobra.Command) error {
 	detectors := availableDetectorOptions()
 	auditors := availableAuditorOptions(zap.NewNop())
 	matchers := availableMatcherOptions()
+	analyzers := availableAnalyzerOptions()
 
 	if err := cmd.RegisterFlagCompletionFunc("ecosystems", csvCompletionFunc(ecosystems)); err != nil {
 		return err
@@ -128,6 +137,9 @@ func bindDynamicFlagOptions(cmd *cobra.Command) error {
 		return err
 	}
 	if err := cmd.RegisterFlagCompletionFunc("matchers", csvCompletionFunc(matchers)); err != nil {
+		return err
+	}
+	if err := cmd.RegisterFlagCompletionFunc("analyzers", csvCompletionFunc(analyzers)); err != nil {
 		return err
 	}
 
@@ -191,6 +203,27 @@ func availableAuditorOptions(logger *zap.Logger) []string {
 	reg := engine.NewRegistry(engine.RegistryConfigs{}, *logger)
 	reg.Build()
 	for _, descriptor := range reg.AuditorDescriptors() {
+		name := descriptor.Name
+		if name == "" {
+			continue
+		}
+		if _, ok := seen[name]; ok {
+			continue
+		}
+		seen[name] = struct{}{}
+		options = append(options, name)
+	}
+	sort.Strings(options)
+	return options
+}
+
+// availableAnalyzerOptions returns analyzer names for shell completion.
+func availableAnalyzerOptions() []string {
+	seen := map[string]struct{}{}
+	options := make([]string, 0)
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
+	reg.Build()
+	for _, descriptor := range reg.AnalyzerDescriptors() {
 		name := descriptor.Name
 		if name == "" {
 			continue

@@ -24,7 +24,9 @@ Bomly resolves configuration in the following order, with later sources overridi
 | `sbom` | `BOMLY_SBOM` | `bool` | - | Treat the selected filesystem target as an SBOM file |
 | `enrich` | `BOMLY_ENRICH` | `bool` | - | Enrich packages with external license and vulnerability data |
 | `audit` | `BOMLY_AUDIT` | `bool` | - | Evaluate policy and create findings from package vulnerability data |
-| `fail_on` | `BOMLY_FAIL_ON` | `string` | any | Minimum severity that should create findings in audit mode: any, low, medium, high, critical |
+| `reachability` | `BOMLY_REACHABILITY` | `bool` | - | Run code analysis to confirm whether vulnerabilities are reachable from application code |
+| `fail_on` | `BOMLY_FAIL_ON` | `[]string` | - | Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable |
+| `analyzers` | `BOMLY_ANALYZERS` | `string` | - | Reachability analyzer selectors; supports +name and -name modifiers |
 | `format` | `BOMLY_FORMAT` | `string` | - | Primary report format: text, json, or sarif |
 | `interactive` | `BOMLY_INTERACTIVE` | `bool` | - | Enable interactive TUI mode |
 | `ecosystems` | `BOMLY_ECOSYSTEMS` | `string` | - | Ecosystem selectors; supports +name and -name modifiers |
@@ -80,8 +82,12 @@ Bomly resolves configuration in the following order, with later sources overridi
 # enrich: false
 # Evaluate policy and create findings from package vulnerability data
 # audit: false
-# Minimum severity that should create findings in audit mode: any, low, medium, high, critical
-# fail_on: any
+# Run code analysis to confirm whether vulnerabilities are reachable from application code
+# reachability: false
+# Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable
+# fail_on: []
+# Reachability analyzer selectors; supports +name and -name modifiers
+# analyzers: ""
 # Primary report format: text, json, or sarif
 # format: ""
 # Enable interactive TUI mode

@@ -2,7 +2,6 @@ package policy
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
@@ -10,9 +9,12 @@ import (
 
 const auditorName = "severity-policy"
 
-// Auditor evaluates enriched vulnerability data against a severity threshold.
+// Auditor evaluates enriched vulnerability data against a list of
+// fail-on constraints. Constraints AND together; an empty list emits a
+// finding for every vulnerability (the historical default behaviour
+// when --audit was set without --fail-on).
 type Auditor struct {
-	FailOn string
+	FailOn []sdk.FailOnConstraint
 }
 
 // Descriptor returns the registration metadata for the policy auditor.
@@ -40,15 +42,13 @@ func (a Auditor) Applicable(_ context.Context, req sdk.AuditRequest) (bool, erro
 	return true, nil
 }
 
-// Audit evaluates enriched vulnerabilities and emits findings for entries that meet the configured threshold.
+// Audit evaluates enriched vulnerabilities and emits findings for entries
+// satisfying every configured constraint. Reachability data is propagated
+// onto each Finding regardless of constraint configuration so consumers
+// can render or filter on it.
 func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult, error) {
 	if req.Graph == nil {
 		return sdk.AuditResult{}, nil
-	}
-
-	threshold, err := ParseSeverityThreshold(a.FailOn)
-	if err != nil {
-		return sdk.AuditResult{}, fmt.Errorf("parse fail-on severity: %w", err)
 	}
 
 	packages := req.Graph.Packages()
@@ -62,7 +62,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 			continue
 		}
 		for _, vulnerability := range collapsePreferredVulnerabilities(pkg.Vulnerabilities) {
-			if !threshold.Matches(vulnerability.Severity) {
+			if !vulnerability.MatchesConstraints(a.FailOn) {
 				continue
 			}
 			title := strings.TrimSpace(vulnerability.Title)
@@ -85,6 +85,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 				AffectedVersionRange: vulnerability.AffectedVersionRange,
 				References:           append([]sdk.Reference(nil), vulnerability.References...),
 				KEVExploited:         vulnerability.KEVExploited,
+				Reachability:         vulnerability.Reachability.Clone(),
 			})
 		}
 	}
@@ -94,55 +95,6 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 		Target:   req.Target,
 		Findings: findings,
 	}, nil
-}
-
-// SeverityThreshold controls which severities should create findings.
-type SeverityThreshold string
-
-const (
-	SeverityAny      SeverityThreshold = "any"
-	SeverityLow      SeverityThreshold = "low"
-	SeverityMedium   SeverityThreshold = "medium"
-	SeverityHigh     SeverityThreshold = "high"
-	SeverityCritical SeverityThreshold = "critical"
-)
-
-// ParseSeverityThreshold validates a fail-on severity value.
-func ParseSeverityThreshold(value string) (SeverityThreshold, error) {
-	normalized := strings.ToLower(strings.TrimSpace(value))
-	if normalized == "" {
-		normalized = string(SeverityAny)
-	}
-	switch SeverityThreshold(normalized) {
-	case SeverityAny, SeverityLow, SeverityMedium, SeverityHigh, SeverityCritical:
-		return SeverityThreshold(normalized), nil
-	default:
-		return "", fmt.Errorf("unsupported severity %q", value)
-	}
-}
-
-// Matches reports whether the configured threshold should emit a finding for the provided severity.
-func (s SeverityThreshold) Matches(severity string) bool {
-	if s == SeverityAny {
-		return true
-	}
-	return severityRank(severity) >= severityRank(string(s))
-}
-
-// severityRank returns a value that can be used to sort vulnerabilities by severity.
-func severityRank(severity string) int {
-	switch strings.ToLower(strings.TrimSpace(severity)) {
-	case "critical":
-		return 4
-	case "high":
-		return 3
-	case "medium":
-		return 2
-	case "low":
-		return 1
-	default:
-		return 0
-	}
 }
 
 // collapsePreferredVulnerabilities collapses multiple vulnerabilities with the same ID into a single entry.

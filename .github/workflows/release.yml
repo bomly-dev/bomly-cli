@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: release-${{ github.ref }}
@@ -16,6 +16,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
@@ -34,12 +35,17 @@ jobs:
       - name: Run go vet
         run: go vet ./...
 
-  licenses:
+  publish:
     needs: validate
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Set up Go
         uses: actions/setup-go@v6
@@ -52,86 +58,51 @@ jobs:
       - name: Generate third-party license notices
         run: make licenses
 
-      - name: Upload license notices
-        uses: actions/upload-artifact@v4
-        with:
-          name: licenses
-          path: licenses/
-          retention-days: 1
-
-  package:
-    needs: [validate, licenses]
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - goos: linux
-            goarch: amd64
-          - goos: linux
-            goarch: arm64
-          - goos: darwin
-            goarch: amd64
-          - goos: darwin
-            goarch: arm64
-          - goos: windows
-            goarch: amd64
-          - goos: windows
-            goarch: arm64
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v5
-
-      - name: Set up Go
-        uses: actions/setup-go@v6
-        with:
-          go-version-file: go.mod
-          cache: true
-          cache-dependency-path: |
-            go.sum
-
-      - name: Download license notices
-        uses: actions/download-artifact@v5
-        with:
-          name: licenses
-          path: licenses/
-
       - name: Build release archives
         shell: bash
         env:
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
           VERSION: ${{ github.ref_name }}
         run: |
           set -euo pipefail
 
           repo_root="${PWD}"
           binary_version="${VERSION#v}"
-          ext=""
-          archive_ext="tar.gz"
-          if [[ "${GOOS}" == "windows" ]]; then
-            ext=".exe"
-            archive_ext="zip"
-          fi
-
           mkdir -p dist
+
+          targets=(
+            "linux amd64"
+            "linux arm64"
+            "darwin amd64"
+            "darwin arm64"
+            "windows amd64"
+            "windows arm64"
+          )
 
           build_archive() {
             local archive_base="$1"
             local binary_name="$2"
             local build_tags="$3"
+            local target_goos="$4"
+            local target_goarch="$5"
             local stage_dir
             stage_dir="$(mktemp -d)"
 
+            local ext=""
+            local archive_ext="tar.gz"
+            if [[ "${target_goos}" == "windows" ]]; then
+              ext=".exe"
+              archive_ext="zip"
+            fi
+
             if [[ -n "${build_tags}" ]]; then
-              GOOS="${GOOS}" GOARCH="${GOARCH}" CGO_ENABLED=0 go build \
+              GOOS="${target_goos}" GOARCH="${target_goarch}" CGO_ENABLED=0 go build \
                 -trimpath \
                 -tags "${build_tags}" \
                 -ldflags "-s -w -X main.version=${binary_version}" \
                 -o "${stage_dir}/${binary_name}${ext}" \
                 ./cmd/bomly
             else
-              GOOS="${GOOS}" GOARCH="${GOARCH}" CGO_ENABLED=0 go build \
+              GOOS="${target_goos}" GOARCH="${target_goarch}" CGO_ENABLED=0 go build \
                 -trimpath \
                 -ldflags "-s -w -X main.version=${binary_version}" \
                 -o "${stage_dir}/${binary_name}${ext}" \
@@ -142,7 +113,7 @@ jobs:
             cp "${repo_root}/LICENSE" "${stage_dir}/LICENSE"
             cp "${repo_root}/NOTICE" "${stage_dir}/NOTICE"
 
-            local archive_path="dist/${archive_base}_${VERSION}_${GOOS}_${GOARCH}.${archive_ext}"
+            local archive_path="dist/${archive_base}_${VERSION}_${target_goos}_${target_goarch}.${archive_ext}"
             if [[ "${archive_ext}" == "zip" ]]; then
               (
                 cd "${stage_dir}"
@@ -155,33 +126,11 @@ jobs:
             rm -rf "${stage_dir}"
           }
 
-          build_archive "bomly" "bomly" ""
-          build_archive "bomly-lite" "bomly-lite" "bomly_external_syft,bomly_external_grype"
-
-      - name: Upload packaged artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: dist/*
-          retention-days: 1
-
-  publish:
-    needs: package
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Download packaged artifacts
-        uses: actions/download-artifact@v5
-        with:
-          path: dist
-          pattern: release-*
-          merge-multiple: true
+          for target in "${targets[@]}"; do
+            read -r target_goos target_goarch <<< "${target}"
+            build_archive "bomly" "bomly" "" "${target_goos}" "${target_goarch}"
+            build_archive "bomly-lite" "bomly-lite" "bomly_external_syft,bomly_external_grype" "${target_goos}" "${target_goarch}"
+          done
 
       - name: Generate checksums
         shell: bash

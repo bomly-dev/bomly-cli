@@ -85,15 +85,18 @@ func (r libraryRunner) Run(ctx context.Context, projectDir string) (RunnerResult
 		return RunnerResult{}, walkErr
 	}
 
+	dynamic := detectDynamicImports(projectDir)
 	r.logger.Debug("pyreach: in-process runner completed",
 		zap.String("project_dir", projectDir),
 		zap.Int("source_files", sourceFiles),
 		zap.Int("imported_distributions", len(imports)),
-		zap.Strings("skipped_dirs", skipped))
+		zap.Strings("skipped_dirs", skipped),
+		zap.Bool("dynamic_imports_detected", dynamic))
 
 	return RunnerResult{
-		ImportedDistributions: imports,
-		SourceFiles:           sourceFiles,
-		SkippedDirs:           skipped,
+		ImportedDistributions:  imports,
+		SourceFiles:            sourceFiles,
+		SkippedDirs:            skipped,
+		DynamicImportsDetected: dynamic,
 	}, nil
 }

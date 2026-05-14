@@ -100,12 +100,17 @@ type sarifThreadFlowLocation struct {
 }
 
 // sarifProperties exposes Bomly-specific finding metadata SARIF consumers
-// can surface (reachability status, tier, analyzer name).
+// can surface. SARIF 2.1.0 allows arbitrary `properties` per result;
+// these fields give consumers everything needed to triage a finding
+// without parsing the parallel JSON output.
 type sarifProperties struct {
-	Reachability       string `json:"reachability,omitempty"`
-	ReachabilityTier   string `json:"reachability_tier,omitempty"`
-	ReachabilityReason string `json:"reachability_reason,omitempty"`
-	Analyzer           string `json:"analyzer,omitempty"`
+	Reachability           string `json:"reachability,omitempty"`
+	ReachabilityTier       string `json:"reachability_tier,omitempty"`
+	ReachabilityReason     string `json:"reachability_reason,omitempty"`
+	Analyzer               string `json:"analyzer,omitempty"`
+	ReachabilityConfidence string `json:"reachability_confidence,omitempty"`
+	ReachabilityHops       *int   `json:"reachability_hops,omitempty"`
+	DynamicImportsDetected bool   `json:"reachability_dynamic_imports_detected,omitempty"`
 }
 
 // WriteSARIF writes findings as a SARIF 2.1.0 document to w.
@@ -161,12 +166,19 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, toolName, toolVersion strin
 			},
 		}
 		if f.Reachability != nil {
-			result.Properties = &sarifProperties{
-				Reachability:       string(f.Reachability.Status),
-				ReachabilityTier:   string(f.Reachability.Tier),
-				ReachabilityReason: f.Reachability.Reason,
-				Analyzer:           f.Reachability.Analyzer,
+			props := &sarifProperties{
+				Reachability:           string(f.Reachability.Status),
+				ReachabilityTier:       string(f.Reachability.Tier),
+				ReachabilityReason:     f.Reachability.Reason,
+				Analyzer:               f.Reachability.Analyzer,
+				ReachabilityConfidence: string(f.Reachability.Confidence),
+				DynamicImportsDetected: f.Reachability.DynamicImportsDetected,
 			}
+			if f.Reachability.Hops != nil {
+				h := *f.Reachability.Hops
+				props.ReachabilityHops = &h
+			}
+			result.Properties = props
 			if flows := buildSARIFCodeFlows(f.Reachability.CallPaths); len(flows) > 0 {
 				result.CodeFlows = flows
 			}

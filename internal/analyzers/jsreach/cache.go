@@ -15,7 +15,7 @@ import (
 // cacheSchemaVersion bumps whenever the on-disk cache layout changes
 // in a way that would silently produce wrong results. Bumping
 // invalidates every previously cached entry.
-const cacheSchemaVersion = "v1"
+const cacheSchemaVersion = "v2"
 
 // defaultCacheTTL matches the OSV / EOL / govulncheck matchers.
 // jsreach output changes whenever the project's lockfile or source
@@ -38,9 +38,10 @@ type resultCache struct {
 // slice and rebuild the map on read. EntryPoints and SourceFiles
 // round-trip directly.
 type cachedRunnerResult struct {
-	ImportedPackages []string `json:"imported_packages,omitempty"`
-	EntryPoints      []string `json:"entry_points,omitempty"`
-	SourceFiles      int      `json:"source_files,omitempty"`
+	ImportedPackages       []string `json:"imported_packages,omitempty"`
+	EntryPoints            []string `json:"entry_points,omitempty"`
+	SourceFiles            int      `json:"source_files,omitempty"`
+	DynamicImportsDetected bool     `json:"dynamic_imports_detected,omitempty"`
 }
 
 // newResultCache constructs a result cache rooted at dir. If dir is
@@ -138,9 +139,10 @@ func (c *resultCache) get(projectDir, runnerName, runnerVersion string) (RunnerR
 		imports[m] = struct{}{}
 	}
 	return RunnerResult{
-		ImportedPackages: imports,
-		EntryPoints:      append([]string(nil), cached.EntryPoints...),
-		SourceFiles:      cached.SourceFiles,
+		ImportedPackages:       imports,
+		EntryPoints:            append([]string(nil), cached.EntryPoints...),
+		SourceFiles:            cached.SourceFiles,
+		DynamicImportsDetected: cached.DynamicImportsDetected,
 	}, true
 }
 
@@ -159,9 +161,10 @@ func (c *resultCache) set(projectDir, runnerName, runnerVersion string, result R
 		imports = append(imports, m)
 	}
 	cached := cachedRunnerResult{
-		ImportedPackages: imports,
-		EntryPoints:      append([]string(nil), result.EntryPoints...),
-		SourceFiles:      result.SourceFiles,
+		ImportedPackages:       imports,
+		EntryPoints:            append([]string(nil), result.EntryPoints...),
+		SourceFiles:            result.SourceFiles,
+		DynamicImportsDetected: result.DynamicImportsDetected,
 	}
 	return cachepkg.Set(c.store, key, cached)
 }

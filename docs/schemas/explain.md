@@ -153,6 +153,9 @@ Complete reference for the `bomly explain` JSON output.
 | `reason` | `string` | |
 | `symbols` | Array<[`AffectedSymbol`](#affectedsymbol)> | |
 | `call_paths` | Array<[`CallPath`](#callpath)> | |
+| `hops` | `integer` | |
+| `confidence` | `string` | |
+| `dynamic_imports_detected` | `boolean` | |
 | `analyzed_at` | `string` | |
 
 ### `Reference`

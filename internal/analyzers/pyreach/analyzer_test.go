@@ -337,9 +337,10 @@ func TestAnalyzerDoesNotExpandThroughUnimportedRoots(t *testing.T) {
 	}
 }
 
-// TestComputeReachablePackageIDsHandlesCycles guards against the
-// classic BFS pitfall: a → b → a should not loop.
-func TestComputeReachablePackageIDsHandlesCycles(t *testing.T) {
+// TestComputeReachablePackageHopsHandlesCycles guards against the
+// classic BFS pitfall: a → b → a should not loop, and the hop count
+// for a transitive dep should be the shortest distance.
+func TestComputeReachablePackageHopsHandlesCycles(t *testing.T) {
 	g := model.New()
 	a := model.NewPackage(model.Package{Name: "a", Version: "1.0.0", Ecosystem: string(model.EcosystemPython)})
 	b := model.NewPackage(model.Package{Name: "b", Version: "1.0.0", Ecosystem: string(model.EcosystemPython)})
@@ -356,12 +357,12 @@ func TestComputeReachablePackageIDsHandlesCycles(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got := computeReachablePackageIDs(g, map[string]struct{}{"a": {}})
-	if _, ok := got[a.ID]; !ok {
-		t.Errorf("expected a in reachable set: %v", got)
+	got := computeReachablePackageHops(g, map[string]struct{}{"a": {}})
+	if h, ok := got[a.ID]; !ok || h != 0 {
+		t.Errorf("expected a at hop 0: got=%v ok=%v", h, ok)
 	}
-	if _, ok := got[b.ID]; !ok {
-		t.Errorf("expected b (transitive of a) in reachable set: %v", got)
+	if h, ok := got[b.ID]; !ok || h != 1 {
+		t.Errorf("expected b at hop 1 (transitive of a): got=%v ok=%v", h, ok)
 	}
 }
 

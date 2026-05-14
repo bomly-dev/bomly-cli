@@ -245,7 +245,8 @@ type applyOutcome struct {
 func applyRunnerResult(g *model.Graph, projectRoot string, runRes RunnerResult, now time.Time) applyOutcome {
 	var outcome applyOutcome
 	timestamp := now.UTC().Format(time.RFC3339)
-	reachableIDs := computeReachablePackageIDs(g, runRes.ImportedPackages)
+	hopsByID := computeReachablePackageHops(g, runRes.ImportedPackages)
+	dynamicImports := runRes.DynamicImportsDetected
 	for _, pkg := range g.Packages() {
 		if pkg == nil || !isNPMPackage(pkg) {
 			continue
@@ -259,12 +260,16 @@ func applyRunnerResult(g *model.Graph, projectRoot string, runRes RunnerResult, 
 				continue // already annotated by an earlier project pass
 			}
 			r := &model.Reachability{
-				Analyzer:   Name,
-				AnalyzedAt: timestamp,
-				Tier:       model.TierPackage,
+				Analyzer:               Name,
+				AnalyzedAt:             timestamp,
+				Tier:                   model.TierPackage,
+				DynamicImportsDetected: dynamicImports,
 			}
-			if _, ok := reachableIDs[pkg.ID]; ok {
+			if hops, ok := hopsByID[pkg.ID]; ok {
 				r.Status = model.ReachabilityReachable
+				h := hops
+				r.Hops = &h
+				r.Confidence = model.DeriveConfidence(&h, dynamicImports)
 				outcome.reachable++
 			} else {
 				r.Status = model.ReachabilityUnreachable
@@ -277,21 +282,21 @@ func applyRunnerResult(g *model.Graph, projectRoot string, runRes RunnerResult, 
 	return outcome
 }
 
-// computeReachablePackageIDs returns the set of graph package IDs
-// reachable from the import set, expanded transitively through the
-// dep graph. The seed set is every npm package whose name (or
-// qualified scoped name) matches a bare specifier in imports; the
-// expansion walks Graph.Dependencies edges breadth-first.
+// computeReachablePackageHops returns a map from graph package ID to
+// the shortest dep-graph distance from any directly-imported package.
+// The seed set (hop 0) is every npm package whose name (or qualified
+// scoped name) matches a bare specifier in imports; the expansion
+// walks Graph.Dependencies edges breadth-first.
 //
 // The result is keyed by package ID rather than name because npm
 // allows multiple versions of the same package to coexist (a top-
 // level lodash@4 and a nested lodash@3 inside some dep), and the
 // lockfile-derived graph captures that. Working in IDs keeps the
 // attribution honest.
-func computeReachablePackageIDs(g *model.Graph, imports map[string]struct{}) map[string]struct{} {
-	reachable := make(map[string]struct{})
+func computeReachablePackageHops(g *model.Graph, imports map[string]struct{}) map[string]int {
+	hops := make(map[string]int)
 	if g == nil || len(imports) == 0 {
-		return reachable
+		return hops
 	}
 	queue := make([]string, 0)
 	// Seed: every npm package whose name matches the import set.
@@ -302,17 +307,18 @@ func computeReachablePackageIDs(g *model.Graph, imports map[string]struct{}) map
 		if !isPackageImported(pkg, imports) {
 			continue
 		}
-		if _, ok := reachable[pkg.ID]; ok {
+		if _, ok := hops[pkg.ID]; ok {
 			continue
 		}
-		reachable[pkg.ID] = struct{}{}
+		hops[pkg.ID] = 0
 		queue = append(queue, pkg.ID)
 	}
-	// BFS: every dep edge from a reachable package adds its target to
-	// the reachable set.
+	// BFS: every dep edge from a reachable package adds its target at
+	// hop+1 if it has not been seen yet (shortest-distance wins).
 	for len(queue) > 0 {
 		id := queue[0]
 		queue = queue[1:]
+		current := hops[id]
 		deps, err := g.Dependencies(id)
 		if err != nil {
 			continue
@@ -321,14 +327,14 @@ func computeReachablePackageIDs(g *model.Graph, imports map[string]struct{}) map
 			if dep == nil {
 				continue
 			}
-			if _, ok := reachable[dep.ID]; ok {
+			if _, ok := hops[dep.ID]; ok {
 				continue
 			}
-			reachable[dep.ID] = struct{}{}
+			hops[dep.ID] = current + 1
 			queue = append(queue, dep.ID)
 		}
 	}
-	return reachable
+	return hops
 }
 
 // isPackageImported reports whether pkg's npm name (or qualified

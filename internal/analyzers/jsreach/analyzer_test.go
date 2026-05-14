@@ -338,9 +338,10 @@ func TestAnalyzerDoesNotExpandThroughUnimportedRoots(t *testing.T) {
 	}
 }
 
-// TestComputeReachablePackageIDsHandlesCycles guards against the
-// classic BFS pitfall: a → b → a should not loop.
-func TestComputeReachablePackageIDsHandlesCycles(t *testing.T) {
+// TestComputeReachablePackageHopsHandlesCycles guards against the
+// classic BFS pitfall: a → b → a should not loop, and the hop count
+// for a transitive dep should be the shortest distance.
+func TestComputeReachablePackageHopsHandlesCycles(t *testing.T) {
 	g := model.New()
 	a := model.NewPackage(model.Package{Name: "a", Version: "1.0.0", Ecosystem: "npm"})
 	b := model.NewPackage(model.Package{Name: "b", Version: "1.0.0", Ecosystem: "npm"})
@@ -357,12 +358,12 @@ func TestComputeReachablePackageIDsHandlesCycles(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got := computeReachablePackageIDs(g, map[string]struct{}{"a": {}})
-	if _, ok := got[a.ID]; !ok {
-		t.Errorf("expected a in reachable set: %v", got)
+	got := computeReachablePackageHops(g, map[string]struct{}{"a": {}})
+	if h, ok := got[a.ID]; !ok || h != 0 {
+		t.Errorf("expected a at hop 0: got=%v ok=%v", h, ok)
 	}
-	if _, ok := got[b.ID]; !ok {
-		t.Errorf("expected b (transitive of a) in reachable set: %v", got)
+	if h, ok := got[b.ID]; !ok || h != 1 {
+		t.Errorf("expected b at hop 1 (transitive of a): got=%v ok=%v", h, ok)
 	}
 }
 
@@ -389,5 +390,139 @@ func TestAnalyzerMarksUnknownWhenNoProjectRootDiscovered(t *testing.T) {
 	}
 	if r.Reason != "no-project-root-discovered" {
 		t.Errorf("reason = %q, want no-project-root-discovered", r.Reason)
+	}
+}
+
+// TestAnalyzerPopulatesHopsAndConfidence verifies the Tier-3
+// improvements added in the reachability follow-up: each reachable
+// vulnerability carries the BFS hop count and a coarse confidence
+// label derived from it.
+func TestAnalyzerPopulatesHopsAndConfidence(t *testing.T) {
+	projectDir := newNPMProjectDir(t)
+
+	g := model.New()
+	directVuln := model.PackageVulnerability{ID: "GHSA-direct", Source: "osv", Severity: "high"}
+	transitiveVuln := model.PackageVulnerability{ID: "GHSA-trans", Source: "osv", Severity: "high"}
+	deepVuln := model.PackageVulnerability{ID: "GHSA-deep", Source: "osv", Severity: "high"}
+
+	express := model.NewPackage(model.Package{
+		Name:            "express",
+		Version:         "4.0.0",
+		Ecosystem:       "npm",
+		BuildSystem:     "npm",
+		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}},
+		Vulnerabilities: []model.PackageVulnerability{directVuln},
+	})
+	bodyParser := model.NewPackage(model.Package{
+		Name:            "body-parser",
+		Version:         "1.0.0",
+		Ecosystem:       "npm",
+		BuildSystem:     "npm",
+		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}},
+		Vulnerabilities: []model.PackageVulnerability{transitiveVuln},
+	})
+	// 5 hops deep — should land at low confidence even without
+	// dynamic imports.
+	deep1 := model.NewPackage(model.Package{Name: "deep1", Version: "1", Ecosystem: "npm", Locations: []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}}})
+	deep2 := model.NewPackage(model.Package{Name: "deep2", Version: "1", Ecosystem: "npm", Locations: []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}}})
+	deep3 := model.NewPackage(model.Package{Name: "deep3", Version: "1", Ecosystem: "npm", Locations: []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}}})
+	deep4 := model.NewPackage(model.Package{
+		Name:            "deep4",
+		Version:         "1",
+		Ecosystem:       "npm",
+		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}},
+		Vulnerabilities: []model.PackageVulnerability{deepVuln},
+	})
+
+	for _, pkg := range []*model.Package{express, bodyParser, deep1, deep2, deep3, deep4} {
+		if err := g.AddPackage(pkg); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := g.AddDependency(express.ID, bodyParser.ID); err != nil {
+		t.Fatal(err)
+	}
+	for from, to := range map[string]string{
+		bodyParser.ID: deep1.ID,
+		deep1.ID:      deep2.ID,
+		deep2.ID:      deep3.ID,
+		deep3.ID:      deep4.ID,
+	} {
+		if err := g.AddDependency(from, to); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	a := Analyzer{DisableCache: true, Runner: &fakeRunner{
+		result: RunnerResult{
+			ImportedPackages: map[string]struct{}{"express": {}},
+			EntryPoints:      []string{filepath.Join(projectDir, "index.js")},
+			SourceFiles:      1,
+		},
+	}}
+
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: projectDir}); err != nil {
+		t.Fatal(err)
+	}
+
+	type expect struct {
+		hops       int
+		confidence model.ReachabilityConfidence
+	}
+	cases := map[string]expect{
+		"express@4.0.0":     {0, model.ConfidenceHigh},
+		"body-parser@1.0.0": {1, model.ConfidenceMedium},
+		"deep4@1":           {5, model.ConfidenceLow},
+	}
+	for id, want := range cases {
+		pkg, _ := g.Package(id)
+		if pkg == nil {
+			t.Fatalf("missing pkg %s", id)
+		}
+		r := pkg.Vulnerabilities[0].Reachability
+		if r == nil || r.Status != model.ReachabilityReachable {
+			t.Fatalf("%s: expected reachable, got %+v", id, r)
+		}
+		if r.Hops == nil || *r.Hops != want.hops {
+			t.Errorf("%s: hops = %v, want %d", id, r.Hops, want.hops)
+		}
+		if r.Confidence != want.confidence {
+			t.Errorf("%s: confidence = %q, want %q", id, r.Confidence, want.confidence)
+		}
+		if r.DynamicImportsDetected {
+			t.Errorf("%s: DynamicImportsDetected = true, want false (runner reported no dynamic imports)", id)
+		}
+	}
+}
+
+// TestAnalyzerHonorsRunnerDynamicImportFlag verifies that when the
+// runner reports dynamic imports detected, every reachable vuln is
+// downgraded to ConfidenceLow even when its hop count would normally
+// be ConfidenceHigh / ConfidenceMedium.
+func TestAnalyzerHonorsRunnerDynamicImportFlag(t *testing.T) {
+	projectDir := newNPMProjectDir(t)
+	vuln := model.PackageVulnerability{ID: "GHSA-test", Source: "osv", Severity: "high"}
+	g := newNPMGraph(t, projectDir, "lodash", vuln)
+
+	a := Analyzer{DisableCache: true, Runner: &fakeRunner{
+		result: RunnerResult{
+			ImportedPackages:       map[string]struct{}{"lodash": {}},
+			EntryPoints:            []string{filepath.Join(projectDir, "index.js")},
+			SourceFiles:            1,
+			DynamicImportsDetected: true,
+		},
+	}}
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: projectDir}); err != nil {
+		t.Fatal(err)
+	}
+	r := g.Packages()[0].Vulnerabilities[0].Reachability
+	if r == nil || r.Status != model.ReachabilityReachable {
+		t.Fatalf("expected reachable, got %+v", r)
+	}
+	if !r.DynamicImportsDetected {
+		t.Error("DynamicImportsDetected should be true")
+	}
+	if r.Confidence != model.ConfidenceLow {
+		t.Errorf("confidence = %q, want low when dynamic imports detected", r.Confidence)
 	}
 }

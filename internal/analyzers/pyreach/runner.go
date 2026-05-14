@@ -68,6 +68,14 @@ type RunnerResult struct {
 	// SkippedDirs lists the directory names skipped during the walk
 	// (venv/, __pycache__/, etc.) for debug logging.
 	SkippedDirs []string
+	// DynamicImportsDetected is true when the runner observed Python
+	// dynamic-import constructs the static scanner cannot follow:
+	// importlib.import_module(name), __import__(name) on a variable,
+	// pkgutil.iter_modules / pkg_resources iterators. When true, an
+	// "unreachable" verdict from this analyzer is necessarily
+	// incomplete and the per-vuln Reachability.DynamicImportsDetected
+	// flag is set.
+	DynamicImportsDetected bool
 }
 
 // hasResult reports whether the runner produced anything actionable.

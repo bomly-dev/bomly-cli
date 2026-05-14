@@ -139,16 +139,19 @@ func (r libraryRunner) Run(ctx context.Context, projectDir string) (RunnerResult
 	if err != nil {
 		return RunnerResult{}, err
 	}
+	dynamic := detectDynamicImports(projectDir)
 	r.logger.Debug("jsreach: in-process runner completed",
 		zap.String("project_dir", projectDir),
 		zap.Int("entry_points", len(entries)),
 		zap.Int("source_files", sourceFiles),
-		zap.Int("imported_packages", len(imports)))
+		zap.Int("imported_packages", len(imports)),
+		zap.Bool("dynamic_imports_detected", dynamic))
 
 	return RunnerResult{
-		ImportedPackages: imports,
-		EntryPoints:      entries,
-		SourceFiles:      sourceFiles,
+		ImportedPackages:       imports,
+		EntryPoints:            entries,
+		SourceFiles:            sourceFiles,
+		DynamicImportsDetected: dynamic,
 	}, nil
 }
 

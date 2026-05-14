@@ -60,6 +60,13 @@ type RunnerResult struct {
 	// SkippedDirs lists directory names skipped during the walk
 	// (target/, build/, .gradle/, etc.) for debug logging.
 	SkippedDirs []string
+	// DynamicImportsDetected is true when the runner observed
+	// reflection-based class loading the static scanner cannot
+	// follow: Class.forName(name) on a variable, ClassLoader.loadClass,
+	// ServiceLoader.load, ResourceBundle.getBundle on a variable. When
+	// true, an "unreachable" verdict is necessarily incomplete and the
+	// per-vuln Reachability.DynamicImportsDetected flag is set.
+	DynamicImportsDetected bool
 }
 
 func (r RunnerResult) hasResult() bool { return r.SourceFiles > 0 }

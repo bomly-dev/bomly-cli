@@ -61,6 +61,13 @@ type RunnerResult struct {
 	// SourceFiles is the count of project source files the runner
 	// visited (for telemetry).
 	SourceFiles int
+	// DynamicImportsDetected is true when the runner observed
+	// dynamic-import constructs in app source it cannot follow
+	// statically (e.g. `require(variable)`, `import(variable)`,
+	// `await import(name)`). When true, the analyzer's "unreachable"
+	// verdicts are necessarily incomplete and the per-vuln
+	// Reachability.DynamicImportsDetected flag is set.
+	DynamicImportsDetected bool
 }
 
 // hasResult reports whether the runner produced anything actionable.

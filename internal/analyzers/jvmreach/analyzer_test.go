@@ -201,7 +201,7 @@ func TestAnalyzerMarksTransitiveDepReachable(t *testing.T) {
 	}
 }
 
-func TestComputeReachablePackageIDsHandlesCycles(t *testing.T) {
+func TestComputeReachablePackageHopsHandlesCycles(t *testing.T) {
 	g := model.New()
 	a := model.NewPackage(model.Package{Name: "a", Org: "g", Version: "1", Ecosystem: string(model.EcosystemMaven)})
 	b := model.NewPackage(model.Package{Name: "b", Org: "g", Version: "1", Ecosystem: string(model.EcosystemMaven)})
@@ -217,12 +217,12 @@ func TestComputeReachablePackageIDsHandlesCycles(t *testing.T) {
 	if err := g.AddDependency(b.ID, a.ID); err != nil {
 		t.Fatal(err)
 	}
-	got := computeReachablePackageIDs(g, map[string]struct{}{"g:a": {}})
-	if _, ok := got[a.ID]; !ok {
-		t.Errorf("a missing from reachable set")
+	got := computeReachablePackageHops(g, map[string]struct{}{"g:a": {}})
+	if h, ok := got[a.ID]; !ok || h != 0 {
+		t.Errorf("expected a at hop 0: got=%v ok=%v", h, ok)
 	}
-	if _, ok := got[b.ID]; !ok {
-		t.Errorf("b missing from reachable set")
+	if h, ok := got[b.ID]; !ok || h != 1 {
+		t.Errorf("expected b at hop 1 (transitive of a): got=%v ok=%v", h, ok)
 	}
 }
 

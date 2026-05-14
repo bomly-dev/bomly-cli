@@ -12,7 +12,7 @@ import (
 	cachepkg "github.com/bomly-dev/bomly-cli/internal/matchers/cache"
 )
 
-const cacheSchemaVersion = "v1"
+const cacheSchemaVersion = "v2"
 const defaultCacheTTL = 24 * time.Hour
 
 type resultCache struct {
@@ -20,9 +20,10 @@ type resultCache struct {
 }
 
 type cachedRunnerResult struct {
-	ImportedArtifacts []string `json:"imported_artifacts,omitempty"`
-	SourceFiles       int      `json:"source_files,omitempty"`
-	SkippedDirs       []string `json:"skipped_dirs,omitempty"`
+	ImportedArtifacts      []string `json:"imported_artifacts,omitempty"`
+	SourceFiles            int      `json:"source_files,omitempty"`
+	SkippedDirs            []string `json:"skipped_dirs,omitempty"`
+	DynamicImportsDetected bool     `json:"dynamic_imports_detected,omitempty"`
 }
 
 func newResultCache(dir string, ttl time.Duration) *resultCache {
@@ -108,9 +109,10 @@ func (c *resultCache) get(projectDir, runnerName, runnerVersion string) (RunnerR
 		artifacts[a] = struct{}{}
 	}
 	return RunnerResult{
-		ImportedArtifacts: artifacts,
-		SourceFiles:       cached.SourceFiles,
-		SkippedDirs:       append([]string(nil), cached.SkippedDirs...),
+		ImportedArtifacts:      artifacts,
+		SourceFiles:            cached.SourceFiles,
+		SkippedDirs:            append([]string(nil), cached.SkippedDirs...),
+		DynamicImportsDetected: cached.DynamicImportsDetected,
 	}, true
 }
 
@@ -127,9 +129,10 @@ func (c *resultCache) set(projectDir, runnerName, runnerVersion string, result R
 		artifacts = append(artifacts, a)
 	}
 	cached := cachedRunnerResult{
-		ImportedArtifacts: artifacts,
-		SourceFiles:       result.SourceFiles,
-		SkippedDirs:       append([]string(nil), result.SkippedDirs...),
+		ImportedArtifacts:      artifacts,
+		SourceFiles:            result.SourceFiles,
+		SkippedDirs:            append([]string(nil), result.SkippedDirs...),
+		DynamicImportsDetected: result.DynamicImportsDetected,
 	}
 	return cachepkg.Set(c.store, key, cached)
 }

@@ -425,18 +425,62 @@ func packageImportedByModule(pkg *model.Package, importedModules map[string]stru
 }
 
 // failureReason maps runner errors to stable machine-readable codes.
+// Order matters: more-specific patterns are checked before the
+// generic build-failed/runner-error fallbacks so SARIF / JSON
+// consumers can branch on the exact failure mode.
 func failureReason(err error) string {
 	if err == nil {
 		return ""
 	}
 	msg := strings.ToLower(err.Error())
 	switch {
-	case strings.Contains(msg, "not found"), strings.Contains(msg, "not on path"), strings.Contains(msg, "not yet vendored"):
+	// Toolchain / executable missing — distinct from a build failure
+	// because the user can't act on it the same way (install Go, vs.
+	// fix their source).
+	case strings.Contains(msg, "not on path"),
+		strings.Contains(msg, "executable not found"),
+		strings.Contains(msg, "not yet vendored"):
 		return "missing-toolchain"
-	case strings.Contains(msg, "build failed"), strings.Contains(msg, "exit status 2"):
-		return "build-failed"
-	case strings.Contains(msg, "context"), strings.Contains(msg, "cancel"):
+	// Cancellation propagates through both context.Canceled and
+	// govulncheck's own wrapping.
+	case strings.Contains(msg, "context canceled"),
+		strings.Contains(msg, "context deadline"),
+		strings.Contains(msg, "cancel"):
 		return "cancelled"
+	// "no Go files in", "build constraints exclude all Go files", and
+	// "no packages matching" all mean the target dir is not a Go
+	// package — separate failure mode from a build that fails on
+	// real Go code.
+	case strings.Contains(msg, "no go files"),
+		strings.Contains(msg, "no packages matching"),
+		strings.Contains(msg, "build constraints exclude"):
+		return "no-go-packages"
+	// "missing go.sum entry" / "go: download" / "cannot find module"
+	// — module-resolution failures distinct from a compile-stage error.
+	case strings.Contains(msg, "missing go.sum"),
+		strings.Contains(msg, "cannot find module"),
+		strings.Contains(msg, "go.mod file not found"),
+		strings.Contains(msg, "no required module"),
+		strings.Contains(msg, "verifying module"):
+		return "module-resolution-failed"
+	// "go: parse" / "go.mod:" syntax errors.
+	case strings.Contains(msg, "go.mod:") && strings.Contains(msg, "syntax"),
+		strings.Contains(msg, "errors parsing go.mod"):
+		return "invalid-go-mod"
+	// Compile-stage errors: "build failed", "exit status 1/2",
+	// "syntax error", "undefined:". All actionable by the user
+	// fixing their source.
+	case strings.Contains(msg, "build failed"),
+		strings.Contains(msg, "exit status 1"),
+		strings.Contains(msg, "exit status 2"),
+		strings.Contains(msg, "syntax error"),
+		strings.Contains(msg, "undefined:"),
+		strings.Contains(msg, "imported and not used"):
+		return "build-failed"
+	// Generic fallback when we can't classify further; preserves the
+	// historical default.
+	case strings.Contains(msg, "not found"):
+		return "missing-toolchain"
 	default:
 		return "runner-error"
 	}

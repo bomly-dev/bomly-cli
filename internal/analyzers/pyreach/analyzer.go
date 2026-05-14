@@ -253,7 +253,8 @@ type applyOutcome struct {
 func applyRunnerResult(g *model.Graph, projectRoot string, runRes RunnerResult, now time.Time) applyOutcome {
 	var outcome applyOutcome
 	timestamp := now.UTC().Format(time.RFC3339)
-	reachableIDs := computeReachablePackageIDs(g, runRes.ImportedDistributions)
+	hopsByID := computeReachablePackageHops(g, runRes.ImportedDistributions)
+	dynamicImports := runRes.DynamicImportsDetected
 	for _, pkg := range g.Packages() {
 		if pkg == nil || !isPythonPackage(pkg) {
 			continue
@@ -267,12 +268,16 @@ func applyRunnerResult(g *model.Graph, projectRoot string, runRes RunnerResult, 
 				continue
 			}
 			r := &model.Reachability{
-				Analyzer:   Name,
-				AnalyzedAt: timestamp,
-				Tier:       model.TierPackage,
+				Analyzer:               Name,
+				AnalyzedAt:             timestamp,
+				Tier:                   model.TierPackage,
+				DynamicImportsDetected: dynamicImports,
 			}
-			if _, ok := reachableIDs[pkg.ID]; ok {
+			if hops, ok := hopsByID[pkg.ID]; ok {
 				r.Status = model.ReachabilityReachable
+				h := hops
+				r.Hops = &h
+				r.Confidence = model.DeriveConfidence(&h, dynamicImports)
 				outcome.reachable++
 			} else {
 				r.Status = model.ReachabilityUnreachable
@@ -285,15 +290,16 @@ func applyRunnerResult(g *model.Graph, projectRoot string, runRes RunnerResult, 
 	return outcome
 }
 
-// computeReachablePackageIDs returns the set of graph package IDs
-// reachable from the imported-distribution set, expanded transitively
-// through the dep graph. Working in IDs (rather than names) keeps the
-// attribution honest when multiple versions of the same distribution
-// coexist in the resolved lockfile.
-func computeReachablePackageIDs(g *model.Graph, imports map[string]struct{}) map[string]struct{} {
-	reachable := make(map[string]struct{})
+// computeReachablePackageHops returns a map from graph package ID to
+// the shortest dep-graph distance from a directly-imported
+// distribution. Hop 0 packages are directly imported; hop N packages
+// are reachable only via N transitive edges. Working in IDs (rather
+// than names) keeps the attribution honest when multiple versions of
+// the same distribution coexist in the resolved lockfile.
+func computeReachablePackageHops(g *model.Graph, imports map[string]struct{}) map[string]int {
+	hops := make(map[string]int)
 	if g == nil || len(imports) == 0 {
-		return reachable
+		return hops
 	}
 	queue := make([]string, 0)
 	for _, pkg := range g.Packages() {
@@ -303,15 +309,16 @@ func computeReachablePackageIDs(g *model.Graph, imports map[string]struct{}) map
 		if !isPackageImported(pkg, imports) {
 			continue
 		}
-		if _, ok := reachable[pkg.ID]; ok {
+		if _, ok := hops[pkg.ID]; ok {
 			continue
 		}
-		reachable[pkg.ID] = struct{}{}
+		hops[pkg.ID] = 0
 		queue = append(queue, pkg.ID)
 	}
 	for len(queue) > 0 {
 		id := queue[0]
 		queue = queue[1:]
+		current := hops[id]
 		deps, err := g.Dependencies(id)
 		if err != nil {
 			continue
@@ -320,14 +327,14 @@ func computeReachablePackageIDs(g *model.Graph, imports map[string]struct{}) map
 			if dep == nil {
 				continue
 			}
-			if _, ok := reachable[dep.ID]; ok {
+			if _, ok := hops[dep.ID]; ok {
 				continue
 			}
-			reachable[dep.ID] = struct{}{}
+			hops[dep.ID] = current + 1
 			queue = append(queue, dep.ID)
 		}
 	}
-	return reachable
+	return hops
 }
 
 // isPackageImported reports whether pkg's distribution name (in any

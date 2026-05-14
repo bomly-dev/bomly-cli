@@ -236,7 +236,20 @@ Reachability data appears in three places:
    `--audit` is set) `findings[].reachability`. The reachability object
    carries `status`, `tier`, `analyzer`, optional `reason`, optional
    list of confirmed `symbols`, and optional `call_paths` with frame
-   metadata (`function`, `package`, `file`, `line`, `column`).
+   metadata (`function`, `package`, `file`, `line`, `column`). Tier-3
+   analyzers additionally populate:
+   - `hops` — dep-graph distance from a directly-imported package.
+     `0` means directly imported; higher values are transitive.
+   - `confidence` — `high` (directly imported, no dynamic imports),
+     `medium` (1–3 hops, no dynamic imports), or `low` (4+ hops or
+     dynamic imports detected). Lets consumers triage long transitive
+     chains without parsing `hops` themselves.
+   - `dynamic_imports_detected` — `true` when the analyzer's scanner
+     observed dynamic-import constructs in app source (e.g.
+     `require(variable)`, `importlib.import_module(name)`,
+     `Class.forName(string)`). When `true`, an "unreachable" verdict
+     is necessarily incomplete; the confidence label is forced to
+     `low` for reachable results as a triage signal.
 
 2. **Text scan report** gains a "Reachability" line in the executive
    summary plus a `REACHABILITY` column in the findings table when
@@ -247,7 +260,9 @@ Reachability data appears in three places:
    `Reachability.CallPaths` (one threadFlow per path, one location per
    frame with file/line/column), and a top-level `result.properties`
    exposes `reachability`, `reachability_tier`, `reachability_reason`,
-   and `analyzer` for SARIF consumers that don't traverse codeFlows.
+   `analyzer`, `reachability_confidence`, `reachability_hops`, and
+   `reachability_dynamic_imports_detected` for SARIF consumers that
+   don't traverse codeFlows.
 
 ## Limitations
 
@@ -257,7 +272,19 @@ Reachability data appears in three places:
   does not mean the vulnerability has been mitigated. See the
   `jsreach` notes above for the npm-specific shape of this caveat.
 - **`govulncheck` requires a buildable Go module**. When the build
-  fails, the analyzer returns `unknown` with `Reason: build-failed`.
+  fails, the analyzer returns `unknown` with one of the following
+  stable `reason` codes so consumers can branch by failure mode:
+  - `missing-toolchain` — `go` not on `PATH`, govulncheck binary
+    missing, or runner not vendored.
+  - `no-go-packages` — target dir has no `.go` files, build
+    constraints exclude everything, or `go list` returns no matches.
+  - `module-resolution-failed` — `go.mod` not found, missing
+    `go.sum` entry, or `go: download` failed for a required module.
+  - `invalid-go-mod` — `go.mod` syntax error.
+  - `build-failed` — generic compile-stage failure (`syntax error`,
+    `undefined:`, `imported and not used`, non-zero exit).
+  - `cancelled` — context cancelled or deadline exceeded.
+  - `runner-error` — fallback when none of the above patterns match.
 - **Multi-module / multi-project repos**: Attribution is best-effort.
   Each vulnerability is annotated by the first module/project pass
   that owns its package; better multi-root attribution will improve

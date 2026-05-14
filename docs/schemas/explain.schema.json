@@ -248,6 +248,15 @@
                     },
                     "type": "array"
                   },
+                  "confidence": {
+                    "type": "string"
+                  },
+                  "dynamic_imports_detected": {
+                    "type": "boolean"
+                  },
+                  "hops": {
+                    "type": "integer"
+                  },
                   "reason": {
                     "type": "string"
                   },
@@ -574,6 +583,15 @@
                           },
                           "type": "array"
                         },
+                        "confidence": {
+                          "type": "string"
+                        },
+                        "dynamic_imports_detected": {
+                          "type": "boolean"
+                        },
+                        "hops": {
+                          "type": "integer"
+                        },
                         "reason": {
                           "type": "string"
                         },
@@ -765,6 +783,15 @@
                   "type": "object"
                 },
                 "type": "array"
+              },
+              "confidence": {
+                "type": "string"
+              },
+              "dynamic_imports_detected": {
+                "type": "boolean"
+              },
+              "hops": {
+                "type": "integer"
               },
               "reason": {
                 "type": "string"
@@ -1107,6 +1134,15 @@
                               "type": "object"
                             },
                             "type": "array"
+                          },
+                          "confidence": {
+                            "type": "string"
+                          },
+                          "dynamic_imports_detected": {
+                            "type": "boolean"
+                          },
+                          "hops": {
+                            "type": "integer"
                           },
                           "reason": {
                             "type": "string"
@@ -1507,6 +1543,15 @@
                           },
                           "type": "array"
                         },
+                        "confidence": {
+                          "type": "string"
+                        },
+                        "dynamic_imports_detected": {
+                          "type": "boolean"
+                        },
+                        "hops": {
+                          "type": "integer"
+                        },
                         "reason": {
                           "type": "string"
                         },
@@ -1836,6 +1881,15 @@
                                 },
                                 "type": "array"
                               },
+                              "confidence": {
+                                "type": "string"
+                              },
+                              "dynamic_imports_detected": {
+                                "type": "boolean"
+                              },
+                              "hops": {
+                                "type": "integer"
+                              },
                               "reason": {
                                 "type": "string"
                               },
@@ -2027,6 +2081,15 @@
                         "type": "object"
                       },
                       "type": "array"
+                    },
+                    "confidence": {
+                      "type": "string"
+                    },
+                    "dynamic_imports_detected": {
+                      "type": "boolean"
+                    },
+                    "hops": {
+                      "type": "integer"
                     },
                     "reason": {
                       "type": "string"
@@ -2332,6 +2395,15 @@
                                     "type": "object"
                                   },
                                   "type": "array"
+                                },
+                                "confidence": {
+                                  "type": "string"
+                                },
+                                "dynamic_imports_detected": {
+                                  "type": "boolean"
+                                },
+                                "hops": {
+                                  "type": "integer"
                                 },
                                 "reason": {
                                   "type": "string"

@@ -15,7 +15,7 @@ import (
 // cacheSchemaVersion bumps whenever the on-disk cache layout changes
 // in a way that would silently produce wrong results. Bumping
 // invalidates every previously cached entry.
-const cacheSchemaVersion = "v1"
+const cacheSchemaVersion = "v2"
 
 // defaultCacheTTL matches the OSV / EOL / govulncheck / jsreach
 // matchers. pyreach output changes whenever the project's lockfile
@@ -33,9 +33,10 @@ type resultCache struct {
 
 // cachedRunnerResult is the JSON-serializable form of RunnerResult.
 type cachedRunnerResult struct {
-	ImportedDistributions []string `json:"imported_distributions,omitempty"`
-	SourceFiles           int      `json:"source_files,omitempty"`
-	SkippedDirs           []string `json:"skipped_dirs,omitempty"`
+	ImportedDistributions  []string `json:"imported_distributions,omitempty"`
+	SourceFiles            int      `json:"source_files,omitempty"`
+	SkippedDirs            []string `json:"skipped_dirs,omitempty"`
+	DynamicImportsDetected bool     `json:"dynamic_imports_detected,omitempty"`
 }
 
 // newResultCache constructs a result cache rooted at dir. If dir is
@@ -141,9 +142,10 @@ func (c *resultCache) get(projectDir, runnerName, runnerVersion string) (RunnerR
 		imports[m] = struct{}{}
 	}
 	return RunnerResult{
-		ImportedDistributions: imports,
-		SourceFiles:           cached.SourceFiles,
-		SkippedDirs:           append([]string(nil), cached.SkippedDirs...),
+		ImportedDistributions:  imports,
+		SourceFiles:            cached.SourceFiles,
+		SkippedDirs:            append([]string(nil), cached.SkippedDirs...),
+		DynamicImportsDetected: cached.DynamicImportsDetected,
 	}, true
 }
 
@@ -162,9 +164,10 @@ func (c *resultCache) set(projectDir, runnerName, runnerVersion string, result R
 		imports = append(imports, m)
 	}
 	cached := cachedRunnerResult{
-		ImportedDistributions: imports,
-		SourceFiles:           result.SourceFiles,
-		SkippedDirs:           append([]string(nil), result.SkippedDirs...),
+		ImportedDistributions:  imports,
+		SourceFiles:            result.SourceFiles,
+		SkippedDirs:            append([]string(nil), result.SkippedDirs...),
+		DynamicImportsDetected: result.DynamicImportsDetected,
 	}
 	return cachepkg.Set(c.store, key, cached)
 }

@@ -9,7 +9,12 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/output"
 )
 
-func NewDiff(payload output.DiffResponse) *listModel {
+type diffModel struct {
+	*listModel
+	payload output.DiffResponse
+}
+
+func NewDiff(payload output.DiffResponse) *diffModel {
 	manifests := append([]output.DiffManifestResult(nil), payload.Results.Manifests...)
 	sort.Slice(manifests, func(i, j int) bool {
 		left := manifests[i]
@@ -35,9 +40,13 @@ func NewDiff(payload output.DiffResponse) *listModel {
 		})
 	}
 
-	return &listModel{
-		title: fmt.Sprintf("Bomly Interactive Diff: %s -> %s", payload.Comparison.Base, payload.Comparison.Head),
+	list := &listModel{
+		title: "",
 		summary: []string{
+			diffTopBar(payload),
+			"",
+			render.Style("[1] Diff", render.Yellow, render.Bold),
+			"",
 			summaryLine("Manifest changes", []string{
 				render.Style(fmt.Sprintf("added %d", payload.Summary.AddedManifestCount), render.Green, render.Bold),
 				render.Style(fmt.Sprintf("changed %d", payload.Summary.ChangedManifestCount), render.Yellow, render.Bold),
@@ -55,6 +64,15 @@ func NewDiff(payload output.DiffResponse) *listModel {
 		emptyState:     "No manifest changes were found.",
 		items:          items,
 	}
+	return &diffModel{listModel: list, payload: payload}
+}
+
+func diffTopBar(payload output.DiffResponse) string {
+	return render.Style(" bomly ", render.BgCyan, render.Blue, render.Bold) + " " +
+		render.Style("DIFF", render.BgBlue, render.White, render.Bold) + " " +
+		render.Style(valueOrDash(payload.Project.Name), render.White, render.Bold) + " " +
+		render.Style(targetKindLabel(payload.Project), render.Dim) + " " +
+		render.Style(payload.Comparison.Base+" -> "+payload.Comparison.Head, render.Cyan, render.Bold)
 }
 
 func summaryLine(label string, values []string) string {

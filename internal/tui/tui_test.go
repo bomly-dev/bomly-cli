@@ -140,7 +140,9 @@ func TestNewDiffInteractiveModel_ViewIncludesManifestChanges(t *testing.T) {
 
 	view := model.View(100, 26)
 	for _, want := range []string{
-		"Bomly Interactive Diff: base -> head",
+		"DIFF",
+		"base -> head",
+		"[1] Diff",
 		"package.json (npm)",
 		"Manifest changes",
 		"Package changes",
@@ -681,6 +683,112 @@ func TestScanInteractiveModel_FiltersAndScopeBadges(t *testing.T) {
 	plain = render.StripANSI(model.View(100, 30))
 	if strings.Contains(plain, "demo-app@1.0.0  ROOT") || !strings.Contains(plain, "react@18.2.0") {
 		t.Fatalf("expected direct relationship filter to hide root row, got:\n%s", plain)
+	}
+}
+
+func TestScanInteractiveModel_EcosystemFilterUpdatesComponents(t *testing.T) {
+	g := sdk.New()
+	root := sdk.NewPackage(sdk.Package{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"})
+	npmDep := sdk.NewPackage(sdk.Package{Name: "react", Version: "18.2.0", Ecosystem: "npm"})
+	goDep := sdk.NewPackage(sdk.Package{Name: "cobra", Version: "1.8.0", Ecosystem: "go"})
+	for _, pkg := range []*sdk.Package{root, npmDep, goDep} {
+		if err := g.AddPackage(pkg); err != nil {
+			t.Fatalf("add package: %v", err)
+		}
+	}
+	for _, dep := range []*sdk.Package{npmDep, goDep} {
+		if err := g.AddDependency(root.ID, dep.ID); err != nil {
+			t.Fatalf("add dependency: %v", err)
+		}
+	}
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
+			RelativePath:            ".",
+			PrimaryDetector:         "npm-detector",
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
+		},
+		DetectorName: "npm-detector",
+		Origin:       sdk.CoreOrigin,
+		Technique:    sdk.LockfileTechnique,
+		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+	}})
+	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
+	model.SelectView(2)
+	model.ecosystemFilter = "npm"
+	model.rebuildListPreserveSelection()
+
+	plain := render.StripANSI(model.View(110, 32))
+	if !strings.Contains(plain, "Ecosystem: npm") || !strings.Contains(plain, "Components (2)") {
+		t.Fatalf("expected npm ecosystem filter state and count, got:\n%s", plain)
+	}
+	if !strings.Contains(plain, "react@18.2.0") || strings.Contains(plain, "cobra@1.8.0") {
+		t.Fatalf("expected ecosystem filter to keep npm rows only, got:\n%s", plain)
+	}
+}
+
+func TestScanInteractiveModel_ManifestDetailsIncludeDetectorMetadata(t *testing.T) {
+	g := sdk.New()
+	root := sdk.NewPackage(sdk.Package{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"})
+	if err := g.AddPackage(root); err != nil {
+		t.Fatalf("add package: %v", err)
+	}
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
+			RelativePath:            ".",
+			PrimaryDetector:         "npm-detector",
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			PlannedDetectors:        []string{"npm-detector", "syft-detector"},
+			Ecosystem:               sdk.EcosystemNPM,
+		},
+		DetectorName: "npm-detector",
+		Origin:       sdk.CoreOrigin,
+		Technique:    sdk.LockfileTechnique,
+		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+	}})
+	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
+	model.SelectView(2)
+	model.Move(1)
+
+	plain := render.StripANSI(model.View(110, 32))
+	for _, want := range []string{"Detector", "Name: npm-detector", "Package managers: npm", "Planned chain: npm-detector, syft-detector"} {
+		if !strings.Contains(plain, want) {
+			t.Fatalf("expected manifest details to contain %q, got:\n%s", want, plain)
+		}
+	}
+}
+
+func TestScanInteractiveModel_FindingsCanGroupByEcosystem(t *testing.T) {
+	pkg := sdk.NewPackage(sdk.Package{Name: "react", Version: "18.2.0", Ecosystem: "npm"})
+	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, sdk.ConsolidatedGraph{}, sdk.New(), []sdk.Finding{
+		{ID: "F-1", Kind: sdk.FindingKindPolicy, Severity: "high", Package: pkg},
+	})
+	model.SelectView(5)
+	for range 3 {
+		model.CycleGroup()
+	}
+
+	plain := render.StripANSI(model.View(100, 26))
+	if !strings.Contains(plain, "Group: ecosystem") || !strings.Contains(plain, "npm (1)") {
+		t.Fatalf("expected findings grouped by ecosystem, got:\n%s", plain)
+	}
+}
+
+func TestScanInteractiveModel_ExplainTopBarUsesQuery(t *testing.T) {
+	model := NewExplain(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, "react", sdk.ConsolidatedGraph{}, sdk.New(), nil)
+	plain := render.StripANSI(model.View(100, 26))
+	if !strings.Contains(plain, "EXPLAIN") || !strings.Contains(plain, "package: react") || strings.Contains(plain, "SCAN") {
+		t.Fatalf("expected explain top bar to include command and query, got:\n%s", plain)
 	}
 }
 

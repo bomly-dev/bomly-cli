@@ -45,6 +45,20 @@ func TestCommandContextResolveExecutionTarget_Container(t *testing.T) {
 	}
 }
 
+func TestProjectDescriptor_UsesUserFacingTargetLabels(t *testing.T) {
+	containerOptions := Options{executionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetContainerImage, Location: "example/demo:1.0"}}
+	containerProject := containerOptions.ProjectDescriptor()
+	if containerProject.Name != "example/demo:1.0" || containerProject.Path != "example/demo:1.0" || containerProject.TargetType != "container image" {
+		t.Fatalf("unexpected container project descriptor: %#v", containerProject)
+	}
+
+	urlOptions := Options{executionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetGitRepository, Location: `C:\Temp\bomly-clone`, RepositoryURL: "https://github.com/acme/demo.git"}}
+	urlProject := urlOptions.ProjectDescriptor()
+	if urlProject.Name != "https://github.com/acme/demo.git" || urlProject.Path != "https://github.com/acme/demo.git" || urlProject.TargetType != "git repository" {
+		t.Fatalf("unexpected url project descriptor: %#v", urlProject)
+	}
+}
+
 func TestCommandContextResolveExecutionTarget_RejectsMultipleTargets(t *testing.T) {
 	options := Options{ResolvedConfig: config.Resolved{Path: ".", Container: "alpine:3.20"}}
 

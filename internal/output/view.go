@@ -261,6 +261,7 @@ func BuildDiffResponse(projectPath, baseRef, headRef string, baseConsolidated, h
 		Project: ProjectDescriptor{
 			Name:           filepathBase(projectPath),
 			Path:           projectPath,
+			TargetType:     "dependency diff",
 			Ecosystem:      "multiple",
 			PackageManager: "multiple",
 		},

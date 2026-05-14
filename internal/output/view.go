@@ -129,7 +129,8 @@ type ExplainTargetResponse struct {
 }
 
 // BuildScanResponse constructs the structured scan payload from consolidated
-// manifest selections and findings.
+// manifest selections and findings. Reachability metadata (analyzer runs and
+// per-analyzer stats) is attached afterwards via ScanResponse.WithAnalyzerRuns.
 func BuildScanResponse(project ProjectDescriptor, consolidated sdk.ConsolidatedGraph, findings []sdk.Finding, started time.Time) ScanResponse {
 	response := ScanResponse{
 		SchemaVersion: SchemaVersion,
@@ -143,6 +144,23 @@ func BuildScanResponse(project ProjectDescriptor, consolidated sdk.ConsolidatedG
 		response.AuditSummary = SummaryFromFindings(findings)
 	}
 	return response
+}
+
+// WithAnalyzerRuns annotates a ScanResponse with analyzer run names and
+// per-analyzer reachability stats. Returns the response by value so it
+// can be chained from BuildScanResponse callers without intermediate
+// state.
+func (r ScanResponse) WithAnalyzerRuns(runs []string, stats map[string]sdk.ReachabilityStats) ScanResponse {
+	if len(runs) > 0 {
+		r.Metadata.AnalyzerRuns = append([]string(nil), runs...)
+	}
+	if len(stats) > 0 {
+		r.Metadata.AnalyzerStats = make(map[string]sdk.ReachabilityStats, len(stats))
+		for k, v := range stats {
+			r.Metadata.AnalyzerStats[k] = v
+		}
+	}
+	return r
 }
 
 // ScanManifestsFromConsolidated converts consolidated manifest selections into stable scan payloads.

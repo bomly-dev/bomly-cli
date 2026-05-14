@@ -163,6 +163,51 @@ func normalizeJSON(t *testing.T, raw []byte) []byte {
 	return append(out, '\n')
 }
 
+// scrubReachabilityFields zeroes the volatile fields on a reachability
+// map: analyzed_at, every call_paths[*].frames[*].position file/line/column,
+// and any frame.position with absolute file paths.
+//
+//nolint:unused // retained as a helper if narrower scrubbing is needed.
+func scrubReachabilityFields(r map[string]any) {
+	if _, ok := r["analyzed_at"]; ok {
+		r["analyzed_at"] = "<timestamp>"
+	}
+	paths, ok := r["call_paths"].([]any)
+	if !ok {
+		return
+	}
+	for _, p := range paths {
+		path, ok := p.(map[string]any)
+		if !ok {
+			continue
+		}
+		frames, ok := path["frames"].([]any)
+		if !ok {
+			continue
+		}
+		for _, f := range frames {
+			frame, ok := f.(map[string]any)
+			if !ok {
+				continue
+			}
+			pos, ok := frame["position"].(map[string]any)
+			if !ok {
+				continue
+			}
+			if file, ok := pos["file"].(string); ok && file != "" {
+				if filepath.IsAbs(file) {
+					pos["file"] = "<repo>/" + filepath.Base(file)
+				}
+			}
+			pos["line"] = 0
+			pos["column"] = 0
+			if _, ok := pos["end_line"]; ok {
+				pos["end_line"] = 0
+			}
+		}
+	}
+}
+
 // normalizeManifestPaths normalizes path and subproject within a manifest map.
 func normalizeManifestPaths(m any) {
 	mm, ok := m.(map[string]any)

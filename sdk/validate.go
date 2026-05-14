@@ -20,7 +20,7 @@ func ValidateMetadata(metadata *PluginMetadata) error {
 		return fmt.Errorf("plugin metadata version is required")
 	}
 	switch metadata.Kind {
-	case PluginKindDetector, PluginKindMatcher, PluginKindAuditor:
+	case PluginKindDetector, PluginKindMatcher, PluginKindAuditor, PluginKindAnalyzer:
 	default:
 		return fmt.Errorf("plugin metadata kind %q is invalid", metadata.Kind)
 	}

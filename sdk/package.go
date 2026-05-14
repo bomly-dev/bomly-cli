@@ -6,18 +6,6 @@ import (
 	"strings"
 )
 
-// SourcePosition points at a specific location in a source file. Used
-// by detectors to record where in a lockfile or manifest a dependency
-// is declared so consumers (SARIF, explain output, IDE plugins) can
-// deep-link into the source. All numeric fields are 1-based; a zero
-// value means "unknown".
-type SourcePosition struct {
-	File    string `json:"file,omitempty"`     // path, typically project-relative
-	Line    int    `json:"line,omitempty"`     // 1-based; 0 = unknown
-	Column  int    `json:"column,omitempty"`   // 1-based; 0 = unknown
-	EndLine int    `json:"end_line,omitempty"` // optional range end
-}
-
 // PackageLocation captures where a package was discovered.
 type PackageLocation struct {
 	RealPath   string

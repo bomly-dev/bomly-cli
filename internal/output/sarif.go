@@ -51,14 +51,17 @@ type sarifRuleConfig struct {
 }
 
 type sarifResult struct {
-	RuleID    string          `json:"ruleId"`
-	Level     string          `json:"level"`
-	Message   sarifMessage    `json:"message"`
-	Locations []sarifLocation `json:"locations"`
+	RuleID     string           `json:"ruleId"`
+	Level      string           `json:"level"`
+	Message    sarifMessage     `json:"message"`
+	Locations  []sarifLocation  `json:"locations"`
+	CodeFlows  []sarifCodeFlow  `json:"codeFlows,omitempty"`
+	Properties *sarifProperties `json:"properties,omitempty"`
 }
 
 type sarifLocation struct {
 	PhysicalLocation sarifPhysicalLocation `json:"physicalLocation"`
+	Message          *sarifMessage         `json:"message,omitempty"`
 }
 
 type sarifPhysicalLocation struct {
@@ -83,6 +86,35 @@ type sarifRegion struct {
 
 type sarifMessage struct {
 	Text string `json:"text"`
+}
+
+// sarifCodeFlow carries Reachability call paths as SARIF 2.1.0 codeFlows.
+// One CallPath becomes one threadFlow; one CallFrame becomes one location
+// in that threadFlow with file/line/column from the analyzer's evidence.
+type sarifCodeFlow struct {
+	ThreadFlows []sarifThreadFlow `json:"threadFlows"`
+}
+
+type sarifThreadFlow struct {
+	Locations []sarifThreadFlowLocation `json:"locations"`
+}
+
+type sarifThreadFlowLocation struct {
+	Location sarifLocation `json:"location"`
+}
+
+// sarifProperties exposes Bomly-specific finding metadata SARIF consumers
+// can surface. SARIF 2.1.0 allows arbitrary `properties` per result;
+// these fields give consumers everything needed to triage a finding
+// without parsing the parallel JSON output.
+type sarifProperties struct {
+	Reachability           string `json:"reachability,omitempty"`
+	ReachabilityTier       string `json:"reachability_tier,omitempty"`
+	ReachabilityReason     string `json:"reachability_reason,omitempty"`
+	Analyzer               string `json:"analyzer,omitempty"`
+	ReachabilityConfidence string `json:"reachability_confidence,omitempty"`
+	ReachabilityHops       *int   `json:"reachability_hops,omitempty"`
+	DynamicImportsDetected bool   `json:"reachability_dynamic_imports_detected,omitempty"`
 }
 
 // WriteSARIF writes findings as a SARIF 2.1.0 document to w.
@@ -121,12 +153,31 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, toolName, toolVersion strin
 		if pkgName != "" {
 			msgText = fmt.Sprintf("%s in %s@%s", f.Title, pkgName, pkgVersion)
 		}
-		results = append(results, sarifResult{
+		result := sarifResult{
 			RuleID:    f.ID,
 			Level:     severityToSARIFLevel(f.Severity),
 			Message:   sarifMessage{Text: msgText},
 			Locations: sarifLocationsForFinding(f, pkgName),
-		})
+		}
+		if f.Reachability != nil {
+			props := &sarifProperties{
+				Reachability:           string(f.Reachability.Status),
+				ReachabilityTier:       string(f.Reachability.Tier),
+				ReachabilityReason:     f.Reachability.Reason,
+				Analyzer:               f.Reachability.Analyzer,
+				ReachabilityConfidence: string(f.Reachability.Confidence),
+				DynamicImportsDetected: f.Reachability.DynamicImportsDetected,
+			}
+			if f.Reachability.Hops != nil {
+				h := *f.Reachability.Hops
+				props.ReachabilityHops = &h
+			}
+			result.Properties = props
+			if flows := buildSARIFCodeFlows(f.Reachability.CallPaths); len(flows) > 0 {
+				result.CodeFlows = flows
+			}
+		}
+		results = append(results, result)
 	}
 
 	log := sarifLog{
@@ -150,6 +201,55 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, toolName, toolVersion strin
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
 	return enc.Encode(log)
+}
+
+// buildSARIFCodeFlows converts reachability call paths into SARIF
+// codeFlows. Returns nil if every path lacks frames so the final SARIF
+// document keeps the codeFlows array absent for affected rules.
+func buildSARIFCodeFlows(paths []sdk.CallPath) []sarifCodeFlow {
+	flows := make([]sarifCodeFlow, 0, len(paths))
+	for _, path := range paths {
+		if len(path.Frames) == 0 {
+			continue
+		}
+		locs := make([]sarifThreadFlowLocation, 0, len(path.Frames))
+		for _, frame := range path.Frames {
+			locs = append(locs, sarifThreadFlowLocation{
+				Location: sarifLocation{
+					PhysicalLocation: sarifPhysicalLocation{
+						ArtifactLocation: sarifArtifactLocation{URI: frame.Position.File},
+						Region:           sarifRegionFromPosition(frame.Position),
+					},
+					Message: &sarifMessage{Text: sarifFrameDescription(frame)},
+				},
+			})
+		}
+		flows = append(flows, sarifCodeFlow{ThreadFlows: []sarifThreadFlow{{Locations: locs}}})
+	}
+	if len(flows) == 0 {
+		return nil
+	}
+	return flows
+}
+
+func sarifRegionFromPosition(p sdk.SourcePosition) *sarifRegion {
+	if p.Line == 0 && p.Column == 0 && p.EndLine == 0 {
+		return nil
+	}
+	return &sarifRegion{StartLine: p.Line, StartColumn: p.Column, EndLine: p.EndLine}
+}
+
+func sarifFrameDescription(frame sdk.CallFrame) string {
+	switch {
+	case frame.Function != "" && frame.Package != "":
+		return frame.Package + "." + frame.Function
+	case frame.Function != "":
+		return frame.Function
+	case frame.Package != "":
+		return frame.Package
+	default:
+		return ""
+	}
 }
 
 // sarifLocationsForFinding builds the SARIF Locations array for a

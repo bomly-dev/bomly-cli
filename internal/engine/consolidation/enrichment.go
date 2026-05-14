@@ -132,17 +132,30 @@ func syncPackageEnrichment(dst, src *sdk.Package) {
 		dst.Matched = true
 	}
 	if len(src.Vulnerabilities) > 0 {
-		seen := make(map[string]struct{}, len(dst.Vulnerabilities))
-		for _, vulnerability := range dst.Vulnerabilities {
-			seen[vulnerability.Source+"\x00"+vulnerability.ID] = struct{}{}
+		idx := make(map[string]int, len(dst.Vulnerabilities))
+		for i, vulnerability := range dst.Vulnerabilities {
+			idx[vulnerability.Source+"\x00"+vulnerability.ID] = i
 		}
 		for _, vulnerability := range src.Vulnerabilities {
 			key := vulnerability.Source + "\x00" + vulnerability.ID
-			if _, exists := seen[key]; exists {
+			if existing, ok := idx[key]; ok {
+				// Merge analyzer-supplied fields onto an existing entry so
+				// reachability and affected-symbol annotations propagate
+				// from the consolidated graph back to per-manifest entries.
+				dstEntry := &dst.Vulnerabilities[existing]
+				if dstEntry.Reachability == nil && vulnerability.Reachability != nil {
+					dstEntry.Reachability = vulnerability.Reachability.Clone()
+				}
+				if len(dstEntry.AffectedSymbols) == 0 && len(vulnerability.AffectedSymbols) > 0 {
+					dstEntry.AffectedSymbols = make([]sdk.AffectedSymbol, 0, len(vulnerability.AffectedSymbols))
+					for _, sym := range vulnerability.AffectedSymbols {
+						dstEntry.AffectedSymbols = append(dstEntry.AffectedSymbols, sym.Clone())
+					}
+				}
 				continue
 			}
 			dst.Vulnerabilities = append(dst.Vulnerabilities, vulnerability.Clone())
-			seen[key] = struct{}{}
+			idx[key] = len(dst.Vulnerabilities) - 1
 		}
 	}
 	if len(src.Metadata) > 0 {

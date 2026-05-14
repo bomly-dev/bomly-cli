@@ -77,6 +77,61 @@ func (e *Engine) Audit(ctx context.Context, req sdk.AuditRequest) (sdk.AuditResu
 	return aggregated, nil
 }
 
+// Analyze runs registered analyzers against the graph and returns the
+// reachability-annotated graph. Unlike Audit, Analyze does NOT error when
+// zero analyzers apply — reachability is opt-in and a request with no
+// applicable analyzers is a normal outcome.
+func (e *Engine) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.AnalyzeResult, error) {
+	analyzers := e.registry.Analyzers(req)
+	if len(analyzers) == 0 {
+		return sdk.AnalyzeResult{Graph: req.Graph, Target: req.Target}, nil
+	}
+
+	aggregated := sdk.AnalyzeResult{
+		Graph:         req.Graph,
+		Target:        req.Target,
+		AnalyzerStats: make(map[string]sdk.ReachabilityStats),
+	}
+	var errs []error
+	for _, analyzer := range analyzers {
+		name := analyzer.Descriptor().Name
+		if !analyzer.Ready() {
+			errs = append(errs, fmt.Errorf("analyzer %s: not ready", name))
+			continue
+		}
+		applicable, err := analyzer.Applicable(ctx, req)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("analyzer %s: applicability check failed: %w", name, err))
+			continue
+		}
+		if !applicable {
+			continue
+		}
+
+		result, err := analyzer.Analyze(ctx, req)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("analyzer %s: %w", name, err))
+			continue
+		}
+		aggregated.AnalyzerRuns = append(aggregated.AnalyzerRuns, name)
+		if result.Graph != nil {
+			aggregated.Graph = result.Graph
+			req.Graph = result.Graph
+		}
+		if result.Target != nil {
+			aggregated.Target = result.Target
+			req.Target = result.Target
+		}
+		for analyzerName, stats := range result.AnalyzerStats {
+			aggregated.AnalyzerStats[analyzerName] = stats
+		}
+	}
+	if len(errs) > 0 {
+		return aggregated, errors.Join(errs...)
+	}
+	return aggregated, nil
+}
+
 // Match runs registered matchers against the graph and returns the enriched graph.
 func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
 	matcherList := e.registry.Matchers(req)

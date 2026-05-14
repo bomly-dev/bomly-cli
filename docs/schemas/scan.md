@@ -16,6 +16,16 @@ Complete reference for the `bomly scan` JSON output.
 
 ## Types
 
+### `AffectedSymbol`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `symbol` | `string` | |
+| `kind` | `string` | |
+| `package` | `string` | |
+| `module` | `string` | |
+| `definition` | [`SourcePosition`](#sourceposition) | |
+
 ### `AuditFinding`
 
 | Field | Type | Description |
@@ -27,6 +37,7 @@ Complete reference for the `bomly scan` JSON output.
 | `title` | `string` | |
 | `reasons` | Array<`string`> | |
 | `source` | `string` | |
+| `reachability` | [`Reachability`](#reachability) | |
 
 ### `AuditSummary`
 
@@ -47,6 +58,22 @@ Complete reference for the `bomly scan` JSON output.
 | `Score` | `number` | |
 | `Version` | `string` | |
 | `Source` | `string` | |
+
+### `CallFrame`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `function` | `string` | |
+| `package` | `string` | |
+| `receiver` | `string` | |
+| `position` | [`SourcePosition`](#sourceposition) | |
+
+### `CallPath`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `sink` | [`AffectedSymbol`](#affectedsymbol) | |
+| `frames` | Array<[`CallFrame`](#callframe)> | |
 
 ### `LicenseRef`
 
@@ -69,6 +96,8 @@ Complete reference for the `bomly scan` JSON output.
 | Field | Type | Description |
 |-------|------|-------------|
 | `duration_ms` | `integer` | |
+| `analyzer_runs` | Array<`string`> | |
+| `analyzer_stats` | `object` | |
 
 ### `PackageRef`
 
@@ -101,6 +130,21 @@ Complete reference for the `bomly scan` JSON output.
 | `path` | `string` | |
 | `ecosystem` | `string` | |
 | `package_manager` | `string` | |
+
+### `Reachability`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | `string` | |
+| `tier` | `string` | |
+| `analyzer` | `string` | |
+| `reason` | `string` | |
+| `symbols` | Array<[`AffectedSymbol`](#affectedsymbol)> | |
+| `call_paths` | Array<[`CallPath`](#callpath)> | |
+| `hops` | `integer` | |
+| `confidence` | `string` | |
+| `dynamic_imports_detected` | `boolean` | |
+| `analyzed_at` | `string` | |
 
 ### `Reference`
 
@@ -136,6 +180,15 @@ Complete reference for the `bomly scan` JSON output.
 | `vulnerabilities` | Array<[`VulnerabilityRef`](#vulnerabilityref)> | |
 | `dependencies` | Array<`string`> | |
 
+### `SourcePosition`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `file` | `string` | |
+| `line` | `integer` | |
+| `column` | `integer` | |
+| `end_line` | `integer` | |
+
 ### `VulnerabilityRef`
 
 | Field | Type | Description |
@@ -153,4 +206,6 @@ Complete reference for the `bomly scan` JSON output.
 | `affected_version_range` | `string` | |
 | `references` | Array<[`Reference`](#reference)> | |
 | `kev_exploited` | `boolean` | |
+| `affected_symbols` | Array<[`AffectedSymbol`](#affectedsymbol)> | |
+| `reachability` | [`Reachability`](#reachability) | |
 

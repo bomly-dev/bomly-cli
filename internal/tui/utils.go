@@ -43,12 +43,21 @@ func boxView(title string, content []string, width, height int, color string) []
 	}
 	lines := []string{border("┌" + topLabel + strings.Repeat("─", topFill) + "┐")}
 	contentHeight := height - 2
+	horizontalPadding := 1
+	contentWidth := inner - horizontalPadding*2
+	if contentWidth < 1 {
+		horizontalPadding = 0
+		contentWidth = inner
+	}
+	leftPad := strings.Repeat(" ", horizontalPadding)
+	rightPad := strings.Repeat(" ", horizontalPadding)
 	for idx := 0; idx < contentHeight; idx++ {
 		line := ""
 		if idx < len(content) {
 			line = content[idx]
 		}
-		lines = append(lines, border("│")+padRight(truncateToWidth(line, inner), inner)+border("│"))
+		padded := leftPad + padRight(truncateToWidth(line, contentWidth), contentWidth) + rightPad
+		lines = append(lines, border("│")+padded+border("│"))
 	}
 	lines = append(lines, border("└"+strings.Repeat("─", inner)+"┘"))
 	return lines

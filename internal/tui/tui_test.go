@@ -263,7 +263,7 @@ func TestScanInteractiveModel_MultiManifestNavigation(t *testing.T) {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 	model := NewScan(output.ProjectDescriptor{Name: "multi", Path: "/tmp/multi"}, consolidated, graphValue, nil)
-	plain := render.StripANSI(model.View(100, 20))
+	plain := render.StripANSI(model.View(100, 30))
 	if !strings.Contains(plain, "[1] Overview") || !strings.Contains(plain, "Manifests: 2") {
 		t.Fatalf("expected overview view, got:\n%s", plain)
 	}
@@ -662,20 +662,20 @@ func TestScanInteractiveModel_FiltersAndScopeBadges(t *testing.T) {
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
 	model.SelectView(2)
 
-	plain := render.StripANSI(model.View(100, 20))
+	plain := render.StripANSI(model.View(100, 30))
 	if !strings.Contains(plain, "react@18.2.0") || !strings.Contains(plain, "vitest@2.0.0") {
 		t.Fatalf("expected scoped component rows, got:\n%s", plain)
 	}
 
 	model.CycleScopeFilter()
-	plain = render.StripANSI(model.View(100, 20))
+	plain = render.StripANSI(model.View(100, 30))
 	if !strings.Contains(plain, "react@18.2.0") || strings.Contains(plain, "vitest@2.0.0") {
 		t.Fatalf("expected runtime scope filter to keep only runtime packages, got:\n%s", plain)
 	}
 
 	model.CycleRelationshipFilter()
 	model.CycleRelationshipFilter()
-	plain = render.StripANSI(model.View(100, 20))
+	plain = render.StripANSI(model.View(100, 30))
 	if strings.Contains(plain, "demo-app@1.0.0  ROOT") || !strings.Contains(plain, "react@18.2.0") {
 		t.Fatalf("expected direct relationship filter to hide root row, got:\n%s", plain)
 	}
@@ -785,7 +785,7 @@ func TestScanInteractiveModel_OverviewDashboardUsesBordersAndBars(t *testing.T) 
 func TestScanInteractiveModel_SourceTreeCollapsesRoot(t *testing.T) {
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, sdk.ConsolidatedGraph{}, sdk.New(), nil)
 	model.SelectView(6)
-	plain := render.StripANSI(model.View(100, 20))
+	plain := render.StripANSI(model.View(100, 30))
 	if !strings.Contains(plain, "packages: [] (0 items)") {
 		t.Fatalf("expected expanded source root, got:\n%s", plain)
 	}
@@ -793,7 +793,7 @@ func TestScanInteractiveModel_SourceTreeCollapsesRoot(t *testing.T) {
 		t.Fatalf("expected source tree to use structured connectors, got:\n%s", plain)
 	}
 	model.ToggleSelected()
-	plain = render.StripANSI(model.View(100, 20))
+	plain = render.StripANSI(model.View(100, 30))
 	if strings.Contains(plain, "packages: [] (0 items)") {
 		t.Fatalf("expected collapsed source root to hide packages, got:\n%s", plain)
 	}

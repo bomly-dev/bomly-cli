@@ -64,6 +64,8 @@ type toggleModel interface {
 type treeControlModel interface {
 	ExpandSelected()
 	CollapseSelected()
+	ExpandAll()
+	CollapseAll()
 }
 
 type groupModel interface {
@@ -178,6 +180,10 @@ type scanModel struct {
 	componentExpanded     map[string]bool
 	vulnerabilityGroup    string
 	vulnerabilityExpanded map[string]bool
+	licenseGroup          string
+	licenseExpanded       map[string]bool
+	findingGroup          string
+	findingExpanded       map[string]bool
 	list                  *listModel
 }
 
@@ -296,6 +302,14 @@ func (m *teaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "right", "l":
 			if treeModel, ok := m.inner.(treeControlModel); ok {
 				treeModel.ExpandSelected()
+			}
+		case "]":
+			if treeModel, ok := m.inner.(treeControlModel); ok {
+				treeModel.ExpandAll()
+			}
+		case "[":
+			if treeModel, ok := m.inner.(treeControlModel); ok {
+				treeModel.CollapseAll()
 			}
 		case "left":
 			if m.confirmQuit {
@@ -489,11 +503,17 @@ func (m *listModel) View(width, height int) string {
 		lines = append(lines, truncateToWidth(summaryLine, width))
 	}
 	if len(m.controls) > 0 {
-		for _, controlLine := range m.controls {
+		for idx, controlLine := range m.controls {
 			lines = append(lines, truncateToWidth(controlLine, width))
+			if idx < len(m.controls)-1 {
+				lines = append(lines, "")
+			}
 		}
 	}
 	if m.searching {
+		if len(m.controls) > 0 {
+			lines = append(lines, "")
+		}
 		lines = append(lines, truncateToWidth(m.searchLine(width), width))
 	}
 	if len(m.controls) > 0 || m.searching {
@@ -717,7 +737,7 @@ func (m *listModel) visibleListLines(width, height int, visible []int) []string 
 		if tree == "" && item.depth > 0 {
 			tree = strings.Repeat("   ", item.depth)
 		}
-		marker := ""
+		marker := "  "
 		if item.canOpen {
 			marker = "▸ "
 			if item.expanded {

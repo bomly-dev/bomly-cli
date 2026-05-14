@@ -129,6 +129,7 @@ Complete reference for the `bomly scan` JSON output.
 | `name` | `string` | |
 | `path` | `string` | |
 | `target_type` | `string` | |
+| `target_ref` | `string` | |
 | `ecosystem` | `string` | |
 | `package_manager` | `string` | |
 

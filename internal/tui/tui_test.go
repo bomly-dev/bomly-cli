@@ -142,13 +142,12 @@ func TestNewDiffInteractiveModel_ViewIncludesManifestChanges(t *testing.T) {
 	for _, want := range []string{
 		"DIFF",
 		"base -> head",
-		"[1] Diff",
+		"[1] Overview",
+		"[2] Added",
 		"package.json (npm)",
-		"Manifest changes",
-		"Package changes",
+		"Manifest Changes",
+		"Package Changes",
 		"Added packages",
-		"zod@3.23.0",
-		"react@19.0.0 (18.2.0 -> 19.0.0)",
 	} {
 		if !strings.Contains(render.StripANSI(view), want) {
 			t.Fatalf("expected view to contain %q, got:\n%s", want, view)
@@ -1113,5 +1112,36 @@ func TestNewDiffInteractiveModel_OrdersRemovedAddedChanged(t *testing.T) {
 	}
 	if got, want := model.items[2].subtitle, "changed"; got != want {
 		t.Fatalf("expected third item status %q, got %q", want, got)
+	}
+}
+
+func TestNewDiffInteractiveModel_UsesPackageTabs(t *testing.T) {
+	model := NewDiff(output.DiffResponse{
+		Comparison: output.DiffComparison{Base: "base", Head: "head"},
+		Results: output.DiffResults{Manifests: []output.DiffManifestResult{{
+			Status:         "changed",
+			Path:           "package.json",
+			PackageManager: "npm",
+			Added:          []output.DiffPackageChange{{Package: output.PackageRef{Name: "zod", Version: "3.23.0"}}},
+			Removed:        []output.DiffPackageChange{{Package: output.PackageRef{Name: "left-pad", Version: "1.3.0"}}},
+			Changed:        []output.DiffChangedPackage{{Before: output.PackageRef{Name: "react", Version: "18.2.0"}, After: output.PackageRef{Name: "react", Version: "19.0.0"}}},
+		}}},
+		Summary: output.DiffSummary{AddedPackageCount: 1, RemovedPackageCount: 1, ChangedPackageCount: 1},
+	})
+
+	model.SelectView(2)
+	plain := render.StripANSI(model.View(100, 26))
+	if !strings.Contains(plain, "[2] Added") || !strings.Contains(plain, "zod@3.23.0") || strings.Contains(plain, "left-pad@1.3.0") {
+		t.Fatalf("expected added package tab, got:\n%s", plain)
+	}
+	model.SelectView(3)
+	plain = render.StripANSI(model.View(100, 26))
+	if !strings.Contains(plain, "[3] Removed") || !strings.Contains(plain, "left-pad@1.3.0") || strings.Contains(plain, "zod@3.23.0") {
+		t.Fatalf("expected removed package tab, got:\n%s", plain)
+	}
+	model.SelectView(4)
+	plain = render.StripANSI(model.View(100, 26))
+	if !strings.Contains(plain, "[4] Changed") || !strings.Contains(plain, "react@19.0.0") || !strings.Contains(plain, "react@18.2.0") {
+		t.Fatalf("expected changed package tab, got:\n%s", plain)
 	}
 }

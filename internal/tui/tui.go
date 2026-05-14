@@ -136,6 +136,7 @@ type listPackageRow struct {
 	ecosystem        string
 	relationship     string
 	purl             string
+	repeated         bool
 	detectorName     string
 	origin           string
 	technique        string

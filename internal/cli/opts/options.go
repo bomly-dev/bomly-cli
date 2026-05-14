@@ -349,6 +349,7 @@ func (o *Options) ProjectDescriptor() output.ProjectDescriptor {
 		Name:           displayTargetName(o.executionTarget),
 		Path:           location,
 		TargetType:     displayTargetType(o.executionTarget),
+		TargetRef:      o.executionTarget.Ref,
 		Ecosystem:      ecosystem,
 		PackageManager: packageManager,
 	}
@@ -366,6 +367,7 @@ func (o *Options) ProjectDescriptorForSubproject(subproject sdk.Subproject) outp
 		Name:           name,
 		Path:           displayTargetLocation(subproject.ExecutionTarget),
 		TargetType:     displayTargetType(subproject.ExecutionTarget),
+		TargetRef:      subproject.ExecutionTarget.Ref,
 		Ecosystem:      string(subproject.Ecosystem),
 		PackageManager: subproject.PrimaryPackageManager().Name(),
 	}

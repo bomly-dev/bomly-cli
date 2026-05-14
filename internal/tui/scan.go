@@ -470,6 +470,9 @@ func (m *scanModel) scanSummaryLines(active scanView) []string {
 	if m.explainMode && m.explainQuery != "" {
 		targetParts = append(targetParts, render.Style("package: "+m.explainQuery, render.Cyan, render.Bold))
 	}
+	if strings.TrimSpace(m.project.TargetRef) != "" {
+		targetParts = append(targetParts, render.Style("ref: "+m.project.TargetRef, render.Cyan, render.Bold))
+	}
 	return []string{
 		render.Style(" bomly ", render.BgCyan, render.Blue, render.Bold) + " " +
 			render.Style(m.commandLabel(), render.BgBlue, render.White, render.Bold) + " " +
@@ -669,6 +672,10 @@ func (m *scanModel) buildComponentsTreeListModel() *listModel {
 				}
 				deps, _ := m.graphValue.Dependencies(row.id)
 				expanded := expandedValue(m.componentExpanded, row.id, row.relationship == "root")
+				if row.repeated {
+					deps = nil
+					expanded = false
+				}
 				items = append(items, listItem{
 					title:    row.displayName,
 					subtitle: row.relationship,
@@ -928,6 +935,7 @@ func (m *scanModel) overviewDashboardView(width, height int) string {
 		boxView("Target", []string{
 			render.Style("Name: ", render.Dim) + valueOrDash(m.project.Name),
 			render.Style("Type: ", render.Dim) + targetKindLabel(m.project),
+			render.Style("Ref: ", render.Dim) + valueOrDash(m.project.TargetRef),
 			render.Style("Path: ", render.Dim) + valueOrDash(m.project.Path),
 			render.Style("Ecosystem: ", render.Dim) + valueOrDash(m.project.Ecosystem),
 			render.Style("Package manager: ", render.Dim) + valueOrDash(m.project.PackageManager),
@@ -953,9 +961,9 @@ func (m *scanModel) overviewDashboardView(width, height int) string {
 		leftC = 4
 	}
 	leftContent := stackBoxes(
-		boxView("Vulnerability Severity", severityDistributionLines(m.findings, leftWidth-2), leftWidth, leftA, render.Red),
-		boxView("Ecosystem Distribution", coloredDistributionLines(stats.ecosystems, stats.components, 8, leftWidth-2), leftWidth, leftB, render.Cyan),
-		boxView("License Distribution", coloredDistributionLines(groupedLicenseCounts(m.graphValue, 10), stats.components, 10, leftWidth-2), leftWidth, leftC, render.Yellow),
+		boxView("Ecosystem Distribution", coloredDistributionLines(stats.ecosystems, stats.components, 8, leftWidth-2), leftWidth, leftA, render.Cyan),
+		boxView("Relationship Distribution", componentsByRelationshipLines(m.manifests, m.graphValue, leftWidth-2), leftWidth, leftB, render.Cyan),
+		boxView("Scope Distribution", componentsByScopeLines(m.manifests, m.graphValue, leftWidth-2), leftWidth, leftC, render.Green),
 	)
 	rightA := remaining / 3
 	if rightA < 6 && remaining >= 18 {
@@ -967,9 +975,9 @@ func (m *scanModel) overviewDashboardView(width, height int) string {
 		rightC = 4
 	}
 	rightContent := stackBoxes(
-		boxView(fmt.Sprintf("Top Vulnerable Components (%d)", vulnerableComponentTotal(m.graphValue, m.findings)), topVulnerableTableLines(topVuln, rightWidth-2), rightWidth, rightA, render.Red),
-		boxView("Components by Relationship", componentsByRelationshipLines(m.manifests, m.graphValue, rightWidth-2), rightWidth, rightB, render.Cyan),
-		boxView("Components by Scope", componentsByScopeLines(m.manifests, m.graphValue, rightWidth-2), rightWidth, rightC, render.Green),
+		boxView("License Distribution", coloredDistributionLines(groupedLicenseCounts(m.graphValue, 10), stats.components, 10, rightWidth-2), rightWidth, rightA, render.Yellow),
+		boxView("Vulnerability Severity", severityDistributionLines(m.findings, rightWidth-2), rightWidth, rightB, render.Red),
+		boxView(fmt.Sprintf("Top Vulnerable Components (%d)", vulnerableComponentTotal(m.graphValue, m.findings)), topVulnerableTableLines(topVuln, rightWidth-2), rightWidth, rightC, render.Red),
 	)
 	lines = append(lines, joinColumns(leftContent, rightContent, leftWidth, rightWidth)...)
 	lines = append(lines, footerLines...)
@@ -1816,6 +1824,10 @@ func (m *scanModel) buildComponentListModel(manifest listPackageRow) *listModel 
 				expanded = m.componentExpanded[row.id]
 			}
 		}
+		if row.repeated {
+			deps = nil
+			expanded = false
+		}
 		items = append(items, listItem{
 			title:    row.displayName,
 			subtitle: row.relationship,
@@ -2052,6 +2064,7 @@ func (m *scanModel) componentTreeRows(rootID string) []listPackageRow {
 		return nil
 	}
 	rows := make([]listPackageRow, 0)
+	renderedSubtrees := make(map[string]struct{})
 	var walk func(pkg *sdk.Package, depth int, ancestors []bool, last bool, visited map[string]struct{})
 	walk = func(pkg *sdk.Package, depth int, ancestors []bool, last bool, visited map[string]struct{}) {
 		if pkg == nil {
@@ -2067,6 +2080,13 @@ func (m *scanModel) componentTreeRows(rootID string) []listPackageRow {
 		row := packageRowFromGraph(pkg, relationship)
 		row.depth = depth
 		row.tree = treePrefix(ancestors, last, depth)
+		if depth > 0 {
+			if _, repeated := renderedSubtrees[pkg.ID]; repeated {
+				row.repeated = true
+				rows = append(rows, row)
+				return
+			}
+		}
 		rows = append(rows, row)
 
 		expanded := m.componentExpanded[pkg.ID]
@@ -2083,6 +2103,7 @@ func (m *scanModel) componentTreeRows(rootID string) []listPackageRow {
 		if err != nil || len(deps) == 0 {
 			return
 		}
+		renderedSubtrees[pkg.ID] = struct{}{}
 		sort.Slice(deps, func(i, j int) bool {
 			return packageSortKey(deps[i]) < packageSortKey(deps[j])
 		})
@@ -2193,6 +2214,14 @@ func componentDetails(graphValue *sdk.Graph, row listPackageRow, manifest listPa
 		appendPackages("Dependencies", deps)
 		dependents, _ := graphValue.Dependents(row.id)
 		appendPackages("Dependents", dependents)
+	}
+	if row.repeated {
+		lines = append(lines,
+			render.Style("Repeated branch", render.Bold, render.Yellow),
+			"",
+			render.Style("  This component already appears earlier in the tree; its dependency branch is not repeated here.", render.Dim),
+			"",
+		)
 	}
 
 	// Vulnerabilities section
@@ -2643,7 +2672,8 @@ func componentsByRelationshipLines(manifests []listPackageRow, graphValue *sdk.G
 		nameWidth = 16
 	}
 	lines := []string{render.Style(padRight("Manifest", nameWidth)+padRight("Direct", 8)+padRight("Transitive", 12)+"Root", render.Dim)}
-	for _, manifest := range manifests {
+	displayed, remaining := displayManifestsWithRemainder(manifests, 10)
+	for _, manifest := range displayed {
 		counts := map[string]int{"root": 0, "direct": 0, "transitive": 0}
 		for _, row := range componentCountRows(graphValue, manifest.rootID) {
 			counts[valueOrDefault(row.relationship, "transitive")]++
@@ -2654,6 +2684,9 @@ func componentsByRelationshipLines(manifests []listPackageRow, graphValue *sdk.G
 				padRight(fmt.Sprintf("%d", counts["transitive"]), 12)+
 				fmt.Sprintf("%d", counts["root"]),
 		)
+	}
+	if remaining > 0 {
+		lines = append(lines, render.Style(fmt.Sprintf("+ %d more manifests", remaining), render.Dim))
 	}
 	return lines
 }
@@ -2667,7 +2700,8 @@ func componentsByScopeLines(manifests []listPackageRow, graphValue *sdk.Graph, w
 		nameWidth = 16
 	}
 	lines := []string{render.Style(padRight("Manifest", nameWidth)+padRight("Runtime", 9)+padRight("Development", 13)+"Unset", render.Dim)}
-	for _, manifest := range manifests {
+	displayed, remaining := displayManifestsWithRemainder(manifests, 10)
+	for _, manifest := range displayed {
 		counts := map[string]int{"runtime": 0, "development": 0, "unset": 0}
 		for _, row := range componentCountRows(graphValue, manifest.rootID) {
 			scope := valueOrDefault(row.scope, "unset")
@@ -2683,7 +2717,17 @@ func componentsByScopeLines(manifests []listPackageRow, graphValue *sdk.Graph, w
 				fmt.Sprintf("%d", counts["unset"]),
 		)
 	}
+	if remaining > 0 {
+		lines = append(lines, render.Style(fmt.Sprintf("+ %d more manifests", remaining), render.Dim))
+	}
 	return lines
+}
+
+func displayManifestsWithRemainder(manifests []listPackageRow, limit int) ([]listPackageRow, int) {
+	if limit <= 0 || len(manifests) <= limit {
+		return manifests, 0
+	}
+	return manifests[:limit], len(manifests) - limit
 }
 
 func vulnerableComponentTotal(graphValue *sdk.Graph, findings []sdk.Finding) int {

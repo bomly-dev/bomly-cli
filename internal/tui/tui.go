@@ -182,6 +182,7 @@ type scanModel struct {
 	mode                  scanMode
 	activeView            scanView
 	findings              []sdk.Finding
+	enrichEnabled         bool
 	currentManifestID     string
 	allowManifestExit     bool
 	relationshipFilter    string

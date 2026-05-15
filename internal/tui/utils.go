@@ -234,17 +234,22 @@ func nextSeverityFilter(current string) string {
 	return nextFilterValue(current, values)
 }
 
-// maxSeverityByPkgID returns a map from package ID to the highest
-// severity found across all vulnerability findings for that package.
-func maxSeverityByPkgID(findings []sdk.Finding) map[string]string {
+// maxVulnerabilitySeverityByPkgID returns a map from package ID to the
+// highest severity found across that package's enriched vulnerabilities.
+func maxVulnerabilitySeverityByPkgID(graphValue *sdk.Graph) map[string]string {
 	result := make(map[string]string)
-	for _, f := range findings {
-		if f.Kind != sdk.FindingKindVulnerability || f.Package == nil {
+	if graphValue == nil {
+		return result
+	}
+	for _, pkg := range graphValue.Packages() {
+		if pkg == nil {
 			continue
 		}
-		current := result[f.Package.ID]
-		if severityRank(f.Severity) < severityRank(current) {
-			result[f.Package.ID] = f.Severity
+		for _, vulnerability := range pkg.Vulnerabilities {
+			current := result[pkg.ID]
+			if severityRank(vulnerability.Severity) < severityRank(current) {
+				result[pkg.ID] = vulnerability.Severity
+			}
 		}
 	}
 	return result

@@ -783,6 +783,206 @@ func TestScanInteractiveModel_FindingsCanGroupByEcosystem(t *testing.T) {
 	}
 }
 
+func TestScanInteractiveModel_UsesEnrichedVulnerabilitiesWithoutFindings(t *testing.T) {
+	g := sdk.New()
+	root := sdk.NewPackage(sdk.Package{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"})
+	dep := sdk.NewPackage(sdk.Package{
+		Name:      "react",
+		Version:   "18.2.0",
+		Ecosystem: "npm",
+		Vulnerabilities: []sdk.PackageVulnerability{{
+			ID:       "CVE-2026-0001",
+			Source:   "osv",
+			Title:    "demo issue",
+			Severity: "high",
+		}},
+	})
+	for _, pkg := range []*sdk.Package{root, dep} {
+		if err := g.AddPackage(pkg); err != nil {
+			t.Fatalf("add package: %v", err)
+		}
+	}
+	if err := g.AddDependency(root.ID, dep.ID); err != nil {
+		t.Fatalf("add dependency: %v", err)
+	}
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
+			RelativePath:            ".",
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
+		},
+		DetectorName: "npm-detector",
+		Origin:       sdk.CoreOrigin,
+		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+	}})
+	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+
+	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
+	overview := render.StripANSI(model.View(120, 32))
+	if !strings.Contains(overview, "Components: 2 | Vulns: 1 | Licenses: 0 | Findings: 0") {
+		t.Fatalf("expected overview to count enriched vulnerabilities without findings, got:\n%s", overview)
+	}
+	if !strings.Contains(overview, "1 High") {
+		t.Fatalf("expected overview severity cards to use enriched vulnerabilities, got:\n%s", overview)
+	}
+
+	model.SelectView(2)
+	model.Move(3)
+	components := render.StripANSI(model.View(110, 32))
+	if !strings.Contains(components, "react@18.2.0") || !strings.Contains(components, "HIGH") {
+		t.Fatalf("expected components tab to expose vulnerability severity from enrichment, got:\n%s", components)
+	}
+	if !strings.Contains(components, "Vulnerabilities (1)") {
+		t.Fatalf("expected component details to use enriched vulnerabilities, got:\n%s", components)
+	}
+
+	model.SelectView(3)
+	vulnerabilities := render.StripANSI(model.View(110, 32))
+	if !strings.Contains(vulnerabilities, "Vulnerabilities (1)") || !strings.Contains(vulnerabilities, "CVE-2026-0001") {
+		t.Fatalf("expected vulnerabilities tab to use enriched package vulnerabilities, got:\n%s", vulnerabilities)
+	}
+	if strings.Contains(vulnerabilities, "No enriched vulnerabilities found") {
+		t.Fatalf("expected vulnerabilities tab to render available enrichment, got:\n%s", vulnerabilities)
+	}
+
+	model.SelectView(5)
+	findings := render.StripANSI(model.View(110, 32))
+	if !strings.Contains(findings, "No findings found. Run with --audit") || !strings.Contains(findings, "Findings: 0") {
+		t.Fatalf("expected findings tab to remain audit-backed, got:\n%s", findings)
+	}
+}
+
+func TestScanInteractiveModel_VulnerabilityFilterKeepsGlobalSummaries(t *testing.T) {
+	g := sdk.New()
+	root := sdk.NewPackage(sdk.Package{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"})
+	react := sdk.NewPackage(sdk.Package{
+		Name:      "react",
+		Version:   "18.2.0",
+		Ecosystem: "npm",
+		Vulnerabilities: []sdk.PackageVulnerability{{
+			ID:       "CVE-HIGH",
+			Severity: "high",
+		}},
+	})
+	lodash := sdk.NewPackage(sdk.Package{
+		Name:      "lodash",
+		Version:   "4.17.20",
+		Ecosystem: "npm",
+		Vulnerabilities: []sdk.PackageVulnerability{{
+			ID:       "CVE-LOW",
+			Severity: "low",
+		}},
+	})
+	for _, pkg := range []*sdk.Package{root, react, lodash} {
+		if err := g.AddPackage(pkg); err != nil {
+			t.Fatalf("add package: %v", err)
+		}
+	}
+	for _, dep := range []*sdk.Package{react, lodash} {
+		if err := g.AddDependency(root.ID, dep.ID); err != nil {
+			t.Fatalf("add dependency: %v", err)
+		}
+	}
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
+			RelativePath:            ".",
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
+		},
+		DetectorName: "npm-detector",
+		Origin:       sdk.CoreOrigin,
+		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+	}})
+	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+
+	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil).WithEnrichEnabled(true)
+	model.SelectView(3)
+	model.severityFilter = "high"
+	model.rebuildListPreserveSelection()
+
+	plain := render.StripANSI(model.View(120, 32))
+	for _, want := range []string{
+		"Vulnerabilities (1)",
+		"CVE-HIGH",
+		"1 High",
+		"1 Low",
+		"Affected components: 2",
+		"react@18.2.0",
+		"lodash@4.17.20",
+	} {
+		if !strings.Contains(plain, want) {
+			t.Fatalf("expected filtered vulnerability view to contain %q, got:\n%s", want, plain)
+		}
+	}
+	if strings.Contains(plain, "CVE-LOW") {
+		t.Fatalf("expected severity filter to hide low vulnerability rows, got:\n%s", plain)
+	}
+}
+
+func TestScanInteractiveModel_VulnerabilityFilterEmptyStateDistinguishesNoMatchesFromNoEnrich(t *testing.T) {
+	g := sdk.New()
+	root := sdk.NewPackage(sdk.Package{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"})
+	dep := sdk.NewPackage(sdk.Package{
+		Name:      "react",
+		Version:   "18.2.0",
+		Ecosystem: "npm",
+		Vulnerabilities: []sdk.PackageVulnerability{{
+			ID:       "CVE-HIGH",
+			Severity: "high",
+		}},
+	})
+	for _, pkg := range []*sdk.Package{root, dep} {
+		if err := g.AddPackage(pkg); err != nil {
+			t.Fatalf("add package: %v", err)
+		}
+	}
+	if err := g.AddDependency(root.ID, dep.ID); err != nil {
+		t.Fatalf("add dependency: %v", err)
+	}
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
+			RelativePath:            ".",
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
+		},
+		DetectorName: "npm-detector",
+		Origin:       sdk.CoreOrigin,
+		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+	}})
+	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+
+	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil).WithEnrichEnabled(true)
+	model.SelectView(3)
+	model.severityFilter = "low"
+	model.rebuildListPreserveSelection()
+	filtered := render.StripANSI(model.View(110, 32))
+	if !strings.Contains(filtered, "No vulnerabilities match the selected filters.") {
+		t.Fatalf("expected filtered empty state, got:\n%s", filtered)
+	}
+	if strings.Contains(filtered, "Run with --enrich") {
+		t.Fatalf("expected filtered empty state not to blame missing enrichment, got:\n%s", filtered)
+	}
+
+	noEnrich := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, sdk.ConsolidatedGraph{}, sdk.New(), nil)
+	noEnrich.SelectView(3)
+	plain := render.StripANSI(noEnrich.View(110, 32))
+	if !strings.Contains(plain, "No enriched vulnerabilities found. Run with --enrich to populate vulnerability data.") {
+		t.Fatalf("expected no-enrich empty state, got:\n%s", plain)
+	}
+}
+
 func TestScanInteractiveModel_ExplainTopBarUsesQuery(t *testing.T) {
 	model := NewExplain(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, "react", sdk.ConsolidatedGraph{}, sdk.New(), nil)
 	plain := render.StripANSI(model.View(100, 26))
@@ -812,7 +1012,7 @@ func TestTopDependedOnComponentStats_UsesTransitiveDependents(t *testing.T) {
 		}
 	}
 
-	stats := topDependedOnComponentStats(g, nil, 3)
+	stats := topDependedOnComponentStats(g, 3)
 	if len(stats) == 0 {
 		t.Fatalf("expected depended-on component stats")
 	}

@@ -23,6 +23,17 @@ func NewExplain(project output.ProjectDescriptor, query string, consolidated sdk
 	return newScanNavigator("Bomly Interactive Explain", project, consolidated, graphValue, findings, query)
 }
 
+// WithEnrichEnabled records whether the scan requested enrichment so empty
+// vulnerability states can distinguish "not requested" from "no matches".
+func (m *scanModel) WithEnrichEnabled(enabled bool) *scanModel {
+	if m == nil {
+		return nil
+	}
+	m.enrichEnabled = enabled
+	m.list = m.buildCurrentListModel()
+	return m
+}
+
 func newScanNavigator(titlePrefix string, project output.ProjectDescriptor, consolidated sdk.ConsolidatedGraph, graphValue *sdk.Graph, findings []sdk.Finding, explainQuery string) *scanModel {
 	manifests := manifestRows(consolidated)
 	manifestByID := make(map[string]listPackageRow, len(manifests))
@@ -520,7 +531,7 @@ func (m *scanModel) tabLine(active scanView) string {
 }
 
 func (m *scanModel) scanStatusLine() string {
-	stats := scanStats(m.graphValue, m.findings)
+	stats := scanStats(m.graphValue)
 	return render.Style("Components: ", render.Dim) + render.Style(fmt.Sprintf("%d", stats.components), render.Cyan, render.Bold) +
 		render.Style(" | Vulns: ", render.Dim) + severityText(fmt.Sprintf("%d", stats.vulnerabilities)) +
 		render.Style(" | Licenses: ", render.Dim) + render.Style(fmt.Sprintf("%d", stats.licenses), render.Cyan, render.Bold) +
@@ -528,7 +539,7 @@ func (m *scanModel) scanStatusLine() string {
 }
 
 func (m *scanModel) scanFooterSummary() string {
-	stats := scanStats(m.graphValue, m.findings)
+	stats := scanStats(m.graphValue)
 	return fmt.Sprintf("Components: %d | Vulns: %d | Licenses: %d | Findings: %d", stats.components, stats.vulnerabilities, stats.licenses, len(m.findings))
 }
 
@@ -628,7 +639,7 @@ func (m *scanModel) buildManifestListModel() *listModel {
 
 func (m *scanModel) buildComponentsTreeListModel() *listModel {
 	totalComponents := packageCount(m.graphValue)
-	maxSevByID := maxSeverityByPkgID(m.findings)
+	maxSevByID := maxVulnerabilitySeverityByPkgID(m.graphValue)
 	filteredComponentCount := m.filteredComponentCount(maxSevByID)
 	items := make([]listItem, 0, totalComponents+len(m.manifests)+1)
 	projectKey := "project"
@@ -680,7 +691,7 @@ func (m *scanModel) buildComponentsTreeListModel() *listModel {
 					title:    row.displayName,
 					subtitle: row.relationship,
 					badges:   badges,
-					details:  componentDetails(m.graphValue, row, manifest, m.findings),
+					details:  componentDetails(m.graphValue, row, manifest),
 					key:      row.id,
 					tree:     componentForestPrefix(manifestLast, row),
 					depth:    row.depth + 2,
@@ -835,7 +846,8 @@ func manifestEcosystem(graphValue *sdk.Graph, row listPackageRow) string {
 }
 
 func (m *scanModel) buildOverviewListModel() *listModel {
-	stats := scanStats(m.graphValue, m.findings)
+	vulnerabilities := packageVulnerabilityRows(m.graphValue)
+	stats := scanStats(m.graphValue)
 	items := []listItem{
 		{
 			title:    "Target Information",
@@ -864,7 +876,7 @@ func (m *scanModel) buildOverviewListModel() *listModel {
 		{
 			title:    "Vulnerabilities by Severity",
 			subtitle: "distribution",
-			details:  distributionDetails("Vulnerability Severity", severityDistribution(m.findings)),
+			details:  distributionDetails("Vulnerability Severity", severityDistribution(vulnerabilities)),
 		},
 		{
 			title:    "Components by Ecosystem",
@@ -879,7 +891,7 @@ func (m *scanModel) buildOverviewListModel() *listModel {
 		{
 			title:    "Top Vulnerable Components",
 			subtitle: "top",
-			details:  topVulnerableComponentDetails(m.findings),
+			details:  topVulnerableComponentDetails(m.graphValue),
 		},
 		{
 			title:    "Top Depended-On Components",
@@ -911,7 +923,8 @@ func (m *scanModel) overviewDashboardView(width, height int) string {
 		return m.list.View(width, height)
 	}
 
-	stats := scanStats(m.graphValue, m.findings)
+	vulnerabilities := packageVulnerabilityRows(m.graphValue)
+	stats := scanStats(m.graphValue)
 	cardHeight := 9
 	gap := 1
 	leftHalf := (width - gap) / 2
@@ -923,10 +936,10 @@ func (m *scanModel) overviewDashboardView(width, height int) string {
 			fmt.Sprintf("%d manifests", len(m.manifests)),
 		), summaryWidth, cardHeight, render.Cyan),
 		boxView("Vulnerabilities", summaryCountCardLines(stats.vulnerabilities, "Vulnerabilities", summaryWidth-2, render.Red,
-			severityCardLine(m.findings, "critical"),
-			severityCardLine(m.findings, "high"),
-			severityCardLine(m.findings, "medium"),
-			severityCardLine(m.findings, "low"),
+			severityCardLine(vulnerabilities, "critical"),
+			severityCardLine(vulnerabilities, "high"),
+			severityCardLine(vulnerabilities, "medium"),
+			severityCardLine(vulnerabilities, "low"),
 		), summaryWidth, cardHeight, render.Red),
 		boxView("Licenses", summaryCountCardLines(stats.licenses, "Unique Licenses", summaryWidth-2, render.Yellow,
 			fmt.Sprintf("%d unknown", unknownLicenseCount(m.graphValue)),
@@ -950,7 +963,7 @@ func (m *scanModel) overviewDashboardView(width, height int) string {
 	remaining := bodyHeight - cardHeight - 1
 	leftWidth := width / 2
 	rightWidth := width - leftWidth - 1
-	topVuln := topVulnerableComponentStats(m.graphValue, m.findings, 8)
+	topVuln := topVulnerableComponentStats(m.graphValue, 8)
 	leftA := remaining / 3
 	if leftA < 7 && remaining >= 14 {
 		leftA = 7
@@ -976,8 +989,8 @@ func (m *scanModel) overviewDashboardView(width, height int) string {
 	}
 	rightContent := stackBoxes(
 		boxView("License Distribution", coloredDistributionLines(groupedLicenseCounts(m.graphValue, 10), stats.components, 10, rightWidth-2), rightWidth, rightA, render.Yellow),
-		boxView("Vulnerability Severity", severityDistributionLines(m.findings, rightWidth-2), rightWidth, rightB, render.Red),
-		boxView(fmt.Sprintf("Top Vulnerable Components (%d)", vulnerableComponentTotal(m.graphValue, m.findings)), topVulnerableTableLines(topVuln, rightWidth-2), rightWidth, rightC, render.Red),
+		boxView("Vulnerability Severity", severityDistributionLines(vulnerabilities, rightWidth-2), rightWidth, rightB, render.Red),
+		boxView(fmt.Sprintf("Top Vulnerable Components (%d)", vulnerableComponentTotal(m.graphValue)), topVulnerableTableLines(topVuln, rightWidth-2), rightWidth, rightC, render.Red),
 	)
 	lines = append(lines, joinColumns(leftContent, rightContent, leftWidth, rightWidth)...)
 	lines = append(lines, footerLines...)
@@ -985,33 +998,36 @@ func (m *scanModel) overviewDashboardView(width, height int) string {
 }
 
 func (m *scanModel) buildVulnsListModel() *listModel {
-	all := make([]sdk.Finding, 0, len(m.findings))
-	for _, f := range m.findings {
-		if f.Kind == sdk.FindingKindVulnerability {
-			all = append(all, f)
-		}
-	}
+	all := packageVulnerabilityRows(m.graphValue)
 
 	// Apply severity filter.
 	filtered := all
 	if m.severityFilter != "" {
-		filtered = make([]sdk.Finding, 0, len(all))
-		for _, f := range all {
-			if strings.EqualFold(f.Severity, m.severityFilter) {
-				filtered = append(filtered, f)
+		filtered = make([]packageVulnerabilityRow, 0, len(all))
+		for _, row := range all {
+			if strings.EqualFold(row.vulnerability.Severity, m.severityFilter) {
+				filtered = append(filtered, row)
 			}
 		}
 	}
 
 	sort.Slice(filtered, func(i, j int) bool {
-		ri, rj := severityRank(filtered[i].Severity), severityRank(filtered[j].Severity)
+		ri, rj := severityRank(filtered[i].vulnerability.Severity), severityRank(filtered[j].vulnerability.Severity)
 		if ri != rj {
 			return ri < rj
 		}
-		return filtered[i].ID < filtered[j].ID
+		return filtered[i].vulnerability.ID < filtered[j].vulnerability.ID
 	})
 
 	items := m.vulnerabilityItems(filtered)
+	emptyState := "No vulnerabilities match the selected filters."
+	if len(all) == 0 {
+		if m.enrichEnabled {
+			emptyState = "No enriched vulnerabilities matched this scan."
+		} else {
+			emptyState = "No enriched vulnerabilities found. Run with --enrich to populate vulnerability data."
+		}
+	}
 
 	return &listModel{
 		title:       fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
@@ -1021,39 +1037,39 @@ func (m *scanModel) buildVulnsListModel() *listModel {
 		listHeader:  "Vulnerability ID / Group",
 		detailTitle: "Vulnerability Details",
 		topPanels: []listPanel{
-			{title: "Severity Summary", lines: vulnerabilitySummaryLines(filtered), color: render.Red, weight: 1},
-			{title: "Top Affected", lines: topAffectedLines(filtered, 5, 140), color: render.Green, weight: 2},
+			{title: "Severity Summary", lines: vulnerabilitySummaryLines(all), color: render.Red, weight: 1},
+			{title: "Top Affected", lines: topAffectedLines(all, 5, 140), color: render.Green, weight: 2},
 		},
 		navigationHelp: interactiveCommonNavigationHelp,
 		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; v cycles severity filter; g groups vulnerabilities; 1-6 switch tabs",
-		emptyState:     "No policy findings found. Run with --audit to evaluate enriched vulnerability data.",
+		emptyState:     emptyState,
 		items:          items,
 	}
 }
 
-func (m *scanModel) vulnerabilityItems(findings []sdk.Finding) []listItem {
+func (m *scanModel) vulnerabilityItems(vulnerabilities []packageVulnerabilityRow) []listItem {
 	group := strings.TrimSpace(m.vulnerabilityGroup)
 	if group == "" {
 		group = "component"
 	}
-	groups := make(map[string][]sdk.Finding)
-	for _, finding := range findings {
-		key := vulnerabilityGroupKey(finding, group)
-		groups[key] = append(groups[key], finding)
+	groups := make(map[string][]packageVulnerabilityRow)
+	for _, vulnerability := range vulnerabilities {
+		key := vulnerabilityGroupKey(vulnerability, group)
+		groups[key] = append(groups[key], vulnerability)
 	}
-	keys := sortedFindingGroupKeys(groups)
-	items := make([]listItem, 0, len(findings)+len(keys))
+	keys := sortedVulnerabilityGroupKeys(groups)
+	items := make([]listItem, 0, len(vulnerabilities)+len(keys))
 	for _, key := range keys {
 		groupKey := group + ":" + key
 		expanded, ok := m.vulnerabilityExpanded[groupKey]
 		if !ok {
 			expanded = true
 		}
-		groupFindings := groups[key]
+		groupVulnerabilities := groups[key]
 		items = append(items, listItem{
-			title:    fmt.Sprintf("%s (%d)", key, len(groupFindings)),
+			title:    fmt.Sprintf("%s (%d)", key, len(groupVulnerabilities)),
 			subtitle: "group",
-			details:  vulnerabilityGroupDetails(key, group, groupFindings),
+			details:  vulnerabilityGroupDetails(key, group, groupVulnerabilities),
 			key:      groupKey,
 			canOpen:  true,
 			expanded: expanded,
@@ -1061,27 +1077,41 @@ func (m *scanModel) vulnerabilityItems(findings []sdk.Finding) []listItem {
 		if !expanded {
 			continue
 		}
-		for idx, finding := range groupFindings {
-			title := finding.ID
+		for idx, vulnerability := range groupVulnerabilities {
+			title := vulnerability.vulnerability.ID
 			if group != "component" {
-				if pkgName := findingPackageName(finding); pkgName != "" {
+				if pkgName := vulnerabilityPackageName(vulnerability); pkgName != "" {
 					title += "  " + pkgName
 				}
 			}
 			badges := []badge{}
 			if group != "severity" {
-				badges = append(badges, badge{label: finding.Severity, kind: "severity-" + strings.ToLower(finding.Severity)})
+				badges = append(badges, badge{label: vulnerability.vulnerability.Severity, kind: "severity-" + strings.ToLower(vulnerability.vulnerability.Severity)})
 			}
 			items = append(items, listItem{
 				title:   title,
 				badges:  badges,
-				details: vulnerabilityDetails(finding),
-				tree:    treePrefix(nil, idx == len(groupFindings)-1, 1),
+				details: vulnerabilityDetails(vulnerability),
+				tree:    treePrefix(nil, idx == len(groupVulnerabilities)-1, 1),
 				depth:   1,
 			})
 		}
 	}
 	return items
+}
+
+func sortedVulnerabilityGroupKeys(groups map[string][]packageVulnerabilityRow) []string {
+	keys := make([]string, 0, len(groups))
+	for key := range groups {
+		keys = append(keys, key)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		if len(groups[keys[i]]) != len(groups[keys[j]]) {
+			return len(groups[keys[i]]) > len(groups[keys[j]])
+		}
+		return keys[i] < keys[j]
+	})
+	return keys
 }
 
 func sortedFindingGroupKeys(groups map[string][]sdk.Finding) []string {
@@ -1098,25 +1128,25 @@ func sortedFindingGroupKeys(groups map[string][]sdk.Finding) []string {
 	return keys
 }
 
-func vulnerabilityGroupKey(finding sdk.Finding, group string) string {
+func vulnerabilityGroupKey(row packageVulnerabilityRow, group string) string {
 	switch group {
 	case "severity":
-		return titleCase(valueOrDefault(finding.Severity, "unknown"))
+		return titleCase(valueOrDefault(row.vulnerability.Severity, "unknown"))
 	case "ecosystem":
-		if finding.Package != nil {
-			return valueOrDefault(finding.Package.Ecosystem, "unknown")
+		if row.pkg != nil {
+			return valueOrDefault(row.pkg.Ecosystem, "unknown")
 		}
 		return "unknown"
 	default:
-		return valueOrDefault(findingPackageName(finding), "unknown component")
+		return valueOrDefault(vulnerabilityPackageName(row), "unknown component")
 	}
 }
 
-func findingPackageName(finding sdk.Finding) string {
-	if finding.Package == nil {
+func vulnerabilityPackageName(row packageVulnerabilityRow) string {
+	if row.pkg == nil {
 		return ""
 	}
-	return packageDisplayName(finding.Package)
+	return packageDisplayName(row.pkg)
 }
 
 func (m *scanModel) vulnerabilityControlsLine() string {
@@ -1129,11 +1159,11 @@ func (m *scanModel) vulnerabilityStateLine(showing, total int) string {
 		render.Style(" | Showing: ", render.Dim) + fmt.Sprintf("%d/%d", showing, total)
 }
 
-func vulnerabilitySummaryLines(findings []sdk.Finding) []string {
-	counts := severityDistribution(findings)
+func vulnerabilitySummaryLines(vulnerabilities []packageVulnerabilityRow) []string {
+	counts := severityDistribution(vulnerabilities)
 	affected := make(map[string]struct{})
-	for _, finding := range findings {
-		if name := findingPackageName(finding); name != "" {
+	for _, vulnerability := range vulnerabilities {
+		if name := vulnerabilityPackageName(vulnerability); name != "" {
 			affected[name] = struct{}{}
 		}
 	}
@@ -1146,10 +1176,10 @@ func vulnerabilitySummaryLines(findings []sdk.Finding) []string {
 	}
 }
 
-func topAffectedLines(findings []sdk.Finding, limit, width int) []string {
+func topAffectedLines(vulnerabilities []packageVulnerabilityRow, limit, width int) []string {
 	counts := make(map[string]int)
-	for _, finding := range findings {
-		if name := findingPackageName(finding); name != "" {
+	for _, vulnerability := range vulnerabilities {
+		if name := vulnerabilityPackageName(vulnerability); name != "" {
 			counts[name]++
 		}
 	}
@@ -1179,64 +1209,65 @@ func topAffectedLines(findings []sdk.Finding, limit, width int) []string {
 	return lines
 }
 
-func vulnerabilityGroupDetails(key, group string, findings []sdk.Finding) []string {
+func vulnerabilityGroupDetails(key, group string, vulnerabilities []packageVulnerabilityRow) []string {
 	lines := []string{
 		render.Style("Group", render.Bold, render.Cyan),
 		"",
 		render.Style("  Name: ", render.Dim) + key,
 		render.Style("  Grouping: ", render.Dim) + group,
-		render.Style("  Vulnerabilities: ", render.Dim) + fmt.Sprintf("%d", len(findings)),
+		render.Style("  Vulnerabilities: ", render.Dim) + fmt.Sprintf("%d", len(vulnerabilities)),
 		"",
-		render.Style(fmt.Sprintf("CVEs (%d)", len(findings)), render.Bold, render.Magenta),
+		render.Style(fmt.Sprintf("CVEs (%d)", len(vulnerabilities)), render.Bold, render.Magenta),
 	}
-	for _, finding := range findings {
-		lines = append(lines, render.Style("  - ", render.Dim)+finding.ID+" "+valueOrDash(finding.Title))
+	for _, vulnerability := range vulnerabilities {
+		lines = append(lines, render.Style("  - ", render.Dim)+vulnerability.vulnerability.ID+" "+valueOrDash(vulnerability.vulnerability.Title))
 	}
 	return lines
 }
 
-func vulnerabilityDetails(finding sdk.Finding) []string {
+func vulnerabilityDetails(row packageVulnerabilityRow) []string {
+	vulnerability := row.vulnerability
 	lines := []string{
 		render.Style("Vulnerability", render.Bold, render.Cyan),
 		"",
-		render.Style("  ID: ", render.Dim) + valueOrDash(finding.ID),
-		render.Style("  Severity: ", render.Dim) + severityText(finding.Severity),
-		render.Style("  Source: ", render.Dim) + valueOrDash(finding.Source),
-		render.Style("  Package: ", render.Dim) + valueOrDash(findingPackageName(finding)),
-		render.Style("  Title: ", render.Dim) + valueOrDash(finding.Title),
-		render.Style("  KEV exploited: ", render.Dim) + fmt.Sprintf("%t", finding.KEVExploited),
+		render.Style("  ID: ", render.Dim) + valueOrDash(vulnerability.ID),
+		render.Style("  Severity: ", render.Dim) + severityText(vulnerability.Severity),
+		render.Style("  Source: ", render.Dim) + valueOrDash(vulnerability.Source),
+		render.Style("  Package: ", render.Dim) + valueOrDash(vulnerabilityPackageName(row)),
+		render.Style("  Title: ", render.Dim) + valueOrDash(vulnerability.Title),
+		render.Style("  KEV exploited: ", render.Dim) + fmt.Sprintf("%t", vulnerability.KEVExploited),
 		"",
 		render.Style("Description", render.Bold, render.Magenta),
 		"",
-		render.Style("  ", render.Dim) + valueOrDash(finding.Description),
+		render.Style("  ", render.Dim) + valueOrDash(vulnerability.Description),
 		"",
 		render.Style("Versions", render.Bold, render.Magenta),
 		"",
-		render.Style("  Affected: ", render.Dim) + valueOrDash(finding.AffectedVersionRange),
-		render.Style("  Fixed in: ", render.Dim) + valueOrDash(finding.FixedIn),
+		render.Style("  Affected: ", render.Dim) + valueOrDash(vulnerability.AffectedVersionRange),
+		render.Style("  Fixed in: ", render.Dim) + valueOrDash(vulnerability.FixedIn),
 		"",
-		render.Style(fmt.Sprintf("CVSS (%d)", len(finding.CVSS)), render.Bold, render.Magenta),
+		render.Style(fmt.Sprintf("CVSS (%d)", len(vulnerability.CVSS)), render.Bold, render.Magenta),
 	}
-	if len(finding.CVSS) == 0 {
+	if len(vulnerability.CVSS) == 0 {
 		lines = append(lines, render.Style("  (none)", render.Dim))
 	} else {
-		for _, score := range finding.CVSS {
+		for _, score := range vulnerability.CVSS {
 			lines = append(lines, render.Style("  - ", render.Dim)+fmt.Sprintf("%.1f %s %s", score.Score, valueOrDash(score.Version), valueOrDash(score.Vector)))
 		}
 	}
-	lines = append(lines, "", render.Style(fmt.Sprintf("References (%d)", len(finding.References)), render.Bold, render.Magenta))
-	if len(finding.References) == 0 {
+	lines = append(lines, "", render.Style(fmt.Sprintf("References (%d)", len(vulnerability.References)), render.Bold, render.Magenta))
+	if len(vulnerability.References) == 0 {
 		lines = append(lines, render.Style("  (none)", render.Dim))
 	} else {
-		for _, ref := range finding.References {
+		for _, ref := range vulnerability.References {
 			lines = append(lines, render.Style("  - ", render.Dim)+valueOrDash(ref.URL)+" "+render.Style(valueOrDash(ref.Type), render.Dim))
 		}
 	}
-	lines = append(lines, "", render.Style(fmt.Sprintf("Reasons (%d)", len(finding.Reasons)), render.Bold, render.Magenta))
-	if len(finding.Reasons) == 0 {
+	lines = append(lines, "", render.Style(fmt.Sprintf("Reasons (%d)", len(vulnerability.Reasons)), render.Bold, render.Magenta))
+	if len(vulnerability.Reasons) == 0 {
 		lines = append(lines, render.Style("  (none)", render.Dim))
 	} else {
-		lines = append(lines, indentLines(finding.Reasons)...)
+		lines = append(lines, indentLines(vulnerability.Reasons)...)
 	}
 	return lines
 }
@@ -1422,6 +1453,13 @@ func findingGroupKey(finding sdk.Finding, group string) string {
 	default:
 		return titleCase(string(finding.Kind))
 	}
+}
+
+func findingPackageName(finding sdk.Finding) string {
+	if finding.Package == nil {
+		return ""
+	}
+	return packageDisplayName(finding.Package)
 }
 
 func findingGroupDetails(key, group string, findings []sdk.Finding) []string {
@@ -1793,7 +1831,7 @@ func (m *scanModel) buildComponentListModel(manifest listPackageRow) *listModel 
 
 	rows := m.componentTreeRows(manifest.rootID)
 	// Compute highest severity per package for badge display, filtering, and sorting.
-	maxSevByID := maxSeverityByPkgID(m.findings)
+	maxSevByID := maxVulnerabilitySeverityByPkgID(m.graphValue)
 	rows = m.filterComponentRows(rows, maxSevByID)
 
 	// Sort: highest severity first, then relationship, then ID.
@@ -1832,7 +1870,7 @@ func (m *scanModel) buildComponentListModel(manifest listPackageRow) *listModel 
 			title:    row.displayName,
 			subtitle: row.relationship,
 			badges:   badges,
-			details:  componentDetails(m.graphValue, row, manifest, m.findings),
+			details:  componentDetails(m.graphValue, row, manifest),
 			key:      row.id,
 			tree:     row.tree,
 			depth:    row.depth,
@@ -1872,7 +1910,7 @@ func (m *scanModel) buildExplainComponentListModel(manifest listPackageRow) *lis
 			rows = append(rows, row)
 		}
 	}
-	maxSevByID := maxSeverityByPkgID(m.findings)
+	maxSevByID := maxVulnerabilitySeverityByPkgID(m.graphValue)
 	rows = m.filterComponentRows(rows, maxSevByID)
 	sort.Slice(rows, func(i, j int) bool {
 		si := severityRank(maxSevByID[rows[i].id])
@@ -1895,7 +1933,7 @@ func (m *scanModel) buildExplainComponentListModel(manifest listPackageRow) *lis
 			title:    row.displayName,
 			subtitle: row.relationship,
 			badges:   badges,
-			details:  componentDetails(m.graphValue, row, manifest, m.findings),
+			details:  componentDetails(m.graphValue, row, manifest),
 		})
 	}
 	targetPkg, _ := m.graphValue.Package(manifest.targetID)
@@ -2175,7 +2213,7 @@ func componentBaseName(value string) string {
 	return value
 }
 
-func componentDetails(graphValue *sdk.Graph, row listPackageRow, manifest listPackageRow, findings []sdk.Finding) []string {
+func componentDetails(graphValue *sdk.Graph, row listPackageRow, manifest listPackageRow) []string {
 	lines := []string{
 		render.Style("Component", render.Bold, render.Cyan),
 		"",
@@ -2225,46 +2263,44 @@ func componentDetails(graphValue *sdk.Graph, row listPackageRow, manifest listPa
 	}
 
 	// Vulnerabilities section
-	var pkgFindings []sdk.Finding
-	for _, f := range findings {
-		if f.Kind == sdk.FindingKindVulnerability && f.Package != nil && f.Package.ID == row.id {
-			pkgFindings = append(pkgFindings, f)
-		}
+	var pkg *sdk.Package
+	if graphValue != nil {
+		pkg, _ = graphValue.Package(row.id)
 	}
-	lines = append(lines, render.Style(fmt.Sprintf("Vulnerabilities (%d)", len(pkgFindings)), render.Bold, render.Cyan), "")
-	if len(pkgFindings) == 0 {
+	vulnerabilities := []sdk.PackageVulnerability(nil)
+	if pkg != nil {
+		vulnerabilities = pkg.Vulnerabilities
+	}
+	lines = append(lines, render.Style(fmt.Sprintf("Vulnerabilities (%d)", len(vulnerabilities)), render.Bold, render.Cyan), "")
+	if len(vulnerabilities) == 0 {
 		lines = append(lines, render.Style("  (none)", render.Dim))
 	} else {
-		for _, f := range pkgFindings {
+		for _, vulnerability := range vulnerabilities {
 			var severityLabel string
-			switch strings.ToLower(f.Severity) {
+			switch strings.ToLower(vulnerability.Severity) {
 			case "critical":
-				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(f.Severity))+" ", render.BgRed, render.White, render.Bold)
+				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(vulnerability.Severity))+" ", render.BgRed, render.White, render.Bold)
 			case "high":
-				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(f.Severity))+" ", render.BgRed, render.White)
+				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(vulnerability.Severity))+" ", render.BgRed, render.White)
 			case "medium":
-				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(f.Severity))+" ", render.BgYellow, render.Bold)
+				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(vulnerability.Severity))+" ", render.BgYellow, render.Bold)
 			case "low":
-				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(f.Severity))+" ", render.BgCyan, render.Blue, render.Bold)
+				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(vulnerability.Severity))+" ", render.BgCyan, render.Blue, render.Bold)
 			default:
-				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(f.Severity))+" ", render.Dim)
+				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(vulnerability.Severity))+" ", render.Dim)
 			}
-			title := valueOrDash(f.Title)
+			title := valueOrDash(vulnerability.Title)
 			if title == "-" {
 				title = ""
 			} else {
 				title = " " + title
 			}
-			lines = append(lines, "  "+severityLabel+" "+render.Style(f.ID, render.Bold)+title)
+			lines = append(lines, "  "+severityLabel+" "+render.Style(vulnerability.ID, render.Bold)+title)
 		}
 	}
 	lines = append(lines, "")
 
 	// Licenses section
-	var pkg *sdk.Package
-	if graphValue != nil {
-		pkg, _ = graphValue.Package(row.id)
-	}
 	licenseCount := 0
 	if pkg != nil {
 		licenseCount = len(pkg.Licenses)
@@ -2296,7 +2332,28 @@ type scanOverviewStats struct {
 	ecosystems      map[string]int
 }
 
-func scanStats(graphValue *sdk.Graph, findings []sdk.Finding) scanOverviewStats {
+type packageVulnerabilityRow struct {
+	pkg           *sdk.Package
+	vulnerability sdk.PackageVulnerability
+}
+
+func packageVulnerabilityRows(graphValue *sdk.Graph) []packageVulnerabilityRow {
+	if graphValue == nil {
+		return nil
+	}
+	rows := make([]packageVulnerabilityRow, 0)
+	for _, pkg := range graphValue.Packages() {
+		if pkg == nil {
+			continue
+		}
+		for _, vulnerability := range pkg.Vulnerabilities {
+			rows = append(rows, packageVulnerabilityRow{pkg: pkg, vulnerability: vulnerability})
+		}
+	}
+	return rows
+}
+
+func scanStats(graphValue *sdk.Graph) scanOverviewStats {
 	stats := scanOverviewStats{ecosystems: make(map[string]int)}
 	licenseSet := make(map[string]struct{})
 	if graphValue != nil {
@@ -2316,19 +2373,14 @@ func scanStats(graphValue *sdk.Graph, findings []sdk.Finding) scanOverviewStats 
 			stats.vulnerabilities += len(pkg.Vulnerabilities)
 		}
 	}
-	for _, finding := range findings {
-		if finding.Kind == sdk.FindingKindVulnerability && stats.vulnerabilities == 0 {
-			stats.vulnerabilities++
-		}
-	}
 	stats.licenses = len(licenseSet)
 	return stats
 }
 
-func severityDistribution(findings []sdk.Finding) map[string]int {
+func severityDistribution(vulnerabilities []packageVulnerabilityRow) map[string]int {
 	counts := map[string]int{"critical": 0, "high": 0, "medium": 0, "low": 0, "unknown": 0}
-	for _, finding := range findings {
-		sev := strings.ToLower(strings.TrimSpace(finding.Severity))
+	for _, row := range vulnerabilities {
+		sev := strings.ToLower(strings.TrimSpace(row.vulnerability.Severity))
 		if _, ok := counts[sev]; !ok {
 			sev = "unknown"
 		}
@@ -2388,14 +2440,14 @@ func summaryCountCardLines(count int, unit string, width int, color string, extr
 	return append(lines, extra...)
 }
 
-func severityCardLine(findings []sdk.Finding, severity string) string {
-	counts := severityDistribution(findings)
+func severityCardLine(vulnerabilities []packageVulnerabilityRow, severity string) string {
+	counts := severityDistribution(vulnerabilities)
 	label := titleCase(severity)
 	return severityColor(severity, fmt.Sprintf("%d %s", counts[severity], label))
 }
 
-func severityDistributionLines(findings []sdk.Finding, width int) []string {
-	counts := severityDistribution(findings)
+func severityDistributionLines(vulnerabilities []packageVulnerabilityRow, width int) []string {
+	counts := severityDistribution(vulnerabilities)
 	total := 0
 	for _, severity := range []string{"critical", "high", "medium", "low", "unknown"} {
 		total += counts[severity]
@@ -2556,8 +2608,8 @@ type componentStat struct {
 	displayPctMax int
 }
 
-func topVulnerableComponentStats(graphValue *sdk.Graph, findings []sdk.Finding, limit int) []componentStat {
-	counts, severities := packageVulnerabilityStats(graphValue, findings)
+func topVulnerableComponentStats(graphValue *sdk.Graph, limit int) []componentStat {
+	counts, severities := packageVulnerabilityStats(graphValue)
 	stats := make([]componentStat, 0, len(counts))
 	for name, count := range counts {
 		stats = append(stats, componentStat{name: name, vulns: count, maxSeverity: severities[name]})
@@ -2577,8 +2629,8 @@ func topVulnerableComponentStats(graphValue *sdk.Graph, findings []sdk.Finding, 
 	return stats
 }
 
-func topDependedOnComponentStats(graphValue *sdk.Graph, findings []sdk.Finding, limit int) []componentStat {
-	vulnCounts, _ := packageVulnerabilityStats(graphValue, findings)
+func topDependedOnComponentStats(graphValue *sdk.Graph, limit int) []componentStat {
+	vulnCounts, _ := packageVulnerabilityStats(graphValue)
 	stats := make([]componentStat, 0)
 	if graphValue != nil {
 		for _, pkg := range graphValue.Packages() {
@@ -2605,7 +2657,7 @@ func topDependedOnComponentStats(graphValue *sdk.Graph, findings []sdk.Finding, 
 	return stats
 }
 
-func packageVulnerabilityStats(graphValue *sdk.Graph, findings []sdk.Finding) (map[string]int, map[string]string) {
+func packageVulnerabilityStats(graphValue *sdk.Graph) (map[string]int, map[string]string) {
 	counts := make(map[string]int)
 	severities := make(map[string]string)
 	if graphValue != nil {
@@ -2620,16 +2672,6 @@ func packageVulnerabilityStats(graphValue *sdk.Graph, findings []sdk.Finding) (m
 					severities[name] = vuln.Severity
 				}
 			}
-		}
-	}
-	for _, finding := range findings {
-		if finding.Package == nil {
-			continue
-		}
-		name := packageDisplayName(finding.Package)
-		counts[name]++
-		if severityRank(finding.Severity) < severityRank(severities[name]) {
-			severities[name] = finding.Severity
 		}
 	}
 	return counts, severities
@@ -2730,8 +2772,8 @@ func displayManifestsWithRemainder(manifests []listPackageRow, limit int) ([]lis
 	return manifests[:limit], len(manifests) - limit
 }
 
-func vulnerableComponentTotal(graphValue *sdk.Graph, findings []sdk.Finding) int {
-	counts, _ := packageVulnerabilityStats(graphValue, findings)
+func vulnerableComponentTotal(graphValue *sdk.Graph) int {
+	counts, _ := packageVulnerabilityStats(graphValue)
 	return len(counts)
 }
 
@@ -2797,21 +2839,24 @@ func licenseDistributionDetails(graphValue *sdk.Graph) []string {
 	return distributionDetails("License Distribution", counts)
 }
 
-func topVulnerableComponentDetails(findings []sdk.Finding) []string {
-	return distributionDetails("Top Vulnerable Components", topCounts(topVulnerableCounts(findings), 10))
+func topVulnerableComponentDetails(graphValue *sdk.Graph) []string {
+	return distributionDetails("Top Vulnerable Components", topCounts(topVulnerableCounts(graphValue), 10))
 }
 
 func topDependedOnDetails(graphValue *sdk.Graph) []string {
 	return distributionDetails("Top Depended-On Components", topCounts(topDependedOnCounts(graphValue), 10))
 }
 
-func topVulnerableCounts(findings []sdk.Finding) map[string]int {
+func topVulnerableCounts(graphValue *sdk.Graph) map[string]int {
 	counts := make(map[string]int)
-	for _, finding := range findings {
-		if finding.Package == nil {
+	if graphValue == nil {
+		return counts
+	}
+	for _, pkg := range graphValue.Packages() {
+		if pkg == nil || len(pkg.Vulnerabilities) == 0 {
 			continue
 		}
-		counts[packageDisplayName(finding.Package)]++
+		counts[packageDisplayName(pkg)] += len(pkg.Vulnerabilities)
 	}
 	return counts
 }

@@ -93,7 +93,7 @@ func newExplainCmd() *cobra.Command {
 			}
 			if context.ResolvedConfig.Interactive {
 				progress.Stop()
-				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewExplain(payload.Project, args[0], explainResult.FocusedConsolidated, explainResult.FocusedGraph, explainResult.Findings)))
+				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewExplain(payload.Project, args[0], explainResult.FocusedConsolidated, explainResult.FocusedGraph, explainResult.Findings).WithEnrichEnabled(context.ResolvedConfig.Enrich)))
 			}
 
 			writer, closeWriter, err := context.Writer(streams.reportWriter())

@@ -11,6 +11,16 @@
           "dependencies": [],
           "id": "pkg:conan/cmake@3.27.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "conanfile.txt",
+              "position": {
+                "file": "conanfile.txt",
+                "line": 0
+              },
+              "real_path": "conanfile.txt"
+            }
+          ],
           "name": "cmake",
           "purl": "pkg:conan/cmake@3.27.0",
           "scope": "development",
@@ -23,6 +33,16 @@
           ],
           "id": "pkg:conan/openssl@1.1.1s",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "conanfile.txt",
+              "position": {
+                "file": "conanfile.txt",
+                "line": 0
+              },
+              "real_path": "conanfile.txt"
+            }
+          ],
           "name": "openssl",
           "purl": "pkg:conan/openssl@1.1.1s",
           "scope": "runtime",
@@ -45,6 +65,16 @@
           "dependencies": [],
           "id": "pkg:conan/zlib@1.2.11",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "conanfile.txt",
+              "position": {
+                "file": "conanfile.txt",
+                "line": 0
+              },
+              "real_path": "conanfile.txt"
+            }
+          ],
           "name": "zlib",
           "purl": "pkg:conan/zlib@1.2.11",
           "scope": "runtime",
@@ -63,7 +93,9 @@
     "ecosystem": "cpp",
     "name": "\u003cnormalized\u003e",
     "package_manager": "conan",
-    "path": "\u003cnormalized\u003e"
+    "path": "\u003cnormalized\u003e",
+    "target_ref": "v1.0.0",
+    "target_type": "git repository"
   },
   "schema_version": "1.0"
 }

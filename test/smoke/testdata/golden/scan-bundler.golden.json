@@ -17,6 +17,16 @@
           ],
           "id": "pkg:gem/actionmailer@4.2.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "actionmailer",
           "purl": "pkg:gem/actionmailer@4.2.5",
           "scope": "runtime",
@@ -34,6 +44,16 @@
           ],
           "id": "pkg:gem/actionpack@4.2.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "actionpack",
           "purl": "pkg:gem/actionpack@4.2.5",
           "scope": "runtime",
@@ -50,6 +70,16 @@
           ],
           "id": "pkg:gem/actionview@4.2.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "actionview",
           "purl": "pkg:gem/actionview@4.2.5",
           "scope": "runtime",
@@ -63,6 +93,16 @@
           ],
           "id": "pkg:gem/activejob@4.2.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "activejob",
           "purl": "pkg:gem/activejob@4.2.5",
           "scope": "runtime",
@@ -78,6 +118,16 @@
           ],
           "id": "pkg:gem/activemerchant@1.47.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "activemerchant",
           "purl": "pkg:gem/activemerchant@1.47.0",
           "scope": "runtime",
@@ -91,6 +141,16 @@
           ],
           "id": "pkg:gem/activemodel@4.2.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "activemodel",
           "purl": "pkg:gem/activemodel@4.2.5",
           "scope": "runtime",
@@ -105,6 +165,16 @@
           ],
           "id": "pkg:gem/activerecord@4.2.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "activerecord",
           "purl": "pkg:gem/activerecord@4.2.5",
           "scope": "runtime",
@@ -121,6 +191,16 @@
           ],
           "id": "pkg:gem/activesupport@4.2.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "activesupport",
           "purl": "pkg:gem/activesupport@4.2.5",
           "scope": "runtime",
@@ -133,6 +213,16 @@
           ],
           "id": "pkg:gem/acts_as_list@0.7.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "acts_as_list",
           "purl": "pkg:gem/acts_as_list@0.7.4",
           "scope": "runtime",
@@ -143,6 +233,16 @@
           "dependencies": [],
           "id": "pkg:gem/addressable@2.4.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "addressable",
           "purl": "pkg:gem/addressable@2.4.0",
           "scope": "runtime",
@@ -164,6 +264,16 @@
           ],
           "id": "pkg:gem/administrate@0.1.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "administrate",
           "purl": "pkg:gem/administrate@0.1.4",
           "scope": "runtime",
@@ -174,6 +284,16 @@
           "dependencies": [],
           "id": "pkg:gem/allison@2.0.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "allison",
           "purl": "pkg:gem/allison@2.0.3",
           "scope": "runtime",
@@ -184,6 +304,16 @@
           "dependencies": [],
           "id": "pkg:gem/arel@6.0.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "arel",
           "purl": "pkg:gem/arel@6.0.3",
           "scope": "runtime",
@@ -197,6 +327,16 @@
           ],
           "id": "pkg:gem/authlogic@1.4.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "authlogic",
           "purl": "pkg:gem/authlogic@1.4.3",
           "scope": "runtime",
@@ -209,6 +349,16 @@
           ],
           "id": "pkg:gem/autoprefixer-rails@6.3.6.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "autoprefixer-rails",
           "purl": "pkg:gem/autoprefixer-rails@6.3.6.1",
           "scope": "runtime",
@@ -221,6 +371,16 @@
           ],
           "id": "pkg:gem/awesome_nested_set@3.0.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "awesome_nested_set",
           "purl": "pkg:gem/awesome_nested_set@3.0.3",
           "scope": "runtime",
@@ -231,6 +391,16 @@
           "dependencies": [],
           "id": "pkg:gem/bcrypt@3.1.11",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "bcrypt",
           "purl": "pkg:gem/bcrypt@3.1.11",
           "scope": "runtime",
@@ -244,6 +414,16 @@
           ],
           "id": "pkg:gem/bootstrap-sass@3.3.6",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "bootstrap-sass",
           "purl": "pkg:gem/bootstrap-sass@3.3.6",
           "scope": "runtime",
@@ -257,6 +437,16 @@
           ],
           "id": "pkg:gem/bourbon@4.2.7",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "bourbon",
           "purl": "pkg:gem/bourbon@4.2.7",
           "scope": "runtime",
@@ -267,6 +457,16 @@
           "dependencies": [],
           "id": "pkg:gem/builder@3.2.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "builder",
           "purl": "pkg:gem/builder@3.2.2",
           "scope": "runtime",
@@ -277,6 +477,16 @@
           "dependencies": [],
           "id": "pkg:gem/byebug@9.0.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "byebug",
           "purl": "pkg:gem/byebug@9.0.4",
           "scope": "development",
@@ -287,6 +497,16 @@
           "dependencies": [],
           "id": "pkg:gem/camertron-eprun@1.1.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "camertron-eprun",
           "purl": "pkg:gem/camertron-eprun@1.1.0",
           "scope": "runtime",
@@ -297,6 +517,16 @@
           "dependencies": [],
           "id": "pkg:gem/cancancan@1.10.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "cancancan",
           "purl": "pkg:gem/cancancan@1.10.1",
           "scope": "runtime",
@@ -309,6 +539,16 @@
           ],
           "id": "pkg:gem/canonical-rails@0.0.11",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "canonical-rails",
           "purl": "pkg:gem/canonical-rails@0.0.11",
           "scope": "runtime",
@@ -321,6 +561,16 @@
           ],
           "id": "pkg:gem/carmen@1.0.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "carmen",
           "purl": "pkg:gem/carmen@1.0.2",
           "scope": "runtime",
@@ -331,6 +581,16 @@
           "dependencies": [],
           "id": "pkg:gem/cldr-plurals-runtime-rb@1.0.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "cldr-plurals-runtime-rb",
           "purl": "pkg:gem/cldr-plurals-runtime-rb@1.0.1",
           "scope": "runtime",
@@ -343,6 +603,16 @@
           ],
           "id": "pkg:gem/climate_control@0.0.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "climate_control",
           "purl": "pkg:gem/climate_control@0.0.3",
           "scope": "runtime",
@@ -355,6 +625,16 @@
           ],
           "id": "pkg:gem/cocaine@0.5.8",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "cocaine",
           "purl": "pkg:gem/cocaine@0.5.8",
           "scope": "runtime",
@@ -368,6 +648,16 @@
           ],
           "id": "pkg:gem/coffee-rails@4.1.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "coffee-rails",
           "purl": "pkg:gem/coffee-rails@4.1.1",
           "scope": "runtime",
@@ -378,6 +668,16 @@
           "dependencies": [],
           "id": "pkg:gem/coffee-script-source@1.10.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "coffee-script-source",
           "purl": "pkg:gem/coffee-script-source@1.10.0",
           "scope": "runtime",
@@ -391,6 +691,16 @@
           ],
           "id": "pkg:gem/coffee-script@2.4.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "coffee-script",
           "purl": "pkg:gem/coffee-script@2.4.1",
           "scope": "runtime",
@@ -401,6 +711,16 @@
           "dependencies": [],
           "id": "pkg:gem/colorize@0.7.7",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "colorize",
           "purl": "pkg:gem/colorize@0.7.7",
           "scope": "runtime",
@@ -411,6 +731,16 @@
           "dependencies": [],
           "id": "pkg:gem/concurrent-ruby@1.0.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "concurrent-ruby",
           "purl": "pkg:gem/concurrent-ruby@1.0.2",
           "scope": "runtime",
@@ -423,6 +753,16 @@
           ],
           "id": "pkg:gem/css_parser@1.4.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "css_parser",
           "purl": "pkg:gem/css_parser@1.4.1",
           "scope": "runtime",
@@ -435,6 +775,16 @@
           ],
           "id": "pkg:gem/datetime_picker_rails@0.0.7",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "datetime_picker_rails",
           "purl": "pkg:gem/datetime_picker_rails@0.0.7",
           "scope": "runtime",
@@ -445,6 +795,16 @@
           "dependencies": [],
           "id": "pkg:gem/debug_inspector@0.0.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "debug_inspector",
           "purl": "pkg:gem/debug_inspector@0.0.2",
           "scope": "development",
@@ -460,6 +820,16 @@
           ],
           "id": "pkg:gem/deface@1.0.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "deface",
           "purl": "pkg:gem/deface@1.0.2",
           "scope": "runtime",
@@ -476,6 +846,16 @@
           ],
           "id": "pkg:gem/devise@4.1.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "devise",
           "purl": "pkg:gem/devise@4.1.1",
           "scope": "runtime",
@@ -489,6 +869,16 @@
           ],
           "id": "pkg:gem/devise_invitable@1.3.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "devise_invitable",
           "purl": "pkg:gem/devise_invitable@1.3.4",
           "scope": "runtime",
@@ -504,6 +894,16 @@
           ],
           "id": "pkg:gem/echoe@4.6.6",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "echoe",
           "purl": "pkg:gem/echoe@4.6.6",
           "scope": "runtime",
@@ -514,6 +914,16 @@
           "dependencies": [],
           "id": "pkg:gem/erubis@2.7.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "erubis",
           "purl": "pkg:gem/erubis@2.7.0",
           "scope": "runtime",
@@ -524,6 +934,16 @@
           "dependencies": [],
           "id": "pkg:gem/execjs@2.7.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "execjs",
           "purl": "pkg:gem/execjs@2.7.0",
           "scope": "runtime",
@@ -536,6 +956,16 @@
           ],
           "id": "pkg:gem/festivaltts4r@0.2.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "festivaltts4r",
           "purl": "pkg:gem/festivaltts4r@0.2.0",
           "scope": "runtime",
@@ -546,6 +976,16 @@
           "dependencies": [],
           "id": "pkg:gem/ffaker@1.32.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "ffaker",
           "purl": "pkg:gem/ffaker@1.32.1",
           "scope": "runtime",
@@ -558,6 +998,16 @@
           ],
           "id": "pkg:gem/font-awesome-rails@4.6.3.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "font-awesome-rails",
           "purl": "pkg:gem/font-awesome-rails@4.6.3.0",
           "scope": "runtime",
@@ -570,6 +1020,16 @@
           ],
           "id": "pkg:gem/friendly_id@5.1.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "friendly_id",
           "purl": "pkg:gem/friendly_id@5.1.0",
           "scope": "runtime",
@@ -582,6 +1042,16 @@
           ],
           "id": "pkg:gem/globalid@0.3.6",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "globalid",
           "purl": "pkg:gem/globalid@0.3.6",
           "scope": "runtime",
@@ -592,6 +1062,16 @@
           "dependencies": [],
           "id": "pkg:gem/highline@1.6.21",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "highline",
           "purl": "pkg:gem/highline@1.6.21",
           "scope": "runtime",
@@ -604,6 +1084,16 @@
           ],
           "id": "pkg:gem/hoe@3.15.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "hoe",
           "purl": "pkg:gem/hoe@3.15.0",
           "scope": "runtime",
@@ -614,6 +1104,16 @@
           "dependencies": [],
           "id": "pkg:gem/htmlentities@4.3.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "htmlentities",
           "purl": "pkg:gem/htmlentities@4.3.4",
           "scope": "runtime",
@@ -627,6 +1127,16 @@
           ],
           "id": "pkg:gem/httparty@0.13.7",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "httparty",
           "purl": "pkg:gem/httparty@0.13.7",
           "scope": "runtime",
@@ -637,6 +1147,16 @@
           "dependencies": [],
           "id": "pkg:gem/i18n@0.7.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "i18n",
           "purl": "pkg:gem/i18n@0.7.0",
           "scope": "runtime",
@@ -650,6 +1170,16 @@
           ],
           "id": "pkg:gem/jbuilder@2.4.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "jbuilder",
           "purl": "pkg:gem/jbuilder@2.4.1",
           "scope": "runtime",
@@ -664,6 +1194,16 @@
           ],
           "id": "pkg:gem/jquery-rails@4.1.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "jquery-rails",
           "purl": "pkg:gem/jquery-rails@4.1.1",
           "scope": "runtime",
@@ -676,6 +1216,16 @@
           ],
           "id": "pkg:gem/jquery-ui-rails@5.0.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "jquery-ui-rails",
           "purl": "pkg:gem/jquery-ui-rails@5.0.5",
           "scope": "runtime",
@@ -686,6 +1236,16 @@
           "dependencies": [],
           "id": "pkg:gem/json@1.8.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "json",
           "purl": "pkg:gem/json@1.8.3",
           "scope": "runtime",
@@ -696,6 +1256,16 @@
           "dependencies": [],
           "id": "pkg:gem/json_pure@1.8.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "json_pure",
           "purl": "pkg:gem/json_pure@1.8.3",
           "scope": "runtime",
@@ -709,6 +1279,16 @@
           ],
           "id": "pkg:gem/kaminari@0.16.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "kaminari",
           "purl": "pkg:gem/kaminari@0.16.3",
           "scope": "runtime",
@@ -721,6 +1301,16 @@
           ],
           "id": "pkg:gem/lingq@0.3.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "lingq",
           "purl": "pkg:gem/lingq@0.3.1",
           "scope": "runtime",
@@ -733,6 +1323,16 @@
           ],
           "id": "pkg:gem/loofah@2.0.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "loofah",
           "purl": "pkg:gem/loofah@2.0.3",
           "scope": "runtime",
@@ -745,6 +1345,16 @@
           ],
           "id": "pkg:gem/mail@2.6.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "mail",
           "purl": "pkg:gem/mail@2.6.4",
           "scope": "runtime",
@@ -755,6 +1365,16 @@
           "dependencies": [],
           "id": "pkg:gem/mime-types-data@3.2016.0521",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "mime-types-data",
           "purl": "pkg:gem/mime-types-data@3.2016.0521",
           "scope": "runtime",
@@ -767,6 +1387,16 @@
           ],
           "id": "pkg:gem/mime-types@3.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "mime-types",
           "purl": "pkg:gem/mime-types@3.1",
           "scope": "runtime",
@@ -777,6 +1407,16 @@
           "dependencies": [],
           "id": "pkg:gem/mini_portile2@2.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "mini_portile2",
           "purl": "pkg:gem/mini_portile2@2.0.0",
           "scope": "runtime",
@@ -787,6 +1427,16 @@
           "dependencies": [],
           "id": "pkg:gem/minitest@5.9.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "minitest",
           "purl": "pkg:gem/minitest@5.9.0",
           "scope": "runtime",
@@ -799,6 +1449,16 @@
           ],
           "id": "pkg:gem/momentjs-rails@2.11.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "momentjs-rails",
           "purl": "pkg:gem/momentjs-rails@2.11.1",
           "scope": "runtime",
@@ -811,6 +1471,16 @@
           ],
           "id": "pkg:gem/monetize@1.4.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "monetize",
           "purl": "pkg:gem/monetize@1.4.0",
           "scope": "runtime",
@@ -824,6 +1494,16 @@
           ],
           "id": "pkg:gem/money@6.7.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "money",
           "purl": "pkg:gem/money@6.7.1",
           "scope": "runtime",
@@ -834,6 +1514,16 @@
           "dependencies": [],
           "id": "pkg:gem/multi_json@1.12.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "multi_json",
           "purl": "pkg:gem/multi_json@1.12.1",
           "scope": "runtime",
@@ -844,6 +1534,16 @@
           "dependencies": [],
           "id": "pkg:gem/multi_xml@0.5.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "multi_xml",
           "purl": "pkg:gem/multi_xml@0.5.5",
           "scope": "runtime",
@@ -857,6 +1557,16 @@
           ],
           "id": "pkg:gem/neat@1.7.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "neat",
           "purl": "pkg:gem/neat@1.7.4",
           "scope": "runtime",
@@ -869,6 +1579,16 @@
           ],
           "id": "pkg:gem/nokogiri@1.6.7.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "nokogiri",
           "purl": "pkg:gem/nokogiri@1.6.7.2",
           "scope": "runtime",
@@ -879,6 +1599,16 @@
           "dependencies": [],
           "id": "pkg:gem/normalize-rails@3.0.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "normalize-rails",
           "purl": "pkg:gem/normalize-rails@3.0.3",
           "scope": "runtime",
@@ -889,6 +1619,16 @@
           "dependencies": [],
           "id": "pkg:gem/orm_adapter@0.5.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "orm_adapter",
           "purl": "pkg:gem/orm_adapter@0.5.0",
           "scope": "runtime",
@@ -904,6 +1644,16 @@
           ],
           "id": "pkg:gem/paperclip@4.2.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "paperclip",
           "purl": "pkg:gem/paperclip@4.2.4",
           "scope": "runtime",
@@ -916,6 +1666,16 @@
           ],
           "id": "pkg:gem/paranoia@2.1.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "paranoia",
           "purl": "pkg:gem/paranoia@2.1.5",
           "scope": "runtime",
@@ -928,6 +1688,16 @@
           ],
           "id": "pkg:gem/polyamorous@1.3.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "polyamorous",
           "purl": "pkg:gem/polyamorous@1.3.0",
           "scope": "runtime",
@@ -938,6 +1708,16 @@
           "dependencies": [],
           "id": "pkg:gem/polyglot@0.3.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "polyglot",
           "purl": "pkg:gem/polyglot@0.3.5",
           "scope": "runtime",
@@ -951,6 +1731,16 @@
           ],
           "id": "pkg:gem/premailer-rails@1.9.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "premailer-rails",
           "purl": "pkg:gem/premailer-rails@1.9.2",
           "scope": "runtime",
@@ -964,6 +1754,16 @@
           ],
           "id": "pkg:gem/premailer@1.8.6",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "premailer",
           "purl": "pkg:gem/premailer@1.8.6",
           "scope": "runtime",
@@ -974,6 +1774,16 @@
           "dependencies": [],
           "id": "pkg:gem/puma@3.4.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "puma",
           "purl": "pkg:gem/puma@3.4.0",
           "scope": "runtime",
@@ -986,6 +1796,16 @@
           ],
           "id": "pkg:gem/rabl@0.11.8",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "rabl",
           "purl": "pkg:gem/rabl@0.11.8",
           "scope": "runtime",
@@ -998,6 +1818,16 @@
           ],
           "id": "pkg:gem/rack-ssl@1.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "rack-ssl",
           "purl": "pkg:gem/rack-ssl@1.0.0",
           "scope": "runtime",
@@ -1010,6 +1840,16 @@
           ],
           "id": "pkg:gem/rack-test@0.6.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "rack-test",
           "purl": "pkg:gem/rack-test@0.6.3",
           "scope": "runtime",
@@ -1020,6 +1860,16 @@
           "dependencies": [],
           "id": "pkg:gem/rack@1.6.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "rack",
           "purl": "pkg:gem/rack@1.6.4",
           "scope": "runtime",
@@ -1032,6 +1882,16 @@
           ],
           "id": "pkg:gem/rails-deprecated_sanitizer@1.0.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "rails-deprecated_sanitizer",
           "purl": "pkg:gem/rails-deprecated_sanitizer@1.0.3",
           "scope": "runtime",
@@ -1046,6 +1906,16 @@
           ],
           "id": "pkg:gem/rails-dom-testing@1.0.7",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "rails-dom-testing",
           "purl": "pkg:gem/rails-dom-testing@1.0.7",
           "scope": "runtime",
@@ -1058,6 +1928,16 @@
           ],
           "id": "pkg:gem/rails-html-sanitizer@1.0.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "rails-html-sanitizer",
           "purl": "pkg:gem/rails-html-sanitizer@1.0.3",
           "scope": "runtime",
@@ -1078,6 +1958,16 @@
           ],
           "id": "pkg:gem/rails@4.2.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "rails",
           "purl": "pkg:gem/rails@4.2.5",
           "scope": "runtime",
@@ -1093,6 +1983,16 @@
           ],
           "id": "pkg:gem/railties@4.2.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "railties",
           "purl": "pkg:gem/railties@4.2.5",
           "scope": "runtime",
@@ -1103,6 +2003,16 @@
           "dependencies": [],
           "id": "pkg:gem/rake@11.1.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "rake",
           "purl": "pkg:gem/rake@11.1.2",
           "scope": "runtime",
@@ -1119,6 +2029,16 @@
           ],
           "id": "pkg:gem/ransack@1.4.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "ransack",
           "purl": "pkg:gem/ransack@1.4.1",
           "scope": "runtime",
@@ -1131,6 +2051,16 @@
           ],
           "id": "pkg:gem/rdoc@4.2.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "rdoc",
           "purl": "pkg:gem/rdoc@4.2.2",
           "scope": "runtime",
@@ -1143,6 +2073,16 @@
           ],
           "id": "pkg:gem/responders@2.2.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "responders",
           "purl": "pkg:gem/responders@2.2.0",
           "scope": "runtime",
@@ -1183,6 +2123,16 @@
           ],
           "id": "pkg:gem/rubyforge@2.0.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "rubyforge",
           "purl": "pkg:gem/rubyforge@2.0.4",
           "scope": "runtime",
@@ -1199,6 +2149,16 @@
           ],
           "id": "pkg:gem/sass-rails@5.0.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "sass-rails",
           "purl": "pkg:gem/sass-rails@5.0.4",
           "scope": "runtime",
@@ -1209,6 +2169,16 @@
           "dependencies": [],
           "id": "pkg:gem/sass@3.4.22",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "sass",
           "purl": "pkg:gem/sass@3.4.22",
           "scope": "runtime",
@@ -1221,6 +2191,16 @@
           ],
           "id": "pkg:gem/select2-rails@3.5.9.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "select2-rails",
           "purl": "pkg:gem/select2-rails@3.5.9.1",
           "scope": "runtime",
@@ -1231,6 +2211,16 @@
           "dependencies": [],
           "id": "pkg:gem/selectize-rails@0.12.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "selectize-rails",
           "purl": "pkg:gem/selectize-rails@0.12.1",
           "scope": "runtime",
@@ -1244,6 +2234,16 @@
           ],
           "id": "pkg:gem/sinatra@1.1.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "sinatra",
           "purl": "pkg:gem/sinatra@1.1.4",
           "scope": "runtime",
@@ -1254,6 +2254,16 @@
           "dependencies": [],
           "id": "pkg:gem/sixarm_ruby_unaccent@1.1.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "sixarm_ruby_unaccent",
           "purl": "pkg:gem/sixarm_ruby_unaccent@1.1.1",
           "scope": "runtime",
@@ -1271,6 +2281,16 @@
           ],
           "id": "pkg:gem/spree@3.0.7",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "spree",
           "purl": "pkg:gem/spree@3.0.7",
           "scope": "runtime",
@@ -1285,6 +2305,16 @@
           ],
           "id": "pkg:gem/spree_api@3.0.7",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "spree_api",
           "purl": "pkg:gem/spree_api@3.0.7",
           "scope": "runtime",
@@ -1302,6 +2332,16 @@
           ],
           "id": "pkg:gem/spree_backend@3.0.7",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "spree_backend",
           "purl": "pkg:gem/spree_backend@3.0.7",
           "scope": "runtime",
@@ -1314,6 +2354,16 @@
           ],
           "id": "pkg:gem/spree_cmd@3.0.7",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "spree_cmd",
           "purl": "pkg:gem/spree_cmd@3.0.7",
           "scope": "runtime",
@@ -1349,6 +2399,16 @@
           ],
           "id": "pkg:gem/spree_core@3.0.7",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "spree_core",
           "purl": "pkg:gem/spree_core@3.0.7",
           "scope": "runtime",
@@ -1365,6 +2425,16 @@
           ],
           "id": "pkg:gem/spree_frontend@3.0.7",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "spree_frontend",
           "purl": "pkg:gem/spree_frontend@3.0.7",
           "scope": "runtime",
@@ -1377,6 +2447,16 @@
           ],
           "id": "pkg:gem/spree_sample@3.0.7",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "spree_sample",
           "purl": "pkg:gem/spree_sample@3.0.7",
           "scope": "runtime",
@@ -1387,6 +2467,16 @@
           "dependencies": [],
           "id": "pkg:gem/spring@1.7.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "spring",
           "purl": "pkg:gem/spring@1.7.1",
           "scope": "development",
@@ -1401,6 +2491,16 @@
           ],
           "id": "pkg:gem/sprockets-rails@2.3.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "sprockets-rails",
           "purl": "pkg:gem/sprockets-rails@2.3.3",
           "scope": "runtime",
@@ -1414,6 +2514,16 @@
           ],
           "id": "pkg:gem/sprockets@3.6.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "sprockets",
           "purl": "pkg:gem/sprockets@3.6.0",
           "scope": "runtime",
@@ -1424,6 +2534,16 @@
           "dependencies": [],
           "id": "pkg:gem/sqlite3@1.3.11",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "sqlite3",
           "purl": "pkg:gem/sqlite3@1.3.11",
           "scope": "runtime",
@@ -1437,6 +2557,16 @@
           ],
           "id": "pkg:gem/state_machines-activemodel@0.4.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "state_machines-activemodel",
           "purl": "pkg:gem/state_machines-activemodel@0.4.0",
           "scope": "runtime",
@@ -1450,6 +2580,16 @@
           ],
           "id": "pkg:gem/state_machines-activerecord@0.4.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "state_machines-activerecord",
           "purl": "pkg:gem/state_machines-activerecord@0.4.0",
           "scope": "runtime",
@@ -1460,6 +2600,16 @@
           "dependencies": [],
           "id": "pkg:gem/state_machines@0.4.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "state_machines",
           "purl": "pkg:gem/state_machines@0.4.0",
           "scope": "runtime",
@@ -1470,6 +2620,16 @@
           "dependencies": [],
           "id": "pkg:gem/stringex@2.6.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "stringex",
           "purl": "pkg:gem/stringex@2.6.0",
           "scope": "runtime",
@@ -1480,6 +2640,16 @@
           "dependencies": [],
           "id": "pkg:gem/thor@0.19.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "thor",
           "purl": "pkg:gem/thor@0.19.1",
           "scope": "runtime",
@@ -1490,6 +2660,16 @@
           "dependencies": [],
           "id": "pkg:gem/thread_safe@0.3.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "thread_safe",
           "purl": "pkg:gem/thread_safe@0.3.5",
           "scope": "runtime",
@@ -1500,6 +2680,16 @@
           "dependencies": [],
           "id": "pkg:gem/tilt@1.4.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "tilt",
           "purl": "pkg:gem/tilt@1.4.1",
           "scope": "runtime",
@@ -1510,6 +2700,16 @@
           "dependencies": [],
           "id": "pkg:gem/truncate_html@0.9.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "truncate_html",
           "purl": "pkg:gem/truncate_html@0.9.2",
           "scope": "runtime",
@@ -1522,6 +2722,16 @@
           ],
           "id": "pkg:gem/turbolinks@2.5.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "turbolinks",
           "purl": "pkg:gem/turbolinks@2.5.3",
           "scope": "runtime",
@@ -1537,6 +2747,16 @@
           ],
           "id": "pkg:gem/twitter_cldr@3.3.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "twitter_cldr",
           "purl": "pkg:gem/twitter_cldr@3.3.0",
           "scope": "runtime",
@@ -1558,6 +2778,16 @@
           ],
           "id": "pkg:gem/tzinfo@1.2.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "tzinfo",
           "purl": "pkg:gem/tzinfo@1.2.2",
           "scope": "runtime",
@@ -1570,6 +2800,16 @@
           ],
           "id": "pkg:gem/uglifier@3.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "uglifier",
           "purl": "pkg:gem/uglifier@3.0.0",
           "scope": "runtime",
@@ -1585,6 +2825,16 @@
           ],
           "id": "pkg:gem/versioncake@2.3.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "versioncake",
           "purl": "pkg:gem/versioncake@2.3.1",
           "scope": "runtime",
@@ -1597,6 +2847,16 @@
           ],
           "id": "pkg:gem/warden@1.2.6",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "warden",
           "purl": "pkg:gem/warden@1.2.6",
           "scope": "runtime",
@@ -1611,6 +2871,16 @@
           ],
           "id": "pkg:gem/web-console@3.1.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Gemfile.lock",
+              "position": {
+                "file": "Gemfile.lock",
+                "line": 0
+              },
+              "real_path": "Gemfile.lock"
+            }
+          ],
           "name": "web-console",
           "purl": "pkg:gem/web-console@3.1.1",
           "scope": "development",
@@ -1629,7 +2899,9 @@
     "ecosystem": "ruby",
     "name": "\u003cnormalized\u003e",
     "package_manager": "bundler",
-    "path": "\u003cnormalized\u003e"
+    "path": "\u003cnormalized\u003e",
+    "target_ref": "v1.0.0",
+    "target_type": "git repository"
   },
   "schema_version": "1.0"
 }

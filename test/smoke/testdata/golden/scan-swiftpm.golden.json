@@ -11,6 +11,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/apple/swift-algorithms@1.2.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/apple/swift-algorithms.git",
             "revision": "87e50f483c54e6efd60e885f7f5aa946cee68023"
@@ -25,6 +35,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/apple/swift-argument-parser@1.3.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/apple/swift-argument-parser.git",
             "requirement": "1.3.0",
@@ -40,6 +60,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/apple/swift-atomics@1.3.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/apple/swift-atomics.git",
             "revision": "b601256eab081c0f92f059e12818ac1d4f178ff7"
@@ -54,6 +84,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/apple/swift-collections@1.1.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/apple/swift-collections.git",
             "revision": "671108c96644956dddcd89dd59c203dcdb36cec7"
@@ -68,6 +108,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/apple/swift-crypto@3.3.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/apple/swift-crypto.git",
             "revision": "f0525da24dc3c6cbb2b6b338b65042bc91cbc4bb"
@@ -82,6 +132,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/apple/swift-http-types@1.5.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/apple/swift-http-types",
             "revision": "45eb0224913ea070ec4fba17291b9e7ecf4749ca"
@@ -96,6 +156,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/apple/swift-log@1.5.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/apple/swift-log.git",
             "revision": "e97a6fcb1ab07462881ac165fdbb37f067e205d5"
@@ -110,6 +180,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/apple/swift-metrics@2.10.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/apple/swift-metrics.git",
             "revision": "d51c8d13fa366eec807eedb4e37daa60ff5bfdd5"
@@ -124,6 +204,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/apple/swift-nio-extras@1.22.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/apple/swift-nio-extras.git",
             "revision": "a3b640d7dc567225db7c94386a6e71aded1bfa63"
@@ -138,6 +228,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/apple/swift-nio-http2@1.30.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/apple/swift-nio-http2.git",
             "revision": "0904bf0feb5122b7e5c3f15db7df0eabe623dd87"
@@ -152,6 +252,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/apple/swift-nio-ssl@2.27.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/apple/swift-nio-ssl.git",
             "revision": "7b84abbdcef69cc3be6573ac12440220789dcd69"
@@ -166,6 +276,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/apple/swift-nio-transport-services@1.23.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/apple/swift-nio-transport-services.git",
             "revision": "3c394067c08d1225ba8442e9cffb520ded417b64"
@@ -180,6 +300,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/apple/swift-nio@2.65.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/apple/swift-nio.git",
             "revision": "359c461e5561d22c6334828806cc25d759ca7aa6"
@@ -194,6 +324,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/apple/swift-numerics@1.1.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/apple/swift-numerics.git",
             "revision": "0c0290ff6b24942dadb83a929ffaaa1481df04a2"
@@ -208,6 +348,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/apple/swift-system@1.6.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/apple/swift-system.git",
             "revision": "7c6ad0fc39d0763e0b699210e4124afd5041c5df"
@@ -222,6 +372,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/swift-server/async-http-client@1.22.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/swift-server/async-http-client.git",
             "revision": "e8babad8226b9b3f956a252d5b80e36b0c9d62a9"
@@ -236,6 +396,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/vapor/async-kit@1.20.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/vapor/async-kit.git",
             "revision": "e048c8ee94967e8d8a1c2ec0e1156d6f7fa34d31"
@@ -250,6 +420,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/vapor/console-kit@4.14.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/vapor/console-kit.git",
             "revision": "9c24ac496c97cfb49c1bd5e7162008bb50abafc8"
@@ -264,6 +444,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/vapor/multipart-kit@4.5.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/vapor/multipart-kit.git",
             "revision": "1adfd69df2da08f7931d4281b257475e32c96734"
@@ -278,6 +468,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/vapor/routing-kit@4.9.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/vapor/routing-kit.git",
             "revision": "8c9a227476555c55837e569be71944e02a056b72"
@@ -292,6 +492,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/vapor/vapor@4.89.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/vapor/vapor.git",
             "requirement": "4.89.0",
@@ -307,6 +517,16 @@
           "dependencies": [],
           "id": "pkg:swift/github.com/vapor/websocket-kit@2.15.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Package.resolved",
+              "position": {
+                "file": "Package.resolved",
+                "line": 0
+              },
+              "real_path": "Package.resolved"
+            }
+          ],
           "metadata": {
             "repository": "https://github.com/vapor/websocket-kit.git",
             "revision": "4232d34efa49f633ba61afde365d3896fc7f8740"
@@ -360,7 +580,9 @@
     "ecosystem": "swift",
     "name": "\u003cnormalized\u003e",
     "package_manager": "swiftpm",
-    "path": "\u003cnormalized\u003e"
+    "path": "\u003cnormalized\u003e",
+    "target_ref": "v1.0.0",
+    "target_type": "git repository"
   },
   "schema_version": "1.0"
 }

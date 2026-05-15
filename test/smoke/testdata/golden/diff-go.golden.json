@@ -11,7 +11,8 @@
     "ecosystem": "multiple",
     "name": "\u003cnormalized\u003e",
     "package_manager": "multiple",
-    "path": "\u003cnormalized\u003e"
+    "path": "\u003cnormalized\u003e",
+    "target_type": "dependency diff"
   },
   "results": {
     "manifests": [
@@ -25,6 +26,12 @@
             "package": {
               "id": "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869",
               "licenses": [],
+              "locations": [
+                {
+                  "access_path": "/go.mod",
+                  "real_path": "/go.mod"
+                }
+              ],
               "name": "github.com/bmizerany/assert",
               "purl": "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869",
               "version": "v0.0.0-20160611221934-b7ed37b82869",
@@ -35,6 +42,12 @@
             "package": {
               "id": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
               "licenses": [],
+              "locations": [
+                {
+                  "access_path": "/go.mod",
+                  "real_path": "/go.mod"
+                }
+              ],
               "name": "github.com/google/go-github",
               "purl": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
               "version": "v17.0.0+incompatible",
@@ -45,6 +58,12 @@
             "package": {
               "id": "pkg:golang/github.com/google/go-querystring@v1.0.0",
               "licenses": [],
+              "locations": [
+                {
+                  "access_path": "/go.mod",
+                  "real_path": "/go.mod"
+                }
+              ],
               "name": "github.com/google/go-querystring",
               "purl": "pkg:golang/github.com/google/go-querystring@v1.0.0",
               "version": "v1.0.0",
@@ -55,6 +74,12 @@
             "package": {
               "id": "pkg:golang/github.com/kr/pretty@v0.3.1",
               "licenses": [],
+              "locations": [
+                {
+                  "access_path": "/go.mod",
+                  "real_path": "/go.mod"
+                }
+              ],
               "name": "github.com/kr/pretty",
               "purl": "pkg:golang/github.com/kr/pretty@v0.3.1",
               "version": "v0.3.1",
@@ -65,6 +90,12 @@
             "package": {
               "id": "pkg:golang/github.com/simeji/jid@v0.7.6",
               "licenses": [],
+              "locations": [
+                {
+                  "access_path": "/go.mod",
+                  "real_path": "/go.mod"
+                }
+              ],
               "name": "github.com/simeji/jid",
               "purl": "pkg:golang/github.com/simeji/jid@v0.7.6",
               "version": "v0.7.6",
@@ -75,6 +106,12 @@
             "package": {
               "id": "pkg:golang/github.com/stretchr/testify@v1.8.2",
               "licenses": [],
+              "locations": [
+                {
+                  "access_path": "/go.mod",
+                  "real_path": "/go.mod"
+                }
+              ],
               "name": "github.com/stretchr/testify",
               "purl": "pkg:golang/github.com/stretchr/testify@v1.8.2",
               "version": "v1.8.2",
@@ -85,6 +122,12 @@
             "package": {
               "id": "pkg:golang/golang.org/x/sys@v0.6.0",
               "licenses": [],
+              "locations": [
+                {
+                  "access_path": "/go.mod",
+                  "real_path": "/go.mod"
+                }
+              ],
               "name": "golang.org/x/sys",
               "purl": "pkg:golang/golang.org/x/sys@v0.6.0",
               "version": "v0.6.0",
@@ -95,6 +138,12 @@
             "package": {
               "id": "pkg:golang/golang.org/x/text@v0.3.3",
               "licenses": [],
+              "locations": [
+                {
+                  "access_path": "/go.mod",
+                  "real_path": "/go.mod"
+                }
+              ],
               "name": "golang.org/x/text",
               "purl": "pkg:golang/golang.org/x/text@v0.3.3",
               "version": "v0.3.3",
@@ -122,6 +171,16 @@
             "package": {
               "id": "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869",
               "licenses": [],
+              "locations": [
+                {
+                  "access_path": "go.mod",
+                  "position": {
+                    "file": "go.mod",
+                    "line": 0
+                  },
+                  "real_path": "go.mod"
+                }
+              ],
               "name": "github.com/bmizerany/assert",
               "purl": "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869",
               "scope": "development",
@@ -164,6 +223,16 @@
             "package": {
               "id": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
               "licenses": [],
+              "locations": [
+                {
+                  "access_path": "go.mod",
+                  "position": {
+                    "file": "go.mod",
+                    "line": 0
+                  },
+                  "real_path": "go.mod"
+                }
+              ],
               "name": "github.com/google/go-github",
               "purl": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
               "scope": "runtime",
@@ -175,6 +244,16 @@
             "package": {
               "id": "pkg:golang/github.com/google/go-querystring@v1.0.0",
               "licenses": [],
+              "locations": [
+                {
+                  "access_path": "go.mod",
+                  "position": {
+                    "file": "go.mod",
+                    "line": 0
+                  },
+                  "real_path": "go.mod"
+                }
+              ],
               "name": "github.com/google/go-querystring",
               "purl": "pkg:golang/github.com/google/go-querystring@v1.0.0",
               "scope": "runtime",
@@ -186,6 +265,16 @@
             "package": {
               "id": "pkg:golang/github.com/kr/pretty@v0.3.1",
               "licenses": [],
+              "locations": [
+                {
+                  "access_path": "go.mod",
+                  "position": {
+                    "file": "go.mod",
+                    "line": 0
+                  },
+                  "real_path": "go.mod"
+                }
+              ],
               "name": "github.com/kr/pretty",
               "purl": "pkg:golang/github.com/kr/pretty@v0.3.1",
               "scope": "development",
@@ -296,6 +385,16 @@
             "package": {
               "id": "pkg:golang/github.com/simeji/jid@v0.7.6",
               "licenses": [],
+              "locations": [
+                {
+                  "access_path": "go.mod",
+                  "position": {
+                    "file": "go.mod",
+                    "line": 0
+                  },
+                  "real_path": "go.mod"
+                }
+              ],
               "name": "github.com/simeji/jid",
               "purl": "pkg:golang/github.com/simeji/jid@v0.7.6",
               "scope": "runtime",
@@ -307,6 +406,16 @@
             "package": {
               "id": "pkg:golang/github.com/stretchr/testify@v1.8.2",
               "licenses": [],
+              "locations": [
+                {
+                  "access_path": "go.mod",
+                  "position": {
+                    "file": "go.mod",
+                    "line": 0
+                  },
+                  "real_path": "go.mod"
+                }
+              ],
               "name": "github.com/stretchr/testify",
               "purl": "pkg:golang/github.com/stretchr/testify@v1.8.2",
               "scope": "development",
@@ -318,6 +427,16 @@
             "package": {
               "id": "pkg:golang/golang.org/x/text@v0.3.5",
               "licenses": [],
+              "locations": [
+                {
+                  "access_path": "go.mod",
+                  "position": {
+                    "file": "go.mod",
+                    "line": 0
+                  },
+                  "real_path": "go.mod"
+                }
+              ],
               "name": "golang.org/x/text",
               "purl": "pkg:golang/golang.org/x/text@v0.3.5",
               "scope": "runtime",

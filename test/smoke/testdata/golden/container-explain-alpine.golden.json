@@ -17,6 +17,12 @@
         "value": "MIT"
       }
     ],
+    "locations": [
+      {
+        "access_path": "/lib/apk/db/installed",
+        "real_path": "/lib/apk/db/installed"
+      }
+    ],
     "name": "alpine:musl",
     "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
     "version": "1.2.5-r3",
@@ -44,6 +50,12 @@
               "value": "GPL-2.0-only"
             }
           ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
+            }
+          ],
           "name": "alpine:alpine-baselayout",
           "purl": "pkg:apk/alpine/alpine-baselayout@3.6.5-r0?arch=x86_64\u0026distro=alpine-3.20.10",
           "version": "3.6.5-r0",
@@ -56,6 +68,12 @@
               "spdxExpression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2.0-only"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
             }
           ],
           "name": "alpine:busybox-binsh",
@@ -72,6 +90,12 @@
               "value": "GPL-2.0-only"
             }
           ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
+            }
+          ],
           "name": "alpine:busybox",
           "purl": "pkg:apk/alpine/busybox@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10",
           "version": "1.36.1-r31",
@@ -86,6 +110,12 @@
               "value": "MIT"
             }
           ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
+            }
+          ],
           "name": "alpine:musl",
           "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
           "version": "1.2.5-r3",
@@ -110,6 +140,12 @@
               "spdxExpression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2.0-only"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
             }
           ],
           "name": "alpine:apk-tools",
@@ -126,6 +162,12 @@
               "value": "Apache-2.0"
             }
           ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
+            }
+          ],
           "name": "alpine:libcrypto3",
           "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
           "version": "3.3.7-r0",
@@ -138,6 +180,12 @@
               "spdxExpression": "MIT",
               "type": "declared",
               "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
             }
           ],
           "name": "alpine:musl",
@@ -166,6 +214,12 @@
               "value": "GPL-2.0-only"
             }
           ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
+            }
+          ],
           "name": "alpine:apk-tools",
           "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
           "version": "2.14.4-r1",
@@ -178,6 +232,12 @@
               "spdxExpression": "Apache-2.0",
               "type": "declared",
               "value": "Apache-2.0"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
             }
           ],
           "name": "alpine:libssl3",
@@ -194,6 +254,12 @@
               "value": "Apache-2.0"
             }
           ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
+            }
+          ],
           "name": "alpine:libcrypto3",
           "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
           "version": "3.3.7-r0",
@@ -206,6 +272,12 @@
               "spdxExpression": "MIT",
               "type": "declared",
               "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
             }
           ],
           "name": "alpine:musl",
@@ -232,6 +304,12 @@
               "spdxExpression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2.0-only"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
             }
           ],
           "name": "alpine:apk-tools",
@@ -248,6 +326,12 @@
               "value": "Apache-2.0"
             }
           ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
+            }
+          ],
           "name": "alpine:libssl3",
           "purl": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
           "version": "3.3.7-r0",
@@ -260,6 +344,12 @@
               "spdxExpression": "MIT",
               "type": "declared",
               "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
             }
           ],
           "name": "alpine:musl",
@@ -286,6 +376,12 @@
               "spdxExpression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2.0-only"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
             }
           ],
           "name": "alpine:apk-tools",
@@ -302,6 +398,12 @@
               "value": "MIT"
             }
           ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
+            }
+          ],
           "name": "alpine:musl",
           "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
           "version": "1.2.5-r3",
@@ -326,6 +428,12 @@
               "spdxExpression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2.0-only"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
             }
           ],
           "name": "alpine:apk-tools",
@@ -342,6 +450,12 @@
               "value": "Zlib"
             }
           ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
+            }
+          ],
           "name": "alpine:zlib",
           "purl": "pkg:apk/alpine/zlib@1.3.2-r0?arch=x86_64\u0026distro=alpine-3.20.10",
           "version": "1.3.2-r0",
@@ -354,6 +468,12 @@
               "spdxExpression": "MIT",
               "type": "declared",
               "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
             }
           ],
           "name": "alpine:musl",
@@ -380,6 +500,12 @@
               "spdxExpression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
               "type": "declared",
               "value": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
             }
           ],
           "name": "alpine:musl-utils",
@@ -396,6 +522,12 @@
               "value": "MIT"
             }
           ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
+            }
+          ],
           "name": "alpine:musl",
           "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
           "version": "1.2.5-r3",
@@ -420,6 +552,12 @@
               "spdxExpression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
               "type": "declared",
               "value": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
             }
           ],
           "name": "alpine:musl-utils",
@@ -436,6 +574,12 @@
               "value": "GPL-2.0-only"
             }
           ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
+            }
+          ],
           "name": "alpine:scanelf",
           "purl": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=pax-utils",
           "version": "1.3.7-r2",
@@ -450,6 +594,12 @@
               "value": "MIT"
             }
           ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
+            }
+          ],
           "name": "alpine:musl",
           "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
           "version": "1.2.5-r3",
@@ -474,6 +624,12 @@
               "spdxExpression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2.0-only"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
             }
           ],
           "name": "alpine:ssl_client",
@@ -490,6 +646,12 @@
               "value": "Apache-2.0"
             }
           ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
+            }
+          ],
           "name": "alpine:libcrypto3",
           "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
           "version": "3.3.7-r0",
@@ -502,6 +664,12 @@
               "spdxExpression": "MIT",
               "type": "declared",
               "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
             }
           ],
           "name": "alpine:musl",
@@ -530,6 +698,12 @@
               "value": "GPL-2.0-only"
             }
           ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
+            }
+          ],
           "name": "alpine:ssl_client",
           "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
           "version": "1.36.1-r31",
@@ -542,6 +716,12 @@
               "spdxExpression": "Apache-2.0",
               "type": "declared",
               "value": "Apache-2.0"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
             }
           ],
           "name": "alpine:libssl3",
@@ -558,6 +738,12 @@
               "value": "Apache-2.0"
             }
           ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
+            }
+          ],
           "name": "alpine:libcrypto3",
           "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
           "version": "3.3.7-r0",
@@ -570,6 +756,12 @@
               "spdxExpression": "MIT",
               "type": "declared",
               "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
             }
           ],
           "name": "alpine:musl",
@@ -596,6 +788,12 @@
               "spdxExpression": "GPL-2.0-only",
               "type": "declared",
               "value": "GPL-2.0-only"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
             }
           ],
           "name": "alpine:ssl_client",
@@ -612,6 +810,12 @@
               "value": "Apache-2.0"
             }
           ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
+            }
+          ],
           "name": "alpine:libssl3",
           "purl": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
           "version": "3.3.7-r0",
@@ -624,6 +828,12 @@
               "spdxExpression": "MIT",
               "type": "declared",
               "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
             }
           ],
           "name": "alpine:musl",
@@ -652,6 +862,12 @@
               "value": "GPL-2.0-only"
             }
           ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
+            }
+          ],
           "name": "alpine:ssl_client",
           "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
           "version": "1.36.1-r31",
@@ -664,6 +880,12 @@
               "spdxExpression": "MIT",
               "type": "declared",
               "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "/lib/apk/db/installed",
+              "real_path": "/lib/apk/db/installed"
             }
           ],
           "name": "alpine:musl",
@@ -678,7 +900,8 @@
   "project": {
     "ecosystem": "",
     "name": "\u003cnormalized\u003e",
-    "path": "\u003cnormalized\u003e"
+    "path": "\u003cnormalized\u003e",
+    "target_type": "container image"
   },
   "query": {
     "name": "musl"
@@ -701,6 +924,12 @@
             "spdxExpression": "MIT",
             "type": "declared",
             "value": "MIT"
+          }
+        ],
+        "locations": [
+          {
+            "access_path": "/lib/apk/db/installed",
+            "real_path": "/lib/apk/db/installed"
           }
         ],
         "name": "alpine:musl",
@@ -728,6 +957,12 @@
                   "value": "GPL-2.0-only"
                 }
               ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
+                }
+              ],
               "name": "alpine:alpine-baselayout",
               "purl": "pkg:apk/alpine/alpine-baselayout@3.6.5-r0?arch=x86_64\u0026distro=alpine-3.20.10",
               "version": "3.6.5-r0",
@@ -740,6 +975,12 @@
                   "spdxExpression": "GPL-2.0-only",
                   "type": "declared",
                   "value": "GPL-2.0-only"
+                }
+              ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
                 }
               ],
               "name": "alpine:busybox-binsh",
@@ -756,6 +997,12 @@
                   "value": "GPL-2.0-only"
                 }
               ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
+                }
+              ],
               "name": "alpine:busybox",
               "purl": "pkg:apk/alpine/busybox@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10",
               "version": "1.36.1-r31",
@@ -770,6 +1017,12 @@
                   "value": "MIT"
                 }
               ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
+                }
+              ],
               "name": "alpine:musl",
               "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
               "version": "1.2.5-r3",
@@ -794,6 +1047,12 @@
                   "spdxExpression": "GPL-2.0-only",
                   "type": "declared",
                   "value": "GPL-2.0-only"
+                }
+              ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
                 }
               ],
               "name": "alpine:apk-tools",
@@ -810,6 +1069,12 @@
                   "value": "Apache-2.0"
                 }
               ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
+                }
+              ],
               "name": "alpine:libcrypto3",
               "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
               "version": "3.3.7-r0",
@@ -822,6 +1087,12 @@
                   "spdxExpression": "MIT",
                   "type": "declared",
                   "value": "MIT"
+                }
+              ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
                 }
               ],
               "name": "alpine:musl",
@@ -850,6 +1121,12 @@
                   "value": "GPL-2.0-only"
                 }
               ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
+                }
+              ],
               "name": "alpine:apk-tools",
               "purl": "pkg:apk/alpine/apk-tools@2.14.4-r1?arch=x86_64\u0026distro=alpine-3.20.10",
               "version": "2.14.4-r1",
@@ -862,6 +1139,12 @@
                   "spdxExpression": "Apache-2.0",
                   "type": "declared",
                   "value": "Apache-2.0"
+                }
+              ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
                 }
               ],
               "name": "alpine:libssl3",
@@ -878,6 +1161,12 @@
                   "value": "Apache-2.0"
                 }
               ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
+                }
+              ],
               "name": "alpine:libcrypto3",
               "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
               "version": "3.3.7-r0",
@@ -890,6 +1179,12 @@
                   "spdxExpression": "MIT",
                   "type": "declared",
                   "value": "MIT"
+                }
+              ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
                 }
               ],
               "name": "alpine:musl",
@@ -916,6 +1211,12 @@
                   "spdxExpression": "GPL-2.0-only",
                   "type": "declared",
                   "value": "GPL-2.0-only"
+                }
+              ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
                 }
               ],
               "name": "alpine:apk-tools",
@@ -932,6 +1233,12 @@
                   "value": "Apache-2.0"
                 }
               ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
+                }
+              ],
               "name": "alpine:libssl3",
               "purl": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
               "version": "3.3.7-r0",
@@ -944,6 +1251,12 @@
                   "spdxExpression": "MIT",
                   "type": "declared",
                   "value": "MIT"
+                }
+              ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
                 }
               ],
               "name": "alpine:musl",
@@ -970,6 +1283,12 @@
                   "spdxExpression": "GPL-2.0-only",
                   "type": "declared",
                   "value": "GPL-2.0-only"
+                }
+              ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
                 }
               ],
               "name": "alpine:apk-tools",
@@ -986,6 +1305,12 @@
                   "value": "MIT"
                 }
               ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
+                }
+              ],
               "name": "alpine:musl",
               "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
               "version": "1.2.5-r3",
@@ -1010,6 +1335,12 @@
                   "spdxExpression": "GPL-2.0-only",
                   "type": "declared",
                   "value": "GPL-2.0-only"
+                }
+              ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
                 }
               ],
               "name": "alpine:apk-tools",
@@ -1026,6 +1357,12 @@
                   "value": "Zlib"
                 }
               ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
+                }
+              ],
               "name": "alpine:zlib",
               "purl": "pkg:apk/alpine/zlib@1.3.2-r0?arch=x86_64\u0026distro=alpine-3.20.10",
               "version": "1.3.2-r0",
@@ -1038,6 +1375,12 @@
                   "spdxExpression": "MIT",
                   "type": "declared",
                   "value": "MIT"
+                }
+              ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
                 }
               ],
               "name": "alpine:musl",
@@ -1064,6 +1407,12 @@
                   "spdxExpression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
                   "type": "declared",
                   "value": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
+                }
+              ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
                 }
               ],
               "name": "alpine:musl-utils",
@@ -1080,6 +1429,12 @@
                   "value": "MIT"
                 }
               ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
+                }
+              ],
               "name": "alpine:musl",
               "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
               "version": "1.2.5-r3",
@@ -1104,6 +1459,12 @@
                   "spdxExpression": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
                   "type": "declared",
                   "value": "MIT AND BSD-2-Clause AND GPL-2.0-or-later"
+                }
+              ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
                 }
               ],
               "name": "alpine:musl-utils",
@@ -1120,6 +1481,12 @@
                   "value": "GPL-2.0-only"
                 }
               ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
+                }
+              ],
               "name": "alpine:scanelf",
               "purl": "pkg:apk/alpine/scanelf@1.3.7-r2?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=pax-utils",
               "version": "1.3.7-r2",
@@ -1134,6 +1501,12 @@
                   "value": "MIT"
                 }
               ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
+                }
+              ],
               "name": "alpine:musl",
               "purl": "pkg:apk/alpine/musl@1.2.5-r3?arch=x86_64\u0026distro=alpine-3.20.10",
               "version": "1.2.5-r3",
@@ -1158,6 +1531,12 @@
                   "spdxExpression": "GPL-2.0-only",
                   "type": "declared",
                   "value": "GPL-2.0-only"
+                }
+              ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
                 }
               ],
               "name": "alpine:ssl_client",
@@ -1174,6 +1553,12 @@
                   "value": "Apache-2.0"
                 }
               ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
+                }
+              ],
               "name": "alpine:libcrypto3",
               "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
               "version": "3.3.7-r0",
@@ -1186,6 +1571,12 @@
                   "spdxExpression": "MIT",
                   "type": "declared",
                   "value": "MIT"
+                }
+              ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
                 }
               ],
               "name": "alpine:musl",
@@ -1214,6 +1605,12 @@
                   "value": "GPL-2.0-only"
                 }
               ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
+                }
+              ],
               "name": "alpine:ssl_client",
               "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
               "version": "1.36.1-r31",
@@ -1226,6 +1623,12 @@
                   "spdxExpression": "Apache-2.0",
                   "type": "declared",
                   "value": "Apache-2.0"
+                }
+              ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
                 }
               ],
               "name": "alpine:libssl3",
@@ -1242,6 +1645,12 @@
                   "value": "Apache-2.0"
                 }
               ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
+                }
+              ],
               "name": "alpine:libcrypto3",
               "purl": "pkg:apk/alpine/libcrypto3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
               "version": "3.3.7-r0",
@@ -1254,6 +1663,12 @@
                   "spdxExpression": "MIT",
                   "type": "declared",
                   "value": "MIT"
+                }
+              ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
                 }
               ],
               "name": "alpine:musl",
@@ -1280,6 +1695,12 @@
                   "spdxExpression": "GPL-2.0-only",
                   "type": "declared",
                   "value": "GPL-2.0-only"
+                }
+              ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
                 }
               ],
               "name": "alpine:ssl_client",
@@ -1296,6 +1717,12 @@
                   "value": "Apache-2.0"
                 }
               ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
+                }
+              ],
               "name": "alpine:libssl3",
               "purl": "pkg:apk/alpine/libssl3@3.3.7-r0?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=openssl",
               "version": "3.3.7-r0",
@@ -1308,6 +1735,12 @@
                   "spdxExpression": "MIT",
                   "type": "declared",
                   "value": "MIT"
+                }
+              ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
                 }
               ],
               "name": "alpine:musl",
@@ -1336,6 +1769,12 @@
                   "value": "GPL-2.0-only"
                 }
               ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
+                }
+              ],
               "name": "alpine:ssl_client",
               "purl": "pkg:apk/alpine/ssl_client@1.36.1-r31?arch=x86_64\u0026distro=alpine-3.20.10\u0026upstream=busybox",
               "version": "1.36.1-r31",
@@ -1348,6 +1787,12 @@
                   "spdxExpression": "MIT",
                   "type": "declared",
                   "value": "MIT"
+                }
+              ],
+              "locations": [
+                {
+                  "access_path": "/lib/apk/db/installed",
+                  "real_path": "/lib/apk/db/installed"
                 }
               ],
               "name": "alpine:musl",
@@ -1362,7 +1807,8 @@
       "project": {
         "ecosystem": "",
         "name": "\u003cnormalized\u003e",
-        "path": "\u003cnormalized\u003e"
+        "path": "\u003cnormalized\u003e",
+        "target_type": "container image"
       }
     }
   ]

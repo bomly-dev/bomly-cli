@@ -11,6 +11,16 @@
           "dependencies": [],
           "id": "pkg:pypi/colorama@0.4.6",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Pipfile.lock",
+              "position": {
+                "file": "Pipfile.lock",
+                "line": 0
+              },
+              "real_path": "Pipfile.lock"
+            }
+          ],
           "name": "colorama",
           "purl": "pkg:pypi/colorama@0.4.6",
           "scope": "runtime",
@@ -21,6 +31,16 @@
           "dependencies": [],
           "id": "pkg:pypi/django@1.7.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Pipfile.lock",
+              "position": {
+                "file": "Pipfile.lock",
+                "line": 0
+              },
+              "real_path": "Pipfile.lock"
+            }
+          ],
           "name": "django",
           "purl": "pkg:pypi/django@1.7.1",
           "scope": "runtime",
@@ -31,6 +51,16 @@
           "dependencies": [],
           "id": "pkg:pypi/feedparser@6.0.8",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Pipfile.lock",
+              "position": {
+                "file": "Pipfile.lock",
+                "line": 0
+              },
+              "real_path": "Pipfile.lock"
+            }
+          ],
           "name": "feedparser",
           "purl": "pkg:pypi/feedparser@6.0.8",
           "scope": "runtime",
@@ -41,6 +71,16 @@
           "dependencies": [],
           "id": "pkg:pypi/iniconfig@2.3.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Pipfile.lock",
+              "position": {
+                "file": "Pipfile.lock",
+                "line": 0
+              },
+              "real_path": "Pipfile.lock"
+            }
+          ],
           "name": "iniconfig",
           "purl": "pkg:pypi/iniconfig@2.3.0",
           "scope": "runtime",
@@ -51,6 +91,16 @@
           "dependencies": [],
           "id": "pkg:pypi/packaging@26.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Pipfile.lock",
+              "position": {
+                "file": "Pipfile.lock",
+                "line": 0
+              },
+              "real_path": "Pipfile.lock"
+            }
+          ],
           "name": "packaging",
           "purl": "pkg:pypi/packaging@26.2",
           "scope": "runtime",
@@ -61,6 +111,16 @@
           "dependencies": [],
           "id": "pkg:pypi/pluggy@1.6.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Pipfile.lock",
+              "position": {
+                "file": "Pipfile.lock",
+                "line": 0
+              },
+              "real_path": "Pipfile.lock"
+            }
+          ],
           "name": "pluggy",
           "purl": "pkg:pypi/pluggy@1.6.0",
           "scope": "runtime",
@@ -71,6 +131,16 @@
           "dependencies": [],
           "id": "pkg:pypi/pyasn1@0.6.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Pipfile.lock",
+              "position": {
+                "file": "Pipfile.lock",
+                "line": 0
+              },
+              "real_path": "Pipfile.lock"
+            }
+          ],
           "name": "pyasn1",
           "purl": "pkg:pypi/pyasn1@0.6.3",
           "scope": "runtime",
@@ -81,6 +151,16 @@
           "dependencies": [],
           "id": "pkg:pypi/pygments@2.20.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Pipfile.lock",
+              "position": {
+                "file": "Pipfile.lock",
+                "line": 0
+              },
+              "real_path": "Pipfile.lock"
+            }
+          ],
           "name": "pygments",
           "purl": "pkg:pypi/pygments@2.20.0",
           "scope": "runtime",
@@ -91,6 +171,16 @@
           "dependencies": [],
           "id": "pkg:pypi/pyjwt@0.4.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Pipfile.lock",
+              "position": {
+                "file": "Pipfile.lock",
+                "line": 0
+              },
+              "real_path": "Pipfile.lock"
+            }
+          ],
           "name": "pyjwt",
           "purl": "pkg:pypi/pyjwt@0.4.2",
           "scope": "runtime",
@@ -101,6 +191,16 @@
           "dependencies": [],
           "id": "pkg:pypi/pytest@9.0.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Pipfile.lock",
+              "position": {
+                "file": "Pipfile.lock",
+                "line": 0
+              },
+              "real_path": "Pipfile.lock"
+            }
+          ],
           "name": "pytest",
           "purl": "pkg:pypi/pytest@9.0.3",
           "scope": "development",
@@ -111,6 +211,16 @@
           "dependencies": [],
           "id": "pkg:pypi/pyyaml@5.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Pipfile.lock",
+              "position": {
+                "file": "Pipfile.lock",
+                "line": 0
+              },
+              "real_path": "Pipfile.lock"
+            }
+          ],
           "name": "pyyaml",
           "purl": "pkg:pypi/pyyaml@5.3",
           "scope": "runtime",
@@ -121,6 +231,16 @@
           "dependencies": [],
           "id": "pkg:pypi/requests@2.2.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Pipfile.lock",
+              "position": {
+                "file": "Pipfile.lock",
+                "line": 0
+              },
+              "real_path": "Pipfile.lock"
+            }
+          ],
           "name": "requests",
           "purl": "pkg:pypi/requests@2.2.1",
           "scope": "runtime",
@@ -154,6 +274,16 @@
           "dependencies": [],
           "id": "pkg:pypi/rsa@3.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Pipfile.lock",
+              "position": {
+                "file": "Pipfile.lock",
+                "line": 0
+              },
+              "real_path": "Pipfile.lock"
+            }
+          ],
           "name": "rsa",
           "purl": "pkg:pypi/rsa@3.4",
           "scope": "runtime",
@@ -164,6 +294,16 @@
           "dependencies": [],
           "id": "pkg:pypi/sgmllib3k@1.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "Pipfile.lock",
+              "position": {
+                "file": "Pipfile.lock",
+                "line": 0
+              },
+              "real_path": "Pipfile.lock"
+            }
+          ],
           "name": "sgmllib3k",
           "purl": "pkg:pypi/sgmllib3k@1.0.0",
           "scope": "runtime",
@@ -182,7 +322,9 @@
     "ecosystem": "python",
     "name": "\u003cnormalized\u003e",
     "package_manager": "pipenv",
-    "path": "\u003cnormalized\u003e"
+    "path": "\u003cnormalized\u003e",
+    "target_ref": "v1.0.0",
+    "target_type": "git repository"
   },
   "schema_version": "1.0"
 }

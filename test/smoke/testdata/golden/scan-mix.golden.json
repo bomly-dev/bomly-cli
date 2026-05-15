@@ -11,6 +11,16 @@
           "dependencies": [],
           "id": "pkg:hex/bunt@1.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "mix.lock",
+              "position": {
+                "file": "mix.lock",
+                "line": 0
+              },
+              "real_path": "mix.lock"
+            }
+          ],
           "metadata": {
             "source": "hex"
           },
@@ -27,6 +37,16 @@
           ],
           "id": "pkg:hex/cowboy@2.9.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "mix.lock",
+              "position": {
+                "file": "mix.lock",
+                "line": 0
+              },
+              "real_path": "mix.lock"
+            }
+          ],
           "metadata": {
             "source": "hex"
           },
@@ -40,6 +60,16 @@
           "dependencies": [],
           "id": "pkg:hex/cowlib@2.11.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "mix.lock",
+              "position": {
+                "file": "mix.lock",
+                "line": 0
+              },
+              "real_path": "mix.lock"
+            }
+          ],
           "metadata": {
             "source": "hex"
           },
@@ -57,6 +87,16 @@
           ],
           "id": "pkg:hex/credo@1.7.7",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "mix.lock",
+              "position": {
+                "file": "mix.lock",
+                "line": 0
+              },
+              "real_path": "mix.lock"
+            }
+          ],
           "metadata": {
             "source": "hex"
           },
@@ -70,6 +110,16 @@
           "dependencies": [],
           "id": "pkg:hex/decimal@2.1.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "mix.lock",
+              "position": {
+                "file": "mix.lock",
+                "line": 0
+              },
+              "real_path": "mix.lock"
+            }
+          ],
           "metadata": {
             "source": "hex"
           },
@@ -83,6 +133,16 @@
           "dependencies": [],
           "id": "pkg:hex/file_system@1.0.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "mix.lock",
+              "position": {
+                "file": "mix.lock",
+                "line": 0
+              },
+              "real_path": "mix.lock"
+            }
+          ],
           "metadata": {
             "source": "hex"
           },
@@ -98,6 +158,16 @@
           ],
           "id": "pkg:hex/jason@1.2.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "mix.lock",
+              "position": {
+                "file": "mix.lock",
+                "line": 0
+              },
+              "real_path": "mix.lock"
+            }
+          ],
           "metadata": {
             "source": "hex"
           },
@@ -111,6 +181,16 @@
           "dependencies": [],
           "id": "pkg:hex/mime@1.6.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "mix.lock",
+              "position": {
+                "file": "mix.lock",
+                "line": 0
+              },
+              "real_path": "mix.lock"
+            }
+          ],
           "metadata": {
             "source": "hex"
           },
@@ -127,6 +207,16 @@
           ],
           "id": "pkg:hex/plug@1.7.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "mix.lock",
+              "position": {
+                "file": "mix.lock",
+                "line": 0
+              },
+              "real_path": "mix.lock"
+            }
+          ],
           "metadata": {
             "source": "hex"
           },
@@ -140,6 +230,16 @@
           "dependencies": [],
           "id": "pkg:hex/plug_crypto@0.2.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "mix.lock",
+              "position": {
+                "file": "mix.lock",
+                "line": 0
+              },
+              "real_path": "mix.lock"
+            }
+          ],
           "metadata": {
             "source": "hex"
           },
@@ -153,6 +253,16 @@
           "dependencies": [],
           "id": "pkg:hex/ranch@1.8.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "mix.lock",
+              "position": {
+                "file": "mix.lock",
+                "line": 0
+              },
+              "real_path": "mix.lock"
+            }
+          ],
           "metadata": {
             "source": "hex"
           },
@@ -187,7 +297,9 @@
     "ecosystem": "elixir",
     "name": "\u003cnormalized\u003e",
     "package_manager": "mix",
-    "path": "\u003cnormalized\u003e"
+    "path": "\u003cnormalized\u003e",
+    "target_ref": "v1.0.0",
+    "target_type": "git repository"
   },
   "schema_version": "1.0"
 }

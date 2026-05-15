@@ -14,6 +14,16 @@
           ],
           "id": "pkg:composer/guzzlehttp/guzzle@6.2.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "composer.lock",
+              "position": {
+                "file": "composer.lock",
+                "line": 0
+              },
+              "real_path": "composer.lock"
+            }
+          ],
           "name": "guzzlehttp:guzzle",
           "purl": "pkg:composer/guzzlehttp/guzzle@6.2.3",
           "scope": "runtime",
@@ -24,6 +34,16 @@
           "dependencies": [],
           "id": "pkg:composer/guzzlehttp/promises@1.5.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "composer.lock",
+              "position": {
+                "file": "composer.lock",
+                "line": 0
+              },
+              "real_path": "composer.lock"
+            }
+          ],
           "name": "guzzlehttp:promises",
           "purl": "pkg:composer/guzzlehttp/promises@1.5.3",
           "scope": "runtime",
@@ -37,6 +57,16 @@
           ],
           "id": "pkg:composer/guzzlehttp/psr7@1.9.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "composer.lock",
+              "position": {
+                "file": "composer.lock",
+                "line": 0
+              },
+              "real_path": "composer.lock"
+            }
+          ],
           "name": "guzzlehttp:psr7",
           "purl": "pkg:composer/guzzlehttp/psr7@1.9.1",
           "scope": "runtime",
@@ -47,6 +77,16 @@
           "dependencies": [],
           "id": "pkg:composer/phpunit/php-file-iterator@1.4.5",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "composer.lock",
+              "position": {
+                "file": "composer.lock",
+                "line": 0
+              },
+              "real_path": "composer.lock"
+            }
+          ],
           "name": "phpunit:php-file-iterator",
           "purl": "pkg:composer/phpunit/php-file-iterator@1.4.5",
           "scope": "development",
@@ -57,6 +97,16 @@
           "dependencies": [],
           "id": "pkg:composer/phpunit/php-text-template@1.2.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "composer.lock",
+              "position": {
+                "file": "composer.lock",
+                "line": 0
+              },
+              "real_path": "composer.lock"
+            }
+          ],
           "name": "phpunit:php-text-template",
           "purl": "pkg:composer/phpunit/php-text-template@1.2.1",
           "scope": "development",
@@ -67,6 +117,16 @@
           "dependencies": [],
           "id": "pkg:composer/phpunit/php-timer@1.0.9",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "composer.lock",
+              "position": {
+                "file": "composer.lock",
+                "line": 0
+              },
+              "real_path": "composer.lock"
+            }
+          ],
           "name": "phpunit:php-timer",
           "purl": "pkg:composer/phpunit/php-timer@1.0.9",
           "scope": "development",
@@ -82,6 +142,16 @@
           ],
           "id": "pkg:composer/phpunit/phpunit@4.8.36",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "composer.lock",
+              "position": {
+                "file": "composer.lock",
+                "line": 0
+              },
+              "real_path": "composer.lock"
+            }
+          ],
           "name": "phpunit:phpunit",
           "purl": "pkg:composer/phpunit/phpunit@4.8.36",
           "scope": "development",
@@ -92,6 +162,16 @@
           "dependencies": [],
           "id": "pkg:composer/psr/http-message@1.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "composer.lock",
+              "position": {
+                "file": "composer.lock",
+                "line": 0
+              },
+              "real_path": "composer.lock"
+            }
+          ],
           "name": "psr:http-message",
           "purl": "pkg:composer/psr/http-message@1.1",
           "scope": "runtime",
@@ -102,6 +182,16 @@
           "dependencies": [],
           "id": "pkg:composer/ralouphie/getallheaders@3.0.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "composer.lock",
+              "position": {
+                "file": "composer.lock",
+                "line": 0
+              },
+              "real_path": "composer.lock"
+            }
+          ],
           "name": "ralouphie:getallheaders",
           "purl": "pkg:composer/ralouphie/getallheaders@3.0.3",
           "scope": "runtime",
@@ -124,6 +214,16 @@
           "dependencies": [],
           "id": "pkg:composer/symfony/polyfill-mbstring@v1.28.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "composer.lock",
+              "position": {
+                "file": "composer.lock",
+                "line": 0
+              },
+              "real_path": "composer.lock"
+            }
+          ],
           "metadata": {
             "bomly.normalization.applied": [
               "version"
@@ -140,6 +240,16 @@
           "dependencies": [],
           "id": "pkg:composer/symfony/yaml@v2.8.52",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "composer.lock",
+              "position": {
+                "file": "composer.lock",
+                "line": 0
+              },
+              "real_path": "composer.lock"
+            }
+          ],
           "metadata": {
             "bomly.normalization.applied": [
               "version"
@@ -158,6 +268,16 @@
           ],
           "id": "pkg:composer/twig/twig@1.44.7",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "composer.lock",
+              "position": {
+                "file": "composer.lock",
+                "line": 0
+              },
+              "real_path": "composer.lock"
+            }
+          ],
           "name": "twig:twig",
           "purl": "pkg:composer/twig/twig@1.44.7",
           "scope": "runtime",
@@ -176,7 +296,9 @@
     "ecosystem": "php",
     "name": "\u003cnormalized\u003e",
     "package_manager": "composer",
-    "path": "\u003cnormalized\u003e"
+    "path": "\u003cnormalized\u003e",
+    "target_ref": "v1.0.0",
+    "target_type": "git repository"
   },
   "schema_version": "1.0"
 }

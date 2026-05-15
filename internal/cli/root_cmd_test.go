@@ -297,6 +297,9 @@ func TestRoot_HelpFlagWithoutCommandStillWorks(t *testing.T) {
 	if !strings.Contains(helpText, "  bomly [command]") {
 		t.Fatalf("expected command-only usage line, got %q", helpText)
 	}
+	if strings.Contains(helpText, "\n  bomly\n") {
+		t.Fatalf("expected help to omit standalone root usage line, got %q", helpText)
+	}
 	if strings.Contains(helpText, "  bomly [flags]") {
 		t.Fatalf("expected help to omit root [flags] usage line, got %q", helpText)
 	}
@@ -318,8 +321,27 @@ func TestRootHelp_IncludesAvailableOptionValuesSection(t *testing.T) {
 	}
 
 	helpText := output.String()
-	if !strings.Contains(helpText, "Explore available detectors, matchers, and auditors with `bomly plugin list`.") {
-		t.Fatalf("expected help output to contain plugin list guidance, got:\n%s", helpText)
+	if !strings.Contains(helpText, "Exit Codes:") {
+		t.Fatalf("expected help output to contain exit code section, got:\n%s", helpText)
+	}
+	for _, expected := range []string{
+		"0 success",
+		"1 execution error",
+		"2 policy violation",
+		"3 resolution failure",
+		"4 invalid input",
+	} {
+		if !strings.Contains(helpText, expected) {
+			t.Fatalf("expected help output to contain %q, got:\n%s", expected, helpText)
+		}
+	}
+	if strings.Contains(helpText, "Explore available detectors, matchers, and auditors with `bomly plugin list`.") {
+		t.Fatalf("expected root help output to omit selector guidance, got:\n%s", helpText)
+	}
+	for _, nonGlobal := range []string{"--enrich", "--audit", "--reachability", "--ecosystems", "--detectors"} {
+		if strings.Contains(helpText, nonGlobal) {
+			t.Fatalf("expected root help output to omit non-global flag %q, got:\n%s", nonGlobal, helpText)
+		}
 	}
 
 	for _, removed := range []string{
@@ -331,6 +353,93 @@ func TestRootHelp_IncludesAvailableOptionValuesSection(t *testing.T) {
 		if strings.Contains(helpText, removed) {
 			t.Fatalf("expected help output to omit %q, got:\n%s", removed, helpText)
 		}
+	}
+}
+
+func TestRootHelp_CommandExamplesRender(t *testing.T) {
+	tempHome := t.TempDir()
+	t.Setenv("HOME", tempHome)
+	if runtime.GOOS == "windows" {
+		t.Setenv("USERPROFILE", tempHome)
+	}
+
+	root, err := newRootCmd("0.9.0-test")
+	if err != nil {
+		t.Fatalf("newRootCmd() error = %v", err)
+	}
+
+	tests := []struct {
+		name      string
+		args      []string
+		examples  []string
+		notInText []string
+	}{
+		{
+			name: "root",
+			args: []string{"--help"},
+			examples: []string{
+				"Examples:",
+				"bomly scan --interactive",
+				"bomly diff --base main --head HEAD",
+				"bomly explain pkg:npm/react",
+			},
+		},
+		{
+			name: "scan",
+			args: []string{"scan", "--help"},
+			examples: []string{
+				"Examples:",
+				"bomly scan --enrich --audit",
+				"bomly scan -o spdx-json=bomly.spdx.json",
+				"bomly scan --url https://github.com/bomly-dev/bomly-cli --ref main --format json",
+				"bomly scan --container alpine:3.20",
+				"Explore available detectors, matchers, and auditors with `bomly plugin list`.",
+			},
+			notInText: []string{"Exit Codes:"},
+		},
+		{
+			name:      "diff",
+			args:      []string{"diff", "--help"},
+			examples:  []string{"Examples:", "bomly diff --sbom --base ./before.cdx.json --head ./after.cdx.json --format json"},
+			notInText: []string{"Exit Codes:"},
+		},
+		{
+			name:      "explain",
+			args:      []string{"explain", "--help"},
+			examples:  []string{"Examples:", "bomly explain pkg:npm/react"},
+			notInText: []string{"Exit Codes:"},
+		},
+		{
+			name:      "plugin",
+			args:      []string{"plugin", "--help"},
+			examples:  []string{"Examples:", "bomly plugin list --all"},
+			notInText: []string{"Exit Codes:"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			var stdout bytes.Buffer
+			var stderr bytes.Buffer
+			root.SetOut(&stdout)
+			root.SetErr(&stderr)
+			root.SetArgs(tc.args)
+
+			if err := root.Execute(); err != nil {
+				t.Fatalf("root.Execute() error = %v; stderr=%s", err, stderr.String())
+			}
+			helpText := stdout.String()
+			for _, expected := range tc.examples {
+				if !strings.Contains(helpText, expected) {
+					t.Fatalf("expected help output to contain %q, got:\n%s", expected, helpText)
+				}
+			}
+			for _, unexpected := range tc.notInText {
+				if strings.Contains(helpText, unexpected) {
+					t.Fatalf("expected help output to omit %q, got:\n%s", unexpected, helpText)
+				}
+			}
+		})
 	}
 }
 

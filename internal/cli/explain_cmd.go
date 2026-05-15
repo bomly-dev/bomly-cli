@@ -18,6 +18,8 @@ func newExplainCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "explain <package>",
 		Short: "Explain why a dependency exists",
+		Example: "  bomly explain pkg:npm/react\n" +
+			"  bomly explain github.com/spf13/cobra --path .",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return exit.InvalidInputError("explain expects exactly one package argument")

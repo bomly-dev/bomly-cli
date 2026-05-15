@@ -102,7 +102,7 @@ func renderBomlyLogoFrame(lines, colors []string) string {
 		b.WriteByte('\n')
 	}
 	_, _ = b.WriteString("\x1b[2K\r")
-	b.WriteString(Style("SBOM clarity with momentum.", Dim, White))
+	b.WriteString(Style("Analyze Your Software DNA.", Dim, White))
 	b.WriteByte('\n')
 	_, _ = b.WriteString("\x1b[2K\r")
 	b.WriteByte('\n')

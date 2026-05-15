@@ -14,6 +14,7 @@ import (
 // init registers custom template functions for use in Cobra help and version text templates.
 func init() {
 	cobra.AddTemplateFunc("optionValuesHelpSection", optionValuesHelpSection)
+	cobra.AddTemplateFunc("exitCodesHelpSection", exitCodesHelpSection)
 	cobra.AddTemplateFunc("versionDetails", versionDetailsTemplateValue)
 }
 
@@ -40,8 +41,9 @@ func normalizeExecuteError(err error) error {
 func newRootCmd(version string) (*cobra.Command, error) {
 	options := opts.NewOptions()
 	root := &cobra.Command{
-		Use:                   "bomly",
-		Short:                 "A CLI for software bill of materials (SBOM) generation and analysis.",
+		Use:                   "bomly [command]",
+		Short:                 "A modern CLI for SBOM generation, dependency analysis, and software supply chain intelligence.",
+		Example:               "  bomly scan --interactive\n  bomly diff --base main --head HEAD\n  bomly explain pkg:npm/react",
 		Version:               version,
 		SilenceUsage:          true,
 		SilenceErrors:         true,
@@ -73,16 +75,61 @@ func newRootCmd(version string) (*cobra.Command, error) {
 
 	root.SetVersionTemplate(rootVersionTemplate)
 	root.SetHelpTemplate(rootHelpTemplate)
-	root.SetHelpFunc(startupLogoHelpFunc(root))
 
-	root.AddCommand(newExplainCmd())
-	root.AddCommand(newScanCmd())
-	root.AddCommand(newDiffCmd())
-	root.AddCommand(newPluginCmd())
-	root.AddCommand(newMcpCmd())
-	root.AddCommand(newVersionCmd(version))
+	explainCmd := newExplainCmd()
+	if err := opts.BindCommandFlagGroups(explainCmd, &options.ResolvedConfig,
+		opts.FlagGroupTarget,
+		opts.FlagGroupAnalysis,
+		opts.FlagGroupSelectors,
+		opts.FlagGroupExecution,
+	); err != nil {
+		return nil, err
+	}
+
+	scanCmd := newScanCmd()
+	if err := opts.BindCommandFlagGroups(scanCmd, &options.ResolvedConfig,
+		opts.FlagGroupTarget,
+		opts.FlagGroupAnalysis,
+		opts.FlagGroupSelectors,
+		opts.FlagGroupExecution,
+	); err != nil {
+		return nil, err
+	}
+
+	diffCmd := newDiffCmd()
+	if err := opts.BindCommandFlagGroups(diffCmd, &options.ResolvedConfig,
+		opts.FlagGroupTarget,
+		opts.FlagGroupAnalysis,
+		opts.FlagGroupSelectors,
+		opts.FlagGroupExecution,
+	); err != nil {
+		return nil, err
+	}
+
+	pluginCmd := newPluginCmd()
+	mcpCmd := newMcpCmd()
+	versionCmd := newVersionCmd(version)
+
+	root.AddCommand(explainCmd)
+	root.AddCommand(scanCmd)
+	root.AddCommand(diffCmd)
+	root.AddCommand(pluginCmd)
+	root.AddCommand(mcpCmd)
+	root.AddCommand(versionCmd)
+
+	setHelpFuncRecursive(root, startupLogoHelpFunc(root))
 
 	return root, nil
+}
+
+func setHelpFuncRecursive(cmd *cobra.Command, helpFn func(*cobra.Command, []string)) {
+	if cmd == nil || helpFn == nil {
+		return
+	}
+	cmd.SetHelpFunc(helpFn)
+	for _, child := range cmd.Commands() {
+		setHelpFuncRecursive(child, helpFn)
+	}
 }
 
 func rootHasCommandRequiredFlags(cmd *cobra.Command) bool {

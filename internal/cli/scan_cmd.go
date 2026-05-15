@@ -22,7 +22,11 @@ func newScanCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "scan",
 		Short: "Scan dependencies and render a graph or SBOM",
-		Args:  cobra.NoArgs,
+		Example: "  bomly scan --enrich --audit\n" +
+			"  bomly scan -o spdx-json=bomly.spdx.json\n" +
+			"  bomly scan --url https://github.com/bomly-dev/bomly-cli --ref main --format json\n" +
+			"  bomly scan --container alpine:3.20",
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			started := time.Now()
 			options, err := commandOptions(cmd)

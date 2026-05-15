@@ -12,6 +12,9 @@ func TestApplyFlagOverridesOnlyUsesChangedFlags(t *testing.T) {
 	if err := options.Bind(root); err != nil {
 		t.Fatalf("Bind() error = %v", err)
 	}
+	if err := BindCommandFlagGroups(root, &options.ResolvedConfig, FlagGroupExecution); err != nil {
+		t.Fatalf("BindCommandFlagGroups() error = %v", err)
+	}
 	if err := root.ParseFlags([]string{"--format", "json", "--install-arg", "legacy-peer-deps"}); err != nil {
 		t.Fatalf("ParseFlags() error = %v", err)
 	}

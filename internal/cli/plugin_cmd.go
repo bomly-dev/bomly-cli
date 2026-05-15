@@ -22,6 +22,8 @@ func newPluginCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "plugin",
 		Short: "Manage Bomly managed plugins",
+		Example: "  bomly plugin list --all\n" +
+			"  bomly plugin info osv",
 	}
 	cmd.AddCommand(
 		newPluginListCmd(),
@@ -47,9 +49,10 @@ func newPluginListCmd() *cobra.Command {
 	var includeAnalyzers bool
 	var format string
 	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List built-in and installed plugins",
-		Args:  cobra.NoArgs,
+		Use:     "list",
+		Short:   "List built-in and installed plugins",
+		Example: "  bomly plugin list --detectors\n  bomly plugin list --external --format json",
+		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options, err := commandOptions(cmd)
 			if err != nil {
@@ -166,9 +169,10 @@ func parsePluginListFormat(value string) (string, error) {
 func newPluginInfoCmd() *cobra.Command {
 	var jsonOutput bool
 	cmd := &cobra.Command{
-		Use:   "info <id>",
-		Short: "Show plugin metadata",
-		Args:  cobra.ExactArgs(1),
+		Use:     "info <id>",
+		Short:   "Show plugin metadata",
+		Example: "  bomly plugin info osv\n  bomly plugin info npm-native --json",
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options, err := commandOptions(cmd)
 			if err != nil {

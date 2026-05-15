@@ -7,34 +7,85 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"go.uber.org/zap"
+)
+
+type FlagGroup string
+
+const (
+	FlagGroupTarget    FlagGroup = "target"
+	FlagGroupAnalysis  FlagGroup = "analysis"
+	FlagGroupSelectors FlagGroup = "selectors"
+	FlagGroupExecution FlagGroup = "execution"
 )
 
 func bindFlagOptions(cmd *cobra.Command, cfg *config.Resolved) error {
 	flags := cmd.PersistentFlags()
+	flags.StringVar(&cfg.Config, "config", "", "YAML config file path")
+	flags.BoolVarP(&cfg.Quiet, "quiet", "q", false, "Suppress non-error stderr output")
+	flags.CountVarP(&cfg.Verbosity, "verbose", "v", "Increase verbosity (-v = info, -vv = debug)")
+
+	return nil
+}
+
+func BindCommandFlagGroups(cmd *cobra.Command, cfg *config.Resolved, groups ...FlagGroup) error {
+	if cmd == nil || cfg == nil {
+		return nil
+	}
+
+	seen := make(map[FlagGroup]struct{}, len(groups))
+	for _, group := range groups {
+		if _, ok := seen[group]; ok {
+			continue
+		}
+		seen[group] = struct{}{}
+		switch group {
+		case FlagGroupTarget:
+			bindTargetFlags(cmd.Flags(), cfg)
+		case FlagGroupAnalysis:
+			bindAnalysisFlags(cmd.Flags(), cfg)
+		case FlagGroupSelectors:
+			bindSelectorFlags(cmd.Flags(), cfg)
+			if err := bindSelectorCompletionFlags(cmd); err != nil {
+				return err
+			}
+		case FlagGroupExecution:
+			bindExecutionFlags(cmd.Flags(), cfg)
+		}
+	}
+
+	return nil
+}
+
+func bindTargetFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
 	flags.StringVar(&cfg.Path, "path", "", "Execution target path")
 	flags.StringVar(&cfg.Container, "container", "", "Container image reference to scan with Syft")
 	flags.StringVar(&cfg.URL, "url", "", "Git repository URL to clone and scan")
 	flags.StringVar(&cfg.Ref, "ref", "", "Git reference to scan when using --url")
 	flags.BoolVar(&cfg.SBOM, "sbom", false, "Treat the selected filesystem target as an SBOM file")
+}
+
+func bindAnalysisFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
 	flags.BoolVar(&cfg.Enrich, "enrich", false, "Enrich packages with external license and vulnerability data")
 	flags.BoolVar(&cfg.Audit, "audit", false, "Evaluate policy and create findings from package vulnerability data")
-	flags.BoolVar(&cfg.Reachability, "reachability", false, "Run code analysis to confirm whether vulnerabilities are reachable from application code")
+	flags.BoolVar(&cfg.Reachability, "reachability", false, "[Experimental] Run code analysis to confirm whether vulnerabilities are reachable from application code")
 	flags.StringArrayVar(&cfg.FailOn, "fail-on", nil, "Constraint(s) for which findings should be created. Repeatable; constraints AND together. Severity: any|low|medium|high|critical. Reachability: reachable. Example: --fail-on low --fail-on reachable")
+}
+
+func bindSelectorFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
 	flags.StringVar(&cfg.Analyzers, "analyzers", "", "Reachability analyzer selectors. Use names. Prefix with '+' to append defaults or '-' to remove from defaults")
-	flags.StringVarP(&cfg.Format, "format", "f", "", "Output format: text, json, sarif")
-	flags.BoolVar(&cfg.Interactive, "interactive", false, "Open an interactive terminal UI")
 	flags.StringVar(&cfg.Ecosystems, "ecosystems", "", "Ecosystems to use; supports +name/-name to add/remove from all")
 	flags.StringVar(&cfg.Detectors, "detectors", "", "Detector selectors. Use names or aliases. Prefix with '+' to append defaults or '-' to remove from defaults")
 	flags.StringVar(&cfg.Auditors, "auditors", "", "Auditor selectors. Use names or aliases. Prefix with '+' to append defaults or '-' to remove from defaults")
 	flags.StringVar(&cfg.Matchers, "matchers", "", "Matcher selectors. Use names or aliases. Prefix with '+' to append defaults or '-' to remove from defaults")
+}
+
+func bindExecutionFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
+	flags.StringVarP(&cfg.Format, "format", "f", "", "Output format: text, json, sarif")
+	flags.BoolVar(&cfg.Interactive, "interactive", false, "Open an interactive terminal UI")
 	flags.BoolVar(&cfg.InstallFirst, "install-first", false, "Run detector-specific dependency installation before resolving graphs")
 	flags.StringArrayVar(&cfg.InstallArgs, "install-arg", nil, "Additional detector-specific install argument; may be repeated")
-	flags.StringVar(&cfg.Config, "config", "", "YAML config file path")
-	flags.BoolVarP(&cfg.Quiet, "quiet", "q", false, "Suppress non-error stderr output")
-	flags.CountVarP(&cfg.Verbosity, "verbose", "v", "Increase verbosity (-v = info, -vv = debug)")
-
-	return bindDynamicFlagOptions(cmd)
 }
 
 func applyFlagOverrides(dst *config.Resolved, flags config.Resolved, cmd *cobra.Command) {
@@ -120,7 +171,7 @@ func flagChanged(cmd *cobra.Command, name string) bool {
 	return false
 }
 
-func bindDynamicFlagOptions(cmd *cobra.Command) error {
+func bindSelectorCompletionFlags(cmd *cobra.Command) error {
 	ecosystems := availableEcosystemOptions()
 	detectors := availableDetectorOptions()
 	auditors := availableAuditorOptions(zap.NewNop())

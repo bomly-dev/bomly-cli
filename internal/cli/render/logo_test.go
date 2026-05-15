@@ -14,7 +14,7 @@ func TestBomlyLogoFrames(t *testing.T) {
 		plain := StripANSI(frame)
 		for _, want := range []string{
 			"██████╗",
-			"SBOM clarity with momentum.",
+			"Analyze Your Software DNA.",
 		} {
 			if !strings.Contains(plain, want) {
 				t.Fatalf("expected frame to contain %q, got:\n%s", want, plain)

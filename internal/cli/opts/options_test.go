@@ -283,10 +283,15 @@ func TestCommandContextBind_AnnotatesUsageWithAvailableOptions(t *testing.T) {
 		t.Fatalf("Bind() error = %v", err)
 	}
 
-	for _, flagName := range []string{"ecosystems", "detectors", "auditors", "matchers"} {
+	for _, flagName := range []string{"config", "quiet", "verbose"} {
 		flag := root.PersistentFlags().Lookup(flagName)
 		if flag == nil {
 			t.Fatalf("expected flag %q to exist", flagName)
+		}
+	}
+	for _, flagName := range []string{"ecosystems", "detectors", "auditors", "matchers"} {
+		if flag := root.PersistentFlags().Lookup(flagName); flag != nil {
+			t.Fatalf("expected non-global flag %q to be command-scoped", flagName)
 		}
 	}
 }
@@ -341,6 +346,9 @@ func TestCommandContextInitialize_LoadsConfigHierarchy(t *testing.T) {
 	root := newTestRootCommand(t)
 	if err := options.Bind(root); err != nil {
 		t.Fatalf("Bind() error = %v", err)
+	}
+	if err := BindCommandFlagGroups(root, &options.ResolvedConfig, FlagGroupSelectors); err != nil {
+		t.Fatalf("BindCommandFlagGroups() error = %v", err)
 	}
 	root.SetArgs([]string{"--config", explicitConfig, "--ecosystems", "python"})
 	if err := root.ParseFlags(root.Flags().Args()); err != nil {
@@ -412,6 +420,9 @@ func TestCommandContextInitialize_AppliesConfigPrecedence(t *testing.T) {
 	root := newTestRootCommand(t)
 	if err := options.Bind(root); err != nil {
 		t.Fatalf("Bind() error = %v", err)
+	}
+	if err := BindCommandFlagGroups(root, &options.ResolvedConfig, FlagGroupAnalysis, FlagGroupSelectors); err != nil {
+		t.Fatalf("BindCommandFlagGroups() error = %v", err)
 	}
 	if err := root.ParseFlags([]string{"--config", explicitConfig, "--fail-on", "low", "--ecosystems", "python"}); err != nil {
 		t.Fatalf("ParseFlags() error = %v", err)
@@ -514,6 +525,9 @@ func TestCommandContextInitialize_ProjectConfigUsesSelectedPath(t *testing.T) {
 	root := newTestRootCommand(t)
 	if err := options.Bind(root); err != nil {
 		t.Fatalf("Bind() error = %v", err)
+	}
+	if err := BindCommandFlagGroups(root, &options.ResolvedConfig, FlagGroupTarget); err != nil {
+		t.Fatalf("BindCommandFlagGroups() error = %v", err)
 	}
 	if err := root.ParseFlags([]string{"--path", projectDir}); err != nil {
 		t.Fatalf("ParseFlags() error = %v", err)

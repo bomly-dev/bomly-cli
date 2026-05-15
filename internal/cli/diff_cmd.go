@@ -31,8 +31,11 @@ func newDiffCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "diff --base <ref> --head <ref>",
 		Short: "Compare dependency states",
-		Long:  "Compare dependency states between two git refs or two container image tags/digests.",
-		Args:  cobra.NoArgs,
+		Long:  "Compare dependency states between two git refs, two SBOM files, or two container image tags/digests.",
+		Example: "  bomly diff --url https://github.com/bomly-dev/bomly-cli --base main --head feature\n" +
+			"  bomly diff --container alpine --base 3.19 --head 3.20 --enrich\n" +
+			"  bomly diff --sbom --base ./before.cdx.json --head ./after.cdx.json --format json",
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options, err := commandOptions(cmd)
 			if err != nil {

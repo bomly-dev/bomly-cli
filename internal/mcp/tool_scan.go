@@ -16,7 +16,7 @@ func registerScanTool(s *server.MCPServer, mcpCtx MCPContext) {
 		mcplib.WithString("ref", mcplib.Description("Git ref to checkout when using url")),
 		mcplib.WithBoolean("enrich", mcplib.Description("Enrich packages with vulnerability and license data from external sources")),
 		mcplib.WithBoolean("audit", mcplib.Description("Evaluate policy and produce findings from enriched vulnerability data (requires enrich)")),
-		mcplib.WithBoolean("reachability", mcplib.Description("Run code analysis to confirm whether vulnerabilities are reachable from application code (requires enrich)")),
+		mcplib.WithBoolean("reachability", mcplib.Description("[Experimental] Run code analysis to confirm whether vulnerabilities are reachable from application code (requires enrich)")),
 		mcplib.WithString("fail_on", mcplib.Description("Minimum severity threshold for audit findings: any, low, medium, high, critical")),
 		mcplib.WithString("ecosystems", mcplib.Description("Ecosystem filter; supports +name/-name modifiers")),
 	)

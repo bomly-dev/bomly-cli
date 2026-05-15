@@ -9,7 +9,7 @@ import (
 const rootHelpTemplate = `{{with (or .Long .Short)}}{{. | trimTrailingWhitespaces}}
 
 {{end}}Usage:{{if .Runnable}}
-  {{.UseLine}}{{end}}{{if .HasAvailableSubCommands}}
+  {{.UseLine}}{{else if .HasAvailableSubCommands}}
   {{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}
 
 Aliases:
@@ -25,7 +25,7 @@ Flags:
 {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
 
 Global Flags:
-{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{optionValuesHelpSection .}}{{if .HasHelpSubCommands}}
+{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{exitCodesHelpSection .}}{{optionValuesHelpSection .}}{{if .HasHelpSubCommands}}
 
 Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
   {{rpad .CommandPath .CommandPathPadding}} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableSubCommands}}
@@ -47,14 +47,20 @@ func optionValuesHelpSection(cmd *cobra.Command) string {
 	return "\n\nExplore available detectors, matchers, and auditors with `bomly plugin list`."
 }
 
-// startupLogoHelpFunc wraps the root command's help function so that running
-// `bomly help` plays the Bomly logo animation before printing help text.
+func exitCodesHelpSection(cmd *cobra.Command) string {
+	if cmd == nil || cmd.Parent() != nil {
+		return ""
+	}
+
+	return "\n\nExit Codes:\n  0 success\n  1 execution error\n  2 policy violation\n  3 resolution failure\n  4 invalid input"
+}
+
+// startupLogoHelpFunc wraps Cobra's default help function so the Bomly logo
+// animation plays before rendering help output.
 func startupLogoHelpFunc(root *cobra.Command) func(*cobra.Command, []string) {
 	defaultHelp := root.HelpFunc()
 	return func(cmd *cobra.Command, args []string) {
-		if cmd == root {
-			render.StartupLogo(cmd.ErrOrStderr())
-		}
+		render.StartupLogo(cmd.ErrOrStderr())
 		defaultHelp(cmd, args)
 	}
 }

@@ -711,7 +711,7 @@
           "dependencies": [
             "pkg:pypi/more-itertools@11.0.2"
           ],
-          "id": "pkg:pypi/jaraco-functools@4.4.0",
+          "id": "pkg:pypi/jaraco-functools@4.5.0",
           "licenses": [
             {
               "spdxExpression": "MIT",
@@ -726,9 +726,9 @@
             "bomly.normalization.original_name": "jaraco.functools"
           },
           "name": "jaraco-functools",
-          "purl": "pkg:pypi/jaraco-functools@4.4.0",
+          "purl": "pkg:pypi/jaraco-functools@4.5.0",
           "scope": "runtime",
-          "version": "4.4.0",
+          "version": "4.5.0",
           "vulnerabilities": []
         },
         {
@@ -769,7 +769,7 @@
           "dependencies": [
             "pkg:pypi/jaraco-classes@3.4.0",
             "pkg:pypi/jaraco-context@6.1.2",
-            "pkg:pypi/jaraco-functools@4.4.0",
+            "pkg:pypi/jaraco-functools@4.5.0",
             "pkg:pypi/jeepney@0.9.0",
             "pkg:pypi/secretstorage@3.5.0"
           ],
@@ -1359,7 +1359,7 @@
             "pkg:pypi/isort@5.13.2",
             "pkg:pypi/jaraco-classes@3.4.0",
             "pkg:pypi/jaraco-context@6.1.2",
-            "pkg:pypi/jaraco-functools@4.4.0",
+            "pkg:pypi/jaraco-functools@4.5.0",
             "pkg:pypi/jeepney@0.9.0",
             "pkg:pypi/jinja2@2.10.1",
             "pkg:pypi/keyring@25.7.0",

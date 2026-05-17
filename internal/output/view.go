@@ -488,7 +488,10 @@ func diffManifestKey(manifest diffManifestRef, idx int) string {
 	if subproject == "" {
 		subproject = "."
 	}
-	return strings.Join([]string{subproject, manifest.PackageManager, manifest.Kind, pathValue}, "::")
+	if strings.TrimSpace(manifest.Path) == "" {
+		return strings.Join([]string{subproject, manifest.PackageManager, manifest.Kind, pathValue}, "::")
+	}
+	return strings.Join([]string{subproject, manifest.PackageManager, pathValue}, "::")
 }
 
 func diffManifestKeyForConsolidated(manifest sdk.ConsolidatedManifest, ref diffManifestRef, idx int) string {

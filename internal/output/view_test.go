@@ -251,6 +251,52 @@ func TestBuildDiffResponseAggregatesManifestChanges(t *testing.T) {
 	}
 }
 
+func TestBuildDiffResponseMatchesSameManifestWhenKindDiffers(t *testing.T) {
+	baseGraph := newViewTestGraph(t)
+	headGraph := newViewTestGraph(t)
+	if err := headGraph.AddPackage(sdk.NewPackageRef("newpkg", "1.0.0")); err != nil {
+		t.Fatalf("add package: %v", err)
+	}
+	if err := headGraph.AddDependency("app@1.0.0", "newpkg@1.0.0"); err != nil {
+		t.Fatalf("add dependency: %v", err)
+	}
+
+	baseResults := []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{RelativePath: ".", PrimaryDetector: "go-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerGoMod}, Ecosystem: sdk.EcosystemGo},
+		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+			Graph:    baseGraph,
+			Manifest: sdk.ManifestMetadata{Path: "go.mod", Kind: "go-module"},
+		}}},
+	}}
+	headResults := []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{RelativePath: ".", PrimaryDetector: "go-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerGoMod}, Ecosystem: sdk.EcosystemGo},
+		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+			Graph:    headGraph,
+			Manifest: sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"},
+		}}},
+	}}
+
+	baseConsolidated, err := consolidation.ConsolidateGraphs(baseResults)
+	if err != nil {
+		t.Fatalf("ConsolidateGraphs(base) error = %v", err)
+	}
+	headConsolidated, err := consolidation.ConsolidateGraphs(headResults)
+	if err != nil {
+		t.Fatalf("ConsolidateGraphs(head) error = %v", err)
+	}
+
+	response := output.BuildDiffResponse("/tmp/demo", "base", "head", baseConsolidated, headConsolidated, nil, time.Now().Add(-time.Second))
+	if response.Summary.ChangedManifestCount != 1 {
+		t.Fatalf("expected one changed manifest, got %#v", response.Summary)
+	}
+	if response.Summary.AddedManifestCount != 0 || response.Summary.RemovedManifestCount != 0 {
+		t.Fatalf("expected same manifest path to match despite kind drift, got %#v", response.Summary)
+	}
+	if len(response.Results.Manifests) != 1 || response.Results.Manifests[0].Kind != "go.mod" {
+		t.Fatalf("expected head manifest metadata on the matched result, got %#v", response.Results.Manifests)
+	}
+}
+
 func TestBuildDiffResponseTreatsSBOMFilesAsSameManifestWhenOnlyEvidencePathDiffers(t *testing.T) {
 	baseGraph := newViewTestGraph(t)
 	headGraph := newViewTestGraph(t)

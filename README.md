@@ -2,27 +2,27 @@
 
 Dependency intelligence for modern software projects.
 
-Bomly scans source trees, SBOMs, Git refs, and container images to show what you depend on, explain why it is there, and surface vulnerability and license data when you ask for it.
+Bomly scans source trees, SBOMs, Git refs, and container images, generates SPDX and CycloneDX SBOMs, enriches packages with vulnerability and license data, evaluates policy, and diffs dependency state across refs.
+
+One binary. Native detectors for the ecosystems developers use every day. Offline-safe unless you opt in. Built for CI as much as for local use.
 
 ## Why Bomly
 
-- One CLI for dependency scanning, package enrichment, policy evaluation, explanation, and diffing.
-- Native detectors for the ecosystems developers use every day, with Syft-backed coverage for many more.
-- Clear text output for humans, plus JSON and SARIF for automation.
-- Offline-safe by default: network-backed matchers only run when you opt into `--enrich`.
-- Built for developer workflows and CI, not just post-processing reports.
+- **One CLI, full pipeline.** Detect, enrich, audit, explain, diff, and write SBOMs from the same binary.
+- **Native detectors first.** Real dependency graphs (with edges) for Go, npm, pnpm, yarn, Maven, Gradle, Python, Composer, Bundler, GitHub Actions, and SBOM ingest. Syft fills the long tail for containers and rarer ecosystems.
+- **Offline-safe by default.** A scan without `--enrich` makes zero outbound HTTP calls. The only enrichment endpoints used are OSV, KEV, deps.dev, ClearlyDefined, and endoflife.date.
+- **Reachability that respects your time.** `--reachability` tells you whether your app actually calls a vulnerable symbol — Tier-1 (`govulncheck`) for Go; Tier-3 import-graph closure for npm, Python, and JVM languages.
+- **Stable exit codes for CI.** `0` clean, `2` policy violation, plus 1, 3, 4 for other failure classes. See [Exit codes](docs/EXIT_CODES.md).
 
 ## Highlights
 
-- Scan local projects, SBOM files, Git repositories, and container images.
-- Generate SPDX 2.3 and CycloneDX SBOMs with repeatable `--sbom-output` targets.
-- Enrich packages with OSV, Grype, KEV, and license metadata with `--enrich`.
-- Evaluate package vulnerability data with `--audit --fail-on <severity>`.
-- Combine `--enrich --audit` for full external enrichment plus policy findings.
-- SARIF stays audit-only.
+- Scan local trees, SBOMs (SPDX 2.3, CycloneDX 1.6), Git repositories, container images.
+- Write SBOMs in either format alongside any report: `-o spdx-json=…  -o cyclonedx-json=…`.
+- Enrich with OSV, KEV, deps.dev, ClearlyDefined, endoflife.date via `--enrich`.
+- Audit with `--audit --fail-on <severity>`; SARIF emitted with `--format sarif`.
 - Explain transitive paths with `bomly explain <package>`.
-- Compare dependency state across Git refs or SBOM files with `bomly diff`.
-- Filter by ecosystem, detector, auditor, matcher, and dependency scope.
+- Diff dependency state across Git refs or SBOM files with `bomly diff`.
+- Filter by ecosystem, detector, matcher, auditor, scope.
 
 ## Quick Start
 
@@ -48,6 +48,8 @@ bomly explain lodash
 # Compare dependency state across Git refs
 bomly diff --base main --head feature/my-change
 ```
+
+Walkthrough: [Getting Started](docs/GETTING_STARTED.md).
 
 ## Installation
 
@@ -98,26 +100,23 @@ Get-FileHash .\bomly_v0.2.0_windows_amd64.zip -Algorithm SHA256
 
 ## What It Scans
 
-Bomly has native detectors for:
+Native detectors:
 
 - Go modules
-- npm, pnpm, and Yarn
-- Maven and Gradle
-- Python via pip, Pipenv, Poetry, and uv
-- Composer
-- Bundler
+- npm, pnpm, Yarn
+- Maven, Gradle
+- Python (pip, Pipenv, Poetry, uv)
+- Composer (PHP)
+- Bundler (Ruby)
 - GitHub Actions
-- SPDX and CycloneDX SBOMs
+- SPDX 2.3 and CycloneDX 1.6 SBOM ingest
 
-Bomly also supports many additional ecosystems through Syft-backed detection. See [docs/SUPPORT_MATRIX.md](docs/SUPPORT_MATRIX.md) for the generated matrix.
+Syft-backed for many more, including container images. See [docs/SUPPORT_MATRIX.md](docs/SUPPORT_MATRIX.md) for the full matrix.
 
-For user-friendly component guides, see:
+Component guides:
 
-- [Detectors](docs/DETECTORS.md): how Bomly finds package-manager evidence and builds dependency graphs
-- [Matcher guides](docs/MATCHERS.md): how optional enrichment adds vulnerabilities, licenses, and lifecycle data
-- [Auditors](docs/AUDITORS.md): how `--audit` turns existing vulnerability data into findings
-- [Detector ecosystem guides](docs/detectors/ecosystems/README.md): generated per-ecosystem detector chains and evidence patterns
-- [Matcher reference](docs/matchers/README.md): generated per-matcher behavior and output notes
+- [Detectors](docs/DETECTORS.md), [Matchers](docs/MATCHERS.md), [Auditors](docs/AUDITORS.md), [Reachability](docs/REACHABILITY.md)
+- Per-ecosystem [detector guides](docs/detectors/ecosystems/) and per-matcher [reference](docs/matchers/)
 
 ## Core Commands
 
@@ -173,6 +172,8 @@ bomly diff --sbom --base ./old.spdx.json --head ./new.spdx.json
 | SARIF 2.1.0 | `bomly scan --audit --format sarif` |
 | SPDX 2.3 JSON | `bomly scan -o spdx-json=sbom.spdx.json` |
 | CycloneDX JSON | `bomly scan -o cyclonedx-json=sbom.cdx.json` |
+
+Full details: [Output formats](docs/OUTPUT_FORMATS.md), [SBOM formats](docs/SBOM.md), [Exit codes](docs/EXIT_CODES.md).
 
 ## Configuration
 
@@ -230,21 +231,21 @@ More detail lives in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 ## Repository Layout
 
 ```text
-cmd/bomly/           CLI entry point
-internal/cli/        Commands, config loading, progress, help
-internal/engine/     Runtime preparation, orchestration, consolidation
-internal/detectors/  Ecosystem-specific dependency resolution
-internal/matchers/   External enrichment matchers and shared matcher cache
-internal/auditors/   Policy evaluation and finding creation
-internal/matchers/   Shared matcher helpers and external enrichment matchers
-internal/output/     Text, JSON, SARIF rendering, and structured response payloads
-internal/sbom/       SPDX and CycloneDX encoding and decoding
-internal/engine/diff/ Diff orchestration and audit deltas
-internal/engine/explain/ Dependency path explanation
-internal/engine/scan/ Scan command pipeline API
-internal/registry/   Canonical support and discovery registry
-internal/system/     OS-level helpers used internally
-docs/                Public reference documentation
+cmd/bomly/                 CLI entry point
+internal/cli/              Commands, config loading, progress, help
+internal/engine/           Runtime preparation, orchestration, consolidation
+internal/engine/diff/      Diff orchestration and audit deltas
+internal/engine/explain/   Dependency path explanation
+internal/engine/scan/      Scan command pipeline API
+internal/detectors/        Ecosystem-specific dependency resolution
+internal/matchers/         External enrichment matchers and shared matcher cache
+internal/analyzers/        Reachability analyzers (govulncheck, jsreach, pyreach, jvmreach)
+internal/auditors/         Policy evaluation and finding creation
+internal/output/           Text, JSON, SARIF rendering and structured response payloads
+internal/sbom/             SPDX and CycloneDX encoding and decoding
+internal/registry/         Canonical support and discovery registry
+internal/plugin/           Managed external plugins (install, verify, run)
+docs/                      Public reference documentation
 ```
 
 ## Development

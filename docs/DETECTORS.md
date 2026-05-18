@@ -1,22 +1,94 @@
 # Detectors
 
-Detectors are the part of Bomly that read a project, container, or SBOM and turn the evidence into a dependency graph.
+Detectors turn a project, container, or SBOM into a dependency graph. Every scan starts with a detector.
 
-Bomly plans detector work before a scan starts. It looks for package-manager evidence such as lockfiles, manifests, workflow files, or SBOM documents, then runs the best detector chain for each discovered subproject. Native detectors run first when Bomly can produce a richer graph itself. Syft-backed detection fills coverage gaps and container/image scenarios.
+A detector knows one or more package managers. Given evidence on disk — a lockfile, a manifest, a workflow file, an SBOM document — it produces packages, versions, and the edges between them. Bomly ships native detectors for the most common ecosystems and falls back to Syft for broad coverage of everything else.
 
-## When Detectors Run
+## When detectors run
 
 - `bomly scan` runs detectors to build the graph.
-- `bomly explain` reuses the same detector planning before finding dependency paths.
-- `bomly diff` runs detectors for each side of the comparison unless you diff SBOM files.
-- Detector plugins participate in the same planning flow when they declare package-manager evidence.
+- `bomly explain` reuses the same detector planning before walking dependency paths.
+- `bomly diff` runs detectors for each side of the comparison, unless you pass `--sbom` to diff two SBOM files directly.
+- Plugin detectors participate in the same planning flow when they declare package-manager evidence.
 
 ## Detector Chains
 
-A detector chain is the ordered list Bomly tries for a package manager. The first detector is preferred. A later detector is a fallback when the preferred detector is not ready, not applicable, or cannot produce graph data.
+A **detector chain** is the ordered list Bomly tries for a package manager. The first entry is preferred. Later entries are fallbacks Bomly uses when the preferred detector is not ready, is not applicable, or cannot produce graph data.
 
-Some detectors can run an ecosystem tool such as `npm`, `go`, `mvn`, `dart`, `swift`, or `sbt`. Bomly does not install package managers for you. Use `--install-first` only when you want detectors that support it to run their normal dependency-install command before resolving the graph.
+For example, the `npm` chain is `npm-detector` → `syft-detector`:
 
-## Generated Ecosystem Guides
+1. `npm-detector` parses `package-lock.json` directly and resolves the full transitive graph.
+2. `syft-detector` runs only if the native detector cannot produce graph data (for example, no lockfile present), and emits a flat package list.
 
-The pages in `docs/detectors/ecosystems/` are generated from Bomly's registry. Each page lists supported package managers, evidence patterns, chain order, install-first support, and the native commands users may need on `PATH`.
+Per-ecosystem chains are listed in [`detectors/ecosystems/`](detectors/ecosystems/). The full live list lives in the CLI:
+
+```bash
+bomly plugin list --detectors
+bomly plugin list --detectors --format json
+```
+
+## Native vs. Syft
+
+| | Native detectors | Syft-backed |
+| --- | --- | --- |
+| Graph shape | Full transitive graph with edges | Flat package list |
+| Source | Lockfile or build-tool output | Cataloger heuristics |
+| Best for | Local source trees, monorepos, CI | Container images, ecosystems without a native detector |
+| Performance | Faster on supported ecosystems | Required for many container layers |
+
+Bomly prefers native detectors because they preserve edges (needed by `bomly explain`, reachability, and scope filtering). It falls back to Syft transparently when no native detector applies.
+
+## Selecting detectors
+
+Use `--detectors` to restrict or extend the default set with the standard `+/-` selector grammar:
+
+```bash
+# Use only the native Go detector
+bomly scan --detectors go-detector
+
+# Disable Syft fallback for this run
+bomly scan --detectors -syft-detector
+
+# Add an external plugin detector
+bomly scan --detectors +acme.detector.example
+```
+
+Pass the bare detector name to filter to only that detector, `+name` to add it on top of defaults, or `-name` to remove it.
+
+## `--install-first`
+
+Bomly does **not** install package managers or fetch dependencies for you. Some detectors can shell out to an ecosystem tool (`npm`, `go`, `mvn`, `mix`, `dart`, `swift`, `sbt`) to produce a richer graph when one is on `PATH`.
+
+Pass `--install-first` to let detectors run their normal dependency-install command (e.g. `npm install`, `go mod download`) before resolving the graph. This is opt-in because it modifies the filesystem and downloads packages.
+
+Each ecosystem page in [`detectors/ecosystems/`](detectors/ecosystems/) lists which detectors support `--install-first` and which native commands they expect on `PATH`.
+
+## Discovery and monorepos
+
+For local source trees, Bomly discovers subprojects before running detectors. Every directory containing recognized evidence becomes a subproject; Bomly runs the matching detector chain in each one and consolidates the results into a single graph.
+
+There is no project-root requirement. Pointing `bomly scan` at a monorepo will scan every workspace in one pass.
+
+## SBOM ingest
+
+Bomly treats SPDX 2.3 and CycloneDX SBOMs as first-class input. Use `--sbom` to ingest an SBOM file directly without re-running ecosystem detectors:
+
+```bash
+bomly scan --sbom --path ./existing.spdx.json
+```
+
+This is fast and offline. See [SBOM formats](SBOM.md) for the format comparison.
+
+## Container images
+
+Bomly resolves container references via the host's registry credentials. Native detectors that work on lockfile contents inside layers still run; everything else falls through to Syft:
+
+```bash
+bomly scan --container ghcr.io/example/app:latest
+```
+
+## See also
+
+- [Ecosystem guides](detectors/ecosystems/) — generated per-ecosystem detector chains, evidence patterns, and `PATH` requirements
+- [Support matrix](SUPPORT_MATRIX.md) — generated overview of every supported ecosystem
+- [Plugins](PLUGINS.md) — author and install external detectors

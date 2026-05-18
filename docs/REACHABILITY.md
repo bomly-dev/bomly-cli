@@ -1,10 +1,8 @@
 # Reachability
 
-Bomly's `--reachability` flag runs code analysis on top of vulnerability
-matching to confirm whether a finding is actually reachable from the
-application code. Reachability annotations are attached to every
-applicable `PackageVulnerability` and copied onto each `Finding` when
-`--audit` is also set.
+`--reachability` runs code analysis on top of vulnerability matching to confirm whether a finding is actually reachable from your application code. Reachability annotations are attached to every applicable `PackageVulnerability` and copied onto each `Finding` when `--audit` is also set.
+
+The point: stop chasing high-severity CVEs in transitive packages your code never imports.
 
 ## Quick start
 
@@ -12,11 +10,35 @@ applicable `PackageVulnerability` and copied onto each `Finding` when
 # Annotate vulnerabilities with reachability (no audit required).
 bomly scan --enrich --reachability --format json
 
-# Audit + reachability constraints AND-ed via repeatable --fail-on.
-# Only low+ severity vulnerabilities that are confirmed reachable
-# become findings.
-bomly scan --enrich --audit --reachability --fail-on low --fail-on reachable --format json
+# Fail only when a finding is BOTH low+ severity AND confirmed reachable.
+bomly scan --enrich --audit --reachability \
+  --fail-on low --fail-on reachable --format json
 ```
+
+## Analyzer per ecosystem
+
+| Ecosystem | Analyzer | Tier | What "reachable" means |
+| --- | --- | --- | --- |
+| Go | `govulncheck` | `symbol` | App code calls (transitively) the vulnerable function |
+| JavaScript / TypeScript | `jsreach` | `package` | App source imports the npm package (directly or via the npm dep graph) |
+| Python | `pyreach` | `package` | App source imports the PyPI distribution (directly or via the Python dep graph) |
+| Java / Kotlin / Scala / Groovy | `jvmreach` | `package` | App source imports a class in the Maven artifact (directly or via the JVM dep graph) |
+
+Other ecosystems are tracked for follow-up phases. On a project with no applicable analyzer, the pipeline runs cleanly and vulnerabilities keep their default `nil` reachability.
+
+## "Unreachable" is **not** "safe" {#unreachable-is-not-safe}
+
+This caveat applies to every Tier-3 analyzer (`jsreach`, `pyreach`, `jvmreach`) and is the single most important thing to understand before gating CI on `--fail-on reachable`.
+
+Static analysis cannot see:
+
+- Dynamic imports: `require(userInput)`, `importlib.import_module(name)`, `Class.forName(string)`.
+- Runtime plugin loaders, entry-point discovery, Django `INSTALLED_APPS` strings, Spring component scanning, `ServiceLoader`, OSGi, JPMS dynamic layers, annotation-processed code.
+- Build-time code generators or runtime shell-outs.
+
+Tier-3 "unreachable" is a **triage signal**, not a fix substitute. Use it to deprioritize dev-only and transitive-but-unimported dependencies, not to dismiss vulnerabilities.
+
+Tier-1 (`symbol`, Go) is much stronger: `govulncheck` builds the actual call graph. "Unreachable" at Tier-1 means there is no static call path. Even Tier-1 cannot see reflection, but the standard library's reflection use is well-understood and rare in app code.
 
 ## How it works
 

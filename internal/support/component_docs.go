@@ -16,26 +16,98 @@ import (
 func RenderDetectorsOverviewMarkdown() string {
 	return strings.TrimSpace(`# Detectors
 
-Detectors are the part of Bomly that read a project, container, or SBOM and turn the evidence into a dependency graph.
+Detectors turn a project, container, or SBOM into a dependency graph. Every scan starts with a detector.
 
-Bomly plans detector work before a scan starts. It looks for package-manager evidence such as lockfiles, manifests, workflow files, or SBOM documents, then runs the best detector chain for each discovered subproject. Native detectors run first when Bomly can produce a richer graph itself. Syft-backed detection fills coverage gaps and container/image scenarios.
+A detector knows one or more package managers. Given evidence on disk — a lockfile, a manifest, a workflow file, an SBOM document — it produces packages, versions, and the edges between them. Bomly ships native detectors for the most common ecosystems and falls back to Syft for broad coverage of everything else.
 
-## When Detectors Run
+## When detectors run
 
 - `+"`bomly scan`"+` runs detectors to build the graph.
-- `+"`bomly explain`"+` reuses the same detector planning before finding dependency paths.
-- `+"`bomly diff`"+` runs detectors for each side of the comparison unless you diff SBOM files.
-- Detector plugins participate in the same planning flow when they declare package-manager evidence.
+- `+"`bomly explain`"+` reuses the same detector planning before walking dependency paths.
+- `+"`bomly diff`"+` runs detectors for each side of the comparison, unless you pass `+"`--sbom`"+` to diff two SBOM files directly.
+- Plugin detectors participate in the same planning flow when they declare package-manager evidence.
 
 ## Detector Chains
 
-A detector chain is the ordered list Bomly tries for a package manager. The first detector is preferred. A later detector is a fallback when the preferred detector is not ready, not applicable, or cannot produce graph data.
+A **detector chain** is the ordered list Bomly tries for a package manager. The first entry is preferred. Later entries are fallbacks Bomly uses when the preferred detector is not ready, is not applicable, or cannot produce graph data.
 
-Some detectors can run an ecosystem tool such as `+"`npm`"+`, `+"`go`"+`, `+"`mvn`"+`, `+"`dart`"+`, `+"`swift`"+`, or `+"`sbt`"+`. Bomly does not install package managers for you. Use `+"`--install-first`"+` only when you want detectors that support it to run their normal dependency-install command before resolving the graph.
+For example, the `+"`npm`"+` chain is `+"`npm-detector`"+` → `+"`syft-detector`"+`:
 
-## Generated Ecosystem Guides
+1. `+"`npm-detector`"+` parses `+"`package-lock.json`"+` directly and resolves the full transitive graph.
+2. `+"`syft-detector`"+` runs only if the native detector cannot produce graph data (for example, no lockfile present), and emits a flat package list.
 
-The pages in `+"`docs/detectors/ecosystems/`"+` are generated from Bomly's registry. Each page lists supported package managers, evidence patterns, chain order, install-first support, and the native commands users may need on `+"`PATH`"+`.
+Per-ecosystem chains are listed in [`+"`detectors/ecosystems/`"+`](detectors/ecosystems/). The full live list lives in the CLI:
+
+`+"```bash"+`
+bomly plugin list --detectors
+bomly plugin list --detectors --format json
+`+"```"+`
+
+## Native vs. Syft
+
+| | Native detectors | Syft-backed |
+| --- | --- | --- |
+| Graph shape | Full transitive graph with edges | Flat package list |
+| Source | Lockfile or build-tool output | Cataloger heuristics |
+| Best for | Local source trees, monorepos, CI | Container images, ecosystems without a native detector |
+| Performance | Faster on supported ecosystems | Required for many container layers |
+
+Bomly prefers native detectors because they preserve edges (needed by `+"`bomly explain`"+`, reachability, and scope filtering). It falls back to Syft transparently when no native detector applies.
+
+## Selecting detectors
+
+Use `+"`--detectors`"+` to restrict or extend the default set with the standard `+"`+/-`"+` selector grammar:
+
+`+"```bash"+`
+# Use only the native Go detector
+bomly scan --detectors go-detector
+
+# Disable Syft fallback for this run
+bomly scan --detectors -syft-detector
+
+# Add an external plugin detector
+bomly scan --detectors +acme.detector.example
+`+"```"+`
+
+Pass the bare detector name to filter to only that detector, `+"`+name`"+` to add it on top of defaults, or `+"`-name`"+` to remove it.
+
+## `+"`--install-first`"+`
+
+Bomly does **not** install package managers or fetch dependencies for you. Some detectors can shell out to an ecosystem tool (`+"`npm`"+`, `+"`go`"+`, `+"`mvn`"+`, `+"`mix`"+`, `+"`dart`"+`, `+"`swift`"+`, `+"`sbt`"+`) to produce a richer graph when one is on `+"`PATH`"+`.
+
+Pass `+"`--install-first`"+` to let detectors run their normal dependency-install command (e.g. `+"`npm install`"+`, `+"`go mod download`"+`) before resolving the graph. This is opt-in because it modifies the filesystem and downloads packages.
+
+Each ecosystem page in [`+"`detectors/ecosystems/`"+`](detectors/ecosystems/) lists which detectors support `+"`--install-first`"+` and which native commands they expect on `+"`PATH`"+`.
+
+## Discovery and monorepos
+
+For local source trees, Bomly discovers subprojects before running detectors. Every directory containing recognized evidence becomes a subproject; Bomly runs the matching detector chain in each one and consolidates the results into a single graph.
+
+There is no project-root requirement. Pointing `+"`bomly scan`"+` at a monorepo will scan every workspace in one pass.
+
+## SBOM ingest
+
+Bomly treats SPDX 2.3 and CycloneDX SBOMs as first-class input. Use `+"`--sbom`"+` to ingest an SBOM file directly without re-running ecosystem detectors:
+
+`+"```bash"+`
+bomly scan --sbom --path ./existing.spdx.json
+`+"```"+`
+
+This is fast and offline. See [SBOM formats](SBOM.md) for the format comparison.
+
+## Container images
+
+Bomly resolves container references via the host's registry credentials. Native detectors that work on lockfile contents inside layers still run; everything else falls through to Syft:
+
+`+"```bash"+`
+bomly scan --container ghcr.io/example/app:latest
+`+"```"+`
+
+## See also
+
+- [Ecosystem guides](detectors/ecosystems/) — generated per-ecosystem detector chains, evidence patterns, and `+"`PATH`"+` requirements
+- [Support matrix](SUPPORT_MATRIX.md) — generated overview of every supported ecosystem
+- [Plugins](PLUGINS.md) — author and install external detectors
 `) + "\n"
 }
 
@@ -43,19 +115,103 @@ The pages in `+"`docs/detectors/ecosystems/`"+` are generated from Bomly's regis
 func RenderMatchersOverviewMarkdown() string {
 	return strings.TrimSpace(`# Matchers
 
-Matchers enrich packages after Bomly has built a dependency graph.
+Matchers enrich packages after Bomly has built a dependency graph. They attach vulnerabilities, license metadata, and lifecycle signals to packages already in the graph.
 
-Bomly is offline-safe by default. Network-backed matchers only run when package enrichment is explicitly enabled, for example with `+"`bomly scan --enrich`"+`. Matchers attach data such as vulnerabilities, license metadata, and end-of-life signals to packages. Auditors can then evaluate the enriched graph when `+"`--audit`"+` is enabled.
+Bomly is **offline-safe by default**. Matchers that use the network only run when you opt in with `+"`--enrich`"+`. A scan without `+"`--enrich`"+` makes zero outbound HTTP calls.
 
-## What Matchers Add
+## Categories
 
-- Vulnerability matchers add vulnerability IDs, severity, aliases, CVSS, fixed versions, references, and KEV signals where available.
-- License matchers add license evidence from external package metadata services.
-- Lifecycle matchers add ecosystem/runtime end-of-life metadata.
+| Kind | Examples | What it adds |
+| --- | --- | --- |
+| Vulnerability | `+"`osv`"+`, `+"`grype`"+` | CVE / GHSA / OSV IDs, severity, CVSS, aliases, fixed versions, references, KEV signal |
+| License | `+"`depsdev-license-checker`"+`, `+"`clearlydefined-license-checker`"+` | SPDX expression, declared/discovered split, license source |
+| Lifecycle | `+"`eol`"+` | End-of-life status for ecosystems and runtimes (via endoflife.date) |
 
-## Generated Matcher Guides
+The full live list lives in the CLI:
 
-The pages in `+"`docs/matchers/`"+` are generated from Bomly's matcher descriptors and known runtime behavior. They list when each matcher runs, whether it uses the network, cache expectations, and the output fields users should expect.
+`+"```bash"+`
+bomly plugin list --matchers
+bomly plugin list --matchers --format json
+`+"```"+`
+
+## Running matchers
+
+Pass `+"`--enrich`"+` to run all default network matchers:
+
+`+"```bash"+`
+bomly scan --enrich
+`+"```"+`
+
+Use `+"`--matchers`"+` to restrict or extend the set with the standard `+"`+/-`"+` selector grammar:
+
+`+"```bash"+`
+# Only OSV
+bomly scan --enrich --matchers osv
+
+# Default set minus license checkers
+bomly scan --enrich --matchers -depsdev-license-checker,-clearlydefined-license-checker
+
+# Add an external plugin matcher
+bomly scan --enrich --matchers +acme.matcher.example
+`+"```"+`
+
+## Network endpoints
+
+When `+"`--enrich`"+` is set, Bomly may call:
+
+- `+"`api.osv.dev`"+` — OSV vulnerability database
+- `+"`api.cisa.gov`"+` — CISA Known Exploited Vulnerabilities catalog
+- `+"`api.deps.dev`"+` — Google's deps.dev package metadata
+- `+"`api.clearlydefined.io`"+` — ClearlyDefined license data
+- `+"`endoflife.date`"+` — lifecycle data
+
+These are the **only** hosts Bomly contacts during enrichment. No telemetry. No data exfiltration. No credentials sent. See [docs/ARCHITECTURE.md](ARCHITECTURE.md) for the full network model.
+
+## Cache
+
+Every matcher caches its responses on disk so repeated scans are fast and resilient to upstream outages.
+
+| | Default |
+| --- | --- |
+| Cache root (Unix/macOS) | `+"`$HOME/.bomly/cache/`"+` |
+| Cache root (Windows) | `+"`%USERPROFILE%\\.bomly\\cache\\`"+` |
+| Fallback when no home dir | `+"`./.bomly-cache/`"+` |
+
+Per-matcher subdirectories and TTLs:
+
+| Matcher | Subdirectory | Default TTL |
+| --- | --- | --- |
+| OSV (queries) | `+"`osv/`"+` | 24h |
+| OSV (vulnerability details) | `+"`osv-vulns/`"+` | 7d |
+| CISA KEV | `+"`kev/`"+` | 6h |
+| deps.dev | `+"`licenses/depsdev/`"+` | 24h |
+| ClearlyDefined | `+"`licenses/clearlydefined/`"+` | 24h |
+| endoflife.date | `+"`eol/`"+` | 24h |
+
+To clear the cache, delete the directory:
+
+`+"```bash"+`
+rm -rf ~/.bomly/cache    # Unix/macOS
+Remove-Item -Recurse $env:USERPROFILE\.bomly\cache  # PowerShell
+`+"```"+`
+
+Override the cache location per matcher in `+"`~/.bomly/config.yaml`"+`; see [CONFIG_REFERENCE.md](CONFIG_REFERENCE.md). Cache failures are **always non-fatal** — Bomly logs a warning and continues.
+
+## Failure semantics
+
+Matchers degrade rather than abort. A failed enrichment never fails the scan:
+
+- **Network error** — the package is left unannotated; a warning is logged.
+- **Cache write error** — the response is still applied; a warning is logged.
+- **Rate-limit / 5xx** — Bomly retries with backoff inside the matcher, then degrades.
+
+This means a scan with `+"`--enrich`"+` always succeeds (exit 0) on a healthy graph, even if some enrichment lookups failed. To enforce that enrichment data must be present, combine `+"`--enrich`"+` with `+"`--audit --fail-on <severity>`"+` — see [Auditors](AUDITORS.md).
+
+## See also
+
+- [Per-matcher reference](matchers/) — descriptors, cache shape, output fields, ecosystem coverage
+- [Auditors](AUDITORS.md) — how matcher output is evaluated against policy
+- [Reachability](REACHABILITY.md) — narrowing matcher findings to symbols actually called
 `) + "\n"
 }
 
@@ -63,19 +219,123 @@ The pages in `+"`docs/matchers/`"+` are generated from Bomly's matcher descripto
 func RenderAuditorsOverviewMarkdown() string {
 	return strings.TrimSpace(`# Auditors
 
-Auditors evaluate a graph and produce findings.
+Auditors evaluate a dependency graph against policy and produce findings. They are how a scan becomes a pass/fail signal in CI.
 
-The default policy auditor looks at vulnerability data that is already present on packages. It does not make network calls on its own. If you want Bomly to fetch vulnerability data and then evaluate policy in one command, run `+"`bomly scan --enrich --audit`"+`.
+Auditors run **after** detectors and matchers. They never make network calls of their own — they only look at the data that detectors put on the graph and matchers attached to it. To audit fresh vulnerability data, combine `+"`--enrich`"+` with `+"`--audit`"+`:
 
-## When Auditors Run
+`+"```bash"+`
+bomly scan --enrich --audit --fail-on high
+`+"```"+`
+
+`+"`--audit`"+` alone is useful when you have ingested an SBOM that already carries vulnerability data, or when a matcher ran in a previous step.
+
+## When auditors run
 
 - `+"`bomly scan --audit`"+` evaluates the full graph.
-- `+"`bomly explain --audit`"+` evaluates the selected component context.
-- `+"`bomly diff --audit`"+` classifies introduced, resolved, and persisted findings.
+- `+"`bomly explain --audit`"+` evaluates the dependency-path context for a single package.
+- `+"`bomly diff --audit`"+` classifies introduced, resolved, and persisted findings between two graphs.
 
 ## Findings
 
-Findings have a normalized shape: ID, kind, severity, package, title, reasons, and source. Text output summarizes them for humans, JSON exposes them for automation, and SARIF is available for audit results with `+"`--format sarif`"+`.
+A finding is Bomly's normalized record of a policy match. Every finding has:
+
+| Field | Meaning |
+| --- | --- |
+| ID | Identifier of the underlying signal (e.g. `+"`CVE-2024-12345`"+`, `+"`GHSA-xxxx-yyyy-zzzz`"+`) |
+| Kind | What kind of finding (vulnerability, license, lifecycle) |
+| Severity | `+"`critical`"+` / `+"`high`"+` / `+"`medium`"+` / `+"`low`"+` / `+"`unknown`"+` |
+| Package | The package name, version, and PURL it applies to |
+| Title | Human-readable summary |
+| Reasons | Why the finding matched policy (e.g. severity threshold, reachable symbol) |
+| Source | Which matcher produced the underlying data |
+
+Text output (`+"`--format text`"+`, default) groups findings by package and severity. JSON (`+"`--format json`"+`) exposes the full shape for automation. SARIF 2.1.0 (`+"`--format sarif`"+`) emits a static-analysis report any tool that consumes SARIF can ingest.
+
+`+"`--format sarif`"+` **requires** `+"`--audit`"+`. A SARIF document only makes sense when there are findings.
+
+## Severity grammar
+
+Severity levels in precedence order, lowest to highest:
+
+`+"```text"+`
+unknown  <  low  <  medium  <  high  <  critical
+`+"```"+`
+
+The `+"`any`"+` token matches every severity, including `+"`unknown`"+`.
+
+## `+"`--fail-on`"+`
+
+`+"`--fail-on`"+` is the only knob that turns a finding into a non-zero exit code. It accepts one of the severity tokens, or the reachability token `+"`reachable`"+`:
+
+| Token | Matches |
+| --- | --- |
+| `+"`any`"+` | every finding |
+| `+"`low`"+` | findings with severity ≥ low |
+| `+"`medium`"+` | findings with severity ≥ medium |
+| `+"`high`"+` | findings with severity ≥ high |
+| `+"`critical`"+` | findings with severity = critical |
+| `+"`reachable`"+` | findings where reachability status is `+"`reachable`"+` |
+
+Repeat the flag to AND constraints together:
+
+`+"```bash"+`
+# Fail on any high or critical finding
+bomly scan --enrich --audit --fail-on high
+
+# Fail only when a high-or-above finding is also reachable
+bomly scan --enrich --audit --reachability \
+  --fail-on high --fail-on reachable
+`+"```"+`
+
+Tokens are case-insensitive. An invalid token produces an exit-code 4 (invalid input) with the message:
+`+"`unsupported --fail-on value \"<x>\" (accepted: any, low, medium, high, critical, reachable)`"+`.
+
+## `+"`--fail-on-scope`"+`
+
+Use `+"`--fail-on-scope`"+` to restrict which dependency scopes feed into `+"`--fail-on`"+`:
+
+| Scope | Meaning |
+| --- | --- |
+| `+"`runtime`"+` | Required at runtime (e.g. `+"`dependencies`"+` in npm, non-test scope in Maven) |
+| `+"`development`"+` | Build- and test-only (e.g. `+"`devDependencies`"+` in npm, `+"`test`"+` scope in Maven) |
+| `+"`unknown`"+` | Detector could not classify the edge |
+
+Without `+"`--fail-on-scope`"+` all scopes count. Common pattern: gate CI on runtime only.
+
+`+"```bash"+`
+bomly scan --enrich --audit --fail-on high --fail-on-scope runtime
+`+"```"+`
+
+## Exit codes from auditors
+
+| Code | Trigger |
+| --- | --- |
+| 0 | Scan succeeded; no policy match for `+"`--fail-on`"+` |
+| 2 | Policy violation — at least one finding matched `+"`--fail-on`"+` |
+| 4 | Invalid `+"`--fail-on`"+` or `+"`--fail-on-scope`"+` value |
+
+See [EXIT_CODES.md](EXIT_CODES.md) for the full table.
+
+## Diff and auditing
+
+`+"`bomly diff --audit`"+` classifies findings between two graphs into three buckets:
+
+- **Introduced** — present in head, absent in base
+- **Resolved** — present in base, absent in head
+- **Persisted** — present in both
+
+Combine with `+"`--fail-on`"+` to fail PRs that introduce new high-severity findings without complaining about pre-existing ones:
+
+`+"```bash"+`
+bomly diff --base main --head HEAD --enrich --audit --fail-on high
+`+"```"+`
+
+## See also
+
+- [Exit codes](EXIT_CODES.md) — full table of process exit values
+- [Reachability](REACHABILITY.md) — narrowing findings to symbols actually called
+- [Output formats](OUTPUT_FORMATS.md) — text, JSON, SARIF rendering details
+- [Matchers](MATCHERS.md) — where finding data comes from
 `) + "\n"
 }
 

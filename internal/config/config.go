@@ -19,28 +19,39 @@ package config
 // Resolved holds the fully-merged CLI configuration: defaults overridden by
 // the YAML config file, then env vars, then explicit flags.
 type Resolved struct {
-	Path         string   `doc:"Filesystem path to scan" env:"BOMLY_PATH"`
-	Container    string   `doc:"Container image to scan (e.g. alpine:latest)" env:"BOMLY_CONTAINER"`
-	URL          string   `doc:"Remote Git URL to clone and scan" env:"BOMLY_URL"`
-	Ref          string   `doc:"Git ref to checkout when scanning a URL" env:"BOMLY_REF"`
-	SBOM         bool     `doc:"Treat the selected filesystem target as an SBOM file" env:"BOMLY_SBOM"`
-	Enrich       bool     `doc:"Enrich packages with external license and vulnerability data" env:"BOMLY_ENRICH"`
-	Audit        bool     `doc:"Evaluate policy and create findings from package vulnerability data" env:"BOMLY_AUDIT"`
-	Reachability bool     `doc:"Run code analysis to confirm whether vulnerabilities are reachable from application code" env:"BOMLY_REACHABILITY"`
-	FailOn       []string `doc:"Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable" env:"BOMLY_FAIL_ON"`
-	Analyzers    string   `doc:"Reachability analyzer selectors; supports +name and -name modifiers" env:"BOMLY_ANALYZERS"`
-	Format       string   `doc:"Primary report format: text, json, or sarif" env:"BOMLY_FORMAT"`
-	Interactive  bool     `doc:"Enable interactive TUI mode" env:"BOMLY_INTERACTIVE"`
-	Ecosystems   string   `doc:"Ecosystem selectors; supports +name and -name modifiers" env:"BOMLY_ECOSYSTEMS"`
-	Detectors    string   `doc:"Detector selectors; supports +name and -name modifiers" env:"BOMLY_DETECTORS"`
-	Auditors     string   `doc:"Auditor selectors; supports +name and -name modifiers" env:"BOMLY_AUDITORS"`
-	Matchers     string   `doc:"Matcher selectors; supports +name and -name modifiers" env:"BOMLY_MATCHERS"`
-	InstallFirst bool     `doc:"Run detector-specific dependency installation before resolving graphs" env:"BOMLY_INSTALL_FIRST"`
-	InstallArgs  []string `doc:"Additional detector-specific install arguments" env:"BOMLY_INSTALL_ARGS"`
-	Config       string   `doc:"Explicit YAML config file path" env:"BOMLY_CONFIG"`
-	Quiet        bool     `doc:"Suppress all non-error output" env:"BOMLY_QUIET"`
-	Verbosity    int      `doc:"Verbosity level (0=normal, 1=verbose, 2+=debug)" env:"BOMLY_VERBOSE"`
-	LoadedFiles  []string
+	Path                  string   `doc:"Filesystem path to scan" env:"BOMLY_PATH"`
+	Container             string   `doc:"Container image to scan (e.g. alpine:latest)" env:"BOMLY_CONTAINER"`
+	URL                   string   `doc:"Remote Git URL to clone and scan" env:"BOMLY_URL"`
+	Ref                   string   `doc:"Git ref to checkout when scanning a URL" env:"BOMLY_REF"`
+	SBOM                  bool     `doc:"Treat the selected filesystem target as an SBOM file" env:"BOMLY_SBOM"`
+	Enrich                bool     `doc:"Enrich packages with external license and vulnerability data" env:"BOMLY_ENRICH"`
+	Audit                 bool     `doc:"Evaluate policy and create findings from package vulnerability data" env:"BOMLY_AUDIT"`
+	Reachability          bool     `doc:"Run code analysis to confirm whether vulnerabilities are reachable from application code" env:"BOMLY_REACHABILITY"`
+	FailOn                []string `doc:"Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable" env:"BOMLY_FAIL_ON"`
+	FailOnScopes          []string `doc:"Dependency scopes that may produce failing findings: runtime, development, unknown" env:"BOMLY_FAIL_ON_SCOPES"`
+	AllowVulnerabilityIDs []string `doc:"Vulnerability IDs to ignore during policy evaluation" env:"BOMLY_ALLOW_VULNERABILITY_IDS"`
+	AllowLicenses         []string `doc:"Allowed SPDX license identifiers or expressions" env:"BOMLY_ALLOW_LICENSES"`
+	DenyLicenses          []string `doc:"Denied SPDX license identifiers or expressions" env:"BOMLY_DENY_LICENSES"`
+	LicenseExemptPackages []string `doc:"Package URLs exempt from license policy checks" env:"BOMLY_LICENSE_EXEMPT_PACKAGES"`
+	DenyPackages          []string `doc:"Package URLs to deny" env:"BOMLY_DENY_PACKAGES"`
+	DenyGroups            []string `doc:"Package URL namespaces to deny" env:"BOMLY_DENY_GROUPS"`
+	ProtectedPackages     []string `doc:"Canonical package names to protect from typosquatting" env:"BOMLY_PROTECTED_PACKAGES"`
+	TyposquatThreshold    string   `doc:"Similarity threshold for typosquatting detection" env:"BOMLY_TYPOSQUAT_THRESHOLD" default:"0.90"`
+	TyposquatMode         string   `doc:"Typosquatting policy mode: warn or fail" env:"BOMLY_TYPOSQUAT_MODE" default:"warn"`
+	WarnOnly              bool     `doc:"Downgrade failing findings to warnings" env:"BOMLY_WARN_ONLY"`
+	Analyzers             string   `doc:"Reachability analyzer selectors; supports +name and -name modifiers" env:"BOMLY_ANALYZERS"`
+	Format                string   `doc:"Primary report format: text, json, or sarif" env:"BOMLY_FORMAT"`
+	Interactive           bool     `doc:"Enable interactive TUI mode" env:"BOMLY_INTERACTIVE"`
+	Ecosystems            string   `doc:"Ecosystem selectors; supports +name and -name modifiers" env:"BOMLY_ECOSYSTEMS"`
+	Detectors             string   `doc:"Detector selectors; supports +name and -name modifiers" env:"BOMLY_DETECTORS"`
+	Auditors              string   `doc:"Auditor selectors; supports +name and -name modifiers" env:"BOMLY_AUDITORS"`
+	Matchers              string   `doc:"Matcher selectors; supports +name and -name modifiers" env:"BOMLY_MATCHERS"`
+	InstallFirst          bool     `doc:"Run detector-specific dependency installation before resolving graphs" env:"BOMLY_INSTALL_FIRST"`
+	InstallArgs           []string `doc:"Additional detector-specific install arguments" env:"BOMLY_INSTALL_ARGS"`
+	Config                string   `doc:"Explicit YAML config file path" env:"BOMLY_CONFIG"`
+	Quiet                 bool     `doc:"Suppress all non-error output" env:"BOMLY_QUIET"`
+	Verbosity             int      `doc:"Verbosity level (0=normal, 1=verbose, 2+=debug)" env:"BOMLY_VERBOSE"`
+	LoadedFiles           []string
 
 	// OSV matcher settings
 	OsvAPIBase  string `doc:"Base URL for the OSV vulnerability API" env:"BOMLY_OSV_API_BASE" default:"https://api.osv.dev"`
@@ -63,28 +74,39 @@ type Resolved struct {
 // configref generator parses this struct's yaml tags to map each Resolved
 // field to its corresponding YAML key in the reference docs.
 type File struct {
-	Path         *string    `yaml:"path,omitempty"`
-	Container    *string    `yaml:"container,omitempty"`
-	URL          *string    `yaml:"url,omitempty"`
-	Ref          *string    `yaml:"ref,omitempty"`
-	SBOM         *bool      `yaml:"sbom,omitempty"`
-	Enrich       *bool      `yaml:"enrich,omitempty"`
-	Audit        *bool      `yaml:"audit,omitempty"`
-	Reachability *bool      `yaml:"reachability,omitempty"`
-	FailOn       FailOnList `yaml:"fail_on,omitempty"`
-	Analyzers    *string    `yaml:"analyzers,omitempty"`
-	Format       *string    `yaml:"format,omitempty"`
-	Interactive  *bool      `yaml:"interactive,omitempty"`
-	Ecosystems   *string    `yaml:"ecosystems,omitempty"`
-	Detectors    *string    `yaml:"detectors,omitempty"`
-	Auditors     *string    `yaml:"auditors,omitempty"`
-	Matchers     *string    `yaml:"matchers,omitempty"`
-	InstallFirst *bool      `yaml:"install_first,omitempty"`
-	InstallArgs  []string   `yaml:"install_args,omitempty"`
-	Config       *string    `yaml:"config,omitempty"`
-	Quiet        *bool      `yaml:"quiet,omitempty"`
-	Verbosity    *int       `yaml:"verbosity,omitempty"`
-	Verbose      *bool      `yaml:"verbose,omitempty"`
+	Path                  *string    `yaml:"path,omitempty"`
+	Container             *string    `yaml:"container,omitempty"`
+	URL                   *string    `yaml:"url,omitempty"`
+	Ref                   *string    `yaml:"ref,omitempty"`
+	SBOM                  *bool      `yaml:"sbom,omitempty"`
+	Enrich                *bool      `yaml:"enrich,omitempty"`
+	Audit                 *bool      `yaml:"audit,omitempty"`
+	Reachability          *bool      `yaml:"reachability,omitempty"`
+	FailOn                FailOnList `yaml:"fail_on,omitempty"`
+	FailOnScopes          []string   `yaml:"fail_on_scopes,omitempty"`
+	AllowVulnerabilityIDs []string   `yaml:"allow_vulnerability_ids,omitempty"`
+	AllowLicenses         []string   `yaml:"allow_licenses,omitempty"`
+	DenyLicenses          []string   `yaml:"deny_licenses,omitempty"`
+	LicenseExemptPackages []string   `yaml:"license_exempt_packages,omitempty"`
+	DenyPackages          []string   `yaml:"deny_packages,omitempty"`
+	DenyGroups            []string   `yaml:"deny_groups,omitempty"`
+	ProtectedPackages     []string   `yaml:"protected_packages,omitempty"`
+	TyposquatThreshold    *string    `yaml:"typosquat_threshold,omitempty"`
+	TyposquatMode         *string    `yaml:"typosquat_mode,omitempty"`
+	WarnOnly              *bool      `yaml:"warn_only,omitempty"`
+	Analyzers             *string    `yaml:"analyzers,omitempty"`
+	Format                *string    `yaml:"format,omitempty"`
+	Interactive           *bool      `yaml:"interactive,omitempty"`
+	Ecosystems            *string    `yaml:"ecosystems,omitempty"`
+	Detectors             *string    `yaml:"detectors,omitempty"`
+	Auditors              *string    `yaml:"auditors,omitempty"`
+	Matchers              *string    `yaml:"matchers,omitempty"`
+	InstallFirst          *bool      `yaml:"install_first,omitempty"`
+	InstallArgs           []string   `yaml:"install_args,omitempty"`
+	Config                *string    `yaml:"config,omitempty"`
+	Quiet                 *bool      `yaml:"quiet,omitempty"`
+	Verbosity             *int       `yaml:"verbosity,omitempty"`
+	Verbose               *bool      `yaml:"verbose,omitempty"`
 
 	// OSV matcher settings
 	OsvAPIBase  *string `yaml:"osv_api_base,omitempty"`

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -83,6 +84,30 @@ func ApplyFileConfig(dst *Resolved, src File) {
 	// FailOn is a custom-unmarshaled slice (FailOnList) — replace when set.
 	if len(src.FailOn) > 0 {
 		dst.FailOn = append([]string(nil), src.FailOn...)
+	}
+	if len(src.FailOnScopes) > 0 {
+		dst.FailOnScopes = append([]string(nil), src.FailOnScopes...)
+	}
+	if len(src.AllowVulnerabilityIDs) > 0 {
+		dst.AllowVulnerabilityIDs = append([]string(nil), src.AllowVulnerabilityIDs...)
+	}
+	if len(src.AllowLicenses) > 0 {
+		dst.AllowLicenses = append([]string(nil), src.AllowLicenses...)
+	}
+	if len(src.DenyLicenses) > 0 {
+		dst.DenyLicenses = append([]string(nil), src.DenyLicenses...)
+	}
+	if len(src.LicenseExemptPackages) > 0 {
+		dst.LicenseExemptPackages = append([]string(nil), src.LicenseExemptPackages...)
+	}
+	if len(src.DenyPackages) > 0 {
+		dst.DenyPackages = append([]string(nil), src.DenyPackages...)
+	}
+	if len(src.DenyGroups) > 0 {
+		dst.DenyGroups = append([]string(nil), src.DenyGroups...)
+	}
+	if len(src.ProtectedPackages) > 0 {
+		dst.ProtectedPackages = append([]string(nil), src.ProtectedPackages...)
 	}
 	// Verbose is a legacy shorthand; map it to Verbosity=1 if not already set.
 	if src.Verbose != nil && *src.Verbose && dst.Verbosity == 0 {
@@ -171,6 +196,26 @@ func Validate(cfg Resolved) error {
 	if cfg.Reachability && !cfg.Enrich {
 		return fmt.Errorf("--reachability requires --enrich")
 	}
+	if len(cfg.AllowLicenses) > 0 && len(cfg.DenyLicenses) > 0 {
+		return fmt.Errorf("--allow-license cannot be combined with --deny-license")
+	}
+	for _, scope := range cfg.FailOnScopes {
+		switch strings.ToLower(strings.TrimSpace(scope)) {
+		case "", "runtime", "development", "unknown":
+		default:
+			return fmt.Errorf("unsupported --fail-on-scope value %q (accepted: runtime, development, unknown)", scope)
+		}
+	}
+	if threshold := strings.TrimSpace(cfg.TyposquatThreshold); threshold != "" {
+		if _, err := strconv.ParseFloat(threshold, 64); err != nil {
+			return fmt.Errorf("invalid --typosquat-threshold %q", cfg.TyposquatThreshold)
+		}
+	}
+	switch strings.ToLower(strings.TrimSpace(cfg.TyposquatMode)) {
+	case "", "warn", "fail":
+	default:
+		return fmt.Errorf("unsupported --typosquat-mode value %q (accepted: warn, fail)", cfg.TyposquatMode)
+	}
 	return nil
 }
 
@@ -207,15 +252,16 @@ func parseCSV(value string) []string {
 	items := make([]string, 0, len(parts))
 	seen := make(map[string]struct{}, len(parts))
 	for _, part := range parts {
-		normalized := strings.ToLower(strings.TrimSpace(part))
-		if normalized == "" {
+		trimmed := strings.TrimSpace(part)
+		if trimmed == "" {
 			continue
 		}
-		if _, ok := seen[normalized]; ok {
+		key := strings.ToLower(trimmed)
+		if _, ok := seen[key]; ok {
 			continue
 		}
-		seen[normalized] = struct{}{}
-		items = append(items, normalized)
+		seen[key] = struct{}{}
+		items = append(items, trimmed)
 	}
 	return items
 }

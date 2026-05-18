@@ -38,6 +38,15 @@
         "introduced": {
           "items": {
             "properties": {
+              "auditor": {
+                "type": "string"
+              },
+              "disposition": {
+                "type": "string"
+              },
+              "fixed_in": {
+                "type": "string"
+              },
               "id": {
                 "type": "string"
               },
@@ -580,6 +589,15 @@
         "persisted": {
           "items": {
             "properties": {
+              "auditor": {
+                "type": "string"
+              },
+              "disposition": {
+                "type": "string"
+              },
+              "fixed_in": {
+                "type": "string"
+              },
               "id": {
                 "type": "string"
               },
@@ -1122,6 +1140,15 @@
         "resolved": {
           "items": {
             "properties": {
+              "auditor": {
+                "type": "string"
+              },
+              "disposition": {
+                "type": "string"
+              },
+              "fixed_in": {
+                "type": "string"
+              },
               "id": {
                 "type": "string"
               },
@@ -1748,6 +1775,2654 @@
     },
     "results": {
       "properties": {
+        "dependencies": {
+          "properties": {
+            "added": {
+              "items": {
+                "properties": {
+                  "package": {
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "licenses": {
+                        "items": {
+                          "properties": {
+                            "spdxExpression": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "locations": {
+                        "items": {
+                          "properties": {
+                            "access_path": {
+                              "type": "string"
+                            },
+                            "position": {
+                              "properties": {
+                                "column": {
+                                  "type": "integer"
+                                },
+                                "end_line": {
+                                  "type": "integer"
+                                },
+                                "file": {
+                                  "type": "string"
+                                },
+                                "line": {
+                                  "type": "integer"
+                                }
+                              },
+                              "type": "object"
+                            },
+                            "real_path": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "metadata": {
+                        "additionalProperties": {},
+                        "type": "object"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "purl": {
+                        "type": "string"
+                      },
+                      "scope": {
+                        "type": "string"
+                      },
+                      "version": {
+                        "type": "string"
+                      },
+                      "vulnerabilities": {
+                        "items": {
+                          "properties": {
+                            "affected_symbols": {
+                              "items": {
+                                "properties": {
+                                  "definition": {
+                                    "properties": {
+                                      "column": {
+                                        "type": "integer"
+                                      },
+                                      "end_line": {
+                                        "type": "integer"
+                                      },
+                                      "file": {
+                                        "type": "string"
+                                      },
+                                      "line": {
+                                        "type": "integer"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "module": {
+                                    "type": "string"
+                                  },
+                                  "package": {
+                                    "type": "string"
+                                  },
+                                  "symbol": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "affected_version_range": {
+                              "type": "string"
+                            },
+                            "aliases": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "cvss": {
+                              "items": {
+                                "properties": {
+                                  "Score": {
+                                    "type": "number"
+                                  },
+                                  "Source": {
+                                    "type": "string"
+                                  },
+                                  "Vector": {
+                                    "type": "string"
+                                  },
+                                  "Version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "Vector",
+                                  "Score",
+                                  "Version",
+                                  "Source"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "fixed_in": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "kev_exploited": {
+                              "type": "boolean"
+                            },
+                            "reachability": {
+                              "properties": {
+                                "analyzed_at": {
+                                  "type": "string"
+                                },
+                                "analyzer": {
+                                  "type": "string"
+                                },
+                                "call_paths": {
+                                  "items": {
+                                    "properties": {
+                                      "frames": {
+                                        "items": {
+                                          "properties": {
+                                            "function": {
+                                              "type": "string"
+                                            },
+                                            "package": {
+                                              "type": "string"
+                                            },
+                                            "position": {
+                                              "properties": {
+                                                "column": {
+                                                  "type": "integer"
+                                                },
+                                                "end_line": {
+                                                  "type": "integer"
+                                                },
+                                                "file": {
+                                                  "type": "string"
+                                                },
+                                                "line": {
+                                                  "type": "integer"
+                                                }
+                                              },
+                                              "type": "object"
+                                            },
+                                            "receiver": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "type": "object"
+                                        },
+                                        "type": "array"
+                                      },
+                                      "sink": {
+                                        "properties": {
+                                          "definition": {
+                                            "properties": {
+                                              "column": {
+                                                "type": "integer"
+                                              },
+                                              "end_line": {
+                                                "type": "integer"
+                                              },
+                                              "file": {
+                                                "type": "string"
+                                              },
+                                              "line": {
+                                                "type": "integer"
+                                              }
+                                            },
+                                            "type": "object"
+                                          },
+                                          "kind": {
+                                            "type": "string"
+                                          },
+                                          "module": {
+                                            "type": "string"
+                                          },
+                                          "package": {
+                                            "type": "string"
+                                          },
+                                          "symbol": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "type": "object"
+                                      }
+                                    },
+                                    "required": [
+                                      "sink"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "confidence": {
+                                  "type": "string"
+                                },
+                                "dynamic_imports_detected": {
+                                  "type": "boolean"
+                                },
+                                "hops": {
+                                  "type": "integer"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "status": {
+                                  "type": "string"
+                                },
+                                "symbols": {
+                                  "items": {
+                                    "properties": {
+                                      "definition": {
+                                        "properties": {
+                                          "column": {
+                                            "type": "integer"
+                                          },
+                                          "end_line": {
+                                            "type": "integer"
+                                          },
+                                          "file": {
+                                            "type": "string"
+                                          },
+                                          "line": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "type": "object"
+                                      },
+                                      "kind": {
+                                        "type": "string"
+                                      },
+                                      "module": {
+                                        "type": "string"
+                                      },
+                                      "package": {
+                                        "type": "string"
+                                      },
+                                      "symbol": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "tier": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "status"
+                              ],
+                              "type": "object"
+                            },
+                            "reasons": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "references": {
+                              "items": {
+                                "properties": {
+                                  "Type": {
+                                    "type": "string"
+                                  },
+                                  "URL": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "URL",
+                                  "Type"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "severity": {
+                              "type": "string"
+                            },
+                            "severity_source": {
+                              "type": "string"
+                            },
+                            "source": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "source"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "licenses",
+                      "vulnerabilities"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "package"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "changed": {
+              "items": {
+                "properties": {
+                  "after": {
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "licenses": {
+                        "items": {
+                          "properties": {
+                            "spdxExpression": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "locations": {
+                        "items": {
+                          "properties": {
+                            "access_path": {
+                              "type": "string"
+                            },
+                            "position": {
+                              "properties": {
+                                "column": {
+                                  "type": "integer"
+                                },
+                                "end_line": {
+                                  "type": "integer"
+                                },
+                                "file": {
+                                  "type": "string"
+                                },
+                                "line": {
+                                  "type": "integer"
+                                }
+                              },
+                              "type": "object"
+                            },
+                            "real_path": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "metadata": {
+                        "additionalProperties": {},
+                        "type": "object"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "purl": {
+                        "type": "string"
+                      },
+                      "scope": {
+                        "type": "string"
+                      },
+                      "version": {
+                        "type": "string"
+                      },
+                      "vulnerabilities": {
+                        "items": {
+                          "properties": {
+                            "affected_symbols": {
+                              "items": {
+                                "properties": {
+                                  "definition": {
+                                    "properties": {
+                                      "column": {
+                                        "type": "integer"
+                                      },
+                                      "end_line": {
+                                        "type": "integer"
+                                      },
+                                      "file": {
+                                        "type": "string"
+                                      },
+                                      "line": {
+                                        "type": "integer"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "module": {
+                                    "type": "string"
+                                  },
+                                  "package": {
+                                    "type": "string"
+                                  },
+                                  "symbol": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "affected_version_range": {
+                              "type": "string"
+                            },
+                            "aliases": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "cvss": {
+                              "items": {
+                                "properties": {
+                                  "Score": {
+                                    "type": "number"
+                                  },
+                                  "Source": {
+                                    "type": "string"
+                                  },
+                                  "Vector": {
+                                    "type": "string"
+                                  },
+                                  "Version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "Vector",
+                                  "Score",
+                                  "Version",
+                                  "Source"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "fixed_in": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "kev_exploited": {
+                              "type": "boolean"
+                            },
+                            "reachability": {
+                              "properties": {
+                                "analyzed_at": {
+                                  "type": "string"
+                                },
+                                "analyzer": {
+                                  "type": "string"
+                                },
+                                "call_paths": {
+                                  "items": {
+                                    "properties": {
+                                      "frames": {
+                                        "items": {
+                                          "properties": {
+                                            "function": {
+                                              "type": "string"
+                                            },
+                                            "package": {
+                                              "type": "string"
+                                            },
+                                            "position": {
+                                              "properties": {
+                                                "column": {
+                                                  "type": "integer"
+                                                },
+                                                "end_line": {
+                                                  "type": "integer"
+                                                },
+                                                "file": {
+                                                  "type": "string"
+                                                },
+                                                "line": {
+                                                  "type": "integer"
+                                                }
+                                              },
+                                              "type": "object"
+                                            },
+                                            "receiver": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "type": "object"
+                                        },
+                                        "type": "array"
+                                      },
+                                      "sink": {
+                                        "properties": {
+                                          "definition": {
+                                            "properties": {
+                                              "column": {
+                                                "type": "integer"
+                                              },
+                                              "end_line": {
+                                                "type": "integer"
+                                              },
+                                              "file": {
+                                                "type": "string"
+                                              },
+                                              "line": {
+                                                "type": "integer"
+                                              }
+                                            },
+                                            "type": "object"
+                                          },
+                                          "kind": {
+                                            "type": "string"
+                                          },
+                                          "module": {
+                                            "type": "string"
+                                          },
+                                          "package": {
+                                            "type": "string"
+                                          },
+                                          "symbol": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "type": "object"
+                                      }
+                                    },
+                                    "required": [
+                                      "sink"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "confidence": {
+                                  "type": "string"
+                                },
+                                "dynamic_imports_detected": {
+                                  "type": "boolean"
+                                },
+                                "hops": {
+                                  "type": "integer"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "status": {
+                                  "type": "string"
+                                },
+                                "symbols": {
+                                  "items": {
+                                    "properties": {
+                                      "definition": {
+                                        "properties": {
+                                          "column": {
+                                            "type": "integer"
+                                          },
+                                          "end_line": {
+                                            "type": "integer"
+                                          },
+                                          "file": {
+                                            "type": "string"
+                                          },
+                                          "line": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "type": "object"
+                                      },
+                                      "kind": {
+                                        "type": "string"
+                                      },
+                                      "module": {
+                                        "type": "string"
+                                      },
+                                      "package": {
+                                        "type": "string"
+                                      },
+                                      "symbol": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "tier": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "status"
+                              ],
+                              "type": "object"
+                            },
+                            "reasons": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "references": {
+                              "items": {
+                                "properties": {
+                                  "Type": {
+                                    "type": "string"
+                                  },
+                                  "URL": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "URL",
+                                  "Type"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "severity": {
+                              "type": "string"
+                            },
+                            "severity_source": {
+                              "type": "string"
+                            },
+                            "source": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "source"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "licenses",
+                      "vulnerabilities"
+                    ],
+                    "type": "object"
+                  },
+                  "before": {
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "licenses": {
+                        "items": {
+                          "properties": {
+                            "spdxExpression": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "locations": {
+                        "items": {
+                          "properties": {
+                            "access_path": {
+                              "type": "string"
+                            },
+                            "position": {
+                              "properties": {
+                                "column": {
+                                  "type": "integer"
+                                },
+                                "end_line": {
+                                  "type": "integer"
+                                },
+                                "file": {
+                                  "type": "string"
+                                },
+                                "line": {
+                                  "type": "integer"
+                                }
+                              },
+                              "type": "object"
+                            },
+                            "real_path": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "metadata": {
+                        "additionalProperties": {},
+                        "type": "object"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "purl": {
+                        "type": "string"
+                      },
+                      "scope": {
+                        "type": "string"
+                      },
+                      "version": {
+                        "type": "string"
+                      },
+                      "vulnerabilities": {
+                        "items": {
+                          "properties": {
+                            "affected_symbols": {
+                              "items": {
+                                "properties": {
+                                  "definition": {
+                                    "properties": {
+                                      "column": {
+                                        "type": "integer"
+                                      },
+                                      "end_line": {
+                                        "type": "integer"
+                                      },
+                                      "file": {
+                                        "type": "string"
+                                      },
+                                      "line": {
+                                        "type": "integer"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "module": {
+                                    "type": "string"
+                                  },
+                                  "package": {
+                                    "type": "string"
+                                  },
+                                  "symbol": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "affected_version_range": {
+                              "type": "string"
+                            },
+                            "aliases": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "cvss": {
+                              "items": {
+                                "properties": {
+                                  "Score": {
+                                    "type": "number"
+                                  },
+                                  "Source": {
+                                    "type": "string"
+                                  },
+                                  "Vector": {
+                                    "type": "string"
+                                  },
+                                  "Version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "Vector",
+                                  "Score",
+                                  "Version",
+                                  "Source"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "fixed_in": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "kev_exploited": {
+                              "type": "boolean"
+                            },
+                            "reachability": {
+                              "properties": {
+                                "analyzed_at": {
+                                  "type": "string"
+                                },
+                                "analyzer": {
+                                  "type": "string"
+                                },
+                                "call_paths": {
+                                  "items": {
+                                    "properties": {
+                                      "frames": {
+                                        "items": {
+                                          "properties": {
+                                            "function": {
+                                              "type": "string"
+                                            },
+                                            "package": {
+                                              "type": "string"
+                                            },
+                                            "position": {
+                                              "properties": {
+                                                "column": {
+                                                  "type": "integer"
+                                                },
+                                                "end_line": {
+                                                  "type": "integer"
+                                                },
+                                                "file": {
+                                                  "type": "string"
+                                                },
+                                                "line": {
+                                                  "type": "integer"
+                                                }
+                                              },
+                                              "type": "object"
+                                            },
+                                            "receiver": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "type": "object"
+                                        },
+                                        "type": "array"
+                                      },
+                                      "sink": {
+                                        "properties": {
+                                          "definition": {
+                                            "properties": {
+                                              "column": {
+                                                "type": "integer"
+                                              },
+                                              "end_line": {
+                                                "type": "integer"
+                                              },
+                                              "file": {
+                                                "type": "string"
+                                              },
+                                              "line": {
+                                                "type": "integer"
+                                              }
+                                            },
+                                            "type": "object"
+                                          },
+                                          "kind": {
+                                            "type": "string"
+                                          },
+                                          "module": {
+                                            "type": "string"
+                                          },
+                                          "package": {
+                                            "type": "string"
+                                          },
+                                          "symbol": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "type": "object"
+                                      }
+                                    },
+                                    "required": [
+                                      "sink"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "confidence": {
+                                  "type": "string"
+                                },
+                                "dynamic_imports_detected": {
+                                  "type": "boolean"
+                                },
+                                "hops": {
+                                  "type": "integer"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "status": {
+                                  "type": "string"
+                                },
+                                "symbols": {
+                                  "items": {
+                                    "properties": {
+                                      "definition": {
+                                        "properties": {
+                                          "column": {
+                                            "type": "integer"
+                                          },
+                                          "end_line": {
+                                            "type": "integer"
+                                          },
+                                          "file": {
+                                            "type": "string"
+                                          },
+                                          "line": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "type": "object"
+                                      },
+                                      "kind": {
+                                        "type": "string"
+                                      },
+                                      "module": {
+                                        "type": "string"
+                                      },
+                                      "package": {
+                                        "type": "string"
+                                      },
+                                      "symbol": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "tier": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "status"
+                              ],
+                              "type": "object"
+                            },
+                            "reasons": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "references": {
+                              "items": {
+                                "properties": {
+                                  "Type": {
+                                    "type": "string"
+                                  },
+                                  "URL": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "URL",
+                                  "Type"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "severity": {
+                              "type": "string"
+                            },
+                            "severity_source": {
+                              "type": "string"
+                            },
+                            "source": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "source"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "licenses",
+                      "vulnerabilities"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "after",
+                  "before"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "removed": {
+              "items": {
+                "properties": {
+                  "package": {
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "licenses": {
+                        "items": {
+                          "properties": {
+                            "spdxExpression": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "locations": {
+                        "items": {
+                          "properties": {
+                            "access_path": {
+                              "type": "string"
+                            },
+                            "position": {
+                              "properties": {
+                                "column": {
+                                  "type": "integer"
+                                },
+                                "end_line": {
+                                  "type": "integer"
+                                },
+                                "file": {
+                                  "type": "string"
+                                },
+                                "line": {
+                                  "type": "integer"
+                                }
+                              },
+                              "type": "object"
+                            },
+                            "real_path": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "metadata": {
+                        "additionalProperties": {},
+                        "type": "object"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "purl": {
+                        "type": "string"
+                      },
+                      "scope": {
+                        "type": "string"
+                      },
+                      "version": {
+                        "type": "string"
+                      },
+                      "vulnerabilities": {
+                        "items": {
+                          "properties": {
+                            "affected_symbols": {
+                              "items": {
+                                "properties": {
+                                  "definition": {
+                                    "properties": {
+                                      "column": {
+                                        "type": "integer"
+                                      },
+                                      "end_line": {
+                                        "type": "integer"
+                                      },
+                                      "file": {
+                                        "type": "string"
+                                      },
+                                      "line": {
+                                        "type": "integer"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "module": {
+                                    "type": "string"
+                                  },
+                                  "package": {
+                                    "type": "string"
+                                  },
+                                  "symbol": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "affected_version_range": {
+                              "type": "string"
+                            },
+                            "aliases": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "cvss": {
+                              "items": {
+                                "properties": {
+                                  "Score": {
+                                    "type": "number"
+                                  },
+                                  "Source": {
+                                    "type": "string"
+                                  },
+                                  "Vector": {
+                                    "type": "string"
+                                  },
+                                  "Version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "Vector",
+                                  "Score",
+                                  "Version",
+                                  "Source"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "fixed_in": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "kev_exploited": {
+                              "type": "boolean"
+                            },
+                            "reachability": {
+                              "properties": {
+                                "analyzed_at": {
+                                  "type": "string"
+                                },
+                                "analyzer": {
+                                  "type": "string"
+                                },
+                                "call_paths": {
+                                  "items": {
+                                    "properties": {
+                                      "frames": {
+                                        "items": {
+                                          "properties": {
+                                            "function": {
+                                              "type": "string"
+                                            },
+                                            "package": {
+                                              "type": "string"
+                                            },
+                                            "position": {
+                                              "properties": {
+                                                "column": {
+                                                  "type": "integer"
+                                                },
+                                                "end_line": {
+                                                  "type": "integer"
+                                                },
+                                                "file": {
+                                                  "type": "string"
+                                                },
+                                                "line": {
+                                                  "type": "integer"
+                                                }
+                                              },
+                                              "type": "object"
+                                            },
+                                            "receiver": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "type": "object"
+                                        },
+                                        "type": "array"
+                                      },
+                                      "sink": {
+                                        "properties": {
+                                          "definition": {
+                                            "properties": {
+                                              "column": {
+                                                "type": "integer"
+                                              },
+                                              "end_line": {
+                                                "type": "integer"
+                                              },
+                                              "file": {
+                                                "type": "string"
+                                              },
+                                              "line": {
+                                                "type": "integer"
+                                              }
+                                            },
+                                            "type": "object"
+                                          },
+                                          "kind": {
+                                            "type": "string"
+                                          },
+                                          "module": {
+                                            "type": "string"
+                                          },
+                                          "package": {
+                                            "type": "string"
+                                          },
+                                          "symbol": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "type": "object"
+                                      }
+                                    },
+                                    "required": [
+                                      "sink"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "confidence": {
+                                  "type": "string"
+                                },
+                                "dynamic_imports_detected": {
+                                  "type": "boolean"
+                                },
+                                "hops": {
+                                  "type": "integer"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "status": {
+                                  "type": "string"
+                                },
+                                "symbols": {
+                                  "items": {
+                                    "properties": {
+                                      "definition": {
+                                        "properties": {
+                                          "column": {
+                                            "type": "integer"
+                                          },
+                                          "end_line": {
+                                            "type": "integer"
+                                          },
+                                          "file": {
+                                            "type": "string"
+                                          },
+                                          "line": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "type": "object"
+                                      },
+                                      "kind": {
+                                        "type": "string"
+                                      },
+                                      "module": {
+                                        "type": "string"
+                                      },
+                                      "package": {
+                                        "type": "string"
+                                      },
+                                      "symbol": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "tier": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "status"
+                              ],
+                              "type": "object"
+                            },
+                            "reasons": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "references": {
+                              "items": {
+                                "properties": {
+                                  "Type": {
+                                    "type": "string"
+                                  },
+                                  "URL": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "URL",
+                                  "Type"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "severity": {
+                              "type": "string"
+                            },
+                            "severity_source": {
+                              "type": "string"
+                            },
+                            "source": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "source"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "licenses",
+                      "vulnerabilities"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "package"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
+        "licenses": {
+          "properties": {
+            "added": {
+              "items": {
+                "properties": {
+                  "licenses": {
+                    "items": {
+                      "properties": {
+                        "spdxExpression": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "package": {
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "licenses": {
+                        "items": {
+                          "properties": {
+                            "spdxExpression": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "locations": {
+                        "items": {
+                          "properties": {
+                            "access_path": {
+                              "type": "string"
+                            },
+                            "position": {
+                              "properties": {
+                                "column": {
+                                  "type": "integer"
+                                },
+                                "end_line": {
+                                  "type": "integer"
+                                },
+                                "file": {
+                                  "type": "string"
+                                },
+                                "line": {
+                                  "type": "integer"
+                                }
+                              },
+                              "type": "object"
+                            },
+                            "real_path": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "metadata": {
+                        "additionalProperties": {},
+                        "type": "object"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "purl": {
+                        "type": "string"
+                      },
+                      "scope": {
+                        "type": "string"
+                      },
+                      "version": {
+                        "type": "string"
+                      },
+                      "vulnerabilities": {
+                        "items": {
+                          "properties": {
+                            "affected_symbols": {
+                              "items": {
+                                "properties": {
+                                  "definition": {
+                                    "properties": {
+                                      "column": {
+                                        "type": "integer"
+                                      },
+                                      "end_line": {
+                                        "type": "integer"
+                                      },
+                                      "file": {
+                                        "type": "string"
+                                      },
+                                      "line": {
+                                        "type": "integer"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "module": {
+                                    "type": "string"
+                                  },
+                                  "package": {
+                                    "type": "string"
+                                  },
+                                  "symbol": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "affected_version_range": {
+                              "type": "string"
+                            },
+                            "aliases": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "cvss": {
+                              "items": {
+                                "properties": {
+                                  "Score": {
+                                    "type": "number"
+                                  },
+                                  "Source": {
+                                    "type": "string"
+                                  },
+                                  "Vector": {
+                                    "type": "string"
+                                  },
+                                  "Version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "Vector",
+                                  "Score",
+                                  "Version",
+                                  "Source"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "fixed_in": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "kev_exploited": {
+                              "type": "boolean"
+                            },
+                            "reachability": {
+                              "properties": {
+                                "analyzed_at": {
+                                  "type": "string"
+                                },
+                                "analyzer": {
+                                  "type": "string"
+                                },
+                                "call_paths": {
+                                  "items": {
+                                    "properties": {
+                                      "frames": {
+                                        "items": {
+                                          "properties": {
+                                            "function": {
+                                              "type": "string"
+                                            },
+                                            "package": {
+                                              "type": "string"
+                                            },
+                                            "position": {
+                                              "properties": {
+                                                "column": {
+                                                  "type": "integer"
+                                                },
+                                                "end_line": {
+                                                  "type": "integer"
+                                                },
+                                                "file": {
+                                                  "type": "string"
+                                                },
+                                                "line": {
+                                                  "type": "integer"
+                                                }
+                                              },
+                                              "type": "object"
+                                            },
+                                            "receiver": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "type": "object"
+                                        },
+                                        "type": "array"
+                                      },
+                                      "sink": {
+                                        "properties": {
+                                          "definition": {
+                                            "properties": {
+                                              "column": {
+                                                "type": "integer"
+                                              },
+                                              "end_line": {
+                                                "type": "integer"
+                                              },
+                                              "file": {
+                                                "type": "string"
+                                              },
+                                              "line": {
+                                                "type": "integer"
+                                              }
+                                            },
+                                            "type": "object"
+                                          },
+                                          "kind": {
+                                            "type": "string"
+                                          },
+                                          "module": {
+                                            "type": "string"
+                                          },
+                                          "package": {
+                                            "type": "string"
+                                          },
+                                          "symbol": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "type": "object"
+                                      }
+                                    },
+                                    "required": [
+                                      "sink"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "confidence": {
+                                  "type": "string"
+                                },
+                                "dynamic_imports_detected": {
+                                  "type": "boolean"
+                                },
+                                "hops": {
+                                  "type": "integer"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "status": {
+                                  "type": "string"
+                                },
+                                "symbols": {
+                                  "items": {
+                                    "properties": {
+                                      "definition": {
+                                        "properties": {
+                                          "column": {
+                                            "type": "integer"
+                                          },
+                                          "end_line": {
+                                            "type": "integer"
+                                          },
+                                          "file": {
+                                            "type": "string"
+                                          },
+                                          "line": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "type": "object"
+                                      },
+                                      "kind": {
+                                        "type": "string"
+                                      },
+                                      "module": {
+                                        "type": "string"
+                                      },
+                                      "package": {
+                                        "type": "string"
+                                      },
+                                      "symbol": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "tier": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "status"
+                              ],
+                              "type": "object"
+                            },
+                            "reasons": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "references": {
+                              "items": {
+                                "properties": {
+                                  "Type": {
+                                    "type": "string"
+                                  },
+                                  "URL": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "URL",
+                                  "Type"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "severity": {
+                              "type": "string"
+                            },
+                            "severity_source": {
+                              "type": "string"
+                            },
+                            "source": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "source"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "licenses",
+                      "vulnerabilities"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "package",
+                  "licenses"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "changed": {
+              "items": {
+                "properties": {
+                  "after": {
+                    "items": {
+                      "properties": {
+                        "spdxExpression": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "before": {
+                    "items": {
+                      "properties": {
+                        "spdxExpression": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "package": {
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "licenses": {
+                        "items": {
+                          "properties": {
+                            "spdxExpression": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "locations": {
+                        "items": {
+                          "properties": {
+                            "access_path": {
+                              "type": "string"
+                            },
+                            "position": {
+                              "properties": {
+                                "column": {
+                                  "type": "integer"
+                                },
+                                "end_line": {
+                                  "type": "integer"
+                                },
+                                "file": {
+                                  "type": "string"
+                                },
+                                "line": {
+                                  "type": "integer"
+                                }
+                              },
+                              "type": "object"
+                            },
+                            "real_path": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "metadata": {
+                        "additionalProperties": {},
+                        "type": "object"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "purl": {
+                        "type": "string"
+                      },
+                      "scope": {
+                        "type": "string"
+                      },
+                      "version": {
+                        "type": "string"
+                      },
+                      "vulnerabilities": {
+                        "items": {
+                          "properties": {
+                            "affected_symbols": {
+                              "items": {
+                                "properties": {
+                                  "definition": {
+                                    "properties": {
+                                      "column": {
+                                        "type": "integer"
+                                      },
+                                      "end_line": {
+                                        "type": "integer"
+                                      },
+                                      "file": {
+                                        "type": "string"
+                                      },
+                                      "line": {
+                                        "type": "integer"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "module": {
+                                    "type": "string"
+                                  },
+                                  "package": {
+                                    "type": "string"
+                                  },
+                                  "symbol": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "affected_version_range": {
+                              "type": "string"
+                            },
+                            "aliases": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "cvss": {
+                              "items": {
+                                "properties": {
+                                  "Score": {
+                                    "type": "number"
+                                  },
+                                  "Source": {
+                                    "type": "string"
+                                  },
+                                  "Vector": {
+                                    "type": "string"
+                                  },
+                                  "Version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "Vector",
+                                  "Score",
+                                  "Version",
+                                  "Source"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "fixed_in": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "kev_exploited": {
+                              "type": "boolean"
+                            },
+                            "reachability": {
+                              "properties": {
+                                "analyzed_at": {
+                                  "type": "string"
+                                },
+                                "analyzer": {
+                                  "type": "string"
+                                },
+                                "call_paths": {
+                                  "items": {
+                                    "properties": {
+                                      "frames": {
+                                        "items": {
+                                          "properties": {
+                                            "function": {
+                                              "type": "string"
+                                            },
+                                            "package": {
+                                              "type": "string"
+                                            },
+                                            "position": {
+                                              "properties": {
+                                                "column": {
+                                                  "type": "integer"
+                                                },
+                                                "end_line": {
+                                                  "type": "integer"
+                                                },
+                                                "file": {
+                                                  "type": "string"
+                                                },
+                                                "line": {
+                                                  "type": "integer"
+                                                }
+                                              },
+                                              "type": "object"
+                                            },
+                                            "receiver": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "type": "object"
+                                        },
+                                        "type": "array"
+                                      },
+                                      "sink": {
+                                        "properties": {
+                                          "definition": {
+                                            "properties": {
+                                              "column": {
+                                                "type": "integer"
+                                              },
+                                              "end_line": {
+                                                "type": "integer"
+                                              },
+                                              "file": {
+                                                "type": "string"
+                                              },
+                                              "line": {
+                                                "type": "integer"
+                                              }
+                                            },
+                                            "type": "object"
+                                          },
+                                          "kind": {
+                                            "type": "string"
+                                          },
+                                          "module": {
+                                            "type": "string"
+                                          },
+                                          "package": {
+                                            "type": "string"
+                                          },
+                                          "symbol": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "type": "object"
+                                      }
+                                    },
+                                    "required": [
+                                      "sink"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "confidence": {
+                                  "type": "string"
+                                },
+                                "dynamic_imports_detected": {
+                                  "type": "boolean"
+                                },
+                                "hops": {
+                                  "type": "integer"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "status": {
+                                  "type": "string"
+                                },
+                                "symbols": {
+                                  "items": {
+                                    "properties": {
+                                      "definition": {
+                                        "properties": {
+                                          "column": {
+                                            "type": "integer"
+                                          },
+                                          "end_line": {
+                                            "type": "integer"
+                                          },
+                                          "file": {
+                                            "type": "string"
+                                          },
+                                          "line": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "type": "object"
+                                      },
+                                      "kind": {
+                                        "type": "string"
+                                      },
+                                      "module": {
+                                        "type": "string"
+                                      },
+                                      "package": {
+                                        "type": "string"
+                                      },
+                                      "symbol": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "tier": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "status"
+                              ],
+                              "type": "object"
+                            },
+                            "reasons": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "references": {
+                              "items": {
+                                "properties": {
+                                  "Type": {
+                                    "type": "string"
+                                  },
+                                  "URL": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "URL",
+                                  "Type"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "severity": {
+                              "type": "string"
+                            },
+                            "severity_source": {
+                              "type": "string"
+                            },
+                            "source": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "source"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "licenses",
+                      "vulnerabilities"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "package",
+                  "before",
+                  "after"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "removed": {
+              "items": {
+                "properties": {
+                  "licenses": {
+                    "items": {
+                      "properties": {
+                        "spdxExpression": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "package": {
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "licenses": {
+                        "items": {
+                          "properties": {
+                            "spdxExpression": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "locations": {
+                        "items": {
+                          "properties": {
+                            "access_path": {
+                              "type": "string"
+                            },
+                            "position": {
+                              "properties": {
+                                "column": {
+                                  "type": "integer"
+                                },
+                                "end_line": {
+                                  "type": "integer"
+                                },
+                                "file": {
+                                  "type": "string"
+                                },
+                                "line": {
+                                  "type": "integer"
+                                }
+                              },
+                              "type": "object"
+                            },
+                            "real_path": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "metadata": {
+                        "additionalProperties": {},
+                        "type": "object"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "purl": {
+                        "type": "string"
+                      },
+                      "scope": {
+                        "type": "string"
+                      },
+                      "version": {
+                        "type": "string"
+                      },
+                      "vulnerabilities": {
+                        "items": {
+                          "properties": {
+                            "affected_symbols": {
+                              "items": {
+                                "properties": {
+                                  "definition": {
+                                    "properties": {
+                                      "column": {
+                                        "type": "integer"
+                                      },
+                                      "end_line": {
+                                        "type": "integer"
+                                      },
+                                      "file": {
+                                        "type": "string"
+                                      },
+                                      "line": {
+                                        "type": "integer"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "module": {
+                                    "type": "string"
+                                  },
+                                  "package": {
+                                    "type": "string"
+                                  },
+                                  "symbol": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "affected_version_range": {
+                              "type": "string"
+                            },
+                            "aliases": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "cvss": {
+                              "items": {
+                                "properties": {
+                                  "Score": {
+                                    "type": "number"
+                                  },
+                                  "Source": {
+                                    "type": "string"
+                                  },
+                                  "Vector": {
+                                    "type": "string"
+                                  },
+                                  "Version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "Vector",
+                                  "Score",
+                                  "Version",
+                                  "Source"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "fixed_in": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "kev_exploited": {
+                              "type": "boolean"
+                            },
+                            "reachability": {
+                              "properties": {
+                                "analyzed_at": {
+                                  "type": "string"
+                                },
+                                "analyzer": {
+                                  "type": "string"
+                                },
+                                "call_paths": {
+                                  "items": {
+                                    "properties": {
+                                      "frames": {
+                                        "items": {
+                                          "properties": {
+                                            "function": {
+                                              "type": "string"
+                                            },
+                                            "package": {
+                                              "type": "string"
+                                            },
+                                            "position": {
+                                              "properties": {
+                                                "column": {
+                                                  "type": "integer"
+                                                },
+                                                "end_line": {
+                                                  "type": "integer"
+                                                },
+                                                "file": {
+                                                  "type": "string"
+                                                },
+                                                "line": {
+                                                  "type": "integer"
+                                                }
+                                              },
+                                              "type": "object"
+                                            },
+                                            "receiver": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "type": "object"
+                                        },
+                                        "type": "array"
+                                      },
+                                      "sink": {
+                                        "properties": {
+                                          "definition": {
+                                            "properties": {
+                                              "column": {
+                                                "type": "integer"
+                                              },
+                                              "end_line": {
+                                                "type": "integer"
+                                              },
+                                              "file": {
+                                                "type": "string"
+                                              },
+                                              "line": {
+                                                "type": "integer"
+                                              }
+                                            },
+                                            "type": "object"
+                                          },
+                                          "kind": {
+                                            "type": "string"
+                                          },
+                                          "module": {
+                                            "type": "string"
+                                          },
+                                          "package": {
+                                            "type": "string"
+                                          },
+                                          "symbol": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "type": "object"
+                                      }
+                                    },
+                                    "required": [
+                                      "sink"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "confidence": {
+                                  "type": "string"
+                                },
+                                "dynamic_imports_detected": {
+                                  "type": "boolean"
+                                },
+                                "hops": {
+                                  "type": "integer"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "status": {
+                                  "type": "string"
+                                },
+                                "symbols": {
+                                  "items": {
+                                    "properties": {
+                                      "definition": {
+                                        "properties": {
+                                          "column": {
+                                            "type": "integer"
+                                          },
+                                          "end_line": {
+                                            "type": "integer"
+                                          },
+                                          "file": {
+                                            "type": "string"
+                                          },
+                                          "line": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "type": "object"
+                                      },
+                                      "kind": {
+                                        "type": "string"
+                                      },
+                                      "module": {
+                                        "type": "string"
+                                      },
+                                      "package": {
+                                        "type": "string"
+                                      },
+                                      "symbol": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "tier": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "status"
+                              ],
+                              "type": "object"
+                            },
+                            "reasons": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "references": {
+                              "items": {
+                                "properties": {
+                                  "Type": {
+                                    "type": "string"
+                                  },
+                                  "URL": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "URL",
+                                  "Type"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "severity": {
+                              "type": "string"
+                            },
+                            "severity_source": {
+                              "type": "string"
+                            },
+                            "source": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "source"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "licenses",
+                      "vulnerabilities"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "package",
+                  "licenses"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
         "manifests": {
           "items": {
             "properties": {
@@ -3238,9 +5913,1309 @@
             "type": "object"
           },
           "type": "array"
+        },
+        "vulnerabilities": {
+          "properties": {
+            "added": {
+              "items": {
+                "properties": {
+                  "package": {
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "licenses": {
+                        "items": {
+                          "properties": {
+                            "spdxExpression": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "locations": {
+                        "items": {
+                          "properties": {
+                            "access_path": {
+                              "type": "string"
+                            },
+                            "position": {
+                              "properties": {
+                                "column": {
+                                  "type": "integer"
+                                },
+                                "end_line": {
+                                  "type": "integer"
+                                },
+                                "file": {
+                                  "type": "string"
+                                },
+                                "line": {
+                                  "type": "integer"
+                                }
+                              },
+                              "type": "object"
+                            },
+                            "real_path": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "metadata": {
+                        "additionalProperties": {},
+                        "type": "object"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "purl": {
+                        "type": "string"
+                      },
+                      "scope": {
+                        "type": "string"
+                      },
+                      "version": {
+                        "type": "string"
+                      },
+                      "vulnerabilities": {
+                        "items": {
+                          "properties": {
+                            "affected_symbols": {
+                              "items": {
+                                "properties": {
+                                  "definition": {
+                                    "properties": {
+                                      "column": {
+                                        "type": "integer"
+                                      },
+                                      "end_line": {
+                                        "type": "integer"
+                                      },
+                                      "file": {
+                                        "type": "string"
+                                      },
+                                      "line": {
+                                        "type": "integer"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "module": {
+                                    "type": "string"
+                                  },
+                                  "package": {
+                                    "type": "string"
+                                  },
+                                  "symbol": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "affected_version_range": {
+                              "type": "string"
+                            },
+                            "aliases": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "cvss": {
+                              "items": {
+                                "properties": {
+                                  "Score": {
+                                    "type": "number"
+                                  },
+                                  "Source": {
+                                    "type": "string"
+                                  },
+                                  "Vector": {
+                                    "type": "string"
+                                  },
+                                  "Version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "Vector",
+                                  "Score",
+                                  "Version",
+                                  "Source"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "fixed_in": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "kev_exploited": {
+                              "type": "boolean"
+                            },
+                            "reachability": {
+                              "properties": {
+                                "analyzed_at": {
+                                  "type": "string"
+                                },
+                                "analyzer": {
+                                  "type": "string"
+                                },
+                                "call_paths": {
+                                  "items": {
+                                    "properties": {
+                                      "frames": {
+                                        "items": {
+                                          "properties": {
+                                            "function": {
+                                              "type": "string"
+                                            },
+                                            "package": {
+                                              "type": "string"
+                                            },
+                                            "position": {
+                                              "properties": {
+                                                "column": {
+                                                  "type": "integer"
+                                                },
+                                                "end_line": {
+                                                  "type": "integer"
+                                                },
+                                                "file": {
+                                                  "type": "string"
+                                                },
+                                                "line": {
+                                                  "type": "integer"
+                                                }
+                                              },
+                                              "type": "object"
+                                            },
+                                            "receiver": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "type": "object"
+                                        },
+                                        "type": "array"
+                                      },
+                                      "sink": {
+                                        "properties": {
+                                          "definition": {
+                                            "properties": {
+                                              "column": {
+                                                "type": "integer"
+                                              },
+                                              "end_line": {
+                                                "type": "integer"
+                                              },
+                                              "file": {
+                                                "type": "string"
+                                              },
+                                              "line": {
+                                                "type": "integer"
+                                              }
+                                            },
+                                            "type": "object"
+                                          },
+                                          "kind": {
+                                            "type": "string"
+                                          },
+                                          "module": {
+                                            "type": "string"
+                                          },
+                                          "package": {
+                                            "type": "string"
+                                          },
+                                          "symbol": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "type": "object"
+                                      }
+                                    },
+                                    "required": [
+                                      "sink"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "confidence": {
+                                  "type": "string"
+                                },
+                                "dynamic_imports_detected": {
+                                  "type": "boolean"
+                                },
+                                "hops": {
+                                  "type": "integer"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "status": {
+                                  "type": "string"
+                                },
+                                "symbols": {
+                                  "items": {
+                                    "properties": {
+                                      "definition": {
+                                        "properties": {
+                                          "column": {
+                                            "type": "integer"
+                                          },
+                                          "end_line": {
+                                            "type": "integer"
+                                          },
+                                          "file": {
+                                            "type": "string"
+                                          },
+                                          "line": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "type": "object"
+                                      },
+                                      "kind": {
+                                        "type": "string"
+                                      },
+                                      "module": {
+                                        "type": "string"
+                                      },
+                                      "package": {
+                                        "type": "string"
+                                      },
+                                      "symbol": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "tier": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "status"
+                              ],
+                              "type": "object"
+                            },
+                            "reasons": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "references": {
+                              "items": {
+                                "properties": {
+                                  "Type": {
+                                    "type": "string"
+                                  },
+                                  "URL": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "URL",
+                                  "Type"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "severity": {
+                              "type": "string"
+                            },
+                            "severity_source": {
+                              "type": "string"
+                            },
+                            "source": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "source"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "licenses",
+                      "vulnerabilities"
+                    ],
+                    "type": "object"
+                  },
+                  "vulnerability": {
+                    "properties": {
+                      "affected_symbols": {
+                        "items": {
+                          "properties": {
+                            "definition": {
+                              "properties": {
+                                "column": {
+                                  "type": "integer"
+                                },
+                                "end_line": {
+                                  "type": "integer"
+                                },
+                                "file": {
+                                  "type": "string"
+                                },
+                                "line": {
+                                  "type": "integer"
+                                }
+                              },
+                              "type": "object"
+                            },
+                            "kind": {
+                              "type": "string"
+                            },
+                            "module": {
+                              "type": "string"
+                            },
+                            "package": {
+                              "type": "string"
+                            },
+                            "symbol": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "affected_version_range": {
+                        "type": "string"
+                      },
+                      "aliases": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "cvss": {
+                        "items": {
+                          "properties": {
+                            "Score": {
+                              "type": "number"
+                            },
+                            "Source": {
+                              "type": "string"
+                            },
+                            "Vector": {
+                              "type": "string"
+                            },
+                            "Version": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "Vector",
+                            "Score",
+                            "Version",
+                            "Source"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "fixed_in": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "kev_exploited": {
+                        "type": "boolean"
+                      },
+                      "reachability": {
+                        "properties": {
+                          "analyzed_at": {
+                            "type": "string"
+                          },
+                          "analyzer": {
+                            "type": "string"
+                          },
+                          "call_paths": {
+                            "items": {
+                              "properties": {
+                                "frames": {
+                                  "items": {
+                                    "properties": {
+                                      "function": {
+                                        "type": "string"
+                                      },
+                                      "package": {
+                                        "type": "string"
+                                      },
+                                      "position": {
+                                        "properties": {
+                                          "column": {
+                                            "type": "integer"
+                                          },
+                                          "end_line": {
+                                            "type": "integer"
+                                          },
+                                          "file": {
+                                            "type": "string"
+                                          },
+                                          "line": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "type": "object"
+                                      },
+                                      "receiver": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "sink": {
+                                  "properties": {
+                                    "definition": {
+                                      "properties": {
+                                        "column": {
+                                          "type": "integer"
+                                        },
+                                        "end_line": {
+                                          "type": "integer"
+                                        },
+                                        "file": {
+                                          "type": "string"
+                                        },
+                                        "line": {
+                                          "type": "integer"
+                                        }
+                                      },
+                                      "type": "object"
+                                    },
+                                    "kind": {
+                                      "type": "string"
+                                    },
+                                    "module": {
+                                      "type": "string"
+                                    },
+                                    "package": {
+                                      "type": "string"
+                                    },
+                                    "symbol": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "type": "object"
+                                }
+                              },
+                              "required": [
+                                "sink"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "confidence": {
+                            "type": "string"
+                          },
+                          "dynamic_imports_detected": {
+                            "type": "boolean"
+                          },
+                          "hops": {
+                            "type": "integer"
+                          },
+                          "reason": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "symbols": {
+                            "items": {
+                              "properties": {
+                                "definition": {
+                                  "properties": {
+                                    "column": {
+                                      "type": "integer"
+                                    },
+                                    "end_line": {
+                                      "type": "integer"
+                                    },
+                                    "file": {
+                                      "type": "string"
+                                    },
+                                    "line": {
+                                      "type": "integer"
+                                    }
+                                  },
+                                  "type": "object"
+                                },
+                                "kind": {
+                                  "type": "string"
+                                },
+                                "module": {
+                                  "type": "string"
+                                },
+                                "package": {
+                                  "type": "string"
+                                },
+                                "symbol": {
+                                  "type": "string"
+                                }
+                              },
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "tier": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "status"
+                        ],
+                        "type": "object"
+                      },
+                      "reasons": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "references": {
+                        "items": {
+                          "properties": {
+                            "Type": {
+                              "type": "string"
+                            },
+                            "URL": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "URL",
+                            "Type"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "severity": {
+                        "type": "string"
+                      },
+                      "severity_source": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "source"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "package",
+                  "vulnerability"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "removed": {
+              "items": {
+                "properties": {
+                  "package": {
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "licenses": {
+                        "items": {
+                          "properties": {
+                            "spdxExpression": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "locations": {
+                        "items": {
+                          "properties": {
+                            "access_path": {
+                              "type": "string"
+                            },
+                            "position": {
+                              "properties": {
+                                "column": {
+                                  "type": "integer"
+                                },
+                                "end_line": {
+                                  "type": "integer"
+                                },
+                                "file": {
+                                  "type": "string"
+                                },
+                                "line": {
+                                  "type": "integer"
+                                }
+                              },
+                              "type": "object"
+                            },
+                            "real_path": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "metadata": {
+                        "additionalProperties": {},
+                        "type": "object"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "purl": {
+                        "type": "string"
+                      },
+                      "scope": {
+                        "type": "string"
+                      },
+                      "version": {
+                        "type": "string"
+                      },
+                      "vulnerabilities": {
+                        "items": {
+                          "properties": {
+                            "affected_symbols": {
+                              "items": {
+                                "properties": {
+                                  "definition": {
+                                    "properties": {
+                                      "column": {
+                                        "type": "integer"
+                                      },
+                                      "end_line": {
+                                        "type": "integer"
+                                      },
+                                      "file": {
+                                        "type": "string"
+                                      },
+                                      "line": {
+                                        "type": "integer"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "module": {
+                                    "type": "string"
+                                  },
+                                  "package": {
+                                    "type": "string"
+                                  },
+                                  "symbol": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "affected_version_range": {
+                              "type": "string"
+                            },
+                            "aliases": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "cvss": {
+                              "items": {
+                                "properties": {
+                                  "Score": {
+                                    "type": "number"
+                                  },
+                                  "Source": {
+                                    "type": "string"
+                                  },
+                                  "Vector": {
+                                    "type": "string"
+                                  },
+                                  "Version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "Vector",
+                                  "Score",
+                                  "Version",
+                                  "Source"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "fixed_in": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "kev_exploited": {
+                              "type": "boolean"
+                            },
+                            "reachability": {
+                              "properties": {
+                                "analyzed_at": {
+                                  "type": "string"
+                                },
+                                "analyzer": {
+                                  "type": "string"
+                                },
+                                "call_paths": {
+                                  "items": {
+                                    "properties": {
+                                      "frames": {
+                                        "items": {
+                                          "properties": {
+                                            "function": {
+                                              "type": "string"
+                                            },
+                                            "package": {
+                                              "type": "string"
+                                            },
+                                            "position": {
+                                              "properties": {
+                                                "column": {
+                                                  "type": "integer"
+                                                },
+                                                "end_line": {
+                                                  "type": "integer"
+                                                },
+                                                "file": {
+                                                  "type": "string"
+                                                },
+                                                "line": {
+                                                  "type": "integer"
+                                                }
+                                              },
+                                              "type": "object"
+                                            },
+                                            "receiver": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "type": "object"
+                                        },
+                                        "type": "array"
+                                      },
+                                      "sink": {
+                                        "properties": {
+                                          "definition": {
+                                            "properties": {
+                                              "column": {
+                                                "type": "integer"
+                                              },
+                                              "end_line": {
+                                                "type": "integer"
+                                              },
+                                              "file": {
+                                                "type": "string"
+                                              },
+                                              "line": {
+                                                "type": "integer"
+                                              }
+                                            },
+                                            "type": "object"
+                                          },
+                                          "kind": {
+                                            "type": "string"
+                                          },
+                                          "module": {
+                                            "type": "string"
+                                          },
+                                          "package": {
+                                            "type": "string"
+                                          },
+                                          "symbol": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "type": "object"
+                                      }
+                                    },
+                                    "required": [
+                                      "sink"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "confidence": {
+                                  "type": "string"
+                                },
+                                "dynamic_imports_detected": {
+                                  "type": "boolean"
+                                },
+                                "hops": {
+                                  "type": "integer"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "status": {
+                                  "type": "string"
+                                },
+                                "symbols": {
+                                  "items": {
+                                    "properties": {
+                                      "definition": {
+                                        "properties": {
+                                          "column": {
+                                            "type": "integer"
+                                          },
+                                          "end_line": {
+                                            "type": "integer"
+                                          },
+                                          "file": {
+                                            "type": "string"
+                                          },
+                                          "line": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "type": "object"
+                                      },
+                                      "kind": {
+                                        "type": "string"
+                                      },
+                                      "module": {
+                                        "type": "string"
+                                      },
+                                      "package": {
+                                        "type": "string"
+                                      },
+                                      "symbol": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "tier": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "status"
+                              ],
+                              "type": "object"
+                            },
+                            "reasons": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "references": {
+                              "items": {
+                                "properties": {
+                                  "Type": {
+                                    "type": "string"
+                                  },
+                                  "URL": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "URL",
+                                  "Type"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "severity": {
+                              "type": "string"
+                            },
+                            "severity_source": {
+                              "type": "string"
+                            },
+                            "source": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "source"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "licenses",
+                      "vulnerabilities"
+                    ],
+                    "type": "object"
+                  },
+                  "vulnerability": {
+                    "properties": {
+                      "affected_symbols": {
+                        "items": {
+                          "properties": {
+                            "definition": {
+                              "properties": {
+                                "column": {
+                                  "type": "integer"
+                                },
+                                "end_line": {
+                                  "type": "integer"
+                                },
+                                "file": {
+                                  "type": "string"
+                                },
+                                "line": {
+                                  "type": "integer"
+                                }
+                              },
+                              "type": "object"
+                            },
+                            "kind": {
+                              "type": "string"
+                            },
+                            "module": {
+                              "type": "string"
+                            },
+                            "package": {
+                              "type": "string"
+                            },
+                            "symbol": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "affected_version_range": {
+                        "type": "string"
+                      },
+                      "aliases": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "cvss": {
+                        "items": {
+                          "properties": {
+                            "Score": {
+                              "type": "number"
+                            },
+                            "Source": {
+                              "type": "string"
+                            },
+                            "Vector": {
+                              "type": "string"
+                            },
+                            "Version": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "Vector",
+                            "Score",
+                            "Version",
+                            "Source"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "fixed_in": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "kev_exploited": {
+                        "type": "boolean"
+                      },
+                      "reachability": {
+                        "properties": {
+                          "analyzed_at": {
+                            "type": "string"
+                          },
+                          "analyzer": {
+                            "type": "string"
+                          },
+                          "call_paths": {
+                            "items": {
+                              "properties": {
+                                "frames": {
+                                  "items": {
+                                    "properties": {
+                                      "function": {
+                                        "type": "string"
+                                      },
+                                      "package": {
+                                        "type": "string"
+                                      },
+                                      "position": {
+                                        "properties": {
+                                          "column": {
+                                            "type": "integer"
+                                          },
+                                          "end_line": {
+                                            "type": "integer"
+                                          },
+                                          "file": {
+                                            "type": "string"
+                                          },
+                                          "line": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "type": "object"
+                                      },
+                                      "receiver": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "sink": {
+                                  "properties": {
+                                    "definition": {
+                                      "properties": {
+                                        "column": {
+                                          "type": "integer"
+                                        },
+                                        "end_line": {
+                                          "type": "integer"
+                                        },
+                                        "file": {
+                                          "type": "string"
+                                        },
+                                        "line": {
+                                          "type": "integer"
+                                        }
+                                      },
+                                      "type": "object"
+                                    },
+                                    "kind": {
+                                      "type": "string"
+                                    },
+                                    "module": {
+                                      "type": "string"
+                                    },
+                                    "package": {
+                                      "type": "string"
+                                    },
+                                    "symbol": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "type": "object"
+                                }
+                              },
+                              "required": [
+                                "sink"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "confidence": {
+                            "type": "string"
+                          },
+                          "dynamic_imports_detected": {
+                            "type": "boolean"
+                          },
+                          "hops": {
+                            "type": "integer"
+                          },
+                          "reason": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "symbols": {
+                            "items": {
+                              "properties": {
+                                "definition": {
+                                  "properties": {
+                                    "column": {
+                                      "type": "integer"
+                                    },
+                                    "end_line": {
+                                      "type": "integer"
+                                    },
+                                    "file": {
+                                      "type": "string"
+                                    },
+                                    "line": {
+                                      "type": "integer"
+                                    }
+                                  },
+                                  "type": "object"
+                                },
+                                "kind": {
+                                  "type": "string"
+                                },
+                                "module": {
+                                  "type": "string"
+                                },
+                                "package": {
+                                  "type": "string"
+                                },
+                                "symbol": {
+                                  "type": "string"
+                                }
+                              },
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "tier": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "status"
+                        ],
+                        "type": "object"
+                      },
+                      "reasons": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "references": {
+                        "items": {
+                          "properties": {
+                            "Type": {
+                              "type": "string"
+                            },
+                            "URL": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "URL",
+                            "Type"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "severity": {
+                        "type": "string"
+                      },
+                      "severity_source": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "source"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "package",
+                  "vulnerability"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
         }
       },
       "required": [
+        "dependencies",
+        "licenses",
+        "vulnerabilities",
         "manifests"
       ],
       "type": "object"
@@ -3262,6 +7237,12 @@
         "changed_package_count": {
           "type": "integer"
         },
+        "exact_match_count": {
+          "type": "integer"
+        },
+        "fuzzy_match_count": {
+          "type": "integer"
+        },
         "removed_manifest_count": {
           "type": "integer"
         },
@@ -3269,6 +7250,9 @@
           "type": "integer"
         },
         "unchanged_manifest_count": {
+          "type": "integer"
+        },
+        "unmatched_package_count": {
           "type": "integer"
         }
       },
@@ -3279,7 +7263,10 @@
         "unchanged_manifest_count",
         "added_package_count",
         "changed_package_count",
-        "removed_package_count"
+        "removed_package_count",
+        "exact_match_count",
+        "fuzzy_match_count",
+        "unmatched_package_count"
       ],
       "type": "object"
     }

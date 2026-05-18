@@ -246,6 +246,12 @@ func TestBuildDiffResponseAggregatesManifestChanges(t *testing.T) {
 	if response.Summary.ChangedManifestCount != 1 || response.Summary.AddedPackageCount != 1 {
 		t.Fatalf("unexpected diff summary: %#v", response.Summary)
 	}
+	if response.Summary.UnmatchedPackageCount != 1 {
+		t.Fatalf("expected one unmatched package, got %#v", response.Summary)
+	}
+	if len(response.Results.Dependencies.Added) != 1 || response.Results.Dependencies.Added[0].Package.Name != "newpkg" {
+		t.Fatalf("expected global dependency aggregate, got %#v", response.Results.Dependencies)
+	}
 	if len(response.Results.Manifests) != 1 || response.Results.Manifests[0].Status != "changed" {
 		t.Fatalf("unexpected manifest results: %#v", response.Results.Manifests)
 	}
@@ -641,6 +647,9 @@ func TestBuildDiffResponseFuzzyReconcilesRenamedPackage(t *testing.T) {
 	}
 	if response.Summary.AddedPackageCount != 0 || response.Summary.RemovedPackageCount != 0 {
 		t.Fatalf("expected no residual add/remove after fuzzy reconciliation, got %#v", response.Summary)
+	}
+	if response.Summary.FuzzyMatchCount != 1 || response.Summary.UnmatchedPackageCount != 0 {
+		t.Fatalf("expected fuzzy match diagnostics, got %#v", response.Summary)
 	}
 	if len(response.Results.Manifests) != 1 || len(response.Results.Manifests[0].Changed) != 1 {
 		t.Fatalf("expected one changed package in manifest, got %#v", response.Results.Manifests)

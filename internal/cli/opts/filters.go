@@ -22,7 +22,7 @@ type detectorOptionRow struct {
 const (
 	OSVMatcherName             = "osv"
 	GrypeMatcherName           = "grype"
-	SeverityPolicyAuditorName  = "severity-policy"
+	VulnerabilityAuditorName   = "vulnerability"
 	ClearlyDefinedCheckerName  = "clearlydefined-license-checker"
 	clearlyDefinedCheckerAlias = "clearlydefined"
 	DepsdevCheckerName         = "depsdev-license-checker"

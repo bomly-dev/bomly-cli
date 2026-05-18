@@ -31,6 +31,7 @@ type AuditRequest struct {
 	Mode            TargetMode      `json:"mode,omitempty"`
 	Query           PackageQuery    `json:"query"`
 	Graph           *Graph          `json:"graph,omitempty"`
+	BaselineGraph   *Graph          `json:"baselineGraph,omitempty"`
 	Target          *Package        `json:"target,omitempty"`
 	AuditorFilter   AuditorFilter   `json:"auditorFilter"`
 	Stderr          io.Writer       `json:"-"`

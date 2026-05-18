@@ -2,9 +2,13 @@ package registry
 
 import (
 	"sort"
+	"strconv"
+	"strings"
 	"time"
 
-	"github.com/bomly-dev/bomly-cli/internal/auditors/policy"
+	"github.com/bomly-dev/bomly-cli/internal/auditors/license"
+	packageauditor "github.com/bomly-dev/bomly-cli/internal/auditors/package"
+	"github.com/bomly-dev/bomly-cli/internal/auditors/vulnerability"
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/cargo"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/cocoapods"
@@ -40,15 +44,25 @@ type RegistryConfigs struct {
 	// FailOn is the parsed list of --fail-on constraints. The policy
 	// auditor evaluates findings against this AND-set; an empty slice
 	// preserves the historical behaviour of emitting every finding.
-	FailOn      []sdk.FailOnConstraint
-	OsvAPIBase  string
-	OsvCacheDir string
-	OsvCacheTTL string
-	KEVCacheDir string
-	KEVCacheTTL string
-	EOLAPIBase  string
-	EOLCacheDir string
-	EOLCacheTTL string
+	FailOn                []sdk.FailOnConstraint
+	FailOnScopes          []sdk.Scope
+	AllowVulnerabilityIDs []string
+	AllowLicenses         []string
+	DenyLicenses          []string
+	LicenseExemptPackages []string
+	DenyPackages          []string
+	DenyGroups            []string
+	ProtectedPackages     []string
+	TyposquatThreshold    string
+	TyposquatMode         string
+	OsvAPIBase            string
+	OsvCacheDir           string
+	OsvCacheTTL           string
+	KEVCacheDir           string
+	KEVCacheTTL           string
+	EOLAPIBase            string
+	EOLCacheDir           string
+	EOLCacheTTL           string
 }
 
 // RegistryFilter narrows a registry down to the runtime-relevant selections.
@@ -263,7 +277,31 @@ func (r *Registry) RegisterAnalyzer(analyzer sdk.Analyzer) {
 }
 
 func (r *Registry) registerAuditors() {
-	for _, auditor := range builtInAuditors([]sdk.Auditor{policy.Auditor{FailOn: append([]sdk.FailOnConstraint(nil), r.configs.FailOn...)}}) {
+	threshold, _ := strconv.ParseFloat(strings.TrimSpace(r.configs.TyposquatThreshold), 64)
+	if threshold == 0 {
+		threshold = 0.90
+	}
+	for _, auditor := range builtInAuditors([]sdk.Auditor{
+		vulnerability.Auditor{
+			FailOn:                append([]sdk.FailOnConstraint(nil), r.configs.FailOn...),
+			FailOnScopes:          append([]sdk.Scope(nil), r.configs.FailOnScopes...),
+			AllowVulnerabilityIDs: append([]string(nil), r.configs.AllowVulnerabilityIDs...),
+		},
+		license.Auditor{
+			AllowLicenses:  append([]string(nil), r.configs.AllowLicenses...),
+			DenyLicenses:   append([]string(nil), r.configs.DenyLicenses...),
+			ExemptPackages: append([]string(nil), r.configs.LicenseExemptPackages...),
+			FailOnScopes:   append([]sdk.Scope(nil), r.configs.FailOnScopes...),
+		},
+		packageauditor.Auditor{
+			DenyPackages:       append([]string(nil), r.configs.DenyPackages...),
+			DenyGroups:         append([]string(nil), r.configs.DenyGroups...),
+			ProtectedPackages:  append([]string(nil), r.configs.ProtectedPackages...),
+			TyposquatThreshold: threshold,
+			TyposquatMode:      r.configs.TyposquatMode,
+			FailOnScopes:       append([]sdk.Scope(nil), r.configs.FailOnScopes...),
+		},
+	}) {
 		r.RegisterAuditor(auditor)
 	}
 }

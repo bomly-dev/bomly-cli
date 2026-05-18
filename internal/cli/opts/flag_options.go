@@ -71,6 +71,17 @@ func bindAnalysisFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
 	flags.BoolVar(&cfg.Audit, "audit", false, "Evaluate policy and create findings from package vulnerability data")
 	flags.BoolVar(&cfg.Reachability, "reachability", false, "[Experimental] Run code analysis to confirm whether vulnerabilities are reachable from application code")
 	flags.StringArrayVar(&cfg.FailOn, "fail-on", nil, "Constraint(s) for which findings should be created. Repeatable; constraints AND together. Severity: any|low|medium|high|critical. Reachability: reachable. Example: --fail-on low --fail-on reachable")
+	flags.StringArrayVar(&cfg.FailOnScopes, "fail-on-scope", nil, "Dependency scope that may produce failing findings: runtime, development, or unknown. Repeatable")
+	flags.StringArrayVar(&cfg.AllowVulnerabilityIDs, "allow-vulnerability-id", nil, "Vulnerability ID to ignore during policy evaluation. Repeatable")
+	flags.StringArrayVar(&cfg.AllowLicenses, "allow-license", nil, "Allowed SPDX license identifier or expression. Repeatable")
+	flags.StringArrayVar(&cfg.DenyLicenses, "deny-license", nil, "Denied SPDX license identifier or expression. Repeatable")
+	flags.StringArrayVar(&cfg.LicenseExemptPackages, "license-exempt-package", nil, "Package URL exempt from license policy checks. Repeatable")
+	flags.StringArrayVar(&cfg.DenyPackages, "deny-package", nil, "Package URL to deny. Repeatable")
+	flags.StringArrayVar(&cfg.DenyGroups, "deny-group", nil, "Package URL namespace to deny. Repeatable")
+	flags.StringArrayVar(&cfg.ProtectedPackages, "protected-package", nil, "Canonical package name to protect from typosquatting. Repeatable")
+	flags.StringVar(&cfg.TyposquatThreshold, "typosquat-threshold", "", "Similarity threshold for typosquatting detection")
+	flags.StringVar(&cfg.TyposquatMode, "typosquat-mode", "", "Typosquatting policy mode: warn or fail")
+	flags.BoolVar(&cfg.WarnOnly, "warn-only", false, "Downgrade failing findings to warnings")
 }
 
 func bindSelectorFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
@@ -119,6 +130,39 @@ func applyFlagOverrides(dst *config.Resolved, flags config.Resolved, cmd *cobra.
 	}
 	if flagChanged(cmd, "fail-on") {
 		dst.FailOn = append([]string(nil), flags.FailOn...)
+	}
+	if flagChanged(cmd, "fail-on-scope") {
+		dst.FailOnScopes = append([]string(nil), flags.FailOnScopes...)
+	}
+	if flagChanged(cmd, "allow-vulnerability-id") {
+		dst.AllowVulnerabilityIDs = append([]string(nil), flags.AllowVulnerabilityIDs...)
+	}
+	if flagChanged(cmd, "allow-license") {
+		dst.AllowLicenses = append([]string(nil), flags.AllowLicenses...)
+	}
+	if flagChanged(cmd, "deny-license") {
+		dst.DenyLicenses = append([]string(nil), flags.DenyLicenses...)
+	}
+	if flagChanged(cmd, "license-exempt-package") {
+		dst.LicenseExemptPackages = append([]string(nil), flags.LicenseExemptPackages...)
+	}
+	if flagChanged(cmd, "deny-package") {
+		dst.DenyPackages = append([]string(nil), flags.DenyPackages...)
+	}
+	if flagChanged(cmd, "deny-group") {
+		dst.DenyGroups = append([]string(nil), flags.DenyGroups...)
+	}
+	if flagChanged(cmd, "protected-package") {
+		dst.ProtectedPackages = append([]string(nil), flags.ProtectedPackages...)
+	}
+	if flagChanged(cmd, "typosquat-threshold") {
+		dst.TyposquatThreshold = flags.TyposquatThreshold
+	}
+	if flagChanged(cmd, "typosquat-mode") {
+		dst.TyposquatMode = flags.TyposquatMode
+	}
+	if flagChanged(cmd, "warn-only") {
+		dst.WarnOnly = flags.WarnOnly
 	}
 	if flagChanged(cmd, "analyzers") {
 		dst.Analyzers = flags.Analyzers

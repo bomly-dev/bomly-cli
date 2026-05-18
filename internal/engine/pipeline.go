@@ -227,12 +227,19 @@ func (p *Pipeline) runAudit(ctx context.Context, result *PipelineResult, req Pip
 	}
 	if !GraphHasVulnerabilityData(result.Graph) {
 		result.AuditWarnings = append(result.AuditWarnings, PipelineWarning{
-			Source:  "severity-policy",
+			Source:  "vulnerability",
 			Message: "no vulnerability enrichment input was available; policy evaluation may produce no findings",
 		})
 	}
 	auditResult, auditWarnings := p.audit(ctx, result.Graph, req)
 	result.Findings = DeduplicateFindings(auditResult.Findings)
+	if req.WarnOnly {
+		for idx := range result.Findings {
+			if result.Findings[idx].Disposition == "" || result.Findings[idx].Disposition == sdk.FindingDispositionFail {
+				result.Findings[idx].Disposition = sdk.FindingDispositionWarn
+			}
+		}
+	}
 	result.RiskScores = auditResult.RiskScores
 	result.AuditorRuns = auditResult.AuditorRuns
 	result.AuditorFindings = auditResult.AuditorFindings
@@ -296,6 +303,7 @@ func (p *Pipeline) audit(ctx context.Context, g *sdk.Graph, req PipelineRequest)
 		ExecutionTarget: req.ExecutionTarget,
 		Mode:            sdk.TargetModeFullGraph,
 		Graph:           g,
+		BaselineGraph:   req.BaselineGraph,
 		AuditorFilter:   req.AuditorFilter,
 		Stderr:          req.Stderr,
 	}

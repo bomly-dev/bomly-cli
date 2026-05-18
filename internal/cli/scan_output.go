@@ -11,7 +11,6 @@ func diffAuditOutput(audit *diffengine.Audit) *output.DiffAudit {
 		return nil
 	}
 	combined := append(append([]sdk.Finding{}, audit.Introduced...), audit.Persisted...)
-	combined = append(combined, audit.Resolved...)
 	return &output.DiffAudit{
 		Introduced:   output.FindingsFromScan(audit.Introduced),
 		Resolved:     output.FindingsFromScan(audit.Resolved),

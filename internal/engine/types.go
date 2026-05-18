@@ -33,6 +33,18 @@ type PipelineRequest struct {
 	AnalyzerFilter             sdk.AnalyzerFilter
 	DetectorFilter             sdk.DetectorFilter
 	FailOn                     []sdk.FailOnConstraint
+	FailOnScopes               []sdk.Scope
+	AllowVulnerabilityIDs      []string
+	AllowLicenses              []string
+	DenyLicenses               []string
+	LicenseExemptPackages      []string
+	DenyPackages               []string
+	DenyGroups                 []string
+	ProtectedPackages          []string
+	TyposquatThreshold         float64
+	TyposquatMode              string
+	WarnOnly                   bool
+	BaselineGraph              *sdk.Graph
 	InstallFirst               bool
 	InstallArgs                []string
 	CoreVersion                string

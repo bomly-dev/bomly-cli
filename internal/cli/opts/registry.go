@@ -12,15 +12,33 @@ import (
 // callers (tests, plugin adapters) stay functional.
 func RegistryConfigsFromResolved(cfg config.Resolved) engine.RegistryConfigs {
 	failOn, _ := sdk.ParseFailOnList(cfg.FailOn)
+	failOnScopes := make([]sdk.Scope, 0, len(cfg.FailOnScopes))
+	for _, rawScope := range cfg.FailOnScopes {
+		scope, err := sdk.ParseScope(rawScope)
+		if err != nil {
+			continue
+		}
+		failOnScopes = append(failOnScopes, scope)
+	}
 	return engine.RegistryConfigs{
-		FailOn:      failOn,
-		OsvAPIBase:  cfg.OsvAPIBase,
-		OsvCacheDir: cfg.OsvCacheDir,
-		OsvCacheTTL: cfg.OsvCacheTTL,
-		KEVCacheDir: cfg.KEVCacheDir,
-		KEVCacheTTL: cfg.KEVCacheTTL,
-		EOLAPIBase:  cfg.EOLAPIBase,
-		EOLCacheDir: cfg.EOLCacheDir,
-		EOLCacheTTL: cfg.EOLCacheTTL,
+		FailOn:                failOn,
+		FailOnScopes:          failOnScopes,
+		AllowVulnerabilityIDs: append([]string(nil), cfg.AllowVulnerabilityIDs...),
+		AllowLicenses:         append([]string(nil), cfg.AllowLicenses...),
+		DenyLicenses:          append([]string(nil), cfg.DenyLicenses...),
+		LicenseExemptPackages: append([]string(nil), cfg.LicenseExemptPackages...),
+		DenyPackages:          append([]string(nil), cfg.DenyPackages...),
+		DenyGroups:            append([]string(nil), cfg.DenyGroups...),
+		ProtectedPackages:     append([]string(nil), cfg.ProtectedPackages...),
+		TyposquatThreshold:    cfg.TyposquatThreshold,
+		TyposquatMode:         cfg.TyposquatMode,
+		OsvAPIBase:            cfg.OsvAPIBase,
+		OsvCacheDir:           cfg.OsvCacheDir,
+		OsvCacheTTL:           cfg.OsvCacheTTL,
+		KEVCacheDir:           cfg.KEVCacheDir,
+		KEVCacheTTL:           cfg.KEVCacheTTL,
+		EOLAPIBase:            cfg.EOLAPIBase,
+		EOLCacheDir:           cfg.EOLCacheDir,
+		EOLCacheTTL:           cfg.EOLCacheTTL,
 	}
 }

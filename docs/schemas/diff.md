@@ -38,6 +38,9 @@ Complete reference for the `bomly diff` JSON output.
 | `title` | `string` | |
 | `reasons` | Array<`string`> | |
 | `source` | `string` | |
+| `auditor` | `string` | |
+| `disposition` | `string` | |
+| `fixed_in` | `string` | |
 | `reachability` | [`Reachability`](#reachability) | |
 
 ### `AuditSummary`
@@ -99,6 +102,37 @@ Complete reference for the `bomly diff` JSON output.
 | `base` | `string` | |
 | `head` | `string` | |
 
+### `DiffDependencyResults`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `added` | Array<[`DiffPackageChange`](#diffpackagechange)> | |
+| `removed` | Array<[`DiffPackageChange`](#diffpackagechange)> | |
+| `changed` | Array<[`DiffChangedPackage`](#diffchangedpackage)> | |
+
+### `DiffLicenseChange`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `package` | [`PackageRef`](#packageref) | |
+| `licenses` | Array<[`LicenseRef`](#licenseref)> | |
+
+### `DiffLicenseDelta`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `package` | [`PackageRef`](#packageref) | |
+| `before` | Array<[`LicenseRef`](#licenseref)> | |
+| `after` | Array<[`LicenseRef`](#licenseref)> | |
+
+### `DiffLicenseResults`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `added` | Array<[`DiffLicenseChange`](#difflicensechange)> | |
+| `removed` | Array<[`DiffLicenseChange`](#difflicensechange)> | |
+| `changed` | Array<[`DiffLicenseDelta`](#difflicensedelta)> | |
+
 ### `DiffManifestResult`
 
 | Field | Type | Description |
@@ -123,6 +157,9 @@ Complete reference for the `bomly diff` JSON output.
 
 | Field | Type | Description |
 |-------|------|-------------|
+| `dependencies` | [`DiffDependencyResults`](#diffdependencyresults) | |
+| `licenses` | [`DiffLicenseResults`](#difflicenseresults) | |
+| `vulnerabilities` | [`DiffVulnerabilityResults`](#diffvulnerabilityresults) | |
 | `manifests` | Array<[`DiffManifestResult`](#diffmanifestresult)> | |
 
 ### `DiffSummary`
@@ -136,6 +173,23 @@ Complete reference for the `bomly diff` JSON output.
 | `added_package_count` | `integer` | |
 | `changed_package_count` | `integer` | |
 | `removed_package_count` | `integer` | |
+| `exact_match_count` | `integer` | |
+| `fuzzy_match_count` | `integer` | |
+| `unmatched_package_count` | `integer` | |
+
+### `DiffVulnerabilityChange`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `package` | [`PackageRef`](#packageref) | |
+| `vulnerability` | [`VulnerabilityRef`](#vulnerabilityref) | |
+
+### `DiffVulnerabilityResults`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `added` | Array<[`DiffVulnerabilityChange`](#diffvulnerabilitychange)> | |
+| `removed` | Array<[`DiffVulnerabilityChange`](#diffvulnerabilitychange)> | |
 
 ### `LicenseRef`
 

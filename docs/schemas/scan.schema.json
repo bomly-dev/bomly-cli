@@ -39,6 +39,15 @@
     "findings": {
       "items": {
         "properties": {
+          "auditor": {
+            "type": "string"
+          },
+          "disposition": {
+            "type": "string"
+          },
+          "fixed_in": {
+            "type": "string"
+          },
           "id": {
             "type": "string"
           },

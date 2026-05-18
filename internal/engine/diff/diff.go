@@ -52,6 +52,7 @@ func Run(ctx context.Context, req Request) (Result, error) {
 		return result, fmt.Errorf("base pipeline: %w", err)
 	}
 
+	req.Head.Request.BaselineGraph = base.Graph
 	head, err := req.Head.Pipeline.Run(ctx, req.Head.Request)
 	result.Head = head
 	if err != nil {

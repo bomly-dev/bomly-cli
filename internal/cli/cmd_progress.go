@@ -7,6 +7,8 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
+	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
+	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/progress"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
@@ -43,7 +45,7 @@ func subprojectProgressChildren(results []sdk.DetectionResult) []progress.Child 
 	for _, r := range results {
 		label := r.SubprojectInfo.RelativePath
 		if label == "" || label == "." {
-			label = filepath.Base(r.SubprojectInfo.ExecutionTarget.Location)
+			label = progressTargetLabel(r.SubprojectInfo.ExecutionTarget)
 			if label == "" || label == "." {
 				label = "root"
 			}
@@ -55,6 +57,40 @@ func subprojectProgressChildren(results []sdk.DetectionResult) []progress.Child 
 		children = append(children, progress.Child{Label: label})
 	}
 	return children
+}
+
+func progressTargetLabel(target sdk.ExecutionTarget) string {
+	if label := gitProgressTargetLabel(target); label != "" {
+		return label
+	}
+	switch target.Kind {
+	case sdk.ExecutionTargetContainerImage:
+		return strings.TrimSpace(target.Location)
+	case sdk.ExecutionTargetFilesystem:
+		location := strings.TrimSpace(target.Location)
+		if location != "" {
+			return filepath.Base(location)
+		}
+	}
+	return filepath.Base(target.Location)
+}
+
+func gitProgressTargetLabel(target sdk.ExecutionTarget) string {
+	ref := strings.TrimSpace(target.Ref)
+	repo := strings.TrimSpace(target.RepositoryURL)
+	if target.Kind != sdk.ExecutionTargetGitRepository && repo == "" && ref == "" {
+		return ""
+	}
+	switch {
+	case repo != "" && ref != "":
+		return repo + " @ " + ref
+	case ref != "":
+		return ref
+	case repo != "":
+		return repo
+	default:
+		return ""
+	}
 }
 
 // detectorProgressChildren groups results by detector name, sums the total
@@ -106,6 +142,35 @@ func auditProgressChildren(auditorRuns []string, auditorFindings map[string]int,
 	}
 	children = append(children, warningProgressChildren(warnings)...)
 	return children
+}
+
+// diffPolicyOutcomeProgressChild summarizes introduced diff findings using
+// the same introduced-only failure semantics as `bomly diff --audit`.
+func diffPolicyOutcomeProgressChild(audit *diffengine.Audit) progress.Child {
+	if audit == nil {
+		return progress.Child{
+			Icon:   progress.CheckMark,
+			Label:  "Policy Outcome",
+			Detail: "[no audit delta]",
+		}
+	}
+	failing := output.FailingFindingCount(audit.Introduced)
+	warnings := len(audit.Introduced) - failing
+	child := progress.Child{
+		Icon:  progress.CheckMark,
+		Label: "Policy Outcome",
+	}
+	switch {
+	case failing > 0:
+		child.Icon = progress.CrossMark
+		child.Detail = fmt.Sprintf("[%d introduced failing, %d warnings]", failing, warnings)
+	case warnings > 0:
+		child.Icon = progress.WarningMark
+		child.Detail = fmt.Sprintf("[passed, %d introduced warnings]", warnings)
+	default:
+		child.Detail = "[passed, no introduced findings]"
+	}
+	return child
 }
 
 // matchProgressChildren returns ✔ children for each successful matcher run
@@ -209,8 +274,12 @@ func humanizeDetectorName(name string) string {
 // humanizeAuditorSource converts an auditor source name to a display name.
 func humanizeAuditorSource(source string) string {
 	switch strings.ToLower(source) {
-	case "severity-policy":
-		return "Severity Policy Auditor"
+	case "vulnerability":
+		return "Vulnerability Auditor"
+	case "license":
+		return "License Auditor"
+	case "package":
+		return "Package Auditor"
 	case "grype":
 		return "Grype Auditor"
 	case "osv":

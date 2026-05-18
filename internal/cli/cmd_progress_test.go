@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
+	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
+	"github.com/bomly-dev/bomly-cli/internal/progress"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -66,18 +68,55 @@ func TestMatchProgressChildren_ReportsMatcherCounts(t *testing.T) {
 
 func TestAuditProgressChildren_UsesAuditorRunsNotFindingSources(t *testing.T) {
 	children := auditProgressChildren(
-		[]string{opts.SeverityPolicyAuditorName},
-		map[string]int{opts.SeverityPolicyAuditorName: 3},
+		[]string{opts.VulnerabilityAuditorName},
+		map[string]int{opts.VulnerabilityAuditorName: 3},
 		nil,
 	)
 
 	if len(children) != 1 {
 		t.Fatalf("expected 1 child, got %#v", children)
 	}
-	if children[0].Label != "Severity Policy Auditor" {
+	if children[0].Label != "Vulnerability Auditor" {
 		t.Fatalf("unexpected auditor label: %#v", children[0])
 	}
 	if children[0].Detail != "[3 findings]" {
 		t.Fatalf("unexpected auditor detail: %#v", children[0])
+	}
+}
+
+func TestSubprojectProgressChildren_UsesGitIdentityWhenConcreteTargetIsFilesystem(t *testing.T) {
+	children := subprojectProgressChildren([]sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget: sdk.ExecutionTarget{
+				Kind:          sdk.ExecutionTargetFilesystem,
+				Location:      `C:\Temp\bomly-git-ref-123`,
+				RepositoryURL: "https://github.com/bomly-dev/bomly-cli",
+				Ref:           "main",
+			},
+			RelativePath: ".",
+			Ecosystem:    sdk.EcosystemNPM,
+		},
+	}})
+
+	if len(children) != 1 {
+		t.Fatalf("expected 1 child, got %#v", children)
+	}
+	if children[0].Label != "https://github.com/bomly-dev/bomly-cli @ main (npm)" {
+		t.Fatalf("unexpected target label: %#v", children[0])
+	}
+}
+
+func TestDiffPolicyOutcomeProgressChild_ReportsIntroducedOutcome(t *testing.T) {
+	child := diffPolicyOutcomeProgressChild(&diffengine.Audit{
+		Introduced: []sdk.Finding{
+			{Disposition: sdk.FindingDispositionFail},
+			{Disposition: sdk.FindingDispositionWarn},
+		},
+	})
+	if child.Icon != progress.CrossMark {
+		t.Fatalf("expected failing outcome icon, got %#v", child)
+	}
+	if child.Detail != "[1 introduced failing, 1 warnings]" {
+		t.Fatalf("unexpected policy outcome detail: %#v", child)
 	}
 }

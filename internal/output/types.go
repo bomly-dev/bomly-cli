@@ -226,6 +226,9 @@ type AuditFinding struct {
 	Title        string            `json:"title"`
 	Reasons      []string          `json:"reasons,omitempty"`
 	Source       string            `json:"source"`
+	Auditor      string            `json:"auditor,omitempty"`
+	Disposition  string            `json:"disposition,omitempty"`
+	FixedIn      string            `json:"fixed_in,omitempty"`
 	Reachability *sdk.Reachability `json:"reachability,omitempty"`
 }
 
@@ -251,10 +254,24 @@ func FindingsFromScan(findings []sdk.Finding) []AuditFinding {
 			Title:        f.Title,
 			Reasons:      f.Reasons,
 			Source:       f.Source,
+			Auditor:      f.Auditor,
+			Disposition:  string(f.Disposition),
+			FixedIn:      f.FixedIn,
 			Reachability: f.Reachability.Clone(),
 		})
 	}
 	return result
+}
+
+// FailingFindingCount reports how many findings should fail policy evaluation.
+func FailingFindingCount(findings []sdk.Finding) int {
+	total := 0
+	for _, finding := range findings {
+		if finding.Disposition == "" || finding.Disposition == sdk.FindingDispositionFail {
+			total++
+		}
+	}
+	return total
 }
 
 // SummaryFromFindings aggregates finding counts by severity band.

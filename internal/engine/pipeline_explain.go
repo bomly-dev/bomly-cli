@@ -108,7 +108,7 @@ func (p *Pipeline) RunExplain(ctx context.Context, req ExplainRequest) (ExplainR
 
 	if auditEnabled && !GraphHasVulnerabilityData(base.Graph) {
 		result.AuditWarnings = append(result.AuditWarnings, PipelineWarning{
-			Source:  "severity-policy",
+			Source:  "vulnerability",
 			Message: "no vulnerability enrichment input was available; policy evaluation may produce no findings",
 		})
 	}

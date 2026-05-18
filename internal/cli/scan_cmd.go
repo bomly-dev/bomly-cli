@@ -150,8 +150,10 @@ func newScanCmd() *cobra.Command {
 					return err
 				},
 			})
-			if err == nil && commandCtx.ResolvedConfig.Audit && len(findings) > 0 {
-				return exit.PolicyViolationFindings(len(findings))
+			if err == nil && commandCtx.ResolvedConfig.Audit {
+				if failing := output.FailingFindingCount(findings); failing > 0 {
+					return exit.PolicyViolationFindings(failing)
+				}
 			}
 			return err
 		},

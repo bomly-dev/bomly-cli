@@ -121,8 +121,10 @@ func newExplainCmd() *cobra.Command {
 					return nil
 				},
 			})
-			if err == nil && context.ResolvedConfig.Audit && len(explainResult.Findings) > 0 {
-				return exit.PolicyViolationFindings(len(explainResult.Findings))
+			if err == nil && context.ResolvedConfig.Audit {
+				if failing := output.FailingFindingCount(explainResult.Findings); failing > 0 {
+					return exit.PolicyViolationFindings(failing)
+				}
 			}
 			return err
 		},

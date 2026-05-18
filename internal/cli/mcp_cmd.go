@@ -71,15 +71,26 @@ type mcpOptionsAdapter struct {
 // addition here plus a one-line apply in cloneWithOverrides — no signature
 // churn at every callsite.
 type mcpOverrides struct {
-	Path         string
-	Container    string
-	URL          string
-	Ref          string
-	Enrich       bool
-	Audit        bool
-	Reachability bool
-	FailOn       string
-	Ecosystems   string
+	Path                  string
+	Container             string
+	URL                   string
+	Ref                   string
+	Enrich                bool
+	Audit                 bool
+	Reachability          bool
+	FailOn                string
+	FailOnScopes          string
+	AllowVulnerabilityIDs string
+	AllowLicenses         string
+	DenyLicenses          string
+	LicenseExemptPackages string
+	DenyPackages          string
+	DenyGroups            string
+	ProtectedPackages     string
+	TyposquatThreshold    string
+	TyposquatMode         string
+	WarnOnly              bool
+	Ecosystems            string
 }
 
 // cloneWithOverrides returns a copy of CommandContext with per-call values layered on top.
@@ -93,6 +104,16 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 	applyStringOverride(&clone.ResolvedConfig.URL, o.URL)
 	applyStringOverride(&clone.ResolvedConfig.Ref, o.Ref)
 	applyFailOnOverride(&clone.ResolvedConfig.FailOn, o.FailOn)
+	applyCSVOverride(&clone.ResolvedConfig.FailOnScopes, o.FailOnScopes)
+	applyCSVOverride(&clone.ResolvedConfig.AllowVulnerabilityIDs, o.AllowVulnerabilityIDs)
+	applyCSVOverride(&clone.ResolvedConfig.AllowLicenses, o.AllowLicenses)
+	applyCSVOverride(&clone.ResolvedConfig.DenyLicenses, o.DenyLicenses)
+	applyCSVOverride(&clone.ResolvedConfig.LicenseExemptPackages, o.LicenseExemptPackages)
+	applyCSVOverride(&clone.ResolvedConfig.DenyPackages, o.DenyPackages)
+	applyCSVOverride(&clone.ResolvedConfig.DenyGroups, o.DenyGroups)
+	applyCSVOverride(&clone.ResolvedConfig.ProtectedPackages, o.ProtectedPackages)
+	applyStringOverride(&clone.ResolvedConfig.TyposquatThreshold, o.TyposquatThreshold)
+	applyStringOverride(&clone.ResolvedConfig.TyposquatMode, o.TyposquatMode)
 	applyStringOverride(&clone.ResolvedConfig.Ecosystems, o.Ecosystems)
 	if o.Enrich {
 		clone.ResolvedConfig.Enrich = true
@@ -103,6 +124,9 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 	if o.Reachability {
 		clone.ResolvedConfig.Reachability = true
 	}
+	if o.WarnOnly {
+		clone.ResolvedConfig.WarnOnly = true
+	}
 	clone.ResolvedConfig.Interactive = false
 
 	applyStringOverride(&resolved.Path, o.Path)
@@ -110,6 +134,16 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 	applyStringOverride(&resolved.URL, o.URL)
 	applyStringOverride(&resolved.Ref, o.Ref)
 	applyFailOnOverride(&resolved.FailOn, o.FailOn)
+	applyCSVOverride(&resolved.FailOnScopes, o.FailOnScopes)
+	applyCSVOverride(&resolved.AllowVulnerabilityIDs, o.AllowVulnerabilityIDs)
+	applyCSVOverride(&resolved.AllowLicenses, o.AllowLicenses)
+	applyCSVOverride(&resolved.DenyLicenses, o.DenyLicenses)
+	applyCSVOverride(&resolved.LicenseExemptPackages, o.LicenseExemptPackages)
+	applyCSVOverride(&resolved.DenyPackages, o.DenyPackages)
+	applyCSVOverride(&resolved.DenyGroups, o.DenyGroups)
+	applyCSVOverride(&resolved.ProtectedPackages, o.ProtectedPackages)
+	applyStringOverride(&resolved.TyposquatThreshold, o.TyposquatThreshold)
+	applyStringOverride(&resolved.TyposquatMode, o.TyposquatMode)
 	applyStringOverride(&resolved.Ecosystems, o.Ecosystems)
 	if o.Enrich {
 		resolved.Enrich = true
@@ -119,6 +153,9 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 	}
 	if o.Reachability {
 		resolved.Reachability = true
+	}
+	if o.WarnOnly {
+		resolved.WarnOnly = true
 	}
 	resolved.Interactive = false
 	clone.SetConfig(resolved)
@@ -139,6 +176,20 @@ func applyFailOnOverride(target *[]string, value string) {
 	if strings.TrimSpace(value) != "" {
 		*target = []string{value}
 	}
+}
+
+func applyCSVOverride(target *[]string, value string) {
+	if strings.TrimSpace(value) == "" {
+		return
+	}
+	parts := strings.Split(value, ",")
+	out := make([]string, 0, len(parts))
+	for _, part := range parts {
+		if trimmed := strings.TrimSpace(part); trimmed != "" {
+			out = append(out, trimmed)
+		}
+	}
+	*target = out
 }
 
 func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (output.ScanResponse, error) {
@@ -212,11 +263,23 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (output.DiffResponse, error) {
 	started := time.Now()
 	o := a.cloneWithOverrides(mcpOverrides{
-		Path:         req.Path,
-		Container:    req.Container,
-		Enrich:       req.Enrich,
-		Audit:        req.Audit,
-		Reachability: req.Reachability,
+		Path:                  req.Path,
+		Container:             req.Container,
+		Enrich:                req.Enrich,
+		Audit:                 req.Audit,
+		Reachability:          req.Reachability,
+		FailOn:                req.FailOn,
+		FailOnScopes:          req.FailOnScopes,
+		AllowVulnerabilityIDs: req.AllowVulnerabilityIDs,
+		AllowLicenses:         req.AllowLicenses,
+		DenyLicenses:          req.DenyLicenses,
+		LicenseExemptPackages: req.LicenseExemptPackages,
+		DenyPackages:          req.DenyPackages,
+		DenyGroups:            req.DenyGroups,
+		ProtectedPackages:     req.ProtectedPackages,
+		TyposquatThreshold:    req.TyposquatThreshold,
+		TyposquatMode:         req.TyposquatMode,
+		WarnOnly:              req.WarnOnly,
 	})
 	logger := a.logger
 

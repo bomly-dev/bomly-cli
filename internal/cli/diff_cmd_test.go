@@ -30,7 +30,7 @@ func TestRenderDiffTextIncludesAuditOutcomeWithoutChanges(t *testing.T) {
 	report := out.String()
 	for _, want := range []string{
 		"Dependency diff main -> feature",
-		"Policy Outcome",
+		"Policy Evaluation",
 		"Current findings: 1 total (1 high).",
 		"Change summary: 0 introduced, 0 persisted, and 0 resolved findings.",
 		"No policy differences were identified between the base and head dependency sets.",
@@ -69,7 +69,7 @@ func TestRenderDiffTextIncludesAuditSections(t *testing.T) {
 				Package:  output.PackageRef{Name: "minimist", Version: "1.2.5"},
 				Source:   "osv",
 			}},
-			AuditSummary: &output.AuditSummary{High: 1, Medium: 1, Low: 1, Total: 3},
+			AuditSummary: &output.AuditSummary{High: 1, Medium: 1, Total: 2},
 		},
 	}
 
@@ -80,18 +80,22 @@ func TestRenderDiffTextIncludesAuditSections(t *testing.T) {
 
 	report := out.String()
 	for _, want := range []string{
-		"Policy Outcome",
-		"Current findings: 3 total (1 high, 1 medium, 1 low).",
+		"Policy Evaluation",
+		"Current findings: 2 total (1 high, 1 medium).",
 		"Change summary: 1 introduced, 1 persisted, and 1 resolved findings.",
 		"Introduced Findings",
-		"Persisted Findings",
 		"Resolved Findings",
-		"OSV-123 react@18.2.0 (osv): Prototype pollution in react",
-		"OSV-234 lodash@4.17.20 (osv)",
-		"OSV-345 minimist@1.2.5 (osv)",
+		"OSV-123 react@18.2.0: Prototype pollution in react",
+		"OSV-345 minimist@1.2.5",
 	} {
 		if !strings.Contains(report, want) {
 			t.Fatalf("expected diff report to contain %q, got:\n%s", want, report)
 		}
+	}
+	if strings.Contains(report, "Persisted Findings") {
+		t.Fatalf("did not expect persisted findings subsection, got:\n%s", report)
+	}
+	if !strings.Contains(report, "Prototype pollution in react\x1b[0m\n\nResolved Findings") {
+		t.Fatalf("expected a blank line after introduced findings, got:\n%s", report)
 	}
 }

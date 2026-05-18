@@ -61,7 +61,49 @@ type DiffComparison struct {
 
 // DiffResults groups per-manifest diff results.
 type DiffResults struct {
-	Manifests []DiffManifestResult `json:"manifests"`
+	Dependencies    DiffDependencyResults    `json:"dependencies"`
+	Licenses        DiffLicenseResults       `json:"licenses"`
+	Vulnerabilities DiffVulnerabilityResults `json:"vulnerabilities"`
+	Manifests       []DiffManifestResult     `json:"manifests"`
+}
+
+// DiffDependencyResults aggregates package changes across all manifests.
+type DiffDependencyResults struct {
+	Added   []DiffPackageChange  `json:"added,omitempty"`
+	Removed []DiffPackageChange  `json:"removed,omitempty"`
+	Changed []DiffChangedPackage `json:"changed,omitempty"`
+}
+
+// DiffLicenseResults aggregates license changes across all manifests.
+type DiffLicenseResults struct {
+	Added   []DiffLicenseChange `json:"added,omitempty"`
+	Removed []DiffLicenseChange `json:"removed,omitempty"`
+	Changed []DiffLicenseDelta  `json:"changed,omitempty"`
+}
+
+// DiffLicenseChange is a package whose license set was introduced or removed.
+type DiffLicenseChange struct {
+	Package  PackageRef   `json:"package"`
+	Licenses []LicenseRef `json:"licenses"`
+}
+
+// DiffLicenseDelta is a package whose license set changed.
+type DiffLicenseDelta struct {
+	Package PackageRef   `json:"package"`
+	Before  []LicenseRef `json:"before"`
+	After   []LicenseRef `json:"after"`
+}
+
+// DiffVulnerabilityResults aggregates vulnerability changes across all manifests.
+type DiffVulnerabilityResults struct {
+	Added   []DiffVulnerabilityChange `json:"added,omitempty"`
+	Removed []DiffVulnerabilityChange `json:"removed,omitempty"`
+}
+
+// DiffVulnerabilityChange is one vulnerability introduced or removed for a package.
+type DiffVulnerabilityChange struct {
+	Package       PackageRef       `json:"package"`
+	Vulnerability VulnerabilityRef `json:"vulnerability"`
 }
 
 // DiffPackageChange is one added or removed package.
@@ -97,6 +139,9 @@ type DiffSummary struct {
 	AddedPackageCount      int `json:"added_package_count"`
 	ChangedPackageCount    int `json:"changed_package_count"`
 	RemovedPackageCount    int `json:"removed_package_count"`
+	ExactMatchCount        int `json:"exact_match_count"`
+	FuzzyMatchCount        int `json:"fuzzy_match_count"`
+	UnmatchedPackageCount  int `json:"unmatched_package_count"`
 }
 
 // ExplainResponse is the structured payload for the explain command.
@@ -328,6 +373,7 @@ func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.Consolid
 			results.Manifests = append(results.Manifests, result)
 			summary.AddedManifestCount++
 			summary.AddedPackageCount += len(result.Added)
+			summary.UnmatchedPackageCount += len(result.Added)
 		case hasBase && !hasHead:
 			result := DiffManifestResult{
 				Status:         "removed",
@@ -341,12 +387,17 @@ func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.Consolid
 			results.Manifests = append(results.Manifests, result)
 			summary.RemovedManifestCount++
 			summary.RemovedPackageCount += len(result.Removed)
+			summary.UnmatchedPackageCount += len(result.Removed)
 		case hasBase && hasHead:
 			manifestDiff := sdk.Compare(baseManifest.Graph, headManifest.Graph)
 			if isSBOMDiffManifest(baseManifest, headManifest) {
 				filterSBOMPseudoPackageDiff(&manifestDiff, baseManifest.Graph, headManifest.Graph)
 			}
+			exactMatches := len(manifestDiff.Updated)
 			reconcileDiffWithFuzzyMatches(&manifestDiff)
+			summary.ExactMatchCount += exactMatches
+			summary.FuzzyMatchCount += len(manifestDiff.Updated) - exactMatches
+			summary.UnmatchedPackageCount += len(manifestDiff.Added) + len(manifestDiff.Removed)
 			result := DiffManifestResult{
 				Status:         "unchanged",
 				Path:           headManifest.Manifest.Path,
@@ -384,8 +435,139 @@ func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.Consolid
 		}
 		return left.Subproject < right.Subproject
 	})
+	results.Dependencies = aggregateDependencyChanges(results.Manifests)
+	results.Licenses = aggregateLicenseChanges(results.Dependencies)
+	results.Vulnerabilities = aggregateVulnerabilityChanges(results.Dependencies)
 
 	return results, summary
+}
+
+func aggregateDependencyChanges(manifests []DiffManifestResult) DiffDependencyResults {
+	added := make(map[string]DiffPackageChange)
+	removed := make(map[string]DiffPackageChange)
+	changed := make(map[string]DiffChangedPackage)
+	for _, manifest := range manifests {
+		for _, change := range manifest.Added {
+			added[change.Package.ID] = change
+		}
+		for _, change := range manifest.Removed {
+			removed[change.Package.ID] = change
+		}
+		for _, change := range manifest.Changed {
+			key := change.Before.ID + "->" + change.After.ID
+			changed[key] = change
+		}
+	}
+	out := DiffDependencyResults{}
+	for _, change := range added {
+		out.Added = append(out.Added, change)
+	}
+	for _, change := range removed {
+		out.Removed = append(out.Removed, change)
+	}
+	for _, change := range changed {
+		out.Changed = append(out.Changed, change)
+	}
+	sort.Slice(out.Added, func(i, j int) bool { return out.Added[i].Package.ID < out.Added[j].Package.ID })
+	sort.Slice(out.Removed, func(i, j int) bool { return out.Removed[i].Package.ID < out.Removed[j].Package.ID })
+	sort.Slice(out.Changed, func(i, j int) bool { return out.Changed[i].After.ID < out.Changed[j].After.ID })
+	return out
+}
+
+func aggregateLicenseChanges(dependencies DiffDependencyResults) DiffLicenseResults {
+	out := DiffLicenseResults{}
+	for _, change := range dependencies.Added {
+		if len(change.Package.Licenses) > 0 {
+			out.Added = append(out.Added, DiffLicenseChange{Package: change.Package, Licenses: change.Package.Licenses})
+		}
+	}
+	for _, change := range dependencies.Removed {
+		if len(change.Package.Licenses) > 0 {
+			out.Removed = append(out.Removed, DiffLicenseChange{Package: change.Package, Licenses: change.Package.Licenses})
+		}
+	}
+	for _, change := range dependencies.Changed {
+		if licenseRefsEqual(change.Before.Licenses, change.After.Licenses) {
+			continue
+		}
+		out.Changed = append(out.Changed, DiffLicenseDelta{
+			Package: change.After,
+			Before:  change.Before.Licenses,
+			After:   change.After.Licenses,
+		})
+	}
+	return out
+}
+
+func aggregateVulnerabilityChanges(dependencies DiffDependencyResults) DiffVulnerabilityResults {
+	out := DiffVulnerabilityResults{}
+	for _, change := range dependencies.Added {
+		for _, vulnerability := range change.Package.Vulnerabilities {
+			out.Added = append(out.Added, DiffVulnerabilityChange{Package: change.Package, Vulnerability: vulnerability})
+		}
+	}
+	for _, change := range dependencies.Removed {
+		for _, vulnerability := range change.Package.Vulnerabilities {
+			out.Removed = append(out.Removed, DiffVulnerabilityChange{Package: change.Package, Vulnerability: vulnerability})
+		}
+	}
+	for _, change := range dependencies.Changed {
+		before := indexVulnerabilities(change.Before.Vulnerabilities)
+		after := indexVulnerabilities(change.After.Vulnerabilities)
+		for id, vulnerability := range after {
+			if _, ok := before[id]; !ok {
+				out.Added = append(out.Added, DiffVulnerabilityChange{Package: change.After, Vulnerability: vulnerability})
+			}
+		}
+		for id, vulnerability := range before {
+			if _, ok := after[id]; !ok {
+				out.Removed = append(out.Removed, DiffVulnerabilityChange{Package: change.Before, Vulnerability: vulnerability})
+			}
+		}
+	}
+	sort.Slice(out.Added, func(i, j int) bool {
+		if out.Added[i].Package.ID != out.Added[j].Package.ID {
+			return out.Added[i].Package.ID < out.Added[j].Package.ID
+		}
+		return out.Added[i].Vulnerability.ID < out.Added[j].Vulnerability.ID
+	})
+	sort.Slice(out.Removed, func(i, j int) bool {
+		if out.Removed[i].Package.ID != out.Removed[j].Package.ID {
+			return out.Removed[i].Package.ID < out.Removed[j].Package.ID
+		}
+		return out.Removed[i].Vulnerability.ID < out.Removed[j].Vulnerability.ID
+	})
+	return out
+}
+
+func licenseRefsEqual(left, right []LicenseRef) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	leftIDs := make([]string, 0, len(left))
+	rightIDs := make([]string, 0, len(right))
+	for _, ref := range left {
+		leftIDs = append(leftIDs, ref.Identifier())
+	}
+	for _, ref := range right {
+		rightIDs = append(rightIDs, ref.Identifier())
+	}
+	sort.Strings(leftIDs)
+	sort.Strings(rightIDs)
+	for idx := range leftIDs {
+		if leftIDs[idx] != rightIDs[idx] {
+			return false
+		}
+	}
+	return true
+}
+
+func indexVulnerabilities(values []VulnerabilityRef) map[string]VulnerabilityRef {
+	indexed := make(map[string]VulnerabilityRef, len(values))
+	for _, value := range values {
+		indexed[value.ID] = value
+	}
+	return indexed
 }
 
 func diffManifestStatusOrder(status string) int {

@@ -136,7 +136,8 @@ func newDiffCmd() *cobra.Command {
 			if current.Audit {
 				runs, findings := combineAuditProgress(diffResult.Base, diffResult.Head)
 				warnings := append(append([]engine.PipelineWarning{}, diffResult.Base.AuditWarnings...), diffResult.Head.AuditWarnings...)
-				progress.CompleteStep("Evaluated policy", auditProgressChildren(runs, findings, warnings))
+				children := append(auditProgressChildren(runs, findings, warnings), diffPolicyOutcomeProgressChild(diffResult.Audit))
+				progress.CompleteStep("Evaluated policy", children)
 			}
 
 			payload := output.BuildDiffResponse(projectIdentifier, compBase, compHead, diffResult.Base.Consolidated, diffResult.Head.Consolidated, auditPayload, started)
@@ -158,8 +159,10 @@ func newDiffCmd() *cobra.Command {
 					return render.Diff(w, payload)
 				},
 			})
-			if err == nil && current.Audit && auditPayload != nil && auditPayload.AuditSummary != nil && auditPayload.AuditSummary.Total > 0 {
-				return exit.PolicyViolationFindings(auditPayload.AuditSummary.Total)
+			if err == nil && current.Audit && diffResult.Audit != nil {
+				if failing := output.FailingFindingCount(diffResult.Audit.Introduced); failing > 0 {
+					return exit.PolicyViolationFindings(failing)
+				}
 			}
 			return err
 		},

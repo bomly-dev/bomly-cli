@@ -26,6 +26,17 @@ Bomly resolves configuration in the following order, with later sources overridi
 | `audit` | `BOMLY_AUDIT` | `bool` | - | Evaluate policy and create findings from package vulnerability data |
 | `reachability` | `BOMLY_REACHABILITY` | `bool` | - | Run code analysis to confirm whether vulnerabilities are reachable from application code |
 | `fail_on` | `BOMLY_FAIL_ON` | `[]string` | - | Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable |
+| `fail_on_scopes` | `BOMLY_FAIL_ON_SCOPES` | `[]string` | - | Dependency scopes that may produce failing findings: runtime, development, unknown |
+| `allow_vulnerability_ids` | `BOMLY_ALLOW_VULNERABILITY_IDS` | `[]string` | - | Vulnerability IDs to ignore during policy evaluation |
+| `allow_licenses` | `BOMLY_ALLOW_LICENSES` | `[]string` | - | Allowed SPDX license identifiers or expressions |
+| `deny_licenses` | `BOMLY_DENY_LICENSES` | `[]string` | - | Denied SPDX license identifiers or expressions |
+| `license_exempt_packages` | `BOMLY_LICENSE_EXEMPT_PACKAGES` | `[]string` | - | Package URLs exempt from license policy checks |
+| `deny_packages` | `BOMLY_DENY_PACKAGES` | `[]string` | - | Package URLs to deny |
+| `deny_groups` | `BOMLY_DENY_GROUPS` | `[]string` | - | Package URL namespaces to deny |
+| `protected_packages` | `BOMLY_PROTECTED_PACKAGES` | `[]string` | - | Canonical package names to protect from typosquatting |
+| `typosquat_threshold` | `BOMLY_TYPOSQUAT_THRESHOLD` | `string` | 0.90 | Similarity threshold for typosquatting detection |
+| `typosquat_mode` | `BOMLY_TYPOSQUAT_MODE` | `string` | warn | Typosquatting policy mode: warn or fail |
+| `warn_only` | `BOMLY_WARN_ONLY` | `bool` | - | Downgrade failing findings to warnings |
 | `analyzers` | `BOMLY_ANALYZERS` | `string` | - | Reachability analyzer selectors; supports +name and -name modifiers |
 | `format` | `BOMLY_FORMAT` | `string` | - | Primary report format: text, json, or sarif |
 | `interactive` | `BOMLY_INTERACTIVE` | `bool` | - | Enable interactive TUI mode |
@@ -86,6 +97,28 @@ Bomly resolves configuration in the following order, with later sources overridi
 # reachability: false
 # Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable
 # fail_on: []
+# Dependency scopes that may produce failing findings: runtime, development, unknown
+# fail_on_scopes: []
+# Vulnerability IDs to ignore during policy evaluation
+# allow_vulnerability_ids: []
+# Allowed SPDX license identifiers or expressions
+# allow_licenses: []
+# Denied SPDX license identifiers or expressions
+# deny_licenses: []
+# Package URLs exempt from license policy checks
+# license_exempt_packages: []
+# Package URLs to deny
+# deny_packages: []
+# Package URL namespaces to deny
+# deny_groups: []
+# Canonical package names to protect from typosquatting
+# protected_packages: []
+# Similarity threshold for typosquatting detection
+# typosquat_threshold: 0.90
+# Typosquatting policy mode: warn or fail
+# typosquat_mode: warn
+# Downgrade failing findings to warnings
+# warn_only: false
 # Reachability analyzer selectors; supports +name and -name modifiers
 # analyzers: ""
 # Primary report format: text, json, or sarif

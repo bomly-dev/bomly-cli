@@ -75,9 +75,10 @@ func resolveDiffResultsForRef(ctx context.Context, options *opts.Options, logger
 		return os.RemoveAll(materializedPath)
 	}
 	executionTarget := sdk.ExecutionTarget{
-		Kind:     sdk.ExecutionTargetGitRepository,
-		Location: materializedPath,
-		Ref:      ref,
+		Kind:          sdk.ExecutionTargetGitRepository,
+		Location:      materializedPath,
+		RepositoryURL: strings.TrimSpace(options.GetConfig().URL),
+		Ref:           ref,
 	}
 	commandCtx, err := options.PrepareForExecutionTarget(ctx, logger, executionTarget, cleanup)
 	if err != nil {

@@ -35,13 +35,25 @@ type ExplainRequest struct {
 
 // DiffRequest holds per-call overrides for the bomly_diff tool.
 type DiffRequest struct {
-	Base         string `json:"base"`
-	Head         string `json:"head"`
-	Path         string `json:"path"`
-	Container    string `json:"container"`
-	Enrich       bool   `json:"enrich"`
-	Audit        bool   `json:"audit"`
-	Reachability bool   `json:"reachability"`
+	Base                  string `json:"base"`
+	Head                  string `json:"head"`
+	Path                  string `json:"path"`
+	Container             string `json:"container"`
+	Enrich                bool   `json:"enrich"`
+	Audit                 bool   `json:"audit"`
+	Reachability          bool   `json:"reachability"`
+	FailOn                string `json:"fail_on"`
+	FailOnScopes          string `json:"fail_on_scopes"`
+	AllowVulnerabilityIDs string `json:"allow_vulnerability_ids"`
+	AllowLicenses         string `json:"allow_licenses"`
+	DenyLicenses          string `json:"deny_licenses"`
+	LicenseExemptPackages string `json:"license_exempt_packages"`
+	DenyPackages          string `json:"deny_packages"`
+	DenyGroups            string `json:"deny_groups"`
+	ProtectedPackages     string `json:"protected_packages"`
+	TyposquatThreshold    string `json:"typosquat_threshold"`
+	TyposquatMode         string `json:"typosquat_mode"`
+	WarnOnly              bool   `json:"warn_only"`
 }
 
 // VulnFixRequest holds per-call overrides for the bomly_vuln_fix_context tool.

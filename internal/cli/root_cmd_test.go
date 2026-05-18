@@ -608,7 +608,7 @@ func TestRoot_DiffCommand_AuditUsesResolvedGitRefs(t *testing.T) {
 		"--enrich",
 		"--audit",
 		"--matchers", "grype,osv",
-		"--auditors", "severity-policy",
+		"--auditors", "vulnerability",
 		"--format", "json",
 	})
 

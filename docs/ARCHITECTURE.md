@@ -71,7 +71,7 @@ Stage summary:
 5. Consolidation merges subproject graphs into a unified view.
 6. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records.
 7. Analyzers run when `--reachability` is set. They consume the matched graph and annotate `PackageVulnerability.Reachability` with status (reachable/unreachable/unknown), tier (symbol/module/package/none), and call paths. Failures degrade to `Status=unknown` rather than aborting the pipeline. See `docs/REACHABILITY.md` for ecosystem coverage and tier semantics.
-8. Auditors evaluate policy against whatever vulnerability data is already present on packages and create findings when `--audit` is enabled. The `severity-policy` auditor accepts a repeatable `--fail-on` constraint set composing severity and reachability conditions.
+8. Auditors evaluate policy against the enriched package graph and create findings when `--audit` is enabled. The built-in `vulnerability`, `license`, and `package` auditors cover advisory thresholds, SPDX policy, and denied or suspicious packages respectively.
 9. Users combine `--enrich --audit` when they want external matcher data to feed policy evaluation in the same run.
 10. Output rendering emits text, JSON, SARIF, or SBOM documents.
 

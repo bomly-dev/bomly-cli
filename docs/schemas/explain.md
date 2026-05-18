@@ -40,6 +40,9 @@ Complete reference for the `bomly explain` JSON output.
 | `title` | `string` | |
 | `reasons` | Array<`string`> | |
 | `source` | `string` | |
+| `auditor` | `string` | |
+| `disposition` | `string` | |
+| `fixed_in` | `string` | |
 | `reachability` | [`Reachability`](#reachability) | |
 
 ### `AuditSummary`

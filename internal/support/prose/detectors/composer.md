@@ -27,6 +27,16 @@
 bomly scan --install-first
 ```
 
+### Customizing the install command
+
+Append flags to `composer install` with repeatable `--install-arg`. Requires `--detectors composer-detector`.
+
+```bash
+# Production-shaped graph: skip dev dependencies, optimize autoloader
+bomly scan --install-first --detectors composer-detector \
+  --install-arg --no-dev --install-arg --optimize-autoloader
+```
+
 ## Examples
 
 ### Fix a direct vulnerability

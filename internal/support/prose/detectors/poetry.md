@@ -29,6 +29,17 @@
 bomly scan --install-first
 ```
 
+### Customizing the install command
+
+Append flags to `poetry install --no-root` with repeatable `--install-arg`. Requires `--detectors poetry-detector`.
+
+```bash
+# Production-only graph: skip dev dependencies and a specific group
+bomly scan --install-first --detectors poetry-detector \
+  --install-arg --without --install-arg dev \
+  --install-arg --without --install-arg docs
+```
+
 ## Examples
 
 ### Fix a direct vulnerability

@@ -30,6 +30,16 @@ The default chain is **lockfile-first**: `pnpm-detector` parses `pnpm-lock.yaml`
 bomly scan --install-first
 ```
 
+### Customizing the install command
+
+Append flags to `pnpm install` with repeatable `--install-arg`. Requires `--detectors pnpm-detector`.
+
+```bash
+# Refuse to update the lockfile (fail if it would change)
+bomly scan --install-first --detectors pnpm-detector \
+  --install-arg --frozen-lockfile
+```
+
 ## Examples
 
 ### Pin a transitive vulnerability

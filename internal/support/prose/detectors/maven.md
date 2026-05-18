@@ -36,6 +36,17 @@ To keep the scan fully offline:
 bomly scan --install-first
 ```
 
+### Customizing the install command
+
+Append flags to `mvn dependency:resolve` with repeatable `--install-arg`. Requires `--detectors maven-detector`.
+
+```bash
+# Activate a specific Maven profile and point at a settings file
+bomly scan --install-first --detectors maven-detector \
+  --install-arg -Pproduction \
+  --install-arg --settings --install-arg ./ci-settings.xml
+```
+
 ## Examples
 
 ### Fix a direct vulnerability

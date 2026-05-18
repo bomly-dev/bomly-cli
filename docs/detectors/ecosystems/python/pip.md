@@ -47,6 +47,20 @@ bomly scan --install-first
 
 The requirements file Bomly installs is chosen automatically from common names. If you have a non-standard layout, use a virtualenv that already has the dependencies installed and skip `--install-first`.
 
+### Customizing the install command
+
+Append flags to `python -m pip install -r <requirements>` with repeatable `--install-arg`. Requires `--detectors pip-detector`.
+
+```bash
+# Install from a private index in CI
+bomly scan --install-first --detectors pip-detector \
+  --install-arg --index-url --install-arg https://pypi.example.com/simple
+
+# Honor hash-checking mode declared in requirements.txt
+bomly scan --install-first --detectors pip-detector \
+  --install-arg --require-hashes
+```
+
 ## Examples
 
 ### Fix a direct vulnerability

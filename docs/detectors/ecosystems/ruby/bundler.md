@@ -41,6 +41,16 @@ Bomly uses this chain when it finds `bundler` evidence.
 bomly scan --install-first
 ```
 
+### Customizing the install command
+
+Append flags to `bundle install` with repeatable `--install-arg`. Requires `--detectors bundler-detector`.
+
+```bash
+# Production deployment mode: frozen lockfile, no version updates
+bomly scan --install-first --detectors bundler-detector \
+  --install-arg --deployment --install-arg --without --install-arg development
+```
+
 ## Examples
 
 ### Fix a direct vulnerability

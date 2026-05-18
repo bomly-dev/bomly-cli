@@ -46,6 +46,16 @@ If you run on a fresh machine with no Cargo registry cache and no committed lock
 bomly scan --install-first
 ```
 
+### Customizing the install command
+
+Append flags to `cargo fetch --locked` with repeatable `--install-arg`. Requires `--detectors cargo-detector`.
+
+```bash
+# Restrict to a specific target triple
+bomly scan --install-first --detectors cargo-detector \
+  --install-arg --target --install-arg x86_64-unknown-linux-gnu
+```
+
 ## Examples
 
 ### Fix a direct vulnerability

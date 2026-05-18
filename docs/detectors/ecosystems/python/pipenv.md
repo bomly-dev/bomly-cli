@@ -43,6 +43,16 @@ Bomly uses this chain when it finds `pipenv` evidence.
 bomly scan --install-first
 ```
 
+### Customizing the install command
+
+Append flags to `pipenv install` with repeatable `--install-arg`. Requires `--detectors pipenv-detector`.
+
+```bash
+# Include dev dependencies; fail fast on a lockfile drift
+bomly scan --install-first --detectors pipenv-detector \
+  --install-arg --dev --install-arg --deploy
+```
+
 ## Reachability (experimental)
 
 > **Experimental.** Reachability is opt-in via `--reachability`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.

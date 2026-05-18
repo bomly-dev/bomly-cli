@@ -45,6 +45,16 @@ The default chain is **lockfile-first**: `yarn-detector` parses `yarn.lock` (cla
 bomly scan --install-first
 ```
 
+### Customizing the install command
+
+Append flags to `yarn install` with repeatable `--install-arg`. Requires `--detectors yarn-detector`.
+
+```bash
+# Refuse to update the lockfile and skip optional deps
+bomly scan --install-first --detectors yarn-detector \
+  --install-arg --frozen-lockfile --install-arg --ignore-optional
+```
+
 ## Examples
 
 ### Pin a transitive vulnerability

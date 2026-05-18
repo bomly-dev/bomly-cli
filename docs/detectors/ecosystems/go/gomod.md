@@ -55,6 +55,15 @@ This is a Go-toolchain behavior, not a Bomly choice. The same network calls happ
 bomly scan --install-first
 ```
 
+### Customizing the install command
+
+Append flags to `go mod download` with repeatable `--install-arg`. Requires `--detectors go-detector` so the args target this detector unambiguously.
+
+```bash
+# Verbose download output for CI debugging
+bomly scan --install-first --detectors go-detector --install-arg -x
+```
+
 ## Multi-module workspaces
 
 Each `go.mod` directory under the scan root is a separate subproject. Bomly resolves each module independently and consolidates the resulting graphs into one report. Go workspace files (`go.work`) are honored by the Go toolchain.

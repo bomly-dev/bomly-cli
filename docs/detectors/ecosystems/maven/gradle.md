@@ -48,6 +48,17 @@ A committed `gradle.lockfile` (Gradle 6+ format) lets Gradle resolve without hit
 bomly scan --install-first
 ```
 
+### Customizing the install command
+
+Append flags to `gradle dependencies --console=plain` with repeatable `--install-arg`. Requires `--detectors gradle-detector`.
+
+```bash
+# Refresh dependencies (bypass Gradle's daemon cache) and target one configuration
+bomly scan --install-first --detectors gradle-detector \
+  --install-arg --refresh-dependencies \
+  --install-arg --configuration --install-arg runtimeClasspath
+```
+
 ## Examples
 
 ### Fix a direct vulnerability

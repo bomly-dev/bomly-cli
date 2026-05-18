@@ -31,6 +31,16 @@ The `--no-sync` flag is critical — it stops `uv` from fetching missing package
 bomly scan --install-first
 ```
 
+### Customizing the install command
+
+Append flags to `uv sync` with repeatable `--install-arg`. Requires `--detectors uv-detector`.
+
+```bash
+# Refuse to update the lockfile; sync exactly what's locked
+bomly scan --install-first --detectors uv-detector \
+  --install-arg --frozen
+```
+
 ## Examples
 
 ### Fix a direct vulnerability

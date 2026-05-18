@@ -30,6 +30,16 @@ The default chain is **lockfile-first**: `npm-detector` parses `package-lock.jso
 bomly scan --install-first
 ```
 
+### Customizing the install command
+
+Append flags to `npm install` with repeatable `--install-arg`. Requires `--detectors npm-detector` so the args target this detector unambiguously.
+
+```bash
+# Tolerate peer-dependency conflicts on a legacy project
+bomly scan --install-first --detectors npm-detector \
+  --install-arg --legacy-peer-deps --install-arg --no-audit
+```
+
 ## Examples
 
 ### Fix a direct vulnerability

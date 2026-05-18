@@ -100,6 +100,48 @@ Detectors without an `Install` implementation (e.g. NuGet, GitHub Actions, SBOM 
 
 Each package-manager page under [`detectors/ecosystems/`](detectors/ecosystems/) lists whether `--install-first` is supported and the exact command that runs.
 
+### Customizing the install command with `--install-arg`
+
+The default install-first command for each detector is fine for most projects, but real builds often need extra flags (skip dev dependencies, use a legacy resolver, point at a private index, run a clean install). Pass `--install-arg` — repeatable — to append arguments to whatever the detector's `Install()` method runs.
+
+⚠️ **`--install-arg` requires exactly one selected detector.** Bomly cannot safely apply an arbitrary flag to a chain of mixed package managers, so it rejects the run with exit 4 if zero or more than one detector is in scope. Combine with `--detectors <name>` to scope to a single detector.
+
+Args are **appended** to the default command, not replacing it. For example, the `npm` detector defaults to `npm install`; with `--install-arg --legacy-peer-deps --install-arg --no-audit` it runs `npm install --legacy-peer-deps --no-audit`.
+
+Recipes:
+
+```bash
+# npm: tolerate peer-dependency conflicts on a legacy project
+bomly scan --install-first --detectors npm-detector \
+  --install-arg --legacy-peer-deps
+
+# pip: install from a private index in CI
+bomly scan --install-first --detectors pip-detector \
+  --install-arg --index-url --install-arg https://pypi.example.com/simple
+
+# composer: skip dev dependencies for a production-shaped graph
+bomly scan --install-first --detectors composer-detector \
+  --install-arg --no-dev
+
+# bundle: deployment mode (frozen lockfile, no version updates)
+bomly scan --install-first --detectors bundler-detector \
+  --install-arg --deployment
+
+# go: verbose download output for CI debugging
+bomly scan --install-first --detectors go-detector \
+  --install-arg -x
+
+# mvn: pass a specific Maven profile for the dependency:resolve step
+bomly scan --install-first --detectors maven-detector \
+  --install-arg -Pproduction
+
+# uv: install only the locked dependencies, no editable updates
+bomly scan --install-first --detectors uv-detector \
+  --install-arg --frozen
+```
+
+Without `--install-first`, `--install-arg` has no effect — the args are only consumed during the install step, not during graph resolution itself.
+
 ## Discovery and monorepos
 
 For local source trees, Bomly discovers subprojects before running detectors. Every directory containing recognized evidence becomes a subproject; Bomly runs the matching detector chain in each one and consolidates the results into a single graph.

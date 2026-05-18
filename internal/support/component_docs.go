@@ -96,13 +96,30 @@ bomly scan --detectors +acme.detector.example
 
 Pass the bare detector name to filter to only that detector, `+"`+name`"+` to add it on top of defaults, or `+"`-name`"+` to remove it.
 
-## `+"`--install-first`"+`
+## Network behavior
 
-Bomly does **not** install package managers or fetch dependencies for you. Some detectors can shell out to an ecosystem tool (`+"`npm`"+`, `+"`go`"+`, `+"`mvn`"+`, `+"`mix`"+`, `+"`dart`"+`, `+"`swift`"+`, `+"`sbt`"+`) to produce a richer graph when one is on `+"`PATH`"+`.
+Detectors differ in whether they run subprocesses, and those that do may invoke build tools that download packages from registries. The marketing claim "Bomly is offline-safe by default" is precise: **matchers** make zero outbound calls without `+"`--enrich`"+`. **Detectors** may invoke build tools that download packages on your behalf during normal graph resolution.
 
-Pass `+"`--install-first`"+` to let detectors run their normal dependency-install command (e.g. `+"`npm install`"+`, `+"`go mod download`"+`) before resolving the graph. This is opt-in because it modifies the filesystem and downloads packages.
+| Detector class | Examples | Network during normal scan |
+| --- | --- | --- |
+| Lockfile parser | `+"`npm-detector`"+`, `+"`pnpm-detector`"+`, `+"`bundler-detector`"+`, `+"`composer-detector`"+`, `+"`nuget-detector`"+`, `+"`github-actions-detector`"+`, SBOM ingest | None — pure file parse |
+| Lockfile-first hybrid | `+"`cargo-detector`"+`, `+"`poetry-detector`"+`, `+"`uv-detector`"+` | None when the lockfile is present; the build-tool fallback uses `+"`--locked`"+` / `+"`--no-sync`"+` to stay offline |
+| `+"`pip inspect`"+` | `+"`pip-detector`"+`, `+"`pipenv-detector`"+` | None — reads the local Python environment |
+| Build-tool primary | `+"`go-detector`"+`, `+"`maven-detector`"+`, `+"`gradle-detector`"+`, `+"`sbt-native-detector`"+` | **May download** uncached artifacts during normal resolution |
 
-Each ecosystem page in [`+"`detectors/ecosystems/`"+`](detectors/ecosystems/) lists which detectors support `+"`--install-first`"+` and which native commands they expect on `+"`PATH`"+`.
+The build-tool-primary detectors invoke commands you would already run locally (`+"`go list`"+`, `+"`mvn dependency:tree`"+`, `+"`gradle dependencies`"+`, `+"`sbt dependencyTree`"+`). Whether they hit the network is a property of those tools and your local cache state, not a Bomly choice. To keep these scans fully offline, pre-warm the local cache (`+"`go mod download`"+`, `+"`mvn dependency:go-offline`"+`, etc.) or commit a lockfile when the ecosystem supports one.
+
+Per-PM pages under [`+"`detectors/ecosystems/`"+`](detectors/ecosystems/) document the exact command each detector runs and whether it touches the network.
+
+## `+"`--install-first`"+` {#install-first}
+
+Pass `+"`--install-first`"+` to let supporting detectors run their normal dependency-install command **before** resolving the graph. Today this is wired up only for the Node ecosystem (`+"`npm`"+`, `+"`pnpm`"+`, `+"`yarn`"+`); each runs the respective `+"`<pm> install`"+` command in the project directory.
+
+⚠️ **`+"`--install-first`"+` downloads packages from the npm registry.** This is opt-in for a reason — it modifies the filesystem (writes to `+"`node_modules/`"+`) and can fetch many MB of dependencies. Use it when the lockfile is missing or stale and you want Bomly to refresh it on a clean checkout.
+
+For other ecosystems, run the install command yourself before scanning (`+"`pip install -r requirements.txt`"+`, `+"`bundle install`"+`, `+"`composer install`"+`, `+"`poetry install`"+`, `+"`uv sync`"+`, etc.) and Bomly will read from the resulting lockfile or installed environment. Bomly does **not** install package managers themselves.
+
+Each package-manager page under [`+"`detectors/ecosystems/`"+`](detectors/ecosystems/) lists whether `+"`--install-first`"+` is supported and the exact command that runs.
 
 ## Discovery and monorepos
 
@@ -299,7 +316,7 @@ The `+"`any`"+` token matches every severity, including `+"`unknown`"+`.
 | `+"`medium`"+` | findings with severity ≥ medium |
 | `+"`high`"+` | findings with severity ≥ high |
 | `+"`critical`"+` | findings with severity = critical |
-| `+"`reachable`"+` | findings where reachability status is `+"`reachable`"+` |
+| `+"`reachable`"+` | findings where reachability status is `+"`reachable`"+` (experimental — see [REACHABILITY.md](REACHABILITY.md)) |
 
 Repeat the flag to AND constraints together:
 
@@ -386,6 +403,11 @@ func WriteComponentDocs(docsDir string) error {
 }
 
 func writeDetectorEcosystemDocs(outputDir string) error {
+	// Wipe and recreate the output directory so renamed or removed ecosystems
+	// and package managers don't leave orphan files behind.
+	if err := os.RemoveAll(outputDir); err != nil {
+		return fmt.Errorf("clean %s: %w", outputDir, err)
+	}
 	if err := os.MkdirAll(outputDir, 0o755); err != nil {
 		return fmt.Errorf("create %s: %w", outputDir, err)
 	}
@@ -400,46 +422,87 @@ func writeDetectorEcosystemDocs(outputDir string) error {
 	}
 	sort.Slice(ecosystems, func(i, j int) bool { return ecosystems[i] < ecosystems[j] })
 	for _, ecosystem := range ecosystems {
-		if err := writeMarkdown(filepath.Join(outputDir, string(ecosystem)+".md"), renderDetectorEcosystemMarkdown(ecosystem, byEcosystem[ecosystem])); err != nil {
+		ecosystemDir := filepath.Join(outputDir, string(ecosystem))
+		if err := os.MkdirAll(ecosystemDir, 0o755); err != nil {
+			return fmt.Errorf("create %s: %w", ecosystemDir, err)
+		}
+		ecosystemEntries := byEcosystem[ecosystem]
+		sort.Slice(ecosystemEntries, func(i, j int) bool {
+			return ecosystemEntries[i].Manager.Name() < ecosystemEntries[j].Manager.Name()
+		})
+		for _, entry := range ecosystemEntries {
+			path := filepath.Join(ecosystemDir, entry.Manager.Name()+".md")
+			if err := writeMarkdown(path, renderPackageManagerMarkdown(ecosystem, entry)); err != nil {
+				return err
+			}
+		}
+		if err := writeMarkdown(filepath.Join(ecosystemDir, "README.md"), renderEcosystemReadme(ecosystem, ecosystemEntries)); err != nil {
 			return err
 		}
 	}
-	return writeMarkdown(filepath.Join(outputDir, "README.md"), renderDetectorEcosystemIndex(ecosystems))
+	return writeMarkdown(filepath.Join(outputDir, "README.md"), renderDetectorEcosystemIndex(ecosystems, byEcosystem))
 }
 
-func renderDetectorEcosystemIndex(ecosystems []sdk.Ecosystem) string {
+func renderDetectorEcosystemIndex(ecosystems []sdk.Ecosystem, byEcosystem map[sdk.Ecosystem][]registry.PackageManagerSupport) string {
 	var b strings.Builder
 	b.WriteString("# Detector Ecosystem Guides\n\n")
-	b.WriteString("These generated pages explain how Bomly detects each supported ecosystem.\n\n")
+	b.WriteString(generatedBanner + "\n\n")
+	b.WriteString("Bomly groups detectors by **ecosystem** (the package universe — `go`, `npm`, `python`, `maven`, …) and writes one page per **package manager** within that ecosystem (`pip`, `poetry`, `uv` are all under `python`).\n\n")
+	b.WriteString("Pick your ecosystem to see the package managers it covers and how each one is detected.\n\n")
+	b.WriteString("| Ecosystem | Package managers |\n")
+	b.WriteString("| --- | --- |\n")
 	for _, ecosystem := range ecosystems {
-		fmt.Fprintf(&b, "- [%s](%s.md)\n", ecosystem, ecosystem)
+		entries := byEcosystem[ecosystem]
+		links := make([]string, 0, len(entries))
+		for _, entry := range entries {
+			name := entry.Manager.Name()
+			links = append(links, fmt.Sprintf("[`%s`](%s/%s.md)", name, ecosystem, name))
+		}
+		fmt.Fprintf(&b, "| [%s](%s/) | %s |\n", ecosystem, ecosystem, strings.Join(links, ", "))
 	}
 	return b.String()
 }
 
-func renderDetectorEcosystemMarkdown(ecosystem sdk.Ecosystem, entries []registry.PackageManagerSupport) string {
-	sort.Slice(entries, func(i, j int) bool { return entries[i].Manager.Name() < entries[j].Manager.Name() })
+func renderEcosystemReadme(ecosystem sdk.Ecosystem, entries []registry.PackageManagerSupport) string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "# %s Detectors\n\n", titleWords(string(ecosystem)))
+	fmt.Fprintf(&b, "# %s\n\n", titleWords(string(ecosystem)))
 	b.WriteString(generatedBanner + "\n\n")
-	fmt.Fprintf(&b, "Bomly uses these detector chains when it finds `%s` package-manager evidence.\n\n", ecosystem)
-	b.WriteString("| Package manager | Detector chain | Evidence patterns | Install-first support | Native command hints |\n")
-	b.WriteString("| --- | --- | --- | --- | --- |\n")
+	fmt.Fprintf(&b, "Package managers Bomly recognizes in the `%s` ecosystem:\n\n", ecosystem)
+	b.WriteString("| Package manager | Detector chain | Evidence patterns | Install-first support |\n")
+	b.WriteString("| --- | --- | --- | --- |\n")
 	for _, entry := range entries {
-		fmt.Fprintf(&b, "| `%s` | %s | %s | %s | %s |\n",
-			entry.Manager.Name(),
+		name := entry.Manager.Name()
+		fmt.Fprintf(&b, "| [`%s`](%s.md) | %s | %s | %s |\n",
+			name,
+			name,
 			codeList(entry.Detectors),
 			codeListOrDash(entry.EvidencePatterns),
 			yesNo(chainSupportsInstallFirst(entry.Detectors)),
-			commandHintsForChain(entry.Detectors),
 		)
 	}
 	b.WriteString("\n## How to read this\n\n")
-	b.WriteString("- Bomly tries detector chains from left to right.\n")
-	b.WriteString("- Evidence patterns are files or paths Bomly uses during planning.\n")
-	b.WriteString("- Install-first support means `--install-first` can run the ecosystem's normal install command before graph resolution.\n")
+	b.WriteString("- Each package-manager page documents the exact commands Bomly runs (if any), the network behavior, and the lockfile or manifest formats supported.\n")
+	b.WriteString("- Bomly tries detector chains from left to right. Later detectors in the chain are fallbacks Bomly uses when the preferred detector cannot produce graph data.\n")
+	b.WriteString("- Install-first support means `--install-first` can run the package manager's normal install command before graph resolution. This downloads packages and modifies the filesystem; see [docs/DETECTORS.md](../../DETECTORS.md#install-first).\n")
 	b.WriteString("- Syft-backed entries provide broad compatibility, especially for containers and ecosystems without native Bomly graph resolution.\n")
-	if prose := loadProse("detectors", string(ecosystem)); prose != "" {
+	return b.String()
+}
+
+func renderPackageManagerMarkdown(ecosystem sdk.Ecosystem, entry registry.PackageManagerSupport) string {
+	name := entry.Manager.Name()
+	var b strings.Builder
+	fmt.Fprintf(&b, "# `%s` (%s ecosystem)\n\n", name, ecosystem)
+	b.WriteString(generatedBanner + "\n\n")
+	fmt.Fprintf(&b, "Bomly uses this chain when it finds `%s` evidence.\n\n", name)
+	b.WriteString("| Property | Value |\n")
+	b.WriteString("| --- | --- |\n")
+	fmt.Fprintf(&b, "| Package manager | `%s` |\n", name)
+	fmt.Fprintf(&b, "| Ecosystem | `%s` |\n", ecosystem)
+	fmt.Fprintf(&b, "| Detector chain | %s |\n", codeList(entry.Detectors))
+	fmt.Fprintf(&b, "| Evidence patterns | %s |\n", codeListOrDash(entry.EvidencePatterns))
+	fmt.Fprintf(&b, "| Install-first support | %s |\n", yesNo(chainSupportsInstallFirst(entry.Detectors)))
+	fmt.Fprintf(&b, "| Native command hints | %s |\n", commandHintsForChain(entry.Detectors))
+	if prose := loadProse("detectors", name); prose != "" {
 		b.WriteString("\n")
 		b.WriteString(prose)
 	}

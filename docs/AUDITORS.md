@@ -55,7 +55,7 @@ The `any` token matches every severity, including `unknown`.
 | `medium` | findings with severity ≥ medium |
 | `high` | findings with severity ≥ high |
 | `critical` | findings with severity = critical |
-| `reachable` | findings where reachability status is `reachable` |
+| `reachable` | findings where reachability status is `reachable` (experimental — see [REACHABILITY.md](REACHABILITY.md)) |
 
 Repeat the flag to AND constraints together:
 

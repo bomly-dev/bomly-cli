@@ -1,45 +1,38 @@
-## Scan your Maven or Gradle project
+## How `maven` resolves
 
-Bomly has native detectors for Maven (`maven-detector`) and Gradle (`gradle-detector`). Both produce a full transitive dependency graph with `groupId:artifactId:version` coordinates and Maven scopes (`compile`, `runtime`, `test`, `provided`).
+`maven-detector` is a **build-tool primary** chain — there is no committed-lockfile fallback. Maven projects don't ship lockfiles in general use, so Bomly drives Maven's own resolver to produce the graph.
 
-```bash
-bomly scan --path .
-```
+| Step | Command | Working dir |
+| --- | --- | --- |
+| Resolve graph | `mvn dependency:tree -DoutputType=tgf` (uses `./mvnw` wrapper if present) | every directory containing a `pom.xml` |
 
-The Maven detector parses `pom.xml` directly. The Gradle detector parses `gradle.lockfile`. If your Gradle project does not commit a lock file, generate one with `./gradlew dependencies --write-locks` first.
+The TGF (Trivial Graph Format) output is parsed into a full transitive graph with Maven scopes (`compile`, `runtime`, `test`, `provided`, `system`) preserved as edge attributes.
+
+## Network behavior
+
+⚠️ `mvn dependency:tree` **may download artifacts** during normal scan, before `--enrich`:
+
+- If a referenced artifact (including parent POMs, BOM imports, plugins) is not in your local repository (`~/.m2/repository`), Maven will fetch it from Maven Central (or whatever repositories your `settings.xml` declares).
+- Build-tool execution is Maven's, not Bomly's. The same network calls happen when you run `mvn compile` locally.
+
+To keep the scan fully offline:
+
+- Pre-warm `~/.m2/repository` by running `mvn dependency:go-offline` once.
+- Or pass `-DskipResolutionCheck` and accept that uncached transitives will be missing.
 
 ## Prerequisites
 
-### Maven
-
+- `mvn` (or `./mvnw` Maven Wrapper) on `PATH`. The detector cannot resolve without invoking Maven.
 - A valid `pom.xml` at every module root. Multi-module reactors are supported; each `pom.xml` is its own subproject.
-- `mvn` on `PATH` if you pass `--install-first` (Bomly will run `mvn dependency:list -DincludeScope=runtime` to refresh the resolved graph).
-- Parent POMs and BOM-imported managed dependencies are resolved transitively from your local repository (`~/.m2/repository`). If a parent POM is not cached, set up your settings so `mvn install` works first.
-- Private repositories: configure `~/.m2/settings.xml` as usual. Bomly does not authenticate to repositories itself.
+- Authentication for private repositories: configure `~/.m2/settings.xml` as usual. Bomly does not authenticate to repositories itself.
 
-### Gradle
+## `--install-first`
 
-- A committed `gradle.lockfile` (Gradle 6+ lockfile format) for full transitive coverage.
-- `build.gradle` or `build.gradle.kts`. Bomly treats every Gradle module under `settings.gradle` as a subproject.
-- Without a lockfile, Bomly falls back to Syft, which parses `build.gradle` but cannot resolve transitive versions.
-
-## Reachability — what `jvmreach` tells you
-
-The JVM analyzer is **Tier-3 (package)**. It walks `.java`, `.kt`, `.kts`, `.scala`, `.groovy` source files under the project root, parses top-of-file `import` statements, and maps fully-qualified-name prefixes to Maven coordinates via a curated longest-prefix map (in `internal/analyzers/jvmreach/prefixmap.go`).
-
-Importantly, "unreachable" is not "safe" — reflection, `ServiceLoader`, Spring component scanning, OSGi, JPMS dynamic layers, and annotation processors are invisible. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe).
-
-```bash
-bomly scan --enrich --audit --reachability --fail-on high --fail-on reachable
-```
-
-If a missing prefix produces a false-negative for a direct import, add the mapping to `prefixmap.go` (one-line PR).
+`maven` does **not** support `--install-first`. The default `mvn dependency:tree` already drives Maven's resolver; there is no separate "install" step to opt into.
 
 ## Examples
 
 ### Fix a direct vulnerability
-
-Bump the version in your `pom.xml`:
 
 ```xml
 <dependency>
@@ -49,15 +42,9 @@ Bump the version in your `pom.xml`:
 </dependency>
 ```
 
-Or in Gradle:
+Re-scan.
 
-```kotlin
-implementation("com.fasterxml.jackson.core:jackson-databind:2.17.1")
-```
-
-Re-lock (Gradle) and re-scan.
-
-### Pin a transitive vulnerability (Maven)
+### Pin a transitive vulnerability
 
 Use `<dependencyManagement>` to override the version a transitive dep resolves to:
 
@@ -73,27 +60,19 @@ Use `<dependencyManagement>` to override the version a transitive dep resolves t
 </dependencyManagement>
 ```
 
-### Pin a transitive vulnerability (Gradle)
+Re-scan.
 
-Use a resolution strategy in your root `build.gradle.kts`:
+## Reachability (experimental)
 
-```kotlin
-configurations.all {
-  resolutionStrategy.eachDependency {
-    if (requested.group == "com.fasterxml.jackson.core" &&
-        requested.name  == "jackson-databind") {
-      useVersion("2.17.1")
-    }
-  }
-}
-```
+> **Experimental.** Reachability is opt-in via `--reachability`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
 
-Re-run `./gradlew dependencies --write-locks` and re-scan.
+For Maven packages, the analyzer is `jvmreach` at **Tier-3 (package)**. It walks `.java`, `.kt`, `.kts`, `.scala`, `.groovy` source files under the project root, parses top-of-file `import` statements, and maps fully-qualified-name prefixes to Maven coordinates via a curated longest-prefix map. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe).
+
+If a missing prefix produces a false-negative for a direct import, add the mapping to `internal/analyzers/jvmreach/prefixmap.go` (one-line PR).
 
 ## Limitations
 
-- **System-scoped Maven dependencies** (`<scope>system</scope>`) are recorded but not classified by ecosystem — Bomly cannot follow `<systemPath>` to a Maven coordinate.
+- **System-scoped dependencies** (`<scope>system</scope>`) are recorded but not classified by ecosystem — Bomly cannot follow `<systemPath>` to a Maven coordinate.
 - **Classifier-only differences** are collapsed to a single graph node; if two artifacts differ only by classifier (e.g. `linux-x86_64` vs. `macos-aarch64`), reachability annotates them identically.
-- **Dynamic versions** (`+`, `latest.release`, version ranges) are resolved at lock-time, not by Bomly. A stale `gradle.lockfile` will not pick up new advisories until you re-lock.
-- **Gradle composite builds** (`includeBuild`) are scanned per-included-build; cross-build dependency edges are best-effort.
-- **JVM bytecode analysis** is not performed. `jvmreach` is source-based; pre-built JAR artifacts in a project are skipped.
+- **Annotation processors** that generate code at build time are invisible to source-based reachability.
+- **`mvn` is required.** There is no offline-only path for Maven graph resolution.

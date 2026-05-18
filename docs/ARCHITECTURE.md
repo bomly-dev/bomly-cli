@@ -141,7 +141,11 @@ See [CI and Release Pipeline](CI.md) for workflow details and release mechanics.
 
 ## Network Behavior
 
-Bomly is offline-safe by default. Network-backed matchers are only performed when the user explicitly enables `--enrich`. `--audit` evaluates existing package vulnerability data and does not implicitly trigger network enrichment.
+**Matchers are offline-safe by default.** Network-backed matchers run only when the user explicitly enables `--enrich`. `--audit` evaluates existing package vulnerability data and does not trigger network enrichment.
+
+**Detector network behavior is per-implementation.** Lockfile-parser detectors (npm, pnpm, yarn, Composer, Bundler, NuGet, GitHub Actions, SBOM ingest, …) are pure file parsers and make no network calls. Build-tool primary detectors (`go-detector`, `maven-detector`, `gradle-detector`, `sbt-native-detector`) shell out to the build tool, which may download packages from registries during normal resolution — this is the build tool's behavior, not Bomly's. Hybrid detectors (`cargo`, `poetry`, `uv`) prefer the lockfile and use `--locked`/`--no-sync` flags on the build-tool fallback to stay offline. See [DETECTORS.md → Network behavior](DETECTORS.md#network-behavior).
+
+`--install-first` is the explicit opt-in: it tells supporting detectors to run their normal install command (`npm install`, `pip install`, `composer install`, etc.) before resolving the graph. This downloads packages by design.
 
 Permitted enrichment-time services:
 

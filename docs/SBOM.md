@@ -98,4 +98,4 @@ Bomly does not advertise a one-shot `convert` command — the scan pipeline is t
 
 - [Scan targets](SCAN_TARGETS.md) — every input Bomly accepts
 - [Output formats](OUTPUT_FORMATS.md) — text, JSON, SARIF, SBOM details
-- [SBOM detector](detectors/ecosystems/sbom.md) — ingest specifics
+- [SBOM detector](detectors/ecosystems/sbom/sbom.md) — ingest specifics

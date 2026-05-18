@@ -88,7 +88,13 @@ func TestRenderComponentDocs_IncludeGeneratedGuides(t *testing.T) {
 		filepath.Join(tmp, "DETECTORS.md"),
 		filepath.Join(tmp, "MATCHERS.md"),
 		filepath.Join(tmp, "AUDITORS.md"),
-		filepath.Join(tmp, "detectors", "ecosystems", "go.md"),
+		filepath.Join(tmp, "detectors", "ecosystems", "README.md"),
+		filepath.Join(tmp, "detectors", "ecosystems", "go", "README.md"),
+		filepath.Join(tmp, "detectors", "ecosystems", "go", "gomod.md"),
+		filepath.Join(tmp, "detectors", "ecosystems", "npm", "npm.md"),
+		filepath.Join(tmp, "detectors", "ecosystems", "npm", "pnpm.md"),
+		filepath.Join(tmp, "detectors", "ecosystems", "npm", "yarn.md"),
+		filepath.Join(tmp, "detectors", "ecosystems", "python", "pip.md"),
 		filepath.Join(tmp, "matchers", "osv.md"),
 	} {
 		if _, err := os.Stat(path); err != nil {

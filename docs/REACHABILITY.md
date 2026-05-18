@@ -1,5 +1,7 @@
 # Reachability
 
+> ⚠️ **Experimental.** Reachability is opt-in (`--reachability`) and under active development. The output shape is stable, but ecosystem coverage is expanding and Tier-3 analyzers (`jsreach`, `pyreach`, `jvmreach`) report at package precision today — sufficient for triage, not a fix substitute. Do not use `--fail-on reachable` as the sole gate for security-critical decisions without understanding the limitations below.
+
 `--reachability` runs code analysis on top of vulnerability matching to confirm whether a finding is actually reachable from your application code. Reachability annotations are attached to every applicable `PackageVulnerability` and copied onto each `Finding` when `--audit` is also set.
 
 The point: stop chasing high-severity CVEs in transitive packages your code never imports.

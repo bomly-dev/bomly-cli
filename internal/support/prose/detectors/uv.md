@@ -1,0 +1,65 @@
+## How `uv` resolves
+
+`uv-detector` is **hybrid (lockfile-first)**: it parses `uv.lock` directly and only falls back to `uv run --no-sync pip inspect` if the lockfile cannot be read.
+
+| Path | Strategy | Command |
+| --- | --- | --- |
+| `uv.lock` present | Lockfile parser | None |
+| Lockfile missing or unreadable | Build tool | `uv run --no-sync python -m pip inspect` |
+
+The `--no-sync` flag is critical — it stops `uv` from fetching missing packages, keeping the inspection offline-safe.
+
+## Network behavior
+
+✅ Both paths are **offline-safe**. The lockfile parser reads a committed file; `uv run --no-sync` reads from the local environment without syncing.
+
+## Prerequisites
+
+- One of:
+  - A committed `uv.lock` (strongly recommended), **or**
+  - A uv-managed virtualenv (`uv sync` has been run).
+- `pyproject.toml` for evidence pattern matching.
+- For `--install-first`: `uv` on `PATH`.
+
+## `--install-first`
+
+`uv` does **not** support `--install-first` today. Commit `uv.lock` (recommended) or run `uv sync` yourself before scanning.
+
+## Examples
+
+### Fix a direct vulnerability
+
+```toml
+[project]
+dependencies = [
+  "requests>=2.32.0",
+]
+```
+
+`uv lock --upgrade-package requests`. Re-scan.
+
+### Pin a transitive vulnerability
+
+```bash
+uv lock --upgrade-package urllib3
+```
+
+Or add a constraint in `pyproject.toml`:
+
+```toml
+[tool.uv]
+constraint-dependencies = ["urllib3>=2.2.2"]
+```
+
+Re-lock and re-scan.
+
+## Reachability (experimental)
+
+> **Experimental.** Reachability is opt-in via `--reachability`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
+
+For uv-managed packages, the analyzer is `pyreach` at **Tier-3 (package)**. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe).
+
+## Limitations
+
+- **uv lockfile format** is stable but still evolves; track upstream changes if you pin Bomly versions in CI.
+- **uv workspaces** are scanned per workspace member; each is its own subproject.

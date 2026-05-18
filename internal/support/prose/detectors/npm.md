@@ -1,37 +1,33 @@
-## Scan your npm / pnpm / yarn project
+## How `npm` resolves
 
-Bomly has native detectors for all three Node.js package managers. Each parses the lockfile directly and produces a full transitive graph with edges, scope (runtime / development), and resolved versions.
+The default chain is **lockfile-first**: `npm-detector` parses `package-lock.json` directly and produces a full transitive graph with edges, scope (`runtime` / `development`), and resolved versions. If the native variant is preferred (chain reorders to favor it), `npm-native-detector` runs `npm ls` instead. The Syft fallback runs only when no native detector applies.
 
-```bash
-bomly scan --path .
-```
+| Detector | Runs by default | Strategy | Command |
+| --- | --- | --- | --- |
+| `npm-detector` | Yes | Lockfile parser | None |
+| `npm-native-detector` | Fallback | Build tool | `npm ls --all --json --package-lock-only` |
+| `syft-detector` | Final fallback | Cataloger | (Syft internal) |
 
-The detector that runs is chosen by the lockfile present:
+## Network behavior
 
-| Lockfile | Detector |
-| --- | --- |
-| `package-lock.json` (npm v5+ format) | `npm-detector` |
-| `pnpm-lock.yaml` | `pnpm-detector` |
-| `yarn.lock` (v1 classic or v2/v3/v4 Berry) | `yarn-detector` |
+✅ The default `npm-detector` is **fully offline-safe**. It reads `package-lock.json` and does not run any subprocess.
 
-`package.json` alone (no lockfile) falls back to Syft for a flat package list. To get a full graph, generate a lockfile first (`npm install`, `pnpm install`, or `yarn install`).
+⚠️ `npm-native-detector` runs `npm ls`. With `--package-lock-only`, npm does not consult `node_modules` or fetch from the registry; the lockfile is authoritative. If `package-lock.json` is missing or incomplete, npm may emit warnings but does not download packages.
 
 ## Prerequisites
 
-- A committed lockfile in **version 3 or higher** for npm (`"lockfileVersion": 3`). Older npm lockfiles parse but with reduced edge fidelity.
-- For pnpm: lockfile version 6.0 or higher.
-- For yarn: classic v1 (`# yarn lockfile v1` header) or Berry v6+.
-- No Node.js installation is required to scan. Bomly parses lockfiles directly.
-- For `--install-first`: `npm`, `pnpm`, or `yarn` on `PATH` (Bomly will run the install command before resolving).
+- A committed `package-lock.json`. Lockfile format **version 2 or higher** (`"lockfileVersion": 2` or `3`) is required for full edge fidelity; version 1 lockfiles parse but with reduced detail.
+- No Node.js installation is required to scan. Bomly parses the lockfile directly.
+- For `--install-first`: `npm` on `PATH`.
 
-## Reachability — what `jsreach` tells you
+## `--install-first`
 
-The JavaScript analyzer is **Tier-3 (package)**. It walks your application source from `package.json` entry points (`main`, `module`, `browser`, `exports`, `bin`, plus implicit `index.*` / `app.js` / `server.js` / `main.js` fallbacks) and reports a package as reachable when there is any path from app source to that package through the npm dep graph.
+`npm` supports `--install-first`. When passed, Bomly runs `npm i` in the project directory before resolving the graph.
 
-Importantly, "unreachable" is not "safe" — dynamic `require(userInput)`, plugin loaders, and worker threads are invisible. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe).
+⚠️ **`--install-first` downloads packages from the npm registry.** This is the opposite of offline-safe — it modifies `node_modules/` and may fetch hundreds of MB. Use it only when the lockfile is missing or stale and you want Bomly to refresh it.
 
 ```bash
-bomly scan --enrich --audit --reachability --fail-on high --fail-on reachable
+bomly scan --install-first
 ```
 
 ## Examples
@@ -39,15 +35,14 @@ bomly scan --enrich --audit --reachability --fail-on high --fail-on reachable
 ### Fix a direct vulnerability
 
 1. Bump in `package.json`: change the affected range to one that includes the fix.
-2. Re-lock: `npm install`, `pnpm install`, or `yarn install`.
-3. Re-scan to confirm the finding is gone.
+2. Re-lock: `npm install`.
+3. Re-scan to confirm.
 
 ### Pin a transitive vulnerability
 
-Use npm `overrides`, pnpm `pnpm.overrides`, or yarn `resolutions` to force a fixed version of a transitive dependency without waiting for the parent to release:
+Use npm `overrides` (npm v8.3.0 or higher):
 
 ```json
-// package.json — npm v8.3.0 or higher
 {
   "overrides": {
     "lodash": "4.17.21"
@@ -55,36 +50,26 @@ Use npm `overrides`, pnpm `pnpm.overrides`, or yarn `resolutions` to force a fix
 }
 ```
 
-```yaml
-# pnpm-workspace.yaml
-overrides:
-  lodash: "4.17.21"
-```
-
-```json
-// package.json — yarn classic and Berry
-{
-  "resolutions": {
-    "**/lodash": "4.17.21"
-  }
-}
-```
-
 Re-lock, re-scan.
 
-### Workspace monorepos
+### Workspaces
 
-Bomly walks the workspace tree and scans each workspace as a separate subproject. The consolidated graph shows which workspace introduced each shared dependency. This works for npm workspaces, pnpm workspaces, and yarn workspaces.
+Bomly walks the workspace tree and scans each workspace as a separate subproject. The consolidated graph shows which workspace introduced each shared dependency.
 
 ```bash
 bomly scan --path ./monorepo
-bomly explain lodash --path ./monorepo   # shows which workspace pulled it in
+bomly explain lodash --path ./monorepo
 ```
+
+## Reachability (experimental)
+
+> **Experimental.** Reachability is opt-in via `--reachability`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
+
+For npm packages, the analyzer is `jsreach` at **Tier-3 (package)**. It walks app source from `package.json` entry points and reports a package as reachable when there is any path from app source to that package through the npm dep graph. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe) — Tier-3 "unreachable" is a triage signal, not a safety guarantee.
 
 ## Limitations
 
 - **`npm link`-ed packages are not in the lockfile** and therefore not in the graph. Run a normal `install` before scanning.
-- **Optional and peer dependencies** are recorded with their lockfile flags, but enforcement of peer-dep version constraints is not re-evaluated — Bomly trusts what the lockfile says was installed.
-- **Subpath imports collapse to the package name**. `import 'lodash/get'` and `import 'lodash/fp'` both attribute to `lodash`; if an advisory affects only `lodash/template`, jsreach still reports `lodash` as reachable when any subpath is imported.
-- **TypeScript path mappings (`paths` in `tsconfig.json`)** are not resolved by jsreach. Use real package names for code you want analyzed.
-- **`pnpm` workspaces with `injected: true`** dependencies are followed as regular edges.
+- **Optional and peer dependencies** are recorded with their lockfile flags, but enforcement of peer-dep version constraints is not re-evaluated.
+- **Subpath imports collapse to the package name** for reachability. `import 'lodash/get'` and `import 'lodash/fp'` both attribute to `lodash`.
+- **Lockfile v1** (npm v5–v6) parses but with reduced edge fidelity. Upgrade to npm v7+ for full graph data.

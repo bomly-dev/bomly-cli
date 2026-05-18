@@ -55,13 +55,30 @@ bomly scan --detectors +acme.detector.example
 
 Pass the bare detector name to filter to only that detector, `+name` to add it on top of defaults, or `-name` to remove it.
 
-## `--install-first`
+## Network behavior
 
-Bomly does **not** install package managers or fetch dependencies for you. Some detectors can shell out to an ecosystem tool (`npm`, `go`, `mvn`, `mix`, `dart`, `swift`, `sbt`) to produce a richer graph when one is on `PATH`.
+Detectors differ in whether they run subprocesses, and those that do may invoke build tools that download packages from registries. The marketing claim "Bomly is offline-safe by default" is precise: **matchers** make zero outbound calls without `--enrich`. **Detectors** may invoke build tools that download packages on your behalf during normal graph resolution.
 
-Pass `--install-first` to let detectors run their normal dependency-install command (e.g. `npm install`, `go mod download`) before resolving the graph. This is opt-in because it modifies the filesystem and downloads packages.
+| Detector class | Examples | Network during normal scan |
+| --- | --- | --- |
+| Lockfile parser | `npm-detector`, `pnpm-detector`, `bundler-detector`, `composer-detector`, `nuget-detector`, `github-actions-detector`, SBOM ingest | None — pure file parse |
+| Lockfile-first hybrid | `cargo-detector`, `poetry-detector`, `uv-detector` | None when the lockfile is present; the build-tool fallback uses `--locked` / `--no-sync` to stay offline |
+| `pip inspect` | `pip-detector`, `pipenv-detector` | None — reads the local Python environment |
+| Build-tool primary | `go-detector`, `maven-detector`, `gradle-detector`, `sbt-native-detector` | **May download** uncached artifacts during normal resolution |
 
-Each ecosystem page in [`detectors/ecosystems/`](detectors/ecosystems/) lists which detectors support `--install-first` and which native commands they expect on `PATH`.
+The build-tool-primary detectors invoke commands you would already run locally (`go list`, `mvn dependency:tree`, `gradle dependencies`, `sbt dependencyTree`). Whether they hit the network is a property of those tools and your local cache state, not a Bomly choice. To keep these scans fully offline, pre-warm the local cache (`go mod download`, `mvn dependency:go-offline`, etc.) or commit a lockfile when the ecosystem supports one.
+
+Per-PM pages under [`detectors/ecosystems/`](detectors/ecosystems/) document the exact command each detector runs and whether it touches the network.
+
+## `--install-first` {#install-first}
+
+Pass `--install-first` to let supporting detectors run their normal dependency-install command **before** resolving the graph. Today this is wired up only for the Node ecosystem (`npm`, `pnpm`, `yarn`); each runs the respective `<pm> install` command in the project directory.
+
+⚠️ **`--install-first` downloads packages from the npm registry.** This is opt-in for a reason — it modifies the filesystem (writes to `node_modules/`) and can fetch many MB of dependencies. Use it when the lockfile is missing or stale and you want Bomly to refresh it on a clean checkout.
+
+For other ecosystems, run the install command yourself before scanning (`pip install -r requirements.txt`, `bundle install`, `composer install`, `poetry install`, `uv sync`, etc.) and Bomly will read from the resulting lockfile or installed environment. Bomly does **not** install package managers themselves.
+
+Each package-manager page under [`detectors/ecosystems/`](detectors/ecosystems/) lists whether `--install-first` is supported and the exact command that runs.
 
 ## Discovery and monorepos
 

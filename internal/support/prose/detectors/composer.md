@@ -1,0 +1,59 @@
+## How `composer` resolves
+
+`composer-detector` is a **lockfile parser** — it reads `composer.lock` (preferred) or `vendor/composer/installed.json` directly and produces a full transitive graph with Packagist coordinates. No subprocess runs.
+
+| Step | Strategy | Command |
+| --- | --- | --- |
+| Resolve graph | Lockfile parser | None |
+
+## Network behavior
+
+✅ **Fully offline-safe.** Bomly does not invoke PHP, Composer, or any other tool to resolve the graph.
+
+## Prerequisites
+
+- A committed `composer.lock` for full transitive resolution. The detector handles Composer 2.x lockfiles.
+- If only `vendor/composer/installed.json` is present (no lockfile), the detector reads that file directly. Both produce equivalent graph data.
+- No PHP or Composer installation is required to scan.
+- For `--install-first`: `composer` on `PATH`.
+
+## `--install-first`
+
+`composer` does **not** support `--install-first` today. Commit `composer.lock` before scanning, or run `composer install` yourself.
+
+## Examples
+
+### Fix a direct vulnerability
+
+```json
+{
+  "require": {
+    "symfony/http-foundation": "^7.1.4"
+  }
+}
+```
+
+`composer update symfony/http-foundation`. Re-scan.
+
+### Pin a transitive vulnerability
+
+```json
+{
+  "require": {
+    "guzzlehttp/guzzle": ">=7.9.0"
+  }
+}
+```
+
+`composer update guzzlehttp/guzzle`. Re-scan.
+
+## Reachability
+
+> **Not yet supported.** Bomly has no PHP reachability analyzer today. `--reachability` produces `not_applicable` for Composer packages.
+
+## Limitations
+
+- **`pear`-installed packages** are detected by Syft, not by `composer-detector`. PEAR is in maintenance; expect coverage to track Syft's PEAR cataloger.
+- **`platform` requirements** (`php`, `ext-*`) are recorded as metadata but not turned into graph edges.
+- **Path repositories** (`type: path`) are recorded with their resolved version; internal dependencies of the local package come from the local checkout.
+- **VCS repositories** with branch refs are tracked by the resolved reference; advisory matching uses the version Composer records.

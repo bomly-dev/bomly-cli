@@ -30,11 +30,13 @@ From inside any source tree:
 bomly scan
 ```
 
-This runs the offline pipeline:
+This runs the default pipeline:
 
 1. Discover subprojects (every recognized lockfile or manifest).
 2. Run the best detector chain for each subproject.
 3. Render a human-readable report.
+
+**Matchers are offline by default** — no `--enrich` means zero outbound enrichment calls. **Detectors** may still invoke their build tool (Go, Maven, Gradle, sbt) which can download packages from package registries. Lockfile-parser detectors (npm, pnpm, yarn, Composer, Bundler, NuGet, GitHub Actions) and SBOM ingest are fully offline. See [Detectors → Network behavior](DETECTORS.md#network-behavior) for the full breakdown.
 
 Pass `--path` to scan a directory other than the current one:
 
@@ -98,7 +100,7 @@ bomly scan --enrich --audit --fail-on high --fail-on-scope runtime
 bomly scan --enrich --audit --reachability --fail-on high --fail-on reachable
 ```
 
-See [Auditors](AUDITORS.md) for the full grammar and [Reachability](REACHABILITY.md) for what "reachable" means per ecosystem.
+See [Auditors](AUDITORS.md) for the full grammar and [Reachability](REACHABILITY.md) for what "reachable" means per ecosystem. Reachability is an **experimental** feature; review its limitations before gating CI on it.
 
 ## Explain why a package is in the graph
 

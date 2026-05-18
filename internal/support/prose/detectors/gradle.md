@@ -1,0 +1,70 @@
+## How `gradle` resolves
+
+`gradle-detector` is a **build-tool primary** chain. Bomly drives Gradle's own resolver to produce the graph.
+
+| Step | Command | Working dir |
+| --- | --- | --- |
+| Resolve graph | `./gradlew dependencies --console=plain` (or `gradle dependencies --console=plain` if no wrapper) | every directory containing `build.gradle` or `build.gradle.kts` |
+
+Gradle's `dependencies` task output is parsed into a transitive graph with configuration scopes preserved.
+
+## Network behavior
+
+⚠️ `gradle dependencies` **may download artifacts** during normal scan, before `--enrich`:
+
+- Gradle's resolver fetches missing artifacts from any repository declared in your build files (typically `mavenCentral()` and `google()`).
+- Build-tool execution is Gradle's, not Bomly's. The same network calls happen when you run `./gradlew build` locally.
+
+A committed `gradle.lockfile` (Gradle 6+ format) lets Gradle resolve without hitting the network once the cache is warm, but it does not prevent the first cold-cache fetch.
+
+## Prerequisites
+
+- `gradle` or `./gradlew` (Gradle Wrapper) on `PATH`. The Wrapper is strongly preferred — it pins the Gradle version your project expects.
+- A `build.gradle` or `build.gradle.kts`. Bomly treats every Gradle module under `settings.gradle` as a subproject.
+- For full transitive lock fidelity: a committed `gradle.lockfile`. Enable with `dependencyLocking { lockAllConfigurations() }` and run `./gradlew dependencies --write-locks`.
+
+## `--install-first`
+
+`gradle` does **not** support `--install-first`. The default `gradle dependencies` already drives the resolver.
+
+## Examples
+
+### Fix a direct vulnerability
+
+```kotlin
+// build.gradle.kts
+implementation("com.fasterxml.jackson.core:jackson-databind:2.17.1")
+```
+
+Re-lock with `./gradlew dependencies --write-locks` and re-scan.
+
+### Pin a transitive vulnerability
+
+Use a resolution strategy in your root `build.gradle.kts`:
+
+```kotlin
+configurations.all {
+  resolutionStrategy.eachDependency {
+    if (requested.group == "com.fasterxml.jackson.core" &&
+        requested.name  == "jackson-databind") {
+      useVersion("2.17.1")
+    }
+  }
+}
+```
+
+Re-lock and re-scan.
+
+## Reachability (experimental)
+
+> **Experimental.** Reachability is opt-in via `--reachability`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
+
+For Gradle packages, the analyzer is `jvmreach` at **Tier-3 (package)** — same caveats as Maven. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe).
+
+## Limitations
+
+- **`gradle` is required.** There is no offline-only path for Gradle graph resolution.
+- **Composite builds** (`includeBuild`) are scanned per-included-build; cross-build dependency edges are best-effort.
+- **Dynamic versions** (`+`, `latest.release`, version ranges) are resolved at lock-time, not by Bomly. A stale `gradle.lockfile` will not pick up new advisories until you re-lock.
+- **Annotation processors** that generate code at build time are invisible to source-based reachability.
+- **Kotlin Multiplatform** target-specific dependencies are all included; per-target reachability is not computed.

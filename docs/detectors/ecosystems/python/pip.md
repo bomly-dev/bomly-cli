@@ -10,7 +10,7 @@ Bomly uses this chain when it finds `pip` evidence.
 | Ecosystem | `python` |
 | Detector chain | `pip-detector`, `syft-detector` |
 | Evidence patterns | `requirements.txt`, `requirements-dev.txt`, `requirements.in`, `requirements.lock`, `*requirements*.txt` |
-| Install-first support | No |
+| Install-first support | Yes |
 | Native command hints | `pip`, `syft for bomly-lite` |
 
 ## How `pip` resolves
@@ -37,7 +37,15 @@ Bomly uses this chain when it finds `pip` evidence.
 
 ## `--install-first`
 
-`pip` does **not** support `--install-first` today. Pre-install dependencies in the active Python environment before scanning (`pip install -r requirements.txt`), or scan a virtualenv where they are already installed.
+`pip` supports `--install-first`. When passed, Bomly runs `python -m pip install -r <requirements-file>` before the inspection. It will additionally install `requirements-dev.txt` if that file is present alongside the primary requirements file.
+
+⚠️ **`--install-first` downloads packages from PyPI** and writes to the active Python environment. Use it in CI on a clean checkout where dependencies have not been installed yet.
+
+```bash
+bomly scan --install-first
+```
+
+The requirements file Bomly installs is chosen automatically from common names. If you have a non-standard layout, use a virtualenv that already has the dependencies installed and skip `--install-first`.
 
 ## Examples
 

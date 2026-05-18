@@ -6,8 +6,8 @@ Package managers Bomly recognizes in the `maven` ecosystem:
 
 | Package manager | Detector chain | Evidence patterns | Install-first support |
 | --- | --- | --- | --- |
-| [`gradle`](gradle.md) | `gradle-detector`, `syft-detector` | `build.gradle`, `build.gradle.kts`, `settings.gradle`, `settings.gradle.kts`, `gradle.lockfile*` | No |
-| [`maven`](maven.md) | `maven-detector`, `syft-detector` | `pom.xml`, `*pom.xml` | No |
+| [`gradle`](gradle.md) | `gradle-detector`, `syft-detector` | `build.gradle`, `build.gradle.kts`, `settings.gradle`, `settings.gradle.kts`, `gradle.lockfile*` | Yes |
+| [`maven`](maven.md) | `maven-detector`, `syft-detector` | `pom.xml`, `*pom.xml` | Yes |
 
 ## How to read this
 

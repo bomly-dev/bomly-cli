@@ -10,7 +10,7 @@ Bomly uses this chain when it finds `pipenv` evidence.
 | Ecosystem | `python` |
 | Detector chain | `pipenv-detector`, `syft-detector` |
 | Evidence patterns | `Pipfile`, `Pipfile.lock` |
-| Install-first support | No |
+| Install-first support | Yes |
 | Native command hints | `pipenv`, `syft for bomly-lite` |
 
 ## How `pipenv` resolves
@@ -35,7 +35,13 @@ Bomly uses this chain when it finds `pipenv` evidence.
 
 ## `--install-first`
 
-`pipenv` does **not** support `--install-first` today. Run `pipenv install` yourself before scanning, or commit `Pipfile.lock` for the offline path.
+`pipenv` supports `--install-first`. When passed, Bomly runs `pipenv install` before resolving the graph.
+
+⚠️ **`--install-first` downloads packages from PyPI** and creates / updates the Pipenv-managed virtualenv. Use it on a clean checkout.
+
+```bash
+bomly scan --install-first
+```
 
 ## Reachability (experimental)
 

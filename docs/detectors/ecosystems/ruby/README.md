@@ -6,7 +6,7 @@ Package managers Bomly recognizes in the `ruby` ecosystem:
 
 | Package manager | Detector chain | Evidence patterns | Install-first support |
 | --- | --- | --- | --- |
-| [`bundler`](bundler.md) | `bundler-detector`, `syft-detector` | `Gemfile.lock`, `Gemfile.next.lock` | No |
+| [`bundler`](bundler.md) | `bundler-detector`, `syft-detector` | `Gemfile.lock`, `Gemfile.next.lock` | Yes |
 | [`gemspec`](gemspec.md) | `syft-detector` | `*.gemspec` | No |
 
 ## How to read this

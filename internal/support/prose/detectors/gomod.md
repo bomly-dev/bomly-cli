@@ -32,7 +32,13 @@ This is a Go-toolchain behavior, not a Bomly choice. The same network calls happ
 
 ## `--install-first`
 
-`gomod` does **not** support `--install-first`. The default `go list` command already drives Go's resolver; there is no separate "install" step to opt into.
+`gomod` supports `--install-first`. When passed, Bomly runs `go mod download` before resolving the graph, populating the local module cache so the subsequent `go list -deps -json all` runs without network.
+
+⚠️ **`--install-first` downloads modules from `GOPROXY`.** Use it in CI on a clean checkout to make the resolution phase deterministic and offline.
+
+```bash
+bomly scan --install-first
+```
 
 ## Multi-module workspaces
 

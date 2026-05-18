@@ -10,7 +10,7 @@ Bomly uses this chain when it finds `composer` evidence.
 | Ecosystem | `php` |
 | Detector chain | `composer-detector`, `syft-detector` |
 | Evidence patterns | `composer.lock`, `installed.json` |
-| Install-first support | No |
+| Install-first support | Yes |
 | Native command hints | `composer`, `syft for bomly-lite` |
 
 ## How `composer` resolves
@@ -34,7 +34,13 @@ Bomly uses this chain when it finds `composer` evidence.
 
 ## `--install-first`
 
-`composer` does **not** support `--install-first` today. Commit `composer.lock` before scanning, or run `composer install` yourself.
+`composer` supports `--install-first`. When passed, Bomly runs `composer install` in the project directory before resolving the graph.
+
+⚠️ **`--install-first` downloads packages from Packagist** (or whatever repositories your `composer.json` declares) and writes to `vendor/`. Use it on a clean checkout when the lockfile is missing or stale.
+
+```bash
+bomly scan --install-first
+```
 
 ## Examples
 

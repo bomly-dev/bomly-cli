@@ -10,7 +10,7 @@ Bomly uses this chain when it finds `gradle` evidence.
 | Ecosystem | `maven` |
 | Detector chain | `gradle-detector`, `syft-detector` |
 | Evidence patterns | `build.gradle`, `build.gradle.kts`, `settings.gradle`, `settings.gradle.kts`, `gradle.lockfile*` |
-| Install-first support | No |
+| Install-first support | Yes |
 | Native command hints | `gradle`, `syft for bomly-lite` |
 
 ## How `gradle` resolves
@@ -40,7 +40,13 @@ A committed `gradle.lockfile` (Gradle 6+ format) lets Gradle resolve without hit
 
 ## `--install-first`
 
-`gradle` does **not** support `--install-first`. The default `gradle dependencies` already drives the resolver.
+`gradle` supports `--install-first`. When passed, Bomly invokes the same `gradle dependencies --console=plain` command that drives normal resolution. Gradle's resolver fetches missing artifacts as a side-effect, warming the local cache.
+
+⚠️ **`--install-first` downloads artifacts from your declared repositories** (typically `mavenCentral()`, `google()`). Use it on a clean checkout when the Gradle cache is cold.
+
+```bash
+bomly scan --install-first
+```
 
 ## Examples
 

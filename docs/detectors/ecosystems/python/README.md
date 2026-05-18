@@ -7,11 +7,11 @@ Package managers Bomly recognizes in the `python` ecosystem:
 | Package manager | Detector chain | Evidence patterns | Install-first support |
 | --- | --- | --- | --- |
 | [`pdm`](pdm.md) | `syft-detector` | `pdm.lock`, `pyproject.toml` | No |
-| [`pip`](pip.md) | `pip-detector`, `syft-detector` | `requirements.txt`, `requirements-dev.txt`, `requirements.in`, `requirements.lock`, `*requirements*.txt` | No |
-| [`pipenv`](pipenv.md) | `pipenv-detector`, `syft-detector` | `Pipfile`, `Pipfile.lock` | No |
-| [`poetry`](poetry.md) | `poetry-detector`, `syft-detector` | `poetry.lock`, `pyproject.toml` | No |
+| [`pip`](pip.md) | `pip-detector`, `syft-detector` | `requirements.txt`, `requirements-dev.txt`, `requirements.in`, `requirements.lock`, `*requirements*.txt` | Yes |
+| [`pipenv`](pipenv.md) | `pipenv-detector`, `syft-detector` | `Pipfile`, `Pipfile.lock` | Yes |
+| [`poetry`](poetry.md) | `poetry-detector`, `syft-detector` | `poetry.lock`, `pyproject.toml` | Yes |
 | [`setuppy`](setuppy.md) | `syft-detector` | `setup.py` | No |
-| [`uv`](uv.md) | `uv-detector`, `syft-detector` | `uv.lock`, `pyproject.toml` | No |
+| [`uv`](uv.md) | `uv-detector`, `syft-detector` | `uv.lock`, `pyproject.toml` | Yes |
 
 ## How to read this
 

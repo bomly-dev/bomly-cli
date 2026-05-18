@@ -28,7 +28,13 @@ To keep the scan fully offline:
 
 ## `--install-first`
 
-`maven` does **not** support `--install-first`. The default `mvn dependency:tree` already drives Maven's resolver; there is no separate "install" step to opt into.
+`maven` supports `--install-first`. When passed, Bomly runs `mvn dependency:resolve` (using `./mvnw` if present) before resolving the graph. This warms `~/.m2/repository` so the subsequent `mvn dependency:tree` runs offline.
+
+⚠️ **`--install-first` downloads artifacts from Maven Central** (or whatever repositories your `settings.xml` declares). Use it on a clean checkout when the local repository is cold.
+
+```bash
+bomly scan --install-first
+```
 
 ## Examples
 

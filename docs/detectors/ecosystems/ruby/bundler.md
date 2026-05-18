@@ -10,7 +10,7 @@ Bomly uses this chain when it finds `bundler` evidence.
 | Ecosystem | `ruby` |
 | Detector chain | `bundler-detector`, `syft-detector` |
 | Evidence patterns | `Gemfile.lock`, `Gemfile.next.lock` |
-| Install-first support | No |
+| Install-first support | Yes |
 | Native command hints | `bundle`, `syft for bomly-lite` |
 
 ## How `bundler` resolves
@@ -33,7 +33,13 @@ Bomly uses this chain when it finds `bundler` evidence.
 
 ## `--install-first`
 
-`bundler` does **not** support `--install-first` today. Commit `Gemfile.lock` before scanning, or run `bundle install` yourself.
+`bundler` supports `--install-first`. When passed, Bomly runs `bundle install` in the project directory before resolving the graph.
+
+⚠️ **`--install-first` downloads gems from RubyGems** (or whatever sources your `Gemfile` declares) and writes to the configured gem path. Use it on a clean checkout when the lockfile is missing or you want a fresh install.
+
+```bash
+bomly scan --install-first
+```
 
 ## Examples
 

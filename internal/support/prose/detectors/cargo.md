@@ -23,7 +23,13 @@ If you run on a fresh machine with no Cargo registry cache and no committed lock
 
 ## `--install-first`
 
-`cargo` does **not** support `--install-first`. Cargo's normal resolver is invoked by `cargo metadata`; there is no separate "install" step to opt into.
+`cargo` supports `--install-first`. When passed, Bomly runs `cargo fetch --locked` before resolving the graph, populating the registry cache.
+
+⚠️ **`--install-first` downloads crates from crates.io** (or whatever sources `Cargo.toml` declares). The `--locked` flag forbids any lockfile changes.
+
+```bash
+bomly scan --install-first
+```
 
 ## Examples
 

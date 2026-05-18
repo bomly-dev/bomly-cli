@@ -10,7 +10,7 @@ Bomly uses this chain when it finds `uv` evidence.
 | Ecosystem | `python` |
 | Detector chain | `uv-detector`, `syft-detector` |
 | Evidence patterns | `uv.lock`, `pyproject.toml` |
-| Install-first support | No |
+| Install-first support | Yes |
 | Native command hints | `uv`, `syft for bomly-lite` |
 
 ## How `uv` resolves
@@ -38,7 +38,13 @@ The `--no-sync` flag is critical — it stops `uv` from fetching missing package
 
 ## `--install-first`
 
-`uv` does **not** support `--install-first` today. Commit `uv.lock` (recommended) or run `uv sync` yourself before scanning.
+`uv` supports `--install-first`. When passed, Bomly runs `uv sync` before resolving the graph.
+
+⚠️ **`--install-first` downloads packages from PyPI** and writes to the uv-managed virtualenv. Use it on a clean checkout.
+
+```bash
+bomly scan --install-first
+```
 
 ## Examples
 

@@ -21,7 +21,13 @@
 
 ## `--install-first`
 
-`poetry` does **not** support `--install-first` today. Commit `poetry.lock` (recommended) or run `poetry install` yourself before scanning.
+`poetry` supports `--install-first`. When passed, Bomly runs `poetry install --no-root` before resolving the graph.
+
+⚠️ **`--install-first` downloads packages from PyPI** and writes to the Poetry-managed virtualenv. Use it on a clean checkout.
+
+```bash
+bomly scan --install-first
+```
 
 ## Examples
 

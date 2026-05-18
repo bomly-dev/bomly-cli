@@ -6,7 +6,7 @@ Package managers Bomly recognizes in the `go` ecosystem:
 
 | Package manager | Detector chain | Evidence patterns | Install-first support |
 | --- | --- | --- | --- |
-| [`gomod`](gomod.md) | `go-detector`, `syft-detector` | `go.mod` | No |
+| [`gomod`](gomod.md) | `go-detector`, `syft-detector` | `go.mod` | Yes |
 
 ## How to read this
 

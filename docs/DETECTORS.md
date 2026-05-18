@@ -72,11 +72,31 @@ Per-PM pages under [`detectors/ecosystems/`](detectors/ecosystems/) document the
 
 ## `--install-first` {#install-first}
 
-Pass `--install-first` to let supporting detectors run their normal dependency-install command **before** resolving the graph. Today this is wired up only for the Node ecosystem (`npm`, `pnpm`, `yarn`); each runs the respective `<pm> install` command in the project directory.
+Pass `--install-first` to let supporting detectors run their normal dependency-install (or cache-warming) command **before** resolving the graph. The exact command depends on the package manager:
 
-⚠️ **`--install-first` downloads packages from the npm registry.** This is opt-in for a reason — it modifies the filesystem (writes to `node_modules/`) and can fetch many MB of dependencies. Use it when the lockfile is missing or stale and you want Bomly to refresh it on a clean checkout.
+| Package manager | Install-first command |
+| --- | --- |
+| `gomod` | `go mod download` |
+| `npm` | `npm install` |
+| `pnpm` | `pnpm install` |
+| `yarn` | `yarn install` |
+| `pip` | `python -m pip install -r <requirements>` (plus `requirements-dev.txt` if present) |
+| `pipenv` | `pipenv install` |
+| `poetry` | `poetry install --no-root` |
+| `uv` | `uv sync` |
+| `bundler` | `bundle install` |
+| `composer` | `composer install` |
+| `maven` | `mvn dependency:resolve` (uses `./mvnw` if present) |
+| `gradle` | `gradle dependencies --console=plain` (uses `./gradlew` if present) |
+| `cargo` | `cargo fetch --locked` |
 
-For other ecosystems, run the install command yourself before scanning (`pip install -r requirements.txt`, `bundle install`, `composer install`, `poetry install`, `uv sync`, etc.) and Bomly will read from the resulting lockfile or installed environment. Bomly does **not** install package managers themselves.
+⚠️ **`--install-first` downloads packages from each ecosystem's registry** and modifies the filesystem (writes to `node_modules/`, the active virtualenv, `vendor/`, `~/.m2/repository/`, etc.). It is opt-in for that reason. Use it when:
+
+- You're scanning in CI on a clean checkout where dependencies have not been installed locally.
+- The lockfile is missing or stale and you want a fresh graph.
+- A build-tool primary detector (Go, Maven, Gradle) would otherwise fetch artifacts during the resolution step itself — `--install-first` is the cleaner place to bear that cost.
+
+Detectors without an `Install` implementation (e.g. NuGet, GitHub Actions, SBOM ingest, Syft) silently skip the step when `--install-first` is set. Bomly does **not** install package managers themselves — only their dependencies.
 
 Each package-manager page under [`detectors/ecosystems/`](detectors/ecosystems/) lists whether `--install-first` is supported and the exact command that runs.
 

@@ -6,7 +6,7 @@ Package managers Bomly recognizes in the `rust` ecosystem:
 
 | Package manager | Detector chain | Evidence patterns | Install-first support |
 | --- | --- | --- | --- |
-| [`cargo`](cargo.md) | `cargo-detector`, `syft-detector` | `Cargo.lock`, `Cargo.toml` | No |
+| [`cargo`](cargo.md) | `cargo-detector`, `syft-detector` | `Cargo.lock`, `Cargo.toml` | Yes |
 
 ## How to read this
 

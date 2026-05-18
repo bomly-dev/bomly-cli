@@ -6,7 +6,7 @@ Package managers Bomly recognizes in the `php` ecosystem:
 
 | Package manager | Detector chain | Evidence patterns | Install-first support |
 | --- | --- | --- | --- |
-| [`composer`](composer.md) | `composer-detector`, `syft-detector` | `composer.lock`, `installed.json` | No |
+| [`composer`](composer.md) | `composer-detector`, `syft-detector` | `composer.lock`, `installed.json` | Yes |
 | [`pear`](pear.md) | `syft-detector` | `php/.registry/**/*.reg` | No |
 
 ## How to read this

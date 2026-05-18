@@ -20,7 +20,13 @@
 
 ## `--install-first`
 
-`pipenv` does **not** support `--install-first` today. Run `pipenv install` yourself before scanning, or commit `Pipfile.lock` for the offline path.
+`pipenv` supports `--install-first`. When passed, Bomly runs `pipenv install` before resolving the graph.
+
+⚠️ **`--install-first` downloads packages from PyPI** and creates / updates the Pipenv-managed virtualenv. Use it on a clean checkout.
+
+```bash
+bomly scan --install-first
+```
 
 ## Reachability (experimental)
 

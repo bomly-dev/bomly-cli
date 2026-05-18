@@ -53,50 +53,20 @@ Walkthrough: [Getting Started](docs/GETTING_STARTED.md).
 
 ## Installation
 
-### `go install` for the full Bomly CLI
-
 ```bash
+# Go toolchain — Go 1.21 or later on PATH
 go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest
 ```
 
-`go install` now builds the default full Bomly binary, including builtin Syft and Grype support. The command package path is intentional: it follows Go conventions and installs an executable named `bomly`.
+Or grab a prebuilt archive from [GitHub Releases](https://github.com/bomly-dev/bomly-cli/releases). Each release publishes `bomly` (full binary with builtin Syft and Grype) and `bomly-lite` (smaller binary that shells out to external `syft` and `grype`) archives for Linux, macOS, and Windows.
 
-### GitHub Releases
-
-GitHub Releases are the canonical distribution point for packaged binaries. Each draft prerelease includes:
-
-- `bomly` archives for Linux, macOS, and Windows
-- `bomly-lite` archives for users who prefer external `syft` and `grype` binaries on `PATH`
-- `SHA256SUMS` for checksum verification
-
-Each archive also contains `LICENSE`, `NOTICE`, and a `licenses/` directory with the full license text for every bundled dependency.
-
-Archive naming follows this pattern:
-
-- `bomly_<version>_<os>_<arch>.tar.gz`
-- `bomly-lite_<version>_<os>_<arch>.tar.gz`
-- Windows archives use `.zip`
-
-### `bomly` vs `bomly-lite`
-
-| Artifact | Behavior |
-| --- | --- |
-| `bomly` | Full default binary with compiled-in Syft and Grype support |
-| `bomly-lite` | Alternate binary that shells out to external `syft` and `grype` binaries |
-
-### Verify release checksums
-
-On Linux and macOS:
+Verify:
 
 ```bash
-sha256sum --check SHA256SUMS
+bomly version
 ```
 
-On PowerShell:
-
-```powershell
-Get-FileHash .\bomly_v0.2.0_windows_amd64.zip -Algorithm SHA256
-```
+Full install matrix — `bomly` vs `bomly-lite`, checksum verification, PowerShell instructions, uninstall, CI install — lives in [docs/INSTALLATION.md](docs/INSTALLATION.md).
 
 ## What It Scans
 

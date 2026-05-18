@@ -4,23 +4,19 @@ This page walks you from installation to your first useful scan in five minutes.
 
 ## Install
 
-Pick one:
+If you have Go on `PATH`:
 
 ```bash
-# Go toolchain (builds the full binary with builtin Syft and Grype)
 go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest
-
-# Or download a release archive from GitHub
-# https://github.com/bomly-dev/bomly-cli/releases
 ```
 
-Verify:
+Otherwise download a prebuilt archive from [GitHub Releases](https://github.com/bomly-dev/bomly-cli/releases) and put `bomly` on your `PATH`. Verify:
 
 ```bash
 bomly version
 ```
 
-If you'd rather shell out to external `syft` and `grype` binaries, install the `bomly-lite` archive from the same release.
+For the full install matrix — `bomly` vs `bomly-lite`, checksum verification, PowerShell instructions, uninstall — see [Installation](INSTALLATION.md).
 
 ## Scan a project
 

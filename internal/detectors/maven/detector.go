@@ -69,14 +69,15 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 // Descriptor describes the Maven graph detector.
 func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		Name:                detectors.NameMaven,
-		Enabled:             true,
-		Origin:              sdk.CoreOrigin,
-		Technique:           sdk.BuildToolTechnique,
-		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemMaven},
-		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerMaven},
-		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
-		Capabilities:        []string{"graph-resolution", "component-targeting", "wrapper-detection"},
+		Name:                 detectors.NameMaven,
+		Enabled:              true,
+		Origin:               sdk.CoreOrigin,
+		Technique:            sdk.BuildToolTechnique,
+		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemMaven},
+		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerMaven},
+		SupportedModes:       []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
+		Capabilities:         []string{"graph-resolution", "component-targeting", "wrapper-detection"},
+		SupportsInstallFirst: true,
 	}
 }
 

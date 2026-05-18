@@ -70,7 +70,32 @@ logger.Warn("cache miss", zap.Error(err))
 - Add unit tests for new logic.
 - Add integration tests for new commands and user-visible flows.
 - Run `make test` before considering work complete.
+- Run `make smoke` if you touched a detector chain, matcher, auditor, or analyzer.
 - If you change GitHub Actions workflows or release behavior, update [docs/CI.md](docs/CI.md) and any affected install guidance in [README.md](README.md).
+
+### Helpers
+
+- `t.TempDir()` for temporary directories
+- `testutil.BuildGoBinary()` for fake binaries
+- `httptest.NewServer()` for HTTP mocking
+- `internal/cli/root_test_main_test.go` for shared fake-binary setup
+
+### Skip Policy
+
+Do not add skipped tests without a recorded reason.
+
+## Documentation
+
+User-facing docs live in [`docs/`](docs/). Most pages are hand-written; some are generated.
+
+Run `make generate` after changing any of:
+
+- `internal/config/config.go` — regenerates `docs/CONFIG_REFERENCE.md`
+- `sdk/catalog.go`, `sdk/support_matrix.go`, `internal/registry/support.go` — regenerates `docs/SUPPORT_MATRIX.md` and `docs/detectors/ecosystems/*.md`
+- `internal/output/*` or scan/explain/diff response types — regenerates `docs/schemas/*.md`
+- `internal/support/component_docs.go` — regenerates `docs/{DETECTORS,MATCHERS,AUDITORS}.md` and `docs/matchers/*.md`
+
+For per-detector and per-matcher prose (Phase 2 hybrid generation), add a Markdown file under `internal/support/prose/{detectors,matchers}/<name>.md` and re-run `make generate`. The generator embeds the prose between the structured fact table and the auto-generated banner.
 
 ## Release Bumps
 
@@ -84,17 +109,6 @@ Bomly creates draft releases automatically after merges to `main`. The release w
 | Major release | `type!:` or `BREAKING CHANGE:` | `feat!: change JSON output schema` | `0.2.3` -> `1.0.0` |
 
 If a PR is squash-merged, the squash commit title and body are the important inputs. Before merging, make sure the final message contains the intended `feat:`, `feat!:`, `BREAKING CHANGE:`, or `[skip release]` marker.
-
-### Helpers
-
-- `t.TempDir()` for temporary directories
-- `testutil.BuildGoBinary()` for fake binaries
-- `httptest.NewServer()` for HTTP mocking
-- `internal/cli/root_test_main_test.go` for shared fake-binary setup
-
-### Skip Policy
-
-Do not add skipped tests without a recorded reason.
 
 ## Architecture
 

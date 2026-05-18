@@ -68,14 +68,15 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 // Descriptor describes the Gradle graph detector.
 func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		Name:                detectors.NameGradle,
-		Enabled:             true,
-		Origin:              sdk.CoreOrigin,
-		Technique:           sdk.BuildToolTechnique,
-		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemMaven},
-		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerGradle},
-		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
-		Capabilities:        []string{"graph-resolution", "component-targeting"},
+		Name:                 detectors.NameGradle,
+		Enabled:              true,
+		Origin:               sdk.CoreOrigin,
+		Technique:            sdk.BuildToolTechnique,
+		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemMaven},
+		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerGradle},
+		SupportedModes:       []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
+		Capabilities:         []string{"graph-resolution", "component-targeting"},
+		SupportsInstallFirst: true,
 	}
 }
 

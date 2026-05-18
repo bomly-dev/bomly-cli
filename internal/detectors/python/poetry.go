@@ -37,14 +37,15 @@ func (d PoetryDetector) Applicable(ctx context.Context, req sdk.DetectionRequest
 // Descriptor describes the Poetry detector.
 func (d PoetryDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		Name:                detectors.NamePoetry,
-		Enabled:             true,
-		Origin:              sdk.CoreOrigin,
-		Technique:           sdk.BuildToolTechnique,
-		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemPython},
-		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerPoetry},
-		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
-		Capabilities:        []string{"graph-resolution", "component-targeting"},
+		Name:                 detectors.NamePoetry,
+		Enabled:              true,
+		Origin:               sdk.CoreOrigin,
+		Technique:            sdk.BuildToolTechnique,
+		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemPython},
+		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerPoetry},
+		SupportedModes:       []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
+		Capabilities:         []string{"graph-resolution", "component-targeting"},
+		SupportsInstallFirst: true,
 	}
 }
 

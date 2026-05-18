@@ -1,0 +1,68 @@
+## What `osv` does
+
+`osv` queries the [OSV.dev](https://osv.dev) API for every package in the resolved graph and attaches every advisory whose affected version range matches the resolved version. OSV aggregates GitHub Security Advisories (GHSA), distro advisories, language-ecosystem databases (Go, npm, PyPI, RubyGems, Maven, NuGet, crates.io, …), and direct CNA submissions, so a single OSV query usually subsumes what you'd get from multiple per-ecosystem feeds.
+
+After a successful OSV match, the matcher also queries the [CISA Known Exploited Vulnerabilities](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) catalog and marks any matching advisories with a `kev: true` signal so you can prioritize.
+
+## When it runs
+
+`osv` requires `--enrich`. It does not run by default.
+
+```bash
+bomly scan --enrich
+```
+
+## Network
+
+| Endpoint | Used for | Cache TTL |
+| --- | --- | --- |
+| `api.osv.dev/v1/query` | Per-package advisory lookup | 24h |
+| `api.osv.dev/v1/vulns/<id>` | Full advisory detail for matched IDs | 7 days |
+| `www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json` | CISA KEV catalog | 6h |
+
+Cache directory (Unix/macOS): `~/.bomly/cache/{osv,osv-vulns,kev}/`.
+
+Cache failures are logged at WARN and never abort the scan.
+
+## Output fields
+
+Each `vulnerabilities[]` entry on a package carries:
+
+- `id` — OSV ID, typically the CVE or GHSA identifier
+- `aliases` — every cross-reference OSV knows (CVE, GHSA, distro IDs)
+- `severity` — severity bucket (`critical` / `high` / `medium` / `low` / `unknown`)
+- `cvss` — CVSS vector when available
+- `fixed_version` — earliest fixed version per affected range
+- `references` — links to upstream advisories and patches
+- `kev` — `true` when CISA KEV lists this vulnerability
+- `published`, `modified` — timestamps from the advisory
+
+## Examples
+
+### Fail CI on any high or KEV-listed vulnerability
+
+The simplest gate:
+
+```bash
+bomly scan --enrich --audit --fail-on high
+```
+
+KEV-listed advisories at any severity warrant their own gate; see [Auditors](../AUDITORS.md) for the `--fail-on` grammar.
+
+### Re-scan with cached OSV data only
+
+After a first `--enrich` run, the cache holds 24h of OSV responses. To re-evaluate policy without hitting the network:
+
+```bash
+bomly scan --enrich --audit --fail-on high   # cached lookups are instant
+```
+
+If the cache is older than 24h for a package, that package is re-queried; others stay cached.
+
+## Limitations
+
+- **Affected version-range matching is OSV's**, not Bomly's. False positives at the boundary of a pre-release version are an OSV upstream issue; report them at <https://github.com/google/osv.dev>.
+- **Ecosystem labels matter.** OSV expects ecosystem-correct package names (e.g. `Maven` uses `groupId:artifactId`). The detector emits these correctly for native graphs; SBOM-ingest of a non-standard ecosystem label may produce no match.
+- **Private advisories** (GHSA in a private repository) are not in OSV's public dataset.
+- **The KEV gate** is signal-only — `kev: true` does not directly trigger `--fail-on`. Compose with `--fail-on critical` for the most common policy.
+- **Rate limits** apply. The cache keeps repeated runs cheap; cold-start enrichment on a large monorepo can take minutes.

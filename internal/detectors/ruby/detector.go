@@ -64,14 +64,15 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 // Descriptor describes the Bundler detector.
 func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		Name:                detectors.NameBundler,
-		Enabled:             true,
-		Origin:              sdk.CoreOrigin,
-		Technique:           sdk.LockfileTechnique,
-		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemRuby},
-		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerBundler},
-		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
-		Capabilities:        []string{"graph-resolution", "component-targeting", "lockfile-parsing", "best-effort-scope"},
+		Name:                 detectors.NameBundler,
+		Enabled:              true,
+		Origin:               sdk.CoreOrigin,
+		Technique:            sdk.LockfileTechnique,
+		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemRuby},
+		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerBundler},
+		SupportedModes:       []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
+		Capabilities:         []string{"graph-resolution", "component-targeting", "lockfile-parsing", "best-effort-scope"},
+		SupportsInstallFirst: true,
 	}
 }
 

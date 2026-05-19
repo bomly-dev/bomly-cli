@@ -4,39 +4,25 @@
 
 Bomly groups detectors by **ecosystem** (the package universe — `go`, `npm`, `python`, `maven`, …) and writes one page per **package manager** within that ecosystem (`pip`, `poetry`, `uv` are all under `python`).
 
+Package managers with no native Bomly detector — Bomly relies entirely on [Syft](https://github.com/anchore/syft) for them — are collected under the synthetic [`syft`](syft/) ecosystem instead of being scattered across their real ecosystems. That keeps the navigation focused and signals which package managers produce a flat package list rather than a full transitive graph.
+
 Pick your ecosystem to see the package managers it covers and how each one is detected.
 
 | Ecosystem | Package managers |
 | --- | --- |
-| [alpm](alpm/) | [`alpm`](alpm/alpm.md) |
-| [apk](apk/) | [`apk`](apk/apk.md) |
-| [conda](conda/) | [`conda`](conda/conda.md) |
 | [cpp](cpp/) | [`conan`](cpp/conan.md) |
 | [dart](dart/) | [`pub`](dart/pub.md) |
 | [dotnet](dotnet/) | [`nuget`](dotnet/nuget.md) |
-| [dpkg](dpkg/) | [`dpkg`](dpkg/dpkg.md) |
 | [elixir](elixir/) | [`mix`](elixir/mix.md) |
-| [erlang](erlang/) | [`otp`](erlang/otp.md), [`rebar`](erlang/rebar.md) |
 | [github-actions](github-actions/) | [`github-actions`](github-actions/github-actions.md) |
 | [go](go/) | [`gomod`](go/gomod.md) |
-| [haskell](haskell/) | [`cabal`](haskell/cabal.md), [`stack`](haskell/stack.md) |
-| [homebrew](homebrew/) | [`homebrew`](homebrew/homebrew.md) |
-| [lua](lua/) | [`luarocks`](lua/luarocks.md) |
 | [maven](maven/) | [`gradle`](maven/gradle.md), [`maven`](maven/maven.md) |
-| [nix](nix/) | [`nix`](nix/nix.md) |
 | [npm](npm/) | [`npm`](npm/npm.md), [`pnpm`](npm/pnpm.md), [`yarn`](npm/yarn.md) |
-| [ocaml](ocaml/) | [`opam`](ocaml/opam.md) |
-| [php](php/) | [`composer`](php/composer.md), [`pear`](php/pear.md) |
-| [portage](portage/) | [`portage`](portage/portage.md) |
-| [prolog](prolog/) | [`swipl-pack`](prolog/swipl-pack.md) |
-| [python](python/) | [`pdm`](python/pdm.md), [`pip`](python/pip.md), [`pipenv`](python/pipenv.md), [`poetry`](python/poetry.md), [`setuppy`](python/setuppy.md), [`uv`](python/uv.md) |
-| [r](r/) | [`r-package`](r/r-package.md) |
-| [rpm](rpm/) | [`rpm`](rpm/rpm.md) |
-| [ruby](ruby/) | [`bundler`](ruby/bundler.md), [`gemspec`](ruby/gemspec.md) |
+| [php](php/) | [`composer`](php/composer.md) |
+| [python](python/) | [`pip`](python/pip.md), [`pipenv`](python/pipenv.md), [`poetry`](python/poetry.md), [`uv`](python/uv.md) |
+| [ruby](ruby/) | [`bundler`](ruby/bundler.md) |
 | [rust](rust/) | [`cargo`](rust/cargo.md) |
 | [sbom](sbom/) | [`sbom`](sbom/sbom.md) |
 | [scala](scala/) | [`sbt`](scala/sbt.md) |
-| [snap](snap/) | [`snap`](snap/snap.md) |
 | [swift](swift/) | [`cocoapods`](swift/cocoapods.md), [`swiftpm`](swift/swiftpm.md) |
-| [terraform](terraform/) | [`terraform`](terraform/terraform.md) |
-| [wordpress](wordpress/) | [`wordpress`](wordpress/wordpress.md) |
+| [syft (Syft-only)](syft/) | [`alpm`](syft/alpm.md), [`apk`](syft/apk.md), [`cabal`](syft/cabal.md), [`conda`](syft/conda.md), [`dpkg`](syft/dpkg.md), [`gemspec`](syft/gemspec.md), [`homebrew`](syft/homebrew.md), [`luarocks`](syft/luarocks.md), [`nix`](syft/nix.md), [`opam`](syft/opam.md), [`otp`](syft/otp.md), [`pdm`](syft/pdm.md), [`pear`](syft/pear.md), [`portage`](syft/portage.md), [`r-package`](syft/r-package.md), [`rebar`](syft/rebar.md), [`rpm`](syft/rpm.md), [`setuppy`](syft/setuppy.md), [`snap`](syft/snap.md), [`stack`](syft/stack.md), [`swipl-pack`](syft/swipl-pack.md), [`terraform`](syft/terraform.md), [`wordpress`](syft/wordpress.md) |

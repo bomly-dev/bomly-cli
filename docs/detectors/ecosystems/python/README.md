@@ -6,11 +6,9 @@ Package managers Bomly recognizes in the `python` ecosystem:
 
 | Package manager | Detector chain | Evidence patterns | Install-first support |
 | --- | --- | --- | --- |
-| [`pdm`](pdm.md) | `syft-detector` | `pdm.lock`, `pyproject.toml` | No |
 | [`pip`](pip.md) | `pip-detector`, `syft-detector` | `requirements.txt`, `requirements-dev.txt`, `requirements.in`, `requirements.lock`, `*requirements*.txt` | Yes |
 | [`pipenv`](pipenv.md) | `pipenv-detector`, `syft-detector` | `Pipfile`, `Pipfile.lock` | Yes |
 | [`poetry`](poetry.md) | `poetry-detector`, `syft-detector` | `poetry.lock`, `pyproject.toml` | Yes |
-| [`setuppy`](setuppy.md) | `syft-detector` | `setup.py` | No |
 | [`uv`](uv.md) | `uv-detector`, `syft-detector` | `uv.lock`, `pyproject.toml` | Yes |
 
 ## How to read this
@@ -18,4 +16,4 @@ Package managers Bomly recognizes in the `python` ecosystem:
 - Each package-manager page documents the exact commands Bomly runs (if any), the network behavior, and the lockfile or manifest formats supported.
 - Bomly tries detector chains from left to right. Later detectors in the chain are fallbacks Bomly uses when the preferred detector cannot produce graph data.
 - Install-first support means `--install-first` can run the package manager's normal install command before graph resolution. This downloads packages and modifies the filesystem; see [docs/DETECTORS.md](../../DETECTORS.md#install-first).
-- Syft-backed entries provide broad compatibility, especially for containers and ecosystems without native Bomly graph resolution.
+- Package managers with no native detector at all (chain is `syft-detector` only) are grouped separately under [Syft](../syft/).

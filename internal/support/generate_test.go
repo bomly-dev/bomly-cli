@@ -95,6 +95,11 @@ func TestRenderComponentDocs_IncludeGeneratedGuides(t *testing.T) {
 		filepath.Join(tmp, "detectors", "ecosystems", "npm", "pnpm.md"),
 		filepath.Join(tmp, "detectors", "ecosystems", "npm", "yarn.md"),
 		filepath.Join(tmp, "detectors", "ecosystems", "python", "pip.md"),
+		// Syft-only PMs (no native detector) are grouped under the synthetic
+		// "syft" ecosystem rather than scattered through their real ones.
+		filepath.Join(tmp, "detectors", "ecosystems", "syft", "README.md"),
+		filepath.Join(tmp, "detectors", "ecosystems", "syft", "setuppy.md"),
+		filepath.Join(tmp, "detectors", "ecosystems", "syft", "alpm.md"),
 		filepath.Join(tmp, "matchers", "osv.md"),
 	} {
 		if _, err := os.Stat(path); err != nil {

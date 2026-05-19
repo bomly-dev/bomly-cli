@@ -44,11 +44,11 @@ func newDiffCmd() *cobra.Command {
 			logger := commandLogger(cmd, "diff")
 			current := options.GetConfig()
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
-			progress := newCommandProgress(streams, "Resolving diff inputs")
+			prog := newCommandProgress(streams, "")
 			restoreStdout := streams.captureStdoutToDebugLog(logger)
 			defer func() {
-				if progress != nil {
-					progress.Fail("Diff aborted")
+				if prog != nil {
+					prog.Fail("Diff aborted")
 				}
 				restoreStdout()
 			}()
@@ -93,11 +93,11 @@ func newDiffCmd() *cobra.Command {
 
 			switch {
 			case current.SBOM:
-				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveSBOMDiffGraphs(cmd.Context(), options, logger, baseRef, headRef, streams.notificationWriter())
+				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveSBOMDiffGraphs(cmd.Context(), options, prog, logger, baseRef, headRef, streams.notificationWriter())
 			case current.Container != "":
-				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveContainerDiffGraphs(cmd.Context(), options, logger, baseRef, headRef, streams.notificationWriter())
+				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveContainerDiffGraphs(cmd.Context(), options, prog, logger, baseRef, headRef, streams.notificationWriter())
 			default:
-				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveGitDiffGraphs(cmd.Context(), options, logger, baseRef, headRef, streams.notificationWriter())
+				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveGitDiffGraphs(cmd.Context(), options, prog, logger, baseRef, headRef, streams.notificationWriter())
 			}
 			if err != nil {
 				return err
@@ -105,14 +105,20 @@ func newDiffCmd() *cobra.Command {
 			defer func() { _ = baseTarget.close() }()
 			defer func() { _ = headTarget.close() }()
 
+			// Wire the engine pipeline progress reporter for both sides so the
+			// user sees Detecting/Enriching/Auditing stages live for each ref.
+			baseReq := baseTarget.Context.PipelineRequest(sdk.ScopeUnknown, streams.notificationWriter())
+			baseReq.Progress = prog
+			headReq := headTarget.Context.PipelineRequest(sdk.ScopeUnknown, streams.notificationWriter())
+			headReq.Progress = prog
 			diffResult, err := diffengine.Run(cmd.Context(), diffengine.Request{
 				Base: diffengine.Target{
 					Pipeline: engine.NewPipeline(baseTarget.Context.Registry(), logger),
-					Request:  baseTarget.Context.PipelineRequest(sdk.ScopeUnknown, streams.notificationWriter()),
+					Request:  baseReq,
 				},
 				Head: diffengine.Target{
 					Pipeline: engine.NewPipeline(headTarget.Context.Registry(), logger),
-					Request:  headTarget.Context.PipelineRequest(sdk.ScopeUnknown, streams.notificationWriter()),
+					Request:  headReq,
 				},
 			})
 			if err != nil {
@@ -122,14 +128,13 @@ func newDiffCmd() *cobra.Command {
 			allResults := append(append([]sdk.DetectionResult{}, diffResult.Base.ResolveResults...), diffResult.Head.ResolveResults...)
 			resolutionWarnings = append(resolutionWarnings, diffResult.Base.DetectorWarnings...)
 			resolutionWarnings = append(resolutionWarnings, diffResult.Head.DetectorWarnings...)
-			subprojectChildren := subprojectProgressChildren(allResults)
-			subprojectChildren = append(subprojectChildren, warningProgressChildren(resolutionWarnings)...)
-			progress.CompleteStep("Indexed subprojects", subprojectChildren)
-			progress.CompleteStep("Detected Dependencies", detectorProgressChildren(allResults))
+			detectionChildren := detectorProgressChildren(allResults)
+			detectionChildren = append(detectionChildren, warningProgressChildren(resolutionWarnings)...)
+			prog.CompleteStep("Detected Dependencies", detectionChildren)
 			if current.Enrich {
 				runs := uniqueStrings(diffResult.Base.MatcherRuns, diffResult.Head.MatcherRuns)
 				warnings := append(append([]engine.PipelineWarning{}, diffResult.Base.MatchWarnings...), diffResult.Head.MatchWarnings...)
-				progress.CompleteStep("Enriched packages", matchProgressChildren(nil, runs, warnings))
+				prog.CompleteStep("Enriched packages", matchProgressChildren(nil, runs, warnings))
 			}
 
 			auditPayload := diffAuditOutput(diffResult.Audit)
@@ -137,22 +142,22 @@ func newDiffCmd() *cobra.Command {
 				runs, findings := combineAuditProgress(diffResult.Base, diffResult.Head)
 				warnings := append(append([]engine.PipelineWarning{}, diffResult.Base.AuditWarnings...), diffResult.Head.AuditWarnings...)
 				children := append(auditProgressChildren(runs, findings, warnings), diffPolicyOutcomeProgressChild(diffResult.Audit))
-				progress.CompleteStep("Evaluated policy", children)
+				prog.CompleteStep("Evaluated policy", children)
 			}
 
 			payload := output.BuildDiffResponse(projectIdentifier, compBase, compHead, diffResult.Base.Consolidated, diffResult.Head.Consolidated, auditPayload, started)
 			if outputFormat == output.FormatSARIF {
-				progress.Success("Resolved Graph")
+				prog.Success("Resolved Graph")
 				return output.WriteSARIF(streams.reportWriter(), diffResult.Findings, "bomly", cmd.Root().Version)
 			}
 			if current.Interactive {
-				progress.Stop()
+				prog.Stop()
 				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewDiff(payload)))
 			}
 
-			progress.Success("Resolved Graph")
+			prog.Success("Resolved Graph")
 			if outputFormat == output.FormatText {
-				progress.SeparateReport()
+				prog.SeparateReport()
 			}
 			err = output.Write(streams.reportWriter(), outputFormat, payload, output.Renderers{
 				Text: func(w io.Writer) error {

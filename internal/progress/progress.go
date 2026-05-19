@@ -1,25 +1,28 @@
-// Package progress renders a CLI progress display: a single live-updating spinner line
-// for the current step plus a buffered list of completed steps that flushes to the writer
-// when the next step starts. Each completed step can carry a tree of Child rows describing
-// what happened (e.g. detector results, finding counts).
+// Package progress renders a CLI progress display: a live region of per-step
+// lines, each animating its own spinner and bubbles-rendered progress bar,
+// plus a stream of completed steps that get promoted in place (rewritten as
+// a past-tense title with their child tree) and scroll into history as new
+// steps start.
 //
-// Progress satisfies the engine.ProgressReporter interface (StartStage / AdvanceStage /
-// CompleteStage), so it can drive the pipeline's coarse progress events while also being
-// used directly by command code for finer-grained step reporting.
+// Progress satisfies the engine.ProgressReporter interface (StartStage /
+// AdvanceStage / CompleteStage) so the pipeline can drive coarse progress
+// events, while command code can also open finer-grained step handles via
+// Start / StartWithDoneLabel.
 package progress
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"strings"
 	"sync"
 	"time"
 
+	bprogress "github.com/charmbracelet/bubbles/progress"
+	bspinner "github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/tree"
 )
-
-// spinnerFrames mirrors the braille-dot spinner used by syft / bubbly.
-var spinnerFrames = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
 
 // Visual marks rendered before completed-step / child labels.
 const (
@@ -31,7 +34,29 @@ const (
 	childLabelWidth = 25
 	barWidth        = 20
 	spinnerFPS      = 100 * time.Millisecond
+
+	hideCursorSeq = "\x1b[?25l"
+	showCursorSeq = "\x1b[?25h"
+	eraseLineSeq  = "\x1b[2K"
+
+	initialStepID = "__initial__"
 )
+
+// spin is the curated frame set we render. We deliberately don't run
+// bubbles/spinner's tea.Model — we just borrow its frame slice + FPS so we
+// stay aligned with the rest of the Charm aesthetic.
+var spin = bspinner.MiniDot
+
+// stageDoneLabels maps an engine stage's active (present-progressive) label to
+// the past-tense label the CLI later supplies via CompleteStep. Populated
+// implicitly at Start time so that CompleteStep("Detected Dependencies", …)
+// finds the same step opened by StartStage("Detecting dependencies", …).
+var stageDoneLabels = map[string]string{
+	"Detecting dependencies": "Detected Dependencies",
+	"Enriching packages":     "Enriched packages",
+	"Analyzing reachability": "Analyzed reachability",
+	"Evaluating policy":      "Evaluated policy",
+}
 
 var (
 	spinnerStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("13"))  // magenta
@@ -41,6 +66,7 @@ var (
 	stageStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("240")) // gray
 	titleStyle   = lipgloss.NewStyle().Bold(true)
 	detailStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("240")) // gray
+	treeStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("240")) // gray
 )
 
 // Child describes one sub-item rendered beneath a completed task.
@@ -50,168 +76,547 @@ type Child struct {
 	Detail string // e.g. "[59 packages]"
 }
 
+type stepState uint8
+
+const (
+	stepActive    stepState = iota // spinner animating, bar live
+	stepFinishing                  // engine signalled CompleteStage; ✔ icon, bar at 100%, awaiting children
+	stepSucceeded                  // ready to promote with ✔ + children
+	stepFailed                     // ready to promote with ✘
+)
+
+// Step is the handle for one line in the live region. It is returned by
+// Start / StartWithDoneLabel and used by callers that want to drive a
+// dedicated progress line directly (rather than via the label-keyed shim).
+type Step struct {
+	p         *Progress
+	id        string
+	active    string
+	done      string
+	bar       bprogress.Model
+	completed int
+	total     int
+	detail    string
+	state     stepState
+	children  []Child
+}
+
+// SetTotal sets the denominator for this step's progress bar.
+func (s *Step) SetTotal(n int) {
+	if s == nil || s.p == nil {
+		return
+	}
+	s.p.mu.Lock()
+	if n < 0 {
+		n = 0
+	}
+	s.total = n
+	if s.completed > n {
+		s.completed = n
+	}
+	s.p.mu.Unlock()
+}
+
+// Advance increments completed by one.
+func (s *Step) Advance() {
+	if s == nil || s.p == nil {
+		return
+	}
+	s.p.mu.Lock()
+	s.completed++
+	if s.total > 0 && s.completed > s.total {
+		s.completed = s.total
+	}
+	s.p.mu.Unlock()
+}
+
+// SetProgress replaces completed/total atomically.
+func (s *Step) SetProgress(completed, total int) {
+	if s == nil || s.p == nil {
+		return
+	}
+	if total < 0 {
+		total = 0
+	}
+	if completed < 0 {
+		completed = 0
+	}
+	if total > 0 && completed > total {
+		completed = total
+	}
+	s.p.mu.Lock()
+	s.completed = completed
+	s.total = total
+	s.p.mu.Unlock()
+}
+
+// SetDetail updates the hint text shown to the right of the bar on this step.
+func (s *Step) SetDetail(text string) {
+	if s == nil || s.p == nil {
+		return
+	}
+	s.p.mu.Lock()
+	s.detail = strings.TrimSpace(text)
+	s.p.mu.Unlock()
+}
+
+// Complete marks the step as succeeded with the supplied past-tense label and
+// child tree. The renderer promotes it on the next draw.
+func (s *Step) Complete(doneLabel string, children []Child) {
+	if s == nil || s.p == nil {
+		return
+	}
+	s.p.mu.Lock()
+	if doneLabel != "" {
+		s.done = doneLabel
+	}
+	if s.done == "" {
+		s.done = s.active
+	}
+	if s.total > 0 {
+		s.completed = s.total
+	}
+	s.children = children
+	s.state = stepSucceeded
+	s.p.mu.Unlock()
+}
+
+// Fail marks the step as failed with the supplied past-tense label.
+func (s *Step) Fail(doneLabel string) {
+	if s == nil || s.p == nil {
+		return
+	}
+	s.p.mu.Lock()
+	if doneLabel != "" {
+		s.done = doneLabel
+	}
+	if s.done == "" {
+		s.done = s.active
+	}
+	s.state = stepFailed
+	s.p.mu.Unlock()
+}
+
 type completedTask struct {
 	label    string
 	failed   bool
 	children []Child
 }
 
-// Progress renders a single live spinner line plus a flushed list of completed steps.
-// It is safe for concurrent use.
+// Progress renders the live region. Safe for concurrent use.
 type Progress struct {
-	writer       io.Writer
-	enabled      bool
-	label        string
-	stage        string
-	pendingSteps []completedTask
-	mu           sync.Mutex
-	stopCh       chan struct{}
-	doneCh       chan struct{}
-	finished     bool
-	separated    bool
+	writer  io.Writer
+	enabled bool
+
+	mu             sync.Mutex
+	active         []*Step
+	pastToID       map[string]string
+	frame          int
+	lastDrawnLines int
+	cursorHidden   bool
+
+	stopCh    chan struct{}
+	doneCh    chan struct{}
+	finished  bool
+	separated bool
 }
 
-// New creates a Progress instance. When enabled is false, all methods are no-ops —
-// useful when the host stream cannot render ANSI escapes (piped, not a TTY, etc.).
+// New creates a Progress instance. When enabled is false, all methods are
+// no-ops. A non-empty initial label opens an implicit step that disappears
+// silently once any explicit Start / StartStage is called.
 func New(writer io.Writer, enabled bool, label string) *Progress {
 	p := &Progress{
-		writer:  writer,
-		enabled: enabled,
-		label:   label,
+		writer:   writer,
+		enabled:  enabled,
+		pastToID: make(map[string]string),
 	}
 	if !p.enabled {
 		return p
 	}
 	p.stopCh = make(chan struct{})
 	p.doneCh = make(chan struct{})
+	if label != "" {
+		p.active = append(p.active, &Step{
+			p:      p,
+			id:     initialStepID,
+			active: label,
+			bar:    newBar(),
+			state:  stepActive,
+		})
+	}
 	go p.run()
 	return p
 }
 
+func newBar() bprogress.Model {
+	m := bprogress.New(bprogress.WithDefaultGradient(), bprogress.WithoutPercentage())
+	m.Width = barWidth
+	return m
+}
+
 func (p *Progress) run() {
 	defer close(p.doneCh)
-	ticker := time.NewTicker(spinnerFPS)
+	ticker := time.NewTicker(spin.FPS)
 	defer ticker.Stop()
 
-	frame := 0
-	p.renderActive(spinnerFrames[frame])
+	p.draw()
 	for {
 		select {
 		case <-ticker.C:
-			frame = (frame + 1) % len(spinnerFrames)
-			p.renderActive(spinnerFrames[frame])
+			p.tickFrame()
+			p.draw()
 		case <-p.stopCh:
 			return
 		}
 	}
 }
 
-// CompleteStep buffers a completed task with optional children. It will be
-// printed on the next call to Advance, Success, or Fail.
-func (p *Progress) CompleteStep(label string, children []Child) {
-	if !p.enabled {
-		return
-	}
+func (p *Progress) tickFrame() {
 	p.mu.Lock()
-	p.pendingSteps = append(p.pendingSteps, completedTask{label: label, children: children})
+	p.frame = (p.frame + 1) % len(spin.Frames)
 	p.mu.Unlock()
 }
 
-// Advance flushes all pending completed steps, then starts a new spinner task.
+// Start opens a new step in the live region.
+func (p *Progress) Start(id, activeLabel string) *Step {
+	return p.StartWithDoneLabel(id, activeLabel, "")
+}
+
+// StartWithDoneLabel opens a new step and pre-registers its past-tense label
+// so subsequent CompleteStep(doneLabel, …) finds the same step.
+func (p *Progress) StartWithDoneLabel(id, activeLabel, doneLabel string) *Step {
+	if p == nil || !p.enabled {
+		return &Step{} // detached no-op handle
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	if p.finished {
+		return &Step{}
+	}
+	p.dropImplicitInitialLocked()
+
+	// If a step with this id already exists, return it (idempotent reopen).
+	for _, s := range p.active {
+		if s.id == id {
+			return s
+		}
+	}
+	s := &Step{
+		p:      p,
+		id:     id,
+		active: activeLabel,
+		bar:    newBar(),
+		state:  stepActive,
+	}
+	p.active = append(p.active, s)
+	if activeLabel != "" {
+		p.pastToID[activeLabel] = id
+	}
+	if doneLabel != "" {
+		p.pastToID[doneLabel] = id
+	}
+	return s
+}
+
+// dropImplicitInitialLocked removes the placeholder step opened by New() with
+// an initial label, the first time an explicit step is started. Must be
+// called with p.mu held.
+func (p *Progress) dropImplicitInitialLocked() {
+	if len(p.active) == 0 {
+		return
+	}
+	if p.active[0].id == initialStepID {
+		p.active = p.active[1:]
+	}
+}
+
+// CompleteStep finalises the step matching doneLabel (or the most-recent
+// stepActive / stepFinishing step) with the supplied children.
+func (p *Progress) CompleteStep(doneLabel string, children []Child) {
+	if p == nil || !p.enabled {
+		return
+	}
+	p.mu.Lock()
+	if p.finished {
+		p.mu.Unlock()
+		return
+	}
+	s := p.findStepLocked(doneLabel)
+	if s == nil {
+		// No matching step: emit a synthetic step that the renderer will
+		// promote on its next draw. This preserves today's "buffered pending
+		// step" behaviour when callers complete a label they never opened.
+		p.dropImplicitInitialLocked()
+		s = &Step{
+			p:      p,
+			id:     doneLabel,
+			active: doneLabel,
+			bar:    newBar(),
+			state:  stepSucceeded,
+		}
+		p.active = append(p.active, s)
+	}
+	s.state = stepSucceeded
+	s.done = doneLabel
+	s.children = children
+	if s.total > 0 {
+		s.completed = s.total
+	}
+	p.mu.Unlock()
+}
+
+// Advance flushes any prior implicit/in-flight steps and starts a new
+// labelled step. Preserves the legacy single-spinner API for callers like
+// scan_cmd's "Writing SBOM output" transition.
 func (p *Progress) Advance(label string) {
-	if !p.enabled {
+	if p == nil || !p.enabled {
 		return
 	}
 	p.mu.Lock()
-	steps := p.pendingSteps
-	p.pendingSteps = nil
-	if len(steps) == 0 {
-		steps = []completedTask{{label: p.label}}
-	}
-	p.label = label
-	p.stage = ""
-	p.mu.Unlock()
-
-	p.flushSteps(steps)
-	p.renderActive(spinnerFrames[0])
-}
-
-// Stage updates the hint text shown alongside the current spinner.
-func (p *Progress) Stage(text string) {
-	if !p.enabled {
+	if p.finished {
+		p.mu.Unlock()
 		return
 	}
-	p.mu.Lock()
-	p.stage = text
-	p.mu.Unlock()
-}
-
-// Detail updates the active spinner with a concise current-operation hint.
-func (p *Progress) Detail(label, detail string) {
-	if !p.enabled {
-		return
+	// Promote any prior stepActive/stepFinishing steps as silent successes so
+	// they don't perpetually spin once the caller has moved on.
+	for _, s := range p.active {
+		if s.state == stepActive || s.state == stepFinishing {
+			if s.id == initialStepID {
+				continue // implicit step is dropped, not promoted
+			}
+			s.state = stepSucceeded
+			if s.done == "" {
+				s.done = s.active
+			}
+		}
 	}
-	p.mu.Lock()
+	p.dropImplicitInitialLocked()
+	s := &Step{
+		p:      p,
+		id:     label,
+		active: label,
+		bar:    newBar(),
+		state:  stepActive,
+	}
+	p.active = append(p.active, s)
 	if label != "" {
-		p.label = label
+		p.pastToID[label] = label
 	}
-	p.stage = strings.TrimSpace(detail)
 	p.mu.Unlock()
-	p.renderActive(spinnerFrames[0])
+}
+
+// findStepLocked returns the step whose pastToID maps to doneLabel, falling
+// back to the most-recent active/finishing step, then the most-recent step
+// of any state. Returns nil if active is empty. Must be called with p.mu
+// held.
+func (p *Progress) findStepLocked(doneLabel string) *Step {
+	if id, ok := p.pastToID[doneLabel]; ok {
+		for _, s := range p.active {
+			if s.id == id {
+				return s
+			}
+		}
+	}
+	for i := len(p.active) - 1; i >= 0; i-- {
+		s := p.active[i]
+		if s.state == stepActive || s.state == stepFinishing {
+			return s
+		}
+	}
+	return nil
+}
+
+// findStepByActiveLabelLocked returns the most-recent step whose active label
+// matches. Must be called with p.mu held.
+func (p *Progress) findStepByActiveLabelLocked(label string) *Step {
+	if id, ok := p.pastToID[label]; ok {
+		for _, s := range p.active {
+			if s.id == id {
+				return s
+			}
+		}
+	}
+	for i := len(p.active) - 1; i >= 0; i-- {
+		if p.active[i].active == label {
+			return p.active[i]
+		}
+	}
+	return nil
+}
+
+// Stage updates the hint on the most-recent active step. Kept for
+// backwards-compatibility with the legacy single-spinner API.
+func (p *Progress) Stage(text string) {
+	if p == nil || !p.enabled {
+		return
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	for i := len(p.active) - 1; i >= 0; i-- {
+		if p.active[i].state == stepActive || p.active[i].state == stepFinishing {
+			p.active[i].detail = strings.TrimSpace(text)
+			return
+		}
+	}
+}
+
+// Detail updates the hint on the step keyed by activeLabel. Implements the
+// engine's DetailProgressReporter interface.
+func (p *Progress) Detail(label, detail string) {
+	if p == nil || !p.enabled {
+		return
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	s := p.findStepByActiveLabelLocked(label)
+	if s == nil {
+		// As a fallback, open a step so the caller sees a line even when no
+		// explicit Start preceded the Detail call. This matches the legacy
+		// behaviour where Detail also updated the spinner's label.
+		p.dropImplicitInitialLocked()
+		s = &Step{
+			p:      p,
+			id:     label,
+			active: label,
+			bar:    newBar(),
+			state:  stepActive,
+		}
+		p.active = append(p.active, s)
+		if label != "" {
+			p.pastToID[label] = label
+		}
+	}
+	s.detail = strings.TrimSpace(detail)
 }
 
 // StartStage / AdvanceStage / CompleteStage satisfy engine.ProgressReporter.
+// They route engine-emitted stage events through the label-keyed shim so the
+// CLI can later supply a past-tense label + children via CompleteStep.
 func (p *Progress) StartStage(label string, total int) {
-	p.setStageProgress(label, 0, total)
+	if p == nil || !p.enabled {
+		return
+	}
+	p.mu.Lock()
+	if p.finished {
+		p.mu.Unlock()
+		return
+	}
+	p.dropImplicitInitialLocked()
+	s := p.findStepByActiveLabelLocked(label)
+	if s == nil {
+		s = &Step{
+			p:      p,
+			id:     label,
+			active: label,
+			bar:    newBar(),
+			state:  stepActive,
+		}
+		p.active = append(p.active, s)
+		if label != "" {
+			p.pastToID[label] = label
+		}
+	}
+	if done, ok := stageDoneLabels[label]; ok {
+		p.pastToID[done] = s.id
+	}
+	if total < 0 {
+		total = 0
+	}
+	s.total = total
+	s.completed = 0
+	p.mu.Unlock()
 }
 
 func (p *Progress) AdvanceStage(label string, completed, total int) {
-	p.setStageProgress(label, completed, total)
-}
-
-func (p *Progress) CompleteStage(label string, total int) {
-	p.setStageProgress(label, total, total)
-}
-
-func (p *Progress) setStageProgress(label string, completed, total int) {
-	if !p.enabled {
+	if p == nil || !p.enabled {
 		return
 	}
-	if total < 1 {
-		total = 1
+	if total < 0 {
+		total = 0
 	}
 	if completed < 0 {
 		completed = 0
 	}
-	if completed > total {
+	if total > 0 && completed > total {
 		completed = total
 	}
-	percent := completed * 100 / total
 	p.mu.Lock()
-	p.label = label
-	p.stage = fmt.Sprintf("%s %3d%%", formatProgressBar(completed, total), percent)
-	p.mu.Unlock()
-	p.renderActive(spinnerFrames[0])
+	defer p.mu.Unlock()
+	if p.finished {
+		return
+	}
+	s := p.findStepByActiveLabelLocked(label)
+	if s == nil {
+		// Auto-open if the caller advances before starting.
+		p.dropImplicitInitialLocked()
+		s = &Step{
+			p:      p,
+			id:     label,
+			active: label,
+			bar:    newBar(),
+			state:  stepActive,
+		}
+		p.active = append(p.active, s)
+		if label != "" {
+			p.pastToID[label] = label
+		}
+		if done, ok := stageDoneLabels[label]; ok {
+			p.pastToID[done] = s.id
+		}
+	}
+	s.total = total
+	s.completed = completed
 }
 
-// Success prints the final task with a check mark and stops the spinner.
+func (p *Progress) CompleteStage(label string, total int) {
+	if p == nil || !p.enabled {
+		return
+	}
+	if total < 0 {
+		total = 0
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.finished {
+		return
+	}
+	s := p.findStepByActiveLabelLocked(label)
+	if s == nil {
+		return
+	}
+	s.total = total
+	s.completed = total
+	// Engine signalled completion but the CLI still needs to supply the
+	// past-tense label + children. Hold the step in the region with a ✔
+	// icon and a full bar until CompleteStep arrives.
+	if s.state == stepActive {
+		s.state = stepFinishing
+	}
+}
+
+// Success promotes the most-recent active step (or the step matching label
+// via pastToID) and stops the renderer. Subsequent calls are no-ops.
 func (p *Progress) Success(label string) {
-	p.finish(completedTask{label: label}, false)
+	p.finishAll(label, stepSucceeded, nil)
 }
 
-// SuccessWithChildren prints the final task with children and stops the spinner.
+// SuccessWithChildren promotes the most-recent active step with children
+// and stops the renderer.
 func (p *Progress) SuccessWithChildren(label string, children []Child) {
-	p.finish(completedTask{label: label, children: children}, false)
+	p.finishAll(label, stepSucceeded, children)
 }
 
-// Fail prints the final task with a cross mark and stops the spinner.
+// Fail promotes the most-recent active step with a ✘ icon and stops the
+// renderer.
 func (p *Progress) Fail(label string) {
-	p.finish(completedTask{label: label, failed: true}, true)
+	p.finishAll(label, stepFailed, nil)
 }
 
-// Stop halts the spinner without writing a final line.
+// Stop halts the renderer without writing a final line. Cursor visibility
+// is restored. Subsequent calls are no-ops.
 func (p *Progress) Stop() {
-	if !p.enabled {
+	if p == nil || !p.enabled {
 		return
 	}
 	p.mu.Lock()
@@ -220,16 +625,19 @@ func (p *Progress) Stop() {
 		return
 	}
 	p.finished = true
-	p.pendingSteps = nil
+	// Drop any still-active steps so they don't render in the final cleanup.
+	p.active = nil
 	p.mu.Unlock()
 
 	close(p.stopCh)
 	<-p.doneCh
-	_, _ = fmt.Fprint(p.writer, "\r\x1b[2K")
+	p.finalDraw()
 }
 
-func (p *Progress) finish(final completedTask, failed bool) {
+func (p *Progress) finishAll(doneLabel string, state stepState, children []Child) {
 	if !p.enabled {
+		// Cobra defer-Fail paths land here when progress is disabled (e.g.
+		// non-TTY). Nothing to render.
 		return
 	}
 	p.mu.Lock()
@@ -237,25 +645,68 @@ func (p *Progress) finish(final completedTask, failed bool) {
 		p.mu.Unlock()
 		return
 	}
+
+	target := p.findStepLocked(doneLabel)
+	if target == nil {
+		// No step matches — synthesise one so the user sees a final block.
+		p.dropImplicitInitialLocked()
+		target = &Step{
+			p:      p,
+			id:     doneLabel,
+			active: doneLabel,
+			bar:    newBar(),
+			state:  stepActive,
+		}
+		p.active = append(p.active, target)
+	}
+	target.state = state
+	target.done = doneLabel
+	if state != stepFailed {
+		target.children = children
+	}
+
+	// Promote any other still-running steps as silent successes so the live
+	// region drains completely.
+	for _, s := range p.active {
+		if s == target {
+			continue
+		}
+		if s.state == stepActive || s.state == stepFinishing {
+			s.state = stepSucceeded
+			if s.done == "" {
+				s.done = s.active
+			}
+		}
+	}
+
 	p.finished = true
-	steps := p.pendingSteps
-	p.pendingSteps = nil
 	p.mu.Unlock()
 
 	close(p.stopCh)
 	<-p.doneCh
-
-	_, _ = fmt.Fprint(p.writer, "\r\x1b[2K")
-	for _, t := range steps {
-		p.writeTaskBlock(t)
-	}
-	p.writeTaskBlock(final)
+	p.finalDraw()
 }
 
-// SeparateReport writes a small visual divider after progress completes and
-// before a human-readable report is emitted on stdout.
+// finalDraw flushes any pending promotions, restores the cursor, and clears
+// the live region. Safe to call only after the run goroutine has exited.
+func (p *Progress) finalDraw() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.drawLocked()
+	var buf bytes.Buffer
+	if p.cursorHidden {
+		buf.WriteString(showCursorSeq)
+		p.cursorHidden = false
+	}
+	if buf.Len() > 0 {
+		_, _ = p.writer.Write(buf.Bytes())
+	}
+}
+
+// SeparateReport writes a blank line between the progress output and any
+// human-readable report that follows on stdout.
 func (p *Progress) SeparateReport() {
-	if !p.enabled {
+	if p == nil || !p.enabled {
 		return
 	}
 	p.mu.Lock()
@@ -269,98 +720,166 @@ func (p *Progress) SeparateReport() {
 	_, _ = fmt.Fprintln(p.writer)
 }
 
-func (p *Progress) flushSteps(steps []completedTask) {
-	_, _ = fmt.Fprint(p.writer, "\r\x1b[2K")
-	for _, t := range steps {
-		p.writeTaskBlock(t)
-	}
-}
-
-func (p *Progress) writeTaskBlock(t completedTask) {
-	_, _ = fmt.Fprintln(p.writer, formatCompletedLine(t))
-	for i, child := range t.children {
-		isLast := i == len(t.children)-1
-		_, _ = fmt.Fprintln(p.writer, formatChildLine(child, isLast))
-	}
-}
-
-func (p *Progress) renderActive(frame string) {
-	if !p.enabled {
+func (p *Progress) draw() {
+	if p == nil || !p.enabled {
 		return
 	}
 	p.mu.Lock()
-	label := p.label
-	stage := p.stage
-	p.mu.Unlock()
-
-	line := formatSpinnerLine(frame, label, stage)
-	_, _ = fmt.Fprint(p.writer, "\r\x1b[2K"+line)
+	defer p.mu.Unlock()
+	p.drawLocked()
 }
 
-func formatSpinnerLine(frame, label, stage string) string {
-	icon := spinnerStyle.Render(frame)
-	title := titleStyle.Width(titleWidth).Render(label)
-	if stage != "" {
-		return fmt.Sprintf(" %s %s %s", icon, title, stageStyle.Render(stage))
+// drawLocked promotes any completed steps to frozen blocks and redraws the
+// remaining live region. Must be called with p.mu held.
+func (p *Progress) drawLocked() {
+	promotions := p.collectPromotionsLocked()
+	frame := spin.Frames[p.frame]
+	prev := p.lastDrawnLines
+
+	var buf bytes.Buffer
+	if !p.cursorHidden {
+		buf.WriteString(hideCursorSeq)
+		p.cursorHidden = true
 	}
-	return fmt.Sprintf(" %s %s", icon, title)
+
+	// Move to top of previous live region and erase it.
+	if prev > 0 {
+		fmt.Fprintf(&buf, "\x1b[%dA", prev)
+	}
+	buf.WriteString("\r")
+	for i := 0; i < prev; i++ {
+		buf.WriteString(eraseLineSeq)
+		if i < prev-1 {
+			buf.WriteString("\n")
+		}
+	}
+	if prev > 1 {
+		fmt.Fprintf(&buf, "\x1b[%dA", prev-1)
+	}
+	if prev > 0 {
+		buf.WriteString("\r")
+	}
+
+	// Write promoted (now permanent) blocks above the new live region.
+	for _, promo := range promotions {
+		buf.WriteString(renderFrozenBlock(promo))
+	}
+
+	// Write the new live region.
+	newLines := 0
+	for _, s := range p.active {
+		buf.WriteString(renderActiveLine(s, frame))
+		buf.WriteString("\n")
+		newLines++
+	}
+	p.lastDrawnLines = newLines
+
+	if buf.Len() == 0 {
+		return
+	}
+	_, _ = p.writer.Write(buf.Bytes())
 }
 
-func formatProgressBar(completed, total int) string {
-	if total < 1 {
-		total = 1
+func (p *Progress) collectPromotionsLocked() []*Step {
+	if len(p.active) == 0 {
+		return nil
 	}
-	if completed < 0 {
-		completed = 0
+	var promos []*Step
+	kept := p.active[:0]
+	for _, s := range p.active {
+		if s.state == stepSucceeded || s.state == stepFailed {
+			promos = append(promos, s)
+			continue
+		}
+		kept = append(kept, s)
 	}
-	if completed > total {
-		completed = total
-	}
-	filled := completed * barWidth / total
-	if completed > 0 && filled == 0 {
-		filled = 1
-	}
-	if completed < total && filled == barWidth {
-		filled = barWidth - 1
-	}
-	return "[" + strings.Repeat("=", filled) + strings.Repeat(".", barWidth-filled) + "]"
+	p.active = kept
+	return promos
 }
 
-func formatCompletedLine(t completedTask) string {
+func renderActiveLine(s *Step, frame string) string {
 	var icon string
-	if t.failed {
-		icon = failStyle.Render(CrossMark)
-	} else {
+	if s.state == stepFinishing {
 		icon = successStyle.Render(CheckMark)
+	} else {
+		icon = spinnerStyle.Render(frame)
 	}
-	title := titleStyle.Render(t.label)
-	return fmt.Sprintf(" %s %s", icon, title)
+	title := titleStyle.Width(titleWidth).Render(s.active)
+
+	percent := 0.0
+	if s.total > 0 {
+		percent = float64(s.completed) / float64(s.total)
+	}
+	if s.state == stepFinishing {
+		percent = 1.0
+	}
+	if percent < 0 {
+		percent = 0
+	}
+	if percent > 1 {
+		percent = 1
+	}
+	bar := s.bar.ViewAs(percent)
+	pct := fmt.Sprintf(" %3d%%", int(percent*100+0.5))
+
+	line := fmt.Sprintf(" %s %s %s%s", icon, title, bar, pct)
+	if s.detail != "" {
+		line += " " + stageStyle.Render(s.detail)
+	}
+	return line
 }
 
-func formatChildLine(child Child, last bool) string {
-	connector := "├──"
-	if last {
-		connector = "└──"
+func renderFrozenBlock(s *Step) string {
+	icon := successStyle.Render(CheckMark)
+	if s.state == stepFailed {
+		icon = failStyle.Render(CrossMark)
 	}
-	if child.Icon != "" {
-		var icon string
-		switch child.Icon {
-		case WarningMark:
-			icon = warnStyle.Render(child.Icon)
-		case CrossMark:
-			icon = failStyle.Render(child.Icon)
-		default:
-			icon = successStyle.Render(child.Icon)
-		}
-		label := lipgloss.NewStyle().Width(childLabelWidth).Render(child.Label)
-		if child.Detail != "" {
-			return fmt.Sprintf("   %s %s %s %s", stageStyle.Render(connector), icon, label, detailStyle.Render(child.Detail))
-		}
-		return fmt.Sprintf("   %s %s %s", stageStyle.Render(connector), icon, label)
+	label := s.done
+	if label == "" {
+		label = s.active
 	}
-	label := child.Label
-	if child.Detail != "" {
-		label += " " + detailStyle.Render(child.Detail)
+	head := fmt.Sprintf(" %s %s\n", icon, titleStyle.Render(label))
+	if len(s.children) == 0 {
+		return head
 	}
-	return fmt.Sprintf("   %s %s", stageStyle.Render(connector), label)
+	t := tree.New().EnumeratorStyle(treeStyle)
+	for _, c := range s.children {
+		t = t.Child(renderChildNode(c))
+	}
+	body := strings.TrimRight(t.String(), "\n")
+
+	var buf bytes.Buffer
+	buf.WriteString(head)
+	for _, line := range strings.Split(body, "\n") {
+		buf.WriteString("   ")
+		buf.WriteString(line)
+		buf.WriteString("\n")
+	}
+	return buf.String()
 }
+
+func renderChildNode(c Child) string {
+	var icon string
+	if c.Icon != "" {
+		switch c.Icon {
+		case WarningMark:
+			icon = warnStyle.Render(c.Icon) + " "
+		case CrossMark:
+			icon = failStyle.Render(c.Icon) + " "
+		case CheckMark:
+			icon = successStyle.Render(c.Icon) + " "
+		default:
+			icon = c.Icon + " "
+		}
+	}
+	label := lipgloss.NewStyle().Width(childLabelWidth).Render(c.Label)
+	if c.Detail != "" {
+		return icon + label + " " + detailStyle.Render(c.Detail)
+	}
+	return icon + label
+}
+
+// completedTask is preserved for source-level compatibility with prior tests
+// that constructed Progress as a struct literal. It is unused by the new
+// renderer but stays so external snapshots compile.
+var _ = completedTask{}

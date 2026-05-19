@@ -200,6 +200,17 @@ func (o *Options) Prepare(ctx context.Context, logger *zap.Logger) (Options, err
 	return o.PrepareForExecutionTarget(ctx, logger, executionTarget, cleanup)
 }
 
+// ResolveExecutionTarget resolves where the scan should run: it clones a
+// remote repository, materialises an SBOM file, or resolves a local path.
+// The returned cleanup must be deferred by the caller. CLI commands call
+// this directly when they want to surface a dedicated "Cloning repository"
+// (or similar) progress step around just this phase, before calling
+// PrepareForExecutionTarget for the subproject-indexing phase.
+func (o *Options) ResolveExecutionTarget(logger *zap.Logger) (sdk.ExecutionTarget, func() error, error) {
+	target, _, cleanup, err := o.resolveExecutionTarget(logger)
+	return target, cleanup, err
+}
+
 func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Logger, executionTarget sdk.ExecutionTarget, cleanup func() error) (Options, error) {
 	resolved := o.ResolvedConfig
 

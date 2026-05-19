@@ -309,7 +309,7 @@ func TestMinStepDuration_HoldsCompletedStepInLiveRegion(t *testing.T) {
 	}
 }
 
-func TestMinStepDuration_BypassedByFinalDraw(t *testing.T) {
+func TestMinStepDuration_StopBypassesHold(t *testing.T) {
 	t.Setenv(minStepEnvVar, "5000") // 5s: would block forever in a normal flow
 
 	var buf safeBuffer
@@ -318,8 +318,9 @@ func TestMinStepDuration_BypassedByFinalDraw(t *testing.T) {
 	stepA := p.Start("a", "Stage A")
 	stepA.Complete("Did Stage A", nil)
 
-	// Stop must promote everything immediately even though the hold has not
-	// elapsed — otherwise the binary would hang at exit.
+	// Stop drops the active region before reaching finalDraw, so the hold
+	// has nothing to wait on. Stop is the path used by --interactive when we
+	// need to hand off to the TUI immediately — never blocking.
 	start := time.Now()
 	p.Stop()
 	elapsed := time.Since(start)
@@ -332,6 +333,32 @@ func TestMinStepDuration_BypassedByFinalDraw(t *testing.T) {
 	p.mu.Unlock()
 	if active != 0 {
 		t.Fatalf("expected zero active steps after Stop, got %d", active)
+	}
+}
+
+func TestMinStepDuration_SuccessHonorsHold(t *testing.T) {
+	t.Setenv(minStepEnvVar, "300")
+
+	var buf safeBuffer
+	p := New(&buf, true, "")
+
+	stepA := p.Start("a", "Stage A")
+	stepA.Complete("Did Stage A", nil)
+
+	// Success is the normal exit path; with the hidden knob set, it must
+	// wait for the held step to satisfy its minimum on-screen duration
+	// before finalising and returning control to the caller. Without this,
+	// fast scans would force-promote everything in microseconds and the
+	// knob would be useless.
+	start := time.Now()
+	p.Success("Resolved Graph")
+	elapsed := time.Since(start)
+
+	if elapsed < 250*time.Millisecond {
+		t.Fatalf("Success should wait for min-duration hold; only took %s", elapsed)
+	}
+	if elapsed > 2*time.Second {
+		t.Fatalf("Success waited too long; took %s (expected ~300ms)", elapsed)
 	}
 }
 

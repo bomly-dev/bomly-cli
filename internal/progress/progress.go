@@ -726,24 +726,67 @@ func (p *Progress) finishAll(doneLabel string, state stepState, children []Child
 // finalDraw flushes any pending promotions, restores the cursor, and clears
 // the live region. Safe to call only after the run goroutine has exited.
 func (p *Progress) finalDraw() {
+	// When the hidden minStepDuration knob is set, honour every held step's
+	// remaining hold *before* finalising — otherwise a fast scan would
+	// complete and Success/Fail would force-promote everything in
+	// microseconds, defeating the entire point of the knob. Stop() bypasses
+	// this naturally because it clears p.active before reaching us, so the
+	// loop sees nothing to wait for.
+	p.waitForHolds()
+
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	// Bypass the min-step-duration hold for any step that's already done by
-	// the time we're stopping: the user has nothing left to wait for, so the
-	// hold would only delay exit. Promote everything immediately.
+	// Force-promote any remaining done/failed steps so the final block is
+	// written even if minStepDuration is 0.
 	for _, s := range p.active {
 		if s.state == stepSucceeded || s.state == stepFailed {
 			s.startedAt = time.Time{}
 		}
 	}
 	p.drawLocked()
-	var buf bytes.Buffer
 	if p.cursorHidden {
-		buf.WriteString(showCursorSeq)
+		_, _ = p.writer.Write([]byte(showCursorSeq))
 		p.cursorHidden = false
 	}
-	if buf.Len() > 0 {
-		_, _ = p.writer.Write(buf.Bytes())
+}
+
+// waitForHolds blocks until every step in the live region has been visible
+// for at least p.minStepDuration. Each iteration computes the longest
+// remaining hold, renders the current "held ✔" state so the user actually
+// sees the completed lines during the wait, then sleeps. Called only from
+// finalDraw; the run goroutine has already exited by then.
+func (p *Progress) waitForHolds() {
+	for {
+		p.mu.Lock()
+		if len(p.active) == 0 {
+			p.mu.Unlock()
+			return
+		}
+		var waitFor time.Duration
+		now := time.Now()
+		for _, s := range p.active {
+			if p.minStepDuration <= 0 || s.startedAt.IsZero() {
+				continue
+			}
+			elapsed := now.Sub(s.startedAt)
+			if elapsed >= p.minStepDuration {
+				continue
+			}
+			remaining := p.minStepDuration - elapsed
+			if remaining > waitFor {
+				waitFor = remaining
+			}
+		}
+		if waitFor <= 0 {
+			p.mu.Unlock()
+			return
+		}
+		// Render so held lines stay visible while we wait. Every active step
+		// is in a done state at this point (Success/Fail promoted any
+		// stragglers); no spinner animation is needed.
+		p.drawLocked()
+		p.mu.Unlock()
+		time.Sleep(waitFor)
 	}
 }
 

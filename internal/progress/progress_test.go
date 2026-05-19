@@ -268,6 +268,92 @@ func TestStageDoneLabelLookup_PromotesViaCompleteStep(t *testing.T) {
 	}
 }
 
+func TestMinStepDuration_HoldsCompletedStepInLiveRegion(t *testing.T) {
+	t.Setenv(minStepEnvVar, "400")
+
+	var buf safeBuffer
+	p := New(&buf, true, "")
+	t.Cleanup(p.Stop)
+
+	stepA := p.Start("a", "Stage A")
+	stepA.Complete("Did Stage A", nil)
+	// Far less than the configured 400ms hold — the step must still be held
+	// in the live region with a ✔ icon, not promoted to a frozen block.
+	time.Sleep(spin.FPS * 2)
+
+	p.mu.Lock()
+	heldStillActive := false
+	for _, s := range p.active {
+		if s.id == "a" {
+			heldStillActive = true
+		}
+	}
+	p.mu.Unlock()
+	if !heldStillActive {
+		t.Fatalf("expected step to be held in active region while min duration not yet elapsed")
+	}
+
+	// Wait past the hold; the next tick should promote.
+	time.Sleep(500 * time.Millisecond)
+
+	p.mu.Lock()
+	stillActive := false
+	for _, s := range p.active {
+		if s.id == "a" {
+			stillActive = true
+		}
+	}
+	p.mu.Unlock()
+	if stillActive {
+		t.Fatalf("expected step to be promoted after min duration elapsed")
+	}
+}
+
+func TestMinStepDuration_BypassedByFinalDraw(t *testing.T) {
+	t.Setenv(minStepEnvVar, "5000") // 5s: would block forever in a normal flow
+
+	var buf safeBuffer
+	p := New(&buf, true, "")
+
+	stepA := p.Start("a", "Stage A")
+	stepA.Complete("Did Stage A", nil)
+
+	// Stop must promote everything immediately even though the hold has not
+	// elapsed — otherwise the binary would hang at exit.
+	start := time.Now()
+	p.Stop()
+	elapsed := time.Since(start)
+	if elapsed > 2*time.Second {
+		t.Fatalf("Stop should not wait for min-duration hold; took %s", elapsed)
+	}
+
+	p.mu.Lock()
+	active := len(p.active)
+	p.mu.Unlock()
+	if active != 0 {
+		t.Fatalf("expected zero active steps after Stop, got %d", active)
+	}
+}
+
+func TestReadMinStepDuration_RejectsInvalid(t *testing.T) {
+	cases := []string{"", "0", "-1", "abc", "  "}
+	for _, value := range cases {
+		t.Run("value="+value, func(t *testing.T) {
+			t.Setenv(minStepEnvVar, value)
+			if got := readMinStepDuration(); got != 0 {
+				t.Fatalf("expected zero duration for %q, got %s", value, got)
+			}
+		})
+	}
+}
+
+func TestReadMinStepDuration_ParsesMilliseconds(t *testing.T) {
+	t.Setenv(minStepEnvVar, "250")
+	if got := readMinStepDuration(); got != 250*time.Millisecond {
+		t.Fatalf("expected 250ms, got %s", got)
+	}
+}
+
 // safeBuffer is a bytes.Buffer guarded by a mutex so the ticker goroutine and
 // the test goroutine don't race on Write/String.
 type safeBuffer struct {

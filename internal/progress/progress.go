@@ -14,6 +14,8 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -40,6 +42,14 @@ const (
 	eraseLineSeq  = "\x1b[2K"
 
 	initialStepID = "__initial__"
+
+	// minStepEnvVar is a hidden, dev-only knob. When set to a positive integer
+	// it is interpreted as milliseconds: every step is held in the live region
+	// as a ✔ line for at least that long before being promoted to the frozen
+	// (scrolled-away) block. Lets you actually see steps that complete in a
+	// few milliseconds (registry init, container reference resolution, etc.).
+	// Example: BOMLY_PROGRESS_MIN_STEP_MS=600 ./bin/bomly scan
+	minStepEnvVar = "BOMLY_PROGRESS_MIN_STEP_MS"
 )
 
 // spin is the curated frame set we render. We deliberately don't run
@@ -99,6 +109,7 @@ type Step struct {
 	detail    string
 	state     stepState
 	children  []Child
+	startedAt time.Time // wall-clock time the step entered the live region
 }
 
 // SetTotal sets the denominator for this step's progress bar.
@@ -208,12 +219,13 @@ type Progress struct {
 	writer  io.Writer
 	enabled bool
 
-	mu             sync.Mutex
-	active         []*Step
-	pastToID       map[string]string
-	frame          int
-	lastDrawnLines int
-	cursorHidden   bool
+	mu              sync.Mutex
+	active          []*Step
+	pastToID        map[string]string
+	frame           int
+	lastDrawnLines  int
+	cursorHidden    bool
+	minStepDuration time.Duration // minimum time each step is held in the live region; see minStepEnvVar
 
 	stopCh    chan struct{}
 	doneCh    chan struct{}
@@ -221,14 +233,30 @@ type Progress struct {
 	separated bool
 }
 
+// readMinStepDuration parses the minStepEnvVar env var as a positive integer
+// number of milliseconds. Returns zero (the feature disabled) on any of:
+// unset, empty, non-numeric, zero, or negative. Hidden / dev-only knob.
+func readMinStepDuration() time.Duration {
+	raw := strings.TrimSpace(os.Getenv(minStepEnvVar))
+	if raw == "" {
+		return 0
+	}
+	ms, err := strconv.Atoi(raw)
+	if err != nil || ms <= 0 {
+		return 0
+	}
+	return time.Duration(ms) * time.Millisecond
+}
+
 // New creates a Progress instance. When enabled is false, all methods are
 // no-ops. A non-empty initial label opens an implicit step that disappears
 // silently once any explicit Start / StartStage is called.
 func New(writer io.Writer, enabled bool, label string) *Progress {
 	p := &Progress{
-		writer:   writer,
-		enabled:  enabled,
-		pastToID: make(map[string]string),
+		writer:          writer,
+		enabled:         enabled,
+		pastToID:        make(map[string]string),
+		minStepDuration: readMinStepDuration(),
 	}
 	if !p.enabled {
 		return p
@@ -237,11 +265,12 @@ func New(writer io.Writer, enabled bool, label string) *Progress {
 	p.doneCh = make(chan struct{})
 	if label != "" {
 		p.active = append(p.active, &Step{
-			p:      p,
-			id:     initialStepID,
-			active: label,
-			bar:    newBar(),
-			state:  stepActive,
+			p:         p,
+			id:        initialStepID,
+			active:    label,
+			bar:       newBar(),
+			state:     stepActive,
+			startedAt: time.Now(),
 		})
 	}
 	go p.run()
@@ -303,11 +332,12 @@ func (p *Progress) StartWithDoneLabel(id, activeLabel, doneLabel string) *Step {
 		}
 	}
 	s := &Step{
-		p:      p,
-		id:     id,
-		active: activeLabel,
-		bar:    newBar(),
-		state:  stepActive,
+		p:         p,
+		id:        id,
+		active:    activeLabel,
+		bar:       newBar(),
+		state:     stepActive,
+		startedAt: time.Now(),
 	}
 	p.active = append(p.active, s)
 	if activeLabel != "" {
@@ -349,11 +379,12 @@ func (p *Progress) CompleteStep(doneLabel string, children []Child) {
 		// step" behaviour when callers complete a label they never opened.
 		p.dropImplicitInitialLocked()
 		s = &Step{
-			p:      p,
-			id:     doneLabel,
-			active: doneLabel,
-			bar:    newBar(),
-			state:  stepSucceeded,
+			p:         p,
+			id:        doneLabel,
+			active:    doneLabel,
+			bar:       newBar(),
+			state:     stepSucceeded,
+			startedAt: time.Now(),
 		}
 		p.active = append(p.active, s)
 	}
@@ -393,11 +424,12 @@ func (p *Progress) Advance(label string) {
 	}
 	p.dropImplicitInitialLocked()
 	s := &Step{
-		p:      p,
-		id:     label,
-		active: label,
-		bar:    newBar(),
-		state:  stepActive,
+		p:         p,
+		id:        label,
+		active:    label,
+		bar:       newBar(),
+		state:     stepActive,
+		startedAt: time.Now(),
 	}
 	p.active = append(p.active, s)
 	if label != "" {
@@ -476,11 +508,12 @@ func (p *Progress) Detail(label, detail string) {
 		// behaviour where Detail also updated the spinner's label.
 		p.dropImplicitInitialLocked()
 		s = &Step{
-			p:      p,
-			id:     label,
-			active: label,
-			bar:    newBar(),
-			state:  stepActive,
+			p:         p,
+			id:        label,
+			active:    label,
+			bar:       newBar(),
+			state:     stepActive,
+			startedAt: time.Now(),
 		}
 		p.active = append(p.active, s)
 		if label != "" {
@@ -506,11 +539,12 @@ func (p *Progress) StartStage(label string, total int) {
 	s := p.findStepByActiveLabelLocked(label)
 	if s == nil {
 		s = &Step{
-			p:      p,
-			id:     label,
-			active: label,
-			bar:    newBar(),
-			state:  stepActive,
+			p:         p,
+			id:        label,
+			active:    label,
+			bar:       newBar(),
+			state:     stepActive,
+			startedAt: time.Now(),
 		}
 		p.active = append(p.active, s)
 		if label != "" {
@@ -551,11 +585,12 @@ func (p *Progress) AdvanceStage(label string, completed, total int) {
 		// Auto-open if the caller advances before starting.
 		p.dropImplicitInitialLocked()
 		s = &Step{
-			p:      p,
-			id:     label,
-			active: label,
-			bar:    newBar(),
-			state:  stepActive,
+			p:         p,
+			id:        label,
+			active:    label,
+			bar:       newBar(),
+			state:     stepActive,
+			startedAt: time.Now(),
 		}
 		p.active = append(p.active, s)
 		if label != "" {
@@ -651,11 +686,12 @@ func (p *Progress) finishAll(doneLabel string, state stepState, children []Child
 		// No step matches — synthesise one so the user sees a final block.
 		p.dropImplicitInitialLocked()
 		target = &Step{
-			p:      p,
-			id:     doneLabel,
-			active: doneLabel,
-			bar:    newBar(),
-			state:  stepActive,
+			p:         p,
+			id:        doneLabel,
+			active:    doneLabel,
+			bar:       newBar(),
+			state:     stepActive,
+			startedAt: time.Now(),
 		}
 		p.active = append(p.active, target)
 	}
@@ -692,6 +728,14 @@ func (p *Progress) finishAll(doneLabel string, state stepState, children []Child
 func (p *Progress) finalDraw() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	// Bypass the min-step-duration hold for any step that's already done by
+	// the time we're stopping: the user has nothing left to wait for, so the
+	// hold would only delay exit. Promote everything immediately.
+	for _, s := range p.active {
+		if s.state == stepSucceeded || s.state == stepFailed {
+			s.startedAt = time.Time{}
+		}
+	}
 	p.drawLocked()
 	var buf bytes.Buffer
 	if p.cursorHidden {
@@ -784,10 +828,18 @@ func (p *Progress) collectPromotionsLocked() []*Step {
 	if len(p.active) == 0 {
 		return nil
 	}
+	now := time.Now()
 	var promos []*Step
 	kept := p.active[:0]
 	for _, s := range p.active {
 		if s.state == stepSucceeded || s.state == stepFailed {
+			// Hidden dev/test knob: if the step completed faster than the
+			// configured minimum, hold it in the live region (rendered with
+			// its terminal ✔/✘ icon) until the time has elapsed.
+			if p.minStepDuration > 0 && !s.startedAt.IsZero() && now.Sub(s.startedAt) < p.minStepDuration {
+				kept = append(kept, s)
+				continue
+			}
 			promos = append(promos, s)
 			continue
 		}
@@ -799,18 +851,28 @@ func (p *Progress) collectPromotionsLocked() []*Step {
 
 func renderActiveLine(s *Step, frame string) string {
 	var icon string
-	if s.state == stepFinishing {
+	switch s.state {
+	case stepSucceeded, stepFinishing:
 		icon = successStyle.Render(CheckMark)
-	} else {
+	case stepFailed:
+		icon = failStyle.Render(CrossMark)
+	default:
 		icon = spinnerStyle.Render(frame)
 	}
-	title := titleStyle.Width(titleWidth).Render(s.active)
+	// Use the past-tense label when one is set (true for steps held back by
+	// minStepDuration) so the held line reads the same as the eventual
+	// frozen block.
+	headerLabel := s.active
+	if (s.state == stepSucceeded || s.state == stepFailed) && s.done != "" {
+		headerLabel = s.done
+	}
+	title := titleStyle.Width(titleWidth).Render(headerLabel)
 
 	percent := 0.0
 	if s.total > 0 {
 		percent = float64(s.completed) / float64(s.total)
 	}
-	if s.state == stepFinishing {
+	if s.state == stepFinishing || s.state == stepSucceeded {
 		percent = 1.0
 	}
 	if percent < 0 {

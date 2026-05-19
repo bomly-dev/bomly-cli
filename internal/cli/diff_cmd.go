@@ -83,6 +83,16 @@ func newDiffCmd() *cobra.Command {
 			if outputFormat == output.FormatSARIF && !current.Audit {
 				return exit.InvalidInputError("--format sarif requires --audit")
 			}
+			outputSpecs, err := parseOutputSpecs(current.Outputs)
+			if err != nil {
+				return exit.InvalidInputError("%v", err)
+			}
+			if err := validateMarkdownOnlyOutputs(outputSpecs); err != nil {
+				return exit.InvalidInputError("%v", err)
+			}
+			if current.Interactive && len(outputSpecs) > 0 {
+				return exit.InvalidInputError("--output cannot be combined with --interactive")
+			}
 
 			var baseTarget diffResolvedTarget
 			var headTarget diffResolvedTarget
@@ -141,6 +151,21 @@ func newDiffCmd() *cobra.Command {
 			}
 
 			payload := output.BuildDiffResponse(projectIdentifier, compBase, compHead, diffResult.Base.Consolidated, diffResult.Head.Consolidated, auditPayload, started)
+			markdownRenderer := func(w io.Writer) error {
+				return render.DiffMarkdown(w, payload)
+			}
+			if len(outputSpecs) > 0 {
+				progress.Advance("Writing additional output")
+				for _, spec := range outputSpecs {
+					if err := writeRenderedOutput(streams.reportWriter(), spec, markdownRenderer); err != nil {
+						return err
+					}
+				}
+			}
+			if hasStdoutOutput(outputSpecs) {
+				progress.Success("Wrote output")
+				return diffPolicyExit(current.Audit, diffResult.Audit)
+			}
 			if outputFormat == output.FormatSARIF {
 				progress.Success("Resolved Graph")
 				return output.WriteSARIF(streams.reportWriter(), diffResult.Findings, "bomly", cmd.Root().Version)
@@ -151,10 +176,11 @@ func newDiffCmd() *cobra.Command {
 			}
 
 			progress.Success("Resolved Graph")
-			if outputFormat == output.FormatText {
+			if outputFormat == output.FormatMarkdown || outputFormat == output.FormatText {
 				progress.SeparateReport()
 			}
 			err = output.Write(streams.reportWriter(), outputFormat, payload, output.Renderers{
+				Markdown: markdownRenderer,
 				Text: func(w io.Writer) error {
 					return render.Diff(w, payload)
 				},
@@ -173,6 +199,15 @@ func newDiffCmd() *cobra.Command {
 	cmd.Flags().StringVar(&baseRef, "base", "", "Base git reference to compare (or SBOM file path when --sbom is set)")
 	cmd.Flags().StringVar(&headRef, "head", "", "Head git reference to compare (or SBOM file path when --sbom is set)")
 	return cmd
+}
+
+func diffPolicyExit(auditEnabled bool, audit *diffengine.Audit) error {
+	if auditEnabled && audit != nil {
+		if failing := output.FailingFindingCount(audit.Introduced); failing > 0 {
+			return exit.PolicyViolationFindings(failing)
+		}
+	}
+	return nil
 }
 
 func uniqueStrings(groups ...[]string) []string {

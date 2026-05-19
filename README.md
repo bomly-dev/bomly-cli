@@ -17,7 +17,7 @@ One binary. Native detectors for the ecosystems developers use every day. Offlin
 ## Highlights
 
 - Scan local trees, SBOMs (SPDX 2.3, CycloneDX 1.6), Git repositories, container images.
-- Write SBOMs in either format alongside any report: `-o spdx-json=…  -o cyclonedx-json=…`.
+- Write SBOMs in either format alongside any report: `-o spdx=…  -o cyclonedx=…`.
 - Enrich with OSV, KEV, deps.dev, ClearlyDefined, endoflife.date via `--enrich`.
 - Audit with `--audit --fail-on <severity>`; SARIF emitted with `--format sarif`.
 - Explain transitive paths with `bomly explain <package>`.
@@ -31,7 +31,7 @@ One binary. Native detectors for the ecosystems developers use every day. Offlin
 bomly scan
 
 # Write SBOMs in two formats
-bomly scan -o spdx-json=sbom.spdx.json -o cyclonedx-json=sbom.cdx.json
+bomly scan -o spdx=sbom.spdx.json -o cyclonedx=sbom.cdx.json
 
 # Enrich packages with external vulnerability and license data
 bomly scan --enrich
@@ -142,8 +142,8 @@ bomly diff --sbom --base ./old.spdx.json --head ./new.spdx.json
 | Human-readable report | `bomly scan` |
 | Structured JSON | `bomly scan --format json` |
 | SARIF 2.1.0 | `bomly scan --audit --format sarif` |
-| SPDX 2.3 JSON | `bomly scan -o spdx-json=sbom.spdx.json` |
-| CycloneDX JSON | `bomly scan -o cyclonedx-json=sbom.cdx.json` |
+| SPDX 2.3 JSON | `bomly scan -o spdx=sbom.spdx.json` |
+| CycloneDX JSON | `bomly scan -o cyclonedx=sbom.cdx.json` |
 
 Full details: [Output formats](docs/OUTPUT_FORMATS.md), [SBOM formats](docs/SBOM.md), [Exit codes](docs/EXIT_CODES.md).
 

@@ -38,7 +38,7 @@ bomly scan --sbom --path ./vendor.cdx.json \
 ### Convert SPDX to CycloneDX
 
 ```bash
-bomly scan --sbom --path ./in.spdx.json -o cyclonedx-json=out.cdx.json
+bomly scan --sbom --path ./in.spdx.json -o cyclonedx=out.cdx.json
 ```
 
 The scan pipeline is the conversion path; there is no separate `convert` command.

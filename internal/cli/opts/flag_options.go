@@ -93,7 +93,8 @@ func bindSelectorFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
 }
 
 func bindExecutionFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
-	flags.StringVarP(&cfg.Format, "format", "f", "", "Output format: text, json, sarif")
+	flags.StringVarP(&cfg.Format, "format", "f", "", "Output format: text, json, markdown, sarif")
+	flags.StringArrayVarP(&cfg.Outputs, "output", "o", nil, "Additional output target as <format> or <format>=<path>; repeat for multiple outputs")
 	flags.BoolVar(&cfg.Interactive, "interactive", false, "Open an interactive terminal UI")
 	flags.BoolVar(&cfg.InstallFirst, "install-first", false, "Run detector-specific dependency installation before resolving graphs")
 	flags.StringArrayVar(&cfg.InstallArgs, "install-arg", nil, "Additional detector-specific install argument; may be repeated")
@@ -169,6 +170,9 @@ func applyFlagOverrides(dst *config.Resolved, flags config.Resolved, cmd *cobra.
 	}
 	if flagChanged(cmd, "format") {
 		dst.Format = flags.Format
+	}
+	if flagChanged(cmd, "output") {
+		dst.Outputs = append([]string(nil), flags.Outputs...)
 	}
 	if flagChanged(cmd, "interactive") {
 		dst.Interactive = flags.Interactive

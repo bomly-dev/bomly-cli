@@ -1,6 +1,6 @@
 # Output Formats
 
-Bomly writes one of three reporting formats and any number of SBOM artifacts in the same run.
+Bomly writes one of four reporting formats and any number of SBOM artifacts in the same run.
 
 ## Reporting format: `--format`
 
@@ -8,6 +8,7 @@ Bomly writes one of three reporting formats and any number of SBOM artifacts in 
 | --- | --- | --- |
 | `text` | Local runs, `--interactive` | Reading on a terminal |
 | `json` | Automation | Pipelines, custom dashboards, anything consumed by code |
+| `markdown` | Reviews | Job summaries, PR comments, and other Markdown surfaces |
 | `sarif` | Audit-only | CI security panes, GitHub Security tab, IDE problem markers |
 
 Flag:
@@ -15,6 +16,8 @@ Flag:
 ```bash
 bomly scan --format text     # default
 bomly scan --format json
+bomly explain lodash --format markdown
+bomly diff --base main --head HEAD --format markdown
 bomly scan --audit --format sarif
 ```
 
@@ -81,16 +84,16 @@ Independent of `--format`. You can write any number of SBOM artifacts alongside 
 
 ```bash
 bomly scan --format json \
-  -o spdx-json=sbom.spdx.json \
-  -o cyclonedx-json=sbom.cdx.json
+  -o spdx=sbom.spdx.json \
+  -o cyclonedx=sbom.cdx.json
 ```
 
 Supported targets:
 
 | `-o` value | Format |
 | --- | --- |
-| `spdx-json` | SPDX 2.3 JSON |
-| `cyclonedx-json` | CycloneDX 1.6 JSON |
+| `spdx` | SPDX 2.3 JSON |
+| `cyclonedx` | CycloneDX 1.6 JSON |
 
 See [SBOM formats](SBOM.md) for the comparison and writing rules.
 
@@ -108,8 +111,8 @@ Example:
 ```bash
 bomly scan --enrich --audit --fail-on high \
   --format sarif \
-  -o spdx-json=sbom.spdx.json \
-  -o cyclonedx-json=sbom.cdx.json \
+  -o spdx=sbom.spdx.json \
+  -o cyclonedx=sbom.cdx.json \
   > bomly.sarif
 ```
 

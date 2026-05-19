@@ -40,7 +40,8 @@ type Resolved struct {
 	TyposquatMode         string   `doc:"Typosquatting policy mode: warn or fail" env:"BOMLY_TYPOSQUAT_MODE" default:"warn"`
 	WarnOnly              bool     `doc:"Downgrade failing findings to warnings" env:"BOMLY_WARN_ONLY"`
 	Analyzers             string   `doc:"Reachability analyzer selectors; supports +name and -name modifiers" env:"BOMLY_ANALYZERS"`
-	Format                string   `doc:"Primary report format: text, json, or sarif" env:"BOMLY_FORMAT"`
+	Format                string   `doc:"Primary report format: text, json, markdown, or sarif" env:"BOMLY_FORMAT"`
+	Outputs               []string `doc:"Additional output target(s) as <format> or <format>=<path>. Repeatable; formats include markdown, spdx, and cyclonedx" env:"BOMLY_OUTPUT"`
 	Interactive           bool     `doc:"Enable interactive TUI mode" env:"BOMLY_INTERACTIVE"`
 	Ecosystems            string   `doc:"Ecosystem selectors; supports +name and -name modifiers" env:"BOMLY_ECOSYSTEMS"`
 	Detectors             string   `doc:"Detector selectors; supports +name and -name modifiers" env:"BOMLY_DETECTORS"`
@@ -96,6 +97,7 @@ type File struct {
 	WarnOnly              *bool      `yaml:"warn_only,omitempty"`
 	Analyzers             *string    `yaml:"analyzers,omitempty"`
 	Format                *string    `yaml:"format,omitempty"`
+	Outputs               []string   `yaml:"outputs,omitempty"`
 	Interactive           *bool      `yaml:"interactive,omitempty"`
 	Ecosystems            *string    `yaml:"ecosystems,omitempty"`
 	Detectors             *string    `yaml:"detectors,omitempty"`

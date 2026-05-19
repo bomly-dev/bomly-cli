@@ -191,13 +191,13 @@ func runCase(ctx context.Context, bomlyPath, caseDir string, target ScanTarget, 
 	scanArgs = append(scanArgs, target.QAArgs()...)
 	scanArgs = append(scanArgs, "--detectors", "-syft")
 	for _, bomlySBOM := range bomlySBOMs {
-		scanArgs = append(scanArgs, "--sbom-output", bomlySBOM.Format+"="+filepath.Join(caseDir, bomlySBOM.Artifact))
+		scanArgs = append(scanArgs, "--output", bomlySBOM.Format+"="+filepath.Join(caseDir, bomlySBOM.Artifact))
 	}
 	if err := runLoggedCommand(ctx, filepath.Join(caseDir, "sources", "bomly", "scan.log"), bomlyPath, scanArgs...); err != nil {
 		return fmt.Errorf("bomly scan failed: %w", err)
 	}
 
-	provenanceSBOM, ok := bomlySBOMs["spdx-json"]
+	provenanceSBOM, ok := bomlySBOMs["spdx"]
 	if !ok {
 		for _, artifact := range bomlySBOMs {
 			provenanceSBOM = artifact
@@ -289,8 +289,8 @@ type baselineSource interface {
 func defaultBaselineSources() []baselineSource {
 	return []baselineSource{
 		githubBaselineSource{},
-		syftBaselineSource{format: "spdx-json", name: "syft", logName: "source.log"},
-		syftBaselineSource{format: "cyclonedx-json", name: "syft-cyclonedx", logName: "source.log"},
+		syftBaselineSource{bomlyFormat: "spdx", syftFormat: "spdx-json", name: "syft", logName: "source.log"},
+		syftBaselineSource{bomlyFormat: "cyclonedx", syftFormat: "cyclonedx-json", name: "syft-cyclonedx", logName: "source.log"},
 	}
 }
 
@@ -298,7 +298,7 @@ type githubBaselineSource struct{}
 
 func (githubBaselineSource) Name() string        { return "github" }
 func (githubBaselineSource) Tools() []string     { return nil }
-func (githubBaselineSource) BomlyFormat() string { return "spdx-json" }
+func (githubBaselineSource) BomlyFormat() string { return "spdx" }
 func (githubBaselineSource) ProduceSBOM(ctx context.Context, artifactDir, checkoutDir string, target ScanTarget, outputPath string) error {
 	_ = checkoutDir
 	responsePath := filepath.Join(artifactDir, "response.json")
@@ -312,17 +312,18 @@ func (githubBaselineSource) ProduceSBOM(ctx context.Context, artifactDir, checko
 }
 
 type syftBaselineSource struct {
-	name    string
-	format  string
-	logName string
+	name        string
+	bomlyFormat string
+	syftFormat  string
+	logName     string
 }
 
 func (s syftBaselineSource) Name() string        { return s.name }
 func (syftBaselineSource) Tools() []string       { return []string{"syft"} }
-func (s syftBaselineSource) BomlyFormat() string { return s.format }
+func (s syftBaselineSource) BomlyFormat() string { return s.bomlyFormat }
 func (s syftBaselineSource) ProduceSBOM(ctx context.Context, artifactDir, checkoutDir string, target ScanTarget, outputPath string) error {
 	_ = target
-	return runLoggedCommand(ctx, filepath.Join(artifactDir, s.logName), "syft", checkoutDir, "-o", s.format+"="+outputPath)
+	return runLoggedCommand(ctx, filepath.Join(artifactDir, s.logName), "syft", checkoutDir, "-o", s.syftFormat+"="+outputPath)
 }
 
 func sourceArtifacts(sourceName string) SourceArtifacts {
@@ -355,7 +356,7 @@ func requiredBomlySBOMs(sources []baselineSource) map[string]bomlySBOMArtifact {
 
 func bomlySBOMFilename(format string) string {
 	switch format {
-	case "cyclonedx-json":
+	case "cyclonedx":
 		return "cyclonedx.sbom.json"
 	default:
 		return "spdx.sbom.json"

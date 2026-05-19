@@ -15,7 +15,7 @@ func TestApplyFlagOverridesOnlyUsesChangedFlags(t *testing.T) {
 	if err := BindCommandFlagGroups(root, &options.ResolvedConfig, FlagGroupExecution); err != nil {
 		t.Fatalf("BindCommandFlagGroups() error = %v", err)
 	}
-	if err := root.ParseFlags([]string{"--format", "json", "--install-arg", "legacy-peer-deps"}); err != nil {
+	if err := root.ParseFlags([]string{"--format", "json", "--output", "markdown=summary.md", "--install-arg", "legacy-peer-deps"}); err != nil {
 		t.Fatalf("ParseFlags() error = %v", err)
 	}
 
@@ -28,6 +28,9 @@ func TestApplyFlagOverridesOnlyUsesChangedFlags(t *testing.T) {
 
 	if dst.Format != "json" {
 		t.Fatalf("expected changed format flag to override, got %q", dst.Format)
+	}
+	if len(dst.Outputs) != 1 || dst.Outputs[0] != "markdown=summary.md" {
+		t.Fatalf("expected changed output flag to override, got %#v", dst.Outputs)
 	}
 	if dst.Ecosystems != "go" {
 		t.Fatalf("expected unchanged ecosystems to remain, got %q", dst.Ecosystems)

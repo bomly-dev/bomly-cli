@@ -67,7 +67,7 @@ func TestFilterBaselineSources(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("filtered source names = %#v, want %#v", got, want)
 	}
-	if filtered[0].BomlyFormat() != "cyclonedx-json" {
+	if filtered[0].BomlyFormat() != "cyclonedx" {
 		t.Fatalf("syft-cyclonedx BomlyFormat = %q", filtered[0].BomlyFormat())
 	}
 }
@@ -98,11 +98,11 @@ func TestRequiredBomlySBOMsAreGroupedAsSource(t *testing.T) {
 		t.Fatalf("filterBaselineSources() error = %v", err)
 	}
 	artifacts := requiredBomlySBOMs(sources)
-	if artifacts["spdx-json"].Artifact != "sources/bomly/spdx.sbom.json" {
-		t.Fatalf("spdx artifact = %q", artifacts["spdx-json"].Artifact)
+	if artifacts["spdx"].Artifact != "sources/bomly/spdx.sbom.json" {
+		t.Fatalf("spdx artifact = %q", artifacts["spdx"].Artifact)
 	}
-	if artifacts["cyclonedx-json"].Artifact != "sources/bomly/cyclonedx.sbom.json" {
-		t.Fatalf("cyclonedx artifact = %q", artifacts["cyclonedx-json"].Artifact)
+	if artifacts["cyclonedx"].Artifact != "sources/bomly/cyclonedx.sbom.json" {
+		t.Fatalf("cyclonedx artifact = %q", artifacts["cyclonedx"].Artifact)
 	}
 }
 func TestPrepareCasesDirPreservesUnselectedCasesForSelectedRun(t *testing.T) {

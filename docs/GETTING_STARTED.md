@@ -70,8 +70,8 @@ Use `-o` to write SPDX 2.3 or CycloneDX 1.6:
 
 ```bash
 bomly scan \
-  -o spdx-json=sbom.spdx.json \
-  -o cyclonedx-json=sbom.cdx.json
+  -o spdx=sbom.spdx.json \
+  -o cyclonedx=sbom.cdx.json
 ```
 
 `-o` can be passed multiple times. At most one may omit `=<path>` (that one goes to stdout). See [SBOM formats](SBOM.md) for the format comparison.

@@ -109,6 +109,9 @@ func ApplyFileConfig(dst *Resolved, src File) {
 	if len(src.ProtectedPackages) > 0 {
 		dst.ProtectedPackages = append([]string(nil), src.ProtectedPackages...)
 	}
+	if len(src.Outputs) > 0 {
+		dst.Outputs = append([]string(nil), src.Outputs...)
+	}
 	// Verbose is a legacy shorthand; map it to Verbosity=1 if not already set.
 	if src.Verbose != nil && *src.Verbose && dst.Verbosity == 0 {
 		dst.Verbosity = 1

@@ -32,8 +32,8 @@ jobs:
         run: |
           bomly scan --enrich --audit --fail-on high \
             --format sarif \
-            -o spdx-json=sbom.spdx.json \
-            -o cyclonedx-json=sbom.cdx.json \
+            -o spdx=sbom.spdx.json \
+            -o cyclonedx=sbom.cdx.json \
             > bomly.sarif
 
       - name: Upload SARIF
@@ -90,8 +90,8 @@ bomly:
     - curl -sSfL https://github.com/bomly-dev/bomly-cli/releases/latest/download/bomly_linux_amd64.tar.gz | tar -xz -C /usr/local/bin bomly
   script:
     - bomly scan --enrich --audit --fail-on high
-        -o spdx-json=sbom.spdx.json
-        -o cyclonedx-json=sbom.cdx.json
+        -o spdx=sbom.spdx.json
+        -o cyclonedx=sbom.cdx.json
   artifacts:
     when: always
     paths:
@@ -123,8 +123,8 @@ pipeline {
           curl -sSfL https://github.com/bomly-dev/bomly-cli/releases/latest/download/bomly_linux_amd64.tar.gz | tar -xz bomly
           ./bomly scan --enrich --audit --fail-on high \
             --format sarif \
-            -o spdx-json=sbom.spdx.json \
-            -o cyclonedx-json=sbom.cdx.json \
+            -o spdx=sbom.spdx.json \
+            -o cyclonedx=sbom.cdx.json \
             > bomly.sarif
         '''
       }
@@ -178,8 +178,8 @@ jobs:
           command: |
             curl -sSfL https://github.com/bomly-dev/bomly-cli/releases/latest/download/bomly_linux_amd64.tar.gz | tar -xz -C /tmp bomly
             /tmp/bomly scan --enrich --audit --fail-on high \
-              -o spdx-json=sbom.spdx.json \
-              -o cyclonedx-json=sbom.cdx.json
+              -o spdx=sbom.spdx.json \
+              -o cyclonedx=sbom.cdx.json
       - save_cache:
           key: bomly-cache-v1-{{ checksum "go.sum" }}
           paths:

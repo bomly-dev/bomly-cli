@@ -268,44 +268,74 @@ func TestStageDoneLabelLookup_PromotesViaCompleteStep(t *testing.T) {
 	}
 }
 
-func TestMinStepDuration_HoldsCompletedStepInLiveRegion(t *testing.T) {
-	t.Setenv(minStepEnvVar, "400")
+func TestMinStepDuration_CompleteBlocksForMinDuration(t *testing.T) {
+	t.Setenv(minStepEnvVar, "300")
 
 	var buf safeBuffer
 	p := New(&buf, true, "")
 	t.Cleanup(p.Stop)
 
 	stepA := p.Start("a", "Stage A")
+	// Step.Complete itself must block until the configured window elapses —
+	// this is what serialises per-step holds (each step's ✔ is visible
+	// for at least minStepDuration before the next CLI operation proceeds).
+	start := time.Now()
 	stepA.Complete("Did Stage A", nil)
-	// Far less than the configured 400ms hold — the step must still be held
-	// in the live region with a ✔ icon, not promoted to a frozen block.
-	time.Sleep(spin.FPS * 2)
+	elapsed := time.Since(start)
 
-	p.mu.Lock()
-	heldStillActive := false
-	for _, s := range p.active {
-		if s.id == "a" {
-			heldStillActive = true
-		}
+	if elapsed < 250*time.Millisecond {
+		t.Fatalf("Step.Complete should block ~300ms; took %s", elapsed)
 	}
-	p.mu.Unlock()
-	if !heldStillActive {
-		t.Fatalf("expected step to be held in active region while min duration not yet elapsed")
+	if elapsed > 1500*time.Millisecond {
+		t.Fatalf("Step.Complete blocked too long; took %s", elapsed)
 	}
+}
 
-	// Wait past the hold; the next tick should promote.
-	time.Sleep(500 * time.Millisecond)
+func TestMinStepDuration_CompleteStepBlocksForMinDuration(t *testing.T) {
+	t.Setenv(minStepEnvVar, "300")
 
-	p.mu.Lock()
-	stillActive := false
-	for _, s := range p.active {
-		if s.id == "a" {
-			stillActive = true
-		}
+	var buf safeBuffer
+	p := New(&buf, true, "")
+	t.Cleanup(p.Stop)
+
+	// Engine-style: StartStage opens the step, CompleteStep finalises it.
+	p.StartStage("Detecting dependencies", 1)
+	p.AdvanceStage("Detecting dependencies", 1, 1)
+	p.CompleteStage("Detecting dependencies", 1)
+
+	start := time.Now()
+	p.CompleteStep("Detected Dependencies", nil)
+	elapsed := time.Since(start)
+
+	if elapsed < 250*time.Millisecond {
+		t.Fatalf("CompleteStep should block ~300ms; took %s", elapsed)
 	}
-	p.mu.Unlock()
-	if stillActive {
-		t.Fatalf("expected step to be promoted after min duration elapsed")
+	if elapsed > 1500*time.Millisecond {
+		t.Fatalf("CompleteStep blocked too long; took %s", elapsed)
+	}
+}
+
+func TestMinStepDuration_TwoStepsAreSequential(t *testing.T) {
+	t.Setenv(minStepEnvVar, "200")
+
+	var buf safeBuffer
+	p := New(&buf, true, "")
+	t.Cleanup(p.Stop)
+
+	start := time.Now()
+	a := p.Start("a", "Stage A")
+	a.Complete("Did Stage A", nil) // blocks ~200ms
+	b := p.Start("b", "Stage B")
+	b.Complete("Did Stage B", nil) // blocks ~200ms
+	elapsed := time.Since(start)
+
+	// Two sequential 200ms holds should give ~400ms total — proving the
+	// holds are per-step, not bulk-applied at exit.
+	if elapsed < 350*time.Millisecond {
+		t.Fatalf("two sequential completes should take ~400ms; took %s", elapsed)
+	}
+	if elapsed > 1500*time.Millisecond {
+		t.Fatalf("two sequential completes blocked too long; took %s", elapsed)
 	}
 }
 
@@ -315,12 +345,11 @@ func TestMinStepDuration_StopBypassesHold(t *testing.T) {
 	var buf safeBuffer
 	p := New(&buf, true, "")
 
-	stepA := p.Start("a", "Stage A")
-	stepA.Complete("Did Stage A", nil)
+	// Open a step but do NOT call Complete (which would itself block for
+	// the 5s hold). Stop is the --interactive handoff path: it must drop
+	// any pending steps and return instantly, regardless of the hold.
+	_ = p.Start("a", "Stage A")
 
-	// Stop drops the active region before reaching finalDraw, so the hold
-	// has nothing to wait on. Stop is the path used by --interactive when we
-	// need to hand off to the TUI immediately — never blocking.
 	start := time.Now()
 	p.Stop()
 	elapsed := time.Since(start)

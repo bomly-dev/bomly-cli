@@ -110,6 +110,7 @@ type Step struct {
 	state     stepState
 	children  []Child
 	startedAt time.Time // wall-clock time the step entered the live region
+	doneAt    time.Time // wall-clock time the step transitioned to stepSucceeded / stepFailed
 }
 
 // SetTotal sets the denominator for this step's progress bar.
@@ -172,7 +173,10 @@ func (s *Step) SetDetail(text string) {
 }
 
 // Complete marks the step as succeeded with the supplied past-tense label and
-// child tree. The renderer promotes it on the next draw.
+// child tree. The renderer holds the line for p.minStepDuration after this
+// call (via the doneAt stamp) and the call itself blocks for the same hold,
+// so each step has its own visible ✔ window before the next operation
+// proceeds.
 func (s *Step) Complete(doneLabel string, children []Child) {
 	if s == nil || s.p == nil {
 		return
@@ -189,10 +193,15 @@ func (s *Step) Complete(doneLabel string, children []Child) {
 	}
 	s.children = children
 	s.state = stepSucceeded
+	s.doneAt = time.Now()
+	doneAt := s.doneAt
 	s.p.mu.Unlock()
+	s.p.holdAfterDone(doneAt)
 }
 
 // Fail marks the step as failed with the supplied past-tense label.
+// Blocks for p.minStepDuration after the state transition (same hold
+// semantics as Complete) so failures stay readable.
 func (s *Step) Fail(doneLabel string) {
 	if s == nil || s.p == nil {
 		return
@@ -205,7 +214,10 @@ func (s *Step) Fail(doneLabel string) {
 		s.done = s.active
 	}
 	s.state = stepFailed
+	s.doneAt = time.Now()
+	doneAt := s.doneAt
 	s.p.mu.Unlock()
+	s.p.holdAfterDone(doneAt)
 }
 
 type completedTask struct {
@@ -231,6 +243,26 @@ type Progress struct {
 	doneCh    chan struct{}
 	finished  bool
 	separated bool
+}
+
+// holdAfterDone blocks the caller until at least p.minStepDuration has
+// elapsed since doneAt. Caller must hold no locks. No-op when the hidden
+// knob is unset / doneAt is zero / the hold has already elapsed.
+//
+// Used by every "this step is now done" entry point (Step.Complete /
+// Step.Fail / Progress.CompleteStep / Progress.Advance / Progress.Success
+// / Progress.Fail) so each step gets its own visible ✔ window before the
+// next operation can proceed. This is what makes the hold per-step rather
+// than one bulk wait at exit.
+func (p *Progress) holdAfterDone(doneAt time.Time) {
+	if p == nil || p.minStepDuration <= 0 || doneAt.IsZero() {
+		return
+	}
+	elapsed := time.Since(doneAt)
+	if elapsed >= p.minStepDuration {
+		return
+	}
+	time.Sleep(p.minStepDuration - elapsed)
 }
 
 // readMinStepDuration parses the minStepEnvVar env var as a positive integer
@@ -362,7 +394,9 @@ func (p *Progress) dropImplicitInitialLocked() {
 }
 
 // CompleteStep finalises the step matching doneLabel (or the most-recent
-// stepActive / stepFinishing step) with the supplied children.
+// stepActive / stepFinishing step) with the supplied children. Blocks for
+// p.minStepDuration after the state transition (see holdAfterDone) so each
+// step has its own visible ✔ window before the next CLI operation proceeds.
 func (p *Progress) CompleteStep(doneLabel string, children []Child) {
 	if p == nil || !p.enabled {
 		return
@@ -373,6 +407,7 @@ func (p *Progress) CompleteStep(doneLabel string, children []Child) {
 		return
 	}
 	s := p.findStepLocked(doneLabel)
+	now := time.Now()
 	if s == nil {
 		// No matching step: emit a synthetic step that the renderer will
 		// promote on its next draw. This preserves today's "buffered pending
@@ -384,7 +419,7 @@ func (p *Progress) CompleteStep(doneLabel string, children []Child) {
 			active:    doneLabel,
 			bar:       newBar(),
 			state:     stepSucceeded,
-			startedAt: time.Now(),
+			startedAt: now,
 		}
 		p.active = append(p.active, s)
 	}
@@ -394,12 +429,16 @@ func (p *Progress) CompleteStep(doneLabel string, children []Child) {
 	if s.total > 0 {
 		s.completed = s.total
 	}
+	s.doneAt = now
+	doneAt := s.doneAt
 	p.mu.Unlock()
+	p.holdAfterDone(doneAt)
 }
 
 // Advance flushes any prior implicit/in-flight steps and starts a new
 // labelled step. Preserves the legacy single-spinner API for callers like
-// scan_cmd's "Writing SBOM output" transition.
+// scan_cmd's "Writing SBOM output" transition. Each silently-promoted prior
+// step gets its own hold (sequential, so the user sees each one transition).
 func (p *Progress) Advance(label string) {
 	if p == nil || !p.enabled {
 		return
@@ -409,8 +448,10 @@ func (p *Progress) Advance(label string) {
 		p.mu.Unlock()
 		return
 	}
+	now := time.Now()
 	// Promote any prior stepActive/stepFinishing steps as silent successes so
 	// they don't perpetually spin once the caller has moved on.
+	var holds []time.Time
 	for _, s := range p.active {
 		if s.state == stepActive || s.state == stepFinishing {
 			if s.id == initialStepID {
@@ -420,6 +461,8 @@ func (p *Progress) Advance(label string) {
 			if s.done == "" {
 				s.done = s.active
 			}
+			s.doneAt = now
+			holds = append(holds, s.doneAt)
 		}
 	}
 	p.dropImplicitInitialLocked()
@@ -429,13 +472,18 @@ func (p *Progress) Advance(label string) {
 		active:    label,
 		bar:       newBar(),
 		state:     stepActive,
-		startedAt: time.Now(),
+		startedAt: now,
 	}
 	p.active = append(p.active, s)
 	if label != "" {
 		p.pastToID[label] = label
 	}
 	p.mu.Unlock()
+	// Sleep so each silently-promoted prior step gets a visible ✔ window.
+	// They all share the same doneAt (now) so a single sleep covers them.
+	if len(holds) > 0 {
+		p.holdAfterDone(holds[0])
+	}
 }
 
 // findStepLocked returns the step whose pastToID maps to doneLabel, falling
@@ -681,6 +729,7 @@ func (p *Progress) finishAll(doneLabel string, state stepState, children []Child
 		return
 	}
 
+	now := time.Now()
 	target := p.findStepLocked(doneLabel)
 	if target == nil {
 		// No step matches — synthesise one so the user sees a final block.
@@ -691,7 +740,7 @@ func (p *Progress) finishAll(doneLabel string, state stepState, children []Child
 			active:    doneLabel,
 			bar:       newBar(),
 			state:     stepActive,
-			startedAt: time.Now(),
+			startedAt: now,
 		}
 		p.active = append(p.active, target)
 	}
@@ -700,9 +749,11 @@ func (p *Progress) finishAll(doneLabel string, state stepState, children []Child
 	if state != stepFailed {
 		target.children = children
 	}
+	target.doneAt = now
 
 	// Promote any other still-running steps as silent successes so the live
-	// region drains completely.
+	// region drains completely. They share the same doneAt so a single hold
+	// covers all of them.
 	for _, s := range p.active {
 		if s == target {
 			continue
@@ -712,11 +763,16 @@ func (p *Progress) finishAll(doneLabel string, state stepState, children []Child
 			if s.done == "" {
 				s.done = s.active
 			}
+			s.doneAt = now
 		}
 	}
 
 	p.finished = true
 	p.mu.Unlock()
+
+	// Honour the hold on the target step (and any siblings sharing doneAt)
+	// so the user sees the final ✔ before the program exits.
+	p.holdAfterDone(now)
 
 	close(p.stopCh)
 	<-p.doneCh
@@ -725,68 +781,23 @@ func (p *Progress) finishAll(doneLabel string, state stepState, children []Child
 
 // finalDraw flushes any pending promotions, restores the cursor, and clears
 // the live region. Safe to call only after the run goroutine has exited.
+//
+// Each call site that transitions a step to done (Step.Complete, Step.Fail,
+// CompleteStep, Advance, finishAll) has already blocked for its own
+// minStepDuration window via holdAfterDone, so by the time we get here
+// there is nothing left to wait on — we just force-promote and write.
 func (p *Progress) finalDraw() {
-	// When the hidden minStepDuration knob is set, honour every held step's
-	// remaining hold *before* finalising — otherwise a fast scan would
-	// complete and Success/Fail would force-promote everything in
-	// microseconds, defeating the entire point of the knob. Stop() bypasses
-	// this naturally because it clears p.active before reaching us, so the
-	// loop sees nothing to wait for.
-	p.waitForHolds()
-
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	// Force-promote any remaining done/failed steps so the final block is
-	// written even if minStepDuration is 0.
 	for _, s := range p.active {
 		if s.state == stepSucceeded || s.state == stepFailed {
-			s.startedAt = time.Time{}
+			s.doneAt = time.Time{}
 		}
 	}
 	p.drawLocked()
 	if p.cursorHidden {
 		_, _ = p.writer.Write([]byte(showCursorSeq))
 		p.cursorHidden = false
-	}
-}
-
-// waitForHolds blocks until every step in the live region has been visible
-// for at least p.minStepDuration. Each iteration computes the longest
-// remaining hold, renders the current "held ✔" state so the user actually
-// sees the completed lines during the wait, then sleeps. Called only from
-// finalDraw; the run goroutine has already exited by then.
-func (p *Progress) waitForHolds() {
-	for {
-		p.mu.Lock()
-		if len(p.active) == 0 {
-			p.mu.Unlock()
-			return
-		}
-		var waitFor time.Duration
-		now := time.Now()
-		for _, s := range p.active {
-			if p.minStepDuration <= 0 || s.startedAt.IsZero() {
-				continue
-			}
-			elapsed := now.Sub(s.startedAt)
-			if elapsed >= p.minStepDuration {
-				continue
-			}
-			remaining := p.minStepDuration - elapsed
-			if remaining > waitFor {
-				waitFor = remaining
-			}
-		}
-		if waitFor <= 0 {
-			p.mu.Unlock()
-			return
-		}
-		// Render so held lines stay visible while we wait. Every active step
-		// is in a done state at this point (Success/Fail promoted any
-		// stragglers); no spinner animation is needed.
-		p.drawLocked()
-		p.mu.Unlock()
-		time.Sleep(waitFor)
 	}
 }
 
@@ -876,10 +887,14 @@ func (p *Progress) collectPromotionsLocked() []*Step {
 	kept := p.active[:0]
 	for _, s := range p.active {
 		if s.state == stepSucceeded || s.state == stepFailed {
-			// Hidden dev/test knob: if the step completed faster than the
-			// configured minimum, hold it in the live region (rendered with
-			// its terminal ✔/✘ icon) until the time has elapsed.
-			if p.minStepDuration > 0 && !s.startedAt.IsZero() && now.Sub(s.startedAt) < p.minStepDuration {
+			// Hidden dev/test knob: hold the step in the live region with
+			// its terminal ✔/✘ icon for at least minStepDuration after it
+			// transitioned to done. The Complete/Fail/CompleteStep call site
+			// also blocks for the same duration (see holdAfterDone), so the
+			// renderer would normally not promote until the call returns —
+			// but the ticker can still fire during that sleep, hence this
+			// guard.
+			if p.minStepDuration > 0 && !s.doneAt.IsZero() && now.Sub(s.doneAt) < p.minStepDuration {
 				kept = append(kept, s)
 				continue
 			}

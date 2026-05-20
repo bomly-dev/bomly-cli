@@ -48,8 +48,7 @@ func (a Matcher) Descriptor() sdk.MatcherDescriptor {
 	}
 }
 
-// Ready reports whether the Grype vulnerability database directory exists on disk.
-func (a Matcher) Ready() bool {
+func (a Matcher) dbExists() bool {
 	info, err := os.Stat(a.dbDir())
 	return err == nil && info.IsDir()
 }

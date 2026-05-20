@@ -617,7 +617,7 @@ func TestRoot_DiffCommand_JSONOutputWithMarkdownOutputFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read summary file: %v", err)
 	}
-	for _, want := range []string{"# Bomly Diff Summary", "Compared `" + baseSHA + "` to `" + headSHA + "`.", "- Added: 1"} {
+	for _, want := range []string{"# Bomly Diff Summary", "Compared `" + baseSHA + "` to `" + headSHA + "`.", "**Summary:** 1 added, 1 changed, 0 removed."} {
 		if !strings.Contains(string(summary), want) {
 			t.Fatalf("expected summary to contain %q, got:\n%s", want, summary)
 		}
@@ -747,6 +747,7 @@ func TestRoot_DiffCommand_AuditUsesResolvedGitRefs(t *testing.T) {
 
 	setDynamicFakeNPMOnPath(t)
 	repoDir, baseSHA, headSHA := createGitNPMRepoHistory(t)
+	sarifPath := filepath.Join(t.TempDir(), "bomly.sarif")
 
 	root, err := newRootCmd("0.9.0-test")
 	if err != nil {
@@ -768,6 +769,7 @@ func TestRoot_DiffCommand_AuditUsesResolvedGitRefs(t *testing.T) {
 		"--matchers", "grype,osv",
 		"--auditors", "vulnerability",
 		"--format", "json",
+		"-o", "sarif=" + sarifPath,
 	})
 
 	if err := root.Execute(); err != nil {
@@ -787,6 +789,13 @@ func TestRoot_DiffCommand_AuditUsesResolvedGitRefs(t *testing.T) {
 	}
 	if summary["changed_manifest_count"] == float64(0) {
 		t.Fatalf("unexpected diff summary: %#v", summary)
+	}
+	sarifBytes, err := os.ReadFile(sarifPath)
+	if err != nil {
+		t.Fatalf("read SARIF output: %v", err)
+	}
+	if !strings.Contains(string(sarifBytes), `"version": "2.1.0"`) {
+		t.Fatalf("expected SARIF output, got:\n%s", sarifBytes)
 	}
 }
 

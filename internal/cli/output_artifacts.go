@@ -24,6 +24,15 @@ func hasStdoutOutput(specs []render.OutputSpec) bool {
 	return false
 }
 
+func hasOutputFormat(specs []render.OutputSpec, format render.OutputFormat) bool {
+	for _, spec := range specs {
+		if spec.Format == format {
+			return true
+		}
+	}
+	return false
+}
+
 func allOutputsAreSBOM(specs []render.OutputSpec) bool {
 	if len(specs) == 0 {
 		return false
@@ -39,6 +48,17 @@ func allOutputsAreSBOM(specs []render.OutputSpec) bool {
 func validateMarkdownOnlyOutputs(specs []render.OutputSpec) error {
 	for _, spec := range specs {
 		if spec.Format != render.OutputFormatMarkdown {
+			return fmt.Errorf("output format %q is only supported by scan", spec.Label)
+		}
+	}
+	return nil
+}
+
+func validateReportOutputs(specs []render.OutputSpec) error {
+	for _, spec := range specs {
+		switch spec.Format {
+		case render.OutputFormatMarkdown, render.OutputFormatSARIF:
+		default:
 			return fmt.Errorf("output format %q is only supported by scan", spec.Label)
 		}
 	}

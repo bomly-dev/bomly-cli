@@ -15,6 +15,7 @@ type OutputFormat string
 
 const (
 	OutputFormatMarkdown  OutputFormat = "markdown"
+	OutputFormatSARIF     OutputFormat = "sarif"
 	OutputFormatSPDX      OutputFormat = "spdx"
 	OutputFormatCycloneDX OutputFormat = "cyclonedx"
 )
@@ -38,6 +39,8 @@ func ParseOutputFormat(value string) (OutputFormat, sbom.Target, string, error) 
 	switch strings.ToLower(strings.TrimSpace(value)) {
 	case "markdown", "md":
 		return OutputFormatMarkdown, "", "markdown", nil
+	case "sarif":
+		return OutputFormatSARIF, "", "sarif", nil
 	case "spdx", "spdx-json":
 		return OutputFormatSPDX, sbom.TargetSPDX23JSON, "spdx", nil
 	case "cyclonedx", "cyclonedx-json":

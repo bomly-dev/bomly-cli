@@ -18,6 +18,7 @@ require (
 	github.com/evanw/esbuild v0.28.0
 	github.com/github/go-spdx/v2 v2.7.0
 	github.com/glebarez/sqlite v1.11.0
+	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-plugin v1.8.0
 	github.com/mark3labs/mcp-go v0.54.0
 	github.com/pandatix/go-cvss v0.6.2
@@ -31,8 +32,6 @@ require (
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
 )
-
-require github.com/hashicorp/go-hclog v1.6.3 // indirect
 
 require (
 	cel.dev/expr v0.25.1 // indirect

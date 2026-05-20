@@ -17,6 +17,12 @@ make generate            # regenerate config reference, JSON schemas, schema doc
 Always run `make test` after changes. All tests must pass before marking work is done.
 If you change `internal/cli/config.go`, `internal/output/*`, `sdk/catalog.go`, `sdk/support_matrix.go`, or `internal/registry/support.go`, also run `make generate`.
 
+### Git Worktrees
+
+Development may happen inside Git worktrees. Always run commands in the active worktree directory.
+Do not assume the primary checkout path; use paths relative to the current worktree.
+Avoid destructive Git operations that can affect sibling worktrees or shared refs.
+
 ## Architecture
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for full detail. Component map:

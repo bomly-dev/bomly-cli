@@ -123,6 +123,22 @@ type VerifyResult struct {
 	Checks []string
 }
 
+// TestResult describes runtime readiness checks for one plugin.
+type TestResult struct {
+	PluginInfo
+	Ready bool   `json:"ready"`
+	Probe string `json:"probe,omitempty"`
+}
+
+// DoctorResult describes combined verification and runtime readiness checks.
+type DoctorResult struct {
+	PluginInfo
+	Checks  []string `json:"checks,omitempty"`
+	Ready   bool     `json:"ready"`
+	Healthy bool     `json:"healthy"`
+	Probe   string   `json:"probe,omitempty"`
+}
+
 func defaultRoot() (string, error) {
 	if override := strings.TrimSpace(os.Getenv(EnvPluginHome)); override != "" {
 		return filepath.Clean(override), nil

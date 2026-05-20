@@ -33,6 +33,8 @@ func newPluginCmd() *cobra.Command {
 		newPluginEnableCmd(),
 		newPluginDisableCmd(),
 		newPluginVerifyCmd(),
+		newPluginTestCmd(),
+		newPluginDoctorCmd(),
 	)
 	return cmd
 }
@@ -332,6 +334,114 @@ func newPluginVerifyCmd() *cobra.Command {
 	}
 	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Render verification results as JSON")
 	return cmd
+}
+
+func newPluginTestCmd() *cobra.Command {
+	var jsonOutput bool
+	cmd := &cobra.Command{
+		Use:   "test <id>",
+		Short: "Test runtime readiness for an installed plugin",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			options, err := commandOptions(cmd)
+			if err != nil {
+				return err
+			}
+			current := options.GetConfig()
+			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
+			result, err := managedplugin.Test(cmd.Context(), "", strings.TrimSpace(args[0]))
+			if err != nil {
+				return pluginCommandError(err)
+			}
+			if jsonOutput {
+				if err := writeJSON(streams.reportWriter(), result); err != nil {
+					return err
+				}
+			} else {
+				if _, err := fmt.Fprintf(streams.reportWriter(), "Tested %s@%s\n", result.ID, result.Version); err != nil {
+					return err
+				}
+				status := "not ready"
+				label := "[fail]"
+				if result.Ready {
+					status = "ready"
+					label = "[ok]"
+				}
+				if _, err := fmt.Fprintf(streams.reportWriter(), "%s %s: %s\n", label, nonEmptyString(result.Probe, "runtime readiness"), status); err != nil {
+					return err
+				}
+			}
+			if !result.Ready {
+				return fmt.Errorf("plugin %s is not ready", result.ID)
+			}
+			return nil
+		},
+	}
+	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Render runtime test results as JSON")
+	return cmd
+}
+
+func newPluginDoctorCmd() *cobra.Command {
+	var jsonOutput bool
+	cmd := &cobra.Command{
+		Use:   "doctor <id>",
+		Short: "Run verify and runtime readiness checks for an installed plugin",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			options, err := commandOptions(cmd)
+			if err != nil {
+				return err
+			}
+			current := options.GetConfig()
+			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
+			result, err := managedplugin.Doctor(cmd.Context(), "", strings.TrimSpace(args[0]))
+			if err != nil {
+				return pluginCommandError(err)
+			}
+			if jsonOutput {
+				if err := writeJSON(streams.reportWriter(), result); err != nil {
+					return err
+				}
+			} else {
+				if _, err := fmt.Fprintf(streams.reportWriter(), "Doctor report for %s@%s\n", result.ID, result.Version); err != nil {
+					return err
+				}
+				for _, check := range result.Checks {
+					if _, err := fmt.Fprintf(streams.reportWriter(), "[ok] %s\n", check); err != nil {
+						return err
+					}
+				}
+				status := "not ready"
+				label := "[fail]"
+				if result.Ready {
+					status = "ready"
+					label = "[ok]"
+				}
+				if _, err := fmt.Fprintf(streams.reportWriter(), "%s %s: %s\n", label, nonEmptyString(result.Probe, "runtime readiness"), status); err != nil {
+					return err
+				}
+			}
+			if !result.Healthy {
+				return fmt.Errorf("plugin %s is unhealthy", result.ID)
+			}
+			return nil
+		},
+	}
+	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Render doctor results as JSON")
+	return cmd
+}
+
+func pluginCommandError(err error) error {
+	if err == nil {
+		return nil
+	}
+	if strings.Contains(err.Error(), "is not installed") {
+		return exit.InvalidInputError("%v", err)
+	}
+	if strings.Contains(err.Error(), "does not support runtime readiness probes") {
+		return exit.InvalidInputError("%v", err)
+	}
+	return err
 }
 
 func builtInPluginInfos(current config.Resolved, coreVersion string) []managedplugin.PluginInfo {

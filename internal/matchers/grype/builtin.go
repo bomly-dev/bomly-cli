@@ -24,6 +24,13 @@ import (
 // clioID is the clio application identity presented when opening the Grype vulnerability DB.
 var clioID = grypeclio.Identification{Name: "grype"}
 
+// Ready reports whether the bundled Grype matcher can run. The database may be
+// downloaded during Match on first use, so a missing cache does not make the
+// matcher unavailable.
+func (a Matcher) Ready() bool {
+	return true
+}
+
 // Match attaches Grype vulnerability matches to packages in the graph.
 func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
 	started := time.Now()
@@ -33,7 +40,7 @@ func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult
 
 	logger := a.logger()
 
-	needsDownload := !a.Ready()
+	needsDownload := !a.dbExists()
 	if needsDownload {
 		logger.Info(fmt.Sprintf("Grype vulnerability DB not found; downloading now at %s", a.dbDir()))
 	}

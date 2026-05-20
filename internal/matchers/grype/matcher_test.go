@@ -38,18 +38,18 @@ func TestMatch_NilGraph_ReturnsEmpty(t *testing.T) {
 	}
 }
 
-func TestReady_FalseWhenDBDirAbsent(t *testing.T) {
+func TestReady_TrueWhenDBDirAbsent(t *testing.T) {
 	a := Matcher{Priority: 90, DBDir: filepath.Join(t.TempDir(), "nonexistent-db")}
-	if a.Ready() {
-		t.Error("Ready() = true, want false when DB dir does not exist")
+	if !a.Ready() {
+		t.Error("Ready() = false, want true because the bundled matcher can download the DB")
 	}
 }
 
-func TestReady_TrueWhenDBDirExists(t *testing.T) {
+func TestDBExists_TrueWhenDBDirExists(t *testing.T) {
 	dir := t.TempDir()
 	a := Matcher{Priority: 90, DBDir: dir}
-	if !a.Ready() {
-		t.Error("Ready() = false, want true when DB dir exists")
+	if !a.dbExists() {
+		t.Error("dbExists() = false, want true when DB dir exists")
 	}
 }
 

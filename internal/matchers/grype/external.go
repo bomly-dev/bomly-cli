@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -15,6 +16,12 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
+
+// Ready reports whether the external grype binary is available.
+func (a Matcher) Ready() bool {
+	_, err := exec.LookPath("grype")
+	return err == nil
+}
 
 // Match attaches Grype vulnerability matches by shelling out to the grype CLI binary.
 func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {

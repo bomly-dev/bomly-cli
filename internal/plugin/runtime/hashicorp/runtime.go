@@ -6,7 +6,6 @@ import (
 	"os/exec"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
-	"github.com/hashicorp/go-hclog"
 	hplugin "github.com/hashicorp/go-plugin"
 )
 
@@ -24,7 +23,7 @@ func Start(ctx context.Context, executable string, env []string, verbosity int) 
 		HandshakeConfig:  sdk.HandshakeConfig(),
 		AllowedProtocols: []hplugin.Protocol{hplugin.ProtocolGRPC},
 		Cmd:              cmd,
-		Logger:           pluginLogger(verbosity),
+		Logger:           nil,
 		Plugins:          sdk.ClientPluginMap(),
 		Managed:          true,
 		GRPCDialOptions:  nil,
@@ -46,20 +45,6 @@ func Start(ctx context.Context, executable string, env []string, verbosity int) 
 		return nil, fmt.Errorf("unexpected plugin client type %T", raw)
 	}
 	return &Client{client: client, raw: typed}, nil
-}
-
-func pluginLogger(verbosity int) hclog.Logger {
-	if verbosity <= 0 {
-		return hclog.NewNullLogger()
-	}
-	level := hclog.Info
-	if verbosity >= 2 {
-		level = hclog.Debug
-	}
-	return hclog.New(&hclog.LoggerOptions{
-		Name:  "plugin",
-		Level: level,
-	})
 }
 
 // Raw returns the typed shared client.

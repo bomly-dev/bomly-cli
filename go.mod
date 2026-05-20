@@ -7,7 +7,7 @@ toolchain go1.26.3
 require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/CycloneDX/cyclonedx-go v0.11.0
-	github.com/Masterminds/semver/v3 v3.5.0
+	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/anchore/clio v0.1.0
 	github.com/anchore/grype v0.112.0
 	github.com/anchore/packageurl-go v0.2.0
@@ -18,7 +18,6 @@ require (
 	github.com/evanw/esbuild v0.28.0
 	github.com/github/go-spdx/v2 v2.7.0
 	github.com/glebarez/sqlite v1.11.0
-	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-plugin v1.8.0
 	github.com/mark3labs/mcp-go v0.54.0
 	github.com/pandatix/go-cvss v0.6.2
@@ -32,6 +31,8 @@ require (
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
 )
+
+require github.com/hashicorp/go-hclog v1.6.3 // indirect
 
 require (
 	cel.dev/expr v0.25.1 // indirect
@@ -129,6 +130,7 @@ require (
 	github.com/containerd/typeurl/v2 v2.2.3 // indirect
 	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
 	github.com/deitch/magic v0.0.0-20240306090643-c67ab88f10cb // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/diskfs/go-diskfs v1.7.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/cli v29.4.0+incompatible // indirect

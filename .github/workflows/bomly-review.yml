@@ -1,0 +1,25 @@
+name: Bomly Review
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Review dependency changes
+        uses: bomly-dev/bomly-review-action@v1
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: always

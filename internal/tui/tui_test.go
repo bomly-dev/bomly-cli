@@ -136,18 +136,16 @@ func TestNewDiffInteractiveModel_ViewIncludesManifestChanges(t *testing.T) {
 			AddedPackageCount:    1,
 			ChangedPackageCount:  1,
 		},
-	})
+	}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
 
-	view := model.View(100, 26)
+	view := model.View(140, 32)
 	for _, want := range []string{
 		"DIFF",
 		"base -> head",
 		"[1] Overview",
-		"[2] Added",
-		"package.json (npm)",
-		"Manifest Changes",
-		"Package Changes",
-		"Added packages",
+		"[2] Components",
+		"Manifests",
+		"Packages",
 	} {
 		if !strings.Contains(render.StripANSI(view), want) {
 			t.Fatalf("expected view to contain %q, got:\n%s", want, view)
@@ -770,7 +768,7 @@ func TestScanInteractiveModel_ManifestDetailsIncludeDetectorMetadata(t *testing.
 func TestScanInteractiveModel_FindingsCanGroupByEcosystem(t *testing.T) {
 	pkg := sdk.NewPackage(sdk.Package{Name: "react", Version: "18.2.0", Ecosystem: "npm"})
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, sdk.ConsolidatedGraph{}, sdk.New(), []sdk.Finding{
-		{ID: "F-1", Kind: sdk.FindingKindPolicy, Severity: "high", Package: pkg},
+		{ID: "F-1", Kind: sdk.FindingKindLicense, Severity: "high", Package: pkg},
 	})
 	model.SelectView(5)
 	for range 3 {
@@ -1270,7 +1268,7 @@ func TestBuildLicensesListModel_GroupsByUniqueLicense(t *testing.T) {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
-	model.activeView = interactiveScanViewLicenses
+	model.SelectView(4) // Licenses (1: Overview, 2: Components, 3: Vulns, 4: Licenses)
 	list := model.buildLicensesListModel()
 
 	if len(list.items) != 2 {
@@ -1295,53 +1293,84 @@ func TestBuildLicensesListModel_GroupsByUniqueLicense(t *testing.T) {
 	}
 }
 
-func TestNewDiffInteractiveModel_OrdersRemovedAddedChanged(t *testing.T) {
+func TestNewDiffInteractiveModel_ComponentsTabGroupsByStatusByDefault(t *testing.T) {
 	model := NewDiff(output.DiffResponse{
 		Results: output.DiffResults{Manifests: []output.DiffManifestResult{
-			{Status: "changed", Path: "b", PackageManager: "npm"},
-			{Status: "added", Path: "c", PackageManager: "npm"},
-			{Status: "removed", Path: "a", PackageManager: "npm"},
+			{Status: "changed", Path: "b", PackageManager: "npm", Added: []output.DiffPackageChange{{Package: output.PackageRef{Name: "x"}}}},
+			{Status: "added", Path: "c", PackageManager: "npm", Added: []output.DiffPackageChange{{Package: output.PackageRef{Name: "y"}}}},
+			{Status: "removed", Path: "a", PackageManager: "npm", Removed: []output.DiffPackageChange{{Package: output.PackageRef{Name: "z"}}}},
 		}},
-	})
+	}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
 
-	if got, want := model.items[0].subtitle, "removed"; got != want {
-		t.Fatalf("expected first item status %q, got %q", want, got)
+	model.SelectView(2) // Components
+
+	list := model.List()
+	if list == nil {
+		t.Fatalf("expected components list to be built")
 	}
-	if got, want := model.items[1].subtitle, "added"; got != want {
-		t.Fatalf("expected second item status %q, got %q", want, got)
+	// Default grouping is "status": groups appear in Added / Changed / Removed order.
+	// Each group is followed by its members. Two of the inputs are status=added
+	// (one from `.Added` on the "added" manifest, one from `.Added` on the
+	// "changed" manifest), one is status=removed.
+	if len(list.items) < 4 {
+		t.Fatalf("expected at least 4 items (3 groups + members), got %d", len(list.items))
 	}
-	if got, want := model.items[2].subtitle, "changed"; got != want {
-		t.Fatalf("expected third item status %q, got %q", want, got)
+	if got, want := list.items[0].title, "Added (2)"; got != want {
+		t.Fatalf("expected first group %q, got %q", want, got)
+	}
+	// Verify removed group exists somewhere later.
+	foundRemoved := false
+	for _, it := range list.items {
+		if strings.HasPrefix(it.title, "Removed (") {
+			foundRemoved = true
+			break
+		}
+	}
+	if !foundRemoved {
+		t.Fatalf("expected a Removed group, got items: %+v", list.items)
 	}
 }
 
-func TestNewDiffInteractiveModel_UsesPackageTabs(t *testing.T) {
+func TestNewDiffInteractiveModel_ComponentsCycleGroupingAxis(t *testing.T) {
 	model := NewDiff(output.DiffResponse{
 		Comparison: output.DiffComparison{Base: "base", Head: "head"},
 		Results: output.DiffResults{Manifests: []output.DiffManifestResult{{
 			Status:         "changed",
 			Path:           "package.json",
 			PackageManager: "npm",
+			Ecosystem:      "npm",
 			Added:          []output.DiffPackageChange{{Package: output.PackageRef{Name: "zod", Version: "3.23.0"}}},
 			Removed:        []output.DiffPackageChange{{Package: output.PackageRef{Name: "left-pad", Version: "1.3.0"}}},
 			Changed:        []output.DiffChangedPackage{{Before: output.PackageRef{Name: "react", Version: "18.2.0"}, After: output.PackageRef{Name: "react", Version: "19.0.0"}}},
 		}}},
 		Summary: output.DiffSummary{AddedPackageCount: 1, RemovedPackageCount: 1, ChangedPackageCount: 1},
-	})
+	}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
 
-	model.SelectView(2)
-	plain := render.StripANSI(model.View(100, 26))
-	if !strings.Contains(plain, "[2] Added") || !strings.Contains(plain, "zod@3.23.0") || strings.Contains(plain, "left-pad@1.3.0") {
-		t.Fatalf("expected added package tab, got:\n%s", plain)
+	model.SelectView(2) // Components
+
+	plain := render.StripANSI(model.View(140, 40))
+	// Default grouping = status. All three package changes should be visible.
+	if !strings.Contains(plain, "zod@3.23.0") {
+		t.Fatalf("expected components tab to show added package (zod), got:\n%s", plain)
 	}
-	model.SelectView(3)
-	plain = render.StripANSI(model.View(100, 26))
-	if !strings.Contains(plain, "[3] Removed") || !strings.Contains(plain, "left-pad@1.3.0") || strings.Contains(plain, "zod@3.23.0") {
-		t.Fatalf("expected removed package tab, got:\n%s", plain)
+	if !strings.Contains(plain, "left-pad@1.3.0") {
+		t.Fatalf("expected components tab to show removed package (left-pad), got:\n%s", plain)
 	}
-	model.SelectView(4)
-	plain = render.StripANSI(model.View(100, 26))
-	if !strings.Contains(plain, "[4] Changed") || !strings.Contains(plain, "react@19.0.0") || !strings.Contains(plain, "react@18.2.0") {
-		t.Fatalf("expected changed package tab, got:\n%s", plain)
+	if !strings.Contains(plain, "Group: Status") {
+		t.Fatalf("expected default group to be Status, got:\n%s", plain)
+	}
+
+	// Cycle grouping: Status -> Manifest. All three changes still visible
+	// (grouping is structural, not a filter).
+	model.CycleGroup()
+	plain = render.StripANSI(model.View(140, 40))
+	if !strings.Contains(plain, "Group: Manifest") {
+		t.Fatalf("expected group to cycle to Manifest, got:\n%s", plain)
+	}
+	if !strings.Contains(plain, "zod@3.23.0") {
+		t.Fatalf("expected manifest-group to still show zod, got:\n%s", plain)
+	}
+	if !strings.Contains(plain, "left-pad@1.3.0") {
+		t.Fatalf("expected manifest-group to still show left-pad, got:\n%s", plain)
 	}
 }

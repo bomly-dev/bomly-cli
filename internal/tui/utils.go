@@ -131,6 +131,19 @@ func statusBadge(status string) string {
 		return render.Style(label, render.BgYellow, render.Bold)
 	case "unchanged":
 		return render.Style(label, render.BgBlue, render.White)
+	case "new": // audit-delta "introduced" (display-side label)
+		return render.Style(label, render.BgRed, render.White, render.Bold)
+	case "old": // audit-delta "persisted"
+		return render.Style(label, render.BgYellow, render.Bold)
+	case "fixed": // audit-delta "resolved"
+		return render.Style(label, render.BgGreen, render.White, render.Bold)
+	case "retired": // license-delta "retired"
+		return render.Style(label, render.BgRed, render.White, render.Bold)
+	case "introduced", "persisted", "resolved":
+		// Internal data may still feed the long words through (older code
+		// paths, tests). Translate to the short equivalent here and recurse
+		// into the colored branches above for the same coloring.
+		return statusBadge(auditStatusLabel(status))
 	default:
 		return render.Style(label, render.BgCyan, render.Blue, render.Bold)
 	}
@@ -211,6 +224,14 @@ func statusText(status string) string {
 		return render.Style(status, render.Yellow, render.Bold)
 	case "unchanged":
 		return render.Style(status, render.Cyan, render.Bold)
+	case "new":
+		return render.Style(status, render.Red, render.Bold)
+	case "old":
+		return render.Style(status, render.Yellow, render.Bold)
+	case "fixed":
+		return render.Style(status, render.Green, render.Bold)
+	case "retired":
+		return render.Style(status, render.Red, render.Bold)
 	default:
 		return render.Style(status, render.White, render.Bold)
 	}

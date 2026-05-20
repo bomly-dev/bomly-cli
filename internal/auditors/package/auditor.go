@@ -88,7 +88,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 func finding(pkg *sdk.Package, id, title string, disposition sdk.FindingDisposition) sdk.Finding {
 	return sdk.Finding{
 		ID:          fmt.Sprintf("%s:%s:%s", auditorName, id, pkg.ID),
-		Kind:        sdk.FindingKindPolicy,
+		Kind:        sdk.FindingKindPackage,
 		Package:     pkg,
 		Title:       title,
 		Severity:    "unknown",

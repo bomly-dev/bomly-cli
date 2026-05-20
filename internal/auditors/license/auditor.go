@@ -51,9 +51,28 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 		packages = []*sdk.Package{req.Target}
 	}
 
+	// Root packages are the project itself (e.g. github.com/your/repo) —
+	// they rarely declare a license in lockfile data and the license is
+	// typically expressed at the repository level. Flagging the root with
+	// "unknown-license" generates noise that is never actionable from
+	// within a dependency manifest. We treat roots as implicitly exempt
+	// for full-graph audits; component-mode audits (`req.Target != nil`)
+	// still evaluate whatever target was passed in.
+	rootIDs := map[string]struct{}{}
+	if req.Mode != sdk.TargetModeComponent {
+		for _, r := range req.Graph.Roots() {
+			if r != nil {
+				rootIDs[r.ID] = struct{}{}
+			}
+		}
+	}
+
 	findings := make([]sdk.Finding, 0)
 	for _, pkg := range packages {
 		if pkg == nil || !scopeAllowed(pkg, a.FailOnScopes) || packageExempt(pkg, a.ExemptPackages) {
+			continue
+		}
+		if _, isRoot := rootIDs[pkg.ID]; isRoot {
 			continue
 		}
 		licenses := pkg.LicenseValues()
@@ -99,7 +118,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 func finding(pkg *sdk.Package, id, title string, disposition sdk.FindingDisposition) sdk.Finding {
 	return sdk.Finding{
 		ID:          fmt.Sprintf("%s:%s:%s", auditorName, id, pkg.ID),
-		Kind:        sdk.FindingKindPolicy,
+		Kind:        sdk.FindingKindLicense,
 		Package:     pkg,
 		Title:       title,
 		Severity:    "unknown",

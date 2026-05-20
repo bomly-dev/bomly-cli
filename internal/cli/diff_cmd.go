@@ -147,7 +147,7 @@ func newDiffCmd() *cobra.Command {
 			}
 			if current.Interactive {
 				progress.Stop()
-				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewDiff(payload)))
+				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewDiff(payload, diffResult.Base.Consolidated, diffResult.Head.Consolidated).WithEnrichEnabled(current.Enrich)))
 			}
 
 			progress.Success("Resolved Graph")

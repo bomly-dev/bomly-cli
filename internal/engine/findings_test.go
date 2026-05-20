@@ -11,7 +11,7 @@ func TestDeduplicateFindingsKeepsHighestPrioritySource(t *testing.T) {
 	findings := []sdk.Finding{
 		{ID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "osv", Package: pkg},
 		{ID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "grype", Package: pkg},
-		{ID: "POLICY-1", Kind: sdk.FindingKindPolicy, Source: "policy", Package: pkg},
+		{ID: "POLICY-1", Kind: sdk.FindingKindLicense, Source: "license", Package: pkg},
 	}
 
 	got := DeduplicateFindings(findings)

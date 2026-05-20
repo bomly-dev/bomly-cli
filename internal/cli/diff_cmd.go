@@ -160,7 +160,7 @@ func newDiffCmd() *cobra.Command {
 				return render.DiffMarkdown(w, payload)
 			}
 			if len(outputSpecs) > 0 {
-				progress.Advance("Writing additional output")
+				prog.Advance("Writing additional output")
 				for _, spec := range outputSpecs {
 					if err := writeRenderedOutput(streams.reportWriter(), spec, markdownRenderer); err != nil {
 						return err
@@ -168,7 +168,7 @@ func newDiffCmd() *cobra.Command {
 				}
 			}
 			if hasStdoutOutput(outputSpecs) {
-				progress.Success("Wrote output")
+				prog.Success("Wrote output")
 				return diffPolicyExit(current.Audit, diffResult.Audit)
 			}
 			if outputFormat == output.FormatSARIF {

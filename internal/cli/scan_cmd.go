@@ -94,7 +94,7 @@ func newScanCmd() *cobra.Command {
 			var findings []sdk.Finding
 			if commandCtx.ResolvedConfig.Audit {
 				findings = pipeResult.Findings
-				progress.CompleteStep("Evaluated policy", auditProgressChildren(pipeResult.AuditorRuns, pipeResult.AuditorFindings, pipeResult.AuditWarnings))
+				prog.CompleteStep("Evaluated policy", auditProgressChildren(pipeResult.AuditorRuns, pipeResult.AuditorFindings, pipeResult.AuditWarnings))
 			}
 			payload := output.BuildScanResponse(commandCtx.ProjectDescriptor(), consolidated, findings, started).
 				WithAnalyzerRuns(pipeResult.AnalyzerRuns, pipeResult.AnalyzerStats)
@@ -126,14 +126,8 @@ func newScanCmd() *cobra.Command {
 				}
 			}
 			if hasStdoutOutput(outputSpecs) || (allOutputsAreSBOM(outputSpecs) && strings.TrimSpace(current.Format) == "") {
-				progress.Success("Wrote output")
+				prog.Success("Wrote output")
 				return scanPolicyExit(commandCtx.ResolvedConfig.Audit, findings)
-			}
-
-			var findings []sdk.Finding
-			if commandCtx.ResolvedConfig.Audit {
-				findings = pipeResult.Findings
-				prog.CompleteStep("Evaluated policy", auditProgressChildren(pipeResult.AuditorRuns, pipeResult.AuditorFindings, pipeResult.AuditWarnings))
 			}
 
 			if graphOutputFormat == output.FormatSARIF {

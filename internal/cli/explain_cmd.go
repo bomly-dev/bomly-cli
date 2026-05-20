@@ -104,17 +104,13 @@ func newExplainCmd() *cobra.Command {
 			payload := output.BuildExplainResponse(context.ProjectDescriptor(), args[0], targets, started)
 			markdownRenderer := func(w io.Writer) error {
 				return render.ExplainMarkdown(w, payload)
-      }
-			if context.Format == output.FormatSARIF {
-				prog.Success("Resolved Graph")
-				return output.WriteSARIF(streams.reportWriter(), explainResult.Findings, "bomly", cmd.Root().Version)
 			}
 			if context.ResolvedConfig.Interactive {
 				prog.Stop()
 				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewExplain(payload.Project, args[0], explainResult.FocusedConsolidated, explainResult.FocusedGraph, explainResult.Findings).WithEnrichEnabled(context.ResolvedConfig.Enrich)))
 			}
 			if len(outputSpecs) > 0 {
-				progress.Advance("Writing additional output")
+				prog.Advance("Writing additional output")
 				for _, spec := range outputSpecs {
 					if err := writeRenderedOutput(streams.reportWriter(), spec, markdownRenderer); err != nil {
 						return err
@@ -122,11 +118,11 @@ func newExplainCmd() *cobra.Command {
 				}
 			}
 			if hasStdoutOutput(outputSpecs) {
-				progress.Success("Wrote output")
+				prog.Success("Wrote output")
 				return explainPolicyExit(context.ResolvedConfig.Audit, explainResult.Findings)
 			}
 			if context.Format == output.FormatSARIF {
-				progress.Success("Resolved Graph")
+				prog.Success("Resolved Graph")
 				return output.WriteSARIF(streams.reportWriter(), explainResult.Findings, "bomly", cmd.Root().Version)
 			}
 

@@ -6,7 +6,8 @@ Start with [Getting Started](GETTING_STARTED.md) if you're new. Otherwise pick t
 
 Task-oriented walkthroughs.
 
-- [Getting Started](GETTING_STARTED.md) — install, first scan, enrich, audit, diff
+- [Installation](INSTALLATION.md) — install methods, `bomly` vs `bomly-lite`, checksum verification, uninstall
+- [Getting Started](GETTING_STARTED.md) — first scan, enrich, audit, diff
 - [Scan Targets](SCAN_TARGETS.md) — directories, Git repos, containers, SBOMs
 - [Output Formats](OUTPUT_FORMATS.md) — text, JSON, SARIF, SBOM
 - [SBOM Formats](SBOM.md) — SPDX vs. CycloneDX, write and ingest

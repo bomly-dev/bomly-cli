@@ -30,7 +30,9 @@ func (m *scanModel) WithEnrichEnabled(enabled bool) *scanModel {
 		return nil
 	}
 	m.enrichEnabled = enabled
-	m.list = m.buildCurrentListModel()
+	if m.shellModel != nil {
+		m.Rebuild()
+	}
 	return m
 }
 
@@ -51,7 +53,6 @@ func newScanNavigator(titlePrefix string, project output.ProjectDescriptor, cons
 		mode:                  interactiveScanModeManifests,
 		allowManifestExit:     len(manifests) > 1,
 		findings:              findings,
-		activeView:            interactiveScanViewOverview,
 		explainQuery:          strings.TrimSpace(explainQuery),
 		sourceExpanded:        map[string]bool{"root": true},
 		componentExpanded:     map[string]bool{},
@@ -66,113 +67,41 @@ func newScanNavigator(titlePrefix string, project output.ProjectDescriptor, cons
 		model.mode = interactiveScanModeComponents
 		model.currentManifestID = manifests[0].id
 	}
-	model.list = model.buildCurrentListModel()
+	model.shellModel = newShell(ShellSpec{
+		TopBar: model.scanTopBar,
+		Tabs: []TabSpec{
+			{ID: string(interactiveScanViewOverview), Label: "Overview", Build: model.buildOverviewListModel},
+			{ID: string(interactiveScanViewPackages), Label: "Components", Build: model.buildComponentsTreeListModel},
+			{ID: string(interactiveScanViewVulns), Label: "Vulnerabilities", Build: model.buildVulnsListModel},
+			{ID: string(interactiveScanViewLicenses), Label: "Licenses", Build: model.buildLicensesListModel},
+			{ID: string(interactiveScanViewFindings), Label: "Findings", Build: model.buildFindingsListModel},
+			{ID: string(interactiveScanViewSource), Label: "Source", Build: model.buildSourceListModel},
+		},
+		Footer: func() (string, string) {
+			return model.scanFooterSummary(), model.scanLegend()
+		},
+	})
 	return model
 }
 
+func (m *scanModel) currentScanView() scanView {
+	if m == nil || m.shellModel == nil {
+		return interactiveScanViewOverview
+	}
+	return scanView(m.ActiveTabID())
+}
+
+// View overrides shellModel.View so the Overview tab can render its custom
+// dashboard layout. All other tabs fall through to the embedded
+// shellModel's listModel rendering.
 func (m *scanModel) View(width, height int) string {
-	if m == nil || m.list == nil {
+	if m == nil || m.shellModel == nil {
 		return ""
 	}
-	if m.activeView == interactiveScanViewOverview && !m.IsSearching() {
+	if m.currentScanView() == interactiveScanViewOverview && !m.IsSearching() {
 		return m.overviewDashboardView(width, height)
 	}
-	return m.list.View(width, height)
-}
-
-func (m *scanModel) Move(delta int) {
-	if m == nil || m.list == nil {
-		return
-	}
-	m.list.Move(delta)
-}
-
-func (m *scanModel) ScrollDetails(delta int) {
-	if m == nil || m.list == nil {
-		return
-	}
-	m.list.ScrollDetails(delta)
-}
-
-func (m *scanModel) Home() {
-	if m == nil || m.list == nil {
-		return
-	}
-	m.list.Home()
-}
-
-func (m *scanModel) End() {
-	if m == nil || m.list == nil {
-		return
-	}
-	m.list.End()
-}
-
-func (m *scanModel) BeginSearch() {
-	if m == nil || m.list == nil {
-		return
-	}
-	m.list.BeginSearch()
-}
-
-func (m *scanModel) AppendSearch(value string) {
-	if m == nil || m.list == nil {
-		return
-	}
-	m.list.AppendSearch(value)
-}
-
-func (m *scanModel) BackspaceSearch() {
-	if m == nil || m.list == nil {
-		return
-	}
-	m.list.BackspaceSearch()
-}
-
-func (m *scanModel) CancelSearch() {
-	if m == nil || m.list == nil {
-		return
-	}
-	m.list.CancelSearch()
-}
-
-func (m *scanModel) ConfirmSearch() {
-	if m == nil || m.list == nil {
-		return
-	}
-	m.list.ConfirmSearch()
-}
-
-func (m *scanModel) IsSearching() bool {
-	if m == nil || m.list == nil {
-		return false
-	}
-	return m.list.IsSearching()
-}
-
-func (m *scanModel) CycleView() {
-	if m == nil {
-		return
-	}
-	views := scanViews()
-	for idx, view := range views {
-		if view == m.activeView {
-			m.activeView = views[(idx+1)%len(views)]
-			m.list = m.buildCurrentListModel()
-			return
-		}
-	}
-	m.activeView = interactiveScanViewOverview
-	m.list = m.buildCurrentListModel()
-}
-
-func (m *scanModel) SelectView(index int) {
-	views := scanViews()
-	if m == nil || index < 1 || index > len(views) {
-		return
-	}
-	m.activeView = views[index-1]
-	m.list = m.buildCurrentListModel()
+	return m.shellModel.View(width, height) //nolint:staticcheck // explicit selector bypasses the View shadow on the embedding model
 }
 
 func (m *scanModel) ToggleSelected() {
@@ -180,35 +109,35 @@ func (m *scanModel) ToggleSelected() {
 }
 
 func (m *scanModel) toggleSelectedTreeNode() {
-	if m == nil || m.list == nil {
+	if m == nil || m.List() == nil {
 		return
 	}
-	visible := m.list.visibleItemIndices()
+	visible := m.List().visibleItemIndices()
 	if len(visible) == 0 {
 		return
 	}
-	item := m.list.items[visible[m.list.selectedVisibleIndex(visible)]]
-	if m.activeView == interactiveScanViewPackages && item.canOpen && item.key != "" {
+	item := m.List().items[visible[m.List().selectedVisibleIndex(visible)]]
+	if m.currentScanView() == interactiveScanViewPackages && item.canOpen && item.key != "" {
 		m.componentExpanded[item.key] = !item.expanded
 		m.rebuildListPreserveSelection()
 		return
 	}
-	if m.activeView == interactiveScanViewVulns && item.canOpen && item.key != "" {
+	if m.currentScanView() == interactiveScanViewVulns && item.canOpen && item.key != "" {
 		m.vulnerabilityExpanded[item.key] = !item.expanded
 		m.rebuildListPreserveSelection()
 		return
 	}
-	if m.activeView == interactiveScanViewLicenses && item.canOpen && item.key != "" {
+	if m.currentScanView() == interactiveScanViewLicenses && item.canOpen && item.key != "" {
 		m.licenseExpanded[item.key] = !item.expanded
 		m.rebuildListPreserveSelection()
 		return
 	}
-	if m.activeView == interactiveScanViewFindings && item.canOpen && item.key != "" {
+	if m.currentScanView() == interactiveScanViewFindings && item.canOpen && item.key != "" {
 		m.findingExpanded[item.key] = !item.expanded
 		m.rebuildListPreserveSelection()
 		return
 	}
-	if m.activeView != interactiveScanViewSource {
+	if m.currentScanView() != interactiveScanViewSource {
 		return
 	}
 	if !item.canOpen {
@@ -231,18 +160,18 @@ func (m *scanModel) CollapseSelected() {
 }
 
 func (m *scanModel) setSelectedTreeNode(expanded bool) {
-	if m == nil || m.list == nil {
+	if m == nil || m.List() == nil {
 		return
 	}
-	visible := m.list.visibleItemIndices()
+	visible := m.List().visibleItemIndices()
 	if len(visible) == 0 {
 		return
 	}
-	item := m.list.items[visible[m.list.selectedVisibleIndex(visible)]]
+	item := m.List().items[visible[m.List().selectedVisibleIndex(visible)]]
 	if !item.canOpen || item.key == "" || item.expanded == expanded {
 		return
 	}
-	switch m.activeView {
+	switch m.currentScanView() {
 	case interactiveScanViewPackages:
 		m.componentExpanded[item.key] = expanded
 	case interactiveScanViewVulns:
@@ -268,14 +197,14 @@ func (m *scanModel) CollapseAll() {
 }
 
 func (m *scanModel) setAllTreeNodes(expanded bool) {
-	if m == nil || m.list == nil {
+	if m == nil || m.List() == nil {
 		return
 	}
-	for _, item := range m.list.items {
+	for _, item := range m.List().items {
 		if !item.canOpen || item.key == "" {
 			continue
 		}
-		switch m.activeView {
+		switch m.currentScanView() {
 		case interactiveScanViewPackages:
 			m.componentExpanded[item.key] = expanded
 		case interactiveScanViewVulns:
@@ -288,7 +217,7 @@ func (m *scanModel) setAllTreeNodes(expanded bool) {
 			m.sourceExpanded[item.key] = expanded
 		}
 	}
-	if m.activeView == interactiveScanViewPackages {
+	if m.currentScanView() == interactiveScanViewPackages {
 		m.componentExpanded["project"] = expanded
 		for _, manifest := range m.manifests {
 			m.componentExpanded["manifest:"+manifest.id] = expanded
@@ -301,7 +230,7 @@ func (m *scanModel) setAllTreeNodes(expanded bool) {
 			}
 		}
 	}
-	if m.activeView == interactiveScanViewSource {
+	if m.currentScanView() == interactiveScanViewSource {
 		for _, key := range []string{"root", "target", "manifests", "packages", "relationships"} {
 			m.sourceExpanded[key] = expanded
 		}
@@ -320,7 +249,7 @@ func (m *scanModel) CycleGroup() {
 	if m == nil {
 		return
 	}
-	switch m.activeView {
+	switch m.currentScanView() {
 	case interactiveScanViewVulns:
 		m.vulnerabilityGroup = nextFilterValue(m.vulnerabilityGroup, []string{"component", "severity", "ecosystem"})
 	case interactiveScanViewLicenses:
@@ -334,7 +263,7 @@ func (m *scanModel) CycleGroup() {
 }
 
 func (m *scanModel) CycleRelationshipFilter() {
-	if m == nil || m.activeView != interactiveScanViewPackages {
+	if m == nil || m.currentScanView() != interactiveScanViewPackages {
 		return
 	}
 	m.relationshipFilter = nextRelationshipFilter(m.relationshipFilter, m.explainMode)
@@ -342,7 +271,7 @@ func (m *scanModel) CycleRelationshipFilter() {
 }
 
 func (m *scanModel) CycleScopeFilter() {
-	if m == nil || m.activeView != interactiveScanViewPackages {
+	if m == nil || m.currentScanView() != interactiveScanViewPackages {
 		return
 	}
 	m.scopeFilter = nextScopeFilter(m.scopeFilter)
@@ -353,7 +282,7 @@ func (m *scanModel) CycleSeverityFilter() {
 	if m == nil {
 		return
 	}
-	switch m.activeView {
+	switch m.currentScanView() {
 	case interactiveScanViewVulns:
 		// always applicable
 	case interactiveScanViewPackages:
@@ -365,7 +294,7 @@ func (m *scanModel) CycleSeverityFilter() {
 }
 
 func (m *scanModel) CycleEcosystemFilter() {
-	if m == nil || m.activeView != interactiveScanViewPackages {
+	if m == nil || m.currentScanView() != interactiveScanViewPackages {
 		return
 	}
 	m.ecosystemFilter = nextFilterValue(m.ecosystemFilter, append([]string{""}, m.componentEcosystemValues()...))
@@ -400,53 +329,36 @@ func (m *scanModel) GoBack() {
 	}
 	m.mode = interactiveScanModeManifests
 	m.currentManifestID = ""
-	m.list = m.buildCurrentListModel()
+	if m.shellModel != nil {
+		m.Rebuild()
+	}
 }
 
 func (m *scanModel) CanGoBack() bool {
 	if m == nil {
 		return false
 	}
-	return m.activeView == interactiveScanViewPackages && m.mode == interactiveScanModeComponents && m.allowManifestExit
-}
-
-func (m *scanModel) buildCurrentListModel() *listModel {
-	var list *listModel
-	switch m.activeView {
-	case interactiveScanViewOverview:
-		list = m.buildOverviewListModel()
-	case interactiveScanViewVulns:
-		list = m.buildVulnsListModel()
-	case interactiveScanViewLicenses:
-		list = m.buildLicensesListModel()
-	case interactiveScanViewFindings:
-		list = m.buildFindingsListModel()
-	case interactiveScanViewSource:
-		list = m.buildSourceListModel()
-	default:
-		list = m.buildComponentsTreeListModel()
-	}
-	return m.withScanFooter(list)
+	return m.currentScanView() == interactiveScanViewPackages && m.mode == interactiveScanModeComponents && m.allowManifestExit
 }
 
 func (m *scanModel) rebuildListPreserveSelection() {
-	if m == nil {
+	if m == nil || m.shellModel == nil {
 		return
 	}
 	key, title, scrollOffset, detailOffset := "", "", 0, 0
-	if m.list != nil {
-		visible := m.list.visibleItemIndices()
+	if prev := m.List(); prev != nil {
+		visible := prev.visibleItemIndices()
 		if len(visible) > 0 {
-			item := m.list.items[visible[m.list.selectedVisibleIndex(visible)]]
+			item := prev.items[visible[prev.selectedVisibleIndex(visible)]]
 			key = item.key
 			title = item.title
 		}
-		scrollOffset = m.list.scrollOffset
-		detailOffset = m.list.detailOffset
+		scrollOffset = prev.scrollOffset
+		detailOffset = prev.detailOffset
 	}
-	next := m.buildCurrentListModel()
+	m.Rebuild()
+	next := m.List()
 	if next == nil {
-		m.list = nil
 		return
 	}
 	next.scrollOffset = scrollOffset
@@ -459,7 +371,6 @@ func (m *scanModel) rebuildListPreserveSelection() {
 			}
 		}
 	}
-	m.list = next
 }
 
 func scanViews() []scanView {
@@ -473,7 +384,13 @@ func scanViews() []scanView {
 	}
 }
 
-func (m *scanModel) scanSummaryLines(active scanView) []string {
+// scanSummaryLines used to inject the top bar + tab strip into each builder's
+// listModel.summary. The shared shellModel now owns that chrome, so this
+// returns nil; the function exists only so legacy call sites keep compiling.
+func (m *scanModel) scanSummaryLines(active scanView) []string { return nil }
+
+// scanTopBar is the ShellSpec.TopBar producer for scan/explain/diff-via-scan.
+func (m *scanModel) scanTopBar() string {
 	targetParts := []string{
 		render.Style(valueOrDash(m.project.Name), render.White, render.Bold),
 		render.Style(targetKindLabel(m.project), render.Dim),
@@ -484,14 +401,9 @@ func (m *scanModel) scanSummaryLines(active scanView) []string {
 	if strings.TrimSpace(m.project.TargetRef) != "" {
 		targetParts = append(targetParts, render.Style("ref: "+m.project.TargetRef, render.Cyan, render.Bold))
 	}
-	return []string{
-		render.Style(" bomly ", render.BgCyan, render.Blue, render.Bold) + " " +
-			render.Style(m.commandLabel(), render.BgBlue, render.White, render.Bold) + " " +
-			strings.Join(targetParts, render.Style(" | ", render.Dim)),
-		"",
-		m.tabLine(active),
-		"",
-	}
+	return render.Style(" bomly ", render.BgCyan, render.Blue, render.Bold) + " " +
+		render.Style(m.commandLabel(), render.BgBlue, render.White, render.Bold) + " " +
+		strings.Join(targetParts, render.Style(" | ", render.Dim))
 }
 
 func (m *scanModel) commandLabel() string {
@@ -504,30 +416,6 @@ func (m *scanModel) commandLabel() string {
 	default:
 		return "SCAN"
 	}
-}
-
-func (m *scanModel) tabLine(active scanView) string {
-	labels := []struct {
-		view  scanView
-		label string
-	}{
-		{interactiveScanViewOverview, "Overview"},
-		{interactiveScanViewPackages, "Components"},
-		{interactiveScanViewVulns, "Vulnerabilities"},
-		{interactiveScanViewLicenses, "Licenses"},
-		{interactiveScanViewFindings, "Findings"},
-		{interactiveScanViewSource, "Source"},
-	}
-	parts := make([]string, 0, len(labels))
-	for idx, item := range labels {
-		text := fmt.Sprintf("[%d] %s", idx+1, item.label)
-		if item.view == active {
-			parts = append(parts, render.Style(text, render.Yellow, render.Bold))
-		} else {
-			parts = append(parts, render.Style(text, render.Dim))
-		}
-	}
-	return strings.Join(parts, render.Style(" | ", render.Dim))
 }
 
 func (m *scanModel) scanStatusLine() string {
@@ -561,16 +449,6 @@ func (m *scanModel) scanFooterLines(width int) []string {
 		statusBar(m.scanFooterSummary(), width),
 		centerLine(m.scanLegend(), width),
 	}
-}
-
-func (m *scanModel) withScanFooter(list *listModel) *listModel {
-	if list == nil {
-		return nil
-	}
-	list.footerSummary = m.scanFooterSummary()
-	list.legend = m.scanLegend()
-	list.title = ""
-	return list
 }
 
 func (m *scanModel) componentControlsLine() string {
@@ -911,16 +789,16 @@ func (m *scanModel) buildOverviewListModel() *listModel {
 
 func (m *scanModel) overviewDashboardView(width, height int) string {
 	if width < 80 || height < 22 {
-		return m.list.View(width, height)
+		return m.shellModel.View(width, height) //nolint:staticcheck // explicit selector bypasses the View shadow on the embedding model
 	}
 	var lines []string
-	for _, summaryLine := range m.scanSummaryLines(interactiveScanViewOverview) {
+	for _, summaryLine := range m.shellSummaryLines() {
 		lines = append(lines, truncateToWidth(summaryLine, width))
 	}
 	footerLines := m.scanFooterLines(width)
 	bodyHeight := height - len(lines) - len(footerLines)
 	if bodyHeight < 12 {
-		return m.list.View(width, height)
+		return m.shellModel.View(width, height) //nolint:staticcheck // explicit selector bypasses the View shadow on the embedding model
 	}
 
 	vulnerabilities := packageVulnerabilityRows(m.graphValue)
@@ -2486,11 +2364,43 @@ func distributionLine(label string, value, total, max int, color string, width i
 		percent = value * 100 / total
 	}
 	text := fmt.Sprintf("%d %s (%d%%)", value, label, percent)
-	barWidth := width - 26
+	// Scale the label column with the pane width so composite labels like
+	// "1 changed runtime (100%)" don't get truncated mid-percentage.
+	// Floor of 22 keeps short labels in narrow panes looking the same as
+	// before; cap of 40 keeps the bar visible on very wide screens.
+	//
+	// Sizing contract: this function is called by panes that have already
+	// budgeted `width` as the pane's inner width (caller passes
+	// `paneWidth-2`). boxView then reserves another 2 cols for horizontal
+	// padding, so the actual visible content area is `width-2`. Layout:
+	//
+	//   padRight(text, textWidth+2) + bar(barWidth)   ==>   total = width - 2
+	//
+	// Anything longer gets clipped by boxView and we lose the bar tail.
+	textWidth := width / 2
+	if textWidth < 22 {
+		textWidth = 22
+	}
+	if textWidth > 40 {
+		textWidth = 40
+	}
+	// Bar takes whatever's left after the label column. We prefer at
+	// least 8 cols of bar, but never at the cost of overflowing the
+	// `width-2` box budget — when the pane is genuinely narrow, the
+	// label column shrinks rather than the bar overrun the borders.
+	barWidth := width - textWidth - 4 // -2 for padRight gap, -2 for box horizontal padding
 	if barWidth < 8 {
 		barWidth = 8
+		textWidth = width - barWidth - 4
+		if textWidth < 8 {
+			textWidth = 8
+			barWidth = width - textWidth - 4
+			if barWidth < 1 {
+				barWidth = 1
+			}
+		}
 	}
-	return padRight(truncateToWidth(text, 22), 24) + coloredBarLine(value, max, barWidth, color)
+	return padRight(truncateToWidth(text, textWidth), textWidth+2) + coloredBarLine(value, max, barWidth, color)
 }
 
 func coloredBarLine(value, max, width int, color string) string {

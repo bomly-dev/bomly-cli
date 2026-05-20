@@ -115,6 +115,11 @@ type listModel struct {
 	searchMatch    bool
 	footerSummary  string
 	legend         string
+	// bodyOverride, when non-nil, replaces the standard list-and-detail body
+	// region with a caller-rendered block of `height` rows of `width` columns.
+	// The shell chrome (title, summary, controls, topPanels, footer) renders
+	// exactly as if the override were absent; only the middle band changes.
+	bodyOverride func(width, height int) []string
 }
 
 type listPanel struct {
@@ -173,6 +178,8 @@ const (
 )
 
 type scanModel struct {
+	*shellModel
+
 	titlePrefix           string
 	project               output.ProjectDescriptor
 	graphValue            *sdk.Graph
@@ -180,7 +187,6 @@ type scanModel struct {
 	manifests             []listPackageRow
 	manifestByID          map[string]listPackageRow
 	mode                  scanMode
-	activeView            scanView
 	findings              []sdk.Finding
 	enrichEnabled         bool
 	currentManifestID     string
@@ -198,7 +204,6 @@ type scanModel struct {
 	licenseExpanded       map[string]bool
 	findingGroup          string
 	findingExpanded       map[string]bool
-	list                  *listModel
 }
 
 type teaModel struct {
@@ -551,6 +556,19 @@ func (m *listModel) View(width, height int) string {
 	if len(topPanelLines) > 0 {
 		lines = append(lines, topPanelLines...)
 		lines = append(lines, "")
+	}
+
+	if m.bodyOverride != nil {
+		body := m.bodyOverride(width, bodyHeight)
+		for i := 0; i < bodyHeight; i++ {
+			if i < len(body) {
+				lines = append(lines, body[i])
+			} else {
+				lines = append(lines, "")
+			}
+		}
+		lines = append(lines, footerLines...)
+		return strings.Join(lines, "\n")
 	}
 
 	visible := m.visibleItemIndices()

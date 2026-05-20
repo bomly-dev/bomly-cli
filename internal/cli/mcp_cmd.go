@@ -283,7 +283,7 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (o
 	})
 	logger := a.logger
 
-	baseTarget, headTarget, projectIdentifier, _, err := resolveGitDiffGraphs(ctx, o, logger, req.Base, req.Head, io.Discard)
+	baseTarget, headTarget, projectIdentifier, _, err := resolveGitDiffGraphs(ctx, o, nil, logger, req.Base, req.Head, io.Discard)
 	if err != nil {
 		return output.DiffResponse{}, err
 	}

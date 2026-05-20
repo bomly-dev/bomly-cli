@@ -35,15 +35,19 @@ func newExplainCmd() *cobra.Command {
 			current := options.GetConfig()
 			logger := commandLogger(cmd, "explain")
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
-			progress := newCommandProgress(streams, "Resolving dependencies")
+			prog := newCommandProgress(streams, "")
 			restoreStdout := streams.captureStdoutToDebugLog(logger)
 			defer func() {
-				if progress != nil {
-					progress.Fail("Explain aborted")
+				if prog != nil {
+					prog.Fail("Explain aborted")
 				}
 				restoreStdout()
 			}()
-			context, err := options.Prepare(cmd.Context(), logger)
+
+			// Two-phase pre-pipeline setup: resolve execution target (only
+			// when non-local) and index subprojects. Each gets its own
+			// progress line that completes before detection starts.
+			context, err := prepareCommandContextWithProgress(cmd.Context(), options, prog, logger)
 			if err != nil {
 				return err
 			}
@@ -63,22 +67,23 @@ func newExplainCmd() *cobra.Command {
 			}
 
 			pipeline := engine.NewPipeline(context.Registry(), logger)
+			pipeReq := context.PipelineRequest(sdk.ScopeUnknown, streams.notificationWriter())
+			pipeReq.Progress = prog
 			explainResult, err := pipeline.RunExplain(cmd.Context(), engine.ExplainRequest{
 				Query:    args[0],
-				Pipeline: context.PipelineRequest(sdk.ScopeUnknown, streams.notificationWriter()),
+				Pipeline: pipeReq,
 			})
 			if err != nil {
 				return exit.ResolutionFailureError(err)
 			}
 
 			resolved := explainResult.ResolveResults
-			subprojectChildren := subprojectProgressChildren(resolved)
-			subprojectChildren = append(subprojectChildren, warningProgressChildren(explainResult.DetectorWarnings)...)
-			progress.CompleteStep("Indexed subprojects", subprojectChildren)
-			progress.CompleteStep("Detected Dependencies", detectorProgressChildren(resolved))
-			progress.Advance("Finding dependency paths")
+			detectionChildren := detectorProgressChildren(resolved)
+			detectionChildren = append(detectionChildren, warningProgressChildren(explainResult.DetectorWarnings)...)
+			prog.CompleteStep("Detected Dependencies", detectionChildren)
+			prog.Advance("Finding dependency paths")
 			if len(explainResult.MatcherRuns) > 0 || len(explainResult.MatchWarnings) > 0 {
-				progress.CompleteStep("Enriched packages", matchProgressChildren(explainResult.Graph, explainResult.MatcherRuns, explainResult.MatchWarnings))
+				prog.CompleteStep("Enriched packages", matchProgressChildren(explainResult.Graph, explainResult.MatcherRuns, explainResult.MatchWarnings))
 			}
 
 			targets := make([]output.ExplainTargetResponse, 0, len(explainResult.Targets))
@@ -93,15 +98,19 @@ func newExplainCmd() *cobra.Command {
 				})
 			}
 			if context.ResolvedConfig.Audit {
-				progress.CompleteStep("Evaluated policy", auditProgressChildren(explainResult.AuditorRuns, explainResult.AuditorFindings, explainResult.AuditWarnings))
+				prog.CompleteStep("Evaluated policy", auditProgressChildren(explainResult.AuditorRuns, explainResult.AuditorFindings, explainResult.AuditWarnings))
 			}
 
 			payload := output.BuildExplainResponse(context.ProjectDescriptor(), args[0], targets, started)
 			markdownRenderer := func(w io.Writer) error {
 				return render.ExplainMarkdown(w, payload)
+      }
+			if context.Format == output.FormatSARIF {
+				prog.Success("Resolved Graph")
+				return output.WriteSARIF(streams.reportWriter(), explainResult.Findings, "bomly", cmd.Root().Version)
 			}
 			if context.ResolvedConfig.Interactive {
-				progress.Stop()
+				prog.Stop()
 				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewExplain(payload.Project, args[0], explainResult.FocusedConsolidated, explainResult.FocusedGraph, explainResult.Findings).WithEnrichEnabled(context.ResolvedConfig.Enrich)))
 			}
 			if len(outputSpecs) > 0 {
@@ -126,9 +135,9 @@ func newExplainCmd() *cobra.Command {
 				return err
 			}
 			defer func() { _ = closeWriter() }()
-			progress.Success("Resolved Graph")
+			prog.Success("Resolved Graph")
 			if context.Format == output.FormatText || context.Format == output.FormatMarkdown {
-				progress.SeparateReport()
+				prog.SeparateReport()
 			}
 
 			err = output.Write(writer, context.Format, payload, output.Renderers{

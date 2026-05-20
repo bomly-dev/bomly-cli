@@ -36,15 +36,21 @@ func newScanCmd() *cobra.Command {
 			current := options.GetConfig()
 			logger := commandLogger(cmd, "scan")
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
-			progress := newCommandProgress(streams, "Resolving dependencies")
+			prog := newCommandProgress(streams, "")
 			restoreStdout := streams.captureStdoutToDebugLog(logger)
 			defer func() {
-				if progress != nil {
-					progress.Fail("Scan aborted")
+				if prog != nil {
+					prog.Fail("Scan aborted")
 				}
 				restoreStdout()
 			}()
-			commandCtx, err := options.Prepare(cmd.Context(), logger)
+
+			// Two-phase pre-pipeline setup with explicit progress steps:
+			//   1. Resolve execution target (clone repo / read SBOM / resolve
+			//      container) — shown only when there's actual work to do.
+			//   2. Index subprojects (registry build, plugin load, plan) —
+			//      always shown, always completes before the pipeline starts.
+			commandCtx, err := prepareCommandContextWithProgress(cmd.Context(), options, prog, logger)
 			if err != nil {
 				return err
 			}
@@ -68,21 +74,18 @@ func newScanCmd() *cobra.Command {
 			}
 
 			pipeline := engine.NewPipeline(commandCtx.Registry(), logger)
-			progress.StartStage("Indexed subprojects", 1)
-			progress.CompleteStage("Indexed subprojects", 1)
 			pipeReq := commandCtx.PipelineRequest(selectedScope, streams.notificationWriter())
-			pipeReq.Progress = progress
+			pipeReq.Progress = prog
 			pipeResult, err := scanengine.Run(cmd.Context(), pipeline, pipeReq)
 			if err != nil {
 				return exit.ResolutionFailureError(err)
 			}
 			resolved := pipeResult.ResolveResults
-			subprojectChildren := subprojectProgressChildren(resolved)
-			subprojectChildren = append(subprojectChildren, warningProgressChildren(pipeResult.DetectorWarnings)...)
-			progress.CompleteStep("Indexed subprojects", subprojectChildren)
-			progress.CompleteStep("Detected Dependencies", detectorProgressChildren(resolved))
+			detectionChildren := detectorProgressChildren(resolved)
+			detectionChildren = append(detectionChildren, warningProgressChildren(pipeResult.DetectorWarnings)...)
+			prog.CompleteStep("Detected Dependencies", detectionChildren)
 			if len(pipeResult.MatcherRuns) > 0 || len(pipeResult.MatchWarnings) > 0 {
-				progress.CompleteStep("Enriched packages", matchProgressChildren(pipeResult.Graph, pipeResult.MatcherRuns, pipeResult.MatchWarnings))
+				prog.CompleteStep("Enriched packages", matchProgressChildren(pipeResult.Graph, pipeResult.MatcherRuns, pipeResult.MatchWarnings))
 			}
 
 			consolidated := pipeResult.Consolidated
@@ -100,7 +103,7 @@ func newScanCmd() *cobra.Command {
 			}
 
 			if len(outputSpecs) > 0 {
-				progress.Advance("Writing additional output")
+				prog.Advance("Writing additional output")
 				stdout := streams.reportWriter()
 				sbomBuildOpts := sbom.BuildOptions{ToolNames: sbomToolNames(resolved)}
 				for _, spec := range outputSpecs {
@@ -127,13 +130,19 @@ func newScanCmd() *cobra.Command {
 				return scanPolicyExit(commandCtx.ResolvedConfig.Audit, findings)
 			}
 
+			var findings []sdk.Finding
+			if commandCtx.ResolvedConfig.Audit {
+				findings = pipeResult.Findings
+				prog.CompleteStep("Evaluated policy", auditProgressChildren(pipeResult.AuditorRuns, pipeResult.AuditorFindings, pipeResult.AuditWarnings))
+			}
+
 			if graphOutputFormat == output.FormatSARIF {
-				progress.Success("Resolved Graph")
+				prog.Success("Resolved Graph")
 				return output.WriteSARIF(streams.reportWriter(), findings, "bomly", cmd.Root().Version)
 			}
 
 			if commandCtx.ResolvedConfig.Interactive {
-				progress.Stop()
+				prog.Stop()
 				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewScan(payload.Project, consolidated, selectedGraph, findings).WithEnrichEnabled(commandCtx.ResolvedConfig.Enrich)))
 			}
 
@@ -142,9 +151,10 @@ func newScanCmd() *cobra.Command {
 				return err
 			}
 			defer func() { _ = closeWriter() }()
-			progress.Success("Resolved Graph")
+
+			prog.Success("Resolved Graph")
 			if commandCtx.Format == output.FormatText || commandCtx.Format == output.FormatMarkdown {
-				progress.SeparateReport()
+				prog.SeparateReport()
 			}
 
 			err = output.Write(writer, commandCtx.Format, payload, output.Renderers{

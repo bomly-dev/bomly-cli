@@ -12,13 +12,14 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/git"
+	"github.com/bomly-dev/bomly-cli/internal/progress"
 	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
-func resolveGitDiffGraphs(ctx context.Context, options *opts.Options, logger *zap.Logger, baseRef, headRef string, stderr io.Writer) (diffResolvedTarget, diffResolvedTarget, string, []engine.PipelineWarning, error) {
-	repoRoot, repoCleanup, projectIdentifier, err := resolveDiffRepo(options, logger)
+func resolveGitDiffGraphs(ctx context.Context, options *opts.Options, prog *progress.Progress, logger *zap.Logger, baseRef, headRef string, stderr io.Writer) (diffResolvedTarget, diffResolvedTarget, string, []engine.PipelineWarning, error) {
+	repoRoot, repoCleanup, projectIdentifier, err := resolveDiffRepo(options, prog, logger)
 	if err != nil {
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, err
 	}
@@ -32,26 +33,39 @@ func resolveGitDiffGraphs(ctx context.Context, options *opts.Options, logger *za
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, exit.InvalidInputError("verify --head %q: %v", headRef, err)
 	}
 
+	// Single indexing step covering both refs' Prepare phases.
+	indexStep := prog.StartWithDoneLabel("indexing", "Indexing subprojects", "Indexed subprojects")
+
 	baseTarget, err := resolveDiffResultsForRef(ctx, options, logger, repoRoot, baseRef, stderr)
 	if err != nil {
+		indexStep.Fail("Indexing subprojects failed")
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, err
 	}
 	headTarget, err := resolveDiffResultsForRef(ctx, options, logger, repoRoot, headRef, stderr)
 	if err != nil {
+		indexStep.Fail("Indexing subprojects failed")
 		_ = baseTarget.close()
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, err
 	}
 
+	indexStep.Complete("Indexed subprojects", combinedSubprojectChildren(baseTarget.Context.Subprojects(), headTarget.Context.Subprojects()))
+
 	return baseTarget, headTarget, projectIdentifier, collectPipelineWarnings(baseTarget.Warnings, headTarget.Warnings), nil
 }
 
-func resolveDiffRepo(options *opts.Options, logger *zap.Logger) (string, func() error, string, error) {
+// resolveDiffRepo finds (or clones) the git repository to diff. When --url is
+// set it surfaces a dedicated "Cloning repository" progress step around the
+// clone; for local repos no step is needed (resolution is instant).
+func resolveDiffRepo(options *opts.Options, prog *progress.Progress, logger *zap.Logger) (string, func() error, string, error) {
 	current := options.GetConfig()
 	if current.URL != "" {
+		step := prog.StartWithDoneLabel("input", "Cloning repository", "Cloned repository")
 		repoRoot, err := git.CloneTemp(logger, current.URL, "")
 		if err != nil {
+			step.Fail("Cloning repository failed")
 			return "", nil, "", exit.InvalidInputError("clone --url %q: %v", current.URL, err)
 		}
+		step.Complete("Cloned repository", nil)
 		return repoRoot, func() error { return os.RemoveAll(repoRoot) }, current.URL, nil
 	}
 
@@ -87,26 +101,34 @@ func resolveDiffResultsForRef(ctx context.Context, options *opts.Options, logger
 	return diffResolvedTarget{Context: commandCtx}, nil
 }
 
-func resolveContainerDiffGraphs(ctx context.Context, options *opts.Options, logger *zap.Logger, baseRef, headRef string, stderr io.Writer) (diffResolvedTarget, diffResolvedTarget, string, []engine.PipelineWarning, error) {
+func resolveContainerDiffGraphs(ctx context.Context, options *opts.Options, prog *progress.Progress, logger *zap.Logger, baseRef, headRef string, stderr io.Writer) (diffResolvedTarget, diffResolvedTarget, string, []engine.PipelineWarning, error) {
 	current := options.GetConfig()
+	refStep := prog.StartWithDoneLabel("input", "Resolving container references", "Resolved container references")
 	baseTarget, err := resolveContainerDiffTarget(current.Container, baseRef)
 	if err != nil {
+		refStep.Fail("Resolving container references failed")
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, exit.InvalidInputError("resolve --base %q: %v", baseRef, err)
 	}
 	headTarget, err := resolveContainerDiffTarget(current.Container, headRef)
 	if err != nil {
+		refStep.Fail("Resolving container references failed")
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, exit.InvalidInputError("resolve --head %q: %v", headRef, err)
 	}
+	refStep.Complete("Resolved container references", nil)
 
+	indexStep := prog.StartWithDoneLabel("indexing", "Indexing subprojects", "Indexed subprojects")
 	baseResolved, err := resolveDiffResultsForExecutionTarget(ctx, options, logger, executionTargetForResolved(baseTarget), stderr)
 	if err != nil {
+		indexStep.Fail("Indexing subprojects failed")
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, err
 	}
 	headResolved, err := resolveDiffResultsForExecutionTarget(ctx, options, logger, executionTargetForResolved(headTarget), stderr)
 	if err != nil {
+		indexStep.Fail("Indexing subprojects failed")
 		_ = baseResolved.close()
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, err
 	}
+	indexStep.Complete("Indexed subprojects", combinedSubprojectChildren(baseResolved.Context.Subprojects(), headResolved.Context.Subprojects()))
 
 	return baseResolved, headResolved, current.Container, collectPipelineWarnings(baseResolved.Warnings, headResolved.Warnings), nil
 }
@@ -185,19 +207,27 @@ func looksLikeContainerReference(value string) bool {
 func resolveSBOMDiffGraphs(
 	ctx context.Context,
 	options *opts.Options,
+	prog *progress.Progress,
 	logger *zap.Logger,
 	basePath, headPath string,
 	stderr io.Writer,
 ) (diffResolvedTarget, diffResolvedTarget, string, []engine.PipelineWarning, error) {
+	// For SBOM diff, reading the SBOM and "indexing" are the same operation —
+	// the SBOM file is itself the subproject. Use a single combined step.
+	step := prog.StartWithDoneLabel("indexing", "Reading SBOM files", "Read SBOM files")
 	baseResolved, err := resolveDiffResultsForSBOMFile(ctx, options, logger, basePath, stderr)
 	if err != nil {
+		step.Fail("Reading SBOM files failed")
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, fmt.Errorf("resolve base SBOM %q: %w", basePath, err)
 	}
 	headResolved, err := resolveDiffResultsForSBOMFile(ctx, options, logger, headPath, stderr)
 	if err != nil {
+		step.Fail("Reading SBOM files failed")
 		_ = baseResolved.close()
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, fmt.Errorf("resolve head SBOM %q: %w", headPath, err)
 	}
+	step.Complete("Read SBOM files", combinedSubprojectChildren(baseResolved.Context.Subprojects(), headResolved.Context.Subprojects()))
+
 	label := fmt.Sprintf("%s vs %s", filepath.Base(basePath), filepath.Base(headPath))
 	return baseResolved, headResolved, label, nil, nil
 }

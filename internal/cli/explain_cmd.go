@@ -59,8 +59,11 @@ func newExplainCmd() *cobra.Command {
 			if err != nil {
 				return exit.InvalidInputError("%v", err)
 			}
-			if err := validateMarkdownOnlyOutputs(outputSpecs); err != nil {
+			if err := validateReportOutputs(outputSpecs); err != nil {
 				return exit.InvalidInputError("%v", err)
+			}
+			if hasOutputFormat(outputSpecs, render.OutputFormatSARIF) && !context.ResolvedConfig.Audit {
+				return exit.InvalidInputError("-o sarif requires --audit")
 			}
 			if context.ResolvedConfig.Interactive && len(outputSpecs) > 0 {
 				return exit.InvalidInputError("--output cannot be combined with --interactive")
@@ -112,8 +115,19 @@ func newExplainCmd() *cobra.Command {
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
 				for _, spec := range outputSpecs {
-					if err := writeRenderedOutput(streams.reportWriter(), spec, markdownRenderer); err != nil {
-						return err
+					switch spec.Format {
+					case render.OutputFormatMarkdown:
+						if err := writeRenderedOutput(streams.reportWriter(), spec, markdownRenderer); err != nil {
+							return err
+						}
+					case render.OutputFormatSARIF:
+						if err := writeRenderedOutput(streams.reportWriter(), spec, func(w io.Writer) error {
+							return output.WriteSARIF(w, explainResult.Findings, "bomly", cmd.Root().Version)
+						}); err != nil {
+							return err
+						}
+					default:
+						return exit.InvalidInputError("output format %q is only supported by scan", spec.Label)
 					}
 				}
 			}

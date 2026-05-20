@@ -69,6 +69,9 @@ func newScanCmd() *cobra.Command {
 			if err != nil {
 				return exit.InvalidInputError("%v", err)
 			}
+			if hasOutputFormat(outputSpecs, render.OutputFormatSARIF) && !commandCtx.ResolvedConfig.Audit {
+				return exit.InvalidInputError("-o sarif requires --audit")
+			}
 			if current.Interactive && hasStdoutOutput(outputSpecs) {
 				return exit.InvalidInputError("--interactive cannot be combined with stdout --output")
 			}
@@ -118,6 +121,12 @@ func newScanCmd() *cobra.Command {
 						}
 					case spec.Format == render.OutputFormatMarkdown:
 						if err := writeRenderedOutput(stdout, spec, markdownRenderer); err != nil {
+							return err
+						}
+					case spec.Format == render.OutputFormatSARIF:
+						if err := writeRenderedOutput(stdout, spec, func(w io.Writer) error {
+							return output.WriteSARIF(w, findings, "bomly", cmd.Root().Version)
+						}); err != nil {
 							return err
 						}
 					default:

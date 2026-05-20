@@ -78,12 +78,14 @@ bomly scan --enrich --audit --fail-on high --format sarif > bomly.sarif
 
 GitHub Code Scanning, Azure DevOps, and most IDE extensions ingest SARIF directly. See [CI integration](CI_INTEGRATION.md) for upload recipes.
 
-## SBOM output: `-o`
+## Additional output: `-o`
 
-Independent of `--format`. You can write any number of SBOM artifacts alongside the reporting output:
+Independent of `--format`. You can write review reports and SBOM artifacts alongside the primary output:
 
 ```bash
 bomly scan --format json \
+  -o markdown=summary.md \
+  -o sarif=bomly.sarif \
   -o spdx=sbom.spdx.json \
   -o cyclonedx=sbom.cdx.json
 ```
@@ -92,10 +94,12 @@ Supported targets:
 
 | `-o` value | Format |
 | --- | --- |
+| `markdown` | GitHub-flavored Markdown report |
+| `sarif` | SARIF 2.1.0 report; requires `--audit` |
 | `spdx` | SPDX 2.3 JSON |
 | `cyclonedx` | CycloneDX 1.6 JSON |
 
-See [SBOM formats](SBOM.md) for the comparison and writing rules.
+`spdx` and `cyclonedx` are supported by `scan`. `markdown` and `sarif` are supported by report-producing commands. See [SBOM formats](SBOM.md) for the SBOM comparison and writing rules.
 
 ## Combining outputs
 
@@ -110,10 +114,12 @@ Example:
 
 ```bash
 bomly scan --enrich --audit --fail-on high \
-  --format sarif \
+  --format json \
+  -o markdown=summary.md \
+  -o sarif=bomly.sarif \
   -o spdx=sbom.spdx.json \
   -o cyclonedx=sbom.cdx.json \
-  > bomly.sarif
+  > bomly.json
 ```
 
 Detector and matcher work runs once. All outputs derive from the same in-memory graph.

@@ -52,6 +52,18 @@ func TestRenderDiffMarkdownIncludesPatchedVersionsByDefault(t *testing.T) {
 				Added:   []output.DiffPackageChange{{Package: output.PackageRef{Name: "react", Version: "18.2.0"}}},
 				Changed: []output.DiffChangedPackage{{After: output.PackageRef{Name: "zod", Version: "3.23.0"}, Before: output.PackageRef{Name: "zod", Version: "3.22.0"}}},
 			},
+			Vulnerabilities: output.DiffVulnerabilityResults{
+				Added: []output.DiffVulnerabilityChange{{
+					Package: output.PackageRef{Name: "react", Version: "18.2.0"},
+					Vulnerability: output.VulnerabilityRef{
+						ID:       "OSV-123",
+						Severity: "high",
+						Source:   "osv",
+						Title:    "Prototype pollution in react",
+						FixedIn:  "18.2.1",
+					},
+				}},
+			},
 		},
 		Audit: &output.DiffAudit{
 			Introduced: []output.AuditFinding{{
@@ -75,10 +87,13 @@ func TestRenderDiffMarkdownIncludesPatchedVersionsByDefault(t *testing.T) {
 	for _, want := range []string{
 		"# Bomly Diff Summary",
 		"Compared `main` to `feature`.",
-		"- Added: 1",
-		"- Changed: 1",
+		"**Summary:** 1 added, 1 changed, 0 removed.",
+		"| added | react@18.2.0 | 18.2.0 | unknown | - | - |",
+		"| changed | zod | 3.22.0 → 3.23.0 | unknown | - | - |",
 		"## Vulnerabilities",
-		"- [fail] `react@18.2.0`: Prototype pollution in react (patched in `18.2.1`)",
+		"| ❌ | introduced | HIGH | OSV-123 | react@18.2.0 | 18.2.1 | osv | Prototype pollution in react |",
+		"## Policy Findings",
+		"| ❌ | introduced | vulnerability | HIGH | fail | OSV-123 | react@18.2.0 | 18.2.1 | Prototype pollution in react |",
 	} {
 		if !strings.Contains(report, want) {
 			t.Fatalf("expected Markdown report to contain %q, got:\n%s", want, report)

@@ -390,7 +390,7 @@ func TestRootHelp_CommandExamplesRender(t *testing.T) {
 			examples: []string{
 				"Examples:",
 				"bomly scan --enrich --audit",
-				"bomly scan -o spdx-json=bomly.spdx.json",
+				"bomly scan -o spdx=bomly.spdx.json",
 				"bomly scan --url https://github.com/bomly-dev/bomly-cli --ref main --format json",
 				"bomly scan --container alpine:3.20",
 				"Explore available detectors, matchers, and auditors with `bomly plugin list`.",
@@ -576,6 +576,164 @@ func TestRoot_DiffCommand_JSONOutput(t *testing.T) {
 	}
 	if !containsManifestUpdatedPackageChange(manifests, "changed", "react", "19.0.0", "18.2.0") {
 		t.Fatalf("expected react update in %#v", manifests)
+	}
+}
+
+func TestRoot_DiffCommand_JSONOutputWithMarkdownOutputFile(t *testing.T) {
+	requireGit(t)
+	tempHome := t.TempDir()
+	t.Setenv("HOME", tempHome)
+	if runtime.GOOS == "windows" {
+		t.Setenv("USERPROFILE", tempHome)
+	}
+
+	setDynamicFakeNPMOnPath(t)
+	repoDir, baseSHA, headSHA := createGitNPMRepoHistory(t)
+	summaryPath := filepath.Join(t.TempDir(), "summaries", "diff.md")
+
+	root, err := newRootCmd("0.9.0-test")
+	if err != nil {
+		t.Fatalf("newRootCmd() error = %v", err)
+	}
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	root.SetOut(&stdout)
+	root.SetErr(&stderr)
+	root.SetArgs([]string{"diff", "--path", repoDir, "--ecosystems", "npm", "--base", baseSHA, "--head", headSHA, "--format", "json", "-o", "markdown=" + summaryPath})
+
+	if err := root.Execute(); err != nil {
+		t.Fatalf("root.Execute() error = %v; stderr=%s", err, stderr.String())
+	}
+
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("unmarshal output: %v\n%s", err, stdout.String())
+	}
+	if got := payload["command"]; got != "diff" {
+		t.Fatalf("expected diff command, got %#v", got)
+	}
+	summary, err := os.ReadFile(summaryPath)
+	if err != nil {
+		t.Fatalf("read summary file: %v", err)
+	}
+	for _, want := range []string{"# Bomly Diff Summary", "Compared `" + baseSHA + "` to `" + headSHA + "`.", "- Added: 1"} {
+		if !strings.Contains(string(summary), want) {
+			t.Fatalf("expected summary to contain %q, got:\n%s", want, summary)
+		}
+	}
+}
+
+func TestRoot_ScanCommand_MarkdownOutput(t *testing.T) {
+	tempHome := t.TempDir()
+	t.Setenv("HOME", tempHome)
+	if runtime.GOOS == "windows" {
+		t.Setenv("USERPROFILE", tempHome)
+	}
+
+	projectDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte(`{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "react": "^18.2.0"
+  }
+}
+`), 0o644); err != nil {
+		t.Fatalf("write package.json: %v", err)
+	}
+	setFakeNPMOnPath(t, `{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "react": {
+      "version": "18.2.0"
+    }
+  }
+}`)
+
+	root, err := newRootCmd("0.9.0-test")
+	if err != nil {
+		t.Fatalf("newRootCmd() error = %v", err)
+	}
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	root.SetOut(&stdout)
+	root.SetErr(&stderr)
+	root.SetArgs([]string{"scan", "--path", projectDir, "--ecosystems", "npm", "--format", "markdown"})
+
+	if err := root.Execute(); err != nil {
+		t.Fatalf("root.Execute() error = %v; stderr=%s", err, stderr.String())
+	}
+
+	out := stdout.String()
+	for _, want := range []string{
+		"# Bomly Scan Summary",
+		"## Dependency Inventory",
+		"| Package | Version | Scope | Licenses |",
+		"react@18.2.0",
+	} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("expected Markdown output to contain %q, got:\n%s", want, out)
+		}
+	}
+}
+
+func TestRoot_ScanCommand_JSONOutputWithMarkdownOutputFile(t *testing.T) {
+	tempHome := t.TempDir()
+	t.Setenv("HOME", tempHome)
+	if runtime.GOOS == "windows" {
+		t.Setenv("USERPROFILE", tempHome)
+	}
+
+	projectDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte(`{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "react": "^18.2.0"
+  }
+}
+`), 0o644); err != nil {
+		t.Fatalf("write package.json: %v", err)
+	}
+	setFakeNPMOnPath(t, `{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "react": {
+      "version": "18.2.0"
+    }
+  }
+}`)
+	summaryPath := filepath.Join(t.TempDir(), "summaries", "scan.md")
+
+	root, err := newRootCmd("0.9.0-test")
+	if err != nil {
+		t.Fatalf("newRootCmd() error = %v", err)
+	}
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	root.SetOut(&stdout)
+	root.SetErr(&stderr)
+	root.SetArgs([]string{"scan", "--path", projectDir, "--ecosystems", "npm", "--format", "json", "-o", "markdown=" + summaryPath})
+
+	if err := root.Execute(); err != nil {
+		t.Fatalf("root.Execute() error = %v; stderr=%s", err, stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("unmarshal output: %v\n%s", err, stdout.String())
+	}
+	if got := payload["command"]; got != "scan" {
+		t.Fatalf("expected scan command, got %#v", got)
+	}
+	summary, err := os.ReadFile(summaryPath)
+	if err != nil {
+		t.Fatalf("read summary file: %v", err)
+	}
+	if !strings.Contains(string(summary), "# Bomly Scan Summary") || !strings.Contains(string(summary), "react@18.2.0") {
+		t.Fatalf("unexpected Markdown summary:\n%s", summary)
 	}
 }
 
@@ -1039,6 +1197,68 @@ func TestRoot_WhyCommand_JSONOutput(t *testing.T) {
 	}
 }
 
+func TestRoot_WhyCommand_MarkdownOutput(t *testing.T) {
+	tempHome := t.TempDir()
+	t.Setenv("HOME", tempHome)
+	if runtime.GOOS == "windows" {
+		t.Setenv("USERPROFILE", tempHome)
+	}
+
+	projectDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte(`{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "react": "^18.2.0"
+  }
+}
+`), 0o644); err != nil {
+		t.Fatalf("write package.json: %v", err)
+	}
+	setFakeNPMOnPath(t, `{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "react": {
+      "version": "18.2.0",
+      "dependencies": {
+        "loose-envify": {
+          "version": "1.4.0"
+        }
+      }
+    }
+  }
+}`)
+
+	root, err := newRootCmd("0.9.0-test")
+	if err != nil {
+		t.Fatalf("newRootCmd() error = %v", err)
+	}
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	root.SetOut(&stdout)
+	root.SetErr(&stderr)
+	root.SetArgs([]string{"explain", "loose-envify", "--path", projectDir, "--ecosystems", "npm", "--format", "markdown"})
+
+	if err := root.Execute(); err != nil {
+		t.Fatalf("root.Execute() error = %v; stderr=%s", err, stderr.String())
+	}
+
+	out := stdout.String()
+	for _, want := range []string{
+		"# Bomly Explain Summary",
+		"Query: `loose-envify`",
+		"## Dependency Paths",
+		"`demo-app@1.0.0` -> `react@18.2.0` -> `loose-envify@1.4.0`",
+		"## Impact Assessment",
+	} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("expected Markdown output to contain %q, got:\n%s", want, out)
+		}
+	}
+}
+
 func TestRoot_WhyCommand_DefaultTextOutputUsesTree(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
@@ -1228,7 +1448,7 @@ func TestRoot_ScanCommand_SBOMJSONOutput(t *testing.T) {
 	var stderr bytes.Buffer
 	root.SetOut(&stdout)
 	root.SetErr(&stderr)
-	root.SetArgs([]string{"scan", "--path", projectDir, "--ecosystems", "npm", "-o", "spdx-json"})
+	root.SetArgs([]string{"scan", "--path", projectDir, "--ecosystems", "npm", "-o", "spdx"})
 
 	if err := root.Execute(); err != nil {
 		t.Fatalf("root.Execute() error = %v; stderr=%s", err, stderr.String())
@@ -1280,7 +1500,7 @@ func TestRoot_ScanCommand_WritesMultipleSBOMFormatsToFiles(t *testing.T) {
 	var stderr bytes.Buffer
 	root.SetOut(&stdout)
 	root.SetErr(&stderr)
-	root.SetArgs([]string{"scan", "--path", projectDir, "--ecosystems", "npm", "-o", "spdx-json=" + spdxPath, "-o", "cyclonedx-json=" + cdxPath})
+	root.SetArgs([]string{"scan", "--path", projectDir, "--ecosystems", "npm", "-o", "spdx=" + spdxPath, "-o", "cyclonedx=" + cdxPath})
 
 	if err := root.Execute(); err != nil {
 		t.Fatalf("root.Execute() error = %v; stderr=%s", err, stderr.String())
@@ -1339,7 +1559,7 @@ func TestRoot_ScanCommand_InteractiveRejectsSBOMOutput(t *testing.T) {
 	root.SetIn(bytes.NewBuffer(nil))
 	root.SetOut(&stdout)
 	root.SetErr(&stderr)
-	root.SetArgs([]string{"scan", "--interactive", "--path", projectDir, "--ecosystems", "npm", "-o", "spdx-json"})
+	root.SetArgs([]string{"scan", "--interactive", "--path", projectDir, "--ecosystems", "npm", "-o", "spdx"})
 
 	err = normalizeExecuteError(root.Execute())
 	if err == nil {
@@ -1348,7 +1568,7 @@ func TestRoot_ScanCommand_InteractiveRejectsSBOMOutput(t *testing.T) {
 	if exit.Code(err) != ExitCodeInvalidInput {
 		t.Fatalf("expected invalid input exit code, got %d (err=%v)", exit.Code(err), err)
 	}
-	if !strings.Contains(err.Error(), "--interactive requires a terminal stdin") {
+	if !strings.Contains(err.Error(), "--interactive cannot be combined with stdout --output") {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
@@ -1791,7 +2011,7 @@ func TestRoot_ScanCommand_GradlePathFallback_SBOMJSONOutput(t *testing.T) {
 	var stderr bytes.Buffer
 	root.SetOut(&stdout)
 	root.SetErr(&stderr)
-	root.SetArgs([]string{"scan", "--path", projectDir, "-o", "spdx-json"})
+	root.SetArgs([]string{"scan", "--path", projectDir, "-o", "spdx"})
 
 	if err := root.Execute(); err != nil {
 		t.Fatalf("root.Execute() error = %v; stderr=%s", err, stderr.String())
@@ -1886,7 +2106,7 @@ func TestRoot_ScanCommand_MavenSBOMJSONOutput(t *testing.T) {
 	var stderr bytes.Buffer
 	root.SetOut(&stdout)
 	root.SetErr(&stderr)
-	root.SetArgs([]string{"scan", "--path", projectDir, "--ecosystems", "maven", "-o", "spdx-json"})
+	root.SetArgs([]string{"scan", "--path", projectDir, "--ecosystems", "maven", "-o", "spdx"})
 
 	if err := root.Execute(); err != nil {
 		t.Fatalf("root.Execute() error = %v; stderr=%s", err, stderr.String())

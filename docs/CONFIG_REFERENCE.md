@@ -38,7 +38,8 @@ Bomly resolves configuration in the following order, with later sources overridi
 | `typosquat_mode` | `BOMLY_TYPOSQUAT_MODE` | `string` | warn | Typosquatting policy mode: warn or fail |
 | `warn_only` | `BOMLY_WARN_ONLY` | `bool` | - | Downgrade failing findings to warnings |
 | `analyzers` | `BOMLY_ANALYZERS` | `string` | - | Reachability analyzer selectors; supports +name and -name modifiers |
-| `format` | `BOMLY_FORMAT` | `string` | - | Primary report format: text, json, or sarif |
+| `format` | `BOMLY_FORMAT` | `string` | - | Primary report format: text, json, markdown, or sarif |
+| `outputs` | `BOMLY_OUTPUT` | `[]string` | - | Additional output target(s) as <format> or <format>=<path>. Repeatable; formats include markdown, spdx, and cyclonedx |
 | `interactive` | `BOMLY_INTERACTIVE` | `bool` | - | Enable interactive TUI mode |
 | `ecosystems` | `BOMLY_ECOSYSTEMS` | `string` | - | Ecosystem selectors; supports +name and -name modifiers |
 | `detectors` | `BOMLY_DETECTORS` | `string` | - | Detector selectors; supports +name and -name modifiers |
@@ -121,8 +122,10 @@ Bomly resolves configuration in the following order, with later sources overridi
 # warn_only: false
 # Reachability analyzer selectors; supports +name and -name modifiers
 # analyzers: ""
-# Primary report format: text, json, or sarif
+# Primary report format: text, json, markdown, or sarif
 # format: ""
+# Additional output target(s) as <format> or <format>=<path>. Repeatable; formats include markdown, spdx, and cyclonedx
+# outputs: []
 # Enable interactive TUI mode
 # interactive: false
 # Ecosystem selectors; supports +name and -name modifiers

@@ -52,7 +52,7 @@ A flag, target, or config value is malformed. Examples:
 - `--fail-on xyz` (the message lists accepted values).
 - `--format sarif` without `--audit`.
 - `--ref` passed without `--url`.
-- `-o spdx-json=` (empty path after `=`).
+- `-o spdx=` (empty path after `=`).
 
 Exit-4 errors describe the offending flag in the message and never produce partial output.
 

@@ -14,7 +14,7 @@ You produce an SBOM once and consume it many times: in PR checks, in release art
 | --- | --- | --- |
 | Steward | Linux Foundation | OWASP |
 | Primary use case | Software supply chain and license compliance | Component analysis and vulnerability management |
-| Bomly write target | `spdx-json` | `cyclonedx-json` |
+| Bomly write target | `spdx` | `cyclonedx` |
 | Encoding | JSON (also Tag-Value and YAML upstream) | JSON (also XML upstream) |
 | Vulnerability data | Add-on (SPDX 3.0) | First-class (`vulnerabilities` array) |
 | File hashes | Yes | Yes |
@@ -29,21 +29,21 @@ Use `-o <format>[=<path>]`. The format alone writes to stdout; `format=path` wri
 
 ```bash
 # One format to a file
-bomly scan -o spdx-json=sbom.spdx.json
+bomly scan -o spdx=sbom.spdx.json
 
 # Two formats in one scan
 bomly scan \
-  -o spdx-json=sbom.spdx.json \
-  -o cyclonedx-json=sbom.cdx.json
+  -o spdx=sbom.spdx.json \
+  -o cyclonedx=sbom.cdx.json
 
 # One format to stdout, one to a file
-bomly scan -o spdx-json -o cyclonedx-json=sbom.cdx.json
+bomly scan -o spdx -o cyclonedx=sbom.cdx.json
 ```
 
 Constraints:
 
 - At most one `-o` may omit `=<path>`. Two stdout outputs would collide.
-- `-o spdx-json=` (empty path) is an error.
+- `-o spdx=` (empty path) is an error.
 - Paths are resolved relative to the current working directory.
 
 ## Ingesting an SBOM
@@ -89,7 +89,7 @@ Reachability annotations and Bomly-specific metadata are emitted in the JSON out
 To convert between formats, run a scan and emit both in one pass:
 
 ```bash
-bomly scan --sbom --path ./in.spdx.json -o cyclonedx-json=out.cdx.json
+bomly scan --sbom --path ./in.spdx.json -o cyclonedx=out.cdx.json
 ```
 
 Bomly does not advertise a one-shot `convert` command — the scan pipeline is the conversion path.

@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
@@ -17,13 +18,12 @@ import (
 )
 
 func newScanCmd() *cobra.Command {
-	var outputs []string
 	var scopeValue string
 	cmd := &cobra.Command{
 		Use:   "scan",
 		Short: "Scan dependencies and render a graph or SBOM",
 		Example: "  bomly scan --enrich --audit\n" +
-			"  bomly scan -o spdx-json=bomly.spdx.json\n" +
+			"  bomly scan -o spdx=bomly.spdx.json\n" +
 			"  bomly scan --url https://github.com/bomly-dev/bomly-cli --ref main --format json\n" +
 			"  bomly scan --container alpine:3.20",
 		Args: cobra.NoArgs,
@@ -65,12 +65,12 @@ func newScanCmd() *cobra.Command {
 				return exit.InvalidInputError("%v", err)
 			}
 
-			var outputSpecs []render.SBOMOutputSpec
-			if len(outputs) > 0 {
-				outputSpecs, err = render.ParseSBOMOutputSpecs(outputs)
-				if err != nil {
-					return exit.InvalidInputError("%v", err)
-				}
+			outputSpecs, err := parseOutputSpecs(current.Outputs)
+			if err != nil {
+				return exit.InvalidInputError("%v", err)
+			}
+			if current.Interactive && hasStdoutOutput(outputSpecs) {
+				return exit.InvalidInputError("--interactive cannot be combined with stdout --output")
 			}
 
 			pipeline := engine.NewPipeline(commandCtx.Registry(), logger)
@@ -91,25 +91,6 @@ func newScanCmd() *cobra.Command {
 			consolidated := pipeResult.Consolidated
 			selectedGraph := pipeResult.Graph
 
-			if len(outputSpecs) > 0 {
-				prog.Advance("Writing SBOM output")
-				stdout := streams.reportWriter()
-				sbomBuildOpts := sbom.BuildOptions{ToolNames: sbomToolNames(resolved)}
-				for _, spec := range outputSpecs {
-					rawDocument, err := sbom.MarshalDepGraphJSON(selectedGraph, spec.Target, sbomBuildOpts, sbom.EncodeOptions{Pretty: true})
-					if err != nil {
-						return fmt.Errorf("marshal %s sbom: %w", spec.Label, err)
-					}
-					if err := render.WriteSBOMDocument(stdout, spec, rawDocument); err != nil {
-						return err
-					}
-				}
-				if !commandCtx.ResolvedConfig.Interactive {
-					prog.Success("Wrote SBOM output")
-					return nil
-				}
-			}
-
 			var findings []sdk.Finding
 			if commandCtx.ResolvedConfig.Audit {
 				findings = pipeResult.Findings
@@ -117,6 +98,37 @@ func newScanCmd() *cobra.Command {
 			}
 			payload := output.BuildScanResponse(commandCtx.ProjectDescriptor(), consolidated, findings, started).
 				WithAnalyzerRuns(pipeResult.AnalyzerRuns, pipeResult.AnalyzerStats)
+			markdownRenderer := func(w io.Writer) error {
+				return render.ScanMarkdown(w, payload)
+			}
+
+			if len(outputSpecs) > 0 {
+				prog.Advance("Writing additional output")
+				stdout := streams.reportWriter()
+				sbomBuildOpts := sbom.BuildOptions{ToolNames: sbomToolNames(resolved)}
+				for _, spec := range outputSpecs {
+					switch {
+					case spec.IsSBOM():
+						rawDocument, err := sbom.MarshalDepGraphJSON(selectedGraph, spec.Target, sbomBuildOpts, sbom.EncodeOptions{Pretty: true})
+						if err != nil {
+							return fmt.Errorf("marshal %s sbom: %w", spec.Label, err)
+						}
+						if err := render.WriteOutputDocument(stdout, spec, rawDocument); err != nil {
+							return err
+						}
+					case spec.Format == render.OutputFormatMarkdown:
+						if err := writeRenderedOutput(stdout, spec, markdownRenderer); err != nil {
+							return err
+						}
+					default:
+						return exit.InvalidInputError("output format %q is not supported by scan", spec.Label)
+					}
+				}
+			}
+			if hasStdoutOutput(outputSpecs) || (allOutputsAreSBOM(outputSpecs) && strings.TrimSpace(current.Format) == "") {
+				prog.Success("Wrote output")
+				return scanPolicyExit(commandCtx.ResolvedConfig.Audit, findings)
+			}
 
 			if graphOutputFormat == output.FormatSARIF {
 				prog.Success("Resolved Graph")
@@ -133,12 +145,14 @@ func newScanCmd() *cobra.Command {
 				return err
 			}
 			defer func() { _ = closeWriter() }()
+
 			prog.Success("Resolved Graph")
-			if commandCtx.Format == output.FormatText {
+			if commandCtx.Format == output.FormatText || commandCtx.Format == output.FormatMarkdown {
 				prog.SeparateReport()
 			}
 
 			err = output.Write(writer, commandCtx.Format, payload, output.Renderers{
+				Markdown: markdownRenderer,
 				Text: func(w io.Writer) error {
 					if len(resolved) == 1 {
 						if _, err := fmt.Fprintf(w, "Dependency report for %s\n\n", render.ScanGraphDisplayName(selectedGraph, payload.Project.Name)); err != nil {
@@ -161,9 +175,17 @@ func newScanCmd() *cobra.Command {
 			return err
 		},
 	}
-	cmd.Flags().StringArrayVarP(&outputs, "sbom-output", "o", nil, "SBOM output target as <format> or <format>=<path>; repeat for multiple outputs")
 	cmd.Flags().StringVar(&scopeValue, "scope", "", "Filter dependencies by scope: runtime or development")
 	return cmd
+}
+
+func scanPolicyExit(auditEnabled bool, findings []sdk.Finding) error {
+	if auditEnabled {
+		if failing := output.FailingFindingCount(findings); failing > 0 {
+			return exit.PolicyViolationFindings(failing)
+		}
+	}
+	return nil
 }
 
 func sbomToolNames(results []sdk.DetectionResult) []string {

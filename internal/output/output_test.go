@@ -39,3 +39,13 @@ func TestPackageFromGraphPackageIncludesStructuredLicenses(t *testing.T) {
 		t.Fatalf("unexpected license metadata: %#v", ref.Licenses[0])
 	}
 }
+
+func TestParseFormatAcceptsMarkdown(t *testing.T) {
+	format, err := ParseFormat("markdown")
+	if err != nil {
+		t.Fatalf("ParseFormat(markdown) error = %v", err)
+	}
+	if format != FormatMarkdown {
+		t.Fatalf("ParseFormat(markdown) = %q, want %q", format, FormatMarkdown)
+	}
+}

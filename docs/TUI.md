@@ -11,7 +11,7 @@ Requirements:
 - A real terminal on stdin **and** stderr. Piping into a non-tty rejects with `ErrNotATerminal`.
 - A TrueColor-capable terminal for the best rendering.
 
-`--interactive` forces `--format text` and is incompatible with `--format json`, `--format sarif`, and stdout SBOM writes (`-o spdx-json` without `=<path>`). Filed SBOM writes still work alongside the TUI.
+`--interactive` forces `--format text` and is incompatible with `--format json`, `--format sarif`, and stdout SBOM writes (`-o spdx` without `=<path>`). File SBOM writes still work alongside the TUI.
 
 ## Tabs
 

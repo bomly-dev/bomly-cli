@@ -2,6 +2,9 @@ package cli
 
 import (
 	"bytes"
+	"io"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -38,6 +41,65 @@ func TestRenderDiffTextIncludesAuditOutcomeWithoutChanges(t *testing.T) {
 		if !strings.Contains(report, want) {
 			t.Fatalf("expected diff report to contain %q, got:\n%s", want, report)
 		}
+	}
+}
+
+func TestRenderDiffMarkdownIncludesPatchedVersionsByDefault(t *testing.T) {
+	payload := output.DiffResponse{
+		Comparison: output.DiffComparison{Base: "main", Head: "feature"},
+		Results: output.DiffResults{
+			Dependencies: output.DiffDependencyResults{
+				Added:   []output.DiffPackageChange{{Package: output.PackageRef{Name: "react", Version: "18.2.0"}}},
+				Changed: []output.DiffChangedPackage{{After: output.PackageRef{Name: "zod", Version: "3.23.0"}, Before: output.PackageRef{Name: "zod", Version: "3.22.0"}}},
+			},
+		},
+		Audit: &output.DiffAudit{
+			Introduced: []output.AuditFinding{{
+				ID:          "OSV-123",
+				Severity:    "high",
+				Auditor:     "vulnerability",
+				Disposition: "fail",
+				Package:     output.PackageRef{Name: "react", Version: "18.2.0"},
+				Title:       "Prototype pollution in react",
+				FixedIn:     "18.2.1",
+			}},
+		},
+	}
+
+	var out bytes.Buffer
+	if err := render.DiffMarkdown(&out, payload); err != nil {
+		t.Fatalf("DiffMarkdown() error = %v", err)
+	}
+
+	report := out.String()
+	for _, want := range []string{
+		"# Bomly Diff Summary",
+		"Compared `main` to `feature`.",
+		"- Added: 1",
+		"- Changed: 1",
+		"## Vulnerabilities",
+		"- [fail] `react@18.2.0`: Prototype pollution in react (patched in `18.2.1`)",
+	} {
+		if !strings.Contains(report, want) {
+			t.Fatalf("expected Markdown report to contain %q, got:\n%s", want, report)
+		}
+	}
+}
+
+func TestWriteRenderedOutputCreatesParentDirectory(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "nested", "summary.md")
+	if err := writeRenderedOutput(bytes.NewBuffer(nil), render.OutputSpec{Format: render.OutputFormatMarkdown, Label: "markdown", Path: path}, func(w io.Writer) error {
+		_, err := w.Write([]byte("# Summary\n"))
+		return err
+	}); err != nil {
+		t.Fatalf("writeRenderedOutput() error = %v", err)
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read summary file: %v", err)
+	}
+	if string(data) != "# Summary\n" {
+		t.Fatalf("unexpected summary file content: %q", data)
 	}
 }
 

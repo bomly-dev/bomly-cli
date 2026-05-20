@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/progress"
 	"github.com/bomly-dev/bomly-cli/sdk"
+	"go.uber.org/zap"
 )
 
 // newCommandProgress constructs a Progress sourcing its writer + TTY-detection
@@ -57,6 +59,111 @@ func subprojectProgressChildren(results []sdk.DetectionResult) []progress.Child 
 		children = append(children, progress.Child{Label: label})
 	}
 	return children
+}
+
+// plannedSubprojectChildren is the indexing-time variant of
+// subprojectProgressChildren: it reads from the planned []sdk.Subproject so
+// the "Indexed subprojects" step can be promoted right after Prepare returns,
+// before the detection pipeline starts.
+func plannedSubprojectChildren(subprojects []sdk.Subproject) []progress.Child {
+	children := make([]progress.Child, 0, len(subprojects))
+	for _, s := range subprojects {
+		label := s.RelativePath
+		if label == "" || label == "." {
+			label = progressTargetLabel(s.ExecutionTarget)
+			if label == "" || label == "." {
+				label = "root"
+			}
+		}
+		detail := string(s.Ecosystem)
+		if detail != "" {
+			label += " (" + detail + ")"
+		}
+		children = append(children, progress.Child{Label: label})
+	}
+	return children
+}
+
+// prepareCommandContextWithProgress runs the two pre-pipeline phases under
+// dedicated progress steps:
+//
+//  1. Resolve execution target — clone repo, read SBOM file, or resolve a
+//     container reference. Shown only when there's real work to do (skipped
+//     for local filesystem targets where it's instant).
+//  2. Index subprojects — registry build, plugin load, subproject planning.
+//     Always shown, always completes (with the planned subproject tree)
+//     before the detection pipeline begins.
+//
+// Both steps complete strictly in order so the user never sees indexing still
+// spinning while detection has already started.
+func prepareCommandContextWithProgress(ctx context.Context, options *opts.Options, prog *progress.Progress, logger *zap.Logger) (opts.Options, error) {
+	if active, done, show := inputResolutionLabels(*options); show {
+		inputStep := prog.StartWithDoneLabel("input", active, done)
+		executionTarget, cleanup, err := options.ResolveExecutionTarget(logger)
+		if err != nil {
+			inputStep.Fail(active + " failed")
+			return opts.Options{}, err
+		}
+		inputStep.Complete(done, nil)
+
+		indexStep := prog.StartWithDoneLabel("indexing", "Indexing subprojects", "Indexed subprojects")
+		commandCtx, err := options.PrepareForExecutionTarget(ctx, logger, executionTarget, cleanup)
+		if err != nil {
+			indexStep.Fail("Indexing subprojects failed")
+			return opts.Options{}, err
+		}
+		indexStep.Complete("Indexed subprojects", plannedSubprojectChildren(commandCtx.Subprojects()))
+		return commandCtx, nil
+	}
+
+	// Local filesystem path: no remote work to do. Open the indexing step
+	// directly so the user still gets a live spinner for Prepare.
+	indexStep := prog.StartWithDoneLabel("indexing", "Indexing subprojects", "Indexed subprojects")
+	commandCtx, err := options.Prepare(ctx, logger)
+	if err != nil {
+		indexStep.Fail("Indexing subprojects failed")
+		return opts.Options{}, err
+	}
+	indexStep.Complete("Indexed subprojects", plannedSubprojectChildren(commandCtx.Subprojects()))
+	return commandCtx, nil
+}
+
+// combinedSubprojectChildren merges base+head subprojects into a single
+// deduplicated child list. Used by diff progress to render one "Indexed
+// subprojects" tree spanning both refs. Subprojects are deduplicated by
+// relative path + ecosystem so identical sets across refs don't duplicate.
+func combinedSubprojectChildren(base, head []sdk.Subproject) []progress.Child {
+	seen := make(map[string]struct{})
+	all := append(append([]sdk.Subproject(nil), base...), head...)
+	deduped := make([]sdk.Subproject, 0, len(all))
+	for _, s := range all {
+		key := s.RelativePath + "|" + string(s.Ecosystem)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		deduped = append(deduped, s)
+	}
+	return plannedSubprojectChildren(deduped)
+}
+
+// inputResolutionLabels chooses the progress labels for the pre-indexing step
+// based on what the resolved config asks us to fetch. Returns (active label,
+// done label, true) when a step should be shown, or ("", "", false) when the
+// target is local/instant and no step is needed.
+func inputResolutionLabels(cfg opts.Options) (string, string, bool) {
+	resolved := cfg.GetConfig()
+	switch {
+	case resolved.SBOM:
+		return "Reading SBOM", "Read SBOM", true
+	case resolved.URL != "":
+		return "Cloning repository", "Cloned repository", true
+	case resolved.Container != "":
+		return "Resolving container reference", "Resolved container reference", true
+	default:
+		// Local filesystem — resolution is instant; skip the step.
+		return "", "", false
+	}
 }
 
 func progressTargetLabel(target sdk.ExecutionTarget) string {

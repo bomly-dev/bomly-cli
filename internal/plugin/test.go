@@ -35,6 +35,15 @@ func Test(ctx context.Context, root, id string, builtins []PluginInfo) (*TestRes
 		if isNotInstalledError(err) {
 			for _, info := range builtins {
 				if info.ID == id && info.BuiltIn {
+					if info.ReadyFn != nil {
+						ready, probe, readyErr := info.ReadyFn(ctx)
+						return &TestResult{
+							PluginInfo: info,
+							Ready:      ready,
+							Probe:      probe,
+						}, readyErr
+					}
+					// No ReadyFn populated — treat as ready (should not happen in normal CLI usage).
 					return &TestResult{
 						PluginInfo: info,
 						Ready:      true,

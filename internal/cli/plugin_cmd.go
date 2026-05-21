@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -452,6 +453,22 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 	infos := make([]managedplugin.PluginInfo, 0)
 	reg := registry.NewRegistry(opts.RegistryConfigsFromResolved(current), *zap.NewNop())
 	reg.Build()
+
+	// Build name → instance maps for ReadyFn population.
+	detectorInstances := collectDetectorInstances(reg.AllDetectors())
+	matcherInstances := make(map[string]plugschema.Matcher)
+	for _, m := range reg.AllMatchers() {
+		matcherInstances[m.Descriptor().Name] = m
+	}
+	auditorInstances := make(map[string]plugschema.Auditor)
+	for _, a := range reg.AllAuditors() {
+		auditorInstances[a.Descriptor().Name] = a
+	}
+	analyzerInstances := make(map[string]plugschema.Analyzer)
+	for _, a := range reg.AllAnalyzers() {
+		analyzerInstances[a.Descriptor().Name] = a
+	}
+
 	detectorByName := make(map[string]plugschema.DetectorDescriptor)
 	registeredNames := make(map[string]struct{})
 	for _, descriptor := range reg.DetectorDescriptors() {
@@ -459,7 +476,14 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 		detectorByName[d.Name] = d
 		registeredNames[d.Name] = struct{}{}
 		metadata := builtInMetadata(d.Name, plugschema.PluginKindDetector)
-		infos = append(infos, detectorPluginInfo(metadata, &d, coreVersion, d.Enabled))
+		info := detectorPluginInfo(metadata, &d, coreVersion, d.Enabled)
+		if det, ok := detectorInstances[d.Name]; ok {
+			det := det
+			info.ReadyFn = func(_ context.Context) (bool, string, error) {
+				return det.Ready(), "detector-ready", nil
+			}
+		}
+		infos = append(infos, info)
 	}
 
 	seenFallbackTraversal := make(map[string]struct{})
@@ -478,25 +502,78 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 	for _, name := range additionalNames {
 		d := detectorByName[name]
 		metadata := builtInMetadata(d.Name, plugschema.PluginKindDetector)
-		infos = append(infos, detectorPluginInfo(metadata, &d, coreVersion, d.Enabled))
+		info := detectorPluginInfo(metadata, &d, coreVersion, d.Enabled)
+		if det, ok := detectorInstances[d.Name]; ok {
+			det := det
+			info.ReadyFn = func(_ context.Context) (bool, string, error) {
+				return det.Ready(), "detector-ready", nil
+			}
+		}
+		infos = append(infos, info)
 	}
 
 	for _, descriptor := range reg.MatcherDescriptors() {
 		d := descriptor
 		metadata := builtInMetadata(d.Name, plugschema.PluginKindMatcher)
-		infos = append(infos, matcherPluginInfo(metadata, &d, coreVersion, d.Enabled))
+		info := matcherPluginInfo(metadata, &d, coreVersion, d.Enabled)
+		if m, ok := matcherInstances[d.Name]; ok {
+			m := m
+			info.ReadyFn = func(_ context.Context) (bool, string, error) {
+				return m.Ready(), "matcher-ready", nil
+			}
+		}
+		infos = append(infos, info)
 	}
 	for _, descriptor := range reg.AuditorDescriptors() {
 		d := descriptor
 		metadata := builtInMetadata(d.Name, plugschema.PluginKindAuditor)
-		infos = append(infos, auditorPluginInfo(metadata, &d, coreVersion, d.Enabled))
+		info := auditorPluginInfo(metadata, &d, coreVersion, d.Enabled)
+		if a, ok := auditorInstances[d.Name]; ok {
+			a := a
+			info.ReadyFn = func(_ context.Context) (bool, string, error) {
+				return a.Ready(), "auditor-ready", nil
+			}
+		}
+		infos = append(infos, info)
 	}
 	for _, descriptor := range reg.AnalyzerDescriptors() {
 		d := descriptor
 		metadata := builtInMetadata(d.Name, plugschema.PluginKindAnalyzer)
-		infos = append(infos, analyzerPluginInfo(metadata, &d, coreVersion, d.Enabled))
+		info := analyzerPluginInfo(metadata, &d, coreVersion, d.Enabled)
+		if a, ok := analyzerInstances[d.Name]; ok {
+			a := a
+			info.ReadyFn = func(_ context.Context) (bool, string, error) {
+				return a.Ready(), "analyzer-ready", nil
+			}
+		}
+		infos = append(infos, info)
 	}
 	return infos
+}
+
+// collectDetectorInstances builds a flat name→instance map that includes fallback
+// detectors reachable from the provided primary detectors.
+func collectDetectorInstances(primaries []plugschema.Detector) map[string]plugschema.Detector {
+	out := make(map[string]plugschema.Detector)
+	var walk func(d plugschema.Detector)
+	walk = func(d plugschema.Detector) {
+		if d == nil {
+			return
+		}
+		name := strings.TrimSpace(d.Descriptor().Name)
+		if name != "" {
+			if _, ok := out[name]; !ok {
+				out[name] = d
+			}
+		}
+		if fb, ok := d.(plugschema.FallbackDetector); ok {
+			walk(fb.FallbackDetector())
+		}
+	}
+	for _, p := range primaries {
+		walk(p)
+	}
+	return out
 }
 
 func builtInMetadata(id string, kind plugschema.PluginKind) *plugschema.PluginMetadata {

@@ -115,6 +115,10 @@ type PluginInfo struct {
 	Enabled    bool
 	Entrypoint string
 	SourceType string
+	// ReadyFn, when non-nil, is called by Test() to probe readiness for built-in plugins.
+	// Populated by the CLI layer from the in-process component instance.
+	// Never serialized to JSON.
+	ReadyFn func(context.Context) (bool, string, error) `json:"-"`
 }
 
 // VerifyResult describes the checks performed for one plugin.

@@ -342,6 +342,38 @@ func (r *Registry) DetectorDescriptors() []sdk.DetectorDescriptor {
 	return descriptors
 }
 
+// AllDetectors returns all registered detectors in registration order, without
+// any filtering. Intended for introspection (e.g. plugin test/doctor).
+func (r *Registry) AllDetectors() []sdk.Detector {
+	result := make([]sdk.Detector, len(r.detectors))
+	copy(result, r.detectors)
+	return result
+}
+
+// AllMatchers returns all registered matchers in registration order, without
+// any filtering. Intended for introspection (e.g. plugin test/doctor).
+func (r *Registry) AllMatchers() []sdk.Matcher {
+	result := make([]sdk.Matcher, len(r.matchers))
+	copy(result, r.matchers)
+	return result
+}
+
+// AllAuditors returns all registered auditors in registration order, without
+// any filtering. Intended for introspection (e.g. plugin test/doctor).
+func (r *Registry) AllAuditors() []sdk.Auditor {
+	result := make([]sdk.Auditor, len(r.auditors))
+	copy(result, r.auditors)
+	return result
+}
+
+// AllAnalyzers returns all registered analyzers in registration order, without
+// any filtering. Intended for introspection (e.g. plugin test/doctor).
+func (r *Registry) AllAnalyzers() []sdk.Analyzer {
+	result := make([]sdk.Analyzer, len(r.analyzers))
+	copy(result, r.analyzers)
+	return result
+}
+
 // AuditorDescriptors returns registered auditor descriptors sorted by name.
 func (r *Registry) AuditorDescriptors() []sdk.AuditorDescriptor {
 	descriptors := make([]sdk.AuditorDescriptor, 0, len(r.auditors))

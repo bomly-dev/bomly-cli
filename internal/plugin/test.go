@@ -4,12 +4,26 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	plugschema "github.com/bomly-dev/bomly-cli/sdk"
 )
 
-// Test probes runtime readiness for one installed plugin.
-func Test(ctx context.Context, root, id string) (*TestResult, error) {
+// isNotInstalledError reports whether err is the sentinel returned by findInstalled
+// when no record matches the requested id.
+func isNotInstalledError(err error) bool {
+	if err == nil {
+		return false
+	}
+	// findInstalled returns a plain fmt.Errorf with this substring.
+	return strings.Contains(err.Error(), "is not installed")
+}
+
+// Test probes runtime readiness for one plugin (external or built-in).
+// builtins should be the full list returned by ListPluginInfos for the current binary;
+// when the id is found only in builtins, the plugin is reported as ready without
+// launching an external process.
+func Test(ctx context.Context, root, id string, builtins []PluginInfo) (*TestResult, error) {
 	var err error
 	root, err = resolveRoot(root)
 	if err != nil {
@@ -17,6 +31,18 @@ func Test(ctx context.Context, root, id string) (*TestResult, error) {
 	}
 	record, err := findInstalled(root, id)
 	if err != nil {
+		// Fall back to built-in lookup before propagating the error.
+		if isNotInstalledError(err) {
+			for _, info := range builtins {
+				if info.ID == id && info.BuiltIn {
+					return &TestResult{
+						PluginInfo: info,
+						Ready:      true,
+						Probe:      "builtin",
+					}, nil
+				}
+			}
+		}
 		return nil, err
 	}
 	manifest, err := readManifest(record.Path)

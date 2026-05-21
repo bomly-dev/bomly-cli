@@ -37,8 +37,8 @@ func (m *mockAdapter) RunExplain(_ context.Context, _ mcp.ExplainRequest) (outpu
 func (m *mockAdapter) RunDiff(_ context.Context, _ mcp.DiffRequest) (output.DiffResponse, error) {
 	return m.diffResult, m.diffErr
 }
-func (m *mockAdapter) ListPlugins(_ context.Context) ([]managedplugin.PluginInfo, error) {
-	return m.plugins, m.pluginsErr
+func (m *mockAdapter) ListPlugins(_ context.Context) (managedplugin.PluginListResponse, error) {
+	return managedplugin.GroupPluginInfos(m.plugins), m.pluginsErr
 }
 func (m *mockAdapter) VulnFixContext(_ context.Context, _ mcp.VulnFixRequest) (mcp.VulnFixResult, error) {
 	return m.fixResult, m.fixErr
@@ -196,7 +196,7 @@ func TestDiffTool_ReturnsJSONResult(t *testing.T) {
 func TestPluginsTool_ReturnsJSONResult(t *testing.T) {
 	adapter := &mockAdapter{
 		plugins: []managedplugin.PluginInfo{
-			{BuiltIn: true, Enabled: true},
+			{Manifest: managedplugin.Manifest{Kind: "detector"}, BuiltIn: true, Enabled: true},
 		},
 	}
 	c := newTestClient(t, adapter)
@@ -205,13 +205,13 @@ func TestPluginsTool_ReturnsJSONResult(t *testing.T) {
 	if result.IsError {
 		t.Fatalf("unexpected tool error: %v", result.Content)
 	}
-	var infos []managedplugin.PluginInfo
+	var resp managedplugin.PluginListResponse
 	text := result.Content[0].(mcplib.TextContent).Text
-	if err := json.Unmarshal([]byte(text), &infos); err != nil {
+	if err := json.Unmarshal([]byte(text), &resp); err != nil {
 		t.Fatalf("unmarshal: %v", err)
 	}
-	if len(infos) != 1 {
-		t.Errorf("len(infos) = %d, want 1", len(infos))
+	if len(resp.Detectors) != 1 {
+		t.Errorf("len(resp.Detectors) = %d, want 1", len(resp.Detectors))
 	}
 }
 

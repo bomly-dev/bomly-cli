@@ -22,6 +22,7 @@ If you change `internal/cli/config.go`, `internal/output/*`, `sdk/catalog.go`, `
 Development may happen inside Git worktrees. Always run commands in the active worktree directory.
 Do not assume the primary checkout path; use paths relative to the current worktree.
 Avoid destructive Git operations that can affect sibling worktrees or shared refs.
+Worktrees should be created inside `.github/worktrees/` (mirroring the `.claude/worktrees/` convention).
 
 ## Architecture
 

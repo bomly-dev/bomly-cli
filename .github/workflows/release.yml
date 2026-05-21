@@ -35,10 +35,10 @@ jobs:
       - name: Run go vet
         run: go vet ./...
 
-  publish:
+  create-release:
     needs: validate
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 10
     permissions:
       contents: write
     steps:
@@ -46,97 +46,6 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-
-      - name: Set up Go
-        uses: actions/setup-go@v6
-        with:
-          go-version-file: go.mod
-          cache: true
-          cache-dependency-path: |
-            go.sum
-
-      - name: Generate third-party license notices
-        run: make licenses
-
-      - name: Build release archives
-        shell: bash
-        env:
-          VERSION: ${{ github.ref_name }}
-        run: |
-          set -euo pipefail
-
-          repo_root="${PWD}"
-          binary_version="${VERSION#v}"
-          mkdir -p dist
-
-          targets=(
-            "linux amd64"
-            "linux arm64"
-            "darwin amd64"
-            "darwin arm64"
-            "windows amd64"
-            "windows arm64"
-          )
-
-          build_archive() {
-            local archive_base="$1"
-            local binary_name="$2"
-            local build_tags="$3"
-            local target_goos="$4"
-            local target_goarch="$5"
-            local stage_dir
-            stage_dir="$(mktemp -d)"
-
-            local ext=""
-            local archive_ext="tar.gz"
-            if [[ "${target_goos}" == "windows" ]]; then
-              ext=".exe"
-              archive_ext="zip"
-            fi
-
-            if [[ -n "${build_tags}" ]]; then
-              GOOS="${target_goos}" GOARCH="${target_goarch}" CGO_ENABLED=0 go build \
-                -trimpath \
-                -tags "${build_tags}" \
-                -ldflags "-s -w -X main.version=${binary_version}" \
-                -o "${stage_dir}/${binary_name}${ext}" \
-                ./cmd/bomly
-            else
-              GOOS="${target_goos}" GOARCH="${target_goarch}" CGO_ENABLED=0 go build \
-                -trimpath \
-                -ldflags "-s -w -X main.version=${binary_version}" \
-                -o "${stage_dir}/${binary_name}${ext}" \
-                ./cmd/bomly
-            fi
-
-            cp -r "${repo_root}/licenses" "${stage_dir}/licenses"
-            cp "${repo_root}/LICENSE" "${stage_dir}/LICENSE"
-            cp "${repo_root}/NOTICE" "${stage_dir}/NOTICE"
-
-            local archive_path="dist/${archive_base}_${VERSION}_${target_goos}_${target_goarch}.${archive_ext}"
-            if [[ "${archive_ext}" == "zip" ]]; then
-              (
-                cd "${stage_dir}"
-                zip -qr "${repo_root}/${archive_path}" "${binary_name}${ext}" licenses/ LICENSE NOTICE
-              )
-            else
-              tar -C "${stage_dir}" -czf "${archive_path}" "${binary_name}${ext}" licenses/ LICENSE NOTICE
-            fi
-
-            rm -rf "${stage_dir}"
-          }
-
-          for target in "${targets[@]}"; do
-            read -r target_goos target_goarch <<< "${target}"
-            build_archive "bomly" "bomly" "" "${target_goos}" "${target_goarch}"
-            build_archive "bomly-lite" "bomly-lite" "bomly_external_syft,bomly_external_grype" "${target_goos}" "${target_goarch}"
-          done
-
-      - name: Generate checksums
-        shell: bash
-        run: |
-          set -euo pipefail
-          find dist -maxdepth 1 -type f | sort | xargs sha256sum > dist/SHA256SUMS
 
       - name: Write release notes
         shell: bash
@@ -154,17 +63,131 @@ jobs:
           GitHub-native artifact attestations are intentionally deferred while the repository remains private on a non-Enterprise plan.
           EOF
 
-      - name: Publish draft prerelease
+      - name: Create draft prerelease
         env:
           GITHUB_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
         run: |
-          if gh release view "${TAG}" >/dev/null 2>&1; then
-            gh release upload "${TAG}" dist/* --clobber
-          else
-            gh release create "${TAG}" dist/* \
+          if ! gh release view "${TAG}" >/dev/null 2>&1; then
+            gh release create "${TAG}" \
               --title "Bomly ${TAG}" \
               --notes-file RELEASE_NOTES.md \
               --draft \
               --prerelease
           fi
+
+  build:
+    needs: create-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        goos: [linux, darwin, windows]
+        goarch: [amd64, arm64]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: |
+            go.sum
+
+      - name: Generate third-party license notices
+        run: make licenses
+
+      - name: Build archives
+        shell: bash
+        env:
+          VERSION: ${{ github.ref_name }}
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          set -euo pipefail
+
+          repo_root="${PWD}"
+          binary_version="${VERSION#v}"
+          mkdir -p dist
+
+          ext=""
+          archive_ext="tar.gz"
+          if [[ "${GOOS}" == "windows" ]]; then
+            ext=".exe"
+            archive_ext="zip"
+          fi
+
+          build_archive() {
+            local archive_base="$1"
+            local binary_name="$2"
+            local build_tags="$3"
+            local stage_dir
+            stage_dir="$(mktemp -d)"
+
+            if [[ -n "${build_tags}" ]]; then
+              GOOS="${GOOS}" GOARCH="${GOARCH}" CGO_ENABLED=0 go build \
+                -trimpath \
+                -tags "${build_tags}" \
+                -ldflags "-s -w -X main.version=${binary_version}" \
+                -o "${stage_dir}/${binary_name}${ext}" \
+                ./cmd/bomly
+            else
+              GOOS="${GOOS}" GOARCH="${GOARCH}" CGO_ENABLED=0 go build \
+                -trimpath \
+                -ldflags "-s -w -X main.version=${binary_version}" \
+                -o "${stage_dir}/${binary_name}${ext}" \
+                ./cmd/bomly
+            fi
+
+            cp -r "${repo_root}/licenses" "${stage_dir}/licenses"
+            cp "${repo_root}/LICENSE" "${stage_dir}/LICENSE"
+            cp "${repo_root}/NOTICE" "${stage_dir}/NOTICE"
+
+            local archive_path="dist/${archive_base}_${VERSION}_${GOOS}_${GOARCH}.${archive_ext}"
+            if [[ "${archive_ext}" == "zip" ]]; then
+              (
+                cd "${stage_dir}"
+                zip -qr "${repo_root}/${archive_path}" "${binary_name}${ext}" licenses/ LICENSE NOTICE
+              )
+            else
+              tar -C "${stage_dir}" -czf "${archive_path}" "${binary_name}${ext}" licenses/ LICENSE NOTICE
+            fi
+
+            rm -rf "${stage_dir}"
+          }
+
+          build_archive "bomly" "bomly" ""
+          build_archive "bomly-lite" "bomly-lite" "bomly_external_syft,bomly_external_grype"
+
+      - name: Upload archives to release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: gh release upload "${TAG}" dist/* --clobber
+
+  checksums:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Generate and upload checksums
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          gh release download "${TAG}" --dir dist --pattern '*.tar.gz' --pattern '*.zip'
+          find dist -maxdepth 1 -type f | sort | xargs sha256sum > dist/SHA256SUMS
+          gh release upload "${TAG}" dist/SHA256SUMS --clobber

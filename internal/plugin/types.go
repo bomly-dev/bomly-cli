@@ -139,6 +139,38 @@ type DoctorResult struct {
 	Probe   string   `json:"probe,omitempty"`
 }
 
+// PluginListResponse is the structured JSON response for the plugin list command,
+// with plugins grouped by kind.
+type PluginListResponse struct {
+	Detectors []PluginInfo `json:"detectors"`
+	Matchers  []PluginInfo `json:"matchers"`
+	Auditors  []PluginInfo `json:"auditors"`
+	Analyzers []PluginInfo `json:"analyzers"`
+}
+
+// GroupPluginInfos groups a flat slice of PluginInfo by kind into a PluginListResponse.
+func GroupPluginInfos(infos []PluginInfo) PluginListResponse {
+	resp := PluginListResponse{
+		Detectors: []PluginInfo{},
+		Matchers:  []PluginInfo{},
+		Auditors:  []PluginInfo{},
+		Analyzers: []PluginInfo{},
+	}
+	for _, info := range infos {
+		switch info.Kind {
+		case plugschema.PluginKindDetector:
+			resp.Detectors = append(resp.Detectors, info)
+		case plugschema.PluginKindMatcher:
+			resp.Matchers = append(resp.Matchers, info)
+		case plugschema.PluginKindAuditor:
+			resp.Auditors = append(resp.Auditors, info)
+		case plugschema.PluginKindAnalyzer:
+			resp.Analyzers = append(resp.Analyzers, info)
+		}
+	}
+	return resp
+}
+
 func defaultRoot() (string, error) {
 	if override := strings.TrimSpace(os.Getenv(EnvPluginHome)); override != "" {
 		return filepath.Clean(override), nil

@@ -97,7 +97,7 @@ func newPluginListCmd() *cobra.Command {
 				filtered = append(filtered, info)
 			}
 			if selectedFormat == pluginListFormatJSON {
-				return writeJSON(streams.reportWriter(), filtered)
+				return writeJSON(streams.reportWriter(), managedplugin.GroupPluginInfos(filtered))
 			}
 			if len(filtered) == 0 {
 				_, err := fmt.Fprintln(streams.reportWriter(), "No plugins matched the selected filters.")
@@ -349,7 +349,9 @@ func newPluginTestCmd() *cobra.Command {
 			}
 			current := options.GetConfig()
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
-			result, err := managedplugin.Test(cmd.Context(), "", strings.TrimSpace(args[0]))
+			builtins := builtInPluginInfos(current, cmd.Root().Version)
+			all, _ := managedplugin.ListPluginInfos("", builtins)
+			result, err := managedplugin.Test(cmd.Context(), "", strings.TrimSpace(args[0]), all)
 			if err != nil {
 				return pluginCommandError(err)
 			}
@@ -394,7 +396,9 @@ func newPluginDoctorCmd() *cobra.Command {
 			}
 			current := options.GetConfig()
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
-			result, err := managedplugin.Doctor(cmd.Context(), "", strings.TrimSpace(args[0]))
+			builtins := builtInPluginInfos(current, cmd.Root().Version)
+			all, _ := managedplugin.ListPluginInfos("", builtins)
+			result, err := managedplugin.Doctor(cmd.Context(), "", strings.TrimSpace(args[0]), all)
 			if err != nil {
 				return pluginCommandError(err)
 			}

@@ -14,7 +14,7 @@ func TestTestReportsReadyState(t *testing.T) {
 	id := "acme.detector.ready"
 	installDetectorPluginForHealthTests(t, root, id, true)
 
-	result, err := Test(context.Background(), root, id)
+	result, err := Test(context.Background(), root, id, nil)
 	if err != nil {
 		t.Fatalf("Test() error = %v", err)
 	}
@@ -31,7 +31,7 @@ func TestTestReportsNotReadyState(t *testing.T) {
 	id := "acme.detector.not-ready"
 	installDetectorPluginForHealthTests(t, root, id, false)
 
-	result, err := Test(context.Background(), root, id)
+	result, err := Test(context.Background(), root, id, nil)
 	if err != nil {
 		t.Fatalf("Test() error = %v", err)
 	}
@@ -45,7 +45,7 @@ func TestDoctorRunsVerifyAndTest(t *testing.T) {
 	id := "acme.detector.doctor"
 	installDetectorPluginForHealthTests(t, root, id, true)
 
-	result, err := Doctor(context.Background(), root, id)
+	result, err := Doctor(context.Background(), root, id, nil)
 	if err != nil {
 		t.Fatalf("Doctor() error = %v", err)
 	}

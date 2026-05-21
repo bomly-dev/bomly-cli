@@ -101,6 +101,62 @@ func TestRenderDiffMarkdownIncludesPatchedVersionsByDefault(t *testing.T) {
 	}
 }
 
+func TestRenderDiffMarkdownFocusesPersistedAndResolvedFindingsOnChangedPackages(t *testing.T) {
+	payload := output.DiffResponse{
+		Comparison: output.DiffComparison{Base: "main", Head: "feature"},
+		Results: output.DiffResults{
+			Dependencies: output.DiffDependencyResults{
+				Changed: []output.DiffChangedPackage{{
+					Before: output.PackageRef{Name: "react", Version: "18.2.0"},
+					After:  output.PackageRef{Name: "react", Version: "18.2.1"},
+				}},
+			},
+		},
+		Audit: &output.DiffAudit{
+			Introduced: []output.AuditFinding{{
+				ID:          "license:unknown",
+				Auditor:     "license",
+				Disposition: "warn",
+				Package:     output.PackageRef{Name: "new-package", Version: "1.0.0"},
+				Title:       "Package license is unknown",
+			}},
+			Persisted: []output.AuditFinding{
+				{ID: "CVE-REACT", Auditor: "vulnerability", Severity: "medium", Package: output.PackageRef{Name: "react", Version: "18.2.1"}, Title: "React finding"},
+				{ID: "CVE-LODASH", Auditor: "vulnerability", Severity: "medium", Package: output.PackageRef{Name: "lodash", Version: "4.17.20"}, Title: "Unrelated finding"},
+			},
+			Resolved: []output.AuditFinding{
+				{ID: "CVE-REACT-OLD", Auditor: "vulnerability", Severity: "medium", Package: output.PackageRef{Name: "react", Version: "18.2.0"}, Title: "Old React finding"},
+				{ID: "CVE-MINIMIST", Auditor: "vulnerability", Severity: "medium", Package: output.PackageRef{Name: "minimist", Version: "1.2.5"}, Title: "Unrelated resolved finding"},
+			},
+		},
+	}
+
+	var out bytes.Buffer
+	if err := render.DiffMarkdown(&out, payload); err != nil {
+		t.Fatalf("DiffMarkdown() error = %v", err)
+	}
+
+	report := out.String()
+	for _, want := range []string{
+		"1 persisted on changed dependencies",
+		"1 resolved on changed dependencies",
+		"1 unchanged persisted and 1 unrelated resolved omitted",
+		"Persisted Findings on Changed Dependencies",
+		"Resolved Findings on Changed Dependencies",
+		"CVE-REACT",
+		"CVE-REACT-OLD",
+	} {
+		if !strings.Contains(report, want) {
+			t.Fatalf("expected Markdown report to contain %q, got:\n%s", want, report)
+		}
+	}
+	for _, unwanted := range []string{"CVE-LODASH", "CVE-MINIMIST"} {
+		if strings.Contains(report, unwanted) {
+			t.Fatalf("did not expect Markdown report to contain %q, got:\n%s", unwanted, report)
+		}
+	}
+}
+
 func TestWriteRenderedOutputCreatesParentDirectory(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "nested", "summary.md")
 	if err := writeRenderedOutput(bytes.NewBuffer(nil), render.OutputSpec{Format: render.OutputFormatMarkdown, Label: "markdown", Path: path}, func(w io.Writer) error {

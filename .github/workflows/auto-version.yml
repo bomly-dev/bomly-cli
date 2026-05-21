@@ -13,8 +13,7 @@ on:
           - major
 
 permissions:
-  actions: write
-  contents: write
+  contents: read
 
 concurrency:
   group: auto-version-main
@@ -23,11 +22,23 @@ concurrency:
 jobs:
   bump-tag-and-release:
     runs-on: ubuntu-latest
+
     steps:
+      - name: Create release bot token
+        uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          permission-contents: write
+          permission-actions: write
+
       - name: Check out repository
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: true
 
       - name: Require main branch
         shell: bash
@@ -80,6 +91,7 @@ jobs:
 
           next="${major}.${minor}.${patch}"
           tag="v${next}"
+
           if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
             echo "Tag ${tag} already exists" >&2
             exit 1
@@ -100,22 +112,22 @@ jobs:
       - name: Commit version bump and tag
         shell: bash
         env:
-          VERSION: ${{ steps.version.outputs.version }}
           TAG: ${{ steps.version.outputs.tag }}
         run: |
           set -euo pipefail
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
+          git config user.email "${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
 
           git add cmd/bomly/main.go
           git commit -m "chore(release): ${TAG} [skip ci]"
           git tag -a "${TAG}" -m "Release ${TAG}"
+
           git push origin HEAD:main
           git push origin "${TAG}"
 
       - name: Start release workflow
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           TAG: ${{ steps.version.outputs.tag }}
         run: gh workflow run release.yml --ref "${TAG}"

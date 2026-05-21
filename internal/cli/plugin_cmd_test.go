@@ -94,19 +94,27 @@ func TestPluginList_FormatJSON(t *testing.T) {
 		t.Fatalf("root.Execute() error = %v", err)
 	}
 
-	var items []map[string]any
-	if err := json.Unmarshal([]byte(output.String()), &items); err != nil {
+	var result map[string]json.RawMessage
+	if err := json.Unmarshal([]byte(output.String()), &result); err != nil {
 		t.Fatalf("json.Unmarshal() error = %v\noutput:\n%s", err, output.String())
+	}
+
+	var items []map[string]any
+	if err := json.Unmarshal(result["detectors"], &items); err != nil {
+		t.Fatalf("json.Unmarshal detectors: %v", err)
+	}
+	// matchers/auditors/analyzers must be empty when --detectors filter is active
+	for _, key := range []string{"matchers", "auditors", "analyzers"} {
+		var other []map[string]any
+		if err := json.Unmarshal(result[key], &other); err == nil && len(other) != 0 {
+			t.Fatalf("expected %q to be empty when --detectors filter active, got %d items", key, len(other))
+		}
 	}
 	if len(items) == 0 {
 		t.Fatal("expected non-empty detector plugin JSON output")
 	}
 	foundNPMDetector := false
 	for _, item := range items {
-		kind, _ := item["kind"].(string)
-		if kind != string(plugschema.PluginKindDetector) {
-			t.Fatalf("expected detector kind only, got %q in %#v", kind, item)
-		}
 		if item["id"] != "npm-detector" {
 			continue
 		}

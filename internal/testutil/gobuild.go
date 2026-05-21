@@ -19,6 +19,7 @@ func BuildGoBinary(t testing.TB, outputPath, source string) error {
 	}
 
 	buildCmd := system.Command("go", "build", "-o", outputPath, srcPath)
+	buildCmd.Env = append(os.Environ(), "GOFLAGS=-modcacherw")
 	buildOutput, err := buildCmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("go build failed: %w (%s)", err, string(buildOutput))

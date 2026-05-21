@@ -115,12 +115,64 @@ type PluginInfo struct {
 	Enabled    bool
 	Entrypoint string
 	SourceType string
+	// ReadyFn, when non-nil, is called by Test() to probe readiness for built-in plugins.
+	// Populated by the CLI layer from the in-process component instance.
+	// Never serialized to JSON.
+	ReadyFn func(context.Context) (bool, string, error) `json:"-"`
 }
 
 // VerifyResult describes the checks performed for one plugin.
 type VerifyResult struct {
 	PluginInfo
 	Checks []string
+}
+
+// TestResult describes runtime readiness checks for one plugin.
+type TestResult struct {
+	PluginInfo
+	Ready bool   `json:"ready"`
+	Probe string `json:"probe,omitempty"`
+}
+
+// DoctorResult describes combined verification and runtime readiness checks.
+type DoctorResult struct {
+	PluginInfo
+	Checks  []string `json:"checks,omitempty"`
+	Ready   bool     `json:"ready"`
+	Healthy bool     `json:"healthy"`
+	Probe   string   `json:"probe,omitempty"`
+}
+
+// PluginListResponse is the structured JSON response for the plugin list command,
+// with plugins grouped by kind.
+type PluginListResponse struct {
+	Detectors []PluginInfo `json:"detectors"`
+	Matchers  []PluginInfo `json:"matchers"`
+	Auditors  []PluginInfo `json:"auditors"`
+	Analyzers []PluginInfo `json:"analyzers"`
+}
+
+// GroupPluginInfos groups a flat slice of PluginInfo by kind into a PluginListResponse.
+func GroupPluginInfos(infos []PluginInfo) PluginListResponse {
+	resp := PluginListResponse{
+		Detectors: []PluginInfo{},
+		Matchers:  []PluginInfo{},
+		Auditors:  []PluginInfo{},
+		Analyzers: []PluginInfo{},
+	}
+	for _, info := range infos {
+		switch info.Kind {
+		case plugschema.PluginKindDetector:
+			resp.Detectors = append(resp.Detectors, info)
+		case plugschema.PluginKindMatcher:
+			resp.Matchers = append(resp.Matchers, info)
+		case plugschema.PluginKindAuditor:
+			resp.Auditors = append(resp.Auditors, info)
+		case plugschema.PluginKindAnalyzer:
+			resp.Analyzers = append(resp.Analyzers, info)
+		}
+	}
+	return resp
 }
 
 func defaultRoot() (string, error) {

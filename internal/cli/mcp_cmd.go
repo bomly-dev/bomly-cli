@@ -307,10 +307,14 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (o
 	return output.BuildDiffResponse(projectIdentifier, req.Base, req.Head, diffResult.Base.Consolidated, diffResult.Head.Consolidated, diffAuditOutput(diffResult.Audit), started), nil
 }
 
-func (a *mcpOptionsAdapter) ListPlugins(_ context.Context) ([]plugin.PluginInfo, error) {
+func (a *mcpOptionsAdapter) ListPlugins(_ context.Context) (plugin.PluginListResponse, error) {
 	current := a.options.GetConfig()
 	builtins := builtInPluginInfos(current, a.version)
-	return plugin.ListPluginInfos("", builtins)
+	infos, err := plugin.ListPluginInfos("", builtins)
+	if err != nil {
+		return plugin.PluginListResponse{}, err
+	}
+	return plugin.GroupPluginInfos(infos), nil
 }
 
 func (a *mcpOptionsAdapter) VulnFixContext(ctx context.Context, req mcp.VulnFixRequest) (mcp.VulnFixResult, error) {

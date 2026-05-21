@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -33,6 +34,8 @@ func newPluginCmd() *cobra.Command {
 		newPluginEnableCmd(),
 		newPluginDisableCmd(),
 		newPluginVerifyCmd(),
+		newPluginTestCmd(),
+		newPluginDoctorCmd(),
 	)
 	return cmd
 }
@@ -95,7 +98,7 @@ func newPluginListCmd() *cobra.Command {
 				filtered = append(filtered, info)
 			}
 			if selectedFormat == pluginListFormatJSON {
-				return writeJSON(streams.reportWriter(), filtered)
+				return writeJSON(streams.reportWriter(), managedplugin.GroupPluginInfos(filtered))
 			}
 			if len(filtered) == 0 {
 				_, err := fmt.Fprintln(streams.reportWriter(), "No plugins matched the selected filters.")
@@ -334,10 +337,138 @@ func newPluginVerifyCmd() *cobra.Command {
 	return cmd
 }
 
+func newPluginTestCmd() *cobra.Command {
+	var jsonOutput bool
+	cmd := &cobra.Command{
+		Use:   "test <id>",
+		Short: "Test runtime readiness for an installed plugin",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			options, err := commandOptions(cmd)
+			if err != nil {
+				return err
+			}
+			current := options.GetConfig()
+			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
+			builtins := builtInPluginInfos(current, cmd.Root().Version)
+			all, _ := managedplugin.ListPluginInfos("", builtins)
+			result, err := managedplugin.Test(cmd.Context(), "", strings.TrimSpace(args[0]), all)
+			if err != nil {
+				return pluginCommandError(err)
+			}
+			if jsonOutput {
+				if err := writeJSON(streams.reportWriter(), result); err != nil {
+					return err
+				}
+			} else {
+				if _, err := fmt.Fprintf(streams.reportWriter(), "Tested %s@%s\n", result.ID, result.Version); err != nil {
+					return err
+				}
+				status := "not ready"
+				label := "[fail]"
+				if result.Ready {
+					status = "ready"
+					label = "[ok]"
+				}
+				if _, err := fmt.Fprintf(streams.reportWriter(), "%s %s: %s\n", label, nonEmptyString(result.Probe, "runtime readiness"), status); err != nil {
+					return err
+				}
+			}
+			if !result.Ready {
+				return fmt.Errorf("plugin %s is not ready", result.ID)
+			}
+			return nil
+		},
+	}
+	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Render runtime test results as JSON")
+	return cmd
+}
+
+func newPluginDoctorCmd() *cobra.Command {
+	var jsonOutput bool
+	cmd := &cobra.Command{
+		Use:   "doctor <id>",
+		Short: "Run verify and runtime readiness checks for an installed plugin",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			options, err := commandOptions(cmd)
+			if err != nil {
+				return err
+			}
+			current := options.GetConfig()
+			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
+			builtins := builtInPluginInfos(current, cmd.Root().Version)
+			all, _ := managedplugin.ListPluginInfos("", builtins)
+			result, err := managedplugin.Doctor(cmd.Context(), "", strings.TrimSpace(args[0]), all)
+			if err != nil {
+				return pluginCommandError(err)
+			}
+			if jsonOutput {
+				if err := writeJSON(streams.reportWriter(), result); err != nil {
+					return err
+				}
+			} else {
+				if _, err := fmt.Fprintf(streams.reportWriter(), "Doctor report for %s@%s\n", result.ID, result.Version); err != nil {
+					return err
+				}
+				for _, check := range result.Checks {
+					if _, err := fmt.Fprintf(streams.reportWriter(), "[ok] %s\n", check); err != nil {
+						return err
+					}
+				}
+				status := "not ready"
+				label := "[fail]"
+				if result.Ready {
+					status = "ready"
+					label = "[ok]"
+				}
+				if _, err := fmt.Fprintf(streams.reportWriter(), "%s %s: %s\n", label, nonEmptyString(result.Probe, "runtime readiness"), status); err != nil {
+					return err
+				}
+			}
+			if !result.Healthy {
+				return fmt.Errorf("plugin %s is unhealthy", result.ID)
+			}
+			return nil
+		},
+	}
+	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Render doctor results as JSON")
+	return cmd
+}
+
+func pluginCommandError(err error) error {
+	if err == nil {
+		return nil
+	}
+	if strings.Contains(err.Error(), "is not installed") {
+		return exit.InvalidInputError("%v", err)
+	}
+	if strings.Contains(err.Error(), "does not support runtime readiness probes") {
+		return exit.InvalidInputError("%v", err)
+	}
+	return err
+}
+
 func builtInPluginInfos(current config.Resolved, coreVersion string) []managedplugin.PluginInfo {
 	infos := make([]managedplugin.PluginInfo, 0)
 	reg := registry.NewRegistry(opts.RegistryConfigsFromResolved(current), *zap.NewNop())
 	reg.Build()
+
+	// Build name → instance maps for ReadyFn population.
+	detectorInstances := collectDetectorInstances(reg.AllDetectors())
+	matcherInstances := make(map[string]plugschema.Matcher)
+	for _, m := range reg.AllMatchers() {
+		matcherInstances[m.Descriptor().Name] = m
+	}
+	auditorInstances := make(map[string]plugschema.Auditor)
+	for _, a := range reg.AllAuditors() {
+		auditorInstances[a.Descriptor().Name] = a
+	}
+	analyzerInstances := make(map[string]plugschema.Analyzer)
+	for _, a := range reg.AllAnalyzers() {
+		analyzerInstances[a.Descriptor().Name] = a
+	}
+
 	detectorByName := make(map[string]plugschema.DetectorDescriptor)
 	registeredNames := make(map[string]struct{})
 	for _, descriptor := range reg.DetectorDescriptors() {
@@ -345,7 +476,14 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 		detectorByName[d.Name] = d
 		registeredNames[d.Name] = struct{}{}
 		metadata := builtInMetadata(d.Name, plugschema.PluginKindDetector)
-		infos = append(infos, detectorPluginInfo(metadata, &d, coreVersion, d.Enabled))
+		info := detectorPluginInfo(metadata, &d, coreVersion, d.Enabled)
+		if det, ok := detectorInstances[d.Name]; ok {
+			det := det
+			info.ReadyFn = func(_ context.Context) (bool, string, error) {
+				return det.Ready(), "detector-ready", nil
+			}
+		}
+		infos = append(infos, info)
 	}
 
 	seenFallbackTraversal := make(map[string]struct{})
@@ -364,25 +502,78 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 	for _, name := range additionalNames {
 		d := detectorByName[name]
 		metadata := builtInMetadata(d.Name, plugschema.PluginKindDetector)
-		infos = append(infos, detectorPluginInfo(metadata, &d, coreVersion, d.Enabled))
+		info := detectorPluginInfo(metadata, &d, coreVersion, d.Enabled)
+		if det, ok := detectorInstances[d.Name]; ok {
+			det := det
+			info.ReadyFn = func(_ context.Context) (bool, string, error) {
+				return det.Ready(), "detector-ready", nil
+			}
+		}
+		infos = append(infos, info)
 	}
 
 	for _, descriptor := range reg.MatcherDescriptors() {
 		d := descriptor
 		metadata := builtInMetadata(d.Name, plugschema.PluginKindMatcher)
-		infos = append(infos, matcherPluginInfo(metadata, &d, coreVersion, d.Enabled))
+		info := matcherPluginInfo(metadata, &d, coreVersion, d.Enabled)
+		if m, ok := matcherInstances[d.Name]; ok {
+			m := m
+			info.ReadyFn = func(_ context.Context) (bool, string, error) {
+				return m.Ready(), "matcher-ready", nil
+			}
+		}
+		infos = append(infos, info)
 	}
 	for _, descriptor := range reg.AuditorDescriptors() {
 		d := descriptor
 		metadata := builtInMetadata(d.Name, plugschema.PluginKindAuditor)
-		infos = append(infos, auditorPluginInfo(metadata, &d, coreVersion, d.Enabled))
+		info := auditorPluginInfo(metadata, &d, coreVersion, d.Enabled)
+		if a, ok := auditorInstances[d.Name]; ok {
+			a := a
+			info.ReadyFn = func(_ context.Context) (bool, string, error) {
+				return a.Ready(), "auditor-ready", nil
+			}
+		}
+		infos = append(infos, info)
 	}
 	for _, descriptor := range reg.AnalyzerDescriptors() {
 		d := descriptor
 		metadata := builtInMetadata(d.Name, plugschema.PluginKindAnalyzer)
-		infos = append(infos, analyzerPluginInfo(metadata, &d, coreVersion, d.Enabled))
+		info := analyzerPluginInfo(metadata, &d, coreVersion, d.Enabled)
+		if a, ok := analyzerInstances[d.Name]; ok {
+			a := a
+			info.ReadyFn = func(_ context.Context) (bool, string, error) {
+				return a.Ready(), "analyzer-ready", nil
+			}
+		}
+		infos = append(infos, info)
 	}
 	return infos
+}
+
+// collectDetectorInstances builds a flat name→instance map that includes fallback
+// detectors reachable from the provided primary detectors.
+func collectDetectorInstances(primaries []plugschema.Detector) map[string]plugschema.Detector {
+	out := make(map[string]plugschema.Detector)
+	var walk func(d plugschema.Detector)
+	walk = func(d plugschema.Detector) {
+		if d == nil {
+			return
+		}
+		name := strings.TrimSpace(d.Descriptor().Name)
+		if name != "" {
+			if _, ok := out[name]; !ok {
+				out[name] = d
+			}
+		}
+		if fb, ok := d.(plugschema.FallbackDetector); ok {
+			walk(fb.FallbackDetector())
+		}
+	}
+	for _, p := range primaries {
+		walk(p)
+	}
+	return out
 }
 
 func builtInMetadata(id string, kind plugschema.PluginKind) *plugschema.PluginMetadata {

@@ -95,6 +95,18 @@ Verify the installation:
 bomly plugin verify bomly.example.gomod-detector
 ```
 
+Test runtime readiness (without running verify):
+
+```bash
+bomly plugin test bomly.example.gomod-detector
+```
+
+Run a full health check (verify + test):
+
+```bash
+bomly plugin doctor bomly.example.gomod-detector
+```
+
 Run a scan with the plugin selected explicitly:
 
 ```bash

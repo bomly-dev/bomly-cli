@@ -27,17 +27,17 @@ func DiffMarkdown(w io.Writer, payload output.DiffResponse) error {
 }
 
 func diffOverviewMarkdown(payload output.DiffResponse) []string {
-	audit := payload.Audit
 	introduced, persisted, resolved := 0, 0, 0
-	if audit != nil {
-		introduced = len(audit.Introduced)
-		persisted = len(audit.Persisted)
-		resolved = len(audit.Resolved)
+	policy := diffPolicyDisplayFindings(payload)
+	if payload.Audit != nil {
+		introduced = len(policy.Introduced)
+		persisted = len(policy.Persisted)
+		resolved = len(policy.Resolved)
 	}
 	status := "✅ Pass"
-	if audit != nil && outputAuditFailingCount(audit.Introduced) > 0 {
+	if payload.Audit != nil && outputAuditFailingCount(policy.Introduced) > 0 {
 		status = "❌ Failing findings introduced"
-	} else if audit != nil && introduced > 0 {
+	} else if payload.Audit != nil && introduced > 0 {
 		status = "⚠️ Warnings introduced"
 	}
 	return markdownTable(
@@ -193,18 +193,118 @@ func diffPolicyFindingsMarkdown(payload output.DiffResponse) []string {
 	if payload.Audit == nil {
 		return []string{"Policy evaluation was not included."}
 	}
-	audit := payload.Audit
+	policy := diffPolicyDisplayFindings(payload)
 	lines := []string{
-		fmt.Sprintf("**Summary:** %d introduced, %d persisted, %d resolved.", len(audit.Introduced), len(audit.Persisted), len(audit.Resolved)),
+		diffPolicySummary(policy),
 		"",
 	}
-	lines = append(lines, diffAuditFindingTable("Introduced Findings", "introduced", audit.Introduced)...)
-	lines = append(lines, diffAuditFindingTable("Persisted Findings", "persisted", audit.Persisted)...)
-	lines = append(lines, diffAuditFindingTable("Resolved Findings", "resolved", audit.Resolved)...)
-	if len(audit.Introduced) == 0 && len(audit.Persisted) == 0 && len(audit.Resolved) == 0 {
+	lines = append(lines, diffAuditFindingTable("Introduced Findings", "introduced", policy.Introduced)...)
+	lines = append(lines, diffAuditFindingTable("Persisted Findings on Changed Dependencies", "persisted", policy.Persisted)...)
+	lines = append(lines, diffAuditFindingTable("Resolved Findings on Changed Dependencies", "resolved", policy.Resolved)...)
+	if len(policy.Introduced) == 0 && len(policy.Persisted) == 0 && len(policy.Resolved) == 0 {
 		return []string{"✅ No policy differences were identified."}
 	}
 	return trimTrailingMarkdownBlanks(lines)
+}
+
+type diffPolicyFindings struct {
+	Introduced       []output.AuditFinding
+	Persisted        []output.AuditFinding
+	Resolved         []output.AuditFinding
+	OmittedPersisted int
+	OmittedResolved  int
+}
+
+func diffPolicyDisplayFindings(payload output.DiffResponse) diffPolicyFindings {
+	if payload.Audit == nil {
+		return diffPolicyFindings{}
+	}
+	changed := diffChangedPackageKeySet(payload.Results.Dependencies)
+	persisted := filterAuditFindingsByPackageSet(payload.Audit.Persisted, changed)
+	resolved := filterAuditFindingsByPackageSet(payload.Audit.Resolved, changed)
+	return diffPolicyFindings{
+		Introduced:       payload.Audit.Introduced,
+		Persisted:        persisted,
+		Resolved:         resolved,
+		OmittedPersisted: len(payload.Audit.Persisted) - len(persisted),
+		OmittedResolved:  len(payload.Audit.Resolved) - len(resolved),
+	}
+}
+
+func diffPolicySummary(policy diffPolicyFindings) string {
+	parts := []string{
+		fmt.Sprintf("%d introduced", len(policy.Introduced)),
+		fmt.Sprintf("%d persisted on changed dependencies", len(policy.Persisted)),
+		fmt.Sprintf("%d resolved on changed dependencies", len(policy.Resolved)),
+	}
+	if policy.OmittedPersisted > 0 || policy.OmittedResolved > 0 {
+		parts = append(parts, fmt.Sprintf("%d unchanged persisted and %d unrelated resolved omitted", policy.OmittedPersisted, policy.OmittedResolved))
+	}
+	return "**Summary:** " + strings.Join(parts, ", ") + "."
+}
+
+func diffChangedPackageKeySet(results output.DiffDependencyResults) map[string]struct{} {
+	keys := make(map[string]struct{})
+	for _, change := range results.Added {
+		addPackageKeys(keys, change.Package)
+	}
+	for _, change := range results.Removed {
+		addPackageKeys(keys, change.Package)
+	}
+	for _, change := range results.Changed {
+		addPackageKeys(keys, change.Before)
+		addPackageKeys(keys, change.After)
+	}
+	return keys
+}
+
+func filterAuditFindingsByPackageSet(findings []output.AuditFinding, packageKeys map[string]struct{}) []output.AuditFinding {
+	if len(findings) == 0 || len(packageKeys) == 0 {
+		return nil
+	}
+	filtered := make([]output.AuditFinding, 0, len(findings))
+	for _, finding := range findings {
+		if packageKeyMatches(packageKeys, finding.Package) {
+			filtered = append(filtered, finding)
+		}
+	}
+	return filtered
+}
+
+func packageKeyMatches(keys map[string]struct{}, pkg output.PackageRef) bool {
+	for _, key := range packageKeys(pkg) {
+		if _, ok := keys[key]; ok {
+			return true
+		}
+	}
+	return false
+}
+
+func addPackageKeys(keys map[string]struct{}, pkg output.PackageRef) {
+	for _, key := range packageKeys(pkg) {
+		keys[key] = struct{}{}
+	}
+}
+
+func packageKeys(pkg output.PackageRef) []string {
+	name := strings.ToLower(strings.TrimSpace(pkg.Name))
+	version := strings.ToLower(strings.TrimSpace(pkg.Version))
+	purl := strings.ToLower(strings.TrimSpace(pkg.Purl))
+	id := strings.ToLower(strings.TrimSpace(pkg.ID))
+	keys := make([]string, 0, 4)
+	if purl != "" {
+		keys = append(keys, "purl:"+purl)
+	}
+	if id != "" {
+		keys = append(keys, "id:"+id)
+	}
+	if name != "" && version != "" {
+		keys = append(keys, "name-version:"+name+"@"+version)
+	}
+	if name != "" {
+		keys = append(keys, "name:"+name)
+	}
+	return keys
 }
 
 func diffAuditFindingTable(title, status string, findings []output.AuditFinding) []string {

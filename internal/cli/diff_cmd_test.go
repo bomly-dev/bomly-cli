@@ -101,7 +101,7 @@ func TestRenderDiffMarkdownIncludesPatchedVersionsByDefault(t *testing.T) {
 	}
 }
 
-func TestRenderDiffMarkdownFocusesPersistedAndResolvedFindingsOnChangedPackages(t *testing.T) {
+func TestRenderDiffMarkdownRendersScopedPolicyPayloadDirectly(t *testing.T) {
 	payload := output.DiffResponse{
 		Comparison: output.DiffComparison{Base: "main", Head: "feature"},
 		Results: output.DiffResults{
@@ -138,19 +138,21 @@ func TestRenderDiffMarkdownFocusesPersistedAndResolvedFindingsOnChangedPackages(
 
 	report := out.String()
 	for _, want := range []string{
-		"1 persisted on changed dependencies",
-		"1 resolved on changed dependencies",
-		"1 unchanged persisted and 1 unrelated resolved omitted",
-		"Persisted Findings on Changed Dependencies",
-		"Resolved Findings on Changed Dependencies",
+		"1 introduced / 2 persisted / 2 resolved",
+		"2 persisted",
+		"2 resolved",
+		"Persisted Findings",
+		"Resolved Findings",
 		"CVE-REACT",
 		"CVE-REACT-OLD",
+		"CVE-LODASH",
+		"CVE-MINIMIST",
 	} {
 		if !strings.Contains(report, want) {
 			t.Fatalf("expected Markdown report to contain %q, got:\n%s", want, report)
 		}
 	}
-	for _, unwanted := range []string{"CVE-LODASH", "CVE-MINIMIST"} {
+	for _, unwanted := range []string{"omitted", "on Changed Dependencies"} {
 		if strings.Contains(report, unwanted) {
 			t.Fatalf("did not expect Markdown report to contain %q, got:\n%s", unwanted, report)
 		}

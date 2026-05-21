@@ -3,6 +3,7 @@ package diff
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/bomly-dev/bomly-cli/internal/engine"
@@ -36,6 +37,8 @@ type Result struct {
 	Findings []sdk.Finding
 }
 
+const diffAuditRootID = "bomly:diff-audit-root"
+
 // Run executes the full pipeline for base and head targets and computes audit deltas.
 func Run(ctx context.Context, req Request) (Result, error) {
 	result := Result{}
@@ -46,24 +49,106 @@ func Run(ctx context.Context, req Request) (Result, error) {
 		return result, fmt.Errorf("head diff pipeline is nil")
 	}
 
-	base, err := req.Base.Pipeline.Run(ctx, req.Base.Request)
+	base, err := req.Base.Pipeline.RunPreAudit(ctx, req.Base.Request)
 	result.Base = base
 	if err != nil {
 		return result, fmt.Errorf("base pipeline: %w", err)
 	}
 
 	req.Head.Request.BaselineGraph = base.Graph
-	head, err := req.Head.Pipeline.Run(ctx, req.Head.Request)
+	head, err := req.Head.Pipeline.RunPreAudit(ctx, req.Head.Request)
 	result.Head = head
 	if err != nil {
 		return result, fmt.Errorf("head pipeline: %w", err)
 	}
 
 	if req.Base.Request.AuditEnabled || req.Head.Request.AuditEnabled {
-		result.Audit = AuditSummary(base.Findings, head.Findings)
-		result.Findings = append(append([]sdk.Finding{}, head.Findings...), base.Findings...)
+		baseAuditGraph, headAuditGraph, err := focusedAuditGraphs(base.Graph, head.Graph)
+		if err != nil {
+			return result, fmt.Errorf("focused audit graphs: %w", err)
+		}
+		baseAudit, baseWarnings := req.Base.Pipeline.RunAuditGraph(ctx, baseAuditGraph, req.Base.Request)
+		result.Base.Findings = baseAudit.Findings
+		result.Base.RiskScores = baseAudit.RiskScores
+		result.Base.AuditorRuns = baseAudit.AuditorRuns
+		result.Base.AuditorFindings = baseAudit.AuditorFindings
+		result.Base.AuditWarnings = append(result.Base.AuditWarnings, baseWarnings...)
+
+		headAudit, headWarnings := req.Head.Pipeline.RunAuditGraph(ctx, headAuditGraph, req.Head.Request)
+		result.Head.Findings = headAudit.Findings
+		result.Head.RiskScores = headAudit.RiskScores
+		result.Head.AuditorRuns = headAudit.AuditorRuns
+		result.Head.AuditorFindings = headAudit.AuditorFindings
+		result.Head.AuditWarnings = append(result.Head.AuditWarnings, headWarnings...)
+
+		result.Audit = AuditSummary(result.Base.Findings, result.Head.Findings)
+		result.Findings = append(append([]sdk.Finding{}, result.Head.Findings...), result.Base.Findings...)
 	}
+	req.Base.Pipeline.RunPostResolveHooks(ctx, req.Base.Request, result.Base)
+	req.Head.Pipeline.RunPostResolveHooks(ctx, req.Head.Request, result.Head)
 	return result, nil
+}
+
+func focusedAuditGraphs(base, head *sdk.Graph) (*sdk.Graph, *sdk.Graph, error) {
+	graphDiff := sdk.Compare(base, head)
+	basePackages := make([]*sdk.Package, 0, len(graphDiff.Removed)+len(graphDiff.Updated))
+	headPackages := make([]*sdk.Package, 0, len(graphDiff.Added)+len(graphDiff.Updated))
+	basePackages = append(basePackages, graphDiff.Removed...)
+	headPackages = append(headPackages, graphDiff.Added...)
+	for _, change := range graphDiff.Updated {
+		basePackages = append(basePackages, change.Before)
+		headPackages = append(headPackages, change.After)
+	}
+
+	baseGraph, err := focusedAuditGraph(basePackages)
+	if err != nil {
+		return nil, nil, err
+	}
+	headGraph, err := focusedAuditGraph(headPackages)
+	if err != nil {
+		return nil, nil, err
+	}
+	return baseGraph, headGraph, nil
+}
+
+func focusedAuditGraph(packages []*sdk.Package) (*sdk.Graph, error) {
+	focused := sdk.NewWithCapacity(len(packages) + 1)
+	seen := make(map[string]struct{}, len(packages))
+	for _, pkg := range packages {
+		if pkg == nil || pkg.ID == "" {
+			continue
+		}
+		seen[pkg.ID] = struct{}{}
+	}
+	if len(seen) == 0 {
+		return focused, nil
+	}
+
+	root := sdk.NewPackageWithID(diffAuditRootID, sdk.Package{
+		Name: "bomly-diff-audit-root",
+		Type: "application",
+	})
+	if err := focused.AddPackage(root); err != nil {
+		return nil, err
+	}
+
+	for _, pkg := range packages {
+		if pkg == nil || pkg.ID == "" {
+			continue
+		}
+		if _, exists := focused.Package(pkg.ID); !exists {
+			if err := focused.AddPackage(pkg.Clone()); err != nil && !errors.Is(err, sdk.ErrPackageAlreadyExist) {
+				return nil, err
+			}
+		}
+		if _, exists := focused.Package(pkg.ID); !exists {
+			continue
+		}
+		if err := focused.AddDependency(diffAuditRootID, pkg.ID); err != nil && !errors.Is(err, sdk.ErrSelfDependency) {
+			return nil, err
+		}
+	}
+	return focused, nil
 }
 
 // AuditSummary computes introduced, resolved, and persisted findings.

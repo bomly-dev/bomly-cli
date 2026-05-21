@@ -36,6 +36,18 @@ func NewPipeline(registry *Registry, logger *zap.Logger) *Pipeline {
 
 // Run executes the full pipeline and returns a consolidated result.
 func (p *Pipeline) Run(ctx context.Context, req PipelineRequest) (PipelineResult, error) {
+	result, err := p.RunPreAudit(ctx, req)
+	if err != nil {
+		return result, err
+	}
+	p.runAudit(ctx, &result, req)
+	p.runPost(ctx, req, result)
+	return result, nil
+}
+
+// RunPreAudit executes the pipeline through enrichment and analysis, stopping
+// before policy evaluation and post-resolve hooks.
+func (p *Pipeline) RunPreAudit(ctx context.Context, req PipelineRequest) (PipelineResult, error) {
 	result := PipelineResult{}
 	if err := p.runPre(ctx, req); err != nil {
 		return result, err
@@ -51,9 +63,35 @@ func (p *Pipeline) Run(ctx context.Context, req PipelineRequest) (PipelineResult
 	}
 	p.runMatch(ctx, &result, req)
 	p.runAnalyze(ctx, &result, req)
-	p.runAudit(ctx, &result, req)
-	p.runPost(ctx, req, result)
 	return result, nil
+}
+
+// RunAuditGraph evaluates policy for graph using req's configured auditors.
+func (p *Pipeline) RunAuditGraph(ctx context.Context, graph *sdk.Graph, req PipelineRequest) (sdk.AuditResult, []PipelineWarning) {
+	if !req.AuditEnabled || graph == nil {
+		return sdk.AuditResult{}, nil
+	}
+	if req.Progress != nil {
+		req.Progress.StartStage("Evaluating policy", 1)
+	}
+	auditResult, auditWarnings := p.audit(ctx, graph, req)
+	auditResult.Findings = DeduplicateFindings(auditResult.Findings)
+	if req.WarnOnly {
+		for idx := range auditResult.Findings {
+			if auditResult.Findings[idx].Disposition == "" || auditResult.Findings[idx].Disposition == sdk.FindingDispositionFail {
+				auditResult.Findings[idx].Disposition = sdk.FindingDispositionWarn
+			}
+		}
+	}
+	if req.Progress != nil {
+		req.Progress.CompleteStage("Evaluating policy", 1)
+	}
+	return auditResult, auditWarnings
+}
+
+// RunPostResolveHooks executes post-resolve hooks with the supplied result.
+func (p *Pipeline) RunPostResolveHooks(ctx context.Context, req PipelineRequest, result PipelineResult) {
+	p.runPost(ctx, req, result)
 }
 
 func (p *Pipeline) runPre(ctx context.Context, req PipelineRequest) error {

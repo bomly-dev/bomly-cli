@@ -1105,15 +1105,31 @@ func vulnerabilityGroupDetails(key, group string, vulnerabilities []packageVulne
 
 func vulnerabilityDetails(row packageVulnerabilityRow) []string {
 	vulnerability := row.vulnerability
+	packageID, packageVersion, packageEcosystem, packagePURL := "", "", "", ""
+	if row.pkg != nil {
+		packageID = row.pkg.ID
+		packageVersion = row.pkg.Version
+		packageEcosystem = row.pkg.Ecosystem
+		packagePURL = row.pkg.PURL
+	}
 	lines := []string{
 		render.Style("Vulnerability", render.Bold, render.Cyan),
 		"",
 		render.Style("  ID: ", render.Dim) + valueOrDash(vulnerability.ID),
 		render.Style("  Severity: ", render.Dim) + severityText(vulnerability.Severity),
+		render.Style("  Severity source: ", render.Dim) + valueOrDash(vulnerability.SeveritySource),
 		render.Style("  Source: ", render.Dim) + valueOrDash(vulnerability.Source),
+		render.Style("  Namespace: ", render.Dim) + valueOrDash(vulnerability.Namespace),
+		render.Style("  Data source: ", render.Dim) + valueOrDash(vulnerability.DataSource),
 		render.Style("  Package: ", render.Dim) + valueOrDash(vulnerabilityPackageName(row)),
+		render.Style("  Package ID: ", render.Dim) + valueOrDash(packageID),
+		render.Style("  Installed version: ", render.Dim) + valueOrDash(packageVersion),
+		render.Style("  Ecosystem: ", render.Dim) + valueOrDash(packageEcosystem),
+		render.Style("  PURL: ", render.Dim) + valueOrDash(packagePURL),
 		render.Style("  Title: ", render.Dim) + valueOrDash(vulnerability.Title),
 		render.Style("  KEV exploited: ", render.Dim) + fmt.Sprintf("%t", vulnerability.KEVExploited),
+		render.Style("  Exploitability: ", render.Dim) + valueOrDash(exploitabilityLine(vulnerability.KEVExploited, vulnerability.KnownExploited, vulnerability.RiskScore)),
+		render.Style("  Risk score: ", render.Dim) + valueOrDash(formatFloat(vulnerability.RiskScore)),
 		"",
 		render.Style("Description", render.Bold, render.Magenta),
 		"",
@@ -1123,14 +1139,74 @@ func vulnerabilityDetails(row packageVulnerabilityRow) []string {
 		"",
 		render.Style("  Affected: ", render.Dim) + valueOrDash(vulnerability.AffectedVersionRange),
 		render.Style("  Fixed in: ", render.Dim) + valueOrDash(vulnerability.FixedIn),
+		render.Style("  Fix state: ", render.Dim) + valueOrDash(vulnerability.FixState),
+		render.Style("  Fixed versions: ", render.Dim) + valueOrDash(strings.Join(vulnerability.FixedVersions, ", ")),
 		"",
-		render.Style(fmt.Sprintf("CVSS (%d)", len(vulnerability.CVSS)), render.Bold, render.Magenta),
 	}
-	if len(vulnerability.CVSS) == 0 {
+
+	appendStringSection := func(title string, values []string) {
+		lines = append(lines, render.Style(fmt.Sprintf("%s (%d)", title, len(values)), render.Bold, render.Magenta))
+		if len(values) == 0 {
+			lines = append(lines, render.Style("  (none)", render.Dim), "")
+			return
+		}
+		lines = append(lines, indentLines(values)...)
+		lines = append(lines, "")
+	}
+
+	appendStringSection("Aliases", vulnerability.Aliases)
+
+	lines = append(lines, render.Style(fmt.Sprintf("EPSS (%d)", len(vulnerability.EPSS)), render.Bold, render.Magenta))
+	if len(vulnerability.EPSS) == 0 {
 		lines = append(lines, render.Style("  (none)", render.Dim))
 	} else {
-		for _, score := range vulnerability.CVSS {
-			lines = append(lines, render.Style("  - ", render.Dim)+fmt.Sprintf("%.1f %s %s", score.Score, valueOrDash(score.Version), valueOrDash(score.Vector)))
+		for _, epss := range vulnerability.EPSS {
+			parts := []string{
+				fmt.Sprintf("score %.3f", epss.EPSS),
+				fmt.Sprintf("percentile %.3f", epss.Percentile),
+				epss.CVE,
+				epss.Date,
+			}
+			lines = append(lines, render.Style("  - ", render.Dim)+strings.Join(nonEmptyStrings(parts), " | "))
+		}
+	}
+	lines = append(lines, "", render.Style(fmt.Sprintf("CWEs (%d)", len(vulnerability.CWEs)), render.Bold, render.Magenta))
+	if len(vulnerability.CWEs) == 0 {
+		lines = append(lines, render.Style("  (none)", render.Dim))
+	} else {
+		for _, cwe := range vulnerability.CWEs {
+			lines = append(lines, render.Style("  - ", render.Dim)+strings.Join(nonEmptyStrings([]string{cwe.ID, cwe.Source, cwe.Type, cwe.CVE}), " | "))
+		}
+	}
+	lines = append(lines, "", render.Style(fmt.Sprintf("Known Exploited (%d)", len(vulnerability.KnownExploited)), render.Bold, render.Magenta))
+	if len(vulnerability.KnownExploited) == 0 {
+		lines = append(lines, render.Style("  (none)", render.Dim))
+	} else {
+		for _, ke := range vulnerability.KnownExploited {
+			headParts := []string{ke.CVE, ke.VendorProject, ke.Product}
+			if ke.DateAdded != "" {
+				headParts = append(headParts, "added "+ke.DateAdded)
+			}
+			if ke.DueDate != "" {
+				headParts = append(headParts, "due "+ke.DueDate)
+			}
+			head := strings.Join(nonEmptyStrings(headParts), " | ")
+			lines = append(lines, render.Style("  - ", render.Dim)+valueOrDash(head))
+			if ke.KnownRansomwareCampaignUse != "" {
+				lines = append(lines, render.Style("    ransomware: ", render.Dim)+ke.KnownRansomwareCampaignUse)
+			}
+			if ke.RequiredAction != "" {
+				lines = append(lines, render.Style("    action: ", render.Dim)+ke.RequiredAction)
+			}
+			if ke.Notes != "" {
+				lines = append(lines, render.Style("    notes: ", render.Dim)+ke.Notes)
+			}
+			if len(ke.CWEs) > 0 {
+				lines = append(lines, render.Style("    cwes: ", render.Dim)+strings.Join(nonEmptyStrings(ke.CWEs), ", "))
+			}
+			if len(ke.URLs) > 0 {
+				lines = append(lines, render.Style("    urls: ", render.Dim)+strings.Join(nonEmptyStrings(ke.URLs), ", "))
+			}
 		}
 	}
 	lines = append(lines, "", render.Style(fmt.Sprintf("References (%d)", len(vulnerability.References)), render.Bold, render.Magenta))
@@ -1138,15 +1214,29 @@ func vulnerabilityDetails(row packageVulnerabilityRow) []string {
 		lines = append(lines, render.Style("  (none)", render.Dim))
 	} else {
 		for _, ref := range vulnerability.References {
-			lines = append(lines, render.Style("  - ", render.Dim)+valueOrDash(ref.URL)+" "+render.Style(valueOrDash(ref.Type), render.Dim))
+			lines = append(lines, render.Style("  - ", render.Dim)+strings.Join(nonEmptyStrings([]string{ref.Type, ref.URL}), " | "))
 		}
 	}
-	lines = append(lines, "", render.Style(fmt.Sprintf("Reasons (%d)", len(vulnerability.Reasons)), render.Bold, render.Magenta))
-	if len(vulnerability.Reasons) == 0 {
+	lines = append(lines, "", render.Style(fmt.Sprintf("Fix Availability (%d)", len(vulnerability.FixAvailable)), render.Bold, render.Magenta))
+	if len(vulnerability.FixAvailable) == 0 {
 		lines = append(lines, render.Style("  (none)", render.Dim))
 	} else {
-		lines = append(lines, indentLines(vulnerability.Reasons)...)
+		for _, fix := range vulnerability.FixAvailable {
+			lines = append(lines, render.Style("  - ", render.Dim)+strings.Join(nonEmptyStrings([]string{fix.Version, fix.Date, fix.Kind}), " "))
+		}
 	}
+
+	lines = append(lines, "", render.Style(fmt.Sprintf("Affected Symbols (%d)", len(vulnerability.AffectedSymbols)), render.Bold, render.Magenta))
+	if len(vulnerability.AffectedSymbols) == 0 {
+		lines = append(lines, render.Style("  (none)", render.Dim))
+	} else {
+		for _, symbol := range vulnerability.AffectedSymbols {
+			lines = append(lines, render.Style("  - ", render.Dim)+strings.Join(nonEmptyStrings([]string{symbol.Symbol, symbol.Kind, symbol.Package, symbol.Module}), " | "))
+		}
+	}
+	lines = append(lines, "")
+	appendStringSection("CPEs", vulnerability.CPEs)
+	appendStringSection("Reasons", vulnerability.Reasons)
 	return lines
 }
 
@@ -1364,6 +1454,13 @@ func findingDetails(finding sdk.Finding) []string {
 		render.Style("  Package: ", render.Dim) + valueOrDash(pkg),
 		render.Style("  Title: ", render.Dim) + valueOrDash(finding.Title),
 		render.Style("  Source: ", render.Dim) + valueOrDash(finding.Source),
+		render.Style("  Namespace: ", render.Dim) + valueOrDash(finding.Namespace),
+		render.Style("  Data source: ", render.Dim) + valueOrDash(finding.DataSource),
+		render.Style("  Fixed in: ", render.Dim) + valueOrDash(finding.FixedIn),
+		render.Style("  Fix state: ", render.Dim) + valueOrDash(finding.FixState),
+		render.Style("  Exploitability: ", render.Dim) + valueOrDash(exploitabilityLine(finding.KEVExploited, finding.KnownExploited, finding.RiskScore)),
+		render.Style("  EPSS: ", render.Dim) + valueOrDash(epssLine(finding.EPSS)),
+		render.Style("  CWEs: ", render.Dim) + valueOrDash(cweLine(finding.CWEs)),
 		render.Style("  Description: ", render.Dim) + valueOrDash(finding.Description),
 		"",
 		render.Style(fmt.Sprintf("Reasons (%d)", len(finding.Reasons)), render.Bold, render.Magenta),

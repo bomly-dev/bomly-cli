@@ -15,6 +15,8 @@ import (
 	grypematch "github.com/anchore/grype/grype/match"
 	grypematcher "github.com/anchore/grype/grype/matcher"
 	grypepkg "github.com/anchore/grype/grype/pkg"
+	grypevuln "github.com/anchore/grype/grype/vulnerability"
+	"github.com/anchore/syft/syft/cpe"
 	syftPkg "github.com/anchore/syft/syft/pkg"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
 	"github.com/bomly-dev/bomly-cli/sdk"
@@ -199,18 +201,6 @@ func applyMatches(matches *grypematch.Matches, g *sdk.Graph) {
 	}
 
 	for _, m := range matches.Sorted() {
-		vuln := m.Vulnerability
-		severity := "unknown"
-		description := ""
-		var urls []string
-		if vuln.Metadata != nil {
-			if vuln.Metadata.Severity != "" {
-				severity = strings.ToLower(vuln.Metadata.Severity)
-			}
-			description = vuln.Metadata.Description
-			urls = vuln.Metadata.URLs
-		}
-
 		graphPkg := pkgByID[m.Package.ID]
 		if graphPkg == nil {
 			graphPkg = &sdk.Package{
@@ -221,19 +211,153 @@ func applyMatches(matches *grypematch.Matches, g *sdk.Graph) {
 			}
 		}
 
-		title := vuln.ID
-		if description != "" {
-			title = description
-		}
-
 		graphPkg.Matched = true
-		graphPkg.Vulnerabilities = appendUniqueVulnerability(graphPkg.Vulnerabilities, sdk.PackageVulnerability{
-			ID:          vuln.ID,
-			Title:       title,
-			Severity:    severity,
-			Description: description,
-			Reasons:     append([]string(nil), urls...),
-			Source:      matcherName,
+		graphPkg.Vulnerabilities = appendOrMergeVulnerability(graphPkg.Vulnerabilities, mapBuiltinMatch(m))
+	}
+}
+
+func mapBuiltinMatch(m grypematch.Match) sdk.PackageVulnerability {
+	vuln := m.Vulnerability
+	advisory := grypeAdvisory{
+		ID:                   vuln.ID,
+		Namespace:            vuln.Namespace,
+		FixedVersions:        append([]string(nil), vuln.Fix.Versions...),
+		FixState:             string(vuln.Fix.State),
+		AffectedVersionRange: constraintString(vuln.Constraint),
+		CPEs:                 cpeStrings(vuln.CPEs),
+	}
+	if vuln.Metadata != nil {
+		advisory.DataSource = vuln.Metadata.DataSource
+		advisory.Namespace = firstNonEmpty(vuln.Metadata.Namespace, advisory.Namespace)
+		advisory.Severity = vuln.Metadata.Severity
+		advisory.SeveritySource = vuln.Metadata.Namespace
+		advisory.Description = vuln.Metadata.Description
+		advisory.URLs = append([]string(nil), vuln.Metadata.URLs...)
+		advisory.CVSS = builtinCVSS(vuln.Metadata.Cvss)
+		advisory.KnownExploited = builtinKnownExploited(vuln.Metadata.KnownExploited)
+		advisory.EPSS = builtinEPSS(vuln.Metadata.EPSS)
+		advisory.CWEs = builtinCWEs(vuln.Metadata.CWEs)
+		advisory.RiskScore = vuln.Metadata.RiskScore()
+	}
+	for _, fix := range vuln.Fix.Available {
+		advisory.FixAvailable = append(advisory.FixAvailable, sdk.FixAvailable{
+			Version: fix.Version,
+			Date:    dateString(fix.Date),
+			Kind:    fix.Kind,
 		})
 	}
+	for _, advisoryRef := range vuln.Advisories {
+		advisory.References = append(advisory.References, sdk.Reference{URL: advisoryRef.Link, Type: firstNonEmpty(advisoryRef.ID, "advisory")})
+	}
+	for _, related := range vuln.RelatedVulnerabilities {
+		if related.ID != "" {
+			advisory.Aliases = append(advisory.Aliases, related.ID)
+		}
+	}
+	return mapGrypeAdvisory(advisory)
+}
+
+func constraintString(constraint fmt.Stringer) string {
+	if constraint == nil {
+		return ""
+	}
+	return constraint.String()
+}
+
+func builtinCVSS(scores []grypevuln.Cvss) []sdk.CVSSScore {
+	if len(scores) == 0 {
+		return nil
+	}
+	out := make([]sdk.CVSSScore, 0, len(scores))
+	for _, score := range scores {
+		if score.Vector == "" && score.Metrics.BaseScore == 0 {
+			continue
+		}
+		out = append(out, sdk.CVSSScore{
+			Vector:  score.Vector,
+			Score:   score.Metrics.BaseScore,
+			Version: score.Version,
+			Source:  score.Source,
+		})
+	}
+	return out
+}
+
+func builtinKnownExploited(values []grypevuln.KnownExploited) []sdk.KnownExploited {
+	if len(values) == 0 {
+		return nil
+	}
+	out := make([]sdk.KnownExploited, 0, len(values))
+	for _, value := range values {
+		out = append(out, sdk.KnownExploited{
+			CVE:                        value.CVE,
+			VendorProject:              value.VendorProject,
+			Product:                    value.Product,
+			DateAdded:                  datePtrString(value.DateAdded),
+			RequiredAction:             value.RequiredAction,
+			DueDate:                    datePtrString(value.DueDate),
+			KnownRansomwareCampaignUse: value.KnownRansomwareCampaignUse,
+			Notes:                      value.Notes,
+			URLs:                       append([]string(nil), value.URLs...),
+			CWEs:                       append([]string(nil), value.CWEs...),
+		})
+	}
+	return out
+}
+
+func builtinEPSS(values []grypevuln.EPSS) []sdk.EPSSScore {
+	if len(values) == 0 {
+		return nil
+	}
+	out := make([]sdk.EPSSScore, 0, len(values))
+	for _, value := range values {
+		out = append(out, sdk.EPSSScore{
+			CVE:        value.CVE,
+			EPSS:       value.EPSS,
+			Percentile: value.Percentile,
+			Date:       dateString(value.Date),
+		})
+	}
+	return out
+}
+
+func builtinCWEs(values []grypevuln.CWE) []sdk.CWE {
+	if len(values) == 0 {
+		return nil
+	}
+	out := make([]sdk.CWE, 0, len(values))
+	for _, value := range values {
+		out = append(out, sdk.CWE{
+			CVE:    value.CVE,
+			ID:     value.CWE,
+			Source: value.Source,
+			Type:   value.Type,
+		})
+	}
+	return out
+}
+
+func cpeStrings(values []cpe.CPE) []string {
+	if len(values) == 0 {
+		return nil
+	}
+	out := make([]string, 0, len(values))
+	for _, value := range values {
+		out = append(out, value.Attributes.String())
+	}
+	return out
+}
+
+func dateString(value time.Time) string {
+	if value.IsZero() {
+		return ""
+	}
+	return value.Format(time.DateOnly)
+}
+
+func datePtrString(value *time.Time) string {
+	if value == nil {
+		return ""
+	}
+	return dateString(*value)
 }

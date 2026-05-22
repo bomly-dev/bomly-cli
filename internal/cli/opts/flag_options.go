@@ -70,7 +70,7 @@ func bindAnalysisFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
 	flags.BoolVar(&cfg.Enrich, "enrich", false, "Enrich packages with external license and vulnerability data")
 	flags.BoolVar(&cfg.Audit, "audit", false, "Evaluate policy and create findings from package vulnerability data")
 	flags.BoolVar(&cfg.Reachability, "reachability", false, "[Experimental] Run code analysis to confirm whether vulnerabilities are reachable from application code")
-	flags.StringArrayVar(&cfg.FailOn, "fail-on", nil, "Constraint(s) for which findings should be created. Repeatable; constraints AND together. Severity: any|low|medium|high|critical. Reachability: reachable. Example: --fail-on low --fail-on reachable")
+	flags.StringArrayVar(&cfg.FailOn, "fail-on", nil, "Constraint(s) for which findings should be created. Repeatable; constraints AND together. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable. Example: --fail-on low --fail-on reachable")
 	flags.StringArrayVar(&cfg.FailOnScopes, "fail-on-scope", nil, "Dependency scope that may produce failing findings: runtime, development, or unknown. Repeatable")
 	flags.StringArrayVar(&cfg.AllowVulnerabilityIDs, "allow-vulnerability-id", nil, "Vulnerability ID to ignore during policy evaluation. Repeatable")
 	flags.StringArrayVar(&cfg.AllowLicenses, "allow-license", nil, "Allowed SPDX license identifier or expression. Repeatable")

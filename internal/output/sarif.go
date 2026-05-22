@@ -108,13 +108,30 @@ type sarifThreadFlowLocation struct {
 // these fields give consumers everything needed to triage a finding
 // without parsing the parallel JSON output.
 type sarifProperties struct {
-	Reachability           string `json:"reachability,omitempty"`
-	ReachabilityTier       string `json:"reachability_tier,omitempty"`
-	ReachabilityReason     string `json:"reachability_reason,omitempty"`
-	Analyzer               string `json:"analyzer,omitempty"`
-	ReachabilityConfidence string `json:"reachability_confidence,omitempty"`
-	ReachabilityHops       *int   `json:"reachability_hops,omitempty"`
-	DynamicImportsDetected bool   `json:"reachability_dynamic_imports_detected,omitempty"`
+	FixedIn                string               `json:"fixed_in,omitempty"`
+	FixedVersions          []string             `json:"fixed_versions,omitempty"`
+	FixState               string               `json:"fix_state,omitempty"`
+	FixAvailable           []sdk.FixAvailable   `json:"fix_available,omitempty"`
+	SeveritySource         string               `json:"severity_source,omitempty"`
+	CVSS                   []sdk.CVSSScore      `json:"cvss,omitempty"`
+	Aliases                []string             `json:"aliases,omitempty"`
+	AffectedVersionRange   string               `json:"affected_version_range,omitempty"`
+	References             []sdk.Reference      `json:"references,omitempty"`
+	KEVExploited           bool                 `json:"kev_exploited,omitempty"`
+	KnownExploited         []sdk.KnownExploited `json:"known_exploited,omitempty"`
+	EPSS                   []sdk.EPSSScore      `json:"epss,omitempty"`
+	CWEs                   []sdk.CWE            `json:"cwes,omitempty"`
+	RiskScore              float64              `json:"risk_score,omitempty"`
+	DataSource             string               `json:"data_source,omitempty"`
+	Namespace              string               `json:"namespace,omitempty"`
+	CPEs                   []string             `json:"cpes,omitempty"`
+	Reachability           string               `json:"reachability,omitempty"`
+	ReachabilityTier       string               `json:"reachability_tier,omitempty"`
+	ReachabilityReason     string               `json:"reachability_reason,omitempty"`
+	Analyzer               string               `json:"analyzer,omitempty"`
+	ReachabilityConfidence string               `json:"reachability_confidence,omitempty"`
+	ReachabilityHops       *int                 `json:"reachability_hops,omitempty"`
+	DynamicImportsDetected bool                 `json:"reachability_dynamic_imports_detected,omitempty"`
 }
 
 // WriteSARIF writes findings as a SARIF 2.1.0 document to w.
@@ -159,23 +176,42 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, toolName, toolVersion strin
 			Message:   sarifMessage{Text: msgText},
 			Locations: sarifLocationsForFinding(f, pkgName),
 		}
+		props := sarifProperties{
+			FixedIn:              f.FixedIn,
+			FixedVersions:        append([]string(nil), f.FixedVersions...),
+			FixState:             f.FixState,
+			FixAvailable:         append([]sdk.FixAvailable(nil), f.FixAvailable...),
+			SeveritySource:       f.SeveritySource,
+			CVSS:                 append([]sdk.CVSSScore(nil), f.CVSS...),
+			Aliases:              append([]string(nil), f.Aliases...),
+			AffectedVersionRange: f.AffectedVersionRange,
+			References:           append([]sdk.Reference(nil), f.References...),
+			KEVExploited:         f.KEVExploited,
+			KnownExploited:       cloneKnownExploited(f.KnownExploited),
+			EPSS:                 append([]sdk.EPSSScore(nil), f.EPSS...),
+			CWEs:                 append([]sdk.CWE(nil), f.CWEs...),
+			RiskScore:            f.RiskScore,
+			DataSource:           f.DataSource,
+			Namespace:            f.Namespace,
+			CPEs:                 append([]string(nil), f.CPEs...),
+		}
 		if f.Reachability != nil {
-			props := &sarifProperties{
-				Reachability:           string(f.Reachability.Status),
-				ReachabilityTier:       string(f.Reachability.Tier),
-				ReachabilityReason:     f.Reachability.Reason,
-				Analyzer:               f.Reachability.Analyzer,
-				ReachabilityConfidence: string(f.Reachability.Confidence),
-				DynamicImportsDetected: f.Reachability.DynamicImportsDetected,
-			}
+			props.Reachability = string(f.Reachability.Status)
+			props.ReachabilityTier = string(f.Reachability.Tier)
+			props.ReachabilityReason = f.Reachability.Reason
+			props.Analyzer = f.Reachability.Analyzer
+			props.ReachabilityConfidence = string(f.Reachability.Confidence)
+			props.DynamicImportsDetected = f.Reachability.DynamicImportsDetected
 			if f.Reachability.Hops != nil {
 				h := *f.Reachability.Hops
 				props.ReachabilityHops = &h
 			}
-			result.Properties = props
 			if flows := buildSARIFCodeFlows(f.Reachability.CallPaths); len(flows) > 0 {
 				result.CodeFlows = flows
 			}
+		}
+		if !sarifPropertiesEmpty(props) {
+			result.Properties = &props
 		}
 		results = append(results, result)
 	}
@@ -201,6 +237,33 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, toolName, toolVersion strin
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
 	return enc.Encode(log)
+}
+
+func sarifPropertiesEmpty(props sarifProperties) bool {
+	return props.FixedIn == "" &&
+		len(props.FixedVersions) == 0 &&
+		props.FixState == "" &&
+		len(props.FixAvailable) == 0 &&
+		props.SeveritySource == "" &&
+		len(props.CVSS) == 0 &&
+		len(props.Aliases) == 0 &&
+		props.AffectedVersionRange == "" &&
+		len(props.References) == 0 &&
+		!props.KEVExploited &&
+		len(props.KnownExploited) == 0 &&
+		len(props.EPSS) == 0 &&
+		len(props.CWEs) == 0 &&
+		props.RiskScore == 0 &&
+		props.DataSource == "" &&
+		props.Namespace == "" &&
+		len(props.CPEs) == 0 &&
+		props.Reachability == "" &&
+		props.ReachabilityTier == "" &&
+		props.ReachabilityReason == "" &&
+		props.Analyzer == "" &&
+		props.ReachabilityConfidence == "" &&
+		props.ReachabilityHops == nil &&
+		!props.DynamicImportsDetected
 }
 
 // buildSARIFCodeFlows converts reachability call paths into SARIF

@@ -15,6 +15,9 @@ const (
 	// ReachabilityConstraint matches when a vulnerability's reachability
 	// status equals the constraint Value (currently only "reachable").
 	ReachabilityConstraint FailOnKind = "reachability"
+	// ExploitabilityConstraint matches when a vulnerability has known
+	// exploitation metadata.
+	ExploitabilityConstraint FailOnKind = "exploitability"
 )
 
 // FailOnConstraint is one parsed --fail-on value. The policy auditor
@@ -48,6 +51,11 @@ const (
 	ReachabilityValueReachable = "reachable"
 )
 
+// Exploitability constraint values currently supported.
+const (
+	ExploitabilityValueExploitable = "exploitable"
+)
+
 var validSeverityValues = map[string]struct{}{
 	SeverityAny:      {},
 	SeverityLow:      {},
@@ -60,10 +68,15 @@ var validReachabilityValues = map[string]struct{}{
 	ReachabilityValueReachable: {},
 }
 
+var validExploitabilityValues = map[string]struct{}{
+	ExploitabilityValueExploitable: {},
+}
+
 // ParseFailOn parses one raw --fail-on value into a typed constraint.
 // Severity tokens (any|low|medium|high|critical) yield a SeverityConstraint.
-// "reachable" yields a ReachabilityConstraint. Empty input returns the zero
-// value with no error so callers can treat empty repeats as no-ops.
+// "reachable" yields a ReachabilityConstraint. "exploitable" yields an
+// ExploitabilityConstraint. Empty input returns the zero value with no error
+// so callers can treat empty repeats as no-ops.
 func ParseFailOn(raw string) (FailOnConstraint, error) {
 	normalized := strings.ToLower(strings.TrimSpace(raw))
 	if normalized == "" {
@@ -75,7 +88,10 @@ func ParseFailOn(raw string) (FailOnConstraint, error) {
 	if _, ok := validReachabilityValues[normalized]; ok {
 		return FailOnConstraint{Kind: ReachabilityConstraint, Value: normalized}, nil
 	}
-	return FailOnConstraint{}, fmt.Errorf("unsupported --fail-on value %q (accepted: any, low, medium, high, critical, reachable)", raw)
+	if _, ok := validExploitabilityValues[normalized]; ok {
+		return FailOnConstraint{Kind: ExploitabilityConstraint, Value: normalized}, nil
+	}
+	return FailOnConstraint{}, fmt.Errorf("unsupported --fail-on value %q (accepted: any, low, medium, high, critical, reachable, exploitable)", raw)
 }
 
 // ParseFailOnList parses every raw value, skipping empty entries. It returns
@@ -145,6 +161,10 @@ func (v PackageVulnerability) MatchesConstraints(constraints []FailOnConstraint)
 			if v.Reachability == nil || v.Reachability.Status != ReachabilityReachable {
 				return false
 			}
+		case ExploitabilityConstraint:
+			if !v.IsExploitable() {
+				return false
+			}
 		default:
 			// Unknown kinds are treated as no-op rather than as
 			// rejection so future constraint kinds can be added without
@@ -152,4 +172,10 @@ func (v PackageVulnerability) MatchesConstraints(constraints []FailOnConstraint)
 		}
 	}
 	return true
+}
+
+// IsExploitable reports whether advisory metadata says this vulnerability is
+// known exploitable.
+func (v PackageVulnerability) IsExploitable() bool {
+	return v.KEVExploited || len(v.KnownExploited) > 0
 }

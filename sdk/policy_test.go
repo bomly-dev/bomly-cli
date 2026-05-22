@@ -15,6 +15,8 @@ func TestParseFailOn(t *testing.T) {
 		{"any", SeverityConstraint, "any", false},
 		{"reachable", ReachabilityConstraint, "reachable", false},
 		{"REACHABLE", ReachabilityConstraint, "reachable", false},
+		{"exploitable", ExploitabilityConstraint, "exploitable", false},
+		{"EXPLOITABLE", ExploitabilityConstraint, "exploitable", false},
 		{"", "", "", false},
 		{"bogus", "", "", true},
 	}
@@ -37,19 +39,22 @@ func TestParseFailOn(t *testing.T) {
 }
 
 func TestParseFailOnListSkipsEmptyAggregatesErrors(t *testing.T) {
-	raw := []string{"low", "", "reachable", "bogus"}
+	raw := []string{"low", "", "reachable", "exploitable", "bogus"}
 	out, err := ParseFailOnList(raw)
 	if err == nil {
 		t.Fatal("expected error for bogus entry")
 	}
-	if len(out) != 2 {
-		t.Fatalf("got %d valid constraints, want 2: %+v", len(out), out)
+	if len(out) != 3 {
+		t.Fatalf("got %d valid constraints, want 3: %+v", len(out), out)
 	}
 	if out[0].Kind != SeverityConstraint || out[0].Value != "low" {
 		t.Errorf("first constraint = %+v", out[0])
 	}
 	if out[1].Kind != ReachabilityConstraint || out[1].Value != "reachable" {
 		t.Errorf("second constraint = %+v", out[1])
+	}
+	if out[2].Kind != ExploitabilityConstraint || out[2].Value != "exploitable" {
+		t.Errorf("third constraint = %+v", out[2])
 	}
 }
 
@@ -87,9 +92,14 @@ func TestMatchesConstraints(t *testing.T) {
 		Severity:     "low",
 		Reachability: &Reachability{Status: ReachabilityReachable},
 	}
+	highExploitable := PackageVulnerability{
+		Severity:       "high",
+		KnownExploited: []KnownExploited{{CVE: "CVE-2024-1234"}},
+	}
 
 	sevHigh := FailOnConstraint{Kind: SeverityConstraint, Value: "high"}
 	reach := FailOnConstraint{Kind: ReachabilityConstraint, Value: "reachable"}
+	exploit := FailOnConstraint{Kind: ExploitabilityConstraint, Value: "exploitable"}
 
 	cases := []struct {
 		name string
@@ -105,6 +115,9 @@ func TestMatchesConstraints(t *testing.T) {
 		{"severity ok but no analyzer ran", highNoReach, []FailOnConstraint{sevHigh, reach}, false},
 		{"reach-only matches reachable", highReachable, []FailOnConstraint{reach}, true},
 		{"reach-only excludes nil", highNoReach, []FailOnConstraint{reach}, false},
+		{"exploitable-only matches known exploited", highExploitable, []FailOnConstraint{exploit}, true},
+		{"exploitable-only excludes no signal", highNoReach, []FailOnConstraint{exploit}, false},
+		{"severity and exploitable", highExploitable, []FailOnConstraint{sevHigh, exploit}, true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

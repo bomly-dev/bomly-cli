@@ -87,9 +87,9 @@ func Scan(manifests []output.ScanManifest, g *sdk.Graph, findings []sdk.Finding,
 		})
 		tw := tabwriter.NewWriter(&b, 0, 0, 2, ' ', 0)
 		if reachabilityEnabled {
-			_, _ = fmt.Fprintln(tw, "SEVERITY\tID\tPACKAGE\tREACHABILITY\tTITLE\tSOURCE")
+			_, _ = fmt.Fprintln(tw, "SEVERITY\tID\tPACKAGE\tREACHABILITY\tFIXED IN\tEXPLOITABILITY\tTITLE\tSOURCE")
 		} else {
-			_, _ = fmt.Fprintln(tw, "SEVERITY\tID\tPACKAGE\tTITLE\tSOURCE")
+			_, _ = fmt.Fprintln(tw, "SEVERITY\tID\tPACKAGE\tFIXED IN\tEXPLOITABILITY\tTITLE\tSOURCE")
 		}
 		for _, f := range sorted {
 			pkgName := "-"
@@ -106,12 +106,14 @@ func Scan(manifests []output.ScanManifest, g *sdk.Graph, findings []sdk.Finding,
 			if len(title) > 60 {
 				title = title[:57] + "..."
 			}
+			fixedIn := ValueOrDash(fixedVersionSummary(f.FixedIn, f.FixedVersions))
+			exploitability := ValueOrDash(exploitabilitySummary(f.KEVExploited, f.KnownExploited, f.RiskScore))
 			if reachabilityEnabled {
-				_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\n",
-					f.Severity, f.ID, pkgName, formatReachabilityCell(f.Reachability), title, f.Source)
+				_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+					f.Severity, f.ID, pkgName, formatReachabilityCell(f.Reachability), fixedIn, exploitability, title, f.Source)
 			} else {
-				_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n",
-					f.Severity, f.ID, pkgName, title, f.Source)
+				_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+					f.Severity, f.ID, pkgName, fixedIn, exploitability, title, f.Source)
 			}
 		}
 		_ = tw.Flush()

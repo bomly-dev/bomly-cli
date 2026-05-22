@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"sort"
+	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
 )
@@ -80,7 +81,7 @@ func scanFindingsMarkdown(payload output.ScanResponse) []string {
 	if len(payload.Findings) == 0 {
 		return []string{"No policy findings."}
 	}
-	lines := make([]string, 0, len(payload.Findings))
+	rows := make([][]string, 0, len(payload.Findings))
 	for _, finding := range sortDiffAuditFindings(payload.Findings) {
 		pkg := markdownPackageDisplayName(finding.Package)
 		if pkg == "" {
@@ -90,14 +91,17 @@ func scanFindingsMarkdown(payload output.ScanResponse) []string {
 		if title == "" {
 			title = finding.ID
 		}
-		lines = append(lines, fmt.Sprintf(
-			"- [%s] `%s`: %s",
-			markdownInline(ValueOrDash(finding.Severity)),
-			markdownInline(pkg),
-			markdownText(title),
-		))
+		rows = append(rows, []string{
+			strings.ToUpper(ValueOrDash(finding.Severity)),
+			valueOrDash(finding.ID),
+			pkg,
+			valueOrDash(fixedVersionSummary(finding.FixedIn, finding.FixedVersions)),
+			valueOrDash(exploitabilitySummary(finding.KEVExploited, finding.KnownExploited, finding.RiskScore)),
+			valueOrDash(finding.Source),
+			title,
+		})
 	}
-	return lines
+	return markdownTable([]string{"Severity", "ID", "Package", "Fixed In", "Exploitability", "Source", "Title"}, rows)
 }
 
 func scanPackageCount(manifests []output.ScanManifest) int {

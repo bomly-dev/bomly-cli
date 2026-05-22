@@ -26,9 +26,10 @@ type Matcher struct {
 	DistConfigOverride any
 }
 
-func appendUniqueVulnerability(existing []sdk.PackageVulnerability, entry sdk.PackageVulnerability) []sdk.PackageVulnerability {
-	for _, vulnerability := range existing {
+func appendOrMergeVulnerability(existing []sdk.PackageVulnerability, entry sdk.PackageVulnerability) []sdk.PackageVulnerability {
+	for idx, vulnerability := range existing {
 		if vulnerability.Source == entry.Source && vulnerability.ID == entry.ID {
+			existing[idx] = mergePackageVulnerability(vulnerability, entry)
 			return existing
 		}
 	}

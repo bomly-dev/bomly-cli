@@ -40,6 +40,23 @@ Complete reference for the `bomly scan` JSON output.
 | `auditor` | `string` | |
 | `disposition` | `string` | |
 | `fixed_in` | `string` | |
+| `fixed_versions` | Array<`string`> | |
+| `fix_state` | `string` | |
+| `fix_available` | Array<[`FixAvailable`](#fixavailable)> | |
+| `aliases` | Array<`string`> | |
+| `description` | `string` | |
+| `severity_source` | `string` | |
+| `cvss` | Array<[`CVSSScore`](#cvssscore)> | |
+| `affected_version_range` | `string` | |
+| `references` | Array<[`Reference`](#reference)> | |
+| `kev_exploited` | `boolean` | |
+| `known_exploited` | Array<[`KnownExploited`](#knownexploited)> | |
+| `epss` | Array<[`EPSSScore`](#epssscore)> | |
+| `cwes` | Array<[`CWE`](#cwe)> | |
+| `risk_score` | `number` | |
+| `data_source` | `string` | |
+| `namespace` | `string` | |
+| `cpes` | Array<`string`> | |
 | `reachability` | [`Reachability`](#reachability) | |
 
 ### `AuditSummary`
@@ -62,6 +79,15 @@ Complete reference for the `bomly scan` JSON output.
 | `Version` | `string` | |
 | `Source` | `string` | |
 
+### `CWE`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `cve` | `string` | |
+| `id` | `string` | |
+| `source` | `string` | |
+| `type` | `string` | |
+
 ### `CallFrame`
 
 | Field | Type | Description |
@@ -77,6 +103,38 @@ Complete reference for the `bomly scan` JSON output.
 |-------|------|-------------|
 | `sink` | [`AffectedSymbol`](#affectedsymbol) | |
 | `frames` | Array<[`CallFrame`](#callframe)> | |
+
+### `EPSSScore`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `cve` | `string` | |
+| `epss` | `number` | |
+| `percentile` | `number` | |
+| `date` | `string` | |
+
+### `FixAvailable`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `version` | `string` | |
+| `date` | `string` | |
+| `kind` | `string` | |
+
+### `KnownExploited`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `cve` | `string` | |
+| `vendor_project` | `string` | |
+| `product` | `string` | |
+| `date_added` | `string` | |
+| `required_action` | `string` | |
+| `due_date` | `string` | |
+| `known_ransomware_campaign_use` | `string` | |
+| `notes` | `string` | |
+| `urls` | Array<`string`> | |
+| `cwes` | Array<`string`> | |
 
 ### `LicenseRef`
 
@@ -208,9 +266,19 @@ Complete reference for the `bomly scan` JSON output.
 | `reasons` | Array<`string`> | |
 | `cvss` | Array<[`CVSSScore`](#cvssscore)> | |
 | `fixed_in` | `string` | |
+| `fixed_versions` | Array<`string`> | |
+| `fix_state` | `string` | |
+| `fix_available` | Array<[`FixAvailable`](#fixavailable)> | |
 | `affected_version_range` | `string` | |
 | `references` | Array<[`Reference`](#reference)> | |
 | `kev_exploited` | `boolean` | |
+| `known_exploited` | Array<[`KnownExploited`](#knownexploited)> | |
+| `epss` | Array<[`EPSSScore`](#epssscore)> | |
+| `cwes` | Array<[`CWE`](#cwe)> | |
+| `risk_score` | `number` | |
+| `data_source` | `string` | |
+| `namespace` | `string` | |
+| `cpes` | Array<`string`> | |
 | `affected_symbols` | Array<[`AffectedSymbol`](#affectedsymbol)> | |
 | `reachability` | [`Reachability`](#reachability) | |
 

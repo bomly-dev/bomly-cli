@@ -76,6 +76,20 @@ func explainImpactMarkdown(payload output.ExplainResponse) []string {
 			fmt.Sprintf("- Policy findings: %s", scanAuditSummaryMarkdown(target.AuditSummary)),
 			fmt.Sprintf("- Licenses: %d", len(target.Dependency.Licenses)),
 		)
+		if len(target.Dependency.Vulnerabilities) > 0 {
+			rows := make([][]string, 0, len(target.Dependency.Vulnerabilities))
+			for _, vulnerability := range target.Dependency.Vulnerabilities {
+				rows = append(rows, []string{
+					strings.ToUpper(ValueOrDash(vulnerability.Severity)),
+					valueOrDash(vulnerability.ID),
+					valueOrDash(fixedVersionSummary(vulnerability.FixedIn, vulnerability.FixedVersions)),
+					valueOrDash(exploitabilitySummary(vulnerability.KEVExploited, vulnerability.KnownExploited, vulnerability.RiskScore)),
+					valueOrDash(vulnerability.Source),
+				})
+			}
+			lines = append(lines, "")
+			lines = append(lines, markdownTable([]string{"Severity", "ID", "Fixed In", "Exploitability", "Source"}, rows)...)
+		}
 		if len(target.Findings) > 0 {
 			for _, finding := range sortDiffAuditFindings(target.Findings) {
 				title := finding.Title

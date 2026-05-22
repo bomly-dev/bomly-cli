@@ -57,6 +57,8 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 		threshold = 0.90
 	}
 
+	baseDisplayNames := packageDisplayNames(req.BaselineGraph)
+
 	for _, pkg := range packages {
 		if pkg == nil || !scopeAllowed(pkg, a.FailOnScopes) {
 			continue
@@ -70,6 +72,12 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 			continue
 		}
 		if _, existed := baseIDs[pkg.ID]; existed || req.BaselineGraph == nil {
+			continue
+		}
+		// Skip typosquat check for packages whose name already existed in the
+		// baseline (version-agnostic). A version bump of a known package is not
+		// a typosquat candidate.
+		if _, nameExisted := baseDisplayNames[strings.ToLower(strings.TrimSpace(pkg.DisplayName()))]; nameExisted {
 			continue
 		}
 		if protected, score, ok := closestProtectedName(pkg.DisplayName(), baseNames, threshold); ok {
@@ -109,6 +117,19 @@ func packageIDs(graph *sdk.Graph) map[string]struct{} {
 		}
 	}
 	return ids
+}
+
+func packageDisplayNames(graph *sdk.Graph) map[string]struct{} {
+	names := make(map[string]struct{})
+	if graph == nil {
+		return names
+	}
+	for _, pkg := range graph.Packages() {
+		if pkg != nil {
+			names[strings.ToLower(strings.TrimSpace(pkg.DisplayName()))] = struct{}{}
+		}
+	}
+	return names
 }
 
 func protectedNames(graph *sdk.Graph, configured []string) []string {

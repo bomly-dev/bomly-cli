@@ -1,6 +1,6 @@
 ## What `grype` does
 
-`grype` runs Anchore's Grype vulnerability matcher against the resolved dependency graph. Grype carries its own offline vulnerability database, so it complements `osv` rather than duplicating it — Grype is the right matcher when you need consistent results across runs and full offline operation after the first DB sync.
+`grype` runs Anchore's Grype vulnerability matcher against the resolved dependency graph. Grype carries its own offline vulnerability database, so it complements `osv` rather than duplicating it -- Grype is the right matcher when you need consistent results across runs and full offline operation after the first DB sync.
 
 In the full `bomly` binary, Grype is linked in as a library and runs in-process. In `bomly-lite`, Bomly shells out to a `grype` binary on `PATH`.
 
@@ -24,17 +24,20 @@ Grype reads from a local vulnerability database that it syncs on first use and r
 | Full `bomly` binary | Anchore's database service | Managed by the linked Grype library; default `~/.cache/grype/db/` |
 | `bomly-lite` | External `grype` binary on `PATH` | Wherever the external `grype` stores it |
 
-The DB sync is the only network call Grype makes. Once synced, matching is local. Bomly's enrichment cache does not wrap Grype calls — Grype manages its own cache.
+The DB sync is the only network call Grype makes. Once synced, matching is local. Bomly's enrichment cache does not wrap Grype calls -- Grype manages its own cache.
 
 ## Output fields
 
 Each `vulnerabilities[]` entry on a package carries:
 
-- `id` — Grype's primary ID (CVE / GHSA / vendor ID)
-- `severity` — Grype's normalized severity bucket
-- `cvss` — CVSS vector when available
-- `fixed_version` — earliest fixed version per affected range
-- `references` — upstream advisory and patch links
+- `id` -- Grype's primary ID (CVE / GHSA / vendor ID)
+- `severity` -- Grype's normalized severity bucket
+- `cvss` -- CVSS vector when available
+- `fixed_in` -- best single upgrade target; `fixed_versions` carries every fixed version Grype reported
+- `fix_state` and `fix_available` -- Grype's fix status and dated fix-availability records when available
+- `epss`, `cwes`, `known_exploited`, and `risk_score` -- exploitation and weakness triage signals from the Grype database
+- `data_source`, `namespace`, and `cpes` -- source and matcher context for debugging or downstream correlation
+- `references` -- upstream advisory and patch links
 
 ## Examples
 

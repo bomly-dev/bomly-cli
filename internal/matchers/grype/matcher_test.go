@@ -10,6 +10,9 @@ import (
 	"time"
 
 	v6dist "github.com/anchore/grype/grype/db/v6/distribution"
+	grypematch "github.com/anchore/grype/grype/match"
+	grypepkg "github.com/anchore/grype/grype/pkg"
+	grypevuln "github.com/anchore/grype/grype/vulnerability"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -114,5 +117,47 @@ func TestGraphPkgToGrypePkg_FieldMapping(t *testing.T) {
 	}
 	if gp.PURL != "pkg:npm/lodash@4.17.15" {
 		t.Errorf("PURL = %q, want pkg:npm/lodash@4.17.15", gp.PURL)
+	}
+}
+
+func TestMapBuiltinMatchCarriesRichFields(t *testing.T) {
+	v := mapBuiltinMatch(grypematch.Match{
+		Package: grypepkg.Package{ID: "pkg-1", Name: "lodash", Version: "4.17.15", PURL: "pkg:npm/lodash@4.17.15"},
+		Vulnerability: grypevuln.Vulnerability{
+			Reference: grypevuln.Reference{ID: "CVE-2020-8203", Namespace: "github:language:javascript"},
+			Fix: grypevuln.Fix{
+				Versions: []string{"4.17.19"},
+				State:    grypevuln.FixStateFixed,
+				Available: []grypevuln.FixAvailable{{
+					Version: "4.17.19",
+					Date:    time.Date(2020, 7, 1, 0, 0, 0, 0, time.UTC),
+					Kind:    "first-observed",
+				}},
+			},
+			Advisories:             []grypevuln.Advisory{{ID: "GHSA-p6mc-m468-83gw", Link: "https://github.com/advisories/GHSA-p6mc-m468-83gw"}},
+			RelatedVulnerabilities: []grypevuln.Reference{{ID: "GHSA-p6mc-m468-83gw", Namespace: "github:language:javascript"}},
+			Metadata: &grypevuln.Metadata{
+				DataSource:  "https://nvd.nist.gov/vuln/detail/CVE-2020-8203",
+				Namespace:   "nvd:cpe",
+				Severity:    "High",
+				Description: "Prototype pollution",
+				URLs:        []string{"https://example.test/advisory"},
+				Cvss: []grypevuln.Cvss{{
+					Source:  "nvd",
+					Version: "3.1",
+					Vector:  "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+					Metrics: grypevuln.CvssMetrics{BaseScore: 9.8},
+				}},
+				KnownExploited: []grypevuln.KnownExploited{{CVE: "CVE-2020-8203", KnownRansomwareCampaignUse: "Known"}},
+				EPSS:           []grypevuln.EPSS{{CVE: "CVE-2020-8203", EPSS: 0.25, Percentile: 0.9, Date: time.Date(2024, 5, 1, 0, 0, 0, 0, time.UTC)}},
+				CWEs:           []grypevuln.CWE{{CVE: "CVE-2020-8203", CWE: "CWE-1321", Source: "nvd", Type: "primary"}},
+			},
+		},
+	})
+	if v.FixedIn != "4.17.19" || v.FixState != "fixed" {
+		t.Fatalf("fix data missing: %#v", v)
+	}
+	if len(v.CVSS) != 1 || len(v.EPSS) != 1 || len(v.CWEs) != 1 || len(v.KnownExploited) != 1 || len(v.Aliases) != 1 {
+		t.Fatalf("rich fields missing: %#v", v)
 	}
 }

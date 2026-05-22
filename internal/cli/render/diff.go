@@ -165,6 +165,16 @@ func policyTextSections(audit output.DiffAudit) []string {
 			if strings.TrimSpace(finding.Title) != "" && finding.Title != finding.ID {
 				line += ": " + finding.Title
 			}
+			var details []string
+			if fixed := fixedVersionSummary(finding.FixedIn, finding.FixedVersions); fixed != "" {
+				details = append(details, "fixed in "+fixed)
+			}
+			if exploitability := exploitabilitySummary(finding.KEVExploited, finding.KnownExploited, finding.RiskScore); exploitability != "" {
+				details = append(details, exploitability)
+			}
+			if len(details) > 0 {
+				line += " [" + strings.Join(details, "; ") + "]"
+			}
 			if color != "" {
 				line = Wrap(line, color)
 			}

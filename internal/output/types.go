@@ -58,9 +58,19 @@ type VulnerabilityRef struct {
 	Reasons              []string             `json:"reasons,omitempty"`
 	CVSS                 []sdk.CVSSScore      `json:"cvss,omitempty"`
 	FixedIn              string               `json:"fixed_in,omitempty"`
+	FixedVersions        []string             `json:"fixed_versions,omitempty"`
+	FixState             string               `json:"fix_state,omitempty"`
+	FixAvailable         []sdk.FixAvailable   `json:"fix_available,omitempty"`
 	AffectedVersionRange string               `json:"affected_version_range,omitempty"`
 	References           []sdk.Reference      `json:"references,omitempty"`
 	KEVExploited         bool                 `json:"kev_exploited,omitempty"`
+	KnownExploited       []sdk.KnownExploited `json:"known_exploited,omitempty"`
+	EPSS                 []sdk.EPSSScore      `json:"epss,omitempty"`
+	CWEs                 []sdk.CWE            `json:"cwes,omitempty"`
+	RiskScore            float64              `json:"risk_score,omitempty"`
+	DataSource           string               `json:"data_source,omitempty"`
+	Namespace            string               `json:"namespace,omitempty"`
+	CPEs                 []string             `json:"cpes,omitempty"`
 	AffectedSymbols      []sdk.AffectedSymbol `json:"affected_symbols,omitempty"`
 	Reachability         *sdk.Reachability    `json:"reachability,omitempty"`
 }
@@ -173,6 +183,23 @@ func cloneRefMetadata(src map[string]any) map[string]any {
 	return clone
 }
 
+func cloneKnownExploited(src []sdk.KnownExploited) []sdk.KnownExploited {
+	if len(src) == 0 {
+		return nil
+	}
+	out := make([]sdk.KnownExploited, 0, len(src))
+	for _, item := range src {
+		if len(item.URLs) > 0 {
+			item.URLs = append([]string(nil), item.URLs...)
+		}
+		if len(item.CWEs) > 0 {
+			item.CWEs = append([]string(nil), item.CWEs...)
+		}
+		out = append(out, item)
+	}
+	return out
+}
+
 // LicenseRefsFromGraphLicenses converts graph licenses into output-friendly values.
 func LicenseRefsFromGraphLicenses(licenses []sdk.PackageLicense) []LicenseRef {
 	if len(licenses) == 0 {
@@ -207,11 +234,21 @@ func VulnerabilityRefsFromPackageVulnerabilities(vulnerabilities []sdk.PackageVu
 			Reasons:              append([]string(nil), vulnerability.Reasons...),
 			CVSS:                 append([]sdk.CVSSScore(nil), vulnerability.CVSS...),
 			FixedIn:              vulnerability.FixedIn,
+			FixedVersions:        append([]string(nil), vulnerability.FixedVersions...),
+			FixState:             vulnerability.FixState,
+			FixAvailable:         append([]sdk.FixAvailable(nil), vulnerability.FixAvailable...),
 			AffectedSymbols:      cloneAffectedSymbols(vulnerability.AffectedSymbols),
 			Reachability:         vulnerability.Reachability.Clone(),
 			AffectedVersionRange: vulnerability.AffectedVersionRange,
 			References:           append([]sdk.Reference(nil), vulnerability.References...),
 			KEVExploited:         vulnerability.KEVExploited,
+			KnownExploited:       cloneKnownExploited(vulnerability.KnownExploited),
+			EPSS:                 append([]sdk.EPSSScore(nil), vulnerability.EPSS...),
+			CWEs:                 append([]sdk.CWE(nil), vulnerability.CWEs...),
+			RiskScore:            vulnerability.RiskScore,
+			DataSource:           vulnerability.DataSource,
+			Namespace:            vulnerability.Namespace,
+			CPEs:                 append([]string(nil), vulnerability.CPEs...),
 		})
 	}
 	return out
@@ -219,17 +256,34 @@ func VulnerabilityRefsFromPackageVulnerabilities(vulnerabilities []sdk.PackageVu
 
 // AuditFinding is the serialized form of one normalized scan finding.
 type AuditFinding struct {
-	ID           string            `json:"id"`
-	Kind         string            `json:"kind"`
-	Severity     string            `json:"severity"`
-	Package      PackageRef        `json:"package"`
-	Title        string            `json:"title"`
-	Reasons      []string          `json:"reasons,omitempty"`
-	Source       string            `json:"source"`
-	Auditor      string            `json:"auditor,omitempty"`
-	Disposition  string            `json:"disposition,omitempty"`
-	FixedIn      string            `json:"fixed_in,omitempty"`
-	Reachability *sdk.Reachability `json:"reachability,omitempty"`
+	ID                   string               `json:"id"`
+	Kind                 string               `json:"kind"`
+	Severity             string               `json:"severity"`
+	Package              PackageRef           `json:"package"`
+	Title                string               `json:"title"`
+	Reasons              []string             `json:"reasons,omitempty"`
+	Source               string               `json:"source"`
+	Auditor              string               `json:"auditor,omitempty"`
+	Disposition          string               `json:"disposition,omitempty"`
+	FixedIn              string               `json:"fixed_in,omitempty"`
+	FixedVersions        []string             `json:"fixed_versions,omitempty"`
+	FixState             string               `json:"fix_state,omitempty"`
+	FixAvailable         []sdk.FixAvailable   `json:"fix_available,omitempty"`
+	Aliases              []string             `json:"aliases,omitempty"`
+	Description          string               `json:"description,omitempty"`
+	SeveritySource       string               `json:"severity_source,omitempty"`
+	CVSS                 []sdk.CVSSScore      `json:"cvss,omitempty"`
+	AffectedVersionRange string               `json:"affected_version_range,omitempty"`
+	References           []sdk.Reference      `json:"references,omitempty"`
+	KEVExploited         bool                 `json:"kev_exploited,omitempty"`
+	KnownExploited       []sdk.KnownExploited `json:"known_exploited,omitempty"`
+	EPSS                 []sdk.EPSSScore      `json:"epss,omitempty"`
+	CWEs                 []sdk.CWE            `json:"cwes,omitempty"`
+	RiskScore            float64              `json:"risk_score,omitempty"`
+	DataSource           string               `json:"data_source,omitempty"`
+	Namespace            string               `json:"namespace,omitempty"`
+	CPEs                 []string             `json:"cpes,omitempty"`
+	Reachability         *sdk.Reachability    `json:"reachability,omitempty"`
 }
 
 // AuditSummary aggregates finding counts by severity.
@@ -247,17 +301,34 @@ func FindingsFromScan(findings []sdk.Finding) []AuditFinding {
 	result := make([]AuditFinding, 0, len(findings))
 	for _, f := range findings {
 		result = append(result, AuditFinding{
-			ID:           f.ID,
-			Kind:         string(f.Kind),
-			Severity:     f.Severity,
-			Package:      PackageFromGraphPackage(f.Package),
-			Title:        f.Title,
-			Reasons:      f.Reasons,
-			Source:       f.Source,
-			Auditor:      f.Auditor,
-			Disposition:  string(f.Disposition),
-			FixedIn:      f.FixedIn,
-			Reachability: f.Reachability.Clone(),
+			ID:                   f.ID,
+			Kind:                 string(f.Kind),
+			Severity:             f.Severity,
+			Package:              PackageFromGraphPackage(f.Package),
+			Title:                f.Title,
+			Reasons:              f.Reasons,
+			Source:               f.Source,
+			Auditor:              f.Auditor,
+			Disposition:          string(f.Disposition),
+			FixedIn:              f.FixedIn,
+			FixedVersions:        append([]string(nil), f.FixedVersions...),
+			FixState:             f.FixState,
+			FixAvailable:         append([]sdk.FixAvailable(nil), f.FixAvailable...),
+			Aliases:              append([]string(nil), f.Aliases...),
+			Description:          f.Description,
+			SeveritySource:       f.SeveritySource,
+			CVSS:                 append([]sdk.CVSSScore(nil), f.CVSS...),
+			AffectedVersionRange: f.AffectedVersionRange,
+			References:           append([]sdk.Reference(nil), f.References...),
+			KEVExploited:         f.KEVExploited,
+			KnownExploited:       cloneKnownExploited(f.KnownExploited),
+			EPSS:                 append([]sdk.EPSSScore(nil), f.EPSS...),
+			CWEs:                 append([]sdk.CWE(nil), f.CWEs...),
+			RiskScore:            f.RiskScore,
+			DataSource:           f.DataSource,
+			Namespace:            f.Namespace,
+			CPEs:                 append([]string(nil), f.CPEs...),
+			Reachability:         f.Reachability.Clone(),
 		})
 	}
 	return result

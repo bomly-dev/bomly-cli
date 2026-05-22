@@ -67,6 +67,21 @@ func Explain(w io.Writer, target output.ExplainTargetResponse) error {
 			if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Title:   ", Dim), ValueOrDash(vulnerability.Title)); err != nil {
 				return err
 			}
+			if fixed := fixedVersionSummary(vulnerability.FixedIn, vulnerability.FixedVersions); fixed != "" {
+				if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Fixed in:", Dim), fixed); err != nil {
+					return err
+				}
+			}
+			if exploitability := exploitabilitySummary(vulnerability.KEVExploited, vulnerability.KnownExploited, vulnerability.RiskScore); exploitability != "" {
+				if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Exploit: ", Dim), exploitability); err != nil {
+					return err
+				}
+			}
+			if epss := epssSummary(vulnerability.EPSS); epss != "" {
+				if _, err := fmt.Fprintf(w, "  %s %s\n", Style("EPSS:    ", Dim), epss); err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -88,6 +103,16 @@ func Explain(w io.Writer, target output.ExplainTargetResponse) error {
 			}
 			if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Source:  ", Dim), ValueOrDash(finding.Source)); err != nil {
 				return err
+			}
+			if fixed := fixedVersionSummary(finding.FixedIn, finding.FixedVersions); fixed != "" {
+				if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Fixed in:", Dim), fixed); err != nil {
+					return err
+				}
+			}
+			if exploitability := exploitabilitySummary(finding.KEVExploited, finding.KnownExploited, finding.RiskScore); exploitability != "" {
+				if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Exploit: ", Dim), exploitability); err != nil {
+					return err
+				}
 			}
 			if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Package: ", Dim), explainPackageDisplayName(finding.Package)); err != nil {
 				return err

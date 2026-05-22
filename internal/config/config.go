@@ -27,7 +27,7 @@ type Resolved struct {
 	Enrich                bool     `doc:"Enrich packages with external license and vulnerability data" env:"BOMLY_ENRICH"`
 	Audit                 bool     `doc:"Evaluate policy and create findings from package vulnerability data" env:"BOMLY_AUDIT"`
 	Reachability          bool     `doc:"Run code analysis to confirm whether vulnerabilities are reachable from application code" env:"BOMLY_REACHABILITY"`
-	FailOn                []string `doc:"Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable" env:"BOMLY_FAIL_ON"`
+	FailOn                []string `doc:"Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable" env:"BOMLY_FAIL_ON"`
 	FailOnScopes          []string `doc:"Dependency scopes that may produce failing findings: runtime, development, unknown" env:"BOMLY_FAIL_ON_SCOPES"`
 	AllowVulnerabilityIDs []string `doc:"Vulnerability IDs to ignore during policy evaluation" env:"BOMLY_ALLOW_VULNERABILITY_IDS"`
 	AllowLicenses         []string `doc:"Allowed SPDX license identifiers or expressions" env:"BOMLY_ALLOW_LICENSES"`

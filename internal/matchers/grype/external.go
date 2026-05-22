@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
-	"strings"
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
@@ -68,21 +67,103 @@ type grypeJSONOutput struct {
 }
 
 type grypeJSONMatch struct {
-	Vulnerability grypeJSONVuln     `json:"vulnerability"`
-	Artifact      grypeJSONArtifact `json:"artifact"`
+	Vulnerability          grypeJSONVuln       `json:"vulnerability"`
+	RelatedVulnerabilities []grypeJSONVulnMeta `json:"relatedVulnerabilities"`
+	MatchDetails           []grypeJSONDetail   `json:"matchDetails"`
+	Artifact               grypeJSONArtifact   `json:"artifact"`
 }
 
 type grypeJSONVuln struct {
-	ID          string   `json:"id"`
-	Severity    string   `json:"severity"`
-	Description string   `json:"description"`
-	URLs        []string `json:"urls"`
+	grypeJSONVulnMeta
+	Fix        grypeJSONFix        `json:"fix"`
+	Advisories []grypeJSONAdvisory `json:"advisories"`
+	Risk       float64             `json:"risk"`
+}
+
+type grypeJSONVulnMeta struct {
+	ID             string                  `json:"id"`
+	DataSource     string                  `json:"dataSource"`
+	Namespace      string                  `json:"namespace"`
+	Severity       string                  `json:"severity"`
+	URLs           []string                `json:"urls"`
+	Description    string                  `json:"description"`
+	CVSS           []grypeJSONCVSS         `json:"cvss"`
+	KnownExploited []grypeJSONKnownExploit `json:"knownExploited"`
+	EPSS           []grypeJSONEPSS         `json:"epss"`
+	CWEs           []grypeJSONCWE          `json:"cwes"`
+}
+
+type grypeJSONFix struct {
+	Versions  []string                `json:"versions"`
+	State     string                  `json:"state"`
+	Available []grypeJSONFixAvailable `json:"available"`
+}
+
+type grypeJSONFixAvailable struct {
+	Version string `json:"version"`
+	Date    string `json:"date"`
+	Kind    string `json:"kind"`
+}
+
+type grypeJSONAdvisory struct {
+	ID   string `json:"id"`
+	Link string `json:"link"`
+}
+
+type grypeJSONCVSS struct {
+	Source  string              `json:"source"`
+	Type    string              `json:"type"`
+	Version string              `json:"version"`
+	Vector  string              `json:"vector"`
+	Metrics grypeJSONCVSSMetric `json:"metrics"`
+}
+
+type grypeJSONCVSSMetric struct {
+	BaseScore float64 `json:"baseScore"`
+}
+
+type grypeJSONKnownExploit struct {
+	CVE                        string   `json:"cve"`
+	VendorProject              string   `json:"vendorProject"`
+	Product                    string   `json:"product"`
+	DateAdded                  string   `json:"dateAdded"`
+	RequiredAction             string   `json:"requiredAction"`
+	DueDate                    string   `json:"dueDate"`
+	KnownRansomwareCampaignUse string   `json:"knownRansomwareCampaignUse"`
+	Notes                      string   `json:"notes"`
+	URLs                       []string `json:"urls"`
+	CWEs                       []string `json:"cwes"`
+}
+
+type grypeJSONEPSS struct {
+	CVE        string  `json:"cve"`
+	EPSS       float64 `json:"epss"`
+	Percentile float64 `json:"percentile"`
+	Date       string  `json:"date"`
+}
+
+type grypeJSONCWE struct {
+	CVE    string `json:"cve"`
+	CWE    string `json:"cwe"`
+	Source string `json:"source"`
+	Type   string `json:"type"`
+}
+
+type grypeJSONDetail struct {
+	Found json.RawMessage      `json:"found"`
+	Fix   *grypeJSONFixDetails `json:"fix"`
+}
+
+type grypeJSONFixDetails struct {
+	SuggestedVersion string `json:"suggestedVersion"`
 }
 
 type grypeJSONArtifact struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
-	PURL    string `json:"purl"`
+	ID      string   `json:"id"`
+	Name    string   `json:"name"`
+	Version string   `json:"version"`
+	CPEs    []string `json:"cpes"`
+	PURL    string   `json:"purl"`
 }
 
 func parseGrypeJSONOutput(data []byte, g *sdk.Graph) error {
@@ -92,7 +173,11 @@ func parseGrypeJSONOutput(data []byte, g *sdk.Graph) error {
 	}
 
 	pkgByPURL := make(map[string]*sdk.Package)
+	pkgByID := make(map[string]*sdk.Package)
 	for _, p := range g.Packages() {
+		if p.ID != "" {
+			pkgByID[p.ID] = p
+		}
 		if p.PURL != "" {
 			pkgByPURL[p.PURL] = p
 		}
@@ -101,27 +186,141 @@ func parseGrypeJSONOutput(data []byte, g *sdk.Graph) error {
 	for _, m := range out.Matches {
 		graphPkg := pkgByPURL[m.Artifact.PURL]
 		if graphPkg == nil {
+			graphPkg = pkgByID[m.Artifact.ID]
+		}
+		if graphPkg == nil {
 			graphPkg = &sdk.Package{
+				ID:      m.Artifact.ID,
 				Name:    m.Artifact.Name,
 				Version: m.Artifact.Version,
 				PURL:    m.Artifact.PURL,
 			}
 		}
 
-		title := m.Vulnerability.ID
-		if m.Vulnerability.Description != "" {
-			title = m.Vulnerability.Description
-		}
-
 		graphPkg.Matched = true
-		graphPkg.Vulnerabilities = appendUniqueVulnerability(graphPkg.Vulnerabilities, sdk.PackageVulnerability{
-			ID:          m.Vulnerability.ID,
-			Title:       title,
-			Severity:    strings.ToLower(m.Vulnerability.Severity),
-			Description: m.Vulnerability.Description,
-			Reasons:     append([]string(nil), m.Vulnerability.URLs...),
-			Source:      matcherName,
-		})
+		graphPkg.Vulnerabilities = appendOrMergeVulnerability(graphPkg.Vulnerabilities, mapGrypeJSONMatch(m))
 	}
 	return nil
+}
+
+func mapGrypeJSONMatch(m grypeJSONMatch) sdk.PackageVulnerability {
+	advisory := grypeAdvisory{
+		ID:                   m.Vulnerability.ID,
+		Namespace:            m.Vulnerability.Namespace,
+		DataSource:           m.Vulnerability.DataSource,
+		Severity:             m.Vulnerability.Severity,
+		SeveritySource:       m.Vulnerability.Namespace,
+		Description:          m.Vulnerability.Description,
+		URLs:                 append([]string(nil), m.Vulnerability.URLs...),
+		CVSS:                 jsonCVSS(m.Vulnerability.CVSS),
+		FixedVersions:        append([]string(nil), m.Vulnerability.Fix.Versions...),
+		FixedIn:              suggestedFixedVersion(m.MatchDetails),
+		FixState:             m.Vulnerability.Fix.State,
+		FixAvailable:         jsonFixAvailable(m.Vulnerability.Fix.Available),
+		AffectedVersionRange: foundConstraint(m.MatchDetails),
+		References:           jsonReferences(m.Vulnerability.Advisories),
+		Aliases:              jsonAliases(m.RelatedVulnerabilities),
+		KnownExploited:       jsonKnownExploited(m.Vulnerability.KnownExploited),
+		EPSS:                 jsonEPSS(m.Vulnerability.EPSS),
+		CWEs:                 jsonCWEs(m.Vulnerability.CWEs),
+		RiskScore:            m.Vulnerability.Risk,
+		CPEs:                 append([]string(nil), m.Artifact.CPEs...),
+	}
+	return mapGrypeAdvisory(advisory)
+}
+
+func suggestedFixedVersion(details []grypeJSONDetail) string {
+	for _, detail := range details {
+		if detail.Fix != nil && detail.Fix.SuggestedVersion != "" {
+			return detail.Fix.SuggestedVersion
+		}
+	}
+	return ""
+}
+
+func foundConstraint(details []grypeJSONDetail) string {
+	for _, detail := range details {
+		var found struct {
+			Constraint string `json:"constraint"`
+		}
+		if len(detail.Found) == 0 || json.Unmarshal(detail.Found, &found) != nil {
+			continue
+		}
+		if found.Constraint != "" {
+			return found.Constraint
+		}
+	}
+	return ""
+}
+
+func jsonCVSS(values []grypeJSONCVSS) []sdk.CVSSScore {
+	out := make([]sdk.CVSSScore, 0, len(values))
+	for _, value := range values {
+		out = append(out, sdk.CVSSScore{
+			Vector:  value.Vector,
+			Score:   value.Metrics.BaseScore,
+			Version: value.Version,
+			Source:  value.Source,
+		})
+	}
+	return out
+}
+
+func jsonFixAvailable(values []grypeJSONFixAvailable) []sdk.FixAvailable {
+	out := make([]sdk.FixAvailable, 0, len(values))
+	for _, value := range values {
+		out = append(out, sdk.FixAvailable{Version: value.Version, Date: value.Date, Kind: value.Kind})
+	}
+	return out
+}
+
+func jsonReferences(values []grypeJSONAdvisory) []sdk.Reference {
+	out := make([]sdk.Reference, 0, len(values))
+	for _, value := range values {
+		out = append(out, sdk.Reference{URL: value.Link, Type: firstNonEmpty(value.ID, "advisory")})
+	}
+	return out
+}
+
+func jsonAliases(values []grypeJSONVulnMeta) []string {
+	out := make([]string, 0, len(values))
+	for _, value := range values {
+		out = append(out, value.ID)
+	}
+	return out
+}
+
+func jsonKnownExploited(values []grypeJSONKnownExploit) []sdk.KnownExploited {
+	out := make([]sdk.KnownExploited, 0, len(values))
+	for _, value := range values {
+		out = append(out, sdk.KnownExploited{
+			CVE:                        value.CVE,
+			VendorProject:              value.VendorProject,
+			Product:                    value.Product,
+			DateAdded:                  value.DateAdded,
+			RequiredAction:             value.RequiredAction,
+			DueDate:                    value.DueDate,
+			KnownRansomwareCampaignUse: value.KnownRansomwareCampaignUse,
+			Notes:                      value.Notes,
+			URLs:                       append([]string(nil), value.URLs...),
+			CWEs:                       append([]string(nil), value.CWEs...),
+		})
+	}
+	return out
+}
+
+func jsonEPSS(values []grypeJSONEPSS) []sdk.EPSSScore {
+	out := make([]sdk.EPSSScore, 0, len(values))
+	for _, value := range values {
+		out = append(out, sdk.EPSSScore{CVE: value.CVE, EPSS: value.EPSS, Percentile: value.Percentile, Date: value.Date})
+	}
+	return out
+}
+
+func jsonCWEs(values []grypeJSONCWE) []sdk.CWE {
+	out := make([]sdk.CWE, 0, len(values))
+	for _, value := range values {
+		out = append(out, sdk.CWE{CVE: value.CVE, ID: value.CWE, Source: value.Source, Type: value.Type})
+	}
+	return out
 }

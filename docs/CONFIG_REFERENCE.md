@@ -25,7 +25,7 @@ Bomly resolves configuration in the following order, with later sources overridi
 | `enrich` | `BOMLY_ENRICH` | `bool` | - | Enrich packages with external license and vulnerability data |
 | `audit` | `BOMLY_AUDIT` | `bool` | - | Evaluate policy and create findings from package vulnerability data |
 | `reachability` | `BOMLY_REACHABILITY` | `bool` | - | Run code analysis to confirm whether vulnerabilities are reachable from application code |
-| `fail_on` | `BOMLY_FAIL_ON` | `[]string` | - | Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable |
+| `fail_on` | `BOMLY_FAIL_ON` | `[]string` | - | Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable |
 | `fail_on_scopes` | `BOMLY_FAIL_ON_SCOPES` | `[]string` | - | Dependency scopes that may produce failing findings: runtime, development, unknown |
 | `allow_vulnerability_ids` | `BOMLY_ALLOW_VULNERABILITY_IDS` | `[]string` | - | Vulnerability IDs to ignore during policy evaluation |
 | `allow_licenses` | `BOMLY_ALLOW_LICENSES` | `[]string` | - | Allowed SPDX license identifiers or expressions |
@@ -96,7 +96,7 @@ Bomly resolves configuration in the following order, with later sources overridi
 # audit: false
 # Run code analysis to confirm whether vulnerabilities are reachable from application code
 # reachability: false
-# Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable
+# Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable
 # fail_on: []
 # Dependency scopes that may produce failing findings: runtime, development, unknown
 # fail_on_scopes: []

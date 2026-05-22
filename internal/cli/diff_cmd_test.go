@@ -91,9 +91,9 @@ func TestRenderDiffMarkdownIncludesPatchedVersionsByDefault(t *testing.T) {
 		"| added | react@18.2.0 | 18.2.0 | unknown | - | - |",
 		"| changed | zod | 3.22.0 → 3.23.0 | unknown | - | - |",
 		"## Vulnerabilities",
-		"| ❌ | introduced | HIGH | OSV-123 | react@18.2.0 | 18.2.1 | osv | Prototype pollution in react |",
+		"| ❌ | introduced | HIGH | OSV-123 | react@18.2.0 | 18.2.1 | - | osv | Prototype pollution in react |",
 		"## Policy Findings",
-		"| ❌ | introduced | vulnerability | HIGH | fail | OSV-123 | react@18.2.0 | 18.2.1 | Prototype pollution in react |",
+		"| ❌ | introduced | vulnerability | HIGH | fail | OSV-123 | react@18.2.0 | 18.2.1 | - | Prototype pollution in react |",
 	} {
 		if !strings.Contains(report, want) {
 			t.Fatalf("expected Markdown report to contain %q, got:\n%s", want, report)

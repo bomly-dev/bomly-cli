@@ -38,19 +38,185 @@
         "introduced": {
           "items": {
             "properties": {
+              "affected_version_range": {
+                "type": "string"
+              },
+              "aliases": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
               "auditor": {
+                "type": "string"
+              },
+              "cpes": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "cvss": {
+                "items": {
+                  "properties": {
+                    "Score": {
+                      "type": "number"
+                    },
+                    "Source": {
+                      "type": "string"
+                    },
+                    "Vector": {
+                      "type": "string"
+                    },
+                    "Version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "Vector",
+                    "Score",
+                    "Version",
+                    "Source"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "cwes": {
+                "items": {
+                  "properties": {
+                    "cve": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "source": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "data_source": {
+                "type": "string"
+              },
+              "description": {
                 "type": "string"
               },
               "disposition": {
                 "type": "string"
               },
+              "epss": {
+                "items": {
+                  "properties": {
+                    "cve": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "type": "string"
+                    },
+                    "epss": {
+                      "type": "number"
+                    },
+                    "percentile": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "epss"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "fix_available": {
+                "items": {
+                  "properties": {
+                    "date": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "fix_state": {
+                "type": "string"
+              },
               "fixed_in": {
                 "type": "string"
+              },
+              "fixed_versions": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
               },
               "id": {
                 "type": "string"
               },
+              "kev_exploited": {
+                "type": "boolean"
+              },
               "kind": {
+                "type": "string"
+              },
+              "known_exploited": {
+                "items": {
+                  "properties": {
+                    "cve": {
+                      "type": "string"
+                    },
+                    "cwes": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "date_added": {
+                      "type": "string"
+                    },
+                    "due_date": {
+                      "type": "string"
+                    },
+                    "known_ransomware_campaign_use": {
+                      "type": "string"
+                    },
+                    "notes": {
+                      "type": "string"
+                    },
+                    "product": {
+                      "type": "string"
+                    },
+                    "required_action": {
+                      "type": "string"
+                    },
+                    "urls": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "vendor_project": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "namespace": {
                 "type": "string"
               },
               "package": {
@@ -171,6 +337,12 @@
                           },
                           "type": "array"
                         },
+                        "cpes": {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
                         "cvss": {
                           "items": {
                             "properties": {
@@ -197,17 +369,136 @@
                           },
                           "type": "array"
                         },
+                        "cwes": {
+                          "items": {
+                            "properties": {
+                              "cve": {
+                                "type": "string"
+                              },
+                              "id": {
+                                "type": "string"
+                              },
+                              "source": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "data_source": {
+                          "type": "string"
+                        },
                         "description": {
+                          "type": "string"
+                        },
+                        "epss": {
+                          "items": {
+                            "properties": {
+                              "cve": {
+                                "type": "string"
+                              },
+                              "date": {
+                                "type": "string"
+                              },
+                              "epss": {
+                                "type": "number"
+                              },
+                              "percentile": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "epss"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "fix_available": {
+                          "items": {
+                            "properties": {
+                              "date": {
+                                "type": "string"
+                              },
+                              "kind": {
+                                "type": "string"
+                              },
+                              "version": {
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "fix_state": {
                           "type": "string"
                         },
                         "fixed_in": {
                           "type": "string"
+                        },
+                        "fixed_versions": {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
                         },
                         "id": {
                           "type": "string"
                         },
                         "kev_exploited": {
                           "type": "boolean"
+                        },
+                        "known_exploited": {
+                          "items": {
+                            "properties": {
+                              "cve": {
+                                "type": "string"
+                              },
+                              "cwes": {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
+                              },
+                              "date_added": {
+                                "type": "string"
+                              },
+                              "due_date": {
+                                "type": "string"
+                              },
+                              "known_ransomware_campaign_use": {
+                                "type": "string"
+                              },
+                              "notes": {
+                                "type": "string"
+                              },
+                              "product": {
+                                "type": "string"
+                              },
+                              "required_action": {
+                                "type": "string"
+                              },
+                              "urls": {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
+                              },
+                              "vendor_project": {
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "namespace": {
+                          "type": "string"
                         },
                         "reachability": {
                           "properties": {
@@ -380,6 +671,9 @@
                             "type": "object"
                           },
                           "type": "array"
+                        },
+                        "risk_score": {
+                          "type": "number"
                         },
                         "severity": {
                           "type": "string"
@@ -564,7 +858,31 @@
                 },
                 "type": "array"
               },
+              "references": {
+                "items": {
+                  "properties": {
+                    "Type": {
+                      "type": "string"
+                    },
+                    "URL": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "URL",
+                    "Type"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "risk_score": {
+                "type": "number"
+              },
               "severity": {
+                "type": "string"
+              },
+              "severity_source": {
                 "type": "string"
               },
               "source": {
@@ -589,19 +907,185 @@
         "persisted": {
           "items": {
             "properties": {
+              "affected_version_range": {
+                "type": "string"
+              },
+              "aliases": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
               "auditor": {
+                "type": "string"
+              },
+              "cpes": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "cvss": {
+                "items": {
+                  "properties": {
+                    "Score": {
+                      "type": "number"
+                    },
+                    "Source": {
+                      "type": "string"
+                    },
+                    "Vector": {
+                      "type": "string"
+                    },
+                    "Version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "Vector",
+                    "Score",
+                    "Version",
+                    "Source"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "cwes": {
+                "items": {
+                  "properties": {
+                    "cve": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "source": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "data_source": {
+                "type": "string"
+              },
+              "description": {
                 "type": "string"
               },
               "disposition": {
                 "type": "string"
               },
+              "epss": {
+                "items": {
+                  "properties": {
+                    "cve": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "type": "string"
+                    },
+                    "epss": {
+                      "type": "number"
+                    },
+                    "percentile": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "epss"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "fix_available": {
+                "items": {
+                  "properties": {
+                    "date": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "fix_state": {
+                "type": "string"
+              },
               "fixed_in": {
                 "type": "string"
+              },
+              "fixed_versions": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
               },
               "id": {
                 "type": "string"
               },
+              "kev_exploited": {
+                "type": "boolean"
+              },
               "kind": {
+                "type": "string"
+              },
+              "known_exploited": {
+                "items": {
+                  "properties": {
+                    "cve": {
+                      "type": "string"
+                    },
+                    "cwes": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "date_added": {
+                      "type": "string"
+                    },
+                    "due_date": {
+                      "type": "string"
+                    },
+                    "known_ransomware_campaign_use": {
+                      "type": "string"
+                    },
+                    "notes": {
+                      "type": "string"
+                    },
+                    "product": {
+                      "type": "string"
+                    },
+                    "required_action": {
+                      "type": "string"
+                    },
+                    "urls": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "vendor_project": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "namespace": {
                 "type": "string"
               },
               "package": {
@@ -722,6 +1206,12 @@
                           },
                           "type": "array"
                         },
+                        "cpes": {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
                         "cvss": {
                           "items": {
                             "properties": {
@@ -748,17 +1238,136 @@
                           },
                           "type": "array"
                         },
+                        "cwes": {
+                          "items": {
+                            "properties": {
+                              "cve": {
+                                "type": "string"
+                              },
+                              "id": {
+                                "type": "string"
+                              },
+                              "source": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "data_source": {
+                          "type": "string"
+                        },
                         "description": {
+                          "type": "string"
+                        },
+                        "epss": {
+                          "items": {
+                            "properties": {
+                              "cve": {
+                                "type": "string"
+                              },
+                              "date": {
+                                "type": "string"
+                              },
+                              "epss": {
+                                "type": "number"
+                              },
+                              "percentile": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "epss"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "fix_available": {
+                          "items": {
+                            "properties": {
+                              "date": {
+                                "type": "string"
+                              },
+                              "kind": {
+                                "type": "string"
+                              },
+                              "version": {
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "fix_state": {
                           "type": "string"
                         },
                         "fixed_in": {
                           "type": "string"
+                        },
+                        "fixed_versions": {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
                         },
                         "id": {
                           "type": "string"
                         },
                         "kev_exploited": {
                           "type": "boolean"
+                        },
+                        "known_exploited": {
+                          "items": {
+                            "properties": {
+                              "cve": {
+                                "type": "string"
+                              },
+                              "cwes": {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
+                              },
+                              "date_added": {
+                                "type": "string"
+                              },
+                              "due_date": {
+                                "type": "string"
+                              },
+                              "known_ransomware_campaign_use": {
+                                "type": "string"
+                              },
+                              "notes": {
+                                "type": "string"
+                              },
+                              "product": {
+                                "type": "string"
+                              },
+                              "required_action": {
+                                "type": "string"
+                              },
+                              "urls": {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
+                              },
+                              "vendor_project": {
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "namespace": {
+                          "type": "string"
                         },
                         "reachability": {
                           "properties": {
@@ -931,6 +1540,9 @@
                             "type": "object"
                           },
                           "type": "array"
+                        },
+                        "risk_score": {
+                          "type": "number"
                         },
                         "severity": {
                           "type": "string"
@@ -1115,7 +1727,31 @@
                 },
                 "type": "array"
               },
+              "references": {
+                "items": {
+                  "properties": {
+                    "Type": {
+                      "type": "string"
+                    },
+                    "URL": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "URL",
+                    "Type"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "risk_score": {
+                "type": "number"
+              },
               "severity": {
+                "type": "string"
+              },
+              "severity_source": {
                 "type": "string"
               },
               "source": {
@@ -1140,19 +1776,185 @@
         "resolved": {
           "items": {
             "properties": {
+              "affected_version_range": {
+                "type": "string"
+              },
+              "aliases": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
               "auditor": {
+                "type": "string"
+              },
+              "cpes": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "cvss": {
+                "items": {
+                  "properties": {
+                    "Score": {
+                      "type": "number"
+                    },
+                    "Source": {
+                      "type": "string"
+                    },
+                    "Vector": {
+                      "type": "string"
+                    },
+                    "Version": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "Vector",
+                    "Score",
+                    "Version",
+                    "Source"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "cwes": {
+                "items": {
+                  "properties": {
+                    "cve": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "source": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "data_source": {
+                "type": "string"
+              },
+              "description": {
                 "type": "string"
               },
               "disposition": {
                 "type": "string"
               },
+              "epss": {
+                "items": {
+                  "properties": {
+                    "cve": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "type": "string"
+                    },
+                    "epss": {
+                      "type": "number"
+                    },
+                    "percentile": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "epss"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "fix_available": {
+                "items": {
+                  "properties": {
+                    "date": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "fix_state": {
+                "type": "string"
+              },
               "fixed_in": {
                 "type": "string"
+              },
+              "fixed_versions": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
               },
               "id": {
                 "type": "string"
               },
+              "kev_exploited": {
+                "type": "boolean"
+              },
               "kind": {
+                "type": "string"
+              },
+              "known_exploited": {
+                "items": {
+                  "properties": {
+                    "cve": {
+                      "type": "string"
+                    },
+                    "cwes": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "date_added": {
+                      "type": "string"
+                    },
+                    "due_date": {
+                      "type": "string"
+                    },
+                    "known_ransomware_campaign_use": {
+                      "type": "string"
+                    },
+                    "notes": {
+                      "type": "string"
+                    },
+                    "product": {
+                      "type": "string"
+                    },
+                    "required_action": {
+                      "type": "string"
+                    },
+                    "urls": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "vendor_project": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "namespace": {
                 "type": "string"
               },
               "package": {
@@ -1273,6 +2075,12 @@
                           },
                           "type": "array"
                         },
+                        "cpes": {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
                         "cvss": {
                           "items": {
                             "properties": {
@@ -1299,17 +2107,136 @@
                           },
                           "type": "array"
                         },
+                        "cwes": {
+                          "items": {
+                            "properties": {
+                              "cve": {
+                                "type": "string"
+                              },
+                              "id": {
+                                "type": "string"
+                              },
+                              "source": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "data_source": {
+                          "type": "string"
+                        },
                         "description": {
+                          "type": "string"
+                        },
+                        "epss": {
+                          "items": {
+                            "properties": {
+                              "cve": {
+                                "type": "string"
+                              },
+                              "date": {
+                                "type": "string"
+                              },
+                              "epss": {
+                                "type": "number"
+                              },
+                              "percentile": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "epss"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "fix_available": {
+                          "items": {
+                            "properties": {
+                              "date": {
+                                "type": "string"
+                              },
+                              "kind": {
+                                "type": "string"
+                              },
+                              "version": {
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "fix_state": {
                           "type": "string"
                         },
                         "fixed_in": {
                           "type": "string"
+                        },
+                        "fixed_versions": {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
                         },
                         "id": {
                           "type": "string"
                         },
                         "kev_exploited": {
                           "type": "boolean"
+                        },
+                        "known_exploited": {
+                          "items": {
+                            "properties": {
+                              "cve": {
+                                "type": "string"
+                              },
+                              "cwes": {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
+                              },
+                              "date_added": {
+                                "type": "string"
+                              },
+                              "due_date": {
+                                "type": "string"
+                              },
+                              "known_ransomware_campaign_use": {
+                                "type": "string"
+                              },
+                              "notes": {
+                                "type": "string"
+                              },
+                              "product": {
+                                "type": "string"
+                              },
+                              "required_action": {
+                                "type": "string"
+                              },
+                              "urls": {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
+                              },
+                              "vendor_project": {
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "namespace": {
+                          "type": "string"
                         },
                         "reachability": {
                           "properties": {
@@ -1482,6 +2409,9 @@
                             "type": "object"
                           },
                           "type": "array"
+                        },
+                        "risk_score": {
+                          "type": "number"
                         },
                         "severity": {
                           "type": "string"
@@ -1666,7 +2596,31 @@
                 },
                 "type": "array"
               },
+              "references": {
+                "items": {
+                  "properties": {
+                    "Type": {
+                      "type": "string"
+                    },
+                    "URL": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "URL",
+                    "Type"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "risk_score": {
+                "type": "number"
+              },
               "severity": {
+                "type": "string"
+              },
+              "severity_source": {
                 "type": "string"
               },
               "source": {
@@ -1898,6 +2852,12 @@
                               },
                               "type": "array"
                             },
+                            "cpes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
                             "cvss": {
                               "items": {
                                 "properties": {
@@ -1924,17 +2884,136 @@
                               },
                               "type": "array"
                             },
+                            "cwes": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "source": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "data_source": {
+                              "type": "string"
+                            },
                             "description": {
+                              "type": "string"
+                            },
+                            "epss": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "date": {
+                                    "type": "string"
+                                  },
+                                  "epss": {
+                                    "type": "number"
+                                  },
+                                  "percentile": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "epss"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "fix_available": {
+                              "items": {
+                                "properties": {
+                                  "date": {
+                                    "type": "string"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "fix_state": {
                               "type": "string"
                             },
                             "fixed_in": {
                               "type": "string"
+                            },
+                            "fixed_versions": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             },
                             "id": {
                               "type": "string"
                             },
                             "kev_exploited": {
                               "type": "boolean"
+                            },
+                            "known_exploited": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "cwes": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "date_added": {
+                                    "type": "string"
+                                  },
+                                  "due_date": {
+                                    "type": "string"
+                                  },
+                                  "known_ransomware_campaign_use": {
+                                    "type": "string"
+                                  },
+                                  "notes": {
+                                    "type": "string"
+                                  },
+                                  "product": {
+                                    "type": "string"
+                                  },
+                                  "required_action": {
+                                    "type": "string"
+                                  },
+                                  "urls": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "vendor_project": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "namespace": {
+                              "type": "string"
                             },
                             "reachability": {
                               "properties": {
@@ -2107,6 +3186,9 @@
                                 "type": "object"
                               },
                               "type": "array"
+                            },
+                            "risk_score": {
+                              "type": "number"
                             },
                             "severity": {
                               "type": "string"
@@ -2266,6 +3348,12 @@
                               },
                               "type": "array"
                             },
+                            "cpes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
                             "cvss": {
                               "items": {
                                 "properties": {
@@ -2292,17 +3380,136 @@
                               },
                               "type": "array"
                             },
+                            "cwes": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "source": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "data_source": {
+                              "type": "string"
+                            },
                             "description": {
+                              "type": "string"
+                            },
+                            "epss": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "date": {
+                                    "type": "string"
+                                  },
+                                  "epss": {
+                                    "type": "number"
+                                  },
+                                  "percentile": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "epss"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "fix_available": {
+                              "items": {
+                                "properties": {
+                                  "date": {
+                                    "type": "string"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "fix_state": {
                               "type": "string"
                             },
                             "fixed_in": {
                               "type": "string"
+                            },
+                            "fixed_versions": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             },
                             "id": {
                               "type": "string"
                             },
                             "kev_exploited": {
                               "type": "boolean"
+                            },
+                            "known_exploited": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "cwes": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "date_added": {
+                                    "type": "string"
+                                  },
+                                  "due_date": {
+                                    "type": "string"
+                                  },
+                                  "known_ransomware_campaign_use": {
+                                    "type": "string"
+                                  },
+                                  "notes": {
+                                    "type": "string"
+                                  },
+                                  "product": {
+                                    "type": "string"
+                                  },
+                                  "required_action": {
+                                    "type": "string"
+                                  },
+                                  "urls": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "vendor_project": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "namespace": {
+                              "type": "string"
                             },
                             "reachability": {
                               "properties": {
@@ -2475,6 +3682,9 @@
                                 "type": "object"
                               },
                               "type": "array"
+                            },
+                            "risk_score": {
+                              "type": "number"
                             },
                             "severity": {
                               "type": "string"
@@ -2623,6 +3833,12 @@
                               },
                               "type": "array"
                             },
+                            "cpes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
                             "cvss": {
                               "items": {
                                 "properties": {
@@ -2649,17 +3865,136 @@
                               },
                               "type": "array"
                             },
+                            "cwes": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "source": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "data_source": {
+                              "type": "string"
+                            },
                             "description": {
+                              "type": "string"
+                            },
+                            "epss": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "date": {
+                                    "type": "string"
+                                  },
+                                  "epss": {
+                                    "type": "number"
+                                  },
+                                  "percentile": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "epss"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "fix_available": {
+                              "items": {
+                                "properties": {
+                                  "date": {
+                                    "type": "string"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "fix_state": {
                               "type": "string"
                             },
                             "fixed_in": {
                               "type": "string"
+                            },
+                            "fixed_versions": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             },
                             "id": {
                               "type": "string"
                             },
                             "kev_exploited": {
                               "type": "boolean"
+                            },
+                            "known_exploited": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "cwes": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "date_added": {
+                                    "type": "string"
+                                  },
+                                  "due_date": {
+                                    "type": "string"
+                                  },
+                                  "known_ransomware_campaign_use": {
+                                    "type": "string"
+                                  },
+                                  "notes": {
+                                    "type": "string"
+                                  },
+                                  "product": {
+                                    "type": "string"
+                                  },
+                                  "required_action": {
+                                    "type": "string"
+                                  },
+                                  "urls": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "vendor_project": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "namespace": {
+                              "type": "string"
                             },
                             "reachability": {
                               "properties": {
@@ -2832,6 +4167,9 @@
                                 "type": "object"
                               },
                               "type": "array"
+                            },
+                            "risk_score": {
+                              "type": "number"
                             },
                             "severity": {
                               "type": "string"
@@ -2992,6 +4330,12 @@
                               },
                               "type": "array"
                             },
+                            "cpes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
                             "cvss": {
                               "items": {
                                 "properties": {
@@ -3018,17 +4362,136 @@
                               },
                               "type": "array"
                             },
+                            "cwes": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "source": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "data_source": {
+                              "type": "string"
+                            },
                             "description": {
+                              "type": "string"
+                            },
+                            "epss": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "date": {
+                                    "type": "string"
+                                  },
+                                  "epss": {
+                                    "type": "number"
+                                  },
+                                  "percentile": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "epss"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "fix_available": {
+                              "items": {
+                                "properties": {
+                                  "date": {
+                                    "type": "string"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "fix_state": {
                               "type": "string"
                             },
                             "fixed_in": {
                               "type": "string"
+                            },
+                            "fixed_versions": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             },
                             "id": {
                               "type": "string"
                             },
                             "kev_exploited": {
                               "type": "boolean"
+                            },
+                            "known_exploited": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "cwes": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "date_added": {
+                                    "type": "string"
+                                  },
+                                  "due_date": {
+                                    "type": "string"
+                                  },
+                                  "known_ransomware_campaign_use": {
+                                    "type": "string"
+                                  },
+                                  "notes": {
+                                    "type": "string"
+                                  },
+                                  "product": {
+                                    "type": "string"
+                                  },
+                                  "required_action": {
+                                    "type": "string"
+                                  },
+                                  "urls": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "vendor_project": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "namespace": {
+                              "type": "string"
                             },
                             "reachability": {
                               "properties": {
@@ -3201,6 +4664,9 @@
                                 "type": "object"
                               },
                               "type": "array"
+                            },
+                            "risk_score": {
+                              "type": "number"
                             },
                             "severity": {
                               "type": "string"
@@ -3382,6 +4848,12 @@
                               },
                               "type": "array"
                             },
+                            "cpes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
                             "cvss": {
                               "items": {
                                 "properties": {
@@ -3408,17 +4880,136 @@
                               },
                               "type": "array"
                             },
+                            "cwes": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "source": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "data_source": {
+                              "type": "string"
+                            },
                             "description": {
+                              "type": "string"
+                            },
+                            "epss": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "date": {
+                                    "type": "string"
+                                  },
+                                  "epss": {
+                                    "type": "number"
+                                  },
+                                  "percentile": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "epss"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "fix_available": {
+                              "items": {
+                                "properties": {
+                                  "date": {
+                                    "type": "string"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "fix_state": {
                               "type": "string"
                             },
                             "fixed_in": {
                               "type": "string"
+                            },
+                            "fixed_versions": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             },
                             "id": {
                               "type": "string"
                             },
                             "kev_exploited": {
                               "type": "boolean"
+                            },
+                            "known_exploited": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "cwes": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "date_added": {
+                                    "type": "string"
+                                  },
+                                  "due_date": {
+                                    "type": "string"
+                                  },
+                                  "known_ransomware_campaign_use": {
+                                    "type": "string"
+                                  },
+                                  "notes": {
+                                    "type": "string"
+                                  },
+                                  "product": {
+                                    "type": "string"
+                                  },
+                                  "required_action": {
+                                    "type": "string"
+                                  },
+                                  "urls": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "vendor_project": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "namespace": {
+                              "type": "string"
                             },
                             "reachability": {
                               "properties": {
@@ -3591,6 +5182,9 @@
                                 "type": "object"
                               },
                               "type": "array"
+                            },
+                            "risk_score": {
+                              "type": "number"
                             },
                             "severity": {
                               "type": "string"
@@ -3785,6 +5379,12 @@
                               },
                               "type": "array"
                             },
+                            "cpes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
                             "cvss": {
                               "items": {
                                 "properties": {
@@ -3811,17 +5411,136 @@
                               },
                               "type": "array"
                             },
+                            "cwes": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "source": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "data_source": {
+                              "type": "string"
+                            },
                             "description": {
+                              "type": "string"
+                            },
+                            "epss": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "date": {
+                                    "type": "string"
+                                  },
+                                  "epss": {
+                                    "type": "number"
+                                  },
+                                  "percentile": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "epss"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "fix_available": {
+                              "items": {
+                                "properties": {
+                                  "date": {
+                                    "type": "string"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "fix_state": {
                               "type": "string"
                             },
                             "fixed_in": {
                               "type": "string"
+                            },
+                            "fixed_versions": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             },
                             "id": {
                               "type": "string"
                             },
                             "kev_exploited": {
                               "type": "boolean"
+                            },
+                            "known_exploited": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "cwes": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "date_added": {
+                                    "type": "string"
+                                  },
+                                  "due_date": {
+                                    "type": "string"
+                                  },
+                                  "known_ransomware_campaign_use": {
+                                    "type": "string"
+                                  },
+                                  "notes": {
+                                    "type": "string"
+                                  },
+                                  "product": {
+                                    "type": "string"
+                                  },
+                                  "required_action": {
+                                    "type": "string"
+                                  },
+                                  "urls": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "vendor_project": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "namespace": {
+                              "type": "string"
                             },
                             "reachability": {
                               "properties": {
@@ -3994,6 +5713,9 @@
                                 "type": "object"
                               },
                               "type": "array"
+                            },
+                            "risk_score": {
+                              "type": "number"
                             },
                             "severity": {
                               "type": "string"
@@ -4172,6 +5894,12 @@
                               },
                               "type": "array"
                             },
+                            "cpes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
                             "cvss": {
                               "items": {
                                 "properties": {
@@ -4198,17 +5926,136 @@
                               },
                               "type": "array"
                             },
+                            "cwes": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "source": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "data_source": {
+                              "type": "string"
+                            },
                             "description": {
+                              "type": "string"
+                            },
+                            "epss": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "date": {
+                                    "type": "string"
+                                  },
+                                  "epss": {
+                                    "type": "number"
+                                  },
+                                  "percentile": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "epss"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "fix_available": {
+                              "items": {
+                                "properties": {
+                                  "date": {
+                                    "type": "string"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "fix_state": {
                               "type": "string"
                             },
                             "fixed_in": {
                               "type": "string"
+                            },
+                            "fixed_versions": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             },
                             "id": {
                               "type": "string"
                             },
                             "kev_exploited": {
                               "type": "boolean"
+                            },
+                            "known_exploited": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "cwes": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "date_added": {
+                                    "type": "string"
+                                  },
+                                  "due_date": {
+                                    "type": "string"
+                                  },
+                                  "known_ransomware_campaign_use": {
+                                    "type": "string"
+                                  },
+                                  "notes": {
+                                    "type": "string"
+                                  },
+                                  "product": {
+                                    "type": "string"
+                                  },
+                                  "required_action": {
+                                    "type": "string"
+                                  },
+                                  "urls": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "vendor_project": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "namespace": {
+                              "type": "string"
                             },
                             "reachability": {
                               "properties": {
@@ -4382,6 +6229,9 @@
                               },
                               "type": "array"
                             },
+                            "risk_score": {
+                              "type": "number"
+                            },
                             "severity": {
                               "type": "string"
                             },
@@ -4547,6 +6397,12 @@
                                 },
                                 "type": "array"
                               },
+                              "cpes": {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
+                              },
                               "cvss": {
                                 "items": {
                                   "properties": {
@@ -4573,17 +6429,136 @@
                                 },
                                 "type": "array"
                               },
+                              "cwes": {
+                                "items": {
+                                  "properties": {
+                                    "cve": {
+                                      "type": "string"
+                                    },
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "source": {
+                                      "type": "string"
+                                    },
+                                    "type": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "data_source": {
+                                "type": "string"
+                              },
                               "description": {
+                                "type": "string"
+                              },
+                              "epss": {
+                                "items": {
+                                  "properties": {
+                                    "cve": {
+                                      "type": "string"
+                                    },
+                                    "date": {
+                                      "type": "string"
+                                    },
+                                    "epss": {
+                                      "type": "number"
+                                    },
+                                    "percentile": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "epss"
+                                  ],
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "fix_available": {
+                                "items": {
+                                  "properties": {
+                                    "date": {
+                                      "type": "string"
+                                    },
+                                    "kind": {
+                                      "type": "string"
+                                    },
+                                    "version": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "fix_state": {
                                 "type": "string"
                               },
                               "fixed_in": {
                                 "type": "string"
+                              },
+                              "fixed_versions": {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
                               },
                               "id": {
                                 "type": "string"
                               },
                               "kev_exploited": {
                                 "type": "boolean"
+                              },
+                              "known_exploited": {
+                                "items": {
+                                  "properties": {
+                                    "cve": {
+                                      "type": "string"
+                                    },
+                                    "cwes": {
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "type": "array"
+                                    },
+                                    "date_added": {
+                                      "type": "string"
+                                    },
+                                    "due_date": {
+                                      "type": "string"
+                                    },
+                                    "known_ransomware_campaign_use": {
+                                      "type": "string"
+                                    },
+                                    "notes": {
+                                      "type": "string"
+                                    },
+                                    "product": {
+                                      "type": "string"
+                                    },
+                                    "required_action": {
+                                      "type": "string"
+                                    },
+                                    "urls": {
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "type": "array"
+                                    },
+                                    "vendor_project": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "namespace": {
+                                "type": "string"
                               },
                               "reachability": {
                                 "properties": {
@@ -4756,6 +6731,9 @@
                                   "type": "object"
                                 },
                                 "type": "array"
+                              },
+                              "risk_score": {
+                                "type": "number"
                               },
                               "severity": {
                                 "type": "string"
@@ -4915,6 +6893,12 @@
                                 },
                                 "type": "array"
                               },
+                              "cpes": {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
+                              },
                               "cvss": {
                                 "items": {
                                   "properties": {
@@ -4941,17 +6925,136 @@
                                 },
                                 "type": "array"
                               },
+                              "cwes": {
+                                "items": {
+                                  "properties": {
+                                    "cve": {
+                                      "type": "string"
+                                    },
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "source": {
+                                      "type": "string"
+                                    },
+                                    "type": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "data_source": {
+                                "type": "string"
+                              },
                               "description": {
+                                "type": "string"
+                              },
+                              "epss": {
+                                "items": {
+                                  "properties": {
+                                    "cve": {
+                                      "type": "string"
+                                    },
+                                    "date": {
+                                      "type": "string"
+                                    },
+                                    "epss": {
+                                      "type": "number"
+                                    },
+                                    "percentile": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "epss"
+                                  ],
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "fix_available": {
+                                "items": {
+                                  "properties": {
+                                    "date": {
+                                      "type": "string"
+                                    },
+                                    "kind": {
+                                      "type": "string"
+                                    },
+                                    "version": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "fix_state": {
                                 "type": "string"
                               },
                               "fixed_in": {
                                 "type": "string"
+                              },
+                              "fixed_versions": {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
                               },
                               "id": {
                                 "type": "string"
                               },
                               "kev_exploited": {
                                 "type": "boolean"
+                              },
+                              "known_exploited": {
+                                "items": {
+                                  "properties": {
+                                    "cve": {
+                                      "type": "string"
+                                    },
+                                    "cwes": {
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "type": "array"
+                                    },
+                                    "date_added": {
+                                      "type": "string"
+                                    },
+                                    "due_date": {
+                                      "type": "string"
+                                    },
+                                    "known_ransomware_campaign_use": {
+                                      "type": "string"
+                                    },
+                                    "notes": {
+                                      "type": "string"
+                                    },
+                                    "product": {
+                                      "type": "string"
+                                    },
+                                    "required_action": {
+                                      "type": "string"
+                                    },
+                                    "urls": {
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "type": "array"
+                                    },
+                                    "vendor_project": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "namespace": {
+                                "type": "string"
                               },
                               "reachability": {
                                 "properties": {
@@ -5124,6 +7227,9 @@
                                   "type": "object"
                                 },
                                 "type": "array"
+                              },
+                              "risk_score": {
+                                "type": "number"
                               },
                               "severity": {
                                 "type": "string"
@@ -5272,6 +7378,12 @@
                                 },
                                 "type": "array"
                               },
+                              "cpes": {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
+                              },
                               "cvss": {
                                 "items": {
                                   "properties": {
@@ -5298,17 +7410,136 @@
                                 },
                                 "type": "array"
                               },
+                              "cwes": {
+                                "items": {
+                                  "properties": {
+                                    "cve": {
+                                      "type": "string"
+                                    },
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "source": {
+                                      "type": "string"
+                                    },
+                                    "type": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "data_source": {
+                                "type": "string"
+                              },
                               "description": {
+                                "type": "string"
+                              },
+                              "epss": {
+                                "items": {
+                                  "properties": {
+                                    "cve": {
+                                      "type": "string"
+                                    },
+                                    "date": {
+                                      "type": "string"
+                                    },
+                                    "epss": {
+                                      "type": "number"
+                                    },
+                                    "percentile": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "epss"
+                                  ],
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "fix_available": {
+                                "items": {
+                                  "properties": {
+                                    "date": {
+                                      "type": "string"
+                                    },
+                                    "kind": {
+                                      "type": "string"
+                                    },
+                                    "version": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "fix_state": {
                                 "type": "string"
                               },
                               "fixed_in": {
                                 "type": "string"
+                              },
+                              "fixed_versions": {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
                               },
                               "id": {
                                 "type": "string"
                               },
                               "kev_exploited": {
                                 "type": "boolean"
+                              },
+                              "known_exploited": {
+                                "items": {
+                                  "properties": {
+                                    "cve": {
+                                      "type": "string"
+                                    },
+                                    "cwes": {
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "type": "array"
+                                    },
+                                    "date_added": {
+                                      "type": "string"
+                                    },
+                                    "due_date": {
+                                      "type": "string"
+                                    },
+                                    "known_ransomware_campaign_use": {
+                                      "type": "string"
+                                    },
+                                    "notes": {
+                                      "type": "string"
+                                    },
+                                    "product": {
+                                      "type": "string"
+                                    },
+                                    "required_action": {
+                                      "type": "string"
+                                    },
+                                    "urls": {
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "type": "array"
+                                    },
+                                    "vendor_project": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "namespace": {
+                                "type": "string"
                               },
                               "reachability": {
                                 "properties": {
@@ -5481,6 +7712,9 @@
                                   "type": "object"
                                 },
                                 "type": "array"
+                              },
+                              "risk_score": {
+                                "type": "number"
                               },
                               "severity": {
                                 "type": "string"
@@ -5653,6 +7887,12 @@
                                 },
                                 "type": "array"
                               },
+                              "cpes": {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
+                              },
                               "cvss": {
                                 "items": {
                                   "properties": {
@@ -5679,17 +7919,136 @@
                                 },
                                 "type": "array"
                               },
+                              "cwes": {
+                                "items": {
+                                  "properties": {
+                                    "cve": {
+                                      "type": "string"
+                                    },
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "source": {
+                                      "type": "string"
+                                    },
+                                    "type": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "data_source": {
+                                "type": "string"
+                              },
                               "description": {
+                                "type": "string"
+                              },
+                              "epss": {
+                                "items": {
+                                  "properties": {
+                                    "cve": {
+                                      "type": "string"
+                                    },
+                                    "date": {
+                                      "type": "string"
+                                    },
+                                    "epss": {
+                                      "type": "number"
+                                    },
+                                    "percentile": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "epss"
+                                  ],
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "fix_available": {
+                                "items": {
+                                  "properties": {
+                                    "date": {
+                                      "type": "string"
+                                    },
+                                    "kind": {
+                                      "type": "string"
+                                    },
+                                    "version": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "fix_state": {
                                 "type": "string"
                               },
                               "fixed_in": {
                                 "type": "string"
+                              },
+                              "fixed_versions": {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
                               },
                               "id": {
                                 "type": "string"
                               },
                               "kev_exploited": {
                                 "type": "boolean"
+                              },
+                              "known_exploited": {
+                                "items": {
+                                  "properties": {
+                                    "cve": {
+                                      "type": "string"
+                                    },
+                                    "cwes": {
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "type": "array"
+                                    },
+                                    "date_added": {
+                                      "type": "string"
+                                    },
+                                    "due_date": {
+                                      "type": "string"
+                                    },
+                                    "known_ransomware_campaign_use": {
+                                      "type": "string"
+                                    },
+                                    "notes": {
+                                      "type": "string"
+                                    },
+                                    "product": {
+                                      "type": "string"
+                                    },
+                                    "required_action": {
+                                      "type": "string"
+                                    },
+                                    "urls": {
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "type": "array"
+                                    },
+                                    "vendor_project": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "namespace": {
+                                "type": "string"
                               },
                               "reachability": {
                                 "properties": {
@@ -5862,6 +8221,9 @@
                                   "type": "object"
                                 },
                                 "type": "array"
+                              },
+                              "risk_score": {
+                                "type": "number"
                               },
                               "severity": {
                                 "type": "string"
@@ -6037,6 +8399,12 @@
                               },
                               "type": "array"
                             },
+                            "cpes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
                             "cvss": {
                               "items": {
                                 "properties": {
@@ -6063,17 +8431,136 @@
                               },
                               "type": "array"
                             },
+                            "cwes": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "source": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "data_source": {
+                              "type": "string"
+                            },
                             "description": {
+                              "type": "string"
+                            },
+                            "epss": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "date": {
+                                    "type": "string"
+                                  },
+                                  "epss": {
+                                    "type": "number"
+                                  },
+                                  "percentile": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "epss"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "fix_available": {
+                              "items": {
+                                "properties": {
+                                  "date": {
+                                    "type": "string"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "fix_state": {
                               "type": "string"
                             },
                             "fixed_in": {
                               "type": "string"
+                            },
+                            "fixed_versions": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             },
                             "id": {
                               "type": "string"
                             },
                             "kev_exploited": {
                               "type": "boolean"
+                            },
+                            "known_exploited": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "cwes": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "date_added": {
+                                    "type": "string"
+                                  },
+                                  "due_date": {
+                                    "type": "string"
+                                  },
+                                  "known_ransomware_campaign_use": {
+                                    "type": "string"
+                                  },
+                                  "notes": {
+                                    "type": "string"
+                                  },
+                                  "product": {
+                                    "type": "string"
+                                  },
+                                  "required_action": {
+                                    "type": "string"
+                                  },
+                                  "urls": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "vendor_project": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "namespace": {
+                              "type": "string"
                             },
                             "reachability": {
                               "properties": {
@@ -6247,6 +8734,9 @@
                               },
                               "type": "array"
                             },
+                            "risk_score": {
+                              "type": "number"
+                            },
                             "severity": {
                               "type": "string"
                             },
@@ -6324,6 +8814,12 @@
                         },
                         "type": "array"
                       },
+                      "cpes": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
                       "cvss": {
                         "items": {
                           "properties": {
@@ -6350,17 +8846,136 @@
                         },
                         "type": "array"
                       },
+                      "cwes": {
+                        "items": {
+                          "properties": {
+                            "cve": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "source": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "data_source": {
+                        "type": "string"
+                      },
                       "description": {
+                        "type": "string"
+                      },
+                      "epss": {
+                        "items": {
+                          "properties": {
+                            "cve": {
+                              "type": "string"
+                            },
+                            "date": {
+                              "type": "string"
+                            },
+                            "epss": {
+                              "type": "number"
+                            },
+                            "percentile": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "epss"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "fix_available": {
+                        "items": {
+                          "properties": {
+                            "date": {
+                              "type": "string"
+                            },
+                            "kind": {
+                              "type": "string"
+                            },
+                            "version": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "fix_state": {
                         "type": "string"
                       },
                       "fixed_in": {
                         "type": "string"
+                      },
+                      "fixed_versions": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
                       },
                       "id": {
                         "type": "string"
                       },
                       "kev_exploited": {
                         "type": "boolean"
+                      },
+                      "known_exploited": {
+                        "items": {
+                          "properties": {
+                            "cve": {
+                              "type": "string"
+                            },
+                            "cwes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "date_added": {
+                              "type": "string"
+                            },
+                            "due_date": {
+                              "type": "string"
+                            },
+                            "known_ransomware_campaign_use": {
+                              "type": "string"
+                            },
+                            "notes": {
+                              "type": "string"
+                            },
+                            "product": {
+                              "type": "string"
+                            },
+                            "required_action": {
+                              "type": "string"
+                            },
+                            "urls": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "vendor_project": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "namespace": {
+                        "type": "string"
                       },
                       "reachability": {
                         "properties": {
@@ -6533,6 +9148,9 @@
                           "type": "object"
                         },
                         "type": "array"
+                      },
+                      "risk_score": {
+                        "type": "number"
                       },
                       "severity": {
                         "type": "string"
@@ -6683,6 +9301,12 @@
                               },
                               "type": "array"
                             },
+                            "cpes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
                             "cvss": {
                               "items": {
                                 "properties": {
@@ -6709,17 +9333,136 @@
                               },
                               "type": "array"
                             },
+                            "cwes": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "source": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "data_source": {
+                              "type": "string"
+                            },
                             "description": {
+                              "type": "string"
+                            },
+                            "epss": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "date": {
+                                    "type": "string"
+                                  },
+                                  "epss": {
+                                    "type": "number"
+                                  },
+                                  "percentile": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "epss"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "fix_available": {
+                              "items": {
+                                "properties": {
+                                  "date": {
+                                    "type": "string"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "fix_state": {
                               "type": "string"
                             },
                             "fixed_in": {
                               "type": "string"
+                            },
+                            "fixed_versions": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
                             },
                             "id": {
                               "type": "string"
                             },
                             "kev_exploited": {
                               "type": "boolean"
+                            },
+                            "known_exploited": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "cwes": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "date_added": {
+                                    "type": "string"
+                                  },
+                                  "due_date": {
+                                    "type": "string"
+                                  },
+                                  "known_ransomware_campaign_use": {
+                                    "type": "string"
+                                  },
+                                  "notes": {
+                                    "type": "string"
+                                  },
+                                  "product": {
+                                    "type": "string"
+                                  },
+                                  "required_action": {
+                                    "type": "string"
+                                  },
+                                  "urls": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "vendor_project": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "namespace": {
+                              "type": "string"
                             },
                             "reachability": {
                               "properties": {
@@ -6893,6 +9636,9 @@
                               },
                               "type": "array"
                             },
+                            "risk_score": {
+                              "type": "number"
+                            },
                             "severity": {
                               "type": "string"
                             },
@@ -6970,6 +9716,12 @@
                         },
                         "type": "array"
                       },
+                      "cpes": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
                       "cvss": {
                         "items": {
                           "properties": {
@@ -6996,17 +9748,136 @@
                         },
                         "type": "array"
                       },
+                      "cwes": {
+                        "items": {
+                          "properties": {
+                            "cve": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "source": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "data_source": {
+                        "type": "string"
+                      },
                       "description": {
+                        "type": "string"
+                      },
+                      "epss": {
+                        "items": {
+                          "properties": {
+                            "cve": {
+                              "type": "string"
+                            },
+                            "date": {
+                              "type": "string"
+                            },
+                            "epss": {
+                              "type": "number"
+                            },
+                            "percentile": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "epss"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "fix_available": {
+                        "items": {
+                          "properties": {
+                            "date": {
+                              "type": "string"
+                            },
+                            "kind": {
+                              "type": "string"
+                            },
+                            "version": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "fix_state": {
                         "type": "string"
                       },
                       "fixed_in": {
                         "type": "string"
+                      },
+                      "fixed_versions": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
                       },
                       "id": {
                         "type": "string"
                       },
                       "kev_exploited": {
                         "type": "boolean"
+                      },
+                      "known_exploited": {
+                        "items": {
+                          "properties": {
+                            "cve": {
+                              "type": "string"
+                            },
+                            "cwes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "date_added": {
+                              "type": "string"
+                            },
+                            "due_date": {
+                              "type": "string"
+                            },
+                            "known_ransomware_campaign_use": {
+                              "type": "string"
+                            },
+                            "notes": {
+                              "type": "string"
+                            },
+                            "product": {
+                              "type": "string"
+                            },
+                            "required_action": {
+                              "type": "string"
+                            },
+                            "urls": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "vendor_project": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "namespace": {
+                        "type": "string"
                       },
                       "reachability": {
                         "properties": {
@@ -7179,6 +10050,9 @@
                           "type": "object"
                         },
                         "type": "array"
+                      },
+                      "risk_score": {
+                        "type": "number"
                       },
                       "severity": {
                         "type": "string"

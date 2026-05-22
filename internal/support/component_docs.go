@@ -653,7 +653,7 @@ func matcherBehavior(name string) matcherDocBehavior {
 			RequiresEnrich: true,
 			UsesNetwork:    false,
 			Cache:          "Relies on Grype's local vulnerability database behavior.",
-			OutputFields:   []string{"vulnerability ID", "severity", "CVSS", "fixed version", "references"},
+			OutputFields:   []string{"vulnerability ID", "severity", "CVSS", "fixed version", "fix state", "EPSS", "CWE", "known exploitation", "risk score", "references"},
 			Notes:          "The full Bomly binary links Grype support. The lite binary uses an external `grype` executable on `PATH`.",
 		}
 	case "depsdev-license-checker":

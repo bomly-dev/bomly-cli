@@ -134,12 +134,13 @@ func diffVulnerabilityTable(title, status string, changes []output.DiffVulnerabi
 			strings.ToUpper(valueOrDash(vuln.Severity)),
 			vuln.ID,
 			DiffPackageDisplayName(change.Package),
-			valueOrDash(vuln.FixedIn),
+			valueOrDash(fixedVersionSummary(vuln.FixedIn, vuln.FixedVersions)),
+			valueOrDash(exploitabilitySummary(vuln.KEVExploited, vuln.KnownExploited, vuln.RiskScore)),
 			valueOrDash(vuln.Source),
 			firstNonEmpty(vuln.Title, strings.Join(vuln.Reasons, "; ")),
 		})
 	}
-	return append([]string{"### " + title, ""}, append(markdownTable([]string{"", "Change", "Severity", "ID", "Package", "Fixed In", "Source", "Title"}, rows), "")...)
+	return append([]string{"### " + title, ""}, append(markdownTable([]string{"", "Change", "Severity", "ID", "Package", "Fixed In", "Exploitability", "Source", "Title"}, rows), "")...)
 }
 
 func diffLicenseMarkdown(payload output.DiffResponse) []string {
@@ -229,11 +230,12 @@ func diffAuditFindingTable(title, status string, findings []output.AuditFinding)
 			findingDisposition(finding.Disposition),
 			valueOrDash(finding.ID),
 			DiffPackageDisplayName(finding.Package),
-			valueOrDash(finding.FixedIn),
+			valueOrDash(fixedVersionSummary(finding.FixedIn, finding.FixedVersions)),
+			valueOrDash(exploitabilitySummary(finding.KEVExploited, finding.KnownExploited, finding.RiskScore)),
 			firstNonEmpty(finding.Title, strings.Join(finding.Reasons, "; ")),
 		})
 	}
-	return append([]string{"### " + title, ""}, append(markdownTable([]string{"", "Status", "Category", "Severity", "Disposition", "ID", "Package", "Fixed In", "Title"}, rows), "")...)
+	return append([]string{"### " + title, ""}, append(markdownTable([]string{"", "Status", "Category", "Severity", "Disposition", "ID", "Package", "Fixed In", "Exploitability", "Title"}, rows), "")...)
 }
 
 func findingIcon(status, severity, disposition string) string {

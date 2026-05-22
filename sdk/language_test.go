@@ -132,8 +132,18 @@ func TestReachabilityClone(t *testing.T) {
 
 func TestPackageVulnerabilityCloneCarriesNewFields(t *testing.T) {
 	v := PackageVulnerability{
-		ID:     "CVE-2024-1234",
-		Source: "osv",
+		ID:            "CVE-2024-1234",
+		Source:        "osv",
+		FixedVersions: []string{"1.2.3"},
+		FixAvailable:  []FixAvailable{{Version: "1.2.3", Date: "2024-01-02"}},
+		KnownExploited: []KnownExploited{{
+			CVE:  "CVE-2024-1234",
+			URLs: []string{"https://kev.example"},
+			CWEs: []string{"CWE-79"},
+		}},
+		EPSS: []EPSSScore{{CVE: "CVE-2024-1234", EPSS: 0.5}},
+		CWEs: []CWE{{CVE: "CVE-2024-1234", ID: "CWE-79"}},
+		CPEs: []string{"cpe:2.3:a:example:pkg:1.0:*:*:*:*:*:*:*"},
 		AffectedSymbols: []AffectedSymbol{
 			{Symbol: "ParseURL", Package: "net/url"},
 		},
@@ -146,6 +156,18 @@ func TestPackageVulnerabilityCloneCarriesNewFields(t *testing.T) {
 	}
 	if clone.Reachability == v.Reachability {
 		t.Error("Clone did not deep-copy Reachability pointer")
+	}
+	clone.FixedVersions[0] = "mutated"
+	if v.FixedVersions[0] != "1.2.3" {
+		t.Error("Clone did not deep-copy FixedVersions")
+	}
+	clone.KnownExploited[0].URLs[0] = "mutated"
+	if v.KnownExploited[0].URLs[0] != "https://kev.example" {
+		t.Error("Clone did not deep-copy KnownExploited URLs")
+	}
+	clone.CPEs[0] = "mutated"
+	if v.CPEs[0] == "mutated" {
+		t.Error("Clone did not deep-copy CPEs")
 	}
 }
 

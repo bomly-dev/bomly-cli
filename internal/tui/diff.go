@@ -1749,6 +1749,12 @@ func renderVulnList(vulns []output.VulnerabilityRef) []string {
 		if v.FixedIn != "" {
 			out = append(out, render.Style("      fixed in: ", render.Dim)+v.FixedIn)
 		}
+		if v.FixState != "" {
+			out = append(out, render.Style("      fix state: ", render.Dim)+v.FixState)
+		}
+		if exploitability := exploitabilityLine(v.KEVExploited, v.KnownExploited, v.RiskScore); exploitability != "" {
+			out = append(out, render.Style("      exploitability: ", render.Dim)+exploitability)
+		}
 	}
 	return out
 }

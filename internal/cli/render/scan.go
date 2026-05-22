@@ -245,11 +245,11 @@ func formatAuditSummary(summary *output.AuditSummary, auditEnabled bool) string 
 }
 
 // formatReachabilityCell renders one Reachability annotation for the
-// findings table. Returns "—" when no analyzer ran (nil reachability) so
+// findings table. Returns "-" when no analyzer ran (nil reachability) so
 // the column reads cleanly when only a subset of findings is annotated.
 func formatReachabilityCell(r *sdk.Reachability) string {
 	if r == nil {
-		return "—"
+		return "-"
 	}
 	if r.Tier == "" || r.Tier == sdk.TierNone {
 		return string(r.Status)

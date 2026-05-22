@@ -9,7 +9,8 @@ import (
 )
 
 // Explain writes the human-readable explain report for one target dependency.
-func Explain(w io.Writer, target output.ExplainTargetResponse) error {
+func Explain(w io.Writer, target output.ExplainTargetResponse, includeReachabilityValue ...bool) error {
+	includeReachability := len(includeReachabilityValue) > 0 && includeReachabilityValue[0]
 	divider := Style(strings.Repeat("=", 72), Dim)
 	section := Style(strings.Repeat("-", 72), Dim)
 
@@ -82,6 +83,11 @@ func Explain(w io.Writer, target output.ExplainTargetResponse) error {
 					return err
 				}
 			}
+			if includeReachability {
+				if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Reach:   ", Dim), formatReachabilityCell(vulnerability.Reachability)); err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -111,6 +117,11 @@ func Explain(w io.Writer, target output.ExplainTargetResponse) error {
 			}
 			if exploitability := exploitabilitySummary(finding.KEVExploited, finding.KnownExploited, finding.RiskScore); exploitability != "" {
 				if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Exploit: ", Dim), exploitability); err != nil {
+					return err
+				}
+			}
+			if includeReachability {
+				if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Reach:   ", Dim), formatReachabilityCell(finding.Reachability)); err != nil {
 					return err
 				}
 			}

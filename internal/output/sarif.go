@@ -134,9 +134,18 @@ type sarifProperties struct {
 	DynamicImportsDetected bool                 `json:"reachability_dynamic_imports_detected,omitempty"`
 }
 
+// SARIFOptions controls optional experimental data in SARIF output.
+type SARIFOptions struct {
+	IncludeReachability bool
+}
+
 // WriteSARIF writes findings as a SARIF 2.1.0 document to w.
 // toolName and toolVersion are used to populate the driver section.
-func WriteSARIF(w io.Writer, findings []sdk.Finding, toolName, toolVersion string) error {
+func WriteSARIF(w io.Writer, findings []sdk.Finding, toolName, toolVersion string, options ...SARIFOptions) error {
+	includeReachability := false
+	if len(options) > 0 {
+		includeReachability = options[0].IncludeReachability
+	}
 	// Deduplicate rules by finding ID.
 	seen := map[string]bool{}
 	var rules []sarifRule
@@ -195,7 +204,7 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, toolName, toolVersion strin
 			Namespace:            f.Namespace,
 			CPEs:                 append([]string(nil), f.CPEs...),
 		}
-		if f.Reachability != nil {
+		if includeReachability && f.Reachability != nil {
 			props.Reachability = string(f.Reachability.Status)
 			props.ReachabilityTier = string(f.Reachability.Tier)
 			props.ReachabilityReason = f.Reachability.Reason

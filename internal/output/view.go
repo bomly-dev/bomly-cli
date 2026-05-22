@@ -176,7 +176,7 @@ type ExplainTargetResponse struct {
 // BuildScanResponse constructs the structured scan payload from consolidated
 // manifest selections and findings. Reachability metadata (analyzer runs and
 // per-analyzer stats) is attached afterwards via ScanResponse.WithAnalyzerRuns.
-func BuildScanResponse(project ProjectDescriptor, consolidated sdk.ConsolidatedGraph, findings []sdk.Finding, started time.Time) ScanResponse {
+func BuildScanResponse(project ProjectDescriptor, consolidated sdk.ConsolidatedGraph, findings []sdk.Finding, started time.Time, options ...ReportOptions) ScanResponse {
 	response := ScanResponse{
 		SchemaVersion: SchemaVersion,
 		Command:       "scan",
@@ -188,7 +188,7 @@ func BuildScanResponse(project ProjectDescriptor, consolidated sdk.ConsolidatedG
 		response.Findings = FindingsFromScan(findings)
 		response.AuditSummary = SummaryFromFindings(findings)
 	}
-	return response
+	return response.WithReportOptions(firstReportOptions(options))
 }
 
 // WithAnalyzerRuns annotates a ScanResponse with analyzer run names and
@@ -196,14 +196,27 @@ func BuildScanResponse(project ProjectDescriptor, consolidated sdk.ConsolidatedG
 // can be chained from BuildScanResponse callers without intermediate
 // state.
 func (r ScanResponse) WithAnalyzerRuns(runs []string, stats map[string]sdk.ReachabilityStats) ScanResponse {
-	if len(runs) > 0 {
-		r.Metadata.AnalyzerRuns = append([]string(nil), runs...)
+	return r.WithReportOptions(ReportOptions{
+		ReachabilityEnabled: len(runs) > 0 || len(stats) > 0,
+		AnalyzerRuns:        runs,
+		AnalyzerStats:       stats,
+	})
+}
+
+// WithReportOptions annotates a ScanResponse with optional report data and
+// strips experimental reachability annotations when the flag is disabled.
+func (r ScanResponse) WithReportOptions(options ReportOptions) ScanResponse {
+	r.Metadata = metadataWithReportOptions(r.Metadata, options)
+	if options.ReachabilityEnabled {
+		return r
 	}
-	if len(stats) > 0 {
-		r.Metadata.AnalyzerStats = make(map[string]sdk.ReachabilityStats, len(stats))
-		for k, v := range stats {
-			r.Metadata.AnalyzerStats[k] = v
+	for manifestIdx := range r.Manifests {
+		for packageIdx := range r.Manifests[manifestIdx].Packages {
+			r.Manifests[manifestIdx].Packages[packageIdx].PackageRef = r.Manifests[manifestIdx].Packages[packageIdx].withoutReachability()
 		}
+	}
+	for idx := range r.Findings {
+		r.Findings[idx] = r.Findings[idx].withoutReachability()
 	}
 	return r
 }
@@ -279,7 +292,7 @@ func normalizeManifestPathAgainstBase(basePath, candidate string) (string, bool)
 }
 
 // BuildExplainResponse constructs the structured explain payload from resolved targets.
-func BuildExplainResponse(project ProjectDescriptor, query string, targets []ExplainTargetResponse, started time.Time) ExplainResponse {
+func BuildExplainResponse(project ProjectDescriptor, query string, targets []ExplainTargetResponse, started time.Time, options ...ReportOptions) ExplainResponse {
 	response := ExplainResponse{
 		SchemaVersion: SchemaVersion,
 		Command:       "explain",
@@ -294,13 +307,13 @@ func BuildExplainResponse(project ProjectDescriptor, query string, targets []Exp
 		response.Findings = targets[0].Findings
 		response.AuditSummary = targets[0].AuditSummary
 	}
-	return response
+	return response.WithReportOptions(firstReportOptions(options))
 }
 
 // BuildDiffResponse constructs the structured diff payload from consolidated manifest selections.
-func BuildDiffResponse(projectPath, baseRef, headRef string, baseConsolidated, headConsolidated sdk.ConsolidatedGraph, audit *DiffAudit, started time.Time) DiffResponse {
+func BuildDiffResponse(projectPath, baseRef, headRef string, baseConsolidated, headConsolidated sdk.ConsolidatedGraph, audit *DiffAudit, started time.Time, options ...ReportOptions) DiffResponse {
 	results, summary := diffResultsFromConsolidated(baseConsolidated, headConsolidated)
-	return DiffResponse{
+	response := DiffResponse{
 		SchemaVersion: SchemaVersion,
 		Command:       "diff",
 		Project: ProjectDescriptor{
@@ -316,6 +329,183 @@ func BuildDiffResponse(projectPath, baseRef, headRef string, baseConsolidated, h
 		Audit:      audit,
 		Metadata:   Metadata{DurationMS: time.Since(started).Milliseconds()},
 	}
+	return response.WithReportOptions(firstReportOptions(options))
+}
+
+// WithReportOptions annotates a DiffResponse with optional report data and
+// strips experimental reachability annotations when the flag is disabled.
+func (r DiffResponse) WithReportOptions(options ReportOptions) DiffResponse {
+	r.Metadata = metadataWithReportOptions(r.Metadata, options)
+	if options.ReachabilityEnabled {
+		return r
+	}
+	r.Results.Dependencies = stripDiffDependencyReachability(r.Results.Dependencies)
+	r.Results.Licenses = stripDiffLicenseReachability(r.Results.Licenses)
+	r.Results.Vulnerabilities = stripDiffVulnerabilityReachability(r.Results.Vulnerabilities)
+	for idx := range r.Results.Manifests {
+		r.Results.Manifests[idx] = stripDiffManifestReachability(r.Results.Manifests[idx])
+	}
+	if r.Audit != nil {
+		audit := *r.Audit
+		audit.Introduced = append([]AuditFinding(nil), audit.Introduced...)
+		audit.Resolved = append([]AuditFinding(nil), audit.Resolved...)
+		audit.Persisted = append([]AuditFinding(nil), audit.Persisted...)
+		r.Audit = &audit
+		for idx := range r.Audit.Introduced {
+			r.Audit.Introduced[idx] = r.Audit.Introduced[idx].withoutReachability()
+		}
+		for idx := range r.Audit.Resolved {
+			r.Audit.Resolved[idx] = r.Audit.Resolved[idx].withoutReachability()
+		}
+		for idx := range r.Audit.Persisted {
+			r.Audit.Persisted[idx] = r.Audit.Persisted[idx].withoutReachability()
+		}
+	}
+	return r
+}
+
+// WithReportOptions annotates an ExplainResponse with optional report data
+// and strips experimental reachability annotations when the flag is disabled.
+func (r ExplainResponse) WithReportOptions(options ReportOptions) ExplainResponse {
+	r.Metadata = metadataWithReportOptions(r.Metadata, options)
+	if options.ReachabilityEnabled {
+		return r
+	}
+	r.Dependency = r.Dependency.withoutReachability()
+	r.Paths = copyDependencyPaths(r.Paths)
+	for pathIdx := range r.Paths {
+		for packageIdx := range r.Paths[pathIdx].Packages {
+			r.Paths[pathIdx].Packages[packageIdx] = r.Paths[pathIdx].Packages[packageIdx].withoutReachability()
+		}
+	}
+	r.Findings = append([]AuditFinding(nil), r.Findings...)
+	for idx := range r.Findings {
+		r.Findings[idx] = r.Findings[idx].withoutReachability()
+	}
+	r.Targets = copyExplainTargets(r.Targets)
+	for targetIdx := range r.Targets {
+		r.Targets[targetIdx] = stripExplainTargetReachability(r.Targets[targetIdx])
+	}
+	return r
+}
+
+func firstReportOptions(options []ReportOptions) ReportOptions {
+	if len(options) == 0 {
+		return ReportOptions{}
+	}
+	return options[0]
+}
+
+func metadataWithReportOptions(metadata Metadata, options ReportOptions) Metadata {
+	metadata.ReachabilityEnabled = false
+	metadata.AnalyzerRuns = nil
+	metadata.AnalyzerStats = nil
+	if !options.ReachabilityEnabled {
+		return metadata
+	}
+	metadata.ReachabilityEnabled = true
+	if len(options.AnalyzerRuns) > 0 {
+		metadata.AnalyzerRuns = append([]string(nil), options.AnalyzerRuns...)
+		sort.Strings(metadata.AnalyzerRuns)
+	}
+	if len(options.AnalyzerStats) > 0 {
+		metadata.AnalyzerStats = make(map[string]sdk.ReachabilityStats, len(options.AnalyzerStats))
+		for k, v := range options.AnalyzerStats {
+			metadata.AnalyzerStats[k] = v
+		}
+	}
+	return metadata
+}
+
+func stripDiffDependencyReachability(results DiffDependencyResults) DiffDependencyResults {
+	for idx := range results.Added {
+		results.Added[idx].Package = results.Added[idx].Package.withoutReachability()
+	}
+	for idx := range results.Removed {
+		results.Removed[idx].Package = results.Removed[idx].Package.withoutReachability()
+	}
+	for idx := range results.Changed {
+		results.Changed[idx].After = results.Changed[idx].After.withoutReachability()
+		results.Changed[idx].Before = results.Changed[idx].Before.withoutReachability()
+	}
+	return results
+}
+
+func stripDiffLicenseReachability(results DiffLicenseResults) DiffLicenseResults {
+	for idx := range results.Added {
+		results.Added[idx].Package = results.Added[idx].Package.withoutReachability()
+	}
+	for idx := range results.Removed {
+		results.Removed[idx].Package = results.Removed[idx].Package.withoutReachability()
+	}
+	for idx := range results.Changed {
+		results.Changed[idx].Package = results.Changed[idx].Package.withoutReachability()
+	}
+	return results
+}
+
+func stripDiffVulnerabilityReachability(results DiffVulnerabilityResults) DiffVulnerabilityResults {
+	for idx := range results.Added {
+		results.Added[idx].Package = results.Added[idx].Package.withoutReachability()
+		results.Added[idx].Vulnerability.Reachability = nil
+	}
+	for idx := range results.Removed {
+		results.Removed[idx].Package = results.Removed[idx].Package.withoutReachability()
+		results.Removed[idx].Vulnerability.Reachability = nil
+	}
+	return results
+}
+
+func stripDiffManifestReachability(result DiffManifestResult) DiffManifestResult {
+	for idx := range result.Added {
+		result.Added[idx].Package = result.Added[idx].Package.withoutReachability()
+	}
+	for idx := range result.Removed {
+		result.Removed[idx].Package = result.Removed[idx].Package.withoutReachability()
+	}
+	for idx := range result.Changed {
+		result.Changed[idx].After = result.Changed[idx].After.withoutReachability()
+		result.Changed[idx].Before = result.Changed[idx].Before.withoutReachability()
+	}
+	return result
+}
+
+func stripExplainTargetReachability(target ExplainTargetResponse) ExplainTargetResponse {
+	target.Dependency = target.Dependency.withoutReachability()
+	target.Paths = copyDependencyPaths(target.Paths)
+	for pathIdx := range target.Paths {
+		for packageIdx := range target.Paths[pathIdx].Packages {
+			target.Paths[pathIdx].Packages[packageIdx] = target.Paths[pathIdx].Packages[packageIdx].withoutReachability()
+		}
+	}
+	target.Findings = append([]AuditFinding(nil), target.Findings...)
+	for idx := range target.Findings {
+		target.Findings[idx] = target.Findings[idx].withoutReachability()
+	}
+	return target
+}
+
+func copyDependencyPaths(paths []DependencyPath) []DependencyPath {
+	if len(paths) == 0 {
+		return nil
+	}
+	out := append([]DependencyPath(nil), paths...)
+	for idx := range out {
+		out[idx].Packages = append([]PackageRef(nil), out[idx].Packages...)
+	}
+	return out
+}
+
+func copyExplainTargets(targets []ExplainTargetResponse) []ExplainTargetResponse {
+	if len(targets) == 0 {
+		return nil
+	}
+	out := append([]ExplainTargetResponse(nil), targets...)
+	for idx := range out {
+		out[idx].Paths = copyDependencyPaths(out[idx].Paths)
+		out[idx].Findings = append([]AuditFinding(nil), out[idx].Findings...)
+	}
+	return out
 }
 
 type diffManifestSnapshot struct {

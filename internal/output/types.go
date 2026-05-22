@@ -12,9 +12,18 @@ const SchemaVersion = "1.0"
 
 // Metadata captures execution metadata shared by all command outputs.
 type Metadata struct {
-	DurationMS    int64                            `json:"duration_ms"`
-	AnalyzerRuns  []string                         `json:"analyzer_runs,omitempty"`
-	AnalyzerStats map[string]sdk.ReachabilityStats `json:"analyzer_stats,omitempty"`
+	DurationMS          int64                            `json:"duration_ms"`
+	ReachabilityEnabled bool                             `json:"reachability_enabled,omitempty"`
+	AnalyzerRuns        []string                         `json:"analyzer_runs,omitempty"`
+	AnalyzerStats       map[string]sdk.ReachabilityStats `json:"analyzer_stats,omitempty"`
+}
+
+// ReportOptions controls optional experimental data in structured command
+// outputs.
+type ReportOptions struct {
+	ReachabilityEnabled bool
+	AnalyzerRuns        []string
+	AnalyzerStats       map[string]sdk.ReachabilityStats
 }
 
 // ProjectDescriptor describes the project being analyzed.
@@ -159,6 +168,16 @@ func PackageFromGraphPackage(pkg *sdk.Package) PackageRef {
 		Licenses:        LicenseRefsFromGraphLicenses(pkg.Licenses),
 		Vulnerabilities: VulnerabilityRefsFromPackageVulnerabilities(pkg.Vulnerabilities),
 	}
+}
+
+func (p PackageRef) withoutReachability() PackageRef {
+	if len(p.Vulnerabilities) > 0 {
+		p.Vulnerabilities = append([]VulnerabilityRef(nil), p.Vulnerabilities...)
+		for idx := range p.Vulnerabilities {
+			p.Vulnerabilities[idx].Reachability = nil
+		}
+	}
+	return p
 }
 
 func cloneAffectedSymbols(src []sdk.AffectedSymbol) []sdk.AffectedSymbol {
@@ -332,6 +351,12 @@ func FindingsFromScan(findings []sdk.Finding) []AuditFinding {
 		})
 	}
 	return result
+}
+
+func (f AuditFinding) withoutReachability() AuditFinding {
+	f.Reachability = nil
+	f.Package = f.Package.withoutReachability()
+	return f
 }
 
 // FailingFindingCount reports how many findings should fail policy evaluation.

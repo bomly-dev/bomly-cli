@@ -39,9 +39,9 @@ func Diff(w io.Writer, payload output.DiffResponse) error {
 	}
 	lines = append(lines, dependencyTextSections(payload.Results.Dependencies)...)
 	lines = append(lines, licenseTextSections(payload.Results.Licenses)...)
-	lines = append(lines, vulnerabilityTextSections(payload.Results.Vulnerabilities)...)
+	lines = append(lines, vulnerabilityTextSections(payload.Results.Vulnerabilities, payload.Metadata.ReachabilityEnabled)...)
 	if payload.Audit != nil {
-		lines = append(lines, policyTextSections(*payload.Audit)...)
+		lines = append(lines, policyTextSections(*payload.Audit, payload.Metadata.ReachabilityEnabled)...)
 	}
 	for _, line := range lines {
 		if _, err := fmt.Fprintln(w, line); err != nil {
@@ -125,7 +125,7 @@ func licenseTextSections(results output.DiffLicenseResults) []string {
 	return append(lines, "")
 }
 
-func vulnerabilityTextSections(results output.DiffVulnerabilityResults) []string {
+func vulnerabilityTextSections(results output.DiffVulnerabilityResults, includeReachability bool) []string {
 	lines := []string{"Vulnerabilities"}
 	if len(results.Added) == 0 && len(results.Removed) == 0 {
 		return append(lines, "  No vulnerability changes.", "")
@@ -133,19 +133,21 @@ func vulnerabilityTextSections(results output.DiffVulnerabilityResults) []string
 	if len(results.Added) > 0 {
 		lines = append(lines, fmt.Sprintf("Added (%d)", len(results.Added)))
 		for _, change := range results.Added {
-			lines = append(lines, Wrap(fmt.Sprintf("  + [%s] %s  %s", strings.ToUpper(ValueOrDash(change.Vulnerability.Severity)), change.Vulnerability.ID, DiffPackageDisplayName(change.Package)), Red))
+			details := diffVulnerabilityDetails(change.Vulnerability, includeReachability)
+			lines = append(lines, Wrap(fmt.Sprintf("  + [%s] %s  %s%s", strings.ToUpper(ValueOrDash(change.Vulnerability.Severity)), change.Vulnerability.ID, DiffPackageDisplayName(change.Package), details), Red))
 		}
 	}
 	if len(results.Removed) > 0 {
 		lines = append(lines, fmt.Sprintf("Removed (%d)", len(results.Removed)))
 		for _, change := range results.Removed {
-			lines = append(lines, Wrap(fmt.Sprintf("  - [%s] %s  %s", strings.ToUpper(ValueOrDash(change.Vulnerability.Severity)), change.Vulnerability.ID, DiffPackageDisplayName(change.Package)), Green))
+			details := diffVulnerabilityDetails(change.Vulnerability, includeReachability)
+			lines = append(lines, Wrap(fmt.Sprintf("  - [%s] %s  %s%s", strings.ToUpper(ValueOrDash(change.Vulnerability.Severity)), change.Vulnerability.ID, DiffPackageDisplayName(change.Package), details), Green))
 		}
 	}
 	return append(lines, "")
 }
 
-func policyTextSections(audit output.DiffAudit) []string {
+func policyTextSections(audit output.DiffAudit, includeReachability bool) []string {
 	lines := []string{
 		"Policy Evaluation",
 		fmt.Sprintf("  Current findings: %s.", diffAuditFindingsSummary(audit.AuditSummary)),
@@ -172,6 +174,9 @@ func policyTextSections(audit output.DiffAudit) []string {
 			if exploitability := exploitabilitySummary(finding.KEVExploited, finding.KnownExploited, finding.RiskScore); exploitability != "" {
 				details = append(details, exploitability)
 			}
+			if includeReachability {
+				details = append(details, "reachability "+formatReachabilityCell(finding.Reachability))
+			}
 			if len(details) > 0 {
 				line += " [" + strings.Join(details, "; ") + "]"
 			}
@@ -188,6 +193,13 @@ func policyTextSections(audit output.DiffAudit) []string {
 		lines = append(lines, "  No policy differences were identified between the base and head dependency sets.")
 	}
 	return lines
+}
+
+func diffVulnerabilityDetails(vulnerability output.VulnerabilityRef, includeReachability bool) string {
+	if !includeReachability {
+		return ""
+	}
+	return " [" + "reachability " + formatReachabilityCell(vulnerability.Reachability) + "]"
 }
 
 func dependencyNameWidth(results output.DiffDependencyResults) int {

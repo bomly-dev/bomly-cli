@@ -221,7 +221,13 @@ func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (o
 	if cmdCtx.ResolvedConfig.Audit {
 		findings = pipeResult.Findings
 	}
-	return output.BuildScanResponse(cmdCtx.ProjectDescriptor(), pipeResult.Consolidated, findings, started), nil
+	return output.BuildScanResponse(
+		cmdCtx.ProjectDescriptor(),
+		pipeResult.Consolidated,
+		findings,
+		started,
+		reportOptionsFromPipelineResults(cmdCtx.ResolvedConfig.Reachability, pipeResult),
+	), nil
 }
 
 func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainRequest) (output.ExplainResponse, error) {
@@ -257,7 +263,13 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 			AuditSummary: output.SummaryFromFindings(target.Findings),
 		})
 	}
-	return output.BuildExplainResponse(cmdCtx.ProjectDescriptor(), req.Package, targets, started), nil
+	return output.BuildExplainResponse(
+		cmdCtx.ProjectDescriptor(),
+		req.Package,
+		targets,
+		started,
+		reportOptionsFromPipelineResults(cmdCtx.ResolvedConfig.Reachability, explainResult.PipelineResult),
+	), nil
 }
 
 func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (output.DiffResponse, error) {
@@ -304,7 +316,16 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (o
 		return output.DiffResponse{}, err
 	}
 
-	return output.BuildDiffResponse(projectIdentifier, req.Base, req.Head, diffResult.Base.Consolidated, diffResult.Head.Consolidated, diffAuditOutput(diffResult.Audit), started), nil
+	return output.BuildDiffResponse(
+		projectIdentifier,
+		req.Base,
+		req.Head,
+		diffResult.Base.Consolidated,
+		diffResult.Head.Consolidated,
+		diffAuditOutput(diffResult.Audit),
+		started,
+		reportOptionsFromPipelineResults(o.GetConfig().Reachability, diffResult.Base, diffResult.Head),
+	), nil
 }
 
 func (a *mcpOptionsAdapter) ListPlugins(_ context.Context) (plugin.PluginListResponse, error) {

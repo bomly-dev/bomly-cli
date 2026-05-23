@@ -33,11 +33,15 @@ func ScanMarkdown(w io.Writer, payload output.ScanResponse) error {
 }
 
 func scanSummaryMarkdown(payload output.ScanResponse) []string {
-	return []string{
+	lines := []string{
 		fmt.Sprintf("- Manifests: %d", len(payload.Manifests)),
 		fmt.Sprintf("- Packages: %d", scanPackageCount(payload.Manifests)),
 		fmt.Sprintf("- Policy findings: %s", scanAuditSummaryMarkdown(payload.AuditSummary)),
 	}
+	if payload.Metadata.ReachabilityEnabled {
+		lines = append(lines, fmt.Sprintf("- Reachability: %s", scanReachabilitySummaryMarkdown(payload.Manifests)))
+	}
+	return lines
 }
 
 func scanManifestMarkdown(payload output.ScanResponse) []string {
@@ -91,17 +95,28 @@ func scanFindingsMarkdown(payload output.ScanResponse) []string {
 		if title == "" {
 			title = finding.ID
 		}
-		rows = append(rows, []string{
+		row := []string{
 			strings.ToUpper(ValueOrDash(finding.Severity)),
 			valueOrDash(finding.ID),
 			pkg,
+		}
+		if payload.Metadata.ReachabilityEnabled {
+			row = append(row, valueOrDash(formatReachabilityCell(finding.Reachability)))
+		}
+		row = append(row,
 			valueOrDash(fixedVersionSummary(finding.FixedIn, finding.FixedVersions)),
 			valueOrDash(exploitabilitySummary(finding.KEVExploited, finding.KnownExploited, finding.RiskScore)),
 			valueOrDash(finding.Source),
 			title,
-		})
+		)
+		rows = append(rows, row)
 	}
-	return markdownTable([]string{"Severity", "ID", "Package", "Fixed In", "Exploitability", "Source", "Title"}, rows)
+	header := []string{"Severity", "ID", "Package"}
+	if payload.Metadata.ReachabilityEnabled {
+		header = append(header, "Reachability")
+	}
+	header = append(header, "Fixed In", "Exploitability", "Source", "Title")
+	return markdownTable(header, rows)
 }
 
 func scanPackageCount(manifests []output.ScanManifest) int {
@@ -134,4 +149,45 @@ func scanAuditSummaryMarkdown(summary *output.AuditSummary) string {
 		return "none"
 	}
 	return formatAuditSummary(summary, true)
+}
+
+func scanReachabilitySummaryMarkdown(manifests []output.ScanManifest) string {
+	var reachable, unreachable, unknown, notApplicable, total int
+	for _, manifest := range manifests {
+		for _, pkg := range manifest.Packages {
+			for _, vuln := range pkg.Vulnerabilities {
+				if vuln.Reachability == nil {
+					continue
+				}
+				total++
+				switch vuln.Reachability.Status {
+				case "reachable":
+					reachable++
+				case "unreachable":
+					unreachable++
+				case "not_applicable":
+					notApplicable++
+				default:
+					unknown++
+				}
+			}
+		}
+	}
+	if total == 0 {
+		return "enabled (no analyzer ran on any vulnerability)"
+	}
+	parts := make([]string, 0, 4)
+	if reachable > 0 {
+		parts = append(parts, fmt.Sprintf("%d reachable", reachable))
+	}
+	if unreachable > 0 {
+		parts = append(parts, fmt.Sprintf("%d unreachable", unreachable))
+	}
+	if unknown > 0 {
+		parts = append(parts, fmt.Sprintf("%d unknown", unknown))
+	}
+	if notApplicable > 0 {
+		parts = append(parts, fmt.Sprintf("%d not_applicable", notApplicable))
+	}
+	return fmt.Sprintf("%d analyzed (%s)", total, strings.Join(parts, ", "))
 }

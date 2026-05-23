@@ -76,19 +76,33 @@ func explainImpactMarkdown(payload output.ExplainResponse) []string {
 			fmt.Sprintf("- Policy findings: %s", scanAuditSummaryMarkdown(target.AuditSummary)),
 			fmt.Sprintf("- Licenses: %d", len(target.Dependency.Licenses)),
 		)
+		if payload.Metadata.ReachabilityEnabled {
+			lines = append(lines, fmt.Sprintf("- Reachability: %s", explainReachabilitySummary(target)))
+		}
 		if len(target.Dependency.Vulnerabilities) > 0 {
 			rows := make([][]string, 0, len(target.Dependency.Vulnerabilities))
 			for _, vulnerability := range target.Dependency.Vulnerabilities {
-				rows = append(rows, []string{
+				row := []string{
 					strings.ToUpper(ValueOrDash(vulnerability.Severity)),
 					valueOrDash(vulnerability.ID),
+				}
+				if payload.Metadata.ReachabilityEnabled {
+					row = append(row, valueOrDash(formatReachabilityCell(vulnerability.Reachability)))
+				}
+				row = append(row,
 					valueOrDash(fixedVersionSummary(vulnerability.FixedIn, vulnerability.FixedVersions)),
 					valueOrDash(exploitabilitySummary(vulnerability.KEVExploited, vulnerability.KnownExploited, vulnerability.RiskScore)),
 					valueOrDash(vulnerability.Source),
-				})
+				)
+				rows = append(rows, row)
 			}
+			header := []string{"Severity", "ID"}
+			if payload.Metadata.ReachabilityEnabled {
+				header = append(header, "Reachability")
+			}
+			header = append(header, "Fixed In", "Exploitability", "Source")
 			lines = append(lines, "")
-			lines = append(lines, markdownTable([]string{"Severity", "ID", "Fixed In", "Exploitability", "Source"}, rows)...)
+			lines = append(lines, markdownTable(header, rows)...)
 		}
 		if len(target.Findings) > 0 {
 			for _, finding := range sortDiffAuditFindings(target.Findings) {
@@ -96,11 +110,16 @@ func explainImpactMarkdown(payload output.ExplainResponse) []string {
 				if title == "" {
 					title = finding.ID
 				}
+				suffix := ""
+				if payload.Metadata.ReachabilityEnabled {
+					suffix = " (" + markdownText("reachability "+formatReachabilityCell(finding.Reachability)) + ")"
+				}
 				lines = append(lines, fmt.Sprintf(
-					"- [%s] `%s`: %s",
+					"- [%s] `%s`: %s%s",
 					markdownInline(ValueOrDash(finding.Severity)),
 					markdownInline(ValueOrDash(finding.ID)),
 					markdownText(title),
+					suffix,
 				))
 			}
 		}
@@ -109,6 +128,43 @@ func explainImpactMarkdown(payload output.ExplainResponse) []string {
 		}
 	}
 	return trimTrailingMarkdownBlanks(lines)
+}
+
+func explainReachabilitySummary(target output.ExplainTargetResponse) string {
+	var reachable, unreachable, unknown, notApplicable, total int
+	for _, vulnerability := range target.Dependency.Vulnerabilities {
+		if vulnerability.Reachability == nil {
+			continue
+		}
+		total++
+		switch vulnerability.Reachability.Status {
+		case "reachable":
+			reachable++
+		case "unreachable":
+			unreachable++
+		case "not_applicable":
+			notApplicable++
+		default:
+			unknown++
+		}
+	}
+	if total == 0 {
+		return "enabled (no analyzer ran on this dependency)"
+	}
+	parts := make([]string, 0, 4)
+	if reachable > 0 {
+		parts = append(parts, fmt.Sprintf("%d reachable", reachable))
+	}
+	if unreachable > 0 {
+		parts = append(parts, fmt.Sprintf("%d unreachable", unreachable))
+	}
+	if unknown > 0 {
+		parts = append(parts, fmt.Sprintf("%d unknown", unknown))
+	}
+	if notApplicable > 0 {
+		parts = append(parts, fmt.Sprintf("%d not_applicable", notApplicable))
+	}
+	return fmt.Sprintf("%d analyzed (%s)", total, strings.Join(parts, ", "))
 }
 
 func markdownDependencyPath(path output.DependencyPath) string {

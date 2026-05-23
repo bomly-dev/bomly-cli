@@ -158,12 +158,13 @@ func newDiffCmd() *cobra.Command {
 				prog.CompleteStep("Evaluated policy", children)
 			}
 
-			payload := output.BuildDiffResponse(projectIdentifier, compBase, compHead, diffResult.Base.Consolidated, diffResult.Head.Consolidated, auditPayload, started)
+			reportOptions := reportOptionsFromPipelineResults(current.Reachability, diffResult.Base, diffResult.Head)
+			payload := output.BuildDiffResponse(projectIdentifier, compBase, compHead, diffResult.Base.Consolidated, diffResult.Head.Consolidated, auditPayload, started, reportOptions)
 			markdownRenderer := func(w io.Writer) error {
 				return render.DiffMarkdown(w, payload)
 			}
 			sarifRenderer := func(w io.Writer) error {
-				return output.WriteSARIF(w, diffResult.Findings, "bomly", cmd.Root().Version)
+				return output.WriteSARIF(w, diffResult.Findings, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: current.Reachability})
 			}
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
@@ -188,7 +189,7 @@ func newDiffCmd() *cobra.Command {
 			}
 			if outputFormat == output.FormatSARIF {
 				prog.Success("Resolved Graph")
-				return output.WriteSARIF(streams.reportWriter(), diffResult.Findings, "bomly", cmd.Root().Version)
+				return output.WriteSARIF(streams.reportWriter(), diffResult.Findings, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: current.Reachability})
 			}
 			if current.Interactive {
 				prog.Stop()

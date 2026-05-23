@@ -60,6 +60,73 @@ func TestBuildScanResponseIncludesAuditData(t *testing.T) {
 	}
 }
 
+func TestBuildScanResponseGatesReachability(t *testing.T) {
+	g := newViewTestGraph(t)
+	pkg, ok := g.Package("react@18.2.0")
+	if !ok {
+		t.Fatal("react package not found")
+	}
+	pkg.Vulnerabilities = []sdk.PackageVulnerability{{
+		ID:     "OSV-REACH",
+		Source: "osv",
+		Reachability: &sdk.Reachability{
+			Status:   sdk.ReachabilityReachable,
+			Tier:     sdk.TierPackage,
+			Analyzer: "jsreach",
+		},
+	}}
+	results := []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM},
+		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+			Graph:    g,
+			Manifest: sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
+		}}},
+	}}
+	consolidated, err := consolidation.ConsolidateGraphs(results)
+	if err != nil {
+		t.Fatalf("ConsolidateGraphs() error = %v", err)
+	}
+	finding := sdk.Finding{
+		ID:           "OSV-REACH",
+		Kind:         sdk.FindingKindVulnerability,
+		Package:      pkg,
+		Source:       "osv",
+		Reachability: pkg.Vulnerabilities[0].Reachability,
+	}
+
+	disabled := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, []sdk.Finding{finding}, time.Now().Add(-time.Second))
+	if disabled.Metadata.ReachabilityEnabled {
+		t.Fatal("reachability metadata should be omitted when disabled")
+	}
+	if got := scanPackageByName(t, disabled.Manifests[0].Packages, "react").Vulnerabilities[0].Reachability; got != nil {
+		t.Fatalf("disabled scan package reachability leaked: %#v", got)
+	}
+	if got := disabled.Findings[0].Reachability; got != nil {
+		t.Fatalf("disabled scan finding reachability leaked: %#v", got)
+	}
+
+	enabled := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, []sdk.Finding{finding}, time.Now().Add(-time.Second), output.ReportOptions{
+		ReachabilityEnabled: true,
+		AnalyzerRuns:        []string{"jsreach"},
+		AnalyzerStats:       map[string]sdk.ReachabilityStats{"jsreach": {Reachable: 1}},
+	})
+	if !enabled.Metadata.ReachabilityEnabled {
+		t.Fatal("reachability metadata should be set when enabled")
+	}
+	if len(enabled.Metadata.AnalyzerRuns) != 1 || enabled.Metadata.AnalyzerRuns[0] != "jsreach" {
+		t.Fatalf("unexpected analyzer runs: %#v", enabled.Metadata.AnalyzerRuns)
+	}
+	if enabled.Metadata.AnalyzerStats["jsreach"].Reachable != 1 {
+		t.Fatalf("unexpected analyzer stats: %#v", enabled.Metadata.AnalyzerStats)
+	}
+	if got := scanPackageByName(t, enabled.Manifests[0].Packages, "react").Vulnerabilities[0].Reachability; got == nil || got.Status != sdk.ReachabilityReachable {
+		t.Fatalf("enabled scan package reachability missing: %#v", got)
+	}
+	if got := enabled.Findings[0].Reachability; got == nil || got.Status != sdk.ReachabilityReachable {
+		t.Fatalf("enabled scan finding reachability missing: %#v", got)
+	}
+}
+
 func TestBuildScanResponseDeduplicatesManifestAndPrefersNative(t *testing.T) {
 	projectRoot := "/tmp/demo"
 	manifestPath := filepath.Join(projectRoot, "package-lock.json")
@@ -206,6 +273,48 @@ func TestBuildExplainResponseFlattensSingleTarget(t *testing.T) {
 	}
 }
 
+func TestBuildExplainResponseGatesReachability(t *testing.T) {
+	targets := []output.ExplainTargetResponse{{
+		Project: output.ProjectDescriptor{Name: "demo"},
+		Dependency: output.PackageRef{
+			Name: "react",
+			ID:   "react@18.2.0",
+			Vulnerabilities: []output.VulnerabilityRef{{
+				ID:           "OSV-REACH",
+				Source:       "osv",
+				Reachability: &sdk.Reachability{Status: sdk.ReachabilityReachable, Tier: sdk.TierPackage},
+			}},
+		},
+		Paths: []output.DependencyPath{{Packages: []output.PackageRef{{
+			Name: "react",
+			ID:   "react@18.2.0",
+			Vulnerabilities: []output.VulnerabilityRef{{
+				ID:           "OSV-REACH",
+				Source:       "osv",
+				Reachability: &sdk.Reachability{Status: sdk.ReachabilityReachable, Tier: sdk.TierPackage},
+			}},
+		}}}},
+		Findings: []output.AuditFinding{{
+			ID:           "OSV-REACH",
+			Kind:         "vulnerability",
+			Package:      output.PackageRef{Name: "react"},
+			Reachability: &sdk.Reachability{Status: sdk.ReachabilityReachable, Tier: sdk.TierPackage},
+		}},
+	}}
+	disabled := output.BuildExplainResponse(output.ProjectDescriptor{Name: "demo"}, "react", targets, time.Now().Add(-time.Second))
+	if disabled.Dependency.Vulnerabilities[0].Reachability != nil || disabled.Targets[0].Findings[0].Reachability != nil {
+		t.Fatalf("disabled explain reachability leaked: %#v", disabled)
+	}
+
+	enabled := output.BuildExplainResponse(output.ProjectDescriptor{Name: "demo"}, "react", targets, time.Now().Add(-time.Second), output.ReportOptions{ReachabilityEnabled: true})
+	if !enabled.Metadata.ReachabilityEnabled {
+		t.Fatal("reachability metadata should be set when enabled")
+	}
+	if got := enabled.Dependency.Vulnerabilities[0].Reachability; got == nil || got.Status != sdk.ReachabilityReachable {
+		t.Fatalf("enabled explain reachability missing: %#v", got)
+	}
+}
+
 func TestBuildDiffResponseAggregatesManifestChanges(t *testing.T) {
 	baseGraph := newViewTestGraph(t)
 	headGraph := newViewTestGraph(t)
@@ -254,6 +363,81 @@ func TestBuildDiffResponseAggregatesManifestChanges(t *testing.T) {
 	}
 	if len(response.Results.Manifests) != 1 || response.Results.Manifests[0].Status != "changed" {
 		t.Fatalf("unexpected manifest results: %#v", response.Results.Manifests)
+	}
+}
+
+func TestBuildDiffResponseGatesReachability(t *testing.T) {
+	baseGraph := newViewTestGraph(t)
+	headGraph := newViewTestGraph(t)
+	pkg := sdk.NewPackageRef("newpkg", "1.0.0")
+	pkg.Vulnerabilities = []sdk.PackageVulnerability{{
+		ID:           "OSV-REACH",
+		Source:       "osv",
+		Reachability: &sdk.Reachability{Status: sdk.ReachabilityReachable, Tier: sdk.TierPackage},
+	}}
+	if err := headGraph.AddPackage(pkg); err != nil {
+		t.Fatalf("add package: %v", err)
+	}
+	if err := headGraph.AddDependency("app@1.0.0", pkg.ID); err != nil {
+		t.Fatalf("add dependency: %v", err)
+	}
+
+	baseConsolidated, err := consolidation.ConsolidateGraphs([]sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM},
+		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+			Graph:    baseGraph,
+			Manifest: sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
+		}}},
+	}})
+	if err != nil {
+		t.Fatalf("ConsolidateGraphs(base) error = %v", err)
+	}
+	headConsolidated, err := consolidation.ConsolidateGraphs([]sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM},
+		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+			Graph:    headGraph,
+			Manifest: sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
+		}}},
+	}})
+	if err != nil {
+		t.Fatalf("ConsolidateGraphs(head) error = %v", err)
+	}
+	audit := &output.DiffAudit{
+		Introduced: []output.AuditFinding{{
+			ID:           "OSV-REACH",
+			Kind:         "vulnerability",
+			Package:      output.PackageFromGraphPackage(pkg),
+			Reachability: pkg.Vulnerabilities[0].Reachability,
+		}},
+	}
+	disabled := output.BuildDiffResponse("/tmp/demo", "base", "head", baseConsolidated, headConsolidated, audit, time.Now().Add(-time.Second))
+	if disabled.Audit.Introduced[0].Reachability != nil {
+		t.Fatalf("disabled diff audit reachability leaked: %#v", disabled.Audit.Introduced[0].Reachability)
+	}
+	for _, change := range disabled.Results.Vulnerabilities.Added {
+		if change.Vulnerability.Reachability != nil {
+			t.Fatalf("disabled diff vulnerability reachability leaked: %#v", change.Vulnerability.Reachability)
+		}
+	}
+
+	enabled := output.BuildDiffResponse("/tmp/demo", "base", "head", baseConsolidated, headConsolidated, audit, time.Now().Add(-time.Second), output.ReportOptions{ReachabilityEnabled: true})
+	if !enabled.Metadata.ReachabilityEnabled {
+		t.Fatal("reachability metadata should be set when enabled")
+	}
+	if enabled.Audit.Introduced[0].Reachability == nil {
+		t.Fatal("enabled diff audit reachability missing")
+	}
+	found := false
+	for _, change := range enabled.Results.Vulnerabilities.Added {
+		if change.Vulnerability.ID == "OSV-REACH" {
+			found = true
+			if change.Vulnerability.Reachability == nil {
+				t.Fatal("enabled diff vulnerability reachability missing")
+			}
+		}
+	}
+	if !found {
+		t.Fatal("expected diff vulnerability change for OSV-REACH")
 	}
 }
 
@@ -686,4 +870,15 @@ func newViewTestGraph(t *testing.T) *sdk.Graph {
 		t.Fatalf("add dependency: %v", err)
 	}
 	return g
+}
+
+func scanPackageByName(t *testing.T, packages []output.ScanPackage, name string) output.ScanPackage {
+	t.Helper()
+	for _, pkg := range packages {
+		if pkg.Name == name {
+			return pkg
+		}
+	}
+	t.Fatalf("package %q not found in %#v", name, packages)
+	return output.ScanPackage{}
 }

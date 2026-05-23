@@ -1,6 +1,9 @@
 package cli
 
 import (
+	"sort"
+
+	"github.com/bomly-dev/bomly-cli/internal/engine"
 	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/sdk"
@@ -16,6 +19,40 @@ func diffAuditOutput(audit *diffengine.Audit) *output.DiffAudit {
 		Resolved:     output.FindingsFromScan(audit.Resolved),
 		Persisted:    output.FindingsFromScan(audit.Persisted),
 		AuditSummary: output.SummaryFromFindings(combined),
+	}
+}
+
+func reportOptionsFromPipelineResults(enabled bool, results ...engine.PipelineResult) output.ReportOptions {
+	if !enabled {
+		return output.ReportOptions{}
+	}
+	runsSeen := make(map[string]struct{})
+	stats := make(map[string]sdk.ReachabilityStats)
+	for _, result := range results {
+		for _, run := range result.AnalyzerRuns {
+			if run == "" {
+				continue
+			}
+			runsSeen[run] = struct{}{}
+		}
+		for name, value := range result.AnalyzerStats {
+			current := stats[name]
+			current.Reachable += value.Reachable
+			current.Unreachable += value.Unreachable
+			current.Unknown += value.Unknown
+			current.NotApplicable += value.NotApplicable
+			stats[name] = current
+		}
+	}
+	runs := make([]string, 0, len(runsSeen))
+	for run := range runsSeen {
+		runs = append(runs, run)
+	}
+	sort.Strings(runs)
+	return output.ReportOptions{
+		ReachabilityEnabled: true,
+		AnalyzerRuns:        runs,
+		AnalyzerStats:       stats,
 	}
 }
 

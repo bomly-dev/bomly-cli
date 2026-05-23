@@ -113,34 +113,45 @@ func diffVulnerabilityMarkdown(payload output.DiffResponse) []string {
 		fmt.Sprintf("**Summary:** %d introduced, %d resolved.", len(results.Added), len(results.Removed)),
 		"",
 	}
-	lines = append(lines, diffVulnerabilityTable("Introduced Vulnerabilities", "introduced", results.Added)...)
-	lines = append(lines, diffVulnerabilityTable("Resolved Vulnerabilities", "resolved", results.Removed)...)
+	lines = append(lines, diffVulnerabilityTable("Introduced Vulnerabilities", "introduced", results.Added, payload.Metadata.ReachabilityEnabled)...)
+	lines = append(lines, diffVulnerabilityTable("Resolved Vulnerabilities", "resolved", results.Removed, payload.Metadata.ReachabilityEnabled)...)
 	if len(results.Added) == 0 && len(results.Removed) == 0 {
 		return []string{"✅ No vulnerability changes."}
 	}
 	return trimTrailingMarkdownBlanks(lines)
 }
 
-func diffVulnerabilityTable(title, status string, changes []output.DiffVulnerabilityChange) []string {
+func diffVulnerabilityTable(title, status string, changes []output.DiffVulnerabilityChange, includeReachability bool) []string {
 	if len(changes) == 0 {
 		return nil
 	}
 	rows := make([][]string, 0, len(changes))
 	for _, change := range sortVulnerabilityChanges(changes) {
 		vuln := change.Vulnerability
-		rows = append(rows, []string{
+		row := []string{
 			findingIcon(status, vuln.Severity, ""),
 			status,
 			strings.ToUpper(valueOrDash(vuln.Severity)),
 			vuln.ID,
 			DiffPackageDisplayName(change.Package),
+		}
+		if includeReachability {
+			row = append(row, valueOrDash(formatReachabilityCell(vuln.Reachability)))
+		}
+		row = append(row,
 			valueOrDash(fixedVersionSummary(vuln.FixedIn, vuln.FixedVersions)),
 			valueOrDash(exploitabilitySummary(vuln.KEVExploited, vuln.KnownExploited, vuln.RiskScore)),
 			valueOrDash(vuln.Source),
 			firstNonEmpty(vuln.Title, strings.Join(vuln.Reasons, "; ")),
-		})
+		)
+		rows = append(rows, row)
 	}
-	return append([]string{"### " + title, ""}, append(markdownTable([]string{"", "Change", "Severity", "ID", "Package", "Fixed In", "Exploitability", "Source", "Title"}, rows), "")...)
+	header := []string{"", "Change", "Severity", "ID", "Package"}
+	if includeReachability {
+		header = append(header, "Reachability")
+	}
+	header = append(header, "Fixed In", "Exploitability", "Source", "Title")
+	return append([]string{"### " + title, ""}, append(markdownTable(header, rows), "")...)
 }
 
 func diffLicenseMarkdown(payload output.DiffResponse) []string {
@@ -198,9 +209,9 @@ func diffPolicyFindingsMarkdown(payload output.DiffResponse) []string {
 		diffPolicySummary(audit),
 		"",
 	}
-	lines = append(lines, diffAuditFindingTable("Introduced Findings", "introduced", audit.Introduced)...)
-	lines = append(lines, diffAuditFindingTable("Persisted Findings", "persisted", audit.Persisted)...)
-	lines = append(lines, diffAuditFindingTable("Resolved Findings", "resolved", audit.Resolved)...)
+	lines = append(lines, diffAuditFindingTable("Introduced Findings", "introduced", audit.Introduced, payload.Metadata.ReachabilityEnabled)...)
+	lines = append(lines, diffAuditFindingTable("Persisted Findings", "persisted", audit.Persisted, payload.Metadata.ReachabilityEnabled)...)
+	lines = append(lines, diffAuditFindingTable("Resolved Findings", "resolved", audit.Resolved, payload.Metadata.ReachabilityEnabled)...)
 	if len(audit.Introduced) == 0 && len(audit.Persisted) == 0 && len(audit.Resolved) == 0 {
 		return []string{"✅ No policy differences were identified."}
 	}
@@ -216,13 +227,13 @@ func diffPolicySummary(audit *output.DiffAudit) string {
 	return "**Summary:** " + strings.Join(parts, ", ") + "."
 }
 
-func diffAuditFindingTable(title, status string, findings []output.AuditFinding) []string {
+func diffAuditFindingTable(title, status string, findings []output.AuditFinding, includeReachability bool) []string {
 	if len(findings) == 0 {
 		return nil
 	}
 	rows := make([][]string, 0, len(findings))
 	for _, finding := range sortDiffAuditFindings(findings) {
-		rows = append(rows, []string{
+		row := []string{
 			findingIcon(status, finding.Severity, finding.Disposition),
 			status,
 			valueOrDash(finding.Auditor),
@@ -230,12 +241,23 @@ func diffAuditFindingTable(title, status string, findings []output.AuditFinding)
 			findingDisposition(finding.Disposition),
 			valueOrDash(finding.ID),
 			DiffPackageDisplayName(finding.Package),
+		}
+		if includeReachability {
+			row = append(row, valueOrDash(formatReachabilityCell(finding.Reachability)))
+		}
+		row = append(row,
 			valueOrDash(fixedVersionSummary(finding.FixedIn, finding.FixedVersions)),
 			valueOrDash(exploitabilitySummary(finding.KEVExploited, finding.KnownExploited, finding.RiskScore)),
 			firstNonEmpty(finding.Title, strings.Join(finding.Reasons, "; ")),
-		})
+		)
+		rows = append(rows, row)
 	}
-	return append([]string{"### " + title, ""}, append(markdownTable([]string{"", "Status", "Category", "Severity", "Disposition", "ID", "Package", "Fixed In", "Exploitability", "Title"}, rows), "")...)
+	header := []string{"", "Status", "Category", "Severity", "Disposition", "ID", "Package"}
+	if includeReachability {
+		header = append(header, "Reachability")
+	}
+	header = append(header, "Fixed In", "Exploitability", "Title")
+	return append([]string{"### " + title, ""}, append(markdownTable(header, rows), "")...)
 }
 
 func findingIcon(status, severity, disposition string) string {

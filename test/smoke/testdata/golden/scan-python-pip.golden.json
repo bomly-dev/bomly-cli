@@ -53,7 +53,7 @@
             "pkg:pypi/gitpython@3.1.50",
             "pkg:pypi/pyyaml@6.0.3",
             "pkg:pypi/rich@15.0.0",
-            "pkg:pypi/stevedore@5.7.0"
+            "pkg:pypi/stevedore@5.8.0"
           ],
           "id": "pkg:pypi/bandit@1.7.5",
           "licenses": [],
@@ -75,7 +75,7 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/click@8.3.3",
+            "pkg:pypi/click@8.4.1",
             "pkg:pypi/mypy-extensions@1.1.0",
             "pkg:pypi/packaging@26.2",
             "pkg:pypi/pathspec@1.1.1",
@@ -128,12 +128,12 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/certifi@2026.4.22",
+          "id": "pkg:pypi/certifi@2026.5.20",
           "licenses": [],
           "name": "certifi",
-          "purl": "pkg:pypi/certifi@2026.4.22",
+          "purl": "pkg:pypi/certifi@2026.5.20",
           "scope": "runtime",
-          "version": "2026.4.22",
+          "version": "2026.5.20",
           "vulnerabilities": []
         },
         {
@@ -183,12 +183,12 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/click@8.3.3",
+          "id": "pkg:pypi/click@8.4.1",
           "licenses": [],
           "name": "click",
-          "purl": "pkg:pypi/click@8.3.3",
+          "purl": "pkg:pypi/click@8.4.1",
           "scope": "runtime",
-          "version": "8.3.3",
+          "version": "8.4.1",
           "vulnerabilities": []
         },
         {
@@ -281,12 +281,12 @@
             "pkg:pypi/typing-extensions@4.15.0",
             "pkg:pypi/urllib3@1.24.1"
           ],
-          "id": "pkg:pypi/dulwich@1.2.1",
+          "id": "pkg:pypi/dulwich@1.2.4",
           "licenses": [],
           "name": "dulwich",
-          "purl": "pkg:pypi/dulwich@1.2.1",
+          "purl": "pkg:pypi/dulwich@1.2.4",
           "scope": "runtime",
-          "version": "1.2.1",
+          "version": "1.2.4",
           "vulnerabilities": []
         },
         {
@@ -371,12 +371,12 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/greenlet@3.5.0",
+          "id": "pkg:pypi/greenlet@3.5.1",
           "licenses": [],
           "name": "greenlet",
-          "purl": "pkg:pypi/greenlet@3.5.0",
+          "purl": "pkg:pypi/greenlet@3.5.1",
           "scope": "runtime",
-          "version": "3.5.0",
+          "version": "3.5.1",
           "vulnerabilities": []
         },
         {
@@ -391,7 +391,7 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/certifi@2026.4.22",
+            "pkg:pypi/certifi@2026.5.20",
             "pkg:pypi/h11@0.16.0"
           ],
           "id": "pkg:pypi/httpcore@1.0.9",
@@ -405,7 +405,7 @@
         {
           "dependencies": [
             "pkg:pypi/anyio@4.13.0",
-            "pkg:pypi/certifi@2026.4.22",
+            "pkg:pypi/certifi@2026.5.20",
             "pkg:pypi/httpcore@1.0.9",
             "pkg:pypi/idna@2.8"
           ],
@@ -459,7 +459,7 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/more-itertools@11.0.2"
+            "pkg:pypi/more-itertools@11.1.0"
           ],
           "id": "pkg:pypi/jaraco-classes@3.4.0",
           "licenses": [],
@@ -493,7 +493,7 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/more-itertools@11.0.2"
+            "pkg:pypi/more-itertools@11.1.0"
           ],
           "id": "pkg:pypi/jaraco-functools@4.5.0",
           "licenses": [],
@@ -601,12 +601,12 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/more-itertools@11.0.2",
+          "id": "pkg:pypi/more-itertools@11.1.0",
           "licenses": [],
           "name": "more-itertools",
-          "purl": "pkg:pypi/more-itertools@11.0.2",
+          "purl": "pkg:pypi/more-itertools@11.1.0",
           "scope": "runtime",
-          "version": "11.0.2",
+          "version": "11.1.0",
           "vulnerabilities": []
         },
         {
@@ -901,7 +901,7 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/certifi@2026.4.22",
+            "pkg:pypi/certifi@2026.5.20",
             "pkg:pypi/chardet@3.0.4",
             "pkg:pypi/idna@2.8",
             "pkg:pypi/urllib3@1.24.1"
@@ -946,26 +946,26 @@
             "pkg:pypi/black@23.12.1",
             "pkg:pypi/build@1.5.0",
             "pkg:pypi/cachecontrol@0.14.4",
-            "pkg:pypi/certifi@2026.4.22",
+            "pkg:pypi/certifi@2026.5.20",
             "pkg:pypi/cffi@2.0.0",
             "pkg:pypi/chardet@3.0.4",
             "pkg:pypi/charset-normalizer@3.4.7",
             "pkg:pypi/cleo@2.1.0",
-            "pkg:pypi/click@8.3.3",
+            "pkg:pypi/click@8.4.1",
             "pkg:pypi/coverage@7.4.0",
             "pkg:pypi/crashtest@0.4.1",
             "pkg:pypi/cryptography@48.0.0",
             "pkg:pypi/dill@0.4.1",
             "pkg:pypi/distlib@0.4.0",
             "pkg:pypi/django@1.11.29",
-            "pkg:pypi/dulwich@1.2.1",
+            "pkg:pypi/dulwich@1.2.4",
             "pkg:pypi/fastjsonschema@2.21.2",
             "pkg:pypi/feedparser@6.0.8",
             "pkg:pypi/filelock@3.29.0",
             "pkg:pypi/findpython@0.8.0",
             "pkg:pypi/gitdb@4.0.12",
             "pkg:pypi/gitpython@3.1.50",
-            "pkg:pypi/greenlet@3.5.0",
+            "pkg:pypi/greenlet@3.5.1",
             "pkg:pypi/h11@0.16.0",
             "pkg:pypi/httpcore@1.0.9",
             "pkg:pypi/httpx@0.28.1",
@@ -983,7 +983,7 @@
             "pkg:pypi/markupsafe@3.0.3",
             "pkg:pypi/mccabe@0.7.0",
             "pkg:pypi/mdurl@0.1.2",
-            "pkg:pypi/more-itertools@11.0.2",
+            "pkg:pypi/more-itertools@11.1.0",
             "pkg:pypi/msgpack@1.1.2",
             "pkg:pypi/mypy-extensions@1.1.0",
             "pkg:pypi/packaging@26.2",
@@ -1014,9 +1014,9 @@
             "pkg:pypi/shellingham@1.5.4",
             "pkg:pypi/smmap@5.0.3",
             "pkg:pypi/sqlalchemy@1.4.46",
-            "pkg:pypi/stevedore@5.7.0",
+            "pkg:pypi/stevedore@5.8.0",
             "pkg:pypi/tomlkit@0.15.0",
-            "pkg:pypi/trove-classifiers@2026.5.7.17",
+            "pkg:pypi/trove-classifiers@2026.5.22.10",
             "pkg:pypi/typing-extensions@4.15.0",
             "pkg:pypi/urllib3@1.24.1",
             "pkg:pypi/virtualenv@21.3.3"
@@ -1094,7 +1094,7 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/greenlet@3.5.0"
+            "pkg:pypi/greenlet@3.5.1"
           ],
           "id": "pkg:pypi/sqlalchemy@1.4.46",
           "licenses": [],
@@ -1116,12 +1116,12 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/stevedore@5.7.0",
+          "id": "pkg:pypi/stevedore@5.8.0",
           "licenses": [],
           "name": "stevedore",
-          "purl": "pkg:pypi/stevedore@5.7.0",
+          "purl": "pkg:pypi/stevedore@5.8.0",
           "scope": "runtime",
-          "version": "5.7.0",
+          "version": "5.8.0",
           "vulnerabilities": []
         },
         {
@@ -1136,12 +1136,12 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/trove-classifiers@2026.5.7.17",
+          "id": "pkg:pypi/trove-classifiers@2026.5.22.10",
           "licenses": [],
           "name": "trove-classifiers",
-          "purl": "pkg:pypi/trove-classifiers@2026.5.7.17",
+          "purl": "pkg:pypi/trove-classifiers@2026.5.22.10",
           "scope": "runtime",
-          "version": "2026.5.7.17",
+          "version": "2026.5.22.10",
           "vulnerabilities": []
         },
         {

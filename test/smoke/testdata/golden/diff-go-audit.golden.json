@@ -25,6 +25,8 @@
     "target_type": "dependency diff"
   },
   "results": {
+    "dependencies": {},
+    "licenses": {},
     "manifests": [
       {
         "ecosystem": "github-actions",
@@ -50,7 +52,8 @@
         "status": "unchanged",
         "subproject": "."
       }
-    ]
+    ],
+    "vulnerabilities": {}
   },
   "schema_version": "1.0",
   "summary": {
@@ -58,8 +61,11 @@
     "added_package_count": 0,
     "changed_manifest_count": 0,
     "changed_package_count": 0,
+    "exact_match_count": 0,
+    "fuzzy_match_count": 0,
     "removed_manifest_count": 0,
     "removed_package_count": 0,
-    "unchanged_manifest_count": 3
+    "unchanged_manifest_count": 3,
+    "unmatched_package_count": 0
   }
 }

@@ -15,6 +15,51 @@
     "target_type": "dependency diff"
   },
   "results": {
+    "dependencies": {
+      "changed": [
+        {
+          "after": {
+            "id": "pkg:npm/lodash@4.17.15",
+            "licenses": [],
+            "locations": [
+              {
+                "access_path": "package-lock.json",
+                "position": {
+                  "file": "package-lock.json",
+                  "line": 0
+                },
+                "real_path": "package-lock.json"
+              }
+            ],
+            "name": "lodash",
+            "purl": "pkg:npm/lodash@4.17.15",
+            "scope": "runtime",
+            "version": "4.17.15",
+            "vulnerabilities": []
+          },
+          "before": {
+            "id": "pkg:npm/lodash@4.17.14",
+            "licenses": [],
+            "locations": [
+              {
+                "access_path": "package-lock.json",
+                "position": {
+                  "file": "package-lock.json",
+                  "line": 0
+                },
+                "real_path": "package-lock.json"
+              }
+            ],
+            "name": "lodash",
+            "purl": "pkg:npm/lodash@4.17.14",
+            "scope": "runtime",
+            "version": "4.17.14",
+            "vulnerabilities": []
+          }
+        }
+      ]
+    },
+    "licenses": {},
     "manifests": [
       {
         "changed": [
@@ -66,7 +111,8 @@
         "status": "changed",
         "subproject": "."
       }
-    ]
+    ],
+    "vulnerabilities": {}
   },
   "schema_version": "1.0",
   "summary": {
@@ -74,8 +120,11 @@
     "added_package_count": 0,
     "changed_manifest_count": 1,
     "changed_package_count": 1,
+    "exact_match_count": 1,
+    "fuzzy_match_count": 0,
     "removed_manifest_count": 0,
     "removed_package_count": 0,
-    "unchanged_manifest_count": 0
+    "unchanged_manifest_count": 0,
+    "unmatched_package_count": 0
   }
 }

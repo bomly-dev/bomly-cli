@@ -178,7 +178,7 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:swift/github.com/apple/swift-metrics@2.10.1",
+          "id": "pkg:swift/github.com/apple/swift-metrics@2.11.0",
           "licenses": [],
           "locations": [
             {
@@ -192,12 +192,12 @@
           ],
           "metadata": {
             "repository": "https://github.com/apple/swift-metrics.git",
-            "revision": "d51c8d13fa366eec807eedb4e37daa60ff5bfdd5"
+            "revision": "087e8074afa97040c3b870c8664fe5482fb87cc4"
           },
           "name": "github.com/apple:swift-metrics",
-          "purl": "pkg:swift/github.com/apple/swift-metrics@2.10.1",
+          "purl": "pkg:swift/github.com/apple/swift-metrics@2.11.0",
           "scope": "runtime",
-          "version": "2.10.1",
+          "version": "2.11.0",
           "vulnerabilities": []
         },
         {
@@ -546,7 +546,7 @@
             "pkg:swift/github.com/apple/swift-crypto@3.3.0",
             "pkg:swift/github.com/apple/swift-http-types@1.5.1",
             "pkg:swift/github.com/apple/swift-log@1.5.4",
-            "pkg:swift/github.com/apple/swift-metrics@2.10.1",
+            "pkg:swift/github.com/apple/swift-metrics@2.11.0",
             "pkg:swift/github.com/apple/swift-nio-extras@1.22.0",
             "pkg:swift/github.com/apple/swift-nio-http2@1.30.0",
             "pkg:swift/github.com/apple/swift-nio-ssl@2.27.2",

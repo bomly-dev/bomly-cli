@@ -224,7 +224,13 @@ func assertPluginListed(t *testing.T, raw string, pluginID string) {
 	t.Helper()
 	var items []map[string]any
 	if err := json.Unmarshal([]byte(raw), &items); err != nil {
-		t.Fatalf("decode plugin list output: %v\nraw:\n%s", err, raw)
+		var grouped map[string][]map[string]any
+		if groupedErr := json.Unmarshal([]byte(raw), &grouped); groupedErr != nil {
+			t.Fatalf("decode plugin list output: %v; grouped decode: %v\nraw:\n%s", err, groupedErr, raw)
+		}
+		for _, group := range grouped {
+			items = append(items, group...)
+		}
 	}
 	for _, item := range items {
 		if item["id"] == pluginID {

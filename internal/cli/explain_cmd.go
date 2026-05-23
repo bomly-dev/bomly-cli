@@ -104,7 +104,8 @@ func newExplainCmd() *cobra.Command {
 				prog.CompleteStep("Evaluated policy", auditProgressChildren(explainResult.AuditorRuns, explainResult.AuditorFindings, explainResult.AuditWarnings))
 			}
 
-			payload := output.BuildExplainResponse(context.ProjectDescriptor(), args[0], targets, started)
+			reportOptions := reportOptionsFromPipelineResults(context.ResolvedConfig.Reachability, explainResult.PipelineResult)
+			payload := output.BuildExplainResponse(context.ProjectDescriptor(), args[0], targets, started, reportOptions)
 			markdownRenderer := func(w io.Writer) error {
 				return render.ExplainMarkdown(w, payload)
 			}
@@ -122,7 +123,7 @@ func newExplainCmd() *cobra.Command {
 						}
 					case render.OutputFormatSARIF:
 						if err := writeRenderedOutput(streams.reportWriter(), spec, func(w io.Writer) error {
-							return output.WriteSARIF(w, explainResult.Findings, "bomly", cmd.Root().Version)
+							return output.WriteSARIF(w, explainResult.Findings, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: context.ResolvedConfig.Reachability})
 						}); err != nil {
 							return err
 						}
@@ -137,7 +138,7 @@ func newExplainCmd() *cobra.Command {
 			}
 			if context.Format == output.FormatSARIF {
 				prog.Success("Resolved Graph")
-				return output.WriteSARIF(streams.reportWriter(), explainResult.Findings, "bomly", cmd.Root().Version)
+				return output.WriteSARIF(streams.reportWriter(), explainResult.Findings, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: context.ResolvedConfig.Reachability})
 			}
 
 			writer, closeWriter, err := context.Writer(streams.reportWriter())
@@ -159,7 +160,7 @@ func newExplainCmd() *cobra.Command {
 								return err
 							}
 						}
-						if err := render.Explain(w, target); err != nil {
+						if err := render.Explain(w, target, payload.Metadata.ReachabilityEnabled); err != nil {
 							return err
 						}
 					}

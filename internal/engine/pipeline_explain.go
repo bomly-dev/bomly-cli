@@ -53,6 +53,7 @@ func (p *Pipeline) RunExplain(ctx context.Context, req ExplainRequest) (ExplainR
 		return ExplainResult{PipelineResult: base}, err
 	}
 	p.runMatch(ctx, &base, pipeReq)
+	p.runAnalyze(ctx, &base, pipeReq)
 
 	result := ExplainResult{PipelineResult: base}
 	focusedResults := make([]sdk.DetectionResult, 0, len(base.Consolidated.Manifests))

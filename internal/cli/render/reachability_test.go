@@ -1,6 +1,7 @@
 package render
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
@@ -41,6 +42,158 @@ func TestScanRendersReachabilityColumnWhenEnabled(t *testing.T) {
 	}
 }
 
+func TestScanMarkdownRendersReachabilityOnlyWhenEnabled(t *testing.T) {
+	payload := output.ScanResponse{
+		Metadata: output.Metadata{ReachabilityEnabled: true},
+		Manifests: []output.ScanManifest{{
+			Packages: []output.ScanPackage{{
+				PackageRef: output.PackageRef{
+					Name: "lib",
+					Vulnerabilities: []output.VulnerabilityRef{{
+						ID:           "CVE-2024-0001",
+						Source:       "osv",
+						Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
+					}},
+				},
+			}},
+		}},
+		Findings: []output.AuditFinding{{
+			ID:           "CVE-2024-0001",
+			Severity:     "high",
+			Package:      output.PackageRef{Name: "lib"},
+			Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
+		}},
+	}
+	var out bytes.Buffer
+	if err := ScanMarkdown(&out, payload); err != nil {
+		t.Fatalf("ScanMarkdown() error = %v", err)
+	}
+	if !strings.Contains(out.String(), "Reachability") || !strings.Contains(out.String(), "reachable (package)") {
+		t.Fatalf("expected reachability in enabled Markdown output; got:\n%s", out.String())
+	}
+
+	payload.Metadata.ReachabilityEnabled = false
+	out.Reset()
+	if err := ScanMarkdown(&out, payload); err != nil {
+		t.Fatalf("ScanMarkdown() error = %v", err)
+	}
+	if strings.Contains(out.String(), "Reachability") || strings.Contains(out.String(), "reachable (package)") {
+		t.Fatalf("reachability should be absent when disabled; got:\n%s", out.String())
+	}
+}
+
+func TestDiffTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
+	payload := output.DiffResponse{
+		Metadata: output.Metadata{ReachabilityEnabled: true},
+		Results: output.DiffResults{
+			Vulnerabilities: output.DiffVulnerabilityResults{
+				Added: []output.DiffVulnerabilityChange{{
+					Package: output.PackageRef{Name: "lib", Version: "1.0.0"},
+					Vulnerability: output.VulnerabilityRef{
+						ID:           "CVE-2024-0001",
+						Severity:     "high",
+						Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
+					},
+				}},
+			},
+		},
+		Audit: &output.DiffAudit{
+			Introduced: []output.AuditFinding{{
+				ID:           "CVE-2024-0001",
+				Severity:     "high",
+				Package:      output.PackageRef{Name: "lib", Version: "1.0.0"},
+				Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
+			}},
+		},
+	}
+	var text bytes.Buffer
+	if err := Diff(&text, payload); err != nil {
+		t.Fatalf("Diff() error = %v", err)
+	}
+	if !strings.Contains(text.String(), "reachability reachable (package)") {
+		t.Fatalf("expected reachability in enabled diff text; got:\n%s", text.String())
+	}
+	var markdown bytes.Buffer
+	if err := DiffMarkdown(&markdown, payload); err != nil {
+		t.Fatalf("DiffMarkdown() error = %v", err)
+	}
+	if !strings.Contains(markdown.String(), "Reachability") || !strings.Contains(markdown.String(), "reachable (package)") {
+		t.Fatalf("expected reachability in enabled diff Markdown; got:\n%s", markdown.String())
+	}
+
+	payload.Metadata.ReachabilityEnabled = false
+	text.Reset()
+	if err := Diff(&text, payload); err != nil {
+		t.Fatalf("Diff() error = %v", err)
+	}
+	if strings.Contains(text.String(), "reachability reachable") {
+		t.Fatalf("reachability should be absent from disabled diff text; got:\n%s", text.String())
+	}
+	markdown.Reset()
+	if err := DiffMarkdown(&markdown, payload); err != nil {
+		t.Fatalf("DiffMarkdown() error = %v", err)
+	}
+	if strings.Contains(markdown.String(), "Reachability") || strings.Contains(markdown.String(), "reachable (package)") {
+		t.Fatalf("reachability should be absent from disabled diff Markdown; got:\n%s", markdown.String())
+	}
+}
+
+func TestExplainTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
+	target := output.ExplainTargetResponse{
+		Project: output.ProjectDescriptor{Name: "demo"},
+		Dependency: output.PackageRef{
+			Name: "lib",
+			Vulnerabilities: []output.VulnerabilityRef{{
+				ID:           "CVE-2024-0001",
+				Source:       "osv",
+				Severity:     "high",
+				Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
+			}},
+		},
+		Findings: []output.AuditFinding{{
+			ID:           "CVE-2024-0001",
+			Severity:     "high",
+			Package:      output.PackageRef{Name: "lib"},
+			Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
+		}},
+	}
+	var text bytes.Buffer
+	if err := Explain(&text, target, true); err != nil {
+		t.Fatalf("Explain() error = %v", err)
+	}
+	if !strings.Contains(text.String(), "Reach:") || !strings.Contains(text.String(), "reachable (package)") {
+		t.Fatalf("expected reachability in enabled explain text; got:\n%s", text.String())
+	}
+	text.Reset()
+	if err := Explain(&text, target, false); err != nil {
+		t.Fatalf("Explain() error = %v", err)
+	}
+	if strings.Contains(text.String(), "Reach:") || strings.Contains(text.String(), "reachable (package)") {
+		t.Fatalf("reachability should be absent from disabled explain text; got:\n%s", text.String())
+	}
+
+	payload := output.ExplainResponse{
+		Metadata: output.Metadata{ReachabilityEnabled: true},
+		Query:    output.ExplainQuery{Name: "lib"},
+		Targets:  []output.ExplainTargetResponse{target},
+	}
+	var markdown bytes.Buffer
+	if err := ExplainMarkdown(&markdown, payload); err != nil {
+		t.Fatalf("ExplainMarkdown() error = %v", err)
+	}
+	if !strings.Contains(markdown.String(), "Reachability") || !strings.Contains(markdown.String(), "reachable (package)") {
+		t.Fatalf("expected reachability in enabled explain Markdown; got:\n%s", markdown.String())
+	}
+	payload.Metadata.ReachabilityEnabled = false
+	markdown.Reset()
+	if err := ExplainMarkdown(&markdown, payload); err != nil {
+		t.Fatalf("ExplainMarkdown() error = %v", err)
+	}
+	if strings.Contains(markdown.String(), "Reachability") || strings.Contains(markdown.String(), "reachable (package)") {
+		t.Fatalf("reachability should be absent from disabled explain Markdown; got:\n%s", markdown.String())
+	}
+}
+
 func TestScanOmitsReachabilityColumnWhenDisabled(t *testing.T) {
 	g := model.New()
 	pkg := model.NewPackage(model.Package{Name: "lib", Version: "1.0.0", Ecosystem: "go"})
@@ -65,7 +218,7 @@ func TestFormatReachabilityCell(t *testing.T) {
 		in   *model.Reachability
 		want string
 	}{
-		{"nil", nil, "—"},
+		{"nil", nil, "-"},
 		{"reachable+symbol", &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierSymbol}, "reachable (symbol)"},
 		{"unknown+none", &model.Reachability{Status: model.ReachabilityUnknown, Tier: model.TierNone}, "unknown"},
 		{"unreachable, no tier", &model.Reachability{Status: model.ReachabilityUnreachable}, "unreachable"},

@@ -270,6 +270,7 @@ Complete reference for the `bomly diff` JSON output.
 | Field | Type | Description |
 |-------|------|-------------|
 | `duration_ms` | `integer` | |
+| `reachability_enabled` | `boolean` | |
 | `analyzer_runs` | Array<`string`> | |
 | `analyzer_stats` | `object` | |
 

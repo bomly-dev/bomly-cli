@@ -1459,6 +1459,9 @@
         },
         "duration_ms": {
           "type": "integer"
+        },
+        "reachability_enabled": {
+          "type": "boolean"
         }
       },
       "required": [

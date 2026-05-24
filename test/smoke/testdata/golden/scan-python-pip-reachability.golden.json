@@ -71,7 +71,7 @@
             "pkg:pypi/gitpython@3.1.50",
             "pkg:pypi/pyyaml@6.0.3",
             "pkg:pypi/rich@15.0.0",
-            "pkg:pypi/stevedore@5.7.0"
+            "pkg:pypi/stevedore@5.8.0"
           ],
           "id": "pkg:pypi/bandit@1.7.5",
           "licenses": [
@@ -89,7 +89,7 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/click@8.3.3",
+            "pkg:pypi/click@8.4.1",
             "pkg:pypi/mypy-extensions@1.1.0",
             "pkg:pypi/packaging@26.2",
             "pkg:pypi/pathspec@1.1.1",
@@ -108,7 +108,202 @@
           "purl": "pkg:pypi/black@23.12.1",
           "scope": "runtime",
           "version": "23.12.1",
-          "vulnerabilities": []
+          "vulnerabilities": [
+            {
+              "affected_version_range": "\u003c26.3.1 (python)",
+              "aliases": [
+                "CVE-2026-32274"
+              ],
+              "cvss": [
+                {
+                  "Score": 8.7,
+                  "Source": "",
+                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:H/VA:N/SC:N/SI:N/SA:N",
+                  "Version": "4.0"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2026-32274",
+                  "id": "CWE-22",
+                  "source": "security-advisories@github.com",
+                  "type": "Primary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-3936-cmfr-pm3m",
+              "description": "Black: Arbitrary file writes from unsanitized user input in cache file name",
+              "epss": [
+                {
+                  "cve": "CVE-2026-32274",
+                  "date": "2026-05-23",
+                  "epss": 0.00023,
+                  "percentile": 0.06884
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2026-03-13",
+                  "kind": "first-observed",
+                  "version": "26.3.1"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "26.3.1",
+              "fixed_versions": [
+                "26.3.1"
+              ],
+              "id": "GHSA-3936-cmfr-pm3m",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2026-32274",
+                "Fix available: upgrade to 26.3.1",
+                "Fix state: fixed",
+                "https://github.com/psf/black/commit/4937fe6cf241139ddbfc16b0bdbb5b422798909d",
+                "https://github.com/psf/black/pull/5038",
+                "https://github.com/psf/black/releases/tag/26.3.1",
+                "https://github.com/psf/black/security/advisories/GHSA-3936-cmfr-pm3m",
+                "https://nvd.nist.gov/vuln/detail/CVE-2026-32274"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-3936-cmfr-pm3m"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/psf/black/security/advisories/GHSA-3936-cmfr-pm3m"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/psf/black/pull/5038"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/psf/black/commit/4937fe6cf241139ddbfc16b0bdbb5b422798909d"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/psf/black/releases/tag/26.3.1"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2026-32274"
+                }
+              ],
+              "risk_score": 0.01863,
+              "severity": "high",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Black: Arbitrary file writes from unsanitized user input in cache file name"
+            },
+            {
+              "affected_version_range": "\u003e=0,\u003c24.3.0 (python)",
+              "aliases": [
+                "CVE-2024-21503"
+              ],
+              "cvss": [
+                {
+                  "Score": 5.3,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
+                  "Version": "3.1"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2024-21503",
+                  "id": "CWE-1333",
+                  "source": "report@snyk.io",
+                  "type": "Secondary"
+                },
+                {
+                  "cve": "CVE-2024-21503",
+                  "id": "CWE-75",
+                  "source": "134c704f-9b21-4f2e-91b3-4a467353bcc0",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-fj7x-q9j7-g6q6",
+              "description": "Black vulnerable to Regular Expression Denial of Service (ReDoS)",
+              "epss": [
+                {
+                  "cve": "CVE-2024-21503",
+                  "date": "2026-05-23",
+                  "epss": 0.00081,
+                  "percentile": 0.23752
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2024-03-21",
+                  "kind": "first-observed",
+                  "version": "24.3.0"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "24.3.0",
+              "fixed_versions": [
+                "24.3.0"
+              ],
+              "id": "GHSA-fj7x-q9j7-g6q6",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2024-21503",
+                "Fix available: upgrade to 24.3.0",
+                "Fix state: fixed",
+                "https://github.com/psf/black/commit/f00093672628d212b8965a8993cee8bedf5fe9b8",
+                "https://github.com/psf/black/releases/tag/24.3.0",
+                "https://github.com/pypa/advisory-database/tree/main/vulns/black/PYSEC-2024-48.yaml",
+                "https://nvd.nist.gov/vuln/detail/CVE-2024-21503",
+                "https://security.snyk.io/vuln/SNYK-PYTHON-BLACK-6256273"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-fj7x-q9j7-g6q6"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2024-21503"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/psf/black/commit/f00093672628d212b8965a8993cee8bedf5fe9b8"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/psf/black/releases/tag/24.3.0"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://security.snyk.io/vuln/SNYK-PYTHON-BLACK-6256273"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/black/PYSEC-2024-48.yaml"
+                }
+              ],
+              "risk_score": 0.041714999999999995,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Black vulnerable to Regular Expression Denial of Service (ReDoS)"
+            }
+          ]
         },
         {
           "dependencies": [
@@ -150,7 +345,7 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/certifi@2026.4.22",
+          "id": "pkg:pypi/certifi@2026.5.20",
           "licenses": [
             {
               "spdxExpression": "MPL-2.0",
@@ -169,9 +364,9 @@
             }
           ],
           "name": "certifi",
-          "purl": "pkg:pypi/certifi@2026.4.22",
+          "purl": "pkg:pypi/certifi@2026.5.20",
           "scope": "runtime",
-          "version": "2026.4.22",
+          "version": "2026.5.20",
           "vulnerabilities": []
         },
         {
@@ -255,7 +450,7 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/click@8.3.3",
+          "id": "pkg:pypi/click@8.4.1",
           "licenses": [
             {
               "spdxExpression": "BSD-3-Clause",
@@ -264,9 +459,9 @@
             }
           ],
           "name": "click",
-          "purl": "pkg:pypi/click@8.3.3",
+          "purl": "pkg:pypi/click@8.4.1",
           "scope": "runtime",
-          "version": "8.3.3",
+          "version": "8.4.1",
           "vulnerabilities": []
         },
         {
@@ -378,14 +573,857 @@
           "purl": "pkg:pypi/django@1.11.29",
           "scope": "runtime",
           "version": "1.11.29",
-          "vulnerabilities": []
+          "vulnerabilities": [
+            {
+              "affected_version_range": "\u003c2.2.24 (python)",
+              "aliases": [
+                "CVE-2021-33203"
+              ],
+              "cvss": [
+                {
+                  "Score": 4.9,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:H/I:N/A:N",
+                  "Version": "3.1"
+                },
+                {
+                  "Score": 6.9,
+                  "Source": "",
+                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:H/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N",
+                  "Version": "4.0"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2021-33203",
+                  "id": "CWE-22",
+                  "source": "nvd@nist.gov",
+                  "type": "Primary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-68w8-qjq3-2gfm",
+              "description": "Path Traversal in Django",
+              "epss": [
+                {
+                  "cve": "CVE-2021-33203",
+                  "date": "2026-05-23",
+                  "epss": 0.00327,
+                  "percentile": 0.55704
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2021-06-11",
+                  "kind": "first-observed",
+                  "version": "2.2.24"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "2.2.24",
+              "fixed_versions": [
+                "2.2.24"
+              ],
+              "id": "GHSA-68w8-qjq3-2gfm",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2021-33203",
+                "Fix available: upgrade to 2.2.24",
+                "Fix state: fixed",
+                "https://docs.djangoproject.com/en/3.2/releases/security",
+                "https://github.com/django/django/commit/053cc9534d174dc89daba36724ed2dcb36755b90",
+                "https://github.com/django/django/commit/20c67a0693c4ede2b09af02574823485e82e4c8f",
+                "https://github.com/django/django/commit/dfaba12cda060b8b292ae1d271b44bf810b1c5b9",
+                "https://github.com/pypa/advisory-database/tree/main/vulns/django/PYSEC-2021-98.yaml",
+                "https://groups.google.com/forum/#!forum/django-announce",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/B4SQG2EAF4WCI2SLRL6XRDJ3RPK3ZRDV",
+                "https://nvd.nist.gov/vuln/detail/CVE-2021-33203",
+                "https://security.netapp.com/advisory/ntap-20210727-0004",
+                "https://www.djangoproject.com/weblog/2021/jun/02/security-releases"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-68w8-qjq3-2gfm"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2021-33203"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://groups.google.com/forum/#!forum/django-announce"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/django/django/commit/053cc9534d174dc89daba36724ed2dcb36755b90"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/django/django/commit/20c67a0693c4ede2b09af02574823485e82e4c8f"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/django/django/commit/dfaba12cda060b8b292ae1d271b44bf810b1c5b9"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://docs.djangoproject.com/en/3.2/releases/security"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/django/PYSEC-2021-98.yaml"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/B4SQG2EAF4WCI2SLRL6XRDJ3RPK3ZRDV"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://security.netapp.com/advisory/ntap-20210727-0004"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://www.djangoproject.com/weblog/2021/jun/02/security-releases"
+                }
+              ],
+              "risk_score": 0.178215,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Path Traversal in Django"
+            },
+            {
+              "affected_version_range": "\u003c4.2.24 (python)",
+              "aliases": [
+                "CVE-2025-57833"
+              ],
+              "cvss": [
+                {
+                  "Score": 7.1,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:C/C:H/I:L/A:N",
+                  "Version": "3.1"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2025-57833",
+                  "id": "CWE-89",
+                  "source": "cve@mitre.org",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-6w2r-r2m5-xq5w",
+              "description": "Django is subject to SQL injection through its column aliases",
+              "epss": [
+                {
+                  "cve": "CVE-2025-57833",
+                  "date": "2026-05-23",
+                  "epss": 0.00041,
+                  "percentile": 0.12606
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2025-09-10",
+                  "kind": "first-observed",
+                  "version": "4.2.24"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "4.2.24",
+              "fixed_versions": [
+                "4.2.24"
+              ],
+              "id": "GHSA-6w2r-r2m5-xq5w",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2025-57833",
+                "Fix available: upgrade to 4.2.24",
+                "Fix state: fixed",
+                "http://www.openwall.com/lists/oss-security/2025/09/03/3",
+                "https://docs.djangoproject.com/en/dev/releases/security",
+                "https://github.com/django/django/commit/102965ea93072fe3c39a30be437c683ec1106ef5",
+                "https://github.com/django/django/commit/31334e6965ad136a5e369993b01721499c5d1a92",
+                "https://github.com/django/django/commit/4c044fcc866ec226f612c475950b690b0139d243",
+                "https://groups.google.com/g/django-announce",
+                "https://lists.debian.org/debian-lts-announce/2025/09/msg00017.html",
+                "https://medium.com/@EyalSec/django-unauthenticated-0-click-rce-and-sql-injection-using-default-configuration-059964f3f898",
+                "https://nvd.nist.gov/vuln/detail/CVE-2025-57833",
+                "https://www.djangoproject.com/weblog/2025/sep/03/security-releases"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-6w2r-r2m5-xq5w"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2025-57833"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://docs.djangoproject.com/en/dev/releases/security"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://groups.google.com/g/django-announce"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://medium.com/@EyalSec/django-unauthenticated-0-click-rce-and-sql-injection-using-default-configuration-059964f3f898"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://www.djangoproject.com/weblog/2025/sep/03/security-releases"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/django/django/commit/102965ea93072fe3c39a30be437c683ec1106ef5"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/django/django/commit/31334e6965ad136a5e369993b01721499c5d1a92"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/django/django/commit/4c044fcc866ec226f612c475950b690b0139d243"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2025/09/msg00017.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "http://www.openwall.com/lists/oss-security/2025/09/03/3"
+                }
+              ],
+              "risk_score": 0.029930000000000002,
+              "severity": "high",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Django is subject to SQL injection through its column aliases"
+            },
+            {
+              "affected_version_range": "\u003c4.2.22 (python)",
+              "aliases": [
+                "CVE-2025-48432"
+              ],
+              "cvss": [
+                {
+                  "Score": 4,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:N/I:L/A:N",
+                  "Version": "3.1"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2025-48432",
+                  "id": "CWE-117",
+                  "source": "cve@mitre.org",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-7xr5-9hcq-chf9",
+              "description": "Django Improper Output Neutralization for Logs vulnerability",
+              "epss": [
+                {
+                  "cve": "CVE-2025-48432",
+                  "date": "2026-05-23",
+                  "epss": 0.00411,
+                  "percentile": 0.61604
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2025-06-07",
+                  "kind": "first-observed",
+                  "version": "4.2.22"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "4.2.22",
+              "fixed_versions": [
+                "4.2.22"
+              ],
+              "id": "GHSA-7xr5-9hcq-chf9",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2025-48432",
+                "Fix available: upgrade to 4.2.22",
+                "Fix state: fixed",
+                "http://www.openwall.com/lists/oss-security/2025/06/04/5",
+                "http://www.openwall.com/lists/oss-security/2025/06/10/2",
+                "http://www.openwall.com/lists/oss-security/2025/06/10/3",
+                "http://www.openwall.com/lists/oss-security/2025/06/10/4",
+                "https://docs.djangoproject.com/en/dev/releases/security",
+                "https://github.com/pypa/advisory-database/tree/main/vulns/django/PYSEC-2025-47.yaml",
+                "https://groups.google.com/g/django-announce",
+                "https://nvd.nist.gov/vuln/detail/CVE-2025-48432",
+                "https://www.djangoproject.com/weblog/2025/jun/04/security-releases",
+                "https://www.djangoproject.com/weblog/2025/jun/10/bugfix-releases"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-7xr5-9hcq-chf9"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2025-48432"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://docs.djangoproject.com/en/dev/releases/security"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://groups.google.com/g/django-announce"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://www.djangoproject.com/weblog/2025/jun/04/security-releases"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "http://www.openwall.com/lists/oss-security/2025/06/04/5"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/django/PYSEC-2025-47.yaml"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://www.djangoproject.com/weblog/2025/jun/10/bugfix-releases"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "http://www.openwall.com/lists/oss-security/2025/06/10/2"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "http://www.openwall.com/lists/oss-security/2025/06/10/3"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "http://www.openwall.com/lists/oss-security/2025/06/10/4"
+                }
+              ],
+              "risk_score": 0.18495,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Django Improper Output Neutralization for Logs vulnerability"
+            },
+            {
+              "affected_version_range": "\u003c3.2.15 (python)",
+              "aliases": [
+                "CVE-2022-36359"
+              ],
+              "cvss": [
+                {
+                  "Score": 8.8,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+                  "Version": "3.1"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2022-36359",
+                  "id": "CWE-494",
+                  "source": "nvd@nist.gov",
+                  "type": "Primary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-8x94-hmjh-97hq",
+              "description": "Django vulnerable to Reflected File Download attack",
+              "epss": [
+                {
+                  "cve": "CVE-2022-36359",
+                  "date": "2026-05-23",
+                  "epss": 0.00675,
+                  "percentile": 0.71685
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2022-08-12",
+                  "kind": "first-observed",
+                  "version": "3.2.15"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "3.2.15",
+              "fixed_versions": [
+                "3.2.15"
+              ],
+              "id": "GHSA-8x94-hmjh-97hq",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2022-36359",
+                "Fix available: upgrade to 3.2.15",
+                "Fix state: fixed",
+                "http://www.openwall.com/lists/oss-security/2022/08/03/1",
+                "https://docs.djangoproject.com/en/4.0/releases/security",
+                "https://github.com/django/django/commit/b3e4494d759202a3b6bf247fd34455bf13be5b80",
+                "https://github.com/django/django/commit/b7d9529cbe0af4adabb6ea5d01ed8dcce3668fb3",
+                "https://github.com/django/django/commit/bd062445cffd3f6cc6dcd20d13e2abed818fa173",
+                "https://github.com/pypa/advisory-database/tree/main/vulns/django/PYSEC-2022-245.yaml",
+                "https://groups.google.com/g/django-announce/c/8cz--gvaJr4",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/HWY6DQWRVBALV73BPUVBXC3QIYUM24IK",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/LTZVAKU5ALQWOKFTPISE257VCVIYGFQI",
+                "https://nvd.nist.gov/vuln/detail/CVE-2022-36359",
+                "https://security.netapp.com/advisory/ntap-20220915-0008",
+                "https://www.debian.org/security/2022/dsa-5254",
+                "https://www.djangoproject.com/weblog/2022/aug/03/security-releases"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-8x94-hmjh-97hq"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2022-36359"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/django/PYSEC-2022-245.yaml"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://groups.google.com/g/django-announce/c/8cz--gvaJr4"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "http://www.openwall.com/lists/oss-security/2022/08/03/1"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://www.debian.org/security/2022/dsa-5254"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/django/django/commit/b3e4494d759202a3b6bf247fd34455bf13be5b80"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/django/django/commit/b7d9529cbe0af4adabb6ea5d01ed8dcce3668fb3"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/django/django/commit/bd062445cffd3f6cc6dcd20d13e2abed818fa173"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://docs.djangoproject.com/en/4.0/releases/security"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/HWY6DQWRVBALV73BPUVBXC3QIYUM24IK"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/LTZVAKU5ALQWOKFTPISE257VCVIYGFQI"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://security.netapp.com/advisory/ntap-20220915-0008"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://www.djangoproject.com/weblog/2022/aug/03/security-releases"
+                }
+              ],
+              "risk_score": 0.550125,
+              "severity": "high",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Django vulnerable to Reflected File Download attack"
+            },
+            {
+              "affected_version_range": "\u003c4.2.26 (python)",
+              "aliases": [
+                "CVE-2025-64459"
+              ],
+              "cvss": [
+                {
+                  "Score": 9.1,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N",
+                  "Version": "3.1"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2025-64459",
+                  "id": "CWE-89",
+                  "source": "6a34fbeb-21d4-45e7-8e0a-62b95bc12c92",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-frmv-pr5f-9mcr",
+              "description": "Django vulnerable to SQL injection via _connector keyword argument in QuerySet and Q objects.",
+              "epss": [
+                {
+                  "cve": "CVE-2025-64459",
+                  "date": "2026-05-23",
+                  "epss": 0.00256,
+                  "percentile": 0.49062
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2025-11-06",
+                  "kind": "first-observed",
+                  "version": "4.2.26"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "4.2.26",
+              "fixed_versions": [
+                "4.2.26"
+              ],
+              "id": "GHSA-frmv-pr5f-9mcr",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2025-64459",
+                "Fix available: upgrade to 4.2.26",
+                "Fix state: fixed",
+                "https://docs.djangoproject.com/en/dev/releases/security",
+                "https://github.com/django/django/commit/06dd38324ac3d60d83d9f3adabf0dcdf423d2a85",
+                "https://github.com/django/django/commit/59ae82e67053d281ff4562a24bbba21299f0a7d4",
+                "https://github.com/django/django/commit/6703f364d767e949c5b0e4016433ef75063b4f9b",
+                "https://github.com/django/django/commit/72d2c87431f2ae0431d65d0ec792047f078c8241",
+                "https://github.com/omarkurt/django-connector-CVE-2025-64459-testbed",
+                "https://groups.google.com/g/django-announce",
+                "https://nvd.nist.gov/vuln/detail/CVE-2025-64459",
+                "https://shivasurya.me/security/django/2025/11/07/django-sql-injection-CVE-2025-64459.html",
+                "https://www.djangoproject.com/weblog/2025/nov/05/security-releases"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-frmv-pr5f-9mcr"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2025-64459"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://docs.djangoproject.com/en/dev/releases/security"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://groups.google.com/g/django-announce"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://www.djangoproject.com/weblog/2025/nov/05/security-releases"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/django/django/commit/06dd38324ac3d60d83d9f3adabf0dcdf423d2a85"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/django/django/commit/59ae82e67053d281ff4562a24bbba21299f0a7d4"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/django/django/commit/6703f364d767e949c5b0e4016433ef75063b4f9b"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/django/django/commit/72d2c87431f2ae0431d65d0ec792047f078c8241"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://shivasurya.me/security/django/2025/11/07/django-sql-injection-CVE-2025-64459.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/omarkurt/django-connector-CVE-2025-64459-testbed"
+                }
+              ],
+              "risk_score": 0.23168000000000002,
+              "severity": "critical",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Django vulnerable to SQL injection via _connector keyword argument in QuerySet and Q objects."
+            },
+            {
+              "affected_version_range": "\u003c4.2.26 (python)",
+              "aliases": [
+                "CVE-2025-64458"
+              ],
+              "cvss": [
+                {
+                  "Score": 7.5,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                  "Version": "3.1"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2025-64458",
+                  "id": "CWE-407",
+                  "source": "6a34fbeb-21d4-45e7-8e0a-62b95bc12c92",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-qw25-v68c-qjf3",
+              "description": "Django has a denial-of-service vulnerability in HttpResponseRedirect and HttpResponsePermanentRedirect on Windows",
+              "epss": [
+                {
+                  "cve": "CVE-2025-64458",
+                  "date": "2026-05-23",
+                  "epss": 0.00024,
+                  "percentile": 0.07074
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2025-11-06",
+                  "kind": "first-observed",
+                  "version": "4.2.26"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "4.2.26",
+              "fixed_versions": [
+                "4.2.26"
+              ],
+              "id": "GHSA-qw25-v68c-qjf3",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2025-64458",
+                "Fix available: upgrade to 4.2.26",
+                "Fix state: fixed",
+                "https://docs.djangoproject.com/en/dev/releases/security",
+                "https://github.com/django/django/commit/3790593781d26168e7306b5b2f8ea0309de16242",
+                "https://github.com/django/django/commit/4f5d904b63751dea9ffc3b0e046404a7fa5881ac",
+                "https://github.com/django/django/commit/6e13348436fccf8f22982921d6a3a3e65c956a9f",
+                "https://github.com/django/django/commit/770eea38d7a0e9ba9455140b5a9a9e33618226a7",
+                "https://groups.google.com/g/django-announce",
+                "https://nvd.nist.gov/vuln/detail/CVE-2025-64458",
+                "https://www.djangoproject.com/weblog/2025/nov/05/security-releases"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-qw25-v68c-qjf3"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2025-64458"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://docs.djangoproject.com/en/dev/releases/security"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://groups.google.com/g/django-announce"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://www.djangoproject.com/weblog/2025/nov/05/security-releases"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/django/django/commit/3790593781d26168e7306b5b2f8ea0309de16242"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/django/django/commit/4f5d904b63751dea9ffc3b0e046404a7fa5881ac"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/django/django/commit/6e13348436fccf8f22982921d6a3a3e65c956a9f"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/django/django/commit/770eea38d7a0e9ba9455140b5a9a9e33618226a7"
+                }
+              ],
+              "risk_score": 0.018000000000000002,
+              "severity": "high",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Django has a denial-of-service vulnerability in HttpResponseRedirect and HttpResponsePermanentRedirect on Windows"
+            },
+            {
+              "affected_version_range": "\u003c4.2.16 (python)",
+              "aliases": [
+                "CVE-2024-45231"
+              ],
+              "cvss": [
+                {
+                  "Score": 3.7,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
+                  "Version": "3.1"
+                },
+                {
+                  "Score": 6.3,
+                  "Source": "",
+                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:L/VI:N/VA:N/SC:N/SI:N/SA:N",
+                  "Version": "4.0"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2024-45231",
+                  "id": "CWE-203",
+                  "source": "134c704f-9b21-4f2e-91b3-4a467353bcc0",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-rrqc-c2jx-6jgv",
+              "description": "Django allows enumeration of user e-mail addresses",
+              "epss": [
+                {
+                  "cve": "CVE-2024-45231",
+                  "date": "2026-05-23",
+                  "epss": 0.00235,
+                  "percentile": 0.46357
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2024-10-09",
+                  "kind": "first-observed",
+                  "version": "4.2.16"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "4.2.16",
+              "fixed_versions": [
+                "4.2.16"
+              ],
+              "id": "GHSA-rrqc-c2jx-6jgv",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2024-45231",
+                "Fix available: upgrade to 4.2.16",
+                "Fix state: fixed",
+                "https://docs.djangoproject.com/en/dev/releases/security",
+                "https://github.com/django/django/commit/3c733c78d6f8e50296d6e248968b6516c92a53ca",
+                "https://github.com/django/django/commit/96d84047715ea1715b4bd1594e46122b8a77b9e2",
+                "https://github.com/django/django/commit/bf4888d317ba4506d091eeac6e8b4f1fcc731199",
+                "https://groups.google.com/forum/#%21forum/django-announce",
+                "https://nvd.nist.gov/vuln/detail/CVE-2024-45231",
+                "https://www.djangoproject.com/weblog/2024/sep/03/security-releases"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-rrqc-c2jx-6jgv"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2024-45231"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://docs.djangoproject.com/en/dev/releases/security"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://groups.google.com/forum/#%21forum/django-announce"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://www.djangoproject.com/weblog/2024/sep/03/security-releases"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/django/django/commit/3c733c78d6f8e50296d6e248968b6516c92a53ca"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/django/django/commit/96d84047715ea1715b4bd1594e46122b8a77b9e2"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/django/django/commit/bf4888d317ba4506d091eeac6e8b4f1fcc731199"
+                }
+              ],
+              "risk_score": 0.11750000000000001,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Django allows enumeration of user e-mail addresses"
+            }
+          ]
         },
         {
           "dependencies": [
             "pkg:pypi/typing-extensions@4.15.0",
             "pkg:pypi/urllib3@1.24.1"
           ],
-          "id": "pkg:pypi/dulwich@1.2.1",
+          "id": "pkg:pypi/dulwich@1.2.4",
           "licenses": [
             {
               "spdxExpression": "Apache-2.0 OR GPL-2.0-or-later",
@@ -394,9 +1432,9 @@
             }
           ],
           "name": "dulwich",
-          "purl": "pkg:pypi/dulwich@1.2.1",
+          "purl": "pkg:pypi/dulwich@1.2.4",
           "scope": "runtime",
-          "version": "1.2.1",
+          "version": "1.2.4",
           "vulnerabilities": []
         },
         {
@@ -517,7 +1555,7 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/greenlet@3.5.0",
+          "id": "pkg:pypi/greenlet@3.5.1",
           "licenses": [
             {
               "spdxExpression": "MIT AND PSF-2.0",
@@ -526,9 +1564,9 @@
             }
           ],
           "name": "greenlet",
-          "purl": "pkg:pypi/greenlet@3.5.0",
+          "purl": "pkg:pypi/greenlet@3.5.1",
           "scope": "runtime",
-          "version": "3.5.0",
+          "version": "3.5.1",
           "vulnerabilities": []
         },
         {
@@ -549,7 +1587,7 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/certifi@2026.4.22",
+            "pkg:pypi/certifi@2026.5.20",
             "pkg:pypi/h11@0.16.0"
           ],
           "id": "pkg:pypi/httpcore@1.0.9",
@@ -569,7 +1607,7 @@
         {
           "dependencies": [
             "pkg:pypi/anyio@4.13.0",
-            "pkg:pypi/certifi@2026.4.22",
+            "pkg:pypi/certifi@2026.5.20",
             "pkg:pypi/httpcore@1.0.9",
             "pkg:pypi/idna@2.8"
           ],
@@ -611,7 +1649,192 @@
           "purl": "pkg:pypi/idna@2.8",
           "scope": "runtime",
           "version": "2.8",
-          "vulnerabilities": []
+          "vulnerabilities": [
+            {
+              "affected_version_range": "\u003c3.15 (python)",
+              "aliases": [
+                "CVE-2026-45409"
+              ],
+              "cvss": [
+                {
+                  "Score": 6.9,
+                  "Source": "",
+                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N",
+                  "Version": "4.0"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-65pc-fj4g-8rjx",
+              "description": "Internationalized Domain Names in Applications (IDNA): Specially crafted inputs to idna.encode() can bypass CVE-2024-3651 fix",
+              "fix_available": [
+                {
+                  "date": "2026-05-19",
+                  "kind": "first-observed",
+                  "version": "3.15"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "3.15",
+              "fixed_versions": [
+                "3.15"
+              ],
+              "id": "GHSA-65pc-fj4g-8rjx",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2026-45409",
+                "Fix available: upgrade to 3.15",
+                "Fix state: fixed",
+                "https://github.com/kjd/idna/security/advisories/GHSA-65pc-fj4g-8rjx"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-65pc-fj4g-8rjx"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/kjd/idna/security/advisories/GHSA-65pc-fj4g-8rjx"
+                }
+              ],
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Internationalized Domain Names in Applications (IDNA): Specially crafted inputs to idna.encode() can bypass CVE-2024-3651 fix"
+            },
+            {
+              "affected_version_range": "\u003c3.7 (python)",
+              "aliases": [
+                "CVE-2024-3651"
+              ],
+              "cvss": [
+                {
+                  "Score": 6.2,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                  "Version": "3.1"
+                },
+                {
+                  "Score": 6.9,
+                  "Source": "",
+                  "Vector": "CVSS:4.0/AV:L/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N",
+                  "Version": "4.0"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2024-3651",
+                  "id": "CWE-1333",
+                  "source": "security@huntr.dev",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-jjg7-2v4v-x38h",
+              "description": "Internationalized Domain Names in Applications (IDNA) vulnerable to denial of service from specially crafted inputs to idna.encode",
+              "epss": [
+                {
+                  "cve": "CVE-2024-3651",
+                  "date": "2026-05-23",
+                  "epss": 0.00675,
+                  "percentile": 0.7171
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2024-04-12",
+                  "kind": "first-observed",
+                  "version": "3.7"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "3.7",
+              "fixed_versions": [
+                "3.7"
+              ],
+              "id": "GHSA-jjg7-2v4v-x38h",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2024-3651",
+                "Fix available: upgrade to 3.7",
+                "Fix state: fixed",
+                "https://github.com/kjd/idna/commit/1d365e17e10d72d0b7876316fc7b9ca0eebdd38d",
+                "https://github.com/kjd/idna/security/advisories/GHSA-jjg7-2v4v-x38h",
+                "https://github.com/pypa/advisory-database/tree/main/vulns/idna/PYSEC-2024-60.yaml",
+                "https://huntr.com/bounties/93d78d07-d791-4b39-a845-cbfabc44aadb",
+                "https://lists.debian.org/debian-lts-announce/2024/05/msg00006.html",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/4YQUPYH3SVZ5GFF2CDQ55FCM575AZTF2",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/F2S5E23N6E52S46KGNYTDFB75LOC4N4D",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/S5IDLLD2IKSIVRBSLB34WTSYGLMWUFWF",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/ULSC7HBJKXB3BZV367WM5BR6DFEC4Z43",
+                "https://nvd.nist.gov/vuln/detail/CVE-2024-3651"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-jjg7-2v4v-x38h"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/kjd/idna/security/advisories/GHSA-jjg7-2v4v-x38h"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2024-3651"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/kjd/idna/commit/1d365e17e10d72d0b7876316fc7b9ca0eebdd38d"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://huntr.com/bounties/93d78d07-d791-4b39-a845-cbfabc44aadb"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/idna/PYSEC-2024-60.yaml"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2024/05/msg00006.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/F2S5E23N6E52S46KGNYTDFB75LOC4N4D"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/S5IDLLD2IKSIVRBSLB34WTSYGLMWUFWF"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/ULSC7HBJKXB3BZV367WM5BR6DFEC4Z43"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/4YQUPYH3SVZ5GFF2CDQ55FCM575AZTF2"
+                }
+              ],
+              "risk_score": 0.3898125,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Internationalized Domain Names in Applications (IDNA) vulnerable to denial of service from specially crafted inputs to idna.encode"
+            }
+          ]
         },
         {
           "dependencies": [],
@@ -663,7 +1886,7 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/more-itertools@11.0.2"
+            "pkg:pypi/more-itertools@11.1.0"
           ],
           "id": "pkg:pypi/jaraco-classes@3.4.0",
           "licenses": [
@@ -709,7 +1932,7 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/more-itertools@11.0.2"
+            "pkg:pypi/more-itertools@11.1.0"
           ],
           "id": "pkg:pypi/jaraco-functools@4.5.0",
           "licenses": [
@@ -763,7 +1986,552 @@
           "purl": "pkg:pypi/jinja2@2.10.1",
           "scope": "runtime",
           "version": "2.10.1",
-          "vulnerabilities": []
+          "vulnerabilities": [
+            {
+              "affected_version_range": "\u003c=3.1.5 (python)",
+              "aliases": [
+                "CVE-2025-27516"
+              ],
+              "cvss": [
+                {
+                  "Score": 5.4,
+                  "Source": "",
+                  "Vector": "CVSS:4.0/AV:L/AC:L/AT:P/PR:L/UI:P/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N",
+                  "Version": "4.0"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2025-27516",
+                  "id": "CWE-1336",
+                  "source": "security-advisories@github.com",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-cpwx-vrp4-4pq7",
+              "description": "Jinja2 vulnerable to sandbox breakout through attr filter selecting format method",
+              "epss": [
+                {
+                  "cve": "CVE-2025-27516",
+                  "date": "2026-05-23",
+                  "epss": 0.00121,
+                  "percentile": 0.30655
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2025-03-06",
+                  "kind": "first-observed",
+                  "version": "3.1.6"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "3.1.6",
+              "fixed_versions": [
+                "3.1.6"
+              ],
+              "id": "GHSA-cpwx-vrp4-4pq7",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2025-27516",
+                "Fix available: upgrade to 3.1.6",
+                "Fix state: fixed",
+                "https://github.com/pallets/jinja/commit/90457bbf33b8662926ae65cdde4c4c32e756e403",
+                "https://github.com/pallets/jinja/security/advisories/GHSA-cpwx-vrp4-4pq7",
+                "https://lists.debian.org/debian-lts-announce/2025/04/msg00022.html",
+                "https://lists.debian.org/debian-lts-announce/2025/04/msg00045.html",
+                "https://nvd.nist.gov/vuln/detail/CVE-2025-27516"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-cpwx-vrp4-4pq7"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pallets/jinja/security/advisories/GHSA-cpwx-vrp4-4pq7"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pallets/jinja/commit/90457bbf33b8662926ae65cdde4c4c32e756e403"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2025-27516"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2025/04/msg00045.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2025/04/msg00022.html"
+                }
+              ],
+              "risk_score": 0.06292,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Jinja2 vulnerable to sandbox breakout through attr filter selecting format method"
+            },
+            {
+              "affected_version_range": "\u003c2.11.3 (python)",
+              "aliases": [
+                "CVE-2020-28493"
+              ],
+              "cvss": [
+                {
+                  "Score": 5.3,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
+                  "Version": "3.1"
+                },
+                {
+                  "Score": 6.9,
+                  "Source": "",
+                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N",
+                  "Version": "4.0"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2020-28493",
+                  "id": "CWE-400",
+                  "source": "nvd@nist.gov",
+                  "type": "Primary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-g3rq-g295-4j3m",
+              "description": "Regular Expression Denial of Service (ReDoS) in Jinja2",
+              "epss": [
+                {
+                  "cve": "CVE-2020-28493",
+                  "date": "2026-05-23",
+                  "epss": 0.00207,
+                  "percentile": 0.42877
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2021-03-20",
+                  "kind": "first-observed",
+                  "version": "2.11.3"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "2.11.3",
+              "fixed_versions": [
+                "2.11.3"
+              ],
+              "id": "GHSA-g3rq-g295-4j3m",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2020-28493",
+                "Fix available: upgrade to 2.11.3",
+                "Fix state: fixed",
+                "https://github.com/pallets/jinja/blob/ab81fd9c277900c85da0c322a2ff9d68a235b2e6/src/jinja2/utils.py%23L20",
+                "https://github.com/pallets/jinja/commit/15ef8f09b659f9100610583938005a7a10472d4d",
+                "https://github.com/pallets/jinja/pull/1343",
+                "https://github.com/pypa/advisory-database/tree/main/vulns/jinja2/PYSEC-2021-66.yaml",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/PVAKCOO7VBVUBM3Q6CBBTPBFNP5NDXF4",
+                "https://nvd.nist.gov/vuln/detail/CVE-2020-28493",
+                "https://security.gentoo.org/glsa/202107-19",
+                "https://snyk.io/vuln/SNYK-PYTHON-JINJA2-1012994"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-g3rq-g295-4j3m"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2020-28493"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pallets/jinja/pull/1343"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pallets/jinja/blob/ab81fd9c277900c85da0c322a2ff9d68a235b2e6/src/jinja2/utils.py%23L20"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://snyk.io/vuln/SNYK-PYTHON-JINJA2-1012994"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://security.gentoo.org/glsa/202107-19"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pallets/jinja/commit/15ef8f09b659f9100610583938005a7a10472d4d"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/jinja2/PYSEC-2021-66.yaml"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/PVAKCOO7VBVUBM3Q6CBBTPBFNP5NDXF4"
+                }
+              ],
+              "risk_score": 0.11488499999999996,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Regular Expression Denial of Service (ReDoS) in Jinja2"
+            },
+            {
+              "affected_version_range": "\u003c3.1.3 (python)",
+              "aliases": [
+                "CVE-2024-22195"
+              ],
+              "cvss": [
+                {
+                  "Score": 5.4,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N",
+                  "Version": "3.1"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2024-22195",
+                  "id": "CWE-79",
+                  "source": "security-advisories@github.com",
+                  "type": "Secondary"
+                },
+                {
+                  "cve": "CVE-2024-22195",
+                  "id": "CWE-79",
+                  "source": "nvd@nist.gov",
+                  "type": "Primary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-h5c8-rqwp-cp95",
+              "description": "Jinja vulnerable to HTML attribute injection when passing user input as keys to xmlattr filter",
+              "epss": [
+                {
+                  "cve": "CVE-2024-22195",
+                  "date": "2026-05-23",
+                  "epss": 0.00151,
+                  "percentile": 0.35276
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2024-01-12",
+                  "kind": "first-observed",
+                  "version": "3.1.3"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "3.1.3",
+              "fixed_versions": [
+                "3.1.3"
+              ],
+              "id": "GHSA-h5c8-rqwp-cp95",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2024-22195",
+                "Fix available: upgrade to 3.1.3",
+                "Fix state: fixed",
+                "https://github.com/pallets/jinja/commit/716795349a41d4983a9a4771f7d883c96ea17be7",
+                "https://github.com/pallets/jinja/releases/tag/3.1.3",
+                "https://github.com/pallets/jinja/security/advisories/GHSA-h5c8-rqwp-cp95",
+                "https://lists.debian.org/debian-lts-announce/2024/01/msg00010.html",
+                "https://lists.debian.org/debian-lts-announce/2024/12/msg00009.html",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/5XCWZD464AJJJUBOO7CMPXQ4ROBC6JX2",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/DELCVUUYX75I5K4Q5WMJG4MUZJA6VAIP",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/O7YWRBX6JQCWC2XXCTZ55C7DPMGICCN3",
+                "https://nvd.nist.gov/vuln/detail/CVE-2024-22195"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-h5c8-rqwp-cp95"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pallets/jinja/security/advisories/GHSA-h5c8-rqwp-cp95"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2024-22195"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pallets/jinja/commit/716795349a41d4983a9a4771f7d883c96ea17be7"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pallets/jinja/releases/tag/3.1.3"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2024/01/msg00010.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/5XCWZD464AJJJUBOO7CMPXQ4ROBC6JX2"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/DELCVUUYX75I5K4Q5WMJG4MUZJA6VAIP"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/O7YWRBX6JQCWC2XXCTZ55C7DPMGICCN3"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2024/12/msg00009.html"
+                }
+              ],
+              "risk_score": 0.07852,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Jinja vulnerable to HTML attribute injection when passing user input as keys to xmlattr filter"
+            },
+            {
+              "affected_version_range": "\u003c3.1.4 (python)",
+              "aliases": [
+                "CVE-2024-34064"
+              ],
+              "cvss": [
+                {
+                  "Score": 5.4,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N",
+                  "Version": "3.1"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2024-34064",
+                  "id": "CWE-79",
+                  "source": "security-advisories@github.com",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-h75v-3vvj-5mfj",
+              "description": "Jinja vulnerable to HTML attribute injection when passing user input as keys to xmlattr filter",
+              "epss": [
+                {
+                  "cve": "CVE-2024-34064",
+                  "date": "2026-05-23",
+                  "epss": 0.00936,
+                  "percentile": 0.76426
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2024-05-07",
+                  "kind": "first-observed",
+                  "version": "3.1.4"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "3.1.4",
+              "fixed_versions": [
+                "3.1.4"
+              ],
+              "id": "GHSA-h75v-3vvj-5mfj",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2024-34064",
+                "Fix available: upgrade to 3.1.4",
+                "Fix state: fixed",
+                "https://github.com/pallets/jinja/commit/0668239dc6b44ef38e7a6c9f91f312fd4ca581cb",
+                "https://github.com/pallets/jinja/security/advisories/GHSA-h75v-3vvj-5mfj",
+                "https://lists.debian.org/debian-lts-announce/2024/12/msg00009.html",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/567XIGSZMABG6TSMYWD7MIYNJSUQQRUC",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/GCLF44KY43BSVMTE6S53B4V5WP3FRRSE",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/SSCBHIL6BYKR5NRCBXP4XMP2CEEKGFVS",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/ZALNWE3TXPPHVPSI3AZ5CTMSTAVN5UMS",
+                "https://nvd.nist.gov/vuln/detail/CVE-2024-34064"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-h75v-3vvj-5mfj"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pallets/jinja/security/advisories/GHSA-h75v-3vvj-5mfj"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pallets/jinja/commit/0668239dc6b44ef38e7a6c9f91f312fd4ca581cb"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2024-34064"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/567XIGSZMABG6TSMYWD7MIYNJSUQQRUC"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/GCLF44KY43BSVMTE6S53B4V5WP3FRRSE"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/SSCBHIL6BYKR5NRCBXP4XMP2CEEKGFVS"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/ZALNWE3TXPPHVPSI3AZ5CTMSTAVN5UMS"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2024/12/msg00009.html"
+                }
+              ],
+              "risk_score": 0.48672000000000004,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Jinja vulnerable to HTML attribute injection when passing user input as keys to xmlattr filter"
+            },
+            {
+              "affected_version_range": "\u003c=3.1.4 (python)",
+              "aliases": [
+                "CVE-2024-56326"
+              ],
+              "cvss": [
+                {
+                  "Score": 7.8,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
+                  "Version": "3.1"
+                },
+                {
+                  "Score": 5.4,
+                  "Source": "",
+                  "Vector": "CVSS:4.0/AV:L/AC:L/AT:P/PR:L/UI:P/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N",
+                  "Version": "4.0"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2024-56326",
+                  "id": "CWE-693",
+                  "source": "security-advisories@github.com",
+                  "type": "Secondary"
+                },
+                {
+                  "cve": "CVE-2024-56326",
+                  "id": "CWE-1336",
+                  "source": "security-advisories@github.com",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-q2x7-8rv6-6q7h",
+              "description": "Jinja has a sandbox breakout through indirect reference to format method",
+              "epss": [
+                {
+                  "cve": "CVE-2024-56326",
+                  "date": "2026-05-23",
+                  "epss": 0.00586,
+                  "percentile": 0.69315
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2024-12-24",
+                  "kind": "first-observed",
+                  "version": "3.1.5"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "3.1.5",
+              "fixed_versions": [
+                "3.1.5"
+              ],
+              "id": "GHSA-q2x7-8rv6-6q7h",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2024-56326",
+                "Fix available: upgrade to 3.1.5",
+                "Fix state: fixed",
+                "https://github.com/pallets/jinja/commit/48b0687e05a5466a91cd5812d604fa37ad0943b4",
+                "https://github.com/pallets/jinja/releases/tag/3.1.5",
+                "https://github.com/pallets/jinja/security/advisories/GHSA-q2x7-8rv6-6q7h",
+                "https://lists.debian.org/debian-lts-announce/2025/04/msg00022.html",
+                "https://nvd.nist.gov/vuln/detail/CVE-2024-56326"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-q2x7-8rv6-6q7h"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pallets/jinja/security/advisories/GHSA-q2x7-8rv6-6q7h"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pallets/jinja/releases/tag/3.1.5"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2024-56326"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pallets/jinja/commit/48b0687e05a5466a91cd5812d604fa37ad0943b4"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2025/04/msg00022.html"
+                }
+              ],
+              "risk_score": 0.33987999999999996,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Jinja has a sandbox breakout through indirect reference to format method"
+            }
+          ]
         },
         {
           "dependencies": [
@@ -855,7 +2623,7 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/more-itertools@11.0.2",
+          "id": "pkg:pypi/more-itertools@11.1.0",
           "licenses": [
             {
               "spdxExpression": "MIT",
@@ -864,9 +2632,9 @@
             }
           ],
           "name": "more-itertools",
-          "purl": "pkg:pypi/more-itertools@11.0.2",
+          "purl": "pkg:pypi/more-itertools@11.1.0",
           "scope": "runtime",
-          "version": "11.0.2",
+          "version": "11.1.0",
           "vulnerabilities": []
         },
         {
@@ -1095,7 +2863,181 @@
           "purl": "pkg:pypi/pyjwt@0.4.2",
           "scope": "runtime",
           "version": "0.4.2",
-          "vulnerabilities": []
+          "vulnerabilities": [
+            {
+              "affected_version_range": "\u003c=2.11.0 (python)",
+              "aliases": [
+                "CVE-2026-32597"
+              ],
+              "cvss": [
+                {
+                  "Score": 7.5,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
+                  "Version": "3.1"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2026-32597",
+                  "id": "CWE-345",
+                  "source": "security-advisories@github.com",
+                  "type": "Secondary"
+                },
+                {
+                  "cve": "CVE-2026-32597",
+                  "id": "CWE-863",
+                  "source": "security-advisories@github.com",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-752w-5fwx-jx9f",
+              "description": "PyJWT accepts unknown `crit` header extensions",
+              "epss": [
+                {
+                  "cve": "CVE-2026-32597",
+                  "date": "2026-05-23",
+                  "epss": 0.00014,
+                  "percentile": 0.02811
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2026-03-14",
+                  "kind": "first-observed",
+                  "version": "2.12.0"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "2.12.0",
+              "fixed_versions": [
+                "2.12.0"
+              ],
+              "id": "GHSA-752w-5fwx-jx9f",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2026-32597",
+                "Fix available: upgrade to 2.12.0",
+                "Fix state: fixed",
+                "https://github.com/jpadilla/pyjwt/security/advisories/GHSA-752w-5fwx-jx9f",
+                "https://lists.debian.org/debian-lts-announce/2026/05/msg00008.html",
+                "https://nvd.nist.gov/vuln/detail/CVE-2026-32597"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-752w-5fwx-jx9f"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/jpadilla/pyjwt/security/advisories/GHSA-752w-5fwx-jx9f"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2026-32597"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2026/05/msg00008.html"
+                }
+              ],
+              "risk_score": 0.010499999999999999,
+              "severity": "high",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "PyJWT accepts unknown `crit` header extensions"
+            },
+            {
+              "affected_version_range": "\u003c1.5.1 (python)",
+              "aliases": [
+                "CVE-2017-11424"
+              ],
+              "cvss": [
+                {
+                  "Score": 7.5,
+                  "Source": "",
+                  "Vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
+                  "Version": "3.0"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-r9jw-mwhq-wp62",
+              "description": "PyJWT vulnerable to key confusion attacks",
+              "epss": [
+                {
+                  "cve": "CVE-2017-11424",
+                  "date": "2026-05-23",
+                  "epss": 0.00193,
+                  "percentile": 0.40913
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2022-09-13",
+                  "kind": "first-observed",
+                  "version": "1.5.1"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "1.5.1",
+              "fixed_versions": [
+                "1.5.1"
+              ],
+              "id": "GHSA-r9jw-mwhq-wp62",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2017-11424",
+                "Fix available: upgrade to 1.5.1",
+                "Fix state: fixed",
+                "http://www.debian.org/security/2017/dsa-3979",
+                "https://github.com/jpadilla/pyjwt/pull/277",
+                "https://github.com/pypa/advisory-database/tree/main/vulns/pyjwt/PYSEC-2017-24.yaml",
+                "https://nvd.nist.gov/vuln/detail/CVE-2017-11424"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-r9jw-mwhq-wp62"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2017-11424"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/jpadilla/pyjwt/pull/277"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "http://www.debian.org/security/2017/dsa-3979"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/pyjwt/PYSEC-2017-24.yaml"
+                }
+              ],
+              "risk_score": 0.14475,
+              "severity": "high",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "PyJWT vulnerable to key confusion attacks"
+            }
+          ]
         },
         {
           "dependencies": [
@@ -1174,7 +3116,107 @@
           "purl": "pkg:pypi/pytest@7.4.3",
           "scope": "runtime",
           "version": "7.4.3",
-          "vulnerabilities": []
+          "vulnerabilities": [
+            {
+              "affected_version_range": "\u003c9.0.3 (python)",
+              "aliases": [
+                "CVE-2025-71176"
+              ],
+              "cvss": [
+                {
+                  "Score": 6.8,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:C/C:L/I:L/A:L",
+                  "Version": "3.1"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2025-71176",
+                  "id": "CWE-379",
+                  "source": "cve@mitre.org",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-6w46-j5rx-g56g",
+              "description": "pytest has vulnerable tmpdir handling",
+              "epss": [
+                {
+                  "cve": "CVE-2025-71176",
+                  "date": "2026-05-23",
+                  "epss": 0.00006,
+                  "percentile": 0.00414
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2026-04-14",
+                  "kind": "first-observed",
+                  "version": "9.0.3"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "9.0.3",
+              "fixed_versions": [
+                "9.0.3"
+              ],
+              "id": "GHSA-6w46-j5rx-g56g",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2025-71176",
+                "Fix available: upgrade to 9.0.3",
+                "Fix state: fixed",
+                "https://github.com/pytest-dev/pytest/commit/95d8423bd24992deea5b9df32555fa1741679e2c",
+                "https://github.com/pytest-dev/pytest/issues/13669",
+                "https://github.com/pytest-dev/pytest/pull/14343",
+                "https://github.com/pytest-dev/pytest/releases/tag/9.0.3",
+                "https://nvd.nist.gov/vuln/detail/CVE-2025-71176",
+                "https://www.openwall.com/lists/oss-security/2026/01/21/5"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-6w46-j5rx-g56g"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2025-71176"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pytest-dev/pytest/issues/13669"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://www.openwall.com/lists/oss-security/2026/01/21/5"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pytest-dev/pytest/pull/14343"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pytest-dev/pytest/commit/95d8423bd24992deea5b9df32555fa1741679e2c"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pytest-dev/pytest/releases/tag/9.0.3"
+                }
+              ],
+              "risk_score": 0.00354,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "pytest has vulnerable tmpdir handling"
+            }
+          ]
         },
         {
           "dependencies": [
@@ -1273,7 +3315,7 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/certifi@2026.4.22",
+            "pkg:pypi/certifi@2026.5.20",
             "pkg:pypi/chardet@3.0.4",
             "pkg:pypi/idna@2.8",
             "pkg:pypi/urllib3@1.24.1"
@@ -1300,7 +3342,438 @@
           "purl": "pkg:pypi/requests@2.21.0",
           "scope": "runtime",
           "version": "2.21.0",
-          "vulnerabilities": []
+          "vulnerabilities": [
+            {
+              "affected_version_range": "\u003c2.32.4 (python)",
+              "aliases": [
+                "CVE-2024-47081"
+              ],
+              "cvss": [
+                {
+                  "Score": 5.3,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N",
+                  "Version": "3.1"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2024-47081",
+                  "id": "CWE-522",
+                  "source": "security-advisories@github.com",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-9hjg-9r4m-mvj7",
+              "description": "Requests vulnerable to .netrc credentials leak via malicious URLs",
+              "epss": [
+                {
+                  "cve": "CVE-2024-47081",
+                  "date": "2026-05-23",
+                  "epss": 0.00227,
+                  "percentile": 0.45344
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2025-06-10",
+                  "kind": "first-observed",
+                  "version": "2.32.4"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "2.32.4",
+              "fixed_versions": [
+                "2.32.4"
+              ],
+              "id": "GHSA-9hjg-9r4m-mvj7",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2024-47081",
+                "Fix available: upgrade to 2.32.4",
+                "Fix state: fixed",
+                "http://seclists.org/fulldisclosure/2025/Jun/2",
+                "http://www.openwall.com/lists/oss-security/2025/06/03/11",
+                "http://www.openwall.com/lists/oss-security/2025/06/03/9",
+                "http://www.openwall.com/lists/oss-security/2025/06/04/1",
+                "http://www.openwall.com/lists/oss-security/2025/06/04/6",
+                "https://github.com/psf/requests/commit/96ba401c1296ab1dda74a2365ef36d88f7d144ef",
+                "https://github.com/psf/requests/pull/6965",
+                "https://github.com/psf/requests/security/advisories/GHSA-9hjg-9r4m-mvj7",
+                "https://nvd.nist.gov/vuln/detail/CVE-2024-47081",
+                "https://requests.readthedocs.io/en/latest/api/#requests.Session.trust_env",
+                "https://seclists.org/fulldisclosure/2025/Jun/2"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-9hjg-9r4m-mvj7"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/psf/requests/security/advisories/GHSA-9hjg-9r4m-mvj7"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2024-47081"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/psf/requests/pull/6965"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/psf/requests/commit/96ba401c1296ab1dda74a2365ef36d88f7d144ef"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://requests.readthedocs.io/en/latest/api/#requests.Session.trust_env"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://seclists.org/fulldisclosure/2025/Jun/2"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "http://seclists.org/fulldisclosure/2025/Jun/2"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "http://www.openwall.com/lists/oss-security/2025/06/03/11"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "http://www.openwall.com/lists/oss-security/2025/06/03/9"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "http://www.openwall.com/lists/oss-security/2025/06/04/1"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "http://www.openwall.com/lists/oss-security/2025/06/04/6"
+                }
+              ],
+              "risk_score": 0.11690500000000001,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Requests vulnerable to .netrc credentials leak via malicious URLs"
+            },
+            {
+              "affected_version_range": "\u003c2.32.0 (python)",
+              "aliases": [
+                "CVE-2024-35195"
+              ],
+              "cvss": [
+                {
+                  "Score": 5.6,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:L/AC:H/PR:H/UI:R/S:U/C:H/I:H/A:N",
+                  "Version": "3.1"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2024-35195",
+                  "id": "CWE-670",
+                  "source": "security-advisories@github.com",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-9wx4-h78v-vm56",
+              "description": "Requests `Session` object does not verify requests after making first request with verify=False",
+              "epss": [
+                {
+                  "cve": "CVE-2024-35195",
+                  "date": "2026-05-23",
+                  "epss": 0.00046,
+                  "percentile": 0.14254
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2024-05-21",
+                  "kind": "first-observed",
+                  "version": "2.32.0"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "2.32.0",
+              "fixed_versions": [
+                "2.32.0"
+              ],
+              "id": "GHSA-9wx4-h78v-vm56",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2024-35195",
+                "Fix available: upgrade to 2.32.0",
+                "Fix state: fixed",
+                "https://github.com/psf/requests/commit/a58d7f2ffb4d00b46dca2d70a3932a0b37e22fac",
+                "https://github.com/psf/requests/pull/6655",
+                "https://github.com/psf/requests/security/advisories/GHSA-9wx4-h78v-vm56",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/IYLSNK5TL46Q6XPRVMHVWS63MVJQOK4Q",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/N7WP6EYDSUOCOJYHDK5NX43PYZ4SNHGZ",
+                "https://nvd.nist.gov/vuln/detail/CVE-2024-35195"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-9wx4-h78v-vm56"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/psf/requests/security/advisories/GHSA-9wx4-h78v-vm56"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/psf/requests/pull/6655"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/psf/requests/commit/a58d7f2ffb4d00b46dca2d70a3932a0b37e22fac"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2024-35195"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/IYLSNK5TL46Q6XPRVMHVWS63MVJQOK4Q"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/N7WP6EYDSUOCOJYHDK5NX43PYZ4SNHGZ"
+                }
+              ],
+              "risk_score": 0.024380000000000002,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Requests `Session` object does not verify requests after making first request with verify=False"
+            },
+            {
+              "affected_version_range": "\u003c2.33.0 (python)",
+              "aliases": [
+                "CVE-2026-25645"
+              ],
+              "cvss": [
+                {
+                  "Score": 4.4,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:L/AC:H/PR:L/UI:R/S:U/C:N/I:H/A:N",
+                  "Version": "3.1"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2026-25645",
+                  "id": "CWE-377",
+                  "source": "security-advisories@github.com",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-gc5v-m9x4-r6x2",
+              "description": "Requests has Insecure Temp File Reuse in its extract_zipped_paths() utility function",
+              "epss": [
+                {
+                  "cve": "CVE-2026-25645",
+                  "date": "2026-05-23",
+                  "epss": 0.00004,
+                  "percentile": 0.00193
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2026-03-26",
+                  "kind": "first-observed",
+                  "version": "2.33.0"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "2.33.0",
+              "fixed_versions": [
+                "2.33.0"
+              ],
+              "id": "GHSA-gc5v-m9x4-r6x2",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2026-25645",
+                "Fix available: upgrade to 2.33.0",
+                "Fix state: fixed",
+                "https://github.com/psf/requests/commit/66d21cb07bd6255b1280291c4fafb71803cdb3b7",
+                "https://github.com/psf/requests/releases/tag/v2.33.0",
+                "https://github.com/psf/requests/security/advisories/GHSA-gc5v-m9x4-r6x2",
+                "https://nvd.nist.gov/vuln/detail/CVE-2026-25645"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-gc5v-m9x4-r6x2"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/psf/requests/security/advisories/GHSA-gc5v-m9x4-r6x2"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/psf/requests/commit/66d21cb07bd6255b1280291c4fafb71803cdb3b7"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/psf/requests/releases/tag/v2.33.0"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2026-25645"
+                }
+              ],
+              "risk_score": 0.0018800000000000004,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Requests has Insecure Temp File Reuse in its extract_zipped_paths() utility function"
+            },
+            {
+              "affected_version_range": "\u003e=2.3.0,\u003c2.31.0 (python)",
+              "aliases": [
+                "CVE-2023-32681"
+              ],
+              "cvss": [
+                {
+                  "Score": 6.1,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:C/C:H/I:N/A:N",
+                  "Version": "3.1"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2023-32681",
+                  "id": "CWE-200",
+                  "source": "security-advisories@github.com",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-j8r2-6x86-q33q",
+              "description": "Unintended leak of Proxy-Authorization header in requests",
+              "epss": [
+                {
+                  "cve": "CVE-2023-32681",
+                  "date": "2026-05-23",
+                  "epss": 0.06278,
+                  "percentile": 0.9103
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2023-05-23",
+                  "kind": "first-observed",
+                  "version": "2.31.0"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "2.31.0",
+              "fixed_versions": [
+                "2.31.0"
+              ],
+              "id": "GHSA-j8r2-6x86-q33q",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2023-32681",
+                "Fix available: upgrade to 2.31.0",
+                "Fix state: fixed",
+                "https://github.com/psf/requests/commit/74ea7cf7a6a27a4eeb2ae24e162bcc942a6706d5",
+                "https://github.com/psf/requests/releases/tag/v2.31.0",
+                "https://github.com/psf/requests/security/advisories/GHSA-j8r2-6x86-q33q",
+                "https://github.com/pypa/advisory-database/tree/main/vulns/requests/PYSEC-2023-74.yaml",
+                "https://lists.debian.org/debian-lts-announce/2023/06/msg00018.html",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/AW7HNFGYP44RT3DUDQXG2QT3OEV2PJ7Y",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/KOYASTZDGQG2BWLSNBPL3TQRL2G7QYNZ",
+                "https://nvd.nist.gov/vuln/detail/CVE-2023-32681",
+                "https://security.gentoo.org/glsa/202309-08"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-j8r2-6x86-q33q"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/psf/requests/security/advisories/GHSA-j8r2-6x86-q33q"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/psf/requests/commit/74ea7cf7a6a27a4eeb2ae24e162bcc942a6706d5"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2023-32681"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/psf/requests/releases/tag/v2.31.0"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/requests/PYSEC-2023-74.yaml"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2023/06/msg00018.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://security.gentoo.org/glsa/202309-08"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/AW7HNFGYP44RT3DUDQXG2QT3OEV2PJ7Y"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/KOYASTZDGQG2BWLSNBPL3TQRL2G7QYNZ"
+                }
+              ],
+              "risk_score": 3.4842899999999997,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Unintended leak of Proxy-Authorization header in requests"
+            }
+          ]
         },
         {
           "dependencies": [
@@ -1330,26 +3803,26 @@
             "pkg:pypi/black@23.12.1",
             "pkg:pypi/build@1.5.0",
             "pkg:pypi/cachecontrol@0.14.4",
-            "pkg:pypi/certifi@2026.4.22",
+            "pkg:pypi/certifi@2026.5.20",
             "pkg:pypi/cffi@2.0.0",
             "pkg:pypi/chardet@3.0.4",
             "pkg:pypi/charset-normalizer@3.4.7",
             "pkg:pypi/cleo@2.1.0",
-            "pkg:pypi/click@8.3.3",
+            "pkg:pypi/click@8.4.1",
             "pkg:pypi/coverage@7.4.0",
             "pkg:pypi/crashtest@0.4.1",
             "pkg:pypi/cryptography@48.0.0",
             "pkg:pypi/dill@0.4.1",
             "pkg:pypi/distlib@0.4.0",
             "pkg:pypi/django@1.11.29",
-            "pkg:pypi/dulwich@1.2.1",
+            "pkg:pypi/dulwich@1.2.4",
             "pkg:pypi/fastjsonschema@2.21.2",
             "pkg:pypi/feedparser@6.0.8",
             "pkg:pypi/filelock@3.29.0",
             "pkg:pypi/findpython@0.8.0",
             "pkg:pypi/gitdb@4.0.12",
             "pkg:pypi/gitpython@3.1.50",
-            "pkg:pypi/greenlet@3.5.0",
+            "pkg:pypi/greenlet@3.5.1",
             "pkg:pypi/h11@0.16.0",
             "pkg:pypi/httpcore@1.0.9",
             "pkg:pypi/httpx@0.28.1",
@@ -1367,7 +3840,7 @@
             "pkg:pypi/markupsafe@3.0.3",
             "pkg:pypi/mccabe@0.7.0",
             "pkg:pypi/mdurl@0.1.2",
-            "pkg:pypi/more-itertools@11.0.2",
+            "pkg:pypi/more-itertools@11.1.0",
             "pkg:pypi/msgpack@1.1.2",
             "pkg:pypi/mypy-extensions@1.1.0",
             "pkg:pypi/packaging@26.2",
@@ -1398,9 +3871,9 @@
             "pkg:pypi/shellingham@1.5.4",
             "pkg:pypi/smmap@5.0.3",
             "pkg:pypi/sqlalchemy@1.4.46",
-            "pkg:pypi/stevedore@5.7.0",
+            "pkg:pypi/stevedore@5.8.0",
             "pkg:pypi/tomlkit@0.15.0",
-            "pkg:pypi/trove-classifiers@2026.5.7.17",
+            "pkg:pypi/trove-classifiers@2026.5.22.10",
             "pkg:pypi/typing-extensions@4.15.0",
             "pkg:pypi/urllib3@1.24.1",
             "pkg:pypi/virtualenv@21.3.3"
@@ -1437,7 +3910,275 @@
           "purl": "pkg:pypi/rsa@3.4",
           "scope": "runtime",
           "version": "3.4",
-          "vulnerabilities": []
+          "vulnerabilities": [
+            {
+              "affected_version_range": "\u003c4.1 (python)",
+              "aliases": [
+                "CVE-2020-13757"
+              ],
+              "cvss": [
+                {
+                  "Score": 7.5,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+                  "Version": "3.1"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2020-13757",
+                  "id": "CWE-327",
+                  "source": "nvd@nist.gov",
+                  "type": "Primary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-537h-rv9q-vvph",
+              "description": "Python-RSA decryption of ciphertext leads to DoS",
+              "epss": [
+                {
+                  "cve": "CVE-2020-13757",
+                  "date": "2026-05-23",
+                  "epss": 0.00098,
+                  "percentile": 0.26797
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2021-03-25",
+                  "kind": "first-observed",
+                  "version": "4.1"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "4.1",
+              "fixed_versions": [
+                "4.1"
+              ],
+              "id": "GHSA-537h-rv9q-vvph",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2020-13757",
+                "Fix available: upgrade to 4.1",
+                "Fix state: fixed",
+                "https://github.com/pypa/advisory-database/tree/main/vulns/rsa/PYSEC-2020-99.yaml",
+                "https://github.com/sybrenstuvel/python-rsa/issues/146",
+                "https://github.com/sybrenstuvel/python-rsa/issues/146#issuecomment-641845667",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/2KILTHBHNSDUCYV22ODLOKTICJJ7JQIQ",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/ZYB65VNILRBTXL6EITQTH2PZPK7I23MW",
+                "https://nvd.nist.gov/vuln/detail/CVE-2020-13757",
+                "https://usn.ubuntu.com/4478-1"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-537h-rv9q-vvph"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2020-13757"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/sybrenstuvel/python-rsa/issues/146"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/sybrenstuvel/python-rsa/issues/146#issuecomment-641845667"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/rsa/PYSEC-2020-99.yaml"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/2KILTHBHNSDUCYV22ODLOKTICJJ7JQIQ"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/ZYB65VNILRBTXL6EITQTH2PZPK7I23MW"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://usn.ubuntu.com/4478-1"
+                }
+              ],
+              "risk_score": 0.0735,
+              "severity": "high",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Python-RSA decryption of ciphertext leads to DoS"
+            },
+            {
+              "affected_version_range": "\u003e=2.1,\u003c4.7 (python)",
+              "aliases": [
+                "CVE-2020-25658"
+              ],
+              "cvss": [
+                {
+                  "Score": 5.9,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
+                  "Version": "3.1"
+                },
+                {
+                  "Score": 8.2,
+                  "Source": "",
+                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N",
+                  "Version": "4.0"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2020-25658",
+                  "id": "CWE-385",
+                  "source": "secalert@redhat.com",
+                  "type": "Secondary"
+                },
+                {
+                  "cve": "CVE-2020-25658",
+                  "id": "CWE-327",
+                  "source": "nvd@nist.gov",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-xrx6-fmxq-rjj2",
+              "description": "Timing attacks in python-rsa",
+              "epss": [
+                {
+                  "cve": "CVE-2020-25658",
+                  "date": "2026-05-23",
+                  "epss": 0.00144,
+                  "percentile": 0.34253
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2021-05-01",
+                  "kind": "first-observed",
+                  "version": "4.7"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "4.7",
+              "fixed_versions": [
+                "4.7"
+              ],
+              "id": "GHSA-xrx6-fmxq-rjj2",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "high",
+                "hops": 0,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2020-25658",
+                "Fix available: upgrade to 4.7",
+                "Fix state: fixed",
+                "https://access.redhat.com/errata/RHSA-2020:5634",
+                "https://access.redhat.com/errata/RHSA-2021:0637",
+                "https://access.redhat.com/errata/RHSA-2022:1716",
+                "https://access.redhat.com/security/cve/CVE-2020-25658",
+                "https://bugzilla.redhat.com/show_bug.cgi?id=1889972",
+                "https://bugzilla.redhat.com/show_bug.cgi?id=CVE-2020-25658",
+                "https://github.com/pypa/advisory-database/tree/main/vulns/rsa/PYSEC-2020-100.yaml",
+                "https://github.com/sybrenstuvel/python-rsa/commit/dae8ce0d85478e16f2368b2341632775313d41ed",
+                "https://github.com/sybrenstuvel/python-rsa/issues/165",
+                "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/2SAF67KDGSOHLVFTRDOHNEAFDRSSYIWA",
+                "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/APF364QJ2IYLPDNVFBOEJ24QP2WLVLJP",
+                "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/QY4PJWTYSOV7ZEYZVMYIF6XRU73CY6O7",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/2SAF67KDGSOHLVFTRDOHNEAFDRSSYIWA",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/APF364QJ2IYLPDNVFBOEJ24QP2WLVLJP",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/QY4PJWTYSOV7ZEYZVMYIF6XRU73CY6O7",
+                "https://nvd.nist.gov/vuln/detail/CVE-2020-25658"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-xrx6-fmxq-rjj2"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2020-25658"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/sybrenstuvel/python-rsa/issues/165"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/sybrenstuvel/python-rsa/commit/dae8ce0d85478e16f2368b2341632775313d41ed"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://bugzilla.redhat.com/show_bug.cgi?id=CVE-2020-25658"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://access.redhat.com/errata/RHSA-2020:5634"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://access.redhat.com/errata/RHSA-2021:0637"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://access.redhat.com/errata/RHSA-2022:1716"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://access.redhat.com/security/cve/CVE-2020-25658"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://bugzilla.redhat.com/show_bug.cgi?id=1889972"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/rsa/PYSEC-2020-100.yaml"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/2SAF67KDGSOHLVFTRDOHNEAFDRSSYIWA"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/APF364QJ2IYLPDNVFBOEJ24QP2WLVLJP"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/QY4PJWTYSOV7ZEYZVMYIF6XRU73CY6O7"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/2SAF67KDGSOHLVFTRDOHNEAFDRSSYIWA"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/APF364QJ2IYLPDNVFBOEJ24QP2WLVLJP"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/QY4PJWTYSOV7ZEYZVMYIF6XRU73CY6O7"
+                }
+              ],
+              "risk_score": 0.10476,
+              "severity": "high",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Timing attacks in python-rsa"
+            }
+          ]
         },
         {
           "dependencies": [
@@ -1518,7 +4259,7 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/greenlet@3.5.0"
+            "pkg:pypi/greenlet@3.5.1"
           ],
           "id": "pkg:pypi/sqlalchemy@1.4.46",
           "licenses": [
@@ -1536,7 +4277,7 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/stevedore@5.7.0",
+          "id": "pkg:pypi/stevedore@5.8.0",
           "licenses": [
             {
               "spdxExpression": "Apache-2.0",
@@ -1545,9 +4286,9 @@
             }
           ],
           "name": "stevedore",
-          "purl": "pkg:pypi/stevedore@5.7.0",
+          "purl": "pkg:pypi/stevedore@5.8.0",
           "scope": "runtime",
-          "version": "5.7.0",
+          "version": "5.8.0",
           "vulnerabilities": []
         },
         {
@@ -1568,7 +4309,7 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/trove-classifiers@2026.5.7.17",
+          "id": "pkg:pypi/trove-classifiers@2026.5.22.10",
           "licenses": [
             {
               "spdxExpression": "non-standard",
@@ -1577,9 +4318,9 @@
             }
           ],
           "name": "trove-classifiers",
-          "purl": "pkg:pypi/trove-classifiers@2026.5.7.17",
+          "purl": "pkg:pypi/trove-classifiers@2026.5.22.10",
           "scope": "runtime",
-          "version": "2026.5.7.17",
+          "version": "2026.5.22.10",
           "vulnerabilities": []
         },
         {
@@ -1622,7 +4363,1371 @@
           "purl": "pkg:pypi/urllib3@1.24.1",
           "scope": "runtime",
           "version": "1.24.1",
-          "vulnerabilities": []
+          "vulnerabilities": [
+            {
+              "affected_version_range": "\u003e=1.0,\u003c2.6.0 (python)",
+              "aliases": [
+                "CVE-2025-66471"
+              ],
+              "cvss": [
+                {
+                  "Score": 8.9,
+                  "Source": "",
+                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:H",
+                  "Version": "4.0"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2025-66471",
+                  "id": "CWE-409",
+                  "source": "security-advisories@github.com",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-2xpw-w6gg-jr37",
+              "description": "urllib3 streaming API improperly handles highly compressed data",
+              "epss": [
+                {
+                  "cve": "CVE-2025-66471",
+                  "date": "2026-05-23",
+                  "epss": 0.00017,
+                  "percentile": 0.04407
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2025-12-06",
+                  "kind": "first-observed",
+                  "version": "2.6.0"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "2.6.0",
+              "fixed_versions": [
+                "2.6.0"
+              ],
+              "id": "GHSA-2xpw-w6gg-jr37",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2025-66471",
+                "Fix available: upgrade to 2.6.0",
+                "Fix state: fixed",
+                "https://github.com/urllib3/urllib3/commit/c19571de34c47de3a766541b041637ba5f716ed7",
+                "https://github.com/urllib3/urllib3/security/advisories/GHSA-2xpw-w6gg-jr37",
+                "https://nvd.nist.gov/vuln/detail/CVE-2025-66471"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-2xpw-w6gg-jr37"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/security/advisories/GHSA-2xpw-w6gg-jr37"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/commit/c19571de34c47de3a766541b041637ba5f716ed7"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2025-66471"
+                }
+              ],
+              "risk_score": 0.013940000000000003,
+              "severity": "high",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "urllib3 streaming API improperly handles highly compressed data"
+            },
+            {
+              "affected_version_range": "\u003c1.26.19 (python)",
+              "aliases": [
+                "CVE-2024-37891"
+              ],
+              "cvss": [
+                {
+                  "Score": 4.4,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:H/I:N/A:N",
+                  "Version": "3.1"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2024-37891",
+                  "id": "CWE-669",
+                  "source": "security-advisories@github.com",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-34jh-p97f-mpxf",
+              "description": "urllib3's Proxy-Authorization request header isn't stripped during cross-origin redirects",
+              "epss": [
+                {
+                  "cve": "CVE-2024-37891",
+                  "date": "2026-05-23",
+                  "epss": 0.00216,
+                  "percentile": 0.44059
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2024-06-18",
+                  "kind": "first-observed",
+                  "version": "1.26.19"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "1.26.19",
+              "fixed_versions": [
+                "1.26.19"
+              ],
+              "id": "GHSA-34jh-p97f-mpxf",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2024-37891",
+                "Fix available: upgrade to 1.26.19",
+                "Fix state: fixed",
+                "https://github.com/urllib3/urllib3/commit/40b6d1605814dd1db0a46e202d6e56f2e4c9a468",
+                "https://github.com/urllib3/urllib3/commit/accff72ecc2f6cf5a76d9570198a93ac7c90270e",
+                "https://github.com/urllib3/urllib3/security/advisories/GHSA-34jh-p97f-mpxf",
+                "https://lists.debian.org/debian-lts-announce/2024/12/msg00020.html",
+                "https://nvd.nist.gov/vuln/detail/CVE-2024-37891",
+                "https://security.netapp.com/advisory/ntap-20240822-0003",
+                "https://www.vicarius.io/vsociety/posts/proxy-authorization-header-handling-vulnerability-in-urllib3-cve-2024-37891"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-34jh-p97f-mpxf"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/security/advisories/GHSA-34jh-p97f-mpxf"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2024-37891"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/commit/40b6d1605814dd1db0a46e202d6e56f2e4c9a468"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/commit/accff72ecc2f6cf5a76d9570198a93ac7c90270e"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2024/12/msg00020.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://security.netapp.com/advisory/ntap-20240822-0003"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://www.vicarius.io/vsociety/posts/proxy-authorization-header-handling-vulnerability-in-urllib3-cve-2024-37891"
+                }
+              ],
+              "risk_score": 0.10152000000000001,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "urllib3's Proxy-Authorization request header isn't stripped during cross-origin redirects"
+            },
+            {
+              "affected_version_range": "\u003e=1.22,\u003c2.6.3 (python)",
+              "aliases": [
+                "CVE-2026-21441"
+              ],
+              "cvss": [
+                {
+                  "Score": 7.5,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                  "Version": "3.1"
+                },
+                {
+                  "Score": 8.9,
+                  "Source": "",
+                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:H",
+                  "Version": "4.0"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2026-21441",
+                  "id": "CWE-409",
+                  "source": "security-advisories@github.com",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-38jv-5279-wg99",
+              "description": "Decompression-bomb safeguards bypassed when following HTTP redirects (streaming API)",
+              "epss": [
+                {
+                  "cve": "CVE-2026-21441",
+                  "date": "2026-05-23",
+                  "epss": 0.00032,
+                  "percentile": 0.09448
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2026-01-08",
+                  "kind": "first-observed",
+                  "version": "2.6.3"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "2.6.3",
+              "fixed_versions": [
+                "2.6.3"
+              ],
+              "id": "GHSA-38jv-5279-wg99",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2026-21441",
+                "Fix available: upgrade to 2.6.3",
+                "Fix state: fixed",
+                "https://github.com/urllib3/urllib3/commit/8864ac407bba8607950025e0979c4c69bc7abc7b",
+                "https://github.com/urllib3/urllib3/security/advisories/GHSA-38jv-5279-wg99",
+                "https://lists.debian.org/debian-lts-announce/2026/01/msg00017.html",
+                "https://nvd.nist.gov/vuln/detail/CVE-2026-21441"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-38jv-5279-wg99"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/security/advisories/GHSA-38jv-5279-wg99"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/commit/8864ac407bba8607950025e0979c4c69bc7abc7b"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2026-21441"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2026/01/msg00017.html"
+                }
+              ],
+              "risk_score": 0.025119999999999996,
+              "severity": "high",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Decompression-bomb safeguards bypassed when following HTTP redirects (streaming API)"
+            },
+            {
+              "affected_version_range": "\u003e=0,\u003c1.26.18 (python)",
+              "aliases": [
+                "CVE-2023-45803"
+              ],
+              "cvss": [
+                {
+                  "Score": 4.2,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:A/AC:H/PR:H/UI:N/S:U/C:H/I:N/A:N",
+                  "Version": "3.1"
+                },
+                {
+                  "Score": 5.7,
+                  "Source": "",
+                  "Vector": "CVSS:4.0/AV:A/AC:L/AT:P/PR:H/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N",
+                  "Version": "4.0"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2023-45803",
+                  "id": "CWE-200",
+                  "source": "security-advisories@github.com",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-g4mx-q9vg-27p4",
+              "description": "urllib3's request body not stripped after redirect from 303 status changes request method to GET",
+              "epss": [
+                {
+                  "cve": "CVE-2023-45803",
+                  "date": "2026-05-23",
+                  "epss": 0.00056,
+                  "percentile": 0.17524
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2023-10-18",
+                  "kind": "first-observed",
+                  "version": "1.26.18"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "1.26.18",
+              "fixed_versions": [
+                "1.26.18"
+              ],
+              "id": "GHSA-g4mx-q9vg-27p4",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2023-45803",
+                "Fix available: upgrade to 1.26.18",
+                "Fix state: fixed",
+                "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2023-212.yaml",
+                "https://github.com/urllib3/urllib3/commit/4e50fbc5db74e32cabd5ccc1ab81fc103adfe0b3",
+                "https://github.com/urllib3/urllib3/commit/4e98d57809dacab1cbe625fddeec1a290c478ea9",
+                "https://github.com/urllib3/urllib3/commit/b594c5ceaca38e1ac215f916538fb128e3526a36",
+                "https://github.com/urllib3/urllib3/releases/tag/1.26.18",
+                "https://github.com/urllib3/urllib3/releases/tag/2.0.7",
+                "https://github.com/urllib3/urllib3/security/advisories/GHSA-g4mx-q9vg-27p4",
+                "https://lists.debian.org/debian-lts-announce/2024/12/msg00020.html",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/4R2Y5XK3WALSR3FNAGN7JBYV2B343ZKB",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/5F5CUBAN5XMEBVBZPHFITBLMJV5FIJJ5",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/PPDPLM6UUMN55ESPQWJFLLIZY4ZKCNRX",
+                "https://nvd.nist.gov/vuln/detail/CVE-2023-45803",
+                "https://www.rfc-editor.org/rfc/rfc9110.html#name-get"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-g4mx-q9vg-27p4"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/security/advisories/GHSA-g4mx-q9vg-27p4"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/commit/4e50fbc5db74e32cabd5ccc1ab81fc103adfe0b3"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/commit/b594c5ceaca38e1ac215f916538fb128e3526a36"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/releases/tag/1.26.18"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/releases/tag/2.0.7"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2023-45803"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/commit/4e98d57809dacab1cbe625fddeec1a290c478ea9"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://www.rfc-editor.org/rfc/rfc9110.html#name-get"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2023-212.yaml"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/4R2Y5XK3WALSR3FNAGN7JBYV2B343ZKB"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/5F5CUBAN5XMEBVBZPHFITBLMJV5FIJJ5"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/PPDPLM6UUMN55ESPQWJFLLIZY4ZKCNRX"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2024/12/msg00020.html"
+                }
+              ],
+              "risk_score": 0.02786,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "urllib3's request body not stripped after redirect from 303 status changes request method to GET"
+            },
+            {
+              "affected_version_range": "\u003e=1.24,\u003c2.6.0 (python)",
+              "aliases": [
+                "CVE-2025-66418"
+              ],
+              "cvss": [
+                {
+                  "Score": 8.9,
+                  "Source": "",
+                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:H",
+                  "Version": "4.0"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2025-66418",
+                  "id": "CWE-770",
+                  "source": "security-advisories@github.com",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-gm62-xv2j-4w53",
+              "description": "urllib3 allows an unbounded number of links in the decompression chain",
+              "epss": [
+                {
+                  "cve": "CVE-2025-66418",
+                  "date": "2026-05-23",
+                  "epss": 0.00019,
+                  "percentile": 0.05303
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2025-12-06",
+                  "kind": "first-observed",
+                  "version": "2.6.0"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "2.6.0",
+              "fixed_versions": [
+                "2.6.0"
+              ],
+              "id": "GHSA-gm62-xv2j-4w53",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2025-66418",
+                "Fix available: upgrade to 2.6.0",
+                "Fix state: fixed",
+                "https://github.com/urllib3/urllib3/commit/24d7b67eac89f94e11003424bcf0d8f7b72222a8",
+                "https://github.com/urllib3/urllib3/security/advisories/GHSA-gm62-xv2j-4w53",
+                "https://nvd.nist.gov/vuln/detail/CVE-2025-66418"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-gm62-xv2j-4w53"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/security/advisories/GHSA-gm62-xv2j-4w53"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/commit/24d7b67eac89f94e11003424bcf0d8f7b72222a8"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2025-66418"
+                }
+              ],
+              "risk_score": 0.015580000000000002,
+              "severity": "high",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "urllib3 allows an unbounded number of links in the decompression chain"
+            },
+            {
+              "affected_version_range": "\u003c1.24.2 (python)",
+              "aliases": [
+                "CVE-2018-25091"
+              ],
+              "cvss": [
+                {
+                  "Score": 6.1,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+                  "Version": "3.1"
+                },
+                {
+                  "Score": 5.3,
+                  "Source": "",
+                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:P/VC:N/VI:N/VA:N/SC:L/SI:L/SA:N",
+                  "Version": "4.0"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2018-25091",
+                  "id": "CWE-601",
+                  "source": "nvd@nist.gov",
+                  "type": "Primary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-gwvm-45gx-3cf8",
+              "description": "Authorization Header forwarded on redirect",
+              "epss": [
+                {
+                  "cve": "CVE-2018-25091",
+                  "date": "2026-05-23",
+                  "epss": 0.00223,
+                  "percentile": 0.44918
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2023-10-18",
+                  "kind": "first-observed",
+                  "version": "1.24.2"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "1.24.2",
+              "fixed_versions": [
+                "1.24.2"
+              ],
+              "id": "GHSA-gwvm-45gx-3cf8",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2018-25091",
+                "Fix available: upgrade to 1.24.2",
+                "Fix state: fixed",
+                "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2023-207.yaml",
+                "https://github.com/urllib3/urllib3/commit/adb358f8e06865406d1f05e581a16cbea2136fbc",
+                "https://github.com/urllib3/urllib3/compare/1.24.1...1.24.2",
+                "https://github.com/urllib3/urllib3/issues/1510",
+                "https://nvd.nist.gov/vuln/detail/CVE-2018-25091"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-gwvm-45gx-3cf8"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2018-25091"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/issues/1510"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/commit/adb358f8e06865406d1f05e581a16cbea2136fbc"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/compare/1.24.1...1.24.2"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2023-207.yaml"
+                }
+              ],
+              "risk_score": 0.119305,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Authorization Header forwarded on redirect"
+            },
+            {
+              "affected_version_range": "\u003c1.24.2 (python)",
+              "aliases": [
+                "CVE-2019-11324"
+              ],
+              "cvss": [
+                {
+                  "Score": 7.5,
+                  "Source": "",
+                  "Vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
+                  "Version": "3.0"
+                },
+                {
+                  "Score": 8.7,
+                  "Source": "",
+                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:H/VA:N/SC:N/SI:N/SA:N",
+                  "Version": "4.0"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2019-11324",
+                  "id": "CWE-295",
+                  "source": "nvd@nist.gov",
+                  "type": "Primary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-mh33-7rrq-662w",
+              "description": "Improper Certificate Validation in urllib3",
+              "epss": [
+                {
+                  "cve": "CVE-2019-11324",
+                  "date": "2026-05-23",
+                  "epss": 0.01043,
+                  "percentile": 0.77711
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2020-07-28",
+                  "kind": "first-observed",
+                  "version": "1.24.2"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "1.24.2",
+              "fixed_versions": [
+                "1.24.2"
+              ],
+              "id": "GHSA-mh33-7rrq-662w",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2019-11324",
+                "Fix available: upgrade to 1.24.2",
+                "Fix state: fixed",
+                "http://lists.opensuse.org/opensuse-security-announce/2019-09/msg00039.html",
+                "http://lists.opensuse.org/opensuse-security-announce/2019-09/msg00041.html",
+                "http://www.openwall.com/lists/oss-security/2019/04/19/1",
+                "https://access.redhat.com/errata/RHSA-2019:3335",
+                "https://access.redhat.com/errata/RHSA-2019:3590",
+                "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2019-133.yaml",
+                "https://github.com/urllib3/urllib3/commit/1efadf43dc63317cd9eaa3e0fdb9e05ab07254b1",
+                "https://github.com/urllib3/urllib3/compare/a6ec68a...1efadf4",
+                "https://lists.debian.org/debian-lts-announce/2021/06/msg00015.html",
+                "https://lists.debian.org/debian-lts-announce/2023/10/msg00012.html",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/NKGPJLVLVYCL4L4B4G5TIOTVK4BKPG72",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/XOSA2NT4DUQDBEIWE6O7KKD24XND7TE2",
+                "https://nvd.nist.gov/vuln/detail/CVE-2019-11324",
+                "https://pypi.org/project/urllib3/1.24.2",
+                "https://usn.ubuntu.com/3990-1"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-mh33-7rrq-662w"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2019-11324"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/compare/a6ec68a...1efadf4"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://access.redhat.com/errata/RHSA-2019:3335"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://access.redhat.com/errata/RHSA-2019:3590"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2021/06/msg00015.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "http://lists.opensuse.org/opensuse-security-announce/2019-09/msg00039.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "http://lists.opensuse.org/opensuse-security-announce/2019-09/msg00041.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "http://www.openwall.com/lists/oss-security/2019/04/19/1"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/commit/1efadf43dc63317cd9eaa3e0fdb9e05ab07254b1"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2023/10/msg00012.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2019-133.yaml"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/NKGPJLVLVYCL4L4B4G5TIOTVK4BKPG72"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/XOSA2NT4DUQDBEIWE6O7KKD24XND7TE2"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://pypi.org/project/urllib3/1.24.2"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://usn.ubuntu.com/3990-1"
+                }
+              ],
+              "risk_score": 0.8135400000000002,
+              "severity": "high",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Improper Certificate Validation in urllib3"
+            },
+            {
+              "affected_version_range": "\u003c2.5.0 (python)",
+              "aliases": [
+                "CVE-2025-50181"
+              ],
+              "cvss": [
+                {
+                  "Score": 5.3,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:U/C:H/I:N/A:N",
+                  "Version": "3.1"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2025-50181",
+                  "id": "CWE-601",
+                  "source": "security-advisories@github.com",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-pq67-6m6q-mj2v",
+              "description": "urllib3 redirects are not disabled when retries are disabled on PoolManager instantiation",
+              "epss": [
+                {
+                  "cve": "CVE-2025-50181",
+                  "date": "2026-05-23",
+                  "epss": 0.00087,
+                  "percentile": 0.24869
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2025-06-19",
+                  "kind": "first-observed",
+                  "version": "2.5.0"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "2.5.0",
+              "fixed_versions": [
+                "2.5.0"
+              ],
+              "id": "GHSA-pq67-6m6q-mj2v",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2025-50181",
+                "Fix available: upgrade to 2.5.0",
+                "Fix state: fixed",
+                "https://github.com/urllib3/urllib3/commit/f05b1329126d5be6de501f9d1e3e36738bc08857",
+                "https://github.com/urllib3/urllib3/releases/tag/2.5.0",
+                "https://github.com/urllib3/urllib3/security/advisories/GHSA-pq67-6m6q-mj2v",
+                "https://nvd.nist.gov/vuln/detail/CVE-2025-50181"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-pq67-6m6q-mj2v"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/security/advisories/GHSA-pq67-6m6q-mj2v"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/commit/f05b1329126d5be6de501f9d1e3e36738bc08857"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2025-50181"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/releases/tag/2.5.0"
+                }
+              ],
+              "risk_score": 0.044805000000000005,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "urllib3 redirects are not disabled when retries are disabled on PoolManager instantiation"
+            },
+            {
+              "affected_version_range": "\u003e=1.23,\u003c2.7.0 (python)",
+              "aliases": [
+                "CVE-2026-44431"
+              ],
+              "cvss": [
+                {
+                  "Score": 5.3,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
+                  "Version": "3.1"
+                },
+                {
+                  "Score": 8.2,
+                  "Source": "",
+                  "Vector": "CVSS:4.0/AV:N/AC:H/AT:P/PR:N/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N",
+                  "Version": "4.0"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2026-44431",
+                  "id": "CWE-200",
+                  "source": "security-advisories@github.com",
+                  "type": "Primary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-qccp-gfcp-xxvc",
+              "description": "urllib3: Sensitive headers forwarded across origins in proxied low-level redirects",
+              "epss": [
+                {
+                  "cve": "CVE-2026-44431",
+                  "date": "2026-05-23",
+                  "epss": 0.00013,
+                  "percentile": 0.02208
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2026-05-11",
+                  "kind": "first-observed",
+                  "version": "2.7.0"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "2.7.0",
+              "fixed_versions": [
+                "2.7.0"
+              ],
+              "id": "GHSA-qccp-gfcp-xxvc",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2026-44431",
+                "Fix available: upgrade to 2.7.0",
+                "Fix state: fixed",
+                "https://github.com/urllib3/urllib3/security/advisories/GHSA-qccp-gfcp-xxvc",
+                "https://nvd.nist.gov/vuln/detail/CVE-2026-44431"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-qccp-gfcp-xxvc"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/security/advisories/GHSA-qccp-gfcp-xxvc"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2026-44431"
+                }
+              ],
+              "risk_score": 0.009262499999999998,
+              "severity": "high",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "urllib3: Sensitive headers forwarded across origins in proxied low-level redirects"
+            },
+            {
+              "affected_version_range": "\u003c=1.24.2 (python)",
+              "aliases": [
+                "CVE-2019-11236"
+              ],
+              "cvss": [
+                {
+                  "Score": 6.1,
+                  "Source": "",
+                  "Vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+                  "Version": "3.0"
+                },
+                {
+                  "Score": 5.3,
+                  "Source": "",
+                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:P/VC:N/VI:N/VA:N/SC:L/SI:L/SA:N",
+                  "Version": "4.0"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2019-11236",
+                  "id": "CWE-93",
+                  "source": "nvd@nist.gov",
+                  "type": "Primary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-r64q-w8jr-g9qp",
+              "description": "Improper Neutralization of CRLF Sequences in urllib3 library for Python",
+              "epss": [
+                {
+                  "cve": "CVE-2019-11236",
+                  "date": "2026-05-23",
+                  "epss": 0.00575,
+                  "percentile": 0.68992
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2022-06-29",
+                  "kind": "first-observed",
+                  "version": "1.24.3"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "1.24.3",
+              "fixed_versions": [
+                "1.24.3"
+              ],
+              "id": "GHSA-r64q-w8jr-g9qp",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2019-11236",
+                "Fix available: upgrade to 1.24.3",
+                "Fix state: fixed",
+                "http://lists.opensuse.org/opensuse-security-announce/2019-09/msg00039.html",
+                "http://lists.opensuse.org/opensuse-security-announce/2019-09/msg00041.html",
+                "https://access.redhat.com/errata/RHSA-2019:2272",
+                "https://access.redhat.com/errata/RHSA-2019:3335",
+                "https://access.redhat.com/errata/RHSA-2019:3590",
+                "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2019-132.yaml",
+                "https://github.com/urllib3/urllib3/issues/1553",
+                "https://lists.debian.org/debian-lts-announce/2019/06/msg00016.html",
+                "https://lists.debian.org/debian-lts-announce/2021/06/msg00015.html",
+                "https://lists.debian.org/debian-lts-announce/2023/10/msg00012.html",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/NKGPJLVLVYCL4L4B4G5TIOTVK4BKPG72",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/R62XGEYPUTXMRHGX5I37EBCGQ5COHGKR",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/TBI45HO533KYHNB5YRO43TBYKA3E3VRL",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/XOSA2NT4DUQDBEIWE6O7KKD24XND7TE2",
+                "https://nvd.nist.gov/vuln/detail/CVE-2019-11236",
+                "https://usn.ubuntu.com/3990-1",
+                "https://usn.ubuntu.com/3990-2"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-r64q-w8jr-g9qp"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2019-11236"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/issues/1553"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://access.redhat.com/errata/RHSA-2019:2272"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://access.redhat.com/errata/RHSA-2019:3335"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://access.redhat.com/errata/RHSA-2019:3590"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2019/06/msg00016.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2021/06/msg00015.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "http://lists.opensuse.org/opensuse-security-announce/2019-09/msg00039.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "http://lists.opensuse.org/opensuse-security-announce/2019-09/msg00041.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2019-132.yaml"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2023/10/msg00012.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/NKGPJLVLVYCL4L4B4G5TIOTVK4BKPG72"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/R62XGEYPUTXMRHGX5I37EBCGQ5COHGKR"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/TBI45HO533KYHNB5YRO43TBYKA3E3VRL"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/XOSA2NT4DUQDBEIWE6O7KKD24XND7TE2"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://usn.ubuntu.com/3990-1"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://usn.ubuntu.com/3990-2"
+                }
+              ],
+              "risk_score": 0.307625,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "Improper Neutralization of CRLF Sequences in urllib3 library for Python"
+            },
+            {
+              "affected_version_range": "\u003c1.26.17 (python)",
+              "aliases": [
+                "CVE-2023-43804"
+              ],
+              "cvss": [
+                {
+                  "Score": 5.9,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:H/I:H/A:N",
+                  "Version": "3.1"
+                },
+                {
+                  "Score": 7.4,
+                  "Source": "",
+                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:H/UI:N/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N",
+                  "Version": "4.0"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2023-43804",
+                  "id": "CWE-200",
+                  "source": "security-advisories@github.com",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-v845-jxx5-vc9f",
+              "description": "`Cookie` HTTP header isn't stripped on cross-origin redirects",
+              "epss": [
+                {
+                  "cve": "CVE-2023-43804",
+                  "date": "2026-05-23",
+                  "epss": 0.00976,
+                  "percentile": 0.76935
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2023-10-03",
+                  "kind": "first-observed",
+                  "version": "1.26.17"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "1.26.17",
+              "fixed_versions": [
+                "1.26.17"
+              ],
+              "id": "GHSA-v845-jxx5-vc9f",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2023-43804",
+                "Fix available: upgrade to 1.26.17",
+                "Fix state: fixed",
+                "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2023-192.yaml",
+                "https://github.com/urllib3/urllib3/commit/01220354d389cd05474713f8c982d05c9b17aafb",
+                "https://github.com/urllib3/urllib3/commit/644124ecd0b6e417c527191f866daa05a5a2056d",
+                "https://github.com/urllib3/urllib3/security/advisories/GHSA-v845-jxx5-vc9f",
+                "https://lists.debian.org/debian-lts-announce/2023/10/msg00012.html",
+                "https://lists.debian.org/debian-lts-announce/2024/12/msg00020.html",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/5F5CUBAN5XMEBVBZPHFITBLMJV5FIJJ5",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/I3PR7C6RJ6JUBQKIJ644DMIJSUP36VDY",
+                "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/NDAGZXYJ7H2G3SB47M453VQVNAWKAEJJ",
+                "https://nvd.nist.gov/vuln/detail/CVE-2023-43804",
+                "https://security.netapp.com/advisory/ntap-20241213-0007",
+                "https://www.vicarius.io/vsociety/posts/cve-2023-43804-urllib3-vulnerability-3"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-v845-jxx5-vc9f"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/security/advisories/GHSA-v845-jxx5-vc9f"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/commit/01220354d389cd05474713f8c982d05c9b17aafb"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/commit/644124ecd0b6e417c527191f866daa05a5a2056d"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2023-43804"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2023/10/msg00012.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2023-192.yaml"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/5F5CUBAN5XMEBVBZPHFITBLMJV5FIJJ5"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/I3PR7C6RJ6JUBQKIJ644DMIJSUP36VDY"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/NDAGZXYJ7H2G3SB47M453VQVNAWKAEJJ"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://security.netapp.com/advisory/ntap-20241213-0007"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://www.vicarius.io/vsociety/posts/cve-2023-43804-urllib3-vulnerability-3"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2024/12/msg00020.html"
+                }
+              ],
+              "risk_score": 0.69052,
+              "severity": "high",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "`Cookie` HTTP header isn't stripped on cross-origin redirects"
+            },
+            {
+              "affected_version_range": "\u003c1.25.9 (python)",
+              "aliases": [
+                "CVE-2020-26137"
+              ],
+              "cvss": [
+                {
+                  "Score": 6.5,
+                  "Source": "",
+                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N",
+                  "Version": "3.1"
+                },
+                {
+                  "Score": 6.9,
+                  "Source": "",
+                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N",
+                  "Version": "4.0"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2020-26137",
+                  "id": "CWE-74",
+                  "source": "nvd@nist.gov",
+                  "type": "Primary"
+                }
+              ],
+              "data_source": "https://github.com/advisories/GHSA-wqvq-5m8c-6g24",
+              "description": "CRLF injection in urllib3",
+              "epss": [
+                {
+                  "cve": "CVE-2020-26137",
+                  "date": "2026-05-23",
+                  "epss": 0.00279,
+                  "percentile": 0.5139
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2021-06-19",
+                  "kind": "first-observed",
+                  "version": "1.25.9"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "1.25.9",
+              "fixed_versions": [
+                "1.25.9"
+              ],
+              "id": "GHSA-wqvq-5m8c-6g24",
+              "namespace": "github:language:python",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "pyreach",
+                "confidence": "medium",
+                "hops": 1,
+                "status": "reachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2020-26137",
+                "Fix available: upgrade to 1.25.9",
+                "Fix state: fixed",
+                "https://bugs.python.org/issue39603",
+                "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2020-148.yaml",
+                "https://github.com/urllib3/urllib3/commit/1dd69c5c5982fae7c87a620d487c2ebf7a6b436b",
+                "https://github.com/urllib3/urllib3/pull/1800",
+                "https://lists.debian.org/debian-lts-announce/2021/06/msg00015.html",
+                "https://lists.debian.org/debian-lts-announce/2023/10/msg00012.html",
+                "https://nvd.nist.gov/vuln/detail/CVE-2020-26137",
+                "https://usn.ubuntu.com/4570-1",
+                "https://www.oracle.com/security-alerts/cpujul2022.html",
+                "https://www.oracle.com/security-alerts/cpuoct2021.html"
+              ],
+              "references": [
+                {
+                  "Type": "data_source",
+                  "URL": "https://github.com/advisories/GHSA-wqvq-5m8c-6g24"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2020-26137"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/pull/1800"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/urllib3/urllib3/commit/1dd69c5c5982fae7c87a620d487c2ebf7a6b436b"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://bugs.python.org/issue39603"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2021/06/msg00015.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://www.oracle.com/security-alerts/cpuoct2021.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://www.oracle.com/security-alerts/cpujul2022.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://lists.debian.org/debian-lts-announce/2023/10/msg00012.html"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2020-148.yaml"
+                },
+                {
+                  "Type": "advisory",
+                  "URL": "https://usn.ubuntu.com/4570-1"
+                }
+              ],
+              "risk_score": 0.163215,
+              "severity": "medium",
+              "severity_source": "github:language:python",
+              "source": "grype",
+              "title": "CRLF injection in urllib3"
+            }
+          ]
         },
         {
           "dependencies": [
@@ -1652,7 +5757,17 @@
     }
   ],
   "metadata": {
-    "duration_ms": 0
+    "analyzer_runs": [
+      "pyreach"
+    ],
+    "analyzer_stats": {
+      "pyreach": {
+        "reachable": 29,
+        "unreachable": 8
+      }
+    },
+    "duration_ms": 0,
+    "reachability_enabled": true
   },
   "project": {
     "ecosystem": "python",

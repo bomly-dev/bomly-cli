@@ -67,6 +67,10 @@ type Resolved struct {
 	EOLAPIBase  string `doc:"Base URL for the endoflife.date API" env:"BOMLY_EOL_API_BASE" default:"https://endoflife.date/api"`
 	EOLCacheDir string `doc:"Directory for the EOL cache" env:"BOMLY_EOL_CACHE_DIR"`
 	EOLCacheTTL string `doc:"TTL for cached EOL responses (e.g. 24h)" env:"BOMLY_EOL_CACHE_TTL" default:"24h"`
+
+	// Grant license matcher settings
+	GrantCacheDir string `doc:"Directory for the Grant license cache" env:"BOMLY_GRANT_CACHE_DIR"`
+	GrantCacheTTL string `doc:"TTL for cached Grant responses (e.g. 24h)" env:"BOMLY_GRANT_CACHE_TTL" default:"24h"`
 }
 
 // File is the YAML-deserialized shape of a Bomly config file. The
@@ -123,4 +127,8 @@ type File struct {
 	EOLAPIBase  *string `yaml:"eol_api_base,omitempty"`
 	EOLCacheDir *string `yaml:"eol_cache_dir,omitempty"`
 	EOLCacheTTL *string `yaml:"eol_cache_ttl,omitempty"`
+
+	// Grant license matcher settings
+	GrantCacheDir *string `yaml:"grant_cache_dir,omitempty"`
+	GrantCacheTTL *string `yaml:"grant_cache_ttl,omitempty"`
 }

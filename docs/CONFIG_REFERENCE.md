@@ -74,6 +74,13 @@ Bomly resolves configuration in the following order, with later sources overridi
 | `eol_cache_dir` | `BOMLY_EOL_CACHE_DIR` | `string` | - | Directory for the EOL cache |
 | `eol_cache_ttl` | `BOMLY_EOL_CACHE_TTL` | `string` | 24h | TTL for cached EOL responses (e.g. 24h) |
 
+## Grant license matcher settings
+
+| YAML Key | Environment Variable | Type | Default | Description |
+|----------|---------------------|------|---------|-------------|
+| `grant_cache_dir` | `BOMLY_GRANT_CACHE_DIR` | `string` | - | Directory for the Grant license cache |
+| `grant_cache_ttl` | `BOMLY_GRANT_CACHE_TTL` | `string` | 24h | TTL for cached Grant responses (e.g. 24h) |
+
 ## Example Configuration
 
 ```yaml
@@ -168,4 +175,10 @@ Bomly resolves configuration in the following order, with later sources overridi
 # eol_cache_dir: ""
 # TTL for cached EOL responses (e.g. 24h)
 # eol_cache_ttl: 24h
+
+# Grant license matcher settings
+# Directory for the Grant license cache
+# grant_cache_dir: ""
+# TTL for cached Grant responses (e.g. 24h)
+# grant_cache_ttl: 24h
 ```

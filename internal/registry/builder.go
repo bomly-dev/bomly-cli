@@ -33,6 +33,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/matchers/clearlydefined"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/depsdev"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/eol"
+	"github.com/bomly-dev/bomly-cli/internal/matchers/grant"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/grype"
 	osvmatcher "github.com/bomly-dev/bomly-cli/internal/matchers/osv"
 	"github.com/bomly-dev/bomly-cli/sdk"
@@ -63,6 +64,8 @@ type RegistryConfigs struct {
 	EOLAPIBase            string
 	EOLCacheDir           string
 	EOLCacheTTL           string
+	GrantCacheDir         string
+	GrantCacheTTL         string
 }
 
 // RegistryFilter narrows a registry down to the runtime-relevant selections.
@@ -141,6 +144,7 @@ func (r *Registry) registerMatchers() {
 	r.registerOSVMatcher()
 	r.registerDepsDevMatcher()
 	r.registerClearlyDefinedMatcher()
+	r.registerGrantMatcher()
 	r.registerEOLMatcher()
 }
 
@@ -230,6 +234,33 @@ func (r *Registry) registerDepsDevMatcher() {
 		}
 		r.logger.Debug("deps.dev matcher configured")
 	}
+}
+
+func (r *Registry) registerGrantMatcher() {
+	grantCfg := grant.DefaultConfig()
+	grantCfg.Logger = r.logger
+	if r.configs.GrantCacheDir != "" {
+		grantCfg.CacheDir = r.configs.GrantCacheDir
+	}
+	if r.configs.GrantCacheTTL != "" {
+		if d, err := time.ParseDuration(r.configs.GrantCacheTTL); err == nil {
+			grantCfg.CacheTTL = d
+		} else {
+			r.logger.Warn("grant: invalid cache_ttl; using default", zap.String("value", r.configs.GrantCacheTTL), zap.Error(err))
+		}
+	}
+	grantChecker, err := grant.New(grantCfg)
+	if err != nil {
+		r.logger.Warn("Grant license checker unavailable", zap.Error(err))
+		return
+	}
+	for _, matcher := range builtInMatchers([]sdk.Matcher{grantChecker}) {
+		r.RegisterMatcher(matcher)
+	}
+	r.logger.Debug("Grant matcher configured",
+		zap.String("cache_dir", grantCfg.CacheDir),
+		zap.Duration("cache_ttl", grantCfg.CacheTTL),
+	)
 }
 
 func (r *Registry) registerClearlyDefinedMatcher() {

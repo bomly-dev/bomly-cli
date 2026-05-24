@@ -193,6 +193,17 @@ func TestScan(t *testing.T) {
 			tools: []string{"npm"},
 		},
 		{
+			// Grant license enrichment smoke pinned to sirupsen/logrus v1.9.3,
+			// a small Go module with a permissive license graph. Negative
+			// matcher selectors isolate Grant from the other license sources
+			// (deps.dev, ClearlyDefined) so any pkg.Licenses with
+			// Type="external-grant" in the output came from this matcher.
+			// Requires the grant CLI on PATH; skips otherwise.
+			name:  "scan-go-grant-license-enrichment",
+			args:  []string{"scan", "--url", "https://github.com/sirupsen/logrus", "--ref", "v1.9.3", "--enrich", "--matchers", "+grant-license-checker,-clearlydefined-license-checker,-depsdev-license-checker", "--format", "json"},
+			tools: []string{"go", "grant"},
+		},
+		{
 			name: "scan-sbom-spdx",
 			args: []string{"scan", "--sbom", "--path", sbomFixture("go.spdx.json"), "--format", "json"},
 		},

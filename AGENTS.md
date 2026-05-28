@@ -37,7 +37,7 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for full detail. Component ma
 | `internal/engine`      | Pipeline, engine, consolidation, auditors, matchers, hooks, and orchestration                     |
 | `internal/registry`    | Canonical support/discovery registry and built-in engine registry wiring                          |
 | `internal/detectors/*` | Concrete dependency resolution per ecosystem (gomod, gradle, maven, node, python, sbom, syft)     |
-| `internal/matchers/*`  | External enrichment matchers and shared matcher cache (osv, grype, deps.dev, ClearlyDefined, eol) |
+| `internal/matchers/*`  | External enrichment matchers and shared matcher cache (osv, grype, deps.dev, ClearlyDefined, eol, scorecard) |
 | `internal/auditors/*`  | Policy evaluators and audit-only logic (policy, noop)                                             |
 | `internal/sbom`        | SBOM codec (SPDX 2.3, CycloneDX)                                                                  |
 | `internal/output`      | Output rendering plus structured command payloads and schema generation for `scan`, `diff`, `explain`, JSON, and SARIF 2.1.0 |
@@ -69,7 +69,7 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 - **Do not add PM installation logic.** Assume package managers exist.
 - **Plugin protocol is versioned `v1`.** External plugins use the SDK/HashiCorp gRPC `Metadata` and role descriptor contract.
 - **No secrets or credentials in logs.** Ever.
-- **Network calls only when explicitly triggered.** OSV (`https://api.osv.dev`), CISA KEV, ClearlyDefined (`https://api.clearlydefined.io`), deps.dev (`https://api.deps.dev`), and endoflife.date (`https://endoflife.date`) are permitted only during explicit enrichment (`--enrich`). `--audit` evaluates whatever vulnerability data is already present on packages and must not silently trigger external matcher calls.
+- **Network calls only when explicitly triggered.** OSV (`https://api.osv.dev`), CISA KEV, ClearlyDefined (`https://api.clearlydefined.io`), deps.dev (`https://api.deps.dev`), endoflife.date (`https://endoflife.date`), and OpenSSF Scorecard (`https://api.scorecard.dev`) are permitted only during explicit enrichment (`--enrich`). `--audit` evaluates whatever vulnerability data is already present on packages and must not silently trigger external matcher calls.
 - **Record architecture decisions in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).**
 - **Prefer `internal/`.** Add new packages inside `internal/` unless there is a clear public API need.
 - **Standard library + Cobra + existing deps only.** Do not add new dependencies without discussion.
@@ -115,7 +115,7 @@ Cache failures are **non-fatal** — log a warning and continue without caching.
 - Implement `detectors.Detector` for concrete detectors, or `engine.Auditor` / `engine.Matcher` for audit and license stages.
 - Detectors may implement `ReadyDetector`, `ApplicableDetector`, and `InstallFirstDetector`; auditors and matchers have parallel `Ready*` / `Applicable*` hooks.
 - Register built-ins in `internal/registry/builder.go`, which wires concrete detectors, auditors, matchers, and plugin stages into `engine.Registry`.
-- External enrichment is matcher-based; see `internal/matchers/depsdev`, `internal/matchers/clearlydefined`, `internal/matchers/osv`, `internal/matchers/grype`, and `internal/matchers/eol`.
+- External enrichment is matcher-based; see `internal/matchers/depsdev`, `internal/matchers/clearlydefined`, `internal/matchers/osv`, `internal/matchers/grype`, `internal/matchers/eol`, and `internal/matchers/scorecard`.
 - Detector chains are explicit in `internal/registry/support.go` and `internal/registry/builder.go`; do not infer priority from technique alone.
 - Some native detectors are build-tool-backed primaries (`pub-native`, `swiftpm-native`, `sbt-native`) with committed-file fallbacks. Run smoke/QA with `dart`, `swift`, or `sbt` on `PATH` before updating graph-shape goldens for those ecosystems.
 

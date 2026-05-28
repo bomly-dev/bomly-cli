@@ -285,6 +285,57 @@
                   "scope": {
                     "type": "string"
                   },
+                  "scorecard": {
+                    "properties": {
+                      "aggregateScore": {
+                        "type": "number"
+                      },
+                      "checks": {
+                        "items": {
+                          "properties": {
+                            "documentation": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "reason": {
+                              "type": "string"
+                            },
+                            "score": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "score"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "commitSha": {
+                        "type": "string"
+                      },
+                      "repository": {
+                        "type": "string"
+                      },
+                      "runDate": {
+                        "properties": {},
+                        "type": "object"
+                      },
+                      "scorecardVersion": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "aggregateScore"
+                    ],
+                    "type": "object"
+                  },
                   "version": {
                     "type": "string"
                   },
@@ -1153,6 +1204,57 @@
                   },
                   "scope": {
                     "type": "string"
+                  },
+                  "scorecard": {
+                    "properties": {
+                      "aggregateScore": {
+                        "type": "number"
+                      },
+                      "checks": {
+                        "items": {
+                          "properties": {
+                            "documentation": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "reason": {
+                              "type": "string"
+                            },
+                            "score": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "score"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "commitSha": {
+                        "type": "string"
+                      },
+                      "repository": {
+                        "type": "string"
+                      },
+                      "runDate": {
+                        "properties": {},
+                        "type": "object"
+                      },
+                      "scorecardVersion": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "aggregateScore"
+                    ],
+                    "type": "object"
                   },
                   "version": {
                     "type": "string"
@@ -2023,6 +2125,57 @@
                   "scope": {
                     "type": "string"
                   },
+                  "scorecard": {
+                    "properties": {
+                      "aggregateScore": {
+                        "type": "number"
+                      },
+                      "checks": {
+                        "items": {
+                          "properties": {
+                            "documentation": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "reason": {
+                              "type": "string"
+                            },
+                            "score": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "score"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "commitSha": {
+                        "type": "string"
+                      },
+                      "repository": {
+                        "type": "string"
+                      },
+                      "runDate": {
+                        "properties": {},
+                        "type": "object"
+                      },
+                      "scorecardVersion": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "aggregateScore"
+                    ],
+                    "type": "object"
+                  },
                   "version": {
                     "type": "string"
                   },
@@ -2803,6 +2956,57 @@
                       "scope": {
                         "type": "string"
                       },
+                      "scorecard": {
+                        "properties": {
+                          "aggregateScore": {
+                            "type": "number"
+                          },
+                          "checks": {
+                            "items": {
+                              "properties": {
+                                "documentation": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "score": {
+                                  "type": "integer"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "score"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "commitSha": {
+                            "type": "string"
+                          },
+                          "repository": {
+                            "type": "string"
+                          },
+                          "runDate": {
+                            "properties": {},
+                            "type": "object"
+                          },
+                          "scorecardVersion": {
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "aggregateScore"
+                        ],
+                        "type": "object"
+                      },
                       "version": {
                         "type": "string"
                       },
@@ -3299,6 +3503,57 @@
                       "scope": {
                         "type": "string"
                       },
+                      "scorecard": {
+                        "properties": {
+                          "aggregateScore": {
+                            "type": "number"
+                          },
+                          "checks": {
+                            "items": {
+                              "properties": {
+                                "documentation": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "score": {
+                                  "type": "integer"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "score"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "commitSha": {
+                            "type": "string"
+                          },
+                          "repository": {
+                            "type": "string"
+                          },
+                          "runDate": {
+                            "properties": {},
+                            "type": "object"
+                          },
+                          "scorecardVersion": {
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "aggregateScore"
+                        ],
+                        "type": "object"
+                      },
                       "version": {
                         "type": "string"
                       },
@@ -3783,6 +4038,57 @@
                       },
                       "scope": {
                         "type": "string"
+                      },
+                      "scorecard": {
+                        "properties": {
+                          "aggregateScore": {
+                            "type": "number"
+                          },
+                          "checks": {
+                            "items": {
+                              "properties": {
+                                "documentation": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "score": {
+                                  "type": "integer"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "score"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "commitSha": {
+                            "type": "string"
+                          },
+                          "repository": {
+                            "type": "string"
+                          },
+                          "runDate": {
+                            "properties": {},
+                            "type": "object"
+                          },
+                          "scorecardVersion": {
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "aggregateScore"
+                        ],
+                        "type": "object"
                       },
                       "version": {
                         "type": "string"
@@ -4280,6 +4586,57 @@
                       },
                       "scope": {
                         "type": "string"
+                      },
+                      "scorecard": {
+                        "properties": {
+                          "aggregateScore": {
+                            "type": "number"
+                          },
+                          "checks": {
+                            "items": {
+                              "properties": {
+                                "documentation": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "score": {
+                                  "type": "integer"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "score"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "commitSha": {
+                            "type": "string"
+                          },
+                          "repository": {
+                            "type": "string"
+                          },
+                          "runDate": {
+                            "properties": {},
+                            "type": "object"
+                          },
+                          "scorecardVersion": {
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "aggregateScore"
+                        ],
+                        "type": "object"
                       },
                       "version": {
                         "type": "string"
@@ -4799,6 +5156,57 @@
                       "scope": {
                         "type": "string"
                       },
+                      "scorecard": {
+                        "properties": {
+                          "aggregateScore": {
+                            "type": "number"
+                          },
+                          "checks": {
+                            "items": {
+                              "properties": {
+                                "documentation": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "score": {
+                                  "type": "integer"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "score"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "commitSha": {
+                            "type": "string"
+                          },
+                          "repository": {
+                            "type": "string"
+                          },
+                          "runDate": {
+                            "properties": {},
+                            "type": "object"
+                          },
+                          "scorecardVersion": {
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "aggregateScore"
+                        ],
+                        "type": "object"
+                      },
                       "version": {
                         "type": "string"
                       },
@@ -5330,6 +5738,57 @@
                       "scope": {
                         "type": "string"
                       },
+                      "scorecard": {
+                        "properties": {
+                          "aggregateScore": {
+                            "type": "number"
+                          },
+                          "checks": {
+                            "items": {
+                              "properties": {
+                                "documentation": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "score": {
+                                  "type": "integer"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "score"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "commitSha": {
+                            "type": "string"
+                          },
+                          "repository": {
+                            "type": "string"
+                          },
+                          "runDate": {
+                            "properties": {},
+                            "type": "object"
+                          },
+                          "scorecardVersion": {
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "aggregateScore"
+                        ],
+                        "type": "object"
+                      },
                       "version": {
                         "type": "string"
                       },
@@ -5845,6 +6304,57 @@
                       "scope": {
                         "type": "string"
                       },
+                      "scorecard": {
+                        "properties": {
+                          "aggregateScore": {
+                            "type": "number"
+                          },
+                          "checks": {
+                            "items": {
+                              "properties": {
+                                "documentation": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "score": {
+                                  "type": "integer"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "score"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "commitSha": {
+                            "type": "string"
+                          },
+                          "repository": {
+                            "type": "string"
+                          },
+                          "runDate": {
+                            "properties": {},
+                            "type": "object"
+                          },
+                          "scorecardVersion": {
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "aggregateScore"
+                        ],
+                        "type": "object"
+                      },
                       "version": {
                         "type": "string"
                       },
@@ -6348,6 +6858,57 @@
                         "scope": {
                           "type": "string"
                         },
+                        "scorecard": {
+                          "properties": {
+                            "aggregateScore": {
+                              "type": "number"
+                            },
+                            "checks": {
+                              "items": {
+                                "properties": {
+                                  "documentation": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "reason": {
+                                    "type": "string"
+                                  },
+                                  "score": {
+                                    "type": "integer"
+                                  }
+                                },
+                                "required": [
+                                  "name",
+                                  "score"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "commitSha": {
+                              "type": "string"
+                            },
+                            "repository": {
+                              "type": "string"
+                            },
+                            "runDate": {
+                              "properties": {},
+                              "type": "object"
+                            },
+                            "scorecardVersion": {
+                              "type": "string"
+                            },
+                            "source": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "aggregateScore"
+                          ],
+                          "type": "object"
+                        },
                         "version": {
                           "type": "string"
                         },
@@ -6844,6 +7405,57 @@
                         "scope": {
                           "type": "string"
                         },
+                        "scorecard": {
+                          "properties": {
+                            "aggregateScore": {
+                              "type": "number"
+                            },
+                            "checks": {
+                              "items": {
+                                "properties": {
+                                  "documentation": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "reason": {
+                                    "type": "string"
+                                  },
+                                  "score": {
+                                    "type": "integer"
+                                  }
+                                },
+                                "required": [
+                                  "name",
+                                  "score"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "commitSha": {
+                              "type": "string"
+                            },
+                            "repository": {
+                              "type": "string"
+                            },
+                            "runDate": {
+                              "properties": {},
+                              "type": "object"
+                            },
+                            "scorecardVersion": {
+                              "type": "string"
+                            },
+                            "source": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "aggregateScore"
+                          ],
+                          "type": "object"
+                        },
                         "version": {
                           "type": "string"
                         },
@@ -7328,6 +7940,57 @@
                         },
                         "scope": {
                           "type": "string"
+                        },
+                        "scorecard": {
+                          "properties": {
+                            "aggregateScore": {
+                              "type": "number"
+                            },
+                            "checks": {
+                              "items": {
+                                "properties": {
+                                  "documentation": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "reason": {
+                                    "type": "string"
+                                  },
+                                  "score": {
+                                    "type": "integer"
+                                  }
+                                },
+                                "required": [
+                                  "name",
+                                  "score"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "commitSha": {
+                              "type": "string"
+                            },
+                            "repository": {
+                              "type": "string"
+                            },
+                            "runDate": {
+                              "properties": {},
+                              "type": "object"
+                            },
+                            "scorecardVersion": {
+                              "type": "string"
+                            },
+                            "source": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "aggregateScore"
+                          ],
+                          "type": "object"
                         },
                         "version": {
                           "type": "string"
@@ -7837,6 +8500,57 @@
                         },
                         "scope": {
                           "type": "string"
+                        },
+                        "scorecard": {
+                          "properties": {
+                            "aggregateScore": {
+                              "type": "number"
+                            },
+                            "checks": {
+                              "items": {
+                                "properties": {
+                                  "documentation": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "reason": {
+                                    "type": "string"
+                                  },
+                                  "score": {
+                                    "type": "integer"
+                                  }
+                                },
+                                "required": [
+                                  "name",
+                                  "score"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "commitSha": {
+                              "type": "string"
+                            },
+                            "repository": {
+                              "type": "string"
+                            },
+                            "runDate": {
+                              "properties": {},
+                              "type": "object"
+                            },
+                            "scorecardVersion": {
+                              "type": "string"
+                            },
+                            "source": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "aggregateScore"
+                          ],
+                          "type": "object"
                         },
                         "version": {
                           "type": "string"
@@ -8349,6 +9063,57 @@
                       },
                       "scope": {
                         "type": "string"
+                      },
+                      "scorecard": {
+                        "properties": {
+                          "aggregateScore": {
+                            "type": "number"
+                          },
+                          "checks": {
+                            "items": {
+                              "properties": {
+                                "documentation": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "score": {
+                                  "type": "integer"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "score"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "commitSha": {
+                            "type": "string"
+                          },
+                          "repository": {
+                            "type": "string"
+                          },
+                          "runDate": {
+                            "properties": {},
+                            "type": "object"
+                          },
+                          "scorecardVersion": {
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "aggregateScore"
+                        ],
+                        "type": "object"
                       },
                       "version": {
                         "type": "string"
@@ -9251,6 +10016,57 @@
                       },
                       "scope": {
                         "type": "string"
+                      },
+                      "scorecard": {
+                        "properties": {
+                          "aggregateScore": {
+                            "type": "number"
+                          },
+                          "checks": {
+                            "items": {
+                              "properties": {
+                                "documentation": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "score": {
+                                  "type": "integer"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "score"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "commitSha": {
+                            "type": "string"
+                          },
+                          "repository": {
+                            "type": "string"
+                          },
+                          "runDate": {
+                            "properties": {},
+                            "type": "object"
+                          },
+                          "scorecardVersion": {
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "aggregateScore"
+                        ],
+                        "type": "object"
                       },
                       "version": {
                         "type": "string"

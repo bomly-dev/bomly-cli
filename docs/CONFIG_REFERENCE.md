@@ -74,6 +74,14 @@ Bomly resolves configuration in the following order, with later sources overridi
 | `eol_cache_dir` | `BOMLY_EOL_CACHE_DIR` | `string` | - | Directory for the EOL cache |
 | `eol_cache_ttl` | `BOMLY_EOL_CACHE_TTL` | `string` | 24h | TTL for cached EOL responses (e.g. 24h) |
 
+## Scorecard matcher settings
+
+| YAML Key | Environment Variable | Type | Default | Description |
+|----------|---------------------|------|---------|-------------|
+| `scorecard_api_base` | `BOMLY_SCORECARD_API_BASE` | `string` | https://api.scorecard.dev | Base URL for the OpenSSF Scorecard public API |
+| `scorecard_cache_dir` | `BOMLY_SCORECARD_CACHE_DIR` | `string` | - | Directory for the Scorecard response cache |
+| `scorecard_cache_ttl` | `BOMLY_SCORECARD_CACHE_TTL` | `string` | 24h | TTL for cached Scorecard responses (e.g. 24h) |
+
 ## Example Configuration
 
 ```yaml
@@ -168,4 +176,12 @@ Bomly resolves configuration in the following order, with later sources overridi
 # eol_cache_dir: ""
 # TTL for cached EOL responses (e.g. 24h)
 # eol_cache_ttl: 24h
+
+# Scorecard matcher settings
+# Base URL for the OpenSSF Scorecard public API
+# scorecard_api_base: https://api.scorecard.dev
+# Directory for the Scorecard response cache
+# scorecard_cache_dir: ""
+# TTL for cached Scorecard responses (e.g. 24h)
+# scorecard_cache_ttl: 24h
 ```

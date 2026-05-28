@@ -58,7 +58,7 @@ internal/engine/consolidation/   Cross-subproject graph consolidation, manifest 
 internal/engine/hooks/           Pre-/post-resolve hook contract + executor (Descriptor,
                                  PreResolveHook, PostResolveHook, RunPre, RunPost)
 internal/registry/               Support/discovery registry; built-in wiring in builder.go
-internal/matchers/*              External enrichment: osv, grype, deps.dev, ClearlyDefined, eol
+internal/matchers/*              External enrichment: osv, grype, deps.dev, ClearlyDefined, eol, scorecard
 internal/matchers/cache          File-based cache shared by matchers
 internal/analyzers/*             Reachability analyzers (govulncheck — Go;
                                  jsreach — JavaScript/TypeScript;
@@ -103,7 +103,7 @@ Detector chains are explicit in `internal/registry/support.go` and `internal/reg
 - No package-manager installation logic — assume PMs exist.
 - Plugin protocol is versioned `v1` (gRPC). Do not break the `Metadata` / role descriptor contract.
 - No secrets or credentials in logs, ever.
-- Network calls (`--enrich`) permitted only to: `api.osv.dev`, CISA KEV, `api.clearlydefined.io`, `api.deps.dev`, `endoflife.date`. `--audit` evaluates existing data and must not trigger external matcher calls silently.
+- Network calls (`--enrich`) permitted only to: `api.osv.dev`, CISA KEV, `api.clearlydefined.io`, `api.deps.dev`, `endoflife.date`, `api.scorecard.dev`. `--audit` evaluates existing data and must not trigger external matcher calls silently.
 - Record architecture decisions in `docs/ARCHITECTURE.md`.
 - Standard library + Cobra + existing deps only — no new dependencies without discussion.
 

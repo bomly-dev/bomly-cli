@@ -67,6 +67,11 @@ type Resolved struct {
 	EOLAPIBase  string `doc:"Base URL for the endoflife.date API" env:"BOMLY_EOL_API_BASE" default:"https://endoflife.date/api"`
 	EOLCacheDir string `doc:"Directory for the EOL cache" env:"BOMLY_EOL_CACHE_DIR"`
 	EOLCacheTTL string `doc:"TTL for cached EOL responses (e.g. 24h)" env:"BOMLY_EOL_CACHE_TTL" default:"24h"`
+
+	// Scorecard matcher settings
+	ScorecardAPIBase  string `doc:"Base URL for the OpenSSF Scorecard public API" env:"BOMLY_SCORECARD_API_BASE" default:"https://api.scorecard.dev"`
+	ScorecardCacheDir string `doc:"Directory for the Scorecard response cache" env:"BOMLY_SCORECARD_CACHE_DIR"`
+	ScorecardCacheTTL string `doc:"TTL for cached Scorecard responses (e.g. 24h)" env:"BOMLY_SCORECARD_CACHE_TTL" default:"24h"`
 }
 
 // File is the YAML-deserialized shape of a Bomly config file. The
@@ -123,4 +128,9 @@ type File struct {
 	EOLAPIBase  *string `yaml:"eol_api_base,omitempty"`
 	EOLCacheDir *string `yaml:"eol_cache_dir,omitempty"`
 	EOLCacheTTL *string `yaml:"eol_cache_ttl,omitempty"`
+
+	// Scorecard matcher settings
+	ScorecardAPIBase  *string `yaml:"scorecard_api_base,omitempty"`
+	ScorecardCacheDir *string `yaml:"scorecard_cache_dir,omitempty"`
+	ScorecardCacheTTL *string `yaml:"scorecard_cache_ttl,omitempty"`
 }

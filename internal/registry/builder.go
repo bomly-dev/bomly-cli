@@ -35,6 +35,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/matchers/eol"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/grype"
 	osvmatcher "github.com/bomly-dev/bomly-cli/internal/matchers/osv"
+	"github.com/bomly-dev/bomly-cli/internal/matchers/scorecard"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
@@ -63,6 +64,9 @@ type RegistryConfigs struct {
 	EOLAPIBase            string
 	EOLCacheDir           string
 	EOLCacheTTL           string
+	ScorecardAPIBase      string
+	ScorecardCacheDir     string
+	ScorecardCacheTTL     string
 }
 
 // RegistryFilter narrows a registry down to the runtime-relevant selections.
@@ -142,6 +146,7 @@ func (r *Registry) registerMatchers() {
 	r.registerDepsDevMatcher()
 	r.registerClearlyDefinedMatcher()
 	r.registerEOLMatcher()
+	r.registerScorecardMatcher()
 }
 
 func (r *Registry) registerGrypeMatcher() {
@@ -230,6 +235,37 @@ func (r *Registry) registerDepsDevMatcher() {
 		}
 		r.logger.Debug("deps.dev matcher configured")
 	}
+}
+
+func (r *Registry) registerScorecardMatcher() {
+	scoreCfg := scorecard.DefaultConfig()
+	scoreCfg.Logger = r.logger
+	if r.configs.ScorecardAPIBase != "" {
+		scoreCfg.APIBase = r.configs.ScorecardAPIBase
+	}
+	if r.configs.ScorecardCacheDir != "" {
+		scoreCfg.CacheDir = r.configs.ScorecardCacheDir
+	}
+	if r.configs.ScorecardCacheTTL != "" {
+		if d, err := time.ParseDuration(r.configs.ScorecardCacheTTL); err == nil {
+			scoreCfg.CacheTTL = d
+		} else {
+			r.logger.Warn("scorecard: invalid cache_ttl; using default", zap.String("value", r.configs.ScorecardCacheTTL), zap.Error(err))
+		}
+	}
+	scoreMatcher, err := scorecard.New(scoreCfg)
+	if err != nil {
+		r.logger.Warn("scorecard matcher unavailable", zap.Error(err))
+		return
+	}
+	for _, matcher := range builtInMatchers([]sdk.Matcher{scoreMatcher}) {
+		r.RegisterMatcher(matcher)
+	}
+	r.logger.Debug("scorecard matcher configured",
+		zap.String("api_base", scoreCfg.APIBase),
+		zap.String("cache_dir", scoreCfg.CacheDir),
+		zap.Duration("cache_ttl", scoreCfg.CacheTTL),
+	)
 }
 
 func (r *Registry) registerClearlyDefinedMatcher() {
@@ -691,6 +727,14 @@ func matcherSelected(filter sdk.MatcherFilter, descriptor sdk.MatcherDescriptor)
 	}
 	if len(filter.Include) > 0 {
 		return filter.Includes(descriptor.Name)
+	}
+	// Operator-mode (--matchers +name / -name) populates Exclude with the
+	// catalog minus the resolved selection. Anything not in Exclude must run,
+	// including default-off matchers the user opted in with +name. Without
+	// this branch, falling through to descriptor.Enabled would silently drop
+	// default-off matchers even though the user explicitly asked for them.
+	if len(filter.Exclude) > 0 {
+		return true
 	}
 	return descriptor.Enabled
 }

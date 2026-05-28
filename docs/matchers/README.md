@@ -7,3 +7,4 @@ These generated pages explain Bomly's built-in enrichment matchers.
 - [Eol Checker](eol-checker.md)
 - [Grype](grype.md)
 - [OSV](osv.md)
+- [Scorecard](scorecard.md)

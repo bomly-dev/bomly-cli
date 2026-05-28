@@ -174,6 +174,28 @@ Complete reference for the `bomly scan` JSON output.
 | `locations` | Array<[`LocationRef`](#locationref)> | |
 | `licenses` | Array<[`LicenseRef`](#licenseref)> | |
 | `vulnerabilities` | Array<[`VulnerabilityRef`](#vulnerabilityref)> | |
+| `scorecard` | [`PackageScorecard`](#packagescorecard) | |
+
+### `PackageScorecard`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `source` | `string` | |
+| `repository` | `string` | |
+| `commitSha` | `string` | |
+| `scorecardVersion` | `string` | |
+| `runDate` | [`Time`](#time) | |
+| `aggregateScore` | `number` | |
+| `checks` | Array<[`PackageScorecardCheck`](#packagescorecardcheck)> | |
+
+### `PackageScorecardCheck`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | `string` | |
+| `score` | `integer` | |
+| `reason` | `string` | |
+| `documentation` | `string` | |
 
 ### `PositionRef`
 
@@ -242,6 +264,7 @@ Complete reference for the `bomly scan` JSON output.
 | `locations` | Array<[`LocationRef`](#locationref)> | |
 | `licenses` | Array<[`LicenseRef`](#licenseref)> | |
 | `vulnerabilities` | Array<[`VulnerabilityRef`](#vulnerabilityref)> | |
+| `scorecard` | [`PackageScorecard`](#packagescorecard) | |
 | `dependencies` | Array<`string`> | |
 
 ### `SourcePosition`
@@ -252,6 +275,8 @@ Complete reference for the `bomly scan` JSON output.
 | `line` | `integer` | |
 | `column` | `integer` | |
 | `end_line` | `integer` | |
+
+### `Time`
 
 ### `VulnerabilityRef`
 

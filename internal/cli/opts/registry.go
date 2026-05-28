@@ -40,5 +40,8 @@ func RegistryConfigsFromResolved(cfg config.Resolved) engine.RegistryConfigs {
 		EOLAPIBase:            cfg.EOLAPIBase,
 		EOLCacheDir:           cfg.EOLCacheDir,
 		EOLCacheTTL:           cfg.EOLCacheTTL,
+		ScorecardAPIBase:      cfg.ScorecardAPIBase,
+		ScorecardCacheDir:     cfg.ScorecardCacheDir,
+		ScorecardCacheTTL:     cfg.ScorecardCacheTTL,
 	}
 }

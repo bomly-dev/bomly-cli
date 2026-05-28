@@ -75,6 +75,7 @@ func newScanNavigator(titlePrefix string, project output.ProjectDescriptor, cons
 			{ID: string(interactiveScanViewVulns), Label: "Vulnerabilities", Build: model.buildVulnsListModel},
 			{ID: string(interactiveScanViewLicenses), Label: "Licenses", Build: model.buildLicensesListModel},
 			{ID: string(interactiveScanViewFindings), Label: "Findings", Build: model.buildFindingsListModel},
+			{ID: string(interactiveScanViewPosture), Label: "Posture", Build: model.buildPostureListModel},
 			{ID: string(interactiveScanViewSource), Label: "Source", Build: model.buildSourceListModel},
 		},
 		Footer: func() (string, string) {
@@ -380,6 +381,7 @@ func scanViews() []scanView {
 		interactiveScanViewVulns,
 		interactiveScanViewLicenses,
 		interactiveScanViewFindings,
+		interactiveScanViewPosture,
 		interactiveScanViewSource,
 	}
 }
@@ -508,7 +510,7 @@ func (m *scanModel) buildManifestListModel() *listModel {
 		listTitle:      fmt.Sprintf("Manifests (%d)", len(m.manifests)),
 		detailTitle:    "Manifest Details",
 		navigationHelp: interactiveCommonNavigationHelp + "; Enter opens selected manifest",
-		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; 1-6 switch tabs",
+		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; 1-7 switch tabs",
 		emptyState:     "No manifests were found in the dependency graph.",
 		items:          items,
 		selected:       selected,
@@ -586,7 +588,7 @@ func (m *scanModel) buildComponentsTreeListModel() *listModel {
 		listTitle:      fmt.Sprintf("Components (%d)", filteredComponentCount),
 		detailTitle:    "Component Details",
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; Enter/Right/Left expands and collapses; r relationship; s scope; v severity; 1-6 tabs",
+		filterHelp:     "Use / to search; Enter/Right/Left expands and collapses; r relationship; s scope; v severity; 1-7 tabs",
 		emptyState:     "No components were found.",
 		items:          items,
 	}
@@ -781,7 +783,7 @@ func (m *scanModel) buildOverviewListModel() *listModel {
 		title:          fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
 		summary:        m.scanSummaryLines(interactiveScanViewOverview),
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; Tab or 1-6 switches tabs; e export; ? help",
+		filterHelp:     "Use / to search; Tab or 1-7 switches tabs; e export; ? help",
 		emptyState:     "No scan overview is available.",
 		items:          items,
 	}
@@ -919,7 +921,7 @@ func (m *scanModel) buildVulnsListModel() *listModel {
 			{title: "Top Affected", lines: topAffectedLines(all, 5, 140), color: render.Green, weight: 2},
 		},
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; v cycles severity filter; g groups vulnerabilities; 1-6 switch tabs",
+		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; v cycles severity filter; g groups vulnerabilities; 1-7 switch tabs",
 		emptyState:     emptyState,
 		items:          items,
 	}
@@ -1253,7 +1255,7 @@ func (m *scanModel) buildLicensesListModel() *listModel {
 		listHeader:     padRight("License", 22) + padRight("Components", 11) + "Percentage",
 		detailTitle:    "License Details",
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; 1-6 switch tabs",
+		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; 1-7 switch tabs",
 		emptyState:     "No license information found.",
 		items:          items,
 	}
@@ -1364,10 +1366,80 @@ func (m *scanModel) buildFindingsListModel() *listModel {
 		detailTitle:    "Finding Details",
 		topPanels:      []listPanel{{title: "Findings Summary", lines: findingSummaryLines(m.findings), color: render.Red, weight: 1}},
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; 1-6 switch tabs",
+		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; 1-7 switch tabs",
 		emptyState:     "No findings found. Run with --audit to evaluate available vulnerability data.",
 		items:          items,
 	}
+}
+
+// buildPostureListModel produces the listModel for the Posture tab.
+// Conventions match Vulnerabilities/Licenses: a top-panels pair shows
+// distribution + top failing checks across the dependency set, the main
+// list lines up one row per source repository (worst-scoring first), and
+// the details pane shows the full Scorecard breakdown plus the packages
+// that resolved to the selected repo.
+func (m *scanModel) buildPostureListModel() *listModel {
+	rows := postureRowsFromGraph(m.graphValue)
+	items := make([]listItem, 0, len(rows))
+	repoWidth := 40
+	if len(rows) > 0 {
+		// Size the repo column to fit the widest visible repo, capped so
+		// the score + pkg-count columns still fit on narrow terminals.
+		maxRepo := 0
+		for _, row := range rows {
+			if len(row.repository) > maxRepo {
+				maxRepo = len(row.repository)
+			}
+		}
+		repoWidth = maxRepo
+		if repoWidth > 56 {
+			repoWidth = 56
+		}
+		if repoWidth < 24 {
+			repoWidth = 24
+		}
+	}
+	for _, row := range rows {
+		band := postureScoreBand(row.card.AggregateScore)
+		items = append(items, listItem{
+			title: postureListTitle(row, repoWidth),
+			badges: []badge{
+				{label: strings.ToUpper(band), kind: postureBandBadgeKind(band)},
+			},
+			details: postureRowDetails(row),
+		})
+	}
+
+	emptyState := "No Scorecard data attached. Run with --enrich --matchers +scorecard to populate posture data."
+	if m.enrichEnabled && len(rows) == 0 {
+		emptyState = "Enrichment ran without Scorecard. Re-run with --matchers +scorecard to populate posture data."
+	}
+
+	return &listModel{
+		title:       fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
+		summary:     m.scanSummaryLines(interactiveScanViewPosture),
+		controls:    []string{m.postureControlsLine(), m.postureStateLine(len(rows))},
+		listTitle:   fmt.Sprintf("Repositories (%d)", len(rows)),
+		listHeader:  padRight("Repository", repoWidth) + "  " + padRight("Score", 8) + "Packages",
+		detailTitle: "Repository Posture",
+		topPanels: []listPanel{
+			{title: "Posture Summary", lines: postureSummaryLines(rows), color: render.Yellow, weight: 1},
+			{title: "Top Failing Checks", lines: postureTopFailingLines(rows, 140), color: render.Red, weight: 2},
+		},
+		navigationHelp: interactiveCommonNavigationHelp,
+		filterHelp:     "Use / to search; ↑/↓ select; Ctrl+u/Ctrl+d scroll details; 1-7 switch tabs",
+		emptyState:     emptyState,
+		items:          items,
+	}
+}
+
+func (m *scanModel) postureControlsLine() string {
+	return keyHint("/", "search") + " " + keyHint("Ctrl+u/d", "scroll details")
+}
+
+func (m *scanModel) postureStateLine(total int) string {
+	return render.Style("Repositories: ", render.Dim) + render.Style(fmt.Sprintf("%d", total), render.BgYellow, render.Bold) +
+		render.Style(" | Source: ", render.Dim) + render.Style("api.scorecard.dev", render.BgYellow, render.Bold)
 }
 
 func (m *scanModel) findingItems(findings []sdk.Finding) []listItem {
@@ -1493,7 +1565,7 @@ func (m *scanModel) buildSourceListModel() *listModel {
 		listTitle:      fmt.Sprintf("Source (%d nodes)", sourceNodeCount(m)),
 		detailTitle:    "-",
 		navigationHelp: interactiveCommonNavigationHelp + "; Enter expands/collapses source nodes",
-		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; 1-6 switch tabs",
+		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; 1-7 switch tabs",
 		emptyState:     "No source data is available.",
 		items:          items,
 	}
@@ -1866,7 +1938,7 @@ func (m *scanModel) buildComponentListModel(manifest listPackageRow) *listModel 
 		listTitle:      fmt.Sprintf("Components (%d)", len(rows)),
 		detailTitle:    "Component Details",
 		navigationHelp: navigationHelp,
-		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; r relationship; s scope; v severity; 1-6 tabs",
+		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; r relationship; s scope; v severity; 1-7 tabs",
 		emptyState:     "No components were found for this manifest.",
 		items:          items,
 	}
@@ -1919,7 +1991,7 @@ func (m *scanModel) buildExplainComponentListModel(manifest listPackageRow) *lis
 		listTitle:      fmt.Sprintf("Components (%d)", len(rows)),
 		detailTitle:    "Component Details",
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; r relationship; s scope; v severity; 1-6 tabs",
+		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; r relationship; s scope; v severity; 1-7 tabs",
 		emptyState:     "No components were found for this explanation.",
 		items:          items,
 	}

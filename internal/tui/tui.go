@@ -174,6 +174,7 @@ const (
 	interactiveScanViewVulns    scanView = "vulnerabilities"
 	interactiveScanViewLicenses scanView = "licenses"
 	interactiveScanViewFindings scanView = "findings"
+	interactiveScanViewPosture  scanView = "posture"
 	interactiveScanViewSource   scanView = "source"
 )
 

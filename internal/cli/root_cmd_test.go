@@ -198,6 +198,15 @@ func TestRoot_RegistersCoreCommands(t *testing.T) {
 			t.Fatalf("expected command %q, got %#v", commandName, cmd)
 		}
 	}
+	for _, commandName := range []string{"explain", "scan", "diff"} {
+		cmd, _, err := root.Find([]string{commandName})
+		if err != nil {
+			t.Fatalf("root.Find(%q) error = %v", commandName, err)
+		}
+		if flag := cmd.Flags().Lookup("json"); flag == nil {
+			t.Fatalf("expected command %q to expose --json", commandName)
+		}
+	}
 }
 
 func TestRootHasCommandRequiredFlags(t *testing.T) {
@@ -489,7 +498,7 @@ func TestRoot_ScanCommand_ScansRepoURLAtRef(t *testing.T) {
 	var stderr bytes.Buffer
 	root.SetOut(&stdout)
 	root.SetErr(&stderr)
-	root.SetArgs([]string{"scan", "--url", repoDir, "--ref", baseSHA, "--ecosystems", "npm", "--format", "json"})
+	root.SetArgs([]string{"scan", "--url", repoDir, "--ref", baseSHA, "--ecosystems", "npm", "--json"})
 
 	if err := root.Execute(); err != nil {
 		t.Fatalf("root.Execute() error = %v; stderr=%s", err, stderr.String())

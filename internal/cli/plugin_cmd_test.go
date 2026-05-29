@@ -144,6 +144,33 @@ func TestPluginList_FormatJSON(t *testing.T) {
 	}
 }
 
+func TestPluginList_JSONShortcut(t *testing.T) {
+	root := newPluginTestRoot(t)
+	cmd, _, err := root.Find([]string{"plugin", "list"})
+	if err != nil {
+		t.Fatalf("root.Find(plugin list) error = %v", err)
+	}
+	if flag := cmd.Flags().Lookup("json"); flag == nil {
+		t.Fatal("expected plugin list to expose --json")
+	}
+
+	formatJSON := runPluginListJSON(t, "plugin", "list", "--detectors", "--format", "json")
+	shortcutJSON := runPluginListJSON(t, "plugin", "list", "--detectors", "--json")
+	if string(shortcutJSON) != string(formatJSON) {
+		t.Fatalf("expected --json to match --format json\n--json: %s\n--format: %s", shortcutJSON, formatJSON)
+	}
+
+	mixedJSON := runPluginListJSON(t, "plugin", "list", "--detectors", "--format", "table", "--json")
+	if string(mixedJSON) != string(formatJSON) {
+		t.Fatalf("expected trailing --json to override table format\n--json: %s\n--format: %s", mixedJSON, formatJSON)
+	}
+
+	tableOutput := runPluginListOutput(t, "plugin", "list", "--detectors", "--json", "--format", "table")
+	if strings.Contains(tableOutput, `"detectors"`) || !strings.Contains(tableOutput, "Detectors:") {
+		t.Fatalf("expected trailing --format table to override --json, got:\n%s", tableOutput)
+	}
+}
+
 func TestPluginList_InvalidFormat(t *testing.T) {
 	root := newPluginTestRoot(t)
 
@@ -155,6 +182,29 @@ func TestPluginList_InvalidFormat(t *testing.T) {
 	if !strings.Contains(err.Error(), `parse format: unsupported format "yaml"`) {
 		t.Fatalf("unexpected error: %v", err)
 	}
+}
+
+func runPluginListJSON(t *testing.T, args ...string) json.RawMessage {
+	t.Helper()
+	output := runPluginListOutput(t, args...)
+	var raw json.RawMessage
+	if err := json.Unmarshal([]byte(output), &raw); err != nil {
+		t.Fatalf("json.Unmarshal() error = %v\noutput:\n%s", err, output)
+	}
+	return raw
+}
+
+func runPluginListOutput(t *testing.T, args ...string) string {
+	t.Helper()
+	root := newPluginTestRoot(t)
+	var output strings.Builder
+	root.SetOut(&output)
+	root.SetErr(&output)
+	root.SetArgs(args)
+	if err := root.Execute(); err != nil {
+		t.Fatalf("root.Execute() error = %v", err)
+	}
+	return output.String()
 }
 
 func TestColorPluginType_HighlightsExternal(t *testing.T) {

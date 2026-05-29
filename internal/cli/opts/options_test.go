@@ -461,6 +461,50 @@ func TestCommandContextInitialize_AppliesConfigPrecedence(t *testing.T) {
 	}
 }
 
+func TestCommandContextInitialize_JSONShortcutOverridesEnvFormat(t *testing.T) {
+	t.Setenv("BOMLY_FORMAT", "markdown")
+
+	options := &Options{}
+	root := newTestRootCommand(t)
+	if err := options.Bind(root); err != nil {
+		t.Fatalf("Bind() error = %v", err)
+	}
+	if err := BindCommandFlagGroups(root, &options.ResolvedConfig, FlagGroupExecution); err != nil {
+		t.Fatalf("BindCommandFlagGroups() error = %v", err)
+	}
+	if err := root.ParseFlags([]string{"--json"}); err != nil {
+		t.Fatalf("ParseFlags() error = %v", err)
+	}
+	if err := options.ResolveConfig(root); err != nil {
+		t.Fatalf("ResolveConfig() error = %v", err)
+	}
+	if got := options.GetConfig().Format; got != "json" {
+		t.Fatalf("expected --json to override env format, got %q", got)
+	}
+}
+
+func TestCommandContextInitialize_JSONFalseDoesNotOverrideEnvFormat(t *testing.T) {
+	t.Setenv("BOMLY_FORMAT", "markdown")
+
+	options := &Options{}
+	root := newTestRootCommand(t)
+	if err := options.Bind(root); err != nil {
+		t.Fatalf("Bind() error = %v", err)
+	}
+	if err := BindCommandFlagGroups(root, &options.ResolvedConfig, FlagGroupExecution); err != nil {
+		t.Fatalf("BindCommandFlagGroups() error = %v", err)
+	}
+	if err := root.ParseFlags([]string{"--json=false"}); err != nil {
+		t.Fatalf("ParseFlags() error = %v", err)
+	}
+	if err := options.ResolveConfig(root); err != nil {
+		t.Fatalf("ResolveConfig() error = %v", err)
+	}
+	if got := options.GetConfig().Format; got != "markdown" {
+		t.Fatalf("expected --json=false to preserve env format, got %q", got)
+	}
+}
+
 func TestCommandContextInitialize_LoadsQuietFromConfig(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)

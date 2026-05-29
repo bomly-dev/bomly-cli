@@ -77,6 +77,16 @@ type detailScrollModel interface {
 	ScrollDetails(delta int)
 }
 
+// paneFocusModel routes Enter / arrow-key behaviour through the shared
+// focus state. The teaModel keyboard handler queries this interface so
+// every command's TUI (scan, explain, diff) gets the same Enter-to-focus,
+// arrow-keys-scroll-details flow without duplicating logic per command.
+type paneFocusModel interface {
+	IsDetailsFocused() bool
+	FocusDetails()
+	BlurDetails()
+}
+
 type listItem struct {
 	title    string
 	subtitle string
@@ -115,6 +125,10 @@ type listModel struct {
 	searchMatch    bool
 	footerSummary  string
 	legend         string
+	// detailsFocused is true when the user has hit Enter on a row and the
+	// keyboard handler should treat up/down/k/j as scroll-the-details
+	// rather than move-the-selection. Esc or another Enter blurs.
+	detailsFocused bool
 	// bodyOverride, when non-nil, replaces the standard list-and-detail body
 	// region with a caller-rendered block of `height` rows of `width` columns.
 	// The shell chrome (title, summary, controls, topPanels, footer) renders
@@ -129,7 +143,7 @@ type listPanel struct {
 	weight int
 }
 
-const interactiveCommonNavigationHelp = "Up/Down or j/k move; PgUp/PgDn or Ctrl+u/Ctrl+d scroll details; Home/End or g/G jump; q quits"
+const interactiveCommonNavigationHelp = "Up/Down or j/k move; Enter focus details (Up/Down scroll, Esc back); Home/End jump; q quits"
 
 type listPackageRow struct {
 	id               string
@@ -205,6 +219,8 @@ type scanModel struct {
 	licenseExpanded       map[string]bool
 	findingGroup          string
 	findingExpanded       map[string]bool
+	postureGroup          string // "repository" (default) or "check"
+	postureExpanded       map[string]bool
 }
 
 type teaModel struct {
@@ -256,6 +272,19 @@ func terminalFile(value any) (*os.File, error) {
 
 func (m *teaModel) Init() tea.Cmd {
 	return nil
+}
+
+// detailsRouting reports whether vertical arrow keys should scroll the
+// details pane instead of moving the list selection. We require both the
+// focus interface and the scroll interface so a model that opts in to
+// one without the other doesn't get half-functioning routing.
+func (m *teaModel) detailsRouting() bool {
+	focusModel, ok := m.inner.(paneFocusModel)
+	if !ok || !focusModel.IsDetailsFocused() {
+		return false
+	}
+	_, ok = m.inner.(detailScrollModel)
+	return ok
 }
 
 func (m *teaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -313,13 +342,21 @@ func (m *teaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.quitting = true
 				return m, tea.Quit
 			}
-			if toggleModel, ok := m.inner.(toggleModel); ok {
-				toggleModel.ToggleSelected()
+			// Enter toggles focus between the main list and the details
+			// pane. While focused, up/down/k/j scroll the details and Esc
+			// (or another Enter) returns to the list. Tree-expand actions
+			// still live on →/l, ←, and the [/] keys.
+			if focusModel, ok := m.inner.(paneFocusModel); ok {
+				if focusModel.IsDetailsFocused() {
+					focusModel.BlurDetails()
+				} else {
+					focusModel.FocusDetails()
+				}
 			}
 			if navigationModel, ok := m.inner.(navigationModel); ok {
 				navigationModel.OpenSelected()
 			}
-		case "1", "2", "3", "4", "5", "6":
+		case "1", "2", "3", "4", "5", "6", "7", "8", "9":
 			if tabModel, ok := m.inner.(numberedTabModel); ok {
 				tabModel.SelectView(int(msg.String()[0] - '0'))
 			}
@@ -352,9 +389,17 @@ func (m *teaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				navigationModel.GoBack()
 			}
 		case "up", "k":
-			m.inner.Move(-1)
+			if m.detailsRouting() {
+				m.inner.(detailScrollModel).ScrollDetails(-1)
+			} else {
+				m.inner.Move(-1)
+			}
 		case "down", "j":
-			m.inner.Move(1)
+			if m.detailsRouting() {
+				m.inner.(detailScrollModel).ScrollDetails(1)
+			} else {
+				m.inner.Move(1)
+			}
 		case "pgup", "ctrl+u":
 			if detailModel, ok := m.inner.(detailScrollModel); ok {
 				detailModel.ScrollDetails(-1)
@@ -375,6 +420,14 @@ func (m *teaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.confirmQuit && msg.String() == "esc" {
 				m.confirmQuit = false
 				return m, nil
+			}
+			// Esc has a higher-priority job when the details pane is focused:
+			// return focus to the main list, without engaging the quit prompt.
+			if msg.String() == "esc" {
+				if focusModel, ok := m.inner.(paneFocusModel); ok && focusModel.IsDetailsFocused() {
+					focusModel.BlurDetails()
+					return m, nil
+				}
 			}
 			if m.confirmQuit {
 				m.quitting = true
@@ -466,6 +519,39 @@ func (m *listModel) ScrollDetails(delta int) {
 	if m.detailOffset < 0 {
 		m.detailOffset = 0
 	}
+}
+
+// IsDetailsFocused reports whether keyboard input should be routed to the
+// details pane (arrow keys scroll details) rather than the main list
+// (arrow keys move selection).
+func (m *listModel) IsDetailsFocused() bool {
+	if m == nil {
+		return false
+	}
+	return m.detailsFocused
+}
+
+// FocusDetails pins keyboard input to the details pane. Selecting a new
+// row from the list (via tab cycling, search, or programmatic SelectView)
+// resets the focus, so users do not get stuck with a stale view.
+func (m *listModel) FocusDetails() {
+	if m == nil {
+		return
+	}
+	if strings.TrimSpace(m.detailTitle) == "-" {
+		// No details pane exists for this tab (full-width list) — focus
+		// would have nowhere to go, so it's a no-op.
+		return
+	}
+	m.detailsFocused = true
+}
+
+// BlurDetails returns keyboard focus to the main list.
+func (m *listModel) BlurDetails() {
+	if m == nil {
+		return
+	}
+	m.detailsFocused = false
 }
 
 func (m *listModel) BeginSearch() {
@@ -618,13 +704,22 @@ func (m *listModel) View(width, height int) string {
 
 	leftTitle := valueOrDefault(m.listTitle, "List")
 	rightTitle := valueOrDefault(m.detailTitle, "Details")
-	leftBox := boxView(leftTitle, listLines, listWidth, bodyHeight, render.Cyan)
+	leftColor := render.Cyan
+	rightColor := render.Magenta
+	if m.detailsFocused {
+		// Flip the active box to a high-contrast colour and dim the inactive
+		// one so the user sees at a glance which pane consumes arrow keys.
+		leftColor = render.Dim
+		rightColor = render.Yellow
+		rightTitle = "● " + rightTitle
+	}
+	leftBox := boxView(leftTitle, listLines, listWidth, bodyHeight, leftColor)
 	if strings.TrimSpace(m.detailTitle) == "-" {
 		for idx := 0; idx < bodyHeight; idx++ {
 			lines = append(lines, leftBox[idx])
 		}
 	} else {
-		rightBox := boxView(rightTitle, detailLines, detailWidth, bodyHeight, render.Magenta)
+		rightBox := boxView(rightTitle, detailLines, detailWidth, bodyHeight, rightColor)
 		for idx := 0; idx < bodyHeight; idx++ {
 			lines = append(lines, leftBox[idx]+" "+rightBox[idx])
 		}

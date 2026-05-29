@@ -565,9 +565,216 @@ func firstNonEmptyString(values ...string) string {
 	return ""
 }
 
+// postureDiffCheckGroup pivots the diff payload onto a check axis: one
+// group per check name, with the affected repositories sorted by
+// regression magnitude (worst regressions first).
+type postureDiffCheckGroup struct {
+	Name          string
+	Documentation string
+	Rows          []postureDiffCheckRow
+	// Counters used for the header sort: a check group with many
+	// repositories regressing should sort above a group with only
+	// improvements or stable scores.
+	Regressions  int
+	Improvements int
+	Stable       int
+	Introduced   int
+	Dropped      int
+}
+
+// postureDiffCheckRow is one repository's outcome for one check, holding
+// the score on each side so the renderer can show before → after.
+type postureDiffCheckRow struct {
+	Repo   postureDiffRow
+	Before *int
+	After  *int
+}
+
+// postureDiffCheckGroups builds the by-check groups from a slice of
+// postureDiffRow values. A check appears with at most one row per repo;
+// the before/after pointers reflect what (if anything) was scored on
+// each side.
+//
+// Implementation note: rows are built in a (checkName, repo) ->
+// *postureDiffCheckRow map first, then flattened into each group's slice
+// after collection. This keeps before/after updates simple (pointer
+// mutation) and avoids re-finding-and-replacing slice entries on every
+// scan.
+func postureDiffCheckGroups(rows []postureDiffRow) []postureDiffCheckGroup {
+	type rowKey struct {
+		check string
+		repo  string
+	}
+	cells := make(map[rowKey]*postureDiffCheckRow)
+	docs := make(map[string]string)
+
+	for _, row := range rows {
+		record := func(checks []sdk.PackageScorecardCheck, side string) {
+			for i := range checks {
+				c := checks[i]
+				name := strings.TrimSpace(c.Name)
+				if name == "" {
+					continue
+				}
+				if c.Documentation != "" {
+					if _, ok := docs[name]; !ok {
+						docs[name] = c.Documentation
+					}
+				}
+				key := rowKey{check: name, repo: row.repository}
+				entry, ok := cells[key]
+				if !ok {
+					entry = &postureDiffCheckRow{Repo: row}
+					cells[key] = entry
+				}
+				score := c.Score
+				if side == "before" {
+					entry.Before = &score
+				} else {
+					entry.After = &score
+				}
+			}
+		}
+		if row.before != nil {
+			record(row.before.Checks, "before")
+		}
+		if row.after != nil {
+			record(row.after.Checks, "after")
+		}
+	}
+
+	groups := make(map[string]*postureDiffCheckGroup)
+	for key, cell := range cells {
+		group, ok := groups[key.check]
+		if !ok {
+			group = &postureDiffCheckGroup{Name: key.check, Documentation: docs[key.check]}
+			groups[key.check] = group
+		}
+		group.Rows = append(group.Rows, *cell)
+	}
+	out := make([]postureDiffCheckGroup, 0, len(groups))
+	for _, group := range groups {
+		for _, r := range group.Rows {
+			switch {
+			case r.Before == nil && r.After != nil:
+				group.Introduced++
+			case r.Before != nil && r.After == nil:
+				group.Dropped++
+			case r.Before != nil && r.After != nil:
+				switch {
+				case *r.After < *r.Before:
+					group.Regressions++
+				case *r.After > *r.Before:
+					group.Improvements++
+				default:
+					group.Stable++
+				}
+			}
+		}
+		sort.SliceStable(group.Rows, func(i, j int) bool {
+			return postureDiffCheckRowRank(group.Rows[i]) < postureDiffCheckRowRank(group.Rows[j])
+		})
+		out = append(out, *group)
+	}
+	// Worst regressions first; then most-introduced; then alphabetical.
+	sort.SliceStable(out, func(i, j int) bool {
+		if out[i].Regressions != out[j].Regressions {
+			return out[i].Regressions > out[j].Regressions
+		}
+		if out[i].Dropped != out[j].Dropped {
+			return out[i].Dropped > out[j].Dropped
+		}
+		if out[i].Introduced != out[j].Introduced {
+			return out[i].Introduced > out[j].Introduced
+		}
+		return out[i].Name < out[j].Name
+	})
+	return out
+}
+
+func postureDiffCheckRowRank(r postureDiffCheckRow) int {
+	switch {
+	case r.Before != nil && r.After != nil && *r.After < *r.Before:
+		return 0 // regression
+	case r.Before != nil && r.After == nil:
+		return 1 // dropped
+	case r.Before == nil && r.After != nil && *r.After <= 5:
+		return 2 // introduced failing
+	case r.Before == nil && r.After != nil:
+		return 3 // introduced passing
+	case r.Before != nil && r.After != nil && *r.After > *r.Before:
+		return 4 // improvement
+	default:
+		return 5 // stable
+	}
+}
+
+func postureDiffCheckGroupTitle(group postureDiffCheckGroup) string {
+	movement := fmt.Sprintf("%d ↓ regressions, %d ↑ improvements", group.Regressions, group.Improvements)
+	if group.Dropped > 0 || group.Introduced > 0 {
+		movement += fmt.Sprintf(", %d introduced, %d dropped", group.Introduced, group.Dropped)
+	}
+	color := render.Yellow
+	if group.Regressions > 0 || group.Dropped > 0 {
+		color = render.Red
+	} else if group.Improvements > 0 || group.Introduced > 0 {
+		color = render.Green
+	}
+	return render.Style("●", color) + " " + group.Name + render.Style("  "+movement, render.Dim)
+}
+
+func postureDiffCheckGroupDetails(group postureDiffCheckGroup) []string {
+	lines := []string{
+		render.Style("Scorecard Check (delta)", render.Bold, render.Cyan),
+		"",
+		render.Style("  Name: ", render.Dim) + group.Name,
+		render.Style("  Regressions: ", render.Dim) + fmt.Sprintf("%d", group.Regressions),
+		render.Style("  Improvements: ", render.Dim) + fmt.Sprintf("%d", group.Improvements),
+		render.Style("  Stable: ", render.Dim) + fmt.Sprintf("%d", group.Stable),
+		render.Style("  Introduced: ", render.Dim) + fmt.Sprintf("%d", group.Introduced),
+		render.Style("  Dropped: ", render.Dim) + fmt.Sprintf("%d", group.Dropped),
+	}
+	if group.Documentation != "" {
+		lines = append(lines, render.Style("  Documentation: ", render.Dim)+group.Documentation)
+	}
+	lines = append(lines, "", render.Style(fmt.Sprintf("Affected repositories (%d)", len(group.Rows)), render.Bold, render.Magenta), "")
+	for _, r := range group.Rows {
+		lines = append(lines, "  "+postureDiffCheckGroupRowTitle(r, 40))
+	}
+	return lines
+}
+
+func postureDiffCheckGroupRowTitle(r postureDiffCheckRow, repoWidth int) string {
+	repo := truncateToWidth(r.Repo.repository, repoWidth)
+	switch {
+	case r.Before == nil && r.After != nil:
+		return padRight(repo, repoWidth) + render.Style(fmt.Sprintf("  ─ → %s  (introduced)", posturePrettyCheckScore(*r.After)), render.Green)
+	case r.Before != nil && r.After == nil:
+		return padRight(repo, repoWidth) + render.Style(fmt.Sprintf("  %s → ─  (dropped)", posturePrettyCheckScore(*r.Before)), render.Red)
+	case r.Before != nil && r.After != nil && *r.After < *r.Before:
+		return padRight(repo, repoWidth) + render.Style(fmt.Sprintf("  %s → %s", posturePrettyCheckScore(*r.Before), posturePrettyCheckScore(*r.After)), render.Red)
+	case r.Before != nil && r.After != nil && *r.After > *r.Before:
+		return padRight(repo, repoWidth) + render.Style(fmt.Sprintf("  %s → %s", posturePrettyCheckScore(*r.Before), posturePrettyCheckScore(*r.After)), render.Green)
+	case r.Before != nil && r.After != nil:
+		return padRight(repo, repoWidth) + render.Style(fmt.Sprintf("  %s → %s  (stable)", posturePrettyCheckScore(*r.Before), posturePrettyCheckScore(*r.After)), render.Dim)
+	default:
+		return padRight(repo, repoWidth) + render.Style("  ─ → ─", render.Dim)
+	}
+}
+
+func postureDiffCheckGroupRowDetails(group postureDiffCheckGroup, r postureDiffCheckRow) []string {
+	lines := []string{
+		render.Style("Selected via check: "+group.Name, render.Dim),
+		"",
+	}
+	lines = append(lines, postureDiffRowDetails(r.Repo)...)
+	return lines
+}
+
 // buildPostureTab is the diffModel's TabSpec.Build for the Posture tab.
 // Layout mirrors the other diff tabs: top summary panels, single main
-// list, secondary details pane.
+// list, secondary details pane. The `g` key cycles the grouping axis
+// between "repository" (default) and "check".
 func (m *diffModel) buildPostureTab() *listModel {
 	rows := postureDiffRowsFromPayload(m.payload.Results.Dependencies)
 	repoWidth := 24
@@ -579,9 +786,20 @@ func (m *diffModel) buildPostureTab() *listModel {
 	if repoWidth > 56 {
 		repoWidth = 56
 	}
-	items := make([]listItem, 0, len(rows))
-	for _, row := range rows {
-		items = append(items, postureDiffListItem(row, repoWidth))
+
+	group := valueOrDefault(m.postureGroup, "repository")
+	var items []listItem
+	var listTitle, listHeader string
+	switch group {
+	case "check":
+		items, listTitle, listHeader = m.postureDiffItemsByCheck(rows, repoWidth)
+	default:
+		items = make([]listItem, 0, len(rows))
+		for _, row := range rows {
+			items = append(items, postureDiffListItem(row, repoWidth))
+		}
+		listTitle = fmt.Sprintf("Repositories (%d)", len(rows))
+		listHeader = padRight("Repository", repoWidth) + "  Score"
 	}
 
 	emptyState := "No Scorecard data in either side of this diff. Re-run with --enrich --matchers +scorecard on both base and head."
@@ -590,16 +808,51 @@ func (m *diffModel) buildPostureTab() *listModel {
 	}
 
 	return &listModel{
-		listTitle:   fmt.Sprintf("Repositories (%d)", len(rows)),
-		listHeader:  padRight("Repository", repoWidth) + "  Score",
+		listTitle:   listTitle,
+		listHeader:  listHeader,
 		detailTitle: "Repository Posture",
 		topPanels: []listPanel{
 			{title: "Posture Delta", lines: postureDiffSummaryLines(rows), color: render.Yellow, weight: 1},
 			{title: "Biggest Score Movers", lines: postureDiffMoversLines(rows, 140), color: render.Red, weight: 2},
 		},
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; ↑/↓ select; Ctrl+u/Ctrl+d scroll details; 1-7 switch tabs",
+		filterHelp:     "Use / to search; g cycles group (repository/check); Enter focuses details; 1-7 switch tabs",
 		emptyState:     emptyState,
 		items:          items,
 	}
+}
+
+// postureDiffItemsByCheck renders the by-check view for the diff:
+// expandable group headers per check name, with affected repositories
+// underneath. Each row shows the per-check before/after rather than the
+// aggregate, so deltas are pegged to the specific failing check.
+func (m *diffModel) postureDiffItemsByCheck(rows []postureDiffRow, repoWidth int) ([]listItem, string, string) {
+	groups := postureDiffCheckGroups(rows)
+	items := make([]listItem, 0, len(rows)+len(groups))
+	for _, group := range groups {
+		key := "check:" + group.Name
+		expanded := expandedValue(m.postureExpanded, key, true)
+		items = append(items, listItem{
+			title:    postureDiffCheckGroupTitle(group),
+			subtitle: "group",
+			details:  postureDiffCheckGroupDetails(group),
+			key:      key,
+			canOpen:  true,
+			expanded: expanded,
+		})
+		if !expanded {
+			continue
+		}
+		for idx, child := range group.Rows {
+			items = append(items, listItem{
+				title:   postureDiffCheckGroupRowTitle(child, repoWidth),
+				details: postureDiffCheckGroupRowDetails(group, child),
+				tree:    treePrefix(nil, idx == len(group.Rows)-1, 1),
+				depth:   1,
+			})
+		}
+	}
+	listTitle := fmt.Sprintf("Checks (%d)", len(groups))
+	listHeader := padRight("Check / Repository", repoWidth+6) + "  Before → After"
+	return items, listTitle, listHeader
 }

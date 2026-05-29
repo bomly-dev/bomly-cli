@@ -62,6 +62,8 @@ func newScanNavigator(titlePrefix string, project output.ProjectDescriptor, cons
 		licenseExpanded:       map[string]bool{},
 		findingGroup:          "type",
 		findingExpanded:       map[string]bool{},
+		postureGroup:          "repository",
+		postureExpanded:       map[string]bool{},
 	}
 	if len(manifests) == 1 {
 		model.mode = interactiveScanModeComponents
@@ -138,6 +140,11 @@ func (m *scanModel) toggleSelectedTreeNode() {
 		m.rebuildListPreserveSelection()
 		return
 	}
+	if m.currentScanView() == interactiveScanViewPosture && item.canOpen && item.key != "" {
+		m.postureExpanded[item.key] = !item.expanded
+		m.rebuildListPreserveSelection()
+		return
+	}
 	if m.currentScanView() != interactiveScanViewSource {
 		return
 	}
@@ -181,6 +188,8 @@ func (m *scanModel) setSelectedTreeNode(expanded bool) {
 		m.licenseExpanded[item.key] = expanded
 	case interactiveScanViewFindings:
 		m.findingExpanded[item.key] = expanded
+	case interactiveScanViewPosture:
+		m.postureExpanded[item.key] = expanded
 	case interactiveScanViewSource:
 		m.sourceExpanded[item.key] = expanded
 	default:
@@ -214,6 +223,8 @@ func (m *scanModel) setAllTreeNodes(expanded bool) {
 			m.licenseExpanded[item.key] = expanded
 		case interactiveScanViewFindings:
 			m.findingExpanded[item.key] = expanded
+		case interactiveScanViewPosture:
+			m.postureExpanded[item.key] = expanded
 		case interactiveScanViewSource:
 			m.sourceExpanded[item.key] = expanded
 		}
@@ -257,6 +268,8 @@ func (m *scanModel) CycleGroup() {
 		m.licenseGroup = nextFilterValue(m.licenseGroup, []string{"license", "category", "recognition"})
 	case interactiveScanViewFindings:
 		m.findingGroup = nextFilterValue(m.findingGroup, []string{"type", "severity", "component", "ecosystem"})
+	case interactiveScanViewPosture:
+		m.postureGroup = nextFilterValue(m.postureGroup, []string{"repository", "check"})
 	default:
 		return
 	}
@@ -436,7 +449,7 @@ func (m *scanModel) scanFooterSummary() string {
 func (m *scanModel) scanLegend() string {
 	return strings.Join([]string{
 		keyHint("Tab", "switch"),
-		keyHint("Enter", "select"),
+		keyHint("Enter", "focus details"),
 		keyHint("→", "expand"),
 		keyHint("←", "collapse"),
 		keyHint("]", "expand all"),
@@ -510,7 +523,7 @@ func (m *scanModel) buildManifestListModel() *listModel {
 		listTitle:      fmt.Sprintf("Manifests (%d)", len(m.manifests)),
 		detailTitle:    "Manifest Details",
 		navigationHelp: interactiveCommonNavigationHelp + "; Enter opens selected manifest",
-		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; 1-7 switch tabs",
+		filterHelp:     "Use / to search; Enter focuses details; Esc clears search; 1-7 switch tabs",
 		emptyState:     "No manifests were found in the dependency graph.",
 		items:          items,
 		selected:       selected,
@@ -588,7 +601,7 @@ func (m *scanModel) buildComponentsTreeListModel() *listModel {
 		listTitle:      fmt.Sprintf("Components (%d)", filteredComponentCount),
 		detailTitle:    "Component Details",
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; Enter/Right/Left expands and collapses; r relationship; s scope; v severity; 1-7 tabs",
+		filterHelp:     "Use / to search; →/← expand/collapse; Enter focuses details; r relationship; s scope; v severity; 1-7 tabs",
 		emptyState:     "No components were found.",
 		items:          items,
 	}
@@ -921,7 +934,7 @@ func (m *scanModel) buildVulnsListModel() *listModel {
 			{title: "Top Affected", lines: topAffectedLines(all, 5, 140), color: render.Green, weight: 2},
 		},
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; v cycles severity filter; g groups vulnerabilities; 1-7 switch tabs",
+		filterHelp:     "Use / to search; Enter focuses details; Esc clears search; v cycles severity filter; g groups vulnerabilities; 1-7 switch tabs",
 		emptyState:     emptyState,
 		items:          items,
 	}
@@ -1255,7 +1268,7 @@ func (m *scanModel) buildLicensesListModel() *listModel {
 		listHeader:     padRight("License", 22) + padRight("Components", 11) + "Percentage",
 		detailTitle:    "License Details",
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; 1-7 switch tabs",
+		filterHelp:     "Use / to search; Enter focuses details; Esc clears search; 1-7 switch tabs",
 		emptyState:     "No license information found.",
 		items:          items,
 	}
@@ -1360,13 +1373,13 @@ func (m *scanModel) buildFindingsListModel() *listModel {
 	return &listModel{
 		title:          fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
 		summary:        m.scanSummaryLines(interactiveScanViewFindings),
-		controls:       []string{keyHint("/", "search") + " " + keyHint("g", "group") + " " + keyHint("Enter", "inspect") + " " + keyHint("]", "expand all") + " " + keyHint("[", "collapse all"), render.Style("Group: ", render.Dim) + render.Style(valueOrDefault(m.findingGroup, "type"), render.BgYellow, render.Bold) + render.Style(" | Filter: ", render.Dim) + render.Style("All", render.BgYellow, render.Bold)},
+		controls:       []string{keyHint("/", "search") + " " + keyHint("g", "group") + " " + keyHint("Enter", "focus details") + " " + keyHint("]", "expand all") + " " + keyHint("[", "collapse all"), render.Style("Group: ", render.Dim) + render.Style(valueOrDefault(m.findingGroup, "type"), render.BgYellow, render.Bold) + render.Style(" | Filter: ", render.Dim) + render.Style("All", render.BgYellow, render.Bold)},
 		listTitle:      fmt.Sprintf("Findings (%d)", len(m.findings)),
 		listHeader:     "Finding",
 		detailTitle:    "Finding Details",
 		topPanels:      []listPanel{{title: "Findings Summary", lines: findingSummaryLines(m.findings), color: render.Red, weight: 1}},
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; 1-7 switch tabs",
+		filterHelp:     "Use / to search; Enter focuses details; Esc clears search; 1-7 switch tabs",
 		emptyState:     "No findings found. Run with --audit to evaluate available vulnerability data.",
 		items:          items,
 	}
@@ -1377,14 +1390,12 @@ func (m *scanModel) buildFindingsListModel() *listModel {
 // distribution + top failing checks across the dependency set, the main
 // list lines up one row per source repository (worst-scoring first), and
 // the details pane shows the full Scorecard breakdown plus the packages
-// that resolved to the selected repo.
+// that resolved to the selected repo. The `g` key cycles between two
+// grouping axes: "repository" (default) and "check".
 func (m *scanModel) buildPostureListModel() *listModel {
 	rows := postureRowsFromGraph(m.graphValue)
-	items := make([]listItem, 0, len(rows))
 	repoWidth := 40
 	if len(rows) > 0 {
-		// Size the repo column to fit the widest visible repo, capped so
-		// the score + pkg-count columns still fit on narrow terminals.
 		maxRepo := 0
 		for _, row := range rows {
 			if len(row.repository) > maxRepo {
@@ -1399,15 +1410,17 @@ func (m *scanModel) buildPostureListModel() *listModel {
 			repoWidth = 24
 		}
 	}
-	for _, row := range rows {
-		band := postureScoreBand(row.card.AggregateScore)
-		items = append(items, listItem{
-			title: postureListTitle(row, repoWidth),
-			badges: []badge{
-				{label: strings.ToUpper(band), kind: postureBandBadgeKind(band)},
-			},
-			details: postureRowDetails(row),
-		})
+
+	group := valueOrDefault(m.postureGroup, "repository")
+	var items []listItem
+	var listTitle, listHeader string
+	switch group {
+	case "check":
+		items, listTitle, listHeader = m.postureItemsByCheck(rows, repoWidth)
+	default:
+		items = m.postureItemsByRepository(rows, repoWidth)
+		listTitle = fmt.Sprintf("Repositories (%d)", len(rows))
+		listHeader = padRight("Repository", repoWidth) + "  " + padRight("Score", 8) + "Packages"
 	}
 
 	emptyState := "No Scorecard data attached. Run with --enrich --matchers +scorecard to populate posture data."
@@ -1418,27 +1431,80 @@ func (m *scanModel) buildPostureListModel() *listModel {
 	return &listModel{
 		title:       fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
 		summary:     m.scanSummaryLines(interactiveScanViewPosture),
-		controls:    []string{m.postureControlsLine(), m.postureStateLine(len(rows))},
-		listTitle:   fmt.Sprintf("Repositories (%d)", len(rows)),
-		listHeader:  padRight("Repository", repoWidth) + "  " + padRight("Score", 8) + "Packages",
+		controls:    []string{m.postureControlsLine(), m.postureStateLine(group, len(rows))},
+		listTitle:   listTitle,
+		listHeader:  listHeader,
 		detailTitle: "Repository Posture",
 		topPanels: []listPanel{
 			{title: "Posture Summary", lines: postureSummaryLines(rows), color: render.Yellow, weight: 1},
 			{title: "Top Failing Checks", lines: postureTopFailingLines(rows, 140), color: render.Red, weight: 2},
 		},
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; ↑/↓ select; Ctrl+u/Ctrl+d scroll details; 1-7 switch tabs",
+		filterHelp:     "Use / to search; g cycles group (repository/check); Enter focuses details; 1-7 switch tabs",
 		emptyState:     emptyState,
 		items:          items,
 	}
 }
 
-func (m *scanModel) postureControlsLine() string {
-	return keyHint("/", "search") + " " + keyHint("Ctrl+u/d", "scroll details")
+// postureItemsByRepository builds the default flat list of repositories.
+func (m *scanModel) postureItemsByRepository(rows []postureRow, repoWidth int) []listItem {
+	items := make([]listItem, 0, len(rows))
+	for _, row := range rows {
+		band := postureScoreBand(row.card.AggregateScore)
+		items = append(items, listItem{
+			title:   postureListTitle(row, repoWidth),
+			badges:  []badge{{label: strings.ToUpper(band), kind: postureBandBadgeKind(band)}},
+			details: postureRowDetails(row),
+		})
+	}
+	return items
 }
 
-func (m *scanModel) postureStateLine(total int) string {
-	return render.Style("Repositories: ", render.Dim) + render.Style(fmt.Sprintf("%d", total), render.BgYellow, render.Bold) +
+// postureItemsByCheck builds the by-check view: one expandable group
+// header per check name (worst failure rate first), under which the
+// affected repositories appear as child rows.
+func (m *scanModel) postureItemsByCheck(rows []postureRow, repoWidth int) ([]listItem, string, string) {
+	groups := postureCheckGroups(rows)
+	items := make([]listItem, 0, len(rows)+len(groups))
+	for _, group := range groups {
+		groupKey := "check:" + group.Name
+		expanded := expandedValue(m.postureExpanded, groupKey, true)
+		items = append(items, listItem{
+			title:    postureCheckGroupTitle(group),
+			subtitle: "group",
+			details:  postureCheckGroupDetails(group),
+			key:      groupKey,
+			canOpen:  true,
+			expanded: expanded,
+		})
+		if !expanded {
+			continue
+		}
+		all := make([]postureCheckGroupRow, 0, len(group.FailingRepos)+len(group.InconclusiveRepos)+len(group.PassingRepos))
+		all = append(all, group.FailingRepos...)
+		all = append(all, group.InconclusiveRepos...)
+		all = append(all, group.PassingRepos...)
+		for idx, r := range all {
+			items = append(items, listItem{
+				title:   postureCheckGroupRowTitle(r, repoWidth),
+				details: postureCheckGroupRowDetails(group, r),
+				tree:    treePrefix(nil, idx == len(all)-1, 1),
+				depth:   1,
+			})
+		}
+	}
+	listTitle := fmt.Sprintf("Checks (%d)", len(groups))
+	listHeader := padRight("Check / Repository", repoWidth+6) + "  " + padRight("Score", 8) + "Notes"
+	return items, listTitle, listHeader
+}
+
+func (m *scanModel) postureControlsLine() string {
+	return keyHint("/", "search") + " " + keyHint("g", "group") + " " + keyHint("Enter", "focus details") + " " + keyHint("]", "expand all") + " " + keyHint("[", "collapse all")
+}
+
+func (m *scanModel) postureStateLine(group string, total int) string {
+	return render.Style("Group: ", render.Dim) + render.Style(group, render.BgYellow, render.Bold) +
+		render.Style(" | Repositories: ", render.Dim) + render.Style(fmt.Sprintf("%d", total), render.BgYellow, render.Bold) +
 		render.Style(" | Source: ", render.Dim) + render.Style("api.scorecard.dev", render.BgYellow, render.Bold)
 }
 
@@ -1561,11 +1627,11 @@ func (m *scanModel) buildSourceListModel() *listModel {
 	return &listModel{
 		title:          fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
 		summary:        m.scanSummaryLines(interactiveScanViewSource),
-		controls:       []string{keyHint("/", "search") + " " + keyHint("Enter", "toggle") + " " + keyHint("→", "expand") + " " + keyHint("←", "collapse") + " " + keyHint("]", "expand all") + " " + keyHint("[", "collapse all"), render.Style("Mode: ", render.Dim) + render.Style("JSON tree", render.BgYellow, render.Bold) + render.Style(" | Nodes: ", render.Dim) + fmt.Sprintf("%d", sourceNodeCount(m))},
+		controls:       []string{keyHint("/", "search") + " " + keyHint("Enter", "focus details") + " " + keyHint("→", "expand") + " " + keyHint("←", "collapse") + " " + keyHint("]", "expand all") + " " + keyHint("[", "collapse all"), render.Style("Mode: ", render.Dim) + render.Style("JSON tree", render.BgYellow, render.Bold) + render.Style(" | Nodes: ", render.Dim) + fmt.Sprintf("%d", sourceNodeCount(m))},
 		listTitle:      fmt.Sprintf("Source (%d nodes)", sourceNodeCount(m)),
 		detailTitle:    "-",
-		navigationHelp: interactiveCommonNavigationHelp + "; Enter expands/collapses source nodes",
-		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; 1-7 switch tabs",
+		navigationHelp: interactiveCommonNavigationHelp + "; → expands; Enter focuses details/collapses source nodes",
+		filterHelp:     "Use / to search; Enter focuses details; Esc clears search; 1-7 switch tabs",
 		emptyState:     "No source data is available.",
 		items:          items,
 	}
@@ -1938,7 +2004,7 @@ func (m *scanModel) buildComponentListModel(manifest listPackageRow) *listModel 
 		listTitle:      fmt.Sprintf("Components (%d)", len(rows)),
 		detailTitle:    "Component Details",
 		navigationHelp: navigationHelp,
-		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; r relationship; s scope; v severity; 1-7 tabs",
+		filterHelp:     "Use / to search; Enter focuses details; Esc clears search; r relationship; s scope; v severity; 1-7 tabs",
 		emptyState:     "No components were found for this manifest.",
 		items:          items,
 	}
@@ -1991,7 +2057,7 @@ func (m *scanModel) buildExplainComponentListModel(manifest listPackageRow) *lis
 		listTitle:      fmt.Sprintf("Components (%d)", len(rows)),
 		detailTitle:    "Component Details",
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; Enter keeps selection; Esc clears search; r relationship; s scope; v severity; 1-7 tabs",
+		filterHelp:     "Use / to search; Enter focuses details; Esc clears search; r relationship; s scope; v severity; 1-7 tabs",
 		emptyState:     "No components were found for this explanation.",
 		items:          items,
 	}

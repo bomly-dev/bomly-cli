@@ -412,3 +412,166 @@ func postureListTitle(row postureRow, repoWidth int) string {
 	repo := truncateToWidth(row.repository, repoWidth)
 	return padRight(repo, repoWidth) + "  " + padRight(score, 8) + render.Style(fmt.Sprintf(" %d pkg", len(row.packages)), render.Dim)
 }
+
+// postureCheckGroup aggregates every repository's outcome for one
+// Scorecard check name. Groups are emitted with the highest number of
+// failing repos at the top so the most actionable checks sort first.
+type postureCheckGroup struct {
+	Name              string
+	Documentation     string
+	FailingRepos      []postureCheckGroupRow // score 0..5 (and inconclusive surfaced separately below)
+	InconclusiveRepos []postureCheckGroupRow
+	PassingRepos      []postureCheckGroupRow // score 6..10
+}
+
+type postureCheckGroupRow struct {
+	Row    postureRow
+	Score  int
+	Reason string
+}
+
+// postureCheckGroups pivots the per-repo rows onto a check axis: one
+// group per check name, with repos sorted by score asc inside each group
+// so failing repos lead. Inconclusive (-1) outcomes get their own
+// section so they neither pollute the failing count nor pretend to be
+// passing.
+func postureCheckGroups(rows []postureRow) []postureCheckGroup {
+	groups := make(map[string]*postureCheckGroup)
+	for _, row := range rows {
+		for _, check := range row.card.Checks {
+			name := strings.TrimSpace(check.Name)
+			if name == "" {
+				continue
+			}
+			entry, ok := groups[name]
+			if !ok {
+				entry = &postureCheckGroup{Name: name}
+				groups[name] = entry
+			}
+			if check.Documentation != "" && entry.Documentation == "" {
+				entry.Documentation = check.Documentation
+			}
+			gr := postureCheckGroupRow{Row: row, Score: check.Score, Reason: check.Reason}
+			switch {
+			case check.Score < 0:
+				entry.InconclusiveRepos = append(entry.InconclusiveRepos, gr)
+			case check.Score <= 5:
+				entry.FailingRepos = append(entry.FailingRepos, gr)
+			default:
+				entry.PassingRepos = append(entry.PassingRepos, gr)
+			}
+		}
+	}
+	out := make([]postureCheckGroup, 0, len(groups))
+	for _, entry := range groups {
+		sortCheckGroupRows(entry.FailingRepos)
+		sortCheckGroupRows(entry.InconclusiveRepos)
+		sortCheckGroupRows(entry.PassingRepos)
+		out = append(out, *entry)
+	}
+	// Top failing first; on ties, larger failing+inconclusive set first;
+	// on further ties, name-sorted for stable rendering.
+	sort.SliceStable(out, func(i, j int) bool {
+		if len(out[i].FailingRepos) != len(out[j].FailingRepos) {
+			return len(out[i].FailingRepos) > len(out[j].FailingRepos)
+		}
+		problemsI := len(out[i].FailingRepos) + len(out[i].InconclusiveRepos)
+		problemsJ := len(out[j].FailingRepos) + len(out[j].InconclusiveRepos)
+		if problemsI != problemsJ {
+			return problemsI > problemsJ
+		}
+		return out[i].Name < out[j].Name
+	})
+	return out
+}
+
+func sortCheckGroupRows(rows []postureCheckGroupRow) {
+	sort.SliceStable(rows, func(i, j int) bool {
+		if rows[i].Score != rows[j].Score {
+			return rows[i].Score < rows[j].Score
+		}
+		return rows[i].Row.repository < rows[j].Row.repository
+	})
+}
+
+// postureCheckGroupTitle renders the group header for the by-check view.
+func postureCheckGroupTitle(group postureCheckGroup) string {
+	worst := 11
+	for _, r := range group.FailingRepos {
+		if r.Score < worst {
+			worst = r.Score
+		}
+	}
+	if worst == 11 {
+		// No failing repos — surface the best representative score.
+		for _, r := range group.PassingRepos {
+			if r.Score < worst {
+				worst = r.Score
+			}
+		}
+	}
+	band := postureScoreBand(float64(worst))
+	badge := postureCheckBadge(worst)
+	return render.Style(badge, postureBandColor(band)) + " " + group.Name +
+		render.Style(fmt.Sprintf("  %d failing / %d inconclusive / %d passing",
+			len(group.FailingRepos), len(group.InconclusiveRepos), len(group.PassingRepos)), render.Dim)
+}
+
+// postureCheckGroupDetails is the right-pane details when a check-group
+// header is selected: a worst-first list of every affected repository
+// and a documentation link.
+func postureCheckGroupDetails(group postureCheckGroup) []string {
+	lines := []string{
+		render.Style("Scorecard Check", render.Bold, render.Cyan),
+		"",
+		render.Style("  Name: ", render.Dim) + group.Name,
+		render.Style("  Failing repositories: ", render.Dim) + fmt.Sprintf("%d", len(group.FailingRepos)),
+		render.Style("  Inconclusive repositories: ", render.Dim) + fmt.Sprintf("%d", len(group.InconclusiveRepos)),
+		render.Style("  Passing repositories: ", render.Dim) + fmt.Sprintf("%d", len(group.PassingRepos)),
+	}
+	if group.Documentation != "" {
+		lines = append(lines, render.Style("  Documentation: ", render.Dim)+group.Documentation)
+	}
+	appendBucket := func(title string, rows []postureCheckGroupRow) {
+		if len(rows) == 0 {
+			return
+		}
+		lines = append(lines, "", render.Style(fmt.Sprintf("%s (%d)", title, len(rows)), render.Bold, render.Magenta), "")
+		for _, r := range rows {
+			band := postureScoreBand(float64(r.Score))
+			line := render.Style("  "+postureCheckBadge(r.Score), postureBandColor(band)) +
+				" " + render.Style(posturePrettyCheckScore(r.Score)+"  ", render.Dim) + r.Row.repository
+			lines = append(lines, line)
+			if reason := strings.TrimSpace(r.Reason); reason != "" {
+				lines = append(lines, render.Style("      reason: ", render.Dim)+reason)
+			}
+		}
+	}
+	appendBucket("Failing repositories", group.FailingRepos)
+	appendBucket("Inconclusive repositories", group.InconclusiveRepos)
+	appendBucket("Passing repositories", group.PassingRepos)
+	return lines
+}
+
+// postureCheckGroupRowTitle renders a single repository row inside an
+// expanded check group.
+func postureCheckGroupRowTitle(r postureCheckGroupRow, repoWidth int) string {
+	band := postureScoreBand(float64(r.Score))
+	score := posturePrettyCheckScore(r.Score)
+	repo := truncateToWidth(r.Row.repository, repoWidth)
+	return render.Style(postureCheckBadge(r.Score), postureBandColor(band)) + " " +
+		padRight(repo, repoWidth) + "  " + padRight(score, 8) +
+		render.Style(fmt.Sprintf("  agg %s", posturePrettyScore(r.Row.card.AggregateScore)), render.Dim)
+}
+
+// postureCheckGroupRowDetails renders the same per-repo details pane
+// the by-repository view uses, plus a top banner naming the check that
+// brought the user here so context is never lost.
+func postureCheckGroupRowDetails(group postureCheckGroup, r postureCheckGroupRow) []string {
+	lines := []string{
+		render.Style("Selected via check: "+group.Name, render.Dim),
+		"",
+	}
+	lines = append(lines, postureRowDetails(r.Row)...)
+	return lines
+}

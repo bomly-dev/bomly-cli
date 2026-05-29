@@ -121,6 +121,7 @@ func (s *shellModel) CycleView() {
 	}
 	s.active = (s.active + 1) % len(s.spec.Tabs)
 	s.Rebuild()
+	s.BlurDetails()
 }
 
 // SelectView jumps to the 1-indexed tab.
@@ -130,6 +131,7 @@ func (s *shellModel) SelectView(index int) {
 	}
 	s.active = index - 1
 	s.Rebuild()
+	s.BlurDetails()
 }
 
 // View delegates to the active listModel. Embedding models can override
@@ -160,6 +162,28 @@ func (s *shellModel) End() {
 func (s *shellModel) ScrollDetails(delta int) {
 	if s != nil && s.list != nil {
 		s.list.ScrollDetails(delta)
+	}
+}
+
+// IsDetailsFocused / FocusDetails / BlurDetails delegate to the active
+// listModel so the teaModel keyboard handler can drive focus uniformly
+// regardless of which command owns the embedding model.
+func (s *shellModel) IsDetailsFocused() bool {
+	if s == nil || s.list == nil {
+		return false
+	}
+	return s.list.IsDetailsFocused()
+}
+
+func (s *shellModel) FocusDetails() {
+	if s != nil && s.list != nil {
+		s.list.FocusDetails()
+	}
+}
+
+func (s *shellModel) BlurDetails() {
+	if s != nil && s.list != nil {
+		s.list.BlurDetails()
 	}
 }
 func (s *shellModel) BeginSearch() {

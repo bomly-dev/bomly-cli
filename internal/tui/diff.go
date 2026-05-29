@@ -65,6 +65,9 @@ type diffModel struct {
 	findingGroup    string
 	findingExpanded map[string]bool
 
+	postureGroup    string // "repository" (default) or "check"
+	postureExpanded map[string]bool
+
 	sourceSide         diffSourceSide
 	sourceBaseExpanded map[string]bool
 	sourceHeadExpanded map[string]bool
@@ -85,6 +88,8 @@ func NewDiff(payload output.DiffResponse, baseGraph, headGraph sdk.ConsolidatedG
 		licenseExpanded:    map[string]bool{},
 		findingGroup:       "status",
 		findingExpanded:    map[string]bool{},
+		postureGroup:       "repository",
+		postureExpanded:    map[string]bool{},
 		sourceSide:         diffSourceBase,
 		sourceBaseExpanded: map[string]bool{"root": true, "manifests": true},
 		sourceHeadExpanded: map[string]bool{"root": true, "manifests": true},
@@ -130,6 +135,8 @@ func (m *diffModel) CycleGroup() {
 		m.licenseGroup = nextLicenseGroup(m.licenseGroup)
 	case "findings":
 		m.findingGroup = nextFindingGroup(m.findingGroup)
+	case "posture":
+		m.postureGroup = cycleString(m.postureGroup, []string{"repository", "check"})
 	case "source":
 		if m.sourceSide == diffSourceBase {
 			m.sourceSide = diffSourceHead
@@ -247,6 +254,8 @@ func (m *diffModel) currentExpansionMap() map[string]bool {
 		return m.licenseExpanded
 	case "findings":
 		return m.findingExpanded
+	case "posture":
+		return m.postureExpanded
 	case "source":
 		if m.sourceSide == diffSourceBase {
 			return m.sourceBaseExpanded
@@ -392,7 +401,7 @@ func (m *diffModel) diffAggregateCounts() diffAggregateCounts {
 func (m *diffModel) diffLegend() string {
 	return strings.Join([]string{
 		keyHint("Tab", "switch"),
-		keyHint("Enter", "select"),
+		keyHint("Enter", "focus details"),
 		keyHint("→", "expand"),
 		keyHint("←", "collapse"),
 		keyHint("]", "expand all"),
@@ -1485,7 +1494,7 @@ func (m *diffModel) buildComponentsTab() *listModel {
 		listTitle:      fmt.Sprintf("Components (%d)", len(filtered)),
 		detailTitle:    "Component Details",
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; g cycles group; r/s/v cycle relationship/scope/severity; Enter expands; 1-7 switch tabs",
+		filterHelp:     "Use / to search; g cycles group; r/s/v cycle relationship/scope/severity; → expands; Enter focuses details; 1-7 switch tabs",
 		emptyState:     "No package changes match the current filters.",
 		items:          items,
 	}
@@ -2361,7 +2370,7 @@ func (m *diffModel) buildAuditTab(cfg auditTabConfig) *listModel {
 		groupHints = "g cycles group (" + cfg.groupHints + ")"
 	}
 	controls := []string{
-		keyHint("/", "search") + " " + keyHint("g", "group") + " " + keyHint("Enter", "expand") + " " + keyHint("]", "expand all") + " " + keyHint("[", "collapse all"),
+		keyHint("/", "search") + " " + keyHint("g", "group") + " " + keyHint("Enter", "focus details") + " " + keyHint("]", "expand all") + " " + keyHint("[", "collapse all"),
 		render.Style("Group: ", render.Dim) + render.Style(groupLabel(group), render.BgYellow, render.Bold) +
 			render.Style(" | Count: ", render.Dim) + fmt.Sprintf("%d", len(deltas)),
 	}
@@ -2375,7 +2384,7 @@ func (m *diffModel) buildAuditTab(cfg auditTabConfig) *listModel {
 		listTitle:      fmt.Sprintf("%s (%d)", cfg.listLabel, len(deltas)),
 		detailTitle:    cfg.listLabel + " Details",
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; " + groupHints + "; Enter expands; 1-7 switch tabs",
+		filterHelp:     "Use / to search; " + groupHints + "; → expands; Enter focuses details; 1-7 switch tabs",
 		emptyState:     emptyState,
 		items:          items,
 	}
@@ -2783,7 +2792,7 @@ func (m *diffModel) buildLicensesTab() *listModel {
 		}
 	}
 	controls := []string{
-		keyHint("/", "search") + " " + keyHint("g", "group") + " " + keyHint("Enter", "expand") + " " + keyHint("]", "expand all") + " " + keyHint("[", "collapse all"),
+		keyHint("/", "search") + " " + keyHint("g", "group") + " " + keyHint("Enter", "focus details") + " " + keyHint("]", "expand all") + " " + keyHint("[", "collapse all"),
 		render.Style("Group: ", render.Dim) + render.Style(groupLabel(group), render.BgYellow, render.Bold) +
 			render.Style(" | Introduced: ", render.Dim) + render.Style(fmt.Sprintf("%d", introduced), render.Green, render.Bold) +
 			render.Style(" | Retired: ", render.Dim) + render.Style(fmt.Sprintf("%d", retired), render.Red, render.Bold),
@@ -2794,7 +2803,7 @@ func (m *diffModel) buildLicensesTab() *listModel {
 		listTitle:      fmt.Sprintf("Licenses (%d)", len(deltas)),
 		detailTitle:    "License Details",
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; g cycles group (license/status/manifest/category/recognition); Enter expands; 1-7 switch tabs",
+		filterHelp:     "Use / to search; g cycles group (license/status/manifest/category/recognition); → expands; Enter focuses details; 1-7 switch tabs",
 		emptyState:     emptyState,
 		items:          items,
 	}
@@ -2948,7 +2957,7 @@ func (m *diffModel) buildSourceTab() *listModel {
 	}
 
 	controls := []string{
-		keyHint("/", "search") + " " + keyHint("g", "switch focus") + " " + keyHint("Enter", "expand") + " " + keyHint("→", "expand") + " " + keyHint("←", "collapse") + " " + keyHint("]", "expand all") + " " + keyHint("[", "collapse all"),
+		keyHint("/", "search") + " " + keyHint("g", "switch focus") + " " + keyHint("Enter", "focus details") + " " + keyHint("→", "expand") + " " + keyHint("←", "collapse") + " " + keyHint("]", "expand all") + " " + keyHint("[", "collapse all"),
 		render.Style("Focused: ", render.Dim) + render.Style(strings.ToUpper(string(focused)), render.BgYellow, render.Bold) +
 			render.Style(" | g → "+otherLabel, render.Dim) +
 			render.Style(fmt.Sprintf(" | Base nodes: %d", len(baseItems)), render.Dim) +
@@ -2959,7 +2968,7 @@ func (m *diffModel) buildSourceTab() *listModel {
 		controls:       controls,
 		listTitle:      "Source",
 		detailTitle:    "-",
-		navigationHelp: interactiveCommonNavigationHelp + "; Enter expands/collapses source nodes",
+		navigationHelp: interactiveCommonNavigationHelp + "; → expands; Enter focuses details/collapses source nodes",
 		filterHelp:     "Use / to search; g switches focus base/head; Enter/→/← expand & collapse; 1-7 switch tabs",
 		emptyState:     "No source graph available.",
 		items:          focusedItems,

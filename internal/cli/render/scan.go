@@ -50,6 +50,9 @@ func Scan(manifests []output.ScanManifest, g *sdk.Graph, findings []sdk.Finding,
 		fmt.Fprintf(&b, "  Reachability: %s\n", formatReachabilitySummary(g))
 	}
 	fmt.Fprintf(&b, "  Unique licenses: %d\n", scanUniqueLicenseCount(g))
+	if scoredCount, totalRepos := scorecardCounts(g); totalRepos > 0 {
+		fmt.Fprintf(&b, "  Project posture: %d Scorecard run(s) across %d package(s)\n", totalRepos, scoredCount)
+	}
 
 	b.WriteString("\nManifests\n")
 	b.WriteString(renderScanManifestTable(manifests))
@@ -121,6 +124,11 @@ func Scan(manifests []output.ScanManifest, g *sdk.Graph, findings []sdk.Finding,
 
 	b.WriteString("\nLicense Overview\n")
 	b.WriteString(renderUniqueLicensesTable(g))
+
+	if posture := renderScorecardTable(g); posture != "" {
+		b.WriteString("\n\nProject Posture\n")
+		b.WriteString(posture)
+	}
 
 	report := strings.TrimRight(b.String(), "\n")
 	return report
@@ -503,6 +511,91 @@ func renderScanGraphTable(g *sdk.Graph) string {
 			scope = "-"
 		}
 		_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n", row.name, version, scope, row.relationship, ValueOrDash(row.licenses))
+	}
+	_ = tw.Flush()
+	return strings.TrimRight(b.String(), "\n")
+}
+
+// scorecardCounts returns (packagesEnriched, uniqueRepos) for the graph.
+func scorecardCounts(g *sdk.Graph) (int, int) {
+	if g == nil {
+		return 0, 0
+	}
+	packages := 0
+	repos := make(map[string]struct{})
+	for _, pkg := range g.Packages() {
+		if pkg == nil || pkg.Scorecard == nil {
+			continue
+		}
+		packages++
+		if pkg.Scorecard.Repository != "" {
+			repos[pkg.Scorecard.Repository] = struct{}{}
+		}
+	}
+	return packages, len(repos)
+}
+
+// renderScorecardTable renders one row per unique source repo enriched by the
+// scorecard matcher. Returns the empty string when no packages carry a
+// Scorecard run, so callers can skip the section header entirely.
+func renderScorecardTable(g *sdk.Graph) string {
+	if g == nil {
+		return ""
+	}
+	type row struct {
+		repo     string
+		score    float64
+		runDate  string
+		version  string
+		packages int
+	}
+	byRepo := make(map[string]*row)
+	for _, pkg := range g.Packages() {
+		if pkg == nil || pkg.Scorecard == nil {
+			continue
+		}
+		repo := pkg.Scorecard.Repository
+		if repo == "" {
+			continue
+		}
+		r, ok := byRepo[repo]
+		if !ok {
+			r = &row{
+				repo:    repo,
+				score:   pkg.Scorecard.AggregateScore,
+				version: pkg.Scorecard.ScorecardVersion,
+			}
+			if !pkg.Scorecard.RunDate.IsZero() {
+				r.runDate = pkg.Scorecard.RunDate.UTC().Format("2006-01-02")
+			}
+			byRepo[repo] = r
+		}
+		r.packages++
+	}
+	if len(byRepo) == 0 {
+		return ""
+	}
+	rows := make([]*row, 0, len(byRepo))
+	for _, r := range byRepo {
+		rows = append(rows, r)
+	}
+	sort.Slice(rows, func(i, j int) bool {
+		if rows[i].score != rows[j].score {
+			return rows[i].score < rows[j].score
+		}
+		return rows[i].repo < rows[j].repo
+	})
+
+	var b strings.Builder
+	tw := tabwriter.NewWriter(&b, 0, 0, 2, ' ', 0)
+	_, _ = fmt.Fprintln(tw, "REPOSITORY\tSCORE\tRUN DATE\tVERSION\tPACKAGES")
+	for _, r := range rows {
+		score := "n/a"
+		if r.score >= 0 {
+			score = fmt.Sprintf("%.1f/10", r.score)
+		}
+		_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%d\n",
+			r.repo, score, ValueOrDash(r.runDate), ValueOrDash(r.version), r.packages)
 	}
 	_ = tw.Flush()
 	return strings.TrimRight(b.String(), "\n")

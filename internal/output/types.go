@@ -86,15 +86,16 @@ type VulnerabilityRef struct {
 
 // PackageRef identifies a package in command outputs.
 type PackageRef struct {
-	Name            string             `json:"name"`
-	Version         string             `json:"version,omitempty"`
-	Scope           string             `json:"scope,omitempty"`
-	Purl            string             `json:"purl,omitempty"`
-	ID              string             `json:"id,omitempty"`
-	Metadata        map[string]any     `json:"metadata,omitempty"`
-	Locations       []LocationRef      `json:"locations,omitempty"`
-	Licenses        []LicenseRef       `json:"licenses"`
-	Vulnerabilities []VulnerabilityRef `json:"vulnerabilities"`
+	Name            string                `json:"name"`
+	Version         string                `json:"version,omitempty"`
+	Scope           string                `json:"scope,omitempty"`
+	Purl            string                `json:"purl,omitempty"`
+	ID              string                `json:"id,omitempty"`
+	Metadata        map[string]any        `json:"metadata,omitempty"`
+	Locations       []LocationRef         `json:"locations,omitempty"`
+	Licenses        []LicenseRef          `json:"licenses"`
+	Vulnerabilities []VulnerabilityRef    `json:"vulnerabilities"`
+	Scorecard       *sdk.PackageScorecard `json:"scorecard,omitempty"`
 }
 
 // LocationRef points at where a package was declared in a lockfile
@@ -167,6 +168,7 @@ func PackageFromGraphPackage(pkg *sdk.Package) PackageRef {
 		Locations:       LocationRefsFromGraphLocations(pkg.Locations),
 		Licenses:        LicenseRefsFromGraphLicenses(pkg.Licenses),
 		Vulnerabilities: VulnerabilityRefsFromPackageVulnerabilities(pkg.Vulnerabilities),
+		Scorecard:       pkg.Scorecard.Clone(),
 	}
 }
 

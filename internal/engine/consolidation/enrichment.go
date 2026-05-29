@@ -158,6 +158,9 @@ func syncPackageEnrichment(dst, src *sdk.Package) {
 			idx[key] = len(dst.Vulnerabilities) - 1
 		}
 	}
+	if dst.Scorecard == nil && src.Scorecard != nil {
+		dst.Scorecard = src.Scorecard.Clone()
+	}
 	if len(src.Metadata) > 0 {
 		if dst.Metadata == nil {
 			dst.Metadata = make(map[string]any, len(src.Metadata))

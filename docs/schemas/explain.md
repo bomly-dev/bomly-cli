@@ -204,6 +204,28 @@ Complete reference for the `bomly explain` JSON output.
 | `locations` | Array<[`LocationRef`](#locationref)> | |
 | `licenses` | Array<[`LicenseRef`](#licenseref)> | |
 | `vulnerabilities` | Array<[`VulnerabilityRef`](#vulnerabilityref)> | |
+| `scorecard` | [`PackageScorecard`](#packagescorecard) | |
+
+### `PackageScorecard`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `source` | `string` | |
+| `repository` | `string` | |
+| `commitSha` | `string` | |
+| `scorecardVersion` | `string` | |
+| `runDate` | [`Time`](#time) | |
+| `aggregateScore` | `number` | |
+| `checks` | Array<[`PackageScorecardCheck`](#packagescorecardcheck)> | |
+
+### `PackageScorecardCheck`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | `string` | |
+| `score` | `integer` | |
+| `reason` | `string` | |
+| `documentation` | `string` | |
 
 ### `PositionRef`
 
@@ -255,6 +277,8 @@ Complete reference for the `bomly explain` JSON output.
 | `line` | `integer` | |
 | `column` | `integer` | |
 | `end_line` | `integer` | |
+
+### `Time`
 
 ### `VulnerabilityRef`
 

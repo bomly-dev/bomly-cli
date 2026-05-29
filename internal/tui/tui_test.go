@@ -1122,7 +1122,7 @@ func TestScanInteractiveModel_OverviewDashboardUsesBordersAndBars(t *testing.T) 
 
 func TestScanInteractiveModel_SourceTreeCollapsesRoot(t *testing.T) {
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, sdk.ConsolidatedGraph{}, sdk.New(), nil)
-	model.SelectView(6)
+	model.SelectView(7) // Source is the 7th tab now that Posture sits between Findings and Source
 	plain := render.StripANSI(model.View(100, 30))
 	if !strings.Contains(plain, "packages: [] (0 items)") {
 		t.Fatalf("expected expanded source root, got:\n%s", plain)

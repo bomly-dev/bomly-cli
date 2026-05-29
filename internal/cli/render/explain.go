@@ -48,7 +48,7 @@ func Explain(w io.Writer, target output.ExplainTargetResponse, includeReachabili
 		}
 	}
 
-	if len(target.Findings) > 0 || len(target.Dependency.Licenses) > 0 || len(target.Dependency.Vulnerabilities) > 0 {
+	if len(target.Findings) > 0 || len(target.Dependency.Licenses) > 0 || len(target.Dependency.Vulnerabilities) > 0 || target.Dependency.Scorecard != nil {
 		if _, err := fmt.Fprintln(w); err != nil {
 			return err
 		}
@@ -141,8 +141,28 @@ func Explain(w io.Writer, target output.ExplainTargetResponse, includeReachabili
 		}
 	}
 
+	if scorecard := target.Dependency.Scorecard; scorecard != nil {
+		if len(target.Dependency.Vulnerabilities) > 0 || len(target.Findings) > 0 {
+			if _, err := fmt.Fprintln(w); err != nil {
+				return err
+			}
+		}
+		if _, err := fmt.Fprintf(w, "%s %s\n", Style("Project posture:", Dim), explainScorecardHeadline(scorecard)); err != nil {
+			return err
+		}
+		for _, check := range topScorecardChecks(scorecard.Checks, 5) {
+			if _, err := fmt.Fprintf(w, "  %s %s/%d  %s\n",
+				Style(scorecardCheckBadge(check.Score), Dim),
+				explainScorecardCheckScore(check.Score),
+				10,
+				explainScorecardCheckLine(check)); err != nil {
+				return err
+			}
+		}
+	}
+
 	if len(target.Dependency.Licenses) > 0 {
-		if len(target.Findings) > 0 {
+		if len(target.Findings) > 0 || target.Dependency.Scorecard != nil {
 			if _, err := fmt.Fprintln(w); err != nil {
 				return err
 			}

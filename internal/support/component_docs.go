@@ -683,6 +683,15 @@ func matcherBehavior(name string) matcherDocBehavior {
 			OutputFields:   []string{"metadata.eol", "matched package flag"},
 			Notes:          "Run with `--enrich` to attach lifecycle metadata. Audit behavior depends on auditor policy support for that metadata.",
 		}
+	case "scorecard":
+		return matcherDocBehavior{
+			Summary:        "Attaches the latest OpenSSF Scorecard run to packages whose upstream source repository resolves to github.com.",
+			RequiresEnrich: true,
+			UsesNetwork:    true,
+			Cache:          "Uses Bomly's matcher cache (24h TTL); cache failures are non-fatal. Unscored repos are cached as a sentinel so repeated runs do not refetch.",
+			OutputFields:   []string{"scorecard.aggregateScore", "scorecard.checks[]", "scorecard.repository", "scorecard.runDate", "scorecard.scorecardVersion"},
+			Notes:          "Opt-in. Select with `--matchers +scorecard` alongside `--enrich`. The matcher does not require a GitHub token; it reads precomputed runs from api.scorecard.dev.",
+		}
 	default:
 		return matcherDocBehavior{
 			Summary:        "Enriches Bomly package data.",

@@ -81,6 +81,16 @@ Stage summary:
 
 Reachability data lives on `PackageVulnerability.Reachability` rather than only on `Finding.Reachability` because `--reachability` must be useful without `--audit`. Matchers attach the vulnerability; the analyzer enriches it; the policy auditor copies the annotation onto each emitted Finding when `--audit` runs. This keeps a single source of truth on the package graph and lets the consolidation layer's existing per-vuln merge propagate analyzer output to per-manifest entry graphs without bespoke wiring.
 
+### Decision: Scorecard matcher reads precomputed runs, not the library
+
+The OpenSSF Scorecard matcher (`internal/matchers/scorecard`) fetches precomputed per-repo scores from `api.scorecard.dev` instead of importing `github.com/ossf/scorecard/v5` and running checks in-process. Three reasons:
+
+1. **Dependency cost.** The Scorecard Go library pulls in k8s, buildkit, containerd, bigquery, go-containerregistry, and osv-scanner transitive deps — roughly 150–250 MB of additional code that would land in every Bomly build, violating the "standard library + existing deps only" non-negotiable.
+2. **Credentials.** Running Scorecard live makes 60+ GitHub API calls per repo and is unusable without a `GITHUB_AUTH_TOKEN`. A customer-facing CLI that quietly demands a token would surprise users and complicate CI integration.
+3. **Latency.** Live runs take 1–3 minutes per repo. The precomputed API answers in tens of milliseconds and the OSSF refresh cadence (weekly) is acceptable for project-posture data.
+
+The matcher attaches `sdk.PackageScorecard` to packages whose upstream source resolves to a `github.com/{owner}/{repo}` URL, dedupes by repo so a monorepo's many packages share one HTTP call, caches 200 responses for 24h, and caches 404s as a sentinel so unscored repos are not retried within the TTL. Packages whose source repo lives outside github.com (GitLab, internal Git) or only in registry metadata not yet wired into Bomly are skipped silently. A future revision can add a deps.dev project-endpoint fallback for the second case without breaking changes.
+
 ## Detector and Auditor Model
 
 Bomly treats detectors, matchers, and auditors as explicit runtime roles.

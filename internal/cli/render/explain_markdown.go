@@ -76,6 +76,9 @@ func explainImpactMarkdown(payload output.ExplainResponse) []string {
 			fmt.Sprintf("- Policy findings: %s", scanAuditSummaryMarkdown(target.AuditSummary)),
 			fmt.Sprintf("- Licenses: %d", len(target.Dependency.Licenses)),
 		)
+		if scorecard := target.Dependency.Scorecard; scorecard != nil {
+			lines = append(lines, fmt.Sprintf("- Project posture: %s", markdownText(ScorecardHeadline(scorecard))))
+		}
 		if payload.Metadata.ReachabilityEnabled {
 			lines = append(lines, fmt.Sprintf("- Reachability: %s", explainReachabilitySummary(target)))
 		}

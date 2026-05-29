@@ -40,6 +40,9 @@ func Diff(w io.Writer, payload output.DiffResponse) error {
 	lines = append(lines, dependencyTextSections(payload.Results.Dependencies)...)
 	lines = append(lines, licenseTextSections(payload.Results.Licenses)...)
 	lines = append(lines, vulnerabilityTextSections(payload.Results.Vulnerabilities, payload.Metadata.ReachabilityEnabled)...)
+	if section := postureTextSections(payload.Results.Dependencies); len(section) > 0 {
+		lines = append(lines, section...)
+	}
 	if payload.Audit != nil {
 		lines = append(lines, policyTextSections(*payload.Audit, payload.Metadata.ReachabilityEnabled)...)
 	}

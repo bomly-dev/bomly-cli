@@ -97,6 +97,7 @@ func NewDiff(payload output.DiffResponse, baseGraph, headGraph sdk.ConsolidatedG
 			{ID: "vulnerabilities", Label: "Vulnerabilities", Build: m.buildVulnsTab},
 			{ID: "licenses", Label: "Licenses", Build: m.buildLicensesTab},
 			{ID: "findings", Label: "Findings", Build: m.buildFindingsTab},
+			{ID: "posture", Label: "Posture", Build: m.buildPostureTab},
 			{ID: "source", Label: "Source", Build: m.buildSourceTab},
 		},
 		Footer: func() (string, string) {
@@ -493,7 +494,7 @@ func (m *diffModel) buildOverviewTab() *listModel {
 		listTitle:      "Overview",
 		detailTitle:    "Details",
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; Tab or 1-6 switches tabs; Esc clears search",
+		filterHelp:     "Use / to search; Tab or 1-7 switches tabs; Esc clears search",
 		emptyState:     "No diff overview is available.",
 		items:          items,
 	}
@@ -1484,7 +1485,7 @@ func (m *diffModel) buildComponentsTab() *listModel {
 		listTitle:      fmt.Sprintf("Components (%d)", len(filtered)),
 		detailTitle:    "Component Details",
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; g cycles group; r/s/v cycle relationship/scope/severity; Enter expands; 1-6 switch tabs",
+		filterHelp:     "Use / to search; g cycles group; r/s/v cycle relationship/scope/severity; Enter expands; 1-7 switch tabs",
 		emptyState:     "No package changes match the current filters.",
 		items:          items,
 	}
@@ -2374,7 +2375,7 @@ func (m *diffModel) buildAuditTab(cfg auditTabConfig) *listModel {
 		listTitle:      fmt.Sprintf("%s (%d)", cfg.listLabel, len(deltas)),
 		detailTitle:    cfg.listLabel + " Details",
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; " + groupHints + "; Enter expands; 1-6 switch tabs",
+		filterHelp:     "Use / to search; " + groupHints + "; Enter expands; 1-7 switch tabs",
 		emptyState:     emptyState,
 		items:          items,
 	}
@@ -2793,7 +2794,7 @@ func (m *diffModel) buildLicensesTab() *listModel {
 		listTitle:      fmt.Sprintf("Licenses (%d)", len(deltas)),
 		detailTitle:    "License Details",
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; g cycles group (license/status/manifest/category/recognition); Enter expands; 1-6 switch tabs",
+		filterHelp:     "Use / to search; g cycles group (license/status/manifest/category/recognition); Enter expands; 1-7 switch tabs",
 		emptyState:     emptyState,
 		items:          items,
 	}
@@ -2959,7 +2960,7 @@ func (m *diffModel) buildSourceTab() *listModel {
 		listTitle:      "Source",
 		detailTitle:    "-",
 		navigationHelp: interactiveCommonNavigationHelp + "; Enter expands/collapses source nodes",
-		filterHelp:     "Use / to search; g switches focus base/head; Enter/→/← expand & collapse; 1-6 switch tabs",
+		filterHelp:     "Use / to search; g switches focus base/head; Enter/→/← expand & collapse; 1-7 switch tabs",
 		emptyState:     "No source graph available.",
 		items:          focusedItems,
 	}

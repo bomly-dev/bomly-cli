@@ -62,6 +62,12 @@ type Package struct {
 	// attached by matchers such as OSV and Grype.
 	Vulnerabilities []PackageVulnerability
 
+	// Scorecard stores the latest OpenSSF Scorecard run for the package's
+	// upstream source repository. Populated by the scorecard matcher when
+	// a github.com repo can be resolved for the package and the OSSF has
+	// published a score for it.
+	Scorecard *PackageScorecard
+
 	// Metadata holds per-ecosystem extensible data.
 	// Use the typed MetadataKey* constants as map keys for structured entries.
 	Metadata map[string]any
@@ -148,6 +154,9 @@ func (p *Package) Clone() *Package {
 		for _, vulnerability := range p.Vulnerabilities {
 			clone.Vulnerabilities = append(clone.Vulnerabilities, vulnerability.Clone())
 		}
+	}
+	if p.Scorecard != nil {
+		clone.Scorecard = p.Scorecard.Clone()
 	}
 	if len(p.Metadata) > 0 {
 		clone.Metadata = make(map[string]any, len(p.Metadata))

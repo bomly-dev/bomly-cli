@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"time"
@@ -46,6 +47,10 @@ type Config struct {
 	Logger *zap.Logger
 	// Stderr is used for progress messages. Maybe nil.
 	Stderr io.Writer
+	// Client overrides the OSV HTTP client. Maybe nil.
+	Client *http.Client
+	// KEVClient overrides the CISA KEV HTTP client. Maybe nil.
+	KEVClient *http.Client
 }
 
 // DefaultConfig returns a production-ready OSV matcher config.
@@ -138,6 +143,7 @@ func New(config Config) (*Matcher, error) {
 	if config.APIBase != "" {
 		clientConfig.APIBase = config.APIBase
 	}
+	clientConfig.HTTPClient = config.Client
 
 	c, err := cache.NewFileCache(config.CacheDir, config.CacheTTL)
 	if err != nil {
@@ -323,7 +329,7 @@ func (a *Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResul
 	// Optional KEV enrichment pass.
 	if a.config.EnableKEV && len(enriched) > 0 {
 		a.logger.Debug("osv: starting KEV enrichment")
-		catalog, err := FetchKEVCatalog(a.kevCache)
+		catalog, err := FetchKEVCatalog(a.kevCache, a.config.KEVClient)
 		if err != nil {
 			a.logger.Warn("osv: kev catalog unavailable", zap.Error(err))
 			if a.config.Stderr != nil {

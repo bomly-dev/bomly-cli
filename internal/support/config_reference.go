@@ -219,6 +219,8 @@ func renderConfigMarkdown(fields []configField) string {
 					value = "\"\""
 				case "[]string":
 					value = "[]"
+				case "map[string]any", "map[string]map[string]any":
+					value = "{}"
 				default:
 					value = "\"\""
 				}
@@ -238,6 +240,8 @@ func configTypeString(expr ast.Expr) string {
 		return typed.Name
 	case *ast.ArrayType:
 		return "[]" + configTypeString(typed.Elt)
+	case *ast.MapType:
+		return "map[" + configTypeString(typed.Key) + "]" + configTypeString(typed.Value)
 	case *ast.StarExpr:
 		return "*" + configTypeString(typed.X)
 	case *ast.SelectorExpr:

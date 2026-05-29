@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 const (
@@ -53,7 +55,7 @@ func NewClient(config ClientConfig) *Client {
 	}
 	httpClient := config.HTTPClient
 	if httpClient == nil {
-		httpClient = &http.Client{Timeout: config.Timeout}
+		httpClient, _ = sdk.NewHTTPClient(sdk.HTTPClientConfig{Timeout: config.Timeout})
 	}
 	return &Client{http: httpClient, config: config}
 }

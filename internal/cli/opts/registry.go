@@ -43,5 +43,7 @@ func RegistryConfigsFromResolved(cfg config.Resolved) engine.RegistryConfigs {
 		ScorecardAPIBase:      cfg.ScorecardAPIBase,
 		ScorecardCacheDir:     cfg.ScorecardCacheDir,
 		ScorecardCacheTTL:     cfg.ScorecardCacheTTL,
+		HTTPProxy:             cfg.HTTPProxy,
+		HTTPNoProxy:           cfg.HTTPNoProxy,
 	}
 }

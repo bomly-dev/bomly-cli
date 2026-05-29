@@ -41,11 +41,11 @@ func Verify(ctx context.Context, root, id string) (*VerifyResult, error) {
 		}
 		checks = append(checks, "checksum matches")
 	}
-	metadata, err := fetchRuntimeMetadata(ctx, fullEntrypoint)
+	metadata, err := fetchRuntimeMetadata(ctx, fullEntrypoint, manifest.ID)
 	if err != nil {
 		return nil, err
 	}
-	detectorDescriptor, packageManagerSupport, matcherDescriptor, auditorDescriptor, err := fetchRuntimeDescriptors(ctx, fullEntrypoint, metadata.Kind)
+	detectorDescriptor, packageManagerSupport, matcherDescriptor, auditorDescriptor, err := fetchRuntimeDescriptors(ctx, fullEntrypoint, metadata.Kind, metadata.ID)
 	if err != nil {
 		return nil, err
 	}

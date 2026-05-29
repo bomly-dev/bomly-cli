@@ -27,6 +27,42 @@ Installed external plugins are disabled by default. They do not participate in s
 
 Enabled plugins are loaded during runtime preparation in local and CI workflows. Treat `bomly plugin enable` as the trust decision for running that external binary.
 
+## Configuration And Proxy Support
+
+Bomly passes the active plugin API version, the explicit `BOMLY_CONFIG` path when one was provided, proxy settings, and the enabled plugin's own config to managed plugin subprocesses.
+
+Proxy settings can be configured with Bomly config keys or environment variables:
+
+```yaml
+http_proxy: http://proxy.example:8080
+http_no_proxy: localhost,127.0.0.1,.corp.example
+```
+
+Equivalent environment variables are `BOMLY_HTTP_PROXY` and `BOMLY_HTTP_NO_PROXY`. When those are not set, Bomly's SDK HTTP client still honors standard `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY` environment variables. For compatibility with non-SDK plugin code, Bomly also forwards the effective proxy values to plugin subprocesses using the standard proxy environment variable names.
+
+Per-plugin configuration lives under `plugins.<plugin-id>`:
+
+```yaml
+plugins:
+  acme.matcher:
+    api_base: https://api.example.com
+```
+
+External plugins can read only their own config through the SDK:
+
+```go
+type config struct {
+    APIBase string `json:"api_base"`
+}
+
+var cfg config
+if err := sdk.DecodePluginConfigFromEnv(&cfg); err != nil {
+    return err
+}
+```
+
+Plugins that make outbound HTTP calls should use `sdk.NewHTTPClient(sdk.HTTPClientConfigFromEnv())` so Bomly proxy settings and standard proxy environment variables are handled consistently.
+
 ## Plugin Layout
 
 External plugin packages include a `bomly-plugin.json` manifest and a platform entrypoint binary.

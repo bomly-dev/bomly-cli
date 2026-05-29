@@ -50,6 +50,9 @@ Bomly resolves configuration in the following order, with later sources overridi
 | `config` | `BOMLY_CONFIG` | `string` | - | Explicit YAML config file path |
 | `quiet` | `BOMLY_QUIET` | `bool` | - | Suppress all non-error output |
 | `verbosity` | `BOMLY_VERBOSE` | `int` | - | Verbosity level (0=normal, 1=verbose, 2+=debug) |
+| `http_proxy` | `BOMLY_HTTP_PROXY` | `string` | - | Outbound HTTP proxy URL used by Bomly and managed plugins |
+| `http_no_proxy` | `BOMLY_HTTP_NO_PROXY` | `string` | - | Comma-separated hosts, domains, or CIDRs that should bypass the outbound HTTP proxy |
+| `plugins` | `-` | `map[string]map[string]any` | - | Per-plugin configuration keyed by managed plugin ID |
 
 ## OSV matcher settings
 
@@ -154,6 +157,12 @@ Bomly resolves configuration in the following order, with later sources overridi
 # quiet: false
 # Verbosity level (0=normal, 1=verbose, 2+=debug)
 # verbosity: 0
+# Outbound HTTP proxy URL used by Bomly and managed plugins
+# http_proxy: ""
+# Comma-separated hosts, domains, or CIDRs that should bypass the outbound HTTP proxy
+# http_no_proxy: ""
+# Per-plugin configuration keyed by managed plugin ID
+# plugins: {}
 
 # OSV matcher settings
 # Base URL for the OSV vulnerability API

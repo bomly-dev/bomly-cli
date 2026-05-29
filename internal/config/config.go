@@ -53,6 +53,9 @@ type Resolved struct {
 	Quiet                 bool     `doc:"Suppress all non-error output" env:"BOMLY_QUIET"`
 	Verbosity             int      `doc:"Verbosity level (0=normal, 1=verbose, 2+=debug)" env:"BOMLY_VERBOSE"`
 	LoadedFiles           []string
+	HTTPProxy             string                    `doc:"Outbound HTTP proxy URL used by Bomly and managed plugins" env:"BOMLY_HTTP_PROXY"`
+	HTTPNoProxy           string                    `doc:"Comma-separated hosts, domains, or CIDRs that should bypass the outbound HTTP proxy" env:"BOMLY_HTTP_NO_PROXY"`
+	Plugins               map[string]map[string]any `doc:"Per-plugin configuration keyed by managed plugin ID"`
 
 	// OSV matcher settings
 	OsvAPIBase  string `doc:"Base URL for the OSV vulnerability API" env:"BOMLY_OSV_API_BASE" default:"https://api.osv.dev"`
@@ -80,40 +83,43 @@ type Resolved struct {
 // configref generator parses this struct's yaml tags to map each Resolved
 // field to its corresponding YAML key in the reference docs.
 type File struct {
-	Path                  *string    `yaml:"path,omitempty"`
-	Container             *string    `yaml:"container,omitempty"`
-	URL                   *string    `yaml:"url,omitempty"`
-	Ref                   *string    `yaml:"ref,omitempty"`
-	SBOM                  *bool      `yaml:"sbom,omitempty"`
-	Enrich                *bool      `yaml:"enrich,omitempty"`
-	Audit                 *bool      `yaml:"audit,omitempty"`
-	Reachability          *bool      `yaml:"reachability,omitempty"`
-	FailOn                FailOnList `yaml:"fail_on,omitempty"`
-	FailOnScopes          []string   `yaml:"fail_on_scopes,omitempty"`
-	AllowVulnerabilityIDs []string   `yaml:"allow_vulnerability_ids,omitempty"`
-	AllowLicenses         []string   `yaml:"allow_licenses,omitempty"`
-	DenyLicenses          []string   `yaml:"deny_licenses,omitempty"`
-	LicenseExemptPackages []string   `yaml:"license_exempt_packages,omitempty"`
-	DenyPackages          []string   `yaml:"deny_packages,omitempty"`
-	DenyGroups            []string   `yaml:"deny_groups,omitempty"`
-	ProtectedPackages     []string   `yaml:"protected_packages,omitempty"`
-	TyposquatThreshold    *string    `yaml:"typosquat_threshold,omitempty"`
-	TyposquatMode         *string    `yaml:"typosquat_mode,omitempty"`
-	WarnOnly              *bool      `yaml:"warn_only,omitempty"`
-	Analyzers             *string    `yaml:"analyzers,omitempty"`
-	Format                *string    `yaml:"format,omitempty"`
-	Outputs               []string   `yaml:"outputs,omitempty"`
-	Interactive           *bool      `yaml:"interactive,omitempty"`
-	Ecosystems            *string    `yaml:"ecosystems,omitempty"`
-	Detectors             *string    `yaml:"detectors,omitempty"`
-	Auditors              *string    `yaml:"auditors,omitempty"`
-	Matchers              *string    `yaml:"matchers,omitempty"`
-	InstallFirst          *bool      `yaml:"install_first,omitempty"`
-	InstallArgs           []string   `yaml:"install_args,omitempty"`
-	Config                *string    `yaml:"config,omitempty"`
-	Quiet                 *bool      `yaml:"quiet,omitempty"`
-	Verbosity             *int       `yaml:"verbosity,omitempty"`
-	Verbose               *bool      `yaml:"verbose,omitempty"`
+	Path                  *string                   `yaml:"path,omitempty"`
+	Container             *string                   `yaml:"container,omitempty"`
+	URL                   *string                   `yaml:"url,omitempty"`
+	Ref                   *string                   `yaml:"ref,omitempty"`
+	SBOM                  *bool                     `yaml:"sbom,omitempty"`
+	Enrich                *bool                     `yaml:"enrich,omitempty"`
+	Audit                 *bool                     `yaml:"audit,omitempty"`
+	Reachability          *bool                     `yaml:"reachability,omitempty"`
+	FailOn                FailOnList                `yaml:"fail_on,omitempty"`
+	FailOnScopes          []string                  `yaml:"fail_on_scopes,omitempty"`
+	AllowVulnerabilityIDs []string                  `yaml:"allow_vulnerability_ids,omitempty"`
+	AllowLicenses         []string                  `yaml:"allow_licenses,omitempty"`
+	DenyLicenses          []string                  `yaml:"deny_licenses,omitempty"`
+	LicenseExemptPackages []string                  `yaml:"license_exempt_packages,omitempty"`
+	DenyPackages          []string                  `yaml:"deny_packages,omitempty"`
+	DenyGroups            []string                  `yaml:"deny_groups,omitempty"`
+	ProtectedPackages     []string                  `yaml:"protected_packages,omitempty"`
+	TyposquatThreshold    *string                   `yaml:"typosquat_threshold,omitempty"`
+	TyposquatMode         *string                   `yaml:"typosquat_mode,omitempty"`
+	WarnOnly              *bool                     `yaml:"warn_only,omitempty"`
+	Analyzers             *string                   `yaml:"analyzers,omitempty"`
+	Format                *string                   `yaml:"format,omitempty"`
+	Outputs               []string                  `yaml:"outputs,omitempty"`
+	Interactive           *bool                     `yaml:"interactive,omitempty"`
+	Ecosystems            *string                   `yaml:"ecosystems,omitempty"`
+	Detectors             *string                   `yaml:"detectors,omitempty"`
+	Auditors              *string                   `yaml:"auditors,omitempty"`
+	Matchers              *string                   `yaml:"matchers,omitempty"`
+	InstallFirst          *bool                     `yaml:"install_first,omitempty"`
+	InstallArgs           []string                  `yaml:"install_args,omitempty"`
+	Config                *string                   `yaml:"config,omitempty"`
+	Quiet                 *bool                     `yaml:"quiet,omitempty"`
+	Verbosity             *int                      `yaml:"verbosity,omitempty"`
+	Verbose               *bool                     `yaml:"verbose,omitempty"`
+	HTTPProxy             *string                   `yaml:"http_proxy,omitempty"`
+	HTTPNoProxy           *string                   `yaml:"http_no_proxy,omitempty"`
+	Plugins               map[string]map[string]any `yaml:"plugins,omitempty"`
 
 	// OSV matcher settings
 	OsvAPIBase  *string `yaml:"osv_api_base,omitempty"`

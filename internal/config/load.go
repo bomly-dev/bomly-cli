@@ -1,7 +1,9 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -112,6 +114,18 @@ func ApplyFileConfig(dst *Resolved, src File) {
 	if len(src.Outputs) > 0 {
 		dst.Outputs = append([]string(nil), src.Outputs...)
 	}
+	if len(src.Plugins) > 0 {
+		if dst.Plugins == nil {
+			dst.Plugins = make(map[string]map[string]any, len(src.Plugins))
+		}
+		for id, pluginConfig := range src.Plugins {
+			trimmedID := strings.TrimSpace(id)
+			if trimmedID == "" {
+				continue
+			}
+			dst.Plugins[trimmedID] = clonePluginConfig(pluginConfig)
+		}
+	}
 	// Verbose is a legacy shorthand; map it to Verbosity=1 if not already set.
 	if src.Verbose != nil && *src.Verbose && dst.Verbosity == 0 {
 		dst.Verbosity = 1
@@ -219,7 +233,48 @@ func Validate(cfg Resolved) error {
 	default:
 		return fmt.Errorf("unsupported --typosquat-mode value %q (accepted: warn, fail)", cfg.TyposquatMode)
 	}
+	if err := validateProxyURL(cfg.HTTPProxy); err != nil {
+		return err
+	}
 	return nil
+}
+
+func validateProxyURL(value string) error {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return nil
+	}
+	parsed, err := url.Parse(value)
+	if err != nil {
+		return fmt.Errorf("invalid http_proxy URL: %w", err)
+	}
+	if parsed.Scheme == "" || parsed.Host == "" {
+		return fmt.Errorf("invalid http_proxy URL: must be absolute")
+	}
+	return nil
+}
+
+func clonePluginConfig(value map[string]any) map[string]any {
+	if value == nil {
+		return nil
+	}
+	data, err := json.Marshal(value)
+	if err != nil {
+		out := make(map[string]any, len(value))
+		for key, item := range value {
+			out[key] = item
+		}
+		return out
+	}
+	var out map[string]any
+	if err := json.Unmarshal(data, &out); err != nil {
+		copyValue := make(map[string]any, len(value))
+		for key, item := range value {
+			copyValue[key] = item
+		}
+		return copyValue
+	}
+	return out
 }
 
 func parseBool(s string) (bool, bool) {

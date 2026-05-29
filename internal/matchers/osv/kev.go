@@ -8,6 +8,7 @@ import (
 	"time"
 
 	audcache "github.com/bomly-dev/bomly-cli/internal/matchers/cache"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 const (
@@ -35,7 +36,7 @@ type kevEntry struct {
 // FetchKEVCatalog downloads the CISA KEV catalog, using the provided cache when available.
 // Cache may be nil — in that case the catalog is always fetched fresh.
 // Returns (nil, nil) if the request fails — callers treat absence as informational.
-func FetchKEVCatalog(cache *audcache.FileCache) (*KEVCatalog, error) {
+func FetchKEVCatalog(cache *audcache.FileCache, clients ...*http.Client) (*KEVCatalog, error) {
 	cacheKeyObj := audcache.NewKey(kevCacheKey, "", "", "")
 
 	if cache != nil {
@@ -44,7 +45,13 @@ func FetchKEVCatalog(cache *audcache.FileCache) (*KEVCatalog, error) {
 		}
 	}
 
-	client := &http.Client{Timeout: kevFetchTimeout}
+	var client *http.Client
+	if len(clients) > 0 {
+		client = clients[0]
+	}
+	if client == nil {
+		client, _ = sdk.NewHTTPClient(sdk.HTTPClientConfig{Timeout: kevFetchTimeout})
+	}
 	resp, err := client.Get(kevURL) // #nosec G107 — constant URL
 	if err != nil {
 		return nil, fmt.Errorf("fetch kev catalog: %w", err)

@@ -53,3 +53,13 @@ func TestValidateExistingMutualExclusions(t *testing.T) {
 		t.Error("--quiet + --verbose should still error")
 	}
 }
+
+func TestValidateRejectsInvalidHTTPProxy(t *testing.T) {
+	err := Validate(Resolved{HTTPProxy: "proxy.example:8080"})
+	if err == nil {
+		t.Fatal("Validate returned nil for invalid proxy URL")
+	}
+	if !strings.Contains(err.Error(), "invalid http_proxy URL") {
+		t.Fatalf("error = %q, want invalid http_proxy URL", err.Error())
+	}
+}

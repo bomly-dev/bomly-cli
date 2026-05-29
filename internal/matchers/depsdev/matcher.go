@@ -103,7 +103,10 @@ func New(config Config) (*Checker, error) {
 	}
 	client := config.Client
 	if client == nil {
-		client = &http.Client{Timeout: 20 * time.Second}
+		client, err = sdk.NewHTTPClient(sdk.HTTPClientConfig{Timeout: 20 * time.Second})
+		if err != nil {
+			return nil, fmt.Errorf("deps.dev checker: create HTTP client: %w", err)
+		}
 	}
 	return &Checker{
 		client: client,

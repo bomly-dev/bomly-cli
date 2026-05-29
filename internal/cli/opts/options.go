@@ -362,8 +362,11 @@ func (o *Options) OutputFormat() (output.Format, error) {
 func (o *Options) PluginLaunchContext(ctx context.Context) context.Context {
 	current := o.GetConfig()
 	return plugin.WithLaunchOptions(ctx, plugin.LaunchOptions{
-		ConfigPath: current.Config,
-		Verbosity:  current.Verbosity,
+		ConfigPath:    current.Config,
+		Verbosity:     current.Verbosity,
+		HTTPProxy:     current.HTTPProxy,
+		HTTPNoProxy:   current.HTTPNoProxy,
+		PluginConfigs: current.Plugins,
 	})
 }
 

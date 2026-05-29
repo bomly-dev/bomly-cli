@@ -55,6 +55,12 @@ type Resolved struct {
 	LoadedFiles           []string
 	HTTPProxy             string                    `doc:"Outbound HTTP proxy URL used by Bomly and managed plugins" env:"BOMLY_HTTP_PROXY"`
 	HTTPNoProxy           string                    `doc:"Comma-separated hosts, domains, or CIDRs that should bypass the outbound HTTP proxy" env:"BOMLY_HTTP_NO_PROXY"`
+	HTTPProxyType         string                    `doc:"Outbound proxy type when using host/port proxy settings: http, https, or socks5" env:"BOMLY_HTTP_PROXY_TYPE" default:"http"`
+	HTTPProxyHost         string                    `doc:"Outbound proxy hostname or IP address used when http_proxy is not set" env:"BOMLY_HTTP_PROXY_HOST"`
+	HTTPProxyPort         int                       `doc:"Outbound proxy port used with http_proxy_host" env:"BOMLY_HTTP_PROXY_PORT"`
+	HTTPProxyUsername     string                    `doc:"Username for proxy authentication when using host/port proxy settings" env:"BOMLY_HTTP_PROXY_USERNAME"`
+	HTTPProxyPassword     string                    `doc:"Password for proxy authentication when using host/port proxy settings" env:"BOMLY_HTTP_PROXY_PASSWORD"`
+	HTTPCACertFile        string                    `doc:"PEM certificate chain file to trust for outbound HTTPS connections, including TLS-intercepting proxies" env:"BOMLY_HTTP_CA_CERT_FILE"`
 	Plugins               map[string]map[string]any `doc:"Per-plugin configuration keyed by managed plugin ID"`
 
 	// OSV matcher settings
@@ -119,6 +125,12 @@ type File struct {
 	Verbose               *bool                     `yaml:"verbose,omitempty"`
 	HTTPProxy             *string                   `yaml:"http_proxy,omitempty"`
 	HTTPNoProxy           *string                   `yaml:"http_no_proxy,omitempty"`
+	HTTPProxyType         *string                   `yaml:"http_proxy_type,omitempty"`
+	HTTPProxyHost         *string                   `yaml:"http_proxy_host,omitempty"`
+	HTTPProxyPort         *int                      `yaml:"http_proxy_port,omitempty"`
+	HTTPProxyUsername     *string                   `yaml:"http_proxy_username,omitempty"`
+	HTTPProxyPassword     *string                   `yaml:"http_proxy_password,omitempty"`
+	HTTPCACertFile        *string                   `yaml:"http_ca_cert_file,omitempty"`
 	Plugins               map[string]map[string]any `yaml:"plugins,omitempty"`
 
 	// OSV matcher settings

@@ -40,15 +40,62 @@ func TestNewHTTPClientNoProxyBypass(t *testing.T) {
 	}
 }
 
+func TestNewHTTPClientBuildsProxyFromHostPort(t *testing.T) {
+	client, err := NewHTTPClient(HTTPClientConfig{
+		ProxyType:     "socks5",
+		ProxyHost:     "proxy.example",
+		ProxyPort:     1080,
+		ProxyUsername: "user@example.com",
+		ProxyPassword: "p@ss word",
+	})
+	if err != nil {
+		t.Fatalf("NewHTTPClient() error = %v", err)
+	}
+	proxyURL := proxyForRequest(t, client, "http://service.example/v1")
+	if proxyURL == nil {
+		t.Fatal("proxy = nil, want socks5 proxy")
+	}
+	if proxyURL.Scheme != "socks5" || proxyURL.Host != "proxy.example:1080" {
+		t.Fatalf("proxy = %v, want socks5://proxy.example:1080", proxyURL)
+	}
+	username := proxyURL.User.Username()
+	password, _ := proxyURL.User.Password()
+	if username != "user@example.com" || password != "p@ss word" {
+		t.Fatalf("proxy credentials = %q/%q", username, password)
+	}
+}
+
+func TestNewHTTPClientRejectsHostWithoutPort(t *testing.T) {
+	if _, err := NewHTTPClient(HTTPClientConfig{ProxyHost: "proxy.example"}); err == nil {
+		t.Fatal("NewHTTPClient() error = nil, want missing port error")
+	}
+}
+
 func TestNewHTTPClientRejectsInvalidProxy(t *testing.T) {
 	if _, err := NewHTTPClient(HTTPClientConfig{ProxyURL: "proxy.example:8080"}); err == nil {
 		t.Fatal("NewHTTPClient() error = nil, want invalid proxy error")
 	}
 }
 
+func TestNewHTTPClientRejectsInvalidCACertFile(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "ca.pem")
+	if err := os.WriteFile(path, []byte("not a cert"), 0o600); err != nil {
+		t.Fatalf("write cert: %v", err)
+	}
+	if _, err := NewHTTPClient(HTTPClientConfig{CACertFile: path}); err == nil {
+		t.Fatal("NewHTTPClient() error = nil, want invalid CA cert error")
+	}
+}
+
 func TestHTTPClientConfigFromEnvAndStandardFallback(t *testing.T) {
 	t.Setenv(EnvHTTPProxy, "http://bomly-proxy.example:8080")
 	t.Setenv(EnvHTTPNoProxy, "internal.example")
+	t.Setenv(EnvHTTPProxyType, "socks5")
+	t.Setenv(EnvHTTPProxyHost, "host.example")
+	t.Setenv(EnvHTTPProxyPort, "1080")
+	t.Setenv(EnvHTTPProxyUsername, "agent")
+	t.Setenv(EnvHTTPProxyPassword, "secret")
+	t.Setenv(EnvHTTPCACertFile, "/tmp/ca.pem")
 	cfg := HTTPClientConfigFromEnv()
 	if cfg.ProxyURL != "http://bomly-proxy.example:8080" {
 		t.Fatalf("ProxyURL = %q", cfg.ProxyURL)
@@ -56,9 +103,21 @@ func TestHTTPClientConfigFromEnvAndStandardFallback(t *testing.T) {
 	if cfg.NoProxy != "internal.example" {
 		t.Fatalf("NoProxy = %q", cfg.NoProxy)
 	}
+	if cfg.ProxyType != "socks5" || cfg.ProxyHost != "host.example" || cfg.ProxyPort != 1080 {
+		t.Fatalf("decomposed proxy config = %#v", cfg)
+	}
+	if cfg.ProxyUsername != "agent" || cfg.ProxyPassword != "secret" || cfg.CACertFile != "/tmp/ca.pem" {
+		t.Fatalf("proxy auth/cert config = %#v", cfg)
+	}
 
 	t.Setenv(EnvHTTPProxy, "")
 	t.Setenv(EnvHTTPNoProxy, "")
+	t.Setenv(EnvHTTPProxyType, "")
+	t.Setenv(EnvHTTPProxyHost, "")
+	t.Setenv(EnvHTTPProxyPort, "")
+	t.Setenv(EnvHTTPProxyUsername, "")
+	t.Setenv(EnvHTTPProxyPassword, "")
+	t.Setenv(EnvHTTPCACertFile, "")
 	t.Setenv("HTTP_PROXY", "http://standard-proxy.example:8080")
 	client, err := NewHTTPClient(HTTPClientConfigFromEnv())
 	if err != nil {

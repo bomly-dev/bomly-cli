@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -531,7 +532,9 @@ func pluginEnv(options LaunchOptions, pluginID string) ([]string, func(), error)
 
 func proxyEnv(options LaunchOptions) []string {
 	env := make([]string, 0, 8)
-	if proxy := strings.TrimSpace(options.HTTPProxy); proxy != "" {
+	proxyConfig := launchHTTPConfig(options, 0)
+	proxy, err := proxyConfig.EffectiveProxyURL()
+	if err == nil && strings.TrimSpace(proxy) != "" {
 		env = append(env,
 			plugschema.EnvHTTPProxy+"="+proxy,
 			"HTTP_PROXY="+proxy,
@@ -542,7 +545,7 @@ func proxyEnv(options LaunchOptions) []string {
 	} else {
 		env = appendExistingEnv(env, "HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy")
 	}
-	if noProxy := strings.TrimSpace(options.HTTPNoProxy); noProxy != "" {
+	if noProxy := strings.TrimSpace(proxyConfig.NoProxy); noProxy != "" {
 		env = append(env,
 			plugschema.EnvHTTPNoProxy+"="+noProxy,
 			"NO_PROXY="+noProxy,
@@ -550,6 +553,29 @@ func proxyEnv(options LaunchOptions) []string {
 		)
 	} else {
 		env = appendExistingEnv(env, "NO_PROXY", "no_proxy")
+	}
+	env = appendProxyConfigEnv(env, options)
+	return env
+}
+
+func appendProxyConfigEnv(env []string, options LaunchOptions) []string {
+	if value := strings.TrimSpace(options.HTTPProxyType); value != "" {
+		env = append(env, plugschema.EnvHTTPProxyType+"="+value)
+	}
+	if value := strings.TrimSpace(options.HTTPProxyHost); value != "" {
+		env = append(env, plugschema.EnvHTTPProxyHost+"="+value)
+	}
+	if options.HTTPProxyPort > 0 {
+		env = append(env, plugschema.EnvHTTPProxyPort+"="+strconv.Itoa(options.HTTPProxyPort))
+	}
+	if value := strings.TrimSpace(options.HTTPProxyUsername); value != "" {
+		env = append(env, plugschema.EnvHTTPProxyUsername+"="+value)
+	}
+	if options.HTTPProxyPassword != "" {
+		env = append(env, plugschema.EnvHTTPProxyPassword+"="+options.HTTPProxyPassword)
+	}
+	if value := strings.TrimSpace(options.HTTPCACertFile); value != "" {
+		env = append(env, plugschema.EnvHTTPCACertFile+"="+value)
 	}
 	return env
 }
@@ -588,11 +614,21 @@ func writePluginConfigFile(config map[string]any) (string, func(), error) {
 
 func httpClientFromLaunchContext(ctx context.Context, timeout time.Duration) (*http.Client, error) {
 	options, _ := LaunchOptionsFromContext(ctx)
-	return plugschema.NewHTTPClient(plugschema.HTTPClientConfig{
-		ProxyURL: options.HTTPProxy,
-		NoProxy:  options.HTTPNoProxy,
-		Timeout:  timeout,
-	})
+	return plugschema.NewHTTPClient(launchHTTPConfig(options, timeout))
+}
+
+func launchHTTPConfig(options LaunchOptions, timeout time.Duration) plugschema.HTTPClientConfig {
+	return plugschema.HTTPClientConfig{
+		ProxyURL:      options.HTTPProxy,
+		NoProxy:       options.HTTPNoProxy,
+		ProxyType:     options.HTTPProxyType,
+		ProxyHost:     options.HTTPProxyHost,
+		ProxyPort:     options.HTTPProxyPort,
+		ProxyUsername: options.HTTPProxyUsername,
+		ProxyPassword: options.HTTPProxyPassword,
+		CACertFile:    options.HTTPCACertFile,
+		Timeout:       timeout,
+	}
 }
 
 func firstString(values []string) string {

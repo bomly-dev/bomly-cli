@@ -52,6 +52,12 @@ Bomly resolves configuration in the following order, with later sources overridi
 | `verbosity` | `BOMLY_VERBOSE` | `int` | - | Verbosity level (0=normal, 1=verbose, 2+=debug) |
 | `http_proxy` | `BOMLY_HTTP_PROXY` | `string` | - | Outbound HTTP proxy URL used by Bomly and managed plugins |
 | `http_no_proxy` | `BOMLY_HTTP_NO_PROXY` | `string` | - | Comma-separated hosts, domains, or CIDRs that should bypass the outbound HTTP proxy |
+| `http_proxy_type` | `BOMLY_HTTP_PROXY_TYPE` | `string` | http | Outbound proxy type when using host/port proxy settings: http, https, or socks5 |
+| `http_proxy_host` | `BOMLY_HTTP_PROXY_HOST` | `string` | - | Outbound proxy hostname or IP address used when http_proxy is not set |
+| `http_proxy_port` | `BOMLY_HTTP_PROXY_PORT` | `int` | - | Outbound proxy port used with http_proxy_host |
+| `http_proxy_username` | `BOMLY_HTTP_PROXY_USERNAME` | `string` | - | Username for proxy authentication when using host/port proxy settings |
+| `http_proxy_password` | `BOMLY_HTTP_PROXY_PASSWORD` | `string` | - | Password for proxy authentication when using host/port proxy settings |
+| `http_ca_cert_file` | `BOMLY_HTTP_CA_CERT_FILE` | `string` | - | PEM certificate chain file to trust for outbound HTTPS connections, including TLS-intercepting proxies |
 | `plugins` | `-` | `map[string]map[string]any` | - | Per-plugin configuration keyed by managed plugin ID |
 
 ## OSV matcher settings
@@ -161,6 +167,18 @@ Bomly resolves configuration in the following order, with later sources overridi
 # http_proxy: ""
 # Comma-separated hosts, domains, or CIDRs that should bypass the outbound HTTP proxy
 # http_no_proxy: ""
+# Outbound proxy type when using host/port proxy settings: http, https, or socks5
+# http_proxy_type: http
+# Outbound proxy hostname or IP address used when http_proxy is not set
+# http_proxy_host: ""
+# Outbound proxy port used with http_proxy_host
+# http_proxy_port: 0
+# Username for proxy authentication when using host/port proxy settings
+# http_proxy_username: ""
+# Password for proxy authentication when using host/port proxy settings
+# http_proxy_password: ""
+# PEM certificate chain file to trust for outbound HTTPS connections, including TLS-intercepting proxies
+# http_ca_cert_file: ""
 # Per-plugin configuration keyed by managed plugin ID
 # plugins: {}
 

@@ -45,5 +45,11 @@ func RegistryConfigsFromResolved(cfg config.Resolved) engine.RegistryConfigs {
 		ScorecardCacheTTL:     cfg.ScorecardCacheTTL,
 		HTTPProxy:             cfg.HTTPProxy,
 		HTTPNoProxy:           cfg.HTTPNoProxy,
+		HTTPProxyType:         cfg.HTTPProxyType,
+		HTTPProxyHost:         cfg.HTTPProxyHost,
+		HTTPProxyPort:         cfg.HTTPProxyPort,
+		HTTPProxyUsername:     cfg.HTTPProxyUsername,
+		HTTPProxyPassword:     cfg.HTTPProxyPassword,
+		HTTPCACertFile:        cfg.HTTPCACertFile,
 	}
 }

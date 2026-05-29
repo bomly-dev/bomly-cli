@@ -63,3 +63,35 @@ func TestValidateRejectsInvalidHTTPProxy(t *testing.T) {
 		t.Fatalf("error = %q, want invalid http_proxy URL", err.Error())
 	}
 }
+
+func TestValidateRejectsInvalidHTTPProxyFields(t *testing.T) {
+	cases := []struct {
+		name string
+		cfg  Resolved
+		want string
+	}{
+		{
+			name: "unsupported type",
+			cfg:  Resolved{HTTPProxyType: "ftp", HTTPProxyHost: "proxy.example", HTTPProxyPort: 8080},
+			want: "unsupported http_proxy_type",
+		},
+		{
+			name: "port without host",
+			cfg:  Resolved{HTTPProxyPort: 8080},
+			want: "http_proxy_port requires http_proxy_host",
+		},
+		{
+			name: "host without port",
+			cfg:  Resolved{HTTPProxyHost: "proxy.example"},
+			want: "http_proxy_port must be between 1 and 65535",
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := Validate(tc.cfg)
+			if err == nil || !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("Validate() error = %v, want %q", err, tc.want)
+			}
+		})
+	}
+}

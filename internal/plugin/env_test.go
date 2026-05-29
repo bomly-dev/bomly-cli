@@ -11,9 +11,14 @@ import (
 
 func TestPluginEnvIncludesProxyAndPluginConfig(t *testing.T) {
 	env, cleanup, err := pluginEnv(LaunchOptions{
-		ConfigPath:  "/tmp/bomly.yaml",
-		HTTPProxy:   "http://proxy.example:8080",
-		HTTPNoProxy: "localhost,.corp.example",
+		ConfigPath:        "/tmp/bomly.yaml",
+		HTTPProxyType:     "socks5",
+		HTTPProxyHost:     "proxy.example",
+		HTTPProxyPort:     1080,
+		HTTPProxyUsername: "agent",
+		HTTPProxyPassword: "secret",
+		HTTPNoProxy:       "localhost,.corp.example",
+		HTTPCACertFile:    "/tmp/proxy-ca.pem",
 		PluginConfigs: map[string]map[string]any{
 			"acme.matcher": {"api_base": "https://api.example.com"},
 		},
@@ -33,8 +38,17 @@ func TestPluginEnvIncludesProxyAndPluginConfig(t *testing.T) {
 	if values[sdk.EnvPluginID] != "acme.matcher" {
 		t.Fatalf("plugin id env = %q", values[sdk.EnvPluginID])
 	}
-	if values[sdk.EnvHTTPProxy] != "http://proxy.example:8080" || values["HTTPS_PROXY"] != "http://proxy.example:8080" {
+	if values[sdk.EnvHTTPProxy] != "socks5://agent:secret@proxy.example:1080" || values["HTTPS_PROXY"] != "socks5://agent:secret@proxy.example:1080" {
 		t.Fatalf("proxy env = %#v", values)
+	}
+	if values[sdk.EnvHTTPProxyType] != "socks5" || values[sdk.EnvHTTPProxyHost] != "proxy.example" || values[sdk.EnvHTTPProxyPort] != "1080" {
+		t.Fatalf("split proxy env = %#v", values)
+	}
+	if values[sdk.EnvHTTPProxyUsername] != "agent" || values[sdk.EnvHTTPProxyPassword] != "secret" {
+		t.Fatalf("proxy auth env = %#v", values)
+	}
+	if values[sdk.EnvHTTPCACertFile] != "/tmp/proxy-ca.pem" {
+		t.Fatalf("CA cert env = %#v", values)
 	}
 	if values[sdk.EnvHTTPNoProxy] != "localhost,.corp.example" || values["NO_PROXY"] != "localhost,.corp.example" {
 		t.Fatalf("no-proxy env = %#v", values)

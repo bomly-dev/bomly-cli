@@ -70,6 +70,12 @@ type RegistryConfigs struct {
 	ScorecardCacheTTL     string
 	HTTPProxy             string
 	HTTPNoProxy           string
+	HTTPProxyType         string
+	HTTPProxyHost         string
+	HTTPProxyPort         int
+	HTTPProxyUsername     string
+	HTTPProxyPassword     string
+	HTTPCACertFile        string
 }
 
 // RegistryFilter narrows a registry down to the runtime-relevant selections.
@@ -297,9 +303,15 @@ func (r *Registry) registerClearlyDefinedMatcher() {
 
 func (r *Registry) httpClient(timeout time.Duration) *http.Client {
 	client, err := sdk.NewHTTPClient(sdk.HTTPClientConfig{
-		ProxyURL: r.configs.HTTPProxy,
-		NoProxy:  r.configs.HTTPNoProxy,
-		Timeout:  timeout,
+		ProxyURL:      r.configs.HTTPProxy,
+		NoProxy:       r.configs.HTTPNoProxy,
+		ProxyType:     r.configs.HTTPProxyType,
+		ProxyHost:     r.configs.HTTPProxyHost,
+		ProxyPort:     r.configs.HTTPProxyPort,
+		ProxyUsername: r.configs.HTTPProxyUsername,
+		ProxyPassword: r.configs.HTTPProxyPassword,
+		CACertFile:    r.configs.HTTPCACertFile,
+		Timeout:       timeout,
 	})
 	if err == nil {
 		return client

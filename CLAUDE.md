@@ -139,7 +139,7 @@ When adding a new user-visible feature (new CLI flag, new component class, new p
 ### CLI surface
 
 - [ ] Flag declared in `internal/cli/opts/flag_options.go` with override propagation in `applyFlagOverrides`.
-- [ ] Config field added to `internal/config/config.go` `Resolved` (with `doc:`/`env:`/`default:` tags) and `File` (with `yaml:` tag and matching pointer/slice shape).
+- [ ] Config field added to `internal/config/config.go` `Resolved` (with `doc:`/`env:`/`default:` tags) and the appropriate nested `File` leaf (with `yaml:`, `resolved:`, and legacy flat-key `legacy:` tags plus a pointer-backed shape).
 - [ ] When the flag interacts with another flag (requires it, conflicts with it, modifies its semantics), add a check to `config.Validate` and a unit test in `internal/config/validate_test.go`. Keep validation errors actionable (`"--audit requires --enrich"`, not `"invalid combination"`).
 - [ ] If the flag drives a pipeline stage, propagate the value through `internal/cli/opts/options.go`'s `PipelineRequest` builder.
 - [ ] Shell completion: register an `available<Thing>Options` helper in `flag_options.go` if the flag accepts a selector list.

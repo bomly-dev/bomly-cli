@@ -1787,7 +1787,9 @@ func TestRoot_StartupLogsDoNotExposeHTTPAndPluginSecrets(t *testing.T) {
 		t.Fatalf("create config dir: %v", err)
 	}
 	if err := os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte(`
-http_proxy: http://agent:super-secret@proxy.example:8080
+network:
+  proxy:
+    url: http://agent:super-secret@proxy.example:8080
 plugins:
   acme.matcher:
     token: plugin-secret

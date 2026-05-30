@@ -7,9 +7,9 @@ import (
 )
 
 // FailOnList is the YAML shape for fail_on values. It accepts either a
-// single scalar string ("fail_on: low") for backward compatibility with
+// single scalar string ("policy.fail_on: low") for backward compatibility with
 // the historical single-value form, or a sequence of strings
-// ("fail_on: [low, reachable]") for the new repeatable form. Both shapes
+// ("policy.fail_on: [low, reachable]") for the repeatable form. Both shapes
 // normalize to []string.
 type FailOnList []string
 

@@ -7,7 +7,10 @@ import (
 	"go/token"
 	"os"
 	"reflect"
+	"sort"
 	"strings"
+
+	"github.com/bomly-dev/bomly-cli/internal/config"
 )
 
 type configField struct {
@@ -48,37 +51,7 @@ func parseConfigFields(configPath string) ([]configField, error) {
 		return nil, fmt.Errorf("parse %s: %w", configPath, err)
 	}
 
-	fileConfigYAML := map[string]string{}
-	for _, decl := range f.Decls {
-		genDecl, ok := decl.(*ast.GenDecl)
-		if !ok || genDecl.Tok != token.TYPE {
-			continue
-		}
-		for _, spec := range genDecl.Specs {
-			ts, ok := spec.(*ast.TypeSpec)
-			if !ok || ts.Name.Name != "File" {
-				continue
-			}
-			st, ok := ts.Type.(*ast.StructType)
-			if !ok {
-				continue
-			}
-			for _, field := range st.Fields.List {
-				if len(field.Names) == 0 || field.Tag == nil {
-					continue
-				}
-				tag := strings.Trim(field.Tag.Value, "`")
-				structTag := reflect.StructTag(tag)
-				yamlKey := structTag.Get("yaml")
-				if i := strings.Index(yamlKey, ","); i >= 0 {
-					yamlKey = yamlKey[:i]
-				}
-				if yamlKey != "" && yamlKey != "-" {
-					fileConfigYAML[field.Names[0].Name] = yamlKey
-				}
-			}
-		}
-	}
+	fileConfigYAML := config.YAMLPathsByResolvedField()
 
 	var fields []configField
 	currentSection := "General"
@@ -137,7 +110,7 @@ func parseConfigFields(configPath string) ([]configField, error) {
 
 				yamlKey := fileConfigYAML[name]
 				if yamlKey == "" {
-					yamlKey = toSnakeCase(name)
+					continue
 				}
 
 				fields = append(fields, configField{
@@ -165,6 +138,7 @@ func renderConfigMarkdown(fields []configField) string {
 	builder.WriteString("3. `BOMLY_*` environment variables\n")
 	builder.WriteString("4. CLI flags\n\n")
 	builder.WriteString("`--config <path>` adds an explicit config file to the load list before environment variables and flags are applied.\n\n")
+	builder.WriteString("YAML files use the nested keys documented below. Unknown keys and the former flat keys are rejected so configuration mistakes fail fast.\n\n")
 	builder.WriteString("---\n\n")
 
 	type sectionGroup struct {
@@ -202,36 +176,101 @@ func renderConfigMarkdown(fields []configField) string {
 		builder.WriteString("\n")
 	}
 
+	builder.WriteString("## Flat YAML Migration\n\n")
+	builder.WriteString("Flat YAML keys are no longer accepted. Move each existing key to its nested replacement:\n\n")
+	builder.WriteString("| Former Flat Key | Replacement |\n")
+	builder.WriteString("|-----------------|-------------|\n")
+	migrations := config.LegacyMigrationPaths()
+	legacyKeys := make([]string, 0, len(migrations))
+	for key := range migrations {
+		legacyKeys = append(legacyKeys, key)
+	}
+	sort.Strings(legacyKeys)
+	for _, key := range legacyKeys {
+		fmt.Fprintf(&builder, "| `%s` | `%s` |\n", key, migrations[key])
+	}
+	builder.WriteString("\n")
+
 	builder.WriteString("## Example Configuration\n\n")
 	builder.WriteString("```yaml\n")
 	builder.WriteString("# ~/.bomly/config.yaml or .bomly/config.yaml\n")
-	for _, section := range sections {
-		builder.WriteString("\n# " + section.name + "\n")
-		for _, field := range section.fields {
-			value := field.DefaultVal
-			if value == "" {
-				switch field.GoType {
-				case "bool":
-					value = "false"
-				case "int":
-					value = "0"
-				case "string":
-					value = "\"\""
-				case "[]string":
-					value = "[]"
-				case "map[string]any", "map[string]map[string]any":
-					value = "{}"
-				default:
-					value = "\"\""
-				}
-			}
-			fmt.Fprintf(&builder, "# %s\n", field.Doc)
-			fmt.Fprintf(&builder, "# %s: %s\n", field.YAMLKey, value)
-		}
-	}
+	writeNestedConfigExample(&builder, fields)
 	builder.WriteString("```\n")
 
 	return builder.String()
+}
+
+func writeNestedConfigExample(builder *strings.Builder, fields []configField) {
+	fieldsByPath := make(map[string]configField, len(fields))
+	for _, field := range fields {
+		fieldsByPath[field.YAMLKey] = field
+	}
+	writeNestedConfigType(builder, reflect.TypeOf(config.File{}), "", 0, fieldsByPath)
+}
+
+func writeNestedConfigType(builder *strings.Builder, t reflect.Type, prefix string, depth int, fields map[string]configField) {
+	for idx := 0; idx < t.NumField(); idx++ {
+		structField := t.Field(idx)
+		key := yamlTagName(structField.Tag.Get("yaml"))
+		if key == "" || key == "-" {
+			continue
+		}
+		path := key
+		if prefix != "" {
+			path = prefix + "." + key
+		}
+		if structField.Type.Kind() == reflect.Struct {
+			if !hasConfigPath(fields, path+".") {
+				continue
+			}
+			fmt.Fprintf(builder, "# %s%s:\n", strings.Repeat("  ", depth), key)
+			writeNestedConfigType(builder, structField.Type, path, depth+1, fields)
+			continue
+		}
+		field, ok := fields[path]
+		if !ok {
+			continue
+		}
+		indent := strings.Repeat("  ", depth)
+		fmt.Fprintf(builder, "# %s%s\n", indent, field.Doc)
+		fmt.Fprintf(builder, "# %s%s: %s\n", indent, key, exampleConfigValue(field))
+	}
+}
+
+func hasConfigPath(fields map[string]configField, prefix string) bool {
+	for path := range fields {
+		if strings.HasPrefix(path, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
+func exampleConfigValue(field configField) string {
+	if field.DefaultVal != "" {
+		return field.DefaultVal
+	}
+	switch field.GoType {
+	case "bool":
+		return "false"
+	case "int":
+		return "0"
+	case "string":
+		return "\"\""
+	case "[]string":
+		return "[]"
+	case "map[string]any", "map[string]map[string]any":
+		return "{}"
+	default:
+		return "\"\""
+	}
+}
+
+func yamlTagName(tag string) string {
+	if idx := strings.Index(tag, ","); idx >= 0 {
+		tag = tag[:idx]
+	}
+	return tag
 }
 
 func configTypeString(expr ast.Expr) string {
@@ -249,19 +288,4 @@ func configTypeString(expr ast.Expr) string {
 	default:
 		return "any"
 	}
-}
-
-func toSnakeCase(value string) string {
-	var result strings.Builder
-	for idx, character := range value {
-		if character >= 'A' && character <= 'Z' {
-			if idx > 0 {
-				result.WriteByte('_')
-			}
-			result.WriteByte(byte(character + 32))
-			continue
-		}
-		result.WriteRune(character)
-	}
-	return result.String()
 }

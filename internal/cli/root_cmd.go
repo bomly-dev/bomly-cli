@@ -43,7 +43,7 @@ func newRootCmd(version string) (*cobra.Command, error) {
 	root := &cobra.Command{
 		Use:                   "bomly [command]",
 		Short:                 "A modern CLI for SBOM generation, dependency analysis, and software supply chain intelligence.",
-		Example:               "  bomly scan --interactive\n  bomly diff --base main --head HEAD\n  bomly explain pkg:npm/react",
+		Example:               "  bomly scan --interactive\n  bomly diff --base main --head HEAD --json\n  bomly explain pkg:npm/react",
 		Version:               version,
 		SilenceUsage:          true,
 		SilenceErrors:         true,

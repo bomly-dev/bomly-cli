@@ -35,7 +35,7 @@ func TestPluginList_TableSectionsAndDetectorColumns(t *testing.T) {
 		"npm-detector",
 		"npm-native-detector",
 		"* Complete plugin metadata",
-		"--format json",
+		"--json",
 	} {
 		if !strings.Contains(text, want) {
 			t.Fatalf("expected plugin list output to contain %q, got:\n%s", want, text)
@@ -272,7 +272,7 @@ func TestPluginList_DetectorSummariesAndSyftManagers(t *testing.T) {
 	if !strings.Contains(text, "syft-detector") || !strings.Contains(text, "+") || !strings.Contains(text, "more") {
 		t.Fatalf("expected syft package managers to use +N summary format, got:\n%s", text)
 	}
-	if !strings.Contains(text, "* Complete plugin metadata") || !strings.Contains(text, "--format json") {
+	if !strings.Contains(text, "* Complete plugin metadata") || !strings.Contains(text, "--json") {
 		t.Fatalf("expected table footnote to point to JSON details, got:\n%s", text)
 	}
 }

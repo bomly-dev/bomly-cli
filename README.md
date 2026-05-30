@@ -36,6 +36,9 @@ bomly scan -o spdx=sbom.spdx.json -o cyclonedx=sbom.cdx.json
 # Enrich packages with external vulnerability and license data
 bomly scan --enrich
 
+# Emit structured JSON for automation
+bomly scan --json
+
 # Evaluate policy using existing package vulnerability data
 bomly scan --audit --fail-on high
 
@@ -140,7 +143,7 @@ bomly diff --sbom --base ./old.spdx.json --head ./new.spdx.json
 | Output | Command |
 | --- | --- |
 | Human-readable report | `bomly scan` |
-| Structured JSON | `bomly scan --format json` |
+| Structured JSON | `bomly scan --json` |
 | SARIF 2.1.0 | `bomly scan --audit --format sarif` |
 | SPDX 2.3 JSON | `bomly scan -o spdx=sbom.spdx.json` |
 | CycloneDX JSON | `bomly scan -o cyclonedx=sbom.cdx.json` |
@@ -175,7 +178,7 @@ bomly plugin enable acme.detector.example
 bomly plugin verify acme.detector.example
 
 # Run it explicitly during a scan
-bomly scan --path ./my-go-project --detectors acme.detector.example --format json
+bomly scan --path ./my-go-project --detectors acme.detector.example --json
 ```
 
 Detector plugins declare package-manager support and evidence patterns through their detector contract. Bomly uses those patterns during runtime preparation so external detectors can participate in subproject discovery alongside built-ins.

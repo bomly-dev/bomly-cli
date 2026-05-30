@@ -1,8 +1,10 @@
 package config
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -30,8 +32,8 @@ func UserConfigPath() (string, error) {
 }
 
 // LoadFile reads and parses a YAML config file at path. Returns nil with no
-// error when the file does not exist or path is empty. Relative path/config
-// fields inside the file are resolved relative to the file's directory.
+// error when the file does not exist or path is empty. Relative path fields
+// inside the file are resolved relative to the file's directory.
 func LoadFile(path string) (*File, error) {
 	if strings.TrimSpace(path) == "" {
 		return nil, nil
@@ -44,7 +46,12 @@ func LoadFile(path string) (*File, error) {
 		return nil, err
 	}
 	var cfg File
-	if err := yaml.Unmarshal(data, &cfg); err != nil {
+	if err := rejectLegacyFlatKeys(data); err != nil {
+		return nil, fmt.Errorf("parse YAML: %w", err)
+	}
+	decoder := yaml.NewDecoder(bytes.NewReader(data))
+	decoder.KnownFields(true)
+	if err := decoder.Decode(&cfg); err != nil && err != io.EOF {
 		return nil, fmt.Errorf("parse YAML: %w", err)
 	}
 	normalizeFilePaths(&cfg, filepath.Dir(path))
@@ -52,7 +59,7 @@ func LoadFile(path string) (*File, error) {
 }
 
 func normalizeFilePaths(cfg *File, baseDir string) {
-	for _, target := range []*string{cfg.Path, cfg.Config, cfg.HTTPCACertFile} {
+	for _, target := range []*string{cfg.Target.Path, cfg.Network.CACertFile} {
 		if target == nil || strings.TrimSpace(*target) == "" || filepath.IsAbs(*target) {
 			continue
 		}
@@ -60,60 +67,12 @@ func normalizeFilePaths(cfg *File, baseDir string) {
 	}
 }
 
-// ApplyFileConfig merges non-nil src fields into dst. File fields are pointers;
-// nil means the user did not set the field, so dst is left unchanged.
+// ApplyFileConfig merges explicitly set src leaves into dst.
 func ApplyFileConfig(dst *Resolved, src File) {
 	if dst == nil {
 		return
 	}
-	dstVal := reflect.ValueOf(dst).Elem()
-	srcVal := reflect.ValueOf(src)
-	t := srcVal.Type()
-	for i := 0; i < t.NumField(); i++ {
-		sf := srcVal.Field(i)
-		if sf.Kind() != reflect.Pointer || sf.IsNil() {
-			continue
-		}
-		df := dstVal.FieldByName(t.Field(i).Name)
-		if df.IsValid() && df.CanSet() {
-			df.Set(sf.Elem())
-		}
-	}
-	// InstallArgs is a slice (not a pointer) — replace when provided.
-	if len(src.InstallArgs) > 0 {
-		dst.InstallArgs = append([]string(nil), src.InstallArgs...)
-	}
-	// FailOn is a custom-unmarshaled slice (FailOnList) — replace when set.
-	if len(src.FailOn) > 0 {
-		dst.FailOn = append([]string(nil), src.FailOn...)
-	}
-	if len(src.FailOnScopes) > 0 {
-		dst.FailOnScopes = append([]string(nil), src.FailOnScopes...)
-	}
-	if len(src.AllowVulnerabilityIDs) > 0 {
-		dst.AllowVulnerabilityIDs = append([]string(nil), src.AllowVulnerabilityIDs...)
-	}
-	if len(src.AllowLicenses) > 0 {
-		dst.AllowLicenses = append([]string(nil), src.AllowLicenses...)
-	}
-	if len(src.DenyLicenses) > 0 {
-		dst.DenyLicenses = append([]string(nil), src.DenyLicenses...)
-	}
-	if len(src.LicenseExemptPackages) > 0 {
-		dst.LicenseExemptPackages = append([]string(nil), src.LicenseExemptPackages...)
-	}
-	if len(src.DenyPackages) > 0 {
-		dst.DenyPackages = append([]string(nil), src.DenyPackages...)
-	}
-	if len(src.DenyGroups) > 0 {
-		dst.DenyGroups = append([]string(nil), src.DenyGroups...)
-	}
-	if len(src.ProtectedPackages) > 0 {
-		dst.ProtectedPackages = append([]string(nil), src.ProtectedPackages...)
-	}
-	if len(src.Outputs) > 0 {
-		dst.Outputs = append([]string(nil), src.Outputs...)
-	}
+	applyFileLeaves(reflect.ValueOf(dst).Elem(), reflect.ValueOf(src))
 	if len(src.Plugins) > 0 {
 		if dst.Plugins == nil {
 			dst.Plugins = make(map[string]map[string]any, len(src.Plugins))
@@ -126,10 +85,150 @@ func ApplyFileConfig(dst *Resolved, src File) {
 			dst.Plugins[trimmedID] = clonePluginConfig(pluginConfig)
 		}
 	}
-	// Verbose is a legacy shorthand; map it to Verbosity=1 if not already set.
-	if src.Verbose != nil && *src.Verbose && dst.Verbosity == 0 {
-		dst.Verbosity = 1
+}
+
+func applyFileLeaves(dst reflect.Value, src reflect.Value) {
+	srcType := src.Type()
+	for i := 0; i < src.NumField(); i++ {
+		fieldType := srcType.Field(i)
+		srcField := src.Field(i)
+		resolvedName := fieldType.Tag.Get("resolved")
+		if resolvedName != "" {
+			if srcField.Kind() == reflect.Pointer && !srcField.IsNil() {
+				setResolvedField(dst.FieldByName(resolvedName), srcField.Elem())
+			}
+			continue
+		}
+		if srcField.Kind() == reflect.Struct {
+			applyFileLeaves(dst, srcField)
+		}
 	}
+}
+
+func setResolvedField(dst reflect.Value, src reflect.Value) {
+	if !dst.IsValid() || !dst.CanSet() {
+		return
+	}
+	if src.Type().ConvertibleTo(dst.Type()) {
+		src = src.Convert(dst.Type())
+	}
+	if src.Kind() == reflect.Slice {
+		clone := reflect.MakeSlice(src.Type(), src.Len(), src.Len())
+		reflect.Copy(clone, src)
+		src = clone
+	}
+	if src.Type().AssignableTo(dst.Type()) {
+		dst.Set(src)
+	}
+}
+
+func rejectLegacyFlatKeys(data []byte) error {
+	var document yaml.Node
+	if err := yaml.Unmarshal(data, &document); err != nil {
+		return err
+	}
+	if len(document.Content) == 0 {
+		return nil
+	}
+	root := document.Content[0]
+	if root.Kind != yaml.MappingNode {
+		return nil
+	}
+
+	legacyPaths := LegacyMigrationPaths()
+	canonicalRoots := canonicalRootKeys()
+	for idx := 0; idx+1 < len(root.Content); idx += 2 {
+		keyNode := root.Content[idx]
+		valueNode := root.Content[idx+1]
+		key := strings.TrimSpace(keyNode.Value)
+		if key == "config" {
+			return fmt.Errorf("config file key %q is no longer supported; use --config to select an explicit file", key)
+		}
+		nestedPath, ok := legacyPaths[key]
+		if !ok {
+			continue
+		}
+		if _, isCanonicalRoot := canonicalRoots[key]; isCanonicalRoot && valueNode.Kind == yaml.MappingNode {
+			continue
+		}
+		return fmt.Errorf("flat config key %q is no longer supported; use %q", key, nestedPath)
+	}
+	return nil
+}
+
+// LegacyMigrationPaths returns former flat YAML keys and their replacements.
+func LegacyMigrationPaths() map[string]string {
+	paths := make(map[string]string)
+	collectLegacyConfigPaths(reflect.TypeOf(File{}), "", paths)
+	paths["config"] = "--config"
+	paths["verbose"] = "logging.verbosity"
+	return paths
+}
+
+// YAMLPathsByResolvedField returns nested YAML paths keyed by flat runtime field.
+func YAMLPathsByResolvedField() map[string]string {
+	paths := make(map[string]string)
+	collectResolvedConfigPaths(reflect.TypeOf(File{}), "", paths)
+	return paths
+}
+
+func collectLegacyConfigPaths(t reflect.Type, prefix string, paths map[string]string) {
+	for idx := 0; idx < t.NumField(); idx++ {
+		field := t.Field(idx)
+		key := yamlTagName(field.Tag.Get("yaml"))
+		if key == "" || key == "-" {
+			continue
+		}
+		path := key
+		if prefix != "" {
+			path = prefix + "." + key
+		}
+		if legacy := field.Tag.Get("legacy"); legacy != "" {
+			paths[legacy] = path
+		}
+		if field.Type.Kind() == reflect.Struct {
+			collectLegacyConfigPaths(field.Type, path, paths)
+		}
+	}
+}
+
+func collectResolvedConfigPaths(t reflect.Type, prefix string, paths map[string]string) {
+	for idx := 0; idx < t.NumField(); idx++ {
+		field := t.Field(idx)
+		key := yamlTagName(field.Tag.Get("yaml"))
+		if key == "" || key == "-" {
+			continue
+		}
+		path := key
+		if prefix != "" {
+			path = prefix + "." + key
+		}
+		if resolved := field.Tag.Get("resolved"); resolved != "" {
+			paths[resolved] = path
+		}
+		if field.Type.Kind() == reflect.Struct {
+			collectResolvedConfigPaths(field.Type, path, paths)
+		}
+	}
+}
+
+func canonicalRootKeys() map[string]struct{} {
+	keys := make(map[string]struct{})
+	fileType := reflect.TypeOf(File{})
+	for idx := 0; idx < fileType.NumField(); idx++ {
+		key := yamlTagName(fileType.Field(idx).Tag.Get("yaml"))
+		if key != "" && key != "-" {
+			keys[key] = struct{}{}
+		}
+	}
+	return keys
+}
+
+func yamlTagName(tag string) string {
+	if idx := strings.Index(tag, ","); idx >= 0 {
+		tag = tag[:idx]
+	}
+	return tag
 }
 
 // ApplyEnvOverrides reads the environment variables named in Resolved's env

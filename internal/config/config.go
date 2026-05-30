@@ -1,7 +1,8 @@
 // Package config defines Bomly's resolved CLI configuration shape.
 //
-// The Resolved struct is the canonical declaration of every CLI flag, env
-// var, and YAML config key. Tag conventions:
+// The Resolved struct is the canonical declaration of every runtime config
+// value and environment override. The nested File structs declare YAML paths.
+// Resolved tag conventions:
 //
 //   - `doc:"..."`     — human-readable description (rendered in docs/CONFIG_REFERENCE.md)
 //   - `env:"..."`     — environment variable that sets the field
@@ -83,72 +84,127 @@ type Resolved struct {
 	ScorecardCacheTTL string `doc:"TTL for cached Scorecard responses (e.g. 24h)" env:"BOMLY_SCORECARD_CACHE_TTL" default:"24h"`
 }
 
-// File is the YAML-deserialized shape of a Bomly config file. The
-// pointer-to-primitive fields let cli code distinguish "field absent" from
-// "field set to zero value" when merging multiple config sources. The
-// configref generator parses this struct's yaml tags to map each Resolved
-// field to its corresponding YAML key in the reference docs.
+// File is the nested YAML-deserialized shape of a Bomly config file. Leaf
+// fields use pointers so merging can distinguish "field absent" from
+// "field explicitly set to its zero value". The resolved tags map YAML leaves
+// back to the flat runtime configuration, while legacy tags drive migration
+// errors and generated documentation for the former flat YAML keys.
 type File struct {
-	Path                  *string                   `yaml:"path,omitempty"`
-	Container             *string                   `yaml:"container,omitempty"`
-	URL                   *string                   `yaml:"url,omitempty"`
-	Ref                   *string                   `yaml:"ref,omitempty"`
-	SBOM                  *bool                     `yaml:"sbom,omitempty"`
-	Enrich                *bool                     `yaml:"enrich,omitempty"`
-	Audit                 *bool                     `yaml:"audit,omitempty"`
-	Reachability          *bool                     `yaml:"reachability,omitempty"`
-	FailOn                FailOnList                `yaml:"fail_on,omitempty"`
-	FailOnScopes          []string                  `yaml:"fail_on_scopes,omitempty"`
-	AllowVulnerabilityIDs []string                  `yaml:"allow_vulnerability_ids,omitempty"`
-	AllowLicenses         []string                  `yaml:"allow_licenses,omitempty"`
-	DenyLicenses          []string                  `yaml:"deny_licenses,omitempty"`
-	LicenseExemptPackages []string                  `yaml:"license_exempt_packages,omitempty"`
-	DenyPackages          []string                  `yaml:"deny_packages,omitempty"`
-	DenyGroups            []string                  `yaml:"deny_groups,omitempty"`
-	ProtectedPackages     []string                  `yaml:"protected_packages,omitempty"`
-	TyposquatThreshold    *string                   `yaml:"typosquat_threshold,omitempty"`
-	TyposquatMode         *string                   `yaml:"typosquat_mode,omitempty"`
-	WarnOnly              *bool                     `yaml:"warn_only,omitempty"`
-	Analyzers             *string                   `yaml:"analyzers,omitempty"`
-	Format                *string                   `yaml:"format,omitempty"`
-	Outputs               []string                  `yaml:"outputs,omitempty"`
-	Interactive           *bool                     `yaml:"interactive,omitempty"`
-	Ecosystems            *string                   `yaml:"ecosystems,omitempty"`
-	Detectors             *string                   `yaml:"detectors,omitempty"`
-	Auditors              *string                   `yaml:"auditors,omitempty"`
-	Matchers              *string                   `yaml:"matchers,omitempty"`
-	InstallFirst          *bool                     `yaml:"install_first,omitempty"`
-	InstallArgs           []string                  `yaml:"install_args,omitempty"`
-	Config                *string                   `yaml:"config,omitempty"`
-	Quiet                 *bool                     `yaml:"quiet,omitempty"`
-	Verbosity             *int                      `yaml:"verbosity,omitempty"`
-	Verbose               *bool                     `yaml:"verbose,omitempty"`
-	HTTPProxy             *string                   `yaml:"http_proxy,omitempty"`
-	HTTPNoProxy           *string                   `yaml:"http_no_proxy,omitempty"`
-	HTTPProxyType         *string                   `yaml:"http_proxy_type,omitempty"`
-	HTTPProxyHost         *string                   `yaml:"http_proxy_host,omitempty"`
-	HTTPProxyPort         *int                      `yaml:"http_proxy_port,omitempty"`
-	HTTPProxyUsername     *string                   `yaml:"http_proxy_username,omitempty"`
-	HTTPProxyPassword     *string                   `yaml:"http_proxy_password,omitempty"`
-	HTTPCACertFile        *string                   `yaml:"http_ca_cert_file,omitempty"`
-	Plugins               map[string]map[string]any `yaml:"plugins,omitempty"`
+	Target     TargetFile                `yaml:"target,omitempty"`
+	Analysis   AnalysisFile              `yaml:"analysis,omitempty"`
+	Components ComponentsFile            `yaml:"components,omitempty"`
+	Policy     PolicyFile                `yaml:"policy,omitempty"`
+	Output     OutputFile                `yaml:"output,omitempty"`
+	Logging    LoggingFile               `yaml:"logging,omitempty"`
+	Network    NetworkFile               `yaml:"network,omitempty"`
+	Matchers   MatchersFile              `yaml:"matchers,omitempty"`
+	Plugins    map[string]map[string]any `yaml:"plugins,omitempty" resolved:"Plugins"`
+}
 
-	// OSV matcher settings
-	OsvAPIBase  *string `yaml:"osv_api_base,omitempty"`
-	OsvCacheDir *string `yaml:"osv_cache_dir,omitempty"`
-	OsvCacheTTL *string `yaml:"osv_cache_ttl,omitempty"`
+// TargetFile configures the execution target selected for a scan.
+type TargetFile struct {
+	Path      *string `yaml:"path,omitempty" resolved:"Path" legacy:"path"`
+	Container *string `yaml:"container,omitempty" resolved:"Container" legacy:"container"`
+	URL       *string `yaml:"url,omitempty" resolved:"URL" legacy:"url"`
+	Ref       *string `yaml:"ref,omitempty" resolved:"Ref" legacy:"ref"`
+	SBOM      *bool   `yaml:"sbom,omitempty" resolved:"SBOM" legacy:"sbom"`
+}
 
-	// KEV enrichment settings
-	KEVCacheDir *string `yaml:"kev_cache_dir,omitempty"`
-	KEVCacheTTL *string `yaml:"kev_cache_ttl,omitempty"`
+// AnalysisFile configures optional analysis behavior and dependency preparation.
+type AnalysisFile struct {
+	Enrich       *bool     `yaml:"enrich,omitempty" resolved:"Enrich" legacy:"enrich"`
+	Audit        *bool     `yaml:"audit,omitempty" resolved:"Audit" legacy:"audit"`
+	Reachability *bool     `yaml:"reachability,omitempty" resolved:"Reachability" legacy:"reachability"`
+	InstallFirst *bool     `yaml:"install_first,omitempty" resolved:"InstallFirst" legacy:"install_first"`
+	InstallArgs  *[]string `yaml:"install_args,omitempty" resolved:"InstallArgs" legacy:"install_args"`
+}
 
-	// EOL enrichment settings
-	EOLAPIBase  *string `yaml:"eol_api_base,omitempty"`
-	EOLCacheDir *string `yaml:"eol_cache_dir,omitempty"`
-	EOLCacheTTL *string `yaml:"eol_cache_ttl,omitempty"`
+// ComponentsFile configures component selection.
+type ComponentsFile struct {
+	Ecosystems *string `yaml:"ecosystems,omitempty" resolved:"Ecosystems" legacy:"ecosystems"`
+	Detectors  *string `yaml:"detectors,omitempty" resolved:"Detectors" legacy:"detectors"`
+	Auditors   *string `yaml:"auditors,omitempty" resolved:"Auditors" legacy:"auditors"`
+	Matchers   *string `yaml:"matchers,omitempty" resolved:"Matchers" legacy:"matchers"`
+	Analyzers  *string `yaml:"analyzers,omitempty" resolved:"Analyzers" legacy:"analyzers"`
+}
 
-	// Scorecard matcher settings
-	ScorecardAPIBase  *string `yaml:"scorecard_api_base,omitempty"`
-	ScorecardCacheDir *string `yaml:"scorecard_cache_dir,omitempty"`
-	ScorecardCacheTTL *string `yaml:"scorecard_cache_ttl,omitempty"`
+// PolicyFile configures audit policy evaluation.
+type PolicyFile struct {
+	FailOn                *FailOnList `yaml:"fail_on,omitempty" resolved:"FailOn" legacy:"fail_on"`
+	FailOnScopes          *[]string   `yaml:"fail_on_scopes,omitempty" resolved:"FailOnScopes" legacy:"fail_on_scopes"`
+	AllowVulnerabilityIDs *[]string   `yaml:"allow_vulnerability_ids,omitempty" resolved:"AllowVulnerabilityIDs" legacy:"allow_vulnerability_ids"`
+	AllowLicenses         *[]string   `yaml:"allow_licenses,omitempty" resolved:"AllowLicenses" legacy:"allow_licenses"`
+	DenyLicenses          *[]string   `yaml:"deny_licenses,omitempty" resolved:"DenyLicenses" legacy:"deny_licenses"`
+	LicenseExemptPackages *[]string   `yaml:"license_exempt_packages,omitempty" resolved:"LicenseExemptPackages" legacy:"license_exempt_packages"`
+	DenyPackages          *[]string   `yaml:"deny_packages,omitempty" resolved:"DenyPackages" legacy:"deny_packages"`
+	DenyGroups            *[]string   `yaml:"deny_groups,omitempty" resolved:"DenyGroups" legacy:"deny_groups"`
+	ProtectedPackages     *[]string   `yaml:"protected_packages,omitempty" resolved:"ProtectedPackages" legacy:"protected_packages"`
+	TyposquatThreshold    *string     `yaml:"typosquat_threshold,omitempty" resolved:"TyposquatThreshold" legacy:"typosquat_threshold"`
+	TyposquatMode         *string     `yaml:"typosquat_mode,omitempty" resolved:"TyposquatMode" legacy:"typosquat_mode"`
+	WarnOnly              *bool       `yaml:"warn_only,omitempty" resolved:"WarnOnly" legacy:"warn_only"`
+}
+
+// OutputFile configures report rendering.
+type OutputFile struct {
+	Format      *string   `yaml:"format,omitempty" resolved:"Format" legacy:"format"`
+	Outputs     *[]string `yaml:"outputs,omitempty" resolved:"Outputs" legacy:"outputs"`
+	Interactive *bool     `yaml:"interactive,omitempty" resolved:"Interactive" legacy:"interactive"`
+}
+
+// LoggingFile configures CLI logging.
+type LoggingFile struct {
+	Quiet     *bool `yaml:"quiet,omitempty" resolved:"Quiet" legacy:"quiet"`
+	Verbosity *int  `yaml:"verbosity,omitempty" resolved:"Verbosity" legacy:"verbosity"`
+}
+
+// NetworkFile configures outbound network behavior.
+type NetworkFile struct {
+	Proxy      ProxyFile `yaml:"proxy,omitempty"`
+	CACertFile *string   `yaml:"ca_cert_file,omitempty" resolved:"HTTPCACertFile" legacy:"http_ca_cert_file"`
+}
+
+// ProxyFile configures the explicit outbound proxy.
+type ProxyFile struct {
+	URL      *string `yaml:"url,omitempty" resolved:"HTTPProxy" legacy:"http_proxy"`
+	NoProxy  *string `yaml:"no_proxy,omitempty" resolved:"HTTPNoProxy" legacy:"http_no_proxy"`
+	Type     *string `yaml:"type,omitempty" resolved:"HTTPProxyType" legacy:"http_proxy_type"`
+	Host     *string `yaml:"host,omitempty" resolved:"HTTPProxyHost" legacy:"http_proxy_host"`
+	Port     *int    `yaml:"port,omitempty" resolved:"HTTPProxyPort" legacy:"http_proxy_port"`
+	Username *string `yaml:"username,omitempty" resolved:"HTTPProxyUsername" legacy:"http_proxy_username"`
+	Password *string `yaml:"password,omitempty" resolved:"HTTPProxyPassword" legacy:"http_proxy_password"`
+}
+
+// MatchersFile configures built-in enrichment matchers.
+type MatchersFile struct {
+	OSV       OSVMatcherFile       `yaml:"osv,omitempty"`
+	EOL       EOLMatcherFile       `yaml:"eol,omitempty"`
+	Scorecard ScorecardMatcherFile `yaml:"scorecard,omitempty"`
+}
+
+// OSVMatcherFile configures OSV vulnerability enrichment.
+type OSVMatcherFile struct {
+	APIBase  *string `yaml:"api_base,omitempty" resolved:"OsvAPIBase" legacy:"osv_api_base"`
+	CacheDir *string `yaml:"cache_dir,omitempty" resolved:"OsvCacheDir" legacy:"osv_cache_dir"`
+	CacheTTL *string `yaml:"cache_ttl,omitempty" resolved:"OsvCacheTTL" legacy:"osv_cache_ttl"`
+	KEV      KEVFile `yaml:"kev,omitempty"`
+}
+
+// KEVFile configures CISA Known Exploited Vulnerabilities enrichment.
+type KEVFile struct {
+	CacheDir *string `yaml:"cache_dir,omitempty" resolved:"KEVCacheDir" legacy:"kev_cache_dir"`
+	CacheTTL *string `yaml:"cache_ttl,omitempty" resolved:"KEVCacheTTL" legacy:"kev_cache_ttl"`
+}
+
+// EOLMatcherFile configures endoflife.date enrichment.
+type EOLMatcherFile struct {
+	APIBase  *string `yaml:"api_base,omitempty" resolved:"EOLAPIBase" legacy:"eol_api_base"`
+	CacheDir *string `yaml:"cache_dir,omitempty" resolved:"EOLCacheDir" legacy:"eol_cache_dir"`
+	CacheTTL *string `yaml:"cache_ttl,omitempty" resolved:"EOLCacheTTL" legacy:"eol_cache_ttl"`
+}
+
+// ScorecardMatcherFile configures OpenSSF Scorecard enrichment.
+type ScorecardMatcherFile struct {
+	APIBase  *string `yaml:"api_base,omitempty" resolved:"ScorecardAPIBase" legacy:"scorecard_api_base"`
+	CacheDir *string `yaml:"cache_dir,omitempty" resolved:"ScorecardCacheDir" legacy:"scorecard_cache_dir"`
+	CacheTTL *string `yaml:"cache_ttl,omitempty" resolved:"ScorecardCacheTTL" legacy:"scorecard_cache_ttl"`
 }

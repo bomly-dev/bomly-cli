@@ -37,19 +37,20 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 		if purl := strings.TrimSpace(component.PURL); purl != "" {
 			packageID = purl
 		}
-		pkg := sdk.NewPackageWithID(packageID, sdk.Package{
+		pkg := sdk.NewDependencyWithID(packageID, sdk.Dependency{
 			Name:        component.Name,
 			Version:     component.Version,
-			Scope:       component.Scope,
+			Scopes:      sdk.ScopesOf(sdk.Scope(component.Scope)),
 			Ecosystem:   ecosystem,
 			BuildSystem: buildSystem,
 			Type:        component.Type,
 			PURL:        strings.TrimSpace(component.PURL),
 			Copyright:   component.Copyright,
-			Licenses:    graphLicenses(component.Licenses),
 		})
-		if _, exists := depsGraph.Package(packageID); !exists {
-			if err := depsGraph.AddPackage(pkg); err != nil {
+		sdk.SetDetectionLicenses(pkg, graphLicenses(component.Licenses))
+
+		if _, exists := depsGraph.Node(packageID); !exists {
+			if err := depsGraph.AddNode(pkg); err != nil {
 				return nil, fmt.Errorf("add package %q: %w", component.ID, err)
 			}
 		}
@@ -75,7 +76,7 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 			if fromID == toID {
 				continue
 			}
-			if err := depsGraph.AddDependency(fromID, toID); err != nil {
+			if err := depsGraph.AddEdge(fromID, toID); err != nil {
 				return nil, fmt.Errorf("add dependency %q -> %q: %w", fromID, toID, err)
 			}
 		}

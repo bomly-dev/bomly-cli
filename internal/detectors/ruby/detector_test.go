@@ -24,19 +24,19 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	rack, ok := g.Package("rack@3.1.8")
+	rack, ok := g.Node("rack@3.1.8")
 	if !ok {
 		t.Fatal("expected rack package")
 	}
-	if rack.Scope != string(sdk.ScopeRuntime) {
-		t.Fatalf("expected runtime scope, got %q", rack.Scope)
+	if string(rack.PrimaryScope()) != string(sdk.ScopeRuntime) {
+		t.Fatalf("expected runtime scope, got %q", rack.PrimaryScope())
 	}
-	rake, ok := g.Package("rake@13.2.1")
+	rake, ok := g.Node("rake@13.2.1")
 	if !ok {
 		t.Fatal("expected rake package")
 	}
-	if rake.Scope != string(sdk.ScopeDevelopment) {
-		t.Fatalf("expected development scope, got %q", rake.Scope)
+	if string(rake.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+		t.Fatalf("expected development scope, got %q", rake.PrimaryScope())
 	}
 }
 
@@ -66,19 +66,19 @@ DEPENDENCIES
 		t.Fatalf("expected 4 packages, got %d", g.Size())
 	}
 
-	rake, ok := g.Package("rake@13.2.1")
+	rake, ok := g.Node("rake@13.2.1")
 	if !ok {
 		t.Fatal("expected rake package")
 	}
-	if got := rake.Scope; got != string(sdk.ScopeRuntime) {
+	if got := string(rake.PrimaryScope()); got != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected rake scope runtime, got %q", got)
 	}
 
-	activeSupport, ok := g.Package("activesupport@7.1.0")
+	activeSupport, ok := g.Node("activesupport@7.1.0")
 	if !ok {
 		t.Fatal("expected activesupport package")
 	}
-	if got := activeSupport.Scope; got != string(sdk.ScopeRuntime) {
+	if got := string(activeSupport.PrimaryScope()); got != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected activesupport scope runtime, got %q", got)
 	}
 }

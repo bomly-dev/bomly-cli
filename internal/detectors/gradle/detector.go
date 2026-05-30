@@ -226,12 +226,13 @@ func depGraphFromGradleOutput(raw []byte, rootName string) (*sdk.Graph, error) {
 	}
 
 	depsGraph := sdk.New()
-	rootNode := sdk.NewPackage(sdk.Package{
+	rootNode := sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemMaven),
 		Name:        rootName,
 		BuildSystem: sdk.PackageManagerGradle.Name(),
 	})
-	if err := depsGraph.AddPackage(rootNode); err != nil {
+
+	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
@@ -258,12 +259,12 @@ func depGraphFromGradleOutput(raw []byte, rootName string) (*sdk.Graph, error) {
 
 		stack = stack[:depth+1]
 		parentID := stack[len(stack)-1]
-		if existing, ok := depsGraph.Package(node.ID); ok {
-			sdk.MergePackageScope(existing, sdk.Scope(node.Scope))
-		} else if err := depsGraph.AddPackage(node); err != nil && !errors.Is(err, sdk.ErrPackageAlreadyExist) {
+		if existing, ok := depsGraph.Node(node.ID); ok {
+			existing.AddScope(node.PrimaryScope())
+		} else if err := depsGraph.AddNode(node); err != nil && !errors.Is(err, sdk.ErrNodeAlreadyExist) {
 			return nil, fmt.Errorf("add node %q: %w", node.ID, err)
 		}
-		if err := depsGraph.AddDependency(parentID, node.ID); err != nil {
+		if err := depsGraph.AddEdge(parentID, node.ID); err != nil {
 			return nil, fmt.Errorf("add dependency %q -> %q: %w", parentID, node.ID, err)
 		}
 
@@ -283,7 +284,7 @@ func isGradleConfigurationHeader(line string) bool {
 	return strings.HasSuffix(line, "Classpath")
 }
 
-func parseGradleDependencyLine(line string, scope sdk.Scope) (*sdk.Package, int, bool) {
+func parseGradleDependencyLine(line string, scope sdk.Scope) (*sdk.Dependency, int, bool) {
 	idx := strings.Index(line, "+--- ")
 	if idx < 0 {
 		idx = strings.Index(line, "\\--- ")
@@ -338,18 +339,20 @@ func gradleDependencyToken(value string) string {
 	return token
 }
 
-func gradleNodeFromToken(token string, scope sdk.Scope) (*sdk.Package, bool) {
+func gradleNodeFromToken(token string, scope sdk.Scope) (*sdk.Dependency, bool) {
 	if strings.HasPrefix(token, "project ") {
 		name := strings.TrimSpace(strings.TrimPrefix(token, "project "))
 		if name == "" {
 			return nil, false
 		}
-		return sdk.NewPackage(sdk.Package{
-			Ecosystem:   string(sdk.EcosystemMaven),
-			Name:        name,
-			Scope:       string(scope),
-			BuildSystem: sdk.PackageManagerGradle.Name(),
-		}), true
+		return sdk.NewDependency(sdk.Dependency{
+				Ecosystem:   string(sdk.EcosystemMaven),
+				Name:        name,
+				Scopes:      sdk.ScopesOf(scope),
+				BuildSystem: sdk.PackageManagerGradle.Name(),
+			}),
+
+			true
 	}
 
 	parts := strings.Split(token, ":")
@@ -359,14 +362,16 @@ func gradleNodeFromToken(token string, scope sdk.Scope) (*sdk.Package, bool) {
 
 	version := parts[len(parts)-1]
 	name := strings.Join(parts[1:len(parts)-1], ":")
-	return sdk.NewPackage(sdk.Package{
-		Ecosystem:   string(sdk.EcosystemMaven),
-		Name:        name,
-		Version:     version,
-		Scope:       string(scope),
-		Org:         parts[0],
-		BuildSystem: sdk.PackageManagerGradle.Name(),
-	}), true
+	return sdk.NewDependency(sdk.Dependency{
+			Ecosystem:   string(sdk.EcosystemMaven),
+			Name:        name,
+			Version:     version,
+			Scopes:      sdk.ScopesOf(scope),
+			Org:         parts[0],
+			BuildSystem: sdk.PackageManagerGradle.Name(),
+		}),
+
+		true
 }
 
 func scopeFromGradleConfiguration(value string) sdk.Scope {

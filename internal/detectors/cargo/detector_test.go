@@ -22,12 +22,12 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	pkg, ok := g.Package("bomly-cargo-smoke-helper@0.1.0")
+	pkg, ok := g.Node("bomly-cargo-smoke-helper@0.1.0")
 	if !ok {
 		t.Fatal("expected helper package")
 	}
-	if pkg.Scope != string(sdk.ScopeRuntime) {
-		t.Fatalf("expected runtime scope, got %q", pkg.Scope)
+	if string(pkg.PrimaryScope()) != string(sdk.ScopeRuntime) {
+		t.Fatalf("expected runtime scope, got %q", string(pkg.PrimaryScope()))
 	}
 }
 
@@ -54,23 +54,23 @@ func TestDepGraphFromMetadataWorkspace(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromMetadata() error = %v", err)
 	}
-	app, ok := g.Package("app@0.1.0")
+	app, ok := g.Node("app@0.1.0")
 	if !ok {
 		t.Fatal("expected workspace package")
 	}
-	deps, err := g.Dependencies(app.ID)
+	deps, err := g.DirectDependencies(app.ID)
 	if err != nil {
 		t.Fatalf("app dependencies: %v", err)
 	}
 	if len(deps) != 2 {
 		t.Fatalf("expected two app dependencies, got %d", len(deps))
 	}
-	dev, ok := g.Package("pretty_assertions@1.4.1")
+	dev, ok := g.Node("pretty_assertions@1.4.1")
 	if !ok {
 		t.Fatal("expected dev package")
 	}
-	if dev.Scope != string(sdk.ScopeDevelopment) {
-		t.Fatalf("expected dev scope, got %q", dev.Scope)
+	if string(dev.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+		t.Fatalf("expected dev scope, got %q", string(dev.PrimaryScope()))
 	}
 	if dev.PURL != "pkg:cargo/pretty_assertions@1.4.1" {
 		t.Fatalf("unexpected purl %q", dev.PURL)
@@ -111,22 +111,22 @@ dev-helper = { path = "dev-helper" }
 	if err != nil {
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
-	root, ok := g.Package("app@0.1.0")
+	root, ok := g.Node("app@0.1.0")
 	if !ok {
 		t.Fatal("expected root package")
 	}
-	deps, err := g.Dependencies(root.ID)
+	deps, err := g.DirectDependencies(root.ID)
 	if err != nil {
 		t.Fatalf("root dependencies: %v", err)
 	}
 	if len(deps) != 2 {
 		t.Fatalf("expected two root dependencies, got %d", len(deps))
 	}
-	dev, ok := g.Package("dev-helper@0.1.0")
+	dev, ok := g.Node("dev-helper@0.1.0")
 	if !ok {
 		t.Fatal("expected dev-helper package")
 	}
-	if dev.Scope != string(sdk.ScopeDevelopment) {
-		t.Fatalf("expected development scope, got %q", dev.Scope)
+	if string(dev.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+		t.Fatalf("expected development scope, got %q", string(dev.PrimaryScope()))
 	}
 }

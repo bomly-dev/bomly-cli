@@ -151,14 +151,15 @@ func depGraphFromLock(raw []byte, manifest composerManifest) (*sdk.Graph, error)
 	}
 
 	depsGraph := sdk.New()
-	rootNode := sdk.NewPackage(sdk.Package{
+	rootNode := sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemPHP),
 		Name:        "root",
 		BuildSystem: sdk.PackageManagerComposer.Name(),
 		Type:        "application",
 		Language:    "php",
 	})
-	if err := depsGraph.AddPackage(rootNode); err != nil {
+
+	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
@@ -189,7 +190,7 @@ func depGraphFromLock(raw []byte, manifest composerManifest) (*sdk.Graph, error)
 			if err := addNodeIfMissing(depsGraph, child); err != nil {
 				return nil, err
 			}
-			if err := depsGraph.AddDependency(parent.ID, child.ID); err != nil {
+			if err := depsGraph.AddEdge(parent.ID, child.ID); err != nil {
 				return nil, fmt.Errorf("add dependency %q -> %q: %w", parent.ID, child.ID, err)
 			}
 		}
@@ -205,20 +206,20 @@ func depGraphFromLock(raw []byte, manifest composerManifest) (*sdk.Graph, error)
 	for _, name := range runtimeRoots {
 		pkg := packagesByName[name]
 		node := packageNode(pkg.Name, pkg.Version)
-		if existing, ok := depsGraph.Package(node.ID); ok {
-			sdk.MergePackageScope(existing, sdk.ScopeRuntime)
+		if existing, ok := depsGraph.Node(node.ID); ok {
+			existing.AddScope(sdk.ScopeRuntime)
 		}
-		if err := depsGraph.AddDependency(rootNode.ID, node.ID); err != nil {
+		if err := depsGraph.AddEdge(rootNode.ID, node.ID); err != nil {
 			return nil, fmt.Errorf("add root runtime dependency %q: %w", node.ID, err)
 		}
 	}
 	for _, name := range developmentRoots {
 		pkg := packagesByName[name]
 		node := packageNode(pkg.Name, pkg.Version)
-		if existing, ok := depsGraph.Package(node.ID); ok {
-			sdk.MergePackageScope(existing, sdk.ScopeDevelopment)
+		if existing, ok := depsGraph.Node(node.ID); ok {
+			existing.AddScope(sdk.ScopeDevelopment)
 		}
-		if err := depsGraph.AddDependency(rootNode.ID, node.ID); err != nil {
+		if err := depsGraph.AddEdge(rootNode.ID, node.ID); err != nil {
 			return nil, fmt.Errorf("add root development dependency %q: %w", node.ID, err)
 		}
 	}
@@ -237,8 +238,8 @@ func depGraphFromLock(raw []byte, manifest composerManifest) (*sdk.Graph, error)
 				return nil
 			}
 			node := packageNode(pkg.Name, pkg.Version)
-			if existing, ok := depsGraph.Package(node.ID); ok {
-				sdk.MergePackageScope(existing, scope)
+			if existing, ok := depsGraph.Node(node.ID); ok {
+				existing.AddScope(scope)
 			}
 			for dependency := range pkg.Require {
 				if err := walk(dependency); err != nil {
@@ -265,9 +266,9 @@ func depGraphFromLock(raw []byte, manifest composerManifest) (*sdk.Graph, error)
 	return depsGraph, nil
 }
 
-func packageNode(name, version string) *sdk.Package {
+func packageNode(name, version string) *sdk.Dependency {
 	org, packageName := splitPackageName(name)
-	return sdk.NewPackage(sdk.Package{
+	return sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemPHP),
 		Org:         org,
 		Name:        packageName,
@@ -277,6 +278,7 @@ func packageNode(name, version string) *sdk.Package {
 		Type:        "package",
 		Language:    "php",
 	})
+
 }
 
 func splitPackageName(value string) (string, string) {
@@ -287,11 +289,11 @@ func splitPackageName(value string) (string, string) {
 	return parts[0], parts[1]
 }
 
-func addNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Package) error {
-	if _, ok := depsGraph.Package(node.ID); ok {
+func addNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
+	if _, ok := depsGraph.Node(node.ID); ok {
 		return nil
 	}
-	if err := depsGraph.AddPackage(node); err != nil {
+	if err := depsGraph.AddNode(node); err != nil {
 		return fmt.Errorf("add node %q: %w", node.ID, err)
 	}
 	return nil

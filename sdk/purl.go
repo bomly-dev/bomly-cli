@@ -127,25 +127,23 @@ func PackageURLTypeForValues(values ...string) string {
 	return "generic"
 }
 
-// CanonicalPackageURLFromPackage returns the canonical package URL for pkg.
-func CanonicalPackageURLFromPackage(pkg *Package) string {
-	if pkg == nil {
-		return ""
-	}
-	if canonical := CanonicalizePackageURL(pkg.PURL); canonical != "" {
+// CanonicalPackageURLFromParts returns the canonical package URL derived from
+// raw identity fields. existingPURL takes precedence when it canonicalizes.
+func CanonicalPackageURLFromParts(existingPURL, ecosystem, buildSystem, typ, org, name, version string) string {
+	if canonical := CanonicalizePackageURL(existingPURL); canonical != "" {
 		return canonical
 	}
-	if strings.EqualFold(strings.TrimSpace(pkg.Type), "manifest") {
+	if strings.EqualFold(strings.TrimSpace(typ), "manifest") {
 		return ""
 	}
 
-	name := strings.TrimSpace(pkg.Name)
+	name = strings.TrimSpace(name)
 	if name == "" {
 		return ""
 	}
 
-	purlType := PackageURLTypeForValues(pkg.Ecosystem, pkg.BuildSystem, pkg.Type)
-	namespace := strings.TrimSpace(pkg.Org)
+	purlType := PackageURLTypeForValues(ecosystem, buildSystem, typ)
+	namespace := strings.TrimSpace(org)
 	if purlType == "golang" && namespace == "" {
 		parts := strings.Split(strings.ReplaceAll(name, "\\", "/"), "/")
 		if len(parts) > 1 {
@@ -154,7 +152,23 @@ func CanonicalPackageURLFromPackage(pkg *Package) string {
 		}
 	}
 
-	return BuildPackageURL(purlType, namespace, name, pkg.Version)
+	return BuildPackageURL(purlType, namespace, name, version)
+}
+
+// CanonicalPackageURLFromPackage returns the canonical package URL for pkg.
+func CanonicalPackageURLFromPackage(pkg *Package) string {
+	if pkg == nil {
+		return ""
+	}
+	return CanonicalPackageURLFromParts(pkg.PURL, pkg.Ecosystem, pkg.BuildSystem, pkg.Type, pkg.Org, pkg.Name, pkg.Version)
+}
+
+// CanonicalPackageURLFromDependency returns the canonical package URL for dep.
+func CanonicalPackageURLFromDependency(dep *Dependency) string {
+	if dep == nil {
+		return ""
+	}
+	return CanonicalPackageURLFromParts(dep.PURL, dep.Ecosystem, dep.BuildSystem, dep.Type, dep.Org, dep.Name, dep.Version)
 }
 
 // PackageURLBase strips version and qualifiers from a package URL.

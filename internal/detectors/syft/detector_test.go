@@ -256,7 +256,7 @@ func TestGraphFromSyftSBOM(t *testing.T) {
 	if got := depsGraph.Size(); got != 2 {
 		t.Fatalf("expected graph size 2, got %d", got)
 	}
-	deps, err := depsGraph.Dependencies(string(app.ID()))
+	deps, err := depsGraph.DirectDependencies(string(app.ID()))
 	if err != nil {
 		t.Fatalf("Dependencies() error = %v", err)
 	}
@@ -264,7 +264,7 @@ func TestGraphFromSyftSBOM(t *testing.T) {
 		t.Fatalf("unexpected dependencies: %#v", deps)
 	}
 
-	mapped, ok := depsGraph.Package(string(dependency.ID()))
+	mapped, ok := depsGraph.Node(string(dependency.ID()))
 	if !ok {
 		t.Fatalf("expected dependency package %q", dependency.ID())
 	}
@@ -374,7 +374,7 @@ func TestDetectorResolveGraph_UsesSyftLibrary(t *testing.T) {
 		t.Fatalf("expected at least 2 graph packages, got %d", depsGraph.Size())
 	}
 	foundReact := false
-	for _, pkg := range depsGraph.Packages() {
+	for _, pkg := range depsGraph.Nodes() {
 		if pkg.Name == "react" {
 			foundReact = true
 			break

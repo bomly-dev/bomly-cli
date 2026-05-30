@@ -21,26 +21,26 @@ func (f AuditorFilter) Excludes(name string) bool {
 	return excludesName(f.Exclude, name)
 }
 
-// AuditRequest defines input for an auditor.
+// AuditRequest defines input for an auditor. Auditors read the dependency Graph
+// and the package Registry and emit reference-style findings.
 type AuditRequest struct {
-	ProjectPath     string          `json:"projectPath,omitempty"`
-	ExecutionTarget ExecutionTarget `json:"executionTarget"`
-	SubprojectInfo  Subproject      `json:"subprojectInfo"`
-	Ecosystem       Ecosystem       `json:"ecosystem,omitempty"`
-	PackageManager  PackageManager  `json:"packageManager,omitempty"`
-	Mode            TargetMode      `json:"mode,omitempty"`
-	Query           PackageQuery    `json:"query"`
-	Graph           *Graph          `json:"graph,omitempty"`
-	BaselineGraph   *Graph          `json:"baselineGraph,omitempty"`
-	Target          *Package        `json:"target,omitempty"`
-	AuditorFilter   AuditorFilter   `json:"auditorFilter"`
-	Stderr          io.Writer       `json:"-"`
+	ProjectPath     string           `json:"projectPath,omitempty"`
+	ExecutionTarget ExecutionTarget  `json:"executionTarget"`
+	SubprojectInfo  Subproject       `json:"subprojectInfo"`
+	Ecosystem       Ecosystem        `json:"ecosystem,omitempty"`
+	PackageManager  PackageManager   `json:"packageManager,omitempty"`
+	Mode            TargetMode       `json:"mode,omitempty"`
+	Query           PackageQuery     `json:"query"`
+	Graph           *Graph           `json:"graph,omitempty"`
+	BaselineGraph   *Graph           `json:"baselineGraph,omitempty"`
+	Registry        *PackageRegistry `json:"-"`
+	Target          *Dependency      `json:"target,omitempty"`
+	AuditorFilter   AuditorFilter    `json:"auditorFilter"`
+	Stderr          io.Writer        `json:"-"`
 }
 
 // AuditResult contains findings and scores from one auditor.
 type AuditResult struct {
-	Graph           *Graph         `json:"graph,omitempty"`
-	Target          *Package       `json:"target,omitempty"`
 	Findings        []Finding      `json:"findings,omitempty"`
 	RiskScores      []RiskScore    `json:"riskScores,omitempty"`
 	AuditorRuns     []string       `json:"auditorRuns,omitempty"`

@@ -56,17 +56,18 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 	}
 
 	// Index all packages by normalised name.
-	nodesByName := make(map[string]*sdk.Package, len(lock.Package))
+	nodesByName := make(map[string]*sdk.Dependency, len(lock.Package))
 	for i := range lock.Package {
 		pkg := &lock.Package[i]
 		if pkg.Name == "" {
 			continue
 		}
-		node := sdk.NewPackage(sdk.Package{
+		node := sdk.NewDependency(sdk.Dependency{
 			Ecosystem: string(sdk.EcosystemPython),
 			Name:      normalizePythonName(pkg.Name),
 			Version:   pkg.Version,
 		})
+
 		nodesByName[normalizePythonName(pkg.Name)] = node
 	}
 
@@ -89,7 +90,7 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 	if rootNode == nil {
 		return nil, fmt.Errorf("uv.lock editable package %q not found in package index", editablePkg.Name)
 	}
-	if err := depsGraph.AddPackage(rootNode); err != nil {
+	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
@@ -109,8 +110,8 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 		if child == nil {
 			continue
 		}
-		sdk.MergePackageScope(child, sdk.ScopeRuntime)
-		if err := depsGraph.AddDependency(rootNode.ID, child.ID); err != nil {
+		child.AddScope(sdk.ScopeRuntime)
+		if err := depsGraph.AddEdge(rootNode.ID, child.ID); err != nil {
 			return nil, fmt.Errorf("add runtime dep %q: %w", dep.Name, err)
 		}
 	}
@@ -123,8 +124,8 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 				continue
 			}
 			// Runtime wins if this package is also a runtime dep.
-			sdk.MergePackageScope(child, sdk.ScopeDevelopment)
-			if err := depsGraph.AddDependency(rootNode.ID, child.ID); err != nil {
+			child.AddScope(sdk.ScopeDevelopment)
+			if err := depsGraph.AddEdge(rootNode.ID, child.ID); err != nil {
 				return nil, fmt.Errorf("add dev dep %q: %w", dep.Name, err)
 			}
 		}
@@ -145,7 +146,7 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 			if child == nil || child.ID == rootNode.ID {
 				continue
 			}
-			if err := depsGraph.AddDependency(parent.ID, child.ID); err != nil {
+			if err := depsGraph.AddEdge(parent.ID, child.ID); err != nil {
 				return nil, fmt.Errorf("add dep %q -> %q: %w", parent.Name, dep.Name, err)
 			}
 		}
@@ -153,18 +154,18 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 
 	// BFS to propagate scope from root's direct deps into the transitive tree.
 	// Runtime always wins over development.
-	directDeps, err := depsGraph.Dependencies(rootNode.ID)
+	directDeps, err := depsGraph.DirectDependencies(rootNode.ID)
 	if err != nil || len(directDeps) == 0 {
 		return depsGraph, nil
 	}
 
 	propagated := make(map[string]sdk.Scope, depsGraph.Size())
-	queue := make([]*sdk.Package, 0, len(directDeps))
+	queue := make([]*sdk.Dependency, 0, len(directDeps))
 	for _, dep := range directDeps {
 		if dep == nil {
 			continue
 		}
-		scope := sdk.Scope(dep.Scope)
+		scope := dep.PrimaryScope()
 		if scope == sdk.ScopeUnknown {
 			scope = sdk.ScopeRuntime
 		}
@@ -179,7 +180,7 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 		if scope == sdk.ScopeUnknown {
 			continue
 		}
-		children, err := depsGraph.Dependencies(current.ID)
+		children, err := depsGraph.DirectDependencies(current.ID)
 		if err != nil {
 			continue
 		}
@@ -188,19 +189,19 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 				continue
 			}
 			nextScope := sdk.MergeScope(propagated[child.ID], scope)
-			if nextScope == propagated[child.ID] && sdk.Scope(child.Scope) == nextScope {
+			if nextScope == propagated[child.ID] && child.PrimaryScope() == nextScope {
 				continue
 			}
 			propagated[child.ID] = nextScope
-			sdk.MergePackageScope(child, nextScope)
+			child.AddScope(nextScope)
 			queue = append(queue, child)
 		}
 	}
 
 	// Any unscoped non-root package defaults to runtime.
-	for _, pkg := range depsGraph.Packages() {
-		if pkg != nil && pkg.ID != rootNode.ID && sdk.Scope(pkg.Scope) == sdk.ScopeUnknown {
-			sdk.MergePackageScope(pkg, sdk.ScopeRuntime)
+	for _, pkg := range depsGraph.Nodes() {
+		if pkg != nil && pkg.ID != rootNode.ID && pkg.PrimaryScope() == sdk.ScopeUnknown {
+			pkg.AddScope(sdk.ScopeRuntime)
 		}
 	}
 

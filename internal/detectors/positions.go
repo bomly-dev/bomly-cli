@@ -8,18 +8,18 @@ import (
 )
 
 // AttachPositions populates PackageLocation.Position on graph
-// packages whose normalized key (derived by nameKey) appears in the
-// positions map. Packages already carrying a Location with the same
+// nodes whose normalized key (derived by nameKey) appears in the
+// positions map. Nodes already carrying a Location with the same
 // RealPath are left untouched.
 //
-// nameKey returns the lookup key for a graph package. Detectors
-// typically derive it from pkg.Name, pkg.Org+":"+pkg.Name, or a
-// language-specific normalization. Returning "" skips the package.
-func AttachPositions(g *sdk.Graph, positions map[string]*sdk.SourcePosition, nameKey func(*sdk.Package) string) {
+// nameKey returns the lookup key for a graph node. Detectors
+// typically derive it from dep.Name, dep.Org+":"+dep.Name, or a
+// language-specific normalization. Returning "" skips the node.
+func AttachPositions(g *sdk.Graph, positions map[string]*sdk.SourcePosition, nameKey func(*sdk.Dependency) string) {
 	if g == nil || len(positions) == 0 || nameKey == nil {
 		return
 	}
-	for _, pkg := range g.Packages() {
+	for _, pkg := range g.Nodes() {
 		if pkg == nil {
 			continue
 		}

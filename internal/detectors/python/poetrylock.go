@@ -65,14 +65,14 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 	// Collect direct deps and root identity from pyproject.toml.
 	mainDeps, devDeps, rootName, rootVersion := collectPoetryDepsAndRoot(projectPath)
 
-	// Build a name-indexed map of sdk.Package nodes; assign initial scope from groups.
-	nodesByName := make(map[string]*sdk.Package, len(lock.Package))
+	// Build a name-indexed map of sdk.Dependency nodes; assign initial scope from groups.
+	nodesByName := make(map[string]*sdk.Dependency, len(lock.Package))
 	for i := range lock.Package {
 		pkg := &lock.Package[i]
 		if pkg.Name == "" {
 			continue
 		}
-		node := sdk.NewPackage(sdk.Package{
+		node := sdk.NewDependency(sdk.Dependency{
 			Ecosystem:   string(sdk.EcosystemPython),
 			Name:        normalizePythonName(pkg.Name),
 			Version:     pkg.Version,
@@ -81,11 +81,12 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 			Type:        "package",
 			PURL:        sdk.BuildPackageURL("pypi", "", pkg.Name, pkg.Version),
 		})
+
 		for _, group := range pkg.Groups {
 			if group == "main" {
-				sdk.MergePackageScope(node, sdk.ScopeRuntime)
+				node.AddScope(sdk.ScopeRuntime)
 			} else {
-				sdk.MergePackageScope(node, sdk.ScopeDevelopment)
+				node.AddScope(sdk.ScopeDevelopment)
 			}
 		}
 		nodesByName[normalizePythonName(pkg.Name)] = node
@@ -94,7 +95,7 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 	// Build the graph.
 	g := sdk.New()
 
-	root := sdk.NewPackage(sdk.Package{
+	root := sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemPython),
 		Name:        rootName,
 		Version:     rootVersion,
@@ -102,7 +103,8 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 		Language:    "python",
 		Type:        "application",
 	})
-	if err := g.AddPackage(root); err != nil {
+
+	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
@@ -119,7 +121,7 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 		if node == nil {
 			continue
 		}
-		if err := g.AddDependency(root.ID, node.ID); err != nil {
+		if err := g.AddEdge(root.ID, node.ID); err != nil {
 			return nil, fmt.Errorf("wire root→%s: %w", name, err)
 		}
 	}
@@ -130,7 +132,7 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 		if node == nil {
 			continue
 		}
-		if err := g.AddDependency(root.ID, node.ID); err != nil {
+		if err := g.AddEdge(root.ID, node.ID); err != nil {
 			return nil, fmt.Errorf("wire root→%s (dev): %w", name, err)
 		}
 	}
@@ -148,7 +150,7 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 				continue
 			}
 			// Ignore duplicate-edge errors — AddDependency is idempotent for them.
-			_ = g.AddDependency(parent.ID, child.ID)
+			_ = g.AddEdge(parent.ID, child.ID)
 		}
 	}
 
@@ -160,24 +162,24 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 		}
 		dependents, _ := g.Dependents(node.ID)
 		if len(dependents) == 0 {
-			_ = g.AddDependency(root.ID, node.ID)
+			_ = g.AddEdge(root.ID, node.ID)
 		}
 	}
 
 	// BFS scope propagation: runtime always beats development.
-	directDeps, _ := g.Dependencies(root.ID)
+	directDeps, _ := g.DirectDependencies(root.ID)
 	propagated := make(map[string]sdk.Scope, g.Size())
-	queue := make([]*sdk.Package, 0, len(directDeps))
+	queue := make([]*sdk.Dependency, 0, len(directDeps))
 	for _, dep := range directDeps {
 		if dep == nil {
 			continue
 		}
-		scope := sdk.Scope(dep.Scope)
+		scope := dep.PrimaryScope()
 		if scope == sdk.ScopeUnknown {
 			scope = sdk.ScopeRuntime
 		}
 		propagated[dep.ID] = sdk.MergeScope(propagated[dep.ID], scope)
-		sdk.MergePackageScope(dep, propagated[dep.ID])
+		dep.AddScope(propagated[dep.ID])
 		queue = append(queue, dep)
 	}
 	for len(queue) > 0 {
@@ -187,7 +189,7 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 		if scope == sdk.ScopeUnknown {
 			continue
 		}
-		children, err := g.Dependencies(current.ID)
+		children, err := g.DirectDependencies(current.ID)
 		if err != nil {
 			continue
 		}
@@ -196,19 +198,19 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 				continue
 			}
 			next := sdk.MergeScope(propagated[child.ID], scope)
-			if next == propagated[child.ID] && sdk.Scope(child.Scope) == next {
+			if next == propagated[child.ID] && child.PrimaryScope() == next {
 				continue
 			}
 			propagated[child.ID] = next
-			sdk.MergePackageScope(child, next)
+			child.AddScope(next)
 			queue = append(queue, child)
 		}
 	}
 
 	// Any remaining unscoped non-root packages default to runtime.
-	for _, pkg := range g.Packages() {
-		if pkg != nil && pkg.ID != root.ID && sdk.Scope(pkg.Scope) == sdk.ScopeUnknown {
-			sdk.MergePackageScope(pkg, sdk.ScopeRuntime)
+	for _, pkg := range g.Nodes() {
+		if pkg != nil && pkg.ID != root.ID && pkg.PrimaryScope() == sdk.ScopeUnknown {
+			pkg.AddScope(sdk.ScopeRuntime)
 		}
 	}
 

@@ -203,7 +203,7 @@ func depGraphFromLock(raw []byte) (*sdk.Graph, error) {
 	}
 	g := sdk.New()
 	root := rootNode()
-	if err := g.AddPackage(root); err != nil {
+	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
@@ -244,7 +244,7 @@ func depGraphFromLock(raw []byte) (*sdk.Graph, error) {
 			if err := addNodeIfMissing(g, child); err != nil {
 				return nil, err
 			}
-			if err := g.AddDependency(parent.ID, child.ID); err != nil {
+			if err := g.AddEdge(parent.ID, child.ID); err != nil {
 				return nil, fmt.Errorf("add NuGet dependency %q -> %q: %w", parent.ID, child.ID, err)
 			}
 		}
@@ -254,10 +254,10 @@ func depGraphFromLock(raw []byte) (*sdk.Graph, error) {
 	for _, name := range roots {
 		pkg, _ := findNuGetPackage(packages, name)
 		node := packageNode(baseName(name), pkg.Resolved, pkg)
-		if existing, ok := g.Package(node.ID); ok {
-			sdk.MergePackageScope(existing, sdk.ScopeRuntime)
+		if existing, ok := g.Node(node.ID); ok {
+			existing.AddScope(sdk.ScopeRuntime)
 		}
-		if err := g.AddDependency(root.ID, node.ID); err != nil {
+		if err := g.AddEdge(root.ID, node.ID); err != nil {
 			return nil, fmt.Errorf("add NuGet root dependency %q: %w", node.ID, err)
 		}
 	}
@@ -277,7 +277,7 @@ func depGraphFromPackagesConfig(raw []byte) (*sdk.Graph, error) {
 	}
 	g := sdk.New()
 	root := rootNode()
-	if err := g.AddPackage(root); err != nil {
+	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 	for _, pkg := range config.Packages {
@@ -285,11 +285,11 @@ func depGraphFromPackagesConfig(raw []byte) (*sdk.Graph, error) {
 			continue
 		}
 		node := packageNode(pkg.ID, pkg.Version, lockPackage{})
-		sdk.MergePackageScope(node, sdk.ScopeRuntime)
+		node.AddScope(sdk.ScopeRuntime)
 		if err := addNodeIfMissing(g, node); err != nil {
 			return nil, err
 		}
-		if err := g.AddDependency(root.ID, node.ID); err != nil {
+		if err := g.AddEdge(root.ID, node.ID); err != nil {
 			return nil, fmt.Errorf("add NuGet packages.config dependency %q: %w", node.ID, err)
 		}
 	}
@@ -299,7 +299,7 @@ func depGraphFromPackagesConfig(raw []byte) (*sdk.Graph, error) {
 func depGraphFromDepsFiles(paths []string) (*sdk.Graph, error) {
 	g := sdk.New()
 	root := rootNode()
-	if err := g.AddPackage(root); err != nil {
+	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 	packageEntries := make(map[string]lockPackage)
@@ -356,7 +356,7 @@ func depGraphFromDepsFiles(paths []string) (*sdk.Graph, error) {
 			if err := addNodeIfMissing(g, child); err != nil {
 				return nil, err
 			}
-			if err := g.AddDependency(parent.ID, child.ID); err != nil {
+			if err := g.AddEdge(parent.ID, child.ID); err != nil {
 				return nil, fmt.Errorf("add NuGet deps dependency %q -> %q: %w", parent.ID, child.ID, err)
 			}
 		}
@@ -368,10 +368,10 @@ func depGraphFromDepsFiles(paths []string) (*sdk.Graph, error) {
 			continue
 		}
 		node := packageNode(depName, pkg.Resolved, pkg)
-		if existing, ok := g.Package(node.ID); ok {
-			sdk.MergePackageScope(existing, sdk.ScopeRuntime)
+		if existing, ok := g.Node(node.ID); ok {
+			existing.AddScope(sdk.ScopeRuntime)
 		}
-		if err := g.AddDependency(root.ID, node.ID); err != nil {
+		if err := g.AddEdge(root.ID, node.ID); err != nil {
 			return nil, fmt.Errorf("add NuGet deps root dependency %q: %w", node.ID, err)
 		}
 		roots = append(roots, depName)
@@ -386,7 +386,7 @@ func depGraphFromDepsFiles(paths []string) (*sdk.Graph, error) {
 func depGraphFromProjectFiles(paths []string) (*sdk.Graph, error) {
 	g := sdk.New()
 	root := rootNode()
-	if err := g.AddPackage(root); err != nil {
+	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 	seen := make(map[string]struct{})
@@ -406,7 +406,7 @@ func depGraphFromProjectFiles(paths []string) (*sdk.Graph, error) {
 				continue
 			}
 			node := packageNode(name, version, lockPackage{})
-			sdk.MergePackageScope(node, sdk.ScopeRuntime)
+			node.AddScope(sdk.ScopeRuntime)
 			if _, ok := seen[node.ID]; ok {
 				continue
 			}
@@ -414,7 +414,7 @@ func depGraphFromProjectFiles(paths []string) (*sdk.Graph, error) {
 			if err := addNodeIfMissing(g, node); err != nil {
 				return nil, err
 			}
-			if err := g.AddDependency(root.ID, node.ID); err != nil {
+			if err := g.AddEdge(root.ID, node.ID); err != nil {
 				return nil, fmt.Errorf("add NuGet project dependency %q: %w", node.ID, err)
 			}
 		}
@@ -486,18 +486,19 @@ func firstNonEmpty(values ...string) string {
 	return ""
 }
 
-func rootNode() *sdk.Package {
-	return sdk.NewPackage(sdk.Package{
+func rootNode() *sdk.Dependency {
+	return sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemDotNet),
 		Name:        "root",
 		BuildSystem: sdk.PackageManagerNuGet.Name(),
 		Type:        "application",
 		Language:    "dotnet",
 	})
+
 }
 
-func packageNode(name, version string, pkg lockPackage) *sdk.Package {
-	node := sdk.NewPackage(sdk.Package{
+func packageNode(name, version string, pkg lockPackage) *sdk.Dependency {
+	node := sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemDotNet),
 		Name:        name,
 		Version:     version,
@@ -506,6 +507,7 @@ func packageNode(name, version string, pkg lockPackage) *sdk.Package {
 		Language:    "dotnet",
 		PURL:        sdk.BuildPackageURL("nuget", "", name, version),
 	})
+
 	if pkg.ContentHash != "" {
 		node.Digests = append(node.Digests, sdk.Digest{Algorithm: "nuget-content-hash", Value: pkg.ContentHash})
 	}
@@ -589,8 +591,8 @@ func propagateScope(g *sdk.Graph, packages map[string]lockPackage, roots []strin
 			return nil
 		}
 		node := packageNode(name, pkg.Resolved, pkg)
-		if existing, ok := g.Package(node.ID); ok {
-			sdk.MergePackageScope(existing, scope)
+		if existing, ok := g.Node(node.ID); ok {
+			existing.AddScope(scope)
 		}
 		for depName := range pkg.Dependencies {
 			if err := walk(depName); err != nil {
@@ -607,11 +609,11 @@ func propagateScope(g *sdk.Graph, packages map[string]lockPackage, roots []strin
 	return nil
 }
 
-func addNodeIfMissing(g *sdk.Graph, node *sdk.Package) error {
-	if _, ok := g.Package(node.ID); ok {
+func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
+	if _, ok := g.Node(node.ID); ok {
 		return nil
 	}
-	if err := g.AddPackage(node); err != nil {
+	if err := g.AddNode(node); err != nil {
 		return fmt.Errorf("add node %q: %w", node.ID, err)
 	}
 	return nil

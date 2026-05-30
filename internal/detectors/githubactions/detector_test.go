@@ -24,10 +24,10 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	if _, ok := g.Package("actions:checkout@v4"); !ok {
+	if _, ok := g.Node("actions:checkout@v4"); !ok {
 		t.Fatal("expected actions/checkout package")
 	}
-	if _, ok := g.Package("actions:cache@v4"); !ok {
+	if _, ok := g.Node("actions:cache@v4"); !ok {
 		t.Fatal("expected actions/cache package")
 	}
 }
@@ -64,30 +64,30 @@ func TestDepGraphFromRepository(t *testing.T) {
 		t.Fatalf("expected 6 packages, got %d", g.Size())
 	}
 
-	cache, ok := g.Package("actions:cache@v4")
+	cache, ok := g.Node("actions:cache@v4")
 	if !ok {
 		t.Fatal("expected actions/cache package")
 	}
-	if got := cache.Scope; got != string(sdk.ScopeRuntime) {
+	if got := string(cache.PrimaryScope()); got != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope, got %q", got)
 	}
 
-	localAction, ok := g.Package("action:.github/actions/local-setup")
+	localAction, ok := g.Node("action:.github/actions/local-setup")
 	if !ok {
 		t.Fatal("expected local action package")
 	}
-	deps, err := g.Dependencies(localAction.ID)
+	deps, err := g.DirectDependencies(localAction.ID)
 	if err != nil {
 		t.Fatalf("Dependencies() error = %v", err)
 	}
 	if len(deps) != 1 || deps[0].ID != "actions:cache@v4" {
 		t.Fatalf("expected local action to depend on actions/cache, got %#v", deps)
 	}
-	workflowNode, ok := g.Package("workflow:.github/workflows/ci.yml")
+	workflowNode, ok := g.Node("workflow:.github/workflows/ci.yml")
 	if !ok {
 		t.Fatal("expected ci workflow package")
 	}
-	workflowDeps, err := g.Dependencies(workflowNode.ID)
+	workflowDeps, err := g.DirectDependencies(workflowNode.ID)
 	if err != nil {
 		t.Fatalf("Dependencies() error = %v", err)
 	}

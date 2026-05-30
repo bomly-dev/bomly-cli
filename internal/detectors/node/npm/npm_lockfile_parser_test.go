@@ -41,7 +41,7 @@ func TestNPMLockfileParserAllowsArrayEngines(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromNPMLockfile() error = %v", err)
 	}
-	pkg, ok := graph.Package("benchmark@1.0.0")
+	pkg, ok := graph.Node("benchmark@1.0.0")
 	if !ok {
 		t.Fatalf("expected benchmark@1.0.0 package")
 	}

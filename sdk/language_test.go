@@ -130,8 +130,8 @@ func TestReachabilityClone(t *testing.T) {
 	}
 }
 
-func TestPackageVulnerabilityCloneCarriesNewFields(t *testing.T) {
-	v := PackageVulnerability{
+func TestVulnerabilityCloneCarriesNewFields(t *testing.T) {
+	v := Vulnerability{
 		ID:            "CVE-2024-1234",
 		Source:        "osv",
 		FixedVersions: []string{"1.2.3"},
@@ -171,21 +171,21 @@ func TestPackageVulnerabilityCloneCarriesNewFields(t *testing.T) {
 	}
 }
 
-func TestPackageCloneCarriesLocationPosition(t *testing.T) {
+func TestDependencyCloneCarriesLocationPosition(t *testing.T) {
 	pos := SourcePosition{File: "package.json", Line: 12, Column: 5}
-	pkg := Package{
+	dep := Dependency{
 		Name:    "lodash",
 		Version: "4.17.21",
 		Locations: []PackageLocation{
 			{RealPath: "/abs/package.json", Position: &pos},
 		},
 	}
-	clone := pkg.Clone()
-	if clone.Locations[0].Position == pkg.Locations[0].Position {
+	clone := dep.Clone()
+	if clone.Locations[0].Position == dep.Locations[0].Position {
 		t.Error("Clone did not deep-copy PackageLocation.Position pointer")
 	}
 	clone.Locations[0].Position.Line = 99
-	if pkg.Locations[0].Position.Line != 12 {
+	if dep.Locations[0].Position.Line != 12 {
 		t.Error("mutating cloned Position leaked into original")
 	}
 }

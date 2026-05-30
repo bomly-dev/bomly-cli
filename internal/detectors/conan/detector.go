@@ -163,10 +163,10 @@ func depGraphFromJSON(raw []byte) (*sdk.Graph, error) {
 func depGraphFromNodes(nodes map[string]graphNode) (*sdk.Graph, error) {
 	g := sdk.New()
 	root := rootNode()
-	if err := g.AddPackage(root); err != nil {
+	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
-	nodePackages := make(map[string]*sdk.Package, len(nodes))
+	nodePackages := make(map[string]*sdk.Dependency, len(nodes))
 	for id, item := range nodes {
 		ref, ok := parseConanRef(item.Ref)
 		if !ok {
@@ -187,8 +187,8 @@ func depGraphFromNodes(nodes map[string]graphNode) (*sdk.Graph, error) {
 			if !ok {
 				continue
 			}
-			sdk.MergePackageScope(child, sdk.ScopeRuntime)
-			if err := g.AddDependency(root.ID, child.ID); err != nil {
+			child.AddScope(sdk.ScopeRuntime)
+			if err := g.AddEdge(root.ID, child.ID); err != nil {
 				return nil, fmt.Errorf("add Conan root dep %q: %w", child.ID, err)
 			}
 		}
@@ -197,8 +197,8 @@ func depGraphFromNodes(nodes map[string]graphNode) (*sdk.Graph, error) {
 			if !ok {
 				continue
 			}
-			sdk.MergePackageScope(child, sdk.ScopeDevelopment)
-			if err := g.AddDependency(root.ID, child.ID); err != nil {
+			child.AddScope(sdk.ScopeDevelopment)
+			if err := g.AddEdge(root.ID, child.ID); err != nil {
 				return nil, fmt.Errorf("add Conan root build dep %q: %w", child.ID, err)
 			}
 		}
@@ -212,11 +212,11 @@ func depGraphFromNodes(nodes map[string]graphNode) (*sdk.Graph, error) {
 				continue
 			}
 			if containsString(item.BuildRequires, depID) {
-				sdk.MergePackageScope(child, sdk.ScopeDevelopment)
+				child.AddScope(sdk.ScopeDevelopment)
 			} else {
-				sdk.MergePackageScope(child, sdk.ScopeRuntime)
+				child.AddScope(sdk.ScopeRuntime)
 			}
-			if err := g.AddDependency(node.ID, child.ID); err != nil {
+			if err := g.AddEdge(node.ID, child.ID); err != nil {
 				return nil, fmt.Errorf("add Conan dependency %q -> %q: %w", node.ID, child.ID, err)
 			}
 		}
@@ -248,7 +248,7 @@ func depGraphFromRefs(refs []conanRef) (*sdk.Graph, error) {
 	}
 	g := sdk.New()
 	root := rootNode()
-	if err := g.AddPackage(root); err != nil {
+	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 	seen := make(map[string]struct{}, len(refs))
@@ -261,7 +261,7 @@ func depGraphFromRefs(refs []conanRef) (*sdk.Graph, error) {
 		if err := addNodeIfMissing(g, node); err != nil {
 			return nil, err
 		}
-		if err := g.AddDependency(root.ID, node.ID); err != nil {
+		if err := g.AddEdge(root.ID, node.ID); err != nil {
 			return nil, fmt.Errorf("add Conan root dependency %q: %w", node.ID, err)
 		}
 	}
@@ -297,18 +297,19 @@ func parseConanRef(value string) (conanRef, bool) {
 	return conanRef{Name: match[1], Version: match[2]}, true
 }
 
-func rootNode() *sdk.Package {
-	return sdk.NewPackage(sdk.Package{
+func rootNode() *sdk.Dependency {
+	return sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemCPP),
 		Name:        "root",
 		BuildSystem: sdk.PackageManagerConan.Name(),
 		Type:        "application",
 		Language:    "cpp",
 	})
+
 }
 
-func packageNode(ref conanRef) *sdk.Package {
-	pkg := sdk.NewPackage(sdk.Package{
+func packageNode(ref conanRef) *sdk.Dependency {
+	pkg := sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemCPP),
 		Name:        strings.TrimSpace(ref.Name),
 		Version:     strings.TrimSpace(ref.Version),
@@ -317,13 +318,14 @@ func packageNode(ref conanRef) *sdk.Package {
 		Language:    "cpp",
 		PURL:        sdk.BuildPackageURL("conan", "", ref.Name, ref.Version),
 	})
+
 	if strings.EqualFold(strings.TrimSpace(ref.Context), "build") {
-		sdk.MergePackageScope(pkg, sdk.ScopeDevelopment)
+		pkg.AddScope(sdk.ScopeDevelopment)
 	}
 	return pkg
 }
 
-func sortedNodeIDs(nodes map[string]*sdk.Package) []string {
+func sortedNodeIDs(nodes map[string]*sdk.Dependency) []string {
 	values := make([]string, 0, len(nodes))
 	for id := range nodes {
 		values = append(values, id)
@@ -341,11 +343,11 @@ func containsString(values []string, target string) bool {
 	return false
 }
 
-func addNodeIfMissing(g *sdk.Graph, node *sdk.Package) error {
-	if _, ok := g.Package(node.ID); ok {
+func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
+	if _, ok := g.Node(node.ID); ok {
 		return nil
 	}
-	if err := g.AddPackage(node); err != nil {
+	if err := g.AddNode(node); err != nil {
 		return fmt.Errorf("add node %q: %w", node.ID, err)
 	}
 	return nil

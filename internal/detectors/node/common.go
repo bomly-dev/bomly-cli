@@ -142,13 +142,14 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 	if rootName == "" {
 		rootName = "root"
 	}
-	rootNode := sdk.NewPackage(sdk.Package{
+	rootNode := sdk.NewDependency(sdk.Dependency{
 		Ecosystem: string(sdk.EcosystemNPM),
 		Name:      rootName,
 		Version:   root.Version,
 		Type:      "application",
 	})
-	if err := depsGraph.AddPackage(rootNode); err != nil {
+
+	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
@@ -169,15 +170,16 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 			if name == "" {
 				name = depName
 			}
-			node := sdk.NewPackage(sdk.Package{
+			node := sdk.NewDependency(sdk.Dependency{
 				Ecosystem: string(sdk.EcosystemNPM),
 				Name:      name,
 				Version:   depNode.Version,
 			})
+
 			if err := AddNodeIfMissing(depsGraph, node); err != nil {
 				return nil, err
 			}
-			if err := depsGraph.AddDependency(current.parentID, node.ID); err != nil {
+			if err := depsGraph.AddEdge(current.parentID, node.ID); err != nil {
 				return nil, fmt.Errorf("add dependency %q -> %q: %w", current.parentID, node.ID, err)
 			}
 			if len(depNode.Dependencies) > 0 {
@@ -201,12 +203,13 @@ func DepGraphFromPNPMJSON(raw []byte) (*sdk.Graph, error) {
 
 	depsGraph := sdk.New()
 	for _, root := range roots {
-		rootNode := sdk.NewPackage(sdk.Package{
+		rootNode := sdk.NewDependency(sdk.Dependency{
 			Ecosystem: string(sdk.EcosystemNPM),
 			Name:      root.Name,
 			Version:   root.Version,
 			Type:      "application",
 		})
+
 		if err := AddNodeIfMissing(depsGraph, rootNode); err != nil {
 			return nil, err
 		}
@@ -226,15 +229,16 @@ func addPNPMDependencies(depsGraph *sdk.Graph, parentID string, deps map[string]
 		if name == "" {
 			name = depName
 		}
-		node := sdk.NewPackage(sdk.Package{
+		node := sdk.NewDependency(sdk.Dependency{
 			Ecosystem: string(sdk.EcosystemNPM),
 			Name:      name,
 			Version:   depNode.Version,
 		})
+
 		if err := AddNodeIfMissing(depsGraph, node); err != nil {
 			return err
 		}
-		if err := depsGraph.AddDependency(parentID, node.ID); err != nil {
+		if err := depsGraph.AddEdge(parentID, node.ID); err != nil {
 			return fmt.Errorf("add dependency %q -> %q: %w", parentID, node.ID, err)
 		}
 		if err := addPNPMDependencies(depsGraph, node.ID, depNode.Dependencies); err != nil {
@@ -270,12 +274,13 @@ func DepGraphFromYarnJSON(raw []byte) (*sdk.Graph, error) {
 	}
 
 	depsGraph := sdk.New()
-	rootNode := sdk.NewPackage(sdk.Package{
+	rootNode := sdk.NewDependency(sdk.Dependency{
 		Ecosystem: string(sdk.EcosystemNPM),
 		Name:      "root",
 		Type:      "application",
 	})
-	if err := depsGraph.AddPackage(rootNode); err != nil {
+
+	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 	for _, tree := range treeData.Trees {
@@ -291,15 +296,16 @@ func addYarnTree(depsGraph *sdk.Graph, parentID string, tree yarnTreeNode) error
 	if err != nil {
 		return err
 	}
-	node := sdk.NewPackage(sdk.Package{
+	node := sdk.NewDependency(sdk.Dependency{
 		Ecosystem: string(sdk.EcosystemNPM),
 		Name:      name,
 		Version:   version,
 	})
+
 	if err := AddNodeIfMissing(depsGraph, node); err != nil {
 		return err
 	}
-	if err := depsGraph.AddDependency(parentID, node.ID); err != nil {
+	if err := depsGraph.AddEdge(parentID, node.ID); err != nil {
 		return fmt.Errorf("add dependency %q -> %q: %w", parentID, node.ID, err)
 	}
 	for _, child := range tree.Children {
@@ -319,12 +325,12 @@ func splitYarnTreeName(value string) (string, string, error) {
 }
 
 // AddNodeIfMissing adds a package to a graph or merges scope into the existing package.
-func AddNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Package) error {
-	if existing, ok := depsGraph.Package(node.ID); ok {
-		sdk.MergePackageScope(existing, sdk.Scope(node.Scope))
+func AddNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
+	if existing, ok := depsGraph.Node(node.ID); ok {
+		existing.AddScope(node.PrimaryScope())
 		return nil
 	}
-	if err := depsGraph.AddPackage(node); err != nil {
+	if err := depsGraph.AddNode(node); err != nil {
 		return fmt.Errorf("add node %q: %w", node.ID, err)
 	}
 	return nil
@@ -392,12 +398,12 @@ func recordDirectScopes(target map[string]sdk.Scope, dependencies map[string]str
 }
 
 func propagateScopesFromRootDependencies(depsGraph *sdk.Graph, rootID string, directScopes map[string]sdk.Scope) {
-	rootDeps, err := depsGraph.Dependencies(rootID)
+	rootDeps, err := depsGraph.DirectDependencies(rootID)
 	if err != nil {
 		return
 	}
 
-	queue := make([]*sdk.Package, 0, len(rootDeps))
+	queue := make([]*sdk.Dependency, 0, len(rootDeps))
 	propagated := make(map[string]sdk.Scope, depsGraph.Size())
 	for _, dep := range rootDeps {
 		if dep == nil {
@@ -410,7 +416,7 @@ func propagateScopesFromRootDependencies(depsGraph *sdk.Graph, rootID string, di
 		if !ok || scope == sdk.ScopeUnknown {
 			continue
 		}
-		sdk.MergePackageScope(dep, scope)
+		dep.AddScope(scope)
 		propagated[dep.ID] = sdk.MergeScope(propagated[dep.ID], scope)
 		queue = append(queue, dep)
 	}
@@ -424,7 +430,7 @@ func propagateScopesFromRootDependencies(depsGraph *sdk.Graph, rootID string, di
 			continue
 		}
 
-		children, err := depsGraph.Dependencies(current.ID)
+		children, err := depsGraph.DirectDependencies(current.ID)
 		if err != nil {
 			continue
 		}
@@ -433,11 +439,11 @@ func propagateScopesFromRootDependencies(depsGraph *sdk.Graph, rootID string, di
 				continue
 			}
 			nextScope := sdk.MergeScope(propagated[child.ID], scope)
-			if nextScope == propagated[child.ID] && sdk.Scope(child.Scope) == nextScope {
+			if nextScope == propagated[child.ID] && child.PrimaryScope() == nextScope {
 				continue
 			}
 			propagated[child.ID] = nextScope
-			sdk.MergePackageScope(child, nextScope)
+			child.AddScope(nextScope)
 			queue = append(queue, child)
 		}
 	}

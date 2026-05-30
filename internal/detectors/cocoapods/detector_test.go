@@ -24,12 +24,12 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	pkg, ok := g.Package("AppCenter/Analytics@5.0.6")
+	pkg, ok := g.Node("AppCenter/Analytics@5.0.6")
 	if !ok {
 		t.Fatal("expected AppCenter/Analytics package")
 	}
-	if pkg.Scope != string(sdk.ScopeRuntime) {
-		t.Fatalf("expected runtime scope, got %q", pkg.Scope)
+	if string(pkg.PrimaryScope()) != string(sdk.ScopeRuntime) {
+		t.Fatalf("expected runtime scope, got %q", string(pkg.PrimaryScope()))
 	}
 }
 
@@ -50,25 +50,25 @@ SPEC CHECKSUMS:
 	if err != nil {
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
-	root, ok := g.Package("root")
+	root, ok := g.Node("root")
 	if !ok {
 		t.Fatal("expected root package")
 	}
-	deps, err := g.Dependencies(root.ID)
+	deps, err := g.DirectDependencies(root.ID)
 	if err != nil {
 		t.Fatalf("root dependencies: %v", err)
 	}
 	if len(deps) != 2 {
 		t.Fatalf("expected two root dependencies, got %#v", deps)
 	}
-	analytics, ok := g.Package("AppCenter/Analytics@5.0.6")
+	analytics, ok := g.Node("AppCenter/Analytics@5.0.6")
 	if !ok {
 		t.Fatal("expected AppCenter/Analytics package")
 	}
-	if analytics.Scope != string(sdk.ScopeRuntime) {
-		t.Fatalf("expected runtime scope, got %q", analytics.Scope)
+	if string(analytics.PrimaryScope()) != string(sdk.ScopeRuntime) {
+		t.Fatalf("expected runtime scope, got %q", string(analytics.PrimaryScope()))
 	}
-	children, err := g.Dependencies(analytics.ID)
+	children, err := g.DirectDependencies(analytics.ID)
 	if err != nil {
 		t.Fatalf("analytics dependencies: %v", err)
 	}

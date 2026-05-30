@@ -79,21 +79,21 @@ func TestSeverityMeets(t *testing.T) {
 }
 
 func TestMatchesConstraints(t *testing.T) {
-	highReachable := PackageVulnerability{
-		Severity:     "high",
-		Reachability: &Reachability{Status: ReachabilityReachable},
+	highReachable := Vulnerability{
+		ParsedSeverity: "high",
+		Reachability:   &Reachability{Status: ReachabilityReachable},
 	}
-	highUnreachable := PackageVulnerability{
-		Severity:     "high",
-		Reachability: &Reachability{Status: ReachabilityUnreachable},
+	highUnreachable := Vulnerability{
+		ParsedSeverity: "high",
+		Reachability:   &Reachability{Status: ReachabilityUnreachable},
 	}
-	highNoReach := PackageVulnerability{Severity: "high"}
-	lowReachable := PackageVulnerability{
-		Severity:     "low",
-		Reachability: &Reachability{Status: ReachabilityReachable},
+	highNoReach := Vulnerability{ParsedSeverity: "high"}
+	lowReachable := Vulnerability{
+		ParsedSeverity: "low",
+		Reachability:   &Reachability{Status: ReachabilityReachable},
 	}
-	highExploitable := PackageVulnerability{
-		Severity:       "high",
+	highExploitable := Vulnerability{
+		ParsedSeverity: "high",
 		KnownExploited: []KnownExploited{{CVE: "CVE-2024-1234"}},
 	}
 
@@ -103,7 +103,7 @@ func TestMatchesConstraints(t *testing.T) {
 
 	cases := []struct {
 		name string
-		v    PackageVulnerability
+		v    Vulnerability
 		c    []FailOnConstraint
 		want bool
 	}{

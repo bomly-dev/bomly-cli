@@ -183,24 +183,26 @@ func depGraphFromPipInspect(raw []byte) (*sdk.Graph, error) {
 	}
 
 	depsGraph := sdk.New()
-	rootNode := sdk.NewPackage(sdk.Package{
+	rootNode := sdk.NewDependency(sdk.Dependency{
 		Ecosystem: string(sdk.EcosystemPython),
 		Name:      "root",
 	})
-	if err := depsGraph.AddPackage(rootNode); err != nil {
+
+	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
-	nodesByName := make(map[string]*sdk.Package, len(report.Installed))
+	nodesByName := make(map[string]*sdk.Dependency, len(report.Installed))
 	for _, pkg := range report.Installed {
 		if pkg.Metadata.Name == "" {
 			continue
 		}
-		node := sdk.NewPackage(sdk.Package{
+		node := sdk.NewDependency(sdk.Dependency{
 			Ecosystem: string(sdk.EcosystemPython),
 			Name:      normalizePythonName(pkg.Metadata.Name),
 			Version:   pkg.Metadata.Version,
 		})
+
 		if _, exists := nodesByName[node.Name]; !exists {
 			nodesByName[node.Name] = node
 		}
@@ -215,7 +217,7 @@ func depGraphFromPipInspect(raw []byte) (*sdk.Graph, error) {
 			continue
 		}
 		if pkg.Requested || len(pkg.RequestedBy) == 0 {
-			if err := depsGraph.AddDependency(rootNode.ID, parent.ID); err != nil {
+			if err := depsGraph.AddEdge(rootNode.ID, parent.ID); err != nil {
 				return nil, fmt.Errorf("add direct dependency %q: %w", parent.ID, err)
 			}
 		}
@@ -234,7 +236,7 @@ func depGraphFromPipInspect(raw []byte) (*sdk.Graph, error) {
 			if child == nil {
 				continue
 			}
-			if err := depsGraph.AddDependency(parent.ID, child.ID); err != nil {
+			if err := depsGraph.AddEdge(parent.ID, child.ID); err != nil {
 				return nil, fmt.Errorf("add dependency %q -> %q: %w", parent.ID, child.ID, err)
 			}
 		}
@@ -251,7 +253,7 @@ func filterPythonToolPackages(depsGraph *sdk.Graph, projectPath string) (*sdk.Gr
 	if err != nil {
 		return nil, err
 	}
-	for _, pkg := range depsGraph.Packages() {
+	for _, pkg := range depsGraph.Nodes() {
 		if pkg == nil {
 			continue
 		}
@@ -262,7 +264,7 @@ func filterPythonToolPackages(depsGraph *sdk.Graph, projectPath string) (*sdk.Gr
 		if _, keep := declared[name]; keep {
 			continue
 		}
-		depsGraph.RemovePackage(pkg.ID)
+		depsGraph.RemoveNode(pkg.ID)
 	}
 	return depsGraph, nil
 }
@@ -360,7 +362,7 @@ func attachDeclaredPositions(depsGraph *sdk.Graph, projectPath string) {
 	if len(positions) == 0 {
 		return
 	}
-	for _, pkg := range depsGraph.Packages() {
+	for _, pkg := range depsGraph.Nodes() {
 		if pkg == nil {
 			continue
 		}
@@ -457,11 +459,11 @@ func normalizePythonName(value string) string {
 	return strings.ToLower(strings.ReplaceAll(value, "_", "-"))
 }
 
-func addNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Package) error {
-	if _, ok := depsGraph.Package(node.ID); ok {
+func addNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
+	if _, ok := depsGraph.Node(node.ID); ok {
 		return nil
 	}
-	if err := depsGraph.AddPackage(node); err != nil {
+	if err := depsGraph.AddNode(node); err != nil {
 		return fmt.Errorf("add node %q: %w", node.ID, err)
 	}
 	return nil
@@ -492,18 +494,18 @@ func annotateGraphScopes(depsGraph *sdk.Graph, projectPath string) {
 
 	devDeps := collectPythonDevDependencies(projectPath)
 
-	directDeps, err := depsGraph.Dependencies(rootID)
+	directDeps, err := depsGraph.DirectDependencies(rootID)
 	if err != nil || len(directDeps) == 0 {
 		// Fall back: graph has no edges from root — use devDeps by name for best-effort scoping.
-		for _, pkg := range depsGraph.Packages() {
+		for _, pkg := range depsGraph.Nodes() {
 			if pkg == nil || pkg.ID == rootID {
 				continue
 			}
 			name := normalizePythonName(pkg.Name)
 			if _, isDev := devDeps[name]; isDev {
-				sdk.MergePackageScope(pkg, sdk.ScopeDevelopment)
-			} else if sdk.Scope(pkg.Scope) == sdk.ScopeUnknown {
-				sdk.MergePackageScope(pkg, sdk.ScopeRuntime)
+				pkg.AddScope(sdk.ScopeDevelopment)
+			} else if pkg.PrimaryScope() == sdk.ScopeUnknown {
+				pkg.AddScope(sdk.ScopeRuntime)
 			}
 		}
 		return
@@ -525,7 +527,7 @@ func annotateGraphScopes(depsGraph *sdk.Graph, projectPath string) {
 
 	// BFS from root, propagating scopes. Runtime always wins over development.
 	propagated := make(map[string]sdk.Scope, depsGraph.Size())
-	queue := make([]*sdk.Package, 0, len(directDeps))
+	queue := make([]*sdk.Dependency, 0, len(directDeps))
 	for _, dep := range directDeps {
 		if dep == nil {
 			continue
@@ -534,7 +536,7 @@ func annotateGraphScopes(depsGraph *sdk.Graph, projectPath string) {
 		if scope == sdk.ScopeUnknown {
 			scope = sdk.ScopeRuntime
 		}
-		sdk.MergePackageScope(dep, scope)
+		dep.AddScope(scope)
 		propagated[dep.ID] = sdk.MergeScope(propagated[dep.ID], scope)
 		queue = append(queue, dep)
 	}
@@ -545,7 +547,7 @@ func annotateGraphScopes(depsGraph *sdk.Graph, projectPath string) {
 		if scope == sdk.ScopeUnknown {
 			continue
 		}
-		children, err := depsGraph.Dependencies(current.ID)
+		children, err := depsGraph.DirectDependencies(current.ID)
 		if err != nil {
 			continue
 		}
@@ -554,18 +556,18 @@ func annotateGraphScopes(depsGraph *sdk.Graph, projectPath string) {
 				continue
 			}
 			nextScope := sdk.MergeScope(propagated[child.ID], scope)
-			if nextScope == propagated[child.ID] && sdk.Scope(child.Scope) == nextScope {
+			if nextScope == propagated[child.ID] && child.PrimaryScope() == nextScope {
 				continue
 			}
 			propagated[child.ID] = nextScope
-			sdk.MergePackageScope(child, nextScope)
+			child.AddScope(nextScope)
 			queue = append(queue, child)
 		}
 	}
 	// Any remaining unscoped non-root packages get runtime.
-	for _, pkg := range depsGraph.Packages() {
-		if pkg != nil && pkg.ID != rootID && sdk.Scope(pkg.Scope) == sdk.ScopeUnknown {
-			sdk.MergePackageScope(pkg, sdk.ScopeRuntime)
+	for _, pkg := range depsGraph.Nodes() {
+		if pkg != nil && pkg.ID != rootID && pkg.PrimaryScope() == sdk.ScopeUnknown {
+			pkg.AddScope(sdk.ScopeRuntime)
 		}
 	}
 }

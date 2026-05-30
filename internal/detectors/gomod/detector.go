@@ -211,11 +211,11 @@ func depGraphFromGoList(raw []byte, rootModule string, directRequires []moduleRe
 	}
 
 	depsGraph := sdk.New()
-	rootNode := sdk.NewPackage(sdk.Package{
+	rootNode := sdk.NewDependency(sdk.Dependency{
 		Ecosystem: string(sdk.EcosystemGo),
 		Name:      rootModule,
 	})
-	if err := depsGraph.AddPackage(rootNode); err != nil {
+	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
@@ -336,7 +336,7 @@ func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNod
 				return err
 			}
 			if from.Path != to.Path || from.Version != to.Version {
-				if err := depsGraph.AddDependency(fromID, pkg.ID); err != nil {
+				if err := depsGraph.AddEdge(fromID, pkg.ID); err != nil {
 					return fmt.Errorf("add go dependency %q -> %q: %w", fromID, pkg.ID, err)
 				}
 			}
@@ -346,15 +346,17 @@ func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNod
 	return nil
 }
 
-func packageFromModuleNode(node moduleNode, scope sdk.Scope, directLines map[string]int) *sdk.Package {
-	pkg := sdk.Package{
+func packageFromModuleNode(node moduleNode, scope sdk.Scope, directLines map[string]int) *sdk.Dependency {
+	dep := sdk.Dependency{
 		Ecosystem: string(sdk.EcosystemGo),
 		Name:      node.Path,
 		Version:   node.Version,
-		Scope:     string(scope),
+	}
+	if scope != sdk.ScopeUnknown {
+		dep.Scopes = []sdk.Scope{scope}
 	}
 	if line, ok := directLines[node.Path]; ok && line > 0 {
-		pkg.Locations = []sdk.PackageLocation{
+		dep.Locations = []sdk.PackageLocation{
 			{
 				RealPath:   "go.mod",
 				AccessPath: "go.mod",
@@ -362,11 +364,11 @@ func packageFromModuleNode(node moduleNode, scope sdk.Scope, directLines map[str
 			},
 		}
 	}
-	return sdk.NewPackage(pkg)
+	return sdk.NewDependency(dep)
 }
 
 func moduleNodeID(node moduleNode) string {
-	return sdk.NewPackage(sdk.Package{
+	return sdk.NewDependency(sdk.Dependency{
 		Ecosystem: string(sdk.EcosystemGo),
 		Name:      node.Path,
 		Version:   node.Version,
@@ -505,12 +507,12 @@ func appendUniqueModule(modules []moduleRef, seen map[string]struct{}, ref modul
 	return append(modules, ref)
 }
 
-func addOrMergeModuleNode(depsGraph *sdk.Graph, node *sdk.Package, scope sdk.Scope) error {
-	if existing, ok := depsGraph.Package(node.ID); ok {
-		sdk.MergePackageScope(existing, scope)
+func addOrMergeModuleNode(depsGraph *sdk.Graph, node *sdk.Dependency, scope sdk.Scope) error {
+	if existing, ok := depsGraph.Node(node.ID); ok {
+		existing.AddScope(scope)
 		return nil
 	}
-	if err := depsGraph.AddPackage(node); err != nil {
+	if err := depsGraph.AddNode(node); err != nil {
 		return fmt.Errorf("add node %q: %w", node.ID, err)
 	}
 	return nil

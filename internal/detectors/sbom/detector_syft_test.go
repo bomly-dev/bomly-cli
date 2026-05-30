@@ -24,8 +24,8 @@ func TestDetectorResolveGraph_SyftJSON(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	var react *sdk.Package
-	for _, pkg := range g.Packages() {
+	var react *sdk.Dependency
+	for _, pkg := range g.Nodes() {
 		if pkg != nil && pkg.Name == "react" && pkg.Version == "18.2.0" {
 			react = pkg
 			break

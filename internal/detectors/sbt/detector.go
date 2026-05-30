@@ -106,7 +106,7 @@ func depGraphFromSBTFiles(workingDir string) (*sdk.Graph, error) {
 	}
 	g := sdk.New()
 	root := rootNode()
-	if err := g.AddPackage(root); err != nil {
+	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 	seen := make(map[string]struct{}, len(packages))
@@ -122,7 +122,7 @@ func depGraphFromSBTFiles(workingDir string) (*sdk.Graph, error) {
 		if err := addNodeIfMissing(g, node); err != nil {
 			return nil, err
 		}
-		if err := g.AddDependency(root.ID, node.ID); err != nil {
+		if err := g.AddEdge(root.ID, node.ID); err != nil {
 			return nil, fmt.Errorf("add sbt root dependency %q: %w", node.ID, err)
 		}
 	}
@@ -156,18 +156,19 @@ func readOptional(path string) ([]byte, error) {
 	return os.ReadFile(path)
 }
 
-func rootNode() *sdk.Package {
-	return sdk.NewPackage(sdk.Package{
+func rootNode() *sdk.Dependency {
+	return sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemScala),
 		Name:        "root",
 		BuildSystem: sdk.PackageManagerSBT.Name(),
 		Type:        "application",
 		Language:    "scala",
 	})
+
 }
 
-func packageNode(pkg sbtPackage) *sdk.Package {
-	node := sdk.NewPackage(sdk.Package{
+func packageNode(pkg sbtPackage) *sdk.Dependency {
+	node := sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemScala),
 		Org:         strings.TrimSpace(pkg.Org),
 		Name:        strings.TrimSpace(pkg.Name),
@@ -177,17 +178,18 @@ func packageNode(pkg sbtPackage) *sdk.Package {
 		Language:    "scala",
 		PURL:        sdk.BuildPackageURL("maven", pkg.Org, pkg.Name, pkg.Version),
 	})
+
 	if pkg.Scope != "" {
-		sdk.MergePackageScope(node, pkg.Scope)
+		node.AddScope(pkg.Scope)
 	}
 	return node
 }
 
-func addNodeIfMissing(g *sdk.Graph, node *sdk.Package) error {
-	if _, ok := g.Package(node.ID); ok {
+func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
+	if _, ok := g.Node(node.ID); ok {
 		return nil
 	}
-	if err := g.AddPackage(node); err != nil {
+	if err := g.AddNode(node); err != nil {
 		return fmt.Errorf("add node %q: %w", node.ID, err)
 	}
 	return nil

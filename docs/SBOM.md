@@ -82,7 +82,7 @@ Both formats carry:
 - File-level evidence when the detector provided it.
 - Vulnerability annotations in CycloneDX when `--enrich` is set.
 
-Reachability annotations and Bomly-specific metadata are emitted in the JSON output (`--format json`), not in the standard SBOM formats. See [Output formats](OUTPUT_FORMATS.md).
+Reachability annotations and Bomly-specific metadata are emitted in the JSON output (`--json` or `--format json`), not in the standard SBOM formats. See [Output formats](OUTPUT_FORMATS.md).
 
 ## Format conversion
 

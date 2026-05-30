@@ -16,7 +16,7 @@ The full live list lives in the CLI:
 
 ```bash
 bomly plugin list --matchers
-bomly plugin list --matchers --format json
+bomly plugin list --matchers --json
 ```
 
 ## Running matchers

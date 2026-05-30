@@ -30,7 +30,7 @@ A finding is Bomly's normalized record of a policy match. Every finding has:
 | Reasons | Why the finding matched policy (e.g. severity threshold, reachable symbol) |
 | Source | Which matcher produced the underlying data |
 
-Text output (`--format text`, default) groups findings by package and severity. JSON (`--format json`) exposes the full shape for automation. SARIF 2.1.0 (`--format sarif`) emits a static-analysis report any tool that consumes SARIF can ingest.
+Text output (`--format text`, default) groups findings by package and severity. JSON (`--json` or `--format json`) exposes the full shape for automation. SARIF 2.1.0 (`--format sarif`) emits a static-analysis report any tool that consumes SARIF can ingest.
 
 `--format sarif` **requires** `--audit`. A SARIF document only makes sense when there are findings.
 

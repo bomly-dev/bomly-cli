@@ -54,7 +54,7 @@ func newPluginListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "list",
 		Short:   "List built-in and installed plugins",
-		Example: "  bomly plugin list --detectors\n  bomly plugin list --external --format json",
+		Example: "  bomly plugin list --detectors\n  bomly plugin list --external --json",
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options, err := commandOptions(cmd)
@@ -1031,7 +1031,7 @@ func renderPluginListTables(items []managedplugin.PluginInfo, kindFilter pluginK
 		appendTable("Analyzers", []string{"LANGUAGES", "ECOSYSTEMS", "PACKAGE MANAGERS", "NAME", "TYPE", "STATE"}, analyzerPluginRows(analyzers))
 	}
 	if b.Len() > 0 {
-		b.WriteString("\n* Complete plugin metadata is available with --format json.\n")
+		b.WriteString("\n* Complete plugin metadata is available with --json.\n")
 	}
 
 	return b.String()

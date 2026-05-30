@@ -77,7 +77,7 @@ Per-matcher TTLs are listed in [Matchers](MATCHERS.md#cache).
 
 `--interactive` requires a TTY on **both** stdin and stderr. It refuses to run in CI pipes, GitHub Actions, or `tmux` sessions where stderr is captured.
 
-In CI, use `--format text` (default) or `--format json` instead.
+In CI, use `--format text` (default) or `--json` instead.
 
 ## Container scan errors with "unauthorized"
 

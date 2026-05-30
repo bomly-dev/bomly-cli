@@ -389,7 +389,7 @@ func TestRootHelp_CommandExamplesRender(t *testing.T) {
 			examples: []string{
 				"Examples:",
 				"bomly scan --interactive",
-				"bomly diff --base main --head HEAD",
+				"bomly diff --base main --head HEAD --json",
 				"bomly explain pkg:npm/react",
 			},
 		},
@@ -400,7 +400,7 @@ func TestRootHelp_CommandExamplesRender(t *testing.T) {
 				"Examples:",
 				"bomly scan --enrich --audit",
 				"bomly scan -o spdx=bomly.spdx.json",
-				"bomly scan --url https://github.com/bomly-dev/bomly-cli --ref main --format json",
+				"bomly scan --url https://github.com/bomly-dev/bomly-cli --ref main --json",
 				"bomly scan --container alpine:3.20",
 				"Explore available detectors, matchers, and auditors with `bomly plugin list`.",
 			},
@@ -409,13 +409,13 @@ func TestRootHelp_CommandExamplesRender(t *testing.T) {
 		{
 			name:      "diff",
 			args:      []string{"diff", "--help"},
-			examples:  []string{"Examples:", "bomly diff --sbom --base ./before.cdx.json --head ./after.cdx.json --format json"},
+			examples:  []string{"Examples:", "bomly diff --sbom --base ./before.cdx.json --head ./after.cdx.json --json"},
 			notInText: []string{"Exit Codes:"},
 		},
 		{
 			name:      "explain",
 			args:      []string{"explain", "--help"},
-			examples:  []string{"Examples:", "bomly explain pkg:npm/react"},
+			examples:  []string{"Examples:", "bomly explain pkg:npm/react", "bomly explain github.com/spf13/cobra --path . --json"},
 			notInText: []string{"Exit Codes:"},
 		},
 		{

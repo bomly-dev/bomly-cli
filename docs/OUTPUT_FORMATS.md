@@ -4,6 +4,8 @@ Bomly writes one of four reporting formats and any number of SBOM artifacts in t
 
 ## Reporting format: `--format`
 
+Use `--json` as a shortcut for `--format json` when you want structured output quickly.
+
 | Format | Default for | When to use |
 | --- | --- | --- |
 | `text` | Local runs, `--interactive` | Reading on a terminal |
@@ -15,7 +17,7 @@ Flag:
 
 ```bash
 bomly scan --format text     # default
-bomly scan --format json
+bomly scan --json
 bomly explain lodash --format markdown
 bomly diff --base main --head HEAD --format markdown
 bomly scan --audit --format sarif
@@ -24,7 +26,7 @@ bomly scan --audit --format sarif
 Constraints:
 
 - `--format sarif` requires `--audit`. SARIF is a findings format; without an auditor there are no findings.
-- `--interactive` forces `--format text`. Passing both is rejected with exit 4.
+- `--interactive` forces `--format text`. Combining it with `--json` or another non-text reporting format is rejected with exit 4.
 
 ## `text` — human-readable
 
@@ -48,17 +50,17 @@ Pipe into `jq` for common queries:
 
 ```bash
 # Every package with a high-or-critical vulnerability
-bomly scan --enrich --format json | jq '
+bomly scan --enrich --json | jq '
   .packages[]
   | select(.vulnerabilities[]? | .severity == "high" or .severity == "critical")
   | {name, version, ecosystem}
 '
 
 # All transitive paths to a specific dependency
-bomly explain lodash --format json | jq '.paths[] | .nodes | map(.name) | join(" -> ")'
+bomly explain lodash --json | jq '.paths[] | .nodes | map(.name) | join(" -> ")'
 
 # New findings introduced by a PR
-bomly diff --base main --head HEAD --enrich --audit --format json | jq '.findings.introduced[]'
+bomly diff --base main --head HEAD --enrich --audit --json | jq '.findings.introduced[]'
 ```
 
 JSON output includes Bomly-specific metadata that standard SBOM formats don't carry: reachability tier/status/confidence, audit reasons, and per-finding source.
@@ -83,7 +85,7 @@ GitHub Code Scanning, Azure DevOps, and most IDE extensions ingest SARIF directl
 Independent of `--format`. You can write review reports and SBOM artifacts alongside the primary output:
 
 ```bash
-bomly scan --format json \
+bomly scan --json \
   -o markdown=summary.md \
   -o sarif=bomly.sarif \
   -o spdx=sbom.spdx.json \
@@ -114,7 +116,7 @@ Example:
 
 ```bash
 bomly scan --enrich --audit --fail-on high \
-  --format json \
+  --json \
   -o markdown=summary.md \
   -o sarif=bomly.sarif \
   -o spdx=sbom.spdx.json \

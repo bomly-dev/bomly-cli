@@ -61,7 +61,7 @@ jobs:
           git fetch origin ${{ github.base_ref }}:base
           bomly diff --base base --head HEAD \
             --enrich --audit --fail-on high \
-            --format json > bomly-diff.json
+            --json > bomly-diff.json
 ```
 
 This fails only when the PR **introduces** a new high finding, ignoring pre-existing ones.

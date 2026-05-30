@@ -24,7 +24,7 @@ Per-ecosystem chains are listed in [`detectors/ecosystems/`](detectors/ecosystem
 
 ```bash
 bomly plugin list --detectors
-bomly plugin list --detectors --format json
+bomly plugin list --detectors --json
 ```
 
 ## Native vs. Syft

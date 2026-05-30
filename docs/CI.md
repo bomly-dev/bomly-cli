@@ -101,7 +101,7 @@ For each case, QA writes:
 - `bomly.sbom.json`: Bomly SPDX SBOM from scanning the repository default branch
 - `github.response.json`: raw GitHub Dependency Graph SBOM API response
 - `github.sbom.json`: unwrapped GitHub SPDX SBOM
-- `diff.json`: `bomly diff --sbom --base github.sbom.json --head bomly.sbom.json --format json`
+- `diff.json`: `bomly diff --sbom --base github.sbom.json --head bomly.sbom.json --json`
 - `qa-summary.json`: deterministic package, relationship, and scope counts
 
 `diff.json` is the source for package presence, absence, and version changes. Relationship and scope evidence is derived from the SBOM documents themselves, because the diff output may not expose those deltas explicitly. Relationship comparison focuses on SPDX `DEPENDS_ON` edges normalized by package PURL when both sides have PURLs. Scope comparison is informational when GitHub does not expose equivalent scope metadata.

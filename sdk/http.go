@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -147,9 +148,9 @@ func proxyFunc(config HTTPClientConfig) (func(*http.Request) (*url.URL, error), 
 	if proxyURL == "" {
 		return http.ProxyFromEnvironment, nil
 	}
-	parsed, err := url.Parse(proxyURL)
+	parsed, err := parseProxyURL(proxyURL)
 	if err != nil {
-		return nil, fmt.Errorf("parse proxy URL: %w", err)
+		return nil, err
 	}
 	if parsed.Scheme == "" || parsed.Host == "" {
 		return nil, fmt.Errorf("proxy URL must be absolute")
@@ -217,9 +218,9 @@ func proxyScheme(value string) (string, error) {
 }
 
 func validateProxyURL(value string) error {
-	parsed, err := url.Parse(value)
+	parsed, err := parseProxyURL(value)
 	if err != nil {
-		return fmt.Errorf("parse proxy URL: %w", err)
+		return err
 	}
 	if parsed.Scheme == "" || parsed.Host == "" {
 		return fmt.Errorf("proxy URL must be absolute")
@@ -228,6 +229,22 @@ func validateProxyURL(value string) error {
 		return err
 	}
 	return nil
+}
+
+func parseProxyURL(value string) (*url.URL, error) {
+	parsed, err := url.Parse(value)
+	if err != nil {
+		return nil, fmt.Errorf("parse proxy URL: %w", redactURLParseError(err))
+	}
+	return parsed, nil
+}
+
+func redactURLParseError(err error) error {
+	var urlErr *url.Error
+	if errors.As(err, &urlErr) && urlErr.Err != nil {
+		return urlErr.Err
+	}
+	return err
 }
 
 func tlsConfigWithCACert(path string) (*tls.Config, error) {

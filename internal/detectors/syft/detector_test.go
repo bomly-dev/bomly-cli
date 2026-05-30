@@ -274,8 +274,8 @@ func TestGraphFromSyftSBOM(t *testing.T) {
 	if mapped.PURL != dependency.PURL || mapped.Language != dependency.Language.String() || mapped.FoundBy != dependency.FoundBy {
 		t.Fatalf("unexpected mapped package metadata: %#v", mapped)
 	}
-	if len(mapped.Licenses) != 1 || mapped.Licenses[0].Value != "Apache-2.0" {
-		t.Fatalf("unexpected mapped licenses: %#v", mapped.Licenses)
+	if lics := sdk.DetectionLicenses(mapped); len(lics) != 1 || lics[0].Value != "Apache-2.0" {
+		t.Fatalf("unexpected mapped licenses: %#v", lics)
 	}
 	if len(mapped.Locations) != 1 || mapped.Locations[0].RealPath != "pom.xml" {
 		t.Fatalf("unexpected mapped locations: %#v", mapped.Locations)

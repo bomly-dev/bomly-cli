@@ -127,7 +127,7 @@ func TestAudit_CacheHit_NoHTTPCall(t *testing.T) {
 	_ = audcache.Set(aud.cache, key, cached)
 
 	g := sdk.New()
-	if err := g.AddPackage(pkg); err != nil {
+	if err := g.AddNode(pkg); err != nil {
 		t.Fatalf("AddPackage: %v", err)
 	}
 
@@ -144,7 +144,7 @@ func TestAudit_CacheHit_NoHTTPCall(t *testing.T) {
 		t.Errorf("expected 0 HTTP calls (cache hit), got %d", calls)
 	}
 	foundVuln := false
-	for _, enrichedPkg := range result.Graph.Packages() {
+	for _, enrichedPkg := range result.Graph.Nodes() {
 		for _, vulnerability := range enrichedPkg.Vulnerabilities {
 			if vulnerability.ID == "CVE-2020-1234" {
 				foundVuln = true
@@ -206,7 +206,7 @@ func TestAudit_OSVFailure_NonFatal(t *testing.T) {
 		Licenses:  []sdk.PackageLicense{{Value: "MIT"}},
 	}
 	g := sdk.New()
-	if err := g.AddPackage(pkg); err != nil {
+	if err := g.AddNode(pkg); err != nil {
 		t.Fatalf("AddPackage: %v", err)
 	}
 

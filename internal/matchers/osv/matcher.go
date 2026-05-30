@@ -197,36 +197,48 @@ func (a *Matcher) Applicable(_ context.Context, req sdk.MatchRequest) (bool, err
 	return req.Mode == sdk.TargetModeFullGraph || req.Mode == sdk.TargetModeComponent, nil
 }
 
-// Match resolves vulnerabilities for all packages in the graph and attaches them to packages.
+// Match resolves vulnerabilities for all dependencies in the graph and attaches
+// them to the PURL-keyed package registry.
 func (a *Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
 	started := time.Now()
-	if req.Graph == nil {
-		return sdk.MatchResult{}, nil
+	if req.Graph == nil || req.Registry == nil {
+		return sdk.MatchResult{Registry: req.Registry}, nil
 	}
 
-	packages := req.Graph.Packages()
+	deps := req.Graph.Nodes()
 	if req.Mode == sdk.TargetModeComponent && req.Target != nil {
-		packages = []*sdk.Package{req.Target}
+		deps = []*sdk.Dependency{req.Target}
 	}
-	if len(packages) == 0 {
-		return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, nil
+	if len(deps) == 0 {
+		return sdk.MatchResult{Registry: req.Registry}, nil
 	}
 
-	stats := auditStats{requestedPackages: len(packages)}
-	a.logger.Info(fmt.Sprintf("OSV enriching %d packages with vulnerability data", len(packages)))
+	stats := auditStats{requestedPackages: len(deps)}
+	a.logger.Info(fmt.Sprintf("OSV enriching %d packages with vulnerability data", len(deps)))
 
 	type indexedPkg struct {
-		pkg   *sdk.Package
+		purl  string
 		key   cache.Key
 		query BatchQuery
 	}
 
 	var toFetch []indexedPkg
-	enriched := make(map[string][]sdk.PackageVulnerability, len(packages))
+	// enriched is keyed by canonical PURL.
+	enriched := make(map[string][]sdk.Vulnerability, len(deps))
+	seenPURL := make(map[string]struct{}, len(deps))
 
 	// First pass: try cache
-	for _, pkg := range packages {
-		key, query, ok := buildQuery(pkg)
+	for _, dep := range deps {
+		purl := sdk.CanonicalPackageURLFromDependency(dep)
+		if purl == "" {
+			stats.skippedPackages++
+			continue
+		}
+		if _, done := seenPURL[purl]; done {
+			continue
+		}
+		seenPURL[purl] = struct{}{}
+		key, query, ok := buildQuery(dep, purl)
 		if !ok {
 			stats.skippedPackages++
 			continue
@@ -236,13 +248,13 @@ func (a *Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResul
 				stats.cacheHits++
 				stats.cachedFindings += len(found)
 				for _, v := range found {
-					enriched[pkg.ID] = append(enriched[pkg.ID], MapVulnerability(v))
+					enriched[purl] = append(enriched[purl], MapVulnerability(v))
 				}
 				continue
 			}
 		}
 		stats.cacheMisses++
-		toFetch = append(toFetch, indexedPkg{pkg: pkg, key: key, query: query})
+		toFetch = append(toFetch, indexedPkg{purl: purl, key: key, query: query})
 	}
 	a.logger.Debug(
 		"osv: package cache summary",
@@ -338,10 +350,10 @@ func (a *Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResul
 		}
 	}
 
-	applyPackageVulnerabilityEnrichment(packages, enriched)
+	applyPackageVulnerabilityEnrichment(req.Registry, deps, enriched)
 	return sdk.MatchResult{
-		Graph:  req.Graph,
-		Target: req.Target,
+		Registry:    req.Registry,
+		MatcherRuns: []string{"osv"},
 	}, nil
 }
 

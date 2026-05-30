@@ -2,32 +2,94 @@ package osv
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	gocvss20 "github.com/pandatix/go-cvss/20"
 	gocvss30 "github.com/pandatix/go-cvss/30"
 	gocvss31 "github.com/pandatix/go-cvss/31"
 	gocvss40 "github.com/pandatix/go-cvss/40"
+	"strconv"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
-// MapVulnerability converts one OsvVulnerability into package vulnerability enrichment.
-func MapVulnerability(v OsvVulnerability) sdk.PackageVulnerability {
-	return sdk.PackageVulnerability{
-		ID:           v.ID,
-		Title:        firstNonEmpty(v.Summary, v.ID),
-		Severity:     extractSeverity(v.Severity),
-		Aliases:      append([]string(nil), v.Aliases...),
-		Description:  strings.TrimSpace(v.Details),
-		Reasons:      buildReasons(v),
-		Source:       "osv",
-		CVSS:         buildCVSS(v.Severity),
-		FixedIn:      extractFixedVersion(v.Affected),
-		References:   []sdk.Reference{},
-		KEVExploited: false,
+// MapVulnerability converts one OsvVulnerability into an OSV-aligned
+// sdk.Vulnerability, carrying the spec fields through verbatim and computing
+// Bomly enrichment extensions (parsed severity band, CVSS scores, CWEs, fix).
+func MapVulnerability(v OsvVulnerability) sdk.Vulnerability {
+	return sdk.Vulnerability{
+		// OSV-aligned core
+		ID:               v.ID,
+		Aliases:          append([]string(nil), v.Aliases...),
+		Summary:          strings.TrimSpace(v.Summary),
+		Details:          strings.TrimSpace(v.Details),
+		Severity:         mapSeverities(v.Severity),
+		Affected:         mapAffected(v.Affected),
+		Published:        v.Published,
+		Modified:         v.Modified,
+		DatabaseSpecific: mapDatabaseSpecific(v.DatabaseSpecific),
+		// Bomly extensions
+		Source:         "osv",
+		Title:          firstNonEmpty(v.Summary, v.ID),
+		ParsedSeverity: extractSeverity(v.Severity),
+		Reasons:        buildReasons(v),
+		CVSS:           buildCVSS(v.Severity),
+		CWEs:           mapCWEs(v),
+		FixedIn:        extractFixedVersion(v.Affected),
 	}
+}
+
+func mapSeverities(severities []OsvSeverity) []sdk.Severity {
+	if len(severities) == 0 {
+		return nil
+	}
+	out := make([]sdk.Severity, 0, len(severities))
+	for _, s := range severities {
+		out = append(out, sdk.Severity{Type: s.Type, Score: s.Score})
+	}
+	return out
+}
+
+func mapAffected(affected []OsvAffected) []sdk.Affected {
+	if len(affected) == 0 {
+		return nil
+	}
+	out := make([]sdk.Affected, 0, len(affected))
+	for _, a := range affected {
+		entry := sdk.Affected{Versions: append([]string(nil), a.Versions...)}
+		for _, r := range a.Ranges {
+			cr := sdk.VersionRange{}
+			for _, e := range r.Events {
+				cr.Events = append(cr.Events, sdk.RangeEvent{
+					Introduced:   e.Introduced,
+					Fixed:        e.Fixed,
+					LastAffected: e.LastAffected,
+				})
+			}
+			entry.Ranges = append(entry.Ranges, cr)
+		}
+		out = append(out, entry)
+	}
+	return out
+}
+
+func mapDatabaseSpecific(ds *DatabaseSpecific) map[string]any {
+	if ds == nil || len(ds.CweIDs) == 0 {
+		return nil
+	}
+	return map[string]any{"cwe_ids": append([]string(nil), ds.CweIDs...)}
+}
+
+func mapCWEs(v OsvVulnerability) []sdk.CWE {
+	cweIDs := extractCWEs(v.DatabaseSpecific)
+	if len(cweIDs) == 0 {
+		return nil
+	}
+	out := make([]sdk.CWE, 0, len(cweIDs))
+	for _, id := range cweIDs {
+		out = append(out, sdk.CWE{ID: id, Source: "osv"})
+	}
+	return out
 }
 
 func firstNonEmpty(a, b string) string {
@@ -37,7 +99,7 @@ func firstNonEmpty(a, b string) string {
 	return b
 }
 
-// extractSeverity derives a normalized severity string from OSV severity entries.
+// extractSeverity derives a normalized severity band from OSV severity entries.
 // Prefers CVSS v4 > v3.1 > v3 > v2 > unknown.
 func extractSeverity(severities []OsvSeverity) string {
 	scores := map[string]float64{}
@@ -46,7 +108,6 @@ func extractSeverity(severities []OsvSeverity) string {
 			scores[s.Type] = score
 		}
 	}
-	// Priority order
 	for _, t := range []string{"CVSS_V4", "CVSS_V31", "CVSS_V3", "CVSS_V2"} {
 		if score, ok := scores[t]; ok {
 			return cvssScoreToBand(score)
@@ -63,7 +124,6 @@ func parseCVSSScore(kind, raw string) float64 {
 	if f, ok := parseCVSSVectorScore(kind, raw); ok {
 		return f
 	}
-	// Try the last segment after all slashes.
 	parts := strings.Split(raw, "/")
 	if len(parts) > 0 {
 		if f, err := strconv.ParseFloat(parts[len(parts)-1], 64); err == nil {

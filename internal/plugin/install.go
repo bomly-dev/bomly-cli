@@ -614,7 +614,14 @@ func writePluginConfigFile(config map[string]any) (string, func(), error) {
 
 func httpClientFromLaunchContext(ctx context.Context, timeout time.Duration) (*http.Client, error) {
 	options, _ := LaunchOptionsFromContext(ctx)
-	return plugschema.NewHTTPClient(launchHTTPConfig(options, timeout))
+	if options.HTTPClientProvider != nil {
+		return options.HTTPClientProvider.Client(timeout), nil
+	}
+	provider, err := plugschema.NewHTTPClientProvider(launchHTTPConfig(options, 0))
+	if err != nil {
+		return nil, err
+	}
+	return provider.Client(timeout), nil
 }
 
 func launchHTTPConfig(options LaunchOptions, timeout time.Duration) plugschema.HTTPClientConfig {

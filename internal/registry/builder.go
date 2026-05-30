@@ -76,6 +76,7 @@ type RegistryConfigs struct {
 	HTTPProxyUsername     string
 	HTTPProxyPassword     string
 	HTTPCACertFile        string
+	HTTPClientProvider    *sdk.HTTPClientProvider
 }
 
 // RegistryFilter narrows a registry down to the runtime-relevant selections.
@@ -114,6 +115,7 @@ type Registry struct {
 	matchers       []sdk.Matcher
 	analyzers      []sdk.Analyzer
 	discoveryPlans map[string]DetectorDiscoveryPlan
+	httpProvider   *sdk.HTTPClientProvider
 }
 
 // NewRegistry creates an empty registry.
@@ -122,6 +124,7 @@ func NewRegistry(configs RegistryConfigs, logger zap.Logger) *Registry {
 		logger:         &logger,
 		configs:        configs,
 		discoveryPlans: make(map[string]DetectorDiscoveryPlan),
+		httpProvider:   configs.HTTPClientProvider,
 	}
 }
 
@@ -302,7 +305,14 @@ func (r *Registry) registerClearlyDefinedMatcher() {
 }
 
 func (r *Registry) httpClient(timeout time.Duration) *http.Client {
-	client, err := sdk.NewHTTPClient(sdk.HTTPClientConfig{
+	return r.httpClientProvider().Client(timeout)
+}
+
+func (r *Registry) httpClientProvider() *sdk.HTTPClientProvider {
+	if r.httpProvider != nil {
+		return r.httpProvider
+	}
+	provider, err := sdk.NewHTTPClientProvider(sdk.HTTPClientConfig{
 		ProxyURL:      r.configs.HTTPProxy,
 		NoProxy:       r.configs.HTTPNoProxy,
 		ProxyType:     r.configs.HTTPProxyType,
@@ -311,14 +321,13 @@ func (r *Registry) httpClient(timeout time.Duration) *http.Client {
 		ProxyUsername: r.configs.HTTPProxyUsername,
 		ProxyPassword: r.configs.HTTPProxyPassword,
 		CACertFile:    r.configs.HTTPCACertFile,
-		Timeout:       timeout,
 	})
-	if err == nil {
-		return client
+	if err != nil {
+		r.logger.Warn("http client proxy configuration invalid; using environment defaults", zap.Error(err))
+		provider, _ = sdk.NewHTTPClientProvider(sdk.HTTPClientConfig{})
 	}
-	r.logger.Warn("http client proxy configuration invalid; using environment defaults", zap.Error(err))
-	fallback, _ := sdk.NewHTTPClient(sdk.HTTPClientConfig{Timeout: timeout})
-	return fallback
+	r.httpProvider = provider
+	return r.httpProvider
 }
 
 // RegisterMatcher adds a matcher to the registry.
@@ -631,6 +640,7 @@ func (r *Registry) DiscoveryPlans() map[string]DetectorDiscoveryPlan {
 // matcher, and ecosystem selections.
 func (r *Registry) Filter(filter RegistryFilter) *Registry {
 	filtered := NewRegistry(r.configs, *r.logger)
+	filtered.httpProvider = r.httpProvider
 
 	allowedDetectors := make(map[string]struct{}, len(r.detectors))
 	for _, detector := range r.detectors {

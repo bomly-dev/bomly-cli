@@ -52,6 +52,12 @@ type HTTPClientConfig struct {
 	Timeout       time.Duration
 }
 
+// HTTPClientProvider owns reusable HTTP transport state for one Bomly execution.
+type HTTPClientProvider struct {
+	transport      *http.Transport
+	defaultTimeout time.Duration
+}
+
 // HTTPClientConfigFromEnv returns Bomly-specific HTTP client settings from
 // environment variables. Standard HTTP_PROXY, HTTPS_PROXY, and NO_PROXY are
 // still honored by NewHTTPClient when Bomly-specific values are absent.
@@ -69,9 +75,10 @@ func HTTPClientConfigFromEnv() HTTPClientConfig {
 	}
 }
 
-// NewHTTPClient creates an outbound HTTP client using Go's default transport
-// behavior plus Bomly's proxy configuration.
-func NewHTTPClient(config HTTPClientConfig) (*http.Client, error) {
+// NewHTTPClientProvider creates an HTTP client provider with a reusable
+// transport. Call Client to create timeout-specific clients that share
+// connection pools and TLS/proxy settings.
+func NewHTTPClientProvider(config HTTPClientConfig) (*HTTPClientProvider, error) {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	proxy, err := proxyFunc(config)
 	if err != nil {
@@ -85,10 +92,50 @@ func NewHTTPClient(config HTTPClientConfig) (*http.Client, error) {
 		}
 		transport.TLSClientConfig = tlsConfig
 	}
-	return &http.Client{
-		Transport: transport,
-		Timeout:   config.Timeout,
+	return &HTTPClientProvider{
+		transport:      transport,
+		defaultTimeout: config.Timeout,
 	}, nil
+}
+
+// NewHTTPClientProviderFromEnv creates a provider from Bomly HTTP environment
+// variables, with standard proxy environment variables honored as fallback.
+func NewHTTPClientProviderFromEnv() (*HTTPClientProvider, error) {
+	return NewHTTPClientProvider(HTTPClientConfigFromEnv())
+}
+
+// Client returns an HTTP client with the requested timeout. A zero timeout uses
+// the provider's configured default timeout.
+func (p *HTTPClientProvider) Client(timeout time.Duration) *http.Client {
+	if p == nil {
+		client, _ := NewHTTPClient(HTTPClientConfig{Timeout: timeout})
+		return client
+	}
+	if timeout == 0 {
+		timeout = p.defaultTimeout
+	}
+	return &http.Client{
+		Transport: p.transport,
+		Timeout:   timeout,
+	}
+}
+
+// CloseIdleConnections closes idle connections held by the provider transport.
+func (p *HTTPClientProvider) CloseIdleConnections() {
+	if p == nil || p.transport == nil {
+		return
+	}
+	p.transport.CloseIdleConnections()
+}
+
+// NewHTTPClient creates an outbound HTTP client using Go's default transport
+// behavior plus Bomly's proxy configuration.
+func NewHTTPClient(config HTTPClientConfig) (*http.Client, error) {
+	provider, err := NewHTTPClientProvider(config)
+	if err != nil {
+		return nil, err
+	}
+	return provider.Client(config.Timeout), nil
 }
 
 func proxyFunc(config HTTPClientConfig) (func(*http.Request) (*url.URL, error), error) {

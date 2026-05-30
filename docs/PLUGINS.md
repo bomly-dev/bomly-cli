@@ -73,7 +73,15 @@ if err := sdk.DecodePluginConfigFromEnv(&cfg); err != nil {
 }
 ```
 
-Plugins that make outbound HTTP calls should use `sdk.NewHTTPClient(sdk.HTTPClientConfigFromEnv())` so Bomly proxy settings and standard proxy environment variables are handled consistently.
+Plugins that make outbound HTTP calls should create one process-local provider with `sdk.NewHTTPClientProviderFromEnv()` and reuse it for timeout-specific clients. This keeps proxy settings consistent while preserving Go's HTTP connection pooling:
+
+```go
+provider, err := sdk.NewHTTPClientProviderFromEnv()
+if err != nil {
+    return err
+}
+client := provider.Client(20 * time.Second)
+```
 
 ## Plugin Layout
 

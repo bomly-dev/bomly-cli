@@ -30,17 +30,18 @@ const (
 
 // LaunchOptions carries launch context for managed external plugins.
 type LaunchOptions struct {
-	ConfigPath        string
-	Verbosity         int
-	HTTPProxy         string
-	HTTPNoProxy       string
-	HTTPProxyType     string
-	HTTPProxyHost     string
-	HTTPProxyPort     int
-	HTTPProxyUsername string
-	HTTPProxyPassword string
-	HTTPCACertFile    string
-	PluginConfigs     map[string]map[string]any
+	ConfigPath         string
+	Verbosity          int
+	HTTPProxy          string
+	HTTPNoProxy        string
+	HTTPProxyType      string
+	HTTPProxyHost      string
+	HTTPProxyPort      int
+	HTTPProxyUsername  string
+	HTTPProxyPassword  string
+	HTTPCACertFile     string
+	HTTPClientProvider *plugschema.HTTPClientProvider
+	PluginConfigs      map[string]map[string]any
 }
 
 type launchOptionsKey struct{}

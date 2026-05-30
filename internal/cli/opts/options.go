@@ -33,6 +33,7 @@ type Options struct {
 	matcherFilter   sdk.MatcherFilter
 	analyzerFilter  sdk.AnalyzerFilter
 	ecosystemFilter sdk.EcosystemFilter
+	httpProvider    *sdk.HTTPClientProvider
 	Format          output.Format
 	outputPath      string
 	verbose         bool
@@ -229,7 +230,17 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 		return Options{}, exit.InvalidInputError("%v", err)
 	}
 
-	scanRegistry := engine.NewRegistry(RegistryConfigsFromResolved(resolved), *logger)
+	httpProvider, err := sdk.NewHTTPClientProvider(httpClientConfigFromResolved(resolved))
+	if err != nil {
+		if cleanup != nil {
+			_ = cleanup()
+		}
+		return Options{}, exit.InvalidInputError("configure HTTP client: %v", err)
+	}
+
+	registryConfigs := RegistryConfigsFromResolved(resolved)
+	registryConfigs.HTTPClientProvider = httpProvider
+	scanRegistry := engine.NewRegistry(registryConfigs, *logger)
 	scanRegistry.Build()
 
 	if err := o.registerInstalledPluginMetadata(ctx, scanRegistry); err != nil {
@@ -325,6 +336,7 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 		matcherFilter:   matcherFilter,
 		analyzerFilter:  analyzerFilter,
 		ecosystemFilter: ecosystemFilter,
+		httpProvider:    httpProvider,
 		ResolvedConfig:  resolved,
 		Format:          format,
 		verbose:         resolved.Verbosity > 0,
@@ -361,19 +373,37 @@ func (o *Options) OutputFormat() (output.Format, error) {
 
 func (o *Options) PluginLaunchContext(ctx context.Context) context.Context {
 	current := o.GetConfig()
+	httpProvider := o.httpProvider
+	if httpProvider == nil {
+		httpProvider, _ = sdk.NewHTTPClientProvider(httpClientConfigFromResolved(current))
+	}
 	return plugin.WithLaunchOptions(ctx, plugin.LaunchOptions{
-		ConfigPath:        current.Config,
-		Verbosity:         current.Verbosity,
-		HTTPProxy:         current.HTTPProxy,
-		HTTPNoProxy:       current.HTTPNoProxy,
-		HTTPProxyType:     current.HTTPProxyType,
-		HTTPProxyHost:     current.HTTPProxyHost,
-		HTTPProxyPort:     current.HTTPProxyPort,
-		HTTPProxyUsername: current.HTTPProxyUsername,
-		HTTPProxyPassword: current.HTTPProxyPassword,
-		HTTPCACertFile:    current.HTTPCACertFile,
-		PluginConfigs:     current.Plugins,
+		ConfigPath:         current.Config,
+		Verbosity:          current.Verbosity,
+		HTTPProxy:          current.HTTPProxy,
+		HTTPNoProxy:        current.HTTPNoProxy,
+		HTTPProxyType:      current.HTTPProxyType,
+		HTTPProxyHost:      current.HTTPProxyHost,
+		HTTPProxyPort:      current.HTTPProxyPort,
+		HTTPProxyUsername:  current.HTTPProxyUsername,
+		HTTPProxyPassword:  current.HTTPProxyPassword,
+		HTTPCACertFile:     current.HTTPCACertFile,
+		HTTPClientProvider: httpProvider,
+		PluginConfigs:      current.Plugins,
 	})
+}
+
+func httpClientConfigFromResolved(current config.Resolved) sdk.HTTPClientConfig {
+	return sdk.HTTPClientConfig{
+		ProxyURL:      current.HTTPProxy,
+		NoProxy:       current.HTTPNoProxy,
+		ProxyType:     current.HTTPProxyType,
+		ProxyHost:     current.HTTPProxyHost,
+		ProxyPort:     current.HTTPProxyPort,
+		ProxyUsername: current.HTTPProxyUsername,
+		ProxyPassword: current.HTTPProxyPassword,
+		CACertFile:    current.HTTPCACertFile,
+	}
 }
 
 // ProjectDescriptor returns a descriptor for the main project being analyzed,

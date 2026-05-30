@@ -2,6 +2,7 @@ package registry
 
 import (
 	"testing"
+	"time"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
@@ -119,5 +120,18 @@ func TestBuildScanRegistryRegistersBuiltInMatchers(t *testing.T) {
 		if origin != sdk.CoreOrigin {
 			t.Fatalf("expected matcher %q to be core origin, got %q", name, origin)
 		}
+	}
+}
+
+func TestRegistryHTTPClientProviderReusesTransport(t *testing.T) {
+	builtins := NewRegistry(RegistryConfigs{HTTPProxy: "http://proxy.example:8080"}, *zap.NewNop())
+
+	first := builtins.httpClient(15 * time.Second)
+	second := builtins.httpClient(30 * time.Second)
+	if first.Transport != second.Transport {
+		t.Fatalf("registry clients do not share transport")
+	}
+	if first.Timeout != 15*time.Second || second.Timeout != 30*time.Second {
+		t.Fatalf("timeouts = %v/%v, want 15s/30s", first.Timeout, second.Timeout)
 	}
 }

@@ -65,6 +65,29 @@ func TestNewHTTPClientBuildsProxyFromHostPort(t *testing.T) {
 	}
 }
 
+func TestHTTPClientProviderReusesTransportWithPerClientTimeouts(t *testing.T) {
+	provider, err := NewHTTPClientProvider(HTTPClientConfig{
+		ProxyURL: "http://proxy.example:8080",
+		Timeout:  7 * time.Second,
+	})
+	if err != nil {
+		t.Fatalf("NewHTTPClientProvider() error = %v", err)
+	}
+	first := provider.Client(3 * time.Second)
+	second := provider.Client(5 * time.Second)
+	defaultTimeout := provider.Client(0)
+	if first.Transport != second.Transport || first.Transport != defaultTimeout.Transport {
+		t.Fatalf("provider clients do not share transport")
+	}
+	if first.Timeout != 3*time.Second || second.Timeout != 5*time.Second || defaultTimeout.Timeout != 7*time.Second {
+		t.Fatalf("timeouts = %v/%v/%v, want 3s/5s/7s", first.Timeout, second.Timeout, defaultTimeout.Timeout)
+	}
+	proxyURL := proxyForRequest(t, second, "http://service.example/v1")
+	if proxyURL == nil || proxyURL.String() != "http://proxy.example:8080" {
+		t.Fatalf("proxy = %v, want http://proxy.example:8080", proxyURL)
+	}
+}
+
 func TestNewHTTPClientRejectsHostWithoutPort(t *testing.T) {
 	if _, err := NewHTTPClient(HTTPClientConfig{ProxyHost: "proxy.example"}); err == nil {
 		t.Fatal("NewHTTPClient() error = nil, want missing port error")

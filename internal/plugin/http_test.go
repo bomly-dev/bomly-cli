@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/testutil"
 	plugschema "github.com/bomly-dev/bomly-cli/sdk"
@@ -63,5 +64,28 @@ func TestInstallRemoteArchiveUsesConfiguredProxy(t *testing.T) {
 	}
 	if result.Manifest.ID != "acme.detector.proxy" {
 		t.Fatalf("installed id = %q", result.Manifest.ID)
+	}
+}
+
+func TestHTTPClientFromLaunchContextUsesSharedProvider(t *testing.T) {
+	provider, err := plugschema.NewHTTPClientProvider(plugschema.HTTPClientConfig{ProxyURL: "http://proxy.example:8080"})
+	if err != nil {
+		t.Fatalf("NewHTTPClientProvider() error = %v", err)
+	}
+	ctx := WithLaunchOptions(context.Background(), LaunchOptions{HTTPClientProvider: provider})
+
+	first, err := httpClientFromLaunchContext(ctx, 15*time.Second)
+	if err != nil {
+		t.Fatalf("httpClientFromLaunchContext() first error = %v", err)
+	}
+	second, err := httpClientFromLaunchContext(ctx, 30*time.Second)
+	if err != nil {
+		t.Fatalf("httpClientFromLaunchContext() second error = %v", err)
+	}
+	if first.Transport != second.Transport {
+		t.Fatalf("plugin launch clients do not share transport")
+	}
+	if first.Timeout != 15*time.Second || second.Timeout != 30*time.Second {
+		t.Fatalf("timeouts = %v/%v, want 15s/30s", first.Timeout, second.Timeout)
 	}
 }

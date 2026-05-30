@@ -220,7 +220,7 @@ func newPluginInstallCmd() *cobra.Command {
 			}
 			current := options.GetConfig()
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
-			result, err := managedplugin.Install(cmd.Context(), "", args[0], managedplugin.InstallOptions{
+			result, err := managedplugin.Install(options.PluginLaunchContext(cmd.Context()), "", args[0], managedplugin.InstallOptions{
 				DevBinary:            devBinary,
 				Checksum:             checksum,
 				InsecureSkipChecksum: insecureSkipChecksum,
@@ -316,7 +316,7 @@ func newPluginVerifyCmd() *cobra.Command {
 			}
 			current := options.GetConfig()
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
-			result, err := managedplugin.Verify(cmd.Context(), "", strings.TrimSpace(args[0]))
+			result, err := managedplugin.Verify(options.PluginLaunchContext(cmd.Context()), "", strings.TrimSpace(args[0]))
 			if err != nil {
 				return err
 			}
@@ -353,7 +353,7 @@ func newPluginTestCmd() *cobra.Command {
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
 			builtins := builtInPluginInfos(current, cmd.Root().Version)
 			all, _ := managedplugin.ListPluginInfos("", builtins)
-			result, err := managedplugin.Test(cmd.Context(), "", strings.TrimSpace(args[0]), all)
+			result, err := managedplugin.Test(options.PluginLaunchContext(cmd.Context()), "", strings.TrimSpace(args[0]), all)
 			if err != nil {
 				return pluginCommandError(err)
 			}
@@ -400,7 +400,7 @@ func newPluginDoctorCmd() *cobra.Command {
 			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
 			builtins := builtInPluginInfos(current, cmd.Root().Version)
 			all, _ := managedplugin.ListPluginInfos("", builtins)
-			result, err := managedplugin.Doctor(cmd.Context(), "", strings.TrimSpace(args[0]), all)
+			result, err := managedplugin.Doctor(options.PluginLaunchContext(cmd.Context()), "", strings.TrimSpace(args[0]), all)
 			if err != nil {
 				return pluginCommandError(err)
 			}

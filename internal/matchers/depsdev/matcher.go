@@ -32,11 +32,12 @@ const (
 
 // Config configures the deps.dev license checker.
 type Config struct {
-	APIBase  string
-	CacheDir string
-	CacheTTL time.Duration
-	Logger   *zap.Logger
-	Client   *http.Client
+	APIBase            string
+	CacheDir           string
+	CacheTTL           time.Duration
+	Logger             *zap.Logger
+	Client             *http.Client
+	HTTPClientProvider *sdk.HTTPClientProvider
 }
 
 // DefaultConfig returns a production-ready deps.dev checker config.
@@ -103,7 +104,14 @@ func New(config Config) (*Checker, error) {
 	}
 	client := config.Client
 	if client == nil {
-		client = &http.Client{Timeout: 20 * time.Second}
+		provider := config.HTTPClientProvider
+		if provider == nil {
+			provider, err = sdk.NewHTTPClientProviderFromEnv()
+			if err != nil {
+				return nil, fmt.Errorf("deps.dev checker: create HTTP client provider: %w", err)
+			}
+		}
+		client = provider.Client(20 * time.Second)
 	}
 	return &Checker{
 		client: client,

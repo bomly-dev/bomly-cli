@@ -1,7 +1,9 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -50,7 +52,7 @@ func LoadFile(path string) (*File, error) {
 }
 
 func normalizeFilePaths(cfg *File, baseDir string) {
-	for _, target := range []*string{cfg.Path, cfg.Config} {
+	for _, target := range []*string{cfg.Path, cfg.Config, cfg.HTTPCACertFile} {
 		if target == nil || strings.TrimSpace(*target) == "" || filepath.IsAbs(*target) {
 			continue
 		}
@@ -112,6 +114,18 @@ func ApplyFileConfig(dst *Resolved, src File) {
 	if len(src.Outputs) > 0 {
 		dst.Outputs = append([]string(nil), src.Outputs...)
 	}
+	if len(src.Plugins) > 0 {
+		if dst.Plugins == nil {
+			dst.Plugins = make(map[string]map[string]any, len(src.Plugins))
+		}
+		for id, pluginConfig := range src.Plugins {
+			trimmedID := strings.TrimSpace(id)
+			if trimmedID == "" {
+				continue
+			}
+			dst.Plugins[trimmedID] = clonePluginConfig(pluginConfig)
+		}
+	}
 	// Verbose is a legacy shorthand; map it to Verbosity=1 if not already set.
 	if src.Verbose != nil && *src.Verbose && dst.Verbosity == 0 {
 		dst.Verbosity = 1
@@ -144,7 +158,11 @@ func ApplyEnvOverrides(dst *Resolved) {
 				fv.SetBool(b)
 			}
 		case reflect.Int:
-			applyVerbosityEnv(fv, val)
+			if t.Field(i).Name == "Verbosity" {
+				applyVerbosityEnv(fv, val)
+			} else if parsed, err := strconv.Atoi(strings.TrimSpace(val)); err == nil {
+				fv.SetInt(int64(parsed))
+			}
 		case reflect.Slice:
 			fv.Set(reflect.ValueOf(parseCSV(val)))
 		}
@@ -219,7 +237,77 @@ func Validate(cfg Resolved) error {
 	default:
 		return fmt.Errorf("unsupported --typosquat-mode value %q (accepted: warn, fail)", cfg.TyposquatMode)
 	}
+	if err := validateProxyURL(cfg.HTTPProxy); err != nil {
+		return err
+	}
+	if err := validateProxyFields(cfg); err != nil {
+		return err
+	}
 	return nil
+}
+
+func validateProxyURL(value string) error {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return nil
+	}
+	parsed, err := url.Parse(value)
+	if err != nil {
+		return fmt.Errorf("invalid http_proxy URL: %w", err)
+	}
+	if parsed.Scheme == "" || parsed.Host == "" {
+		return fmt.Errorf("invalid http_proxy URL: must be absolute")
+	}
+	switch strings.ToLower(strings.TrimSpace(parsed.Scheme)) {
+	case "http", "https", "socks", "socks5":
+	default:
+		return fmt.Errorf("unsupported http_proxy scheme %q (accepted: http, https, socks5)", parsed.Scheme)
+	}
+	return nil
+}
+
+func validateProxyFields(cfg Resolved) error {
+	switch strings.ToLower(strings.TrimSpace(cfg.HTTPProxyType)) {
+	case "", "http", "https", "socks", "socks5":
+	default:
+		return fmt.Errorf("unsupported http_proxy_type value %q (accepted: http, https, socks5)", cfg.HTTPProxyType)
+	}
+	if strings.TrimSpace(cfg.HTTPProxyHost) == "" {
+		if cfg.HTTPProxyPort != 0 {
+			return fmt.Errorf("http_proxy_port requires http_proxy_host")
+		}
+		if strings.TrimSpace(cfg.HTTPProxyUsername) != "" || strings.TrimSpace(cfg.HTTPProxyPassword) != "" {
+			return fmt.Errorf("http_proxy_username and http_proxy_password require http_proxy_host")
+		}
+		return nil
+	}
+	if cfg.HTTPProxyPort <= 0 || cfg.HTTPProxyPort > 65535 {
+		return fmt.Errorf("http_proxy_port must be between 1 and 65535")
+	}
+	return nil
+}
+
+func clonePluginConfig(value map[string]any) map[string]any {
+	if value == nil {
+		return nil
+	}
+	data, err := json.Marshal(value)
+	if err != nil {
+		out := make(map[string]any, len(value))
+		for key, item := range value {
+			out[key] = item
+		}
+		return out
+	}
+	var out map[string]any
+	if err := json.Unmarshal(data, &out); err != nil {
+		copyValue := make(map[string]any, len(value))
+		for key, item := range value {
+			copyValue[key] = item
+		}
+		return copyValue
+	}
+	return out
 }
 
 func parseBool(s string) (bool, bool) {

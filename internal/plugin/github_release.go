@@ -15,7 +15,7 @@ import (
 
 var (
 	githubReleaseAPIBase = "https://api.github.com"
-	pluginHTTPClient     = http.DefaultClient
+	pluginHTTPClient     *http.Client
 )
 
 type githubReleaseResponse struct {
@@ -77,7 +77,11 @@ func resolveGitHubRelease(ctx context.Context, source string) (githubReleaseReso
 		return githubReleaseResolution{}, fmt.Errorf("create GitHub release request: %w", err)
 	}
 	req.Header.Set("Accept", "application/vnd.github+json")
-	resp, err := pluginHTTPClient.Do(req)
+	client, err := githubReleaseHTTPClient(ctx)
+	if err != nil {
+		return githubReleaseResolution{}, err
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return githubReleaseResolution{}, fmt.Errorf("fetch GitHub release metadata: %w", err)
 	}
@@ -94,7 +98,7 @@ func resolveGitHubRelease(ctx context.Context, source string) (githubReleaseReso
 	if err != nil {
 		return githubReleaseResolution{}, err
 	}
-	checksum, ok := selectGitHubReleaseChecksum(asset.Name, release.Assets)
+	checksum, ok := selectGitHubReleaseChecksum(ctx, asset.Name, release.Assets)
 	return githubReleaseResolution{
 		DownloadURL:      asset.BrowserDownloadURL,
 		ExpectedChecksum: checksum,
@@ -146,13 +150,13 @@ func assetMatchesPlatform(name string) bool {
 	return strings.Contains(name, runtime.GOOS) && strings.Contains(name, runtime.GOARCH)
 }
 
-func selectGitHubReleaseChecksum(assetName string, assets []githubReleaseAsset) (string, bool) {
+func selectGitHubReleaseChecksum(ctx context.Context, assetName string, assets []githubReleaseAsset) (string, bool) {
 	for _, asset := range assets {
 		lower := strings.ToLower(asset.Name)
 		if lower != "sha256sums" && lower != "sha256sums.txt" {
 			continue
 		}
-		value, err := fetchChecksumLine(asset.BrowserDownloadURL, assetName)
+		value, err := fetchChecksumLine(ctx, asset.BrowserDownloadURL, assetName)
 		if err == nil && value != "" {
 			return value, true
 		}
@@ -160,13 +164,17 @@ func selectGitHubReleaseChecksum(assetName string, assets []githubReleaseAsset) 
 	return "", false
 }
 
-func fetchChecksumLine(downloadURL, assetName string) (string, error) {
-	req, err := http.NewRequest(http.MethodGet, downloadURL, nil)
+func fetchChecksumLine(ctx context.Context, downloadURL, assetName string) (string, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, downloadURL, nil)
 	if err != nil {
 		return "", err
 	}
 	req.Header.Set("Accept", "application/octet-stream")
-	resp, err := pluginHTTPClient.Do(req)
+	client, err := githubReleaseHTTPClient(ctx)
+	if err != nil {
+		return "", err
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -190,4 +198,11 @@ func fetchChecksumLine(downloadURL, assetName string) (string, error) {
 		}
 	}
 	return "", errors.New("checksum not found")
+}
+
+func githubReleaseHTTPClient(ctx context.Context) (*http.Client, error) {
+	if pluginHTTPClient != nil {
+		return pluginHTTPClient, nil
+	}
+	return httpClientFromLaunchContext(ctx, 0)
 }

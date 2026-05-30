@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 const (
@@ -23,10 +25,11 @@ var ErrProjectNotScored = errors.New("scorecard: project not scored")
 
 // ClientConfig configures the Scorecard HTTP client.
 type ClientConfig struct {
-	APIBase    string
-	Timeout    time.Duration
-	UserAgent  string
-	HTTPClient *http.Client
+	APIBase            string
+	Timeout            time.Duration
+	UserAgent          string
+	HTTPClient         *http.Client
+	HTTPClientProvider *sdk.HTTPClientProvider
 }
 
 // DefaultClientConfig returns a production-ready default config.
@@ -53,7 +56,14 @@ func NewClient(config ClientConfig) *Client {
 	}
 	httpClient := config.HTTPClient
 	if httpClient == nil {
-		httpClient = &http.Client{Timeout: config.Timeout}
+		provider := config.HTTPClientProvider
+		if provider == nil {
+			provider, _ = sdk.NewHTTPClientProviderFromEnv()
+			if provider == nil {
+				provider, _ = sdk.NewHTTPClientProvider(sdk.HTTPClientConfig{})
+			}
+		}
+		httpClient = provider.Client(config.Timeout)
 	}
 	return &Client{http: httpClient, config: config}
 }

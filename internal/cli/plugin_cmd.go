@@ -119,6 +119,7 @@ func newPluginListCmd() *cobra.Command {
 	cmd.Flags().BoolVar(&includeAuditors, "auditors", false, "Show auditor plugins")
 	cmd.Flags().BoolVar(&includeAnalyzers, "analyzers", false, "Show reachability analyzer plugins")
 	cmd.Flags().StringVar(&format, "format", pluginListFormatTable, "Render output format: table or json")
+	opts.BindJSONFormatFlag(cmd.Flags(), &format, "Shortcut for --format json")
 	return cmd
 }
 

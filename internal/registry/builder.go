@@ -67,6 +67,15 @@ type RegistryConfigs struct {
 	ScorecardAPIBase      string
 	ScorecardCacheDir     string
 	ScorecardCacheTTL     string
+	HTTPProxy             string
+	HTTPNoProxy           string
+	HTTPProxyType         string
+	HTTPProxyHost         string
+	HTTPProxyPort         int
+	HTTPProxyUsername     string
+	HTTPProxyPassword     string
+	HTTPCACertFile        string
+	HTTPClientProvider    *sdk.HTTPClientProvider
 }
 
 // RegistryFilter narrows a registry down to the runtime-relevant selections.
@@ -105,6 +114,7 @@ type Registry struct {
 	matchers       []sdk.Matcher
 	analyzers      []sdk.Analyzer
 	discoveryPlans map[string]DetectorDiscoveryPlan
+	httpProvider   *sdk.HTTPClientProvider
 }
 
 // NewRegistry creates an empty registry.
@@ -113,6 +123,7 @@ func NewRegistry(configs RegistryConfigs, logger zap.Logger) *Registry {
 		logger:         &logger,
 		configs:        configs,
 		discoveryPlans: make(map[string]DetectorDiscoveryPlan),
+		httpProvider:   configs.HTTPClientProvider,
 	}
 }
 
@@ -158,6 +169,7 @@ func (r *Registry) registerGrypeMatcher() {
 func (r *Registry) registerOSVMatcher() {
 	osvCfg := osvmatcher.DefaultConfig()
 	osvCfg.Logger = r.logger
+	osvCfg.HTTPClientProvider = r.httpClientProvider()
 	if r.configs.OsvAPIBase != "" {
 		osvCfg.APIBase = r.configs.OsvAPIBase
 	}
@@ -195,6 +207,7 @@ func (r *Registry) registerOSVMatcher() {
 func (r *Registry) registerEOLMatcher() {
 	eolCfg := eol.DefaultConfig()
 	eolCfg.Logger = r.logger
+	eolCfg.HTTPClientProvider = r.httpClientProvider()
 	if r.configs.EOLAPIBase != "" {
 		eolCfg.APIBase = r.configs.EOLAPIBase
 	}
@@ -226,6 +239,7 @@ func (r *Registry) registerEOLMatcher() {
 func (r *Registry) registerDepsDevMatcher() {
 	depsDevCfg := depsdev.DefaultConfig()
 	depsDevCfg.Logger = r.logger
+	depsDevCfg.HTTPClientProvider = r.httpClientProvider()
 	depsDevChecker, err := depsdev.New(depsDevCfg)
 	if err != nil {
 		r.logger.Warn("deps.dev license checker unavailable", zap.Error(err))
@@ -253,6 +267,11 @@ func (r *Registry) registerScorecardMatcher() {
 			r.logger.Warn("scorecard: invalid cache_ttl; using default", zap.String("value", r.configs.ScorecardCacheTTL), zap.Error(err))
 		}
 	}
+	scoreCfg.ClientConfig = &scorecard.ClientConfig{
+		APIBase:            scoreCfg.APIBase,
+		Timeout:            15 * time.Second,
+		HTTPClientProvider: r.httpClientProvider(),
+	}
 	scoreMatcher, err := scorecard.New(scoreCfg)
 	if err != nil {
 		r.logger.Warn("scorecard matcher unavailable", zap.Error(err))
@@ -271,6 +290,7 @@ func (r *Registry) registerScorecardMatcher() {
 func (r *Registry) registerClearlyDefinedMatcher() {
 	clearlyDefinedCfg := clearlydefined.DefaultConfig()
 	clearlyDefinedCfg.Logger = r.logger
+	clearlyDefinedCfg.HTTPClientProvider = r.httpClientProvider()
 	clearlyDefinedChecker, err := clearlydefined.New(clearlyDefinedCfg)
 	if err != nil {
 		r.logger.Warn("ClearlyDefined license checker unavailable", zap.Error(err))
@@ -280,6 +300,28 @@ func (r *Registry) registerClearlyDefinedMatcher() {
 		}
 		r.logger.Debug("ClearlyDefined matcher configured")
 	}
+}
+
+func (r *Registry) httpClientProvider() *sdk.HTTPClientProvider {
+	if r.httpProvider != nil {
+		return r.httpProvider
+	}
+	provider, err := sdk.NewHTTPClientProvider(sdk.HTTPClientConfig{
+		ProxyURL:      r.configs.HTTPProxy,
+		NoProxy:       r.configs.HTTPNoProxy,
+		ProxyType:     r.configs.HTTPProxyType,
+		ProxyHost:     r.configs.HTTPProxyHost,
+		ProxyPort:     r.configs.HTTPProxyPort,
+		ProxyUsername: r.configs.HTTPProxyUsername,
+		ProxyPassword: r.configs.HTTPProxyPassword,
+		CACertFile:    r.configs.HTTPCACertFile,
+	})
+	if err != nil {
+		r.logger.Warn("http client proxy configuration invalid; using environment defaults", zap.Error(err))
+		provider, _ = sdk.NewHTTPClientProvider(sdk.HTTPClientConfig{})
+	}
+	r.httpProvider = provider
+	return r.httpProvider
 }
 
 // RegisterMatcher adds a matcher to the registry.
@@ -592,6 +634,7 @@ func (r *Registry) DiscoveryPlans() map[string]DetectorDiscoveryPlan {
 // matcher, and ecosystem selections.
 func (r *Registry) Filter(filter RegistryFilter) *Registry {
 	filtered := NewRegistry(r.configs, *r.logger)
+	filtered.httpProvider = r.httpProvider
 
 	allowedDetectors := make(map[string]struct{}, len(r.detectors))
 	for _, detector := range r.detectors {

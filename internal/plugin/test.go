@@ -64,7 +64,7 @@ func Test(ctx context.Context, root, id string, builtins []PluginInfo) (*TestRes
 	}
 	fullEntrypoint := filepath.Join(record.Path, entry)
 
-	client, err := startPlugin(launchContext(ctx, nil), fullEntrypoint)
+	client, err := startPlugin(launchContext(ctx, nil), fullEntrypoint, manifest.ID)
 	if err != nil {
 		return nil, fmt.Errorf("start plugin runtime for readiness probe: %w", err)
 	}

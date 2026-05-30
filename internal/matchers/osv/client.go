@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 const (
@@ -19,9 +21,11 @@ const (
 
 // ClientConfig configures the OSV HTTP client.
 type ClientConfig struct {
-	APIBase   string
-	Timeout   time.Duration
-	BatchSize int
+	APIBase            string
+	Timeout            time.Duration
+	BatchSize          int
+	HTTPClient         *http.Client
+	HTTPClientProvider *sdk.HTTPClientProvider
 }
 
 // DefaultClientConfig returns a production-ready default config.
@@ -50,8 +54,19 @@ func NewClient(config ClientConfig) *Client {
 	if config.BatchSize == 0 {
 		config.BatchSize = defaultBatchSize
 	}
+	httpClient := config.HTTPClient
+	if httpClient == nil {
+		provider := config.HTTPClientProvider
+		if provider == nil {
+			provider, _ = sdk.NewHTTPClientProviderFromEnv()
+			if provider == nil {
+				provider, _ = sdk.NewHTTPClientProvider(sdk.HTTPClientConfig{})
+			}
+		}
+		httpClient = provider.Client(config.Timeout)
+	}
 	return &Client{
-		http:   &http.Client{Timeout: config.Timeout},
+		http:   httpClient,
 		config: config,
 	}
 }

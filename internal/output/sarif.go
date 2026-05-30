@@ -148,7 +148,7 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, toolName, toolVersion strin
 	}
 	// Deduplicate rules by finding ID.
 	seen := map[string]bool{}
-	var rules []sarifRule
+	rules := make([]sarifRule, 0, len(findings))
 	for _, f := range findings {
 		if seen[f.ID] {
 			continue

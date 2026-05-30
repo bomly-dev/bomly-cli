@@ -126,8 +126,9 @@ func TestBuildScanRegistryRegistersBuiltInMatchers(t *testing.T) {
 func TestRegistryHTTPClientProviderReusesTransport(t *testing.T) {
 	builtins := NewRegistry(RegistryConfigs{HTTPProxy: "http://proxy.example:8080"}, *zap.NewNop())
 
-	first := builtins.httpClient(15 * time.Second)
-	second := builtins.httpClient(30 * time.Second)
+	provider := builtins.httpClientProvider()
+	first := provider.Client(15 * time.Second)
+	second := provider.Client(30 * time.Second)
 	if first.Transport != second.Transport {
 		t.Fatalf("registry clients do not share transport")
 	}

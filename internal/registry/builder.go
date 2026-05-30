@@ -1,7 +1,6 @@
 package registry
 
 import (
-	"net/http"
 	"sort"
 	"strconv"
 	"strings"
@@ -170,8 +169,7 @@ func (r *Registry) registerGrypeMatcher() {
 func (r *Registry) registerOSVMatcher() {
 	osvCfg := osvmatcher.DefaultConfig()
 	osvCfg.Logger = r.logger
-	osvCfg.Client = r.httpClient(30 * time.Second)
-	osvCfg.KEVClient = r.httpClient(15 * time.Second)
+	osvCfg.HTTPClientProvider = r.httpClientProvider()
 	if r.configs.OsvAPIBase != "" {
 		osvCfg.APIBase = r.configs.OsvAPIBase
 	}
@@ -209,7 +207,7 @@ func (r *Registry) registerOSVMatcher() {
 func (r *Registry) registerEOLMatcher() {
 	eolCfg := eol.DefaultConfig()
 	eolCfg.Logger = r.logger
-	eolCfg.Client = r.httpClient(15 * time.Second)
+	eolCfg.HTTPClientProvider = r.httpClientProvider()
 	if r.configs.EOLAPIBase != "" {
 		eolCfg.APIBase = r.configs.EOLAPIBase
 	}
@@ -241,7 +239,7 @@ func (r *Registry) registerEOLMatcher() {
 func (r *Registry) registerDepsDevMatcher() {
 	depsDevCfg := depsdev.DefaultConfig()
 	depsDevCfg.Logger = r.logger
-	depsDevCfg.Client = r.httpClient(20 * time.Second)
+	depsDevCfg.HTTPClientProvider = r.httpClientProvider()
 	depsDevChecker, err := depsdev.New(depsDevCfg)
 	if err != nil {
 		r.logger.Warn("deps.dev license checker unavailable", zap.Error(err))
@@ -270,9 +268,9 @@ func (r *Registry) registerScorecardMatcher() {
 		}
 	}
 	scoreCfg.ClientConfig = &scorecard.ClientConfig{
-		APIBase:    scoreCfg.APIBase,
-		Timeout:    15 * time.Second,
-		HTTPClient: r.httpClient(15 * time.Second),
+		APIBase:            scoreCfg.APIBase,
+		Timeout:            15 * time.Second,
+		HTTPClientProvider: r.httpClientProvider(),
 	}
 	scoreMatcher, err := scorecard.New(scoreCfg)
 	if err != nil {
@@ -292,7 +290,7 @@ func (r *Registry) registerScorecardMatcher() {
 func (r *Registry) registerClearlyDefinedMatcher() {
 	clearlyDefinedCfg := clearlydefined.DefaultConfig()
 	clearlyDefinedCfg.Logger = r.logger
-	clearlyDefinedCfg.Client = r.httpClient(20 * time.Second)
+	clearlyDefinedCfg.HTTPClientProvider = r.httpClientProvider()
 	clearlyDefinedChecker, err := clearlydefined.New(clearlyDefinedCfg)
 	if err != nil {
 		r.logger.Warn("ClearlyDefined license checker unavailable", zap.Error(err))
@@ -302,10 +300,6 @@ func (r *Registry) registerClearlyDefinedMatcher() {
 		}
 		r.logger.Debug("ClearlyDefined matcher configured")
 	}
-}
-
-func (r *Registry) httpClient(timeout time.Duration) *http.Client {
-	return r.httpClientProvider().Client(timeout)
 }
 
 func (r *Registry) httpClientProvider() *sdk.HTTPClientProvider {

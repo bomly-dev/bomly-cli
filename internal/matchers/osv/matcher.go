@@ -51,6 +51,8 @@ type Config struct {
 	Client *http.Client
 	// KEVClient overrides the CISA KEV HTTP client. Maybe nil.
 	KEVClient *http.Client
+	// HTTPClientProvider supplies shared HTTP clients when Client/KEVClient are nil.
+	HTTPClientProvider *sdk.HTTPClientProvider
 }
 
 // DefaultConfig returns a production-ready OSV matcher config.
@@ -144,6 +146,10 @@ func New(config Config) (*Matcher, error) {
 		clientConfig.APIBase = config.APIBase
 	}
 	clientConfig.HTTPClient = config.Client
+	clientConfig.HTTPClientProvider = config.HTTPClientProvider
+	if config.KEVClient == nil && config.HTTPClientProvider != nil {
+		config.KEVClient = config.HTTPClientProvider.Client(kevFetchTimeout)
+	}
 
 	c, err := cache.NewFileCache(config.CacheDir, config.CacheTTL)
 	if err != nil {

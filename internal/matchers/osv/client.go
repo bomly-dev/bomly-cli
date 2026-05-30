@@ -21,10 +21,11 @@ const (
 
 // ClientConfig configures the OSV HTTP client.
 type ClientConfig struct {
-	APIBase    string
-	Timeout    time.Duration
-	BatchSize  int
-	HTTPClient *http.Client
+	APIBase            string
+	Timeout            time.Duration
+	BatchSize          int
+	HTTPClient         *http.Client
+	HTTPClientProvider *sdk.HTTPClientProvider
 }
 
 // DefaultClientConfig returns a production-ready default config.
@@ -55,7 +56,14 @@ func NewClient(config ClientConfig) *Client {
 	}
 	httpClient := config.HTTPClient
 	if httpClient == nil {
-		httpClient, _ = sdk.NewHTTPClient(sdk.HTTPClientConfig{Timeout: config.Timeout})
+		provider := config.HTTPClientProvider
+		if provider == nil {
+			provider, _ = sdk.NewHTTPClientProviderFromEnv()
+			if provider == nil {
+				provider, _ = sdk.NewHTTPClientProvider(sdk.HTTPClientConfig{})
+			}
+		}
+		httpClient = provider.Client(config.Timeout)
 	}
 	return &Client{
 		http:   httpClient,

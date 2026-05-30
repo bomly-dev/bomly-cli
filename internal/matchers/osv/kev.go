@@ -50,7 +50,11 @@ func FetchKEVCatalog(cache *audcache.FileCache, clients ...*http.Client) (*KEVCa
 		client = clients[0]
 	}
 	if client == nil {
-		client, _ = sdk.NewHTTPClient(sdk.HTTPClientConfig{Timeout: kevFetchTimeout})
+		provider, _ := sdk.NewHTTPClientProviderFromEnv()
+		if provider == nil {
+			provider, _ = sdk.NewHTTPClientProvider(sdk.HTTPClientConfig{})
+		}
+		client = provider.Client(kevFetchTimeout)
 	}
 	resp, err := client.Get(kevURL) // #nosec G107 — constant URL
 	if err != nil {

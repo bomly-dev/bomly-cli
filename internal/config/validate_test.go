@@ -64,6 +64,22 @@ func TestValidateRejectsInvalidHTTPProxy(t *testing.T) {
 	}
 }
 
+func TestValidateRedactsCredentialsInInvalidHTTPProxy(t *testing.T) {
+	err := Validate(Resolved{HTTPProxy: "http://agent:super-secret%zz@proxy.example:8080"})
+	if err == nil {
+		t.Fatal("Validate returned nil for invalid proxy URL")
+	}
+	if strings.Contains(err.Error(), "super-secret") {
+		t.Fatalf("error leaked proxy password: %q", err.Error())
+	}
+	if strings.Contains(err.Error(), "agent:") {
+		t.Fatalf("error leaked proxy userinfo: %q", err.Error())
+	}
+	if !strings.Contains(err.Error(), "invalid http_proxy URL") {
+		t.Fatalf("error = %q, want invalid http_proxy URL", err.Error())
+	}
+}
+
 func TestValidateRejectsInvalidHTTPProxyFields(t *testing.T) {
 	cases := []struct {
 		name string

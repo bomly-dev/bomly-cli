@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -97,6 +98,19 @@ func TestNewHTTPClientRejectsHostWithoutPort(t *testing.T) {
 func TestNewHTTPClientRejectsInvalidProxy(t *testing.T) {
 	if _, err := NewHTTPClient(HTTPClientConfig{ProxyURL: "proxy.example:8080"}); err == nil {
 		t.Fatal("NewHTTPClient() error = nil, want invalid proxy error")
+	}
+}
+
+func TestNewHTTPClientRedactsCredentialsInInvalidProxy(t *testing.T) {
+	_, err := NewHTTPClient(HTTPClientConfig{ProxyURL: "http://agent:super-secret%zz@proxy.example:8080"})
+	if err == nil {
+		t.Fatal("NewHTTPClient() error = nil, want invalid proxy error")
+	}
+	if strings.Contains(err.Error(), "super-secret") {
+		t.Fatalf("error leaked proxy password: %q", err.Error())
+	}
+	if strings.Contains(err.Error(), "agent:") {
+		t.Fatalf("error leaked proxy userinfo: %q", err.Error())
 	}
 }
 

@@ -3,6 +3,7 @@ package config
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/url"
@@ -350,9 +351,9 @@ func validateProxyURL(value string) error {
 	if value == "" {
 		return nil
 	}
-	parsed, err := url.Parse(value)
+	parsed, err := parseProxyURL(value)
 	if err != nil {
-		return fmt.Errorf("invalid http_proxy URL: %w", err)
+		return err
 	}
 	if parsed.Scheme == "" || parsed.Host == "" {
 		return fmt.Errorf("invalid http_proxy URL: must be absolute")
@@ -363,6 +364,22 @@ func validateProxyURL(value string) error {
 		return fmt.Errorf("unsupported http_proxy scheme %q (accepted: http, https, socks5)", parsed.Scheme)
 	}
 	return nil
+}
+
+func parseProxyURL(value string) (*url.URL, error) {
+	parsed, err := url.Parse(value)
+	if err != nil {
+		return nil, fmt.Errorf("invalid http_proxy URL: %w", redactURLParseError(err))
+	}
+	return parsed, nil
+}
+
+func redactURLParseError(err error) error {
+	var urlErr *url.Error
+	if errors.As(err, &urlErr) && urlErr.Err != nil {
+		return urlErr.Err
+	}
+	return err
 }
 
 func validateProxyFields(cfg Resolved) error {

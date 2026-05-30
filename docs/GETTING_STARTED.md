@@ -40,6 +40,12 @@ Pass `--path` to scan a directory other than the current one:
 bomly scan --path ./services/api
 ```
 
+Need structured output for automation? `--json` is the shortcut for `--format json`:
+
+```bash
+bomly scan --json
+```
+
 Pass `--container` to scan a container image:
 
 ```bash
@@ -117,7 +123,7 @@ bomly diff --base main --head HEAD
 Or two SBOM files:
 
 ```bash
-bomly diff --sbom --base ./old.spdx.json --head ./new.spdx.json
+bomly diff --sbom --base ./old.spdx.json --head ./new.spdx.json --json
 ```
 
 Add `--audit --fail-on high` to fail PRs that introduce new high-severity findings without complaining about pre-existing ones.

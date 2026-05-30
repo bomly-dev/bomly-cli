@@ -52,7 +52,7 @@ The text report adds a `Project Posture` section listing each unique repo with i
 ### Annotate a scan with project posture
 
 ```bash
-bomly scan --enrich --matchers +scorecard --format json | jq '.graph.packages[] | select(.scorecard) | {name, score: .scorecard.aggregateScore}'
+bomly scan --enrich --matchers +scorecard --json | jq '.graph.packages[] | select(.scorecard) | {name, score: .scorecard.aggregateScore}'
 ```
 
 ### Inspect why a single package scored as it did

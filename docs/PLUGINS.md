@@ -173,7 +173,7 @@ Run a scan with the plugin selected explicitly:
 bomly scan \
   --path ./my-go-project \
   --detectors bomly.example.gomod-detector \
-  --format json
+  --json
 ```
 
 Disable or uninstall it later:

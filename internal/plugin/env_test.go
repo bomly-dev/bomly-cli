@@ -92,6 +92,36 @@ func TestPluginEnvForwardsStandardProxyEnvWhenBomlyProxyUnset(t *testing.T) {
 	}
 }
 
+func TestPluginEnvOnlyWritesSelectedPluginConfig(t *testing.T) {
+	env, cleanup, err := pluginEnv(LaunchOptions{
+		PluginConfigs: map[string]map[string]any{
+			"acme.matcher": {"token": "selected-secret"},
+			"other.plugin": {"token": "other-secret"},
+		},
+	}, "acme.matcher")
+	if err != nil {
+		t.Fatalf("pluginEnv() error = %v", err)
+	}
+	defer cleanup()
+
+	values := envMap(env)
+	configPath := values[sdk.EnvPluginConfigFile]
+	if configPath == "" {
+		t.Fatal("missing plugin config file env")
+	}
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		t.Fatalf("read plugin config: %v", err)
+	}
+	text := string(data)
+	if !strings.Contains(text, "selected-secret") {
+		t.Fatalf("selected plugin config missing: %s", text)
+	}
+	if strings.Contains(text, "other-secret") || strings.Contains(text, "other.plugin") {
+		t.Fatalf("unrelated plugin config leaked: %s", text)
+	}
+}
+
 func envMap(env []string) map[string]string {
 	out := make(map[string]string, len(env))
 	for _, item := range env {

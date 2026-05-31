@@ -279,9 +279,8 @@ func scopeAllowed(pkg *sdk.Dependency, allowed []sdk.Scope) bool {
 	if len(allowed) == 0 {
 		return true
 	}
-	scope := sdk.Scope(pkg.Scope)
 	for _, candidate := range allowed {
-		if candidate == scope {
+		if pkg.HasScope(candidate) {
 			return true
 		}
 	}

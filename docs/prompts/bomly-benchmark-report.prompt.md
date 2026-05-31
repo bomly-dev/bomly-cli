@@ -38,7 +38,8 @@ Definitions:
 
 ## Output
 
-Write `.benchmark-runs/latest/benchmark-report.md` with exactly this structure:
+Return only the Markdown report body with exactly this structure. The local
+wrapper writes your response to `.benchmark-runs/latest/benchmark-report.md`:
 
 # Bomly Benchmark Report
 
@@ -68,6 +69,6 @@ Keep fixes actionable and identify which source comparisons support each fix.
 
 - Do not decide pass/fail or propose a score gate.
 - Do not fetch network data or rerun tools.
-- Do not modify source code or create commits.
+- Do not create or modify files, modify source code, or create commits.
 - Prefer concrete case names and package examples.
 - Keep the report concise.

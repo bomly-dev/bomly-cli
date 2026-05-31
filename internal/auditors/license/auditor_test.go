@@ -15,14 +15,14 @@ import (
 // to that node in lockfile data. Flagging it produces unactionable noise.
 func TestAuditor_SkipsRootPackage(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewPackageRef("github.com/example/private-app", "0.0.0")
-	dep := sdk.NewPackageRef("github.com/pkg/errors", "0.9.1")
+	root := sdk.NewDependencyRef("github.com/example/private-app", "0.0.0")
+	dep := sdk.NewDependencyRef("github.com/pkg/errors", "0.9.1")
 	for _, p := range []*sdk.Package{root, dep} {
-		if err := g.AddPackage(p); err != nil {
+		if err := g.AddNode(p); err != nil {
 			t.Fatalf("add %s: %v", p.ID, err)
 		}
 	}
-	if err := g.AddDependency(root.ID, dep.ID); err != nil {
+	if err := g.AddEdge(root.ID, dep.ID); err != nil {
 		t.Fatalf("add dep: %v", err)
 	}
 
@@ -55,8 +55,8 @@ func TestAuditor_SkipsRootPackage(t *testing.T) {
 // is exactly what the user asked about — never skip it.
 func TestAuditor_ComponentModeStillFlagsTarget(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewPackageRef("github.com/example/app", "0.0.0")
-	if err := g.AddPackage(root); err != nil {
+	root := sdk.NewDependencyRef("github.com/example/app", "0.0.0")
+	if err := g.AddNode(root); err != nil {
 		t.Fatalf("add: %v", err)
 	}
 

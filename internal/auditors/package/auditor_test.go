@@ -22,7 +22,7 @@ func pkg(id, name, version, scope string) *sdk.Package {
 func graphOf(pkgs ...*sdk.Package) *sdk.Graph {
 	g := sdk.New()
 	for _, p := range pkgs {
-		if err := g.AddPackage(p); err != nil {
+		if err := g.AddNode(p); err != nil {
 			panic(err)
 		}
 	}

@@ -2,8 +2,7 @@ package cli
 
 import (
 	"encoding/json"
-	"fmt"
-	"os"
+	"io"
 	"path/filepath"
 	"strings"
 
@@ -13,7 +12,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var benchmarkExecutable = os.Executable
 var runBenchmark = benchmark.Run
 
 func newBenchmarkCmd() *cobra.Command {
@@ -37,9 +35,19 @@ func newBenchmarkCmd() *cobra.Command {
 			default:
 				return exit.InvalidInputError("unsupported benchmark format %q (accepted: text, json)", format)
 			}
-			binaryPath, err := benchmarkExecutable()
+			options, err := commandOptions(cmd)
 			if err != nil {
-				return fmt.Errorf("resolve benchmark executable: %w", err)
+				return err
+			}
+			current := options.GetConfig()
+			if current.Quiet && current.Verbosity > 0 {
+				return exit.InvalidInputError("--quiet cannot be combined with --verbose")
+			}
+			logger := commandLogger(cmd, "benchmark")
+			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
+			notifications := streams.notificationWriter()
+			if current.Verbosity > 0 {
+				notifications = io.Discard
 			}
 			if strings.TrimSpace(runDir) == "" {
 				runDir = filepath.Join(".benchmark-runs", "latest")
@@ -47,13 +55,14 @@ func newBenchmarkCmd() *cobra.Command {
 			summary, err := runBenchmark(cmd.Context(), benchmark.RunOptions{
 				ManifestPath:       manifest,
 				RunDir:             runDir,
-				BinaryPath:         binaryPath,
 				SelectedCases:      benchmark.ParseNames(cases...),
 				SelectedSources:    benchmark.ParseNames(sources...),
 				SelectedEcosystems: benchmark.ParseNames(ecosystems...),
 				CustomRepository:   repository,
 				InstallFirst:       installFirst,
-				Progress:           cmd.ErrOrStderr(),
+				Notifications:      notifications,
+				Logger:             logger,
+				NativeScan:         benchmarkNativeScanner(logger, streams.notificationWriter(), current.Verbosity > 0),
 			})
 			if renderErr := writeBenchmarkSummary(cmd, format, summary); renderErr != nil {
 				return renderErr

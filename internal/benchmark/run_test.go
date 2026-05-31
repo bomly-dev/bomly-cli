@@ -97,16 +97,10 @@ func TestGitHubTokenUsesBenchmarkTokenFirst(t *testing.T) {
 	}
 }
 
-func TestBenchmarkChildEnvRemovesBomlySettings(t *testing.T) {
-	t.Setenv("BOMLY_CONFIG", "secret.yaml")
-	env, err := benchmarkChildEnv(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, entry := range env {
-		if strings.HasPrefix(entry, "BOMLY_CONFIG=") {
-			t.Fatalf("child env leaked config: %q", entry)
-		}
+func TestRunRequiresNativeScanner(t *testing.T) {
+	_, err := Run(context.Background(), RunOptions{})
+	if err == nil || !strings.Contains(err.Error(), "native scanner") {
+		t.Fatalf("error = %v, want native scanner error", err)
 	}
 }
 

@@ -17,15 +17,15 @@ const summarySchemaVersion = "bomly.benchmark.v1"
 
 // PackageMetrics describes PURL-normalized package overlap.
 type PackageMetrics struct {
-	BomlyCount       int     `json:"bomly_count"`
-	SourceCount      int     `json:"source_count"`
-	ExactMatches     int     `json:"exact_matches"`
+	BomlyCount      int     `json:"bomly_count"`
+	SourceCount     int     `json:"source_count"`
+	ExactMatches    int     `json:"exact_matches"`
 	VersionMismatch int     `json:"version_mismatches"`
-	BomlyOnly        int     `json:"bomly_only"`
-	SourceOnly       int     `json:"source_only"`
-	BomlyIgnored     int     `json:"bomly_ignored_without_purl"`
-	SourceIgnored    int     `json:"source_ignored_without_purl"`
-	Score            float64 `json:"score"`
+	BomlyOnly       int     `json:"bomly_only"`
+	SourceOnly      int     `json:"source_only"`
+	BomlyIgnored    int     `json:"bomly_ignored_without_purl"`
+	SourceIgnored   int     `json:"source_ignored_without_purl"`
+	Score           float64 `json:"score"`
 }
 
 // RelationshipMetrics describes PURL-normalized dependency-edge overlap.
@@ -47,13 +47,12 @@ type ScoreSummary struct {
 
 // SourceArtifacts records paths relative to one benchmark case directory.
 type SourceArtifacts struct {
-	SBOM    string `json:"sbom,omitempty"`
-	RawSBOM string `json:"raw_sbom,omitempty"`
-	Diff    string `json:"diff,omitempty"`
-	DiffLog string `json:"diff_log,omitempty"`
-	Log     string `json:"log,omitempty"`
+	SBOM     string `json:"sbom,omitempty"`
+	RawSBOM  string `json:"raw_sbom,omitempty"`
+	Diff     string `json:"diff,omitempty"`
+	Log      string `json:"log,omitempty"`
 	Response string `json:"response,omitempty"`
-	Summary string `json:"summary,omitempty"`
+	Summary  string `json:"summary,omitempty"`
 }
 
 // SourceSummary describes one baseline comparison.

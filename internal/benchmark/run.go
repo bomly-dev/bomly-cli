@@ -11,14 +11,15 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
 	"github.com/bomly-dev/bomly-cli/sdk"
+	"go.uber.org/zap"
 )
 
 var githubAPIBaseURL = "https://api.github.com"
@@ -29,15 +30,34 @@ var githubTokenEnvNames = []string{"BOMLY_BENCHMARK_GITHUB_TOKEN", "GITHUB_TOKEN
 type RunOptions struct {
 	ManifestPath       string
 	RunDir             string
-	BinaryPath         string
 	SelectedCases      []string
 	SelectedSources    []string
 	SelectedEcosystems []string
 	CustomRepository   string
 	InstallFirst       bool
-	Progress           io.Writer
+	Notifications      io.Writer
 	HTTPClient         *http.Client
+	Logger             *zap.Logger
+	NativeScan         NativeScanFunc
 }
+
+// NativeScanRequest describes one in-process Bomly native-detector scan.
+type NativeScanRequest struct {
+	CheckoutDir  string
+	Repository   string
+	Revision     string
+	Ecosystem    sdk.Ecosystem
+	InstallFirst bool
+}
+
+// NativeScanResult contains the graph and detector provenance from one native scan.
+type NativeScanResult struct {
+	Graph     *sdk.Graph
+	Detectors []string
+}
+
+// NativeScanFunc executes Bomly's native detectors without managed plugins or configuration files.
+type NativeScanFunc func(context.Context, NativeScanRequest) (NativeScanResult, error)
 
 // Run executes the hidden local benchmark and writes deterministic artifacts.
 func Run(ctx context.Context, opts RunOptions) (RunSummary, error) {
@@ -47,12 +67,13 @@ func Run(ctx context.Context, opts RunOptions) (RunSummary, error) {
 	if strings.TrimSpace(opts.RunDir) == "" {
 		opts.RunDir = filepath.Join(".benchmark-runs", "latest")
 	}
-	if strings.TrimSpace(opts.BinaryPath) == "" {
-		return RunSummary{}, fmt.Errorf("benchmark binary path is required")
+	if opts.NativeScan == nil {
+		return RunSummary{}, fmt.Errorf("benchmark native scanner is required")
 	}
-	if opts.Progress == nil {
-		opts.Progress = io.Discard
+	if opts.Notifications == nil {
+		opts.Notifications = io.Discard
 	}
+	opts.Logger = loggerOrNop(opts.Logger)
 	if opts.HTTPClient == nil {
 		provider, err := sdk.NewHTTPClientProviderFromEnv()
 		if err != nil {
@@ -78,6 +99,7 @@ func Run(ctx context.Context, opts RunOptions) (RunSummary, error) {
 	if err := prepareCasesDir(casesDir, targets, selectedRun); err != nil {
 		return RunSummary{}, err
 	}
+	opts.Logger.Info("benchmark: starting run", zap.Int("cases", len(targets)), zap.Int("sources", len(sources)), zap.String("run_dir", opts.RunDir))
 
 	summary := RunSummary{SchemaVersion: summarySchemaVersion, Status: "completed", RunDir: opts.RunDir}
 	completedComparisons := 0
@@ -88,7 +110,8 @@ func Run(ctx context.Context, opts RunOptions) (RunSummary, error) {
 		if err := os.MkdirAll(caseDir, 0o755); err != nil {
 			return summary, fmt.Errorf("create benchmark case dir: %w", err)
 		}
-		fmt.Fprintf(opts.Progress, "benchmark: running %s (%s)\n", target.Name, repoSlug(target.URL))
+		fmt.Fprintf(opts.Notifications, "benchmark: running %s (%s)\n", target.Name, repoSlug(target.URL))
+		opts.Logger.Info("benchmark: case starting", zap.String("case", target.Name), zap.String("repository", target.URL), zap.String("ecosystem", string(target.Ecosystem)))
 		caseSummary, caseCompleted, caseErr := runCase(ctx, opts, caseDir, target, sources)
 		completedComparisons += caseCompleted
 		if caseSummary.Scores != nil {
@@ -101,6 +124,7 @@ func Run(ctx context.Context, opts RunOptions) (RunSummary, error) {
 		if err := writeJSON(filepath.Join(caseDir, "benchmark-summary.json"), caseSummary); err != nil {
 			return summary, err
 		}
+		opts.Logger.Info("benchmark: case completed", zap.String("case", target.Name), zap.String("status", caseSummary.Status), zap.Int("completed_comparisons", caseCompleted))
 	}
 	summary.Scores = averageScores(caseScores)
 	switch {
@@ -114,7 +138,8 @@ func Run(ctx context.Context, opts RunOptions) (RunSummary, error) {
 	if err := writeJSON(filepath.Join(opts.RunDir, "benchmark-summary.json"), summary); err != nil {
 		return summary, err
 	}
-	fmt.Fprintf(opts.Progress, "benchmark: wrote artifacts to %s\n", opts.RunDir)
+	fmt.Fprintf(opts.Notifications, "benchmark: wrote artifacts to %s\n", opts.RunDir)
+	opts.Logger.Info("benchmark: run completed", zap.String("status", summary.Status), zap.Int("completed_comparisons", completedComparisons), zap.String("run_dir", opts.RunDir))
 	if summary.Status == "failed" {
 		return summary, errors.New(summary.Reason)
 	}
@@ -182,19 +207,19 @@ func runCase(ctx context.Context, opts RunOptions, caseDir string, target Target
 	}
 
 	checkoutDir := filepath.Join(caseDir, "checkout")
-	if err := checkoutTarget(ctx, filepath.Join(caseDir, "logs", "checkout.log"), target.URL, checkoutDir); err != nil {
+	if err := checkoutTarget(ctx, opts.Logger, filepath.Join(caseDir, "logs", "checkout.log"), target.URL, checkoutDir); err != nil {
 		summary.Status = "failed"
 		summary.Reason = err.Error()
 		return summary, 0, err
 	}
-	revision, err := resolveCheckoutHEAD(ctx, filepath.Join(caseDir, "logs", "revision.log"), checkoutDir)
+	revision, err := resolveCheckoutHEAD(ctx, opts.Logger, filepath.Join(caseDir, "logs", "revision.log"), checkoutDir)
 	if err != nil {
 		summary.Status = "failed"
 		summary.Reason = err.Error()
 		return summary, 0, err
 	}
 	summary.HeadSHA = revision
-	childEnv, err := benchmarkChildEnv(caseDir)
+	installFirst, err := benchmarkInstallFirst(target, opts.InstallFirst)
 	if err != nil {
 		summary.Status = "failed"
 		summary.Reason = err.Error()
@@ -202,36 +227,28 @@ func runCase(ctx context.Context, opts RunOptions, caseDir string, target Target
 	}
 
 	bomlyArtifacts := requiredBomlySBOMs(sources)
-	scanArgs := []string{"scan", "-vv", "--url", target.URL, "--ref", revision, "--ecosystems", string(target.Ecosystem), "--detectors", "-syft"}
-	scanArgs = append(scanArgs, target.Args...)
-	for _, artifact := range sortedBomlyArtifacts(bomlyArtifacts) {
-		if err := os.MkdirAll(filepath.Join(caseDir, filepath.Dir(artifact.RawSBOM)), 0o755); err != nil {
-			return summary, 0, fmt.Errorf("create Bomly artifact dir: %w", err)
-		}
-		scanArgs = append(scanArgs, "--output", artifact.Format+"="+filepath.Join(caseDir, artifact.RawSBOM))
-	}
-	if err := runLoggedCommand(ctx, childEnv, filepath.Join(caseDir, "sources", "bomly", "scan.log"), opts.BinaryPath, scanArgs...); err != nil {
+	scanResult, err := opts.NativeScan(ctx, NativeScanRequest{
+		CheckoutDir: checkoutDir, Repository: target.URL, Revision: revision, Ecosystem: target.Ecosystem, InstallFirst: installFirst,
+	})
+	if err != nil {
 		summary.Status = "failed"
 		summary.Reason = "Bomly scan failed: " + err.Error()
 		return summary, 0, errors.New(summary.Reason)
+	}
+	if scanResult.Graph == nil {
+		summary.Status = "failed"
+		summary.Reason = "Bomly scan failed: native scanner returned no graph"
+		return summary, 0, errors.New(summary.Reason)
+	}
+	if err := writeBomlySBOMs(caseDir, scanResult, bomlyArtifacts); err != nil {
+		return summary, 0, err
 	}
 	for format, artifact := range bomlyArtifacts {
 		if err := filterSBOMFile(filepath.Join(caseDir, artifact.RawSBOM), filepath.Join(caseDir, artifact.SBOM), target.Ecosystem); err != nil {
 			return summary, 0, fmt.Errorf("filter Bomly %s SBOM: %w", format, err)
 		}
 	}
-	provenance := bomlyArtifacts["spdx"]
-	if provenance.SBOM == "" {
-		for _, artifact := range bomlyArtifacts {
-			provenance = artifact
-			break
-		}
-	}
-	bomlyDoc, _, err := loadSBOMDocument(filepath.Join(caseDir, provenance.SBOM))
-	if err != nil {
-		return summary, 0, fmt.Errorf("read Bomly detector provenance: %w", err)
-	}
-	summary.Detectors = detectorCreators(bomlyDoc)
+	summary.Detectors = append([]string(nil), scanResult.Detectors...)
 
 	completed := 0
 	failures := make([]string, 0)
@@ -243,13 +260,15 @@ func runCase(ctx context.Context, opts RunOptions, caseDir string, target Target
 			sourceSummary.Status = "unavailable"
 			sourceSummary.Reason = "missing required tool: " + missing
 			summary.Sources = append(summary.Sources, sourceSummary)
+			opts.Logger.Warn("benchmark: source unavailable", zap.String("case", target.Name), zap.String("source", source.Name()), zap.String("reason", sourceSummary.Reason))
 			if err := writeJSON(filepath.Join(caseDir, artifacts.Summary), sourceSummary); err != nil {
 				return summary, completed, err
 			}
 			continue
 		}
 		rawSourcePath := filepath.Join(caseDir, artifacts.RawSBOM)
-		if err := source.ProduceSBOM(ctx, opts.HTTPClient, caseDir, checkoutDir, target, rawSourcePath); err != nil {
+		opts.Logger.Info("benchmark: source starting", zap.String("case", target.Name), zap.String("source", source.Name()))
+		if err := source.ProduceSBOM(ctx, opts.Logger, opts.HTTPClient, caseDir, checkoutDir, target, rawSourcePath); err != nil {
 			sourceSummary.Reason = err.Error()
 			if isUnavailable(err) {
 				sourceSummary.Status = "unavailable"
@@ -258,6 +277,7 @@ func runCase(ctx context.Context, opts RunOptions, caseDir string, target Target
 				failures = append(failures, source.Name()+": "+err.Error())
 			}
 			summary.Sources = append(summary.Sources, sourceSummary)
+			opts.Logger.Warn("benchmark: source did not complete", zap.String("case", target.Name), zap.String("source", source.Name()), zap.String("status", sourceSummary.Status), zap.Error(err))
 			if err := writeJSON(filepath.Join(caseDir, artifacts.Summary), sourceSummary); err != nil {
 				return summary, completed, err
 			}
@@ -269,8 +289,7 @@ func runCase(ctx context.Context, opts RunOptions, caseDir string, target Target
 		}
 		bomlyArtifact := bomlyArtifacts[source.BomlyFormat()]
 		diffPath := filepath.Join(caseDir, artifacts.Diff)
-		if err := runOutputCommand(ctx, childEnv, diffPath, filepath.Join(caseDir, artifacts.DiffLog), opts.BinaryPath,
-			"diff", "-vv", "--sbom", "--base", sourcePath, "--head", filepath.Join(caseDir, bomlyArtifact.SBOM), "--format", "json"); err != nil {
+		if err := writeSBOMDiffArtifact(sourcePath, filepath.Join(caseDir, bomlyArtifact.SBOM), diffPath); err != nil {
 			sourceSummary.Status = "failed"
 			sourceSummary.Reason = "Bomly diff failed: " + err.Error()
 			failures = append(failures, source.Name()+": "+sourceSummary.Reason)
@@ -292,6 +311,7 @@ func runCase(ctx context.Context, opts RunOptions, caseDir string, target Target
 		summary.Sources = append(summary.Sources, sourceSummary)
 		sourceScores = append(sourceScores, sourceSummary.Scores)
 		completed++
+		opts.Logger.Info("benchmark: source completed", zap.String("case", target.Name), zap.String("source", source.Name()), zap.Float64("overall_score", sourceSummary.Scores.Overall))
 		if err := writeJSON(filepath.Join(caseDir, artifacts.Summary), sourceSummary); err != nil {
 			return summary, completed, err
 		}
@@ -313,7 +333,7 @@ type baselineSource interface {
 	Name() string
 	Tools() []string
 	BomlyFormat() string
-	ProduceSBOM(context.Context, *http.Client, string, string, Target, string) error
+	ProduceSBOM(context.Context, *zap.Logger, *http.Client, string, string, Target, string) error
 }
 
 type githubBaselineSource struct{}
@@ -321,7 +341,7 @@ type githubBaselineSource struct{}
 func (githubBaselineSource) Name() string        { return "github" }
 func (githubBaselineSource) Tools() []string     { return nil }
 func (githubBaselineSource) BomlyFormat() string { return "spdx" }
-func (githubBaselineSource) ProduceSBOM(ctx context.Context, client *http.Client, caseDir, _ string, target Target, outputPath string) error {
+func (githubBaselineSource) ProduceSBOM(ctx context.Context, _ *zap.Logger, client *http.Client, caseDir, _ string, target Target, outputPath string) error {
 	responsePath := filepath.Join(caseDir, "sources", "github", "response.json")
 	if err := fetchGitHubSBOM(ctx, client, repoSlug(target.URL), responsePath); err != nil {
 		return fmt.Errorf("GitHub SBOM fetch failed: %w", err)
@@ -338,8 +358,8 @@ type syftBaselineSource struct {
 func (s syftBaselineSource) Name() string        { return s.name }
 func (syftBaselineSource) Tools() []string       { return []string{"syft"} }
 func (s syftBaselineSource) BomlyFormat() string { return s.bomlyFormat }
-func (s syftBaselineSource) ProduceSBOM(ctx context.Context, _ *http.Client, caseDir, checkoutDir string, _ Target, outputPath string) error {
-	return runLoggedCommand(ctx, nil, filepath.Join(caseDir, "sources", s.name, "source.log"), "syft", checkoutDir, "-o", s.syftFormat+"="+outputPath)
+func (s syftBaselineSource) ProduceSBOM(ctx context.Context, logger *zap.Logger, _ *http.Client, caseDir, checkoutDir string, _ Target, outputPath string) error {
+	return runLoggedCommandWithLogger(ctx, logger, nil, filepath.Join(caseDir, "sources", s.name, "source.log"), "syft", checkoutDir, "-o", s.syftFormat+"="+outputPath)
 }
 
 func defaultBaselineSources() []baselineSource {
@@ -382,13 +402,113 @@ func sortedBomlyArtifacts(values map[string]bomlySBOMArtifact) []bomlySBOMArtifa
 	return out
 }
 
+func writeBomlySBOMs(caseDir string, result NativeScanResult, artifacts map[string]bomlySBOMArtifact) error {
+	toolNames := make([]string, 0, len(result.Detectors))
+	for _, detector := range result.Detectors {
+		if name := strings.TrimSpace(detector); name != "" {
+			toolNames = append(toolNames, "bomly-detector:"+name)
+		}
+	}
+	for _, artifact := range sortedBomlyArtifacts(artifacts) {
+		target, err := bomlySBOMTarget(artifact.Format)
+		if err != nil {
+			return err
+		}
+		raw, err := sbom.MarshalDepGraphJSON(result.Graph, target, sbom.BuildOptions{ToolNames: toolNames}, sbom.EncodeOptions{Pretty: true})
+		if err != nil {
+			return fmt.Errorf("marshal Bomly %s SBOM: %w", artifact.Format, err)
+		}
+		path := filepath.Join(caseDir, artifact.RawSBOM)
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			return fmt.Errorf("create Bomly artifact dir: %w", err)
+		}
+		if err := os.WriteFile(path, raw, 0o644); err != nil {
+			return fmt.Errorf("write Bomly %s SBOM: %w", artifact.Format, err)
+		}
+	}
+	return nil
+}
+
+func bomlySBOMTarget(format string) (sbom.Target, error) {
+	switch format {
+	case "spdx":
+		return sbom.TargetSPDX23JSON, nil
+	case "cyclonedx":
+		return sbom.TargetCycloneDX16JSON, nil
+	default:
+		return "", fmt.Errorf("unsupported Bomly benchmark SBOM format %q", format)
+	}
+}
+
+func writeSBOMDiffArtifact(basePath, headPath, outputPath string) error {
+	baseDoc, _, err := loadSBOMDocument(basePath)
+	if err != nil {
+		return fmt.Errorf("read diff base SBOM: %w", err)
+	}
+	headDoc, _, err := loadSBOMDocument(headPath)
+	if err != nil {
+		return fmt.Errorf("read diff head SBOM: %w", err)
+	}
+	baseGraph, err := sbom.ToGraph(baseDoc)
+	if err != nil {
+		return fmt.Errorf("convert diff base SBOM to graph: %w", err)
+	}
+	headGraph, err := sbom.ToGraph(headDoc)
+	if err != nil {
+		return fmt.Errorf("convert diff head SBOM to graph: %w", err)
+	}
+	payload := output.BuildDiffResponse(
+		"benchmark",
+		basePath,
+		headPath,
+		benchmarkSBOMConsolidatedGraph(basePath, baseGraph),
+		benchmarkSBOMConsolidatedGraph(headPath, headGraph),
+		nil,
+		time.Now(),
+	)
+	return writeJSON(outputPath, payload)
+}
+
+func benchmarkSBOMConsolidatedGraph(path string, graph *sdk.Graph) sdk.ConsolidatedGraph {
+	target := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: path}
+	subproject := sdk.Subproject{
+		ExecutionTarget:         target,
+		RelativePath:            filepath.Base(path),
+		PrimaryDetector:         "sbom-detector",
+		DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerSBOM},
+		Ecosystem:               sdk.EcosystemSBOM,
+	}
+	entry := sdk.GraphEntry{Graph: graph, Manifest: sdk.ManifestMetadata{Path: path, Kind: "sbom"}}
+	return sdk.ConsolidatedGraph{
+		ExecutionTarget: target,
+		Graphs:          sdk.SingleGraphContainer(graph, entry.Manifest),
+		Manifests: []sdk.ConsolidatedManifest{{
+			Entry: entry, Subproject: subproject, DetectorName: "sbom-detector", Origin: sdk.CoreOrigin, Technique: sdk.SBOMTechnique,
+		}},
+		Subprojects: []sdk.ConsolidatedSubproject{{Subproject: subproject, DetectorName: "sbom-detector"}},
+	}
+}
+
+func benchmarkInstallFirst(target Target, requested bool) (bool, error) {
+	installFirst := requested
+	for _, arg := range target.Args {
+		switch strings.TrimSpace(arg) {
+		case "":
+		case "--install-first":
+			installFirst = true
+		default:
+			return false, fmt.Errorf("benchmark target %q has unsupported scan argument %q", target.Name, arg)
+		}
+	}
+	return installFirst, nil
+}
+
 func sourceArtifacts(source string) SourceArtifacts {
 	prefix := filepath.ToSlash(filepath.Join("sources", source))
 	artifacts := SourceArtifacts{
 		SBOM:    filepath.ToSlash(filepath.Join(prefix, "source.sbom.json")),
 		RawSBOM: filepath.ToSlash(filepath.Join(prefix, "source.raw.sbom.json")),
 		Diff:    filepath.ToSlash(filepath.Join(prefix, "diff.json")),
-		DiffLog: filepath.ToSlash(filepath.Join(prefix, "diff.log")),
 		Log:     filepath.ToSlash(filepath.Join(prefix, "source.log")),
 		Summary: filepath.ToSlash(filepath.Join(prefix, "benchmark-summary.json")),
 	}
@@ -397,6 +517,13 @@ func sourceArtifacts(source string) SourceArtifacts {
 		artifacts.Response = filepath.ToSlash(filepath.Join(prefix, "response.json"))
 	}
 	return artifacts
+}
+
+func loggerOrNop(logger *zap.Logger) *zap.Logger {
+	if logger == nil {
+		return zap.NewNop()
+	}
+	return logger
 }
 
 // ParseNames parses a comma-separated selector list.
@@ -539,16 +666,16 @@ func loadSBOMDocument(path string) (*sbom.Document, sbom.Target, error) {
 	return doc, target, nil
 }
 
-func checkoutTarget(ctx context.Context, logPath, repository, checkoutDir string) error {
-	if err := runLoggedCommand(ctx, nil, logPath, "git", "clone", "--depth", "1", repository, checkoutDir); err != nil {
+func checkoutTarget(ctx context.Context, logger *zap.Logger, logPath, repository, checkoutDir string) error {
+	if err := runLoggedCommandWithLogger(ctx, logger, nil, logPath, "git", "clone", "--depth", "1", repository, checkoutDir); err != nil {
 		return fmt.Errorf("checkout repository: %w", err)
 	}
 	return nil
 }
 
-func resolveCheckoutHEAD(ctx context.Context, logPath, checkoutDir string) (string, error) {
+func resolveCheckoutHEAD(ctx context.Context, logger *zap.Logger, logPath, checkoutDir string) (string, error) {
 	outputPath := logPath + ".stdout"
-	if err := runOutputCommand(ctx, nil, outputPath, logPath, "git", "-C", checkoutDir, "rev-parse", "HEAD"); err != nil {
+	if err := runOutputCommand(ctx, logger, nil, outputPath, logPath, "git", "-C", checkoutDir, "rev-parse", "HEAD"); err != nil {
 		return "", fmt.Errorf("resolve checkout HEAD: %w", err)
 	}
 	raw, err := os.ReadFile(outputPath)
@@ -558,32 +685,7 @@ func resolveCheckoutHEAD(ctx context.Context, logPath, checkoutDir string) (stri
 	return strings.TrimSpace(string(raw)), nil
 }
 
-func benchmarkChildEnv(caseDir string) ([]string, error) {
-	home := filepath.Join(caseDir, "runtime", "home")
-	plugins := filepath.Join(caseDir, "runtime", "plugins")
-	if err := os.MkdirAll(home, 0o755); err != nil {
-		return nil, fmt.Errorf("create benchmark runtime home: %w", err)
-	}
-	if err := os.MkdirAll(plugins, 0o755); err != nil {
-		return nil, fmt.Errorf("create benchmark plugin dir: %w", err)
-	}
-	out := make([]string, 0, len(os.Environ())+3)
-	for _, entry := range os.Environ() {
-		name, _, _ := strings.Cut(entry, "=")
-		upper := strings.ToUpper(name)
-		if strings.HasPrefix(upper, "BOMLY_") || upper == "HOME" || upper == "USERPROFILE" {
-			continue
-		}
-		out = append(out, entry)
-	}
-	out = append(out, "HOME="+home, "BOMLY_PLUGIN_HOME="+plugins)
-	if runtime.GOOS == "windows" {
-		out = append(out, "USERPROFILE="+home)
-	}
-	return out, nil
-}
-
-func runLoggedCommand(ctx context.Context, env []string, logPath, name string, args ...string) error {
+func runLoggedCommandWithLogger(ctx context.Context, logger *zap.Logger, env []string, logPath, name string, args ...string) error {
 	if err := os.MkdirAll(filepath.Dir(logPath), 0o755); err != nil {
 		return fmt.Errorf("create log parent dir: %w", err)
 	}
@@ -593,6 +695,7 @@ func runLoggedCommand(ctx context.Context, env []string, logPath, name string, a
 	}
 	defer func() { _ = logFile.Close() }()
 	_, _ = fmt.Fprintf(logFile, "$ %s %s\n", name, strings.Join(args, " "))
+	loggerOrNop(logger).Debug("benchmark: running command", zap.String("binary", name), zap.Strings("args", args), zap.String("working_dir", inheritedWorkingDir()))
 	cmd := exec.CommandContext(ctx, name, args...)
 	if env != nil {
 		cmd.Env = env
@@ -605,7 +708,7 @@ func runLoggedCommand(ctx context.Context, env []string, logPath, name string, a
 	return nil
 }
 
-func runOutputCommand(ctx context.Context, env []string, outputPath, logPath, name string, args ...string) error {
+func runOutputCommand(ctx context.Context, logger *zap.Logger, env []string, outputPath, logPath, name string, args ...string) error {
 	if err := os.MkdirAll(filepath.Dir(outputPath), 0o755); err != nil {
 		return fmt.Errorf("create output parent dir: %w", err)
 	}
@@ -623,6 +726,7 @@ func runOutputCommand(ctx context.Context, env []string, outputPath, logPath, na
 	}
 	defer func() { _ = logFile.Close() }()
 	_, _ = fmt.Fprintf(logFile, "$ %s %s\n", name, strings.Join(args, " "))
+	loggerOrNop(logger).Debug("benchmark: running command", zap.String("binary", name), zap.Strings("args", args), zap.String("working_dir", inheritedWorkingDir()))
 	cmd := exec.CommandContext(ctx, name, args...)
 	if env != nil {
 		cmd.Env = env
@@ -633,6 +737,11 @@ func runOutputCommand(ctx context.Context, env []string, outputPath, logPath, na
 		return fmt.Errorf("run %s: %w (see %s)", name, err, logPath)
 	}
 	return nil
+}
+
+func inheritedWorkingDir() string {
+	cwd, _ := os.Getwd()
+	return cwd
 }
 
 func unwrapGitHubSBOM(inputPath, outputPath string) error {

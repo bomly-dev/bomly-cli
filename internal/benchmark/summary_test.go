@@ -2,10 +2,14 @@ package benchmark
 
 import (
 	"bytes"
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
@@ -55,6 +59,38 @@ func TestBuildSourceSummaryScoresPackagesAndRelationships(t *testing.T) {
 	}
 	if !reflect.DeepEqual(summary.Detectors, []string{"npm-detector"}) {
 		t.Fatalf("detectors = %#v", summary.Detectors)
+	}
+}
+
+func TestWriteSBOMDiffArtifactUsesStructuredDiffOutput(t *testing.T) {
+	dir := t.TempDir()
+	basePath := filepath.Join(dir, "base.sbom.json")
+	headPath := filepath.Join(dir, "head.sbom.json")
+	diffPath := filepath.Join(dir, "diff.json")
+	base := &sbom.Document{Components: []sbom.Component{{ID: "a", Name: "a", Version: "1.0.0", PURL: "pkg:npm/a@1.0.0"}}}
+	head := &sbom.Document{Components: []sbom.Component{{ID: "a", Name: "a", Version: "2.0.0", PURL: "pkg:npm/a@2.0.0"}}}
+	for path, doc := range map[string]*sbom.Document{basePath: base, headPath: head} {
+		raw, err := sbom.MarshalJSON(doc, sbom.TargetSPDX23JSON, sbom.EncodeOptions{Pretty: true})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, raw, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := writeSBOMDiffArtifact(basePath, headPath, diffPath); err != nil {
+		t.Fatal(err)
+	}
+	raw, err := os.ReadFile(diffPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var payload output.DiffResponse
+	if err := json.Unmarshal(raw, &payload); err != nil {
+		t.Fatal(err)
+	}
+	if payload.Command != "diff" || payload.Summary.ChangedPackageCount != 1 {
+		t.Fatalf("payload = %#v", payload)
 	}
 }
 

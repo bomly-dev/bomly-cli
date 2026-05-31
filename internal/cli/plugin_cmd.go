@@ -238,7 +238,18 @@ func newPluginInstallCmd() *cobra.Command {
 				nonEmptyString(result.ResolvedSource, args[0]),
 				nonEmptyString(result.Installed.Checksum, "not recorded"),
 			)
-			return err
+			if err != nil {
+				return err
+			}
+			if devBinary {
+				_, _ = fmt.Fprintf(cmd.ErrOrStderr(),
+					"Warning: installed in development mode — no checksum was recorded. Only enable plugins you built or fully trust.\n")
+			}
+			if insecureSkipChecksum {
+				_, _ = fmt.Fprintf(cmd.ErrOrStderr(),
+					"Warning: checksum verification was skipped. Verify this plugin's integrity before enabling it.\n")
+			}
+			return nil
 		},
 	}
 	cmd.Flags().BoolVar(&devBinary, "dev", false, "Install a local development plugin binary instead of an archive")
@@ -269,7 +280,30 @@ func newPluginUninstallCmd() *cobra.Command {
 }
 
 func newPluginEnableCmd() *cobra.Command {
-	return togglePluginStateCmd("enable", "Enable an installed external plugin", managedplugin.Enable, "enabled")
+	return &cobra.Command{
+		Use:   "enable <id>",
+		Short: "Enable an installed external plugin",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			options, err := commandOptions(cmd)
+			if err != nil {
+				return err
+			}
+			pluginRecord, err := managedplugin.Enable("", strings.TrimSpace(args[0]))
+			if err != nil {
+				return err
+			}
+			current := options.GetConfig()
+			streams := newCommandStreams(cmd, current.Quiet, current.Verbosity)
+			if _, err := fmt.Fprintf(streams.reportWriter(), "enabled %s@%s\n", pluginRecord.ID, pluginRecord.Version); err != nil {
+				return err
+			}
+			_, _ = fmt.Fprintf(cmd.ErrOrStderr(),
+				"Warning: %s@%s will run as a native subprocess with full OS execution privileges during scans. Only enable plugins from sources you trust.\n",
+				pluginRecord.ID, pluginRecord.Version)
+			return nil
+		},
+	}
 }
 
 func newPluginDisableCmd() *cobra.Command {
@@ -319,6 +353,11 @@ func newPluginVerifyCmd() *cobra.Command {
 			result, err := managedplugin.Verify(options.PluginLaunchContext(cmd.Context()), "", strings.TrimSpace(args[0]))
 			if err != nil {
 				return err
+			}
+			if result.Installed != nil && result.Installed.Checksum == "" {
+				_, _ = fmt.Fprintf(cmd.ErrOrStderr(),
+					"Warning: no checksum is recorded for %s@%s — this plugin was installed without integrity verification. Treat it as untrusted.\n",
+					result.ID, result.Version)
 			}
 			if jsonOutput {
 				return writeJSON(streams.reportWriter(), result)

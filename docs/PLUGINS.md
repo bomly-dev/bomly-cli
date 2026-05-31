@@ -27,6 +27,8 @@ Installed external plugins are disabled by default. They do not participate in s
 
 Enabled plugins are loaded during runtime preparation in local and CI workflows. Treat `bomly plugin enable` as the trust decision for running that external binary.
 
+When enabled, a plugin binary runs as a native OS subprocess with the same user-level privileges as the bomly process. It can read and write files, make network connections, and execute system calls within those privileges.
+
 ## Configuration And Proxy Support
 
 Bomly passes the active plugin API version, the explicit `BOMLY_CONFIG` path when one was provided, proxy settings, and the enabled plugin's own config to managed plugin subprocesses.
@@ -275,15 +277,37 @@ For GitHub Release installs, Bomly resolves the release metadata, selects the as
 
 ## Security Model
 
-Bomly validates plugin manifests before execution and rejects unsafe archive paths.
+External plugins are native OS subprocesses. They are not sandboxed, not containerized, and not restricted by Bomly in any way beyond the operating system's standard user-level privilege boundary. When a plugin runs, it inherits the full privileges of the user invoking bomly: it can read and write files, open network connections, spawn child processes, and access environment variables.
 
-Important constraints:
+**What Bomly validates before executing a plugin:**
 
-- direct URL installs require `--checksum` unless you explicitly bypass it
-- runtime metadata must match manifest identity, version, kind, and API version
-- plugin metadata is treated as untrusted input
-- enabled state is host-owned and stored in Bomly's installed plugin database
-- plugin execution uses context cancellation
-- repository-declared plugins are not executed automatically
+- Manifest schema and required fields (ID, version, kind, runtime, API version)
+- Plugin API version compatibility with the running core version
+- Entrypoint binary exists at the recorded path
+- SHA256 checksum matches the installed record, when a checksum was recorded
+- Runtime-reported metadata matches the manifest identity, version, kind, and API version
 
-Managed plugins are isolated by process boundary, but they are still external binaries. Treat install and execution as a trust decision.
+**What Bomly cannot enforce:**
+
+- Restricting the plugin's filesystem or network access
+- Preventing the plugin from reading environment variables or credentials on the host
+- Preventing the plugin from spawning additional child processes
+- Guaranteeing that the installed binary matches the declared source if no checksum was recorded
+
+**Installation mode risk:**
+
+| Source | Integrity guarantee |
+|--------|---------------------|
+| Local archive (`bomly plugin install ./plugin.tar.gz --checksum sha256:...`) | Strongest: checksum ties the installed binary to the declared archive |
+| GitHub Release (`github:owner/repo@tag`) | SHA256SUMS asset verified automatically when present |
+| Direct URL with `--checksum` | Checksum ties the download to the declared identity |
+| Direct URL with `--insecure-skip-checksum` | None: the downloaded binary may differ from the declared source |
+| Local binary with `--dev` | None: appropriate only for binaries you built locally |
+
+**Recommended practices:**
+
+- Always supply `--checksum` for direct URL installs.
+- Run `bomly plugin verify <id>` before enabling any plugin installed from an external source.
+- Treat `bomly plugin enable` as the explicit trust decision for granting execution privileges. Do not enable plugins you did not build or obtain from a source you control.
+- Prefer `github:owner/repo@tag` installs — they resolve the asset for your current OS and architecture and verify against the published SHA256SUMS automatically.
+- Repository-declared plugins are never executed automatically. Bomly requires an explicit `bomly plugin enable` on the host before any external plugin participates in a scan.

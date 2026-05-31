@@ -128,7 +128,11 @@ Implementation priority:
 
 Native detector coverage is quality-of-graph coverage, not just support-matrix labeling. A built-in detector should ship with deterministic package metadata, graph edges where the ecosystem source can provide them, direct/development/runtime classification when it can be inferred, package URLs, unit fixtures in the detector package, and smoke coverage when a stable root-level real repository is available. Syft remains the compatibility backstop for package managers or project shapes that Bomly cannot resolve directly.
 
-Some native detector chains intentionally prefer a build-tool command over a committed file parser because the command can expose transitive edges that the lockfile or manifest does not encode. Pub, SwiftPM, and SBT follow this pattern: `pub-native`, `swiftpm-native`, and `sbt-native` run first when `dart`, `swift`, or `sbt` is available, then fall back to the committed-file detector if the tool is missing or fails. When validating graph-shape changes for those ecosystems, run smoke/QA on a host with the relevant toolchain installed and regenerate golden files from that environment.
+Some native detector chains intentionally prefer a build-tool command over a committed file parser because the command can expose transitive edges that the lockfile or manifest does not encode. Pub, SwiftPM, and SBT follow this pattern: `pub-native`, `swiftpm-native`, and `sbt-native` run first when `dart`, `swift`, or `sbt` is available, then fall back to the committed-file detector if the tool is missing or fails. When validating graph-shape changes for those ecosystems, run smoke tests and the local benchmark on a host with the relevant toolchain installed.
+
+### Decision: dependency graph benchmarking is hidden and local-only
+
+`bomly benchmark` is a hidden maintainer command backed by `internal/benchmark`. It scans public GitHub repositories with native detectors, compares the filtered dependency graph against GitHub Dependency Graph and external Syft SBOMs, and writes deterministic artifacts under `.benchmark-runs/latest`. Package and relationship scores are comparative engineering signals, not pass/fail gates and not claims that a baseline is ground truth. The benchmark is intentionally local-only so exploratory scoring does not become a release or merge gate before it is calibrated.
 
 ## Build Modes
 
@@ -188,6 +192,7 @@ Cache failures are non-fatal. The command should warn and continue rather than f
 | `internal/engine/scan` | Scan command pipeline API                                                                    |
 | `internal/output`     | Text, JSON, SARIF rendering, plus structured response payloads and schema generation            |
 | `internal/sbom`       | SPDX and CycloneDX codecs                                                                       |
+| `internal/benchmark`  | Hidden local dependency-graph benchmark, baseline comparison, scoring, and embedded presets      |
 | `sdk`      | Shared domain types                                                                             |
 | `internal/plugin`     | Managed plugin manifests, installation, verification, store state, adapters, and runtime glue  |
 | `internal/extensions` | Extension hooks and support code                                                                |

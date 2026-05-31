@@ -10,6 +10,8 @@ make build-lite          # go build -tags "bomly_external_syft,bomly_external_gr
 make test                # go test ./...
 make smoke               # end-to-end smoke tests against real repos/containers (slow, needs network)
 make smoke ARGS="-update" # regenerate golden files for smoke tests
+make benchmark           # run the hidden local dependency-graph benchmark
+make benchmark-report    # analyze local benchmark artifacts with Copilot CLI
 make run ARGS="scan"    # go run ./cmd/bomly <ARGS>
 make generate            # regenerate config reference, JSON schemas, schema docs, and support matrix
 ```
@@ -40,6 +42,7 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for full detail. Component ma
 | `internal/matchers/*`  | External enrichment matchers and shared matcher cache (osv, grype, deps.dev, ClearlyDefined, eol, scorecard) |
 | `internal/auditors/*`  | Policy evaluators and audit-only logic (policy, noop)                                             |
 | `internal/sbom`        | SBOM codec (SPDX 2.3, CycloneDX)                                                                  |
+| `internal/benchmark`   | Hidden local dependency-graph benchmark, baseline comparison, scoring, and embedded presets       |
 | `internal/output`      | Output rendering plus structured command payloads and schema generation for `scan`, `diff`, `explain`, JSON, and SARIF 2.1.0 |
 | `internal/plugin`      | Plugin discovery, protocol, handshake, and execution                                              |
 | `internal/engine/diff` | Diff pipeline orchestration and audit delta classification                                        |
@@ -117,7 +120,7 @@ Cache failures are **non-fatal** — log a warning and continue without caching.
 - Register built-ins in `internal/registry/builder.go`, which wires concrete detectors, auditors, matchers, and plugin stages into `engine.Registry`.
 - External enrichment is matcher-based; see `internal/matchers/depsdev`, `internal/matchers/clearlydefined`, `internal/matchers/osv`, `internal/matchers/grype`, `internal/matchers/eol`, and `internal/matchers/scorecard`.
 - Detector chains are explicit in `internal/registry/support.go` and `internal/registry/builder.go`; do not infer priority from technique alone.
-- Some native detectors are build-tool-backed primaries (`pub-native`, `swiftpm-native`, `sbt-native`) with committed-file fallbacks. Run smoke/QA with `dart`, `swift`, or `sbt` on `PATH` before updating graph-shape goldens for those ecosystems.
+- Some native detectors are build-tool-backed primaries (`pub-native`, `swiftpm-native`, `sbt-native`) with committed-file fallbacks. Run smoke tests and the local benchmark with `dart`, `swift`, or `sbt` on `PATH` before updating graph-shape expectations for those ecosystems.
 
 ### Terminal Output
 

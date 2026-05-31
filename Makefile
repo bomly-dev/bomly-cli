@@ -6,7 +6,7 @@ GOPATH_BIN=$(shell go env GOPATH)/bin
 EXE_SUFFIX=$(if $(filter Windows_NT,$(OS)),.exe,)
 GOLANGCI_LINT=$(GOPATH_BIN)/golangci-lint$(EXE_SUFFIX)
 
-.PHONY: build build-full build-lite fmt fmt-check lint install-hooks test run generate docs-config docs-schema docs-schema-md docs-support-matrix docs-components smoke qa licenses
+.PHONY: build build-full build-lite fmt fmt-check lint install-hooks test run generate docs-config docs-schema docs-schema-md docs-support-matrix docs-components smoke benchmark benchmark-report licenses
 
 build: build-full build-lite
 
@@ -37,8 +37,11 @@ test:
 smoke:
 	go test -tags "smoke" ./test/smoke/ -v -count=1 -timeout 15m $(if $(ARGS),$(ARGS),)
 
-qa: build-full
-	go test -tags "qa" ./test/qa/ -v -count=1 -run '^TestDependencyGraphQA$$' -timeout 15m --bomly=$(CURDIR)/bin/$(BINARY_NAME)$(EXE_SUFFIX) $(if $(ARGS),$(ARGS),)
+benchmark: build-full
+	bin/$(BINARY_NAME)$(EXE_SUFFIX) benchmark $(if $(ARGS),$(ARGS),)
+
+benchmark-report:
+	go run ./internal/tools/benchmarkreport
 
 run:
 	go run ./cmd/bomly $(ARGS)

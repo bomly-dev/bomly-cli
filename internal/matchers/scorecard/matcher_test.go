@@ -45,15 +45,24 @@ func newMatcher(t *testing.T, base string) *Matcher {
 	return m
 }
 
-func newGraph(t *testing.T, pkgs ...*sdk.Package) *sdk.Graph {
+func newGraph(t *testing.T, deps ...*sdk.Dependency) *sdk.Graph {
 	t.Helper()
 	g := sdk.New()
-	for _, p := range pkgs {
-		if err := g.AddPackage(p); err != nil {
-			t.Fatalf("AddPackage: %v", err)
+	for _, d := range deps {
+		if err := g.AddNode(d); err != nil {
+			t.Fatalf("AddNode: %v", err)
 		}
 	}
 	return g
+}
+
+// scorecardOf returns the enriched scorecard for a dependency from the registry.
+func scorecardOf(reg *sdk.PackageRegistry, dep *sdk.Dependency) *sdk.PackageScorecard {
+	pkg, ok := reg.Get(sdk.CanonicalPackageURLFromDependency(dep))
+	if !ok || pkg == nil {
+		return nil
+	}
+	return pkg.Scorecard
 }
 
 func TestMatch_AttachesScorecardToPackages(t *testing.T) {
@@ -67,27 +76,29 @@ func TestMatch_AttachesScorecardToPackages(t *testing.T) {
 	})
 
 	matcher := newMatcher(t, base)
-	pkg := &sdk.Package{ID: "scorecard@v5.0.0", Name: "scorecard", Version: "v5.0.0", PURL: "pkg:github/ossf/scorecard@v5.0.0"}
-	g := newGraph(t, pkg)
+	dep := sdk.NewDependency(sdk.Dependency{Name: "scorecard", Version: "v5.0.0", PURL: "pkg:github/ossf/scorecard@v5.0.0"})
+	g := newGraph(t, dep)
+	registry := sdk.NewPackageRegistry()
 
-	res, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: g, Mode: sdk.TargetModeFullGraph})
+	res, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: g, Registry: registry, Mode: sdk.TargetModeFullGraph})
 	if err != nil {
 		t.Fatalf("Match: %v", err)
 	}
-	if res.Graph == nil {
-		t.Fatal("expected graph in result")
+	if res.Registry == nil {
+		t.Fatal("expected registry in result")
 	}
-	if pkg.Scorecard == nil {
+	card := scorecardOf(registry, dep)
+	if card == nil {
 		t.Fatal("expected package to be enriched with Scorecard")
 	}
-	if got := pkg.Scorecard.AggregateScore; got != 8.7 {
+	if got := card.AggregateScore; got != 8.7 {
 		t.Errorf("AggregateScore = %v, want 8.7", got)
 	}
-	if got := pkg.Scorecard.Repository; got != "github.com/ossf/scorecard" {
+	if got := card.Repository; got != "github.com/ossf/scorecard" {
 		t.Errorf("Repository = %q", got)
 	}
-	if len(pkg.Scorecard.Checks) != 2 {
-		t.Errorf("Checks = %d, want 2", len(pkg.Scorecard.Checks))
+	if len(card.Checks) != 2 {
+		t.Errorf("Checks = %d, want 2", len(card.Checks))
 	}
 	if got := atomic.LoadInt32(calls); got != 1 {
 		t.Errorf("API calls = %d, want 1", got)
@@ -105,9 +116,9 @@ func TestMatch_CacheHitSkipsAPI(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
-	pkg1 := &sdk.Package{ID: "scorecard@v5.0.0", PURL: "pkg:github/ossf/scorecard@v5.0.0", Version: "v5.0.0"}
-	g1 := newGraph(t, pkg1)
-	if _, err := matcher1.Match(context.Background(), sdk.MatchRequest{Graph: g1, Mode: sdk.TargetModeFullGraph}); err != nil {
+	dep1 := sdk.NewDependency(sdk.Dependency{PURL: "pkg:github/ossf/scorecard@v5.0.0", Version: "v5.0.0"})
+	reg1 := sdk.NewPackageRegistry()
+	if _, err := matcher1.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep1), Registry: reg1, Mode: sdk.TargetModeFullGraph}); err != nil {
 		t.Fatalf("first Match: %v", err)
 	}
 
@@ -116,12 +127,12 @@ func TestMatch_CacheHitSkipsAPI(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New2: %v", err)
 	}
-	pkg2 := &sdk.Package{ID: "scorecard@v5.0.0", PURL: "pkg:github/ossf/scorecard@v5.0.0", Version: "v5.0.0"}
-	g2 := newGraph(t, pkg2)
-	if _, err := matcher2.Match(context.Background(), sdk.MatchRequest{Graph: g2, Mode: sdk.TargetModeFullGraph}); err != nil {
+	dep2 := sdk.NewDependency(sdk.Dependency{PURL: "pkg:github/ossf/scorecard@v5.0.0", Version: "v5.0.0"})
+	reg2 := sdk.NewPackageRegistry()
+	if _, err := matcher2.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep2), Registry: reg2, Mode: sdk.TargetModeFullGraph}); err != nil {
 		t.Fatalf("second Match: %v", err)
 	}
-	if pkg2.Scorecard == nil {
+	if scorecardOf(reg2, dep2) == nil {
 		t.Fatal("expected cached scorecard attached on second run")
 	}
 	if got := atomic.LoadInt32(calls); got != 1 {
@@ -135,23 +146,23 @@ func TestMatch_NotFoundCachedAsSentinel(t *testing.T) {
 	})
 
 	dir := t.TempDir()
-	pkg1 := &sdk.Package{ID: "x@1", PURL: "pkg:github/unscored/repo@1.0.0"}
-	g1 := newGraph(t, pkg1)
+	dep1 := sdk.NewDependency(sdk.Dependency{PURL: "pkg:github/unscored/repo@1.0.0", Version: "1.0.0"})
+	reg1 := sdk.NewPackageRegistry()
 	matcher, err := New(Config{APIBase: base, CacheDir: dir})
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
-	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: g1, Mode: sdk.TargetModeFullGraph}); err != nil {
+	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep1), Registry: reg1, Mode: sdk.TargetModeFullGraph}); err != nil {
 		t.Fatalf("Match: %v", err)
 	}
-	if pkg1.Scorecard != nil {
+	if scorecardOf(reg1, dep1) != nil {
 		t.Fatal("expected nil Scorecard for not-scored repo")
 	}
 
 	// Second invocation should hit the sentinel cache (no extra API call).
-	pkg2 := &sdk.Package{ID: "x@1", PURL: "pkg:github/unscored/repo@1.0.0"}
-	g2 := newGraph(t, pkg2)
-	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: g2, Mode: sdk.TargetModeFullGraph}); err != nil {
+	dep2 := sdk.NewDependency(sdk.Dependency{PURL: "pkg:github/unscored/repo@1.0.0", Version: "1.0.0"})
+	reg2 := sdk.NewPackageRegistry()
+	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep2), Registry: reg2, Mode: sdk.TargetModeFullGraph}); err != nil {
 		t.Fatalf("second Match: %v", err)
 	}
 	if got := atomic.LoadInt32(calls); got != 1 {
@@ -165,12 +176,12 @@ func TestMatch_ServerErrorIsNonFatal(t *testing.T) {
 	})
 
 	matcher := newMatcher(t, base)
-	pkg := &sdk.Package{ID: "x@1", PURL: "pkg:github/example/repo@1.0.0"}
-	g := newGraph(t, pkg)
-	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: g, Mode: sdk.TargetModeFullGraph}); err != nil {
+	dep := sdk.NewDependency(sdk.Dependency{PURL: "pkg:github/example/repo@1.0.0", Version: "1.0.0"})
+	reg := sdk.NewPackageRegistry()
+	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep), Registry: reg, Mode: sdk.TargetModeFullGraph}); err != nil {
 		t.Fatalf("Match must not return an error on transport failure; got %v", err)
 	}
-	if pkg.Scorecard != nil {
+	if scorecardOf(reg, dep) != nil {
 		t.Fatal("Scorecard should remain nil after 5xx")
 	}
 }
@@ -183,15 +194,15 @@ func TestMatch_SkipsPackagesWithoutResolvableRepo(t *testing.T) {
 	t.Cleanup(srv.Close)
 
 	matcher := newMatcher(t, srv.URL)
-	pkg := &sdk.Package{ID: "x@1", PURL: "pkg:npm/internal-only@1.0.0"}
-	g := newGraph(t, pkg)
-	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: g, Mode: sdk.TargetModeFullGraph}); err != nil {
+	dep := sdk.NewDependency(sdk.Dependency{PURL: "pkg:npm/internal-only@1.0.0", Version: "1.0.0"})
+	reg := sdk.NewPackageRegistry()
+	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep), Registry: reg, Mode: sdk.TargetModeFullGraph}); err != nil {
 		t.Fatalf("Match: %v", err)
 	}
 	if called {
 		t.Fatal("API should not be called when no github.com repo resolves")
 	}
-	if pkg.Scorecard != nil {
+	if scorecardOf(reg, dep) != nil {
 		t.Fatal("Scorecard should remain nil when no repo resolves")
 	}
 }
@@ -203,21 +214,23 @@ func TestMatch_ComponentModeOnlyEnrichesTarget(t *testing.T) {
 	})
 
 	matcher := newMatcher(t, base)
-	target := &sdk.Package{ID: "scorecard@v5.0.0", PURL: "pkg:github/ossf/scorecard@v5.0.0"}
-	other := &sdk.Package{ID: "logrus@v1.9", PURL: "pkg:golang/github.com/sirupsen/logrus@v1.9.0"}
+	target := sdk.NewDependency(sdk.Dependency{PURL: "pkg:github/ossf/scorecard@v5.0.0", Version: "v5.0.0"})
+	other := sdk.NewDependency(sdk.Dependency{PURL: "pkg:golang/github.com/sirupsen/logrus@v1.9.0", Version: "v1.9.0"})
 	g := newGraph(t, target, other)
+	reg := sdk.NewPackageRegistry()
 
 	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{
-		Graph:  g,
-		Target: target,
-		Mode:   sdk.TargetModeComponent,
+		Graph:    g,
+		Registry: reg,
+		Target:   target,
+		Mode:     sdk.TargetModeComponent,
 	}); err != nil {
 		t.Fatalf("Match: %v", err)
 	}
-	if target.Scorecard == nil {
+	if scorecardOf(reg, target) == nil {
 		t.Fatal("target should be enriched")
 	}
-	if other.Scorecard != nil {
+	if scorecardOf(reg, other) != nil {
 		t.Fatal("non-target package should not be enriched in component mode")
 	}
 	if got := atomic.LoadInt32(calls); got != 1 {

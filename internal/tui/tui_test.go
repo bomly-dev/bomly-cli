@@ -981,6 +981,251 @@ func TestScanInteractiveModel_VulnerabilityFilterEmptyStateDistinguishesNoMatche
 	}
 }
 
+func TestScanInteractiveModel_ReachabilityFilterCyclesFromKeyboard(t *testing.T) {
+	model := newScanReachabilityFilterModel(t, true)
+	model.SelectView(2)
+	wrapper := &teaModel{inner: model, width: 180, height: 40}
+
+	components := render.StripANSI(model.View(180, 40))
+	if !strings.Contains(components, "a reachability") || !strings.Contains(components, "Reachability: All") {
+		t.Fatalf("expected enabled components view to expose reachability controls, got:\n%s", components)
+	}
+
+	updated, _ := wrapper.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'a'}})
+	wrapper = updated.(*teaModel)
+	if model.reachabilityFilter != string(sdk.ReachabilityReachable) {
+		t.Fatalf("expected first a key to select reachable filter, got %q", model.reachabilityFilter)
+	}
+	assertInteractiveListTitles(t, model, []string{"reachable-lib@1.0.0", "mixed-lib@1.0.0"}, []string{"unreachable-lib@1.0.0", "unknown-lib@1.0.0", "nil-lib@1.0.0"})
+	if plain := render.StripANSI(wrapper.View()); !strings.Contains(plain, "Reachability: Reachable") {
+		t.Fatalf("expected reachable state line, got:\n%s", plain)
+	}
+
+	updated, _ = wrapper.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'a'}})
+	wrapper = updated.(*teaModel)
+	if model.reachabilityFilter != string(sdk.ReachabilityUnreachable) {
+		t.Fatalf("expected second a key to select unreachable filter, got %q", model.reachabilityFilter)
+	}
+	assertInteractiveListTitles(t, model, []string{"unreachable-lib@1.0.0"}, []string{"reachable-lib@1.0.0", "mixed-lib@1.0.0", "unknown-lib@1.0.0", "nil-lib@1.0.0"})
+
+	updated, _ = wrapper.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'a'}})
+	wrapper = updated.(*teaModel)
+	if model.reachabilityFilter != "" {
+		t.Fatalf("expected third a key to restore all filter, got %q", model.reachabilityFilter)
+	}
+
+	model.SelectView(3)
+	updated, _ = wrapper.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'a'}})
+	wrapper = updated.(*teaModel)
+	assertInteractiveListTitles(t, model, []string{"CVE-REACHABLE", "CVE-MIXED-REACHABLE"}, []string{"CVE-UNREACHABLE", "CVE-MIXED-UNREACHABLE", "CVE-UNKNOWN", "CVE-NIL"})
+	if plain := render.StripANSI(wrapper.View()); !strings.Contains(plain, "Reachability: Reachable") {
+		t.Fatalf("expected vulnerability state line to show reachable filter, got:\n%s", plain)
+	}
+
+	_, _ = wrapper.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'a'}})
+	assertInteractiveListTitles(t, model, []string{"CVE-UNREACHABLE", "CVE-MIXED-UNREACHABLE"}, []string{"CVE-REACHABLE", "CVE-MIXED-REACHABLE", "CVE-UNKNOWN", "CVE-NIL"})
+}
+
+func TestScanInteractiveModel_ReachabilityFilterUnavailableIsHiddenAndNoOp(t *testing.T) {
+	model := newScanReachabilityFilterModel(t, false)
+	model.SelectView(2)
+	wrapper := &teaModel{inner: model, width: 180, height: 40}
+	plain := render.StripANSI(wrapper.View())
+	if strings.Contains(plain, "a reachability") || strings.Contains(plain, "Reachability:") {
+		t.Fatalf("expected disabled reachability filter to stay hidden, got:\n%s", plain)
+	}
+	if _, _ = wrapper.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'a'}}); model.reachabilityFilter != "" {
+		t.Fatalf("expected a key to be ignored while reachability is disabled, got %q", model.reachabilityFilter)
+	}
+
+	noData := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, sdk.ConsolidatedGraph{}, sdk.New(), nil).WithReachabilityEnabled(true)
+	noData.SelectView(3)
+	plain = render.StripANSI(noData.View(180, 40))
+	if strings.Contains(plain, "a reachability") || strings.Contains(plain, "Reachability:") {
+		t.Fatalf("expected filter to stay hidden without reachability annotations, got:\n%s", plain)
+	}
+	noData.CycleReachabilityFilter()
+	if noData.reachabilityFilter != "" {
+		t.Fatalf("expected cycle to be ignored without annotations, got %q", noData.reachabilityFilter)
+	}
+
+	model = newScanReachabilityFilterModel(t, true)
+	model.SelectView(1)
+	model.CycleReachabilityFilter()
+	if model.reachabilityFilter != "" {
+		t.Fatalf("expected cycle to be ignored outside components and vulnerabilities, got %q", model.reachabilityFilter)
+	}
+}
+
+func TestScanInteractiveModel_OverviewShowsReachableSeverityCountsWhenEnabled(t *testing.T) {
+	enabled := newScanReachabilityFilterModel(t, true)
+	plain := render.StripANSI(enabled.View(240, 48))
+	if !strings.Contains(plain, "6 High (2 reachable)") {
+		t.Fatalf("expected overview vulnerability severity count to include reachable count, got:\n%s", plain)
+	}
+
+	disabled := newScanReachabilityFilterModel(t, false)
+	plain = render.StripANSI(disabled.View(240, 48))
+	if strings.Contains(plain, "reachable)") {
+		t.Fatalf("expected overview reachable counts to stay hidden when disabled, got:\n%s", plain)
+	}
+}
+
+func TestScanInteractiveModel_VulnerabilityRowsShowReachabilityBadgesWhenEnabled(t *testing.T) {
+	model := newScanReachabilityFilterModel(t, true)
+	model.SelectView(3)
+	assertInteractiveItemBadges(t, model, "CVE-REACHABLE", []string{"reachable"})
+	assertInteractiveItemBadges(t, model, "CVE-UNREACHABLE", []string{"unreachable"})
+	assertInteractiveItemBadges(t, model, "CVE-UNKNOWN", nil)
+	assertInteractiveItemBadges(t, model, "CVE-NIL", nil)
+
+	disabled := newScanReachabilityFilterModel(t, false)
+	disabled.SelectView(3)
+	assertInteractiveItemBadges(t, disabled, "CVE-REACHABLE", nil)
+}
+
+func TestScanInteractiveModel_SeverityFilterIncludesAnyAndNone(t *testing.T) {
+	if got := nextSeverityFilter(""); got != "any" {
+		t.Fatalf("nextSeverityFilter(all) = %q, want any", got)
+	}
+	if got := nextSeverityFilter("any"); got != "none" {
+		t.Fatalf("nextSeverityFilter(any) = %q, want none", got)
+	}
+
+	model := newScanReachabilityFilterModel(t, true)
+	model.SelectView(2)
+	model.CycleSeverityFilter()
+	if model.severityFilter != "any" {
+		t.Fatalf("expected first severity cycle to select any, got %q", model.severityFilter)
+	}
+	assertInteractiveListTitles(t, model, []string{"reachable-lib@1.0.0", "unreachable-lib@1.0.0", "mixed-lib@1.0.0", "unknown-lib@1.0.0", "nil-lib@1.0.0"}, []string{"demo-app@1.0.0"})
+
+	model.CycleSeverityFilter()
+	if model.severityFilter != "none" {
+		t.Fatalf("expected second severity cycle to select none, got %q", model.severityFilter)
+	}
+	assertInteractiveListTitles(t, model, []string{"demo-app@1.0.0"}, []string{"reachable-lib@1.0.0", "unreachable-lib@1.0.0", "mixed-lib@1.0.0", "unknown-lib@1.0.0", "nil-lib@1.0.0"})
+
+	model.SelectView(3)
+	model.severityFilter = "any"
+	model.rebuildListPreserveSelection()
+	assertInteractiveListTitles(t, model, []string{"CVE-REACHABLE", "CVE-UNREACHABLE", "CVE-MIXED-REACHABLE", "CVE-MIXED-UNREACHABLE", "CVE-UNKNOWN", "CVE-NIL"}, nil)
+	model.severityFilter = "none"
+	model.rebuildListPreserveSelection()
+	if len(model.List().items) != 0 {
+		t.Fatalf("expected none severity filter to hide every vulnerability row, got %#v", model.List().items)
+	}
+}
+
+func newScanReachabilityFilterModel(t *testing.T, enabled bool) *scanModel {
+	t.Helper()
+	vulnerability := func(id string, reachability *sdk.Reachability) sdk.PackageVulnerability {
+		return sdk.PackageVulnerability{ID: id, Severity: "high", Reachability: reachability}
+	}
+	root := sdk.NewPackage(sdk.Package{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"})
+	reachable := sdk.NewPackage(sdk.Package{
+		Name:            "reachable-lib",
+		Version:         "1.0.0",
+		Ecosystem:       "npm",
+		Vulnerabilities: []sdk.PackageVulnerability{vulnerability("CVE-REACHABLE", &sdk.Reachability{Status: sdk.ReachabilityReachable})},
+	})
+	unreachable := sdk.NewPackage(sdk.Package{
+		Name:            "unreachable-lib",
+		Version:         "1.0.0",
+		Ecosystem:       "npm",
+		Vulnerabilities: []sdk.PackageVulnerability{vulnerability("CVE-UNREACHABLE", &sdk.Reachability{Status: sdk.ReachabilityUnreachable})},
+	})
+	mixed := sdk.NewPackage(sdk.Package{
+		Name:      "mixed-lib",
+		Version:   "1.0.0",
+		Ecosystem: "npm",
+		Vulnerabilities: []sdk.PackageVulnerability{
+			vulnerability("CVE-MIXED-REACHABLE", &sdk.Reachability{Status: sdk.ReachabilityReachable}),
+			vulnerability("CVE-MIXED-UNREACHABLE", &sdk.Reachability{Status: sdk.ReachabilityUnreachable}),
+		},
+	})
+	unknown := sdk.NewPackage(sdk.Package{
+		Name:            "unknown-lib",
+		Version:         "1.0.0",
+		Ecosystem:       "npm",
+		Vulnerabilities: []sdk.PackageVulnerability{vulnerability("CVE-UNKNOWN", &sdk.Reachability{Status: sdk.ReachabilityUnknown})},
+	})
+	nilReachability := sdk.NewPackage(sdk.Package{
+		Name:            "nil-lib",
+		Version:         "1.0.0",
+		Ecosystem:       "npm",
+		Vulnerabilities: []sdk.PackageVulnerability{vulnerability("CVE-NIL", nil)},
+	})
+	g := sdk.New()
+	for _, pkg := range []*sdk.Package{root, reachable, unreachable, mixed, unknown, nilReachability} {
+		if err := g.AddPackage(pkg); err != nil {
+			t.Fatalf("add package: %v", err)
+		}
+	}
+	for _, pkg := range []*sdk.Package{reachable, unreachable, mixed, unknown, nilReachability} {
+		if err := g.AddDependency(root.ID, pkg.ID); err != nil {
+			t.Fatalf("add dependency: %v", err)
+		}
+	}
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
+			RelativePath:            ".",
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
+		},
+		DetectorName: "npm-detector",
+		Origin:       sdk.CoreOrigin,
+		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+	}})
+	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	return NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil).WithEnrichEnabled(true).WithReachabilityEnabled(enabled)
+}
+
+func assertInteractiveListTitles(t *testing.T, model *scanModel, contains, excludes []string) {
+	t.Helper()
+	titles := make([]string, 0, len(model.List().items))
+	titleSet := make(map[string]struct{}, len(model.List().items))
+	for _, item := range model.List().items {
+		titles = append(titles, item.title)
+		titleSet[item.title] = struct{}{}
+	}
+	joined := strings.Join(titles, "\n")
+	for _, want := range contains {
+		if _, ok := titleSet[want]; !ok {
+			t.Fatalf("expected interactive list titles to contain %q, got:\n%s", want, joined)
+		}
+	}
+	for _, excluded := range excludes {
+		if _, ok := titleSet[excluded]; ok {
+			t.Fatalf("expected interactive list titles to exclude %q, got:\n%s", excluded, joined)
+		}
+	}
+}
+
+func assertInteractiveItemBadges(t *testing.T, model *scanModel, title string, expectedReachability []string) {
+	t.Helper()
+	for _, item := range model.List().items {
+		if item.title != title {
+			continue
+		}
+		var actual []string
+		for _, itemBadge := range item.badges {
+			if strings.HasPrefix(itemBadge.kind, "reachability-") {
+				actual = append(actual, itemBadge.label)
+			}
+		}
+		if strings.Join(actual, ",") != strings.Join(expectedReachability, ",") {
+			t.Fatalf("reachability badges for %q = %#v, want %#v", title, actual, expectedReachability)
+		}
+		return
+	}
+	t.Fatalf("expected interactive list item %q", title)
+}
+
 func TestScanInteractiveModel_ExplainTopBarUsesQuery(t *testing.T) {
 	model := NewExplain(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, "react", sdk.ConsolidatedGraph{}, sdk.New(), nil)
 	plain := render.StripANSI(model.View(100, 26))

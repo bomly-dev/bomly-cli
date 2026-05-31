@@ -146,7 +146,7 @@ func newScanCmd() *cobra.Command {
 
 			if commandCtx.ResolvedConfig.Interactive {
 				prog.Stop()
-				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewScan(payload.Project, consolidated, selectedGraph, findings).WithEnrichEnabled(commandCtx.ResolvedConfig.Enrich)))
+				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewScan(payload.Project, consolidated, selectedGraph, findings).WithEnrichEnabled(commandCtx.ResolvedConfig.Enrich).WithReachabilityEnabled(commandCtx.ResolvedConfig.Reachability)))
 			}
 
 			writer, closeWriter, err := commandCtx.Writer(streams.reportWriter())

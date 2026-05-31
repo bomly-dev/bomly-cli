@@ -85,6 +85,10 @@ Bomly's YAML files use strict nested groups such as `target`, `analysis`, `polic
 
 Reachability data lives on `PackageVulnerability.Reachability` rather than only on `Finding.Reachability` because `--reachability` must be useful without `--audit`. Matchers attach the vulnerability; the analyzer enriches it; the policy auditor copies the annotation onto each emitted Finding when `--audit` runs. This keeps a single source of truth on the package graph and lets the consolidation layer's existing per-vuln merge propagate analyzer output to per-manifest entry graphs without bespoke wiring.
 
+### Decision: Remediation proposals are local-only and constraint-conservative
+
+The experimental remediation proposer (`internal/engine/remediation`) runs after the scan pipeline and reads only vulnerability records already attached to the consolidated graph. It must not call matchers, caches, HTTP clients, package managers, or subprocesses. The proposer combines locally available `FixedIn` and `FixedVersions` metadata into the minimum semver candidate that addresses every attached advisory. Because the consolidated graph does not preserve portable manifest dependency ranges, proposal constraint compatibility is always `unknown`. The TUI and MCP recommendation text require users to verify manifest constraints, re-resolve dependencies, and re-scan before treating a candidate as safe.
+
 ### Decision: Scorecard matcher reads precomputed runs, not the library
 
 The OpenSSF Scorecard matcher (`internal/matchers/scorecard`) fetches precomputed per-repo scores from `api.scorecard.dev` instead of importing `github.com/ossf/scorecard/v5` and running checks in-process. Three reasons:
@@ -190,6 +194,7 @@ Cache failures are non-fatal. The command should warn and continue rather than f
 | `internal/engine/diff` | Diff pipeline orchestration and audit delta classification                                    |
 | `internal/engine/explain` | Dependency path traversal                                                                   |
 | `internal/engine/scan` | Scan command pipeline API                                                                    |
+| `internal/engine/remediation` | Local-only experimental dependency upgrade proposals                                  |
 | `internal/output`     | Text, JSON, SARIF rendering, plus structured response payloads and schema generation            |
 | `internal/sbom`       | SPDX and CycloneDX codecs                                                                       |
 | `internal/benchmark`  | Hidden local dependency-graph benchmark, baseline comparison, scoring, and embedded presets      |

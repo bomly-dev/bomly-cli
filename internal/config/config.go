@@ -28,6 +28,7 @@ type Resolved struct {
 	Enrich                bool     `doc:"Enrich packages with external license and vulnerability data" env:"BOMLY_ENRICH"`
 	Audit                 bool     `doc:"Evaluate policy and create findings from package vulnerability data" env:"BOMLY_AUDIT"`
 	Reachability          bool     `doc:"Run code analysis to confirm whether vulnerabilities are reachable from application code" env:"BOMLY_REACHABILITY"`
+	ExperimentalRemediate bool     `doc:"Enable experimental local-only dependency remediation proposals in the interactive scan TUI" env:"BOMLY_EXPERIMENTAL_REMEDIATE"`
 	FailOn                []string `doc:"Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable" env:"BOMLY_FAIL_ON"`
 	FailOnScopes          []string `doc:"Dependency scopes that may produce failing findings: runtime, development, unknown" env:"BOMLY_FAIL_ON_SCOPES"`
 	AllowVulnerabilityIDs []string `doc:"Vulnerability IDs to ignore during policy evaluation" env:"BOMLY_ALLOW_VULNERABILITY_IDS"`
@@ -112,11 +113,12 @@ type TargetFile struct {
 
 // AnalysisFile configures optional analysis behavior and dependency preparation.
 type AnalysisFile struct {
-	Enrich       *bool     `yaml:"enrich,omitempty" resolved:"Enrich" legacy:"enrich"`
-	Audit        *bool     `yaml:"audit,omitempty" resolved:"Audit" legacy:"audit"`
-	Reachability *bool     `yaml:"reachability,omitempty" resolved:"Reachability" legacy:"reachability"`
-	InstallFirst *bool     `yaml:"install_first,omitempty" resolved:"InstallFirst" legacy:"install_first"`
-	InstallArgs  *[]string `yaml:"install_args,omitempty" resolved:"InstallArgs" legacy:"install_args"`
+	Enrich                *bool     `yaml:"enrich,omitempty" resolved:"Enrich" legacy:"enrich"`
+	Audit                 *bool     `yaml:"audit,omitempty" resolved:"Audit" legacy:"audit"`
+	Reachability          *bool     `yaml:"reachability,omitempty" resolved:"Reachability" legacy:"reachability"`
+	ExperimentalRemediate *bool     `yaml:"experimental_remediate,omitempty" resolved:"ExperimentalRemediate" legacy:"experimental_remediate"`
+	InstallFirst          *bool     `yaml:"install_first,omitempty" resolved:"InstallFirst" legacy:"install_first"`
+	InstallArgs           *[]string `yaml:"install_args,omitempty" resolved:"InstallArgs" legacy:"install_args"`
 }
 
 // ComponentsFile configures component selection.

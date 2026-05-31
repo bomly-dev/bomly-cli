@@ -27,6 +27,7 @@ YAML files use the nested keys documented below. Unknown keys and the former fla
 | `analysis.enrich` | `BOMLY_ENRICH` | `bool` | - | Enrich packages with external license and vulnerability data |
 | `analysis.audit` | `BOMLY_AUDIT` | `bool` | - | Evaluate policy and create findings from package vulnerability data |
 | `analysis.reachability` | `BOMLY_REACHABILITY` | `bool` | - | Run code analysis to confirm whether vulnerabilities are reachable from application code |
+| `analysis.experimental_remediate` | `BOMLY_EXPERIMENTAL_REMEDIATE` | `bool` | - | Enable experimental local-only dependency remediation proposals in the interactive scan TUI |
 | `policy.fail_on` | `BOMLY_FAIL_ON` | `[]string` | - | Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable |
 | `policy.fail_on_scopes` | `BOMLY_FAIL_ON_SCOPES` | `[]string` | - | Dependency scopes that may produce failing findings: runtime, development, unknown |
 | `policy.allow_vulnerability_ids` | `BOMLY_ALLOW_VULNERABILITY_IDS` | `[]string` | - | Vulnerability IDs to ignore during policy evaluation |
@@ -114,6 +115,7 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 | `eol_api_base` | `matchers.eol.api_base` |
 | `eol_cache_dir` | `matchers.eol.cache_dir` |
 | `eol_cache_ttl` | `matchers.eol.cache_ttl` |
+| `experimental_remediate` | `analysis.experimental_remediate` |
 | `fail_on` | `policy.fail_on` |
 | `fail_on_scopes` | `policy.fail_on_scopes` |
 | `format` | `output.format` |
@@ -174,6 +176,8 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 #   audit: false
 #   Run code analysis to confirm whether vulnerabilities are reachable from application code
 #   reachability: false
+#   Enable experimental local-only dependency remediation proposals in the interactive scan TUI
+#   experimental_remediate: false
 #   Run detector-specific dependency installation before resolving graphs
 #   install_first: false
 #   Additional detector-specific install arguments

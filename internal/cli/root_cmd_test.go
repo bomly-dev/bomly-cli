@@ -347,7 +347,7 @@ func TestRootHelp_IncludesAvailableOptionValuesSection(t *testing.T) {
 	if strings.Contains(helpText, "Explore available detectors, matchers, and auditors with `bomly plugin list`.") {
 		t.Fatalf("expected root help output to omit selector guidance, got:\n%s", helpText)
 	}
-	for _, nonGlobal := range []string{"--enrich", "--audit", "--reachability", "--ecosystems", "--detectors"} {
+	for _, nonGlobal := range []string{"--enrich", "--audit", "--reachability", "--experimental-remediate", "--ecosystems", "--detectors"} {
 		if strings.Contains(helpText, nonGlobal) {
 			t.Fatalf("expected root help output to omit non-global flag %q, got:\n%s", nonGlobal, helpText)
 		}
@@ -402,6 +402,7 @@ func TestRootHelp_CommandExamplesRender(t *testing.T) {
 				"bomly scan -o spdx=bomly.spdx.json",
 				"bomly scan --url https://github.com/bomly-dev/bomly-cli --ref main --json",
 				"bomly scan --container alpine:3.20",
+				"--experimental-remediate",
 				"Explore available detectors, matchers, and auditors with `bomly plugin list`.",
 			},
 			notInText: []string{"Exit Codes:"},
@@ -410,13 +411,13 @@ func TestRootHelp_CommandExamplesRender(t *testing.T) {
 			name:      "diff",
 			args:      []string{"diff", "--help"},
 			examples:  []string{"Examples:", "bomly diff --sbom --base ./before.cdx.json --head ./after.cdx.json --json"},
-			notInText: []string{"Exit Codes:"},
+			notInText: []string{"Exit Codes:", "--experimental-remediate"},
 		},
 		{
 			name:      "explain",
 			args:      []string{"explain", "--help"},
 			examples:  []string{"Examples:", "bomly explain pkg:npm/react", "bomly explain github.com/spf13/cobra --path . --json"},
-			notInText: []string{"Exit Codes:"},
+			notInText: []string{"Exit Codes:", "--experimental-remediate"},
 		},
 		{
 			name:      "plugin",

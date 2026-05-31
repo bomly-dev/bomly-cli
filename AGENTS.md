@@ -48,6 +48,7 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for full detail. Component ma
 | `internal/engine/diff` | Diff pipeline orchestration and audit delta classification                                        |
 | `internal/engine/explain` | Dependency path traversal (`explain` command)                                                  |
 | `internal/engine/scan` | Scan command pipeline API                                                                         |
+| `internal/engine/remediation` | Local-only experimental dependency upgrade proposals                                        |
 | `internal/matchers`    | External enrichment matchers plus shared matcher cache and enrichment helpers                     |
 | `internal/logging`     | Zap console wrapper                                                                               |
 | `internal/testutil`    | Test helpers (fake binary builder)                                                                |

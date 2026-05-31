@@ -99,3 +99,20 @@ func TestApplyFlagOverridesJSONShortcut(t *testing.T) {
 		})
 	}
 }
+
+func TestApplyFlagOverridesExperimentalRemediate(t *testing.T) {
+	options := &Options{}
+	root := newTestRootCommand(t)
+	if err := BindCommandFlagGroups(root, &options.ResolvedConfig, FlagGroupExperimentalRemediation); err != nil {
+		t.Fatalf("BindCommandFlagGroups() error = %v", err)
+	}
+	if err := root.ParseFlags([]string{"--experimental-remediate"}); err != nil {
+		t.Fatalf("ParseFlags() error = %v", err)
+	}
+
+	var dst config.Resolved
+	applyFlagOverrides(&dst, options.ResolvedConfig, root)
+	if !dst.ExperimentalRemediate {
+		t.Fatal("expected changed --experimental-remediate flag to override config")
+	}
+}

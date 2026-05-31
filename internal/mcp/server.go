@@ -206,6 +206,7 @@ func BuildRecommendationText(
 			msg += ". No fixed version is available at this time"
 		}
 		msg += ". No manifest file could be identified for automated remediation."
+		msg += " Verify manifest constraints, re-resolve dependencies, and re-scan before treating any candidate as safe."
 		return msg
 	}
 
@@ -214,7 +215,8 @@ func BuildRecommendationText(
 		return "Upgrade `" + t.TargetPackage + "` from " + t.CurrentVersion +
 			" to " + t.RecommendedVersion +
 			" in " + t.ManifestPath +
-			" to fix " + vulnLabel + " affecting " + dependency.Name + "@" + dependency.Version + "."
+			" to address " + vulnLabel + " affecting " + dependency.Name + "@" + dependency.Version +
+			". Verify manifest constraints, re-resolve dependencies, and re-scan before treating this candidate as safe."
 	}
 	suffix := ""
 	if minSafeVersion != "" {
@@ -224,5 +226,5 @@ func BuildRecommendationText(
 		"` is a transitive dependency introduced via `" + t.TargetPackage + "@" + t.CurrentVersion + "`" +
 		" in " + t.ManifestPath + "." +
 		" Look for a newer version of `" + t.TargetPackage + "` that depends on a patched version of `" + dependency.Name + "`" +
-		suffix + "."
+		suffix + ". Verify manifest constraints, re-resolve dependencies, and re-scan before treating any candidate as safe."
 }

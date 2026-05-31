@@ -24,7 +24,8 @@ Switch with the number keys or `Tab`:
 | `3` | Vulnerabilities | Findings grouped by package |
 | `4` | Licenses | License inventory and conflicts |
 | `5` | Findings | Audit policy hits with reasons |
-| `6` | Source | Detected manifest and lockfile inventory |
+| `6` | Posture | Repository posture checks |
+| `7` | Source | Detected manifest and lockfile inventory |
 
 `Tab` cycles forward through views; `Shift+Tab` is the reverse cycle in supporting terminals.
 
@@ -69,6 +70,12 @@ Press the filter key, then pick from the popup. Press the same key again to clea
 | `g` | Group (custom grouping) |
 
 Filters compose. Search and filters compose. The current filter set is shown in the header.
+
+## Experimental Remediation
+
+Run `bomly scan --interactive --enrich --experimental-remediate` to expose `f fix` in the Vulnerabilities pane. Press `f` to toggle the selected component between normal advisory details and **Proposed Upgrade Paths**.
+
+The panel uses only vulnerability metadata already attached to the consolidated graph. It proposes a locally evidenced semver candidate, not an automated or verified manifest edit. Manifest-constraint compatibility is reported as `unknown`; re-resolve dependencies and re-scan before treating a candidate as safe. See [Remediation Proposals](REMEDIATION.md).
 
 ## Quit
 

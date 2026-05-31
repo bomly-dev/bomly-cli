@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Masterminds/semver/v3"
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
 	"github.com/bomly-dev/bomly-cli/internal/engine/explain"
+	"github.com/bomly-dev/bomly-cli/internal/engine/remediation"
 	scanengine "github.com/bomly-dev/bomly-cli/internal/engine/scan"
 	"github.com/bomly-dev/bomly-cli/internal/mcp"
 	"github.com/bomly-dev/bomly-cli/internal/output"
@@ -128,6 +128,7 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 		clone.ResolvedConfig.WarnOnly = true
 	}
 	clone.ResolvedConfig.Interactive = false
+	clone.ResolvedConfig.ExperimentalRemediate = false
 
 	applyStringOverride(&resolved.Path, o.Path)
 	applyStringOverride(&resolved.Container, o.Container)
@@ -158,6 +159,7 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 		resolved.WarnOnly = true
 	}
 	resolved.Interactive = false
+	resolved.ExperimentalRemediate = false
 	clone.SetConfig(resolved)
 
 	return &clone
@@ -376,7 +378,11 @@ func (a *mcpOptionsAdapter) VulnFixContext(ctx context.Context, req mcp.VulnFixR
 		return mcp.VulnFixResult{}, fmt.Errorf("no vulnerabilities found for package %q; run with enrich enabled to populate vulnerability data", req.Package)
 	}
 
-	minSafeVersion := maxFixedIn(matchedVulns)
+	proposal := remediation.ProposePackage(targetPkg, matchedVulns)
+	minSafeVersion := ""
+	if proposal.Status == remediation.StatusProposed {
+		minSafeVersion = proposal.ProposedVersion
+	}
 	vulnIDs := make([]string, len(matchedVulns))
 	for i, v := range matchedVulns {
 		vulnIDs[i] = v.ID
@@ -414,28 +420,4 @@ func collectVulns(all []sdk.PackageVulnerability, vulnID string) []sdk.PackageVu
 		}
 	}
 	return nil
-}
-
-// maxFixedIn returns the highest FixedIn version across the given vulnerabilities.
-// Uses semver comparison when parseable; falls back to the last non-empty string.
-func maxFixedIn(vulns []sdk.PackageVulnerability) string {
-	var maxV *semver.Version
-	var maxStr string
-	for _, v := range vulns {
-		if v.FixedIn == "" {
-			continue
-		}
-		parsed, err := semver.NewVersion(v.FixedIn)
-		if err != nil {
-			if maxStr == "" {
-				maxStr = v.FixedIn
-			}
-			continue
-		}
-		if maxV == nil || parsed.GreaterThan(maxV) {
-			maxV = parsed
-			maxStr = v.FixedIn
-		}
-	}
-	return maxStr
 }

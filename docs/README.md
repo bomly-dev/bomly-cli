@@ -24,6 +24,7 @@ How Bomly thinks about your project.
 - [Matchers](MATCHERS.md) — enriching the graph with vulnerability, license, lifecycle data
 - [Auditors](AUDITORS.md) — evaluating the graph against policy
 - [Reachability](REACHABILITY.md) — narrowing findings to code your app actually calls
+- [Remediation Proposals](REMEDIATION.md) — experimental local-only upgrade candidates in the TUI
 - [Plugins](PLUGINS.md) — extending Bomly with external detectors, matchers, auditors
 - [Glossary](GLOSSARY.md) — every term, one sentence each
 

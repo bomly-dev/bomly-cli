@@ -391,6 +391,9 @@ func TestBuildRecommendationText_Direct(t *testing.T) {
 	if rec == "" {
 		t.Error("expected non-empty recommendation")
 	}
+	if !strings.Contains(rec, "Verify manifest constraints") || !strings.Contains(rec, "re-scan") {
+		t.Errorf("recommendation should disclose verification requirements, got: %s", rec)
+	}
 }
 
 func TestBuildRecommendationText_MultipleVulns(t *testing.T) {
@@ -419,5 +422,8 @@ func TestBuildRecommendationText_NoTargets(t *testing.T) {
 	rec := mcp.BuildRecommendationText(dep, []string{"CVE-2024-1234"}, "4.17.21", nil)
 	if rec == "" {
 		t.Error("expected non-empty fallback recommendation")
+	}
+	if !strings.Contains(rec, "Verify manifest constraints") || !strings.Contains(rec, "re-scan") {
+		t.Errorf("fallback recommendation should disclose verification requirements, got: %s", rec)
 	}
 }

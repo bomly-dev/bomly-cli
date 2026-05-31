@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
+	"github.com/bomly-dev/bomly-cli/internal/engine/remediation"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	tea "github.com/charmbracelet/bubbletea"
@@ -36,6 +37,10 @@ type filterModel interface {
 
 type reachabilityFilterModel interface {
 	CycleReachabilityFilter()
+}
+
+type remediationModel interface {
+	ToggleRemediationDetails()
 }
 
 type tabbedModel interface {
@@ -209,6 +214,9 @@ type scanModel struct {
 	findings              []sdk.Finding
 	enrichEnabled         bool
 	reachabilityEnabled   bool
+	remediationEnabled    bool
+	remediationDetails    bool
+	remediationProposals  remediation.Result
 	currentManifestID     string
 	allowManifestExit     bool
 	relationshipFilter    string
@@ -332,6 +340,10 @@ func (m *teaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "a":
 			if filterModel, ok := m.inner.(reachabilityFilterModel); ok {
 				filterModel.CycleReachabilityFilter()
+			}
+		case "f":
+			if remediationModel, ok := m.inner.(remediationModel); ok {
+				remediationModel.ToggleRemediationDetails()
 			}
 		case "g":
 			if groupModel, ok := m.inner.(groupModel); ok {

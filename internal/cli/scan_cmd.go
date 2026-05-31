@@ -9,12 +9,14 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
+	"github.com/bomly-dev/bomly-cli/internal/engine/remediation"
 	scanengine "github.com/bomly-dev/bomly-cli/internal/engine/scan"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
 	"github.com/bomly-dev/bomly-cli/internal/tui"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 )
 
 func newScanCmd() *cobra.Command {
@@ -93,6 +95,24 @@ func newScanCmd() *cobra.Command {
 
 			consolidated := pipeResult.Consolidated
 			selectedGraph := pipeResult.Graph
+			remediationResult := remediation.Result{}
+			if commandCtx.ResolvedConfig.ExperimentalRemediate {
+				remediationResult = remediation.Evaluate(selectedGraph)
+				logger.Info("remediation: evaluated local upgrade proposals",
+					zap.Int("vulnerable_packages", len(remediationResult.Proposals)),
+					zap.Int("proposed", remediationResult.ProposedCount()),
+					zap.Int("unavailable", remediationResult.UnavailableCount()),
+				)
+				for _, proposal := range remediationResult.Proposals {
+					if proposal.Status == remediation.StatusProposed {
+						continue
+					}
+					logger.Debug("remediation: proposal unavailable",
+						zap.String("package_id", proposal.PackageID),
+						zap.String("reason", proposal.Reason),
+					)
+				}
+			}
 
 			var findings []sdk.Finding
 			if commandCtx.ResolvedConfig.Audit {
@@ -146,7 +166,13 @@ func newScanCmd() *cobra.Command {
 
 			if commandCtx.ResolvedConfig.Interactive {
 				prog.Stop()
-				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewScan(payload.Project, consolidated, selectedGraph, findings).WithEnrichEnabled(commandCtx.ResolvedConfig.Enrich).WithReachabilityEnabled(commandCtx.ResolvedConfig.Reachability)))
+				model := tui.NewScan(payload.Project, consolidated, selectedGraph, findings).
+					WithEnrichEnabled(commandCtx.ResolvedConfig.Enrich).
+					WithReachabilityEnabled(commandCtx.ResolvedConfig.Reachability)
+				if commandCtx.ResolvedConfig.ExperimentalRemediate {
+					model.WithRemediationProposals(remediationResult)
+				}
+				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), model))
 			}
 
 			writer, closeWriter, err := commandCtx.Writer(streams.reportWriter())

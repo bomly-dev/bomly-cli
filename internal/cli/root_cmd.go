@@ -95,6 +95,7 @@ func newRootCmd(version string) (*cobra.Command, error) {
 		opts.FlagGroupAnalysis,
 		opts.FlagGroupSelectors,
 		opts.FlagGroupExecution,
+		opts.FlagGroupExperimentalRemediation,
 	); err != nil {
 		return nil, err
 	}
@@ -177,6 +178,7 @@ func logResolvedOptions(cmd *cobra.Command) {
 		zap.Bool("audit", resolved.Audit),
 		zap.Strings("fail_on", resolved.FailOn),
 		zap.Bool("reachability", resolved.Reachability),
+		zap.Bool("experimental_remediate", resolved.ExperimentalRemediate),
 		zap.String("analyzers", resolved.Analyzers),
 		zap.String("format", resolved.Format),
 		zap.Bool("interactive", resolved.Interactive),

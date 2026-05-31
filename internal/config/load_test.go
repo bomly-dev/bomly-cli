@@ -85,6 +85,7 @@ analysis:
   enrich: true
   audit: true
   reachability: true
+  experimental_remediate: true
   install_first: true
   install_args: [--offline]
 components:
@@ -146,7 +147,7 @@ matchers:
 	if resolved.Container != "alpine:3.20" || resolved.URL == "" || resolved.Ref != "main" || !resolved.SBOM {
 		t.Fatalf("target config = %#v", resolved)
 	}
-	if !resolved.Enrich || !resolved.Audit || !resolved.Reachability || !resolved.InstallFirst {
+	if !resolved.Enrich || !resolved.Audit || !resolved.Reachability || !resolved.ExperimentalRemediate || !resolved.InstallFirst {
 		t.Fatalf("analysis config = %#v", resolved)
 	}
 	if len(resolved.InstallArgs) != 1 || resolved.InstallArgs[0] != "--offline" {
@@ -174,6 +175,7 @@ func TestApplyFileConfigClearsInheritedLists(t *testing.T) {
 	if err := os.WriteFile(path, []byte(`
 analysis:
   enrich: false
+  experimental_remediate: false
   install_args: []
 policy:
   fail_on: []
@@ -191,20 +193,30 @@ logging:
 		t.Fatalf("LoadFile() error = %v", err)
 	}
 	resolved := Resolved{
-		Enrich:        true,
-		InstallArgs:   []string{"--offline"},
-		FailOn:        []string{"high"},
-		AllowLicenses: []string{"MIT"},
-		Interactive:   true,
-		Outputs:       []string{"spdx=sbom.json"},
-		Verbosity:     2,
+		Enrich:                true,
+		ExperimentalRemediate: true,
+		InstallArgs:           []string{"--offline"},
+		FailOn:                []string{"high"},
+		AllowLicenses:         []string{"MIT"},
+		Interactive:           true,
+		Outputs:               []string{"spdx=sbom.json"},
+		Verbosity:             2,
 	}
 	ApplyFileConfig(&resolved, *fileCfg)
-	if resolved.Enrich || resolved.Interactive || resolved.Verbosity != 0 {
+	if resolved.Enrich || resolved.ExperimentalRemediate || resolved.Interactive || resolved.Verbosity != 0 {
 		t.Fatalf("expected explicit zero values to override inherited values, got %#v", resolved)
 	}
 	if len(resolved.InstallArgs) != 0 || len(resolved.FailOn) != 0 || len(resolved.AllowLicenses) != 0 || len(resolved.Outputs) != 0 {
 		t.Fatalf("expected explicit empty lists to clear inherited values, got %#v", resolved)
+	}
+}
+
+func TestApplyEnvOverridesExperimentalRemediate(t *testing.T) {
+	t.Setenv("BOMLY_EXPERIMENTAL_REMEDIATE", "true")
+	var resolved Resolved
+	ApplyEnvOverrides(&resolved)
+	if !resolved.ExperimentalRemediate {
+		t.Fatal("expected BOMLY_EXPERIMENTAL_REMEDIATE to enable experimental remediation")
 	}
 }
 

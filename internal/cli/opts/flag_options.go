@@ -16,10 +16,11 @@ import (
 type FlagGroup string
 
 const (
-	FlagGroupTarget    FlagGroup = "target"
-	FlagGroupAnalysis  FlagGroup = "analysis"
-	FlagGroupSelectors FlagGroup = "selectors"
-	FlagGroupExecution FlagGroup = "execution"
+	FlagGroupTarget                  FlagGroup = "target"
+	FlagGroupAnalysis                FlagGroup = "analysis"
+	FlagGroupSelectors               FlagGroup = "selectors"
+	FlagGroupExecution               FlagGroup = "execution"
+	FlagGroupExperimentalRemediation FlagGroup = "experimental-remediation"
 )
 
 func bindFlagOptions(cmd *cobra.Command, cfg *config.Resolved) error {
@@ -54,6 +55,8 @@ func BindCommandFlagGroups(cmd *cobra.Command, cfg *config.Resolved, groups ...F
 			}
 		case FlagGroupExecution:
 			bindExecutionFlags(cmd.Flags(), cfg)
+		case FlagGroupExperimentalRemediation:
+			bindExperimentalRemediationFlags(cmd.Flags(), cfg)
 		}
 	}
 
@@ -103,6 +106,10 @@ func bindExecutionFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
 	flags.StringArrayVar(&cfg.InstallArgs, "install-arg", nil, "Additional detector-specific install argument; may be repeated")
 }
 
+func bindExperimentalRemediationFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
+	flags.BoolVar(&cfg.ExperimentalRemediate, "experimental-remediate", false, "[Experimental] Propose local-only dependency upgrade paths in the interactive vulnerabilities pane (requires --interactive and --enrich)")
+}
+
 // BindJSONFormatFlag binds --json as a no-argument shortcut for setting format to json.
 func BindJSONFormatFlag(flags *pflag.FlagSet, format *string, usage string) {
 	if flags == nil {
@@ -148,6 +155,9 @@ func applyFlagOverrides(dst *config.Resolved, flags config.Resolved, cmd *cobra.
 	}
 	if flagChanged(cmd, "reachability") {
 		dst.Reachability = flags.Reachability
+	}
+	if flagChanged(cmd, "experimental-remediate") {
+		dst.ExperimentalRemediate = flags.ExperimentalRemediate
 	}
 	if flagChanged(cmd, "fail-on") {
 		dst.FailOn = append([]string(nil), flags.FailOn...)

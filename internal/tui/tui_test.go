@@ -7,6 +7,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/engine/consolidation"
+	"github.com/bomly-dev/bomly-cli/internal/engine/remediation"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	tea "github.com/charmbracelet/bubbletea"
@@ -979,6 +980,108 @@ func TestScanInteractiveModel_VulnerabilityFilterEmptyStateDistinguishesNoMatche
 	if !strings.Contains(plain, "No enriched vulnerabilities found. Run with --enrich to populate vulnerability data.") {
 		t.Fatalf("expected no-enrich empty state, got:\n%s", plain)
 	}
+}
+
+func TestScanInteractiveModel_RemediationIsHiddenAndNoOpUnlessEnabled(t *testing.T) {
+	model := newScanRemediationModel(t, false, []sdk.PackageVulnerability{{
+		ID:      "CVE-ONE",
+		FixedIn: "1.1.0",
+	}})
+	model.SelectView(3)
+	wrapper := &teaModel{inner: model, width: 180, height: 40}
+	if plain := render.StripANSI(wrapper.View()); strings.Contains(plain, "f fix") {
+		t.Fatalf("expected remediation control to stay hidden, got:\n%s", plain)
+	}
+
+	_, _ = wrapper.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'f'}})
+	if model.remediationDetails {
+		t.Fatal("expected f key to be ignored when remediation is disabled")
+	}
+}
+
+func TestScanInteractiveModel_RemediationToggleShowsAggregateComponentProposal(t *testing.T) {
+	model := newScanRemediationModel(t, true, []sdk.PackageVulnerability{
+		{ID: "CVE-ONE", FixedIn: "1.1.0"},
+		{ID: "CVE-TWO", FixedVersions: []string{"1.3.0", "1.2.0"}},
+	})
+	model.SelectView(3)
+	wrapper := &teaModel{inner: model, width: 180, height: 40}
+	if plain := render.StripANSI(wrapper.View()); !strings.Contains(plain, "f fix") {
+		t.Fatalf("expected enabled remediation control, got:\n%s", plain)
+	}
+
+	_, _ = wrapper.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'f'}})
+	if !model.remediationDetails {
+		t.Fatal("expected f key to toggle remediation details")
+	}
+	assertRemediationDetails(t, model, "Candidate version: 1.2.0", "Constraint compatibility: unknown", "Verify manifest constraints")
+
+	model.Move(1)
+	assertRemediationDetails(t, model, "Candidate version: 1.2.0")
+
+	model.SelectView(2)
+	model.SelectView(3)
+	if model.remediationDetails {
+		t.Fatal("expected tab switch to clear remediation details")
+	}
+	if details := selectedInteractiveDetails(model); strings.Contains(details, "Proposed Upgrade Paths") {
+		t.Fatalf("expected vulnerability details after tab switch, got:\n%s", details)
+	}
+}
+
+func TestScanInteractiveModel_RemediationShowsUnavailableAndGroupedPrompt(t *testing.T) {
+	model := newScanRemediationModel(t, true, []sdk.PackageVulnerability{{ID: "CVE-NO-FIX"}})
+	model.SelectView(3)
+	model.ToggleRemediationDetails()
+	assertRemediationDetails(t, model, "Status: insufficient_local_data", "Unavailable reason:")
+
+	model.ToggleRemediationDetails()
+	model.vulnerabilityGroup = "severity"
+	model.rebuildListPreserveSelection()
+	model.ToggleRemediationDetails()
+	assertRemediationDetails(t, model, "Select an advisory or a component group")
+}
+
+func newScanRemediationModel(t *testing.T, enabled bool, vulnerabilities []sdk.PackageVulnerability) *scanModel {
+	t.Helper()
+	graphValue := sdk.New()
+	root := sdk.NewPackage(sdk.Package{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"})
+	dependency := sdk.NewPackage(sdk.Package{
+		Name:            "lodash",
+		Version:         "1.0.0",
+		Ecosystem:       "npm",
+		Vulnerabilities: vulnerabilities,
+	})
+	for _, pkg := range []*sdk.Package{root, dependency} {
+		if err := graphValue.AddPackage(pkg); err != nil {
+			t.Fatalf("add package: %v", err)
+		}
+	}
+	if err := graphValue.AddDependency(root.ID, dependency.ID); err != nil {
+		t.Fatalf("add dependency: %v", err)
+	}
+	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, sdk.ConsolidatedGraph{}, graphValue, nil).WithEnrichEnabled(true)
+	if enabled {
+		model.WithRemediationProposals(remediation.Evaluate(graphValue))
+	}
+	return model
+}
+
+func assertRemediationDetails(t *testing.T, model *scanModel, expected ...string) {
+	t.Helper()
+	details := selectedInteractiveDetails(model)
+	for _, value := range expected {
+		if !strings.Contains(details, value) {
+			t.Fatalf("expected remediation details to contain %q, got:\n%s", value, details)
+		}
+	}
+}
+
+func selectedInteractiveDetails(model *scanModel) string {
+	if model == nil || model.List() == nil || len(model.List().items) == 0 {
+		return ""
+	}
+	return render.StripANSI(strings.Join(model.List().items[model.List().selected].details, "\n"))
 }
 
 func TestScanInteractiveModel_ReachabilityFilterCyclesFromKeyboard(t *testing.T) {

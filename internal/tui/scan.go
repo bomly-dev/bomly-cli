@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
+	"github.com/bomly-dev/bomly-cli/internal/engine/remediation"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
@@ -44,6 +45,20 @@ func (m *scanModel) WithReachabilityEnabled(enabled bool) *scanModel {
 		return nil
 	}
 	m.reachabilityEnabled = enabled
+	if m.shellModel != nil {
+		m.Rebuild()
+	}
+	return m
+}
+
+// WithRemediationProposals enables the experimental vulnerability remediation
+// layout with proposals computed from locally attached vulnerability metadata.
+func (m *scanModel) WithRemediationProposals(proposals remediation.Result) *scanModel {
+	if m == nil {
+		return nil
+	}
+	m.remediationEnabled = true
+	m.remediationProposals = proposals
 	if m.shellModel != nil {
 		m.Rebuild()
 	}
@@ -106,6 +121,36 @@ func (m *scanModel) currentScanView() scanView {
 		return interactiveScanViewOverview
 	}
 	return scanView(m.ActiveTabID())
+}
+
+// CycleView advances to the next tab and clears the vulnerability remediation
+// layout so it cannot leak into a different details pane.
+func (m *scanModel) CycleView() {
+	if m == nil || m.shellModel == nil {
+		return
+	}
+	m.remediationDetails = false
+	m.shellModel.CycleView()
+}
+
+// SelectView jumps to the requested tab and clears the vulnerability
+// remediation layout.
+func (m *scanModel) SelectView(index int) {
+	if m == nil || m.shellModel == nil {
+		return
+	}
+	m.remediationDetails = false
+	m.shellModel.SelectView(index)
+}
+
+// ToggleRemediationDetails switches the vulnerability pane between advisory
+// details and experimental local-only remediation proposals.
+func (m *scanModel) ToggleRemediationDetails() {
+	if m == nil || !m.remediationEnabled || m.currentScanView() != interactiveScanViewVulns {
+		return
+	}
+	m.remediationDetails = !m.remediationDetails
+	m.rebuildListPreserveSelection()
 }
 
 // View overrides shellModel.View so the Overview tab can render its custom
@@ -1050,6 +1095,14 @@ func (m *scanModel) buildVulnsListModel() *listModel {
 			emptyState = "No enriched vulnerabilities found. Run with --enrich to populate vulnerability data."
 		}
 	}
+	detailTitle := "Vulnerability Details"
+	if m.remediationDetails {
+		detailTitle = "Proposed Upgrade Paths"
+	}
+	filterHelp := "Use / to search; Enter focuses details; Esc clears search; v cycles severity filter; g groups vulnerabilities; 1-7 switch tabs"
+	if m.remediationEnabled {
+		filterHelp += "; f toggles proposed upgrade paths"
+	}
 
 	return &listModel{
 		title:       fmt.Sprintf("%s: %s", m.titlePrefix, m.project.Name),
@@ -1057,13 +1110,13 @@ func (m *scanModel) buildVulnsListModel() *listModel {
 		controls:    []string{m.vulnerabilityControlsLine(), m.vulnerabilityStateLine(len(filtered), len(all))},
 		listTitle:   fmt.Sprintf("Vulnerabilities (%d)", len(filtered)),
 		listHeader:  "Vulnerability ID / Group",
-		detailTitle: "Vulnerability Details",
+		detailTitle: detailTitle,
 		topPanels: []listPanel{
 			{title: "Severity Summary", lines: vulnerabilitySummaryLines(all), color: render.Red, weight: 1},
 			{title: "Top Affected", lines: topAffectedLines(all, 5, 140), color: render.Green, weight: 2},
 		},
 		navigationHelp: interactiveCommonNavigationHelp,
-		filterHelp:     "Use / to search; Enter focuses details; Esc clears search; v cycles severity filter; g groups vulnerabilities; 1-7 switch tabs",
+		filterHelp:     filterHelp,
 		emptyState:     emptyState,
 		items:          items,
 	}
@@ -1091,7 +1144,7 @@ func (m *scanModel) vulnerabilityItems(vulnerabilities []packageVulnerabilityRow
 		items = append(items, listItem{
 			title:    fmt.Sprintf("%s (%d)", key, len(groupVulnerabilities)),
 			subtitle: "group",
-			details:  vulnerabilityGroupDetails(key, group, groupVulnerabilities),
+			details:  m.vulnerabilityGroupDetails(key, group, groupVulnerabilities),
 			key:      groupKey,
 			canOpen:  true,
 			expanded: expanded,
@@ -1118,7 +1171,7 @@ func (m *scanModel) vulnerabilityItems(vulnerabilities []packageVulnerabilityRow
 			items = append(items, listItem{
 				title:   title,
 				badges:  badges,
-				details: vulnerabilityDetails(vulnerability),
+				details: m.vulnerabilityDetails(vulnerability),
 				tree:    treePrefix(nil, idx == len(groupVulnerabilities)-1, 1),
 				depth:   1,
 			})
@@ -1180,6 +1233,9 @@ func (m *scanModel) vulnerabilityControlsLine() string {
 	parts := []string{keyHint("/", "search"), keyHint("g", "group"), keyHint("v", "severity")}
 	if m.reachabilityFilterAvailable() {
 		parts = append(parts, keyHint("a", "reachability"))
+	}
+	if m.remediationEnabled {
+		parts = append(parts, keyHint("f", "fix"))
 	}
 	parts = append(parts, keyHint("]", "expand all"), keyHint("[", "collapse all"))
 	return strings.Join(parts, " ")
@@ -1258,6 +1314,77 @@ func vulnerabilityGroupDetails(key, group string, vulnerabilities []packageVulne
 	for _, vulnerability := range vulnerabilities {
 		lines = append(lines, render.Style("  - ", render.Dim)+vulnerability.vulnerability.ID+" "+valueOrDash(vulnerability.vulnerability.Title))
 	}
+	return lines
+}
+
+func (m *scanModel) vulnerabilityGroupDetails(key, group string, vulnerabilities []packageVulnerabilityRow) []string {
+	if !m.remediationDetails {
+		return vulnerabilityGroupDetails(key, group, vulnerabilities)
+	}
+	if group != "component" || len(vulnerabilities) == 0 || vulnerabilities[0].pkg == nil {
+		return remediationSelectionPrompt()
+	}
+	return m.remediationDetailsForPackage(vulnerabilities[0].pkg.ID)
+}
+
+func (m *scanModel) vulnerabilityDetails(row packageVulnerabilityRow) []string {
+	if !m.remediationDetails {
+		return vulnerabilityDetails(row)
+	}
+	if row.pkg == nil {
+		return remediationSelectionPrompt()
+	}
+	return m.remediationDetailsForPackage(row.pkg.ID)
+}
+
+func remediationSelectionPrompt() []string {
+	return []string{
+		render.Style("Proposed Upgrade Paths", render.Bold, render.Cyan),
+		"",
+		render.Style("  Select an advisory or a component group to view a local-only upgrade proposal.", render.Dim),
+	}
+}
+
+func (m *scanModel) remediationDetailsForPackage(packageID string) []string {
+	proposal, ok := m.remediationProposals.ProposalForPackageID(packageID)
+	if !ok {
+		proposal = remediation.Proposal{
+			PackageID:               packageID,
+			Status:                  remediation.StatusInsufficientLocalData,
+			ConstraintCompatibility: remediation.ConstraintCompatibilityUnknown,
+			Reason:                  "no locally attached remediation proposal is available for this component",
+		}
+	}
+	lines := []string{
+		render.Style("Proposed Upgrade Paths", render.Bold, render.Cyan),
+		"",
+		render.Style("Component", render.Bold, render.Magenta),
+		render.Style("  Package: ", render.Dim) + valueOrDash(proposal.PackageName),
+		render.Style("  Package ID: ", render.Dim) + valueOrDash(proposal.PackageID),
+		render.Style("  Installed version: ", render.Dim) + valueOrDash(proposal.CurrentVersion),
+		render.Style("  Status: ", render.Dim) + string(proposal.Status),
+		render.Style("  Candidate version: ", render.Dim) + valueOrDash(proposal.ProposedVersion),
+		render.Style("  Constraint compatibility: ", render.Dim) + string(proposal.ConstraintCompatibility),
+		"",
+		render.Style("Local-only Evidence", render.Bold, render.Magenta),
+		render.Style("  Based only on FixedIn / FixedVersions metadata already attached to the consolidated graph.", render.Dim),
+	}
+	if proposal.Reason != "" {
+		lines = append(lines, render.Style("  Unavailable reason: ", render.Dim)+proposal.Reason)
+	}
+	lines = append(lines, "", render.Style(fmt.Sprintf("Vulnerabilities (%d)", len(proposal.VulnerabilityIDs)), render.Bold, render.Magenta))
+	if len(proposal.VulnerabilityIDs) == 0 {
+		lines = append(lines, render.Style("  (none)", render.Dim))
+	} else {
+		for _, vulnerabilityID := range proposal.VulnerabilityIDs {
+			lines = append(lines, render.Style("  - ", render.Dim)+vulnerabilityID)
+		}
+	}
+	lines = append(lines,
+		"",
+		render.Style("Verification Required", render.Bold, render.Magenta),
+		render.Style("  Verify manifest constraints, re-resolve dependencies, and re-scan before treating this candidate as safe.", render.Dim),
+	)
 	return lines
 }
 

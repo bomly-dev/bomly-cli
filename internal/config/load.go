@@ -317,6 +317,12 @@ func Validate(cfg Resolved) error {
 	if cfg.Reachability && !cfg.Enrich {
 		return fmt.Errorf("--reachability requires --enrich")
 	}
+	if cfg.ExperimentalRemediate && !cfg.Interactive {
+		return fmt.Errorf("--experimental-remediate requires --interactive")
+	}
+	if cfg.ExperimentalRemediate && !cfg.Enrich {
+		return fmt.Errorf("--experimental-remediate requires --enrich")
+	}
 	if len(cfg.AllowLicenses) > 0 && len(cfg.DenyLicenses) > 0 {
 		return fmt.Errorf("--allow-license cannot be combined with --deny-license")
 	}

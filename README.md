@@ -12,6 +12,7 @@ One binary. Native detectors for the ecosystems developers use every day. Offlin
 - **Native detectors first.** Real dependency graphs (with edges) for Go, npm, pnpm, yarn, Maven, Gradle, Python, Composer, Bundler, GitHub Actions, and SBOM ingest. Syft fills the long tail for containers and rarer ecosystems.
 - **Offline-safe by default.** A scan without `--enrich` makes zero outbound HTTP calls. The only enrichment endpoints used are OSV, KEV, deps.dev, ClearlyDefined, and endoflife.date.
 - **Reachability that respects your time** (experimental). `--reachability` tells you whether your app actually calls a vulnerable symbol — Tier-1 (`govulncheck`) for Go; Tier-3 import-graph closure for npm, Python, and JVM languages. See [REACHABILITY.md](docs/REACHABILITY.md) for limitations.
+- **Local remediation guidance** (experimental). `--interactive --enrich --experimental-remediate` proposes locally evidenced semver candidates without claiming a verified manifest edit. See [REMEDIATION.md](docs/REMEDIATION.md).
 - **Stable exit codes for CI.** `0` clean, `2` policy violation, plus 1, 3, 4 for other failure classes. See [Exit codes](docs/EXIT_CODES.md).
 
 ## Highlights
@@ -88,7 +89,7 @@ Syft-backed for many more, including container images. See [docs/SUPPORT_MATRIX.
 
 Component guides:
 
-- [Detectors](docs/DETECTORS.md), [Matchers](docs/MATCHERS.md), [Auditors](docs/AUDITORS.md), [Reachability](docs/REACHABILITY.md)
+- [Detectors](docs/DETECTORS.md), [Matchers](docs/MATCHERS.md), [Auditors](docs/AUDITORS.md), [Reachability](docs/REACHABILITY.md), [Remediation](docs/REMEDIATION.md)
 - Per-ecosystem [detector guides](docs/detectors/ecosystems/) and per-matcher [reference](docs/matchers/)
 
 ## Core Commands
@@ -212,6 +213,7 @@ internal/engine/           Runtime preparation, orchestration, consolidation
 internal/engine/diff/      Diff orchestration and audit deltas
 internal/engine/explain/   Dependency path explanation
 internal/engine/scan/      Scan command pipeline API
+internal/engine/remediation/ Local-only experimental dependency upgrade proposals
 internal/detectors/        Ecosystem-specific dependency resolution
 internal/matchers/         External enrichment matchers and shared matcher cache
 internal/analyzers/        Reachability analyzers (govulncheck, jsreach, pyreach, jvmreach)

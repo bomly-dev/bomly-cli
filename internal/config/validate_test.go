@@ -25,6 +25,33 @@ func TestValidateRejectsReachabilityWithoutEnrich(t *testing.T) {
 	}
 }
 
+func TestValidateRejectsExperimentalRemediationWithoutInteractiveAndEnrich(t *testing.T) {
+	tests := []struct {
+		name string
+		cfg  Resolved
+		want string
+	}{
+		{
+			name: "interactive required",
+			cfg:  Resolved{ExperimentalRemediate: true, Enrich: true},
+			want: "--experimental-remediate requires --interactive",
+		},
+		{
+			name: "enrich required",
+			cfg:  Resolved{ExperimentalRemediate: true, Interactive: true},
+			want: "--experimental-remediate requires --enrich",
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := Validate(tc.cfg)
+			if err == nil || !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("Validate() error = %v, want %q", err, tc.want)
+			}
+		})
+	}
+}
+
 func TestValidateAcceptsAuditAndReachabilityWithEnrich(t *testing.T) {
 	cases := []struct {
 		name string
@@ -33,6 +60,7 @@ func TestValidateAcceptsAuditAndReachabilityWithEnrich(t *testing.T) {
 		{"audit + enrich", Resolved{Enrich: true, Audit: true}},
 		{"reachability + enrich", Resolved{Enrich: true, Reachability: true}},
 		{"all three", Resolved{Enrich: true, Audit: true, Reachability: true}},
+		{"experimental remediation", Resolved{Enrich: true, Interactive: true, ExperimentalRemediate: true}},
 		{"enrich alone", Resolved{Enrich: true}},
 		{"none of the three", Resolved{}},
 	}

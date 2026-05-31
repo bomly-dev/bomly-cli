@@ -79,6 +79,7 @@ internal/output/                 Text, JSON, SARIF 2.1.0, SBOM rendering + schem
 internal/engine/diff/            Diff pipeline orchestration and audit delta classification
 internal/engine/explain/         Dependency path traversal (explain command)
 internal/engine/scan/            Scan command pipeline API
+internal/engine/remediation/     Local-only experimental dependency upgrade proposals
 internal/plugin/                 gRPC plugin system (v1 protocol)
 internal/testutil/               Test helpers (fake binary builder)
 ```
@@ -95,7 +96,7 @@ Runtime preparation is owned by `internal/engine` and is reached through CLI opt
 - `sdk` owns neutral identifiers that would otherwise create import cycles.
 - `internal/registry` owns package-manager discovery, support lookups, and built-in wiring in `builder.go`. Do not create a separate `registrybuilder` package.
 - `internal/engine` (pipeline core) may import `internal/engine/consolidation`, `internal/engine/hooks`, `internal/engine/explain`, `internal/detectors`, and `internal/registry`.
-- `internal/engine` subpackages (`consolidation`, `hooks`, `diff`, `explain`, `scan`) must not import `internal/cli`.
+- `internal/engine` subpackages (`consolidation`, `hooks`, `diff`, `explain`, `scan`, `remediation`) must not import `internal/cli`.
 - `internal/config`, `internal/selector`, `internal/progress`, `internal/cli/render`, `internal/tui` must not import `internal/cli`. They are downstream of cobra wiring; cli consumes them, not the reverse.
 - `internal/tui` may import `internal/cli/render` (for ANSI primitives, text helpers, and shared sort/format helpers used by both the TUI and the text reports).
 - `cmd/bomly/main.go` is the only file outside `internal/cli` that imports `internal/cli`.

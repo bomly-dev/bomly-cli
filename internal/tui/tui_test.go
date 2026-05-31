@@ -1022,8 +1022,7 @@ func TestScanInteractiveModel_ReachabilityFilterCyclesFromKeyboard(t *testing.T)
 		t.Fatalf("expected vulnerability state line to show reachable filter, got:\n%s", plain)
 	}
 
-	updated, _ = wrapper.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'a'}})
-	wrapper = updated.(*teaModel)
+	_, _ = wrapper.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'a'}})
 	assertInteractiveListTitles(t, model, []string{"CVE-UNREACHABLE", "CVE-MIXED-UNREACHABLE"}, []string{"CVE-REACHABLE", "CVE-MIXED-REACHABLE", "CVE-UNKNOWN", "CVE-NIL"})
 }
 

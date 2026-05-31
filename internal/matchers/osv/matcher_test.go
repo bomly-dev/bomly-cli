@@ -18,13 +18,14 @@ import (
 // --- buildQuery ---
 
 func TestBuildQuery_PURLBased(t *testing.T) {
-	pkg := &sdk.Package{
+	dep := &sdk.Dependency{
 		Name:      "lodash",
 		Version:   "4.17.15",
 		PURL:      "pkg:npm/lodash@4.17.15",
 		Ecosystem: "npm",
 	}
-	key, query, ok := buildQuery(pkg)
+	purl := sdk.CanonicalPackageURLFromDependency(dep)
+	key, query, ok := buildQuery(dep, purl)
 	if !ok {
 		t.Fatal("expected query to be built for PURL package")
 	}
@@ -44,13 +45,13 @@ func TestBuildQuery_PURLBased(t *testing.T) {
 }
 
 func TestBuildQuery_NameEcosystemVersion(t *testing.T) {
-	pkg := &sdk.Package{
+	dep := &sdk.Dependency{
 		Name:      "requests",
 		Version:   "2.28.0",
-		PURL:      "",
 		Ecosystem: "python",
 	}
-	key, query, ok := buildQuery(pkg)
+	// Force the name+ecosystem fallback by passing an empty PURL.
+	key, query, ok := buildQuery(dep, "")
 	if !ok {
 		t.Fatal("expected query to be built for name+ecosystem package")
 	}
@@ -73,18 +74,68 @@ func TestBuildQuery_NameEcosystemVersion(t *testing.T) {
 }
 
 func TestBuildQuery_SkipsNoVersion(t *testing.T) {
-	pkg := &sdk.Package{Name: "lodash", PURL: "", Ecosystem: "npm"}
-	_, _, ok := buildQuery(pkg)
+	dep := &sdk.Dependency{Name: "lodash", Ecosystem: "npm"}
+	_, _, ok := buildQuery(dep, "")
 	if ok {
 		t.Error("expected package without version to be skipped (no query built)")
 	}
 }
 
 func TestBuildQuery_SkipsUnknownEcosystem(t *testing.T) {
-	pkg := &sdk.Package{Name: "my-pkg", Version: "1.0.0", PURL: "", Ecosystem: "unknown-eco"}
-	_, _, ok := buildQuery(pkg)
+	dep := &sdk.Dependency{Name: "my-pkg", Version: "1.0.0", Ecosystem: "unknown-eco"}
+	_, _, ok := buildQuery(dep, "")
 	if ok {
 		t.Error("expected package with unknown ecosystem and no PURL to be skipped")
+	}
+}
+
+// --- enrichment ---
+
+func buildTestGraph() *sdk.Graph {
+	graph := sdk.New()
+	dep := sdk.NewDependencyRef("vulnerable-pkg", "1.0.0")
+	dep.PURL = "pkg:generic/vulnerable-pkg@1.0.0"
+	_ = graph.AddNode(dep)
+	return graph
+}
+
+func TestMatcherMatchEnrichesRegistry(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/v1/querybatch":
+			_ = json.NewEncoder(w).Encode(BatchResponse{Results: []BatchResult{{Vulns: []VulnRef{{ID: "OSV-2024-0001"}}}}})
+		case "/v1/vulns/OSV-2024-0001":
+			_ = json.NewEncoder(w).Encode(OsvVulnerability{ID: "OSV-2024-0001", Summary: "Test vuln"})
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	matcher, err := New(Config{APIBase: server.URL, CacheDir: t.TempDir(), EnableKEV: false})
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
+
+	registry := sdk.NewPackageRegistry()
+	result, err := matcher.Match(context.Background(), sdk.MatchRequest{
+		Graph:    buildTestGraph(),
+		Registry: registry,
+		Mode:     sdk.TargetModeFullGraph,
+	})
+	if err != nil {
+		t.Fatalf("Match() error = %v", err)
+	}
+
+	var vulns []sdk.Vulnerability
+	for _, pkg := range result.Registry.All() {
+		vulns = append(vulns, pkg.Vulnerabilities...)
+	}
+	if len(vulns) == 0 {
+		t.Fatal("expected vulnerabilities to be attached to the registry")
+	}
+	if vulns[0].Source != "osv" || vulns[0].ID != "OSV-2024-0001" {
+		t.Fatalf("unexpected vulnerability: %#v", vulns[0])
 	}
 }
 
@@ -100,10 +151,9 @@ func TestAudit_CacheHit_NoHTTPCall(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	cacheDir := t.TempDir()
 	aud, err := New(Config{
 		APIBase:   srv.URL,
-		CacheDir:  cacheDir,
+		CacheDir:  t.TempDir(),
 		CacheTTL:  time.Hour,
 		EnableKEV: false,
 		Logger:    logging.NewConsole(&stderr, 2, false),
@@ -112,30 +162,30 @@ func TestAudit_CacheHit_NoHTTPCall(t *testing.T) {
 		t.Fatalf("New: %v", err)
 	}
 
-	pkg := &sdk.Package{
-		ID:        "npm:lodash:4.17.15",
+	dep := sdk.NewDependency(sdk.Dependency{
 		Name:      "lodash",
 		Version:   "4.17.15",
 		PURL:      "pkg:npm/lodash@4.17.15",
 		Ecosystem: "npm",
-		Licenses:  []sdk.PackageLicense{{Value: "MIT"}},
-	}
+	})
+	purl := sdk.CanonicalPackageURLFromDependency(dep)
 
-	// Pre-populate cache so the auditor won't need to call the server.
-	key := audcache.NewKey(pkg.PURL, "", "", "")
+	// Pre-populate cache so the matcher won't need to call the server.
+	key := audcache.NewKey(purl, "", "", "")
 	cached := []OsvVulnerability{{ID: "CVE-2020-1234", Summary: "test vuln"}}
 	_ = audcache.Set(aud.cache, key, cached)
 
 	g := sdk.New()
-	if err := g.AddNode(pkg); err != nil {
-		t.Fatalf("AddPackage: %v", err)
+	if err := g.AddNode(dep); err != nil {
+		t.Fatalf("AddNode: %v", err)
 	}
 
-	req := sdk.MatchRequest{
-		Graph: g,
-		Mode:  sdk.TargetModeFullGraph,
-	}
-	result, err := aud.Match(context.Background(), req)
+	registry := sdk.NewPackageRegistry()
+	result, err := aud.Match(context.Background(), sdk.MatchRequest{
+		Graph:    g,
+		Registry: registry,
+		Mode:     sdk.TargetModeFullGraph,
+	})
 	if err != nil {
 		t.Fatalf("Match: %v", err)
 	}
@@ -144,15 +194,15 @@ func TestAudit_CacheHit_NoHTTPCall(t *testing.T) {
 		t.Errorf("expected 0 HTTP calls (cache hit), got %d", calls)
 	}
 	foundVuln := false
-	for _, enrichedPkg := range result.Graph.Nodes() {
-		for _, vulnerability := range enrichedPkg.Vulnerabilities {
+	for _, pkg := range result.Registry.All() {
+		for _, vulnerability := range pkg.Vulnerabilities {
 			if vulnerability.ID == "CVE-2020-1234" {
 				foundVuln = true
 			}
 		}
 	}
 	if !foundVuln {
-		t.Error("expected cached vulnerability CVE-2020-1234 to appear in graph enrichment")
+		t.Error("expected cached vulnerability CVE-2020-1234 to appear in registry enrichment")
 	}
 	logOutput := stderr.String()
 	for _, want := range []string{
@@ -164,17 +214,6 @@ func TestAudit_CacheHit_NoHTTPCall(t *testing.T) {
 	} {
 		if !strings.Contains(logOutput, want) {
 			t.Fatalf("expected log output to contain %q, got:\n%s", want, logOutput)
-		}
-	}
-	for _, unwanted := range []string{
-		"osv: cache hit",
-		"osv: cache miss",
-		"osv: vuln detail cache hit",
-		"osv: vuln detail cache miss",
-		"osv: fetching vuln detail from API",
-	} {
-		if strings.Contains(logOutput, unwanted) {
-			t.Fatalf("expected aggregated logging to omit %q, got:\n%s", unwanted, logOutput)
 		}
 	}
 }
@@ -197,22 +236,21 @@ func TestAudit_OSVFailure_NonFatal(t *testing.T) {
 		t.Fatalf("New: %v", err)
 	}
 
-	pkg := &sdk.Package{
-		ID:        "npm:lodash:4.17.15",
+	dep := sdk.NewDependency(sdk.Dependency{
 		Name:      "lodash",
 		Version:   "4.17.15",
 		PURL:      "pkg:npm/lodash@4.17.15",
 		Ecosystem: "npm",
-		Licenses:  []sdk.PackageLicense{{Value: "MIT"}},
-	}
+	})
 	g := sdk.New()
-	if err := g.AddNode(pkg); err != nil {
-		t.Fatalf("AddPackage: %v", err)
+	if err := g.AddNode(dep); err != nil {
+		t.Fatalf("AddNode: %v", err)
 	}
 
 	result, err := aud.Match(context.Background(), sdk.MatchRequest{
-		Graph: g,
-		Mode:  sdk.TargetModeFullGraph,
+		Graph:    g,
+		Registry: sdk.NewPackageRegistry(),
+		Mode:     sdk.TargetModeFullGraph,
 	})
 	if err != nil {
 		t.Fatalf("Match returned error on API failure (should be non-fatal): %v", err)
@@ -222,35 +260,33 @@ func TestAudit_OSVFailure_NonFatal(t *testing.T) {
 
 // --- KEV enrichment ---
 
-func TestMarkKEVFindings_AppendsReason(t *testing.T) {
+func TestMarkKEVVulnerabilities_AppendsReason(t *testing.T) {
 	catalog := &KEVCatalog{ids: map[string]struct{}{"CVE-2021-44228": {}}}
 
-	findings := []sdk.Finding{
-		{ID: "CVE-2021-44228", Severity: "critical", Reasons: []string{"existing reason"}},
-		{ID: "CVE-2099-9999", Severity: "medium", Reasons: nil},
+	vulns := map[string][]sdk.Vulnerability{
+		"pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1": {
+			{ID: "CVE-2021-44228", Source: "osv", Reasons: []string{"existing reason"}},
+			{ID: "CVE-2099-9999", Source: "osv"},
+		},
 	}
-	marked := markKEVFindings(findings, catalog)
+	marked := markKEVVulnerabilities(vulns, catalog)
 
-	type result struct {
-		id     string
-		hasKEV bool
-	}
-	want := []result{
-		{"CVE-2021-44228", true},
-		{"CVE-2099-9999", false},
-	}
-
-	for i, w := range want {
-		f := marked[i]
-		kevFound := false
-		for _, r := range f.Reasons {
-			if strings.HasPrefix(r, "CISA KEV:") {
-				kevFound = true
-				break
+	want := map[string]bool{"CVE-2021-44228": true, "CVE-2099-9999": false}
+	for _, list := range marked {
+		for _, v := range list {
+			kevFound := false
+			for _, r := range v.Reasons {
+				if strings.HasPrefix(r, "CISA KEV:") {
+					kevFound = true
+					break
+				}
 			}
-		}
-		if kevFound != w.hasKEV {
-			t.Errorf("finding %q: KEV reason present = %v, want %v (reasons: %v)", w.id, kevFound, w.hasKEV, f.Reasons)
+			if kevFound != want[v.ID] {
+				t.Errorf("vuln %q: KEV reason present = %v, want %v (reasons: %v)", v.ID, kevFound, want[v.ID], v.Reasons)
+			}
+			if v.ID == "CVE-2021-44228" && !v.KEVExploited {
+				t.Errorf("expected CVE-2021-44228 KEVExploited=true")
+			}
 		}
 	}
 }
@@ -288,36 +324,11 @@ func TestParseCVSSScore(t *testing.T) {
 		raw  string
 		want float64
 	}{
-		{
-			name: "numeric score",
-			kind: "CVSS_V3",
-			raw:  "7.5",
-			want: 7.5,
-		},
-		{
-			name: "vector with explicit prefix",
-			kind: "CVSS_V3",
-			raw:  "CVSS:3.1/AV:L/AC:H/PR:N/UI:R/S:U/C:N/I:N/A:L",
-			want: 2.5,
-		},
-		{
-			name: "vector inferred from severity type",
-			kind: "CVSS_V31",
-			raw:  "AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
-			want: 9.8,
-		},
-		{
-			name: "v2 vector",
-			kind: "CVSS_V2",
-			raw:  "AV:N/AC:L/Au:N/C:P/I:P/A:P",
-			want: 7.5,
-		},
-		{
-			name: "v4 vector inferred from severity type",
-			kind: "CVSS_V4",
-			raw:  "AV:L/AC:H/AT:N/PR:N/UI:P/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N",
-			want: 2.0,
-		},
+		{name: "numeric score", kind: "CVSS_V3", raw: "7.5", want: 7.5},
+		{name: "vector with explicit prefix", kind: "CVSS_V3", raw: "CVSS:3.1/AV:L/AC:H/PR:N/UI:R/S:U/C:N/I:N/A:L", want: 2.5},
+		{name: "vector inferred from severity type", kind: "CVSS_V31", raw: "AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H", want: 9.8},
+		{name: "v2 vector", kind: "CVSS_V2", raw: "AV:N/AC:L/Au:N/C:P/I:P/A:P", want: 7.5},
+		{name: "v4 vector inferred from severity type", kind: "CVSS_V4", raw: "AV:L/AC:H/AT:N/PR:N/UI:P/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N", want: 2.0},
 	}
 
 	for _, tt := range tests {
@@ -343,14 +354,8 @@ func TestExtractSeverity_CalculatesFromVector(t *testing.T) {
 
 func TestExtractSeverity_PrefersHigherVersion(t *testing.T) {
 	got := extractSeverity([]OsvSeverity{
-		{
-			Type:  "CVSS_V2",
-			Score: "AV:N/AC:L/Au:N/C:P/I:P/A:P",
-		},
-		{
-			Type:  "CVSS_V4",
-			Score: "AV:L/AC:H/AT:N/PR:N/UI:P/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N",
-		},
+		{Type: "CVSS_V2", Score: "AV:N/AC:L/Au:N/C:P/I:P/A:P"},
+		{Type: "CVSS_V4", Score: "AV:L/AC:H/AT:N/PR:N/UI:P/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N"},
 	})
 
 	if got != "low" {

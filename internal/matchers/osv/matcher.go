@@ -279,13 +279,12 @@ func (a *Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResul
 			// Non-fatal: return what we have with a warning.
 			a.logger.Warn("osv: batch query failed", zap.Error(err))
 			if a.config.Stderr != nil {
-				_, err := fmt.Fprintf(a.config.Stderr, "warn: osv query failed: %v\n", err)
-				if err != nil {
-					return sdk.MatchResult{}, err
+				if _, werr := fmt.Fprintf(a.config.Stderr, "warn: osv query failed: %v\n", err); werr != nil {
+					return sdk.MatchResult{}, werr
 				}
 			}
-			applyPackageVulnerabilityEnrichment(packages, enriched)
-			return sdk.MatchResult{Graph: req.Graph, Target: req.Target, MatcherRuns: []string{"osv"}}, nil
+			applyPackageVulnerabilityEnrichment(req.Registry, deps, enriched)
+			return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{"osv"}}, nil
 		}
 
 		for i, result := range results {
@@ -312,7 +311,7 @@ func (a *Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResul
 			}
 			stats.apiFindings += len(vulns)
 			for _, v := range vulns {
-				enriched[item.pkg.ID] = append(enriched[item.pkg.ID], MapVulnerability(v))
+				enriched[item.purl] = append(enriched[item.purl], MapVulnerability(v))
 			}
 		}
 		a.logger.Debug(
@@ -339,9 +338,8 @@ func (a *Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResul
 		if err != nil {
 			a.logger.Warn("osv: kev catalog unavailable", zap.Error(err))
 			if a.config.Stderr != nil {
-				_, err := fmt.Fprintf(a.config.Stderr, "warn: kev catalog unavailable: %v\n", err)
-				if err != nil {
-					return sdk.MatchResult{}, err
+				if _, werr := fmt.Fprintf(a.config.Stderr, "warn: kev catalog unavailable: %v\n", err); werr != nil {
+					return sdk.MatchResult{}, werr
 				}
 			}
 		} else {
@@ -359,7 +357,6 @@ func (a *Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResul
 
 // fetchVulnDetails retrieves full OsvVulnerability records for the given IDs,
 // checking the detail cache first and fetching from the OSV API for misses.
-// IDs that cannot be fetched are returned as stubs with only the ID set.
 func (a *Matcher) fetchVulnDetails(ids []string, stats *auditStats) map[string]*OsvVulnerability {
 	result := make(map[string]*OsvVulnerability, len(ids))
 	var toFetch []string
@@ -427,33 +424,34 @@ func statsValue(stats *auditStats, getter func(*auditStats) int) int {
 	return getter(stats)
 }
 
-// buildQuery constructs a CacheKey and BatchQuery for a package.
-// Returns (key, query, true) when the package has enough information to query OSV.
-// Returns (_, _, false) when the package should be skipped.
-func buildQuery(pkg *sdk.Package) (cache.Key, BatchQuery, bool) {
-	if pkg.Version == "" {
+// buildQuery constructs a CacheKey and BatchQuery for a dependency.
+// purl is the canonical PURL already computed for dep.
+// Returns (key, query, true) when there is enough information to query OSV.
+// Returns (_, _, false) when the dependency should be skipped.
+func buildQuery(dep *sdk.Dependency, purl string) (cache.Key, BatchQuery, bool) {
+	if dep.Version == "" {
 		// OSV requires a version for meaningful results.
 		return cache.Key{}, BatchQuery{}, false
 	}
 
 	// Prefer PURL
-	if pkg.PURL != "" {
-		key := cache.NewKey(pkg.PURL, "", "", "")
-		purlPkg := PurlPackage{Purl: pkg.PURL}
+	if purl != "" {
+		key := cache.NewKey(purl, "", "", "")
+		purlPkg := PurlPackage{Purl: purl}
 		raw, _ := json.Marshal(purlPkg)
 		return key, BatchQuery{Package: raw}, true
 	}
 
 	// Fall back to name + ecosystem + version
-	ecosystem := ecosystemToOSV(pkg.Ecosystem)
+	ecosystem := ecosystemToOSV(dep.Ecosystem)
 	if ecosystem == "" {
 		return cache.Key{}, BatchQuery{}, false
 	}
 
-	key := cache.NewKey("", pkg.Name, ecosystem, pkg.Version)
-	namePkg := NamePackage{Name: pkg.Name, Ecosystem: ecosystem}
+	key := cache.NewKey("", dep.Name, ecosystem, dep.Version)
+	namePkg := NamePackage{Name: dep.Name, Ecosystem: ecosystem}
 	raw, _ := json.Marshal(namePkg)
-	return key, BatchQuery{Package: raw, Version: pkg.Version}, true
+	return key, BatchQuery{Package: raw, Version: dep.Version}, true
 }
 
 // ecosystemToOSV maps Bomly ecosystem identifiers to OSV ecosystem names.
@@ -489,36 +487,44 @@ func ecosystemToOSV(eco string) string {
 	}
 }
 
-// markKEVVulnerabilities appends KEV state to any vulnerability whose ID or aliases appear in the catalog.
-func markKEVVulnerabilities(vulnerabilities map[string][]sdk.PackageVulnerability, catalog *KEVCatalog) map[string][]sdk.PackageVulnerability {
-	for packageID := range vulnerabilities {
-		for idx := range vulnerabilities[packageID] {
-			if catalog.Contains(vulnerabilities[packageID][idx].ID, vulnerabilities[packageID][idx].Aliases) {
-				vulnerabilities[packageID][idx].KEVExploited = true
-				vulnerabilities[packageID][idx].Reasons = append(vulnerabilities[packageID][idx].Reasons, "CISA KEV: actively exploited in the wild")
+// markKEVVulnerabilities appends KEV state to any vulnerability whose ID or
+// aliases appear in the catalog. Keyed by PURL.
+func markKEVVulnerabilities(vulnerabilities map[string][]sdk.Vulnerability, catalog *KEVCatalog) map[string][]sdk.Vulnerability {
+	for purl := range vulnerabilities {
+		for idx := range vulnerabilities[purl] {
+			if catalog.Contains(vulnerabilities[purl][idx].ID, vulnerabilities[purl][idx].Aliases) {
+				vulnerabilities[purl][idx].KEVExploited = true
+				vulnerabilities[purl][idx].Reasons = append(vulnerabilities[purl][idx].Reasons, "CISA KEV: actively exploited in the wild")
 			}
 		}
 	}
 	return vulnerabilities
 }
 
-func markKEVFindings(findings []sdk.Finding, catalog *KEVCatalog) []sdk.Finding {
-	for idx := range findings {
-		if catalog.Contains(findings[idx].ID, findings[idx].Aliases) {
-			findings[idx].KEVExploited = true
-			findings[idx].Reasons = append(findings[idx].Reasons, "CISA KEV: actively exploited in the wild")
-		}
+// applyPackageVulnerabilityEnrichment folds enriched vulnerabilities (keyed by
+// PURL) into the registry, and marks the corresponding dependencies matched.
+func applyPackageVulnerabilityEnrichment(registry *sdk.PackageRegistry, deps []*sdk.Dependency, enriched map[string][]sdk.Vulnerability) {
+	if registry == nil {
+		return
 	}
-	return findings
-}
-
-func applyPackageVulnerabilityEnrichment(packages []*sdk.Package, enriched map[string][]sdk.PackageVulnerability) {
-	for _, pkg := range packages {
-		if pkg == nil {
+	purlToDeps := make(map[string][]*sdk.Dependency, len(deps))
+	for _, dep := range deps {
+		if dep == nil {
 			continue
 		}
-		entries := enriched[pkg.ID]
+		purl := sdk.CanonicalPackageURLFromDependency(dep)
+		if purl == "" {
+			continue
+		}
+		purlToDeps[purl] = append(purlToDeps[purl], dep)
+	}
+
+	for purl, entries := range enriched {
 		if len(entries) == 0 {
+			continue
+		}
+		pkg := registry.Ensure(purl)
+		if pkg == nil {
 			continue
 		}
 		pkg.Matched = true
@@ -533,6 +539,10 @@ func applyPackageVulnerabilityEnrichment(packages []*sdk.Package, enriched map[s
 			}
 			pkg.Vulnerabilities = append(pkg.Vulnerabilities, entry.Clone())
 			seen[key] = struct{}{}
+		}
+		for _, dep := range purlToDeps[purl] {
+			dep.Matched = true
+			dep.PackageRef = purl
 		}
 	}
 }

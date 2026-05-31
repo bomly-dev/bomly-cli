@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -13,6 +14,16 @@ func TestParseNamesDeduplicatesCommaSeparatedValues(t *testing.T) {
 	got := ParseNames("github, syft", "github")
 	if strings.Join(got, ",") != "github,syft" {
 		t.Fatalf("ParseNames() = %#v", got)
+	}
+}
+
+func TestBenchmarkCasesDirIsAbsolute(t *testing.T) {
+	got, err := benchmarkCasesDir(filepath.Join(".benchmark-runs", "latest"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !filepath.IsAbs(got) {
+		t.Fatalf("benchmarkCasesDir() = %q, want absolute path", got)
 	}
 }
 

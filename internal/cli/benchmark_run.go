@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -24,6 +25,10 @@ func benchmarkNativeScanner(logger *zap.Logger, stderr io.Writer, verbose bool) 
 		stderr = io.Discard
 	}
 	return func(ctx context.Context, req benchmark.NativeScanRequest) (benchmark.NativeScanResult, error) {
+		checkoutDir, err := filepath.Abs(req.CheckoutDir)
+		if err != nil {
+			return benchmark.NativeScanResult{}, fmt.Errorf("resolve benchmark checkout dir: %w", err)
+		}
 		// Build the native registry directly so local config and managed plugins
 		// cannot change benchmark detector selection.
 		detectorFilter := sdk.DetectorFilter{Exclude: []string{detectors.NameSyft}}
@@ -36,7 +41,7 @@ func benchmarkNativeScanner(logger *zap.Logger, stderr io.Writer, verbose bool) 
 		})
 		executionTarget := sdk.ExecutionTarget{
 			Kind:          sdk.ExecutionTargetGitRepository,
-			Location:      req.CheckoutDir,
+			Location:      checkoutDir,
 			RepositoryURL: req.Repository,
 			Ref:           req.Revision,
 		}
@@ -56,7 +61,7 @@ func benchmarkNativeScanner(logger *zap.Logger, stderr io.Writer, verbose bool) 
 			zap.Int("subprojects", len(subprojects)),
 		)
 		result, err := scanengine.Run(ctx, engine.NewPipeline(filteredRegistry, logger), engine.PipelineRequest{
-			ProjectPath:     req.CheckoutDir,
+			ProjectPath:     checkoutDir,
 			ExecutionTarget: executionTarget,
 			Subprojects:     subprojects,
 			ScopeFilter:     sdk.ScopeUnknown,

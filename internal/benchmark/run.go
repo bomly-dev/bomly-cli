@@ -95,7 +95,10 @@ func Run(ctx context.Context, opts RunOptions) (RunSummary, error) {
 		return RunSummary{}, err
 	}
 
-	casesDir := filepath.Join(opts.RunDir, "cases")
+	casesDir, err := benchmarkCasesDir(opts.RunDir)
+	if err != nil {
+		return RunSummary{}, err
+	}
 	if err := prepareCasesDir(casesDir, targets, selectedRun); err != nil {
 		return RunSummary{}, err
 	}
@@ -631,6 +634,14 @@ func prepareCasesDir(casesDir string, targets []Target, selectedRun bool) error 
 		}
 	}
 	return nil
+}
+
+func benchmarkCasesDir(runDir string) (string, error) {
+	casesDir, err := filepath.Abs(filepath.Join(runDir, "cases"))
+	if err != nil {
+		return "", fmt.Errorf("resolve benchmark cases dir: %w", err)
+	}
+	return casesDir, nil
 }
 
 func filterSBOMFile(inputPath, outputPath string, ecosystem sdk.Ecosystem) error {

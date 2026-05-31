@@ -14,6 +14,8 @@ make build-lite          # Lite binary using external syft/grype → bin/bomly-l
 make test                # go test ./...
 make smoke               # End-to-end tests (slow, requires network)
 make smoke ARGS="-update" # Regenerate golden files
+make benchmark           # Hidden local dependency-graph benchmark
+make benchmark-report    # Analyze benchmark artifacts with Copilot CLI
 make run ARGS="scan"     # Run the CLI directly
 make fmt                 # Format code
 make lint                # golangci-lint v1.64.8
@@ -71,6 +73,8 @@ internal/analyzers/*             Reachability analyzers (govulncheck — Go;
                                  and never abort the pipeline on failure
 internal/auditors/*              Policy evaluators (policy, noop)
 internal/sbom/                   SPDX 2.3 / CycloneDX codec
+internal/benchmark/              Hidden local dependency-graph benchmark, baseline scoring,
+                                 and embedded smoke/benchmark repository presets
 internal/output/                 Text, JSON, SARIF 2.1.0, SBOM rendering + schema generation
 internal/engine/diff/            Diff pipeline orchestration and audit delta classification
 internal/engine/explain/         Dependency path traversal (explain command)
@@ -96,7 +100,7 @@ Runtime preparation is owned by `internal/engine` and is reached through CLI opt
 - `internal/tui` may import `internal/cli/render` (for ANSI primitives, text helpers, and shared sort/format helpers used by both the TUI and the text reports).
 - `cmd/bomly/main.go` is the only file outside `internal/cli` that imports `internal/cli`.
 
-Detector chains are explicit in `internal/registry/support.go` and `internal/registry/builder.go`; do not infer priority from technique alone. Some native detectors are build-tool-backed primaries (`pub-native`, `swiftpm-native`, `sbt-native`) with committed-file fallbacks, so graph-shape smoke/QA updates for those ecosystems should run with `dart`, `swift`, or `sbt` on `PATH`.
+Detector chains are explicit in `internal/registry/support.go` and `internal/registry/builder.go`; do not infer priority from technique alone. Some native detectors are build-tool-backed primaries (`pub-native`, `swiftpm-native`, `sbt-native`) with committed-file fallbacks, so graph-shape smoke and local benchmark updates for those ecosystems should run with `dart`, `swift`, or `sbt` on `PATH`.
 
 ## Non-Negotiables
 

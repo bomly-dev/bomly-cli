@@ -11,7 +11,7 @@ import (
 // runnerSchemaVersion is the runner's stable identifier for cache
 // invalidation. Bump it when the import scanner or the prefix map
 // change in a way that would silently change reachability outcomes.
-const runnerSchemaVersion = "v1"
+const runnerSchemaVersion = "v2"
 
 // NewRunner returns the in-process Runner — a line-oriented scanner
 // that walks the project's JVM source tree and records every imported
@@ -36,6 +36,7 @@ func (r libraryRunner) Run(ctx context.Context, projectDir string) (RunnerResult
 		zap.String("schema_version", runnerSchemaVersion))
 
 	artifacts := make(map[string]struct{})
+	rawImports := make(map[string]struct{})
 	sourceFiles := 0
 	skipped, walkErr := walkSourceFiles(projectDir, func(path string) error {
 		if err := ctx.Err(); err != nil {
@@ -58,6 +59,7 @@ func (r libraryRunner) Run(ctx context.Context, projectDir string) (RunnerResult
 		}
 		sourceFiles++
 		for fqn := range imports {
+			rawImports[fqn] = struct{}{}
 			for _, coord := range resolveArtifacts(fqn) {
 				artifacts[coord] = struct{}{}
 			}
@@ -73,11 +75,13 @@ func (r libraryRunner) Run(ctx context.Context, projectDir string) (RunnerResult
 		zap.String("project_dir", projectDir),
 		zap.Int("source_files", sourceFiles),
 		zap.Int("imported_artifacts", len(artifacts)),
+		zap.Int("raw_imports", len(rawImports)),
 		zap.Strings("skipped_dirs", skipped),
 		zap.Bool("dynamic_imports_detected", dynamic))
 
 	return RunnerResult{
 		ImportedArtifacts:      artifacts,
+		RawImports:             rawImports,
 		SourceFiles:            sourceFiles,
 		SkippedDirs:            skipped,
 		DynamicImportsDetected: dynamic,

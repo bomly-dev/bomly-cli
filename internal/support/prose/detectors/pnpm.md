@@ -64,6 +64,8 @@ Bomly scans each pnpm workspace as a separate subproject. `injected: true` depen
 
 For pnpm packages, the analyzer is `jsreach` at **Tier-3 (package)** — same caveats as npm. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe).
 
+`jsreach` reads `pnpm-workspace.yaml` package patterns automatically and follows imports between consumed sibling packages without depending on installed symlinks.
+
 ## Limitations
 
 - **Symlinked `node_modules`** are pnpm's storage model; Bomly relies on the lockfile, not the filesystem layout, so this works correctly.

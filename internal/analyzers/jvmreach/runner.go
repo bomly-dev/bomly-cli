@@ -54,6 +54,9 @@ type RunnerResult struct {
 	// imports. The analyzer matches graph packages against this set
 	// before walking transitive deps.
 	ImportedArtifacts map[string]struct{}
+	// RawImports is the set of source-level fully qualified imports.
+	// The analyzer uses it to resolve references between local modules.
+	RawImports map[string]struct{}
 	// SourceFiles is the count of project source files visited
 	// (.java / .kt / .kts / .scala / .groovy).
 	SourceFiles int

@@ -81,6 +81,8 @@ Bomly walks Berry workspaces and scans each as a subproject. Plug-and-Play (`.pn
 
 For Yarn packages, the analyzer is `jsreach` at **Tier-3 (package)** — same caveats as npm. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe).
 
+`jsreach` reads workspace arrays and Yarn-style `workspaces.packages` objects automatically, then follows imports between consumed sibling packages by package name.
+
 ## Limitations
 
 - **Yarn Berry workspaces with `injected: true`** dependencies are followed as regular edges.

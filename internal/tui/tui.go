@@ -34,6 +34,10 @@ type filterModel interface {
 	CycleEcosystemFilter()
 }
 
+type reachabilityFilterModel interface {
+	CycleReachabilityFilter()
+}
+
 type tabbedModel interface {
 	CycleView()
 }
@@ -204,12 +208,14 @@ type scanModel struct {
 	mode                  scanMode
 	findings              []sdk.Finding
 	enrichEnabled         bool
+	reachabilityEnabled   bool
 	currentManifestID     string
 	allowManifestExit     bool
 	relationshipFilter    string
 	scopeFilter           string
 	severityFilter        string
 	ecosystemFilter       string
+	reachabilityFilter    string
 	explainQuery          string
 	sourceExpanded        map[string]bool
 	componentExpanded     map[string]bool
@@ -322,6 +328,10 @@ func (m *teaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "s":
 			if filterModel, ok := m.inner.(filterModel); ok {
 				filterModel.CycleScopeFilter()
+			}
+		case "a":
+			if filterModel, ok := m.inner.(reachabilityFilterModel); ok {
+				filterModel.CycleReachabilityFilter()
 			}
 		case "g":
 			if groupModel, ok := m.inner.(groupModel); ok {

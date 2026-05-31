@@ -27,7 +27,6 @@ func main() {
 	}
 	cmd := exec.Command(
 		"copilot",
-		"--silent",
 		"--no-ask-user",
 		"--no-custom-instructions",
 		"--disable-builtin-mcps",

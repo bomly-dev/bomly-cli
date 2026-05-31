@@ -215,6 +215,10 @@ func badgeView(badge badge) string {
 		return render.Style(label, render.BgYellow, render.Bold)
 	case "severity-low":
 		return render.Style(label, render.BgCyan, render.Blue, render.Bold)
+	case "reachability-reachable":
+		return render.Style(label, render.BgRed, render.White, render.Bold)
+	case "reachability-unreachable":
+		return render.Style(label, render.BgBlue, render.White, render.Bold)
 	case "repeated":
 		return render.Style(label, render.BgBlue, render.White)
 	default:
@@ -302,7 +306,7 @@ func nextScopeFilter(current string) string {
 }
 
 func nextSeverityFilter(current string) string {
-	values := []string{"", "critical", "high", "medium", "low"}
+	values := []string{"", "any", "none", "critical", "high", "medium", "low"}
 	return nextFilterValue(current, values)
 }
 

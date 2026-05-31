@@ -1057,6 +1057,66 @@ func TestScanInteractiveModel_ReachabilityFilterUnavailableIsHiddenAndNoOp(t *te
 	}
 }
 
+func TestScanInteractiveModel_OverviewShowsReachableSeverityCountsWhenEnabled(t *testing.T) {
+	enabled := newScanReachabilityFilterModel(t, true)
+	plain := render.StripANSI(enabled.View(240, 48))
+	if !strings.Contains(plain, "6 High (2 reachable)") {
+		t.Fatalf("expected overview vulnerability severity count to include reachable count, got:\n%s", plain)
+	}
+
+	disabled := newScanReachabilityFilterModel(t, false)
+	plain = render.StripANSI(disabled.View(240, 48))
+	if strings.Contains(plain, "reachable)") {
+		t.Fatalf("expected overview reachable counts to stay hidden when disabled, got:\n%s", plain)
+	}
+}
+
+func TestScanInteractiveModel_VulnerabilityRowsShowReachabilityBadgesWhenEnabled(t *testing.T) {
+	model := newScanReachabilityFilterModel(t, true)
+	model.SelectView(3)
+	assertInteractiveItemBadges(t, model, "CVE-REACHABLE", []string{"reachable"})
+	assertInteractiveItemBadges(t, model, "CVE-UNREACHABLE", []string{"unreachable"})
+	assertInteractiveItemBadges(t, model, "CVE-UNKNOWN", nil)
+	assertInteractiveItemBadges(t, model, "CVE-NIL", nil)
+
+	disabled := newScanReachabilityFilterModel(t, false)
+	disabled.SelectView(3)
+	assertInteractiveItemBadges(t, disabled, "CVE-REACHABLE", nil)
+}
+
+func TestScanInteractiveModel_SeverityFilterIncludesAnyAndNone(t *testing.T) {
+	if got := nextSeverityFilter(""); got != "any" {
+		t.Fatalf("nextSeverityFilter(all) = %q, want any", got)
+	}
+	if got := nextSeverityFilter("any"); got != "none" {
+		t.Fatalf("nextSeverityFilter(any) = %q, want none", got)
+	}
+
+	model := newScanReachabilityFilterModel(t, true)
+	model.SelectView(2)
+	model.CycleSeverityFilter()
+	if model.severityFilter != "any" {
+		t.Fatalf("expected first severity cycle to select any, got %q", model.severityFilter)
+	}
+	assertInteractiveListTitles(t, model, []string{"reachable-lib@1.0.0", "unreachable-lib@1.0.0", "mixed-lib@1.0.0", "unknown-lib@1.0.0", "nil-lib@1.0.0"}, []string{"demo-app@1.0.0"})
+
+	model.CycleSeverityFilter()
+	if model.severityFilter != "none" {
+		t.Fatalf("expected second severity cycle to select none, got %q", model.severityFilter)
+	}
+	assertInteractiveListTitles(t, model, []string{"demo-app@1.0.0"}, []string{"reachable-lib@1.0.0", "unreachable-lib@1.0.0", "mixed-lib@1.0.0", "unknown-lib@1.0.0", "nil-lib@1.0.0"})
+
+	model.SelectView(3)
+	model.severityFilter = "any"
+	model.rebuildListPreserveSelection()
+	assertInteractiveListTitles(t, model, []string{"CVE-REACHABLE", "CVE-UNREACHABLE", "CVE-MIXED-REACHABLE", "CVE-MIXED-UNREACHABLE", "CVE-UNKNOWN", "CVE-NIL"}, nil)
+	model.severityFilter = "none"
+	model.rebuildListPreserveSelection()
+	if len(model.List().items) != 0 {
+		t.Fatalf("expected none severity filter to hide every vulnerability row, got %#v", model.List().items)
+	}
+}
+
 func newScanReachabilityFilterModel(t *testing.T, enabled bool) *scanModel {
 	t.Helper()
 	vulnerability := func(id string, reachability *sdk.Reachability) sdk.PackageVulnerability {
@@ -1144,6 +1204,26 @@ func assertInteractiveListTitles(t *testing.T, model *scanModel, contains, exclu
 			t.Fatalf("expected interactive list titles to exclude %q, got:\n%s", excluded, joined)
 		}
 	}
+}
+
+func assertInteractiveItemBadges(t *testing.T, model *scanModel, title string, expectedReachability []string) {
+	t.Helper()
+	for _, item := range model.List().items {
+		if item.title != title {
+			continue
+		}
+		var actual []string
+		for _, itemBadge := range item.badges {
+			if strings.HasPrefix(itemBadge.kind, "reachability-") {
+				actual = append(actual, itemBadge.label)
+			}
+		}
+		if strings.Join(actual, ",") != strings.Join(expectedReachability, ",") {
+			t.Fatalf("reachability badges for %q = %#v, want %#v", title, actual, expectedReachability)
+		}
+		return
+	}
+	t.Fatalf("expected interactive list item %q", title)
 }
 
 func TestScanInteractiveModel_ExplainTopBarUsesQuery(t *testing.T) {

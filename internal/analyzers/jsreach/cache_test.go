@@ -98,8 +98,9 @@ func TestAnalyzerWithCacheServesSecondCallFromCache(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(projectDir, "package-lock.json"), []byte(`{"x":1}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	vuln := model.PackageVulnerability{ID: "GHSA-test", Source: "osv", Severity: "high"}
-	g := newNPMGraph(t, projectDir, "react", vuln)
+	vuln := model.Vulnerability{ID: "GHSA-test", Source: "osv", ParsedSeverity: "high"}
+	g, reg := newSeed()
+	addNPMDep(t, g, reg, projectDir, "", "react", "1.0.0", vuln)
 
 	runner := &fakeRunner{
 		result: RunnerResult{
@@ -110,7 +111,7 @@ func TestAnalyzerWithCacheServesSecondCallFromCache(t *testing.T) {
 	}
 	a := Analyzer{Runner: runner, CacheDir: t.TempDir()}
 
-	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: projectDir}); err != nil {
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir}); err != nil {
 		t.Fatal(err)
 	}
 	if runner.called != 1 {
@@ -118,14 +119,15 @@ func TestAnalyzerWithCacheServesSecondCallFromCache(t *testing.T) {
 	}
 
 	// Re-run with a fresh graph — runner should not be invoked.
-	g2 := newNPMGraph(t, projectDir, "react", vuln)
-	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g2, ProjectPath: projectDir}); err != nil {
+	g2, reg2 := newSeed()
+	dep2 := addNPMDep(t, g2, reg2, projectDir, "", "react", "1.0.0", vuln)
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g2, Registry: reg2, ProjectPath: projectDir}); err != nil {
 		t.Fatal(err)
 	}
 	if runner.called != 1 {
 		t.Errorf("second Analyze should hit cache; runner.called = %d, want 1", runner.called)
 	}
-	r := g2.Packages()[0].Vulnerabilities[0].Reachability
+	r := reachOf(t, reg2, dep2)
 	if r == nil || r.Status != model.ReachabilityReachable {
 		t.Errorf("cached path did not produce a reachable annotation: %+v", r)
 	}
@@ -136,7 +138,7 @@ func TestAnalyzerDisableCacheAlwaysRunsRunner(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(projectDir, "package-lock.json"), []byte(`{"x":1}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	vuln := model.PackageVulnerability{ID: "GHSA-test", Source: "osv", Severity: "high"}
+	vuln := model.Vulnerability{ID: "GHSA-test", Source: "osv", ParsedSeverity: "high"}
 
 	runner := &fakeRunner{
 		result: RunnerResult{
@@ -146,10 +148,10 @@ func TestAnalyzerDisableCacheAlwaysRunsRunner(t *testing.T) {
 	}
 	a := Analyzer{Runner: runner, CacheDir: t.TempDir(), DisableCache: true}
 
-	g1 := newNPMGraph(t, projectDir, "react", vuln)
-	g2 := newNPMGraph(t, projectDir, "react", vuln)
-	for _, g := range []*model.Graph{g1, g2} {
-		if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: projectDir}); err != nil {
+	for i := 0; i < 2; i++ {
+		g, reg := newSeed()
+		addNPMDep(t, g, reg, projectDir, "", "react", "1.0.0", vuln)
+		if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir}); err != nil {
 			t.Fatal(err)
 		}
 	}

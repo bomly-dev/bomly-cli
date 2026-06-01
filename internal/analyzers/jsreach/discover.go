@@ -44,7 +44,7 @@ func discoverProjectRoots(req model.AnalyzeRequest) []string {
 	}
 
 	if req.Graph != nil {
-		for _, pkg := range req.Graph.Packages() {
+		for _, pkg := range req.Graph.Nodes() {
 			if pkg == nil || !isNPMPackage(pkg) {
 				continue
 			}
@@ -117,7 +117,7 @@ func isInsideNodeModules(dir string) bool {
 
 // isNPMPackage reports whether pkg's ecosystem or build system
 // identifies it as an npm package. Mirrors govulncheck.isGoPackage.
-func isNPMPackage(pkg *model.Package) bool {
+func isNPMPackage(pkg *model.Dependency) bool {
 	if pkg == nil {
 		return false
 	}

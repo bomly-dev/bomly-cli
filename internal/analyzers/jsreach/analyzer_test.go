@@ -29,9 +29,7 @@ func (f *fakeRunner) Run(_ context.Context, projectDir string) (RunnerResult, er
 }
 
 // newNPMProjectDir creates a temp directory that looks like an npm
-// project (package.json + index.js). The fixture is intentionally
-// minimal — most jsreach tests inject a fake runner so the actual
-// esbuild walk is exercised in dedicated builtin-runner tests.
+// project (package.json + index.js).
 func newNPMProjectDir(t *testing.T) string {
 	t.Helper()
 	dir := t.TempDir()
@@ -45,29 +43,47 @@ func newNPMProjectDir(t *testing.T) string {
 	return dir
 }
 
-// newNPMGraph builds a single-package graph rooted at projectDir with
-// the supplied vulnerabilities attached.
-func newNPMGraph(t *testing.T, projectDir, name string, vulns ...model.PackageVulnerability) *model.Graph {
+// addNPMDep adds an npm dependency node to g and, when vulns are supplied,
+// a matching registry package (keyed by the dependency PURL) carrying them.
+// Returns the dependency node.
+func addNPMDep(t *testing.T, g *model.Graph, reg *model.PackageRegistry, projectDir, org, name, version string, vulns ...model.Vulnerability) *model.Dependency {
 	t.Helper()
-	g := model.New()
-	pkg := model.NewPackage(model.Package{
-		Name:            name,
-		Version:         "1.0.0",
-		Ecosystem:       "npm",
-		BuildSystem:     "npm",
-		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}},
-		Vulnerabilities: vulns,
+	dep := model.NewDependency(model.Dependency{
+		Name:        name,
+		Org:         org,
+		Version:     version,
+		Ecosystem:   "npm",
+		BuildSystem: "npm",
+		Locations:   []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}},
 	})
-	if err := g.AddPackage(pkg); err != nil {
+	purl := model.CanonicalPackageURLFromDependency(dep)
+	dep.PackageRef = purl
+	if err := g.AddNode(dep); err != nil {
 		t.Fatal(err)
 	}
-	return g
+	pkg := reg.Ensure(purl)
+	pkg.Vulnerabilities = append(pkg.Vulnerabilities, vulns...)
+	return dep
+}
+
+// reachOf returns the reachability for a dependency's first vulnerability.
+func reachOf(t *testing.T, reg *model.PackageRegistry, dep *model.Dependency) *model.Reachability {
+	t.Helper()
+	pkg, ok := reg.Get(dep.PackageRef)
+	if !ok || pkg == nil || len(pkg.Vulnerabilities) == 0 {
+		t.Fatalf("no registry vulnerability for %s", dep.Name)
+	}
+	return pkg.Vulnerabilities[0].Reachability
+}
+
+func newSeed() (*model.Graph, *model.PackageRegistry) {
+	return model.New(), model.NewPackageRegistry()
 }
 
 func TestAnalyzerMarksReachableWhenPackageIsImported(t *testing.T) {
 	projectDir := newNPMProjectDir(t)
-	vuln := model.PackageVulnerability{ID: "GHSA-test", Source: "osv", Severity: "high"}
-	g := newNPMGraph(t, projectDir, "lodash", vuln)
+	g, reg := newSeed()
+	dep := addNPMDep(t, g, reg, projectDir, "", "lodash", "1.0.0", model.Vulnerability{ID: "GHSA-test", Source: "osv", ParsedSeverity: "high"})
 
 	a := Analyzer{Runner: &fakeRunner{
 		result: RunnerResult{
@@ -77,14 +93,11 @@ func TestAnalyzerMarksReachableWhenPackageIsImported(t *testing.T) {
 		},
 	}}
 
-	res, err := a.Analyze(context.Background(), model.AnalyzeRequest{
-		Graph:       g,
-		ProjectPath: projectDir,
-	})
+	res, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Analyze err: %v", err)
 	}
-	r := res.Graph.Packages()[0].Vulnerabilities[0].Reachability
+	r := reachOf(t, reg, dep)
 	if r == nil {
 		t.Fatal("expected Reachability to be set")
 	}
@@ -101,8 +114,8 @@ func TestAnalyzerMarksReachableWhenPackageIsImported(t *testing.T) {
 
 func TestAnalyzerMarksUnreachableWhenPackageNotImported(t *testing.T) {
 	projectDir := newNPMProjectDir(t)
-	vuln := model.PackageVulnerability{ID: "GHSA-test", Source: "osv", Severity: "high"}
-	g := newNPMGraph(t, projectDir, "left-pad", vuln)
+	g, reg := newSeed()
+	dep := addNPMDep(t, g, reg, projectDir, "", "left-pad", "1.0.0", model.Vulnerability{ID: "GHSA-test", Source: "osv", ParsedSeverity: "high"})
 
 	a := Analyzer{Runner: &fakeRunner{
 		result: RunnerResult{
@@ -112,14 +125,10 @@ func TestAnalyzerMarksUnreachableWhenPackageNotImported(t *testing.T) {
 		},
 	}}
 
-	_, err := a.Analyze(context.Background(), model.AnalyzeRequest{
-		Graph:       g,
-		ProjectPath: projectDir,
-	})
-	if err != nil {
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir}); err != nil {
 		t.Fatal(err)
 	}
-	r := g.Packages()[0].Vulnerabilities[0].Reachability
+	r := reachOf(t, reg, dep)
 	if r.Status != model.ReachabilityUnreachable || r.Tier != model.TierPackage || r.Reason != "package-not-imported" {
 		t.Errorf("unexpected reachability: %+v", r)
 	}
@@ -127,18 +136,14 @@ func TestAnalyzerMarksUnreachableWhenPackageNotImported(t *testing.T) {
 
 func TestAnalyzerDegradesToUnknownOnRunnerError(t *testing.T) {
 	projectDir := newNPMProjectDir(t)
-	vuln := model.PackageVulnerability{ID: "GHSA-test", Source: "osv", Severity: "high"}
-	g := newNPMGraph(t, projectDir, "lodash", vuln)
+	g, reg := newSeed()
+	dep := addNPMDep(t, g, reg, projectDir, "", "lodash", "1.0.0", model.Vulnerability{ID: "GHSA-test", Source: "osv", ParsedSeverity: "high"})
 
 	a := Analyzer{Runner: &fakeRunner{err: errors.New("jsreach external runner is not implemented")}}
-	_, err := a.Analyze(context.Background(), model.AnalyzeRequest{
-		Graph:       g,
-		ProjectPath: projectDir,
-	})
-	if err != nil {
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir}); err != nil {
 		t.Fatalf("Analyze should not error on runner failure: %v", err)
 	}
-	r := g.Packages()[0].Vulnerabilities[0].Reachability
+	r := reachOf(t, reg, dep)
 	if r.Status != model.ReachabilityUnknown {
 		t.Errorf("status = %q, want unknown", r.Status)
 	}
@@ -149,35 +154,20 @@ func TestAnalyzerDegradesToUnknownOnRunnerError(t *testing.T) {
 
 func TestAnalyzerScopedPackageMatching(t *testing.T) {
 	projectDir := newNPMProjectDir(t)
-	vuln := model.PackageVulnerability{ID: "GHSA-test", Source: "osv", Severity: "high"}
-	g := model.New()
-	pkg := model.NewPackage(model.Package{
-		Name:        "scope/pkg",
-		Org:         "@scope",
-		Version:     "1.0.0",
-		Ecosystem:   "npm",
-		BuildSystem: "npm",
-		Locations: []model.PackageLocation{
-			{RealPath: filepath.Join(projectDir, "package-lock.json")},
-		},
-		Vulnerabilities: []model.PackageVulnerability{vuln},
-	})
-	if err := g.AddPackage(pkg); err != nil {
-		t.Fatal(err)
-	}
+	g, reg := newSeed()
+	dep := addNPMDep(t, g, reg, projectDir, "@scope", "scope/pkg", "1.0.0", model.Vulnerability{ID: "GHSA-test", Source: "osv", ParsedSeverity: "high"})
 
 	a := Analyzer{Runner: &fakeRunner{
 		result: RunnerResult{
-			ImportedPackages: map[string]struct{}{"@scope:scope/pkg": {}}, // QualifiedName
+			ImportedPackages: map[string]struct{}{dep.QualifiedName(): {}}, // QualifiedName
 			EntryPoints:      []string{filepath.Join(projectDir, "index.js")},
 			SourceFiles:      1,
 		},
 	}}
-	_, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: projectDir})
-	if err != nil {
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir}); err != nil {
 		t.Fatal(err)
 	}
-	r := g.Packages()[0].Vulnerabilities[0].Reachability
+	r := reachOf(t, reg, dep)
 	if r == nil || r.Status != model.ReachabilityReachable {
 		t.Errorf("scoped package not reached: %+v", r)
 	}
@@ -186,67 +176,35 @@ func TestAnalyzerScopedPackageMatching(t *testing.T) {
 func TestAnalyzerApplicableRequiresNPMVulns(t *testing.T) {
 	a := Analyzer{}
 
-	g := model.New()
-	goPkg := model.NewPackage(model.Package{Name: "lib", Ecosystem: "go", Vulnerabilities: []model.PackageVulnerability{{ID: "x"}}})
-	_ = g.AddPackage(goPkg)
-	ok, err := a.Applicable(context.Background(), model.AnalyzeRequest{Graph: g})
-	if err != nil || ok {
+	// go package with vuln → not applicable
+	g, reg := newSeed()
+	goDep := model.NewDependency(model.Dependency{Name: "lib", Ecosystem: "go"})
+	goDep.PackageRef = model.CanonicalPackageURLFromDependency(goDep)
+	_ = g.AddNode(goDep)
+	reg.Ensure(goDep.PackageRef).Vulnerabilities = []model.Vulnerability{{ID: "x"}}
+	if ok, err := a.Applicable(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg}); err != nil || ok {
 		t.Errorf("Applicable on go-only graph = (%v, %v); want (false, nil)", ok, err)
 	}
 
-	g = model.New()
-	npmPkg := model.NewPackage(model.Package{Name: "lodash", Ecosystem: "npm", Vulnerabilities: []model.PackageVulnerability{{ID: "x"}}})
-	_ = g.AddPackage(npmPkg)
-	ok, err = a.Applicable(context.Background(), model.AnalyzeRequest{Graph: g})
-	if err != nil || !ok {
+	g, reg = newSeed()
+	addNPMDep(t, g, reg, t.TempDir(), "", "lodash", "1.0.0", model.Vulnerability{ID: "x"})
+	if ok, err := a.Applicable(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg}); err != nil || !ok {
 		t.Errorf("Applicable on npm-with-vulns graph = (%v, %v); want (true, nil)", ok, err)
 	}
 
-	g = model.New()
-	npmNoVulns := model.NewPackage(model.Package{Name: "lodash", Ecosystem: "npm"})
-	_ = g.AddPackage(npmNoVulns)
-	ok, err = a.Applicable(context.Background(), model.AnalyzeRequest{Graph: g})
-	if err != nil || ok {
+	g, reg = newSeed()
+	addNPMDep(t, g, reg, t.TempDir(), "", "lodash", "1.0.0") // no vulns
+	if ok, err := a.Applicable(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg}); err != nil || ok {
 		t.Errorf("Applicable on npm-without-vulns graph = (%v, %v); want (false, nil)", ok, err)
 	}
 }
 
-// TestAnalyzerMarksTransitiveDepReachable is the headline correctness
-// test for the closure expansion. esbuild stops at every bare
-// specifier (PackagesExternal), so the runner's import set only
-// contains directly-imported packages. The graph, however, captures
-// the full dep tree from the lockfile. A vulnerability in a package
-// reachable only through a chain of dep edges (app → express →
-// body-parser) must still be reported as reachable.
 func TestAnalyzerMarksTransitiveDepReachable(t *testing.T) {
 	projectDir := newNPMProjectDir(t)
-	expressVuln := model.PackageVulnerability{ID: "GHSA-direct", Source: "osv", Severity: "high"}
-	bodyParserVuln := model.PackageVulnerability{ID: "GHSA-transitive", Source: "osv", Severity: "high"}
-
-	g := model.New()
-	express := model.NewPackage(model.Package{
-		Name:            "express",
-		Version:         "4.0.0",
-		Ecosystem:       "npm",
-		BuildSystem:     "npm",
-		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}},
-		Vulnerabilities: []model.PackageVulnerability{expressVuln},
-	})
-	bodyParser := model.NewPackage(model.Package{
-		Name:            "body-parser",
-		Version:         "1.0.0",
-		Ecosystem:       "npm",
-		BuildSystem:     "npm",
-		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}},
-		Vulnerabilities: []model.PackageVulnerability{bodyParserVuln},
-	})
-	if err := g.AddPackage(express); err != nil {
-		t.Fatal(err)
-	}
-	if err := g.AddPackage(bodyParser); err != nil {
-		t.Fatal(err)
-	}
-	if err := g.AddDependency(express.ID, bodyParser.ID); err != nil {
+	g, reg := newSeed()
+	express := addNPMDep(t, g, reg, projectDir, "", "express", "4.0.0", model.Vulnerability{ID: "GHSA-direct", Source: "osv", ParsedSeverity: "high"})
+	bodyParser := addNPMDep(t, g, reg, projectDir, "", "body-parser", "1.0.0", model.Vulnerability{ID: "GHSA-transitive", Source: "osv", ParsedSeverity: "high"})
+	if err := g.AddEdge(express.ID, bodyParser.ID); err != nil {
 		t.Fatal(err)
 	}
 
@@ -258,60 +216,27 @@ func TestAnalyzerMarksTransitiveDepReachable(t *testing.T) {
 			SourceFiles:      1,
 		},
 	}}
-
-	_, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: projectDir})
-	if err != nil {
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir}); err != nil {
 		t.Fatal(err)
 	}
 
-	for _, pkg := range g.Packages() {
-		r := pkg.Vulnerabilities[0].Reachability
+	for _, dep := range []*model.Dependency{express, bodyParser} {
+		r := reachOf(t, reg, dep)
 		if r == nil {
-			t.Fatalf("%s: missing Reachability", pkg.Name)
+			t.Fatalf("%s: missing Reachability", dep.Name)
 		}
 		if r.Status != model.ReachabilityReachable {
-			t.Errorf("%s: status = %q, want reachable (express directly imported, body-parser transitively)", pkg.Name, r.Status)
+			t.Errorf("%s: status = %q, want reachable", dep.Name, r.Status)
 		}
 	}
 }
 
-// TestAnalyzerDoesNotExpandThroughUnimportedRoots ensures the closure
-// only walks from the directly-imported seed set. A vulnerable
-// transitive dep that is NOT reachable from any imported package
-// should stay unreachable.
 func TestAnalyzerDoesNotExpandThroughUnimportedRoots(t *testing.T) {
 	projectDir := newNPMProjectDir(t)
-	devToolVuln := model.PackageVulnerability{ID: "GHSA-devtool", Source: "osv", Severity: "high"}
-	transitiveVuln := model.PackageVulnerability{ID: "GHSA-trans", Source: "osv", Severity: "high"}
-
-	g := model.New()
-	// jest is a devDependency that the runner's app-source walk does
-	// NOT find (test files aren't entry points by default).
-	jest := model.NewPackage(model.Package{
-		Name:            "jest",
-		Version:         "29.0.0",
-		Ecosystem:       "npm",
-		BuildSystem:     "npm",
-		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}},
-		Vulnerabilities: []model.PackageVulnerability{devToolVuln},
-	})
-	// jest depends on glob; if jest isn't reachable, glob shouldn't
-	// be either, even though glob is in the dep graph.
-	glob := model.NewPackage(model.Package{
-		Name:            "glob",
-		Version:         "8.0.0",
-		Ecosystem:       "npm",
-		BuildSystem:     "npm",
-		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}},
-		Vulnerabilities: []model.PackageVulnerability{transitiveVuln},
-	})
-	if err := g.AddPackage(jest); err != nil {
-		t.Fatal(err)
-	}
-	if err := g.AddPackage(glob); err != nil {
-		t.Fatal(err)
-	}
-	if err := g.AddDependency(jest.ID, glob.ID); err != nil {
+	g, reg := newSeed()
+	jest := addNPMDep(t, g, reg, projectDir, "", "jest", "29.0.0", model.Vulnerability{ID: "GHSA-devtool", Source: "osv", ParsedSeverity: "high"})
+	glob := addNPMDep(t, g, reg, projectDir, "", "glob", "8.0.0", model.Vulnerability{ID: "GHSA-trans", Source: "osv", ParsedSeverity: "high"})
+	if err := g.AddEdge(jest.ID, glob.ID); err != nil {
 		t.Fatal(err)
 	}
 
@@ -322,39 +247,35 @@ func TestAnalyzerDoesNotExpandThroughUnimportedRoots(t *testing.T) {
 			SourceFiles:      1,
 		},
 	}}
-	_, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: projectDir})
-	if err != nil {
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir}); err != nil {
 		t.Fatal(err)
 	}
 
-	for _, pkg := range g.Packages() {
-		r := pkg.Vulnerabilities[0].Reachability
+	for _, dep := range []*model.Dependency{jest, glob} {
+		r := reachOf(t, reg, dep)
 		if r == nil {
-			t.Fatalf("%s: missing Reachability", pkg.Name)
+			t.Fatalf("%s: missing Reachability", dep.Name)
 		}
 		if r.Status != model.ReachabilityUnreachable {
-			t.Errorf("%s: status = %q, want unreachable (neither directly imported nor reachable from any import)", pkg.Name, r.Status)
+			t.Errorf("%s: status = %q, want unreachable", dep.Name, r.Status)
 		}
 	}
 }
 
-// TestComputeReachablePackageHopsHandlesCycles guards against the
-// classic BFS pitfall: a → b → a should not loop, and the hop count
-// for a transitive dep should be the shortest distance.
 func TestComputeReachablePackageHopsHandlesCycles(t *testing.T) {
 	g := model.New()
-	a := model.NewPackage(model.Package{Name: "a", Version: "1.0.0", Ecosystem: "npm"})
-	b := model.NewPackage(model.Package{Name: "b", Version: "1.0.0", Ecosystem: "npm"})
-	if err := g.AddPackage(a); err != nil {
+	a := model.NewDependency(model.Dependency{Name: "a", Version: "1.0.0", Ecosystem: "npm"})
+	b := model.NewDependency(model.Dependency{Name: "b", Version: "1.0.0", Ecosystem: "npm"})
+	if err := g.AddNode(a); err != nil {
 		t.Fatal(err)
 	}
-	if err := g.AddPackage(b); err != nil {
+	if err := g.AddNode(b); err != nil {
 		t.Fatal(err)
 	}
-	if err := g.AddDependency(a.ID, b.ID); err != nil {
+	if err := g.AddEdge(a.ID, b.ID); err != nil {
 		t.Fatal(err)
 	}
-	if err := g.AddDependency(b.ID, a.ID); err != nil {
+	if err := g.AddEdge(b.ID, a.ID); err != nil {
 		t.Fatal(err)
 	}
 
@@ -368,23 +289,15 @@ func TestComputeReachablePackageHopsHandlesCycles(t *testing.T) {
 }
 
 func TestAnalyzerMarksUnknownWhenNoProjectRootDiscovered(t *testing.T) {
-	// Project path doesn't contain a package.json — discoverProjectRoots
-	// returns empty so the analyzer should mark every npm vuln Unknown.
-	dir := t.TempDir()
-	g := model.New()
-	pkg := model.NewPackage(model.Package{
-		Name:            "lodash",
-		Ecosystem:       "npm",
-		Vulnerabilities: []model.PackageVulnerability{{ID: "x"}},
-	})
-	_ = g.AddPackage(pkg)
+	dir := t.TempDir() // no package.json
+	g, reg := newSeed()
+	dep := addNPMDep(t, g, reg, dir, "", "lodash", "1.0.0", model.Vulnerability{ID: "x"})
 
 	a := Analyzer{Runner: &fakeRunner{}}
-	_, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: dir})
-	if err != nil {
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: dir}); err != nil {
 		t.Fatal(err)
 	}
-	r := g.Packages()[0].Vulnerabilities[0].Reachability
+	r := reachOf(t, reg, dep)
 	if r == nil || r.Status != model.ReachabilityUnknown {
 		t.Errorf("expected Unknown status, got %+v", r)
 	}
@@ -393,62 +306,24 @@ func TestAnalyzerMarksUnknownWhenNoProjectRootDiscovered(t *testing.T) {
 	}
 }
 
-// TestAnalyzerPopulatesHopsAndConfidence verifies the Tier-3
-// improvements added in the reachability follow-up: each reachable
-// vulnerability carries the BFS hop count and a coarse confidence
-// label derived from it.
 func TestAnalyzerPopulatesHopsAndConfidence(t *testing.T) {
 	projectDir := newNPMProjectDir(t)
+	g, reg := newSeed()
+	express := addNPMDep(t, g, reg, projectDir, "", "express", "4.0.0", model.Vulnerability{ID: "GHSA-direct", Source: "osv", ParsedSeverity: "high"})
+	bodyParser := addNPMDep(t, g, reg, projectDir, "", "body-parser", "1.0.0", model.Vulnerability{ID: "GHSA-trans", Source: "osv", ParsedSeverity: "high"})
+	deep1 := addNPMDep(t, g, reg, projectDir, "", "deep1", "1")
+	deep2 := addNPMDep(t, g, reg, projectDir, "", "deep2", "1")
+	deep3 := addNPMDep(t, g, reg, projectDir, "", "deep3", "1")
+	deep4 := addNPMDep(t, g, reg, projectDir, "", "deep4", "1", model.Vulnerability{ID: "GHSA-deep", Source: "osv", ParsedSeverity: "high"})
 
-	g := model.New()
-	directVuln := model.PackageVulnerability{ID: "GHSA-direct", Source: "osv", Severity: "high"}
-	transitiveVuln := model.PackageVulnerability{ID: "GHSA-trans", Source: "osv", Severity: "high"}
-	deepVuln := model.PackageVulnerability{ID: "GHSA-deep", Source: "osv", Severity: "high"}
-
-	express := model.NewPackage(model.Package{
-		Name:            "express",
-		Version:         "4.0.0",
-		Ecosystem:       "npm",
-		BuildSystem:     "npm",
-		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}},
-		Vulnerabilities: []model.PackageVulnerability{directVuln},
-	})
-	bodyParser := model.NewPackage(model.Package{
-		Name:            "body-parser",
-		Version:         "1.0.0",
-		Ecosystem:       "npm",
-		BuildSystem:     "npm",
-		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}},
-		Vulnerabilities: []model.PackageVulnerability{transitiveVuln},
-	})
-	// 5 hops deep — should land at low confidence even without
-	// dynamic imports.
-	deep1 := model.NewPackage(model.Package{Name: "deep1", Version: "1", Ecosystem: "npm", Locations: []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}}})
-	deep2 := model.NewPackage(model.Package{Name: "deep2", Version: "1", Ecosystem: "npm", Locations: []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}}})
-	deep3 := model.NewPackage(model.Package{Name: "deep3", Version: "1", Ecosystem: "npm", Locations: []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}}})
-	deep4 := model.NewPackage(model.Package{
-		Name:            "deep4",
-		Version:         "1",
-		Ecosystem:       "npm",
-		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}},
-		Vulnerabilities: []model.PackageVulnerability{deepVuln},
-	})
-
-	for _, pkg := range []*model.Package{express, bodyParser, deep1, deep2, deep3, deep4} {
-		if err := g.AddPackage(pkg); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := g.AddDependency(express.ID, bodyParser.ID); err != nil {
-		t.Fatal(err)
-	}
 	for from, to := range map[string]string{
+		express.ID:    bodyParser.ID,
 		bodyParser.ID: deep1.ID,
 		deep1.ID:      deep2.ID,
 		deep2.ID:      deep3.ID,
 		deep3.ID:      deep4.ID,
 	} {
-		if err := g.AddDependency(from, to); err != nil {
+		if err := g.AddEdge(from, to); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -460,8 +335,7 @@ func TestAnalyzerPopulatesHopsAndConfidence(t *testing.T) {
 			SourceFiles:      1,
 		},
 	}}
-
-	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: projectDir}); err != nil {
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -469,40 +343,35 @@ func TestAnalyzerPopulatesHopsAndConfidence(t *testing.T) {
 		hops       int
 		confidence model.ReachabilityConfidence
 	}
-	cases := map[string]expect{
-		"express@4.0.0":     {0, model.ConfidenceHigh},
-		"body-parser@1.0.0": {1, model.ConfidenceMedium},
-		"deep4@1":           {5, model.ConfidenceLow},
+	cases := []struct {
+		dep  *model.Dependency
+		want expect
+	}{
+		{express, expect{0, model.ConfidenceHigh}},
+		{bodyParser, expect{1, model.ConfidenceMedium}},
+		{deep4, expect{5, model.ConfidenceLow}},
 	}
-	for id, want := range cases {
-		pkg, _ := g.Package(id)
-		if pkg == nil {
-			t.Fatalf("missing pkg %s", id)
-		}
-		r := pkg.Vulnerabilities[0].Reachability
+	for _, tc := range cases {
+		r := reachOf(t, reg, tc.dep)
 		if r == nil || r.Status != model.ReachabilityReachable {
-			t.Fatalf("%s: expected reachable, got %+v", id, r)
+			t.Fatalf("%s: expected reachable, got %+v", tc.dep.Name, r)
 		}
-		if r.Hops == nil || *r.Hops != want.hops {
-			t.Errorf("%s: hops = %v, want %d", id, r.Hops, want.hops)
+		if r.Hops == nil || *r.Hops != tc.want.hops {
+			t.Errorf("%s: hops = %v, want %d", tc.dep.Name, r.Hops, tc.want.hops)
 		}
-		if r.Confidence != want.confidence {
-			t.Errorf("%s: confidence = %q, want %q", id, r.Confidence, want.confidence)
+		if r.Confidence != tc.want.confidence {
+			t.Errorf("%s: confidence = %q, want %q", tc.dep.Name, r.Confidence, tc.want.confidence)
 		}
 		if r.DynamicImportsDetected {
-			t.Errorf("%s: DynamicImportsDetected = true, want false (runner reported no dynamic imports)", id)
+			t.Errorf("%s: DynamicImportsDetected = true, want false", tc.dep.Name)
 		}
 	}
 }
 
-// TestAnalyzerHonorsRunnerDynamicImportFlag verifies that when the
-// runner reports dynamic imports detected, every reachable vuln is
-// downgraded to ConfidenceLow even when its hop count would normally
-// be ConfidenceHigh / ConfidenceMedium.
 func TestAnalyzerHonorsRunnerDynamicImportFlag(t *testing.T) {
 	projectDir := newNPMProjectDir(t)
-	vuln := model.PackageVulnerability{ID: "GHSA-test", Source: "osv", Severity: "high"}
-	g := newNPMGraph(t, projectDir, "lodash", vuln)
+	g, reg := newSeed()
+	dep := addNPMDep(t, g, reg, projectDir, "", "lodash", "1.0.0", model.Vulnerability{ID: "GHSA-test", Source: "osv", ParsedSeverity: "high"})
 
 	a := Analyzer{DisableCache: true, Runner: &fakeRunner{
 		result: RunnerResult{
@@ -512,10 +381,10 @@ func TestAnalyzerHonorsRunnerDynamicImportFlag(t *testing.T) {
 			DynamicImportsDetected: true,
 		},
 	}}
-	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: projectDir}); err != nil {
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir}); err != nil {
 		t.Fatal(err)
 	}
-	r := g.Packages()[0].Vulnerabilities[0].Reachability
+	r := reachOf(t, reg, dep)
 	if r == nil || r.Status != model.ReachabilityReachable {
 		t.Fatalf("expected reachable, got %+v", r)
 	}

@@ -1,7 +1,9 @@
 package opts
 
 import (
+	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/config"
@@ -94,10 +96,28 @@ func bindSelectorFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
 
 func bindExecutionFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
 	flags.StringVarP(&cfg.Format, "format", "f", "", "Output format: text, json, markdown, sarif")
+	BindJSONFormatFlag(flags, &cfg.Format, "Shortcut for --format json")
 	flags.StringArrayVarP(&cfg.Outputs, "output", "o", nil, "Additional output target as <format> or <format>=<path>; repeat for multiple outputs")
 	flags.BoolVar(&cfg.Interactive, "interactive", false, "Open an interactive terminal UI")
 	flags.BoolVar(&cfg.InstallFirst, "install-first", false, "Run detector-specific dependency installation before resolving graphs")
 	flags.StringArrayVar(&cfg.InstallArgs, "install-arg", nil, "Additional detector-specific install argument; may be repeated")
+}
+
+// BindJSONFormatFlag binds --json as a no-argument shortcut for setting format to json.
+func BindJSONFormatFlag(flags *pflag.FlagSet, format *string, usage string) {
+	if flags == nil {
+		return
+	}
+	flags.BoolFunc("json", usage, func(value string) error {
+		enabled, err := strconv.ParseBool(value)
+		if err != nil {
+			return fmt.Errorf("parse json flag: %w", err)
+		}
+		if enabled && format != nil {
+			*format = "json"
+		}
+		return nil
+	})
 }
 
 func applyFlagOverrides(dst *config.Resolved, flags config.Resolved, cmd *cobra.Command) {
@@ -168,7 +188,7 @@ func applyFlagOverrides(dst *config.Resolved, flags config.Resolved, cmd *cobra.
 	if flagChanged(cmd, "analyzers") {
 		dst.Analyzers = flags.Analyzers
 	}
-	if flagChanged(cmd, "format") {
+	if flagChanged(cmd, "format") || (flagChanged(cmd, "json") && strings.EqualFold(flags.Format, "json")) {
 		dst.Format = flags.Format
 	}
 	if flagChanged(cmd, "output") {

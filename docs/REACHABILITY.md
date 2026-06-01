@@ -10,11 +10,11 @@ The point: stop chasing high-severity CVEs in transitive packages your code neve
 
 ```sh
 # Annotate vulnerabilities with reachability (no audit required).
-bomly scan --enrich --reachability --format json
+bomly scan --enrich --reachability --json
 
 # Fail only when a finding is BOTH low+ severity AND confirmed reachable.
 bomly scan --enrich --audit --reachability \
-  --fail-on low --fail-on reachable --format json
+  --fail-on low --fail-on reachable --json
 ```
 
 ## Analyzer per ecosystem

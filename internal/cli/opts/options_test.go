@@ -319,22 +319,30 @@ func TestCommandContextInitialize_LoadsConfigHierarchy(t *testing.T) {
 		t.Fatalf("mkdir home config dir: %v", err)
 	}
 	writeConfigFile(t, filepath.Join(tempHome, ".bomly", "config.yaml"), map[string]any{
-		"ecosystems": "npm",
-		"detectors":  "syft-detector",
-		"verbose":    true,
+		"components": map[string]any{
+			"ecosystems": "npm",
+			"detectors":  "syft-detector",
+		},
+		"logging": map[string]any{
+			"verbosity": 1,
+		},
 	})
 
 	if err := os.MkdirAll(filepath.Join(projectDir, ".bomly"), 0o755); err != nil {
 		t.Fatalf("mkdir project config dir: %v", err)
 	}
 	writeConfigFile(t, filepath.Join(projectDir, ".bomly", "config.yaml"), map[string]any{
-		"ecosystems": "go",
-		"detectors":  "go-detector",
+		"components": map[string]any{
+			"ecosystems": "go",
+			"detectors":  "go-detector",
+		},
 	})
 
 	explicitConfig := filepath.Join(t.TempDir(), "bomly.yaml")
 	writeConfigFile(t, explicitConfig, map[string]any{
-		"detectors": "maven-detector",
+		"components": map[string]any{
+			"detectors": "maven-detector",
+		},
 	})
 
 	options := &Options{
@@ -392,28 +400,56 @@ func TestCommandContextInitialize_AppliesConfigPrecedence(t *testing.T) {
 		t.Fatalf("mkdir home config dir: %v", err)
 	}
 	writeConfigFile(t, filepath.Join(tempHome, ".bomly", "config.yaml"), map[string]any{
-		"detectors":     "syft-detector",
-		"fail_on":       "low",
-		"format":        "text",
-		"osv_cache_ttl": "1h",
+		"components": map[string]any{
+			"detectors": "syft-detector",
+		},
+		"policy": map[string]any{
+			"fail_on": "low",
+		},
+		"output": map[string]any{
+			"format": "text",
+		},
+		"matchers": map[string]any{
+			"osv": map[string]any{
+				"cache_ttl": "1h",
+			},
+		},
 	})
 
 	if err := os.MkdirAll(filepath.Join(projectDir, ".bomly"), 0o755); err != nil {
 		t.Fatalf("mkdir project config dir: %v", err)
 	}
 	writeConfigFile(t, filepath.Join(projectDir, ".bomly", "config.yaml"), map[string]any{
-		"detectors":     "go-detector",
-		"fail_on":       "medium",
-		"format":        "json",
-		"matchers":      "osv",
-		"osv_cache_ttl": "2h",
+		"components": map[string]any{
+			"detectors": "go-detector",
+			"matchers":  "osv",
+		},
+		"policy": map[string]any{
+			"fail_on": "medium",
+		},
+		"output": map[string]any{
+			"format": "json",
+		},
+		"matchers": map[string]any{
+			"osv": map[string]any{
+				"cache_ttl": "2h",
+			},
+		},
 	})
 
 	explicitConfig := filepath.Join(t.TempDir(), "bomly.yaml")
 	writeConfigFile(t, explicitConfig, map[string]any{
-		"auditors":      "policy-auditor",
-		"fail_on":       "high",
-		"osv_cache_ttl": "4h",
+		"components": map[string]any{
+			"auditors": "policy-auditor",
+		},
+		"policy": map[string]any{
+			"fail_on": "high",
+		},
+		"matchers": map[string]any{
+			"osv": map[string]any{
+				"cache_ttl": "4h",
+			},
+		},
 	})
 
 	options := &Options{}
@@ -461,6 +497,50 @@ func TestCommandContextInitialize_AppliesConfigPrecedence(t *testing.T) {
 	}
 }
 
+func TestCommandContextInitialize_JSONShortcutOverridesEnvFormat(t *testing.T) {
+	t.Setenv("BOMLY_FORMAT", "markdown")
+
+	options := &Options{}
+	root := newTestRootCommand(t)
+	if err := options.Bind(root); err != nil {
+		t.Fatalf("Bind() error = %v", err)
+	}
+	if err := BindCommandFlagGroups(root, &options.ResolvedConfig, FlagGroupExecution); err != nil {
+		t.Fatalf("BindCommandFlagGroups() error = %v", err)
+	}
+	if err := root.ParseFlags([]string{"--json"}); err != nil {
+		t.Fatalf("ParseFlags() error = %v", err)
+	}
+	if err := options.ResolveConfig(root); err != nil {
+		t.Fatalf("ResolveConfig() error = %v", err)
+	}
+	if got := options.GetConfig().Format; got != "json" {
+		t.Fatalf("expected --json to override env format, got %q", got)
+	}
+}
+
+func TestCommandContextInitialize_JSONFalseDoesNotOverrideEnvFormat(t *testing.T) {
+	t.Setenv("BOMLY_FORMAT", "markdown")
+
+	options := &Options{}
+	root := newTestRootCommand(t)
+	if err := options.Bind(root); err != nil {
+		t.Fatalf("Bind() error = %v", err)
+	}
+	if err := BindCommandFlagGroups(root, &options.ResolvedConfig, FlagGroupExecution); err != nil {
+		t.Fatalf("BindCommandFlagGroups() error = %v", err)
+	}
+	if err := root.ParseFlags([]string{"--json=false"}); err != nil {
+		t.Fatalf("ParseFlags() error = %v", err)
+	}
+	if err := options.ResolveConfig(root); err != nil {
+		t.Fatalf("ResolveConfig() error = %v", err)
+	}
+	if got := options.GetConfig().Format; got != "markdown" {
+		t.Fatalf("expected --json=false to preserve env format, got %q", got)
+	}
+}
+
 func TestCommandContextInitialize_LoadsQuietFromConfig(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
@@ -473,7 +553,9 @@ func TestCommandContextInitialize_LoadsQuietFromConfig(t *testing.T) {
 		t.Fatalf("mkdir home config dir: %v", err)
 	}
 	writeConfigFile(t, filepath.Join(tempHome, ".bomly", "config.yaml"), map[string]any{
-		"quiet": true,
+		"logging": map[string]any{
+			"quiet": true,
+		},
 	})
 
 	options := &Options{}
@@ -518,7 +600,9 @@ func TestCommandContextInitialize_ProjectConfigUsesSelectedPath(t *testing.T) {
 		t.Fatalf("mkdir project config dir: %v", err)
 	}
 	writeConfigFile(t, filepath.Join(projectDir, ".bomly", "config.yaml"), map[string]any{
-		"ecosystems": "go",
+		"components": map[string]any{
+			"ecosystems": "go",
+		},
 	})
 
 	options := &Options{ResolvedConfig: config.Resolved{Path: projectDir}}

@@ -61,7 +61,7 @@ jobs:
           git fetch origin ${{ github.base_ref }}:base
           bomly diff --base base --head HEAD \
             --enrich --audit --fail-on high \
-            --format json > bomly-diff.json
+            --json > bomly-diff.json
 ```
 
 This fails only when the PR **introduces** a new high finding, ignoring pre-existing ones.
@@ -109,7 +109,7 @@ bomly:
       - .cache/bomly
 ```
 
-GitLab natively renders CycloneDX SBOMs in the dependency-scanning panel via the `reports:cyclonedx` key. To point Bomly's cache at the GitLab cache, export `XDG_CACHE_HOME` or configure `matchers.*.cacheDir` in `~/.bomly/config.yaml`.
+GitLab natively renders CycloneDX SBOMs in the dependency-scanning panel via the `reports:cyclonedx` key. To point Bomly's cache at the GitLab cache, export `XDG_CACHE_HOME` or configure matcher-specific keys such as `matchers.osv.cache_dir` in `~/.bomly/config.yaml`.
 
 ## Jenkins (declarative)
 

@@ -36,6 +36,20 @@ func (m *scanModel) WithEnrichEnabled(enabled bool) *scanModel {
 	return m
 }
 
+// WithReachabilityEnabled records whether the scan requested reachability
+// analysis so the conditional interactive filter is only exposed for an
+// explicitly enabled scan.
+func (m *scanModel) WithReachabilityEnabled(enabled bool) *scanModel {
+	if m == nil {
+		return nil
+	}
+	m.reachabilityEnabled = enabled
+	if m.shellModel != nil {
+		m.Rebuild()
+	}
+	return m
+}
+
 func newScanNavigator(titlePrefix string, project output.ProjectDescriptor, consolidated sdk.ConsolidatedGraph, graphValue *sdk.Graph, findings []sdk.Finding, explainQuery string) *scanModel {
 	manifests := manifestRows(consolidated)
 	manifestByID := make(map[string]listPackageRow, len(manifests))
@@ -315,6 +329,36 @@ func (m *scanModel) CycleEcosystemFilter() {
 	m.rebuildListPreserveSelection()
 }
 
+func (m *scanModel) CycleReachabilityFilter() {
+	if !m.reachabilityFilterAvailable() {
+		return
+	}
+	switch m.currentScanView() {
+	case interactiveScanViewPackages, interactiveScanViewVulns:
+	default:
+		return
+	}
+	m.reachabilityFilter = nextFilterValue(m.reachabilityFilter, []string{"", string(sdk.ReachabilityReachable), string(sdk.ReachabilityUnreachable)})
+	m.rebuildListPreserveSelection()
+}
+
+func (m *scanModel) reachabilityFilterAvailable() bool {
+	if m == nil || !m.reachabilityEnabled || m.graphValue == nil {
+		return false
+	}
+	for _, pkg := range m.graphValue.Packages() {
+		if pkg == nil {
+			continue
+		}
+		for _, vulnerability := range pkg.Vulnerabilities {
+			if vulnerability.Reachability != nil {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (m *scanModel) componentEcosystemValues() []string {
 	if m == nil || m.graphValue == nil {
 		return nil
@@ -467,7 +511,12 @@ func (m *scanModel) scanFooterLines(width int) []string {
 }
 
 func (m *scanModel) componentControlsLine() string {
-	return keyHint("/", "search") + " " + keyHint("r", "relationship") + " " + keyHint("s", "scope") + " " + keyHint("v", "severity") + " " + keyHint("e", "ecosystem") + " " + keyHint("]", "expand all") + " " + keyHint("[", "collapse all")
+	parts := []string{keyHint("/", "search"), keyHint("r", "relationship"), keyHint("s", "scope"), keyHint("v", "severity"), keyHint("e", "ecosystem")}
+	if m.reachabilityFilterAvailable() {
+		parts = append(parts, keyHint("a", "reachability"))
+	}
+	parts = append(parts, keyHint("]", "expand all"), keyHint("[", "collapse all"))
+	return strings.Join(parts, " ")
 }
 
 func (m *scanModel) componentStateLine(extra string) string {
@@ -476,6 +525,9 @@ func (m *scanModel) componentStateLine(extra string) string {
 		render.Style(" | Scope: ", render.Dim) + render.Style(valueOrDefault(m.scopeFilter, "All"), render.BgYellow, render.Bold) +
 		render.Style(" | Severity: ", render.Dim) + render.Style(valueOrDefault(m.severityFilter, "All"), render.BgYellow, render.Bold) +
 		render.Style(" | Ecosystem: ", render.Dim) + render.Style(valueOrDefault(m.ecosystemFilter, "All"), render.BgYellow, render.Bold)
+	if m.reachabilityFilterAvailable() {
+		state += render.Style(" | Reachability: ", render.Dim) + render.Style(titleCase(valueOrDefault(m.reachabilityFilter, "All")), render.BgYellow, render.Bold)
+	}
 	if strings.TrimSpace(extra) != "" {
 		state += render.Style(" | ", render.Dim) + extra
 	}
@@ -692,16 +744,89 @@ func (m *scanModel) filterComponentRows(rows []listPackageRow, maxSevByID map[st
 		}
 		rows = kept
 	}
+	if m.reachabilityFilter != "" {
+		kept := rows[:0]
+		for _, row := range rows {
+			pkg, _ := m.graphValue.Package(row.id)
+			if packageMatchesReachabilityFilter(pkg, m.reachabilityFilter) {
+				kept = append(kept, row)
+			}
+		}
+		rows = kept
+	}
 	if m.severityFilter == "" {
 		return rows
 	}
 	kept := rows[:0]
 	for _, row := range rows {
-		if strings.EqualFold(maxSevByID[row.id], m.severityFilter) {
+		if packageMatchesSeverityFilter(maxSevByID[row.id], m.severityFilter) {
 			kept = append(kept, row)
 		}
 	}
 	return kept
+}
+
+func packageMatchesReachabilityFilter(pkg *sdk.Package, filter string) bool {
+	if filter == "" {
+		return true
+	}
+	if pkg == nil || len(pkg.Vulnerabilities) == 0 {
+		return false
+	}
+	switch filter {
+	case string(sdk.ReachabilityReachable):
+		for _, vulnerability := range pkg.Vulnerabilities {
+			if vulnerability.Reachability != nil && vulnerability.Reachability.Status == sdk.ReachabilityReachable {
+				return true
+			}
+		}
+	case string(sdk.ReachabilityUnreachable):
+		for _, vulnerability := range pkg.Vulnerabilities {
+			if vulnerability.Reachability == nil || vulnerability.Reachability.Status != sdk.ReachabilityUnreachable {
+				return false
+			}
+		}
+		return true
+	}
+	return false
+}
+
+func packageMatchesSeverityFilter(maxSeverity, filter string) bool {
+	switch strings.ToLower(strings.TrimSpace(filter)) {
+	case "":
+		return true
+	case "any":
+		return strings.TrimSpace(maxSeverity) != ""
+	case "none":
+		return strings.TrimSpace(maxSeverity) == ""
+	default:
+		return strings.EqualFold(maxSeverity, filter)
+	}
+}
+
+func vulnerabilityMatchesSeverityFilter(vulnerability sdk.PackageVulnerability, filter string) bool {
+	switch strings.ToLower(strings.TrimSpace(filter)) {
+	case "", "any":
+		return true
+	case "none":
+		return false
+	default:
+		return strings.EqualFold(vulnerability.Severity, filter)
+	}
+}
+
+func vulnerabilityReachabilityBadge(vulnerability sdk.PackageVulnerability) (badge, bool) {
+	if vulnerability.Reachability == nil {
+		return badge{}, false
+	}
+	switch vulnerability.Reachability.Status {
+	case sdk.ReachabilityReachable:
+		return badge{label: string(sdk.ReachabilityReachable), kind: "reachability-reachable"}, true
+	case sdk.ReachabilityUnreachable:
+		return badge{label: string(sdk.ReachabilityUnreachable), kind: "reachability-unreachable"}, true
+	default:
+		return badge{}, false
+	}
 }
 
 func componentCountRows(graphValue *sdk.Graph, rootID string) []listPackageRow {
@@ -769,7 +894,7 @@ func (m *scanModel) buildOverviewListModel() *listModel {
 		{
 			title:    "Vulnerabilities by Severity",
 			subtitle: "distribution",
-			details:  distributionDetails("Vulnerability Severity", severityDistribution(vulnerabilities)),
+			details:  severityDistributionDetails("Vulnerability Severity", vulnerabilities, m.reachabilityEnabled),
 		},
 		{
 			title:    "Components by Ecosystem",
@@ -829,10 +954,10 @@ func (m *scanModel) overviewDashboardView(width, height int) string {
 			fmt.Sprintf("%d manifests", len(m.manifests)),
 		), summaryWidth, cardHeight, render.Cyan),
 		boxView("Vulnerabilities", summaryCountCardLines(stats.vulnerabilities, "Vulnerabilities", summaryWidth-2, render.Red,
-			severityCardLine(vulnerabilities, "critical"),
-			severityCardLine(vulnerabilities, "high"),
-			severityCardLine(vulnerabilities, "medium"),
-			severityCardLine(vulnerabilities, "low"),
+			severityCardLine(vulnerabilities, "critical", m.reachabilityEnabled),
+			severityCardLine(vulnerabilities, "high", m.reachabilityEnabled),
+			severityCardLine(vulnerabilities, "medium", m.reachabilityEnabled),
+			severityCardLine(vulnerabilities, "low", m.reachabilityEnabled),
 		), summaryWidth, cardHeight, render.Red),
 		boxView("Licenses", summaryCountCardLines(stats.licenses, "Unique Licenses", summaryWidth-2, render.Yellow,
 			fmt.Sprintf("%d unknown", unknownLicenseCount(m.graphValue)),
@@ -882,7 +1007,7 @@ func (m *scanModel) overviewDashboardView(width, height int) string {
 	}
 	rightContent := stackBoxes(
 		boxView("License Distribution", coloredDistributionLines(groupedLicenseCounts(m.graphValue, 10), stats.components, 10, rightWidth-2), rightWidth, rightA, render.Yellow),
-		boxView("Vulnerability Severity", severityDistributionLines(vulnerabilities, rightWidth-2), rightWidth, rightB, render.Red),
+		boxView("Vulnerability Severity", severityDistributionLines(vulnerabilities, rightWidth-2, m.reachabilityEnabled), rightWidth, rightB, render.Red),
 		boxView(fmt.Sprintf("Top Vulnerable Components (%d)", vulnerableComponentTotal(m.graphValue)), topVulnerableTableLines(topVuln, rightWidth-2), rightWidth, rightC, render.Red),
 	)
 	lines = append(lines, joinColumns(leftContent, rightContent, leftWidth, rightWidth)...)
@@ -893,14 +1018,18 @@ func (m *scanModel) overviewDashboardView(width, height int) string {
 func (m *scanModel) buildVulnsListModel() *listModel {
 	all := packageVulnerabilityRows(m.graphValue)
 
-	// Apply severity filter.
+	// Apply severity and reachability filters.
 	filtered := all
-	if m.severityFilter != "" {
+	if m.severityFilter != "" || m.reachabilityFilter != "" {
 		filtered = make([]packageVulnerabilityRow, 0, len(all))
 		for _, row := range all {
-			if strings.EqualFold(row.vulnerability.Severity, m.severityFilter) {
-				filtered = append(filtered, row)
+			if !vulnerabilityMatchesSeverityFilter(row.vulnerability, m.severityFilter) {
+				continue
 			}
+			if m.reachabilityFilter != "" && (row.vulnerability.Reachability == nil || string(row.vulnerability.Reachability.Status) != m.reachabilityFilter) {
+				continue
+			}
+			filtered = append(filtered, row)
 		}
 	}
 
@@ -981,6 +1110,11 @@ func (m *scanModel) vulnerabilityItems(vulnerabilities []packageVulnerabilityRow
 			if group != "severity" {
 				badges = append(badges, badge{label: vulnerability.vulnerability.Severity, kind: "severity-" + strings.ToLower(vulnerability.vulnerability.Severity)})
 			}
+			if m.reachabilityEnabled {
+				if reachabilityBadge, ok := vulnerabilityReachabilityBadge(vulnerability.vulnerability); ok {
+					badges = append(badges, reachabilityBadge)
+				}
+			}
 			items = append(items, listItem{
 				title:   title,
 				badges:  badges,
@@ -1043,13 +1177,22 @@ func vulnerabilityPackageName(row packageVulnerabilityRow) string {
 }
 
 func (m *scanModel) vulnerabilityControlsLine() string {
-	return keyHint("/", "search") + " " + keyHint("g", "group") + " " + keyHint("v", "severity") + " " + keyHint("]", "expand all") + " " + keyHint("[", "collapse all")
+	parts := []string{keyHint("/", "search"), keyHint("g", "group"), keyHint("v", "severity")}
+	if m.reachabilityFilterAvailable() {
+		parts = append(parts, keyHint("a", "reachability"))
+	}
+	parts = append(parts, keyHint("]", "expand all"), keyHint("[", "collapse all"))
+	return strings.Join(parts, " ")
 }
 
 func (m *scanModel) vulnerabilityStateLine(showing, total int) string {
-	return render.Style("Filter: ", render.Dim) + render.Style(valueOrDefault(m.severityFilter, "All"), render.BgYellow, render.Bold) +
+	state := render.Style("Filter: ", render.Dim) + render.Style(valueOrDefault(m.severityFilter, "All"), render.BgYellow, render.Bold) +
 		render.Style(" | Group: ", render.Dim) + render.Style(valueOrDefault(m.vulnerabilityGroup, "component"), render.BgYellow, render.Bold) +
 		render.Style(" | Showing: ", render.Dim) + fmt.Sprintf("%d/%d", showing, total)
+	if m.reachabilityFilterAvailable() {
+		state += render.Style(" | Reachability: ", render.Dim) + render.Style(titleCase(valueOrDefault(m.reachabilityFilter, "All")), render.BgYellow, render.Bold)
+	}
+	return state
 }
 
 func vulnerabilitySummaryLines(vulnerabilities []packageVulnerabilityRow) []string {
@@ -2502,6 +2645,38 @@ func severityDistribution(vulnerabilities []packageVulnerabilityRow) map[string]
 	return counts
 }
 
+func reachableSeverityDistribution(vulnerabilities []packageVulnerabilityRow) map[string]int {
+	counts := map[string]int{"critical": 0, "high": 0, "medium": 0, "low": 0, "unknown": 0}
+	for _, row := range vulnerabilities {
+		if row.vulnerability.Reachability == nil || row.vulnerability.Reachability.Status != sdk.ReachabilityReachable {
+			continue
+		}
+		severity := strings.ToLower(strings.TrimSpace(row.vulnerability.Severity))
+		if _, ok := counts[severity]; !ok {
+			severity = "unknown"
+		}
+		counts[severity]++
+	}
+	return counts
+}
+
+func severityDistributionDetails(title string, vulnerabilities []packageVulnerabilityRow, includeReachability bool) []string {
+	counts := severityDistribution(vulnerabilities)
+	reachableCounts := reachableSeverityDistribution(vulnerabilities)
+	lines := []string{render.Style(title, render.Bold, render.Cyan)}
+	for _, severity := range sortedCountKeys(counts) {
+		value := fmt.Sprintf("%d", counts[severity])
+		if includeReachability {
+			value += fmt.Sprintf(" (%d reachable)", reachableCounts[severity])
+		}
+		lines = append(lines, render.Style("  "+severity+": ", render.Dim)+value+" "+barLine(counts[severity], maxCount(counts)))
+	}
+	if len(lines) == 1 {
+		lines = append(lines, render.Style("  (none)", render.Dim))
+	}
+	return lines
+}
+
 func distributionDetails(title string, counts map[string]int) []string {
 	lines := []string{render.Style(title, render.Bold, render.Cyan)}
 	for _, key := range sortedCountKeys(counts) {
@@ -2553,14 +2728,20 @@ func summaryCountCardLines(count int, unit string, width int, color string, extr
 	return append(lines, extra...)
 }
 
-func severityCardLine(vulnerabilities []packageVulnerabilityRow, severity string) string {
+func severityCardLine(vulnerabilities []packageVulnerabilityRow, severity string, includeReachability bool) string {
 	counts := severityDistribution(vulnerabilities)
+	reachableCounts := reachableSeverityDistribution(vulnerabilities)
 	label := titleCase(severity)
-	return severityColor(severity, fmt.Sprintf("%d %s", counts[severity], label))
+	value := fmt.Sprintf("%d %s", counts[severity], label)
+	if includeReachability {
+		value += fmt.Sprintf(" (%d reachable)", reachableCounts[severity])
+	}
+	return severityColor(severity, value)
 }
 
-func severityDistributionLines(vulnerabilities []packageVulnerabilityRow, width int) []string {
+func severityDistributionLines(vulnerabilities []packageVulnerabilityRow, width int, includeReachability bool) []string {
 	counts := severityDistribution(vulnerabilities)
+	reachableCounts := reachableSeverityDistribution(vulnerabilities)
 	total := 0
 	for _, severity := range []string{"critical", "high", "medium", "low", "unknown"} {
 		total += counts[severity]
@@ -2569,6 +2750,9 @@ func severityDistributionLines(vulnerabilities []packageVulnerabilityRow, width 
 	lines := make([]string, 0, 5)
 	for _, severity := range []string{"critical", "high", "medium", "low", "unknown"} {
 		label := titleCase(severity)
+		if includeReachability {
+			label += fmt.Sprintf(" (%d reachable)", reachableCounts[severity])
+		}
 		lines = append(lines, distributionLine(label, counts[severity], total, max, severityColorCode(severity), width))
 	}
 	return lines

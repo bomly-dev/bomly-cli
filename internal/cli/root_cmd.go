@@ -43,12 +43,15 @@ func newRootCmd(version string) (*cobra.Command, error) {
 	root := &cobra.Command{
 		Use:                   "bomly [command]",
 		Short:                 "A modern CLI for SBOM generation, dependency analysis, and software supply chain intelligence.",
-		Example:               "  bomly scan --interactive\n  bomly diff --base main --head HEAD\n  bomly explain pkg:npm/react",
+		Example:               "  bomly scan --interactive\n  bomly diff --base main --head HEAD --json\n  bomly explain pkg:npm/react",
 		Version:               version,
 		SilenceUsage:          true,
 		SilenceErrors:         true,
 		DisableFlagsInUseLine: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			if cmd.Name() == "benchmark" {
+				return nil
+			}
 			options, err := commandOptions(cmd)
 			if err != nil {
 				return err
@@ -109,6 +112,7 @@ func newRootCmd(version string) (*cobra.Command, error) {
 	pluginCmd := newPluginCmd()
 	mcpCmd := newMcpCmd()
 	versionCmd := newVersionCmd(version)
+	benchmarkCmd := newBenchmarkCmd()
 
 	root.AddCommand(explainCmd)
 	root.AddCommand(scanCmd)
@@ -116,6 +120,7 @@ func newRootCmd(version string) (*cobra.Command, error) {
 	root.AddCommand(pluginCmd)
 	root.AddCommand(mcpCmd)
 	root.AddCommand(versionCmd)
+	root.AddCommand(benchmarkCmd)
 
 	setHelpFuncRecursive(root, startupLogoHelpFunc(root))
 

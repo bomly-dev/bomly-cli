@@ -57,6 +57,11 @@ func trackedGoFiles() ([]string, error) {
 		if line == "" {
 			continue
 		}
+		if _, err := os.Stat(line); errors.Is(err, os.ErrNotExist) {
+			continue
+		} else if err != nil {
+			return nil, fmt.Errorf("stat tracked go file %q: %w", line, err)
+		}
 		files = append(files, line)
 	}
 	return files, nil

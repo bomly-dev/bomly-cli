@@ -19,7 +19,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/test/qa"
+	"github.com/bomly-dev/bomly-cli/internal/benchmark"
 )
 
 // bomlyBin is the path to the compiled CLI binary, built once in TestMain.
@@ -111,7 +111,7 @@ func TestScan(t *testing.T) {
 		tools []string // required tools - skip if any missing
 	}{}
 
-	targets, err := qa.LoadScanTargets(qa.DefaultTargetsPath(repoRoot(t)))
+	targets, err := benchmark.LoadTargets("")
 	if err != nil {
 		t.Fatalf("load shared scan targets: %v", err)
 	}

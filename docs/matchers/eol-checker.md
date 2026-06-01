@@ -56,7 +56,7 @@ Each matched package gains a `metadata.eol` object with:
 ### Find runtimes near EOL in a container
 
 ```bash
-bomly scan --container ghcr.io/example/app:latest --enrich --format json \
+bomly scan --container ghcr.io/example/app:latest --enrich --json \
   | jq '.packages[] | select(.metadata.eol.state == "near-eol" or .metadata.eol.state == "eol") | {name, version, eol: .metadata.eol}'
 ```
 
@@ -65,7 +65,7 @@ bomly scan --container ghcr.io/example/app:latest --enrich --format json \
 Build a small JSON post-processor; today there is no native `--fail-on eol` token, but the JSON output is stable enough to feed `jq`:
 
 ```bash
-bomly scan --enrich --format json \
+bomly scan --enrich --json \
   | jq -e '.packages | all(.metadata.eol.state != "eol")'
 ```
 
@@ -76,4 +76,4 @@ Exit code 1 from `jq -e` indicates at least one EOL runtime; pipe to `exit 2` if
 - **Coverage is curated.** endoflife.date covers ~250 well-known products (languages, runtimes, frameworks, distros, databases, browsers). A package not in the catalog produces no EOL data.
 - **Mapping is by product name, not by PURL.** Bomly maps recognized package names to endoflife.date product slugs; obscure mappings may be missing. Adding one is a one-line PR.
 - **Version mapping is by major.minor.** Patch-level EOL is rare; the matcher resolves to the closest published cycle.
-- **No native `--fail-on eol` token today.** Compose with `--format json` and a post-processor as shown above. Native auditor support is tracked for a future phase.
+- **No native `--fail-on eol` token today.** Compose with `--json` and a post-processor as shown above. Native auditor support is tracked for a future phase.

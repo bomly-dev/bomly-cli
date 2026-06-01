@@ -112,6 +112,35 @@ func TestWriteSARIF_RuleDeduplication(t *testing.T) {
 	}
 }
 
+func TestWriteSARIF_EmptyFindingsEncodeArrayFields(t *testing.T) {
+	var buf bytes.Buffer
+	if err := WriteSARIF(&buf, nil, "bomly", "0.1.0"); err != nil {
+		t.Fatalf("WriteSARIF: %v", err)
+	}
+
+	var doc map[string]any
+	if err := json.Unmarshal(buf.Bytes(), &doc); err != nil {
+		t.Fatalf("invalid JSON: %v", err)
+	}
+
+	run := doc["runs"].([]any)[0].(map[string]any)
+	driver := run["tool"].(map[string]any)["driver"].(map[string]any)
+	rules, ok := driver["rules"].([]any)
+	if !ok {
+		t.Fatalf("tool.driver.rules has type %T, want array; output:\n%s", driver["rules"], buf.String())
+	}
+	if len(rules) != 0 {
+		t.Fatalf("rules = %d, want 0", len(rules))
+	}
+	results, ok := run["results"].([]any)
+	if !ok {
+		t.Fatalf("results has type %T, want array; output:\n%s", run["results"], buf.String())
+	}
+	if len(results) != 0 {
+		t.Fatalf("results = %d, want 0", len(results))
+	}
+}
+
 func TestSeverityToSARIFLevel(t *testing.T) {
 	tests := []struct {
 		sev   string

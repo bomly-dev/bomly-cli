@@ -16,7 +16,7 @@ The full live list lives in the CLI:
 
 ```bash
 bomly plugin list --matchers
-bomly plugin list --matchers --format json
+bomly plugin list --matchers --json
 ```
 
 ## Running matchers
@@ -80,7 +80,7 @@ rm -rf ~/.bomly/cache    # Unix/macOS
 Remove-Item -Recurse $env:USERPROFILE\.bomly\cache  # PowerShell
 ```
 
-Override the cache location per matcher in `~/.bomly/config.yaml`; see [CONFIG_REFERENCE.md](CONFIG_REFERENCE.md). Cache failures are **always non-fatal** — Bomly logs a warning and continues.
+Override cache locations with matcher-specific keys such as `matchers.osv.cache_dir`, `matchers.eol.cache_dir`, and `matchers.scorecard.cache_dir`; see [CONFIG_REFERENCE.md](CONFIG_REFERENCE.md). Cache failures are **always non-fatal** — Bomly logs a warning and continues.
 
 ## Failure semantics
 

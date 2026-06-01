@@ -65,7 +65,7 @@ Per-ecosystem chains are listed in [`+"`detectors/ecosystems/`"+`](detectors/eco
 
 `+"```bash"+`
 bomly plugin list --detectors
-bomly plugin list --detectors --format json
+bomly plugin list --detectors --json
 `+"```"+`
 
 ## Native vs. Syft
@@ -235,7 +235,7 @@ The full live list lives in the CLI:
 
 `+"```bash"+`
 bomly plugin list --matchers
-bomly plugin list --matchers --format json
+bomly plugin list --matchers --json
 `+"```"+`
 
 ## Running matchers
@@ -299,7 +299,7 @@ rm -rf ~/.bomly/cache    # Unix/macOS
 Remove-Item -Recurse $env:USERPROFILE\.bomly\cache  # PowerShell
 `+"```"+`
 
-Override the cache location per matcher in `+"`~/.bomly/config.yaml`"+`; see [CONFIG_REFERENCE.md](CONFIG_REFERENCE.md). Cache failures are **always non-fatal** — Bomly logs a warning and continues.
+Override cache locations with matcher-specific keys such as `+"`matchers.osv.cache_dir`"+`, `+"`matchers.eol.cache_dir`"+`, and `+"`matchers.scorecard.cache_dir`"+`; see [CONFIG_REFERENCE.md](CONFIG_REFERENCE.md). Cache failures are **always non-fatal** — Bomly logs a warning and continues.
 
 ## Failure semantics
 
@@ -353,7 +353,7 @@ A finding is Bomly's normalized record of a policy match. Every finding has:
 | Reasons | Why the finding matched policy (e.g. severity threshold, reachable symbol) |
 | Source | Which matcher produced the underlying data |
 
-Text output (`+"`--format text`"+`, default) groups findings by package and severity. JSON (`+"`--format json`"+`) exposes the full shape for automation. SARIF 2.1.0 (`+"`--format sarif`"+`) emits a static-analysis report any tool that consumes SARIF can ingest.
+Text output (`+"`--format text`"+`, default) groups findings by package and severity. JSON (`+"`--json`"+` or `+"`--format json`"+`) exposes the full shape for automation. SARIF 2.1.0 (`+"`--format sarif`"+`) emits a static-analysis report any tool that consumes SARIF can ingest.
 
 `+"`--format sarif`"+` **requires** `+"`--audit`"+`. A SARIF document only makes sense when there are findings.
 

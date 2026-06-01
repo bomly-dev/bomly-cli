@@ -18,11 +18,17 @@ func TestGenerateConfigReference(t *testing.T) {
 	if fieldCount == 0 {
 		t.Fatal("expected generated config fields")
 	}
-	if !strings.Contains(markdown, "| `format` | `BOMLY_FORMAT` | `string` |") {
+	if !strings.Contains(markdown, "| `output.format` | `BOMLY_FORMAT` | `string` |") {
 		t.Fatalf("generated config reference missing format field:\n%s", markdown)
 	}
 	if !strings.Contains(markdown, "## OSV matcher settings") {
 		t.Fatalf("generated config reference missing section heading:\n%s", markdown)
+	}
+	if !strings.Contains(markdown, "| `http_proxy` | `network.proxy.url` |") {
+		t.Fatalf("generated config reference missing flat-key migration:\n%s", markdown)
+	}
+	if !strings.Contains(markdown, "# network:\n#   proxy:") || !strings.Contains(markdown, "#     url:") {
+		t.Fatalf("generated config reference missing nested example:\n%s", markdown)
 	}
 }
 

@@ -1,7 +1,12 @@
 package config
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
+	"net/url"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -28,8 +33,8 @@ func UserConfigPath() (string, error) {
 }
 
 // LoadFile reads and parses a YAML config file at path. Returns nil with no
-// error when the file does not exist or path is empty. Relative path/config
-// fields inside the file are resolved relative to the file's directory.
+// error when the file does not exist or path is empty. Relative path fields
+// inside the file are resolved relative to the file's directory.
 func LoadFile(path string) (*File, error) {
 	if strings.TrimSpace(path) == "" {
 		return nil, nil
@@ -42,7 +47,12 @@ func LoadFile(path string) (*File, error) {
 		return nil, err
 	}
 	var cfg File
-	if err := yaml.Unmarshal(data, &cfg); err != nil {
+	if err := rejectLegacyFlatKeys(data); err != nil {
+		return nil, fmt.Errorf("parse YAML: %w", err)
+	}
+	decoder := yaml.NewDecoder(bytes.NewReader(data))
+	decoder.KnownFields(true)
+	if err := decoder.Decode(&cfg); err != nil && err != io.EOF {
 		return nil, fmt.Errorf("parse YAML: %w", err)
 	}
 	normalizeFilePaths(&cfg, filepath.Dir(path))
@@ -50,7 +60,7 @@ func LoadFile(path string) (*File, error) {
 }
 
 func normalizeFilePaths(cfg *File, baseDir string) {
-	for _, target := range []*string{cfg.Path, cfg.Config} {
+	for _, target := range []*string{cfg.Target.Path, cfg.Network.CACertFile} {
 		if target == nil || strings.TrimSpace(*target) == "" || filepath.IsAbs(*target) {
 			continue
 		}
@@ -58,64 +68,168 @@ func normalizeFilePaths(cfg *File, baseDir string) {
 	}
 }
 
-// ApplyFileConfig merges non-nil src fields into dst. File fields are pointers;
-// nil means the user did not set the field, so dst is left unchanged.
+// ApplyFileConfig merges explicitly set src leaves into dst.
 func ApplyFileConfig(dst *Resolved, src File) {
 	if dst == nil {
 		return
 	}
-	dstVal := reflect.ValueOf(dst).Elem()
-	srcVal := reflect.ValueOf(src)
-	t := srcVal.Type()
-	for i := 0; i < t.NumField(); i++ {
-		sf := srcVal.Field(i)
-		if sf.Kind() != reflect.Pointer || sf.IsNil() {
+	applyFileLeaves(reflect.ValueOf(dst).Elem(), reflect.ValueOf(src))
+	if len(src.Plugins) > 0 {
+		if dst.Plugins == nil {
+			dst.Plugins = make(map[string]map[string]any, len(src.Plugins))
+		}
+		for id, pluginConfig := range src.Plugins {
+			trimmedID := strings.TrimSpace(id)
+			if trimmedID == "" {
+				continue
+			}
+			dst.Plugins[trimmedID] = clonePluginConfig(pluginConfig)
+		}
+	}
+}
+
+func applyFileLeaves(dst reflect.Value, src reflect.Value) {
+	srcType := src.Type()
+	for i := 0; i < src.NumField(); i++ {
+		fieldType := srcType.Field(i)
+		srcField := src.Field(i)
+		resolvedName := fieldType.Tag.Get("resolved")
+		if resolvedName != "" {
+			if srcField.Kind() == reflect.Pointer && !srcField.IsNil() {
+				setResolvedField(dst.FieldByName(resolvedName), srcField.Elem())
+			}
 			continue
 		}
-		df := dstVal.FieldByName(t.Field(i).Name)
-		if df.IsValid() && df.CanSet() {
-			df.Set(sf.Elem())
+		if srcField.Kind() == reflect.Struct {
+			applyFileLeaves(dst, srcField)
 		}
 	}
-	// InstallArgs is a slice (not a pointer) — replace when provided.
-	if len(src.InstallArgs) > 0 {
-		dst.InstallArgs = append([]string(nil), src.InstallArgs...)
+}
+
+func setResolvedField(dst reflect.Value, src reflect.Value) {
+	if !dst.IsValid() || !dst.CanSet() {
+		return
 	}
-	// FailOn is a custom-unmarshaled slice (FailOnList) — replace when set.
-	if len(src.FailOn) > 0 {
-		dst.FailOn = append([]string(nil), src.FailOn...)
+	if src.Type().ConvertibleTo(dst.Type()) {
+		src = src.Convert(dst.Type())
 	}
-	if len(src.FailOnScopes) > 0 {
-		dst.FailOnScopes = append([]string(nil), src.FailOnScopes...)
+	if src.Kind() == reflect.Slice {
+		clone := reflect.MakeSlice(src.Type(), src.Len(), src.Len())
+		reflect.Copy(clone, src)
+		src = clone
 	}
-	if len(src.AllowVulnerabilityIDs) > 0 {
-		dst.AllowVulnerabilityIDs = append([]string(nil), src.AllowVulnerabilityIDs...)
+	if src.Type().AssignableTo(dst.Type()) {
+		dst.Set(src)
 	}
-	if len(src.AllowLicenses) > 0 {
-		dst.AllowLicenses = append([]string(nil), src.AllowLicenses...)
+}
+
+func rejectLegacyFlatKeys(data []byte) error {
+	var document yaml.Node
+	if err := yaml.Unmarshal(data, &document); err != nil {
+		return err
 	}
-	if len(src.DenyLicenses) > 0 {
-		dst.DenyLicenses = append([]string(nil), src.DenyLicenses...)
+	if len(document.Content) == 0 {
+		return nil
 	}
-	if len(src.LicenseExemptPackages) > 0 {
-		dst.LicenseExemptPackages = append([]string(nil), src.LicenseExemptPackages...)
+	root := document.Content[0]
+	if root.Kind != yaml.MappingNode {
+		return nil
 	}
-	if len(src.DenyPackages) > 0 {
-		dst.DenyPackages = append([]string(nil), src.DenyPackages...)
+
+	legacyPaths := LegacyMigrationPaths()
+	canonicalRoots := canonicalRootKeys()
+	for idx := 0; idx+1 < len(root.Content); idx += 2 {
+		keyNode := root.Content[idx]
+		valueNode := root.Content[idx+1]
+		key := strings.TrimSpace(keyNode.Value)
+		if key == "config" {
+			return fmt.Errorf("config file key %q is no longer supported; use --config to select an explicit file", key)
+		}
+		nestedPath, ok := legacyPaths[key]
+		if !ok {
+			continue
+		}
+		if _, isCanonicalRoot := canonicalRoots[key]; isCanonicalRoot && valueNode.Kind == yaml.MappingNode {
+			continue
+		}
+		return fmt.Errorf("flat config key %q is no longer supported; use %q", key, nestedPath)
 	}
-	if len(src.DenyGroups) > 0 {
-		dst.DenyGroups = append([]string(nil), src.DenyGroups...)
+	return nil
+}
+
+// LegacyMigrationPaths returns former flat YAML keys and their replacements.
+func LegacyMigrationPaths() map[string]string {
+	paths := make(map[string]string)
+	collectLegacyConfigPaths(reflect.TypeOf(File{}), "", paths)
+	paths["config"] = "--config"
+	paths["verbose"] = "logging.verbosity"
+	return paths
+}
+
+// YAMLPathsByResolvedField returns nested YAML paths keyed by flat runtime field.
+func YAMLPathsByResolvedField() map[string]string {
+	paths := make(map[string]string)
+	collectResolvedConfigPaths(reflect.TypeOf(File{}), "", paths)
+	return paths
+}
+
+func collectLegacyConfigPaths(t reflect.Type, prefix string, paths map[string]string) {
+	for idx := 0; idx < t.NumField(); idx++ {
+		field := t.Field(idx)
+		key := yamlTagName(field.Tag.Get("yaml"))
+		if key == "" || key == "-" {
+			continue
+		}
+		path := key
+		if prefix != "" {
+			path = prefix + "." + key
+		}
+		if legacy := field.Tag.Get("legacy"); legacy != "" {
+			paths[legacy] = path
+		}
+		if field.Type.Kind() == reflect.Struct {
+			collectLegacyConfigPaths(field.Type, path, paths)
+		}
 	}
-	if len(src.ProtectedPackages) > 0 {
-		dst.ProtectedPackages = append([]string(nil), src.ProtectedPackages...)
+}
+
+func collectResolvedConfigPaths(t reflect.Type, prefix string, paths map[string]string) {
+	for idx := 0; idx < t.NumField(); idx++ {
+		field := t.Field(idx)
+		key := yamlTagName(field.Tag.Get("yaml"))
+		if key == "" || key == "-" {
+			continue
+		}
+		path := key
+		if prefix != "" {
+			path = prefix + "." + key
+		}
+		if resolved := field.Tag.Get("resolved"); resolved != "" {
+			paths[resolved] = path
+		}
+		if field.Type.Kind() == reflect.Struct {
+			collectResolvedConfigPaths(field.Type, path, paths)
+		}
 	}
-	if len(src.Outputs) > 0 {
-		dst.Outputs = append([]string(nil), src.Outputs...)
+}
+
+func canonicalRootKeys() map[string]struct{} {
+	keys := make(map[string]struct{})
+	fileType := reflect.TypeOf(File{})
+	for idx := 0; idx < fileType.NumField(); idx++ {
+		key := yamlTagName(fileType.Field(idx).Tag.Get("yaml"))
+		if key != "" && key != "-" {
+			keys[key] = struct{}{}
+		}
 	}
-	// Verbose is a legacy shorthand; map it to Verbosity=1 if not already set.
-	if src.Verbose != nil && *src.Verbose && dst.Verbosity == 0 {
-		dst.Verbosity = 1
+	return keys
+}
+
+func yamlTagName(tag string) string {
+	if idx := strings.Index(tag, ","); idx >= 0 {
+		tag = tag[:idx]
 	}
+	return tag
 }
 
 // ApplyEnvOverrides reads the environment variables named in Resolved's env
@@ -144,7 +258,11 @@ func ApplyEnvOverrides(dst *Resolved) {
 				fv.SetBool(b)
 			}
 		case reflect.Int:
-			applyVerbosityEnv(fv, val)
+			if t.Field(i).Name == "Verbosity" {
+				applyVerbosityEnv(fv, val)
+			} else if parsed, err := strconv.Atoi(strings.TrimSpace(val)); err == nil {
+				fv.SetInt(int64(parsed))
+			}
 		case reflect.Slice:
 			fv.Set(reflect.ValueOf(parseCSV(val)))
 		}
@@ -219,7 +337,93 @@ func Validate(cfg Resolved) error {
 	default:
 		return fmt.Errorf("unsupported --typosquat-mode value %q (accepted: warn, fail)", cfg.TyposquatMode)
 	}
+	if err := validateProxyURL(cfg.HTTPProxy); err != nil {
+		return err
+	}
+	if err := validateProxyFields(cfg); err != nil {
+		return err
+	}
 	return nil
+}
+
+func validateProxyURL(value string) error {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return nil
+	}
+	parsed, err := parseProxyURL(value)
+	if err != nil {
+		return err
+	}
+	if parsed.Scheme == "" || parsed.Host == "" {
+		return fmt.Errorf("invalid http_proxy URL: must be absolute")
+	}
+	switch strings.ToLower(strings.TrimSpace(parsed.Scheme)) {
+	case "http", "https", "socks", "socks5":
+	default:
+		return fmt.Errorf("unsupported http_proxy scheme %q (accepted: http, https, socks5)", parsed.Scheme)
+	}
+	return nil
+}
+
+func parseProxyURL(value string) (*url.URL, error) {
+	parsed, err := url.Parse(value)
+	if err != nil {
+		return nil, fmt.Errorf("invalid http_proxy URL: %w", redactURLParseError(err))
+	}
+	return parsed, nil
+}
+
+func redactURLParseError(err error) error {
+	var urlErr *url.Error
+	if errors.As(err, &urlErr) && urlErr.Err != nil {
+		return urlErr.Err
+	}
+	return err
+}
+
+func validateProxyFields(cfg Resolved) error {
+	switch strings.ToLower(strings.TrimSpace(cfg.HTTPProxyType)) {
+	case "", "http", "https", "socks", "socks5":
+	default:
+		return fmt.Errorf("unsupported http_proxy_type value %q (accepted: http, https, socks5)", cfg.HTTPProxyType)
+	}
+	if strings.TrimSpace(cfg.HTTPProxyHost) == "" {
+		if cfg.HTTPProxyPort != 0 {
+			return fmt.Errorf("http_proxy_port requires http_proxy_host")
+		}
+		if strings.TrimSpace(cfg.HTTPProxyUsername) != "" || strings.TrimSpace(cfg.HTTPProxyPassword) != "" {
+			return fmt.Errorf("http_proxy_username and http_proxy_password require http_proxy_host")
+		}
+		return nil
+	}
+	if cfg.HTTPProxyPort <= 0 || cfg.HTTPProxyPort > 65535 {
+		return fmt.Errorf("http_proxy_port must be between 1 and 65535")
+	}
+	return nil
+}
+
+func clonePluginConfig(value map[string]any) map[string]any {
+	if value == nil {
+		return nil
+	}
+	data, err := json.Marshal(value)
+	if err != nil {
+		out := make(map[string]any, len(value))
+		for key, item := range value {
+			out[key] = item
+		}
+		return out
+	}
+	var out map[string]any
+	if err := json.Unmarshal(data, &out); err != nil {
+		copyValue := make(map[string]any, len(value))
+		for key, item := range value {
+			copyValue[key] = item
+		}
+		return copyValue
+	}
+	return out
 }
 
 func parseBool(s string) (bool, bool) {

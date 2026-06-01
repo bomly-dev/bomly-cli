@@ -5,6 +5,7 @@ import (
 	"archive/zip"
 	"compress/gzip"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -13,7 +14,9 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/plugin/runtime/hashicorp"
 	plugschema "github.com/bomly-dev/bomly-cli/sdk"
@@ -135,7 +138,7 @@ func installDevBinary(ctx context.Context, tempDir, source string) (Manifest, st
 	if err != nil {
 		return Manifest{}, "", err
 	}
-	detectorDescriptor, packageManagerSupport, matcherDescriptor, auditorDescriptor, err := fetchRuntimeDescriptors(ctx, binaryPath, metadata.Kind)
+	detectorDescriptor, packageManagerSupport, matcherDescriptor, auditorDescriptor, err := fetchRuntimeDescriptors(ctx, binaryPath, metadata.Kind, metadata.ID)
 	if err != nil {
 		return Manifest{}, "", err
 	}
@@ -169,7 +172,11 @@ func installRemoteArchive(ctx context.Context, tempDir, source string, opts Inst
 	if err != nil {
 		return Manifest{}, "", fmt.Errorf("create plugin download request: %w", err)
 	}
-	resp, err := http.DefaultClient.Do(req)
+	client, err := httpClientFromLaunchContext(ctx, 0)
+	if err != nil {
+		return Manifest{}, "", err
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return Manifest{}, "", fmt.Errorf("download plugin archive: %w", err)
 	}
@@ -237,11 +244,11 @@ func installArchiveAtPath(ctx context.Context, tempDir, archivePath, source, exp
 	if _, err := os.Stat(fullEntrypoint); err != nil {
 		return Manifest{}, "", fmt.Errorf("plugin entrypoint %q is missing: %w", entry, err)
 	}
-	metadata, err := fetchRuntimeMetadata(ctx, fullEntrypoint)
+	metadata, err := fetchRuntimeMetadata(ctx, fullEntrypoint, manifest.ID)
 	if err != nil {
 		return Manifest{}, "", err
 	}
-	detectorDescriptor, packageManagerSupport, matcherDescriptor, auditorDescriptor, err := fetchRuntimeDescriptors(ctx, fullEntrypoint, metadata.Kind)
+	detectorDescriptor, packageManagerSupport, matcherDescriptor, auditorDescriptor, err := fetchRuntimeDescriptors(ctx, fullEntrypoint, metadata.Kind, metadata.ID)
 	if err != nil {
 		return Manifest{}, "", err
 	}
@@ -425,8 +432,8 @@ func normalizeWindowsExecutableForLaunch(tempDir, binaryPath string) (string, er
 	return launchPath, nil
 }
 
-func fetchRuntimeMetadata(ctx context.Context, executable string) (*plugschema.PluginMetadata, error) {
-	client, err := startPlugin(ctx, executable)
+func fetchRuntimeMetadata(ctx context.Context, executable string, pluginID ...string) (*plugschema.PluginMetadata, error) {
+	client, err := startPlugin(ctx, executable, firstString(pluginID))
 	if err != nil {
 		return nil, err
 	}
@@ -438,8 +445,8 @@ func fetchRuntimeMetadata(ctx context.Context, executable string) (*plugschema.P
 	return metadata, nil
 }
 
-func fetchRuntimeDescriptors(ctx context.Context, executable string, kind plugschema.PluginKind) (*plugschema.DetectorDescriptor, []plugschema.PackageManagerSupport, *plugschema.MatcherDescriptor, *plugschema.AuditorDescriptor, error) {
-	client, err := startPlugin(ctx, executable)
+func fetchRuntimeDescriptors(ctx context.Context, executable string, kind plugschema.PluginKind, pluginID ...string) (*plugschema.DetectorDescriptor, []plugschema.PackageManagerSupport, *plugschema.MatcherDescriptor, *plugschema.AuditorDescriptor, error) {
+	client, err := startPlugin(ctx, executable, firstString(pluginID))
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -464,15 +471,176 @@ func fetchRuntimeDescriptors(ctx context.Context, executable string, kind plugsc
 	}
 }
 
-func startPlugin(ctx context.Context, executable string) (*hashicorp.Client, error) {
-	options, _ := LaunchOptionsFromContext(ctx)
-	return hashicorp.Start(ctx, executable, pluginEnv(options), options.Verbosity)
+type runtimeClient struct {
+	client  *hashicorp.Client
+	cleanup func()
 }
 
-func pluginEnv(options LaunchOptions) []string {
+func (c *runtimeClient) Raw() plugschema.Client {
+	if c == nil || c.client == nil {
+		return nil
+	}
+	return c.client.Raw()
+}
+
+func (c *runtimeClient) Close() {
+	if c == nil {
+		return
+	}
+	if c.client != nil {
+		c.client.Close()
+	}
+	if c.cleanup != nil {
+		c.cleanup()
+	}
+}
+
+func startPlugin(ctx context.Context, executable, pluginID string) (*runtimeClient, error) {
+	options, _ := LaunchOptionsFromContext(ctx)
+	env, cleanup, err := pluginEnv(options, pluginID)
+	if err != nil {
+		return nil, err
+	}
+	client, err := hashicorp.Start(ctx, executable, env, options.Verbosity)
+	if err != nil {
+		cleanup()
+		return nil, err
+	}
+	return &runtimeClient{client: client, cleanup: cleanup}, nil
+}
+
+func pluginEnv(options LaunchOptions, pluginID string) ([]string, func(), error) {
 	env := []string{
 		EnvPluginAPIVersion + "=" + plugschema.PluginAPIVersion,
 		EnvPluginConfig + "=" + strings.TrimSpace(options.ConfigPath),
 	}
+	if strings.TrimSpace(pluginID) != "" {
+		env = append(env, plugschema.EnvPluginID+"="+strings.TrimSpace(pluginID))
+	}
+	env = append(env, proxyEnv(options)...)
+	cleanup := func() {}
+	if config, ok := options.PluginConfigs[strings.TrimSpace(pluginID)]; ok && config != nil {
+		path, remove, err := writePluginConfigFile(config)
+		if err != nil {
+			return nil, cleanup, err
+		}
+		cleanup = remove
+		env = append(env, plugschema.EnvPluginConfigFile+"="+path)
+	}
+	return env, cleanup, nil
+}
+
+func proxyEnv(options LaunchOptions) []string {
+	env := make([]string, 0, 8)
+	proxyConfig := launchHTTPConfig(options, 0)
+	proxy, err := proxyConfig.EffectiveProxyURL()
+	if err == nil && strings.TrimSpace(proxy) != "" {
+		env = append(env,
+			plugschema.EnvHTTPProxy+"="+proxy,
+			"HTTP_PROXY="+proxy,
+			"HTTPS_PROXY="+proxy,
+			"http_proxy="+proxy,
+			"https_proxy="+proxy,
+		)
+	} else {
+		env = appendExistingEnv(env, "HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy")
+	}
+	if noProxy := strings.TrimSpace(proxyConfig.NoProxy); noProxy != "" {
+		env = append(env,
+			plugschema.EnvHTTPNoProxy+"="+noProxy,
+			"NO_PROXY="+noProxy,
+			"no_proxy="+noProxy,
+		)
+	} else {
+		env = appendExistingEnv(env, "NO_PROXY", "no_proxy")
+	}
+	env = appendProxyConfigEnv(env, options)
 	return env
+}
+
+func appendProxyConfigEnv(env []string, options LaunchOptions) []string {
+	if value := strings.TrimSpace(options.HTTPProxyType); value != "" {
+		env = append(env, plugschema.EnvHTTPProxyType+"="+value)
+	}
+	if value := strings.TrimSpace(options.HTTPProxyHost); value != "" {
+		env = append(env, plugschema.EnvHTTPProxyHost+"="+value)
+	}
+	if options.HTTPProxyPort > 0 {
+		env = append(env, plugschema.EnvHTTPProxyPort+"="+strconv.Itoa(options.HTTPProxyPort))
+	}
+	if value := strings.TrimSpace(options.HTTPProxyUsername); value != "" {
+		env = append(env, plugschema.EnvHTTPProxyUsername+"="+value)
+	}
+	if options.HTTPProxyPassword != "" {
+		env = append(env, plugschema.EnvHTTPProxyPassword+"="+options.HTTPProxyPassword)
+	}
+	if value := strings.TrimSpace(options.HTTPCACertFile); value != "" {
+		env = append(env, plugschema.EnvHTTPCACertFile+"="+value)
+	}
+	return env
+}
+
+func appendExistingEnv(env []string, names ...string) []string {
+	for _, name := range names {
+		value, ok := os.LookupEnv(name)
+		if !ok {
+			continue
+		}
+		env = append(env, name+"="+value)
+	}
+	return env
+}
+
+func writePluginConfigFile(config map[string]any) (string, func(), error) {
+	file, err := os.CreateTemp("", "bomly-plugin-config-*.json")
+	if err != nil {
+		return "", func() {}, fmt.Errorf("create plugin config file: %w", err)
+	}
+	path := file.Name()
+	cleanup := func() { _ = os.Remove(path) }
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	if err := encoder.Encode(config); err != nil {
+		_ = file.Close()
+		cleanup()
+		return "", func() {}, fmt.Errorf("encode plugin config file: %w", err)
+	}
+	if err := file.Close(); err != nil {
+		cleanup()
+		return "", func() {}, fmt.Errorf("close plugin config file: %w", err)
+	}
+	return path, cleanup, nil
+}
+
+func httpClientFromLaunchContext(ctx context.Context, timeout time.Duration) (*http.Client, error) {
+	options, _ := LaunchOptionsFromContext(ctx)
+	if options.HTTPClientProvider != nil {
+		return options.HTTPClientProvider.Client(timeout), nil
+	}
+	provider, err := plugschema.NewHTTPClientProvider(launchHTTPConfig(options, 0))
+	if err != nil {
+		return nil, err
+	}
+	return provider.Client(timeout), nil
+}
+
+func launchHTTPConfig(options LaunchOptions, timeout time.Duration) plugschema.HTTPClientConfig {
+	return plugschema.HTTPClientConfig{
+		ProxyURL:      options.HTTPProxy,
+		NoProxy:       options.HTTPNoProxy,
+		ProxyType:     options.HTTPProxyType,
+		ProxyHost:     options.HTTPProxyHost,
+		ProxyPort:     options.HTTPProxyPort,
+		ProxyUsername: options.HTTPProxyUsername,
+		ProxyPassword: options.HTTPProxyPassword,
+		CACertFile:    options.HTTPCACertFile,
+		Timeout:       timeout,
+	}
+}
+
+func firstString(values []string) string {
+	if len(values) == 0 {
+		return ""
+	}
+	return values[0]
 }

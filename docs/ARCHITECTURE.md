@@ -77,6 +77,10 @@ Stage summary:
 
 `bomly explain` reuses the same resolution, scope filtering, consolidation, and matching stages, then performs dependency path selection in its explain orchestration before optional component audit.
 
+### Decision: YAML configuration is nested at the file boundary
+
+Bomly's YAML files use strict nested groups such as `target`, `analysis`, `policy`, `network.proxy`, and `matchers.osv`, while `config.Resolved` remains flat. Nesting keeps customer-authored files readable without spreading YAML organization through the CLI and engine. Each YAML leaf maps back to one flat runtime field, and layered files preserve explicit zero values, including empty lists. Unknown keys and the former flat YAML keys fail with migration guidance so typos cannot silently disable requested behavior.
+
 ### Decision: Reachability annotates vulnerabilities, not findings
 
 Reachability data lives on `PackageVulnerability.Reachability` rather than only on `Finding.Reachability` because `--reachability` must be useful without `--audit`. Matchers attach the vulnerability; the analyzer enriches it; the policy auditor copies the annotation onto each emitted Finding when `--audit` runs. This keeps a single source of truth on the package graph and lets the consolidation layer's existing per-vuln merge propagate analyzer output to per-manifest entry graphs without bespoke wiring.
@@ -124,7 +128,11 @@ Implementation priority:
 
 Native detector coverage is quality-of-graph coverage, not just support-matrix labeling. A built-in detector should ship with deterministic package metadata, graph edges where the ecosystem source can provide them, direct/development/runtime classification when it can be inferred, package URLs, unit fixtures in the detector package, and smoke coverage when a stable root-level real repository is available. Syft remains the compatibility backstop for package managers or project shapes that Bomly cannot resolve directly.
 
-Some native detector chains intentionally prefer a build-tool command over a committed file parser because the command can expose transitive edges that the lockfile or manifest does not encode. Pub, SwiftPM, and SBT follow this pattern: `pub-native`, `swiftpm-native`, and `sbt-native` run first when `dart`, `swift`, or `sbt` is available, then fall back to the committed-file detector if the tool is missing or fails. When validating graph-shape changes for those ecosystems, run smoke/QA on a host with the relevant toolchain installed and regenerate golden files from that environment.
+Some native detector chains intentionally prefer a build-tool command over a committed file parser because the command can expose transitive edges that the lockfile or manifest does not encode. Pub, SwiftPM, and SBT follow this pattern: `pub-native`, `swiftpm-native`, and `sbt-native` run first when `dart`, `swift`, or `sbt` is available, then fall back to the committed-file detector if the tool is missing or fails. When validating graph-shape changes for those ecosystems, run smoke tests and the local benchmark on a host with the relevant toolchain installed.
+
+### Decision: dependency graph benchmarking is hidden and local-only
+
+`bomly benchmark` is a hidden maintainer command backed by `internal/benchmark`. It scans public GitHub repositories with native detectors, compares the filtered dependency graph against GitHub Dependency Graph and external Syft SBOMs, and writes deterministic artifacts under `.benchmark-runs/latest`. Bomly scan and SBOM diff execution run in-process through the engine and output model; only the external `git` and `syft` tools remain subprocesses. The in-process adapter builds a native-only registry directly so local configuration and managed-plugin discovery cannot distort benchmark results. Package and relationship scores are comparative engineering signals, not pass/fail gates and not claims that a baseline is ground truth. The benchmark is intentionally local-only so exploratory scoring does not become a release or merge gate before it is calibrated.
 
 ## Build Modes
 
@@ -184,6 +192,7 @@ Cache failures are non-fatal. The command should warn and continue rather than f
 | `internal/engine/scan` | Scan command pipeline API                                                                    |
 | `internal/output`     | Text, JSON, SARIF rendering, plus structured response payloads and schema generation            |
 | `internal/sbom`       | SPDX and CycloneDX codecs                                                                       |
+| `internal/benchmark`  | Hidden local dependency-graph benchmark, baseline comparison, scoring, and embedded presets      |
 | `sdk`      | Shared domain types                                                                             |
 | `internal/plugin`     | Managed plugin manifests, installation, verification, store state, adapters, and runtime glue  |
 | `internal/extensions` | Extension hooks and support code                                                                |

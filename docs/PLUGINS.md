@@ -27,6 +27,68 @@ Installed external plugins are disabled by default. They do not participate in s
 
 Enabled plugins are loaded during runtime preparation in local and CI workflows. Treat `bomly plugin enable` as the trust decision for running that external binary.
 
+When enabled, a plugin binary runs as a native OS subprocess with the same user-level privileges as the bomly process. It can read and write files, make network connections, and execute system calls within those privileges.
+
+## Configuration And Proxy Support
+
+Bomly passes the active plugin API version, the explicit `BOMLY_CONFIG` path when one was provided, proxy settings, and the enabled plugin's own config to managed plugin subprocesses.
+
+Proxy settings can be configured with a direct proxy URL:
+
+```yaml
+network:
+  proxy:
+    url: http://proxy.example:8080
+    no_proxy: localhost,127.0.0.1,.corp.example
+```
+
+For environments that manage proxy details separately, Bomly also accepts decomposed proxy settings:
+
+```yaml
+network:
+  proxy:
+    type: http # http, https, or socks5
+    host: proxy.example
+    port: 8080
+    username: my-user
+    password: my-password
+    no_proxy: localhost,127.0.0.1,.corp.example
+  ca_cert_file: /path/to/proxy-ca-chain.pem
+```
+
+Equivalent environment variables are `BOMLY_HTTP_PROXY`, `BOMLY_HTTP_NO_PROXY`, `BOMLY_HTTP_PROXY_TYPE`, `BOMLY_HTTP_PROXY_HOST`, `BOMLY_HTTP_PROXY_PORT`, `BOMLY_HTTP_PROXY_USERNAME`, `BOMLY_HTTP_PROXY_PASSWORD`, and `BOMLY_HTTP_CA_CERT_FILE`. When Bomly proxy fields are not set, Bomly's SDK HTTP client still honors standard `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY` environment variables. For compatibility with non-SDK plugin code, Bomly also forwards the effective proxy values to plugin subprocesses using the standard proxy environment variable names.
+
+Per-plugin configuration lives under `plugins.<plugin-id>`:
+
+```yaml
+plugins:
+  acme.matcher:
+    api_base: https://api.example.com
+```
+
+External plugins can read only their own config through the SDK:
+
+```go
+type config struct {
+    APIBase string `json:"api_base"`
+}
+
+var cfg config
+if err := sdk.DecodePluginConfigFromEnv(&cfg); err != nil {
+    return err
+}
+```
+
+Plugins that make outbound HTTP calls should create one process-local provider with `sdk.NewHTTPClientProviderFromEnv()` and reuse it for timeout-specific clients. This keeps proxy settings consistent while preserving Go's HTTP connection pooling:
+
+```go
+provider, err := sdk.NewHTTPClientProviderFromEnv()
+if err != nil {
+    return err
+}
+client := provider.Client(20 * time.Second)
+```
+
 ## Plugin Layout
 
 External plugin packages include a `bomly-plugin.json` manifest and a platform entrypoint binary.
@@ -113,7 +175,7 @@ Run a scan with the plugin selected explicitly:
 bomly scan \
   --path ./my-go-project \
   --detectors bomly.example.gomod-detector \
-  --format json
+  --json
 ```
 
 Disable or uninstall it later:
@@ -215,15 +277,37 @@ For GitHub Release installs, Bomly resolves the release metadata, selects the as
 
 ## Security Model
 
-Bomly validates plugin manifests before execution and rejects unsafe archive paths.
+External plugins are native OS subprocesses. They are not sandboxed, not containerized, and not restricted by Bomly in any way beyond the operating system's standard user-level privilege boundary. When a plugin runs, it inherits the full privileges of the user invoking bomly: it can read and write files, open network connections, spawn child processes, and access environment variables.
 
-Important constraints:
+**What Bomly validates before executing a plugin:**
 
-- direct URL installs require `--checksum` unless you explicitly bypass it
-- runtime metadata must match manifest identity, version, kind, and API version
-- plugin metadata is treated as untrusted input
-- enabled state is host-owned and stored in Bomly's installed plugin database
-- plugin execution uses context cancellation
-- repository-declared plugins are not executed automatically
+- Manifest schema and required fields (ID, version, kind, runtime, API version)
+- Plugin API version compatibility with the running core version
+- Entrypoint binary exists at the recorded path
+- SHA256 checksum matches the installed record, when a checksum was recorded
+- Runtime-reported metadata matches the manifest identity, version, kind, and API version
 
-Managed plugins are isolated by process boundary, but they are still external binaries. Treat install and execution as a trust decision.
+**What Bomly cannot enforce:**
+
+- Restricting the plugin's filesystem or network access
+- Preventing the plugin from reading environment variables or credentials on the host
+- Preventing the plugin from spawning additional child processes
+- Guaranteeing that the installed binary matches the declared source if no checksum was recorded
+
+**Installation mode risk:**
+
+| Source | Integrity guarantee |
+|--------|---------------------|
+| Local archive (`bomly plugin install ./plugin.tar.gz --checksum sha256:...`) | Strongest: checksum ties the installed binary to the declared archive |
+| GitHub Release (`github:owner/repo@tag`) | SHA256SUMS asset verified automatically when present |
+| Direct URL with `--checksum` | Checksum ties the download to the declared identity |
+| Direct URL with `--insecure-skip-checksum` | None: the downloaded binary may differ from the declared source |
+| Local binary with `--dev` | None: appropriate only for binaries you built locally |
+
+**Recommended practices:**
+
+- Always supply `--checksum` for direct URL installs.
+- Run `bomly plugin verify <id>` before enabling any plugin installed from an external source.
+- Treat `bomly plugin enable` as the explicit trust decision for granting execution privileges. Do not enable plugins you did not build or obtain from a source you control.
+- Prefer `github:owner/repo@tag` installs — they resolve the asset for your current OS and architecture and verify against the published SHA256SUMS automatically.
+- Repository-declared plugins are never executed automatically. Bomly requires an explicit `bomly plugin enable` on the host before any external plugin participates in a scan.

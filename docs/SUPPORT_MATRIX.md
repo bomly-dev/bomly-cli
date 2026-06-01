@@ -13,7 +13,7 @@ Bomly groups support into two implementation paths:
 
 Primary detector files are the preferred inputs for Bomly-owned resolution. Fallback detector files are inputs for the next built-in Bomly detector in the same chain; Syft-only backstops are omitted here and listed under Bundled detectors support.
 
-Some primary detectors execute the ecosystem build tool to recover richer dependency edges than a committed lockfile or manifest can provide. When the tool is not installed or the build-tool command fails, Bomly falls back to the next detector in the chain. For reproducible QA of those richer graphs, make sure the relevant tools are on `PATH` before running smoke or QA scans.
+Some primary detectors execute the ecosystem build tool to recover richer dependency edges than a committed lockfile or manifest can provide. When the tool is not installed or the build-tool command fails, Bomly falls back to the next detector in the chain. For reproducible validation of those richer graphs, make sure the relevant tools are on `PATH` before running smoke tests or the local benchmark.
 
 | Ecosystem | Package managers | Primary detector files | Fallback detector files | Detector |
 | --- | --- | --- | --- | --- |

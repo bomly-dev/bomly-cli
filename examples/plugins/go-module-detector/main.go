@@ -18,6 +18,10 @@ const (
 
 type detector struct{}
 
+type pluginConfig struct {
+	APIBase string `json:"api_base"`
+}
+
 func (d *detector) Metadata(context.Context) (*sdk.PluginMetadata, error) {
 	return &sdk.PluginMetadata{
 		ID:               pluginID,
@@ -46,6 +50,11 @@ func (d *detector) PackageManagerSupport(context.Context) ([]sdk.PackageManagerS
 }
 
 func (d *detector) Ready(context.Context, *sdk.DetectRequest) (*sdk.ReadyResponse, error) {
+	var cfg pluginConfig
+	if err := sdk.DecodePluginConfigFromEnv(&cfg); err != nil {
+		return nil, err
+	}
+	_ = cfg
 	return &sdk.ReadyResponse{Ready: true}, nil
 }
 

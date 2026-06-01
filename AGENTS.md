@@ -10,6 +10,8 @@ make build-lite          # go build -tags "bomly_external_syft,bomly_external_gr
 make test                # go test ./...
 make smoke               # end-to-end smoke tests against real repos/containers (slow, needs network)
 make smoke ARGS="-update" # regenerate golden files for smoke tests
+make benchmark           # run the hidden local dependency-graph benchmark
+make benchmark-report    # analyze local benchmark artifacts with Copilot CLI
 make run ARGS="scan"    # go run ./cmd/bomly <ARGS>
 make generate            # regenerate config reference, JSON schemas, schema docs, and support matrix
 ```
@@ -40,6 +42,7 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for full detail. Component ma
 | `internal/matchers/*`  | External enrichment matchers and shared matcher cache (osv, grype, deps.dev, ClearlyDefined, eol, scorecard) |
 | `internal/auditors/*`  | Policy evaluators and audit-only logic (policy, noop)                                             |
 | `internal/sbom`        | SBOM codec (SPDX 2.3, CycloneDX)                                                                  |
+| `internal/benchmark`   | Hidden local dependency-graph benchmark, baseline comparison, scoring, and embedded presets       |
 | `internal/output`      | Output rendering plus structured command payloads and schema generation for `scan`, `diff`, `explain`, JSON, and SARIF 2.1.0 |
 | `internal/plugin`      | Plugin discovery, protocol, handshake, and execution                                              |
 | `internal/engine/diff` | Diff pipeline orchestration and audit delta classification                                        |
@@ -117,7 +120,7 @@ Cache failures are **non-fatal** — log a warning and continue without caching.
 - Register built-ins in `internal/registry/builder.go`, which wires concrete detectors, auditors, matchers, and plugin stages into `engine.Registry`.
 - External enrichment is matcher-based; see `internal/matchers/depsdev`, `internal/matchers/clearlydefined`, `internal/matchers/osv`, `internal/matchers/grype`, `internal/matchers/eol`, and `internal/matchers/scorecard`.
 - Detector chains are explicit in `internal/registry/support.go` and `internal/registry/builder.go`; do not infer priority from technique alone.
-- Some native detectors are build-tool-backed primaries (`pub-native`, `swiftpm-native`, `sbt-native`) with committed-file fallbacks. Run smoke/QA with `dart`, `swift`, or `sbt` on `PATH` before updating graph-shape goldens for those ecosystems.
+- Some native detectors are build-tool-backed primaries (`pub-native`, `swiftpm-native`, `sbt-native`) with committed-file fallbacks. Run smoke tests and the local benchmark with `dart`, `swift`, or `sbt` on `PATH` before updating graph-shape expectations for those ecosystems.
 
 ### Terminal Output
 
@@ -152,7 +155,7 @@ When adding a new user-visible feature (new CLI flag, new component class, new p
 ### CLI surface
 
 - Flag declared in `internal/cli/opts/flag_options.go` with override propagation in `applyFlagOverrides`.
-- Config field added to `internal/config/config.go` `Resolved` (with `doc:`/`env:`/`default:` tags) and `File` (with `yaml:` tag and matching pointer/slice shape).
+- Config field added to `internal/config/config.go` `Resolved` (with `doc:`/`env:`/`default:` tags) and the appropriate nested `File` leaf (with `yaml:`, `resolved:`, and legacy flat-key `legacy:` tags plus a pointer-backed shape).
 - Flag interactions (requires / conflicts / modifies semantics) get a check in `config.Validate` plus a unit test in `internal/config/validate_test.go`. Error messages must be actionable (`"--audit requires --enrich"`, not `"invalid combination"`).
 - If the flag drives a pipeline stage, propagate the value through `internal/cli/opts/options.go`'s `PipelineRequest` builder.
 - If the flag accepts a selector list, register an `available<Thing>Options` helper in `flag_options.go` for shell completion.

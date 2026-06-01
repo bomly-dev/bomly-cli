@@ -39,3 +39,63 @@ func TestApplyFlagOverridesOnlyUsesChangedFlags(t *testing.T) {
 		t.Fatalf("expected changed install args to override, got %#v", dst.InstallArgs)
 	}
 }
+
+func TestApplyFlagOverridesJSONShortcut(t *testing.T) {
+	tests := []struct {
+		name       string
+		args       []string
+		startValue string
+		want       string
+	}{
+		{
+			name:       "json shortcut overrides existing format",
+			args:       []string{"--json"},
+			startValue: "markdown",
+			want:       "json",
+		},
+		{
+			name:       "json false does not override existing format",
+			args:       []string{"--json=false"},
+			startValue: "markdown",
+			want:       "markdown",
+		},
+		{
+			name:       "format wins when it appears after json",
+			args:       []string{"--json", "--format", "markdown"},
+			startValue: "text",
+			want:       "markdown",
+		},
+		{
+			name:       "json wins when it appears after format",
+			args:       []string{"--format", "markdown", "--json"},
+			startValue: "text",
+			want:       "json",
+		},
+		{
+			name:       "json false leaves preceding format override intact",
+			args:       []string{"--format", "markdown", "--json=false"},
+			startValue: "text",
+			want:       "markdown",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			options := &Options{}
+			root := newTestRootCommand(t)
+			if err := BindCommandFlagGroups(root, &options.ResolvedConfig, FlagGroupExecution); err != nil {
+				t.Fatalf("BindCommandFlagGroups() error = %v", err)
+			}
+			if err := root.ParseFlags(tc.args); err != nil {
+				t.Fatalf("ParseFlags() error = %v", err)
+			}
+
+			dst := config.Resolved{Format: tc.startValue}
+			applyFlagOverrides(&dst, options.ResolvedConfig, root)
+
+			if dst.Format != tc.want {
+				t.Fatalf("expected format %q, got %q", tc.want, dst.Format)
+			}
+		})
+	}
+}

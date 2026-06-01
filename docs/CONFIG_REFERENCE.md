@@ -11,177 +11,266 @@ Bomly resolves configuration in the following order, with later sources overridi
 
 `--config <path>` adds an explicit config file to the load list before environment variables and flags are applied.
 
+YAML files use the nested keys documented below. Unknown keys and the former flat keys are rejected so configuration mistakes fail fast.
+
 ---
 
 ## General
 
 | YAML Key | Environment Variable | Type | Default | Description |
 |----------|---------------------|------|---------|-------------|
-| `path` | `BOMLY_PATH` | `string` | - | Filesystem path to scan |
-| `container` | `BOMLY_CONTAINER` | `string` | - | Container image to scan (e.g. alpine:latest) |
-| `url` | `BOMLY_URL` | `string` | - | Remote Git URL to clone and scan |
-| `ref` | `BOMLY_REF` | `string` | - | Git ref to checkout when scanning a URL |
-| `sbom` | `BOMLY_SBOM` | `bool` | - | Treat the selected filesystem target as an SBOM file |
-| `enrich` | `BOMLY_ENRICH` | `bool` | - | Enrich packages with external license and vulnerability data |
-| `audit` | `BOMLY_AUDIT` | `bool` | - | Evaluate policy and create findings from package vulnerability data |
-| `reachability` | `BOMLY_REACHABILITY` | `bool` | - | Run code analysis to confirm whether vulnerabilities are reachable from application code |
-| `fail_on` | `BOMLY_FAIL_ON` | `[]string` | - | Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable |
-| `fail_on_scopes` | `BOMLY_FAIL_ON_SCOPES` | `[]string` | - | Dependency scopes that may produce failing findings: runtime, development, unknown |
-| `allow_vulnerability_ids` | `BOMLY_ALLOW_VULNERABILITY_IDS` | `[]string` | - | Vulnerability IDs to ignore during policy evaluation |
-| `allow_licenses` | `BOMLY_ALLOW_LICENSES` | `[]string` | - | Allowed SPDX license identifiers or expressions |
-| `deny_licenses` | `BOMLY_DENY_LICENSES` | `[]string` | - | Denied SPDX license identifiers or expressions |
-| `license_exempt_packages` | `BOMLY_LICENSE_EXEMPT_PACKAGES` | `[]string` | - | Package URLs exempt from license policy checks |
-| `deny_packages` | `BOMLY_DENY_PACKAGES` | `[]string` | - | Package URLs to deny |
-| `deny_groups` | `BOMLY_DENY_GROUPS` | `[]string` | - | Package URL namespaces to deny |
-| `protected_packages` | `BOMLY_PROTECTED_PACKAGES` | `[]string` | - | Canonical package names to protect from typosquatting |
-| `typosquat_threshold` | `BOMLY_TYPOSQUAT_THRESHOLD` | `string` | 0.90 | Similarity threshold for typosquatting detection |
-| `typosquat_mode` | `BOMLY_TYPOSQUAT_MODE` | `string` | warn | Typosquatting policy mode: warn or fail |
-| `warn_only` | `BOMLY_WARN_ONLY` | `bool` | - | Downgrade failing findings to warnings |
-| `analyzers` | `BOMLY_ANALYZERS` | `string` | - | Reachability analyzer selectors; supports +name and -name modifiers |
-| `format` | `BOMLY_FORMAT` | `string` | - | Primary report format: text, json, markdown, or sarif |
-| `outputs` | `BOMLY_OUTPUT` | `[]string` | - | Additional output target(s) as <format> or <format>=<path>. Repeatable; formats include markdown, spdx, and cyclonedx |
-| `interactive` | `BOMLY_INTERACTIVE` | `bool` | - | Enable interactive TUI mode |
-| `ecosystems` | `BOMLY_ECOSYSTEMS` | `string` | - | Ecosystem selectors; supports +name and -name modifiers |
-| `detectors` | `BOMLY_DETECTORS` | `string` | - | Detector selectors; supports +name and -name modifiers |
-| `auditors` | `BOMLY_AUDITORS` | `string` | - | Auditor selectors; supports +name and -name modifiers |
-| `matchers` | `BOMLY_MATCHERS` | `string` | - | Matcher selectors; supports +name and -name modifiers |
-| `install_first` | `BOMLY_INSTALL_FIRST` | `bool` | - | Run detector-specific dependency installation before resolving graphs |
-| `install_args` | `BOMLY_INSTALL_ARGS` | `[]string` | - | Additional detector-specific install arguments |
-| `config` | `BOMLY_CONFIG` | `string` | - | Explicit YAML config file path |
-| `quiet` | `BOMLY_QUIET` | `bool` | - | Suppress all non-error output |
-| `verbosity` | `BOMLY_VERBOSE` | `int` | - | Verbosity level (0=normal, 1=verbose, 2+=debug) |
+| `target.path` | `BOMLY_PATH` | `string` | - | Filesystem path to scan |
+| `target.container` | `BOMLY_CONTAINER` | `string` | - | Container image to scan (e.g. alpine:latest) |
+| `target.url` | `BOMLY_URL` | `string` | - | Remote Git URL to clone and scan |
+| `target.ref` | `BOMLY_REF` | `string` | - | Git ref to checkout when scanning a URL |
+| `target.sbom` | `BOMLY_SBOM` | `bool` | - | Treat the selected filesystem target as an SBOM file |
+| `analysis.enrich` | `BOMLY_ENRICH` | `bool` | - | Enrich packages with external license and vulnerability data |
+| `analysis.audit` | `BOMLY_AUDIT` | `bool` | - | Evaluate policy and create findings from package vulnerability data |
+| `analysis.reachability` | `BOMLY_REACHABILITY` | `bool` | - | Run code analysis to confirm whether vulnerabilities are reachable from application code |
+| `policy.fail_on` | `BOMLY_FAIL_ON` | `[]string` | - | Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable |
+| `policy.fail_on_scopes` | `BOMLY_FAIL_ON_SCOPES` | `[]string` | - | Dependency scopes that may produce failing findings: runtime, development, unknown |
+| `policy.allow_vulnerability_ids` | `BOMLY_ALLOW_VULNERABILITY_IDS` | `[]string` | - | Vulnerability IDs to ignore during policy evaluation |
+| `policy.allow_licenses` | `BOMLY_ALLOW_LICENSES` | `[]string` | - | Allowed SPDX license identifiers or expressions |
+| `policy.deny_licenses` | `BOMLY_DENY_LICENSES` | `[]string` | - | Denied SPDX license identifiers or expressions |
+| `policy.license_exempt_packages` | `BOMLY_LICENSE_EXEMPT_PACKAGES` | `[]string` | - | Package URLs exempt from license policy checks |
+| `policy.deny_packages` | `BOMLY_DENY_PACKAGES` | `[]string` | - | Package URLs to deny |
+| `policy.deny_groups` | `BOMLY_DENY_GROUPS` | `[]string` | - | Package URL namespaces to deny |
+| `policy.protected_packages` | `BOMLY_PROTECTED_PACKAGES` | `[]string` | - | Canonical package names to protect from typosquatting |
+| `policy.typosquat_threshold` | `BOMLY_TYPOSQUAT_THRESHOLD` | `string` | 0.90 | Similarity threshold for typosquatting detection |
+| `policy.typosquat_mode` | `BOMLY_TYPOSQUAT_MODE` | `string` | warn | Typosquatting policy mode: warn or fail |
+| `policy.warn_only` | `BOMLY_WARN_ONLY` | `bool` | - | Downgrade failing findings to warnings |
+| `components.analyzers` | `BOMLY_ANALYZERS` | `string` | - | Reachability analyzer selectors; supports +name and -name modifiers |
+| `output.format` | `BOMLY_FORMAT` | `string` | - | Primary report format: text, json, markdown, or sarif |
+| `output.outputs` | `BOMLY_OUTPUT` | `[]string` | - | Additional output target(s) as <format> or <format>=<path>. Repeatable; formats include markdown, spdx, and cyclonedx |
+| `output.interactive` | `BOMLY_INTERACTIVE` | `bool` | - | Enable interactive TUI mode |
+| `components.ecosystems` | `BOMLY_ECOSYSTEMS` | `string` | - | Ecosystem selectors; supports +name and -name modifiers |
+| `components.detectors` | `BOMLY_DETECTORS` | `string` | - | Detector selectors; supports +name and -name modifiers |
+| `components.auditors` | `BOMLY_AUDITORS` | `string` | - | Auditor selectors; supports +name and -name modifiers |
+| `components.matchers` | `BOMLY_MATCHERS` | `string` | - | Matcher selectors; supports +name and -name modifiers |
+| `analysis.install_first` | `BOMLY_INSTALL_FIRST` | `bool` | - | Run detector-specific dependency installation before resolving graphs |
+| `analysis.install_args` | `BOMLY_INSTALL_ARGS` | `[]string` | - | Additional detector-specific install arguments |
+| `logging.quiet` | `BOMLY_QUIET` | `bool` | - | Suppress all non-error output |
+| `logging.verbosity` | `BOMLY_VERBOSE` | `int` | - | Verbosity level (0=normal, 1=verbose, 2+=debug) |
+| `network.proxy.url` | `BOMLY_HTTP_PROXY` | `string` | - | Outbound HTTP proxy URL used by Bomly and managed plugins |
+| `network.proxy.no_proxy` | `BOMLY_HTTP_NO_PROXY` | `string` | - | Comma-separated hosts, domains, or CIDRs that should bypass the outbound HTTP proxy |
+| `network.proxy.type` | `BOMLY_HTTP_PROXY_TYPE` | `string` | http | Outbound proxy type when using host/port proxy settings: http, https, or socks5 |
+| `network.proxy.host` | `BOMLY_HTTP_PROXY_HOST` | `string` | - | Outbound proxy hostname or IP address used when http_proxy is not set |
+| `network.proxy.port` | `BOMLY_HTTP_PROXY_PORT` | `int` | - | Outbound proxy port used with http_proxy_host |
+| `network.proxy.username` | `BOMLY_HTTP_PROXY_USERNAME` | `string` | - | Username for proxy authentication when using host/port proxy settings |
+| `network.proxy.password` | `BOMLY_HTTP_PROXY_PASSWORD` | `string` | - | Password for proxy authentication when using host/port proxy settings |
+| `network.ca_cert_file` | `BOMLY_HTTP_CA_CERT_FILE` | `string` | - | PEM certificate chain file to trust for outbound HTTPS connections, including TLS-intercepting proxies |
+| `plugins` | `-` | `map[string]map[string]any` | - | Per-plugin configuration keyed by managed plugin ID |
 
 ## OSV matcher settings
 
 | YAML Key | Environment Variable | Type | Default | Description |
 |----------|---------------------|------|---------|-------------|
-| `osv_api_base` | `BOMLY_OSV_API_BASE` | `string` | https://api.osv.dev | Base URL for the OSV vulnerability API |
-| `osv_cache_dir` | `BOMLY_OSV_CACHE_DIR` | `string` | - | Directory for the OSV response cache |
-| `osv_cache_ttl` | `BOMLY_OSV_CACHE_TTL` | `string` | 24h | TTL for cached OSV responses (e.g. 24h) |
+| `matchers.osv.api_base` | `BOMLY_OSV_API_BASE` | `string` | https://api.osv.dev | Base URL for the OSV vulnerability API |
+| `matchers.osv.cache_dir` | `BOMLY_OSV_CACHE_DIR` | `string` | - | Directory for the OSV response cache |
+| `matchers.osv.cache_ttl` | `BOMLY_OSV_CACHE_TTL` | `string` | 24h | TTL for cached OSV responses (e.g. 24h) |
 
 ## KEV enrichment settings
 
 | YAML Key | Environment Variable | Type | Default | Description |
 |----------|---------------------|------|---------|-------------|
-| `kev_cache_dir` | `BOMLY_KEV_CACHE_DIR` | `string` | - | Directory for the CISA KEV cache |
-| `kev_cache_ttl` | `BOMLY_KEV_CACHE_TTL` | `string` | 24h | TTL for cached KEV data (e.g. 24h) |
+| `matchers.osv.kev.cache_dir` | `BOMLY_KEV_CACHE_DIR` | `string` | - | Directory for the CISA KEV cache |
+| `matchers.osv.kev.cache_ttl` | `BOMLY_KEV_CACHE_TTL` | `string` | 24h | TTL for cached KEV data (e.g. 24h) |
 
 ## EOL enrichment settings
 
 | YAML Key | Environment Variable | Type | Default | Description |
 |----------|---------------------|------|---------|-------------|
-| `eol_api_base` | `BOMLY_EOL_API_BASE` | `string` | https://endoflife.date/api | Base URL for the endoflife.date API |
-| `eol_cache_dir` | `BOMLY_EOL_CACHE_DIR` | `string` | - | Directory for the EOL cache |
-| `eol_cache_ttl` | `BOMLY_EOL_CACHE_TTL` | `string` | 24h | TTL for cached EOL responses (e.g. 24h) |
+| `matchers.eol.api_base` | `BOMLY_EOL_API_BASE` | `string` | https://endoflife.date/api | Base URL for the endoflife.date API |
+| `matchers.eol.cache_dir` | `BOMLY_EOL_CACHE_DIR` | `string` | - | Directory for the EOL cache |
+| `matchers.eol.cache_ttl` | `BOMLY_EOL_CACHE_TTL` | `string` | 24h | TTL for cached EOL responses (e.g. 24h) |
 
 ## Scorecard matcher settings
 
 | YAML Key | Environment Variable | Type | Default | Description |
 |----------|---------------------|------|---------|-------------|
-| `scorecard_api_base` | `BOMLY_SCORECARD_API_BASE` | `string` | https://api.scorecard.dev | Base URL for the OpenSSF Scorecard public API |
-| `scorecard_cache_dir` | `BOMLY_SCORECARD_CACHE_DIR` | `string` | - | Directory for the Scorecard response cache |
-| `scorecard_cache_ttl` | `BOMLY_SCORECARD_CACHE_TTL` | `string` | 24h | TTL for cached Scorecard responses (e.g. 24h) |
+| `matchers.scorecard.api_base` | `BOMLY_SCORECARD_API_BASE` | `string` | https://api.scorecard.dev | Base URL for the OpenSSF Scorecard public API |
+| `matchers.scorecard.cache_dir` | `BOMLY_SCORECARD_CACHE_DIR` | `string` | - | Directory for the Scorecard response cache |
+| `matchers.scorecard.cache_ttl` | `BOMLY_SCORECARD_CACHE_TTL` | `string` | 24h | TTL for cached Scorecard responses (e.g. 24h) |
+
+## Flat YAML Migration
+
+Flat YAML keys are no longer accepted. Move each existing key to its nested replacement:
+
+| Former Flat Key | Replacement |
+|-----------------|-------------|
+| `allow_licenses` | `policy.allow_licenses` |
+| `allow_vulnerability_ids` | `policy.allow_vulnerability_ids` |
+| `analyzers` | `components.analyzers` |
+| `audit` | `analysis.audit` |
+| `auditors` | `components.auditors` |
+| `config` | `--config` |
+| `container` | `target.container` |
+| `deny_groups` | `policy.deny_groups` |
+| `deny_licenses` | `policy.deny_licenses` |
+| `deny_packages` | `policy.deny_packages` |
+| `detectors` | `components.detectors` |
+| `ecosystems` | `components.ecosystems` |
+| `enrich` | `analysis.enrich` |
+| `eol_api_base` | `matchers.eol.api_base` |
+| `eol_cache_dir` | `matchers.eol.cache_dir` |
+| `eol_cache_ttl` | `matchers.eol.cache_ttl` |
+| `fail_on` | `policy.fail_on` |
+| `fail_on_scopes` | `policy.fail_on_scopes` |
+| `format` | `output.format` |
+| `http_ca_cert_file` | `network.ca_cert_file` |
+| `http_no_proxy` | `network.proxy.no_proxy` |
+| `http_proxy` | `network.proxy.url` |
+| `http_proxy_host` | `network.proxy.host` |
+| `http_proxy_password` | `network.proxy.password` |
+| `http_proxy_port` | `network.proxy.port` |
+| `http_proxy_type` | `network.proxy.type` |
+| `http_proxy_username` | `network.proxy.username` |
+| `install_args` | `analysis.install_args` |
+| `install_first` | `analysis.install_first` |
+| `interactive` | `output.interactive` |
+| `kev_cache_dir` | `matchers.osv.kev.cache_dir` |
+| `kev_cache_ttl` | `matchers.osv.kev.cache_ttl` |
+| `license_exempt_packages` | `policy.license_exempt_packages` |
+| `matchers` | `components.matchers` |
+| `osv_api_base` | `matchers.osv.api_base` |
+| `osv_cache_dir` | `matchers.osv.cache_dir` |
+| `osv_cache_ttl` | `matchers.osv.cache_ttl` |
+| `outputs` | `output.outputs` |
+| `path` | `target.path` |
+| `protected_packages` | `policy.protected_packages` |
+| `quiet` | `logging.quiet` |
+| `reachability` | `analysis.reachability` |
+| `ref` | `target.ref` |
+| `sbom` | `target.sbom` |
+| `scorecard_api_base` | `matchers.scorecard.api_base` |
+| `scorecard_cache_dir` | `matchers.scorecard.cache_dir` |
+| `scorecard_cache_ttl` | `matchers.scorecard.cache_ttl` |
+| `typosquat_mode` | `policy.typosquat_mode` |
+| `typosquat_threshold` | `policy.typosquat_threshold` |
+| `url` | `target.url` |
+| `verbose` | `logging.verbosity` |
+| `verbosity` | `logging.verbosity` |
+| `warn_only` | `policy.warn_only` |
 
 ## Example Configuration
 
 ```yaml
 # ~/.bomly/config.yaml or .bomly/config.yaml
-
-# General
-# Filesystem path to scan
-# path: ""
-# Container image to scan (e.g. alpine:latest)
-# container: ""
-# Remote Git URL to clone and scan
-# url: ""
-# Git ref to checkout when scanning a URL
-# ref: ""
-# Treat the selected filesystem target as an SBOM file
-# sbom: false
-# Enrich packages with external license and vulnerability data
-# enrich: false
-# Evaluate policy and create findings from package vulnerability data
-# audit: false
-# Run code analysis to confirm whether vulnerabilities are reachable from application code
-# reachability: false
-# Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable
-# fail_on: []
-# Dependency scopes that may produce failing findings: runtime, development, unknown
-# fail_on_scopes: []
-# Vulnerability IDs to ignore during policy evaluation
-# allow_vulnerability_ids: []
-# Allowed SPDX license identifiers or expressions
-# allow_licenses: []
-# Denied SPDX license identifiers or expressions
-# deny_licenses: []
-# Package URLs exempt from license policy checks
-# license_exempt_packages: []
-# Package URLs to deny
-# deny_packages: []
-# Package URL namespaces to deny
-# deny_groups: []
-# Canonical package names to protect from typosquatting
-# protected_packages: []
-# Similarity threshold for typosquatting detection
-# typosquat_threshold: 0.90
-# Typosquatting policy mode: warn or fail
-# typosquat_mode: warn
-# Downgrade failing findings to warnings
-# warn_only: false
-# Reachability analyzer selectors; supports +name and -name modifiers
-# analyzers: ""
-# Primary report format: text, json, markdown, or sarif
-# format: ""
-# Additional output target(s) as <format> or <format>=<path>. Repeatable; formats include markdown, spdx, and cyclonedx
-# outputs: []
-# Enable interactive TUI mode
-# interactive: false
-# Ecosystem selectors; supports +name and -name modifiers
-# ecosystems: ""
-# Detector selectors; supports +name and -name modifiers
-# detectors: ""
-# Auditor selectors; supports +name and -name modifiers
-# auditors: ""
-# Matcher selectors; supports +name and -name modifiers
-# matchers: ""
-# Run detector-specific dependency installation before resolving graphs
-# install_first: false
-# Additional detector-specific install arguments
-# install_args: []
-# Explicit YAML config file path
-# config: ""
-# Suppress all non-error output
-# quiet: false
-# Verbosity level (0=normal, 1=verbose, 2+=debug)
-# verbosity: 0
-
-# OSV matcher settings
-# Base URL for the OSV vulnerability API
-# osv_api_base: https://api.osv.dev
-# Directory for the OSV response cache
-# osv_cache_dir: ""
-# TTL for cached OSV responses (e.g. 24h)
-# osv_cache_ttl: 24h
-
-# KEV enrichment settings
-# Directory for the CISA KEV cache
-# kev_cache_dir: ""
-# TTL for cached KEV data (e.g. 24h)
-# kev_cache_ttl: 24h
-
-# EOL enrichment settings
-# Base URL for the endoflife.date API
-# eol_api_base: https://endoflife.date/api
-# Directory for the EOL cache
-# eol_cache_dir: ""
-# TTL for cached EOL responses (e.g. 24h)
-# eol_cache_ttl: 24h
-
-# Scorecard matcher settings
-# Base URL for the OpenSSF Scorecard public API
-# scorecard_api_base: https://api.scorecard.dev
-# Directory for the Scorecard response cache
-# scorecard_cache_dir: ""
-# TTL for cached Scorecard responses (e.g. 24h)
-# scorecard_cache_ttl: 24h
+# target:
+#   Filesystem path to scan
+#   path: ""
+#   Container image to scan (e.g. alpine:latest)
+#   container: ""
+#   Remote Git URL to clone and scan
+#   url: ""
+#   Git ref to checkout when scanning a URL
+#   ref: ""
+#   Treat the selected filesystem target as an SBOM file
+#   sbom: false
+# analysis:
+#   Enrich packages with external license and vulnerability data
+#   enrich: false
+#   Evaluate policy and create findings from package vulnerability data
+#   audit: false
+#   Run code analysis to confirm whether vulnerabilities are reachable from application code
+#   reachability: false
+#   Run detector-specific dependency installation before resolving graphs
+#   install_first: false
+#   Additional detector-specific install arguments
+#   install_args: []
+# components:
+#   Ecosystem selectors; supports +name and -name modifiers
+#   ecosystems: ""
+#   Detector selectors; supports +name and -name modifiers
+#   detectors: ""
+#   Auditor selectors; supports +name and -name modifiers
+#   auditors: ""
+#   Matcher selectors; supports +name and -name modifiers
+#   matchers: ""
+#   Reachability analyzer selectors; supports +name and -name modifiers
+#   analyzers: ""
+# policy:
+#   Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable
+#   fail_on: []
+#   Dependency scopes that may produce failing findings: runtime, development, unknown
+#   fail_on_scopes: []
+#   Vulnerability IDs to ignore during policy evaluation
+#   allow_vulnerability_ids: []
+#   Allowed SPDX license identifiers or expressions
+#   allow_licenses: []
+#   Denied SPDX license identifiers or expressions
+#   deny_licenses: []
+#   Package URLs exempt from license policy checks
+#   license_exempt_packages: []
+#   Package URLs to deny
+#   deny_packages: []
+#   Package URL namespaces to deny
+#   deny_groups: []
+#   Canonical package names to protect from typosquatting
+#   protected_packages: []
+#   Similarity threshold for typosquatting detection
+#   typosquat_threshold: 0.90
+#   Typosquatting policy mode: warn or fail
+#   typosquat_mode: warn
+#   Downgrade failing findings to warnings
+#   warn_only: false
+# output:
+#   Primary report format: text, json, markdown, or sarif
+#   format: ""
+#   Additional output target(s) as <format> or <format>=<path>. Repeatable; formats include markdown, spdx, and cyclonedx
+#   outputs: []
+#   Enable interactive TUI mode
+#   interactive: false
+# logging:
+#   Suppress all non-error output
+#   quiet: false
+#   Verbosity level (0=normal, 1=verbose, 2+=debug)
+#   verbosity: 0
+# network:
+#   proxy:
+#     Outbound HTTP proxy URL used by Bomly and managed plugins
+#     url: ""
+#     Comma-separated hosts, domains, or CIDRs that should bypass the outbound HTTP proxy
+#     no_proxy: ""
+#     Outbound proxy type when using host/port proxy settings: http, https, or socks5
+#     type: http
+#     Outbound proxy hostname or IP address used when http_proxy is not set
+#     host: ""
+#     Outbound proxy port used with http_proxy_host
+#     port: 0
+#     Username for proxy authentication when using host/port proxy settings
+#     username: ""
+#     Password for proxy authentication when using host/port proxy settings
+#     password: ""
+#   PEM certificate chain file to trust for outbound HTTPS connections, including TLS-intercepting proxies
+#   ca_cert_file: ""
+# matchers:
+#   osv:
+#     Base URL for the OSV vulnerability API
+#     api_base: https://api.osv.dev
+#     Directory for the OSV response cache
+#     cache_dir: ""
+#     TTL for cached OSV responses (e.g. 24h)
+#     cache_ttl: 24h
+#     kev:
+#       Directory for the CISA KEV cache
+#       cache_dir: ""
+#       TTL for cached KEV data (e.g. 24h)
+#       cache_ttl: 24h
+#   eol:
+#     Base URL for the endoflife.date API
+#     api_base: https://endoflife.date/api
+#     Directory for the EOL cache
+#     cache_dir: ""
+#     TTL for cached EOL responses (e.g. 24h)
+#     cache_ttl: 24h
+#   scorecard:
+#     Base URL for the OpenSSF Scorecard public API
+#     api_base: https://api.scorecard.dev
+#     Directory for the Scorecard response cache
+#     cache_dir: ""
+#     TTL for cached Scorecard responses (e.g. 24h)
+#     cache_ttl: 24h
+# Per-plugin configuration keyed by managed plugin ID
+# plugins: {}
 ```

@@ -198,6 +198,15 @@ func TestRoot_RegistersCoreCommands(t *testing.T) {
 			t.Fatalf("expected command %q, got %#v", commandName, cmd)
 		}
 	}
+	for _, commandName := range []string{"explain", "scan", "diff"} {
+		cmd, _, err := root.Find([]string{commandName})
+		if err != nil {
+			t.Fatalf("root.Find(%q) error = %v", commandName, err)
+		}
+		if flag := cmd.Flags().Lookup("json"); flag == nil {
+			t.Fatalf("expected command %q to expose --json", commandName)
+		}
+	}
 }
 
 func TestRootHasCommandRequiredFlags(t *testing.T) {
@@ -380,7 +389,7 @@ func TestRootHelp_CommandExamplesRender(t *testing.T) {
 			examples: []string{
 				"Examples:",
 				"bomly scan --interactive",
-				"bomly diff --base main --head HEAD",
+				"bomly diff --base main --head HEAD --json",
 				"bomly explain pkg:npm/react",
 			},
 		},
@@ -391,7 +400,7 @@ func TestRootHelp_CommandExamplesRender(t *testing.T) {
 				"Examples:",
 				"bomly scan --enrich --audit",
 				"bomly scan -o spdx=bomly.spdx.json",
-				"bomly scan --url https://github.com/bomly-dev/bomly-cli --ref main --format json",
+				"bomly scan --url https://github.com/bomly-dev/bomly-cli --ref main --json",
 				"bomly scan --container alpine:3.20",
 				"Explore available detectors, matchers, and auditors with `bomly plugin list`.",
 			},
@@ -400,13 +409,13 @@ func TestRootHelp_CommandExamplesRender(t *testing.T) {
 		{
 			name:      "diff",
 			args:      []string{"diff", "--help"},
-			examples:  []string{"Examples:", "bomly diff --sbom --base ./before.cdx.json --head ./after.cdx.json --format json"},
+			examples:  []string{"Examples:", "bomly diff --sbom --base ./before.cdx.json --head ./after.cdx.json --json"},
 			notInText: []string{"Exit Codes:"},
 		},
 		{
 			name:      "explain",
 			args:      []string{"explain", "--help"},
-			examples:  []string{"Examples:", "bomly explain pkg:npm/react"},
+			examples:  []string{"Examples:", "bomly explain pkg:npm/react", "bomly explain github.com/spf13/cobra --path . --json"},
 			notInText: []string{"Exit Codes:"},
 		},
 		{
@@ -489,7 +498,7 @@ func TestRoot_ScanCommand_ScansRepoURLAtRef(t *testing.T) {
 	var stderr bytes.Buffer
 	root.SetOut(&stdout)
 	root.SetErr(&stderr)
-	root.SetArgs([]string{"scan", "--url", repoDir, "--ref", baseSHA, "--ecosystems", "npm", "--format", "json"})
+	root.SetArgs([]string{"scan", "--url", repoDir, "--ref", baseSHA, "--ecosystems", "npm", "--json"})
 
 	if err := root.Execute(); err != nil {
 		t.Fatalf("root.Execute() error = %v; stderr=%s", err, stderr.String())
@@ -1758,6 +1767,64 @@ func TestRoot_StartupLogsResolvedOptionsWhenVerbose(t *testing.T) {
 	} {
 		if !strings.Contains(logText, want) {
 			t.Fatalf("expected stderr log to contain %q, got:\n%s", want, logText)
+		}
+	}
+}
+
+func TestRoot_StartupLogsDoNotExposeHTTPAndPluginSecrets(t *testing.T) {
+	tempHome := t.TempDir()
+	t.Setenv("HOME", tempHome)
+	if runtime.GOOS == "windows" {
+		t.Setenv("USERPROFILE", tempHome)
+	}
+
+	projectDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte("{}\n"), 0o644); err != nil {
+		t.Fatalf("write package.json: %v", err)
+	}
+	configDir := filepath.Join(projectDir, ".bomly")
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
+		t.Fatalf("create config dir: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte(`
+network:
+  proxy:
+    url: http://agent:super-secret@proxy.example:8080
+plugins:
+  acme.matcher:
+    token: plugin-secret
+`), 0o600); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	setFakeNPMOnPath(t, `{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "react": {
+      "version": "18.2.0"
+    }
+  }
+}`)
+
+	root, err := newRootCmd("0.9.0-test")
+	if err != nil {
+		t.Fatalf("newRootCmd() error = %v", err)
+	}
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	root.SetOut(&stdout)
+	root.SetErr(&stderr)
+	root.SetArgs([]string{"scan", "--path", projectDir, "--ecosystems", "npm", "--format", "json", "-vv"})
+
+	if err := root.Execute(); err != nil {
+		t.Fatalf("root.Execute() error = %v; stderr=%s", err, stderr.String())
+	}
+
+	logText := stderr.String()
+	for _, leaked := range []string{"super-secret", "plugin-secret", "agent:"} {
+		if strings.Contains(logText, leaked) {
+			t.Fatalf("startup logs leaked %q:\n%s", leaked, logText)
 		}
 	}
 }

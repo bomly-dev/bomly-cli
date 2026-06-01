@@ -10,14 +10,8 @@ const sampleGovulncheckJSON = `
 {"config":{"protocol_version":"v1.0.0"}}
 {"progress":{"message":"loaded packages"}}
 {"osv":{"id":"GO-2024-1234","aliases":["CVE-2024-1234","GHSA-aaaa-bbbb-cccc"],"summary":"oops"}}
-{"finding":{"osv":"GO-2024-1234","fixed_version":"v1.2.3","trace":[
-  {"module":"example.com/app","package":"main","function":"main","position":{"filename":"main.go","line":12,"column":4}},
-  {"module":"github.com/foo/bar","version":"v1.0.0","package":"github.com/foo/bar","function":"Decode","position":{"filename":"decode.go","line":99}}
-]}}
-{"finding":{"osv":"GO-2024-1234","trace":[
-  {"module":"example.com/app","package":"main","function":"handler","position":{"filename":"handler.go","line":7}},
-  {"module":"github.com/foo/bar","version":"v1.0.0","package":"github.com/foo/bar","function":"Decode","position":{"filename":"decode.go","line":99}}
-]}}
+{"finding":{"osv":"GO-2024-1234","fixed_version":"v1.2.3","trace":[{"module":"example.com/app","package":"main","function":"main","position":{"filename":"main.go","line":12,"column":4}},{"module":"github.com/foo/bar","version":"v1.0.0","package":"github.com/foo/bar","function":"Decode","position":{"filename":"decode.go","line":99}}]}}
+{"finding":{"osv":"GO-2024-1234","trace":[{"module":"example.com/app","package":"main","function":"handler","position":{"filename":"handler.go","line":7}},{"module":"github.com/foo/bar","version":"v1.0.0","package":"github.com/foo/bar","function":"Decode","position":{"filename":"decode.go","line":99}}]}}
 {"finding":{"osv":"GO-2024-9999"}}
 `
 

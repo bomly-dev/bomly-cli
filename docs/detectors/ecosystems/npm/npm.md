@@ -92,6 +92,8 @@ bomly explain lodash --path ./monorepo
 
 For npm packages, the analyzer is `jsreach` at **Tier-3 (package)**. It walks app source from `package.json` entry points and reports a package as reachable when there is any path from app source to that package through the npm dep graph. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe) — Tier-3 "unreachable" is a triage signal, not a safety guarantee.
 
+In workspace monorepos, `jsreach` automatically follows imports between consumed sibling packages by workspace package name. Unused siblings do not widen the reachable set.
+
 ## Limitations
 
 - **`npm link`-ed packages are not in the lockfile** and therefore not in the graph. Run a normal `install` before scanning.

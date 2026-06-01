@@ -1,0 +1,2 @@
+include ':app', ':shared', ':unused'
+project(':shared').projectDir = file('libs/common')

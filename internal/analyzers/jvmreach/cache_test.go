@@ -18,6 +18,7 @@ func TestResultCacheRoundTrip(t *testing.T) {
 	projectDir := newJVMProjectDir(t)
 	want := RunnerResult{
 		ImportedArtifacts: map[string]struct{}{"com.fasterxml.jackson.core:jackson-databind": {}},
+		RawImports:        map[string]struct{}{"com.fasterxml.jackson.databind.ObjectMapper": {}},
 		SourceFiles:       3,
 	}
 	if err := cache.set(projectDir, "fake", "1.0", want); err != nil {
@@ -32,6 +33,9 @@ func TestResultCacheRoundTrip(t *testing.T) {
 	}
 	if _, ok := got.ImportedArtifacts["com.fasterxml.jackson.core:jackson-databind"]; !ok {
 		t.Errorf("missing artifact in cached result")
+	}
+	if _, ok := got.RawImports["com.fasterxml.jackson.databind.ObjectMapper"]; !ok {
+		t.Errorf("missing raw import in cached result")
 	}
 }
 

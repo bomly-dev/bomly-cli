@@ -29,19 +29,21 @@ func NewConsole(stderr io.Writer, verbosity int, quiet bool) *zap.Logger {
 		level = zap.NewAtomicLevelAt(zap.InfoLevel)
 	}
 
-	config := zap.NewProductionConfig()
-	config.Encoding = "console"
-	config.Level = level
-	config.DisableCaller = true
-	config.DisableStacktrace = true
-	config.OutputPaths = nil
-	config.ErrorOutputPaths = nil
-	config.EncoderConfig.TimeKey = ""
-	config.EncoderConfig.CallerKey = ""
-	config.EncoderConfig.FunctionKey = ""
-	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	encoderCfg := zapcore.EncoderConfig{
+		MessageKey:     "msg",
+		LevelKey:       "level",
+		TimeKey:        "",
+		CallerKey:      "",
+		FunctionKey:    "",
+		StacktraceKey:  "stacktrace",
+		LineEnding:     zapcore.DefaultLineEnding,
+		EncodeLevel:    zapcore.CapitalColorLevelEncoder,
+		EncodeTime:     zapcore.EpochTimeEncoder,
+		EncodeDuration: zapcore.StringDurationEncoder,
+		EncodeCaller:   zapcore.ShortCallerEncoder,
+	}
 
-	encoder := newPrettyConsoleEncoder(config.EncoderConfig)
+	encoder := newPrettyConsoleEncoder(encoderCfg)
 	core := zapcore.NewCore(
 		encoder,
 		zapcore.AddSync(stderr),

@@ -304,8 +304,8 @@ func TestAnalyzeModuleHierarchyHandlesInternalCycle(t *testing.T) {
 			RawImports:  map[string]struct{}{"com.example.shared.Helper": {}},
 		},
 		shared: {
-			SourceFiles:        1,
-			RawImports:         map[string]struct{}{"com.example.app.App": {}},
+			SourceFiles:       1,
+			RawImports:        map[string]struct{}{"com.example.app.App": {}},
 			ImportedArtifacts: map[string]struct{}{"com.fasterxml.jackson.core:jackson-databind": {}},
 		},
 	}}

@@ -249,7 +249,12 @@ func workspaceGlobMatch(path, pattern string) bool {
 		switch pattern[i] {
 		case '*':
 			if i+1 < len(pattern) && pattern[i+1] == '*' {
-				expression.WriteString(".*")
+				if i+2 < len(pattern) && pattern[i+2] == '/' {
+					expression.WriteString("(?:.*/)?")
+					i++
+				} else {
+					expression.WriteString(".*")
+				}
 				i++
 			} else {
 				expression.WriteString("[^/]*")

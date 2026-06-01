@@ -33,11 +33,12 @@ type mavenProject struct {
 }
 
 var (
-	gradleInclude     = regexp.MustCompile(`(?m)\binclude\s*\(?\s*([^\r\n)]*)`)
-	gradleQuotedValue = regexp.MustCompile(`["']([^"']+)["']`)
-	gradleProjectDir  = regexp.MustCompile(`(?m)project\s*\(\s*["']([^"']+)["']\s*\)\.projectDir\s*=\s*file\s*\(\s*["']([^"']+)["']\s*\)`)
-	gradleGroup       = regexp.MustCompile(`(?m)^\s*group\s*=\s*["']([^"']+)["']`)
-	sourcePackage     = regexp.MustCompile(`(?m)^\s*package\s+([A-Za-z_][A-Za-z0-9_.]*)`)
+	gradleParenthesizedInclude = regexp.MustCompile(`(?s)\binclude\s*\((.*?)\)`)
+	gradleLineInclude          = regexp.MustCompile(`(?m)^\s*include\s+([^\r\n]+)$`)
+	gradleQuotedValue          = regexp.MustCompile(`["']([^"']+)["']`)
+	gradleProjectDir           = regexp.MustCompile(`(?m)project\s*\(\s*["']([^"']+)["']\s*\)\.projectDir\s*=\s*file\s*\(\s*["']([^"']+)["']\s*\)`)
+	gradleGroup                = regexp.MustCompile(`(?m)^\s*group\s*=\s*["']([^"']+)["']`)
+	sourcePackage              = regexp.MustCompile(`(?m)^\s*package\s+([A-Za-z_][A-Za-z0-9_.]*)`)
 )
 
 // discoverProjectRoots returns the root of each JVM project hierarchy.
@@ -209,30 +210,48 @@ func readGradleModules(root string) []jvmModule {
 	}
 	group := readGradleGroup(root)
 	seen := make(map[string]jvmModule)
-	for _, include := range gradleInclude.FindAllStringSubmatch(body, -1) {
-		for _, quoted := range gradleQuotedValue.FindAllStringSubmatch(include[1], -1) {
-			projectPath := quoted[1]
-			relative := overrides[projectPath]
-			if relative == "" {
-				relative = strings.ReplaceAll(strings.TrimPrefix(projectPath, ":"), ":", string(filepath.Separator))
-			}
-			dir := filepath.Clean(filepath.Join(root, relative))
-			if !pathContainsRoot(dir, root) {
-				continue
-			}
-			artifact := filepath.Base(dir)
-			moduleGroup := readGradleGroup(dir)
-			if moduleGroup == "" {
-				moduleGroup = group
-			}
-			seen[dir] = jvmModule{Dir: dir, Coord: canonicalCoord(moduleGroup, artifact)}
+	for _, projectPath := range gradleIncludedProjectPaths(body) {
+		relative := overrides[projectPath]
+		if relative == "" {
+			relative = strings.ReplaceAll(strings.TrimPrefix(projectPath, ":"), ":", string(filepath.Separator))
 		}
+		dir := filepath.Clean(filepath.Join(root, relative))
+		if !pathContainsRoot(dir, root) {
+			continue
+		}
+		artifact := filepath.Base(dir)
+		moduleGroup := readGradleGroup(dir)
+		if moduleGroup == "" {
+			moduleGroup = group
+		}
+		seen[dir] = jvmModule{Dir: dir, Coord: canonicalCoord(moduleGroup, artifact)}
 	}
 	modules := make([]jvmModule, 0, len(seen))
 	for _, module := range seen {
 		modules = append(modules, module)
 	}
 	return modules
+}
+
+func gradleIncludedProjectPaths(body string) []string {
+	seen := make(map[string]struct{})
+	var paths []string
+	add := func(fragment string) {
+		for _, quoted := range gradleQuotedValue.FindAllStringSubmatch(fragment, -1) {
+			if _, ok := seen[quoted[1]]; ok {
+				continue
+			}
+			seen[quoted[1]] = struct{}{}
+			paths = append(paths, quoted[1])
+		}
+	}
+	for _, include := range gradleParenthesizedInclude.FindAllStringSubmatch(body, -1) {
+		add(include[1])
+	}
+	for _, include := range gradleLineInclude.FindAllStringSubmatch(body, -1) {
+		add(include[1])
+	}
+	return paths
 }
 
 func readGradleGroup(dir string) string {

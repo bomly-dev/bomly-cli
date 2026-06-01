@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 )
@@ -37,7 +38,7 @@ func main() {
 		string(prompt),
 	)
 	var report bytes.Buffer
-	cmd.Stdout = &report
+	cmd.Stdout = io.MultiWriter(&report, os.Stderr)
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 	if err := cmd.Run(); err != nil {

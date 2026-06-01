@@ -29,7 +29,7 @@ func discoverProjectRoots(req model.AnalyzeRequest) []string {
 	}
 
 	if req.Graph != nil {
-		for _, pkg := range req.Graph.Packages() {
+		for _, pkg := range req.Graph.Nodes() {
 			if pkg == nil || !isJVMPackage(pkg) {
 				continue
 			}
@@ -83,7 +83,7 @@ func findProjectRoot(start string) string {
 
 // isJVMPackage reports whether pkg's ecosystem, build system, or
 // language identifies it as a JVM (Maven/Gradle/SBT) package.
-func isJVMPackage(pkg *model.Package) bool {
+func isJVMPackage(pkg *model.Dependency) bool {
 	if pkg == nil {
 		return false
 	}

@@ -35,7 +35,7 @@ func TestMapGrypeAdvisoryCarriesRichFields(t *testing.T) {
 	if len(v.FixedVersions) != 2 || v.FixedVersions[1] != "1.3.0" {
 		t.Fatalf("FixedVersions = %#v", v.FixedVersions)
 	}
-	if v.Severity != "high" || v.Title != "important vuln" || v.Source != matcherName {
+	if v.ParsedSeverity != "high" || v.Title != "important vuln" || v.Source != matcherName {
 		t.Fatalf("unexpected core fields: %#v", v)
 	}
 	if len(v.CVSS) != 1 || v.CVSS[0].Score != 9.8 {
@@ -71,7 +71,7 @@ func TestMapGrypeAdvisoryPrefersSuggestedFixedIn(t *testing.T) {
 }
 
 func TestAppendOrMergeVulnerabilityUnionsFields(t *testing.T) {
-	existing := []sdk.PackageVulnerability{{
+	existing := []sdk.Vulnerability{{
 		ID:      "CVE-1",
 		Source:  matcherName,
 		FixedIn: "1.0.0",
@@ -79,7 +79,7 @@ func TestAppendOrMergeVulnerabilityUnionsFields(t *testing.T) {
 		CVSS:    []sdk.CVSSScore{{Vector: "v1", Source: "nvd"}},
 		Reasons: []string{"old"},
 	}}
-	incoming := sdk.PackageVulnerability{
+	incoming := sdk.Vulnerability{
 		ID:             "CVE-1",
 		Source:         matcherName,
 		FixState:       "fixed",

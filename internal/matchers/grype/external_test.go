@@ -9,11 +9,9 @@ import (
 )
 
 func TestParseGrypeJSONOutputCarriesRichFields(t *testing.T) {
-	g := sdk.New()
-	pkg := &sdk.Package{ID: "pkg-1", Name: "lodash", Version: "4.17.15", PURL: "pkg:npm/lodash@4.17.15"}
-	if err := g.AddPackage(pkg); err != nil {
-		t.Fatalf("AddPackage: %v", err)
-	}
+	registry := sdk.NewPackageRegistry()
+	const purl = "pkg:npm/lodash@4.17.15"
+	registry.Ensure(purl)
 
 	data := []byte(`{
 		"matches": [{
@@ -56,8 +54,12 @@ func TestParseGrypeJSONOutputCarriesRichFields(t *testing.T) {
 			}
 		}]
 	}`)
-	if err := parseGrypeJSONOutput(data, g); err != nil {
+	if err := parseGrypeJSONOutput(data, registry); err != nil {
 		t.Fatalf("parseGrypeJSONOutput: %v", err)
+	}
+	pkg, ok := registry.Get(purl)
+	if !ok {
+		t.Fatalf("expected registry package for %q", purl)
 	}
 	if len(pkg.Vulnerabilities) != 1 {
 		t.Fatalf("len vulnerabilities = %d, want 1", len(pkg.Vulnerabilities))

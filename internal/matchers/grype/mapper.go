@@ -30,7 +30,7 @@ type grypeAdvisory struct {
 	CPEs                 []string
 }
 
-func mapGrypeAdvisory(advisory grypeAdvisory) sdk.PackageVulnerability {
+func mapGrypeAdvisory(advisory grypeAdvisory) sdk.Vulnerability {
 	fixedIn := strings.TrimSpace(advisory.FixedIn)
 	if fixedIn == "" && len(advisory.FixedVersions) > 0 {
 		fixedIn = strings.TrimSpace(advisory.FixedVersions[0])
@@ -52,13 +52,13 @@ func mapGrypeAdvisory(advisory grypeAdvisory) sdk.PackageVulnerability {
 		refs = appendUniqueReference(refs, sdk.Reference{URL: url, Type: "advisory"})
 	}
 
-	return sdk.PackageVulnerability{
+	return sdk.Vulnerability{
 		ID:                   advisory.ID,
 		Title:                title,
-		Severity:             severity,
+		ParsedSeverity:       severity,
 		SeveritySource:       advisory.SeveritySource,
 		Aliases:              dedupeStrings(advisory.Aliases),
-		Description:          description,
+		Details:              description,
 		Reasons:              grypeReasons(advisory, fixedIn),
 		Source:               matcherName,
 		CVSS:                 append([]sdk.CVSSScore(nil), advisory.CVSS...),
@@ -96,11 +96,11 @@ func grypeReasons(advisory grypeAdvisory, fixedIn string) []string {
 	return reasons
 }
 
-func mergePackageVulnerability(base, incoming sdk.PackageVulnerability) sdk.PackageVulnerability {
+func mergePackageVulnerability(base, incoming sdk.Vulnerability) sdk.Vulnerability {
 	base.Title = firstNonEmpty(base.Title, incoming.Title)
-	base.Severity = firstNonEmpty(base.Severity, incoming.Severity)
+	base.ParsedSeverity = firstNonEmpty(base.ParsedSeverity, incoming.ParsedSeverity)
 	base.SeveritySource = firstNonEmpty(base.SeveritySource, incoming.SeveritySource)
-	base.Description = firstNonEmpty(base.Description, incoming.Description)
+	base.Details = firstNonEmpty(base.Details, incoming.Details)
 	base.FixedIn = firstNonEmpty(base.FixedIn, incoming.FixedIn)
 	base.FixState = firstNonEmpty(base.FixState, incoming.FixState)
 	base.AffectedVersionRange = firstNonEmpty(base.AffectedVersionRange, incoming.AffectedVersionRange)

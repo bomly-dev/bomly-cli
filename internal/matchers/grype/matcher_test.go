@@ -32,12 +32,13 @@ func TestDescriptor_Name(t *testing.T) {
 
 func TestMatch_NilGraph_ReturnsEmpty(t *testing.T) {
 	a := Matcher{Priority: 90}
-	result, err := a.Match(context.Background(), sdk.MatchRequest{Graph: nil, Mode: sdk.TargetModeFullGraph})
+	registry := sdk.NewPackageRegistry()
+	result, err := a.Match(context.Background(), sdk.MatchRequest{Graph: nil, Registry: registry, Mode: sdk.TargetModeFullGraph})
 	if err != nil {
 		t.Fatalf("Match with nil graph: %v", err)
 	}
-	if result.Graph != nil {
-		t.Errorf("expected nil graph result for nil input graph")
+	if result.Registry.Len() != 0 {
+		t.Errorf("expected empty registry result for nil input graph")
 	}
 }
 
@@ -69,18 +70,19 @@ func TestMatch_DBNotPresent_AttemptsDownloadAndReturnsEmpty(t *testing.T) {
 		DistConfigOverride: &badDist,
 	}
 
-	pkg := &sdk.Package{ID: "npm:lodash:4.17.15", Name: "lodash", Version: "4.17.15", PURL: "pkg:npm/lodash@4.17.15"}
+	dep := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "lodash", Version: "4.17.15", PURL: "pkg:npm/lodash@4.17.15"})
 	g := sdk.New()
-	if err := g.AddPackage(pkg); err != nil {
-		t.Fatalf("AddPackage: %v", err)
+	if err := g.AddNode(dep); err != nil {
+		t.Fatalf("AddNode: %v", err)
 	}
+	registry := sdk.NewPackageRegistry()
 
-	result, err := a.Match(context.Background(), sdk.MatchRequest{Graph: g, Mode: sdk.TargetModeFullGraph})
+	result, err := a.Match(context.Background(), sdk.MatchRequest{Graph: g, Registry: registry, Mode: sdk.TargetModeFullGraph})
 	if err == nil {
 		t.Fatal("expected non-nil error when DB download fails")
 	}
-	if result.Graph != g {
-		t.Fatalf("expected original graph to be returned when DB download fails")
+	if result.Registry != registry {
+		t.Fatalf("expected original registry to be returned when DB download fails")
 	}
 }
 
@@ -102,7 +104,6 @@ func TestDBDir_DefaultUsesOSCacheDir(t *testing.T) {
 
 func TestGraphPkgToGrypePkg_FieldMapping(t *testing.T) {
 	p := &sdk.Package{
-		ID:        "npm:lodash:4.17.15",
 		Name:      "lodash",
 		Version:   "4.17.15",
 		PURL:      "pkg:npm/lodash@4.17.15",
@@ -117,6 +118,9 @@ func TestGraphPkgToGrypePkg_FieldMapping(t *testing.T) {
 	}
 	if gp.PURL != "pkg:npm/lodash@4.17.15" {
 		t.Errorf("PURL = %q, want pkg:npm/lodash@4.17.15", gp.PURL)
+	}
+	if string(gp.ID) != "pkg:npm/lodash@4.17.15" {
+		t.Errorf("ID = %q, want PURL as correlation id", gp.ID)
 	}
 }
 

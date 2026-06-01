@@ -1,0 +1,16 @@
+{
+  "name": "entrypoint-fixture",
+  "main": "./cjs.js",
+  "module": "./esm.js",
+  "browser": "./browser.js",
+  "exports": {
+    ".": {
+      "import": "./esm.js",
+      "require": "./cjs.js"
+    },
+    "./util": "./util.js"
+  },
+  "bin": {
+    "fixture": "./cli.js"
+  }
+}

@@ -78,6 +78,7 @@ type PipelineResult struct {
 	ResolveResults   []sdk.DetectionResult
 	Consolidated     sdk.ConsolidatedGraph
 	Graph            *sdk.Graph
+	Registry         *sdk.PackageRegistry
 	Findings         []sdk.Finding
 	RiskScores       []sdk.RiskScore
 	DetectorWarnings []PipelineWarning

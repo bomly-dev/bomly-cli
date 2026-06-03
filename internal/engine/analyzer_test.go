@@ -49,9 +49,7 @@ func TestEngineAnalyzeNoAnalyzersIsNotAnError(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Analyze with no analyzers returned err: %v", err)
 	}
-	if result.Graph != g {
-		t.Errorf("Analyze should return the input graph unchanged when no analyzers run")
-	}
+	_ = result
 	if len(result.AnalyzerRuns) != 0 {
 		t.Errorf("AnalyzerRuns should be empty, got %v", result.AnalyzerRuns)
 	}
@@ -67,7 +65,6 @@ func TestEngineAnalyzeRunsApplicableAndCollectsStats(t *testing.T) {
 			SupportedModes: []sdk.TargetMode{sdk.TargetModeFullGraph},
 		},
 		result: sdk.AnalyzeResult{
-			Graph: g,
 			AnalyzerStats: map[string]sdk.ReachabilityStats{
 				"fake": {Reachable: 2, Unreachable: 1},
 			},
@@ -111,7 +108,7 @@ func TestEngineAnalyzeAggregatesErrorsAndContinues(t *testing.T) {
 			Enabled:        true,
 			SupportedModes: []sdk.TargetMode{sdk.TargetModeFullGraph},
 		},
-		result: sdk.AnalyzeResult{Graph: g},
+		result: sdk.AnalyzeResult{},
 	}
 	reg.RegisterAnalyzer(failing)
 	reg.RegisterAnalyzer(ok)
@@ -142,7 +139,7 @@ func TestEngineAnalyzeRespectsLanguageFilter(t *testing.T) {
 			SupportedLanguages: []sdk.Language{sdk.LanguageGo},
 			SupportedModes:     []sdk.TargetMode{sdk.TargetModeFullGraph},
 		},
-		result: sdk.AnalyzeResult{Graph: g},
+		result: sdk.AnalyzeResult{},
 	}
 	reg.RegisterAnalyzer(goOnly)
 

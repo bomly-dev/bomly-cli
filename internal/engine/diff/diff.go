@@ -67,14 +67,14 @@ func Run(ctx context.Context, req Request) (Result, error) {
 		if err != nil {
 			return result, fmt.Errorf("focused audit graphs: %w", err)
 		}
-		baseAudit, baseWarnings := req.Base.Pipeline.RunAuditGraph(ctx, baseAuditGraph, req.Base.Request)
+		baseAudit, baseWarnings := req.Base.Pipeline.RunAuditGraph(ctx, baseAuditGraph, base.Registry, req.Base.Request)
 		result.Base.Findings = baseAudit.Findings
 		result.Base.RiskScores = baseAudit.RiskScores
 		result.Base.AuditorRuns = baseAudit.AuditorRuns
 		result.Base.AuditorFindings = baseAudit.AuditorFindings
 		result.Base.AuditWarnings = append(result.Base.AuditWarnings, baseWarnings...)
 
-		headAudit, headWarnings := req.Head.Pipeline.RunAuditGraph(ctx, headAuditGraph, req.Head.Request)
+		headAudit, headWarnings := req.Head.Pipeline.RunAuditGraph(ctx, headAuditGraph, head.Registry, req.Head.Request)
 		result.Head.Findings = headAudit.Findings
 		result.Head.RiskScores = headAudit.RiskScores
 		result.Head.AuditorRuns = headAudit.AuditorRuns

@@ -123,8 +123,8 @@ func TestRun_UnknownLicenseFindingIsEmittedForFocusedPackage(t *testing.T) {
 	if !strings.Contains(finding.ID, "unknown-license") {
 		t.Fatalf("expected unknown-license finding, got %#v", finding)
 	}
-	if finding.Package == nil || finding.Package.ID != react.ID {
-		t.Fatalf("expected finding package %q, got %#v", react.ID, finding.Package)
+	if finding.PackageRef != react.PURL {
+		t.Fatalf("expected finding package ref %q, got %q", react.PURL, finding.PackageRef)
 	}
 }
 
@@ -167,9 +167,9 @@ func diffTestRequest() engine.PipelineRequest {
 	}
 }
 
-func npmPackage(name, version string) *sdk.Package {
+func npmPackage(name, version string) *sdk.Dependency {
 	purl := "pkg:npm/" + name + "@" + version
-	return sdk.NewPackageWithID(purl, sdk.Package{
+	return sdk.NewDependencyWithID(purl, sdk.Dependency{
 		Ecosystem: string(sdk.EcosystemNPM),
 		Name:      name,
 		Version:   version,
@@ -177,11 +177,11 @@ func npmPackage(name, version string) *sdk.Package {
 	})
 }
 
-func graphFixture(t *testing.T, packages ...*sdk.Package) *sdk.Graph {
+func graphFixture(t *testing.T, packages ...*sdk.Dependency) *sdk.Graph {
 	t.Helper()
 	g := sdk.New()
 	for _, pkg := range packages {
-		if err := g.AddPackage(pkg.Clone()); err != nil {
+		if err := g.AddNode(pkg.Clone()); err != nil {
 			t.Fatalf("add package %q: %v", pkg.ID, err)
 		}
 	}
@@ -251,14 +251,14 @@ func (f fakeAuditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditRe
 		return sdk.AuditResult{}, nil
 	}
 	var findings []sdk.Finding
-	for _, pkg := range req.Graph.Packages() {
+	for _, pkg := range req.Graph.Nodes() {
 		if pkg == nil {
 			continue
 		}
 		for _, finding := range f.findingsByPackage[pkg.ID] {
-			finding.Package = pkg
+			finding.PackageRef = pkg.PURL
 			findings = append(findings, finding)
 		}
 	}
-	return sdk.AuditResult{Graph: req.Graph, Findings: findings}, nil
+	return sdk.AuditResult{Findings: findings}, nil
 }

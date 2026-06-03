@@ -7,6 +7,8 @@ Bomly is a **customer-facing, security-sensitive CLI** for dependency intelligen
 ```sh
 make build               # build both `bin/bomly` (builtin Syft/Grype) and `bin/bomly-lite`
 make build-lite          # go build -tags "bomly_external_syft,bomly_external_grype" -o bin/bomly-lite ./cmd/bomly
+make fmt                 # format Go code with the repo formatter
+make lint                # run golangci-lint
 make test                # go test ./...
 make smoke               # end-to-end smoke tests against real repos/containers (slow, needs network)
 make smoke ARGS="-update" # regenerate golden files for smoke tests
@@ -16,7 +18,7 @@ make run ARGS="scan"    # go run ./cmd/bomly <ARGS>
 make generate            # regenerate config reference, JSON schemas, schema docs, and support matrix
 ```
 
-Always run `make test` after changes. All tests must pass before marking work is done.
+Always run `make fmt`, `make lint`, and `make test` after changes and before pushing. All checks must pass before marking work is done.
 If you change `internal/cli/config.go`, `internal/output/*`, `sdk/catalog.go`, `sdk/support_matrix.go`, or `internal/registry/support.go`, also run `make generate`.
 
 ### Git Worktrees

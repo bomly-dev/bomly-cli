@@ -115,10 +115,6 @@ func requireGitForAttestation(t *testing.T) {
 	if runtime.GOOS == "js" {
 		t.Skip("git unavailable")
 	}
-	if _, err := os.Stat(".git"); err != nil {
-		// This package can be tested outside a checkout; the git binary check
-		// below still decides whether the actual git command can run.
-	}
 }
 
 func runGitForAttestation(t *testing.T, dir string, args ...string) string {

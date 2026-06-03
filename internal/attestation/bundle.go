@@ -32,6 +32,7 @@ const (
 	payloadTypeInToto     = "application/vnd.in-toto+json"
 	bundleMediaType       = "application/vnd.bomly.sbom-attestation.v1+json"
 	sigstoreBundleV03Type = "application/vnd.dev.sigstore.bundle.v0.3+json"
+	sbomRawBase64Field    = "sbomRawBase64"
 )
 
 // AttestRequest describes an SBOM attestation request.
@@ -79,7 +80,8 @@ func BuildStatement(subject Subject, sbomBytes []byte) (*intoto.Statement, error
 		"sbomDigest": map[string]any{
 			"sha256": hex.EncodeToString(sum[:]),
 		},
-		"sbom": sbomObject,
+		sbomRawBase64Field: base64.StdEncoding.EncodeToString(sbomBytes),
+		"sbom":             sbomObject,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("build sbom predicate: %w", err)
@@ -213,13 +215,12 @@ func sbomFromPredicate(predicate *structpb.Struct) ([]byte, sbom.Target, error) 
 		return nil, "", fmt.Errorf("sbom predicate is missing")
 	}
 	formatValue := predicate.Fields["sbomFormat"].GetStringValue()
-	sbomValue := predicate.Fields["sbom"]
-	if formatValue == "" || sbomValue == nil {
+	if formatValue == "" {
 		return nil, "", fmt.Errorf("sbom predicate is missing required fields")
 	}
-	raw, err := json.Marshal(sbomValue.AsInterface())
+	raw, err := sbomBytesFromPredicate(predicate)
 	if err != nil {
-		return nil, "", fmt.Errorf("marshal embedded sbom: %w", err)
+		return nil, "", err
 	}
 	target, err := detectSupportedSBOM(raw)
 	if err != nil {
@@ -228,7 +229,49 @@ func sbomFromPredicate(predicate *structpb.Struct) ([]byte, sbom.Target, error) 
 	if string(target) != formatValue {
 		return nil, "", fmt.Errorf("sbom predicate format %q does not match embedded sbom %q", formatValue, target)
 	}
+	if err := verifySBOMDigest(predicate, raw); err != nil {
+		return nil, "", err
+	}
 	return raw, target, nil
+}
+
+func sbomBytesFromPredicate(predicate *structpb.Struct) ([]byte, error) {
+	if rawBase64 := predicate.Fields[sbomRawBase64Field].GetStringValue(); rawBase64 != "" {
+		raw, err := base64.StdEncoding.DecodeString(rawBase64)
+		if err != nil {
+			return nil, fmt.Errorf("decode embedded sbom bytes: %w", err)
+		}
+		return raw, nil
+	}
+	sbomValue := predicate.Fields["sbom"]
+	if sbomValue == nil {
+		return nil, fmt.Errorf("sbom predicate is missing required fields")
+	}
+	raw, err := json.Marshal(sbomValue.AsInterface())
+	if err != nil {
+		return nil, fmt.Errorf("marshal embedded sbom: %w", err)
+	}
+	return raw, nil
+}
+
+func verifySBOMDigest(predicate *structpb.Struct, raw []byte) error {
+	digestValue := predicate.Fields["sbomDigest"]
+	if digestValue == nil {
+		return nil
+	}
+	digestStruct := digestValue.GetStructValue()
+	if digestStruct == nil {
+		return fmt.Errorf("sbom predicate digest is malformed")
+	}
+	expected := digestStruct.Fields["sha256"].GetStringValue()
+	if expected == "" {
+		return fmt.Errorf("sbom predicate digest is missing sha256")
+	}
+	sum := sha256.Sum256(raw)
+	if !strings.EqualFold(expected, hex.EncodeToString(sum[:])) {
+		return fmt.Errorf("sbom digest does not match predicate")
+	}
+	return nil
 }
 
 func subjectMatches(expected Subject, actual []*intoto.ResourceDescriptor) bool {
@@ -395,7 +438,7 @@ func WriteVerifiedSBOM(path string, data []byte) error {
 			return fmt.Errorf("create verified sbom directory: %w", err)
 		}
 	}
-	if err := os.WriteFile(path, append(data, '\n'), 0o644); err != nil {
+	if err := os.WriteFile(path, data, 0o644); err != nil {
 		return fmt.Errorf("write verified sbom: %w", err)
 	}
 	return nil

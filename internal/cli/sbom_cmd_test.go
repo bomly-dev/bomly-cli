@@ -101,6 +101,17 @@ func TestSBOMAttestAndVerifyCommandsRoundTrip(t *testing.T) {
 	if _, err := os.Stat(extractedPath); err != nil {
 		t.Fatalf("expected extracted sbom: %v", err)
 	}
+	original, err := os.ReadFile(sbomPath)
+	if err != nil {
+		t.Fatalf("read original sbom: %v", err)
+	}
+	extracted, err := os.ReadFile(extractedPath)
+	if err != nil {
+		t.Fatalf("read extracted sbom: %v", err)
+	}
+	if !bytes.Equal(extracted, original) {
+		t.Fatalf("extracted SBOM differs from original\noriginal: %s\nextracted: %s", original, extracted)
+	}
 }
 
 func cliMinimalSPDXDocument() string {

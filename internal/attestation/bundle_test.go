@@ -1,6 +1,7 @@
 package attestation
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"os"
@@ -74,8 +75,12 @@ func TestAttestAndVerifyKeylessRoundTrip(t *testing.T) {
 	if result.SBOMFormat != "spdx-2.3+json" {
 		t.Fatalf("SBOMFormat = %q", result.SBOMFormat)
 	}
-	if len(result.SBOM) == 0 {
-		t.Fatal("expected verified SBOM bytes")
+	original, err := os.ReadFile(sbomPath)
+	if err != nil {
+		t.Fatalf("read original sbom: %v", err)
+	}
+	if !bytes.Equal(result.SBOM, original) {
+		t.Fatalf("verified SBOM bytes differ from original\noriginal: %s\nverified: %s", original, result.SBOM)
 	}
 }
 
@@ -108,6 +113,21 @@ func TestVerifyRejectsWrongSubject(t *testing.T) {
 	_, err = Verify(context.Background(), VerifyRequest{Bundle: bundle, Subject: two})
 	if err == nil || !strings.Contains(err.Error(), "subject digest does not match") {
 		t.Fatalf("expected subject mismatch, got %v", err)
+	}
+}
+
+func TestWriteVerifiedSBOMPreservesBytes(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "verified.spdx.json")
+	data := []byte(`{"spdxVersion":"SPDX-2.3","packages":[]}`)
+	if err := WriteVerifiedSBOM(path, data); err != nil {
+		t.Fatalf("WriteVerifiedSBOM() error = %v", err)
+	}
+	got, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read verified sbom: %v", err)
+	}
+	if !bytes.Equal(got, data) {
+		t.Fatalf("written SBOM bytes differ from verified bytes\ngot:  %q\nwant: %q", got, data)
 	}
 }
 

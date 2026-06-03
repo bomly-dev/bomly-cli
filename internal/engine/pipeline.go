@@ -246,10 +246,8 @@ func (p *Pipeline) analyze(ctx context.Context, result *PipelineResult, req Pipe
 	if len(analyzeResult.AnalyzerStats) > 0 {
 		result.AnalyzerStats = analyzeResult.AnalyzerStats
 	}
-	if analyzeResult.Graph != nil {
-		result.Graph = analyzeResult.Graph
-		consolidation.SyncConsolidatedEnrichmentToManifests(&result.Consolidated, analyzeResult.Graph)
-	}
+	// TODO(batch-5): plumb result.Registry from analyzeResult.Registry; the
+	// consolidation-time sync-by-copy is replaced by the single registry.
 	if err != nil {
 		result.AnalyzeWarnings = PipelineWarningsFromError(err, "analyzer")
 		p.Logger.Warn("pipeline: reachability analysis errors", zap.Error(err))
@@ -325,10 +323,8 @@ func (p *Pipeline) match(ctx context.Context, result *PipelineResult, req Pipeli
 	}
 	matchResult, err := p.engine.Match(ctx, mReq)
 	result.MatcherRuns = matchResult.MatcherRuns
-	if matchResult.Graph != nil {
-		result.Graph = matchResult.Graph
-		consolidation.SyncConsolidatedEnrichmentToManifests(&result.Consolidated, matchResult.Graph)
-	}
+	// TODO(batch-5): plumb result.Registry from matchResult.Registry; the
+	// consolidation-time sync-by-copy is replaced by the single registry.
 	if err != nil {
 		result.MatchWarnings = PipelineWarningsFromError(err, "matcher")
 		p.Logger.Warn("pipeline: matcher enrichment error", zap.Error(err))
@@ -354,7 +350,7 @@ func (p *Pipeline) audit(ctx context.Context, g *sdk.Graph, req PipelineRequest)
 	return result, warnings
 }
 
-func (p *Pipeline) auditComponent(ctx context.Context, g *sdk.Graph, target *sdk.Package, req PipelineRequest) (sdk.AuditResult, []PipelineWarning) {
+func (p *Pipeline) auditComponent(ctx context.Context, g *sdk.Graph, target *sdk.Dependency, req PipelineRequest) (sdk.AuditResult, []PipelineWarning) {
 	if g == nil || target == nil {
 		return sdk.AuditResult{}, nil
 	}

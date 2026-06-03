@@ -56,14 +56,12 @@ func reportOptionsFromPipelineResults(enabled bool, results ...engine.PipelineRe
 	}
 }
 
-func explainPackageRef(pkg *sdk.Package) output.PackageRef {
+func explainPackageRef(pkg *sdk.Dependency) output.PackageRef {
 	ref := output.PackageFromGraphPackage(pkg)
 	if pkg == nil {
 		return ref
 	}
-	if legacyID := pkg.StableID(); legacyID != "" {
-		ref.ID = legacyID
-	}
+	// TODO(batch-6): restore StableID lookup via registry once plumbed.
 	return ref
 }
 

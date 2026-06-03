@@ -169,59 +169,24 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, toolName, toolVersion strin
 
 	results := make([]sarifResult, 0, len(findings))
 	for _, f := range findings {
-		pkgName := ""
-		pkgVersion := ""
-		if f.Package != nil {
-			pkgName = f.Package.QualifiedName()
-			pkgVersion = f.Package.Version
-		}
+		// TODO(batch-6): plumb *sdk.PackageRegistry through WriteSARIF so we can
+		// look up the referenced package (via f.PackageRef) and the specific
+		// vulnerability (via f.VulnerabilityID) to re-enrich SARIF properties
+		// (CVSS / EPSS / KEV / CWE / fix state / reachability call paths).
+		// Findings are now reference-style and intentionally carry no inlined
+		// vuln fields, so without the registry we emit a minimal but valid
+		// SARIF result.
 		msgText := f.Title
-		if pkgName != "" {
-			msgText = fmt.Sprintf("%s in %s@%s", f.Title, pkgName, pkgVersion)
+		if f.PackageRef != "" {
+			msgText = fmt.Sprintf("%s in %s", f.Title, f.PackageRef)
 		}
 		result := sarifResult{
 			RuleID:    f.ID,
 			Level:     severityToSARIFLevel(f.Severity),
 			Message:   sarifMessage{Text: msgText},
-			Locations: sarifLocationsForFinding(f, pkgName),
+			Locations: sarifLocationsForFinding(f, f.PackageRef),
 		}
-		props := sarifProperties{
-			FixedIn:              f.FixedIn,
-			FixedVersions:        append([]string(nil), f.FixedVersions...),
-			FixState:             f.FixState,
-			FixAvailable:         append([]sdk.FixAvailable(nil), f.FixAvailable...),
-			SeveritySource:       f.SeveritySource,
-			CVSS:                 append([]sdk.CVSSScore(nil), f.CVSS...),
-			Aliases:              append([]string(nil), f.Aliases...),
-			AffectedVersionRange: f.AffectedVersionRange,
-			References:           append([]sdk.Reference(nil), f.References...),
-			KEVExploited:         f.KEVExploited,
-			KnownExploited:       cloneKnownExploited(f.KnownExploited),
-			EPSS:                 append([]sdk.EPSSScore(nil), f.EPSS...),
-			CWEs:                 append([]sdk.CWE(nil), f.CWEs...),
-			RiskScore:            f.RiskScore,
-			DataSource:           f.DataSource,
-			Namespace:            f.Namespace,
-			CPEs:                 append([]string(nil), f.CPEs...),
-		}
-		if includeReachability && f.Reachability != nil {
-			props.Reachability = string(f.Reachability.Status)
-			props.ReachabilityTier = string(f.Reachability.Tier)
-			props.ReachabilityReason = f.Reachability.Reason
-			props.Analyzer = f.Reachability.Analyzer
-			props.ReachabilityConfidence = string(f.Reachability.Confidence)
-			props.DynamicImportsDetected = f.Reachability.DynamicImportsDetected
-			if f.Reachability.Hops != nil {
-				h := *f.Reachability.Hops
-				props.ReachabilityHops = &h
-			}
-			if flows := buildSARIFCodeFlows(f.Reachability.CallPaths); len(flows) > 0 {
-				result.CodeFlows = flows
-			}
-		}
-		if !sarifPropertiesEmpty(props) {
-			result.Properties = &props
-		}
+		_ = includeReachability // reachability props re-added by batch 6 (via registry lookup)
 		results = append(results, result)
 	}
 
@@ -338,35 +303,11 @@ func sarifFrameDescription(frame sdk.CallFrame) string {
 // and no region. This is honest: we know which file the dep lives
 // in but not exactly where.
 func sarifLocationsForFinding(f sdk.Finding, fallbackURI string) []sarifLocation {
-	if f.Package != nil && len(f.Package.Locations) > 0 {
-		locations := make([]sarifLocation, 0, len(f.Package.Locations))
-		for _, loc := range f.Package.Locations {
-			uri := strings.TrimSpace(loc.RealPath)
-			if uri == "" {
-				uri = strings.TrimSpace(loc.AccessPath)
-			}
-			if uri == "" {
-				continue
-			}
-			pl := sarifPhysicalLocation{
-				ArtifactLocation: sarifArtifactLocation{URI: uri},
-			}
-			if loc.Position != nil && (loc.Position.Line > 0 || loc.Position.Column > 0 || loc.Position.EndLine > 0) {
-				pl.Region = &sarifRegion{
-					StartLine:   loc.Position.Line,
-					StartColumn: loc.Position.Column,
-					EndLine:     loc.Position.EndLine,
-				}
-			}
-			locations = append(locations, sarifLocation{PhysicalLocation: pl})
-		}
-		if len(locations) > 0 {
-			return locations
-		}
-	}
-	// Fallback: emit a synthetic location keyed on the package name
-	// so SARIF consumers always have a non-empty Locations array
-	// (the SARIF spec requires one).
+	// TODO(batch-6): when the registry is plumbed through, look up the
+	// referenced package's Locations (via f.PackageRef) to emit precise SARIF
+	// physical locations. For now we always emit a single synthetic location
+	// keyed on the package PURL (the SARIF spec requires a non-empty Locations
+	// array).
 	uri := strings.TrimSpace(fallbackURI)
 	if uri == "" {
 		uri = f.ID

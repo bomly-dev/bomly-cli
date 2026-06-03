@@ -363,12 +363,12 @@ func (a *mcpOptionsAdapter) VulnFixContext(ctx context.Context, req mcp.VulnFixR
 		return mcp.VulnFixResult{}, findErr
 	}
 
-	targetPkg, ok := consolidatedGraph.Package(dependency.ID)
-	if !ok {
+	if _, ok := consolidatedGraph.Node(dependency.ID); !ok {
 		return mcp.VulnFixResult{}, fmt.Errorf("package %q not found in graph", req.Package)
 	}
 
-	matchedVulns := collectVulns(targetPkg.Vulnerabilities, req.VulnID)
+	// TODO(batch-6): re-enable vulnerability lookup via *sdk.PackageRegistry plumbed through PipelineResult.
+	var matchedVulns []sdk.Vulnerability = collectVulns(nil, req.VulnID)
 	if len(matchedVulns) == 0 {
 		if req.VulnID != "" {
 			return mcp.VulnFixResult{}, fmt.Errorf("vulnerability %q not found for package %q; run with enrich enabled to populate vulnerability data", req.VulnID, req.Package)
@@ -399,17 +399,17 @@ func (a *mcpOptionsAdapter) VulnFixContext(ctx context.Context, req mcp.VulnFixR
 
 // collectVulns returns all vulnerabilities from the slice matching vulnID (by ID or alias).
 // When vulnID is empty all vulnerabilities are returned.
-func collectVulns(all []sdk.PackageVulnerability, vulnID string) []sdk.PackageVulnerability {
+func collectVulns(all []sdk.Vulnerability, vulnID string) []sdk.Vulnerability {
 	if vulnID == "" {
 		return all
 	}
 	for i, v := range all {
 		if v.ID == vulnID {
-			return []sdk.PackageVulnerability{all[i]}
+			return []sdk.Vulnerability{all[i]}
 		}
 		for _, alias := range v.Aliases {
 			if alias == vulnID {
-				return []sdk.PackageVulnerability{all[i]}
+				return []sdk.Vulnerability{all[i]}
 			}
 		}
 	}
@@ -418,7 +418,7 @@ func collectVulns(all []sdk.PackageVulnerability, vulnID string) []sdk.PackageVu
 
 // maxFixedIn returns the highest FixedIn version across the given vulnerabilities.
 // Uses semver comparison when parseable; falls back to the last non-empty string.
-func maxFixedIn(vulns []sdk.PackageVulnerability) string {
+func maxFixedIn(vulns []sdk.Vulnerability) string {
 	var maxV *semver.Version
 	var maxStr string
 	for _, v := range vulns {

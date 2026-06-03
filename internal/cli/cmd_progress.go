@@ -300,9 +300,18 @@ func matcherProgressDetail(g *sdk.Graph, matcherName string) string {
 		return ""
 	}
 
+	// TODO(batch-6): re-enable matcher progress detail counts via *sdk.PackageRegistry plumbed through pipeline.
+	_ = matcherName
+	return ""
+}
+
+func matcherProgressDetailLegacy(g *sdk.Graph, matcherName string) string {
+	if g == nil {
+		return ""
+	}
 	packages := 0
 	vulnerabilities := 0
-	for _, pkg := range g.Packages() {
+	for _, pkg := range []*sdk.Package(nil) {
 		if pkg == nil {
 			continue
 		}

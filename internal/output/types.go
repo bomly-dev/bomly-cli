@@ -153,22 +153,28 @@ type DependencyPath struct {
 	CycleTo       string       `json:"cycle_to,omitempty"`
 }
 
-// PackageFromGraphPackage converts a model package into a PackageRef.
-func PackageFromGraphPackage(pkg *sdk.Package) PackageRef {
-	if pkg == nil {
+// PackageFromGraphPackage builds a PackageRef from a graph Dependency node.
+// Detection-time license facts (carried in the dependency's metadata under
+// MetadataKeyDetectionLicenses) are surfaced; matching-stage enrichment
+// (Vulnerabilities, Scorecard, etc.) lives on the registry Package and is
+// layered in by batch 6 once the registry is plumbed through the output path.
+func PackageFromGraphPackage(dep *sdk.Dependency) PackageRef {
+	if dep == nil {
 		return PackageRef{Licenses: []LicenseRef{}, Vulnerabilities: []VulnerabilityRef{}}
 	}
 	return PackageRef{
-		Name:            pkg.DisplayName(),
-		Version:         pkg.Version,
-		Scope:           pkg.Scope,
-		Purl:            pkg.PURL,
-		ID:              pkg.ID,
-		Metadata:        cloneRefMetadata(pkg.Metadata),
-		Locations:       LocationRefsFromGraphLocations(pkg.Locations),
-		Licenses:        LicenseRefsFromGraphLicenses(pkg.Licenses),
-		Vulnerabilities: VulnerabilityRefsFromPackageVulnerabilities(pkg.Vulnerabilities),
-		Scorecard:       pkg.Scorecard.Clone(),
+		Name:      dep.DisplayName(),
+		Version:   dep.Version,
+		Scope:     string(dep.PrimaryScope()),
+		Purl:      dep.PURL,
+		ID:        dep.ID,
+		Metadata:  cloneRefMetadata(dep.Metadata),
+		Locations: LocationRefsFromGraphLocations(dep.Locations),
+		Licenses:  LicenseRefsFromGraphLicenses(sdk.DetectionLicenses(dep)),
+		// TODO(batch-6): Vulnerabilities / Scorecard come from the PURL registry;
+		// thread *sdk.PackageRegistry through this helper so consumers
+		// (scan / explain / diff JSON, SARIF) get re-enriched output.
+		Vulnerabilities: []VulnerabilityRef{},
 	}
 }
 
@@ -238,7 +244,7 @@ func LicenseRefsFromGraphLicenses(licenses []sdk.PackageLicense) []LicenseRef {
 }
 
 // VulnerabilityRefsFromPackageVulnerabilities converts package vulnerability enrichment into output-friendly values.
-func VulnerabilityRefsFromPackageVulnerabilities(vulnerabilities []sdk.PackageVulnerability) []VulnerabilityRef {
+func VulnerabilityRefsFromPackageVulnerabilities(vulnerabilities []sdk.Vulnerability) []VulnerabilityRef {
 	if len(vulnerabilities) == 0 {
 		return []VulnerabilityRef{}
 	}
@@ -248,10 +254,10 @@ func VulnerabilityRefsFromPackageVulnerabilities(vulnerabilities []sdk.PackageVu
 			ID:                   vulnerability.ID,
 			Source:               vulnerability.Source,
 			Title:                vulnerability.Title,
-			Severity:             vulnerability.Severity,
+			Severity:             vulnerability.ParsedSeverity,
 			SeveritySource:       vulnerability.SeveritySource,
 			Aliases:              append([]string(nil), vulnerability.Aliases...),
-			Description:          vulnerability.Description,
+			Description:          vulnerability.Details,
 			Reasons:              append([]string(nil), vulnerability.Reasons...),
 			CVSS:                 append([]sdk.CVSSScore(nil), vulnerability.CVSS...),
 			FixedIn:              vulnerability.FixedIn,
@@ -318,38 +324,25 @@ type AuditSummary struct {
 }
 
 // FindingsFromScan converts normalized findings into JSON-friendly DTOs.
+//
+// TODO(batch-6): Findings are reference-style (PackageRef + VulnerabilityID).
+// Plumb *sdk.PackageRegistry through this helper so the AuditFinding output
+// can resolve the referenced package and the specific vulnerability and
+// surface CVSS / EPSS / KEV / CWE / fix-state / reachability properties.
+// Until then we emit only the reference fields the new Finding carries.
 func FindingsFromScan(findings []sdk.Finding) []AuditFinding {
 	result := make([]AuditFinding, 0, len(findings))
 	for _, f := range findings {
 		result = append(result, AuditFinding{
-			ID:                   f.ID,
-			Kind:                 string(f.Kind),
-			Severity:             f.Severity,
-			Package:              PackageFromGraphPackage(f.Package),
-			Title:                f.Title,
-			Reasons:              f.Reasons,
-			Source:               f.Source,
-			Auditor:              f.Auditor,
-			Disposition:          string(f.Disposition),
-			FixedIn:              f.FixedIn,
-			FixedVersions:        append([]string(nil), f.FixedVersions...),
-			FixState:             f.FixState,
-			FixAvailable:         append([]sdk.FixAvailable(nil), f.FixAvailable...),
-			Aliases:              append([]string(nil), f.Aliases...),
-			Description:          f.Description,
-			SeveritySource:       f.SeveritySource,
-			CVSS:                 append([]sdk.CVSSScore(nil), f.CVSS...),
-			AffectedVersionRange: f.AffectedVersionRange,
-			References:           append([]sdk.Reference(nil), f.References...),
-			KEVExploited:         f.KEVExploited,
-			KnownExploited:       cloneKnownExploited(f.KnownExploited),
-			EPSS:                 append([]sdk.EPSSScore(nil), f.EPSS...),
-			CWEs:                 append([]sdk.CWE(nil), f.CWEs...),
-			RiskScore:            f.RiskScore,
-			DataSource:           f.DataSource,
-			Namespace:            f.Namespace,
-			CPEs:                 append([]string(nil), f.CPEs...),
-			Reachability:         f.Reachability.Clone(),
+			ID:          f.ID,
+			Kind:        string(f.Kind),
+			Severity:    f.Severity,
+			Package:     PackageRef{Name: f.PackageRef, Purl: f.PackageRef},
+			Title:       f.Title,
+			Reasons:     f.Reasons,
+			Source:      f.Source,
+			Auditor:     f.Auditor,
+			Disposition: string(f.Disposition),
 		})
 	}
 	return result
@@ -412,10 +405,10 @@ func PackagesFromGraph(g *sdk.Graph) []ScanPackage {
 		return nil
 	}
 
-	packages := g.Packages()
+	packages := g.Nodes()
 	payload := make([]ScanPackage, 0, len(packages))
 	for _, pkg := range packages {
-		deps, err := g.Dependencies(pkg.ID)
+		deps, err := g.DirectDependencies(pkg.ID)
 		dependencyIDs := make([]string, 0, len(deps))
 		if err == nil {
 			for _, dep := range deps {

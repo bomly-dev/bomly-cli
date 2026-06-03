@@ -34,32 +34,17 @@ type postureRow struct {
 // packages with no Scorecard are skipped entirely (matching how the scan
 // text report's Project Posture section behaves).
 func postureRowsFromGraph(graphValue *sdk.Graph) []postureRow {
+	// TODO(batch-6): Scorecard data lives on registry packages. Returns nil
+	// until *sdk.PackageRegistry is plumbed through to the TUI.
+	_ = graphValue
+	return nil
+}
+
+func postureRowsFromGraphLegacy(graphValue *sdk.Graph) []postureRow {
 	if graphValue == nil {
 		return nil
 	}
 	byRepo := make(map[string]*postureRow)
-	for _, pkg := range graphValue.Packages() {
-		if pkg == nil || pkg.Scorecard == nil {
-			continue
-		}
-		repo := pkg.Scorecard.Repository
-		if repo == "" {
-			continue
-		}
-		row, ok := byRepo[repo]
-		if !ok {
-			row = &postureRow{
-				repository: repo,
-				card:       pkg.Scorecard,
-			}
-			byRepo[repo] = row
-		}
-		row.packages = append(row.packages, posturePackageRef{
-			id:          pkg.ID,
-			displayName: pkg.DisplayName(),
-			version:     pkg.Version,
-		})
-	}
 	out := make([]postureRow, 0, len(byRepo))
 	for _, row := range byRepo {
 		sort.Slice(row.packages, func(i, j int) bool {

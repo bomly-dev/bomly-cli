@@ -19,7 +19,7 @@ type ExplainRequest struct {
 // ExplainTarget contains one selected manifest where the queried dependency exists.
 type ExplainTarget struct {
 	Manifest     sdk.ConsolidatedManifest
-	Dependency   *sdk.Package
+	Dependency   *sdk.Dependency
 	Paths        []explain.Path
 	Findings     []sdk.Finding
 	FocusedGraph *sdk.Graph

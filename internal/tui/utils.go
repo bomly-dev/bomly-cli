@@ -317,14 +317,14 @@ func maxVulnerabilitySeverityByPkgID(graphValue *sdk.Graph) map[string]string {
 	if graphValue == nil {
 		return result
 	}
-	for _, pkg := range graphValue.Packages() {
+	for _, pkg := range graphValue.Nodes() {
 		if pkg == nil {
 			continue
 		}
-		for _, vulnerability := range pkg.Vulnerabilities {
+		for _, vulnerability := range []sdk.Vulnerability(nil) /* TODO(batch-6) registry vulns */ {
 			current := result[pkg.ID]
-			if severityRank(vulnerability.Severity) < severityRank(current) {
-				result[pkg.ID] = vulnerability.Severity
+			if severityRank(vulnerability.ParsedSeverity) < severityRank(current) {
+				result[pkg.ID] = vulnerability.ParsedSeverity
 			}
 		}
 	}
@@ -374,7 +374,7 @@ func explainRelationships(graphValue *sdk.Graph, targetID string) (map[string]st
 	if graphValue == nil || strings.TrimSpace(targetID) == "" {
 		return labels, counts
 	}
-	targetPkg, ok := graphValue.Package(targetID)
+	targetPkg, ok := graphValue.Node(targetID)
 	if ok && targetPkg != nil {
 		labels[targetID] = "self"
 		counts["self"]++
@@ -400,7 +400,7 @@ func explainRelationships(graphValue *sdk.Graph, targetID string) (map[string]st
 		labels[pkg.ID] = "parent"
 		counts["parent"]++
 	}
-	for _, pkg := range graphValue.Packages() {
+	for _, pkg := range graphValue.Nodes() {
 		if pkg == nil || pkg.ID == targetID {
 			continue
 		}

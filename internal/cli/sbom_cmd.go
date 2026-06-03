@@ -95,6 +95,7 @@ func newSBOMVerifyCmd() *cobra.Command {
 		Use:   "verify",
 		Short: "[Experimental] Verify a signed SBOM attestation",
 		Example: "  bomly sbom verify --attestation bomly.att.json --subject git\n" +
+			"  bomly sbom verify --attestation bomly.att.json --subject dir:. --key signing-key.pub.pem\n" +
 			"  bomly sbom verify --attestation bomly.att.json --subject dir:. --extract-sbom verified.spdx.json",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -136,7 +137,7 @@ func newSBOMVerifyCmd() *cobra.Command {
 	}
 	cmd.Flags().StringVar(&attestationPath, "attestation", "", "Attestation bundle to verify")
 	cmd.Flags().StringVar(&subjectSpec, "subject", "", "Expected attestation subject: file:<path>, dir:<path>, git, or container:<image@sha256:...>")
-	cmd.Flags().StringVar(&keyPath, "key", "", "ECDSA P-256 PEM public key used to verify the attestation")
+	cmd.Flags().StringVar(&keyPath, "key", "", "ECDSA P-256 PEM public key used to verify a key-signed attestation")
 	cmd.Flags().StringVar(&certIdentity, "certificate-identity", "", "Expected Sigstore certificate identity (reserved for future identity bundles)")
 	cmd.Flags().StringVar(&certIssuer, "certificate-oidc-issuer", "", "Expected Sigstore OIDC issuer (reserved for future identity bundles)")
 	cmd.Flags().StringVar(&extractPath, "extract-sbom", "", "Write the verified embedded SBOM to this path")

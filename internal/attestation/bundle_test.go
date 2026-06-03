@@ -3,7 +3,12 @@ package attestation
 import (
 	"bytes"
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"os"
 	"path/filepath"
 	"strings"
@@ -108,6 +113,50 @@ func TestAttestAndVerifyKeylessRoundTrip(t *testing.T) {
 	}
 }
 
+func TestAttestWithKeyRequiresVerificationKey(t *testing.T) {
+	dir := t.TempDir()
+	sbomPath := filepath.Join(dir, "bomly.spdx.json")
+	if err := os.WriteFile(sbomPath, []byte(minimalSPDXDocument()), 0o644); err != nil {
+		t.Fatalf("write sbom: %v", err)
+	}
+	subjectPath := filepath.Join(dir, "artifact.txt")
+	if err := os.WriteFile(subjectPath, []byte("artifact"), 0o644); err != nil {
+		t.Fatalf("write subject: %v", err)
+	}
+	subject, err := ResolveSubject("file:"+subjectPath, SubjectOptions{})
+	if err != nil {
+		t.Fatalf("ResolveSubject() error = %v", err)
+	}
+	privateKeyPath, publicKeyPath := writeTestECDSAKeypair(t, dir)
+
+	bundle, err := Attest(context.Background(), AttestRequest{
+		SBOMPath: sbomPath,
+		Subject:  subject,
+		KeyPath:  privateKeyPath,
+	})
+	if err != nil {
+		t.Fatalf("Attest() error = %v", err)
+	}
+	var wrapped bomlyBundle
+	if err := json.Unmarshal(bundle, &wrapped); err != nil {
+		t.Fatalf("parse bundle: %v", err)
+	}
+	if wrapped.PublicKeyPEM != "" {
+		t.Fatal("key-signed bundles should not embed the public verification key")
+	}
+
+	if _, err := Verify(context.Background(), VerifyRequest{Bundle: bundle, Subject: subject}); err == nil {
+		t.Fatal("expected key-signed bundle verification to require --key")
+	}
+	if _, err := Verify(context.Background(), VerifyRequest{
+		Bundle:  bundle,
+		Subject: subject,
+		KeyPath: publicKeyPath,
+	}); err != nil {
+		t.Fatalf("Verify() with public key error = %v", err)
+	}
+}
+
 func TestVerifyRejectsWrongSubject(t *testing.T) {
 	dir := t.TempDir()
 	sbomPath := filepath.Join(dir, "bomly.spdx.json")
@@ -138,6 +187,31 @@ func TestVerifyRejectsWrongSubject(t *testing.T) {
 	if err == nil || !strings.Contains(err.Error(), "subject digest does not match") {
 		t.Fatalf("expected subject mismatch, got %v", err)
 	}
+}
+
+func writeTestECDSAKeypair(t *testing.T, dir string) (string, string) {
+	t.Helper()
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatalf("generate keypair: %v", err)
+	}
+	privateBytes, err := x509.MarshalECPrivateKey(privateKey)
+	if err != nil {
+		t.Fatalf("marshal private key: %v", err)
+	}
+	publicBytes, err := x509.MarshalPKIXPublicKey(privateKey.Public())
+	if err != nil {
+		t.Fatalf("marshal public key: %v", err)
+	}
+	privatePath := filepath.Join(dir, "private.pem")
+	publicPath := filepath.Join(dir, "public.pem")
+	if err := os.WriteFile(privatePath, pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: privateBytes}), 0o600); err != nil {
+		t.Fatalf("write private key: %v", err)
+	}
+	if err := os.WriteFile(publicPath, pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: publicBytes}), 0o644); err != nil {
+		t.Fatalf("write public key: %v", err)
+	}
+	return privatePath, publicPath
 }
 
 func TestWriteVerifiedSBOMPreservesBytes(t *testing.T) {

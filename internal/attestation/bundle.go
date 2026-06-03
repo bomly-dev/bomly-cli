@@ -119,9 +119,12 @@ func Attest(ctx context.Context, req AttestRequest) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("marshal sigstore bundle: %w", err)
 	}
-	publicKeyPEM, err := keypair.GetPublicKeyPem()
-	if err != nil {
-		return nil, fmt.Errorf("marshal public key: %w", err)
+	var publicKeyPEM string
+	if req.Keyless {
+		publicKeyPEM, err = keypair.GetPublicKeyPem()
+		if err != nil {
+			return nil, fmt.Errorf("marshal public key: %w", err)
+		}
 	}
 	return json.MarshalIndent(bomlyBundle{
 		MediaType:      bundleMediaType,

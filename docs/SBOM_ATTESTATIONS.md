@@ -35,6 +35,8 @@ bomly sbom attest \
   --key signing-key.pem
 ```
 
+Key-signed attestations do not embed the public verification key. Keep the matching public key and pass it during verification.
+
 ## Verify an attestation
 
 Verify the bundle against the same subject:
@@ -43,6 +45,15 @@ Verify the bundle against the same subject:
 bomly sbom verify \
   --attestation sbom.att.json \
   --subject dir:.
+```
+
+For an attestation created with `--key`, pass the matching ECDSA P-256 PEM public key:
+
+```bash
+bomly sbom verify \
+  --attestation sbom.att.json \
+  --subject git \
+  --key signing-key.pub.pem
 ```
 
 To extract the verified embedded SBOM:

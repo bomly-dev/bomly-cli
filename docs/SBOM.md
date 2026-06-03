@@ -8,6 +8,8 @@ A Software Bill of Materials is a structured list of every package in a piece of
 
 You produce an SBOM once and consume it many times: in PR checks, in release artifacts, in supplier audits, in attestation pipelines.
 
+To sign and verify an SBOM claim about a file, folder, Git snapshot, or immutable container digest, see [SBOM attestations](SBOM_ATTESTATIONS.md).
+
 ## Format comparison
 
 | | SPDX 2.3 | CycloneDX 1.6 |
@@ -95,6 +97,8 @@ bomly scan --sbom --path ./in.spdx.json -o cyclonedx=out.cdx.json
 Bomly does not advertise a one-shot `convert` command — the scan pipeline is the conversion path.
 
 ## See also
+
+- [SBOM attestations](SBOM_ATTESTATIONS.md) — experimental signing and verification
 
 - [Scan targets](SCAN_TARGETS.md) — every input Bomly accepts
 - [Output formats](OUTPUT_FORMATS.md) — text, JSON, SARIF, SBOM details

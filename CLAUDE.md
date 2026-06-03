@@ -73,6 +73,8 @@ internal/analyzers/*             Reachability analyzers (govulncheck — Go;
                                  and never abort the pipeline on failure
 internal/auditors/*              Policy evaluators (policy, noop)
 internal/sbom/                   SPDX 2.3 / CycloneDX codec
+internal/attestation/            Experimental SBOM attestation subject resolution,
+                                 in-toto statement construction, and bundle verification
 internal/benchmark/              Hidden local dependency-graph benchmark, baseline scoring,
                                  and embedded smoke/benchmark repository presets
 internal/output/                 Text, JSON, SARIF 2.1.0, SBOM rendering + schema generation
@@ -135,6 +137,8 @@ _ = audcache.Set(cache, key, value)
 Cache failures are non-fatal — log a warning and continue.
 
 **Testing helpers**: `t.TempDir()`, `testutil.BuildGoBinary()`, `httptest.NewServer()`. Shared fake-binary setup lives in `internal/cli/root_test_main_test.go`. No tests may be conditionally skipped without a recorded reason.
+
+**TDD for security-sensitive features**: for user-visible security functionality, write failing unit or command tests first, implement the smallest clean change that passes, then refactor for readability and maintainability before broadening coverage.
 
 ## Feature Checklist
 

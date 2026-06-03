@@ -11,6 +11,7 @@ Task-oriented walkthroughs.
 - [Scan Targets](SCAN_TARGETS.md) — directories, Git repos, containers, SBOMs
 - [Output Formats](OUTPUT_FORMATS.md) — text, JSON, SARIF, SBOM
 - [SBOM Formats](SBOM.md) — SPDX vs. CycloneDX, write and ingest
+- [SBOM Attestations](SBOM_ATTESTATIONS.md) — experimental signing and verification for SBOM artifacts
 - [CI Integration](CI_INTEGRATION.md) — GitHub Actions, GitLab, Jenkins, Azure, CircleCI
 - [Interactive TUI](TUI.md) — keybindings and tabs for `--interactive`
 - [Troubleshooting](TROUBLESHOOTING.md) — common errors and fixes

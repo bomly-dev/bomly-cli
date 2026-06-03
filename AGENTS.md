@@ -42,6 +42,7 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for full detail. Component ma
 | `internal/matchers/*`  | External enrichment matchers and shared matcher cache (osv, grype, deps.dev, ClearlyDefined, eol, scorecard) |
 | `internal/auditors/*`  | Policy evaluators and audit-only logic (policy, noop)                                             |
 | `internal/sbom`        | SBOM codec (SPDX 2.3, CycloneDX)                                                                  |
+| `internal/attestation` | Experimental SBOM attestation subject resolution, in-toto statement construction, and bundle verification |
 | `internal/benchmark`   | Hidden local dependency-graph benchmark, baseline comparison, scoring, and embedded presets       |
 | `internal/output`      | Output rendering plus structured command payloads and schema generation for `scan`, `diff`, `explain`, JSON, and SARIF 2.1.0 |
 | `internal/plugin`      | Plugin discovery, protocol, handshake, and execution                                              |
@@ -142,6 +143,7 @@ Core passes these env vars. Plugin discovery: `~/.bomly/plugins/bomly-*` overrid
 ## Quality Bar
 
 - Every exported type/function has a doc comment.
+- Use TDD for security-sensitive user-visible features: write failing unit or command tests first, implement the smallest clean change that passes, then refactor for readability and maintainability.
 - Unit tests for new logic; integration tests for new commands.
 - Test helpers: `t.TempDir()`, `testutil.BuildGoBinary()`, `httptest.NewServer()`.
 - Generated docs are part of the contract: update `docs/CONFIG_REFERENCE.md`, `docs/schemas/*`, and `docs/SUPPORT_MATRIX.md` via `make generate` when their source packages change.

@@ -218,6 +218,8 @@ Tune `--fail-on` to taste. `pre-push` keeps commits fast and only runs on push.
 
 ## See also
 
+- [SBOM attestations](SBOM_ATTESTATIONS.md) — experimental SBOM signing and verification
+
 - [Exit codes](EXIT_CODES.md) — what each CI exit means
 - [Output formats](OUTPUT_FORMATS.md) — SARIF, JSON, SBOM details
 - [Auditors](AUDITORS.md) — `--fail-on` and `--fail-on-scope`

@@ -23,6 +23,21 @@ func NewExplain(project output.ProjectDescriptor, query string, consolidated sdk
 	return newScanNavigator("Bomly Interactive Explain", project, consolidated, graphValue, findings, query)
 }
 
+// WithRegistry attaches the PURL-keyed package registry so the TUI can
+// resolve vulnerabilities, licenses, and scorecards by reference. Must be
+// called before the model is rendered for the first time when matching-
+// stage data should be visible. Safe to pass nil.
+func (m *scanModel) WithRegistry(registry *sdk.PackageRegistry) *scanModel {
+	if m == nil {
+		return nil
+	}
+	m.registry = registry
+	if m.shellModel != nil {
+		m.Rebuild()
+	}
+	return m
+}
+
 // WithEnrichEnabled records whether the scan requested enrichment so empty
 // vulnerability states can distinguish "not requested" from "no matches".
 func (m *scanModel) WithEnrichEnabled(enabled bool) *scanModel {
@@ -1514,7 +1529,7 @@ func (m *scanModel) buildFindingsListModel() *listModel {
 // that resolved to the selected repo. The `g` key cycles between two
 // grouping axes: "repository" (default) and "check".
 func (m *scanModel) buildPostureListModel() *listModel {
-	rows := postureRowsFromGraph(m.graphValue)
+	rows := postureRowsFromGraph(m.graphValue, m.registry)
 	repoWidth := 40
 	if len(rows) > 0 {
 		maxRepo := 0

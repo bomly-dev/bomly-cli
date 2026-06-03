@@ -155,27 +155,63 @@ type DependencyPath struct {
 
 // PackageFromGraphPackage builds a PackageRef from a graph Dependency node.
 // Detection-time license facts (carried in the dependency's metadata under
-// MetadataKeyDetectionLicenses) are surfaced; matching-stage enrichment
-// (Vulnerabilities, Scorecard, etc.) lives on the registry Package and is
-// layered in by batch 6 once the registry is plumbed through the output path.
+// MetadataKeyDetectionLicenses) are surfaced directly from the dependency;
+// matching-stage enrichment (Vulnerabilities, Scorecard, EOL, licenses
+// learned during matching) must come from the registry — use
+// PackageFromDependencyAndRegistry when a registry is in scope.
 func PackageFromGraphPackage(dep *sdk.Dependency) PackageRef {
+	return PackageFromDependencyAndRegistry(dep, nil)
+}
+
+// PackageFromDependencyAndRegistry builds a PackageRef from a graph Dependency
+// node and layers in matching-stage enrichment (vulnerabilities, scorecard,
+// licenses learned during matching) by resolving dep.PURL against the
+// registry. registry may be nil — callers without a registry get the
+// detection-only projection.
+func PackageFromDependencyAndRegistry(dep *sdk.Dependency, registry *sdk.PackageRegistry) PackageRef {
 	if dep == nil {
 		return PackageRef{Licenses: []LicenseRef{}, Vulnerabilities: []VulnerabilityRef{}}
 	}
-	return PackageRef{
-		Name:      dep.DisplayName(),
-		Version:   dep.Version,
-		Scope:     string(dep.PrimaryScope()),
-		Purl:      dep.PURL,
-		ID:        dep.ID,
-		Metadata:  cloneRefMetadata(dep.Metadata),
-		Locations: LocationRefsFromGraphLocations(dep.Locations),
-		Licenses:  LicenseRefsFromGraphLicenses(sdk.DetectionLicenses(dep)),
-		// TODO(batch-6): Vulnerabilities / Scorecard come from the PURL registry;
-		// thread *sdk.PackageRegistry through this helper so consumers
-		// (scan / explain / diff JSON, SARIF) get re-enriched output.
+	ref := PackageRef{
+		Name:            dep.DisplayName(),
+		Version:         dep.Version,
+		Scope:           string(dep.PrimaryScope()),
+		Purl:            dep.PURL,
+		ID:              dep.ID,
+		Metadata:        cloneRefMetadata(dep.Metadata),
+		Locations:       LocationRefsFromGraphLocations(dep.Locations),
+		Licenses:        LicenseRefsFromGraphLicenses(sdk.DetectionLicenses(dep)),
 		Vulnerabilities: []VulnerabilityRef{},
 	}
+	pkg := lookupRegistryPackage(registry, dep.PURL)
+	if pkg != nil {
+		// Prefer registry-learned licenses when detection produced none.
+		if len(ref.Licenses) == 0 && len(pkg.Licenses) > 0 {
+			ref.Licenses = LicenseRefsFromGraphLicenses(pkg.Licenses)
+		}
+		if len(pkg.Vulnerabilities) > 0 {
+			ref.Vulnerabilities = VulnerabilityRefsFromPackageVulnerabilities(pkg.Vulnerabilities)
+		}
+		if pkg.Scorecard != nil {
+			scorecardCopy := pkg.Scorecard.Clone()
+			ref.Scorecard = scorecardCopy
+		}
+		// pkg.Matched is captured via the presence of registry data (vulns,
+		// licenses, scorecard) — no separate flag is currently exposed on
+		// PackageRef.
+		_ = pkg.Matched
+	}
+	return ref
+}
+
+// lookupRegistryPackage resolves a PURL against the registry, returning nil
+// if the registry or the PURL is empty.
+func lookupRegistryPackage(registry *sdk.PackageRegistry, purl string) *sdk.Package {
+	if registry == nil || strings.TrimSpace(purl) == "" {
+		return nil
+	}
+	pkg, _ := registry.Get(purl)
+	return pkg
 }
 
 func (p PackageRef) withoutReachability() PackageRef {
@@ -324,28 +360,97 @@ type AuditSummary struct {
 }
 
 // FindingsFromScan converts normalized findings into JSON-friendly DTOs.
-//
-// TODO(batch-6): Findings are reference-style (PackageRef + VulnerabilityID).
-// Plumb *sdk.PackageRegistry through this helper so the AuditFinding output
-// can resolve the referenced package and the specific vulnerability and
-// surface CVSS / EPSS / KEV / CWE / fix-state / reachability properties.
-// Until then we emit only the reference fields the new Finding carries.
-func FindingsFromScan(findings []sdk.Finding) []AuditFinding {
+// When registry is non-nil the AuditFinding output is re-enriched: the
+// PackageRef is resolved against the registry, and (for vulnerability
+// findings) the specific Vulnerability identified by f.VulnerabilityID
+// supplies CVSS / EPSS / KEV / CWE / fix-state / reachability properties.
+func FindingsFromScan(findings []sdk.Finding, registry *sdk.PackageRegistry) []AuditFinding {
 	result := make([]AuditFinding, 0, len(findings))
 	for _, f := range findings {
-		result = append(result, AuditFinding{
+		pkg := lookupRegistryPackage(registry, f.PackageRef)
+		af := AuditFinding{
 			ID:          f.ID,
 			Kind:        string(f.Kind),
 			Severity:    f.Severity,
-			Package:     PackageRef{Name: f.PackageRef, Purl: f.PackageRef},
+			Package:     packageRefFromRegistryPackage(f.PackageRef, pkg),
 			Title:       f.Title,
 			Reasons:     f.Reasons,
 			Source:      f.Source,
 			Auditor:     f.Auditor,
 			Disposition: string(f.Disposition),
-		})
+		}
+		if vuln := lookupVulnerability(pkg, f.VulnerabilityID, f.ID); vuln != nil {
+			af.Aliases = append([]string(nil), vuln.Aliases...)
+			af.Description = vuln.Details
+			if af.Severity == "" {
+				af.Severity = vuln.ParsedSeverity
+			}
+			af.SeveritySource = vuln.SeveritySource
+			af.CVSS = append([]sdk.CVSSScore(nil), vuln.CVSS...)
+			af.AffectedVersionRange = vuln.AffectedVersionRange
+			af.References = append([]sdk.Reference(nil), vuln.References...)
+			af.KEVExploited = vuln.KEVExploited
+			af.KnownExploited = cloneKnownExploited(vuln.KnownExploited)
+			af.EPSS = append([]sdk.EPSSScore(nil), vuln.EPSS...)
+			af.CWEs = append([]sdk.CWE(nil), vuln.CWEs...)
+			af.RiskScore = vuln.RiskScore
+			af.DataSource = vuln.DataSource
+			af.Namespace = vuln.Namespace
+			af.CPEs = append([]string(nil), vuln.CPEs...)
+			af.FixedIn = vuln.FixedIn
+			af.FixedVersions = append([]string(nil), vuln.FixedVersions...)
+			af.FixState = vuln.FixState
+			af.FixAvailable = append([]sdk.FixAvailable(nil), vuln.FixAvailable...)
+			af.Reachability = vuln.Reachability.Clone()
+		}
+		result = append(result, af)
 	}
 	return result
+}
+
+// packageRefFromRegistryPackage builds a PackageRef from a registry package
+// (PURL-keyed). When the registry has no entry for purl, returns a thin
+// PackageRef carrying just the PURL identifier.
+func packageRefFromRegistryPackage(purl string, pkg *sdk.Package) PackageRef {
+	if pkg == nil {
+		return PackageRef{Name: purl, Purl: purl, Licenses: []LicenseRef{}, Vulnerabilities: []VulnerabilityRef{}}
+	}
+	return PackageRef{
+		Name:            pkg.Name,
+		Version:         pkg.Version,
+		Purl:            pkg.PURL,
+		Licenses:        LicenseRefsFromGraphLicenses(pkg.Licenses),
+		Vulnerabilities: VulnerabilityRefsFromPackageVulnerabilities(pkg.Vulnerabilities),
+		Scorecard:       pkg.Scorecard.Clone(),
+		Metadata:        cloneRefMetadata(pkg.Metadata),
+	}
+}
+
+// lookupVulnerability resolves a vulnerability ID (or alias) against a
+// registry package's Vulnerabilities slice. Returns nil if pkg is nil or no
+// match is found.
+func lookupVulnerability(pkg *sdk.Package, vulnID, fallbackID string) *sdk.Vulnerability {
+	if pkg == nil {
+		return nil
+	}
+	if vulnID == "" {
+		vulnID = fallbackID
+	}
+	if vulnID == "" {
+		return nil
+	}
+	for i := range pkg.Vulnerabilities {
+		v := &pkg.Vulnerabilities[i]
+		if v.ID == vulnID {
+			return v
+		}
+		for _, alias := range v.Aliases {
+			if alias == vulnID {
+				return v
+			}
+		}
+	}
+	return nil
 }
 
 func (f AuditFinding) withoutReachability() AuditFinding {
@@ -400,7 +505,9 @@ type ScanPackage struct {
 }
 
 // PackagesFromGraph converts a graph into stable scan package payloads.
-func PackagesFromGraph(g *sdk.Graph) []ScanPackage {
+// When registry is non-nil, each PackageRef is enriched with matching-stage
+// data (vulnerabilities, scorecard, etc.) resolved by PURL.
+func PackagesFromGraph(g *sdk.Graph, registry *sdk.PackageRegistry) []ScanPackage {
 	if g == nil {
 		return nil
 	}
@@ -419,7 +526,7 @@ func PackagesFromGraph(g *sdk.Graph) []ScanPackage {
 			}
 		}
 		payload = append(payload, ScanPackage{
-			PackageRef:   PackageFromGraphPackage(pkg),
+			PackageRef:   PackageFromDependencyAndRegistry(pkg, registry),
 			Dependencies: dependencyIDs,
 		})
 	}

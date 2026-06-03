@@ -141,7 +141,11 @@ type SARIFOptions struct {
 
 // WriteSARIF writes findings as a SARIF 2.1.0 document to w.
 // toolName and toolVersion are used to populate the driver section.
-func WriteSARIF(w io.Writer, findings []sdk.Finding, toolName, toolVersion string, options ...SARIFOptions) error {
+// registry, when non-nil, is used to resolve f.PackageRef →
+// *sdk.Package and f.VulnerabilityID → *sdk.Vulnerability so each result
+// carries the rich properties (CVSS / EPSS / KEV / CWE / fix state /
+// reachability call paths) as SARIF `properties` / `codeFlows`.
+func WriteSARIF(w io.Writer, findings []sdk.Finding, registry *sdk.PackageRegistry, toolName, toolVersion string, options ...SARIFOptions) error {
 	includeReachability := false
 	if len(options) > 0 {
 		includeReachability = options[0].IncludeReachability
@@ -169,13 +173,8 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, toolName, toolVersion strin
 
 	results := make([]sarifResult, 0, len(findings))
 	for _, f := range findings {
-		// TODO(batch-6): plumb *sdk.PackageRegistry through WriteSARIF so we can
-		// look up the referenced package (via f.PackageRef) and the specific
-		// vulnerability (via f.VulnerabilityID) to re-enrich SARIF properties
-		// (CVSS / EPSS / KEV / CWE / fix state / reachability call paths).
-		// Findings are now reference-style and intentionally carry no inlined
-		// vuln fields, so without the registry we emit a minimal but valid
-		// SARIF result.
+		pkg := lookupRegistryPackage(registry, f.PackageRef)
+		vuln := lookupVulnerability(pkg, f.VulnerabilityID, f.ID)
 		msgText := f.Title
 		if f.PackageRef != "" {
 			msgText = fmt.Sprintf("%s in %s", f.Title, f.PackageRef)
@@ -184,9 +183,17 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, toolName, toolVersion strin
 			RuleID:    f.ID,
 			Level:     severityToSARIFLevel(f.Severity),
 			Message:   sarifMessage{Text: msgText},
-			Locations: sarifLocationsForFinding(f, f.PackageRef),
+			Locations: sarifLocationsForFinding(f, pkg, f.PackageRef),
 		}
-		_ = includeReachability // reachability props re-added by batch 6 (via registry lookup)
+		if vuln != nil {
+			props := sarifPropertiesFromVulnerability(vuln, includeReachability)
+			if !sarifPropertiesEmpty(props) {
+				result.Properties = &props
+			}
+			if includeReachability && vuln.Reachability != nil && len(vuln.Reachability.CallPaths) > 0 {
+				result.CodeFlows = buildSARIFCodeFlows(vuln.Reachability.CallPaths)
+			}
+		}
 		results = append(results, result)
 	}
 
@@ -302,12 +309,10 @@ func sarifFrameDescription(frame sdk.CallFrame) string {
 // still get a SARIF location with artifactLocation.uri = RealPath
 // and no region. This is honest: we know which file the dep lives
 // in but not exactly where.
-func sarifLocationsForFinding(f sdk.Finding, fallbackURI string) []sarifLocation {
-	// TODO(batch-6): when the registry is plumbed through, look up the
-	// referenced package's Locations (via f.PackageRef) to emit precise SARIF
-	// physical locations. For now we always emit a single synthetic location
-	// keyed on the package PURL (the SARIF spec requires a non-empty Locations
-	// array).
+func sarifLocationsForFinding(f sdk.Finding, _ *sdk.Package, fallbackURI string) []sarifLocation {
+	// Locations are a detection-time concern on *sdk.Dependency; the registry
+	// Package carries the PURL identity used here as the synthetic SARIF URI.
+	// SARIF requires a non-empty Locations array, so we always emit one.
 	uri := strings.TrimSpace(fallbackURI)
 	if uri == "" {
 		uri = f.ID
@@ -319,6 +324,45 @@ func sarifLocationsForFinding(f sdk.Finding, fallbackURI string) []sarifLocation
 			},
 		},
 	}
+}
+
+// sarifPropertiesFromVulnerability converts a registry Vulnerability into
+// the SARIF properties bag. Reachability-related fields are omitted unless
+// includeReachability is true.
+func sarifPropertiesFromVulnerability(v *sdk.Vulnerability, includeReachability bool) sarifProperties {
+	props := sarifProperties{
+		FixedIn:              v.FixedIn,
+		FixedVersions:        append([]string(nil), v.FixedVersions...),
+		FixState:             v.FixState,
+		FixAvailable:         append([]sdk.FixAvailable(nil), v.FixAvailable...),
+		SeveritySource:       v.SeveritySource,
+		CVSS:                 append([]sdk.CVSSScore(nil), v.CVSS...),
+		Aliases:              append([]string(nil), v.Aliases...),
+		AffectedVersionRange: v.AffectedVersionRange,
+		References:           append([]sdk.Reference(nil), v.References...),
+		KEVExploited:         v.KEVExploited,
+		KnownExploited:       cloneKnownExploited(v.KnownExploited),
+		EPSS:                 append([]sdk.EPSSScore(nil), v.EPSS...),
+		CWEs:                 append([]sdk.CWE(nil), v.CWEs...),
+		RiskScore:            v.RiskScore,
+		DataSource:           v.DataSource,
+		Namespace:            v.Namespace,
+		CPEs:                 append([]string(nil), v.CPEs...),
+	}
+	if includeReachability && v.Reachability != nil {
+		r := v.Reachability
+		props.Reachability = string(r.Status)
+		props.ReachabilityTier = string(r.Tier)
+		props.ReachabilityReason = r.Reason
+		props.Analyzer = r.Analyzer
+		props.ReachabilityConfidence = string(r.Confidence)
+		if r.Hops != nil {
+			hops := *r.Hops
+			props.ReachabilityHops = &hops
+		}
+		props.DynamicImportsDetected = r.DynamicImportsDetected
+	}
+	return props
 }
 
 func severityToSARIFLevel(severity string) string {

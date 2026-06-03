@@ -306,15 +306,14 @@ func (d *detector) Applicable(context.Context, *schemav1.DetectRequest) (*schema
 }
 
 func (d *detector) Detect(ctx context.Context, req *schemav1.DetectRequest) (*schemav1.DetectResponse, error) {
-	packageNode := &schemav1.Package{
-		ID:        "example.com/demo@v1.0.0",
+	packageNode := schemav1.NewDependencyWithID("example.com/demo@v1.0.0", schemav1.Dependency{
 		Ecosystem: string(schemav1.EcosystemGo),
 		Name:      "example.com/demo",
 		Version:   "v1.0.0",
 		PURL:      "pkg:golang/example.com/demo@v1.0.0",
-	}
+	})
 	graph := schemav1.New()
-	if err := graph.AddPackage(packageNode); err != nil {
+	if err := graph.AddNode(packageNode); err != nil {
 		return nil, err
 	}
 	return &schemav1.DetectResponse{

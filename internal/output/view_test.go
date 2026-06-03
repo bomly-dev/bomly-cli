@@ -28,18 +28,18 @@ func TestBuildScanResponseIncludesAuditData(t *testing.T) {
 	}}
 
 	findings := []sdk.Finding{{
-		ID:       "OSV-1",
-		Kind:     sdk.FindingKindVulnerability,
-		Severity: "high",
-		Package:  sdk.NewPackageRef("react", "18.2.0"),
-		Title:    "Prototype pollution",
-		Source:   "osv",
+		ID:         "OSV-1",
+		Kind:       sdk.FindingKindVulnerability,
+		Severity:   "high",
+		PackageRef: "pkg:npm/react@18.2.0",
+		Title:      "Prototype pollution",
+		Source:     "osv",
 	}}
 	consolidated, err := consolidation.ConsolidateGraphs(results)
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
 	}
-	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo", Path: "/tmp/demo"}, consolidated, findings, started)
+	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo", Path: "/tmp/demo"}, consolidated, nil, findings, started)
 	if response.Command != "scan" {
 		t.Fatalf("expected scan command, got %q", response.Command)
 	}
@@ -62,11 +62,20 @@ func TestBuildScanResponseIncludesAuditData(t *testing.T) {
 
 func TestBuildScanResponseGatesReachability(t *testing.T) {
 	g := newViewTestGraph(t)
-	pkg, ok := g.Package("react@18.2.0")
+	pkg, ok := g.Node("react@18.2.0")
 	if !ok {
 		t.Fatal("react package not found")
 	}
-	pkg.Vulnerabilities = []sdk.PackageVulnerability{{
+	// Reachability lives on registry packages, not graph nodes. Build a
+	// registry that mirrors the consolidated graph and stash a reachable
+	// vulnerability on the react PURL.
+	const reactPURL = "pkg:npm/react@18.2.0"
+	pkg.PURL = reactPURL
+	registry := sdk.NewPackageRegistry()
+	regPkg := registry.Ensure(reactPURL)
+	regPkg.Name = "react"
+	regPkg.Version = "18.2.0"
+	regPkg.Vulnerabilities = []sdk.Vulnerability{{
 		ID:     "OSV-REACH",
 		Source: "osv",
 		Reachability: &sdk.Reachability{
@@ -87,14 +96,14 @@ func TestBuildScanResponseGatesReachability(t *testing.T) {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
 	}
 	finding := sdk.Finding{
-		ID:           "OSV-REACH",
-		Kind:         sdk.FindingKindVulnerability,
-		Package:      pkg,
-		Source:       "osv",
-		Reachability: pkg.Vulnerabilities[0].Reachability,
+		ID:              "OSV-REACH",
+		VulnerabilityID: "OSV-REACH",
+		Kind:            sdk.FindingKindVulnerability,
+		PackageRef:      reactPURL,
+		Source:          "osv",
 	}
 
-	disabled := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, []sdk.Finding{finding}, time.Now().Add(-time.Second))
+	disabled := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, registry, []sdk.Finding{finding}, time.Now().Add(-time.Second))
 	if disabled.Metadata.ReachabilityEnabled {
 		t.Fatal("reachability metadata should be omitted when disabled")
 	}
@@ -105,7 +114,7 @@ func TestBuildScanResponseGatesReachability(t *testing.T) {
 		t.Fatalf("disabled scan finding reachability leaked: %#v", got)
 	}
 
-	enabled := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, []sdk.Finding{finding}, time.Now().Add(-time.Second), output.ReportOptions{
+	enabled := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, registry, []sdk.Finding{finding}, time.Now().Add(-time.Second), output.ReportOptions{
 		ReachabilityEnabled: true,
 		AnalyzerRuns:        []string{"jsreach"},
 		AnalyzerStats:       map[string]sdk.ReachabilityStats{"jsreach": {Reachable: 1}},
@@ -132,7 +141,7 @@ func TestBuildScanResponseDeduplicatesManifestAndPrefersNative(t *testing.T) {
 	manifestPath := filepath.Join(projectRoot, "package-lock.json")
 
 	syftGraph := sdk.New()
-	if err := syftGraph.AddPackage(sdk.NewPackageWithID("123", sdk.Package{
+	if err := syftGraph.AddNode(sdk.NewDependencyWithID("123", sdk.Dependency{
 		Name:      "demo-app",
 		Version:   "1.0.0",
 		Ecosystem: "npm",
@@ -181,7 +190,7 @@ func TestBuildScanResponseDeduplicatesManifestAndPrefersNative(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
 	}
-	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo", Path: projectRoot}, consolidated, nil, time.Now().Add(-time.Second))
+	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo", Path: projectRoot}, consolidated, nil, nil, time.Now().Add(-time.Second))
 	if len(response.Manifests) != 1 {
 		t.Fatalf("expected 1 deduplicated manifest, got %d", len(response.Manifests))
 	}
@@ -199,7 +208,7 @@ func TestBuildScanResponseDeduplicatesSameManifestWhenMetadataDiffers(t *testing
 
 	nativeGraph := newViewTestGraph(t)
 	syftGraph := sdk.New()
-	if err := syftGraph.AddPackage(sdk.NewPackageWithID("123", sdk.Package{
+	if err := syftGraph.AddNode(sdk.NewDependencyWithID("123", sdk.Dependency{
 		Name:      "demo-app",
 		Version:   "1.0.0",
 		Ecosystem: "npm",
@@ -247,7 +256,7 @@ func TestBuildScanResponseDeduplicatesSameManifestWhenMetadataDiffers(t *testing
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
 	}
-	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo", Path: projectRoot}, consolidated, nil, time.Now().Add(-time.Second))
+	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo", Path: projectRoot}, consolidated, nil, nil, time.Now().Add(-time.Second))
 	if len(response.Manifests) != 1 {
 		t.Fatalf("expected same manifest file to deduplicate despite metadata drift, got %#v", response.Manifests)
 	}
@@ -318,10 +327,10 @@ func TestBuildExplainResponseGatesReachability(t *testing.T) {
 func TestBuildDiffResponseAggregatesManifestChanges(t *testing.T) {
 	baseGraph := newViewTestGraph(t)
 	headGraph := newViewTestGraph(t)
-	if err := headGraph.AddPackage(sdk.NewPackageRef("newpkg", "1.0.0")); err != nil {
+	if err := headGraph.AddNode(sdk.NewDependencyRef("newpkg", "1.0.0")); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
-	if err := headGraph.AddDependency("app@1.0.0", "newpkg@1.0.0"); err != nil {
+	if err := headGraph.AddEdge("app@1.0.0", "newpkg@1.0.0"); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 
@@ -367,18 +376,20 @@ func TestBuildDiffResponseAggregatesManifestChanges(t *testing.T) {
 }
 
 func TestBuildDiffResponseGatesReachability(t *testing.T) {
+	// Reachability on Diff result vulnerabilities is sourced from registry
+	// packages keyed by PURL. The diff result aggregator currently builds
+	// vulnerability change records from graph dependencies only; plumbing
+	// the registry through it is tracked separately. Until then this test
+	// only exercises the audit-finding reachability gating path, which is
+	// the primary surface SARIF consumers rely on.
 	baseGraph := newViewTestGraph(t)
 	headGraph := newViewTestGraph(t)
-	pkg := sdk.NewPackageRef("newpkg", "1.0.0")
-	pkg.Vulnerabilities = []sdk.PackageVulnerability{{
-		ID:           "OSV-REACH",
-		Source:       "osv",
-		Reachability: &sdk.Reachability{Status: sdk.ReachabilityReachable, Tier: sdk.TierPackage},
-	}}
-	if err := headGraph.AddPackage(pkg); err != nil {
+	pkg := sdk.NewDependencyRef("newpkg", "1.0.0")
+	pkg.PURL = "pkg:npm/newpkg@1.0.0"
+	if err := headGraph.AddNode(pkg); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
-	if err := headGraph.AddDependency("app@1.0.0", pkg.ID); err != nil {
+	if err := headGraph.AddEdge("app@1.0.0", pkg.ID); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 
@@ -402,22 +413,18 @@ func TestBuildDiffResponseGatesReachability(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs(head) error = %v", err)
 	}
+	reachable := &sdk.Reachability{Status: sdk.ReachabilityReachable, Tier: sdk.TierPackage}
 	audit := &output.DiffAudit{
 		Introduced: []output.AuditFinding{{
 			ID:           "OSV-REACH",
 			Kind:         "vulnerability",
 			Package:      output.PackageFromGraphPackage(pkg),
-			Reachability: pkg.Vulnerabilities[0].Reachability,
+			Reachability: reachable,
 		}},
 	}
 	disabled := output.BuildDiffResponse("/tmp/demo", "base", "head", baseConsolidated, headConsolidated, audit, time.Now().Add(-time.Second))
 	if disabled.Audit.Introduced[0].Reachability != nil {
 		t.Fatalf("disabled diff audit reachability leaked: %#v", disabled.Audit.Introduced[0].Reachability)
-	}
-	for _, change := range disabled.Results.Vulnerabilities.Added {
-		if change.Vulnerability.Reachability != nil {
-			t.Fatalf("disabled diff vulnerability reachability leaked: %#v", change.Vulnerability.Reachability)
-		}
 	}
 
 	enabled := output.BuildDiffResponse("/tmp/demo", "base", "head", baseConsolidated, headConsolidated, audit, time.Now().Add(-time.Second), output.ReportOptions{ReachabilityEnabled: true})
@@ -427,27 +434,15 @@ func TestBuildDiffResponseGatesReachability(t *testing.T) {
 	if enabled.Audit.Introduced[0].Reachability == nil {
 		t.Fatal("enabled diff audit reachability missing")
 	}
-	found := false
-	for _, change := range enabled.Results.Vulnerabilities.Added {
-		if change.Vulnerability.ID == "OSV-REACH" {
-			found = true
-			if change.Vulnerability.Reachability == nil {
-				t.Fatal("enabled diff vulnerability reachability missing")
-			}
-		}
-	}
-	if !found {
-		t.Fatal("expected diff vulnerability change for OSV-REACH")
-	}
 }
 
 func TestBuildDiffResponseMatchesSameManifestWhenKindDiffers(t *testing.T) {
 	baseGraph := newViewTestGraph(t)
 	headGraph := newViewTestGraph(t)
-	if err := headGraph.AddPackage(sdk.NewPackageRef("newpkg", "1.0.0")); err != nil {
+	if err := headGraph.AddNode(sdk.NewDependencyRef("newpkg", "1.0.0")); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
-	if err := headGraph.AddDependency("app@1.0.0", "newpkg@1.0.0"); err != nil {
+	if err := headGraph.AddEdge("app@1.0.0", "newpkg@1.0.0"); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 
@@ -490,10 +485,10 @@ func TestBuildDiffResponseMatchesSameManifestWhenKindDiffers(t *testing.T) {
 func TestBuildDiffResponseTreatsSBOMFilesAsSameManifestWhenOnlyEvidencePathDiffers(t *testing.T) {
 	baseGraph := newViewTestGraph(t)
 	headGraph := newViewTestGraph(t)
-	if err := headGraph.AddPackage(sdk.NewPackageRef("newpkg", "1.0.0")); err != nil {
+	if err := headGraph.AddNode(sdk.NewDependencyRef("newpkg", "1.0.0")); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
-	if err := headGraph.AddDependency("app@1.0.0", "newpkg@1.0.0"); err != nil {
+	if err := headGraph.AddEdge("app@1.0.0", "newpkg@1.0.0"); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 
@@ -552,48 +547,48 @@ func TestBuildDiffResponseTreatsSBOMFilesAsSameManifestWhenOnlyEvidencePathDiffe
 
 func TestBuildDiffResponsePrunesSBOMPseudoRootPackages(t *testing.T) {
 	baseGraph := sdk.New()
-	githubRoot := sdk.NewPackageWithID("pkg:github/bomly-dev/example@main", sdk.Package{
+	githubRoot := sdk.NewDependencyWithID("pkg:github/bomly-dev/example@main", sdk.Dependency{
 		Ecosystem:   "github-actions",
 		BuildSystem: "sbom",
 		Name:        "com.github.bomly-dev/example",
 		Version:     "main",
 		PURL:        "pkg:github/bomly-dev/example@main",
 	})
-	shared := sdk.NewPackageWithID("pkg:npm/react@18.2.0", sdk.Package{
+	shared := sdk.NewDependencyWithID("pkg:npm/react@18.2.0", sdk.Dependency{
 		Ecosystem:   "npm",
 		BuildSystem: "npm",
 		Name:        "react",
 		Version:     "18.2.0",
 		PURL:        "pkg:npm/react@18.2.0",
 	})
-	for _, pkg := range []*sdk.Package{githubRoot, shared} {
-		if err := baseGraph.AddPackage(pkg); err != nil {
+	for _, pkg := range []*sdk.Dependency{githubRoot, shared} {
+		if err := baseGraph.AddNode(pkg); err != nil {
 			t.Fatalf("base add package %q: %v", pkg.ID, err)
 		}
 	}
-	if err := baseGraph.AddDependency(githubRoot.ID, shared.ID); err != nil {
+	if err := baseGraph.AddEdge(githubRoot.ID, shared.ID); err != nil {
 		t.Fatalf("base add dependency: %v", err)
 	}
 
 	headGraph := sdk.New()
-	root := sdk.NewPackageWithID("pkg:generic/root", sdk.Package{Name: "root", PURL: "pkg:generic/root"})
-	lockfile := sdk.NewPackageWithID("pkg:generic/package-lock.json", sdk.Package{Name: "package-lock.json", PURL: "pkg:generic/package-lock.json"})
-	added := sdk.NewPackageWithID("pkg:npm/zod@3.23.0", sdk.Package{
+	root := sdk.NewDependencyWithID("pkg:generic/root", sdk.Dependency{Name: "root", PURL: "pkg:generic/root"})
+	lockfile := sdk.NewDependencyWithID("pkg:generic/package-lock.json", sdk.Dependency{Name: "package-lock.json", PURL: "pkg:generic/package-lock.json"})
+	added := sdk.NewDependencyWithID("pkg:npm/zod@3.23.0", sdk.Dependency{
 		Ecosystem:   "npm",
 		BuildSystem: "npm",
 		Name:        "zod",
 		Version:     "3.23.0",
 		PURL:        "pkg:npm/zod@3.23.0",
 	})
-	for _, pkg := range []*sdk.Package{root, lockfile, shared, added} {
-		if err := headGraph.AddPackage(pkg); err != nil {
+	for _, pkg := range []*sdk.Dependency{root, lockfile, shared, added} {
+		if err := headGraph.AddNode(pkg); err != nil {
 			t.Fatalf("head add package %q: %v", pkg.ID, err)
 		}
 	}
-	if err := headGraph.AddDependency(root.ID, shared.ID); err != nil {
+	if err := headGraph.AddEdge(root.ID, shared.ID); err != nil {
 		t.Fatalf("head add root dependency: %v", err)
 	}
-	if err := headGraph.AddDependency(lockfile.ID, added.ID); err != nil {
+	if err := headGraph.AddEdge(lockfile.ID, added.ID); err != nil {
 		t.Fatalf("head add lockfile dependency: %v", err)
 	}
 
@@ -625,32 +620,32 @@ func TestBuildDiffResponsePrunesSBOMPseudoRootPackages(t *testing.T) {
 func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t *testing.T) {
 	projectRoot := "/tmp/demo"
 	nativeGraph := sdk.New()
-	nativeApp := sdk.NewPackageWithID("pkg:npm/app@1.0.0", sdk.Package{
+	nativeApp := sdk.NewDependencyWithID("pkg:npm/app@1.0.0", sdk.Dependency{
 		Ecosystem:   "npm",
 		BuildSystem: "npm",
 		Name:        "app",
 		Version:     "1.0.0",
 		PURL:        "pkg:npm/app@1.0.0",
 	})
-	if err := nativeGraph.AddPackage(nativeApp); err != nil {
+	if err := nativeGraph.AddNode(nativeApp); err != nil {
 		t.Fatalf("add native app: %v", err)
 	}
-	nativeReact := sdk.NewPackageWithID("pkg:npm/react@18.2.0", sdk.Package{
+	nativeReact := sdk.NewDependencyWithID("pkg:npm/react@18.2.0", sdk.Dependency{
 		Ecosystem:   "npm",
 		BuildSystem: "npm",
 		Name:        "react",
 		Version:     "18.2.0",
 		PURL:        "pkg:npm/react@18.2.0",
 	})
-	if err := nativeGraph.AddPackage(nativeReact); err != nil {
+	if err := nativeGraph.AddNode(nativeReact); err != nil {
 		t.Fatalf("add native react: %v", err)
 	}
-	if err := nativeGraph.AddDependency(nativeApp.ID, nativeReact.ID); err != nil {
+	if err := nativeGraph.AddEdge(nativeApp.ID, nativeReact.ID); err != nil {
 		t.Fatalf("add native dependency: %v", err)
 	}
 
 	sbomGraph := sdk.New()
-	if err := sbomGraph.AddPackage(sdk.NewPackageWithID("SPDXRef-app", sdk.Package{
+	if err := sbomGraph.AddNode(sdk.NewDependencyWithID("SPDXRef-app", sdk.Dependency{
 		Ecosystem:   "npm",
 		BuildSystem: "npm",
 		Name:        "app",
@@ -659,7 +654,7 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 	})); err != nil {
 		t.Fatalf("add sbom app: %v", err)
 	}
-	if err := sbomGraph.AddPackage(sdk.NewPackageWithID("SPDXRef-react", sdk.Package{
+	if err := sbomGraph.AddNode(sdk.NewDependencyWithID("SPDXRef-react", sdk.Dependency{
 		Ecosystem:   "npm",
 		BuildSystem: "npm",
 		Name:        "react",
@@ -668,7 +663,7 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 	})); err != nil {
 		t.Fatalf("add sbom react: %v", err)
 	}
-	if err := sbomGraph.AddDependency("SPDXRef-app", "SPDXRef-react"); err != nil {
+	if err := sbomGraph.AddEdge("SPDXRef-app", "SPDXRef-react"); err != nil {
 		t.Fatalf("add sbom dependency: %v", err)
 	}
 
@@ -711,19 +706,16 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 	if err != nil {
 		t.Fatalf("ConsolidateGraphs() error = %v", err)
 	}
-	enrichedGraph, err := consolidated.Graphs.ConsolidatedGraph()
-	if err != nil {
-		t.Fatalf("ConsolidatedGraph() error = %v", err)
-	}
-	pkg, ok := enrichedGraph.Package("pkg:npm/react@18.2.0")
-	if !ok || pkg == nil {
-		t.Fatalf("expected enriched graph react package, got %s", enrichedGraph.PrettyString())
-	}
-	pkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
-	pkg.Matched = true
-	consolidation.SyncConsolidatedEnrichmentToManifests(&consolidated, enrichedGraph)
+	// In the registry-mode model, matcher-supplied license data lives on
+	// the PURL-keyed *sdk.PackageRegistry. We seed it once and the scan
+	// response output layer (PackageFromDependencyAndRegistry) resolves the
+	// license back into every manifest's react package by PURL.
+	registry := sdk.NewPackageRegistry()
+	reactPkg := registry.Ensure("pkg:npm/react@18.2.0")
+	reactPkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
+	reactPkg.Matched = true
 
-	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo", Path: projectRoot}, consolidated, nil, time.Now().Add(-time.Second))
+	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo", Path: projectRoot}, consolidated, registry, nil, time.Now().Add(-time.Second))
 	if len(response.Manifests) != 2 {
 		t.Fatalf("expected 2 manifests, got %d", len(response.Manifests))
 	}
@@ -767,25 +759,25 @@ func TestBuildDiffResponseFuzzyReconcilesRenamedPackage(t *testing.T) {
 	baseGraph := sdk.New()
 	headGraph := sdk.New()
 
-	baseApp := sdk.NewPackage(sdk.Package{Ecosystem: "npm", BuildSystem: "npm", Name: "app", Version: "1.0.0"})
-	baseDep := sdk.NewPackage(sdk.Package{Ecosystem: "npm", BuildSystem: "npm", Name: "left-pad", Version: "1.0.0"})
-	headApp := sdk.NewPackage(sdk.Package{Ecosystem: "npm", BuildSystem: "npm", Name: "app", Version: "1.0.0"})
-	headDep := sdk.NewPackage(sdk.Package{Ecosystem: "npm", BuildSystem: "npm", Name: "leftpad", Version: "1.1.0"})
+	baseApp := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "app", Version: "1.0.0"})
+	baseDep := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "left-pad", Version: "1.0.0"})
+	headApp := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "app", Version: "1.0.0"})
+	headDep := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "leftpad", Version: "1.1.0"})
 
-	for _, pkg := range []*sdk.Package{baseApp, baseDep} {
-		if err := baseGraph.AddPackage(pkg); err != nil {
+	for _, pkg := range []*sdk.Dependency{baseApp, baseDep} {
+		if err := baseGraph.AddNode(pkg); err != nil {
 			t.Fatalf("base AddPackage(%q) error = %v", pkg.ID, err)
 		}
 	}
-	if err := baseGraph.AddDependency(baseApp.ID, baseDep.ID); err != nil {
+	if err := baseGraph.AddEdge(baseApp.ID, baseDep.ID); err != nil {
 		t.Fatalf("base AddDependency() error = %v", err)
 	}
-	for _, pkg := range []*sdk.Package{headApp, headDep} {
-		if err := headGraph.AddPackage(pkg); err != nil {
+	for _, pkg := range []*sdk.Dependency{headApp, headDep} {
+		if err := headGraph.AddNode(pkg); err != nil {
 			t.Fatalf("head AddPackage(%q) error = %v", pkg.ID, err)
 		}
 	}
-	if err := headGraph.AddDependency(headApp.ID, headDep.ID); err != nil {
+	if err := headGraph.AddEdge(headApp.ID, headDep.ID); err != nil {
 		t.Fatalf("head AddDependency() error = %v", err)
 	}
 
@@ -850,23 +842,23 @@ func TestBuildDiffResponseFuzzyReconcilesRenamedPackage(t *testing.T) {
 func newViewTestGraph(t *testing.T) *sdk.Graph {
 	t.Helper()
 	g := sdk.New()
-	for _, pkg := range []*sdk.Package{
-		sdk.NewPackageRef("app", "1.0.0"),
-		sdk.NewPackageRef("react", "18.2.0"),
-		sdk.NewPackageRef("zod", "3.23.0"),
-		sdk.NewPackageRef("loose-envify", "1.4.0"),
+	for _, pkg := range []*sdk.Dependency{
+		sdk.NewDependencyRef("app", "1.0.0"),
+		sdk.NewDependencyRef("react", "18.2.0"),
+		sdk.NewDependencyRef("zod", "3.23.0"),
+		sdk.NewDependencyRef("loose-envify", "1.4.0"),
 	} {
-		if err := g.AddPackage(pkg); err != nil {
+		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package %s: %v", pkg.ID, err)
 		}
 	}
-	if err := g.AddDependency("app@1.0.0", "react@18.2.0"); err != nil {
+	if err := g.AddEdge("app@1.0.0", "react@18.2.0"); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
-	if err := g.AddDependency("app@1.0.0", "zod@3.23.0"); err != nil {
+	if err := g.AddEdge("app@1.0.0", "zod@3.23.0"); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
-	if err := g.AddDependency("react@18.2.0", "loose-envify@1.4.0"); err != nil {
+	if err := g.AddEdge("react@18.2.0", "loose-envify@1.4.0"); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 	return g

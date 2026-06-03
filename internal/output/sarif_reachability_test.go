@@ -9,36 +9,51 @@ import (
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
 
+// fixtureRegistryWithVuln builds a single-package PURL-keyed registry where
+// `purl` carries one Vulnerability — used by SARIF reachability tests to
+// supply the data the writer now resolves through *sdk.PackageRegistry.
+func fixtureRegistryWithVuln(purl string, vuln model.Vulnerability) *model.PackageRegistry {
+	reg := model.NewPackageRegistry()
+	pkg := reg.Ensure(purl)
+	pkg.Vulnerabilities = []model.Vulnerability{vuln}
+	return reg
+}
+
 func TestWriteSARIFEmitsCodeFlowsAndPropertiesForReachableFinding(t *testing.T) {
-	pkg := &model.Package{Name: "lib", Version: "1.0.0", Ecosystem: "go"}
-	findings := []model.Finding{
-		{
-			ID:       "GHSA-test",
-			Kind:     model.FindingKindVulnerability,
-			Package:  pkg,
-			Severity: "high",
-			Title:    "vuln",
-			Source:   "osv",
-			Reachability: &model.Reachability{
-				Status:   model.ReachabilityReachable,
-				Tier:     model.TierSymbol,
-				Analyzer: "govulncheck",
-				Reason:   "called-from-app",
-				CallPaths: []model.CallPath{
-					{
-						Sink: model.AffectedSymbol{Symbol: "Decode", Package: "lib"},
-						Frames: []model.CallFrame{
-							{Function: "main", Package: "main", Position: model.SourcePosition{File: "main.go", Line: 12, Column: 4}},
-							{Function: "Decode", Package: "lib", Position: model.SourcePosition{File: "lib/decode.go", Line: 88}},
-						},
+	const purl = "pkg:go/lib@1.0.0"
+	reg := fixtureRegistryWithVuln(purl, model.Vulnerability{
+		ID:    "GHSA-test",
+		Title: "vuln",
+		Reachability: &model.Reachability{
+			Status:   model.ReachabilityReachable,
+			Tier:     model.TierSymbol,
+			Analyzer: "govulncheck",
+			Reason:   "called-from-app",
+			CallPaths: []model.CallPath{
+				{
+					Sink: model.AffectedSymbol{Symbol: "Decode", Package: "lib"},
+					Frames: []model.CallFrame{
+						{Function: "main", Package: "main", Position: model.SourcePosition{File: "main.go", Line: 12, Column: 4}},
+						{Function: "Decode", Package: "lib", Position: model.SourcePosition{File: "lib/decode.go", Line: 88}},
 					},
 				},
 			},
 		},
+	})
+	findings := []model.Finding{
+		{
+			ID:              "GHSA-test",
+			VulnerabilityID: "GHSA-test",
+			Kind:            model.FindingKindVulnerability,
+			PackageRef:      purl,
+			Severity:        "high",
+			Title:           "vuln",
+			Source:          "osv",
+		},
 	}
 
 	var buf bytes.Buffer
-	if err := WriteSARIF(&buf, findings, "bomly", "test", SARIFOptions{IncludeReachability: true}); err != nil {
+	if err := WriteSARIF(&buf, findings, reg, "bomly", "test", SARIFOptions{IncludeReachability: true}); err != nil {
 		t.Fatalf("WriteSARIF error: %v", err)
 	}
 
@@ -59,29 +74,33 @@ func TestWriteSARIFEmitsCodeFlowsAndPropertiesForReachableFinding(t *testing.T) 
 }
 
 func TestWriteSARIFOmitsReachabilityWhenDisabled(t *testing.T) {
-	pkg := &model.Package{Name: "lib", Version: "1.0.0", Ecosystem: "go"}
+	const purl = "pkg:go/lib@1.0.0"
+	reg := fixtureRegistryWithVuln(purl, model.Vulnerability{
+		ID:      "GHSA-test",
+		FixedIn: "1.0.1",
+		Reachability: &model.Reachability{
+			Status: model.ReachabilityReachable,
+			Tier:   model.TierSymbol,
+			CallPaths: []model.CallPath{{
+				Sink:   model.AffectedSymbol{Symbol: "Decode", Package: "lib"},
+				Frames: []model.CallFrame{{Function: "main", Package: "main", Position: model.SourcePosition{File: "main.go", Line: 12}}},
+			}},
+		},
+	})
 	findings := []model.Finding{
 		{
-			ID:       "GHSA-test",
-			Kind:     model.FindingKindVulnerability,
-			Package:  pkg,
-			Severity: "high",
-			Title:    "vuln",
-			Source:   "osv",
-			FixedIn:  "1.0.1",
-			Reachability: &model.Reachability{
-				Status: model.ReachabilityReachable,
-				Tier:   model.TierSymbol,
-				CallPaths: []model.CallPath{{
-					Sink:   model.AffectedSymbol{Symbol: "Decode", Package: "lib"},
-					Frames: []model.CallFrame{{Function: "main", Package: "main", Position: model.SourcePosition{File: "main.go", Line: 12}}},
-				}},
-			},
+			ID:              "GHSA-test",
+			VulnerabilityID: "GHSA-test",
+			Kind:            model.FindingKindVulnerability,
+			PackageRef:      purl,
+			Severity:        "high",
+			Title:           "vuln",
+			Source:          "osv",
 		},
 	}
 
 	var buf bytes.Buffer
-	if err := WriteSARIF(&buf, findings, "bomly", "test", SARIFOptions{IncludeReachability: false}); err != nil {
+	if err := WriteSARIF(&buf, findings, reg, "bomly", "test", SARIFOptions{IncludeReachability: false}); err != nil {
 		t.Fatalf("WriteSARIF error: %v", err)
 	}
 	if strings.Contains(buf.String(), `"codeFlows"`) {
@@ -96,12 +115,13 @@ func TestWriteSARIFOmitsReachabilityWhenDisabled(t *testing.T) {
 }
 
 func TestWriteSARIFOmitsCodeFlowsWhenNoReachability(t *testing.T) {
-	pkg := &model.Package{Name: "lib", Version: "1.0.0", Ecosystem: "go"}
+	const purl = "pkg:go/lib@1.0.0"
+	reg := fixtureRegistryWithVuln(purl, model.Vulnerability{ID: "X"})
 	findings := []model.Finding{
-		{ID: "X", Kind: model.FindingKindVulnerability, Package: pkg, Severity: "high", Title: "x", Source: "osv"},
+		{ID: "X", VulnerabilityID: "X", Kind: model.FindingKindVulnerability, PackageRef: purl, Severity: "high", Title: "x", Source: "osv"},
 	}
 	var buf bytes.Buffer
-	if err := WriteSARIF(&buf, findings, "bomly", "test"); err != nil {
+	if err := WriteSARIF(&buf, findings, reg, "bomly", "test"); err != nil {
 		t.Fatal(err)
 	}
 	if strings.Contains(buf.String(), `"codeFlows"`) {

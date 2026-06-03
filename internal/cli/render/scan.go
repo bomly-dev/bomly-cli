@@ -30,7 +30,10 @@ func ScanGraphDisplayName(g *sdk.Graph, fallback string) string {
 }
 
 // Scan returns the human-readable text report for a scan command.
-func Scan(manifests []output.ScanManifest, g *sdk.Graph, findings []sdk.Finding, enrichEnabled, auditEnabled, reachabilityEnabled bool) string {
+// registry, when non-nil, supplies matching-stage enrichment (vulnerabilities,
+// scorecards, licenses learned during matching) which is folded into the
+// rendered summaries and tables. Pass nil for a detection-only render.
+func Scan(manifests []output.ScanManifest, g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, enrichEnabled, auditEnabled, reachabilityEnabled bool) string {
 	var b strings.Builder
 
 	if g == nil {
@@ -44,13 +47,13 @@ func Scan(manifests []output.ScanManifest, g *sdk.Graph, findings []sdk.Finding,
 	fmt.Fprintf(&b, "  Packages: %d total\n", g.Size())
 	fmt.Fprintf(&b, "  Relationships: %d root, %d direct, %d transitive\n", roots, direct, transitive)
 	fmt.Fprintf(&b, "  Scopes: %d runtime, %d development, %d unspecified\n", runtimeCount, developmentCount, unknownScopeCount)
-	fmt.Fprintf(&b, "  Vulnerability enrichment: %s\n", formatEnrichmentSummary(g, enrichEnabled))
+	fmt.Fprintf(&b, "  Vulnerability enrichment: %s\n", formatEnrichmentSummary(registry, enrichEnabled))
 	fmt.Fprintf(&b, "  Policy findings: %s\n", formatAuditSummary(summary, auditEnabled))
 	if reachabilityEnabled {
-		fmt.Fprintf(&b, "  Reachability: %s\n", formatReachabilitySummary(g))
+		fmt.Fprintf(&b, "  Reachability: %s\n", formatReachabilitySummary(registry))
 	}
-	fmt.Fprintf(&b, "  Unique licenses: %d\n", scanUniqueLicenseCount(g))
-	if scoredCount, totalRepos := scorecardCounts(g); totalRepos > 0 {
+	fmt.Fprintf(&b, "  Unique licenses: %d\n", scanUniqueLicenseCount(g, registry))
+	if scoredCount, totalRepos := scorecardCounts(registry); totalRepos > 0 {
 		fmt.Fprintf(&b, "  Project posture: %d Scorecard run(s) across %d package(s)\n", totalRepos, scoredCount)
 	}
 
@@ -58,7 +61,7 @@ func Scan(manifests []output.ScanManifest, g *sdk.Graph, findings []sdk.Finding,
 	b.WriteString(renderScanManifestTable(manifests))
 
 	b.WriteString("\nDependency Inventory\n")
-	b.WriteString(renderScanGraphTable(g))
+	b.WriteString(renderScanGraphTable(g, registry))
 
 	b.WriteString("\n\nPolicy Findings\n")
 	if len(findings) == 0 {
@@ -90,16 +93,22 @@ func Scan(manifests []output.ScanManifest, g *sdk.Graph, findings []sdk.Finding,
 			_, _ = fmt.Fprintln(tw, "SEVERITY\tID\tPACKAGE\tFIXED IN\tEXPLOITABILITY\tTITLE\tSOURCE")
 		}
 		for _, f := range sorted {
-			// TODO(batch-6): plumb *sdk.PackageRegistry through so we can
-			// resolve PackageRef → Name@Version, and look up the specific
-			// vulnerability (via f.VulnerabilityID) to surface CVSS / EPSS /
-			// KEV / CWE / fix-state / reachability columns. Reference findings
-			// intentionally carry no inlined enrichment data.
+			pkg, vuln := lookupFindingPkgAndVuln(registry, f)
 			pkgName := f.PackageRef
+			if pkg != nil && pkg.Name != "" {
+				if pkg.Version != "" {
+					pkgName = pkg.Name + "@" + pkg.Version
+				} else {
+					pkgName = pkg.Name
+				}
+			}
 			if pkgName == "" {
 				pkgName = "-"
 			}
 			title := f.Title
+			if title == "" && vuln != nil {
+				title = vuln.Title
+			}
 			if title == "" {
 				title = f.ID
 			}
@@ -108,9 +117,25 @@ func Scan(manifests []output.ScanManifest, g *sdk.Graph, findings []sdk.Finding,
 			}
 			fixedIn := "-"
 			exploitability := "-"
+			reachCell := "-"
+			if vuln != nil {
+				if vuln.FixedIn != "" {
+					fixedIn = vuln.FixedIn
+				} else if len(vuln.FixedVersions) > 0 {
+					fixedIn = vuln.FixedVersions[0]
+				}
+				if vuln.KEVExploited {
+					exploitability = "KEV"
+				} else if len(vuln.EPSS) > 0 {
+					exploitability = fmt.Sprintf("EPSS %.2f", vuln.EPSS[0].EPSS)
+				}
+				if reachabilityEnabled {
+					reachCell = formatReachabilityCell(vuln.Reachability)
+				}
+			}
 			if reachabilityEnabled {
 				_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
-					f.Severity, f.ID, pkgName, "-", fixedIn, exploitability, title, f.Source)
+					f.Severity, f.ID, pkgName, reachCell, fixedIn, exploitability, title, f.Source)
 			} else {
 				_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
 					f.Severity, f.ID, pkgName, fixedIn, exploitability, title, f.Source)
@@ -120,9 +145,9 @@ func Scan(manifests []output.ScanManifest, g *sdk.Graph, findings []sdk.Finding,
 	}
 
 	b.WriteString("\nLicense Overview\n")
-	b.WriteString(renderUniqueLicensesTable(g))
+	b.WriteString(renderUniqueLicensesTable(g, registry))
 
-	if posture := renderScorecardTable(g); posture != "" {
+	if posture := renderScorecardTable(registry); posture != "" {
 		b.WriteString("\n\nProject Posture\n")
 		b.WriteString(posture)
 	}
@@ -146,7 +171,51 @@ func severityRankTable(s string) int {
 	}
 }
 
-func renderUniqueLicensesTable(g *sdk.Graph) string {
+// lookupFindingPkgAndVuln resolves a Finding against the registry, returning
+// the matched Package and the specific Vulnerability it references (if any).
+// Either return value may be nil.
+func lookupFindingPkgAndVuln(registry *sdk.PackageRegistry, f sdk.Finding) (*sdk.Package, *sdk.Vulnerability) {
+	if registry == nil || f.PackageRef == "" {
+		return nil, nil
+	}
+	pkg, ok := registry.Get(f.PackageRef)
+	if !ok || pkg == nil {
+		return nil, nil
+	}
+	vulnID := f.VulnerabilityID
+	if vulnID == "" {
+		vulnID = f.ID
+	}
+	if vulnID == "" {
+		return pkg, nil
+	}
+	for i := range pkg.Vulnerabilities {
+		v := &pkg.Vulnerabilities[i]
+		if v.ID == vulnID {
+			return pkg, v
+		}
+		for _, alias := range v.Aliases {
+			if alias == vulnID {
+				return pkg, v
+			}
+		}
+	}
+	return pkg, nil
+}
+
+// licensesForDependency returns the licenses to render for a dependency:
+// matching-stage licenses on the registry package when present, otherwise
+// the detection-time licenses stashed on the dependency.
+func licensesForDependency(dep *sdk.Dependency, registry *sdk.PackageRegistry) []sdk.PackageLicense {
+	if registry != nil && dep != nil && dep.PURL != "" {
+		if pkg, ok := registry.Get(dep.PURL); ok && pkg != nil && len(pkg.Licenses) > 0 {
+			return pkg.Licenses
+		}
+	}
+	return sdk.DetectionLicenses(dep)
+}
+
+func renderUniqueLicensesTable(g *sdk.Graph, registry *sdk.PackageRegistry) string {
 	if g == nil || g.Size() == 0 {
 		return "(no packages)\n"
 	}
@@ -163,10 +232,7 @@ func renderUniqueLicensesTable(g *sdk.Graph) string {
 		if pkg == nil {
 			continue
 		}
-		// TODO(batch-6): licenses now live on registry packages; iterate
-		// sdk.DetectionLicenses(pkg) here until a *sdk.PackageRegistry is
-		// plumbed through and we can read pkg.Licenses from the registry.
-		for _, license := range sdk.DetectionLicenses(pkg) {
+		for _, license := range licensesForDependency(pkg, registry) {
 			identifier := graphLicenseIdentifier(license)
 			if identifier == "" {
 				continue
@@ -266,23 +332,55 @@ func formatReachabilityCell(r *sdk.Reachability) string {
 }
 
 // formatReachabilitySummary tallies reachability outcomes across the
-// graph's package vulnerabilities for the executive summary.
-// TODO(batch-6): the following summaries previously walked graph packages for
-// vulnerability/reachability data. With the PURL registry split, that data
-// lives on registry packages — plumb *sdk.PackageRegistry through Scan() and
-// read it from there.
-func formatReachabilitySummary(g *sdk.Graph) string {
-	if g == nil || g.Size() == 0 {
+// registry's vulnerabilities for the executive summary.
+func formatReachabilitySummary(registry *sdk.PackageRegistry) string {
+	if registry == nil || registry.Len() == 0 {
 		return "no vulnerabilities analyzed"
 	}
-	return "enabled (counts pending registry plumbing)"
+	var reachable, unreachable, unknown int
+	for _, pkg := range registry.All() {
+		if pkg == nil {
+			continue
+		}
+		for _, v := range pkg.Vulnerabilities {
+			if v.Reachability == nil {
+				continue
+			}
+			switch v.Reachability.Status {
+			case sdk.ReachabilityReachable:
+				reachable++
+			case sdk.ReachabilityUnreachable:
+				unreachable++
+			default:
+				unknown++
+			}
+		}
+	}
+	total := reachable + unreachable + unknown
+	if total == 0 {
+		return "no vulnerabilities analyzed"
+	}
+	return fmt.Sprintf("%d reachable, %d unreachable, %d unknown", reachable, unreachable, unknown)
 }
 
-func formatEnrichmentSummary(g *sdk.Graph, enrichEnabled bool) string {
+func formatEnrichmentSummary(registry *sdk.PackageRegistry, enrichEnabled bool) string {
 	if !enrichEnabled {
 		return "disabled"
 	}
-	return "enabled (counts pending registry plumbing)"
+	if registry == nil {
+		return "enabled (no enrichment data available)"
+	}
+	var packages, vulns int
+	for _, pkg := range registry.All() {
+		if pkg == nil {
+			continue
+		}
+		if len(pkg.Vulnerabilities) > 0 || pkg.Matched {
+			packages++
+		}
+		vulns += len(pkg.Vulnerabilities)
+	}
+	return fmt.Sprintf("enabled (%d packages enriched, %d vulnerabilities)", packages, vulns)
 }
 
 func renderScanManifestTable(manifests []output.ScanManifest) string {
@@ -376,16 +474,13 @@ func scanScopeCounts(g *sdk.Graph) (runtimeCount, developmentCount, unknownCount
 	return runtimeCount, developmentCount, unknownCount
 }
 
-func scanUniqueLicenseCount(g *sdk.Graph) int {
+func scanUniqueLicenseCount(g *sdk.Graph, registry *sdk.PackageRegistry) int {
 	if g == nil {
 		return 0
 	}
 	licenseSet := make(map[string]struct{})
 	for _, pkg := range g.Nodes() {
-		// TODO(batch-6): license enrichment lives on registry packages; this
-		// counts only detection-time license facts until the registry is
-		// plumbed through Scan().
-		for _, license := range sdk.DetectionLicenses(pkg) {
+		for _, license := range licensesForDependency(pkg, registry) {
 			switch {
 			case strings.TrimSpace(license.SPDXExpression) != "":
 				licenseSet[license.SPDXExpression] = struct{}{}
@@ -397,7 +492,7 @@ func scanUniqueLicenseCount(g *sdk.Graph) int {
 	return len(licenseSet)
 }
 
-func renderScanGraphTable(g *sdk.Graph) string {
+func renderScanGraphTable(g *sdk.Graph, registry *sdk.PackageRegistry) string {
 	if g == nil || g.Size() == 0 {
 		return "(empty graph)"
 	}
@@ -430,15 +525,19 @@ func renderScanGraphTable(g *sdk.Graph) string {
 			}
 		}
 
+		licenseIdents := make([]string, 0, 4)
+		for _, lic := range licensesForDependency(pkg, registry) {
+			if id := graphLicenseIdentifier(lic); id != "" {
+				licenseIdents = append(licenseIdents, id)
+			}
+		}
 		rows = append(rows, row{
 			name:         pkg.DisplayName(),
 			version:      pkg.Version,
 			scope:        string(pkg.PrimaryScope()),
 			relationship: relationship,
-			// TODO(batch-6): pull license identifiers from the registry package
-			// once *sdk.PackageRegistry is plumbed through Scan().
-			licenses: "",
-			id:       pkg.ID,
+			licenses:     strings.Join(licenseIdents, ", "),
+			id:           pkg.ID,
 		})
 	}
 
@@ -471,25 +570,32 @@ func renderScanGraphTable(g *sdk.Graph) string {
 	return strings.TrimRight(b.String(), "\n")
 }
 
-// scorecardCounts returns (packagesEnriched, uniqueRepos) for the graph.
-//
-// TODO(batch-6): Scorecard enrichment lives on registry packages; counts will
-// return zero until *sdk.PackageRegistry is plumbed through Scan().
-func scorecardCounts(g *sdk.Graph) (int, int) {
-	_ = g
-	return 0, 0
+// scorecardCounts returns (packagesEnriched, uniqueRepos) over the registry.
+func scorecardCounts(registry *sdk.PackageRegistry) (int, int) {
+	if registry == nil {
+		return 0, 0
+	}
+	packages := 0
+	repos := make(map[string]struct{})
+	for _, pkg := range registry.All() {
+		if pkg == nil || pkg.Scorecard == nil {
+			continue
+		}
+		packages++
+		if pkg.Scorecard.Repository != "" {
+			repos[pkg.Scorecard.Repository] = struct{}{}
+		}
+	}
+	return packages, len(repos)
 }
 
 // renderScorecardTable renders one row per unique source repo enriched by the
 // scorecard matcher. Returns the empty string when no packages carry a
 // Scorecard run, so callers can skip the section header entirely.
-func renderScorecardTable(g *sdk.Graph) string {
-	// TODO(batch-6): Scorecard data lives on registry packages. Returns
-	// empty string until *sdk.PackageRegistry is plumbed through Scan().
-	_ = g
-	return ""
-	// preserved for batch-6 reference (unreachable below):
-	//nolint:govet
+func renderScorecardTable(registry *sdk.PackageRegistry) string {
+	if registry == nil || registry.Len() == 0 {
+		return ""
+	}
 	type row struct {
 		repo     string
 		score    float64
@@ -498,6 +604,31 @@ func renderScorecardTable(g *sdk.Graph) string {
 		packages int
 	}
 	byRepo := make(map[string]*row)
+	for _, pkg := range registry.All() {
+		if pkg == nil || pkg.Scorecard == nil {
+			continue
+		}
+		sc := pkg.Scorecard
+		key := sc.Repository
+		if key == "" {
+			key = pkg.PURL
+		}
+		r, ok := byRepo[key]
+		if !ok {
+			r = &row{repo: key, score: -1}
+			byRepo[key] = r
+		}
+		r.packages++
+		if sc.AggregateScore > r.score {
+			r.score = sc.AggregateScore
+		}
+		if !sc.RunDate.IsZero() && r.runDate == "" {
+			r.runDate = sc.RunDate.Format("2006-01-02")
+		}
+		if sc.ScorecardVersion != "" && r.version == "" {
+			r.version = sc.ScorecardVersion
+		}
+	}
 	if len(byRepo) == 0 {
 		return ""
 	}

@@ -195,15 +195,15 @@ func TestComputeOverviewStats_ScopesAreStatusComposite(t *testing.T) {
 func TestComputeOverviewStats_RelationshipsScopedToChanges(t *testing.T) {
 	// Build a head graph where react is root, lodash is direct, otherwise transitive.
 	g := sdk.New()
-	react := sdk.NewPackageRef("react", "19.0.0")
-	lodash := sdk.NewPackageRef("lodash", "4.17.20")
-	if err := g.AddPackage(react); err != nil {
+	react := sdk.NewDependencyRef("react", "19.0.0")
+	lodash := sdk.NewDependencyRef("lodash", "4.17.20")
+	if err := g.AddNode(react); err != nil {
 		t.Fatalf("add react: %v", err)
 	}
-	if err := g.AddPackage(lodash); err != nil {
+	if err := g.AddNode(lodash); err != nil {
 		t.Fatalf("add lodash: %v", err)
 	}
-	if err := g.AddDependency(react.ID, lodash.ID); err != nil {
+	if err := g.AddEdge(react.ID, lodash.ID); err != nil {
 		t.Fatalf("add dep: %v", err)
 	}
 
@@ -251,14 +251,14 @@ func TestComputeOverviewStats_RemovedPkgUsesBaseGraphForRelationship(t *testing.
 	// head graph that does NOT contain it. The Overview must classify it
 	// as "removed direct", not "removed unknown".
 	baseG := sdk.New()
-	root := sdk.NewPackageRef("root", "1")
-	old := sdk.NewPackageRef("old-pkg", "1.0.0")
-	for _, p := range []*sdk.Package{root, old} {
-		if err := baseG.AddPackage(p); err != nil {
+	root := sdk.NewDependencyRef("root", "1")
+	old := sdk.NewDependencyRef("old-pkg", "1.0.0")
+	for _, p := range []*sdk.Dependency{root, old} {
+		if err := baseG.AddNode(p); err != nil {
 			t.Fatalf("add: %v", err)
 		}
 	}
-	if err := baseG.AddDependency(root.ID, old.ID); err != nil {
+	if err := baseG.AddEdge(root.ID, old.ID); err != nil {
 		t.Fatalf("dep: %v", err)
 	}
 
@@ -706,19 +706,19 @@ func TestIsVulnerabilityFinding_KindFirstThenFallback(t *testing.T) {
 func TestClassifyRelationships(t *testing.T) {
 	// Build: root1 -> child1 -> grandchild1; root2 (no children).
 	g := sdk.New()
-	root1 := sdk.NewPackageRef("root1", "1")
-	root2 := sdk.NewPackageRef("root2", "1")
-	child := sdk.NewPackageRef("child", "1")
-	grandchild := sdk.NewPackageRef("grandchild", "1")
-	for _, p := range []*sdk.Package{root1, root2, child, grandchild} {
-		if err := g.AddPackage(p); err != nil {
+	root1 := sdk.NewDependencyRef("root1", "1")
+	root2 := sdk.NewDependencyRef("root2", "1")
+	child := sdk.NewDependencyRef("child", "1")
+	grandchild := sdk.NewDependencyRef("grandchild", "1")
+	for _, p := range []*sdk.Dependency{root1, root2, child, grandchild} {
+		if err := g.AddNode(p); err != nil {
 			t.Fatalf("add %s: %v", p.ID, err)
 		}
 	}
-	if err := g.AddDependency(root1.ID, child.ID); err != nil {
+	if err := g.AddEdge(root1.ID, child.ID); err != nil {
 		t.Fatalf("add dep: %v", err)
 	}
-	if err := g.AddDependency(child.ID, grandchild.ID); err != nil {
+	if err := g.AddEdge(child.ID, grandchild.ID); err != nil {
 		t.Fatalf("add dep: %v", err)
 	}
 

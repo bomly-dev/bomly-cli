@@ -224,6 +224,7 @@ func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (o
 	return output.BuildScanResponse(
 		cmdCtx.ProjectDescriptor(),
 		pipeResult.Consolidated,
+		pipeResult.Registry,
 		findings,
 		started,
 		reportOptionsFromPipelineResults(cmdCtx.ResolvedConfig.Reachability, pipeResult),
@@ -259,7 +260,7 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 			Detector:     target.Manifest.DetectorName,
 			Dependency:   explainPackageRef(target.Dependency),
 			Paths:        explainPathsWithStableIDs(target.Paths),
-			Findings:     output.FindingsFromScan(target.Findings),
+			Findings:     output.FindingsFromScan(target.Findings, explainResult.Registry),
 			AuditSummary: output.SummaryFromFindings(target.Findings),
 		})
 	}
@@ -322,7 +323,7 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (o
 		req.Head,
 		diffResult.Base.Consolidated,
 		diffResult.Head.Consolidated,
-		diffAuditOutput(diffResult.Audit),
+		diffAuditOutput(diffResult.Audit, diffResult.Base.Registry, diffResult.Head.Registry),
 		started,
 		reportOptionsFromPipelineResults(o.GetConfig().Reachability, diffResult.Base, diffResult.Head),
 	), nil
@@ -367,8 +368,13 @@ func (a *mcpOptionsAdapter) VulnFixContext(ctx context.Context, req mcp.VulnFixR
 		return mcp.VulnFixResult{}, fmt.Errorf("package %q not found in graph", req.Package)
 	}
 
-	// TODO(batch-6): re-enable vulnerability lookup via *sdk.PackageRegistry plumbed through PipelineResult.
-	var matchedVulns []sdk.Vulnerability = collectVulns(nil, req.VulnID)
+	var registryPkgVulns []sdk.Vulnerability
+	if pipeResult.Registry != nil {
+		if pkg, ok := pipeResult.Registry.Get(dependency.Purl); ok && pkg != nil {
+			registryPkgVulns = pkg.Vulnerabilities
+		}
+	}
+	matchedVulns := collectVulns(registryPkgVulns, req.VulnID)
 	if len(matchedVulns) == 0 {
 		if req.VulnID != "" {
 			return mcp.VulnFixResult{}, fmt.Errorf("vulnerability %q not found for package %q; run with enrich enabled to populate vulnerability data", req.VulnID, req.Package)
@@ -382,7 +388,7 @@ func (a *mcpOptionsAdapter) VulnFixContext(ctx context.Context, req mcp.VulnFixR
 		vulnIDs[i] = v.ID
 	}
 
-	manifests := output.ScanManifestsFromConsolidated(pipeResult.Consolidated)
+	manifests := output.ScanManifestsFromConsolidated(pipeResult.Consolidated, pipeResult.Registry)
 	affectedManifests := mcp.BuildManifestFixTargets(dependency, paths, minSafeVersion, manifests)
 	recommendation := mcp.BuildRecommendationText(dependency, vulnIDs, minSafeVersion, affectedManifests)
 	vulnRefs := output.VulnerabilityRefsFromPackageVulnerabilities(matchedVulns)

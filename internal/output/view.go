@@ -176,16 +176,16 @@ type ExplainTargetResponse struct {
 // BuildScanResponse constructs the structured scan payload from consolidated
 // manifest selections and findings. Reachability metadata (analyzer runs and
 // per-analyzer stats) is attached afterwards via ScanResponse.WithAnalyzerRuns.
-func BuildScanResponse(project ProjectDescriptor, consolidated sdk.ConsolidatedGraph, findings []sdk.Finding, started time.Time, options ...ReportOptions) ScanResponse {
+func BuildScanResponse(project ProjectDescriptor, consolidated sdk.ConsolidatedGraph, registry *sdk.PackageRegistry, findings []sdk.Finding, started time.Time, options ...ReportOptions) ScanResponse {
 	response := ScanResponse{
 		SchemaVersion: SchemaVersion,
 		Command:       "scan",
 		Project:       project,
-		Manifests:     ScanManifestsFromConsolidated(consolidated),
+		Manifests:     ScanManifestsFromConsolidated(consolidated, registry),
 		Metadata:      Metadata{DurationMS: time.Since(started).Milliseconds()},
 	}
 	if len(findings) > 0 {
-		response.Findings = FindingsFromScan(findings)
+		response.Findings = FindingsFromScan(findings, registry)
 		response.AuditSummary = SummaryFromFindings(findings)
 	}
 	return response.WithReportOptions(firstReportOptions(options))
@@ -222,13 +222,15 @@ func (r ScanResponse) WithReportOptions(options ReportOptions) ScanResponse {
 }
 
 // ScanManifestsFromConsolidated converts consolidated manifest selections into stable scan payloads.
-func ScanManifestsFromConsolidated(consolidated sdk.ConsolidatedGraph) []ScanManifest {
+// registry, when non-nil, enriches each manifest's packages with matching-stage
+// data (vulnerabilities / scorecard / etc.) resolved by PURL.
+func ScanManifestsFromConsolidated(consolidated sdk.ConsolidatedGraph, registry *sdk.PackageRegistry) []ScanManifest {
 	manifests := make([]ScanManifest, 0, len(consolidated.Manifests))
 	for idx, manifest := range consolidated.Manifests {
 		if manifest.Entry.Graph == nil {
 			continue
 		}
-		manifests = append(manifests, scanManifestFromConsolidated(manifest, idx))
+		manifests = append(manifests, scanManifestFromConsolidated(manifest, idx, registry))
 	}
 	sort.Slice(manifests, func(i, j int) bool {
 		if manifests[i].Subproject != manifests[j].Subproject {
@@ -245,7 +247,7 @@ func ScanManifestsFromConsolidated(consolidated sdk.ConsolidatedGraph) []ScanMan
 	return manifests
 }
 
-func scanManifestFromConsolidated(manifest sdk.ConsolidatedManifest, idx int) ScanManifest {
+func scanManifestFromConsolidated(manifest sdk.ConsolidatedManifest, idx int, registry *sdk.PackageRegistry) ScanManifest {
 	kind := strings.TrimSpace(manifest.Entry.Manifest.Kind)
 	if kind == "" {
 		kind = "entry-" + strconv.Itoa(idx+1)
@@ -257,7 +259,7 @@ func scanManifestFromConsolidated(manifest sdk.ConsolidatedManifest, idx int) Sc
 		Ecosystem:      string(manifest.Subproject.Ecosystem),
 		PackageManager: manifest.Subproject.PrimaryPackageManager().Name(),
 		Detector:       manifest.DetectorName,
-		Packages:       PackagesFromGraph(manifest.Entry.Graph),
+		Packages:       PackagesFromGraph(manifest.Entry.Graph, registry),
 	}
 }
 

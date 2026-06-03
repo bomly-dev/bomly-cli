@@ -202,6 +202,7 @@ type scanModel struct {
 	titlePrefix           string
 	project               output.ProjectDescriptor
 	graphValue            *sdk.Graph
+	registry              *sdk.PackageRegistry
 	explainMode           bool
 	manifests             []listPackageRow
 	manifestByID          map[string]listPackageRow

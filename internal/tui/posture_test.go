@@ -25,18 +25,23 @@ func newTestScorecardTUI(repo string, score float64, checks ...sdk.PackageScorec
 
 func TestPostureTab_ScanRendersList(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewPackageRef("demo-app", "1.0.0")
-	dep := sdk.NewPackage(sdk.Package{Name: "lib", Version: "1.0.0", Scope: "runtime"})
-	dep.Scorecard = newTestScorecardTUI("github.com/example/lib", 3.5,
+	root := sdk.NewDependencyRef("demo-app", "1.0.0")
+	const libPURL = "pkg:npm/lib@1.0.0"
+	dep := sdk.NewDependency(sdk.Dependency{Name: "lib", Version: "1.0.0", Scopes: sdk.ScopesOf(sdk.ScopeRuntime), PURL: libPURL})
+	registry := sdk.NewPackageRegistry()
+	regLib := registry.Ensure(libPURL)
+	regLib.Name = "lib"
+	regLib.Version = "1.0.0"
+	regLib.Scorecard = newTestScorecardTUI("github.com/example/lib", 3.5,
 		sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 2, Reason: "branch protection disabled"},
 		sdk.PackageScorecardCheck{Name: "Code-Review", Score: 7, Reason: "most changes reviewed"},
 	)
-	for _, pkg := range []*sdk.Package{root, dep} {
-		if err := g.AddPackage(pkg); err != nil {
+	for _, pkg := range []*sdk.Dependency{root, dep} {
+		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
 	}
-	if err := g.AddDependency(root.ID, dep.ID); err != nil {
+	if err := g.AddEdge(root.ID, dep.ID); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 
@@ -56,7 +61,7 @@ func TestPostureTab_ScanRendersList(t *testing.T) {
 		t.Fatalf("ConsolidatedGraph: %v", err)
 	}
 
-	model := NewScan(output.ProjectDescriptor{Name: "demo", Path: "/tmp/demo"}, consolidated, graphValue, nil).WithEnrichEnabled(true)
+	model := NewScan(output.ProjectDescriptor{Name: "demo", Path: "/tmp/demo"}, consolidated, graphValue, nil).WithRegistry(registry).WithEnrichEnabled(true)
 	model.SelectView(6) // Posture is the 6th tab (1-indexed: Overview, Components, Vulns, Licenses, Findings, Posture, Source)
 
 	plain := render.StripANSI(model.View(160, 40))
@@ -77,8 +82,8 @@ func TestPostureTab_ScanRendersList(t *testing.T) {
 
 func TestPostureTab_ScanEmptyStateHints(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewPackageRef("demo-app", "1.0.0")
-	if err := g.AddPackage(root); err != nil {
+	root := sdk.NewDependencyRef("demo-app", "1.0.0")
+	if err := g.AddNode(root); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
 
@@ -109,23 +114,27 @@ func TestPostureTab_ScanEmptyStateHints(t *testing.T) {
 
 func TestPostureRowsFromGraph_DedupesAndSortsWorstFirst(t *testing.T) {
 	g := sdk.New()
-	low := sdk.NewPackage(sdk.Package{Name: "low", Version: "1"})
-	low.Scorecard = newTestScorecardTUI("github.com/low/repo", 2.0)
-	high := sdk.NewPackage(sdk.Package{Name: "high", Version: "1"})
-	high.Scorecard = newTestScorecardTUI("github.com/high/repo", 9.0)
-	mid := sdk.NewPackage(sdk.Package{Name: "mid", Version: "1"})
-	mid.Scorecard = newTestScorecardTUI("github.com/mid/repo", 6.0)
-	monoA := sdk.NewPackage(sdk.Package{Name: "a", Version: "1"})
-	monoA.Scorecard = newTestScorecardTUI("github.com/mono/repo", 7.5)
-	monoB := sdk.NewPackage(sdk.Package{Name: "b", Version: "1"})
-	monoB.Scorecard = newTestScorecardTUI("github.com/mono/repo", 7.5)
-	for _, pkg := range []*sdk.Package{low, high, mid, monoA, monoB} {
-		if err := g.AddPackage(pkg); err != nil {
+	registry := sdk.NewPackageRegistry()
+	add := func(name, purl, repo string, score float64) *sdk.Dependency {
+		dep := sdk.NewDependencyWithID(purl, sdk.Dependency{Name: name, Version: "1", PURL: purl})
+		regPkg := registry.Ensure(purl)
+		regPkg.Name = name
+		regPkg.Version = "1"
+		regPkg.Scorecard = newTestScorecardTUI(repo, score)
+		return dep
+	}
+	low := add("low", "pkg:npm/low@1", "github.com/low/repo", 2.0)
+	high := add("high", "pkg:npm/high@1", "github.com/high/repo", 9.0)
+	mid := add("mid", "pkg:npm/mid@1", "github.com/mid/repo", 6.0)
+	monoA := add("a", "pkg:npm/a@1", "github.com/mono/repo", 7.5)
+	monoB := add("b", "pkg:npm/b@1", "github.com/mono/repo", 7.5)
+	for _, pkg := range []*sdk.Dependency{low, high, mid, monoA, monoB} {
+		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add: %v", err)
 		}
 	}
 
-	rows := postureRowsFromGraph(g)
+	rows := postureRowsFromGraph(g, registry)
 	if len(rows) != 4 {
 		t.Fatalf("expected 4 deduped repos, got %d: %+v", len(rows), rows)
 	}

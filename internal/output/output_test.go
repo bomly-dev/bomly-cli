@@ -9,7 +9,7 @@ import (
 )
 
 func TestPackageRefMarshalJSONAlwaysIncludesLicenses(t *testing.T) {
-	payload, err := json.Marshal(PackageFromGraphPackage(&sdk.Package{Name: "react", Version: "18.2.0"}))
+	payload, err := json.Marshal(PackageFromGraphPackage(&sdk.Dependency{Name: "react", Version: "18.2.0"}))
 	if err != nil {
 		t.Fatalf("Marshal() error = %v", err)
 	}
@@ -19,15 +19,13 @@ func TestPackageRefMarshalJSONAlwaysIncludesLicenses(t *testing.T) {
 }
 
 func TestPackageFromGraphPackageIncludesStructuredLicenses(t *testing.T) {
-	ref := PackageFromGraphPackage(&sdk.Package{
-		Name:    "react",
-		Version: "18.2.0",
-		Licenses: []sdk.PackageLicense{{
-			Value:          "MIT License",
-			SPDXExpression: "MIT",
-			Type:           "external-depsdev",
-		}},
-	})
+	dep := &sdk.Dependency{Name: "react", Version: "18.2.0"}
+	sdk.SetDetectionLicenses(dep, []sdk.PackageLicense{{
+		Value:          "MIT License",
+		SPDXExpression: "MIT",
+		Type:           "external-depsdev",
+	}})
+	ref := PackageFromGraphPackage(dep)
 
 	if len(ref.Licenses) != 1 {
 		t.Fatalf("expected 1 license, got %#v", ref.Licenses)

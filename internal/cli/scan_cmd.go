@@ -88,7 +88,7 @@ func newScanCmd() *cobra.Command {
 			detectionChildren = append(detectionChildren, warningProgressChildren(pipeResult.DetectorWarnings)...)
 			prog.CompleteStep("Detected Dependencies", detectionChildren)
 			if len(pipeResult.MatcherRuns) > 0 || len(pipeResult.MatchWarnings) > 0 {
-				prog.CompleteStep("Enriched packages", matchProgressChildren(pipeResult.Graph, pipeResult.MatcherRuns, pipeResult.MatchWarnings))
+				prog.CompleteStep("Enriched packages", matchProgressChildren(pipeResult.Registry, pipeResult.MatcherRuns, pipeResult.MatchWarnings))
 			}
 
 			consolidated := pipeResult.Consolidated
@@ -100,7 +100,7 @@ func newScanCmd() *cobra.Command {
 				prog.CompleteStep("Evaluated policy", auditProgressChildren(pipeResult.AuditorRuns, pipeResult.AuditorFindings, pipeResult.AuditWarnings))
 			}
 			reportOptions := reportOptionsFromPipelineResults(commandCtx.ResolvedConfig.Reachability, pipeResult)
-			payload := output.BuildScanResponse(commandCtx.ProjectDescriptor(), consolidated, findings, started, reportOptions)
+			payload := output.BuildScanResponse(commandCtx.ProjectDescriptor(), consolidated, pipeResult.Registry, findings, started, reportOptions)
 			markdownRenderer := func(w io.Writer) error {
 				return render.ScanMarkdown(w, payload)
 			}
@@ -125,7 +125,7 @@ func newScanCmd() *cobra.Command {
 						}
 					case spec.Format == render.OutputFormatSARIF:
 						if err := writeRenderedOutput(stdout, spec, func(w io.Writer) error {
-							return output.WriteSARIF(w, findings, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: commandCtx.ResolvedConfig.Reachability})
+							return output.WriteSARIF(w, findings, pipeResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: commandCtx.ResolvedConfig.Reachability})
 						}); err != nil {
 							return err
 						}
@@ -141,7 +141,7 @@ func newScanCmd() *cobra.Command {
 
 			if graphOutputFormat == output.FormatSARIF {
 				prog.Success("Resolved Graph")
-				return output.WriteSARIF(streams.reportWriter(), findings, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: commandCtx.ResolvedConfig.Reachability})
+				return output.WriteSARIF(streams.reportWriter(), findings, pipeResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: commandCtx.ResolvedConfig.Reachability})
 			}
 
 			if commandCtx.ResolvedConfig.Interactive {
@@ -172,7 +172,7 @@ func newScanCmd() *cobra.Command {
 							return err
 						}
 					}
-					_, err := io.WriteString(w, render.Scan(payload.Manifests, selectedGraph, findings, commandCtx.ResolvedConfig.Enrich, commandCtx.ResolvedConfig.Audit, commandCtx.ResolvedConfig.Reachability))
+					_, err := io.WriteString(w, render.Scan(payload.Manifests, selectedGraph, pipeResult.Registry, findings, commandCtx.ResolvedConfig.Enrich, commandCtx.ResolvedConfig.Audit, commandCtx.ResolvedConfig.Reachability))
 					return err
 				},
 			})

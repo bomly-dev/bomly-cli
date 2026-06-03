@@ -9,15 +9,15 @@ import (
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
-func diffAuditOutput(audit *diffengine.Audit) *output.DiffAudit {
+func diffAuditOutput(audit *diffengine.Audit, baseRegistry, headRegistry *sdk.PackageRegistry) *output.DiffAudit {
 	if audit == nil {
 		return nil
 	}
 	combined := append(append([]sdk.Finding{}, audit.Introduced...), audit.Persisted...)
 	return &output.DiffAudit{
-		Introduced:   output.FindingsFromScan(audit.Introduced),
-		Resolved:     output.FindingsFromScan(audit.Resolved),
-		Persisted:    output.FindingsFromScan(audit.Persisted),
+		Introduced:   output.FindingsFromScan(audit.Introduced, headRegistry),
+		Resolved:     output.FindingsFromScan(audit.Resolved, baseRegistry),
+		Persisted:    output.FindingsFromScan(audit.Persisted, headRegistry),
 		AuditSummary: output.SummaryFromFindings(combined),
 	}
 }
@@ -61,7 +61,9 @@ func explainPackageRef(pkg *sdk.Dependency) output.PackageRef {
 	if pkg == nil {
 		return ref
 	}
-	// TODO(batch-6): restore StableID lookup via registry once plumbed.
+	if legacyID := pkg.StableID(); legacyID != "" {
+		ref.ID = legacyID
+	}
 	return ref
 }
 

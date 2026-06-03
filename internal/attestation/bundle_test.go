@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func TestBuildStatementEmbedsSupportedSBOM(t *testing.T) {
@@ -29,12 +31,34 @@ func TestBuildStatementEmbedsSupportedSBOM(t *testing.T) {
 	if got := statement.Predicate.Fields["sbomFormat"].GetStringValue(); got != "spdx-2.3+json" {
 		t.Fatalf("sbomFormat = %q", got)
 	}
+	if raw := statement.Predicate.Fields[sbomRawBase64Field].GetStringValue(); raw == "" {
+		t.Fatal("expected byte-preserving SBOM payload")
+	}
+	if statement.Predicate.Fields["sbom"] != nil {
+		t.Fatal("new predicates should not duplicate the SBOM as a parsed JSON object")
+	}
 }
 
 func TestBuildStatementRejectsUnsupportedSBOM(t *testing.T) {
 	subject := Subject{Name: "file:artifact", Digest: map[string]string{"sha256": strings.Repeat("a", 64)}}
 	if _, err := BuildStatement(subject, []byte(`{"not":"an sbom"}`)); err == nil {
 		t.Fatal("expected unsupported SBOM error")
+	}
+}
+
+func TestSBOMFromPredicateRequiresRawSBOMBytes(t *testing.T) {
+	predicate, err := structpb.NewStruct(map[string]any{
+		"schemaVersion": "experimental/v1",
+		"sbomFormat":    "spdx-2.3+json",
+		"sbomDigest": map[string]any{
+			"sha256": strings.Repeat("a", 64),
+		},
+	})
+	if err != nil {
+		t.Fatalf("build predicate: %v", err)
+	}
+	if _, _, err := sbomFromPredicate(predicate); err == nil || !strings.Contains(err.Error(), "missing required fields") {
+		t.Fatalf("expected missing raw SBOM error, got %v", err)
 	}
 }
 

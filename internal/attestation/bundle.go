@@ -69,10 +69,6 @@ func BuildStatement(subject Subject, sbomBytes []byte) (*intoto.Statement, error
 	if err != nil {
 		return nil, err
 	}
-	var sbomObject map[string]any
-	if err := json.Unmarshal(sbomBytes, &sbomObject); err != nil {
-		return nil, fmt.Errorf("parse sbom json: %w", err)
-	}
 	sum := sha256.Sum256(sbomBytes)
 	predicate, err := structpb.NewStruct(map[string]any{
 		"schemaVersion": "experimental/v1",
@@ -81,7 +77,6 @@ func BuildStatement(subject Subject, sbomBytes []byte) (*intoto.Statement, error
 			"sha256": hex.EncodeToString(sum[:]),
 		},
 		sbomRawBase64Field: base64.StdEncoding.EncodeToString(sbomBytes),
-		"sbom":             sbomObject,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("build sbom predicate: %w", err)
@@ -236,20 +231,13 @@ func sbomFromPredicate(predicate *structpb.Struct) ([]byte, sbom.Target, error) 
 }
 
 func sbomBytesFromPredicate(predicate *structpb.Struct) ([]byte, error) {
-	if rawBase64 := predicate.Fields[sbomRawBase64Field].GetStringValue(); rawBase64 != "" {
-		raw, err := base64.StdEncoding.DecodeString(rawBase64)
-		if err != nil {
-			return nil, fmt.Errorf("decode embedded sbom bytes: %w", err)
-		}
-		return raw, nil
-	}
-	sbomValue := predicate.Fields["sbom"]
-	if sbomValue == nil {
+	rawBase64 := predicate.Fields[sbomRawBase64Field].GetStringValue()
+	if rawBase64 == "" {
 		return nil, fmt.Errorf("sbom predicate is missing required fields")
 	}
-	raw, err := json.Marshal(sbomValue.AsInterface())
+	raw, err := base64.StdEncoding.DecodeString(rawBase64)
 	if err != nil {
-		return nil, fmt.Errorf("marshal embedded sbom: %w", err)
+		return nil, fmt.Errorf("decode embedded sbom bytes: %w", err)
 	}
 	return raw, nil
 }

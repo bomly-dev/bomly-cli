@@ -55,7 +55,7 @@ bomly sbom verify \
 ```
 
 `--extract-sbom` writes only after signature, subject, predicate, and SBOM checks pass.
-Bundles created by current Bomly versions preserve the original SBOM bytes for extraction, including JSON key ordering and whitespace. Older experimental bundles may extract a semantically equivalent JSON document with different formatting.
+Bundles preserve the original SBOM bytes for extraction, including JSON key ordering and whitespace, without duplicating the SBOM as a second parsed JSON object in the predicate.
 
 ## Subjects
 

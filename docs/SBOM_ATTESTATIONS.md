@@ -68,6 +68,46 @@ bomly sbom verify \
 `--extract-sbom` writes only after signature, subject, predicate, and SBOM checks pass.
 Bundles preserve the original SBOM bytes for extraction, including JSON key ordering and whitespace, without duplicating the SBOM as a second parsed JSON object in the predicate.
 
+## How verification works
+
+An attestation is not an encrypted file. Anyone who has the attestation bundle can decode and read the signed payload, including the embedded SBOM. The key is used to prove authenticity, not secrecy.
+
+Think of the bundle as three parts:
+
+| Part | What it means |
+| --- | --- |
+| Payload | The readable claim: subject digest, SBOM digest, predicate type, and embedded SBOM bytes |
+| Signature | A tamper-proof seal over that exact payload |
+| Public key or identity material | Information used to check who made the seal |
+
+The private key creates the signature. The public key checks the signature. The public key does not hide or unlock the payload.
+
+Verification answers this question:
+
+> Was this exact SBOM attestation signed by the holder of the expected private key, and does it describe the exact subject I asked Bomly to verify?
+
+Bomly verifies an SBOM attestation in this order:
+
+1. Decode the readable DSSE payload from the bundle.
+2. Verify the signature over that exact payload.
+3. Resolve the requested subject, such as `file:<path>`, `dir:<path>`, `git`, or `container:<image@sha256:...>`.
+4. Hash the requested subject.
+5. Compare that digest to the subject digest inside the signed payload.
+6. Confirm the predicate type is Bomly's experimental SBOM predicate.
+7. Decode the embedded SBOM bytes.
+8. Parse the SBOM as supported SPDX or CycloneDX JSON.
+9. Hash the embedded SBOM and compare it to the signed SBOM digest.
+10. Write `--extract-sbom` only after all checks pass.
+
+If someone changes the subject digest, SBOM bytes, predicate type, or any other signed payload field, the signature check fails. If someone signs a new fake payload with a different key, verification fails unless you trust and pass that signer's public key.
+
+This means:
+
+- Decoding the payload proves nothing by itself.
+- A valid signature proves the payload was not changed after signing.
+- A trusted public key tells Bomly which signer you expected.
+- An attestation proves a signed claim about an SBOM and subject; it does not prove the SBOM is complete, correct, or secret.
+
 ## Subjects
 
 | Subject | Use for | Behavior |

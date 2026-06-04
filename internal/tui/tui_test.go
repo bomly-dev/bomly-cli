@@ -1282,7 +1282,6 @@ func TestScanInteractiveModel_ComponentTreeExpandsSelectedNode(t *testing.T) {
 		t.Fatalf("expected expanded transitive dependency, got:\n%s", plain)
 	}
 	if !strings.Contains(plain, "└─") && !strings.Contains(plain, "├─") {
-	t.Skip("TODO(batch-6): TUI internals still stub vulnerability/license reads; needs registry-aware list/overview builders.")
 		t.Fatalf("expected component tree to use box-drawing connectors, got:\n%s", plain)
 	}
 }

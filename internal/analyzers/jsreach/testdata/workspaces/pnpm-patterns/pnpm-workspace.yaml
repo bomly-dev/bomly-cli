@@ -1,0 +1,4 @@
+packages:
+  - "packages/**"
+  - "!packages/excluded"
+  - "!packages/private/**"

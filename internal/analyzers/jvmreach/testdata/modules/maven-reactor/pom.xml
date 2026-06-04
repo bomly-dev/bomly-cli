@@ -1,0 +1,10 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.example</groupId>
+  <artifactId>root</artifactId>
+  <modules>
+    <module>app</module>
+    <module>libs</module>
+    <module>unused</module>
+  </modules>
+</project>

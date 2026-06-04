@@ -62,6 +62,10 @@ func walkSourceFiles(root string, fn func(path string) error) (skipped []string,
 				return nil
 			}
 			name := d.Name()
+			if hasProjectMarker(path) {
+				skippedSet[name] = struct{}{}
+				return filepath.SkipDir
+			}
 			if shouldSkipDir(name) {
 				skippedSet[name] = struct{}{}
 				return filepath.SkipDir

@@ -3,6 +3,7 @@ package jsreach
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"runtime/debug"
 
 	"github.com/evanw/esbuild/pkg/api"
@@ -71,6 +72,7 @@ func (r libraryRunner) Run(ctx context.Context, projectDir string) (RunnerResult
 	options := api.BuildOptions{
 		EntryPoints:       entries,
 		AbsWorkingDir:     projectDir,
+		Outdir:            filepath.Join(projectDir, ".bomly-jsreach"),
 		Bundle:            true,
 		Write:             false,
 		Metafile:          true,

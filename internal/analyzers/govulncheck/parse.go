@@ -1,9 +1,9 @@
 package govulncheck
 
 import (
-	"bytes"
+	"bufio"
 	"encoding/json"
-	"io"
+	"strings"
 
 	model "github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
@@ -63,13 +63,15 @@ func parseGovulncheckJSON(data []byte) (RunnerResult, error) {
 	osvAliases := make(map[string][]string)
 	osvSummaries := make(map[string]string)
 
-	dec := json.NewDecoder(bytes.NewReader(data))
-	for {
+	scanner := bufio.NewScanner(strings.NewReader(string(data)))
+	scanner.Buffer(make([]byte, 0, 64*1024), 10<<20)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" {
+			continue
+		}
 		var env envelope
-		if err := dec.Decode(&env); err != nil {
-			if err == io.EOF {
-				break
-			}
+		if err := json.Unmarshal([]byte(line), &env); err != nil {
 			// Skip malformed records rather than aborting the whole
 			// parse — govulncheck occasionally emits records the
 			// schema doesn't model and we don't want one bad envelope
@@ -86,6 +88,9 @@ func parseGovulncheckJSON(data []byte) (RunnerResult, error) {
 			continue
 		}
 		mergeFinding(result.Findings, result.ImportedModules, *env.Finding)
+	}
+	if err := scanner.Err(); err != nil {
+		return RunnerResult{}, err
 	}
 
 	for id, f := range result.Findings {

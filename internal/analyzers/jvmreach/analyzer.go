@@ -3,6 +3,7 @@ package jvmreach
 import (
 	"context"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -63,12 +64,12 @@ func (a Analyzer) Applicable(_ context.Context, req model.AnalyzeRequest) (bool,
 	if req.Graph == nil || req.Registry == nil {
 		return false, nil
 	}
-	for _, dep := range req.Graph.Nodes() {
-		if dep == nil || !isJVMPackage(dep) {
+	for _, pkg := range req.Graph.Nodes() {
+		if pkg == nil || !isJVMPackage(pkg) {
 			continue
 		}
-		pkg, ok := req.Registry.Get(dependencyPURL(dep))
-		if !ok || pkg == nil || len(pkg.Vulnerabilities) == 0 {
+		regPkg, ok := req.Registry.Get(dependencyPURL(pkg))
+		if !ok || regPkg == nil || len(regPkg.Vulnerabilities) == 0 {
 			continue
 		}
 		return true, nil
@@ -84,12 +85,13 @@ func dependencyPURL(dep *model.Dependency) string {
 	if dep.PackageRef != "" {
 		return dep.PackageRef
 	}
-	return model.CanonicalPackageURLFromDependency(dep)
+	return dep.PURL
 }
 
-// vulnerabilitiesForDependency returns the registry vulnerabilities for a
-// dependency node, or nil when the package is absent from the registry.
-func vulnerabilitiesForDependency(req model.AnalyzeRequest, dep *model.Dependency) []model.Vulnerability {
+// vulnerabilitiesForDep returns the registry slice for a dependency. The
+// caller may mutate the returned slice in place; entries live on the
+// shared backing array owned by the registry package.
+func vulnerabilitiesForDep(req model.AnalyzeRequest, dep *model.Dependency) []model.Vulnerability {
 	if req.Registry == nil || dep == nil {
 		return nil
 	}
@@ -102,7 +104,7 @@ func vulnerabilitiesForDependency(req model.AnalyzeRequest, dep *model.Dependenc
 
 func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.AnalyzeResult, error) {
 	logger := a.logger()
-	if req.Graph == nil || req.Registry == nil {
+	if req.Graph == nil {
 		return model.AnalyzeResult{}, nil
 	}
 	runner := a.Runner
@@ -111,25 +113,26 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 	}
 
 	overallStart := time.Now()
-	projectRoots := discoverProjectRoots(req)
-	if len(projectRoots) == 0 {
+	hierarchies := discoverModuleHierarchies(req)
+	if len(hierarchies) == 0 {
 		logger.Info("jvmreach: no JVM project roots discovered; marking all JVM vulnerabilities as unknown")
 		annotateAllUnknown(req, "no-project-root-discovered", time.Now())
-		return resultForRequest(), nil
+		return resultFromRequest(req), nil
 	}
 
 	logger.Info("jvmreach: starting reachability analysis",
 		zap.String("runner", runner.Name()),
 		zap.String("runner_version", runner.Version()),
-		zap.Int("project_roots", len(projectRoots)),
+		zap.Int("module_hierarchies", len(hierarchies)),
 		zap.Bool("cache_enabled", !a.DisableCache),
 	)
-	logger.Debug("jvmreach: discovered project roots", zap.Strings("paths", projectRoots))
+	logger.Debug("jvmreach: discovered module hierarchies", zap.Strings("paths", moduleHierarchyRoots(hierarchies)))
 
 	cache := a.cache()
 	stats := model.ReachabilityStats{}
 	cacheHits, cacheMisses := 0, 0
-	for _, root := range projectRoots {
+	for _, hierarchy := range hierarchies {
+		root := hierarchy.Root
 		select {
 		case <-ctx.Done():
 			logger.Info("jvmreach: context cancelled; skipping project",
@@ -140,33 +143,26 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		}
 
 		projectStart := time.Now()
-		runResult, fromCache, err := a.runWithCache(ctx, runner, cache, root, logger)
-		if err != nil {
-			logger.Warn("jvmreach: runner failed",
-				zap.String("project_root", root),
-				zap.String("runner", runner.Name()),
-				zap.Duration("duration", time.Since(projectStart)),
-				zap.Error(err))
-			reason := failureReason(err)
-			added := annotateProjectUnknown(req, root, reason, time.Now())
-			stats.Unknown += added
-			continue
-		}
-		if fromCache {
-			cacheHits++
+		closure, hits, misses := a.analyzeModuleHierarchy(ctx, runner, cache, hierarchy, logger)
+		cacheHits += hits
+		cacheMisses += misses
+		var applied applyOutcome
+		if closure.incomplete {
+			added := annotateProjectUnknown(req, root, closure.reason, time.Now())
+			applied.unknown += added
 		} else {
-			cacheMisses++
+			applied = applyImportedArtifactSeeds(req, root, closure.importedArtifacts, closure.dynamicImports, time.Now())
 		}
-		applied := applyRunnerResult(req, root, runResult, time.Now())
 		stats.Reachable += applied.reachable
 		stats.Unreachable += applied.unreachable
 		stats.Unknown += applied.unknown
-		logger.Info("jvmreach: completed project",
+		logger.Info("jvmreach: completed module hierarchy",
 			zap.String("project_root", root),
 			zap.String("runner", runner.Name()),
-			zap.Bool("cache_hit", fromCache),
-			zap.Int("source_files", runResult.SourceFiles),
-			zap.Int("imported_artifacts", len(runResult.ImportedArtifacts)),
+			zap.Int("modules", len(hierarchy.Modules)),
+			zap.Int("cache_hits", hits),
+			zap.Int("cache_misses", misses),
+			zap.Int("imported_artifacts", len(closure.importedArtifacts)),
 			zap.Int("reachable", applied.reachable),
 			zap.Int("unreachable", applied.unreachable),
 			zap.Duration("duration", time.Since(projectStart)),
@@ -175,7 +171,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 
 	logger.Info("jvmreach: completed reachability analysis",
 		zap.String("runner", runner.Name()),
-		zap.Int("projects", len(projectRoots)),
+		zap.Int("module_hierarchies", len(hierarchies)),
 		zap.Int("cache_hits", cacheHits),
 		zap.Int("cache_misses", cacheMisses),
 		zap.Int("reachable", stats.Reachable),
@@ -184,9 +180,170 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		zap.Duration("duration", time.Since(overallStart)),
 	)
 
-	out := resultForRequest()
+	out := resultFromRequest(req)
 	out.AnalyzerStats = map[string]model.ReachabilityStats{Name: stats}
 	return out, nil
+}
+
+type moduleClosure struct {
+	importedArtifacts map[string]int
+	dynamicImports    bool
+	incomplete        bool
+	reason            string
+}
+
+func moduleHierarchyRoots(hierarchies []moduleHierarchy) []string {
+	roots := make([]string, 0, len(hierarchies))
+	for _, hierarchy := range hierarchies {
+		roots = append(roots, hierarchy.Root)
+	}
+	return roots
+}
+
+func (a Analyzer) analyzeModuleHierarchy(
+	ctx context.Context,
+	runner Runner,
+	cache *resultCache,
+	hierarchy moduleHierarchy,
+	logger *zap.Logger,
+) (moduleClosure, int, int) {
+	results := make(map[string]RunnerResult, len(hierarchy.Modules))
+	failures := make(map[string]error)
+	hits, misses := 0, 0
+	for _, module := range hierarchy.Modules {
+		result, hit, err := a.runWithCache(ctx, runner, cache, module.Dir, logger)
+		if err != nil {
+			failures[module.Dir] = err
+			logger.Warn("jvmreach: module runner failed",
+				zap.String("hierarchy_root", hierarchy.Root),
+				zap.String("module", module.Dir),
+				zap.Error(err))
+			continue
+		}
+		if hit {
+			hits++
+		} else {
+			misses++
+		}
+		results[module.Dir] = result
+	}
+	if len(hierarchy.Modules) == 1 {
+		module := hierarchy.Modules[0]
+		if err := failures[module.Dir]; err != nil {
+			return moduleClosure{incomplete: true, reason: failureReason(err)}, hits, misses
+		}
+		result := results[module.Dir]
+		return moduleClosure{
+			importedArtifacts: artifactSeedDepths(result.ImportedArtifacts, 0),
+			dynamicImports:    result.DynamicImportsDetected,
+		}, hits, misses
+	}
+
+	modulesByDir := make(map[string]jvmModule, len(hierarchy.Modules))
+	for _, module := range hierarchy.Modules {
+		modulesByDir[module.Dir] = module
+	}
+	edges := make(map[string][]string)
+	incoming := make(map[string]int)
+	for _, module := range hierarchy.Modules {
+		targets := make(map[string]struct{})
+		for imported := range results[module.Dir].RawImports {
+			target, ok := resolveInternalModule(imported, hierarchy.Modules)
+			if !ok || target.Dir == module.Dir {
+				continue
+			}
+			targets[target.Dir] = struct{}{}
+		}
+		for target := range targets {
+			edges[module.Dir] = append(edges[module.Dir], target)
+			incoming[target]++
+		}
+		sort.Strings(edges[module.Dir])
+	}
+	var roots []string
+	for _, module := range hierarchy.Modules {
+		if results[module.Dir].hasResult() && module.Application {
+			roots = append(roots, module.Dir)
+		}
+	}
+	if len(roots) == 0 {
+		for _, module := range hierarchy.Modules {
+			if incoming[module.Dir] == 0 && results[module.Dir].hasResult() {
+				roots = append(roots, module.Dir)
+			}
+		}
+	}
+	if len(roots) == 0 {
+		for _, module := range hierarchy.Modules {
+			if results[module.Dir].hasResult() {
+				roots = append(roots, module.Dir)
+			}
+		}
+	}
+	sort.Strings(roots)
+	closure := moduleClosure{importedArtifacts: make(map[string]int)}
+	depths := make(map[string]int)
+	queue := append([]string(nil), roots...)
+	for _, root := range roots {
+		depths[root] = 0
+	}
+	for len(queue) > 0 {
+		dir := queue[0]
+		queue = queue[1:]
+		depth := depths[dir]
+		result := results[dir]
+		closure.dynamicImports = closure.dynamicImports || result.DynamicImportsDetected
+		for artifact := range result.ImportedArtifacts {
+			setMinimumArtifactDepth(closure.importedArtifacts, artifact, depth)
+		}
+		for _, targetDir := range edges[dir] {
+			target := modulesByDir[targetDir]
+			if target.Coord != "" {
+				setMinimumArtifactDepth(closure.importedArtifacts, target.Coord, depth+1)
+			}
+			if _, failed := failures[targetDir]; failed {
+				closure.incomplete = true
+				closure.reason = "module-closure-incomplete"
+				continue
+			}
+			if old, seen := depths[targetDir]; seen && old <= depth+1 {
+				continue
+			}
+			depths[targetDir] = depth + 1
+			queue = append(queue, targetDir)
+		}
+	}
+	return closure, hits, misses
+}
+
+func resolveInternalModule(imported string, modules []jvmModule) (jvmModule, bool) {
+	var best jvmModule
+	bestLength := -1
+	for _, module := range modules {
+		for _, prefix := range module.Prefixes {
+			if imported != prefix && !strings.HasPrefix(imported, prefix+".") {
+				continue
+			}
+			if len(prefix) > bestLength {
+				best, bestLength = module, len(prefix)
+			}
+		}
+	}
+	return best, bestLength >= 0
+}
+
+func artifactSeedDepths(imports map[string]struct{}, depth int) map[string]int {
+	seeds := make(map[string]int, len(imports))
+	for imported := range imports {
+		seeds[imported] = depth
+	}
+	return seeds
+}
+
+func setMinimumArtifactDepth(depths map[string]int, key string, depth int) {
+	if old, ok := depths[key]; !ok || depth < old {
+		depths[key] = depth
+	}
 }
 
 func (a Analyzer) logger() *zap.Logger { return ensureLogger(a.Logger) }
@@ -231,8 +388,8 @@ func (a Analyzer) cache() *resultCache {
 	return newResultCache(a.CacheDir, a.CacheTTL)
 }
 
-func resultForRequest() model.AnalyzeResult {
-	return model.AnalyzeResult{AnalyzerRuns: []string{Name}}
+func resultFromRequest(req model.AnalyzeRequest) model.AnalyzeResult {
+	return model.AnalyzeResult{Registry: req.Registry, AnalyzerRuns: []string{Name}}
 }
 
 type applyOutcome struct{ reachable, unreachable, unknown int }
@@ -242,18 +399,24 @@ type applyOutcome struct{ reachable, unreachable, unknown int }
 // iff its `groupId:artifactId` is in the transitive closure of the
 // runner's imported-artifact set, expanded through Graph.Dependencies.
 func applyRunnerResult(req model.AnalyzeRequest, projectRoot string, runRes RunnerResult, now time.Time) applyOutcome {
+	return applyImportedArtifactSeeds(req, projectRoot, artifactSeedDepths(runRes.ImportedArtifacts, 0), runRes.DynamicImportsDetected, now)
+}
+
+func applyImportedArtifactSeeds(req model.AnalyzeRequest, projectRoot string, imports map[string]int, dynamicImports bool, now time.Time) applyOutcome {
 	var outcome applyOutcome
+	if req.Graph == nil {
+		return outcome
+	}
 	timestamp := now.UTC().Format(time.RFC3339)
-	hopsByID := computeReachablePackageHops(req.Graph, runRes.ImportedArtifacts)
-	dynamicImports := runRes.DynamicImportsDetected
-	for _, dep := range req.Graph.Nodes() {
-		if dep == nil || !isJVMPackage(dep) {
+	hopsByID := computeReachablePackageHopsFromSeeds(req.Graph, imports)
+	for _, pkg := range req.Graph.Nodes() {
+		if pkg == nil || !isJVMPackage(pkg) {
 			continue
 		}
-		if !packageBelongsToProjectRoot(dep, projectRoot) {
+		if !packageBelongsToProjectRoot(pkg, projectRoot) {
 			continue
 		}
-		vulns := vulnerabilitiesForDependency(req, dep)
+		vulns := vulnerabilitiesForDep(req, pkg)
 		for i := range vulns {
 			vuln := &vulns[i]
 			if vuln.Reachability != nil && vuln.Reachability.Analyzer == Name {
@@ -265,7 +428,7 @@ func applyRunnerResult(req model.AnalyzeRequest, projectRoot string, runRes Runn
 				Tier:                   model.TierPackage,
 				DynamicImportsDetected: dynamicImports,
 			}
-			if hops, ok := hopsByID[dep.ID]; ok {
+			if hops, ok := hopsByID[pkg.ID]; ok {
 				r.Status = model.ReachabilityReachable
 				h := hops
 				r.Hops = &h
@@ -287,6 +450,10 @@ func applyRunnerResult(req model.AnalyzeRequest, projectRoot string, runRes Runn
 // Hop 0 packages are directly imported by app source; hop N packages
 // are reachable only via N transitive edges.
 func computeReachablePackageHops(g *model.Graph, imports map[string]struct{}) map[string]int {
+	return computeReachablePackageHopsFromSeeds(g, artifactSeedDepths(imports, 0))
+}
+
+func computeReachablePackageHopsFromSeeds(g *model.Graph, imports map[string]int) map[string]int {
 	hops := make(map[string]int)
 	if g == nil || len(imports) == 0 {
 		return hops
@@ -302,7 +469,7 @@ func computeReachablePackageHops(g *model.Graph, imports map[string]struct{}) ma
 		if _, ok := hops[pkg.ID]; ok {
 			continue
 		}
-		hops[pkg.ID] = 0
+		hops[pkg.ID] = importedArtifactDepth(pkg, imports)
 		queue = append(queue, pkg.ID)
 	}
 	for len(queue) > 0 {
@@ -327,9 +494,13 @@ func computeReachablePackageHops(g *model.Graph, imports map[string]struct{}) ma
 	return hops
 }
 
+func importedArtifactDepth(pkg *model.Dependency, imports map[string]int) int {
+	return imports[canonicalCoord(pkg.Org, baseArtifactName(pkg.Name))]
+}
+
 // isPackageImported reports whether pkg's Maven coordinate (built
 // from Org / Name) appears in the runner's import set.
-func isPackageImported(pkg *model.Dependency, imports map[string]struct{}) bool {
+func isPackageImported(pkg *model.Dependency, imports map[string]int) bool {
 	if pkg == nil || len(imports) == 0 {
 		return false
 	}
@@ -353,16 +524,19 @@ func baseArtifactName(name string) string {
 }
 
 func annotateProjectUnknown(req model.AnalyzeRequest, projectRoot, reason string, now time.Time) int {
+	if req.Graph == nil {
+		return 0
+	}
 	timestamp := now.UTC().Format(time.RFC3339)
 	count := 0
-	for _, dep := range req.Graph.Nodes() {
-		if dep == nil || !isJVMPackage(dep) {
+	for _, pkg := range req.Graph.Nodes() {
+		if pkg == nil || !isJVMPackage(pkg) {
 			continue
 		}
-		if !packageBelongsToProjectRoot(dep, projectRoot) {
+		if !packageBelongsToProjectRoot(pkg, projectRoot) {
 			continue
 		}
-		vulns := vulnerabilitiesForDependency(req, dep)
+		vulns := vulnerabilitiesForDep(req, pkg)
 		for i := range vulns {
 			if vulns[i].Reachability != nil {
 				continue
@@ -381,12 +555,15 @@ func annotateProjectUnknown(req model.AnalyzeRequest, projectRoot, reason string
 }
 
 func annotateAllUnknown(req model.AnalyzeRequest, reason string, now time.Time) {
+	if req.Graph == nil {
+		return
+	}
 	timestamp := now.UTC().Format(time.RFC3339)
-	for _, dep := range req.Graph.Nodes() {
-		if dep == nil || !isJVMPackage(dep) {
+	for _, pkg := range req.Graph.Nodes() {
+		if pkg == nil || !isJVMPackage(pkg) {
 			continue
 		}
-		vulns := vulnerabilitiesForDependency(req, dep)
+		vulns := vulnerabilitiesForDep(req, pkg)
 		for i := range vulns {
 			if vulns[i].Reachability != nil {
 				continue

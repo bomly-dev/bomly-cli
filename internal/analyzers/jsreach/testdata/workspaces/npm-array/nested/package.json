@@ -1,0 +1,6 @@
+{
+  "name": "@company/nested",
+  "workspaces": [
+    "children/*"
+  ]
+}

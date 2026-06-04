@@ -309,18 +309,20 @@ Reachability data appears in three places:
     `undefined:`, `imported and not used`, non-zero exit).
   - `cancelled` — context cancelled or deadline exceeded.
   - `runner-error` — fallback when none of the above patterns match.
-- **Multi-module / multi-project repos**: Attribution is best-effort.
-  Each vulnerability is annotated by the first module/project pass
-  that owns its package; better multi-root attribution will improve
-  in a follow-up.
+- **Multi-module / multi-project repos**: `jsreach` and `jvmreach`
+  automatically derive local workspace/module closures before
+  attributing external dependencies. Other analyzers retain
+  best-effort first-project attribution.
 - **`jsreach` does not follow runtime / dynamic imports.** Calls like
   `require(somethingFromUserInput)`, plugin loaders, and worker
   threads are invisible to static analysis. The analyzer is therefore
   a "lower bound" on what's actually reachable.
-- **`jsreach` does not handle yarn / pnpm workspaces yet**. The
-  analyzer treats the directory containing `package.json` as a single
-  project. Workspace-aware traversal (each workspace as its own
-  project root with its own entry points) is a follow-up.
+- **`jsreach` workspace traversal is manifest-driven.** It supports
+  npm/Yarn `workspaces` arrays, Yarn-style `workspaces.packages`
+  objects, and `pnpm-workspace.yaml` package patterns. It follows
+  imports between consumed workspace packages by package name without
+  depending on installed symlinks. Dynamically computed workspace
+  membership remains invisible.
 - **`pyreach` does not follow dynamic imports.**
   `importlib.import_module(name)` on user input, plugin discovery via
   entry points, Django `INSTALLED_APPS` strings, conditional
@@ -338,10 +340,11 @@ Reachability data appears in three places:
   `package → Maven artifact` relationship has no naming convention,
   so missing prefixes do not have an identity fallback. PRs to
   extend `internal/analyzers/jvmreach/prefixmap.go` are welcome.
-- **`jvmreach` does not handle Gradle / Maven multi-module projects
-  yet.** Each pom.xml / build.gradle root is treated as one
-  project; modules under a parent are detected separately but
-  attribution between modules is best-effort.
+- **`jvmreach` multi-module traversal is declarative.** It follows
+  Maven parent `<modules>` recursively and standard Gradle
+  `include(...)` declarations with `projectDir` overrides. Gradle
+  composite builds (`includeBuild`) and dynamically computed settings
+  remain best-effort.
 
 ## Selecting analyzers
 

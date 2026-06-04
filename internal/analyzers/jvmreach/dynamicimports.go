@@ -44,6 +44,9 @@ func detectDynamicImports(projectDir string) bool {
 			if path == projectDir {
 				return nil
 			}
+			if hasProjectMarker(path) {
+				return filepath.SkipDir
+			}
 			if shouldSkipJVMDir(d.Name()) {
 				return filepath.SkipDir
 			}

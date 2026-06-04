@@ -3,6 +3,7 @@ package jsreach
 import (
 	"context"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -66,12 +67,12 @@ func (a Analyzer) Applicable(_ context.Context, req model.AnalyzeRequest) (bool,
 	if req.Graph == nil || req.Registry == nil {
 		return false, nil
 	}
-	for _, dep := range req.Graph.Nodes() {
-		if dep == nil || !isNPMPackage(dep) {
+	for _, pkg := range req.Graph.Nodes() {
+		if pkg == nil || !isNPMPackage(pkg) {
 			continue
 		}
-		pkg, ok := req.Registry.Get(dependencyPURL(dep))
-		if !ok || pkg == nil || len(pkg.Vulnerabilities) == 0 {
+		regPkg, ok := req.Registry.Get(dependencyPURL(pkg))
+		if !ok || regPkg == nil || len(regPkg.Vulnerabilities) == 0 {
 			continue
 		}
 		return true, nil
@@ -87,12 +88,13 @@ func dependencyPURL(dep *model.Dependency) string {
 	if dep.PackageRef != "" {
 		return dep.PackageRef
 	}
-	return model.CanonicalPackageURLFromDependency(dep)
+	return dep.PURL
 }
 
-// vulnerabilitiesForDependency returns the registry vulnerabilities for a
-// dependency node, or nil when the package is absent from the registry.
-func vulnerabilitiesForDependency(req model.AnalyzeRequest, dep *model.Dependency) []model.Vulnerability {
+// vulnerabilitiesForDep returns the registry slice for a dependency. The
+// caller may mutate the returned slice in place; entries live on the
+// shared backing array owned by the registry package.
+func vulnerabilitiesForDep(req model.AnalyzeRequest, dep *model.Dependency) []model.Vulnerability {
 	if req.Registry == nil || dep == nil {
 		return nil
 	}
@@ -109,7 +111,7 @@ func vulnerabilitiesForDependency(req model.AnalyzeRequest, dep *model.Dependenc
 // engine relies on this to keep the pipeline running.
 func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.AnalyzeResult, error) {
 	logger := a.logger()
-	if req.Graph == nil || req.Registry == nil {
+	if req.Graph == nil {
 		return model.AnalyzeResult{}, nil
 	}
 	runner := a.Runner
@@ -118,25 +120,26 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 	}
 
 	overallStart := time.Now()
-	projectRoots := discoverProjectRoots(req)
-	if len(projectRoots) == 0 {
+	hierarchies := discoverWorkspaceHierarchies(req)
+	if len(hierarchies) == 0 {
 		logger.Info("jsreach: no npm project roots discovered; marking all npm vulnerabilities as unknown")
 		annotateAllUnknown(req, "no-project-root-discovered", time.Now())
-		return resultForRequest(), nil
+		return resultFromRequest(req), nil
 	}
 
 	logger.Info("jsreach: starting reachability analysis",
 		zap.String("runner", runner.Name()),
 		zap.String("runner_version", runner.Version()),
-		zap.Int("project_roots", len(projectRoots)),
+		zap.Int("workspace_hierarchies", len(hierarchies)),
 		zap.Bool("cache_enabled", !a.DisableCache),
 	)
-	logger.Debug("jsreach: discovered project roots", zap.Strings("paths", projectRoots))
+	logger.Debug("jsreach: discovered workspace hierarchies", zap.Strings("paths", workspaceHierarchyRoots(hierarchies)))
 
 	cache := a.cache()
 	stats := model.ReachabilityStats{}
 	cacheHits, cacheMisses := 0, 0
-	for _, root := range projectRoots {
+	for _, hierarchy := range hierarchies {
+		root := hierarchy.Root
 		select {
 		case <-ctx.Done():
 			logger.Info("jsreach: context cancelled; skipping project",
@@ -147,43 +150,36 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		}
 
 		projectStart := time.Now()
-		runResult, fromCache, err := a.runWithCache(ctx, runner, cache, root, logger)
-		if err != nil {
-			logger.Warn("jsreach: runner failed",
-				zap.String("project_root", root),
-				zap.String("runner", runner.Name()),
-				zap.Duration("duration", time.Since(projectStart)),
-				zap.Error(err))
-			reason := failureReason(err)
-			added := annotateProjectUnknown(req, root, reason, time.Now())
-			stats.Unknown += added
-			continue
-		}
-		if fromCache {
-			cacheHits++
+		closure, hits, misses := a.analyzeWorkspaceHierarchy(ctx, runner, cache, hierarchy, logger)
+		cacheHits += hits
+		cacheMisses += misses
+		var applied applyOutcome
+		if closure.incomplete {
+			added := annotateProjectUnknown(req, root, closure.reason, time.Now())
+			applied.unknown += added
 		} else {
-			cacheMisses++
+			applied = applyImportedPackageSeeds(req, root, closure.importedPackages, closure.dynamicImports, time.Now())
 		}
-		applied := applyRunnerResult(req, root, runResult, time.Now())
 		stats.Reachable += applied.reachable
 		stats.Unreachable += applied.unreachable
 		stats.Unknown += applied.unknown
-		logger.Info("jsreach: completed project",
-			zap.String("project_root", root),
+		logger.Info("jsreach: completed workspace hierarchy",
+			zap.String("workspace_root", root),
 			zap.String("runner", runner.Name()),
-			zap.Bool("cache_hit", fromCache),
-			zap.Int("entry_points", len(runResult.EntryPoints)),
-			zap.Int("source_files", runResult.SourceFiles),
-			zap.Int("imported_packages", len(runResult.ImportedPackages)),
+			zap.Int("members", len(hierarchy.Members)),
+			zap.Int("cache_hits", hits),
+			zap.Int("cache_misses", misses),
+			zap.Int("imported_packages", len(closure.importedPackages)),
 			zap.Int("reachable", applied.reachable),
 			zap.Int("unreachable", applied.unreachable),
+			zap.Int("unknown", applied.unknown),
 			zap.Duration("duration", time.Since(projectStart)),
 		)
 	}
 
 	logger.Info("jsreach: completed reachability analysis",
 		zap.String("runner", runner.Name()),
-		zap.Int("projects", len(projectRoots)),
+		zap.Int("workspace_hierarchies", len(hierarchies)),
 		zap.Int("cache_hits", cacheHits),
 		zap.Int("cache_misses", cacheMisses),
 		zap.Int("reachable", stats.Reachable),
@@ -192,9 +188,148 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		zap.Duration("duration", time.Since(overallStart)),
 	)
 
-	out := resultForRequest()
+	out := resultFromRequest(req)
 	out.AnalyzerStats = map[string]model.ReachabilityStats{Name: stats}
 	return out, nil
+}
+
+type workspaceClosure struct {
+	importedPackages map[string]int
+	dynamicImports   bool
+	incomplete       bool
+	reason           string
+}
+
+func workspaceHierarchyRoots(hierarchies []workspaceHierarchy) []string {
+	roots := make([]string, 0, len(hierarchies))
+	for _, hierarchy := range hierarchies {
+		roots = append(roots, hierarchy.Root)
+	}
+	return roots
+}
+
+func (a Analyzer) analyzeWorkspaceHierarchy(
+	ctx context.Context,
+	runner Runner,
+	cache *resultCache,
+	hierarchy workspaceHierarchy,
+	logger *zap.Logger,
+) (workspaceClosure, int, int) {
+	results := make(map[string]RunnerResult, len(hierarchy.Members))
+	failures := make(map[string]error)
+	hits, misses := 0, 0
+	for _, member := range hierarchy.Members {
+		result, hit, err := a.runWithCache(ctx, runner, cache, member.Dir, logger)
+		if err != nil {
+			failures[member.Dir] = err
+			logger.Warn("jsreach: workspace member runner failed",
+				zap.String("workspace_root", hierarchy.Root),
+				zap.String("member", member.Dir),
+				zap.Error(err))
+			continue
+		}
+		if hit {
+			hits++
+		} else {
+			misses++
+		}
+		results[member.Dir] = result
+	}
+	if len(hierarchy.Members) == 1 {
+		member := hierarchy.Members[0]
+		if err := failures[member.Dir]; err != nil {
+			return workspaceClosure{incomplete: true, reason: failureReason(err)}, hits, misses
+		}
+		result := results[member.Dir]
+		return workspaceClosure{
+			importedPackages: packageSeedDepths(result.ImportedPackages, 0),
+			dynamicImports:   result.DynamicImportsDetected,
+		}, hits, misses
+	}
+
+	byName := make(map[string]workspaceMember, len(hierarchy.Members))
+	for _, member := range hierarchy.Members {
+		if member.Name != "" {
+			byName[member.Name] = member
+		}
+	}
+	edges := make(map[string][]string)
+	incoming := make(map[string]int)
+	for _, member := range hierarchy.Members {
+		for imported := range results[member.Dir].ImportedPackages {
+			target, ok := byName[imported]
+			if !ok || target.Dir == member.Dir {
+				continue
+			}
+			edges[member.Dir] = append(edges[member.Dir], target.Dir)
+			incoming[target.Dir]++
+		}
+		sort.Strings(edges[member.Dir])
+	}
+	var roots []string
+	if result, ok := results[hierarchy.Root]; ok && result.hasResult() {
+		roots = append(roots, hierarchy.Root)
+	} else {
+		for _, member := range hierarchy.Members {
+			if incoming[member.Dir] == 0 && results[member.Dir].hasResult() {
+				roots = append(roots, member.Dir)
+			}
+		}
+	}
+	if len(roots) == 0 {
+		for _, member := range hierarchy.Members {
+			if results[member.Dir].hasResult() {
+				roots = append(roots, member.Dir)
+			}
+		}
+	}
+	sort.Strings(roots)
+	closure := workspaceClosure{importedPackages: make(map[string]int)}
+	depths := make(map[string]int)
+	queue := append([]string(nil), roots...)
+	for _, root := range roots {
+		depths[root] = 0
+	}
+	for len(queue) > 0 {
+		dir := queue[0]
+		queue = queue[1:]
+		depth := depths[dir]
+		result := results[dir]
+		closure.dynamicImports = closure.dynamicImports || result.DynamicImportsDetected
+		for imported := range result.ImportedPackages {
+			if _, internal := byName[imported]; internal {
+				continue
+			}
+			setMinimumDepth(closure.importedPackages, imported, depth)
+		}
+		for _, target := range edges[dir] {
+			if _, failed := failures[target]; failed {
+				closure.incomplete = true
+				closure.reason = "workspace-closure-incomplete"
+				continue
+			}
+			if old, seen := depths[target]; seen && old <= depth+1 {
+				continue
+			}
+			depths[target] = depth + 1
+			queue = append(queue, target)
+		}
+	}
+	return closure, hits, misses
+}
+
+func packageSeedDepths(imports map[string]struct{}, depth int) map[string]int {
+	seeds := make(map[string]int, len(imports))
+	for imported := range imports {
+		seeds[imported] = depth
+	}
+	return seeds
+}
+
+func setMinimumDepth(depths map[string]int, key string, depth int) {
+	if old, ok := depths[key]; !ok || depth < old {
+		depths[key] = depth
+	}
 }
 
 func (a Analyzer) logger() *zap.Logger { return ensureLogger(a.Logger) }
@@ -246,8 +381,8 @@ func (a Analyzer) cache() *resultCache {
 	return newResultCache(a.CacheDir, a.CacheTTL)
 }
 
-func resultForRequest() model.AnalyzeResult {
-	return model.AnalyzeResult{AnalyzerRuns: []string{Name}}
+func resultFromRequest(req model.AnalyzeRequest) model.AnalyzeResult {
+	return model.AnalyzeResult{Registry: req.Registry, AnalyzerRuns: []string{Name}}
 }
 
 // applyOutcome reports per-vuln Reachability outcomes for telemetry.
@@ -269,18 +404,24 @@ type applyOutcome struct {
 // it sees exactly the dep tree the npm detector resolved from the
 // lockfile.
 func applyRunnerResult(req model.AnalyzeRequest, projectRoot string, runRes RunnerResult, now time.Time) applyOutcome {
+	return applyImportedPackageSeeds(req, projectRoot, packageSeedDepths(runRes.ImportedPackages, 0), runRes.DynamicImportsDetected, now)
+}
+
+func applyImportedPackageSeeds(req model.AnalyzeRequest, projectRoot string, imports map[string]int, dynamicImports bool, now time.Time) applyOutcome {
 	var outcome applyOutcome
+	if req.Graph == nil {
+		return outcome
+	}
 	timestamp := now.UTC().Format(time.RFC3339)
-	hopsByID := computeReachablePackageHops(req.Graph, runRes.ImportedPackages)
-	dynamicImports := runRes.DynamicImportsDetected
-	for _, dep := range req.Graph.Nodes() {
-		if dep == nil || !isNPMPackage(dep) {
+	hopsByID := computeReachablePackageHopsFromSeeds(req.Graph, imports)
+	for _, pkg := range req.Graph.Nodes() {
+		if pkg == nil || !isNPMPackage(pkg) {
 			continue
 		}
-		if !packageBelongsToProjectRoot(dep, projectRoot) {
+		if !packageBelongsToProjectRoot(pkg, projectRoot) {
 			continue
 		}
-		vulns := vulnerabilitiesForDependency(req, dep)
+		vulns := vulnerabilitiesForDep(req, pkg)
 		for i := range vulns {
 			vuln := &vulns[i]
 			if vuln.Reachability != nil && vuln.Reachability.Analyzer == Name {
@@ -292,7 +433,7 @@ func applyRunnerResult(req model.AnalyzeRequest, projectRoot string, runRes Runn
 				Tier:                   model.TierPackage,
 				DynamicImportsDetected: dynamicImports,
 			}
-			if hops, ok := hopsByID[dep.ID]; ok {
+			if hops, ok := hopsByID[pkg.ID]; ok {
 				r.Status = model.ReachabilityReachable
 				h := hops
 				r.Hops = &h
@@ -321,6 +462,10 @@ func applyRunnerResult(req model.AnalyzeRequest, projectRoot string, runRes Runn
 // lockfile-derived graph captures that. Working in IDs keeps the
 // attribution honest.
 func computeReachablePackageHops(g *model.Graph, imports map[string]struct{}) map[string]int {
+	return computeReachablePackageHopsFromSeeds(g, packageSeedDepths(imports, 0))
+}
+
+func computeReachablePackageHopsFromSeeds(g *model.Graph, imports map[string]int) map[string]int {
 	hops := make(map[string]int)
 	if g == nil || len(imports) == 0 {
 		return hops
@@ -337,7 +482,7 @@ func computeReachablePackageHops(g *model.Graph, imports map[string]struct{}) ma
 		if _, ok := hops[pkg.ID]; ok {
 			continue
 		}
-		hops[pkg.ID] = 0
+		hops[pkg.ID] = importedPackageDepth(pkg, imports)
 		queue = append(queue, pkg.ID)
 	}
 	// BFS: every dep edge from a reachable package adds its target at
@@ -364,10 +509,22 @@ func computeReachablePackageHops(g *model.Graph, imports map[string]struct{}) ma
 	return hops
 }
 
+func importedPackageDepth(pkg *model.Dependency, imports map[string]int) int {
+	best := 0
+	found := false
+	for _, candidate := range []string{pkg.QualifiedName(), pkg.Name} {
+		if depth, ok := imports[strings.TrimSpace(candidate)]; ok && (!found || depth < best) {
+			best = depth
+			found = true
+		}
+	}
+	return best
+}
+
 // isPackageImported reports whether pkg's npm name (or qualified
 // scoped name) appears in the runner's bare-specifier import set.
 // Used as the seed predicate for the transitive walk.
-func isPackageImported(pkg *model.Dependency, imports map[string]struct{}) bool {
+func isPackageImported(pkg *model.Dependency, imports map[string]int) bool {
 	if pkg == nil || len(imports) == 0 {
 		return false
 	}
@@ -385,16 +542,19 @@ func isPackageImported(pkg *model.Dependency, imports map[string]struct{}) bool 
 }
 
 func annotateProjectUnknown(req model.AnalyzeRequest, projectRoot, reason string, now time.Time) int {
+	if req.Graph == nil {
+		return 0
+	}
 	timestamp := now.UTC().Format(time.RFC3339)
 	count := 0
-	for _, dep := range req.Graph.Nodes() {
-		if dep == nil || !isNPMPackage(dep) {
+	for _, pkg := range req.Graph.Nodes() {
+		if pkg == nil || !isNPMPackage(pkg) {
 			continue
 		}
-		if !packageBelongsToProjectRoot(dep, projectRoot) {
+		if !packageBelongsToProjectRoot(pkg, projectRoot) {
 			continue
 		}
-		vulns := vulnerabilitiesForDependency(req, dep)
+		vulns := vulnerabilitiesForDep(req, pkg)
 		for i := range vulns {
 			if vulns[i].Reachability != nil {
 				continue
@@ -413,12 +573,15 @@ func annotateProjectUnknown(req model.AnalyzeRequest, projectRoot, reason string
 }
 
 func annotateAllUnknown(req model.AnalyzeRequest, reason string, now time.Time) {
+	if req.Graph == nil {
+		return
+	}
 	timestamp := now.UTC().Format(time.RFC3339)
-	for _, dep := range req.Graph.Nodes() {
-		if dep == nil || !isNPMPackage(dep) {
+	for _, pkg := range req.Graph.Nodes() {
+		if pkg == nil || !isNPMPackage(pkg) {
 			continue
 		}
-		vulns := vulnerabilitiesForDependency(req, dep)
+		vulns := vulnerabilitiesForDep(req, pkg)
 		for i := range vulns {
 			if vulns[i].Reachability != nil {
 				continue

@@ -34,7 +34,7 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for full detail. Component ma
 |------------------------|---------------------------------------------------------------------------------------------------|
 | `cmd/bomly`            | Entry point — calls `internal/cli.Execute()`                                                      |
 | `internal/cli`         | Cobra root + all commands (`scan`, `explain`, `diff`, `plugin`, `version`)                        |
-| `sdk`       | Unified domain types plus neutral package/ecosystem/support identifiers shared across packages    |
+| `sdk`       | Unified domain types: `Dependency` (detection graph nodes), `Package` (PURL-keyed matching artifacts in `PackageRegistry`), `Vulnerability` (OSV-aligned), reference-style `Finding`, plus neutral package/ecosystem/support identifiers. See `docs/MODELS.md`. |
 | `internal/detectors`   | Detector contracts, descriptors, requests/results, and detector-only helpers                      |
 | `internal/engine`      | Pipeline, engine, consolidation, auditors, matchers, hooks, and orchestration                     |
 | `internal/registry`    | Canonical support/discovery registry and built-in engine registry wiring                          |
@@ -223,6 +223,7 @@ If a new analyzer / matcher / detector produces deterministic output for a fixed
 | Doc                                                    | Covers                                                                                  |
 |--------------------------------------------------------|-----------------------------------------------------------------------------------------|
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)         | Full architecture: pipeline, detectors, auditors, plugins, trust model, decision log    |
+| [`docs/MODELS.md`](docs/MODELS.md)                     | Domain model reference: Dependency, Package, Vulnerability, Finding, PackageRegistry    |
 | [`docs/CI.md`](docs/CI.md)                             | CI setup and workflow (GitHub Actions)                                                  |
 | [`docs/CONFIG_REFERENCE.md`](docs/CONFIG_REFERENCE.md) | Generated config reference (all keys, env vars, defaults)                               |
 | [`docs/SUPPORT_MATRIX.md`](docs/SUPPORT_MATRIX.md)     | Ecosystem detector coverage                                                             |

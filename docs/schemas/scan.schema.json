@@ -60,25 +60,19 @@
           "cvss": {
             "items": {
               "properties": {
-                "Score": {
+                "score": {
                   "type": "number"
                 },
-                "Source": {
+                "source": {
                   "type": "string"
                 },
-                "Vector": {
+                "vector": {
                   "type": "string"
                 },
-                "Version": {
+                "version": {
                   "type": "string"
                 }
               },
-              "required": [
-                "Vector",
-                "Score",
-                "Version",
-                "Source"
-              ],
               "type": "object"
             },
             "type": "array"
@@ -398,25 +392,19 @@
                     "cvss": {
                       "items": {
                         "properties": {
-                          "Score": {
+                          "score": {
                             "type": "number"
                           },
-                          "Source": {
+                          "source": {
                             "type": "string"
                           },
-                          "Vector": {
+                          "vector": {
                             "type": "string"
                           },
-                          "Version": {
+                          "version": {
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "Vector",
-                          "Score",
-                          "Version",
-                          "Source"
-                        ],
                         "type": "object"
                       },
                       "type": "array"
@@ -709,17 +697,13 @@
                     "references": {
                       "items": {
                         "properties": {
-                          "Type": {
+                          "type": {
                             "type": "string"
                           },
-                          "URL": {
+                          "url": {
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "URL",
-                          "Type"
-                        ],
                         "type": "object"
                       },
                       "type": "array"
@@ -913,17 +897,13 @@
           "references": {
             "items": {
               "properties": {
-                "Type": {
+                "type": {
                   "type": "string"
                 },
-                "URL": {
+                "url": {
                   "type": "string"
                 }
               },
-              "required": [
-                "URL",
-                "Type"
-              ],
               "type": "object"
             },
             "type": "array"
@@ -1156,25 +1136,19 @@
                       "cvss": {
                         "items": {
                           "properties": {
-                            "Score": {
+                            "score": {
                               "type": "number"
                             },
-                            "Source": {
+                            "source": {
                               "type": "string"
                             },
-                            "Vector": {
+                            "vector": {
                               "type": "string"
                             },
-                            "Version": {
+                            "version": {
                               "type": "string"
                             }
                           },
-                          "required": [
-                            "Vector",
-                            "Score",
-                            "Version",
-                            "Source"
-                          ],
                           "type": "object"
                         },
                         "type": "array"
@@ -1467,17 +1441,13 @@
                       "references": {
                         "items": {
                           "properties": {
-                            "Type": {
+                            "type": {
                               "type": "string"
                             },
-                            "URL": {
+                            "url": {
                               "type": "string"
                             }
                           },
-                          "required": [
-                            "URL",
-                            "Type"
-                          ],
                           "type": "object"
                         },
                         "type": "array"

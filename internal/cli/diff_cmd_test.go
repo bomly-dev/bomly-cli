@@ -161,7 +161,7 @@ func TestRenderDiffMarkdownRendersScopedPolicyPayloadDirectly(t *testing.T) {
 
 func TestWriteRenderedOutputCreatesParentDirectory(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "nested", "summary.md")
-	if err := writeRenderedOutput(bytes.NewBuffer(nil), render.OutputSpec{Format: render.OutputFormatMarkdown, Label: "markdown", Path: path}, func(w io.Writer) error {
+	if err := writeRenderedOutput(bytes.NewBuffer(nil), render.OutputSpec{Format: output.FormatMarkdown, Label: "markdown", Path: path}, func(w io.Writer) error {
 		_, err := w.Write([]byte("# Summary\n"))
 		return err
 	}); err != nil {

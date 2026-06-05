@@ -69,7 +69,7 @@ func newScanCmd() *cobra.Command {
 			if err != nil {
 				return exit.InvalidInputError("%v", err)
 			}
-			if hasOutputFormat(outputSpecs, render.OutputFormatSARIF) && !commandCtx.ResolvedConfig.Audit {
+			if hasOutputFormat(outputSpecs, output.FormatSARIF) && !commandCtx.ResolvedConfig.Audit {
 				return exit.InvalidInputError("-o sarif requires --audit")
 			}
 			if current.Interactive && hasStdoutOutput(outputSpecs) {
@@ -104,6 +104,26 @@ func newScanCmd() *cobra.Command {
 			markdownRenderer := func(w io.Writer) error {
 				return render.ScanMarkdown(w, payload)
 			}
+			textRenderer := func(w io.Writer) error {
+				if len(resolved) == 1 {
+					if _, err := fmt.Fprintf(w, "Dependency report for %s\n\n", render.ScanGraphDisplayName(selectedGraph, payload.Project.Name)); err != nil {
+						return err
+					}
+				} else {
+					if _, err := fmt.Fprintf(w, "Dependency report for %d subprojects\n\n", len(resolved)); err != nil {
+						return err
+					}
+				}
+				_, err := io.WriteString(w, render.Scan(payload.Manifests, selectedGraph, pipeResult.Registry, findings, commandCtx.ResolvedConfig.Enrich, commandCtx.ResolvedConfig.Audit, commandCtx.ResolvedConfig.Reachability))
+				return err
+			}
+			reportRenderers := output.Renderers{
+				Markdown: markdownRenderer,
+				Text:     textRenderer,
+			}
+			sarifRenderer := func(w io.Writer) error {
+				return output.WriteSARIF(w, findings, pipeResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: commandCtx.ResolvedConfig.Reachability})
+			}
 
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
@@ -119,18 +139,10 @@ func newScanCmd() *cobra.Command {
 						if err := render.WriteOutputDocument(stdout, spec, rawDocument); err != nil {
 							return err
 						}
-					case spec.Format == render.OutputFormatMarkdown:
-						if err := writeRenderedOutput(stdout, spec, markdownRenderer); err != nil {
-							return err
-						}
-					case spec.Format == render.OutputFormatSARIF:
-						if err := writeRenderedOutput(stdout, spec, func(w io.Writer) error {
-							return output.WriteSARIF(w, findings, pipeResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: commandCtx.ResolvedConfig.Reachability})
-						}); err != nil {
-							return err
-						}
 					default:
-						return exit.InvalidInputError("output format %q is not supported by scan", spec.Label)
+						if err := writeReportOutput(stdout, spec, payload, reportRenderers, sarifRenderer); err != nil {
+							return err
+						}
 					}
 				}
 			}
@@ -139,9 +151,25 @@ func newScanCmd() *cobra.Command {
 				return scanPolicyExit(commandCtx.ResolvedConfig.Audit, findings)
 			}
 
+			if graphOutputFormat.IsSBOM() {
+				target, ok := render.SBOMTarget(graphOutputFormat)
+				if !ok {
+					return exit.InvalidInputError("output format %q is not supported by scan", graphOutputFormat)
+				}
+				rawDocument, err := sbom.MarshalDepGraphJSON(selectedGraph, target, sbom.BuildOptions{ToolNames: sbomToolNames(resolved)}, sbom.EncodeOptions{Pretty: true})
+				if err != nil {
+					return fmt.Errorf("marshal %s sbom: %w", graphOutputFormat, err)
+				}
+				prog.Success("Wrote output")
+				if err := render.WriteOutputDocument(streams.reportWriter(), render.OutputSpec{Format: graphOutputFormat, Label: string(graphOutputFormat)}, rawDocument); err != nil {
+					return err
+				}
+				return scanPolicyExit(commandCtx.ResolvedConfig.Audit, findings)
+			}
+
 			if graphOutputFormat == output.FormatSARIF {
 				prog.Success("Resolved Graph")
-				return output.WriteSARIF(streams.reportWriter(), findings, pipeResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: commandCtx.ResolvedConfig.Reachability})
+				return sarifRenderer(streams.reportWriter())
 			}
 
 			if commandCtx.ResolvedConfig.Interactive {
@@ -160,22 +188,7 @@ func newScanCmd() *cobra.Command {
 				prog.SeparateReport()
 			}
 
-			err = output.Write(writer, commandCtx.Format, payload, output.Renderers{
-				Markdown: markdownRenderer,
-				Text: func(w io.Writer) error {
-					if len(resolved) == 1 {
-						if _, err := fmt.Fprintf(w, "Dependency report for %s\n\n", render.ScanGraphDisplayName(selectedGraph, payload.Project.Name)); err != nil {
-							return err
-						}
-					} else {
-						if _, err := fmt.Fprintf(w, "Dependency report for %d subprojects\n\n", len(resolved)); err != nil {
-							return err
-						}
-					}
-					_, err := io.WriteString(w, render.Scan(payload.Manifests, selectedGraph, pipeResult.Registry, findings, commandCtx.ResolvedConfig.Enrich, commandCtx.ResolvedConfig.Audit, commandCtx.ResolvedConfig.Reachability))
-					return err
-				},
-			})
+			err = output.Write(writer, commandCtx.Format, payload, reportRenderers)
 			if err == nil && commandCtx.ResolvedConfig.Audit {
 				if failing := output.FailingFindingCount(findings); failing > 0 {
 					return exit.PolicyViolationFindings(failing)

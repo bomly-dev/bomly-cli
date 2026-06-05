@@ -95,9 +95,9 @@ func bindSelectorFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
 }
 
 func bindExecutionFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
-	flags.StringVarP(&cfg.Format, "format", "f", "", "Output format: text, json, markdown, sarif")
+	flags.StringVarP(&cfg.Format, "format", "f", "", "Output format: text, json, markdown, sarif, spdx, cyclonedx (SBOM formats are scan-only)")
 	BindJSONFormatFlag(flags, &cfg.Format, "Shortcut for --format json")
-	flags.StringArrayVarP(&cfg.Outputs, "output", "o", nil, "Additional output target as <format> or <format>=<path>; repeat for multiple outputs")
+	flags.StringArrayVarP(&cfg.Outputs, "output", "o", nil, "Additional output target as <format> or <format>=<path>; repeat for multiple outputs. Supports text, json, markdown, sarif, spdx, cyclonedx")
 	flags.BoolVar(&cfg.Interactive, "interactive", false, "Open an interactive terminal UI")
 	flags.BoolVar(&cfg.InstallFirst, "install-first", false, "Run detector-specific dependency installation before resolving graphs")
 	flags.StringArrayVar(&cfg.InstallArgs, "install-arg", nil, "Additional detector-specific install argument; may be repeated")

@@ -25,9 +25,12 @@ In practice: pick **SPDX** when a regulator or customer asks for it; pick **Cycl
 
 ## Writing an SBOM
 
-Use `-o <format>[=<path>]`. The format alone writes to stdout; `format=path` writes to a file:
+Use `--format <format>` for the primary stdout output, or `-o <format>[=<path>]` when you want an SBOM alongside another output. The format alone writes to stdout; `format=path` writes to a file:
 
 ```bash
+# One format to stdout
+bomly scan --format spdx
+
 # One format to a file
 bomly scan -o spdx=sbom.spdx.json
 
@@ -44,6 +47,7 @@ Constraints:
 
 - At most one `-o` may omit `=<path>`. Two stdout outputs would collide.
 - `-o spdx=` (empty path) is an error.
+- `--format spdx`, `--format cyclonedx`, `-o spdx`, and `-o cyclonedx` are supported by `scan` only.
 - Paths are resolved relative to the current working directory.
 
 ## Ingesting an SBOM
@@ -89,7 +93,7 @@ Reachability annotations and Bomly-specific metadata are emitted in the JSON out
 To convert between formats, run a scan and emit both in one pass:
 
 ```bash
-bomly scan --sbom --path ./in.spdx.json -o cyclonedx=out.cdx.json
+bomly scan --sbom --path ./in.spdx.json --format cyclonedx > out.cdx.json
 ```
 
 Bomly does not advertise a one-shot `convert` command — the scan pipeline is the conversion path.

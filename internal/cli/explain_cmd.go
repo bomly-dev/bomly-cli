@@ -43,6 +43,13 @@ func newExplainCmd() *cobra.Command {
 				}
 				restoreStdout()
 			}()
+			requestedFormat, err := options.OutputFormat()
+			if err != nil {
+				return exit.InvalidInputError("%v", err)
+			}
+			if err := validatePrimaryReportFormat(requestedFormat); err != nil {
+				return exit.InvalidInputError("%v", err)
+			}
 
 			// Two-phase pre-pipeline setup: resolve execution target (only
 			// when non-local) and index subprojects. Each gets its own
@@ -62,7 +69,7 @@ func newExplainCmd() *cobra.Command {
 			if err := validateReportOutputs(outputSpecs); err != nil {
 				return exit.InvalidInputError("%v", err)
 			}
-			if hasOutputFormat(outputSpecs, render.OutputFormatSARIF) && !context.ResolvedConfig.Audit {
+			if hasOutputFormat(outputSpecs, output.FormatSARIF) && !context.ResolvedConfig.Audit {
 				return exit.InvalidInputError("-o sarif requires --audit")
 			}
 			if context.ResolvedConfig.Interactive && len(outputSpecs) > 0 {
@@ -109,6 +116,26 @@ func newExplainCmd() *cobra.Command {
 			markdownRenderer := func(w io.Writer) error {
 				return render.ExplainMarkdown(w, payload)
 			}
+			textRenderer := func(w io.Writer) error {
+				for i, target := range payload.Targets {
+					if i > 0 {
+						if _, err := fmt.Fprintln(w); err != nil {
+							return err
+						}
+					}
+					if err := render.Explain(w, target, payload.Metadata.ReachabilityEnabled); err != nil {
+						return err
+					}
+				}
+				return nil
+			}
+			reportRenderers := output.Renderers{
+				Markdown: markdownRenderer,
+				Text:     textRenderer,
+			}
+			sarifRenderer := func(w io.Writer) error {
+				return output.WriteSARIF(w, explainResult.Findings, explainResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: context.ResolvedConfig.Reachability})
+			}
 			if context.ResolvedConfig.Interactive {
 				prog.Stop()
 				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewExplain(payload.Project, args[0], explainResult.FocusedConsolidated, explainResult.FocusedGraph, explainResult.Findings).WithRegistry(explainResult.Registry).WithEnrichEnabled(context.ResolvedConfig.Enrich)))
@@ -116,19 +143,8 @@ func newExplainCmd() *cobra.Command {
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
 				for _, spec := range outputSpecs {
-					switch spec.Format {
-					case render.OutputFormatMarkdown:
-						if err := writeRenderedOutput(streams.reportWriter(), spec, markdownRenderer); err != nil {
-							return err
-						}
-					case render.OutputFormatSARIF:
-						if err := writeRenderedOutput(streams.reportWriter(), spec, func(w io.Writer) error {
-							return output.WriteSARIF(w, explainResult.Findings, explainResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: context.ResolvedConfig.Reachability})
-						}); err != nil {
-							return err
-						}
-					default:
-						return exit.InvalidInputError("output format %q is only supported by scan", spec.Label)
+					if err := writeReportOutput(streams.reportWriter(), spec, payload, reportRenderers, sarifRenderer); err != nil {
+						return err
 					}
 				}
 			}
@@ -138,7 +154,7 @@ func newExplainCmd() *cobra.Command {
 			}
 			if context.Format == output.FormatSARIF {
 				prog.Success("Resolved Graph")
-				return output.WriteSARIF(streams.reportWriter(), explainResult.Findings, explainResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: context.ResolvedConfig.Reachability})
+				return sarifRenderer(streams.reportWriter())
 			}
 
 			writer, closeWriter, err := context.Writer(streams.reportWriter())
@@ -151,22 +167,7 @@ func newExplainCmd() *cobra.Command {
 				prog.SeparateReport()
 			}
 
-			err = output.Write(writer, context.Format, payload, output.Renderers{
-				Markdown: markdownRenderer,
-				Text: func(w io.Writer) error {
-					for i, target := range payload.Targets {
-						if i > 0 {
-							if _, err := fmt.Fprintln(w); err != nil {
-								return err
-							}
-						}
-						if err := render.Explain(w, target, payload.Metadata.ReachabilityEnabled); err != nil {
-							return err
-						}
-					}
-					return nil
-				},
-			})
+			err = output.Write(writer, context.Format, payload, reportRenderers)
 			if err == nil && context.ResolvedConfig.Audit {
 				if failing := output.FailingFindingCount(explainResult.Findings); failing > 0 {
 					return exit.PolicyViolationFindings(failing)

@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
+	"github.com/bomly-dev/bomly-cli/internal/output"
 )
 
 func parseOutputSpecs(values []string) ([]render.OutputSpec, error) {
@@ -24,7 +25,7 @@ func hasStdoutOutput(specs []render.OutputSpec) bool {
 	return false
 }
 
-func hasOutputFormat(specs []render.OutputSpec, format render.OutputFormat) bool {
+func hasOutputFormat(specs []render.OutputSpec, format output.Format) bool {
 	for _, spec := range specs {
 		if spec.Format == format {
 			return true
@@ -47,7 +48,7 @@ func allOutputsAreSBOM(specs []render.OutputSpec) bool {
 
 func validateMarkdownOnlyOutputs(specs []render.OutputSpec) error {
 	for _, spec := range specs {
-		if spec.Format != render.OutputFormatMarkdown {
+		if spec.Format != output.FormatMarkdown {
 			return fmt.Errorf("output format %q is only supported by scan", spec.Label)
 		}
 	}
@@ -57,12 +58,35 @@ func validateMarkdownOnlyOutputs(specs []render.OutputSpec) error {
 func validateReportOutputs(specs []render.OutputSpec) error {
 	for _, spec := range specs {
 		switch spec.Format {
-		case render.OutputFormatMarkdown, render.OutputFormatSARIF:
+		case output.FormatText, output.FormatJSON, output.FormatMarkdown, output.FormatSARIF:
 		default:
 			return fmt.Errorf("output format %q is only supported by scan", spec.Label)
 		}
 	}
 	return nil
+}
+
+func validatePrimaryReportFormat(format output.Format) error {
+	if format.IsSBOM() {
+		return fmt.Errorf("--format %s is only supported by scan", format)
+	}
+	return nil
+}
+
+func writeReportOutput(stdout io.Writer, spec render.OutputSpec, payload any, renderers output.Renderers, sarifRenderer func(io.Writer) error) error {
+	switch spec.Format {
+	case output.FormatJSON, output.FormatMarkdown, output.FormatText:
+		return writeRenderedOutput(stdout, spec, func(w io.Writer) error {
+			return output.Write(w, spec.Format, payload, renderers)
+		})
+	case output.FormatSARIF:
+		if sarifRenderer == nil {
+			return fmt.Errorf("sarif output is not implemented")
+		}
+		return writeRenderedOutput(stdout, spec, sarifRenderer)
+	default:
+		return fmt.Errorf("output format %q is only supported by scan", spec.Label)
+	}
 }
 
 func writeRenderedOutput(stdout io.Writer, spec render.OutputSpec, renderer func(io.Writer) error) error {

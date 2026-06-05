@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 )
 
 // Format identifies a supported output format.
@@ -18,7 +19,16 @@ const (
 	FormatText Format = "text"
 	// FormatSARIF renders SARIF 2.1.0 output for vulnerability findings.
 	FormatSARIF Format = "sarif"
+	// FormatSPDX renders an SPDX 2.3 JSON SBOM.
+	FormatSPDX Format = "spdx"
+	// FormatCycloneDX renders a CycloneDX 1.6 JSON SBOM.
+	FormatCycloneDX Format = "cyclonedx"
 )
+
+// IsSBOM reports whether the format is a standard SBOM artifact.
+func (f Format) IsSBOM() bool {
+	return f == FormatSPDX || f == FormatCycloneDX
+}
 
 // Renderers provides alternative renderers for human-readable formats.
 type Renderers struct {
@@ -28,9 +38,19 @@ type Renderers struct {
 
 // ParseFormat validates a format value.
 func ParseFormat(value string) (Format, error) {
-	switch Format(value) {
-	case FormatJSON, FormatMarkdown, FormatText, FormatSARIF:
-		return Format(value), nil
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case string(FormatJSON):
+		return FormatJSON, nil
+	case string(FormatMarkdown), "md":
+		return FormatMarkdown, nil
+	case string(FormatText):
+		return FormatText, nil
+	case string(FormatSARIF):
+		return FormatSARIF, nil
+	case string(FormatSPDX), "spdx-json":
+		return FormatSPDX, nil
+	case string(FormatCycloneDX), "cyclonedx-json":
+		return FormatCycloneDX, nil
 	default:
 		return "", fmt.Errorf("unsupported format %q", value)
 	}

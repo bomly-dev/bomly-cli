@@ -38,12 +38,32 @@ func TestPackageFromGraphPackageIncludesStructuredLicenses(t *testing.T) {
 	}
 }
 
-func TestParseFormatAcceptsMarkdown(t *testing.T) {
-	format, err := ParseFormat("markdown")
-	if err != nil {
-		t.Fatalf("ParseFormat(markdown) error = %v", err)
+func TestParseFormatAcceptsSharedFormatsAndAliases(t *testing.T) {
+	tests := []struct {
+		value string
+		want  Format
+	}{
+		{value: "text", want: FormatText},
+		{value: "json", want: FormatJSON},
+		{value: "markdown", want: FormatMarkdown},
+		{value: "md", want: FormatMarkdown},
+		{value: "sarif", want: FormatSARIF},
+		{value: "spdx", want: FormatSPDX},
+		{value: "spdx-json", want: FormatSPDX},
+		{value: "cyclonedx", want: FormatCycloneDX},
+		{value: "cyclonedx-json", want: FormatCycloneDX},
+		{value: " JSON ", want: FormatJSON},
 	}
-	if format != FormatMarkdown {
-		t.Fatalf("ParseFormat(markdown) = %q, want %q", format, FormatMarkdown)
+
+	for _, tc := range tests {
+		t.Run(tc.value, func(t *testing.T) {
+			format, err := ParseFormat(tc.value)
+			if err != nil {
+				t.Fatalf("ParseFormat(%q) error = %v", tc.value, err)
+			}
+			if format != tc.want {
+				t.Fatalf("ParseFormat(%q) = %q, want %q", tc.value, format, tc.want)
+			}
+		})
 	}
 }

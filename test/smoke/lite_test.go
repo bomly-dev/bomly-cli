@@ -8,18 +8,23 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"testing"
 )
 
 // bomlyLiteBin is the path to the lite binary, built once per test run.
 // It is set lazily by buildLiteBinary.
 var bomlyLiteBin string
+var bomlyLiteMu sync.Mutex
 
 // buildLiteBinary builds the lite binary (external Syft/Grype mode) once and
 // caches the path. Safe to call from multiple tests — only the first call
 // builds.
 func buildLiteBinary(t *testing.T) string {
 	t.Helper()
+	bomlyLiteMu.Lock()
+	defer bomlyLiteMu.Unlock()
+
 	if bomlyLiteBin != "" {
 		return bomlyLiteBin
 	}
@@ -56,10 +61,7 @@ func runBomlyLite(t *testing.T, args ...string) (stdout, stderr string, exitCode
 func runBomlyLiteWithEnv(t *testing.T, env []string, args ...string) (stdout, stderr string, exitCode int) {
 	t.Helper()
 	bin := buildLiteBinary(t)
-	origBin := bomlyBin
-	bomlyBin = bin
-	defer func() { bomlyBin = origBin }()
-	return runBomlyWithEnv(t, env, args...)
+	return runBomlyBinaryWithEnv(t, bin, env, args...)
 }
 
 // ---------------------------------------------------------------------------
@@ -88,7 +90,8 @@ func TestLiteScan(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+		tc := tc
+		parallelSubtest(t, tc.name, func(t *testing.T) {
 			for _, tool := range tc.tools {
 				requireTool(t, tool)
 			}
@@ -125,7 +128,8 @@ func TestLiteDiff(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+		tc := tc
+		parallelSubtest(t, tc.name, func(t *testing.T) {
 			for _, tool := range tc.tools {
 				requireTool(t, tool)
 			}
@@ -162,7 +166,8 @@ func TestLiteExplain(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+		tc := tc
+		parallelSubtest(t, tc.name, func(t *testing.T) {
 			for _, tool := range tc.tools {
 				requireTool(t, tool)
 			}
@@ -186,6 +191,8 @@ func TestLiteExplain(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestLiteVersion(t *testing.T) {
+	t.Parallel()
+
 	stdout, stderr, code := runBomlyLite(t, "version")
 	if code != 0 {
 		t.Fatalf("bomly-lite version exited %d\nstderr:\n%s", code, stderr)

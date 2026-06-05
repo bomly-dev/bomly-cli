@@ -59,6 +59,14 @@ Regenerate smoke goldens only after confirming the behavior change is expected:
 make smoke ARGS="-update"
 ```
 
+Smoke leaf cases run in parallel within each `go test` invocation. Go's default
+`-parallel` setting is used unless you override it through `ARGS`:
+
+```bash
+make smoke ARGS="-parallel 4"
+make smoke ARGS="-update -parallel 4"
+```
+
 The URL-backed scan cases are defined in the embedded `internal/benchmark/testdata/scan_targets.json` manifest. Each target has:
 
 - `name`: stable test and artifact identity

@@ -32,32 +32,39 @@ type postureRow struct {
 // postureRowsFromGraph walks the dependency graph and groups packages by
 // their attached Scorecard repository. A row is emitted per unique repo;
 // packages with no Scorecard are skipped entirely (matching how the scan
-// text report's Project Posture section behaves).
-func postureRowsFromGraph(graphValue *sdk.Graph) []postureRow {
-	if graphValue == nil {
+// text report's Project Posture section behaves). Scorecard data lives on
+// the PURL-keyed registry; the graph dependencies provide the display
+// labels.
+func postureRowsFromGraph(graphValue *sdk.Graph, registry *sdk.PackageRegistry) []postureRow {
+	if graphValue == nil || registry == nil {
 		return nil
 	}
 	byRepo := make(map[string]*postureRow)
-	for _, pkg := range graphValue.Packages() {
-		if pkg == nil || pkg.Scorecard == nil {
+	for _, dep := range graphValue.Nodes() {
+		if dep == nil || dep.PURL == "" {
+			continue
+		}
+		pkg, ok := registry.Get(dep.PURL)
+		if !ok || pkg == nil || pkg.Scorecard == nil {
 			continue
 		}
 		repo := pkg.Scorecard.Repository
 		if repo == "" {
-			continue
+			repo = dep.PURL
 		}
 		row, ok := byRepo[repo]
 		if !ok {
 			row = &postureRow{
 				repository: repo,
 				card:       pkg.Scorecard,
+				packages:   make([]posturePackageRef, 0, 1),
 			}
 			byRepo[repo] = row
 		}
 		row.packages = append(row.packages, posturePackageRef{
-			id:          pkg.ID,
-			displayName: pkg.DisplayName(),
-			version:     pkg.Version,
+			id:          dep.ID,
+			displayName: dep.DisplayName(),
+			version:     dep.Version,
 		})
 	}
 	out := make([]postureRow, 0, len(byRepo))

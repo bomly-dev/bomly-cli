@@ -8,21 +8,22 @@ import (
 )
 
 // pkg is a convenience constructor for tests.
-func pkg(id, name, version, scope string) *sdk.Package {
-	return &sdk.Package{
-		ID:      id,
-		Name:    name,
-		Version: version,
-		Scope:   scope,
-		PURL:    id,
+func pkg(id, name, version, scope string) *sdk.Dependency {
+	return &sdk.Dependency{
+		ID:         id,
+		Name:       name,
+		Version:    version,
+		Scopes:     sdk.ScopesOf(sdk.Scope(scope)),
+		PURL:       id,
+		PackageRef: id,
 	}
 }
 
 // graphOf builds a Graph from the provided packages, panicking on error.
-func graphOf(pkgs ...*sdk.Package) *sdk.Graph {
+func graphOf(pkgs ...*sdk.Dependency) *sdk.Graph {
 	g := sdk.New()
 	for _, p := range pkgs {
-		if err := g.AddPackage(p); err != nil {
+		if err := g.AddNode(p); err != nil {
 			panic(err)
 		}
 	}

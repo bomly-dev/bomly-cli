@@ -23,12 +23,12 @@ func pythonFixture(parts ...string) string {
 func TestDiscoverProjectRootsFromTestdata(t *testing.T) {
 	root := pythonFixture("project")
 	g := model.New()
-	pkg := model.NewPackage(model.Package{
+	pkg := model.NewDependency(model.Dependency{
 		Name:      "requests",
 		Ecosystem: string(model.EcosystemPython),
 		Locations: []model.PackageLocation{{RealPath: filepath.Join(root, "pkg", "helpers.py")}},
 	})
-	if err := g.AddPackage(pkg); err != nil {
+	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
 	}
 	got := discoverProjectRoots(model.AnalyzeRequest{

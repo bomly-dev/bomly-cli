@@ -48,7 +48,7 @@ func AttachGemfileLockPositions(g *sdk.Graph, lockPath, projectDir string) {
 	}
 	rel = filepath.ToSlash(rel)
 	positions := gemfileLockPositions(lockPath, rel)
-	detectors.AttachPositions(g, positions, func(pkg *sdk.Package) string {
+	detectors.AttachPositions(g, positions, func(pkg *sdk.Dependency) string {
 		if pkg == nil {
 			return ""
 		}

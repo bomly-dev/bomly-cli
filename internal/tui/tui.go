@@ -173,8 +173,8 @@ type listPackageRow struct {
 }
 
 type rootDependencyGroup struct {
-	direct     []*sdk.Package
-	transitive []*sdk.Package
+	direct     []*sdk.Dependency
+	transitive []*sdk.Dependency
 }
 
 type scanMode string
@@ -202,6 +202,7 @@ type scanModel struct {
 	titlePrefix           string
 	project               output.ProjectDescriptor
 	graphValue            *sdk.Graph
+	registry              *sdk.PackageRegistry
 	explainMode           bool
 	manifests             []listPackageRow
 	manifestByID          map[string]listPackageRow

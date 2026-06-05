@@ -7,14 +7,14 @@ import (
 )
 
 func TestNewNode_BuildsIDFromNameAndVersion(t *testing.T) {
-	n := NewPackageRef("react", "18.2.0")
+	n := NewDependencyRef("react", "18.2.0")
 	if n.ID != "react@18.2.0" {
 		t.Fatalf("expected ID react@18.2.0, got %q", n.ID)
 	}
 }
 
-func TestNewPackageNode_StoresCoordinatesAndBuildsID(t *testing.T) {
-	n := NewPackage(Package{
+func TestNewDependencyNode_StoresCoordinatesAndBuildsID(t *testing.T) {
+	n := NewDependency(Dependency{
 		Ecosystem:   "maven",
 		Name:        "demo-artifact:sources",
 		Version:     "1.0.0",
@@ -29,28 +29,28 @@ func TestNewPackageNode_StoresCoordinatesAndBuildsID(t *testing.T) {
 		t.Fatalf("expected qualified name, got %q", n.QualifiedName())
 	}
 	if n.Ecosystem != "maven" || n.Org != "com.example" || n.BuildSystem != "maven" {
-		t.Fatalf("unexpected coordinates on package: %#v", n)
+		t.Fatalf("unexpected coordinates on dependency: %#v", n)
 	}
 }
 
 func TestAddNodeAndDependency_Success(t *testing.T) {
 	g := New()
-	app := NewPackageRef("app", "1.0.0")
-	react := NewPackageRef("react", "18.2.0")
+	app := NewDependencyRef("app", "1.0.0")
+	react := NewDependencyRef("react", "18.2.0")
 
-	if err := g.AddPackage(app); err != nil {
-		t.Fatalf("add app package: %v", err)
+	if err := g.AddNode(app); err != nil {
+		t.Fatalf("add app node: %v", err)
 	}
-	if err := g.AddPackage(react); err != nil {
-		t.Fatalf("add react package: %v", err)
+	if err := g.AddNode(react); err != nil {
+		t.Fatalf("add react node: %v", err)
 	}
-	if err := g.AddDependency(app.ID, react.ID); err != nil {
-		t.Fatalf("add dependency: %v", err)
+	if err := g.AddEdge(app.ID, react.ID); err != nil {
+		t.Fatalf("add edge: %v", err)
 	}
 
-	deps, err := g.Dependencies(app.ID)
+	deps, err := g.DirectDependencies(app.ID)
 	if err != nil {
-		t.Fatalf("dependencies: %v", err)
+		t.Fatalf("direct dependencies: %v", err)
 	}
 	if len(deps) != 1 || deps[0].ID != react.ID {
 		t.Fatalf("expected app to depend on react, got %#v", deps)
@@ -65,30 +65,30 @@ func TestAddNodeAndDependency_Success(t *testing.T) {
 	}
 }
 
-func TestAddDependency_AllowsCycles(t *testing.T) {
+func TestAddEdge_AllowsCycles(t *testing.T) {
 	g := New()
-	a := NewPackageRef("a", "")
-	b := NewPackageRef("b", "")
-	c := NewPackageRef("c", "")
+	a := NewDependencyRef("a", "")
+	b := NewDependencyRef("b", "")
+	c := NewDependencyRef("c", "")
 
-	for _, n := range []*Package{a, b, c} {
-		if err := g.AddPackage(n); err != nil {
-			t.Fatalf("add package %q: %v", n.ID, err)
+	for _, n := range []*Dependency{a, b, c} {
+		if err := g.AddNode(n); err != nil {
+			t.Fatalf("add node %q: %v", n.ID, err)
 		}
 	}
-	if err := g.AddDependency(a.ID, b.ID); err != nil {
+	if err := g.AddEdge(a.ID, b.ID); err != nil {
 		t.Fatalf("add edge a->b: %v", err)
 	}
-	if err := g.AddDependency(b.ID, c.ID); err != nil {
+	if err := g.AddEdge(b.ID, c.ID); err != nil {
 		t.Fatalf("add edge b->c: %v", err)
 	}
-	if err := g.AddDependency(c.ID, a.ID); err != nil {
+	if err := g.AddEdge(c.ID, a.ID); err != nil {
 		t.Fatalf("add edge c->a: %v", err)
 	}
 
-	deps, err := g.Dependencies(c.ID)
+	deps, err := g.DirectDependencies(c.ID)
 	if err != nil {
-		t.Fatalf("dependencies(c): %v", err)
+		t.Fatalf("direct dependencies(c): %v", err)
 	}
 	if len(deps) != 1 || deps[0].ID != a.ID {
 		t.Fatalf("expected c to depend on a, got %#v", deps)
@@ -97,23 +97,23 @@ func TestAddDependency_AllowsCycles(t *testing.T) {
 
 func TestTopologicalSort(t *testing.T) {
 	g := New()
-	app := NewPackageRef("app", "")
-	api := NewPackageRef("api", "")
-	log := NewPackageRef("log", "")
-	util := NewPackageRef("util", "")
+	app := NewDependencyRef("app", "")
+	api := NewDependencyRef("api", "")
+	log := NewDependencyRef("log", "")
+	util := NewDependencyRef("util", "")
 
-	for _, n := range []*Package{app, api, log, util} {
-		if err := g.AddPackage(n); err != nil {
-			t.Fatalf("add package %q: %v", n.ID, err)
+	for _, n := range []*Dependency{app, api, log, util} {
+		if err := g.AddNode(n); err != nil {
+			t.Fatalf("add node %q: %v", n.ID, err)
 		}
 	}
-	if err := g.AddDependency(app.ID, api.ID); err != nil {
+	if err := g.AddEdge(app.ID, api.ID); err != nil {
 		t.Fatalf("add app->api: %v", err)
 	}
-	if err := g.AddDependency(api.ID, util.ID); err != nil {
+	if err := g.AddEdge(api.ID, util.ID); err != nil {
 		t.Fatalf("add api->util: %v", err)
 	}
-	if err := g.AddDependency(app.ID, log.ID); err != nil {
+	if err := g.AddEdge(app.ID, log.ID); err != nil {
 		t.Fatalf("add app->log: %v", err)
 	}
 
@@ -134,17 +134,17 @@ func TestTopologicalSort(t *testing.T) {
 
 func TestTopologicalSort_ReturnsPartialOrderOnCycle(t *testing.T) {
 	g := New()
-	a := NewPackageRef("a", "")
-	b := NewPackageRef("b", "")
-	c := NewPackageRef("c", "")
+	a := NewDependencyRef("a", "")
+	b := NewDependencyRef("b", "")
+	c := NewDependencyRef("c", "")
 
-	for _, n := range []*Package{a, b, c} {
-		if err := g.AddPackage(n); err != nil {
-			t.Fatalf("add package %q: %v", n.ID, err)
+	for _, n := range []*Dependency{a, b, c} {
+		if err := g.AddNode(n); err != nil {
+			t.Fatalf("add node %q: %v", n.ID, err)
 		}
 	}
 	for _, edge := range [][2]string{{a.ID, b.ID}, {b.ID, a.ID}} {
-		if err := g.AddDependency(edge[0], edge[1]); err != nil {
+		if err := g.AddEdge(edge[0], edge[1]); err != nil {
 			t.Fatalf("add edge %q -> %q: %v", edge[0], edge[1], err)
 		}
 	}
@@ -160,17 +160,17 @@ func TestTopologicalSort_ReturnsPartialOrderOnCycle(t *testing.T) {
 
 func TestRootsAndLeaves(t *testing.T) {
 	g := New()
-	app := NewPackageRef("app", "")
-	react := NewPackageRef("react", "")
-	lodash := NewPackageRef("lodash", "")
+	app := NewDependencyRef("app", "")
+	react := NewDependencyRef("react", "")
+	lodash := NewDependencyRef("lodash", "")
 
-	for _, n := range []*Package{app, react, lodash} {
-		if err := g.AddPackage(n); err != nil {
-			t.Fatalf("add package %q: %v", n.ID, err)
+	for _, n := range []*Dependency{app, react, lodash} {
+		if err := g.AddNode(n); err != nil {
+			t.Fatalf("add node %q: %v", n.ID, err)
 		}
 	}
-	if err := g.AddDependency(app.ID, react.ID); err != nil {
-		t.Fatalf("add dependency: %v", err)
+	if err := g.AddEdge(app.ID, react.ID); err != nil {
+		t.Fatalf("add edge: %v", err)
 	}
 
 	roots := idsOf(g.Roots())
@@ -186,19 +186,19 @@ func TestRootsAndLeaves(t *testing.T) {
 
 func TestCollectPathsTo_PrunesIrrelevantBranches(t *testing.T) {
 	g := New()
-	app := NewPackageRef("app", "")
-	left := NewPackageRef("left", "")
-	target := NewPackageRef("target", "")
-	irrelevantA := NewPackageRef("irrelevant-a", "")
-	irrelevantB := NewPackageRef("irrelevant-b", "")
+	app := NewDependencyRef("app", "")
+	left := NewDependencyRef("left", "")
+	target := NewDependencyRef("target", "")
+	irrelevantA := NewDependencyRef("irrelevant-a", "")
+	irrelevantB := NewDependencyRef("irrelevant-b", "")
 
-	for _, n := range []*Package{app, left, target, irrelevantA, irrelevantB} {
-		if err := g.AddPackage(n); err != nil {
-			t.Fatalf("add package %q: %v", n.ID, err)
+	for _, n := range []*Dependency{app, left, target, irrelevantA, irrelevantB} {
+		if err := g.AddNode(n); err != nil {
+			t.Fatalf("add node %q: %v", n.ID, err)
 		}
 	}
 	for _, edge := range [][2]string{{app.ID, left.ID}, {left.ID, target.ID}, {app.ID, irrelevantA.ID}, {irrelevantA.ID, irrelevantB.ID}, {irrelevantB.ID, irrelevantA.ID}} {
-		if err := g.AddDependency(edge[0], edge[1]); err != nil {
+		if err := g.AddEdge(edge[0], edge[1]); err != nil {
 			t.Fatalf("add edge %q -> %q: %v", edge[0], edge[1], err)
 		}
 	}
@@ -212,9 +212,9 @@ func TestCollectPathsTo_PrunesIrrelevantBranches(t *testing.T) {
 	}
 	assertCollectedPath(t, paths[0], false, "", []string{"app", "left", "target"})
 	for _, path := range paths {
-		for _, pkg := range path.Packages {
-			if strings.HasPrefix(pkg.ID, "irrelevant") {
-				t.Fatalf("unexpected irrelevant package in path %#v", idsOf(path.Packages))
+		for _, node := range path.Nodes {
+			if strings.HasPrefix(node.ID, "irrelevant") {
+				t.Fatalf("unexpected irrelevant node in path %#v", idsOf(path.Nodes))
 			}
 		}
 	}
@@ -222,17 +222,17 @@ func TestCollectPathsTo_PrunesIrrelevantBranches(t *testing.T) {
 
 func TestCollectPathsTo_RecordsTargetCycle(t *testing.T) {
 	g := New()
-	app := NewPackageRef("app", "")
-	b := NewPackageRef("b", "")
-	c := NewPackageRef("c", "")
+	app := NewDependencyRef("app", "")
+	b := NewDependencyRef("b", "")
+	c := NewDependencyRef("c", "")
 
-	for _, n := range []*Package{app, b, c} {
-		if err := g.AddPackage(n); err != nil {
-			t.Fatalf("add package %q: %v", n.ID, err)
+	for _, n := range []*Dependency{app, b, c} {
+		if err := g.AddNode(n); err != nil {
+			t.Fatalf("add node %q: %v", n.ID, err)
 		}
 	}
 	for _, edge := range [][2]string{{app.ID, b.ID}, {b.ID, c.ID}, {c.ID, b.ID}} {
-		if err := g.AddDependency(edge[0], edge[1]); err != nil {
+		if err := g.AddEdge(edge[0], edge[1]); err != nil {
 			t.Fatalf("add edge %q -> %q: %v", edge[0], edge[1], err)
 		}
 	}
@@ -248,21 +248,21 @@ func TestCollectPathsTo_RecordsTargetCycle(t *testing.T) {
 	assertCollectedPath(t, paths[1], true, b.ID, []string{"app", "b", "c", "b"})
 }
 
-func TestCollectPathsTo_RootlessCycleFallsBackToRelevantPackages(t *testing.T) {
+func TestCollectPathsTo_RootlessCycleFallsBackToRelevantNodes(t *testing.T) {
 	g := New()
-	a := NewPackageRef("a", "")
-	b := NewPackageRef("b", "")
-	c := NewPackageRef("c", "")
-	x := NewPackageRef("x", "")
-	y := NewPackageRef("y", "")
+	a := NewDependencyRef("a", "")
+	b := NewDependencyRef("b", "")
+	c := NewDependencyRef("c", "")
+	x := NewDependencyRef("x", "")
+	y := NewDependencyRef("y", "")
 
-	for _, n := range []*Package{a, b, c, x, y} {
-		if err := g.AddPackage(n); err != nil {
-			t.Fatalf("add package %q: %v", n.ID, err)
+	for _, n := range []*Dependency{a, b, c, x, y} {
+		if err := g.AddNode(n); err != nil {
+			t.Fatalf("add node %q: %v", n.ID, err)
 		}
 	}
 	for _, edge := range [][2]string{{a.ID, b.ID}, {b.ID, c.ID}, {c.ID, a.ID}, {x.ID, y.ID}, {y.ID, x.ID}} {
-		if err := g.AddDependency(edge[0], edge[1]); err != nil {
+		if err := g.AddEdge(edge[0], edge[1]); err != nil {
 			t.Fatalf("add edge %q -> %q: %v", edge[0], edge[1], err)
 		}
 	}
@@ -282,50 +282,50 @@ func TestCollectPathsTo_RootlessCycleFallsBackToRelevantPackages(t *testing.T) {
 
 func TestRemoveNode_RemovesIncidentEdges(t *testing.T) {
 	g := New()
-	a := NewPackageRef("a", "")
-	b := NewPackageRef("b", "")
-	c := NewPackageRef("c", "")
+	a := NewDependencyRef("a", "")
+	b := NewDependencyRef("b", "")
+	c := NewDependencyRef("c", "")
 
-	for _, n := range []*Package{a, b, c} {
-		if err := g.AddPackage(n); err != nil {
-			t.Fatalf("add package %q: %v", n.ID, err)
+	for _, n := range []*Dependency{a, b, c} {
+		if err := g.AddNode(n); err != nil {
+			t.Fatalf("add node %q: %v", n.ID, err)
 		}
 	}
-	if err := g.AddDependency(a.ID, b.ID); err != nil {
+	if err := g.AddEdge(a.ID, b.ID); err != nil {
 		t.Fatalf("add a->b: %v", err)
 	}
-	if err := g.AddDependency(c.ID, b.ID); err != nil {
+	if err := g.AddEdge(c.ID, b.ID); err != nil {
 		t.Fatalf("add c->b: %v", err)
 	}
 
-	if ok := g.RemovePackage(b.ID); !ok {
-		t.Fatalf("expected package b removal to succeed")
+	if ok := g.RemoveNode(b.ID); !ok {
+		t.Fatalf("expected node b removal to succeed")
 	}
 
-	if _, ok := g.Package(b.ID); ok {
-		t.Fatalf("expected package b removed")
+	if _, ok := g.Node(b.ID); ok {
+		t.Fatalf("expected node b removed")
 	}
-	if deps, err := g.Dependencies(a.ID); err != nil || len(deps) != 0 {
+	if deps, err := g.DirectDependencies(a.ID); err != nil || len(deps) != 0 {
 		t.Fatalf("expected a dependencies cleared, deps=%#v err=%v", deps, err)
 	}
 }
 
 func TestPrettyString(t *testing.T) {
 	g := New()
-	app := NewPackageRef("app", "")
-	react := NewPackageRef("react", "18.2.0")
-	zod := NewPackageRef("zod", "")
+	app := NewDependencyRef("app", "")
+	react := NewDependencyRef("react", "18.2.0")
+	zod := NewDependencyRef("zod", "")
 
-	for _, n := range []*Package{app, react, zod} {
-		if err := g.AddPackage(n); err != nil {
-			t.Fatalf("add package %q: %v", n.ID, err)
+	for _, n := range []*Dependency{app, react, zod} {
+		if err := g.AddNode(n); err != nil {
+			t.Fatalf("add node %q: %v", n.ID, err)
 		}
 	}
-	if err := g.AddDependency(app.ID, react.ID); err != nil {
-		t.Fatalf("add dependency: %v", err)
+	if err := g.AddEdge(app.ID, react.ID); err != nil {
+		t.Fatalf("add edge: %v", err)
 	}
-	if err := g.AddDependency(app.ID, zod.ID); err != nil {
-		t.Fatalf("add dependency: %v", err)
+	if err := g.AddEdge(app.ID, zod.ID); err != nil {
+		t.Fatalf("add edge: %v", err)
 	}
 
 	got := g.PrettyString()
@@ -337,19 +337,19 @@ func TestPrettyString(t *testing.T) {
 
 func TestPrettyTree_WithSharedDependency(t *testing.T) {
 	g := New()
-	a := NewPackageRef("a", "")
-	b := NewPackageRef("b", "")
-	c := NewPackageRef("c", "")
+	a := NewDependencyRef("a", "")
+	b := NewDependencyRef("b", "")
+	c := NewDependencyRef("c", "")
 
-	for _, n := range []*Package{a, b, c} {
-		if err := g.AddPackage(n); err != nil {
-			t.Fatalf("add package %q: %v", n.ID, err)
+	for _, n := range []*Dependency{a, b, c} {
+		if err := g.AddNode(n); err != nil {
+			t.Fatalf("add node %q: %v", n.ID, err)
 		}
 	}
-	if err := g.AddDependency(a.ID, b.ID); err != nil {
+	if err := g.AddEdge(a.ID, b.ID); err != nil {
 		t.Fatalf("add a->b: %v", err)
 	}
-	if err := g.AddDependency(c.ID, b.ID); err != nil {
+	if err := g.AddEdge(c.ID, b.ID); err != nil {
 		t.Fatalf("add c->b: %v", err)
 	}
 
@@ -362,17 +362,17 @@ func TestPrettyTree_WithSharedDependency(t *testing.T) {
 
 func TestPrettyTree_WithCycle(t *testing.T) {
 	g := New()
-	app := NewPackageRef("app", "")
-	a := NewPackageRef("a", "")
-	b := NewPackageRef("b", "")
+	app := NewDependencyRef("app", "")
+	a := NewDependencyRef("a", "")
+	b := NewDependencyRef("b", "")
 
-	for _, n := range []*Package{app, a, b} {
-		if err := g.AddPackage(n); err != nil {
-			t.Fatalf("add package %q: %v", n.ID, err)
+	for _, n := range []*Dependency{app, a, b} {
+		if err := g.AddNode(n); err != nil {
+			t.Fatalf("add node %q: %v", n.ID, err)
 		}
 	}
 	for _, edge := range [][2]string{{app.ID, a.ID}, {a.ID, b.ID}, {b.ID, a.ID}} {
-		if err := g.AddDependency(edge[0], edge[1]); err != nil {
+		if err := g.AddEdge(edge[0], edge[1]); err != nil {
 			t.Fatalf("add edge %q -> %q: %v", edge[0], edge[1], err)
 		}
 	}
@@ -386,43 +386,43 @@ func TestPrettyTree_WithCycle(t *testing.T) {
 
 func TestReAddNodeAfterRemove_ReusesGraphState(t *testing.T) {
 	g := New()
-	a := NewPackageRef("a", "")
-	b := NewPackageRef("b", "")
-	c := NewPackageRef("c", "")
+	a := NewDependencyRef("a", "")
+	b := NewDependencyRef("b", "")
+	c := NewDependencyRef("c", "")
 
-	for _, n := range []*Package{a, b, c} {
-		if err := g.AddPackage(n); err != nil {
-			t.Fatalf("add package %q: %v", n.ID, err)
+	for _, n := range []*Dependency{a, b, c} {
+		if err := g.AddNode(n); err != nil {
+			t.Fatalf("add node %q: %v", n.ID, err)
 		}
 	}
-	if err := g.AddDependency(a.ID, b.ID); err != nil {
+	if err := g.AddEdge(a.ID, b.ID); err != nil {
 		t.Fatalf("add a->b: %v", err)
 	}
-	if err := g.AddDependency(c.ID, b.ID); err != nil {
+	if err := g.AddEdge(c.ID, b.ID); err != nil {
 		t.Fatalf("add c->b: %v", err)
 	}
 
-	if ok := g.RemovePackage(b.ID); !ok {
+	if ok := g.RemoveNode(b.ID); !ok {
 		t.Fatalf("remove b failed")
 	}
 
-	d := NewPackageRef("d", "")
-	if err := g.AddPackage(d); err != nil {
+	d := NewDependencyRef("d", "")
+	if err := g.AddNode(d); err != nil {
 		t.Fatalf("add d: %v", err)
 	}
-	if err := g.AddDependency(a.ID, d.ID); err != nil {
+	if err := g.AddEdge(a.ID, d.ID); err != nil {
 		t.Fatalf("add a->d: %v", err)
 	}
-	if err := g.AddDependency(c.ID, d.ID); err != nil {
+	if err := g.AddEdge(c.ID, d.ID); err != nil {
 		t.Fatalf("add c->d: %v", err)
 	}
 
 	if got := g.Size(); got != 3 {
 		t.Fatalf("expected size 3, got %d", got)
 	}
-	deps, err := g.Dependencies(a.ID)
+	deps, err := g.DirectDependencies(a.ID)
 	if err != nil {
-		t.Fatalf("dependencies(a): %v", err)
+		t.Fatalf("direct dependencies(a): %v", err)
 	}
 	if len(deps) != 1 || deps[0].ID != d.ID {
 		t.Fatalf("expected a to depend on d, got %#v", deps)
@@ -433,38 +433,38 @@ func TestCompare_ClassifiesAddedRemovedAndUpdated(t *testing.T) {
 	base := New()
 	head := New()
 
-	baseApp := NewPackageRef("app", "1.0.0")
-	baseKeep := NewPackage(Package{Ecosystem: "npm", Name: "keep", Version: "1.0.0"})
-	baseRemove := NewPackage(Package{Ecosystem: "npm", Name: "remove", Version: "1.0.0"})
-	baseUpdate := NewPackage(Package{Ecosystem: "npm", Name: "update", Version: "1.0.0"})
-	headApp := NewPackageRef("app", "1.0.0")
-	headKeep := NewPackage(Package{Ecosystem: "npm", Name: "keep", Version: "1.0.0"})
-	headAdd := NewPackage(Package{Ecosystem: "npm", Name: "add", Version: "2.0.0"})
-	headUpdate := NewPackage(Package{Ecosystem: "npm", Name: "update", Version: "2.0.0"})
+	baseApp := NewDependencyRef("app", "1.0.0")
+	baseKeep := NewDependency(Dependency{Ecosystem: "npm", Name: "keep", Version: "1.0.0"})
+	baseRemove := NewDependency(Dependency{Ecosystem: "npm", Name: "remove", Version: "1.0.0"})
+	baseUpdate := NewDependency(Dependency{Ecosystem: "npm", Name: "update", Version: "1.0.0"})
+	headApp := NewDependencyRef("app", "1.0.0")
+	headKeep := NewDependency(Dependency{Ecosystem: "npm", Name: "keep", Version: "1.0.0"})
+	headAdd := NewDependency(Dependency{Ecosystem: "npm", Name: "add", Version: "2.0.0"})
+	headUpdate := NewDependency(Dependency{Ecosystem: "npm", Name: "update", Version: "2.0.0"})
 
-	for _, pkg := range []*Package{baseApp, baseKeep, baseRemove, baseUpdate} {
-		if err := base.AddPackage(pkg); err != nil {
-			t.Fatalf("base.AddPackage(%q): %v", pkg.ID, err)
+	for _, node := range []*Dependency{baseApp, baseKeep, baseRemove, baseUpdate} {
+		if err := base.AddNode(node); err != nil {
+			t.Fatalf("base.AddNode(%q): %v", node.ID, err)
 		}
 	}
-	for _, pkg := range []*Package{headApp, headKeep, headAdd, headUpdate} {
-		if err := head.AddPackage(pkg); err != nil {
-			t.Fatalf("head.AddPackage(%q): %v", pkg.ID, err)
+	for _, node := range []*Dependency{headApp, headKeep, headAdd, headUpdate} {
+		if err := head.AddNode(node); err != nil {
+			t.Fatalf("head.AddNode(%q): %v", node.ID, err)
 		}
 	}
 
 	diff := Compare(base, head)
 	if got := idsOf(diff.Added); !slices.Equal(got, []string{"add@2.0.0"}) {
-		t.Fatalf("unexpected added packages: %#v", got)
+		t.Fatalf("unexpected added nodes: %#v", got)
 	}
 	if got := idsOf(diff.Removed); !slices.Equal(got, []string{"remove@1.0.0"}) {
-		t.Fatalf("unexpected removed packages: %#v", got)
+		t.Fatalf("unexpected removed nodes: %#v", got)
 	}
 	if len(diff.Updated) != 1 {
-		t.Fatalf("expected one updated package, got %#v", diff.Updated)
+		t.Fatalf("expected one updated node, got %#v", diff.Updated)
 	}
 	if diff.Updated[0].Before.ID != "update@1.0.0" || diff.Updated[0].After.ID != "update@2.0.0" {
-		t.Fatalf("unexpected updated package: %#v", diff.Updated[0])
+		t.Fatalf("unexpected updated node: %#v", diff.Updated[0])
 	}
 }
 
@@ -472,12 +472,12 @@ func TestCompare_IgnoresSyntheticSubprojectRoots(t *testing.T) {
 	base := New()
 	head := New()
 	for _, g := range []*Graph{base, head} {
-		for _, pkg := range []*Package{
-			NewPackageRefWithID("subproject:npm:root", "root", ""),
-			NewPackage(Package{Ecosystem: "npm", Name: "shared", Version: "1.0.0"}),
+		for _, node := range []*Dependency{
+			NewDependencyRefWithID("subproject:npm:root", "root", ""),
+			NewDependency(Dependency{Ecosystem: "npm", Name: "shared", Version: "1.0.0"}),
 		} {
-			if err := g.AddPackage(pkg); err != nil {
-				t.Fatalf("AddPackage(%q): %v", pkg.ID, err)
+			if err := g.AddNode(node); err != nil {
+				t.Fatalf("AddNode(%q): %v", node.ID, err)
 			}
 		}
 	}
@@ -488,44 +488,44 @@ func TestCompare_IgnoresSyntheticSubprojectRoots(t *testing.T) {
 	}
 }
 
-func TestCompareIgnoresManifestAndRootPackages(t *testing.T) {
+func TestCompareIgnoresManifestAndRootNodes(t *testing.T) {
 	base := New()
 	head := New()
-	for _, pkg := range []*Package{
-		NewPackageWithID("pkg:generic/root", Package{Name: "root", PURL: "pkg:generic/root"}),
-		NewPackageWithID("pkg:generic/requirements.txt", Package{Name: "requirements.txt", PURL: "pkg:generic/requirements.txt"}),
-		NewPackageWithID("pkg:npm/react@18.2.0", Package{Ecosystem: "npm", BuildSystem: "npm", Name: "react", Version: "18.2.0", PURL: "pkg:npm/react@18.2.0"}),
+	for _, node := range []*Dependency{
+		NewDependencyWithID("pkg:generic/root", Dependency{Name: "root", PURL: "pkg:generic/root"}),
+		NewDependencyWithID("pkg:generic/requirements.txt", Dependency{Name: "requirements.txt", PURL: "pkg:generic/requirements.txt"}),
+		NewDependencyWithID("pkg:npm/react@18.2.0", Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "react", Version: "18.2.0", PURL: "pkg:npm/react@18.2.0"}),
 	} {
-		if err := head.AddPackage(pkg); err != nil {
-			t.Fatalf("head add package %q: %v", pkg.ID, err)
+		if err := head.AddNode(node); err != nil {
+			t.Fatalf("head add node %q: %v", node.ID, err)
 		}
 	}
-	if err := base.AddPackage(NewPackageWithID("pkg:npm/react@18.2.0", Package{Ecosystem: "npm", BuildSystem: "npm", Name: "react", Version: "18.2.0", PURL: "pkg:npm/react@18.2.0"})); err != nil {
-		t.Fatalf("base add package: %v", err)
+	if err := base.AddNode(NewDependencyWithID("pkg:npm/react@18.2.0", Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "react", Version: "18.2.0", PURL: "pkg:npm/react@18.2.0"})); err != nil {
+		t.Fatalf("base add node: %v", err)
 	}
 
 	diff := Compare(base, head)
 	if len(diff.Added) != 0 || len(diff.Removed) != 0 || len(diff.Updated) != 0 {
-		t.Fatalf("expected manifest/root packages to be ignored, got %#v", diff)
+		t.Fatalf("expected manifest/root nodes to be ignored, got %#v", diff)
 	}
 }
 
-func TestCompareIgnoresApplicationPackages(t *testing.T) {
+func TestCompareIgnoresApplicationNodes(t *testing.T) {
 	base := New()
 	head := New()
-	if err := head.AddPackage(NewPackageWithID("pkg:npm/demo@1.0.0", Package{Ecosystem: "npm", BuildSystem: "npm", Name: "demo", Version: "1.0.0", Type: "application", PURL: "pkg:npm/demo@1.0.0"})); err != nil {
+	if err := head.AddNode(NewDependencyWithID("pkg:npm/demo@1.0.0", Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "demo", Version: "1.0.0", Type: "application", PURL: "pkg:npm/demo@1.0.0"})); err != nil {
 		t.Fatalf("head add application: %v", err)
 	}
 
 	diff := Compare(base, head)
 	if len(diff.Added) != 0 || len(diff.Removed) != 0 || len(diff.Updated) != 0 {
-		t.Fatalf("expected application package to be ignored, got %#v", diff)
+		t.Fatalf("expected application node to be ignored, got %#v", diff)
 	}
 }
 
 func TestPackageHelpers(t *testing.T) {
 	pkg := &Package{
-		ID:      "pkg:generic/acme/demo@1.0.0",
+		PURL:    "pkg:generic/acme/demo@1.0.0",
 		Org:     "acme",
 		Name:    "demo",
 		Version: "1.0.0",
@@ -555,9 +555,9 @@ func assertBefore(t *testing.T, ids []string, first, second string) {
 	}
 }
 
-func idsOf(packages []*Package) []string {
-	ids := make([]string, 0, len(packages))
-	for _, n := range packages {
+func idsOf(nodes []*Dependency) []string {
+	ids := make([]string, 0, len(nodes))
+	for _, n := range nodes {
 		ids = append(ids, n.ID)
 	}
 	return ids
@@ -571,7 +571,7 @@ func assertCollectedPath(t *testing.T, path Path, cyclic bool, cycleTo string, w
 	if path.CycleTo != cycleTo {
 		t.Fatalf("expected cycleTo=%q, got %#v", cycleTo, path)
 	}
-	if got := idsOf(path.Packages); !slices.Equal(got, want) {
+	if got := idsOf(path.Nodes); !slices.Equal(got, want) {
 		t.Fatalf("expected path %v, got %v", want, got)
 	}
 }

@@ -7,11 +7,11 @@ import (
 )
 
 func TestDeduplicateFindingsKeepsHighestPrioritySource(t *testing.T) {
-	pkg := &sdk.Package{ID: "pkg"}
+	const pkgRef = "pkg:npm/pkg@1.0.0"
 	findings := []sdk.Finding{
-		{ID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "osv", Package: pkg},
-		{ID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "grype", Package: pkg},
-		{ID: "POLICY-1", Kind: sdk.FindingKindLicense, Source: "license", Package: pkg},
+		{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "osv", PackageRef: pkgRef},
+		{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "grype", PackageRef: pkgRef},
+		{ID: "POLICY-1", Kind: sdk.FindingKindLicense, Source: "license", PackageRef: pkgRef},
 	}
 
 	got := DeduplicateFindings(findings)

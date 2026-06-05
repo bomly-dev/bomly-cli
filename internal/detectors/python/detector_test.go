@@ -72,25 +72,25 @@ func TestDepGraphFromPipfileLock(t *testing.T) {
 	if g.Size() != 4 {
 		t.Fatalf("expected root plus 3 packages, got %d", g.Size())
 	}
-	if _, ok := g.Package("requests@2.2.1"); !ok {
+	if _, ok := g.Node("requests@2.2.1"); !ok {
 		t.Fatalf("expected requests package, got %s", g.PrettyString())
 	}
 }
 
 func TestFilterPythonToolPackagesRemovesUndeclaredTools(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemPython), Name: "root"})
-	requests := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemPython), Name: "requests", Version: "2.32.0"})
-	pip := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemPython), Name: "pip", Version: "25.0"})
-	for _, pkg := range []*sdk.Package{root, requests, pip} {
-		if err := g.AddPackage(pkg); err != nil {
+	root := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemPython), Name: "root"})
+	requests := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemPython), Name: "requests", Version: "2.32.0"})
+	pip := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemPython), Name: "pip", Version: "25.0"})
+	for _, pkg := range []*sdk.Dependency{root, requests, pip} {
+		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.ID, err)
 		}
 	}
-	if err := g.AddDependency(root.ID, requests.ID); err != nil {
+	if err := g.AddEdge(root.ID, requests.ID); err != nil {
 		t.Fatalf("add requests dependency: %v", err)
 	}
-	if err := g.AddDependency(root.ID, pip.ID); err != nil {
+	if err := g.AddEdge(root.ID, pip.ID); err != nil {
 		t.Fatalf("add pip dependency: %v", err)
 	}
 
@@ -98,10 +98,10 @@ func TestFilterPythonToolPackagesRemovesUndeclaredTools(t *testing.T) {
 	if err != nil {
 		t.Fatalf("filterPythonToolPackages() error = %v", err)
 	}
-	if _, ok := filtered.Package("pip@25.0"); ok {
+	if _, ok := filtered.Node("pip@25.0"); ok {
 		t.Fatalf("expected undeclared pip to be removed: %s", filtered.PrettyString())
 	}
-	if _, ok := filtered.Package("requests@2.32.0"); !ok {
+	if _, ok := filtered.Node("requests@2.32.0"); !ok {
 		t.Fatalf("expected application dependency to remain: %s", filtered.PrettyString())
 	}
 }
@@ -112,18 +112,18 @@ func TestFilterPythonToolPackagesKeepsDeclaredTools(t *testing.T) {
 		t.Fatalf("write requirements: %v", err)
 	}
 	g := sdk.New()
-	root := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemPython), Name: "root"})
-	pip := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemPython), Name: "pip", Version: "25.0"})
-	wheel := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemPython), Name: "wheel", Version: "0.45.0"})
-	for _, pkg := range []*sdk.Package{root, pip, wheel} {
-		if err := g.AddPackage(pkg); err != nil {
+	root := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemPython), Name: "root"})
+	pip := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemPython), Name: "pip", Version: "25.0"})
+	wheel := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemPython), Name: "wheel", Version: "0.45.0"})
+	for _, pkg := range []*sdk.Dependency{root, pip, wheel} {
+		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.ID, err)
 		}
 	}
-	if err := g.AddDependency(root.ID, pip.ID); err != nil {
+	if err := g.AddEdge(root.ID, pip.ID); err != nil {
 		t.Fatalf("add pip dependency: %v", err)
 	}
-	if err := g.AddDependency(root.ID, wheel.ID); err != nil {
+	if err := g.AddEdge(root.ID, wheel.ID); err != nil {
 		t.Fatalf("add wheel dependency: %v", err)
 	}
 
@@ -131,10 +131,10 @@ func TestFilterPythonToolPackagesKeepsDeclaredTools(t *testing.T) {
 	if err != nil {
 		t.Fatalf("filterPythonToolPackages() error = %v", err)
 	}
-	if _, ok := filtered.Package("pip@25.0"); !ok {
+	if _, ok := filtered.Node("pip@25.0"); !ok {
 		t.Fatalf("expected declared pip to remain: %s", filtered.PrettyString())
 	}
-	if _, ok := filtered.Package("wheel@0.45.0"); ok {
+	if _, ok := filtered.Node("wheel@0.45.0"); ok {
 		t.Fatalf("expected undeclared wheel to be removed: %s", filtered.PrettyString())
 	}
 }
@@ -153,12 +153,13 @@ func TestAttachDeclaredPositions(t *testing.T) {
 
 	g := sdk.New()
 	for _, name := range []string{"requests", "flask", "numpy", "urllib3"} {
-		pkg := sdk.NewPackage(sdk.Package{
+		pkg := sdk.NewDependency(sdk.Dependency{
 			Ecosystem: string(sdk.EcosystemPython),
 			Name:      name,
 			Version:   "0.0.0",
 		})
-		_ = g.AddPackage(pkg)
+
+		_ = g.AddNode(pkg)
 	}
 
 	attachDeclaredPositions(g, dir)
@@ -169,7 +170,7 @@ func TestAttachDeclaredPositions(t *testing.T) {
 		"numpy":    6,
 	}
 	for name, wantLine := range cases {
-		pkg, _ := g.Package(name + "@0.0.0")
+		pkg, _ := g.Node(name + "@0.0.0")
 		if pkg == nil {
 			t.Fatalf("%s missing from graph", name)
 		}
@@ -187,7 +188,7 @@ func TestAttachDeclaredPositions(t *testing.T) {
 	}
 
 	// Transitive (not declared) gets no Locations.
-	pkg, _ := g.Package("urllib3@0.0.0")
+	pkg, _ := g.Node("urllib3@0.0.0")
 	if pkg != nil && len(pkg.Locations) != 0 {
 		t.Errorf("urllib3 (undeclared) should have no Locations; got %+v", pkg.Locations)
 	}

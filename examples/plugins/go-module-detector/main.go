@@ -67,7 +67,7 @@ func (d *detector) Detect(ctx context.Context, req *sdk.DetectRequest) (*sdk.Det
 	if err != nil {
 		return nil, err
 	}
-	pkg := &sdk.Package{
+	pkg := &sdk.Dependency{
 		ID:        moduleName + "@v0.0.0",
 		Ecosystem: string(sdk.EcosystemGo),
 		Name:      moduleName,
@@ -76,7 +76,7 @@ func (d *detector) Detect(ctx context.Context, req *sdk.DetectRequest) (*sdk.Det
 		FoundBy:   pluginID,
 	}
 	graph := sdk.New()
-	if err := graph.AddPackage(pkg); err != nil {
+	if err := graph.AddNode(pkg); err != nil {
 		return nil, err
 	}
 	return &sdk.DetectResponse{

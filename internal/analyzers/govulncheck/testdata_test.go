@@ -23,12 +23,12 @@ func goFixture(parts ...string) string {
 func TestDiscoverModuleRootsFromTestdata(t *testing.T) {
 	root := goFixture("module")
 	g := model.New()
-	pkg := model.NewPackage(model.Package{
+	pkg := model.NewDependency(model.Dependency{
 		Name:      "example.com/lib",
 		Ecosystem: string(model.EcosystemGo),
 		Locations: []model.PackageLocation{{RealPath: filepath.Join(root, "nested", "file.go")}},
 	})
-	if err := g.AddPackage(pkg); err != nil {
+	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
 	}
 	got := discoverModuleRoots(model.AnalyzeRequest{
@@ -118,19 +118,22 @@ func TestGovulncheckFailureReasons(t *testing.T) {
 }
 
 func TestGovulncheckAnalyzerMarksUnknownWithoutModuleRoot(t *testing.T) {
+	const purl = "pkg:golang/example.com/lib"
 	g := model.New()
-	pkg := model.NewPackage(model.Package{
-		Name:            "example.com/lib",
-		Ecosystem:       string(model.EcosystemGo),
-		Vulnerabilities: []model.PackageVulnerability{{ID: "GO-1"}},
+	pkg := model.NewDependency(model.Dependency{
+		Name:      "example.com/lib",
+		Ecosystem: string(model.EcosystemGo),
+		PURL:      purl,
 	})
-	if err := g.AddPackage(pkg); err != nil {
+	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := (Analyzer{DisableCache: true}).Analyze(context.Background(), model.AnalyzeRequest{Graph: g}); err != nil {
+	reg := model.NewPackageRegistry()
+	reg.Ensure(purl).Vulnerabilities = []model.Vulnerability{{ID: "GO-1"}}
+	if _, err := (Analyzer{DisableCache: true}).Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg}); err != nil {
 		t.Fatal(err)
 	}
-	got := pkg.Vulnerabilities[0].Reachability
+	got := reg.Ensure(purl).Vulnerabilities[0].Reachability
 	if got == nil || got.Status != model.ReachabilityUnknown || got.Reason != "no-module-root-discovered" {
 		t.Fatalf("reachability = %+v", got)
 	}
@@ -140,7 +143,7 @@ func TestGovulncheckLookupFindingAndImportedModuleAliases(t *testing.T) {
 	runResult := RunnerResult{Findings: map[string]Finding{
 		"GO-1": {OSV: "GO-1", Aliases: []string{"CVE-1"}},
 	}}
-	tests := []model.PackageVulnerability{
+	tests := []model.Vulnerability{
 		{ID: "GO-1"},
 		{ID: "CVE-1"},
 		{ID: "GHSA-1", Aliases: []string{"GO-1"}},
@@ -151,7 +154,7 @@ func TestGovulncheckLookupFindingAndImportedModuleAliases(t *testing.T) {
 			t.Fatalf("lookupFinding(%+v) missed", vuln)
 		}
 	}
-	pkg := model.NewPackage(model.Package{Name: "example.com/lib"})
+	pkg := model.NewDependency(model.Dependency{Name: "example.com/lib"})
 	if !packageImportedByModule(pkg, map[string]struct{}{"example.com/lib": {}}) {
 		t.Fatal("package name was not matched against imported module set")
 	}

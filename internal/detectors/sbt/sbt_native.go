@@ -130,7 +130,7 @@ func depGraphFromSBTDependencyTree(raw []byte) (*sdk.Graph, error) {
 
 	g := sdk.New()
 	root := rootNode()
-	if err := g.AddPackage(root); err != nil {
+	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
@@ -186,7 +186,7 @@ func depGraphFromSBTDependencyTree(raw []byte) (*sdk.Graph, error) {
 			}
 		}
 
-		existing, ok := g.Package(node.ID)
+		existing, ok := g.Node(node.ID)
 		if !ok {
 			continue
 		}
@@ -203,7 +203,7 @@ func depGraphFromSBTDependencyTree(raw []byte) (*sdk.Graph, error) {
 		}
 
 		parentID := parentStack[depth]
-		if err := g.AddDependency(parentID, existing.ID); err != nil {
+		if err := g.AddEdge(parentID, existing.ID); err != nil {
 			// Duplicate edges are silently ignored.
 			_ = err
 		}

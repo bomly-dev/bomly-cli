@@ -871,7 +871,7 @@ func classifyRelationships(g *sdk.Graph) map[string]string {
 		out[r.ID] = "root"
 	}
 	for rid := range rootIDs {
-		deps, _ := g.Dependencies(rid)
+		deps, _ := g.DirectDependencies(rid)
 		for _, d := range deps {
 			if d == nil {
 				continue
@@ -885,7 +885,7 @@ func classifyRelationships(g *sdk.Graph) map[string]string {
 			out[d.ID] = "direct"
 		}
 	}
-	for _, pkg := range g.Packages() {
+	for _, pkg := range g.Nodes() {
 		if pkg == nil {
 			continue
 		}
@@ -3117,7 +3117,7 @@ func diffSourceItems(consolidated sdk.ConsolidatedGraph, expanded map[string]boo
 				items = append(items, sourceNode("(no consolidated graph)", "", prefix+"└─ ", 2, false, false))
 				break
 			}
-			pkgs := graph.Packages()
+			pkgs := graph.Nodes()
 			sort.Slice(pkgs, func(i, j int) bool { return packageSortKey(pkgs[i]) < packageSortKey(pkgs[j]) })
 			limit := len(pkgs)
 			truncated := false
@@ -3141,7 +3141,7 @@ func diffSourceItems(consolidated sdk.ConsolidatedGraph, expanded map[string]boo
 				} else {
 					childPrefix += "│  "
 				}
-				items = append(items, sourceLeafItems(packageRawLines(pkg), childPrefix)...)
+				items = append(items, sourceLeafItems(packageRawLines(pkg, nil), childPrefix)...)
 			}
 			if truncated {
 				items = append(items, sourceNode(fmt.Sprintf("(showing 200 of %d packages)", len(pkgs)), "", prefix+"└─ ", 2, false, false))

@@ -10,38 +10,18 @@ import (
 )
 
 func TestMatchProgressChildren_ReportsMatcherCounts(t *testing.T) {
-	g := sdk.New()
-	for _, pkg := range []*sdk.Package{
-		sdk.NewPackage(sdk.Package{
-			Name:    "react",
-			Version: "18.2.0",
-			Licenses: []sdk.PackageLicense{{
-				Type:  "deps.dev",
-				Value: "MIT",
-			}},
-			Vulnerabilities: []sdk.PackageVulnerability{
-				{ID: "OSV-1", Source: "osv"},
-				{ID: "CVE-1", Source: "grype"},
-			},
-		}),
-		sdk.NewPackage(sdk.Package{
-			Name:    "zod",
-			Version: "3.23.0",
-			Licenses: []sdk.PackageLicense{{
-				Type:  "ClearlyDefined",
-				Value: "Apache-2.0",
-			}},
-			Vulnerabilities: []sdk.PackageVulnerability{
-				{ID: "OSV-2", Source: "osv"},
-			},
-		}),
-	} {
-		if err := g.AddPackage(pkg); err != nil {
-			t.Fatalf("AddPackage() error = %v", err)
-		}
+	registry := sdk.NewPackageRegistry()
+	react := registry.Ensure("pkg:npm/react@18.2.0")
+	react.Licenses = []sdk.PackageLicense{{Type: "deps.dev", Value: "MIT"}}
+	react.Vulnerabilities = []sdk.Vulnerability{
+		{ID: "OSV-1", Source: "osv"},
+		{ID: "CVE-1", Source: "grype"},
 	}
+	zod := registry.Ensure("pkg:npm/zod@3.23.0")
+	zod.Licenses = []sdk.PackageLicense{{Type: "ClearlyDefined", Value: "Apache-2.0"}}
+	zod.Vulnerabilities = []sdk.Vulnerability{{ID: "OSV-2", Source: "osv"}}
 
-	children := matchProgressChildren(g, []string{
+	children := matchProgressChildren(registry, []string{
 		opts.DepsdevCheckerName,
 		opts.ClearlyDefinedCheckerName,
 		opts.OSVMatcherName,

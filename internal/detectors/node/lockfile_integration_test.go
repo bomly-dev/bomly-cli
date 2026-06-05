@@ -24,10 +24,10 @@ func stableID(name, version string) string {
 }
 
 // requirePackage asserts a package with the given name@version exists in the graph.
-func requirePackage(t *testing.T, g *sdk.Graph, name, version string) *sdk.Package {
+func requirePackage(t *testing.T, g *sdk.Graph, name, version string) *sdk.Dependency {
 	t.Helper()
 	id := stableID(name, version)
-	pkg, ok := g.Package(id)
+	pkg, ok := g.Node(id)
 	if !ok {
 		t.Fatalf("expected package %s@%s in graph (id=%s); packages present: %v", name, version, id, graphPackageIDs(g))
 	}
@@ -39,7 +39,7 @@ func requireEdge(t *testing.T, g *sdk.Graph, fromName, fromVersion, toName, toVe
 	t.Helper()
 	fromID := stableID(fromName, fromVersion)
 	toID := stableID(toName, toVersion)
-	deps, err := g.Dependencies(fromID)
+	deps, err := g.DirectDependencies(fromID)
 	if err != nil {
 		t.Fatalf("dependencies(%s@%s): %v", fromName, fromVersion, err)
 	}
@@ -75,13 +75,13 @@ func requireDigest(t *testing.T, g *sdk.Graph, name, version, algorithm string) 
 func requireScope(t *testing.T, g *sdk.Graph, name, version string, scope sdk.Scope) {
 	t.Helper()
 	pkg := requirePackage(t, g, name, version)
-	if pkg.Scope != string(scope) {
-		t.Fatalf("expected %s@%s scope %q, got %q", name, version, scope, pkg.Scope)
+	if got := pkg.PrimaryScope(); got != scope {
+		t.Fatalf("expected %s@%s scope %q, got %q", name, version, scope, got)
 	}
 }
 
 func graphPackageIDs(g *sdk.Graph) []string {
-	pkgs := g.Packages()
+	pkgs := g.Nodes()
 	ids := make([]string, len(pkgs))
 	for i, p := range pkgs {
 		ids[i] = p.ID
@@ -136,7 +136,7 @@ func TestNPMLockfileV2_Metadata(t *testing.T) {
 	requireDigest(t, g, "express", "4.18.2", "sha512")
 	// License extracted from lockfile
 	pkg := requirePackage(t, g, "express", "4.18.2")
-	if len(pkg.Licenses) == 0 {
+	if len(sdk.DetectionLicenses(pkg)) == 0 {
 		t.Errorf("expected license on express@4.18.2")
 	}
 }
@@ -175,7 +175,7 @@ func TestNPMLockfileV3_Metadata(t *testing.T) {
 	requireResolvedURL(t, g, "lodash", "4.17.21")
 	requireDigest(t, g, "lodash", "4.17.21", "sha512")
 	pkg := requirePackage(t, g, "lodash", "4.17.21")
-	if len(pkg.Licenses) == 0 {
+	if len(sdk.DetectionLicenses(pkg)) == 0 {
 		t.Errorf("expected license on lodash@4.17.21")
 	}
 	// jest has peerDependencies; NPMPackageMetadata must be populated
@@ -230,7 +230,7 @@ func TestPNPMLockfileV5_RootDependencyEdges(t *testing.T) {
 	// Root must depend on the three top-level packages.
 	// Root package has name "demo-app" and version "1.0.0" from package.json.
 	rootID := stableID("demo-app", "1.0.0")
-	rootDeps, err := g.Dependencies(rootID)
+	rootDeps, err := g.DirectDependencies(rootID)
 	if err != nil {
 		t.Fatalf("dependencies(root): %v", err)
 	}
@@ -280,7 +280,7 @@ func TestPNPMLockfileV9_Metadata(t *testing.T) {
 	requireResolvedURL(t, g, "react", "18.2.0")
 	requireDigest(t, g, "react", "18.2.0", "sha512")
 	pkg := requirePackage(t, g, "react", "18.2.0")
-	if len(pkg.Licenses) == 0 {
+	if len(sdk.DetectionLicenses(pkg)) == 0 {
 		t.Errorf("expected license on react@18.2.0")
 	}
 }
@@ -361,7 +361,7 @@ func TestYarnBerry_MetadataStanzaNotIngested(t *testing.T) {
 		t.Fatalf("depGraphFromYarnLockfile(yarn-berry): %v", err)
 	}
 	// __metadata must never appear as a package
-	for _, pkg := range g.Packages() {
+	for _, pkg := range g.Nodes() {
 		if pkg.Name == "__metadata" {
 			t.Errorf("__metadata was incorrectly ingested as a package node")
 		}

@@ -40,8 +40,8 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 	}
 
 	depsGraph := sdk.New()
-	rootNode := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemNPM), Name: rootName, Version: manifest.Version, Type: "application"})
-	if err := depsGraph.AddPackage(rootNode); err != nil {
+	rootNode := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemNPM), Name: rootName, Version: manifest.Version, Type: "application"})
+	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add yarn root node: %w", err)
 	}
 
@@ -56,14 +56,14 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 			return id, nil
 		}
 		entry := entries[idx]
-		pkg := sdk.Package{
+		pkg := sdk.Dependency{
 			Ecosystem:   string(sdk.EcosystemNPM),
 			Name:        entry.Name,
 			Version:     entry.Version,
 			ResolvedURL: entry.Resolved,
 			Digests:     node.ParseIntegrityDigests(entry.Integrity),
 		}
-		pkgNode := sdk.NewPackage(pkg)
+		pkgNode := sdk.NewDependency(pkg)
 		if err := node.AddNodeIfMissing(depsGraph, pkgNode); err != nil {
 			return "", err
 		}
@@ -84,7 +84,7 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 		if err != nil {
 			return nil, err
 		}
-		if err := depsGraph.AddDependency(rootNode.ID, entryID); err != nil {
+		if err := depsGraph.AddEdge(rootNode.ID, entryID); err != nil {
 			return nil, fmt.Errorf("add yarn root dependency %q -> %q: %w", rootNode.ID, entryID, err)
 		}
 		queue = append(queue, entryIdx)
@@ -109,17 +109,17 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 				if err != nil {
 					return nil, err
 				}
-				if err := depsGraph.AddDependency(parentID, entryID); err != nil {
+				if err := depsGraph.AddEdge(parentID, entryID); err != nil {
 					return nil, fmt.Errorf("add yarn dependency %q -> %q: %w", parentID, entryID, err)
 				}
 				queue = append(queue, entryIdx)
 				continue
 			}
-			synthetic := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemNPM), Name: dependencyName, Version: node.NormalizeVersionToken(requested)})
+			synthetic := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemNPM), Name: dependencyName, Version: node.NormalizeVersionToken(requested)})
 			if err := node.AddNodeIfMissing(depsGraph, synthetic); err != nil {
 				return nil, err
 			}
-			if err := depsGraph.AddDependency(parentID, synthetic.ID); err != nil {
+			if err := depsGraph.AddEdge(parentID, synthetic.ID); err != nil {
 				return nil, fmt.Errorf("add yarn synthetic dependency %q -> %q: %w", parentID, synthetic.ID, err)
 			}
 		}

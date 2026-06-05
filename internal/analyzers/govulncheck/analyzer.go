@@ -58,18 +58,31 @@ func (a Analyzer) Ready() bool { return true }
 // package with attached vulnerabilities. Without vulnerabilities to
 // annotate, the analyzer would do work without producing output.
 func (a Analyzer) Applicable(_ context.Context, req model.AnalyzeRequest) (bool, error) {
-	if req.Graph == nil {
+	if req.Graph == nil || req.Registry == nil {
 		return false, nil
 	}
-	for _, pkg := range req.Graph.Packages() {
-		if pkg == nil || len(pkg.Vulnerabilities) == 0 {
+	for _, dep := range req.Graph.Nodes() {
+		if dep == nil || !isGoPackage(dep) {
 			continue
 		}
-		if isGoPackage(pkg) {
-			return true, nil
+		pkg, ok := req.Registry.Get(dependencyPURL(dep))
+		if !ok || pkg == nil || len(pkg.Vulnerabilities) == 0 {
+			continue
 		}
+		return true, nil
 	}
 	return false, nil
+}
+
+// dependencyPURL returns the registry key for a dependency node.
+func dependencyPURL(dep *model.Dependency) string {
+	if dep == nil {
+		return ""
+	}
+	if dep.PackageRef != "" {
+		return dep.PackageRef
+	}
+	return model.CanonicalPackageURLFromDependency(dep)
 }
 
 // Analyze runs govulncheck per Go module root and writes Reachability
@@ -78,7 +91,7 @@ func (a Analyzer) Applicable(_ context.Context, req model.AnalyzeRequest) (bool,
 // keep the pipeline running.
 func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.AnalyzeResult, error) {
 	logger := a.logger()
-	if req.Graph == nil {
+	if req.Graph == nil || req.Registry == nil {
 		return model.AnalyzeResult{}, nil
 	}
 	runner := a.Runner
@@ -92,8 +105,8 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		// No module roots discovered — annotate every Go vuln as
 		// Unknown so consumers know the analyzer was attempted.
 		logger.Info("govulncheck: no module roots discovered; marking all Go vulnerabilities as unknown")
-		annotateAllUnknown(req.Graph, "no-module-root-discovered", time.Now())
-		return resultFromGraph(req.Graph), nil
+		annotateAllUnknown(req, "no-module-root-discovered", time.Now())
+		return resultForRequest(), nil
 	}
 
 	logger.Info("govulncheck: starting reachability analysis",
@@ -111,7 +124,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		case <-ctx.Done():
 			logger.Info("govulncheck: context cancelled; skipping module",
 				zap.String("module_root", root))
-			annotateModuleUnknown(req.Graph, root, "cancelled", time.Now())
+			annotateModuleUnknown(req, root, "cancelled", time.Now())
 			continue
 		default:
 		}
@@ -125,7 +138,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 				zap.Duration("duration", time.Since(moduleStart)),
 				zap.Error(err))
 			reason := failureReason(err)
-			added := annotateModuleUnknown(req.Graph, root, reason, time.Now())
+			added := annotateModuleUnknown(req, root, reason, time.Now())
 			stats.Unknown += added
 			continue
 		}
@@ -134,7 +147,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		} else {
 			cacheMisses++
 		}
-		applied := applyRunnerResult(req.Graph, root, runResult, runner.Name(), time.Now())
+		applied := applyRunnerResult(req, root, runResult, runner.Name(), time.Now())
 		stats.Reachable += applied.reachable
 		stats.Unreachable += applied.unreachable
 		stats.Unknown += applied.unknown
@@ -160,7 +173,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		zap.Duration("duration", time.Since(overallStart)),
 	)
 
-	out := resultFromGraph(req.Graph)
+	out := resultForRequest()
 	out.AnalyzerStats = map[string]model.ReachabilityStats{Name: stats}
 	return out, nil
 }
@@ -213,8 +226,21 @@ func (a Analyzer) cache() *resultCache {
 
 func (a Analyzer) logger() *zap.Logger { return ensureLogger(a.Logger) }
 
-func resultFromGraph(g *model.Graph) model.AnalyzeResult {
-	return model.AnalyzeResult{Graph: g, AnalyzerRuns: []string{Name}}
+func resultForRequest() model.AnalyzeResult {
+	return model.AnalyzeResult{AnalyzerRuns: []string{Name}}
+}
+
+// vulnerabilitiesForDependency returns the registry vulnerabilities for a
+// dependency node, or nil when the package is absent from the registry.
+func vulnerabilitiesForDependency(req model.AnalyzeRequest, dep *model.Dependency) []model.Vulnerability {
+	if req.Registry == nil || dep == nil {
+		return nil
+	}
+	pkg, ok := req.Registry.Get(dependencyPURL(dep))
+	if !ok || pkg == nil {
+		return nil
+	}
+	return pkg.Vulnerabilities
 }
 
 // applyOutcome reports per-vuln Reachability outcomes for telemetry.
@@ -227,18 +253,19 @@ type applyOutcome struct {
 // in govulncheck's output are marked as either TierPackage Unreachable
 // (module not imported) or TierSymbol Unreachable (imported but no call
 // path).
-func applyRunnerResult(g *model.Graph, moduleRoot string, runRes RunnerResult, runnerName string, now time.Time) applyOutcome {
+func applyRunnerResult(req model.AnalyzeRequest, moduleRoot string, runRes RunnerResult, runnerName string, now time.Time) applyOutcome {
 	var outcome applyOutcome
 	timestamp := now.UTC().Format(time.RFC3339)
-	for _, pkg := range g.Packages() {
-		if pkg == nil || !isGoPackage(pkg) {
+	for _, dep := range req.Graph.Nodes() {
+		if dep == nil || !isGoPackage(dep) {
 			continue
 		}
-		if !packageBelongsToModuleRoot(pkg, moduleRoot) {
+		if !packageBelongsToModuleRoot(dep, moduleRoot) {
 			continue
 		}
-		for i := range pkg.Vulnerabilities {
-			vuln := &pkg.Vulnerabilities[i]
+		vulns := vulnerabilitiesForDependency(req, dep)
+		for i := range vulns {
+			vuln := &vulns[i]
 			if vuln.Reachability != nil && vuln.Reachability.Analyzer == Name {
 				continue // already annotated by an earlier module pass
 			}
@@ -259,7 +286,7 @@ func applyRunnerResult(g *model.Graph, moduleRoot string, runRes RunnerResult, r
 				r.Tier = model.TierSymbol
 				r.Reason = "no-call-into-vulnerable-symbol"
 				outcome.unreachable++
-			case packageImportedByModule(pkg, runRes.ImportedModules):
+			case packageImportedByModule(dep, runRes.ImportedModules):
 				r.Status = model.ReachabilityUnreachable
 				r.Tier = model.TierSymbol
 				r.Reason = "no-call-into-vulnerable-symbol"
@@ -277,21 +304,22 @@ func applyRunnerResult(g *model.Graph, moduleRoot string, runRes RunnerResult, r
 	return outcome
 }
 
-func annotateModuleUnknown(g *model.Graph, moduleRoot, reason string, now time.Time) int {
+func annotateModuleUnknown(req model.AnalyzeRequest, moduleRoot, reason string, now time.Time) int {
 	timestamp := now.UTC().Format(time.RFC3339)
 	count := 0
-	for _, pkg := range g.Packages() {
-		if pkg == nil || !isGoPackage(pkg) {
+	for _, dep := range req.Graph.Nodes() {
+		if dep == nil || !isGoPackage(dep) {
 			continue
 		}
-		if !packageBelongsToModuleRoot(pkg, moduleRoot) {
+		if !packageBelongsToModuleRoot(dep, moduleRoot) {
 			continue
 		}
-		for i := range pkg.Vulnerabilities {
-			if pkg.Vulnerabilities[i].Reachability != nil {
+		vulns := vulnerabilitiesForDependency(req, dep)
+		for i := range vulns {
+			if vulns[i].Reachability != nil {
 				continue
 			}
-			pkg.Vulnerabilities[i].Reachability = &model.Reachability{
+			vulns[i].Reachability = &model.Reachability{
 				Analyzer:   Name,
 				Status:     model.ReachabilityUnknown,
 				Tier:       model.TierNone,
@@ -304,17 +332,18 @@ func annotateModuleUnknown(g *model.Graph, moduleRoot, reason string, now time.T
 	return count
 }
 
-func annotateAllUnknown(g *model.Graph, reason string, now time.Time) {
+func annotateAllUnknown(req model.AnalyzeRequest, reason string, now time.Time) {
 	timestamp := now.UTC().Format(time.RFC3339)
-	for _, pkg := range g.Packages() {
-		if pkg == nil || !isGoPackage(pkg) {
+	for _, dep := range req.Graph.Nodes() {
+		if dep == nil || !isGoPackage(dep) {
 			continue
 		}
-		for i := range pkg.Vulnerabilities {
-			if pkg.Vulnerabilities[i].Reachability != nil {
+		vulns := vulnerabilitiesForDependency(req, dep)
+		for i := range vulns {
+			if vulns[i].Reachability != nil {
 				continue
 			}
-			pkg.Vulnerabilities[i].Reachability = &model.Reachability{
+			vulns[i].Reachability = &model.Reachability{
 				Analyzer:   Name,
 				Status:     model.ReachabilityUnknown,
 				Tier:       model.TierNone,
@@ -329,7 +358,7 @@ func annotateAllUnknown(g *model.Graph, reason string, now time.Time) {
 // findings via OSV id and aliases. Grype emits CVE-prefixed identifiers
 // while govulncheck emits GO/GHSA ids; this function bridges the two via
 // the alias arrays produced by the OSV envelopes.
-func lookupFinding(r RunnerResult, vuln *model.PackageVulnerability) (Finding, bool) {
+func lookupFinding(r RunnerResult, vuln *model.Vulnerability) (Finding, bool) {
 	if vuln == nil {
 		return Finding{}, false
 	}
@@ -361,7 +390,7 @@ func lookupFinding(r RunnerResult, vuln *model.PackageVulnerability) (Finding, b
 
 // isGoPackage reports whether pkg's ecosystem or build system identifies
 // it as a Go module dependency.
-func isGoPackage(pkg *model.Package) bool {
+func isGoPackage(pkg *model.Dependency) bool {
 	if pkg == nil {
 		return false
 	}
@@ -382,7 +411,7 @@ func isGoPackage(pkg *model.Package) bool {
 // (or with no recorded location) is treated as belonging to it. In
 // multi-module repos this may over-attribute; the second pass through
 // applyRunnerResult skips already-annotated vulns to avoid double-counting.
-func packageBelongsToModuleRoot(pkg *model.Package, moduleRoot string) bool {
+func packageBelongsToModuleRoot(pkg *model.Dependency, moduleRoot string) bool {
 	if pkg == nil {
 		return false
 	}
@@ -411,7 +440,7 @@ func pathContainsRoot(path, root string) bool {
 	return !strings.HasPrefix(rel, "..")
 }
 
-func packageImportedByModule(pkg *model.Package, importedModules map[string]struct{}) bool {
+func packageImportedByModule(pkg *model.Dependency, importedModules map[string]struct{}) bool {
 	if pkg == nil || len(importedModules) == 0 {
 		return false
 	}

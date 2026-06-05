@@ -83,36 +83,39 @@ func TestCheckerMatch_EnrichesMissingOnly(t *testing.T) {
 	}
 
 	g := sdk.New()
-	missing := sdk.NewPackage(sdk.Package{Ecosystem: "php", Org: "symfony", Name: "console", Version: "7.1.0"})
-	existing := sdk.NewPackage(sdk.Package{
-		Ecosystem: "php",
-		Org:       "laravel",
-		Name:      "framework",
-		Version:   "11.0.0",
-		Licenses:  []sdk.PackageLicense{{SPDXExpression: "MIT"}},
-	})
-	if err := g.AddPackage(missing); err != nil {
-		t.Fatalf("add missing package: %v", err)
+	missing := sdk.NewDependency(sdk.Dependency{Ecosystem: "php", Org: "symfony", Name: "console", Version: "7.1.0"})
+	existing := sdk.NewDependency(sdk.Dependency{Ecosystem: "php", Org: "laravel", Name: "framework", Version: "11.0.0"})
+	if err := g.AddNode(missing); err != nil {
+		t.Fatalf("add missing dependency: %v", err)
 	}
-	if err := g.AddPackage(existing); err != nil {
-		t.Fatalf("add existing package: %v", err)
+	if err := g.AddNode(existing); err != nil {
+		t.Fatalf("add existing dependency: %v", err)
 	}
 
+	// The existing package already carries a license in the registry; the
+	// missing one does not and must be enriched from the API.
+	registry := sdk.NewPackageRegistry()
+	existingPURL := sdk.CanonicalPackageURLFromDependency(existing)
+	registry.Ensure(existingPURL).Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
+
 	result, err := checker.Match(context.Background(), sdk.MatchRequest{
-		Mode:  sdk.TargetModeFullGraph,
-		Graph: g,
+		Mode:     sdk.TargetModeFullGraph,
+		Graph:    g,
+		Registry: registry,
 	})
 	if err != nil {
 		t.Fatalf("Match() error = %v", err)
 	}
-	if result.Graph != g {
-		t.Fatalf("expected graph to be enriched in place")
+	if result.Registry != registry {
+		t.Fatalf("expected registry to be enriched in place")
 	}
-	if values := missing.LicenseValues(); len(values) != 1 || values[0] != "MIT" {
-		t.Fatalf("expected missing package licenses to be enriched, got %#v", values)
+	missingPkg, _ := result.Registry.Get(sdk.CanonicalPackageURLFromDependency(missing))
+	if missingPkg == nil || len(missingPkg.LicenseValues()) != 1 || missingPkg.LicenseValues()[0] != "MIT" {
+		t.Fatalf("expected missing package licenses to be enriched, got %#v", missingPkg)
 	}
-	if values := existing.LicenseValues(); len(values) != 1 || values[0] != "MIT" {
-		t.Fatalf("expected existing package licenses to remain unchanged, got %#v", values)
+	existingPkg, _ := result.Registry.Get(existingPURL)
+	if existingPkg == nil || len(existingPkg.LicenseValues()) != 1 || existingPkg.LicenseValues()[0] != "MIT" {
+		t.Fatalf("expected existing package licenses to remain unchanged, got %#v", existingPkg)
 	}
 	logOutput := stderr.String()
 	for _, want := range []string{

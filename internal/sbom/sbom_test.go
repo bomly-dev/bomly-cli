@@ -99,18 +99,18 @@ func TestMarshalDepGraphJSON_SPDX23ToolCreators(t *testing.T) {
 
 func TestMarshalDepGraphJSON_SPDX23Scope(t *testing.T) {
 	g := sdk.New()
-	app := sdk.NewPackageRef("app", "1.0.0")
-	react := sdk.NewPackage(sdk.Package{Name: "react", Version: "18.2.0", Scope: "runtime"})
-	vitest := sdk.NewPackage(sdk.Package{Name: "vitest", Version: "2.0.0", Scope: "development"})
-	for _, n := range []*sdk.Package{app, react, vitest} {
-		if err := g.AddPackage(n); err != nil {
+	app := sdk.NewDependencyRef("app", "1.0.0")
+	react := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Scopes: sdk.ScopesOf(sdk.Scope("runtime"))})
+	vitest := sdk.NewDependency(sdk.Dependency{Name: "vitest", Version: "2.0.0", Scopes: sdk.ScopesOf(sdk.Scope("development"))})
+	for _, n := range []*sdk.Dependency{app, react, vitest} {
+		if err := g.AddNode(n); err != nil {
 			t.Fatalf("add package %s: %v", n.ID, err)
 		}
 	}
-	if err := g.AddDependency(app.ID, react.ID); err != nil {
+	if err := g.AddEdge(app.ID, react.ID); err != nil {
 		t.Fatalf("add edge app->react: %v", err)
 	}
-	if err := g.AddDependency(app.ID, vitest.ID); err != nil {
+	if err := g.AddEdge(app.ID, vitest.ID); err != nil {
 		t.Fatalf("add edge app->vitest: %v", err)
 	}
 
@@ -146,14 +146,15 @@ func TestMarshalDepGraphJSON_SPDX23Scope(t *testing.T) {
 
 func TestMarshalDepGraphJSON_SPDX23PreservesPackageType(t *testing.T) {
 	g := sdk.New()
-	app := sdk.NewPackage(sdk.Package{
+	app := sdk.NewDependency(sdk.Dependency{
 		Ecosystem: "npm",
 		Name:      "demo",
 		Version:   "1.0.0",
 		Type:      "application",
 		PURL:      "pkg:npm/demo@1.0.0",
 	})
-	if err := g.AddPackage(app); err != nil {
+
+	if err := g.AddNode(app); err != nil {
 		t.Fatalf("add app: %v", err)
 	}
 
@@ -174,9 +175,9 @@ func TestMarshalDepGraphJSON_SPDX23PreservesPackageType(t *testing.T) {
 	if err != nil {
 		t.Fatalf("to graph: %v", err)
 	}
-	pkg, ok := graph.Package("pkg:npm/demo@1.0.0")
+	pkg, ok := graph.Node("pkg:npm/demo@1.0.0")
 	if !ok {
-		t.Fatalf("expected demo package, got %v", graph.Packages())
+		t.Fatalf("expected demo package, got %v", graph.Nodes())
 	}
 	if pkg.Type != "application" {
 		t.Fatalf("expected application type, got %q", pkg.Type)
@@ -185,16 +186,17 @@ func TestMarshalDepGraphJSON_SPDX23PreservesPackageType(t *testing.T) {
 
 func TestMarshalDepGraphJSON_SPDX23PreservesPURLAndCopyright(t *testing.T) {
 	g := sdk.New()
-	pkg := sdk.NewPackage(sdk.Package{
+	pkg := sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   "npm",
 		BuildSystem: "npm",
 		Name:        "accept",
 		Version:     "1.1.0",
 		PURL:        "pkg:npm/accept@1.1.0",
 		Copyright:   "Copyright (c) 2014, Walmart and other contributors.",
-		Licenses:    []sdk.PackageLicense{{SPDXExpression: "BSD-3-Clause"}},
 	})
-	if err := g.AddPackage(pkg); err != nil {
+	sdk.SetDetectionLicenses(pkg, []sdk.PackageLicense{{SPDXExpression: "BSD-3-Clause"}})
+
+	if err := g.AddNode(pkg); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
 
@@ -264,18 +266,18 @@ func TestMarshalDepGraphJSON_CycloneDXVersions(t *testing.T) {
 
 func TestMarshalDepGraphJSON_CycloneDXScope(t *testing.T) {
 	g := sdk.New()
-	app := sdk.NewPackageRef("app", "1.0.0")
-	runtimeDep := sdk.NewPackage(sdk.Package{Name: "react", Version: "18.2.0", Scope: "runtime"})
-	devDep := sdk.NewPackage(sdk.Package{Name: "vitest", Version: "2.0.0", Scope: "development"})
-	for _, n := range []*sdk.Package{app, runtimeDep, devDep} {
-		if err := g.AddPackage(n); err != nil {
+	app := sdk.NewDependencyRef("app", "1.0.0")
+	runtimeDep := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Scopes: sdk.ScopesOf(sdk.Scope("runtime"))})
+	devDep := sdk.NewDependency(sdk.Dependency{Name: "vitest", Version: "2.0.0", Scopes: sdk.ScopesOf(sdk.Scope("development"))})
+	for _, n := range []*sdk.Dependency{app, runtimeDep, devDep} {
+		if err := g.AddNode(n); err != nil {
 			t.Fatalf("add package %s: %v", n.ID, err)
 		}
 	}
-	if err := g.AddDependency(app.ID, runtimeDep.ID); err != nil {
+	if err := g.AddEdge(app.ID, runtimeDep.ID); err != nil {
 		t.Fatalf("add runtime edge: %v", err)
 	}
-	if err := g.AddDependency(app.ID, devDep.ID); err != nil {
+	if err := g.AddEdge(app.ID, devDep.ID); err != nil {
 		t.Fatalf("add development edge: %v", err)
 	}
 
@@ -333,7 +335,7 @@ func TestUnmarshalJSON_RoundTripTargets(t *testing.T) {
 
 func TestUnmarshalJSON_SPDX23RestoresPackageIdentityFromPURL(t *testing.T) {
 	g := sdk.New()
-	if err := g.AddPackage(sdk.NewPackage(sdk.Package{
+	if err := g.AddNode(sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   "npm",
 		BuildSystem: "npm",
 		Name:        "accept",
@@ -375,7 +377,7 @@ func TestUnmarshalJSON_SPDX23RestoresPackageIdentityFromPURL(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ToGraph(): %v", err)
 	}
-	pkg, ok := roundTrippedGraph.Package("pkg:npm/accept@1.1.0")
+	pkg, ok := roundTrippedGraph.Node("pkg:npm/accept@1.1.0")
 	if !ok || pkg == nil {
 		t.Fatalf("expected round-tripped graph package, got %s", roundTrippedGraph.PrettyString())
 	}
@@ -389,7 +391,7 @@ func TestUnmarshalJSON_SPDX23RestoresPackageIdentityFromPURL(t *testing.T) {
 
 func TestUnmarshalJSON_CycloneDXPreservesPURL(t *testing.T) {
 	g := sdk.New()
-	if err := g.AddPackage(sdk.NewPackage(sdk.Package{
+	if err := g.AddNode(sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   "npm",
 		BuildSystem: "npm",
 		Name:        "accept",
@@ -471,11 +473,11 @@ func TestToGraph_AllowsCycles(t *testing.T) {
 		t.Fatalf("ToGraph(): %v", err)
 	}
 
-	aDeps, err := depsGraph.Dependencies("a")
+	aDeps, err := depsGraph.DirectDependencies("a")
 	if err != nil {
 		t.Fatalf("Dependencies(a): %v", err)
 	}
-	bDeps, err := depsGraph.Dependencies("b")
+	bDeps, err := depsGraph.DirectDependencies("b")
 	if err != nil {
 		t.Fatalf("Dependencies(b): %v", err)
 	}
@@ -522,7 +524,7 @@ func TestToGraph_MergesDuplicatePURLComponents(t *testing.T) {
 	if depsGraph.Size() != 2 {
 		t.Fatalf("expected duplicate PURL components to merge to 2 packages, got %d", depsGraph.Size())
 	}
-	deps, err := depsGraph.Dependencies("pkg:pypi/requests@2.21.0")
+	deps, err := depsGraph.DirectDependencies("pkg:pypi/requests@2.21.0")
 	if err != nil {
 		t.Fatalf("Dependencies(): %v", err)
 	}
@@ -549,7 +551,7 @@ func TestToGraph_SkipsDocumentRootPseudoPackage(t *testing.T) {
 	if depsGraph.Size() != 1 {
 		t.Fatalf("expected only real package, got %d: %s", depsGraph.Size(), depsGraph.PrettyString())
 	}
-	if _, ok := depsGraph.Package("pkg:npm/react@18.2.0"); !ok {
+	if _, ok := depsGraph.Node("pkg:npm/react@18.2.0"); !ok {
 		t.Fatalf("expected react package, got %s", depsGraph.PrettyString())
 	}
 }
@@ -590,7 +592,7 @@ func TestUnmarshalJSON_SPDX23ParsesDependencyOfAndPrimaryPackagePurpose(t *testi
 	if err != nil {
 		t.Fatalf("ToGraph(): %v", err)
 	}
-	deps, err := depsGraph.Dependencies("pkg:npm/app@1.0.0")
+	deps, err := depsGraph.DirectDependencies("pkg:npm/app@1.0.0")
 	if err != nil {
 		t.Fatalf("Dependencies(): %v", err)
 	}
@@ -603,19 +605,19 @@ func mustGraph(t *testing.T) *sdk.Graph {
 	t.Helper()
 
 	g := sdk.New()
-	app := sdk.NewPackageRef("app", "1.0.0")
-	react := sdk.NewPackageRef("react", "18.2.0")
-	zod := sdk.NewPackageRef("zod", "3.23.0")
+	app := sdk.NewDependencyRef("app", "1.0.0")
+	react := sdk.NewDependencyRef("react", "18.2.0")
+	zod := sdk.NewDependencyRef("zod", "3.23.0")
 
-	for _, n := range []*sdk.Package{app, react, zod} {
-		if err := g.AddPackage(n); err != nil {
+	for _, n := range []*sdk.Dependency{app, react, zod} {
+		if err := g.AddNode(n); err != nil {
 			t.Fatalf("add package %s: %v", n.ID, err)
 		}
 	}
-	if err := g.AddDependency(app.ID, react.ID); err != nil {
+	if err := g.AddEdge(app.ID, react.ID); err != nil {
 		t.Fatalf("add edge app->react: %v", err)
 	}
-	if err := g.AddDependency(app.ID, zod.ID); err != nil {
+	if err := g.AddEdge(app.ID, zod.ID); err != nil {
 		t.Fatalf("add edge app->zod: %v", err)
 	}
 	return g
@@ -633,7 +635,7 @@ func equalStringSlices(left, right []string) bool {
 	return true
 }
 
-func idsOfPackages(packages []*sdk.Package) []string {
+func idsOfPackages(packages []*sdk.Dependency) []string {
 	ids := make([]string, 0, len(packages))
 	for _, pkg := range packages {
 		ids = append(ids, pkg.ID)

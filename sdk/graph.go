@@ -9,38 +9,38 @@ import (
 )
 
 var (
-	ErrNilPackage          = errors.New("package is nil")
-	ErrEmptyPackageID      = errors.New("package id is empty")
-	ErrPackageAlreadyExist = errors.New("package already exists")
-	ErrPackageNotFound     = errors.New("package not found")
-	ErrSelfDependency      = errors.New("self dependency is not allowed")
-	ErrCycleDetected       = errors.New("dependency creates a cycle")
+	ErrNilNode          = errors.New("dependency node is nil")
+	ErrEmptyNodeID      = errors.New("dependency node id is empty")
+	ErrNodeAlreadyExist = errors.New("dependency node already exists")
+	ErrNodeNotFound     = errors.New("dependency node not found")
+	ErrSelfDependency   = errors.New("self dependency is not allowed")
+	ErrCycleDetected    = errors.New("dependency creates a cycle")
 )
 
 // Path describes one dependency path through the graph.
 type Path struct {
-	Packages []*Package
-	Cyclic   bool
-	CycleTo  string
+	Nodes   []*Dependency
+	Cyclic  bool
+	CycleTo string
 }
 
 // Diff summarizes the dependency changes between two graphs.
 type Diff struct {
-	Added   []*Package
-	Removed []*Package
+	Added   []*Dependency
+	Removed []*Dependency
 	Updated []VersionChange
 }
 
-// VersionChange captures a package identity that changed versions.
+// VersionChange captures a dependency identity that changed versions.
 type VersionChange struct {
-	Before *Package
-	After  *Package
+	Before *Dependency
+	After  *Dependency
 }
 
-// Graph stores dependencies as a directed graph.
+// Graph stores dependency nodes as a directed graph.
 type Graph struct {
 	indexByID map[string]int
-	packages  []*Package
+	nodes     []*Dependency
 	alive     []bool
 	outgoing  []map[int]struct{}
 	incoming  []map[int]struct{}
@@ -53,61 +53,61 @@ func New() *Graph {
 	return NewWithCapacity(0)
 }
 
-// NewWithCapacity creates an empty dependency graph sized for the expected number of packages.
-func NewWithCapacity(packageCount int) *Graph {
+// NewWithCapacity creates an empty dependency graph sized for the expected node count.
+func NewWithCapacity(nodeCount int) *Graph {
 	return &Graph{
-		indexByID: make(map[string]int, packageCount),
-		packages:  make([]*Package, 0, packageCount),
-		alive:     make([]bool, 0, packageCount),
-		outgoing:  make([]map[int]struct{}, 0, packageCount),
-		incoming:  make([]map[int]struct{}, 0, packageCount),
+		indexByID: make(map[string]int, nodeCount),
+		nodes:     make([]*Dependency, 0, nodeCount),
+		alive:     make([]bool, 0, nodeCount),
+		outgoing:  make([]map[int]struct{}, 0, nodeCount),
+		incoming:  make([]map[int]struct{}, 0, nodeCount),
 	}
 }
 
-// AddPackage inserts a dependency package.
-func (g *Graph) AddPackage(pkg *Package) error {
-	if pkg == nil {
-		return ErrNilPackage
+// AddNode inserts a dependency node.
+func (g *Graph) AddNode(node *Dependency) error {
+	if node == nil {
+		return ErrNilNode
 	}
-	if pkg.ID == "" {
-		return ErrEmptyPackageID
+	if node.ID == "" {
+		return ErrEmptyNodeID
 	}
-	if _, exists := g.indexByID[pkg.ID]; exists {
-		return fmt.Errorf("%w: %s", ErrPackageAlreadyExist, pkg.ID)
+	if _, exists := g.indexByID[node.ID]; exists {
+		return fmt.Errorf("%w: %s", ErrNodeAlreadyExist, node.ID)
 	}
 
 	idx := g.nextSlot()
-	g.packages[idx] = pkg
+	g.nodes[idx] = node
 	g.alive[idx] = true
 	g.outgoing[idx] = make(map[int]struct{})
 	g.incoming[idx] = make(map[int]struct{})
-	g.indexByID[pkg.ID] = idx
+	g.indexByID[node.ID] = idx
 	g.size++
 	return nil
 }
 
-// Package returns a package by ID.
-func (g *Graph) Package(id string) (*Package, bool) {
+// Node returns a dependency node by ID.
+func (g *Graph) Node(id string) (*Dependency, bool) {
 	idx, ok := g.indexByID[id]
 	if !ok {
 		return nil, false
 	}
-	return g.packages[idx], ok
+	return g.nodes[idx], ok
 }
 
-// Packages returns all packages sorted by ID.
-func (g *Graph) Packages() []*Package {
+// Nodes returns all dependency nodes sorted by ID.
+func (g *Graph) Nodes() []*Dependency {
 	indices := g.sortedIndices()
-	out := make([]*Package, 0, len(indices))
+	out := make([]*Dependency, 0, len(indices))
 	for _, idx := range indices {
-		out = append(out, g.packages[idx])
+		out = append(out, g.nodes[idx])
 	}
 	return out
 }
 
-// AddDependency adds a dependency relationship fromID -> toID,
-// meaning fromID depends on toID.
-func (g *Graph) AddDependency(fromID, toID string) error {
+// AddEdge adds a dependency relationship fromID -> toID, meaning fromID
+// depends on toID.
+func (g *Graph) AddEdge(fromID, toID string) error {
 	if fromID == toID {
 		return ErrSelfDependency
 	}
@@ -122,14 +122,13 @@ func (g *Graph) AddDependency(fromID, toID string) error {
 	if _, ok := g.outgoing[fromIdx][toIdx]; ok {
 		return nil
 	}
-
 	g.outgoing[fromIdx][toIdx] = struct{}{}
 	g.incoming[toIdx][fromIdx] = struct{}{}
 	return nil
 }
 
-// RemoveDependency removes a dependency relationship and reports whether it existed.
-func (g *Graph) RemoveDependency(fromID, toID string) bool {
+// RemoveEdge removes a dependency relationship and reports whether it existed.
+func (g *Graph) RemoveEdge(fromID, toID string) bool {
 	fromIdx, ok := g.indexByID[fromID]
 	if !ok {
 		return false
@@ -138,8 +137,7 @@ func (g *Graph) RemoveDependency(fromID, toID string) bool {
 	if !ok {
 		return false
 	}
-	_, ok = g.outgoing[fromIdx][toIdx]
-	if !ok {
+	if _, ok = g.outgoing[fromIdx][toIdx]; !ok {
 		return false
 	}
 	delete(g.outgoing[fromIdx], toIdx)
@@ -147,22 +145,20 @@ func (g *Graph) RemoveDependency(fromID, toID string) bool {
 	return true
 }
 
-// RemovePackage removes a package and all incident relationships.
-func (g *Graph) RemovePackage(id string) bool {
+// RemoveNode removes a node and all incident relationships.
+func (g *Graph) RemoveNode(id string) bool {
 	idx, ok := g.indexByID[id]
 	if !ok {
 		return false
 	}
-
 	for depIdx := range g.outgoing[idx] {
 		delete(g.incoming[depIdx], idx)
 	}
 	for parentIdx := range g.incoming[idx] {
 		delete(g.outgoing[parentIdx], idx)
 	}
-
 	delete(g.indexByID, id)
-	g.packages[idx] = nil
+	g.nodes[idx] = nil
 	g.alive[idx] = false
 	g.outgoing[idx] = nil
 	g.incoming[idx] = nil
@@ -171,8 +167,8 @@ func (g *Graph) RemovePackage(id string) bool {
 	return true
 }
 
-// Dependencies returns direct dependencies for a package, sorted by ID.
-func (g *Graph) Dependencies(id string) ([]*Package, error) {
+// DirectDependencies returns direct dependencies for a node, sorted by ID.
+func (g *Graph) DirectDependencies(id string) ([]*Dependency, error) {
 	idx, err := g.requireIndex(id)
 	if err != nil {
 		return nil, err
@@ -180,8 +176,8 @@ func (g *Graph) Dependencies(id string) ([]*Package, error) {
 	return g.lookupSorted(g.outgoing[idx]), nil
 }
 
-// Dependents returns direct dependents for a package, sorted by ID.
-func (g *Graph) Dependents(id string) ([]*Package, error) {
+// Dependents returns direct dependents for a node, sorted by ID.
+func (g *Graph) Dependents(id string) ([]*Dependency, error) {
 	idx, err := g.requireIndex(id)
 	if err != nil {
 		return nil, err
@@ -189,23 +185,23 @@ func (g *Graph) Dependents(id string) ([]*Package, error) {
 	return g.lookupSorted(g.incoming[idx]), nil
 }
 
-// Roots returns packages with no incoming relationships (nothing depends on them).
-func (g *Graph) Roots() []*Package {
-	out := make([]*Package, 0, g.size)
+// Roots returns nodes with no incoming relationships.
+func (g *Graph) Roots() []*Dependency {
+	out := make([]*Dependency, 0, g.size)
 	for _, idx := range g.sortedIndices() {
 		if len(g.incoming[idx]) == 0 {
-			out = append(out, g.packages[idx])
+			out = append(out, g.nodes[idx])
 		}
 	}
 	return out
 }
 
-// Leaves returns packages with no outgoing relationships (no dependencies).
-func (g *Graph) Leaves() []*Package {
-	out := make([]*Package, 0, g.size)
+// Leaves returns nodes with no outgoing relationships.
+func (g *Graph) Leaves() []*Dependency {
+	out := make([]*Dependency, 0, g.size)
 	for _, idx := range g.sortedIndices() {
 		if len(g.outgoing[idx]) == 0 {
-			out = append(out, g.packages[idx])
+			out = append(out, g.nodes[idx])
 		}
 	}
 	return out
@@ -230,18 +226,19 @@ func (g *Graph) CollectPathsTo(targetID string) ([]Path, error) {
 	}
 
 	sort.Slice(paths, func(i, j int) bool {
-		return pathPackagesKey(paths[i].Packages) < pathPackagesKey(paths[j].Packages)
+		return pathNodesKey(paths[i].Nodes) < pathNodesKey(paths[j].Nodes)
 	})
 	return paths, nil
 }
 
-// TopologicalSort returns a topological ordering for the acyclic portion of the graph.
-// If cycles remain, the returned slice contains the ordered prefix and ErrCycleDetected.
-func (g *Graph) TopologicalSort() ([]*Package, error) {
-	inDeg := make([]int, len(g.packages))
+// TopologicalSort returns a topological ordering for the acyclic portion of the
+// graph. If cycles remain, the returned slice contains the ordered prefix and
+// ErrCycleDetected.
+func (g *Graph) TopologicalSort() ([]*Dependency, error) {
+	inDeg := make([]int, len(g.nodes))
 	ready := &idIndexHeap{g: g, items: make([]int, 0, g.size)}
-	for idx, pkg := range g.packages {
-		if pkg == nil || !g.alive[idx] {
+	for idx, node := range g.nodes {
+		if node == nil || !g.alive[idx] {
 			continue
 		}
 		inDeg[idx] = len(g.incoming[idx])
@@ -250,11 +247,10 @@ func (g *Graph) TopologicalSort() ([]*Package, error) {
 		}
 	}
 
-	ordered := make([]*Package, 0, g.size)
+	ordered := make([]*Dependency, 0, g.size)
 	for ready.Len() > 0 {
 		idx := heap.Pop(ready).(int)
-		ordered = append(ordered, g.packages[idx])
-
+		ordered = append(ordered, g.nodes[idx])
 		for childIdx := range g.outgoing[idx] {
 			inDeg[childIdx]--
 			if inDeg[childIdx] == 0 {
@@ -269,29 +265,29 @@ func (g *Graph) TopologicalSort() ([]*Package, error) {
 	return ordered, nil
 }
 
-// Size returns number of packages in the graph.
+// Size returns the number of nodes in the graph.
 func (g *Graph) Size() int {
 	return g.size
 }
 
-// WalkPackages iterates all live packages. Returning false from fn stops iteration.
-func (g *Graph) WalkPackages(fn func(*Package) bool) {
+// WalkNodes iterates all live nodes. Returning false from fn stops iteration.
+func (g *Graph) WalkNodes(fn func(*Dependency) bool) {
 	if fn == nil {
 		return
 	}
-	for idx, pkg := range g.packages {
-		if pkg == nil || !g.alive[idx] {
+	for idx, node := range g.nodes {
+		if node == nil || !g.alive[idx] {
 			continue
 		}
-		if !fn(pkg) {
+		if !fn(node) {
 			return
 		}
 	}
 }
 
-// WalkRelationships iterates all dependency relationships (from -> to).
-// Returning false stops iteration.
-func (g *Graph) WalkRelationships(fn func(from, to *Package) bool) {
+// WalkEdges iterates all dependency relationships (from -> to). Returning false
+// stops iteration.
+func (g *Graph) WalkEdges(fn func(from, to *Dependency) bool) {
 	if fn == nil {
 		return
 	}
@@ -303,7 +299,7 @@ func (g *Graph) WalkRelationships(fn func(from, to *Package) bool) {
 			if !g.alive[toIdx] {
 				continue
 			}
-			if !fn(g.packages[fromIdx], g.packages[toIdx]) {
+			if !fn(g.nodes[fromIdx], g.nodes[toIdx]) {
 				return
 			}
 		}
@@ -316,11 +312,11 @@ func (g *Graph) PrettyString() string {
 		return "(empty graph)"
 	}
 
-	packages := g.Packages()
+	nodes := g.Nodes()
 	var b strings.Builder
-	for i, pkg := range packages {
-		deps, _ := g.Dependencies(pkg.ID)
-		b.WriteString(pkg.ID)
+	for i, node := range nodes {
+		deps, _ := g.DirectDependencies(node.ID)
+		b.WriteString(node.ID)
 		b.WriteString(" -> [")
 		for j, dep := range deps {
 			if j > 0 {
@@ -329,7 +325,7 @@ func (g *Graph) PrettyString() string {
 			b.WriteString(dep.ID)
 		}
 		b.WriteString("]")
-		if i < len(packages)-1 {
+		if i < len(nodes)-1 {
 			b.WriteByte('\n')
 		}
 	}
@@ -337,7 +333,6 @@ func (g *Graph) PrettyString() string {
 }
 
 // PrettyTree returns an ASCII tree view of dependencies from graph roots.
-// Cyclic relationships are rendered once with a "(cycle)" marker.
 func (g *Graph) PrettyTree() string {
 	if g.size == 0 {
 		return "(empty graph)"
@@ -345,14 +340,14 @@ func (g *Graph) PrettyTree() string {
 
 	roots := g.Roots()
 	if len(roots) == 0 {
-		roots = g.Packages()
+		roots = g.Nodes()
 	}
 
 	expanded := make(map[int]struct{}, g.size)
 	var b strings.Builder
 	for _, root := range roots {
 		rootIdx := g.indexByID[root.ID]
-		b.WriteString(packageDisplayLabel(root))
+		b.WriteString(nodeDisplayLabel(root))
 		b.WriteByte('\n')
 		expanded[rootIdx] = struct{}{}
 		onPath := map[int]struct{}{rootIdx: {}}
@@ -361,28 +356,28 @@ func (g *Graph) PrettyTree() string {
 	return strings.TrimSuffix(b.String(), "\n")
 }
 
-// Compare returns the added, removed, and updated dependencies between base and head.
-// Synthetic consolidated subproject packages are ignored.
+// Compare returns the added, removed, and updated dependencies between base and
+// head. Synthetic consolidated subproject nodes are ignored.
 func Compare(base, head *Graph) Diff {
-	baseExact, headExact := indexDiffablePackages(base), indexDiffablePackages(head)
-	baseRemainder := make(map[string]*Package)
-	headRemainder := make(map[string]*Package)
+	baseExact, headExact := indexDiffableNodes(base), indexDiffableNodes(head)
+	baseRemainder := make(map[string]*Dependency)
+	headRemainder := make(map[string]*Dependency)
 
-	for id, pkg := range baseExact {
+	for id, node := range baseExact {
 		if _, ok := headExact[id]; ok {
 			continue
 		}
-		baseRemainder[id] = pkg
+		baseRemainder[id] = node
 	}
-	for id, pkg := range headExact {
+	for id, node := range headExact {
 		if _, ok := baseExact[id]; ok {
 			continue
 		}
-		headRemainder[id] = pkg
+		headRemainder[id] = node
 	}
 
-	baseByIdentity := groupPackagesByIdentity(baseRemainder)
-	headByIdentity := groupPackagesByIdentity(headRemainder)
+	baseByIdentity := groupNodesByIdentity(baseRemainder)
+	headByIdentity := groupNodesByIdentity(headRemainder)
 	identities := make(map[string]struct{}, len(baseByIdentity)+len(headByIdentity))
 	for key := range baseByIdentity {
 		identities[key] = struct{}{}
@@ -392,33 +387,33 @@ func Compare(base, head *Graph) Diff {
 	}
 
 	diff := Diff{
-		Added:   make([]*Package, 0),
-		Removed: make([]*Package, 0),
+		Added:   make([]*Dependency, 0),
+		Removed: make([]*Dependency, 0),
 		Updated: make([]VersionChange, 0),
 	}
 	for key := range identities {
-		basePackages := baseByIdentity[key]
-		headPackages := headByIdentity[key]
-		sortPackagesForDiff(basePackages)
-		sortPackagesForDiff(headPackages)
+		baseNodes := baseByIdentity[key]
+		headNodes := headByIdentity[key]
+		sortNodesForDiff(baseNodes)
+		sortNodesForDiff(headNodes)
 
-		pairs := len(basePackages)
-		if len(headPackages) < pairs {
-			pairs = len(headPackages)
+		pairs := len(baseNodes)
+		if len(headNodes) < pairs {
+			pairs = len(headNodes)
 		}
 		for i := 0; i < pairs; i++ {
-			diff.Updated = append(diff.Updated, VersionChange{Before: basePackages[i], After: headPackages[i]})
+			diff.Updated = append(diff.Updated, VersionChange{Before: baseNodes[i], After: headNodes[i]})
 		}
-		if pairs < len(basePackages) {
-			diff.Removed = append(diff.Removed, basePackages[pairs:]...)
+		if pairs < len(baseNodes) {
+			diff.Removed = append(diff.Removed, baseNodes[pairs:]...)
 		}
-		if pairs < len(headPackages) {
-			diff.Added = append(diff.Added, headPackages[pairs:]...)
+		if pairs < len(headNodes) {
+			diff.Added = append(diff.Added, headNodes[pairs:]...)
 		}
 	}
 
-	sortPackagesForDiff(diff.Added)
-	sortPackagesForDiff(diff.Removed)
+	sortNodesForDiff(diff.Added)
+	sortNodesForDiff(diff.Removed)
 	sort.Slice(diff.Updated, func(i, j int) bool {
 		left := diff.Updated[i]
 		right := diff.Updated[j]
@@ -436,31 +431,31 @@ func Compare(base, head *Graph) Diff {
 	return diff
 }
 
-func indexDiffablePackages(g *Graph) map[string]*Package {
-	indexed := make(map[string]*Package)
+func indexDiffableNodes(g *Graph) map[string]*Dependency {
+	indexed := make(map[string]*Dependency)
 	if g == nil {
 		return indexed
 	}
-	g.WalkPackages(func(pkg *Package) bool {
-		if pkg == nil || !PackageIsDiffable(pkg) {
+	g.WalkNodes(func(node *Dependency) bool {
+		if node == nil || !NodeIsDiffable(node) {
 			return true
 		}
-		indexed[pkg.ID] = pkg
+		indexed[node.ID] = node
 		return true
 	})
 	return indexed
 }
 
-// PackageIsDiffable reports whether pkg should participate in package-level diffs.
-func PackageIsDiffable(pkg *Package) bool {
-	if pkg == nil || strings.HasPrefix(pkg.ID, "subproject:") || strings.HasPrefix(pkg.ID, "manifest:") {
+// NodeIsDiffable reports whether node should participate in dependency diffs.
+func NodeIsDiffable(node *Dependency) bool {
+	if node == nil || strings.HasPrefix(node.ID, "subproject:") || strings.HasPrefix(node.ID, "manifest:") {
 		return false
 	}
-	switch strings.ToLower(strings.TrimSpace(pkg.Type)) {
+	switch strings.ToLower(strings.TrimSpace(node.Type)) {
 	case "manifest", "application":
 		return false
 	}
-	name := strings.ToLower(strings.TrimSpace(pkg.Name))
+	name := strings.ToLower(strings.TrimSpace(node.Name))
 	switch name {
 	case "root", "package-lock.json", "yarn.lock", "pubspec.lock", "poetry.lock", "pipfile.lock", "mix.lock", "conan.lock", "requirements.txt", "requirements-dev.txt", "requirements.in", "requirements.lock":
 		return false
@@ -471,41 +466,41 @@ func PackageIsDiffable(pkg *Package) bool {
 	return true
 }
 
-func groupPackagesByIdentity(packages map[string]*Package) map[string][]*Package {
-	grouped := make(map[string][]*Package)
-	for _, pkg := range packages {
-		grouped[pkg.IdentityKey()] = append(grouped[pkg.IdentityKey()], pkg)
+func groupNodesByIdentity(nodes map[string]*Dependency) map[string][]*Dependency {
+	grouped := make(map[string][]*Dependency)
+	for _, node := range nodes {
+		grouped[node.IdentityKey()] = append(grouped[node.IdentityKey()], node)
 	}
 	return grouped
 }
 
-func sortPackagesForDiff(packages []*Package) {
-	sort.Slice(packages, func(i, j int) bool {
-		if packages[i].Version != packages[j].Version {
-			return packages[i].Version < packages[j].Version
+func sortNodesForDiff(nodes []*Dependency) {
+	sort.Slice(nodes, func(i, j int) bool {
+		if nodes[i].Version != nodes[j].Version {
+			return nodes[i].Version < nodes[j].Version
 		}
-		return packages[i].ID < packages[j].ID
+		return nodes[i].ID < nodes[j].ID
 	})
 }
 
-func (g *Graph) lookupSorted(ids map[int]struct{}) []*Package {
+func (g *Graph) lookupSorted(ids map[int]struct{}) []*Dependency {
 	indices := make([]int, 0, len(ids))
 	for idx := range ids {
 		indices = append(indices, idx)
 	}
 	sort.Slice(indices, func(i, j int) bool {
-		return g.packages[indices[i]].ID < g.packages[indices[j]].ID
+		return g.nodes[indices[i]].ID < g.nodes[indices[j]].ID
 	})
 
-	out := make([]*Package, 0, len(indices))
+	out := make([]*Dependency, 0, len(indices))
 	for _, idx := range indices {
-		out = append(out, g.packages[idx])
+		out = append(out, g.nodes[idx])
 	}
 	return out
 }
 
-func (g *Graph) writeTree(b *strings.Builder, packageIdx int, prefix string, expanded map[int]struct{}, onPath map[int]struct{}) {
-	children := g.sortedAdjacent(g.outgoing[packageIdx])
+func (g *Graph) writeTree(b *strings.Builder, nodeIdx int, prefix string, expanded map[int]struct{}, onPath map[int]struct{}) {
+	children := g.sortedAdjacent(g.outgoing[nodeIdx])
 	for i, childIdx := range children {
 		isLast := i == len(children)-1
 		b.WriteString(prefix)
@@ -514,13 +509,12 @@ func (g *Graph) writeTree(b *strings.Builder, packageIdx int, prefix string, exp
 		} else {
 			b.WriteString("|-- ")
 		}
-		b.WriteString(packageDisplayLabel(g.packages[childIdx]))
+		b.WriteString(nodeDisplayLabel(g.nodes[childIdx]))
 
 		if _, seen := onPath[childIdx]; seen {
 			b.WriteString(" (cycle)\n")
 			continue
 		}
-
 		if _, seen := expanded[childIdx]; seen {
 			b.WriteString(" (shared)\n")
 			continue
@@ -540,15 +534,16 @@ func (g *Graph) writeTree(b *strings.Builder, packageIdx int, prefix string, exp
 	}
 }
 
-func packageDisplayLabel(pkg *Package) string {
-	if pkg == nil {
+func nodeDisplayLabel(node *Dependency) string {
+	if node == nil {
 		return ""
 	}
-	label := pkg.StableID()
-	if pkg.Scope == "" {
+	label := node.StableID()
+	scope := node.PrimaryScope()
+	if scope == ScopeUnknown {
 		return label
 	}
-	return label + " [" + pkg.Scope + "]"
+	return label + " [" + string(scope) + "]"
 }
 
 func (g *Graph) collectPathsTo(currentIdx, targetIdx int, relevant map[int]struct{}, stack []int, active map[int]struct{}, paths *[]Path) {
@@ -574,7 +569,7 @@ func (g *Graph) collectPathsTo(currentIdx, targetIdx int, relevant map[int]struc
 		if _, seen := active[childIdx]; seen {
 			if childIdx == targetIdx {
 				cycleStack := append(append([]int(nil), stack...), childIdx)
-				*paths = append(*paths, g.buildPath(cycleStack, true, g.packages[childIdx].ID))
+				*paths = append(*paths, g.buildPath(cycleStack, true, g.nodes[childIdx].ID))
 			}
 			continue
 		}
@@ -583,14 +578,14 @@ func (g *Graph) collectPathsTo(currentIdx, targetIdx int, relevant map[int]struc
 }
 
 func (g *Graph) buildPath(indices []int, cyclic bool, cycleTo string) Path {
-	packages := make([]*Package, 0, len(indices))
+	nodes := make([]*Dependency, 0, len(indices))
 	for _, idx := range indices {
-		packages = append(packages, g.packages[idx])
+		nodes = append(nodes, g.nodes[idx])
 	}
 	return Path{
-		Packages: packages,
-		Cyclic:   cyclic,
-		CycleTo:  cycleTo,
+		Nodes:   nodes,
+		Cyclic:  cyclic,
+		CycleTo: cycleTo,
 	}
 }
 
@@ -634,15 +629,15 @@ func (g *Graph) sortedRelevantIndices(relevant map[int]struct{}) []int {
 		indices = append(indices, idx)
 	}
 	sort.Slice(indices, func(i, j int) bool {
-		return g.packages[indices[i]].ID < g.packages[indices[j]].ID
+		return g.nodes[indices[i]].ID < g.nodes[indices[j]].ID
 	})
 	return indices
 }
 
-func pathPackagesKey(packages []*Package) string {
-	ids := make([]string, 0, len(packages))
-	for _, pkg := range packages {
-		ids = append(ids, pkg.ID)
+func pathNodesKey(nodes []*Dependency) string {
+	ids := make([]string, 0, len(nodes))
+	for _, node := range nodes {
+		ids = append(ids, node.ID)
 	}
 	return strings.Join(ids, "/")
 }
@@ -653,7 +648,7 @@ func (g *Graph) sortedAdjacent(adj map[int]struct{}) []int {
 		indices = append(indices, idx)
 	}
 	sort.Slice(indices, func(i, j int) bool {
-		return g.packages[indices[i]].ID < g.packages[indices[j]].ID
+		return g.nodes[indices[i]].ID < g.nodes[indices[j]].ID
 	})
 	return indices
 }
@@ -664,7 +659,7 @@ func (g *Graph) sortedIndices() []int {
 		indices = append(indices, idx)
 	}
 	sort.Slice(indices, func(i, j int) bool {
-		return g.packages[indices[i]].ID < g.packages[indices[j]].ID
+		return g.nodes[indices[i]].ID < g.nodes[indices[j]].ID
 	})
 	return indices
 }
@@ -672,7 +667,7 @@ func (g *Graph) sortedIndices() []int {
 func (g *Graph) requireIndex(id string) (int, error) {
 	idx, ok := g.indexByID[id]
 	if !ok {
-		return 0, fmt.Errorf("%w: %s", ErrPackageNotFound, id)
+		return 0, fmt.Errorf("%w: %s", ErrNodeNotFound, id)
 	}
 	return idx, nil
 }
@@ -684,11 +679,11 @@ func (g *Graph) nextSlot() int {
 		return idx
 	}
 
-	g.packages = append(g.packages, nil)
+	g.nodes = append(g.nodes, nil)
 	g.alive = append(g.alive, false)
 	g.outgoing = append(g.outgoing, nil)
 	g.incoming = append(g.incoming, nil)
-	return len(g.packages) - 1
+	return len(g.nodes) - 1
 }
 
 type idIndexHeap struct {
@@ -701,7 +696,7 @@ func (h idIndexHeap) Len() int {
 }
 
 func (h idIndexHeap) Less(i, j int) bool {
-	return h.g.packages[h.items[i]].ID < h.g.packages[h.items[j]].ID
+	return h.g.nodes[h.items[i]].ID < h.g.nodes[h.items[j]].ID
 }
 
 func (h idIndexHeap) Swap(i, j int) {

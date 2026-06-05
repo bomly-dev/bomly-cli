@@ -31,7 +31,7 @@ func graphFromSyftSBOM(s *syftsbom.SBOM) (*sdk.Graph, error) {
 	if s.Artifacts.Packages != nil {
 		for _, pkg := range s.Artifacts.Packages.Sorted() {
 			node := graphFromSyftPackage(pkg)
-			if err := depsGraph.AddPackage(node); err != nil {
+			if err := depsGraph.AddNode(node); err != nil {
 				return nil, fmt.Errorf("add syft package %q: %w", node.ID, err)
 			}
 		}
@@ -47,7 +47,7 @@ func graphFromSyftSBOM(s *syftsbom.SBOM) (*sdk.Graph, error) {
 			continue
 		}
 
-		if err := depsGraph.AddDependency(parentID, dependencyID); err != nil {
+		if err := depsGraph.AddEdge(parentID, dependencyID); err != nil {
 			return nil, fmt.Errorf("add syft dependency %q -> %q: %w", parentID, dependencyID, err)
 		}
 	}
@@ -71,7 +71,7 @@ func graphContainerFromSyftSBOM(s *syftsbom.SBOM, manager sdk.PackageManager) (*
 
 	rootPackages := depsGraph.Roots()
 	if len(rootPackages) == 0 {
-		manifest := manifestMetadataFromPackages(depsGraph.Packages(), manager)
+		manifest := manifestMetadataFromPackages(depsGraph.Nodes(), manager)
 		return sdk.SingleGraphContainer(depsGraph, manifest), nil
 	}
 
@@ -100,7 +100,7 @@ func graphContainerFromSyftSBOM(s *syftsbom.SBOM, manager sdk.PackageManager) (*
 		}
 		manifest := groupedManifest[key]
 		if manifest.Path == "" {
-			manifest = manifestMetadataFromPackages(entryGraph.Packages(), manager)
+			manifest = manifestMetadataFromPackages(entryGraph.Nodes(), manager)
 		}
 		entries = append(entries, sdk.GraphEntry{
 			Graph:    entryGraph,
@@ -108,8 +108,8 @@ func graphContainerFromSyftSBOM(s *syftsbom.SBOM, manager sdk.PackageManager) (*
 		})
 	}
 
-	leftovers := make([]*sdk.Package, 0)
-	for _, pkg := range depsGraph.Packages() {
+	leftovers := make([]*sdk.Dependency, 0)
+	for _, pkg := range depsGraph.Nodes() {
 		if _, ok := covered[pkg.ID]; ok {
 			continue
 		}
@@ -129,12 +129,12 @@ func graphContainerFromSyftSBOM(s *syftsbom.SBOM, manager sdk.PackageManager) (*
 	return &sdk.GraphContainer{Entries: entries}, nil
 }
 
-func graphFromSyftPackage(pkg syftpkg.Package) *sdk.Package {
+func graphFromSyftPackage(pkg syftpkg.Package) *sdk.Dependency {
 	licenses := pkg.Licenses.ToSlice()
 	locations := pkg.Locations.ToSlice()
 	parsedPURL := parsePackageURL(pkg.PURL)
 
-	node := sdk.NewPackageWithID(string(pkg.ID()), sdk.Package{
+	node := sdk.NewDependencyWithID(string(pkg.ID()), sdk.Dependency{
 		Ecosystem:   syftEcosystem(pkg, parsedPURL),
 		Name:        pkg.Name,
 		Version:     pkg.Version,
@@ -144,7 +144,6 @@ func graphFromSyftPackage(pkg syftpkg.Package) *sdk.Package {
 		Language:    pkg.Language.String(),
 		PURL:        pkg.PURL,
 		FoundBy:     pkg.FoundBy,
-		Licenses:    graphLicenses(licenses),
 		Locations:   graphLocations(locations),
 		CPEs:        graphCPEs(pkg.CPEs),
 	})
@@ -152,6 +151,7 @@ func graphFromSyftPackage(pkg syftpkg.Package) *sdk.Package {
 	if node.ID == "" {
 		node.ID = node.StableID()
 	}
+	sdk.SetDetectionLicenses(node, graphLicenses(licenses))
 
 	return node
 }
@@ -281,7 +281,7 @@ func manifestGroupKey(manifest sdk.ManifestMetadata, fallbackID string) string {
 	return fallbackID
 }
 
-func manifestMetadataFromPackages(packages []*sdk.Package, manager sdk.PackageManager) sdk.ManifestMetadata {
+func manifestMetadataFromPackages(packages []*sdk.Dependency, manager sdk.PackageManager) sdk.ManifestMetadata {
 	for _, pkg := range packages {
 		manifest := manifestMetadataFromPackage(pkg, manager)
 		if manifest.Path != "" {
@@ -297,7 +297,7 @@ func manifestMetadataFromPackages(packages []*sdk.Package, manager sdk.PackageMa
 	return sdk.ManifestMetadata{}
 }
 
-func manifestMetadataFromPackage(pkg *sdk.Package, manager sdk.PackageManager) sdk.ManifestMetadata {
+func manifestMetadataFromPackage(pkg *sdk.Dependency, manager sdk.PackageManager) sdk.ManifestMetadata {
 	if pkg == nil {
 		return sdk.ManifestMetadata{}
 	}
@@ -366,7 +366,7 @@ func subgraphFromRoots(src *sdk.Graph, rootIDs []string) (*sdk.Graph, map[string
 		currentID := queue[0]
 		queue = queue[1:]
 
-		dependencies, err := src.Dependencies(currentID)
+		dependencies, err := src.DirectDependencies(currentID)
 		if err != nil {
 			return nil, nil, fmt.Errorf("resolve syft dependencies for %q: %w", currentID, err)
 		}
@@ -381,17 +381,17 @@ func subgraphFromRoots(src *sdk.Graph, rootIDs []string) (*sdk.Graph, map[string
 
 	entryGraph := sdk.NewWithCapacity(len(visited))
 	for id := range visited {
-		pkg, ok := src.Package(id)
+		pkg, ok := src.Node(id)
 		if !ok {
 			return nil, nil, fmt.Errorf("syft package %q not found while building subgraph", id)
 		}
-		if err := entryGraph.AddPackage(pkg.Clone()); err != nil {
+		if err := entryGraph.AddNode(pkg.Clone()); err != nil {
 			return nil, nil, fmt.Errorf("add syft subgraph package %q: %w", id, err)
 		}
 	}
 
 	for id := range visited {
-		dependencies, err := src.Dependencies(id)
+		dependencies, err := src.DirectDependencies(id)
 		if err != nil {
 			return nil, nil, fmt.Errorf("resolve syft dependencies for %q: %w", id, err)
 		}
@@ -399,7 +399,7 @@ func subgraphFromRoots(src *sdk.Graph, rootIDs []string) (*sdk.Graph, map[string
 			if _, ok := visited[dependency.ID]; !ok {
 				continue
 			}
-			if err := entryGraph.AddDependency(id, dependency.ID); err != nil {
+			if err := entryGraph.AddEdge(id, dependency.ID); err != nil {
 				return nil, nil, fmt.Errorf("add syft subgraph dependency %q -> %q: %w", id, dependency.ID, err)
 			}
 		}
@@ -408,7 +408,7 @@ func subgraphFromRoots(src *sdk.Graph, rootIDs []string) (*sdk.Graph, map[string
 	return entryGraph, visited, nil
 }
 
-func packageIDs(packages []*sdk.Package) []string {
+func packageIDs(packages []*sdk.Dependency) []string {
 	ids := make([]string, 0, len(packages))
 	for _, pkg := range packages {
 		if pkg == nil {
@@ -417,4 +417,17 @@ func packageIDs(packages []*sdk.Package) []string {
 		ids = append(ids, pkg.ID)
 	}
 	return ids
+}
+
+// setDetectionLicenses stashes detection-time license facts on a dependency
+// node under MetadataKeyDetectionLicenses so consolidation can lift them into
+// the package registry.
+func setDetectionLicenses(node *sdk.Dependency, lics []sdk.PackageLicense) {
+	if node == nil || len(lics) == 0 {
+		return
+	}
+	if node.Metadata == nil {
+		node.Metadata = make(map[string]any, 1)
+	}
+	node.Metadata[sdk.MetadataKeyDetectionLicenses] = lics
 }

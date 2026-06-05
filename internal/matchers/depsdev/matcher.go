@@ -25,6 +25,9 @@ const (
 	// SourceType identifies deps.dev license provenance in sdk.PackageLicense.Type.
 	SourceType = "external-depsdev"
 
+	// matcherName labels this matcher in MatchResult.MatcherRuns.
+	matcherName = "depsdev-license-checker"
+
 	defaultAPIBase   = "https://api.deps.dev/v3alpha"
 	defaultCacheTTL  = 24 * time.Hour
 	maxBatchRequests = 5000
@@ -146,16 +149,13 @@ func (c *Checker) Applicable(_ context.Context, req sdk.MatchRequest) (bool, err
 
 // Match enriches missing package licenses via deps.dev.
 func (c *Checker) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
-	if req.Graph == nil {
-		return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, nil
+	if req.Graph == nil || req.Registry == nil {
+		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, nil
 	}
-	packages := req.Graph.Packages()
-	if req.Mode == sdk.TargetModeComponent && req.Target != nil {
-		packages = []*sdk.Package{req.Target}
-	}
+	packages := matchers.RegistryPackagesForGraph(req.Graph, req.Registry, req.Mode, req.Target)
 	packages = matchers.MissingLicensePackages(packages)
 	if len(packages) == 0 {
-		return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, nil
+		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, nil
 	}
 
 	stats := checkStats{requested: len(packages)}
@@ -184,7 +184,7 @@ func (c *Checker) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchRes
 		}
 		chunk := pendingItems[start:end]
 		if err := c.fetchBatch(ctx, chunk, &stats); err != nil {
-			return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, err
+			return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, err
 		}
 	}
 	c.logger.Debug(
@@ -200,7 +200,7 @@ func (c *Checker) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchRes
 		zap.Int("unsupported", stats.unsupported),
 	)
 
-	return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, nil
+	return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, nil
 }
 
 func (c *Checker) fetchBatch(ctx context.Context, items []pending, stats *checkStats) error {

@@ -224,6 +224,7 @@ func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (o
 	return output.BuildScanResponse(
 		cmdCtx.ProjectDescriptor(),
 		pipeResult.Consolidated,
+		pipeResult.Registry,
 		findings,
 		started,
 		reportOptionsFromPipelineResults(cmdCtx.ResolvedConfig.Reachability, pipeResult),
@@ -259,7 +260,7 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 			Detector:     target.Manifest.DetectorName,
 			Dependency:   explainPackageRef(target.Dependency),
 			Paths:        explainPathsWithStableIDs(target.Paths),
-			Findings:     output.FindingsFromScan(target.Findings),
+			Findings:     output.FindingsFromScan(target.Findings, explainResult.Registry),
 			AuditSummary: output.SummaryFromFindings(target.Findings),
 		})
 	}
@@ -322,7 +323,7 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (o
 		req.Head,
 		diffResult.Base.Consolidated,
 		diffResult.Head.Consolidated,
-		diffAuditOutput(diffResult.Audit),
+		diffAuditOutput(diffResult.Audit, diffResult.Base.Registry, diffResult.Head.Registry),
 		started,
 		reportOptionsFromPipelineResults(o.GetConfig().Reachability, diffResult.Base, diffResult.Head),
 	), nil
@@ -363,12 +364,17 @@ func (a *mcpOptionsAdapter) VulnFixContext(ctx context.Context, req mcp.VulnFixR
 		return mcp.VulnFixResult{}, findErr
 	}
 
-	targetPkg, ok := consolidatedGraph.Package(dependency.ID)
-	if !ok {
+	if _, ok := consolidatedGraph.Node(dependency.ID); !ok {
 		return mcp.VulnFixResult{}, fmt.Errorf("package %q not found in graph", req.Package)
 	}
 
-	matchedVulns := collectVulns(targetPkg.Vulnerabilities, req.VulnID)
+	var registryPkgVulns []sdk.Vulnerability
+	if pipeResult.Registry != nil {
+		if pkg, ok := pipeResult.Registry.Get(dependency.Purl); ok && pkg != nil {
+			registryPkgVulns = pkg.Vulnerabilities
+		}
+	}
+	matchedVulns := collectVulns(registryPkgVulns, req.VulnID)
 	if len(matchedVulns) == 0 {
 		if req.VulnID != "" {
 			return mcp.VulnFixResult{}, fmt.Errorf("vulnerability %q not found for package %q; run with enrich enabled to populate vulnerability data", req.VulnID, req.Package)
@@ -382,7 +388,7 @@ func (a *mcpOptionsAdapter) VulnFixContext(ctx context.Context, req mcp.VulnFixR
 		vulnIDs[i] = v.ID
 	}
 
-	manifests := output.ScanManifestsFromConsolidated(pipeResult.Consolidated)
+	manifests := output.ScanManifestsFromConsolidated(pipeResult.Consolidated, pipeResult.Registry)
 	affectedManifests := mcp.BuildManifestFixTargets(dependency, paths, minSafeVersion, manifests)
 	recommendation := mcp.BuildRecommendationText(dependency, vulnIDs, minSafeVersion, affectedManifests)
 	vulnRefs := output.VulnerabilityRefsFromPackageVulnerabilities(matchedVulns)
@@ -399,17 +405,17 @@ func (a *mcpOptionsAdapter) VulnFixContext(ctx context.Context, req mcp.VulnFixR
 
 // collectVulns returns all vulnerabilities from the slice matching vulnID (by ID or alias).
 // When vulnID is empty all vulnerabilities are returned.
-func collectVulns(all []sdk.PackageVulnerability, vulnID string) []sdk.PackageVulnerability {
+func collectVulns(all []sdk.Vulnerability, vulnID string) []sdk.Vulnerability {
 	if vulnID == "" {
 		return all
 	}
 	for i, v := range all {
 		if v.ID == vulnID {
-			return []sdk.PackageVulnerability{all[i]}
+			return []sdk.Vulnerability{all[i]}
 		}
 		for _, alias := range v.Aliases {
 			if alias == vulnID {
-				return []sdk.PackageVulnerability{all[i]}
+				return []sdk.Vulnerability{all[i]}
 			}
 		}
 	}
@@ -418,7 +424,7 @@ func collectVulns(all []sdk.PackageVulnerability, vulnID string) []sdk.PackageVu
 
 // maxFixedIn returns the highest FixedIn version across the given vulnerabilities.
 // Uses semver comparison when parseable; falls back to the last non-empty string.
-func maxFixedIn(vulns []sdk.PackageVulnerability) string {
+func maxFixedIn(vulns []sdk.Vulnerability) string {
 	var maxV *semver.Version
 	var maxStr string
 	for _, v := range vulns {

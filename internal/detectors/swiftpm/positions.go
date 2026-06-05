@@ -56,7 +56,7 @@ func AttachPackageResolvedPositions(g *sdk.Graph, projectDir string) {
 	if len(merged) == 0 {
 		return
 	}
-	detectors.AttachPositions(g, merged, func(pkg *sdk.Package) string {
+	detectors.AttachPositions(g, merged, func(pkg *sdk.Dependency) string {
 		if pkg == nil {
 			return ""
 		}

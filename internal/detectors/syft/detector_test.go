@@ -256,7 +256,7 @@ func TestGraphFromSyftSBOM(t *testing.T) {
 	if got := depsGraph.Size(); got != 2 {
 		t.Fatalf("expected graph size 2, got %d", got)
 	}
-	deps, err := depsGraph.Dependencies(string(app.ID()))
+	deps, err := depsGraph.DirectDependencies(string(app.ID()))
 	if err != nil {
 		t.Fatalf("Dependencies() error = %v", err)
 	}
@@ -264,7 +264,7 @@ func TestGraphFromSyftSBOM(t *testing.T) {
 		t.Fatalf("unexpected dependencies: %#v", deps)
 	}
 
-	mapped, ok := depsGraph.Package(string(dependency.ID()))
+	mapped, ok := depsGraph.Node(string(dependency.ID()))
 	if !ok {
 		t.Fatalf("expected dependency package %q", dependency.ID())
 	}
@@ -274,8 +274,8 @@ func TestGraphFromSyftSBOM(t *testing.T) {
 	if mapped.PURL != dependency.PURL || mapped.Language != dependency.Language.String() || mapped.FoundBy != dependency.FoundBy {
 		t.Fatalf("unexpected mapped package metadata: %#v", mapped)
 	}
-	if len(mapped.Licenses) != 1 || mapped.Licenses[0].Value != "Apache-2.0" {
-		t.Fatalf("unexpected mapped licenses: %#v", mapped.Licenses)
+	if lics := sdk.DetectionLicenses(mapped); len(lics) != 1 || lics[0].Value != "Apache-2.0" {
+		t.Fatalf("unexpected mapped licenses: %#v", lics)
 	}
 	if len(mapped.Locations) != 1 || mapped.Locations[0].RealPath != "pom.xml" {
 		t.Fatalf("unexpected mapped locations: %#v", mapped.Locations)
@@ -374,7 +374,7 @@ func TestDetectorResolveGraph_UsesSyftLibrary(t *testing.T) {
 		t.Fatalf("expected at least 2 graph packages, got %d", depsGraph.Size())
 	}
 	foundReact := false
-	for _, pkg := range depsGraph.Packages() {
+	for _, pkg := range depsGraph.Nodes() {
 		if pkg.Name == "react" {
 			foundReact = true
 			break

@@ -23,6 +23,9 @@ const (
 	// SourceType identifies ClearlyDefined license provenance in sdk.PackageLicense.Type.
 	SourceType = "external-clearlydefined"
 
+	// matcherRunName labels this matcher in MatchResult.MatcherRuns.
+	matcherRunName = "clearlydefined-license-checker"
+
 	defaultAPIBase  = "https://api.clearlydefined.io"
 	defaultCacheTTL = 24 * time.Hour
 )
@@ -137,13 +140,10 @@ func (c *Checker) Applicable(_ context.Context, req sdk.MatchRequest) (bool, err
 
 // Match enriches missing package licenses via ClearlyDefined.
 func (c *Checker) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
-	if req.Graph == nil {
-		return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, nil
+	if req.Graph == nil || req.Registry == nil {
+		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherRunName}}, nil
 	}
-	packages := req.Graph.Packages()
-	if req.Mode == sdk.TargetModeComponent && req.Target != nil {
-		packages = []*sdk.Package{req.Target}
-	}
+	packages := matchers.RegistryPackagesForGraph(req.Graph, req.Registry, req.Mode, req.Target)
 	eligible := matchers.MissingLicensePackages(packages)
 	stats := checkStats{requested: len(eligible)}
 	for _, pkg := range eligible {
@@ -163,7 +163,7 @@ func (c *Checker) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchRes
 		stats.apiRequests++
 		values, err := c.fetchDefinition(ctx, coordinate)
 		if err != nil {
-			return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, err
+			return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherRunName}}, err
 		}
 		if len(values) == 0 {
 			stats.notFound++
@@ -188,7 +188,7 @@ func (c *Checker) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchRes
 		zap.Int("cache_write_failures", stats.cacheWriteFailures),
 		zap.Int("unsupported", stats.unsupported),
 	)
-	return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, nil
+	return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherRunName}}, nil
 }
 
 func (c *Checker) fetchDefinition(ctx context.Context, coordinate string) ([]string, error) {

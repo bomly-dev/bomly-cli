@@ -363,7 +363,7 @@ func graphContainerStats(container *sdk.GraphContainer) (packages, edges int) {
 			continue
 		}
 		packages += entry.Graph.Size()
-		entry.Graph.WalkRelationships(func(_, _ *sdk.Package) bool {
+		entry.Graph.WalkEdges(func(_, _ *sdk.Dependency) bool {
 			edges++
 			return true
 		})

@@ -77,10 +77,10 @@ Complete reference for the `bomly explain` JSON output.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `Vector` | `string` | |
-| `Score` | `number` | |
-| `Version` | `string` | |
-| `Source` | `string` | |
+| `vector` | `string` | |
+| `score` | `number` | |
+| `version` | `string` | |
+| `source` | `string` | |
 
 ### `CWE`
 
@@ -266,8 +266,8 @@ Complete reference for the `bomly explain` JSON output.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `URL` | `string` | |
-| `Type` | `string` | |
+| `url` | `string` | |
+| `type` | `string` | |
 
 ### `SourcePosition`
 

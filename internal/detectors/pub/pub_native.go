@@ -149,9 +149,9 @@ func depGraphFromPubDepsJSON(raw []byte) (*sdk.Graph, error) {
 
 	g := sdk.New()
 
-	var rootPkg *sdk.Package
+	var rootPkg *sdk.Dependency
 	if rootEntry != nil {
-		rootPkg = sdk.NewPackage(sdk.Package{
+		rootPkg = sdk.NewDependency(sdk.Dependency{
 			Ecosystem:   string(sdk.EcosystemDart),
 			Name:        rootEntry.Name,
 			Version:     rootEntry.Version,
@@ -159,15 +159,16 @@ func depGraphFromPubDepsJSON(raw []byte) (*sdk.Graph, error) {
 			Type:        "application",
 			Language:    "dart",
 		})
+
 	} else {
 		rootPkg = rootNode(pubspec{})
 	}
-	if err := g.AddPackage(rootPkg); err != nil {
+	if err := g.AddNode(rootPkg); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
 	// Add all non-root package nodes with initial scope from kind.
-	nodeByName := make(map[string]*sdk.Package, len(output.Packages))
+	nodeByName := make(map[string]*sdk.Dependency, len(output.Packages))
 	for i := range output.Packages {
 		p := &output.Packages[i]
 		if p.Kind == "root" {
@@ -181,9 +182,9 @@ func depGraphFromPubDepsJSON(raw []byte) (*sdk.Graph, error) {
 		node := packageNode(p.Name, lockPkg)
 		switch p.Kind {
 		case "direct":
-			sdk.MergePackageScope(node, sdk.ScopeRuntime)
+			node.AddScope(sdk.ScopeRuntime)
 		case "dev":
-			sdk.MergePackageScope(node, sdk.ScopeDevelopment)
+			node.AddScope(sdk.ScopeDevelopment)
 		}
 		if err := addNodeIfMissing(g, node); err != nil {
 			return nil, err
@@ -203,7 +204,7 @@ func depGraphFromPubDepsJSON(raw []byte) (*sdk.Graph, error) {
 			if child == nil || child.ID == parent.ID {
 				continue
 			}
-			if err := g.AddDependency(parent.ID, child.ID); err != nil {
+			if err := g.AddEdge(parent.ID, child.ID); err != nil {
 				return nil, fmt.Errorf("add pub dep %q -> %q: %w", parent.ID, child.ID, err)
 			}
 		}
@@ -216,24 +217,24 @@ func depGraphFromPubDepsJSON(raw []byte) (*sdk.Graph, error) {
 		}
 		dependents, _ := g.Dependents(node.ID)
 		if len(dependents) == 0 {
-			_ = g.AddDependency(rootPkg.ID, node.ID)
+			_ = g.AddEdge(rootPkg.ID, node.ID)
 		}
 	}
 
 	// BFS scope propagation: runtime beats development.
-	directDeps, _ := g.Dependencies(rootPkg.ID)
+	directDeps, _ := g.DirectDependencies(rootPkg.ID)
 	propagated := make(map[string]sdk.Scope, g.Size())
-	queue := make([]*sdk.Package, 0, len(directDeps))
+	queue := make([]*sdk.Dependency, 0, len(directDeps))
 	for _, dep := range directDeps {
 		if dep == nil {
 			continue
 		}
-		scope := sdk.Scope(dep.Scope)
+		scope := dep.PrimaryScope()
 		if scope == sdk.ScopeUnknown {
 			scope = sdk.ScopeRuntime
 		}
 		propagated[dep.ID] = sdk.MergeScope(propagated[dep.ID], scope)
-		sdk.MergePackageScope(dep, propagated[dep.ID])
+		dep.AddScope(propagated[dep.ID])
 		queue = append(queue, dep)
 	}
 	for len(queue) > 0 {
@@ -243,7 +244,7 @@ func depGraphFromPubDepsJSON(raw []byte) (*sdk.Graph, error) {
 		if scope == sdk.ScopeUnknown {
 			continue
 		}
-		children, err := g.Dependencies(current.ID)
+		children, err := g.DirectDependencies(current.ID)
 		if err != nil {
 			continue
 		}
@@ -252,18 +253,18 @@ func depGraphFromPubDepsJSON(raw []byte) (*sdk.Graph, error) {
 				continue
 			}
 			next := sdk.MergeScope(propagated[child.ID], scope)
-			if next == propagated[child.ID] && sdk.Scope(child.Scope) == next {
+			if next == propagated[child.ID] && child.PrimaryScope() == next {
 				continue
 			}
 			propagated[child.ID] = next
-			sdk.MergePackageScope(child, next)
+			child.AddScope(next)
 			queue = append(queue, child)
 		}
 	}
 	// Default unscoped non-root packages to runtime.
-	for _, pkg := range g.Packages() {
-		if pkg != nil && pkg.ID != rootPkg.ID && sdk.Scope(pkg.Scope) == sdk.ScopeUnknown {
-			sdk.MergePackageScope(pkg, sdk.ScopeRuntime)
+	for _, pkg := range g.Nodes() {
+		if pkg != nil && pkg.ID != rootPkg.ID && pkg.PrimaryScope() == sdk.ScopeUnknown {
+			pkg.AddScope(sdk.ScopeRuntime)
 		}
 	}
 

@@ -86,7 +86,7 @@ func newExplainCmd() *cobra.Command {
 			prog.CompleteStep("Detected Dependencies", detectionChildren)
 			prog.Advance("Finding dependency paths")
 			if len(explainResult.MatcherRuns) > 0 || len(explainResult.MatchWarnings) > 0 {
-				prog.CompleteStep("Enriched packages", matchProgressChildren(explainResult.Graph, explainResult.MatcherRuns, explainResult.MatchWarnings))
+				prog.CompleteStep("Enriched packages", matchProgressChildren(explainResult.Registry, explainResult.MatcherRuns, explainResult.MatchWarnings))
 			}
 
 			targets := make([]output.ExplainTargetResponse, 0, len(explainResult.Targets))
@@ -96,7 +96,7 @@ func newExplainCmd() *cobra.Command {
 					Detector:     target.Manifest.DetectorName,
 					Dependency:   explainPackageRef(target.Dependency),
 					Paths:        explainPathsWithStableIDs(target.Paths),
-					Findings:     output.FindingsFromScan(target.Findings),
+					Findings:     output.FindingsFromScan(target.Findings, explainResult.Registry),
 					AuditSummary: output.SummaryFromFindings(target.Findings),
 				})
 			}
@@ -111,7 +111,7 @@ func newExplainCmd() *cobra.Command {
 			}
 			if context.ResolvedConfig.Interactive {
 				prog.Stop()
-				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewExplain(payload.Project, args[0], explainResult.FocusedConsolidated, explainResult.FocusedGraph, explainResult.Findings).WithEnrichEnabled(context.ResolvedConfig.Enrich)))
+				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewExplain(payload.Project, args[0], explainResult.FocusedConsolidated, explainResult.FocusedGraph, explainResult.Findings).WithRegistry(explainResult.Registry).WithEnrichEnabled(context.ResolvedConfig.Enrich)))
 			}
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
@@ -123,7 +123,7 @@ func newExplainCmd() *cobra.Command {
 						}
 					case render.OutputFormatSARIF:
 						if err := writeRenderedOutput(streams.reportWriter(), spec, func(w io.Writer) error {
-							return output.WriteSARIF(w, explainResult.Findings, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: context.ResolvedConfig.Reachability})
+							return output.WriteSARIF(w, explainResult.Findings, explainResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: context.ResolvedConfig.Reachability})
 						}); err != nil {
 							return err
 						}
@@ -138,7 +138,7 @@ func newExplainCmd() *cobra.Command {
 			}
 			if context.Format == output.FormatSARIF {
 				prog.Success("Resolved Graph")
-				return output.WriteSARIF(streams.reportWriter(), explainResult.Findings, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: context.ResolvedConfig.Reachability})
+				return output.WriteSARIF(streams.reportWriter(), explainResult.Findings, explainResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: context.ResolvedConfig.Reachability})
 			}
 
 			writer, closeWriter, err := context.Writer(streams.reportWriter())

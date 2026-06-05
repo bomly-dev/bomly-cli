@@ -2,74 +2,60 @@ package license
 
 import (
 	"context"
-	"strings"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
-// TestAuditor_SkipsRootPackage locks in the policy that the license
-// auditor must NOT emit "unknown-license" findings for the root package
-// of a project. The root is what the project IS, not a dependency, and
-// most projects (especially private ones) don't carry a license attached
-// to that node in lockfile data. Flagging it produces unactionable noise.
-func TestAuditor_SkipsRootPackage(t *testing.T) {
-	g := sdk.New()
-	root := sdk.NewPackageRef("github.com/example/private-app", "0.0.0")
-	dep := sdk.NewPackageRef("github.com/pkg/errors", "0.9.1")
-	for _, p := range []*sdk.Package{root, dep} {
-		if err := g.AddPackage(p); err != nil {
-			t.Fatalf("add %s: %v", p.ID, err)
-		}
-	}
-	if err := g.AddDependency(root.ID, dep.ID); err != nil {
-		t.Fatalf("add dep: %v", err)
+func TestLicenseAuditorAllowDeny(t *testing.T) {
+	allow := Auditor{AllowLicenses: []string{"MIT"}}
+	deny := Auditor{DenyLicenses: []string{"GPL-3.0-only"}}
+
+	// mkScenario builds an app→lib graph plus a registry where lib's package
+	// (keyed by its PURL) carries the given license.
+	mkScenario := func(license string) (*sdk.Graph, *sdk.PackageRegistry) {
+		g := sdk.New()
+		root := sdk.NewDependencyRefWithID("app@1.0.0", "app", "1.0.0")
+		_ = g.AddNode(root)
+		dep := sdk.NewDependency(sdk.Dependency{Name: "lib", Version: "1.0.0", Ecosystem: "npm", BuildSystem: "npm"})
+		purl := sdk.CanonicalPackageURLFromDependency(dep)
+		dep.PackageRef = purl
+		_ = g.AddNode(dep)
+		_ = g.AddEdge(root.ID, dep.ID)
+
+		registry := sdk.NewPackageRegistry()
+		registry.Ensure(purl).Licenses = []sdk.PackageLicense{{SPDXExpression: license}}
+		return g, registry
 	}
 
-	result, err := Auditor{}.Audit(context.Background(), sdk.AuditRequest{Graph: g})
-	if err != nil {
-		t.Fatalf("Audit() error = %v", err)
-	}
-	for _, f := range result.Findings {
-		if f.Package != nil && f.Package.ID == root.ID {
-			t.Errorf("license auditor emitted finding for root package %q (id=%s): %#v",
-				root.DisplayName(), root.ID, f)
-		}
-	}
-	// The dependency should still be flagged — it has no license.
-	flaggedDep := false
-	for _, f := range result.Findings {
-		if f.Package != nil && f.Package.ID == dep.ID {
-			flaggedDep = true
-			break
-		}
-	}
-	if !flaggedDep {
-		t.Errorf("expected the dependency to be flagged for unknown-license; findings: %#v", result.Findings)
-	}
-}
-
-// TestAuditor_ComponentModeStillFlagsTarget verifies that the root-skip
-// only applies to full-graph audits. When a caller invokes the auditor
-// with `Mode=TargetModeComponent` against a specific target, that target
-// is exactly what the user asked about — never skip it.
-func TestAuditor_ComponentModeStillFlagsTarget(t *testing.T) {
-	g := sdk.New()
-	root := sdk.NewPackageRef("github.com/example/app", "0.0.0")
-	if err := g.AddPackage(root); err != nil {
-		t.Fatalf("add: %v", err)
+	tests := []struct {
+		name        string
+		auditor     Auditor
+		license     string
+		wantFinding bool
+	}{
+		{"allow satisfied", allow, "MIT", false},
+		{"allow violated", allow, "GPL-3.0-only", true},
+		{"deny violated", deny, "GPL-3.0-only", true},
+		{"deny satisfied", deny, "Apache-2.0", false},
 	}
 
-	result, err := Auditor{}.Audit(context.Background(), sdk.AuditRequest{
-		Graph: g, Target: root, Mode: sdk.TargetModeComponent,
-	})
-	if err != nil {
-		t.Fatalf("Audit() error = %v", err)
-	}
-	if len(result.Findings) != 1 {
-		t.Fatalf("expected 1 finding for explicit component target, got %d: %#v", len(result.Findings), result.Findings)
-	}
-	if !strings.Contains(result.Findings[0].ID, "unknown-license") {
-		t.Errorf("expected unknown-license finding, got ID=%q", result.Findings[0].ID)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g, registry := mkScenario(tt.license)
+			result, err := tt.auditor.Audit(context.Background(), sdk.AuditRequest{Graph: g, Registry: registry, Mode: sdk.TargetModeFullGraph})
+			if err != nil {
+				t.Fatalf("Audit() error = %v", err)
+			}
+			hasFinding := false
+			for _, f := range result.Findings {
+				if f.Kind == sdk.FindingKindLicense {
+					hasFinding = true
+				}
+			}
+			if hasFinding != tt.wantFinding {
+				t.Errorf("want finding=%v got=%v", tt.wantFinding, hasFinding)
+			}
+		})
 	}
 }

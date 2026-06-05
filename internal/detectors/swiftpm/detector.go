@@ -156,7 +156,7 @@ func depGraphFromSwiftPM(resolvedRaw, manifestRaw []byte) (*sdk.Graph, error) {
 	}
 	g := sdk.New()
 	root := rootNode()
-	if err := g.AddPackage(root); err != nil {
+	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 	for _, name := range sortedNames(packages) {
@@ -165,7 +165,7 @@ func depGraphFromSwiftPM(resolvedRaw, manifestRaw []byte) (*sdk.Graph, error) {
 		if err := addNodeIfMissing(g, node); err != nil {
 			return nil, err
 		}
-		if err := g.AddDependency(root.ID, node.ID); err != nil {
+		if err := g.AddEdge(root.ID, node.ID); err != nil {
 			return nil, fmt.Errorf("add SwiftPM root dependency %q: %w", node.ID, err)
 		}
 	}
@@ -238,17 +238,18 @@ func readOptional(path string) ([]byte, error) {
 	return os.ReadFile(path)
 }
 
-func rootNode() *sdk.Package {
-	return sdk.NewPackage(sdk.Package{
+func rootNode() *sdk.Dependency {
+	return sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemSwift),
 		Name:        "root",
 		BuildSystem: sdk.PackageManagerSwiftPM.Name(),
 		Type:        "application",
 		Language:    "swift",
 	})
+
 }
 
-func packageNode(pkg swiftPackage) *sdk.Package {
+func packageNode(pkg swiftPackage) *sdk.Dependency {
 	metadata := map[string]any{}
 	if pkg.Repository != "" {
 		metadata["repository"] = pkg.Repository
@@ -260,7 +261,7 @@ func packageNode(pkg swiftPackage) *sdk.Package {
 		metadata["requirement"] = pkg.Requirement
 	}
 	namespace, name := packageIdentity(pkg.Repository, pkg.Name)
-	node := sdk.NewPackage(sdk.Package{
+	node := sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemSwift),
 		Org:         namespace,
 		Name:        name,
@@ -272,8 +273,9 @@ func packageNode(pkg swiftPackage) *sdk.Package {
 		ResolvedURL: strings.TrimSpace(pkg.Repository),
 		Metadata:    metadata,
 	})
+
 	// SwiftPM does not distinguish dev scope; all packages are runtime.
-	sdk.MergePackageScope(node, sdk.ScopeRuntime)
+	node.AddScope(sdk.ScopeRuntime)
 	return node
 }
 
@@ -331,11 +333,11 @@ func sortedNames(packages map[string]swiftPackage) []string {
 	return values
 }
 
-func addNodeIfMissing(g *sdk.Graph, node *sdk.Package) error {
-	if _, ok := g.Package(node.ID); ok {
+func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
+	if _, ok := g.Node(node.ID); ok {
 		return nil
 	}
-	if err := g.AddPackage(node); err != nil {
+	if err := g.AddNode(node); err != nil {
 		return fmt.Errorf("add node %q: %w", node.ID, err)
 	}
 	return nil

@@ -64,18 +64,45 @@ func (a Analyzer) Ready() bool { return true }
 // npm package with attached vulnerabilities. Without vulnerabilities
 // to annotate, the analyzer would do work without producing output.
 func (a Analyzer) Applicable(_ context.Context, req model.AnalyzeRequest) (bool, error) {
-	if req.Graph == nil {
+	if req.Graph == nil || req.Registry == nil {
 		return false, nil
 	}
-	for _, pkg := range req.Graph.Packages() {
-		if pkg == nil || len(pkg.Vulnerabilities) == 0 {
+	for _, pkg := range req.Graph.Nodes() {
+		if pkg == nil || !isNPMPackage(pkg) {
 			continue
 		}
-		if isNPMPackage(pkg) {
-			return true, nil
+		regPkg, ok := req.Registry.Get(dependencyPURL(pkg))
+		if !ok || regPkg == nil || len(regPkg.Vulnerabilities) == 0 {
+			continue
 		}
+		return true, nil
 	}
 	return false, nil
+}
+
+// dependencyPURL returns the registry key for a dependency node.
+func dependencyPURL(dep *model.Dependency) string {
+	if dep == nil {
+		return ""
+	}
+	if dep.PackageRef != "" {
+		return dep.PackageRef
+	}
+	return dep.PURL
+}
+
+// vulnerabilitiesForDep returns the registry slice for a dependency. The
+// caller may mutate the returned slice in place; entries live on the
+// shared backing array owned by the registry package.
+func vulnerabilitiesForDep(req model.AnalyzeRequest, dep *model.Dependency) []model.Vulnerability {
+	if req.Registry == nil || dep == nil {
+		return nil
+	}
+	pkg, ok := req.Registry.Get(dependencyPURL(dep))
+	if !ok || pkg == nil {
+		return nil
+	}
+	return pkg.Vulnerabilities
 }
 
 // Analyze runs the configured Runner per discovered npm project root
@@ -96,8 +123,8 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 	hierarchies := discoverWorkspaceHierarchies(req)
 	if len(hierarchies) == 0 {
 		logger.Info("jsreach: no npm project roots discovered; marking all npm vulnerabilities as unknown")
-		annotateAllUnknown(req.Graph, "no-project-root-discovered", time.Now())
-		return resultFromGraph(req.Graph), nil
+		annotateAllUnknown(req, "no-project-root-discovered", time.Now())
+		return resultFromRequest(req), nil
 	}
 
 	logger.Info("jsreach: starting reachability analysis",
@@ -117,7 +144,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		case <-ctx.Done():
 			logger.Info("jsreach: context cancelled; skipping project",
 				zap.String("project_root", root))
-			annotateProjectUnknown(req.Graph, root, "cancelled", time.Now())
+			annotateProjectUnknown(req, root, "cancelled", time.Now())
 			continue
 		default:
 		}
@@ -128,10 +155,10 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		cacheMisses += misses
 		var applied applyOutcome
 		if closure.incomplete {
-			added := annotateProjectUnknown(req.Graph, root, closure.reason, time.Now())
+			added := annotateProjectUnknown(req, root, closure.reason, time.Now())
 			applied.unknown += added
 		} else {
-			applied = applyImportedPackageSeeds(req.Graph, root, closure.importedPackages, closure.dynamicImports, time.Now())
+			applied = applyImportedPackageSeeds(req, root, closure.importedPackages, closure.dynamicImports, time.Now())
 		}
 		stats.Reachable += applied.reachable
 		stats.Unreachable += applied.unreachable
@@ -161,7 +188,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		zap.Duration("duration", time.Since(overallStart)),
 	)
 
-	out := resultFromGraph(req.Graph)
+	out := resultFromRequest(req)
 	out.AnalyzerStats = map[string]model.ReachabilityStats{Name: stats}
 	return out, nil
 }
@@ -354,8 +381,8 @@ func (a Analyzer) cache() *resultCache {
 	return newResultCache(a.CacheDir, a.CacheTTL)
 }
 
-func resultFromGraph(g *model.Graph) model.AnalyzeResult {
-	return model.AnalyzeResult{Graph: g, AnalyzerRuns: []string{Name}}
+func resultFromRequest(req model.AnalyzeRequest) model.AnalyzeResult {
+	return model.AnalyzeResult{Registry: req.Registry, AnalyzerRuns: []string{Name}}
 }
 
 // applyOutcome reports per-vuln Reachability outcomes for telemetry.
@@ -376,23 +403,27 @@ type applyOutcome struct {
 // missed otherwise. The closure follows Graph.Dependencies edges, so
 // it sees exactly the dep tree the npm detector resolved from the
 // lockfile.
-func applyRunnerResult(g *model.Graph, projectRoot string, runRes RunnerResult, now time.Time) applyOutcome {
-	return applyImportedPackageSeeds(g, projectRoot, packageSeedDepths(runRes.ImportedPackages, 0), runRes.DynamicImportsDetected, now)
+func applyRunnerResult(req model.AnalyzeRequest, projectRoot string, runRes RunnerResult, now time.Time) applyOutcome {
+	return applyImportedPackageSeeds(req, projectRoot, packageSeedDepths(runRes.ImportedPackages, 0), runRes.DynamicImportsDetected, now)
 }
 
-func applyImportedPackageSeeds(g *model.Graph, projectRoot string, imports map[string]int, dynamicImports bool, now time.Time) applyOutcome {
+func applyImportedPackageSeeds(req model.AnalyzeRequest, projectRoot string, imports map[string]int, dynamicImports bool, now time.Time) applyOutcome {
 	var outcome applyOutcome
+	if req.Graph == nil {
+		return outcome
+	}
 	timestamp := now.UTC().Format(time.RFC3339)
-	hopsByID := computeReachablePackageHopsFromSeeds(g, imports)
-	for _, pkg := range g.Packages() {
+	hopsByID := computeReachablePackageHopsFromSeeds(req.Graph, imports)
+	for _, pkg := range req.Graph.Nodes() {
 		if pkg == nil || !isNPMPackage(pkg) {
 			continue
 		}
 		if !packageBelongsToProjectRoot(pkg, projectRoot) {
 			continue
 		}
-		for i := range pkg.Vulnerabilities {
-			vuln := &pkg.Vulnerabilities[i]
+		vulns := vulnerabilitiesForDep(req, pkg)
+		for i := range vulns {
+			vuln := &vulns[i]
 			if vuln.Reachability != nil && vuln.Reachability.Analyzer == Name {
 				continue // already annotated by an earlier project pass
 			}
@@ -441,7 +472,7 @@ func computeReachablePackageHopsFromSeeds(g *model.Graph, imports map[string]int
 	}
 	queue := make([]string, 0)
 	// Seed: every npm package whose name matches the import set.
-	for _, pkg := range g.Packages() {
+	for _, pkg := range g.Nodes() {
 		if pkg == nil || !isNPMPackage(pkg) {
 			continue
 		}
@@ -460,7 +491,7 @@ func computeReachablePackageHopsFromSeeds(g *model.Graph, imports map[string]int
 		id := queue[0]
 		queue = queue[1:]
 		current := hops[id]
-		deps, err := g.Dependencies(id)
+		deps, err := g.DirectDependencies(id)
 		if err != nil {
 			continue
 		}
@@ -478,7 +509,7 @@ func computeReachablePackageHopsFromSeeds(g *model.Graph, imports map[string]int
 	return hops
 }
 
-func importedPackageDepth(pkg *model.Package, imports map[string]int) int {
+func importedPackageDepth(pkg *model.Dependency, imports map[string]int) int {
 	best := 0
 	found := false
 	for _, candidate := range []string{pkg.QualifiedName(), pkg.Name} {
@@ -493,7 +524,7 @@ func importedPackageDepth(pkg *model.Package, imports map[string]int) int {
 // isPackageImported reports whether pkg's npm name (or qualified
 // scoped name) appears in the runner's bare-specifier import set.
 // Used as the seed predicate for the transitive walk.
-func isPackageImported(pkg *model.Package, imports map[string]int) bool {
+func isPackageImported(pkg *model.Dependency, imports map[string]int) bool {
 	if pkg == nil || len(imports) == 0 {
 		return false
 	}
@@ -510,21 +541,25 @@ func isPackageImported(pkg *model.Package, imports map[string]int) bool {
 	return false
 }
 
-func annotateProjectUnknown(g *model.Graph, projectRoot, reason string, now time.Time) int {
+func annotateProjectUnknown(req model.AnalyzeRequest, projectRoot, reason string, now time.Time) int {
+	if req.Graph == nil {
+		return 0
+	}
 	timestamp := now.UTC().Format(time.RFC3339)
 	count := 0
-	for _, pkg := range g.Packages() {
+	for _, pkg := range req.Graph.Nodes() {
 		if pkg == nil || !isNPMPackage(pkg) {
 			continue
 		}
 		if !packageBelongsToProjectRoot(pkg, projectRoot) {
 			continue
 		}
-		for i := range pkg.Vulnerabilities {
-			if pkg.Vulnerabilities[i].Reachability != nil {
+		vulns := vulnerabilitiesForDep(req, pkg)
+		for i := range vulns {
+			if vulns[i].Reachability != nil {
 				continue
 			}
-			pkg.Vulnerabilities[i].Reachability = &model.Reachability{
+			vulns[i].Reachability = &model.Reachability{
 				Analyzer:   Name,
 				Status:     model.ReachabilityUnknown,
 				Tier:       model.TierNone,
@@ -537,17 +572,21 @@ func annotateProjectUnknown(g *model.Graph, projectRoot, reason string, now time
 	return count
 }
 
-func annotateAllUnknown(g *model.Graph, reason string, now time.Time) {
+func annotateAllUnknown(req model.AnalyzeRequest, reason string, now time.Time) {
+	if req.Graph == nil {
+		return
+	}
 	timestamp := now.UTC().Format(time.RFC3339)
-	for _, pkg := range g.Packages() {
+	for _, pkg := range req.Graph.Nodes() {
 		if pkg == nil || !isNPMPackage(pkg) {
 			continue
 		}
-		for i := range pkg.Vulnerabilities {
-			if pkg.Vulnerabilities[i].Reachability != nil {
+		vulns := vulnerabilitiesForDep(req, pkg)
+		for i := range vulns {
+			if vulns[i].Reachability != nil {
 				continue
 			}
-			pkg.Vulnerabilities[i].Reachability = &model.Reachability{
+			vulns[i].Reachability = &model.Reachability{
 				Analyzer:   Name,
 				Status:     model.ReachabilityUnknown,
 				Tier:       model.TierNone,
@@ -564,7 +603,7 @@ func annotateAllUnknown(g *model.Graph, reason string, now time.Time) {
 // to it. In multi-project repos this may over-attribute; the second
 // pass through applyRunnerResult skips already-annotated vulns to
 // avoid double-counting.
-func packageBelongsToProjectRoot(pkg *model.Package, projectRoot string) bool {
+func packageBelongsToProjectRoot(pkg *model.Dependency, projectRoot string) bool {
 	if pkg == nil {
 		return false
 	}

@@ -36,10 +36,10 @@ tweetnacl@^0.14.0:
 	if graph.Size() != 2 {
 		t.Fatalf("expected only root + reachable dependency packages, got %d", graph.Size())
 	}
-	if _, ok := graph.Package("bcrypt-pbkdf@1.0.2"); ok {
+	if _, ok := graph.Node("bcrypt-pbkdf@1.0.2"); ok {
 		t.Fatal("expected unreachable bcrypt-pbkdf entry to be excluded")
 	}
-	if _, ok := graph.Package("tweetnacl@0.14.5"); ok {
+	if _, ok := graph.Node("tweetnacl@0.14.5"); ok {
 		t.Fatal("expected unreachable tweetnacl entry to be excluded")
 	}
 	roots := graph.Roots()

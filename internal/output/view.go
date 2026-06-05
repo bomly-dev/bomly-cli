@@ -176,16 +176,16 @@ type ExplainTargetResponse struct {
 // BuildScanResponse constructs the structured scan payload from consolidated
 // manifest selections and findings. Reachability metadata (analyzer runs and
 // per-analyzer stats) is attached afterwards via ScanResponse.WithAnalyzerRuns.
-func BuildScanResponse(project ProjectDescriptor, consolidated sdk.ConsolidatedGraph, findings []sdk.Finding, started time.Time, options ...ReportOptions) ScanResponse {
+func BuildScanResponse(project ProjectDescriptor, consolidated sdk.ConsolidatedGraph, registry *sdk.PackageRegistry, findings []sdk.Finding, started time.Time, options ...ReportOptions) ScanResponse {
 	response := ScanResponse{
 		SchemaVersion: SchemaVersion,
 		Command:       "scan",
 		Project:       project,
-		Manifests:     ScanManifestsFromConsolidated(consolidated),
+		Manifests:     ScanManifestsFromConsolidated(consolidated, registry),
 		Metadata:      Metadata{DurationMS: time.Since(started).Milliseconds()},
 	}
 	if len(findings) > 0 {
-		response.Findings = FindingsFromScan(findings)
+		response.Findings = FindingsFromScan(findings, registry)
 		response.AuditSummary = SummaryFromFindings(findings)
 	}
 	return response.WithReportOptions(firstReportOptions(options))
@@ -222,13 +222,15 @@ func (r ScanResponse) WithReportOptions(options ReportOptions) ScanResponse {
 }
 
 // ScanManifestsFromConsolidated converts consolidated manifest selections into stable scan payloads.
-func ScanManifestsFromConsolidated(consolidated sdk.ConsolidatedGraph) []ScanManifest {
+// registry, when non-nil, enriches each manifest's packages with matching-stage
+// data (vulnerabilities / scorecard / etc.) resolved by PURL.
+func ScanManifestsFromConsolidated(consolidated sdk.ConsolidatedGraph, registry *sdk.PackageRegistry) []ScanManifest {
 	manifests := make([]ScanManifest, 0, len(consolidated.Manifests))
 	for idx, manifest := range consolidated.Manifests {
 		if manifest.Entry.Graph == nil {
 			continue
 		}
-		manifests = append(manifests, scanManifestFromConsolidated(manifest, idx))
+		manifests = append(manifests, scanManifestFromConsolidated(manifest, idx, registry))
 	}
 	sort.Slice(manifests, func(i, j int) bool {
 		if manifests[i].Subproject != manifests[j].Subproject {
@@ -245,7 +247,7 @@ func ScanManifestsFromConsolidated(consolidated sdk.ConsolidatedGraph) []ScanMan
 	return manifests
 }
 
-func scanManifestFromConsolidated(manifest sdk.ConsolidatedManifest, idx int) ScanManifest {
+func scanManifestFromConsolidated(manifest sdk.ConsolidatedManifest, idx int, registry *sdk.PackageRegistry) ScanManifest {
 	kind := strings.TrimSpace(manifest.Entry.Manifest.Kind)
 	if kind == "" {
 		kind = "entry-" + strconv.Itoa(idx+1)
@@ -257,7 +259,7 @@ func scanManifestFromConsolidated(manifest sdk.ConsolidatedManifest, idx int) Sc
 		Ecosystem:      string(manifest.Subproject.Ecosystem),
 		PackageManager: manifest.Subproject.PrimaryPackageManager().Name(),
 		Detector:       manifest.DetectorName,
-		Packages:       PackagesFromGraph(manifest.Entry.Graph),
+		Packages:       PackagesFromGraph(manifest.Entry.Graph, registry),
 	}
 }
 
@@ -558,7 +560,7 @@ func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.Consolid
 				Subproject:     headManifest.Manifest.Subproject,
 				Ecosystem:      headManifest.Manifest.Ecosystem,
 				PackageManager: headManifest.Manifest.PackageManager,
-				Added:          diffPackageChangesFromPackages(headManifest.Graph.Packages()),
+				Added:          diffPackageChangesFromPackages(headManifest.Graph.Nodes()),
 			}
 			results.Manifests = append(results.Manifests, result)
 			summary.AddedManifestCount++
@@ -572,7 +574,7 @@ func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.Consolid
 				Subproject:     baseManifest.Manifest.Subproject,
 				Ecosystem:      baseManifest.Manifest.Ecosystem,
 				PackageManager: baseManifest.Manifest.PackageManager,
-				Removed:        diffPackageChangesFromPackages(baseManifest.Graph.Packages()),
+				Removed:        diffPackageChangesFromPackages(baseManifest.Graph.Nodes()),
 			}
 			results.Manifests = append(results.Manifests, result)
 			summary.RemovedManifestCount++
@@ -936,12 +938,12 @@ func filterSBOMPseudoPackageDiff(diff *sdk.Diff, baseGraph, headGraph *sdk.Graph
 	diff.Removed = filterSBOMPseudoPackages(diff.Removed, baseGraph)
 }
 
-func filterSBOMPseudoPackages(packages []*sdk.Package, graph *sdk.Graph) []*sdk.Package {
+func filterSBOMPseudoPackages(packages []*sdk.Dependency, graph *sdk.Graph) []*sdk.Dependency {
 	if len(packages) == 0 {
 		return packages
 	}
 	rootIDs := graphRootIDs(graph)
-	filtered := make([]*sdk.Package, 0, len(packages))
+	filtered := make([]*sdk.Dependency, 0, len(packages))
 	for _, pkg := range packages {
 		if isSBOMPseudoPackage(pkg, rootIDs) {
 			continue
@@ -965,11 +967,11 @@ func graphRootIDs(graph *sdk.Graph) map[string]struct{} {
 	return roots
 }
 
-func isSBOMPseudoPackage(pkg *sdk.Package, rootIDs map[string]struct{}) bool {
+func isSBOMPseudoPackage(pkg *sdk.Dependency, rootIDs map[string]struct{}) bool {
 	if pkg == nil {
 		return false
 	}
-	if !sdk.PackageIsDiffable(pkg) {
+	if !sdk.NodeIsDiffable(pkg) {
 		return true
 	}
 	if _, ok := rootIDs[pkg.ID]; !ok {
@@ -981,7 +983,7 @@ func isSBOMPseudoPackage(pkg *sdk.Package, rootIDs map[string]struct{}) bool {
 	return false
 }
 
-func diffPackageChangesFromPackages(packages []*sdk.Package) []DiffPackageChange {
+func diffPackageChangesFromPackages(packages []*sdk.Dependency) []DiffPackageChange {
 	changes := make([]DiffPackageChange, 0, len(packages))
 	for _, pkg := range packages {
 		changes = append(changes, DiffPackageChange{Package: PackageFromGraphPackage(pkg)})
@@ -1067,14 +1069,14 @@ func reconcileDiffWithFuzzyMatches(diff *sdk.Diff) {
 		return
 	}
 
-	remainingAdded := make([]*sdk.Package, 0, len(diff.Added)-len(matchedAdded))
+	remainingAdded := make([]*sdk.Dependency, 0, len(diff.Added)-len(matchedAdded))
 	for idx, pkg := range diff.Added {
 		if _, ok := matchedAdded[idx]; ok {
 			continue
 		}
 		remainingAdded = append(remainingAdded, pkg)
 	}
-	remainingRemoved := make([]*sdk.Package, 0, len(diff.Removed)-len(matchedRemoved))
+	remainingRemoved := make([]*sdk.Dependency, 0, len(diff.Removed)-len(matchedRemoved))
 	for idx, pkg := range diff.Removed {
 		if _, ok := matchedRemoved[idx]; ok {
 			continue
@@ -1100,7 +1102,7 @@ func reconcileDiffWithFuzzyMatches(diff *sdk.Diff) {
 	})
 }
 
-func fuzzyReconcileScore(before, after *sdk.Package) (float64, string) {
+func fuzzyReconcileScore(before, after *sdk.Dependency) (float64, string) {
 	if before == nil || after == nil {
 		return 0, ""
 	}
@@ -1110,8 +1112,8 @@ func fuzzyReconcileScore(before, after *sdk.Package) (float64, string) {
 
 	beforeNorm := before.Clone()
 	afterNorm := after.Clone()
-	sdk.NormalizePackageIdentity(beforeNorm)
-	sdk.NormalizePackageIdentity(afterNorm)
+	sdk.NormalizeDependencyIdentity(beforeNorm)
+	sdk.NormalizeDependencyIdentity(afterNorm)
 
 	if sdk.PackageURLBase(beforeNorm.PURL) != "" && sdk.PackageURLBase(beforeNorm.PURL) == sdk.PackageURLBase(afterNorm.PURL) {
 		return 1.0, "purl-base"
@@ -1135,7 +1137,7 @@ func fuzzyReconcileScore(before, after *sdk.Package) (float64, string) {
 	return final, "name-similarity"
 }
 
-func sameEcosystemForFuzzy(before, after *sdk.Package) bool {
+func sameEcosystemForFuzzy(before, after *sdk.Dependency) bool {
 	b := strings.ToLower(strings.TrimSpace(before.Ecosystem))
 	a := strings.ToLower(strings.TrimSpace(after.Ecosystem))
 	if b == "" || a == "" {
@@ -1235,9 +1237,9 @@ func maxInt(values ...int) int {
 	return best
 }
 
-func applyFuzzyMetadata(before, after *sdk.Package, score float64, tier string) {
+func applyFuzzyMetadata(before, after *sdk.Dependency, score float64, tier string) {
 	roundedScore := math.Round(score*1000) / 1000
-	for _, pkg := range []*sdk.Package{before, after} {
+	for _, pkg := range []*sdk.Dependency{before, after} {
 		if pkg == nil {
 			continue
 		}

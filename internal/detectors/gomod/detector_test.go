@@ -95,7 +95,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 		t.Fatalf("expected 5 packages, got %d", g.Size())
 	}
 
-	rootDeps, err := g.Dependencies("example.com/demo")
+	rootDeps, err := g.DirectDependencies("example.com/demo")
 	if err != nil {
 		t.Fatalf("Dependencies(root) error = %v", err)
 	}
@@ -103,39 +103,39 @@ func TestDepGraphFromGoList(t *testing.T) {
 		t.Fatalf("expected 3 root dependencies, got %d", len(rootDeps))
 	}
 
-	uuidNode, ok := g.Package("github.com/google/uuid@v1.6.0")
+	uuidNode, ok := g.Node("github.com/google/uuid@v1.6.0")
 	if !ok {
 		t.Fatal("expected runtime dependency package")
 	}
-	if got := uuidNode.Scope; got != string(sdk.ScopeRuntime) {
+	if got := string(uuidNode.PrimaryScope()); got != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope for uuid, got %q", got)
 	}
 
-	textNode, ok := g.Package("golang.org/x/text@v0.14.0")
+	textNode, ok := g.Node("golang.org/x/text@v0.14.0")
 	if !ok {
 		t.Fatal("expected transitive runtime dependency package")
 	}
-	if got := textNode.Scope; got != string(sdk.ScopeRuntime) {
+	if got := string(textNode.PrimaryScope()); got != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope for golang.org/x/text, got %q", got)
 	}
 
-	testifyNode, ok := g.Package("github.com/stretchr/testify@v1.9.0")
+	testifyNode, ok := g.Node("github.com/stretchr/testify@v1.9.0")
 	if !ok {
 		t.Fatal("expected development dependency package")
 	}
-	if got := testifyNode.Scope; got != string(sdk.ScopeDevelopment) {
+	if got := string(testifyNode.PrimaryScope()); got != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected development scope for testify, got %q", got)
 	}
 
-	spewNode, ok := g.Package("github.com/davecgh/go-spew@v1.1.1")
+	spewNode, ok := g.Node("github.com/davecgh/go-spew@v1.1.1")
 	if !ok {
 		t.Fatal("expected transitive development dependency package")
 	}
-	if got := spewNode.Scope; got != string(sdk.ScopeDevelopment) {
+	if got := string(spewNode.PrimaryScope()); got != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected development scope for go-spew, got %q", got)
 	}
 
-	testifyDeps, err := g.Dependencies(testifyNode.ID)
+	testifyDeps, err := g.DirectDependencies(testifyNode.ID)
 	if err != nil {
 		t.Fatalf("Dependencies(testify) error = %v", err)
 	}
@@ -143,7 +143,7 @@ func TestDepGraphFromGoList(t *testing.T) {
 		t.Fatalf("unexpected testify dependencies: %#v", testifyDeps)
 	}
 
-	if _, ok := g.Package("fmt"); ok {
+	if _, ok := g.Node("fmt"); ok {
 		t.Fatal("did not expect stdlib package to be included")
 	}
 }
@@ -160,11 +160,11 @@ func TestDepGraphFromGoList_PrefersRuntimeScope(t *testing.T) {
 		t.Fatalf("depGraphFromGoList() error = %v", err)
 	}
 
-	shared, ok := g.Package("example.com/shared@v1.2.3")
+	shared, ok := g.Node("example.com/shared@v1.2.3")
 	if !ok {
 		t.Fatal("expected shared dependency package")
 	}
-	if got := shared.Scope; got != string(sdk.ScopeRuntime) {
+	if got := string(shared.PrimaryScope()); got != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected runtime scope to win, got %q", got)
 	}
 }
@@ -180,7 +180,7 @@ func TestDepGraphFromGoList_UsesOriginalModuleIdentityForReplace(t *testing.T) {
 		t.Fatalf("depGraphFromGoList() error = %v", err)
 	}
 
-	if _, ok := g.Package("example.com/original@v1.2.3"); !ok {
+	if _, ok := g.Node("example.com/original@v1.2.3"); !ok {
 		t.Fatal("expected replaced module to keep original module identity")
 	}
 }
@@ -259,7 +259,7 @@ func TestDepGraphFromGoList_AttachesPositionToDirectDeps(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromGoList: %v", err)
 	}
-	direct, ok := g.Package("github.com/direct/dep@v1.0.0")
+	direct, ok := g.Node("github.com/direct/dep@v1.0.0")
 	if !ok {
 		t.Fatal("direct dep missing from graph")
 	}
@@ -273,7 +273,7 @@ func TestDepGraphFromGoList_AttachesPositionToDirectDeps(t *testing.T) {
 	if loc.Position == nil || loc.Position.Line != 7 || loc.Position.File != "go.mod" {
 		t.Errorf("direct dep Position = %+v, want {File: go.mod, Line: 7}", loc.Position)
 	}
-	trans, ok := g.Package("example.com/trans/dep@v2.0.0")
+	trans, ok := g.Node("example.com/trans/dep@v2.0.0")
 	if !ok {
 		t.Fatal("transitive dep missing from graph")
 	}

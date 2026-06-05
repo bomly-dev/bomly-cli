@@ -43,21 +43,17 @@ func (a Auditor) Applicable(_ context.Context, req sdk.AuditRequest) (bool, erro
 }
 
 func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult, error) {
-	if req.Graph == nil {
+	if req.Graph == nil || req.Registry == nil {
 		return sdk.AuditResult{}, nil
 	}
-	packages := req.Graph.Packages()
+	deps := req.Graph.Nodes()
 	if req.Mode == sdk.TargetModeComponent && req.Target != nil {
-		packages = []*sdk.Package{req.Target}
+		deps = []*sdk.Dependency{req.Target}
 	}
 
-	// Root packages are the project itself (e.g. github.com/your/repo) —
-	// they rarely declare a license in lockfile data and the license is
-	// typically expressed at the repository level. Flagging the root with
-	// "unknown-license" generates noise that is never actionable from
-	// within a dependency manifest. We treat roots as implicitly exempt
-	// for full-graph audits; component-mode audits (`req.Target != nil`)
-	// still evaluate whatever target was passed in.
+	// Root packages are the project itself — they rarely declare a license in
+	// lockfile data; flagging them generates non-actionable noise. Treat roots
+	// as implicitly exempt for full-graph audits.
 	rootIDs := map[string]struct{}{}
 	if req.Mode != sdk.TargetModeComponent {
 		for _, r := range req.Graph.Roots() {
@@ -67,22 +63,37 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 		}
 	}
 
+	// One finding per offending PURL; the first dependency instance carries the
+	// reference set.
+	seenPURL := make(map[string]struct{}, len(deps))
 	findings := make([]sdk.Finding, 0)
-	for _, pkg := range packages {
-		if pkg == nil || !scopeAllowed(pkg, a.FailOnScopes) || packageExempt(pkg, a.ExemptPackages) {
+	for _, dep := range deps {
+		if dep == nil || !scopeAllowed(dep, a.FailOnScopes) || packageExempt(dep, a.ExemptPackages) {
 			continue
 		}
-		if _, isRoot := rootIDs[pkg.ID]; isRoot {
+		if _, isRoot := rootIDs[dep.ID]; isRoot {
 			continue
 		}
-		licenses := pkg.LicenseValues()
+		purl := dep.PackageRef
+		if purl == "" {
+			purl = sdk.CanonicalPackageURLFromDependency(dep)
+		}
+		if purl == "" {
+			continue
+		}
+		if _, done := seenPURL[purl]; done {
+			continue
+		}
+		seenPURL[purl] = struct{}{}
+
+		licenses := registryLicenseValues(req.Registry, purl)
 		if len(licenses) == 0 {
-			findings = append(findings, finding(pkg, "unknown-license", "Package license is unknown", sdk.FindingDispositionWarn))
+			findings = append(findings, finding(purl, dep.ID, "unknown-license", "Package license is unknown", sdk.FindingDispositionWarn))
 			continue
 		}
 		valid, invalid := spdxexp.ValidateLicenses(licenses)
 		if !valid {
-			findings = append(findings, finding(pkg, "invalid-license", "Package has invalid SPDX license: "+strings.Join(invalid, ", "), sdk.FindingDispositionFail))
+			findings = append(findings, finding(purl, dep.ID, "invalid-license", "Package has invalid SPDX license: "+strings.Join(invalid, ", "), sdk.FindingDispositionFail))
 			continue
 		}
 		if len(a.AllowLicenses) > 0 {
@@ -95,7 +106,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 				}
 			}
 			if !allowed {
-				findings = append(findings, finding(pkg, "denied-license", "Package license is not allowlisted", sdk.FindingDispositionFail))
+				findings = append(findings, finding(purl, dep.ID, "denied-license", "Package license is not allowlisted", sdk.FindingDispositionFail))
 			}
 			continue
 		}
@@ -106,30 +117,42 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 					continue
 				}
 				if intersectsLicenseList(used, a.DenyLicenses) {
-					findings = append(findings, finding(pkg, "denied-license", "Package license is denylisted", sdk.FindingDispositionFail))
+					findings = append(findings, finding(purl, dep.ID, "denied-license", "Package license is denylisted", sdk.FindingDispositionFail))
 					break
 				}
 			}
 		}
 	}
-	return sdk.AuditResult{Graph: req.Graph, Target: req.Target, Findings: findings}, nil
+	return sdk.AuditResult{Findings: findings}, nil
 }
 
-func finding(pkg *sdk.Package, id, title string, disposition sdk.FindingDisposition) sdk.Finding {
-	return sdk.Finding{
-		ID:          fmt.Sprintf("%s:%s:%s", auditorName, id, pkg.ID),
+func registryLicenseValues(registry *sdk.PackageRegistry, purl string) []string {
+	pkg, ok := registry.Get(purl)
+	if !ok || pkg == nil {
+		return nil
+	}
+	return pkg.LicenseValues()
+}
+
+func finding(purl, depID, id, title string, disposition sdk.FindingDisposition) sdk.Finding {
+	f := sdk.Finding{
+		ID:          fmt.Sprintf("%s:%s:%s", auditorName, id, purl),
 		Kind:        sdk.FindingKindLicense,
-		Package:     pkg,
 		Title:       title,
 		Severity:    "unknown",
 		Source:      auditorName,
 		Auditor:     auditorName,
 		Disposition: disposition,
+		PackageRef:  purl,
 	}
+	if depID != "" {
+		f.DependencyRefs = []string{depID}
+	}
+	return f
 }
 
-func packageExempt(pkg *sdk.Package, exemptions []string) bool {
-	base := sdk.PackageURLBase(sdk.CanonicalPackageURLFromPackage(pkg))
+func packageExempt(dep *sdk.Dependency, exemptions []string) bool {
+	base := sdk.PackageURLBase(sdk.CanonicalPackageURLFromDependency(dep))
 	if base == "" {
 		return false
 	}
@@ -152,13 +175,12 @@ func intersectsLicenseList(values, denied []string) bool {
 	return false
 }
 
-func scopeAllowed(pkg *sdk.Package, allowed []sdk.Scope) bool {
+func scopeAllowed(dep *sdk.Dependency, allowed []sdk.Scope) bool {
 	if len(allowed) == 0 {
 		return true
 	}
-	scope := sdk.Scope(pkg.Scope)
 	for _, candidate := range allowed {
-		if candidate == scope {
+		if dep.HasScope(candidate) {
 			return true
 		}
 	}

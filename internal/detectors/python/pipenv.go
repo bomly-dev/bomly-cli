@@ -145,13 +145,14 @@ func depGraphFromPipfileLock(path string) (*sdk.Graph, error) {
 		return nil, fmt.Errorf("pipfile.lock does not contain dependencies")
 	}
 	depsGraph := sdk.New()
-	root := sdk.NewPackage(sdk.Package{
+	root := sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemPython),
 		BuildSystem: sdk.PackageManagerPipenv.Name(),
 		Name:        "root",
 		Type:        "project",
 	})
-	if err := depsGraph.AddPackage(root); err != nil {
+
+	if err := depsGraph.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root package: %w", err)
 	}
 	if err := addPipfileLockPackages(depsGraph, root, lock.Default, sdk.ScopeRuntime); err != nil {
@@ -163,22 +164,23 @@ func depGraphFromPipfileLock(path string) (*sdk.Graph, error) {
 	return depsGraph, nil
 }
 
-func addPipfileLockPackages(depsGraph *sdk.Graph, root *sdk.Package, packages map[string]pipfileLockPackage, scope sdk.Scope) error {
+func addPipfileLockPackages(depsGraph *sdk.Graph, root *sdk.Dependency, packages map[string]pipfileLockPackage, scope sdk.Scope) error {
 	for name, pkg := range packages {
 		normalizedName := normalizePythonName(name)
-		node := sdk.NewPackage(sdk.Package{
+		node := sdk.NewDependency(sdk.Dependency{
 			Ecosystem:   string(sdk.EcosystemPython),
 			BuildSystem: sdk.PackageManagerPipenv.Name(),
 			Name:        normalizedName,
 			Version:     strings.TrimPrefix(pkg.Version, "=="),
-			Scope:       string(scope),
+			Scopes:      sdk.ScopesOf(scope),
 		})
-		if _, exists := depsGraph.Package(node.ID); !exists {
-			if err := depsGraph.AddPackage(node); err != nil {
+
+		if _, exists := depsGraph.Node(node.ID); !exists {
+			if err := depsGraph.AddNode(node); err != nil {
 				return fmt.Errorf("add Pipfile.lock package %q: %w", normalizedName, err)
 			}
 		}
-		if err := depsGraph.AddDependency(root.ID, node.ID); err != nil {
+		if err := depsGraph.AddEdge(root.ID, node.ID); err != nil {
 			return fmt.Errorf("add Pipfile.lock dependency %q: %w", normalizedName, err)
 		}
 	}

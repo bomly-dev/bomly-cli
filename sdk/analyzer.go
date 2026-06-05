@@ -28,31 +28,30 @@ type AnalyzerDescriptor struct {
 	Origin              DetectorOrigin   `json:"origin,omitempty"`
 	SupportedEcosystems []Ecosystem      `json:"supportedEcosystems,omitempty"`
 	SupportedManagers   []PackageManager `json:"supportedManagers,omitempty"`
-	// SupportedLanguages is the analyzer's primary dispatch axis. Most
-	// analyzers operate on one or two languages (e.g. govulncheck → Go).
-	// Empty means "all languages".
+	// SupportedLanguages is the analyzer's primary dispatch axis.
 	SupportedLanguages []Language   `json:"supportedLanguages,omitempty"`
 	SupportedModes     []TargetMode `json:"supportedModes,omitempty"`
 	// SupportedTiers communicates the precision the analyzer can deliver.
-	// Used in support-matrix docs and renderer hints.
 	SupportedTiers []ReachabilityTier `json:"supportedTiers,omitempty"`
 	Priority       int                `json:"priority,omitempty"`
 }
 
-// AnalyzeRequest defines input for an analyzer.
+// AnalyzeRequest defines input for an analyzer. Analyzers annotate
+// Vulnerability.Reachability on packages in the Registry.
 type AnalyzeRequest struct {
-	ProjectPath     string          `json:"projectPath,omitempty"`
-	ExecutionTarget ExecutionTarget `json:"executionTarget"`
-	SubprojectInfo  Subproject      `json:"subprojectInfo"`
-	Ecosystem       Ecosystem       `json:"ecosystem,omitempty"`
-	PackageManager  PackageManager  `json:"packageManager,omitempty"`
-	Language        Language        `json:"language,omitempty"`
-	Mode            TargetMode      `json:"mode,omitempty"`
-	Query           PackageQuery    `json:"query"`
-	Graph           *Graph          `json:"graph,omitempty"`
-	Target          *Package        `json:"target,omitempty"`
-	AnalyzerFilter  AnalyzerFilter  `json:"analyzerFilter"`
-	Stderr          io.Writer       `json:"-"`
+	ProjectPath     string           `json:"projectPath,omitempty"`
+	ExecutionTarget ExecutionTarget  `json:"executionTarget"`
+	SubprojectInfo  Subproject       `json:"subprojectInfo"`
+	Ecosystem       Ecosystem        `json:"ecosystem,omitempty"`
+	PackageManager  PackageManager   `json:"packageManager,omitempty"`
+	Language        Language         `json:"language,omitempty"`
+	Mode            TargetMode       `json:"mode,omitempty"`
+	Query           PackageQuery     `json:"query"`
+	Graph           *Graph           `json:"graph,omitempty"`
+	Registry        *PackageRegistry `json:"-"`
+	Target          *Dependency      `json:"target,omitempty"`
+	AnalyzerFilter  AnalyzerFilter   `json:"analyzerFilter"`
+	Stderr          io.Writer        `json:"-"`
 }
 
 // ReachabilityStats tallies the per-analyzer outcome distribution.
@@ -63,19 +62,16 @@ type ReachabilityStats struct {
 	NotApplicable int `json:"not_applicable,omitempty"`
 }
 
-// AnalyzeResult contains the graph after analyzer enrichment.
+// AnalyzeResult contains the registry after analyzer enrichment.
 type AnalyzeResult struct {
-	Graph         *Graph                       `json:"graph,omitempty"`
-	Target        *Package                     `json:"target,omitempty"`
+	Registry      *PackageRegistry             `json:"-"`
 	AnalyzerRuns  []string                     `json:"analyzerRuns,omitempty"`
 	AnalyzerStats map[string]ReachabilityStats `json:"analyzerStats,omitempty"`
 }
 
-// Analyzer enriches PackageVulnerability entries with reachability data
-// derived from code analysis. Analyzers run in their own pipeline stage
-// (after matchers, before auditors) and must never abort the pipeline on
-// failure — return the graph with Reachability.Status = ReachabilityUnknown
-// and a stable Reason instead.
+// Analyzer enriches Vulnerability entries with reachability data derived from
+// code analysis. Analyzers run after matchers, before auditors, and must never
+// abort the pipeline on failure.
 type Analyzer interface {
 	Descriptor() AnalyzerDescriptor
 	Ready() bool

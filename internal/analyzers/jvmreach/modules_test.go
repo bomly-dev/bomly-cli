@@ -93,23 +93,28 @@ func TestAnalyzerTraversesConsumedMavenModules(t *testing.T) {
 	writeJVMFixture(t, root, "unused/src/main/java/com/example/unused/Unused.java", "package com.example.unused;\nimport org.apache.logging.log4j.LogManager;\nclass Unused {}\n")
 
 	g := model.New()
-	jackson := model.NewPackage(model.Package{Name: "jackson-databind", Org: "com.fasterxml.jackson.core", Version: "1", Ecosystem: "maven", Vulnerabilities: []model.PackageVulnerability{{ID: "jackson"}}})
-	log4j := model.NewPackage(model.Package{Name: "log4j-core", Org: "org.apache.logging.log4j", Version: "1", Ecosystem: "maven", Vulnerabilities: []model.PackageVulnerability{{ID: "log4j"}}})
-	_ = g.AddPackage(jackson)
-	_ = g.AddPackage(log4j)
+	reg := model.NewPackageRegistry()
+	jacksonPURL := "pkg:maven/com.fasterxml.jackson.core/jackson-databind@1"
+	log4jPURL := "pkg:maven/org.apache.logging.log4j/log4j-core@1"
+	jackson := model.NewDependency(model.Dependency{Name: "jackson-databind", Org: "com.fasterxml.jackson.core", Version: "1", Ecosystem: "maven", PURL: jacksonPURL})
+	log4j := model.NewDependency(model.Dependency{Name: "log4j-core", Org: "org.apache.logging.log4j", Version: "1", Ecosystem: "maven", PURL: log4jPURL})
+	reg.Ensure(jacksonPURL).Vulnerabilities = []model.Vulnerability{{ID: "jackson"}}
+	reg.Ensure(log4jPURL).Vulnerabilities = []model.Vulnerability{{ID: "log4j"}}
+	_ = g.AddNode(jackson)
+	_ = g.AddNode(log4j)
 	a := Analyzer{DisableCache: true, Runner: moduleFakeRunner{results: map[string]RunnerResult{
 		root:   {},
 		app:    {SourceFiles: 1, RawImports: map[string]struct{}{"com.example.shared.Helper": {}}},
 		shared: {SourceFiles: 1, ImportedArtifacts: map[string]struct{}{"com.fasterxml.jackson.core:jackson-databind": {}}},
 		unused: {SourceFiles: 1, ImportedArtifacts: map[string]struct{}{"org.apache.logging.log4j:log4j-core": {}}},
 	}}}
-	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: root}); err != nil {
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: root}); err != nil {
 		t.Fatal(err)
 	}
-	if got := jackson.Vulnerabilities[0].Reachability; got == nil || got.Status != model.ReachabilityReachable || got.Hops == nil || *got.Hops != 1 {
+	if got := reg.Ensure(jacksonPURL).Vulnerabilities[0].Reachability; got == nil || got.Status != model.ReachabilityReachable || got.Hops == nil || *got.Hops != 1 {
 		t.Fatalf("jackson reachability = %+v, want reachable at hop 1", got)
 	}
-	if got := log4j.Vulnerabilities[0].Reachability; got == nil || got.Status != model.ReachabilityUnreachable {
+	if got := reg.Ensure(log4jPURL).Vulnerabilities[0].Reachability; got == nil || got.Status != model.ReachabilityUnreachable {
 		t.Fatalf("log4j reachability = %+v, want unreachable", got)
 	}
 }

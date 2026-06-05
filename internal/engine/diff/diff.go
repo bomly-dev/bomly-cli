@@ -67,14 +67,14 @@ func Run(ctx context.Context, req Request) (Result, error) {
 		if err != nil {
 			return result, fmt.Errorf("focused audit graphs: %w", err)
 		}
-		baseAudit, baseWarnings := req.Base.Pipeline.RunAuditGraph(ctx, baseAuditGraph, req.Base.Request)
+		baseAudit, baseWarnings := req.Base.Pipeline.RunAuditGraph(ctx, baseAuditGraph, base.Registry, req.Base.Request)
 		result.Base.Findings = baseAudit.Findings
 		result.Base.RiskScores = baseAudit.RiskScores
 		result.Base.AuditorRuns = baseAudit.AuditorRuns
 		result.Base.AuditorFindings = baseAudit.AuditorFindings
 		result.Base.AuditWarnings = append(result.Base.AuditWarnings, baseWarnings...)
 
-		headAudit, headWarnings := req.Head.Pipeline.RunAuditGraph(ctx, headAuditGraph, req.Head.Request)
+		headAudit, headWarnings := req.Head.Pipeline.RunAuditGraph(ctx, headAuditGraph, head.Registry, req.Head.Request)
 		result.Head.Findings = headAudit.Findings
 		result.Head.RiskScores = headAudit.RiskScores
 		result.Head.AuditorRuns = headAudit.AuditorRuns
@@ -91,8 +91,8 @@ func Run(ctx context.Context, req Request) (Result, error) {
 
 func focusedAuditGraphs(base, head *sdk.Graph) (*sdk.Graph, *sdk.Graph, error) {
 	graphDiff := sdk.Compare(base, head)
-	basePackages := make([]*sdk.Package, 0, len(graphDiff.Removed)+len(graphDiff.Updated))
-	headPackages := make([]*sdk.Package, 0, len(graphDiff.Added)+len(graphDiff.Updated))
+	basePackages := make([]*sdk.Dependency, 0, len(graphDiff.Removed)+len(graphDiff.Updated))
+	headPackages := make([]*sdk.Dependency, 0, len(graphDiff.Added)+len(graphDiff.Updated))
 	basePackages = append(basePackages, graphDiff.Removed...)
 	headPackages = append(headPackages, graphDiff.Added...)
 	for _, change := range graphDiff.Updated {
@@ -111,7 +111,7 @@ func focusedAuditGraphs(base, head *sdk.Graph) (*sdk.Graph, *sdk.Graph, error) {
 	return baseGraph, headGraph, nil
 }
 
-func focusedAuditGraph(packages []*sdk.Package) (*sdk.Graph, error) {
+func focusedAuditGraph(packages []*sdk.Dependency) (*sdk.Graph, error) {
 	focused := sdk.NewWithCapacity(len(packages) + 1)
 	seen := make(map[string]struct{}, len(packages))
 	for _, pkg := range packages {
@@ -124,11 +124,11 @@ func focusedAuditGraph(packages []*sdk.Package) (*sdk.Graph, error) {
 		return focused, nil
 	}
 
-	root := sdk.NewPackageWithID(diffAuditRootID, sdk.Package{
+	root := sdk.NewDependencyWithID(diffAuditRootID, sdk.Dependency{
 		Name: "bomly-diff-audit-root",
 		Type: "application",
 	})
-	if err := focused.AddPackage(root); err != nil {
+	if err := focused.AddNode(root); err != nil {
 		return nil, err
 	}
 
@@ -136,15 +136,15 @@ func focusedAuditGraph(packages []*sdk.Package) (*sdk.Graph, error) {
 		if pkg == nil || pkg.ID == "" {
 			continue
 		}
-		if _, exists := focused.Package(pkg.ID); !exists {
-			if err := focused.AddPackage(pkg.Clone()); err != nil && !errors.Is(err, sdk.ErrPackageAlreadyExist) {
+		if _, exists := focused.Node(pkg.ID); !exists {
+			if err := focused.AddNode(pkg.Clone()); err != nil && !errors.Is(err, sdk.ErrNodeAlreadyExist) {
 				return nil, err
 			}
 		}
-		if _, exists := focused.Package(pkg.ID); !exists {
+		if _, exists := focused.Node(pkg.ID); !exists {
 			continue
 		}
-		if err := focused.AddDependency(diffAuditRootID, pkg.ID); err != nil && !errors.Is(err, sdk.ErrSelfDependency) {
+		if err := focused.AddEdge(diffAuditRootID, pkg.ID); err != nil && !errors.Is(err, sdk.ErrSelfDependency) {
 			return nil, err
 		}
 	}
@@ -186,9 +186,10 @@ func diffFindingSets(baseFindings, headFindings []sdk.Finding) ([]sdk.Finding, [
 }
 
 func diffFindingKey(finding sdk.Finding) string {
-	packageID := ""
-	if finding.Package != nil {
-		packageID = finding.Package.ID
+	// Reference-style Finding: key on PackageRef + VulnerabilityID.
+	vulnID := finding.VulnerabilityID
+	if vulnID == "" {
+		vulnID = finding.ID
 	}
-	return fmt.Sprintf("%s|%s|%s|%s", finding.ID, finding.Kind, finding.Source, packageID)
+	return fmt.Sprintf("%s|%s|%s|%s|%s", finding.ID, finding.Kind, finding.Source, finding.PackageRef, vulnID)
 }

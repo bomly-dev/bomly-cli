@@ -131,9 +131,9 @@ func consolidatedEntryRootID(g *sdk.Graph, manifest sdk.ManifestMetadata, idx in
 		if len(roots) > 0 && roots[0] != nil && strings.TrimSpace(roots[0].ID) != "" {
 			return roots[0].ID
 		}
-		packages := g.Packages()
-		if len(packages) > 0 && packages[0] != nil && strings.TrimSpace(packages[0].ID) != "" {
-			return packages[0].ID
+		nodes := g.Nodes()
+		if len(nodes) > 0 && nodes[0] != nil && strings.TrimSpace(nodes[0].ID) != "" {
+			return nodes[0].ID
 		}
 	}
 	if strings.TrimSpace(manifest.Path) != "" {
@@ -156,7 +156,7 @@ func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error
 			if target == nil || target.ID == preferred.ID {
 				continue
 			}
-			if err := g.AddDependency(preferred.ID, target.ID); err != nil {
+			if err := g.AddEdge(preferred.ID, target.ID); err != nil {
 				if errors.Is(err, sdk.ErrSelfDependency) {
 					continue
 				}
@@ -178,24 +178,24 @@ func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error
 		kind = "manifest"
 	}
 
-	virtualRoot := sdk.NewPackageWithID(rootID, sdk.Package{
+	virtualRoot := sdk.NewDependencyWithID(rootID, sdk.Dependency{
 		Name:        manifestLabel,
 		Type:        "manifest",
 		BuildSystem: kind,
 	})
-	if err := addPackageIfMissing(g, virtualRoot); err != nil {
+	if err := addNodeIfMissing(g, virtualRoot); err != nil {
 		return err
 	}
 
 	targets := g.Roots()
 	if len(targets) == 0 {
-		targets = g.Packages()
+		targets = g.Nodes()
 	}
 	for _, target := range targets {
 		if target == nil || target.ID == rootID {
 			continue
 		}
-		if err := g.AddDependency(rootID, target.ID); err != nil {
+		if err := g.AddEdge(rootID, target.ID); err != nil {
 			if errors.Is(err, sdk.ErrSelfDependency) {
 				continue
 			}
@@ -206,7 +206,7 @@ func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error
 	return nil
 }
 
-func selectApplicationRoot(roots []*sdk.Package) *sdk.Package {
+func selectApplicationRoot(roots []*sdk.Dependency) *sdk.Dependency {
 	for _, root := range roots {
 		if root == nil {
 			continue
@@ -233,18 +233,18 @@ func virtualManifestRootID(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int)
 	}
 	base = strings.ReplaceAll(base, "\\", "/")
 
-	if _, exists := g.Package(base); !exists {
+	if _, exists := g.Node(base); !exists {
 		return base
 	}
 
 	candidate := "manifest:" + base
-	if _, exists := g.Package(candidate); !exists {
+	if _, exists := g.Node(candidate); !exists {
 		return candidate
 	}
 
 	for i := 2; ; i++ {
 		next := fmt.Sprintf("%s#%d", candidate, i)
-		if _, exists := g.Package(next); !exists {
+		if _, exists := g.Node(next); !exists {
 			return next
 		}
 	}

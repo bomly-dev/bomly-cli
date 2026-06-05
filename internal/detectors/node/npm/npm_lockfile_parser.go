@@ -118,8 +118,8 @@ func depGraphFromNPMLockfile(projectPath string) (*sdk.Graph, error) {
 	if rootName == "" {
 		rootName = "root"
 	}
-	rootNode := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemNPM), Name: rootName, Version: lockfile.Version, Type: "application"})
-	if err := depsGraph.AddPackage(rootNode); err != nil {
+	rootNode := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemNPM), Name: rootName, Version: lockfile.Version, Type: "application"})
+	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add npm root node: %w", err)
 	}
 
@@ -142,21 +142,21 @@ func depGraphFromNPMLockfile(projectPath string) (*sdk.Graph, error) {
 		if name == "" {
 			continue
 		}
-		pkg := sdk.Package{
+		pkg := sdk.Dependency{
 			Ecosystem:   string(sdk.EcosystemNPM),
 			Name:        name,
 			Version:     entry.Version,
-			Scope:       string(scopeFromNPMLockPackage(entry)),
+			Scopes:      sdk.ScopesOf(scopeFromNPMLockPackage(entry)),
 			ResolvedURL: entry.Resolved,
 			Digests:     node.ParseIntegrityDigests(entry.Integrity),
-		}
-		if entry.License != "" {
-			pkg.Licenses = []sdk.PackageLicense{{Value: entry.License, Type: "declared"}}
 		}
 		if meta := npmLockPackageMetadata(entry); meta != nil {
 			pkg.Metadata = map[string]any{sdk.MetadataKeyNPM: meta}
 		}
-		pkgNode := sdk.NewPackage(pkg)
+		pkgNode := sdk.NewDependency(pkg)
+		if entry.License != "" {
+			sdk.SetDetectionLicenses(pkgNode, []sdk.PackageLicense{{Value: entry.License, Type: "declared"}})
+		}
 		if err := node.AddNodeIfMissing(depsGraph, pkgNode); err != nil {
 			return nil, err
 		}
@@ -176,13 +176,13 @@ func depGraphFromNPMLockfile(projectPath string) (*sdk.Graph, error) {
 		for dependencyName, dependencyVersion := range packageDependencyVersions(packagePath, entry) {
 			targetID, ok := resolveNPMLockDependencyID(packagePath, dependencyName, dependencyVersion, lockfile, pathToID)
 			if !ok {
-				synthetic := sdk.NewPackage(sdk.Package{Ecosystem: string(sdk.EcosystemNPM), Name: dependencyName, Version: node.NormalizeVersionToken(dependencyVersion)})
+				synthetic := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemNPM), Name: dependencyName, Version: node.NormalizeVersionToken(dependencyVersion)})
 				if err := node.AddNodeIfMissing(depsGraph, synthetic); err != nil {
 					return nil, err
 				}
 				targetID = synthetic.ID
 			}
-			if err := depsGraph.AddDependency(parentID, targetID); err != nil {
+			if err := depsGraph.AddEdge(parentID, targetID); err != nil {
 				return nil, fmt.Errorf("add npm dependency %q -> %q: %w", parentID, targetID, err)
 			}
 		}

@@ -12,13 +12,17 @@ func MergeScope(current, next sdk.Scope) sdk.Scope {
 	return sdk.MergeScope(current, next)
 }
 
-// MergePackageScope updates pkg.Scope using normalized scope precedence rules.
-func MergePackageScope(pkg *sdk.Package, next sdk.Scope) {
-	sdk.MergePackageScope(pkg, next)
+// MergeDependencyScope adds next onto dep's scope set using normalized scope
+// precedence rules.
+func MergeDependencyScope(dep *sdk.Dependency, next sdk.Scope) {
+	if dep == nil {
+		return
+	}
+	dep.AddScope(next)
 }
 
-// FilterGraphByScope returns a graph view containing roots plus packages whose
-// normalized scope matches the requested filter.
+// FilterGraphByScope returns a graph view containing roots plus dependencies
+// whose normalized scope matches the requested filter.
 func FilterGraphByScope(src *sdk.Graph, scope sdk.Scope) (*sdk.Graph, error) {
 	if src == nil || scope == sdk.ScopeUnknown {
 		return src, nil
@@ -31,26 +35,26 @@ func FilterGraphByScope(src *sdk.Graph, scope sdk.Scope) (*sdk.Graph, error) {
 		}
 		allowed[root.ID] = struct{}{}
 	}
-	src.WalkPackages(func(pkg *sdk.Package) bool {
-		if pkg != nil && sdk.Scope(pkg.Scope) == scope {
-			allowed[pkg.ID] = struct{}{}
+	src.WalkNodes(func(dep *sdk.Dependency) bool {
+		if dep != nil && dep.HasScope(scope) {
+			allowed[dep.ID] = struct{}{}
 		}
 		return true
 	})
 
 	filtered := sdk.NewWithCapacity(len(allowed))
 	for id := range allowed {
-		pkg, ok := src.Package(id)
+		dep, ok := src.Node(id)
 		if !ok {
 			continue
 		}
-		if err := filtered.AddPackage(pkg.Clone()); err != nil {
+		if err := filtered.AddNode(dep.Clone()); err != nil {
 			return nil, err
 		}
 	}
 
 	var mergeErr error
-	src.WalkRelationships(func(from, to *sdk.Package) bool {
+	src.WalkEdges(func(from, to *sdk.Dependency) bool {
 		if from == nil || to == nil {
 			return true
 		}
@@ -60,8 +64,8 @@ func FilterGraphByScope(src *sdk.Graph, scope sdk.Scope) (*sdk.Graph, error) {
 		if _, ok := allowed[to.ID]; !ok {
 			return true
 		}
-		if err := filtered.AddDependency(from.ID, to.ID); err != nil {
-			mergeErr = fmt.Errorf("add filtered dependency %q -> %q: %w", from.ID, to.ID, err)
+		if err := filtered.AddEdge(from.ID, to.ID); err != nil {
+			mergeErr = fmt.Errorf("add filtered edge %q -> %q: %w", from.ID, to.ID, err)
 			return false
 		}
 		return true

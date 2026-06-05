@@ -45,7 +45,7 @@ type MatchRequest struct {
 	Mode            TargetMode       `json:"mode,omitempty"`
 	Query           PackageQuery     `json:"query"`
 	Graph           *Graph           `json:"graph,omitempty"`
-	Registry        *PackageRegistry `json:"-"`
+	Registry        *PackageRegistry `json:"registry,omitempty"`
 	Target          *Dependency      `json:"target,omitempty"`
 	MatcherFilter   MatcherFilter    `json:"matcherFilter"`
 	Stderr          io.Writer        `json:"-"`
@@ -53,7 +53,7 @@ type MatchRequest struct {
 
 // MatchResult contains the package registry after matcher enrichment.
 type MatchResult struct {
-	Registry    *PackageRegistry `json:"-"`
+	Registry    *PackageRegistry `json:"registry,omitempty"`
 	MatcherRuns []string         `json:"matcherRuns,omitempty"`
 }
 

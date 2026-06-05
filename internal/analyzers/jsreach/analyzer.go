@@ -17,7 +17,7 @@ const Name = "jsreach"
 // Analyzer is a Tier-3 (package-level) reachability analyzer for npm
 // packages. It groups npm packages in the input graph by project root,
 // runs the configured Runner once per project, and annotates each
-// PackageVulnerability on npm packages with a Reachability result.
+// registry vulnerability on npm packages with a Reachability result.
 //
 // Tier-3 caveat: "unreachable" here means "the application source does
 // not import this package, neither directly nor indirectly through app
@@ -106,7 +106,7 @@ func vulnerabilitiesForDep(req model.AnalyzeRequest, dep *model.Dependency) []mo
 }
 
 // Analyze runs the configured Runner per discovered npm project root
-// and writes Reachability onto every npm PackageVulnerability in the
+// and writes Reachability onto every npm registry vulnerability in the
 // graph. Errors degrade to Status=Unknown with a stable Reason — the
 // engine relies on this to keep the pipeline running.
 func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.AnalyzeResult, error) {

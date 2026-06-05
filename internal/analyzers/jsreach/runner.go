@@ -1,7 +1,7 @@
 // Package jsreach implements a Tier-3 (package-level) reachability
 // analyzer for npm packages. It walks application source files reachable
 // from package.json entry points, builds a static import graph, and
-// reports each npm PackageVulnerability as Reachable / Unreachable /
+// reports each npm registry vulnerability as Reachable / Unreachable /
 // Unknown depending on whether the affected package's bare specifier
 // appears in the import set.
 //

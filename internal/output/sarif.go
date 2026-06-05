@@ -326,7 +326,7 @@ func sarifLocationsForFinding(f sdk.Finding, _ *sdk.Package, fallbackURI string)
 	}
 }
 
-// sarifPropertiesFromVulnerability converts a registry Vulnerability into
+// sarifPropertiesFromVulnerability converts a registry vulnerability into
 // the SARIF properties bag. Reachability-related fields are omitted unless
 // includeReachability is true.
 func sarifPropertiesFromVulnerability(v *sdk.Vulnerability, includeReachability bool) sarifProperties {

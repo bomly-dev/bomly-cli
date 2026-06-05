@@ -24,6 +24,8 @@ type ReportOptions struct {
 	ReachabilityEnabled bool
 	AnalyzerRuns        []string
 	AnalyzerStats       map[string]sdk.ReachabilityStats
+	BaseRegistry        *sdk.PackageRegistry
+	HeadRegistry        *sdk.PackageRegistry
 }
 
 // ProjectDescriptor describes the project being analyzed.

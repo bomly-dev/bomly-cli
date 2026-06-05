@@ -4,7 +4,7 @@
 // reachable .java / .kt / .kts / .scala / .groovy file for top-of-file
 // import statements, maps the imported FQN prefixes to Maven artifact
 // coordinates (`groupId:artifactId`), and reports each
-// PackageVulnerability as Reachable / Unreachable / Unknown depending
+// registry vulnerability as Reachable / Unreachable / Unknown depending
 // on whether the artifact appears in the import set (expanded
 // transitively through the dep graph).
 //

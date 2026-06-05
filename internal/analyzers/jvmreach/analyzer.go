@@ -17,7 +17,7 @@ const Name = "jvmreach"
 // Analyzer is a Tier-3 (package-level) reachability analyzer for
 // JVM-ecosystem packages. It groups Maven artifacts in the input
 // graph by project root, runs the configured Runner once per
-// project, and annotates each PackageVulnerability on JVM packages
+// project, and annotates each registry vulnerability on JVM packages
 // with a Reachability result.
 //
 // Tier-3 caveat: "unreachable" means "the application source does

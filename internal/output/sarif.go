@@ -357,8 +357,7 @@ func sarifPropertiesFromVulnerability(v *sdk.Vulnerability, includeReachability 
 		props.Analyzer = r.Analyzer
 		props.ReachabilityConfidence = string(r.Confidence)
 		if r.Hops != nil {
-			hops := *r.Hops
-			props.ReachabilityHops = &hops
+			props.ReachabilityHops = new(*r.Hops)
 		}
 		props.DynamicImportsDetected = r.DynamicImportsDetected
 	}

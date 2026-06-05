@@ -174,8 +174,7 @@ func compareRelationships(bomlyDoc, sourceDoc *sbom.Document) RelationshipMetric
 		}
 	}
 	if denominator := metrics.BomlyCount + metrics.SourceCount; denominator > 0 {
-		score := roundScore(100 * float64(2*metrics.Matched) / float64(denominator))
-		metrics.Score = &score
+		metrics.Score = new(roundScore(100 * float64(2*metrics.Matched) / float64(denominator)))
 	}
 	return metrics
 }
@@ -207,8 +206,7 @@ func averageScores(items []*ScoreSummary) *ScoreSummary {
 		Overall: roundScore(overallTotal / float64(len(items))),
 	}
 	if relationshipCount > 0 {
-		score := roundScore(relationshipTotal / float64(relationshipCount))
-		out.Relationship = &score
+		out.Relationship = new(roundScore(relationshipTotal / float64(relationshipCount)))
 	}
 	return out
 }

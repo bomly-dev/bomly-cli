@@ -206,8 +206,7 @@ func (d *dateOrBool) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 	if trimmed == "true" || trimmed == "false" {
-		value := trimmed == "true"
-		d.Bool = &value
+		d.Bool = new(trimmed == "true")
 		d.Date = ""
 		return nil
 	}

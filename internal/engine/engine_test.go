@@ -135,15 +135,13 @@ func TestEngineAudit_ReturnsPartialResultsWhenAnAuditorFails(t *testing.T) {
 
 func TestEngineAudit_SkipsNotReadyOrNotApplicableAuditors(t *testing.T) {
 	registry := newTestRegistry()
-	notReady := false
-	notApplicable := false
 	registry.registerAuditor(fakeAuditor{
 		descriptor: AuditorDescriptor{Name: "not-ready", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
-		ready:      &notReady,
+		ready:      new(false),
 	})
 	registry.registerAuditor(fakeAuditor{
 		descriptor: AuditorDescriptor{Name: "not-applicable", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
-		applicable: &notApplicable,
+		applicable: new(false),
 	})
 	registry.registerAuditor(fakeAuditor{
 		descriptor: AuditorDescriptor{Name: "usable", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},

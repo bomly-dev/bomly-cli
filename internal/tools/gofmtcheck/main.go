@@ -43,8 +43,7 @@ func trackedGoFiles() ([]string, error) {
 	cmd := exec.Command("git", "ls-files", "*.go")
 	output, err := cmd.Output()
 	if err != nil {
-		var exitErr *exec.ExitError
-		if errors.As(err, &exitErr) {
+		if exitErr, ok := errors.AsType[*exec.ExitError](err); ok {
 			return nil, fmt.Errorf("%w: %s", err, strings.TrimSpace(string(exitErr.Stderr)))
 		}
 		return nil, err

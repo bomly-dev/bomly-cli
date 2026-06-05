@@ -537,8 +537,7 @@ func findInstalled(root, id string) (*InstalledPlugin, error) {
 	}
 	for _, plugin := range db.Plugins {
 		if plugin.ID == id {
-			copyValue := plugin
-			return &copyValue, nil
+			return new(plugin), nil
 		}
 	}
 	return nil, fmt.Errorf("plugin %q is not installed", id)
@@ -669,10 +668,9 @@ func LoadInstalledPlugins(root string) ([]PluginInfo, error) {
 		if err != nil {
 			return nil, err
 		}
-		record := item
 		infos = append(infos, PluginInfo{
 			Manifest:   manifest,
-			Installed:  &record,
+			Installed:  new(item),
 			Enabled:    item.Enabled,
 			Entrypoint: filepath.Join(item.Path, entry),
 			SourceType: "external",
@@ -721,10 +719,9 @@ func LoadRuntimePlugins(root string) ([]PluginInfo, error) {
 		if err != nil {
 			return nil, err
 		}
-		record := item
 		out = append(out, PluginInfo{
 			Manifest:   manifest,
-			Installed:  &record,
+			Installed:  new(item),
 			Enabled:    item.Enabled,
 			Entrypoint: filepath.Join(item.Path, entry),
 			SourceType: "external",

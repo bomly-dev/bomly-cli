@@ -33,7 +33,8 @@ func TestContainerScan(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+		tc := tc
+		parallelSubtest(t, tc.name, func(t *testing.T) {
 			stdout, stderr, code := runBomly(t, tc.args...)
 			if code != 0 {
 				t.Fatalf("bomly exited %d\nstderr:\n%s", code, stderr)
@@ -66,7 +67,8 @@ func TestContainerDiff(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+		tc := tc
+		parallelSubtest(t, tc.name, func(t *testing.T) {
 			stdout, stderr, code := runBomly(t, tc.args...)
 			if code != 0 {
 				t.Fatalf("bomly exited %d\nstderr:\n%s", code, stderr)
@@ -99,7 +101,8 @@ func TestContainerExplain(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+		tc := tc
+		parallelSubtest(t, tc.name, func(t *testing.T) {
 			stdout, stderr, code := runBomly(t, tc.args...)
 			if code != 0 {
 				t.Fatalf("bomly exited %d\nstderr:\n%s", code, stderr)

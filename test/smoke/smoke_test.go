@@ -203,7 +203,8 @@ func TestScan(t *testing.T) {
 	}...)
 
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+		tc := tc
+		parallelSubtest(t, tc.name, func(t *testing.T) {
 			for _, tool := range tc.tools {
 				requireTool(t, tool)
 			}
@@ -249,7 +250,8 @@ func TestDiff(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+		tc := tc
+		parallelSubtest(t, tc.name, func(t *testing.T) {
 			for _, tool := range tc.tools {
 				requireTool(t, tool)
 			}
@@ -286,7 +288,8 @@ func TestExplain(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+		tc := tc
+		parallelSubtest(t, tc.name, func(t *testing.T) {
 			for _, tool := range tc.tools {
 				requireTool(t, tool)
 			}

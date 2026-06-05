@@ -190,12 +190,8 @@ func (a *Matcher) Descriptor() sdk.MatcherDescriptor {
 		// nil SupportedEcosystems means all ecosystems; OSV handles ecosystem
 		// selection internally via PURL or name+ecosystem queries.
 		SupportedEcosystems: nil,
-		SupportedModes: []sdk.TargetMode{
-			sdk.TargetModeFullGraph,
-			sdk.TargetModeComponent,
-		},
-		Priority: 100,
-		Required: false,
+		Priority:            100,
+		Required:            false,
 	}
 }
 
@@ -206,7 +202,7 @@ func (a *Matcher) Ready() bool {
 
 // Applicable reports whether this matcher applies to the given request.
 func (a *Matcher) Applicable(_ context.Context, req sdk.MatchRequest) (bool, error) {
-	return req.Mode == sdk.TargetModeFullGraph || req.Mode == sdk.TargetModeComponent, nil
+	return true, nil
 }
 
 // Match resolves vulnerabilities for all dependencies in the graph and attaches
@@ -218,7 +214,7 @@ func (a *Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResul
 	}
 
 	deps := req.Graph.Nodes()
-	if req.Mode == sdk.TargetModeComponent && req.Target != nil {
+	if req.Target != nil {
 		deps = []*sdk.Dependency{req.Target}
 	}
 	if len(deps) == 0 {
@@ -382,8 +378,7 @@ func (a *Matcher) fetchVulnDetails(ids []string, stats *auditStats) map[string]*
 				if stats != nil {
 					stats.detailCacheHits++
 				}
-				v := found
-				result[id] = &v
+				result[id] = new(found)
 				continue
 			}
 		}

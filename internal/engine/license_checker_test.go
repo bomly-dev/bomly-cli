@@ -16,10 +16,9 @@ type fakeMatcher struct {
 
 func (f fakeMatcher) Descriptor() MatcherDescriptor {
 	return MatcherDescriptor{
-		Name:           f.name,
-		Enabled:        f.enabled,
-		Priority:       f.priority,
-		SupportedModes: []TargetMode{TargetModeFullGraph, TargetModeComponent},
+		Name:     f.name,
+		Enabled:  f.enabled,
+		Priority: f.priority,
 	}
 }
 
@@ -35,7 +34,7 @@ func TestRegistryMatchers_PreservesRegistrationOrder(t *testing.T) {
 	registry.registerMatcher(fakeMatcher{name: "fallback", enabled: true, priority: 90})
 	registry.registerMatcher(fakeMatcher{name: "primary", enabled: true, priority: 100})
 
-	matchers := registry.Matchers(MatchRequest{Mode: TargetModeFullGraph})
+	matchers := registry.Matchers(MatchRequest{})
 	if len(matchers) != 2 {
 		t.Fatalf("expected 2 matchers, got %d", len(matchers))
 	}
@@ -52,13 +51,12 @@ func TestRegistryMatchers_UsesEnabledDefaultsButAllowsExplicitInclude(t *testing
 	registry.registerMatcher(fakeMatcher{name: "default-on", enabled: true, priority: 100})
 	registry.registerMatcher(fakeMatcher{name: "default-off", enabled: false, priority: 90})
 
-	matchers := registry.Matchers(MatchRequest{Mode: TargetModeFullGraph})
+	matchers := registry.Matchers(MatchRequest{})
 	if len(matchers) != 1 || matchers[0].Descriptor().Name != "default-on" {
 		t.Fatalf("expected only enabled-by-default matcher, got %#v", matchers)
 	}
 
 	matchers = registry.Matchers(MatchRequest{
-		Mode:          TargetModeFullGraph,
 		MatcherFilter: sdk.MatcherFilter{Include: []string{"default-off"}},
 	})
 	if len(matchers) != 1 || matchers[0].Descriptor().Name != "default-off" {
@@ -98,7 +96,6 @@ func TestEngineMatch_RunsMultipleMatchersWithoutOverwritingExistingLicenses(t *t
 	reg := sdk.NewPackageRegistry()
 
 	result, err := engine.Match(context.Background(), MatchRequest{
-		Mode:     TargetModeFullGraph,
 		Graph:    g,
 		Registry: reg,
 	})

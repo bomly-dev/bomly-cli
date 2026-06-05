@@ -375,13 +375,89 @@ func TestBuildDiffResponseAggregatesManifestChanges(t *testing.T) {
 	}
 }
 
+func TestBuildDiffResponseEnrichesPackageDeltasFromRegistries(t *testing.T) {
+	baseGraph := sdk.New()
+	headGraph := sdk.New()
+	baseApp := sdk.NewDependencyWithID("pkg:npm/app@1.0.0", sdk.Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "app", Version: "1.0.0", PURL: "pkg:npm/app@1.0.0"})
+	baseLodash := sdk.NewDependencyWithID("pkg:npm/lodash@4.17.14", sdk.Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "lodash", Version: "4.17.14", PURL: "pkg:npm/lodash@4.17.14"})
+	baseRemoved := sdk.NewDependencyWithID("pkg:npm/removed@1.0.0", sdk.Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "removed", Version: "1.0.0", PURL: "pkg:npm/removed@1.0.0"})
+	headApp := sdk.NewDependencyWithID("pkg:npm/app@1.0.0", sdk.Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "app", Version: "1.0.0", PURL: "pkg:npm/app@1.0.0"})
+	headLodash := sdk.NewDependencyWithID("pkg:npm/lodash@4.17.15", sdk.Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "lodash", Version: "4.17.15", PURL: "pkg:npm/lodash@4.17.15"})
+	headAdded := sdk.NewDependencyWithID("pkg:npm/added@1.0.0", sdk.Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "added", Version: "1.0.0", PURL: "pkg:npm/added@1.0.0"})
+	for _, pkg := range []*sdk.Dependency{baseApp, baseLodash, baseRemoved} {
+		if err := baseGraph.AddNode(pkg); err != nil {
+			t.Fatalf("base AddNode(%q): %v", pkg.ID, err)
+		}
+	}
+	if err := baseGraph.AddEdge(baseApp.ID, baseLodash.ID); err != nil {
+		t.Fatalf("base AddEdge(lodash): %v", err)
+	}
+	if err := baseGraph.AddEdge(baseApp.ID, baseRemoved.ID); err != nil {
+		t.Fatalf("base AddEdge(removed): %v", err)
+	}
+	for _, pkg := range []*sdk.Dependency{headApp, headLodash, headAdded} {
+		if err := headGraph.AddNode(pkg); err != nil {
+			t.Fatalf("head AddNode(%q): %v", pkg.ID, err)
+		}
+	}
+	if err := headGraph.AddEdge(headApp.ID, headLodash.ID); err != nil {
+		t.Fatalf("head AddEdge(lodash): %v", err)
+	}
+	if err := headGraph.AddEdge(headApp.ID, headAdded.ID); err != nil {
+		t.Fatalf("head AddEdge(added): %v", err)
+	}
+
+	baseConsolidated, err := consolidation.ConsolidateGraphs(singleManifestDiffResults(baseGraph))
+	if err != nil {
+		t.Fatalf("ConsolidateGraphs(base) error = %v", err)
+	}
+	headConsolidated, err := consolidation.ConsolidateGraphs(singleManifestDiffResults(headGraph))
+	if err != nil {
+		t.Fatalf("ConsolidateGraphs(head) error = %v", err)
+	}
+	baseRegistry := sdk.NewPackageRegistry()
+	baseRegistry.Ensure(baseLodash.PURL).Vulnerabilities = []sdk.Vulnerability{{ID: "GHSA-base", Source: "osv", ParsedSeverity: "high"}}
+	baseRegistry.Ensure(baseRemoved.PURL).Licenses = []sdk.PackageLicense{{SPDXExpression: "BSD-2-Clause"}}
+	headRegistry := sdk.NewPackageRegistry()
+	headRegistry.Ensure(headLodash.PURL).Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
+	headRegistry.Ensure(headLodash.PURL).Vulnerabilities = []sdk.Vulnerability{{ID: "GHSA-head", Source: "osv", ParsedSeverity: "medium"}}
+	headRegistry.Ensure(headAdded.PURL).Licenses = []sdk.PackageLicense{{SPDXExpression: "Apache-2.0"}}
+
+	response := output.BuildDiffResponse("/tmp/demo", "base", "head", baseConsolidated, headConsolidated, nil, time.Now().Add(-time.Second), output.ReportOptions{
+		BaseRegistry: baseRegistry,
+		HeadRegistry: headRegistry,
+	})
+	changed := response.Results.Dependencies.Changed[0]
+	if got := len(changed.Before.Vulnerabilities); got != 1 || changed.Before.Vulnerabilities[0].ID != "GHSA-base" {
+		t.Fatalf("expected base registry vulnerability on changed before package, got %#v", changed.Before.Vulnerabilities)
+	}
+	if got := len(changed.After.Vulnerabilities); got != 1 || changed.After.Vulnerabilities[0].ID != "GHSA-head" {
+		t.Fatalf("expected head registry vulnerability on changed after package, got %#v", changed.After.Vulnerabilities)
+	}
+	if got := len(changed.After.Licenses); got != 1 || changed.After.Licenses[0].SPDXExpression != "MIT" {
+		t.Fatalf("expected head registry license on changed after package, got %#v", changed.After.Licenses)
+	}
+	if got := len(response.Results.Dependencies.Added[0].Package.Licenses); got != 1 || response.Results.Dependencies.Added[0].Package.Licenses[0].SPDXExpression != "Apache-2.0" {
+		t.Fatalf("expected head registry license on added package, got %#v", response.Results.Dependencies.Added[0].Package.Licenses)
+	}
+	if got := len(response.Results.Dependencies.Removed[0].Package.Licenses); got != 1 || response.Results.Dependencies.Removed[0].Package.Licenses[0].SPDXExpression != "BSD-2-Clause" {
+		t.Fatalf("expected base registry license on removed package, got %#v", response.Results.Dependencies.Removed[0].Package.Licenses)
+	}
+	if len(response.Results.Vulnerabilities.Added) != 1 || response.Results.Vulnerabilities.Added[0].Vulnerability.ID != "GHSA-head" {
+		t.Fatalf("expected one head-side vulnerability delta, got %#v", response.Results.Vulnerabilities)
+	}
+	if len(response.Results.Vulnerabilities.Removed) != 1 || response.Results.Vulnerabilities.Removed[0].Vulnerability.ID != "GHSA-base" {
+		t.Fatalf("expected one base-side vulnerability delta, got %#v", response.Results.Vulnerabilities)
+	}
+	if len(response.Results.Licenses.Changed) != 1 || response.Results.Licenses.Changed[0].After[0].SPDXExpression != "MIT" {
+		t.Fatalf("expected registry-backed license delta, got %#v", response.Results.Licenses)
+	}
+}
+
 func TestBuildDiffResponseGatesReachability(t *testing.T) {
-	// Reachability on Diff result vulnerabilities is sourced from registry
-	// packages keyed by PURL. The diff result aggregator currently builds
-	// vulnerability change records from graph dependencies only; plumbing
-	// the registry through it is tracked separately. Until then this test
-	// only exercises the audit-finding reachability gating path, which is
-	// the primary surface SARIF consumers rely on.
+	// Audit findings carry reachability resolved through registry packages
+	// keyed by PURL. This test keeps that gating behavior pinned alongside
+	// the package-delta registry coverage above.
 	baseGraph := newViewTestGraph(t)
 	headGraph := newViewTestGraph(t)
 	pkg := sdk.NewDependencyRef("newpkg", "1.0.0")
@@ -751,6 +827,21 @@ func sbomDiffResults(graph *sdk.Graph, location, manifestPath string) []sdk.Dete
 		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
 			Graph:    graph,
 			Manifest: sdk.ManifestMetadata{Path: manifestPath, Kind: "spdx"},
+		}}},
+	}}
+}
+
+func singleManifestDiffResults(graph *sdk.Graph) []sdk.DetectionResult {
+	return []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			RelativePath:            ".",
+			PrimaryDetector:         "npm-detector",
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
+		},
+		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+			Graph:    graph,
+			Manifest: sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"},
 		}}},
 	}}
 }

@@ -159,6 +159,8 @@ func newDiffCmd() *cobra.Command {
 			}
 
 			reportOptions := reportOptionsFromPipelineResults(current.Reachability, diffResult.Base, diffResult.Head)
+			reportOptions.BaseRegistry = diffResult.Base.Registry
+			reportOptions.HeadRegistry = diffResult.Head.Registry
 			payload := output.BuildDiffResponse(projectIdentifier, compBase, compHead, diffResult.Base.Consolidated, diffResult.Head.Consolidated, auditPayload, started, reportOptions)
 			markdownRenderer := func(w io.Writer) error {
 				return render.DiffMarkdown(w, payload)
@@ -193,7 +195,7 @@ func newDiffCmd() *cobra.Command {
 			}
 			if current.Interactive {
 				prog.Stop()
-				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewDiff(payload, diffResult.Base.Consolidated, diffResult.Head.Consolidated).WithEnrichEnabled(current.Enrich)))
+				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewDiff(payload, diffResult.Base.Consolidated, diffResult.Head.Consolidated).WithRegistry(diffResult.Base.Registry, diffResult.Head.Registry).WithEnrichEnabled(current.Enrich)))
 			}
 
 			prog.Success("Resolved Graph")

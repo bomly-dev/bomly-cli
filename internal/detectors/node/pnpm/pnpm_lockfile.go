@@ -52,7 +52,6 @@ func (d LockfileDetector) Descriptor() sdk.DetectorDescriptor {
 		Technique:            sdk.LockfileTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemNPM},
 		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerPNPM},
-		SupportedModes:       []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:         []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
 		SupportsInstallFirst: true,
 	}

@@ -375,8 +375,7 @@ func parseProxyURL(value string) (*url.URL, error) {
 }
 
 func redactURLParseError(err error) error {
-	var urlErr *url.Error
-	if errors.As(err, &urlErr) && urlErr.Err != nil {
+	if urlErr, ok := errors.AsType[*url.Error](err); ok && urlErr.Err != nil {
 		return urlErr.Err
 	}
 	return err

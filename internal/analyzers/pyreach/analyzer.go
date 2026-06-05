@@ -16,7 +16,7 @@ const Name = "pyreach"
 // Analyzer is a Tier-3 (package-level) reachability analyzer for
 // Python packages. It groups Python packages in the input graph by
 // project root, runs the configured Runner once per project, and
-// annotates each PackageVulnerability on Python packages with a
+// annotates each registry vulnerability on Python packages with a
 // Reachability result.
 //
 // Tier-3 caveat: "unreachable" here means "the application source
@@ -60,7 +60,6 @@ func (a Analyzer) Descriptor() model.AnalyzerDescriptor {
 			model.PackageManagerSetupPy,
 		},
 		SupportedLanguages: []model.Language{model.LanguagePython},
-		SupportedModes:     []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
 		SupportedTiers:     []model.ReachabilityTier{model.TierPackage},
 	}
 }
@@ -114,7 +113,7 @@ func vulnerabilitiesForDependency(req model.AnalyzeRequest, dep *model.Dependenc
 }
 
 // Analyze runs the configured Runner per discovered Python project
-// root and writes Reachability onto every Python PackageVulnerability
+// root and writes Reachability onto every Python registry vulnerability
 // in the graph. Errors degrade to Status=Unknown with a stable Reason
 // — the engine relies on this to keep the pipeline running.
 func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.AnalyzeResult, error) {

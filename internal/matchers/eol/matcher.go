@@ -119,13 +119,12 @@ func New(config Config) (*Checker, error) {
 // Descriptor returns matcher registration metadata.
 func (c *Checker) Descriptor() sdk.MatcherDescriptor {
 	return sdk.MatcherDescriptor{
-		Name:           "eol-checker",
-		Enabled:        false,
-		Origin:         sdk.CoreOrigin,
-		SupportedModes: []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
-		Priority:       80,
-		Required:       false,
-		Capabilities:   []string{"eol-enrichment", "http-cache"},
+		Name:         "eol-checker",
+		Enabled:      false,
+		Origin:       sdk.CoreOrigin,
+		Priority:     80,
+		Required:     false,
+		Capabilities: []string{"eol-enrichment", "http-cache"},
 	}
 }
 
@@ -146,8 +145,8 @@ func (c *Checker) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchRes
 		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, nil
 	}
 
-	packages := matchers.RegistryPackagesForGraph(req.Graph, req.Registry, req.Mode, req.Target)
-	c.logger.Info("eol: matcher invoked", zap.String("mode", string(req.Mode)), zap.Int("packages", len(packages)))
+	packages := matchers.RegistryPackagesForGraph(req.Graph, req.Registry, req.Target)
+	c.logger.Info("eol: matcher invoked", zap.Int("packages", len(packages)))
 
 	products, err := c.fetchProducts(ctx)
 	if err != nil {
@@ -207,8 +206,7 @@ func (d *dateOrBool) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 	if trimmed == "true" || trimmed == "false" {
-		value := trimmed == "true"
-		d.Bool = &value
+		d.Bool = new(trimmed == "true")
 		d.Date = ""
 		return nil
 	}

@@ -28,7 +28,6 @@ type MatcherDescriptor struct {
 	Origin              DetectorOrigin   `json:"origin,omitempty"`
 	SupportedEcosystems []Ecosystem      `json:"supportedEcosystems,omitempty"`
 	SupportedManagers   []PackageManager `json:"supportedManagers,omitempty"`
-	SupportedModes      []TargetMode     `json:"supportedModes,omitempty"`
 	Priority            int              `json:"priority,omitempty"`
 	Required            bool             `json:"required,omitempty"`
 	Capabilities        []string         `json:"capabilities,omitempty"`
@@ -42,10 +41,9 @@ type MatchRequest struct {
 	SubprojectInfo  Subproject       `json:"subprojectInfo"`
 	Ecosystem       Ecosystem        `json:"ecosystem,omitempty"`
 	PackageManager  PackageManager   `json:"packageManager,omitempty"`
-	Mode            TargetMode       `json:"mode,omitempty"`
 	Query           PackageQuery     `json:"query"`
 	Graph           *Graph           `json:"graph,omitempty"`
-	Registry        *PackageRegistry `json:"-"`
+	Registry        *PackageRegistry `json:"registry,omitempty"`
 	Target          *Dependency      `json:"target,omitempty"`
 	MatcherFilter   MatcherFilter    `json:"matcherFilter"`
 	Stderr          io.Writer        `json:"-"`
@@ -53,7 +51,7 @@ type MatchRequest struct {
 
 // MatchResult contains the package registry after matcher enrichment.
 type MatchResult struct {
-	Registry    *PackageRegistry `json:"-"`
+	Registry    *PackageRegistry `json:"registry,omitempty"`
 	MatcherRuns []string         `json:"matcherRuns,omitempty"`
 }
 

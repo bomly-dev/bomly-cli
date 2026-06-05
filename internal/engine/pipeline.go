@@ -216,7 +216,6 @@ func (p *Pipeline) analyze(ctx context.Context, result *PipelineResult, req Pipe
 	aReq := sdk.AnalyzeRequest{
 		ProjectPath:     req.ProjectPath,
 		ExecutionTarget: req.ExecutionTarget,
-		Mode:            sdk.TargetModeFullGraph,
 		Graph:           result.Graph,
 		Registry:        result.Registry,
 		AnalyzerFilter:  req.AnalyzerFilter,
@@ -298,7 +297,6 @@ func (p *Pipeline) match(ctx context.Context, result *PipelineResult, req Pipeli
 	mReq := sdk.MatchRequest{
 		ProjectPath:     req.ProjectPath,
 		ExecutionTarget: req.ExecutionTarget,
-		Mode:            sdk.TargetModeFullGraph,
 		Graph:           result.Graph,
 		Registry:        result.Registry,
 		MatcherFilter:   req.MatcherFilter,
@@ -319,7 +317,6 @@ func (p *Pipeline) audit(ctx context.Context, g *sdk.Graph, registry *sdk.Packag
 	auditReq := sdk.AuditRequest{
 		ProjectPath:     req.ProjectPath,
 		ExecutionTarget: req.ExecutionTarget,
-		Mode:            sdk.TargetModeFullGraph,
 		Graph:           g,
 		Registry:        registry,
 		BaselineGraph:   req.BaselineGraph,
@@ -342,7 +339,6 @@ func (p *Pipeline) auditComponent(ctx context.Context, g *sdk.Graph, registry *s
 	auditReq := sdk.AuditRequest{
 		ProjectPath:     req.ProjectPath,
 		ExecutionTarget: req.ExecutionTarget,
-		Mode:            sdk.TargetModeComponent,
 		Graph:           g,
 		Registry:        registry,
 		Target:          target,

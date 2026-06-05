@@ -99,7 +99,6 @@ func TestCheckerMatch_EnrichesMissingOnly(t *testing.T) {
 	registry.Ensure(existingPURL).Licenses = []sdk.PackageLicense{{SPDXExpression: "Apache-2.0"}}
 
 	result, err := checker.Match(context.Background(), sdk.MatchRequest{
-		Mode:     sdk.TargetModeFullGraph,
 		Graph:    g,
 		Registry: registry,
 	})

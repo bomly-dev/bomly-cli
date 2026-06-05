@@ -21,10 +21,9 @@ type Auditor struct {
 
 func (a Auditor) Descriptor() sdk.AuditorDescriptor {
 	return sdk.AuditorDescriptor{
-		Name:           auditorName,
-		Enabled:        true,
-		Origin:         sdk.CoreOrigin,
-		SupportedModes: []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
+		Name:    auditorName,
+		Enabled: true,
+		Origin:  sdk.CoreOrigin,
 	}
 }
 
@@ -47,15 +46,15 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 		return sdk.AuditResult{}, nil
 	}
 	deps := req.Graph.Nodes()
-	if req.Mode == sdk.TargetModeComponent && req.Target != nil {
+	if req.Target != nil {
 		deps = []*sdk.Dependency{req.Target}
 	}
 
 	// Root packages are the project itself — they rarely declare a license in
 	// lockfile data; flagging them generates non-actionable noise. Treat roots
-	// as implicitly exempt for full-graph audits.
+	// as implicitly exempt from full-graph audits.
 	rootIDs := map[string]struct{}{}
-	if req.Mode != sdk.TargetModeComponent {
+	if req.Target == nil {
 		for _, r := range req.Graph.Roots() {
 			if r != nil {
 				rootIDs[r.ID] = struct{}{}

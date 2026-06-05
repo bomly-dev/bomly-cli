@@ -60,9 +60,8 @@ func TestEngineAnalyzeRunsApplicableAndCollectsStats(t *testing.T) {
 	g := sdk.New()
 	a := &fakeAnalyzer{
 		descriptor: sdk.AnalyzerDescriptor{
-			Name:           "fake",
-			Enabled:        true,
-			SupportedModes: []sdk.TargetMode{sdk.TargetModeFullGraph},
+			Name:    "fake",
+			Enabled: true,
 		},
 		result: sdk.AnalyzeResult{
 			AnalyzerStats: map[string]sdk.ReachabilityStats{
@@ -75,7 +74,6 @@ func TestEngineAnalyzeRunsApplicableAndCollectsStats(t *testing.T) {
 	engine := NewEngine(reg)
 	result, err := engine.Analyze(context.Background(), sdk.AnalyzeRequest{
 		Graph: g,
-		Mode:  sdk.TargetModeFullGraph,
 	})
 	if err != nil {
 		t.Fatalf("unexpected err: %v", err)
@@ -96,17 +94,15 @@ func TestEngineAnalyzeAggregatesErrorsAndContinues(t *testing.T) {
 	g := sdk.New()
 	failing := &fakeAnalyzer{
 		descriptor: sdk.AnalyzerDescriptor{
-			Name:           "boom",
-			Enabled:        true,
-			SupportedModes: []sdk.TargetMode{sdk.TargetModeFullGraph},
+			Name:    "boom",
+			Enabled: true,
 		},
 		err: errors.New("boom"),
 	}
 	ok := &fakeAnalyzer{
 		descriptor: sdk.AnalyzerDescriptor{
-			Name:           "ok",
-			Enabled:        true,
-			SupportedModes: []sdk.TargetMode{sdk.TargetModeFullGraph},
+			Name:    "ok",
+			Enabled: true,
 		},
 		result: sdk.AnalyzeResult{},
 	}
@@ -116,7 +112,6 @@ func TestEngineAnalyzeAggregatesErrorsAndContinues(t *testing.T) {
 	engine := NewEngine(reg)
 	result, err := engine.Analyze(context.Background(), sdk.AnalyzeRequest{
 		Graph: g,
-		Mode:  sdk.TargetModeFullGraph,
 	})
 	if err == nil {
 		t.Fatal("expected aggregated error from failing analyzer")
@@ -137,7 +132,6 @@ func TestEngineAnalyzeRespectsLanguageFilter(t *testing.T) {
 			Name:               "goonly",
 			Enabled:            true,
 			SupportedLanguages: []sdk.Language{sdk.LanguageGo},
-			SupportedModes:     []sdk.TargetMode{sdk.TargetModeFullGraph},
 		},
 		result: sdk.AnalyzeResult{},
 	}
@@ -146,7 +140,6 @@ func TestEngineAnalyzeRespectsLanguageFilter(t *testing.T) {
 	engine := NewEngine(reg)
 	result, err := engine.Analyze(context.Background(), sdk.AnalyzeRequest{
 		Graph:    g,
-		Mode:     sdk.TargetModeFullGraph,
 		Language: sdk.LanguageJavaScript,
 	})
 	if err != nil {

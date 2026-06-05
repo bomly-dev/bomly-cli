@@ -502,9 +502,6 @@ func (r *Registry) Detectors(req sdk.DetectionRequest) []sdk.Detector {
 		if req.PackageManager != sdk.PackageManagerUnknown && !supportsPackageManager(descriptor.SupportedManagers, req.PackageManager) {
 			continue
 		}
-		if !supportsMode(descriptor.SupportedModes, req.Mode) {
-			continue
-		}
 		matches = append(matches, detector)
 	}
 	return matches
@@ -520,9 +517,6 @@ func (r *Registry) PlannedDetectors(req sdk.DetectionRequest, names []string) []
 	for _, detector := range r.detectors {
 		descriptor := detector.Descriptor()
 		if !detectorSelected(req.DetectorFilter, descriptor) {
-			continue
-		}
-		if !supportsMode(descriptor.SupportedModes, req.Mode) {
 			continue
 		}
 		available[descriptor.Name] = detector
@@ -561,9 +555,6 @@ func (r *Registry) Auditors(req sdk.AuditRequest) []sdk.Auditor {
 		if !supportsPackageManager(descriptor.SupportedManagers, req.PackageManager) {
 			continue
 		}
-		if !supportsMode(descriptor.SupportedModes, req.Mode) {
-			continue
-		}
 		matches = append(matches, auditor)
 	}
 	return matches
@@ -588,9 +579,6 @@ func (r *Registry) Analyzers(req sdk.AnalyzeRequest) []sdk.Analyzer {
 		if req.Language != sdk.LanguageUnknown && !supportsLanguage(descriptor.SupportedLanguages, req.Language) {
 			continue
 		}
-		if !supportsMode(descriptor.SupportedModes, req.Mode) {
-			continue
-		}
 		matches = append(matches, analyzer)
 	}
 	return matches
@@ -608,9 +596,6 @@ func (r *Registry) Matchers(req sdk.MatchRequest) []sdk.Matcher {
 			continue
 		}
 		if req.PackageManager != sdk.PackageManagerUnknown && !supportsPackageManager(descriptor.SupportedManagers, req.PackageManager) {
-			continue
-		}
-		if !supportsMode(descriptor.SupportedModes, req.Mode) {
 			continue
 		}
 		matches = append(matches, matcher)
@@ -729,15 +714,6 @@ func supportsPackageManager(supported []sdk.PackageManager, manager sdk.PackageM
 	}
 	for _, candidate := range supported {
 		if candidate == manager {
-			return true
-		}
-	}
-	return false
-}
-
-func supportsMode(supported []sdk.TargetMode, mode sdk.TargetMode) bool {
-	for _, candidate := range supported {
-		if candidate == mode {
 			return true
 		}
 	}

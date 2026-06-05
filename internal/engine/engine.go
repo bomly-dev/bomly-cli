@@ -33,7 +33,7 @@ func NewEngine(registry *Registry) *Engine {
 func (e *Engine) Audit(ctx context.Context, req sdk.AuditRequest) (sdk.AuditResult, error) {
 	auditorsList := e.registry.Auditors(req)
 	if len(auditorsList) == 0 {
-		return sdk.AuditResult{}, fmt.Errorf("%w for ecosystem %q, package manager %q, and mode %q", ErrNoAuditor, req.Ecosystem, req.PackageManager, req.Mode)
+		return sdk.AuditResult{}, fmt.Errorf("%w for ecosystem %q, and package manager %q", ErrNoAuditor, req.Ecosystem, req.PackageManager)
 	}
 
 	aggregated := sdk.AuditResult{

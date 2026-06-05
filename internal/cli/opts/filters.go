@@ -256,8 +256,7 @@ func resolveSelector(raw string, defaults []string, catalog catalog, implicitAll
 	if err == nil {
 		return include, exclude, nil
 	}
-	var unknown *unknownSelectorError
-	if errors.As(err, &unknown) {
+	if unknown, ok := errors.AsType[*unknownSelectorError](err); ok {
 		return nil, nil, exit.InvalidInputError(
 			"unknown %s selector(s): %s\navailable %ss: %s\nrun `bomly scan --help` for full selector details",
 			unknown.Kind,

@@ -121,7 +121,6 @@ func TestMatcherMatchEnrichesRegistry(t *testing.T) {
 	result, err := matcher.Match(context.Background(), sdk.MatchRequest{
 		Graph:    buildTestGraph(),
 		Registry: registry,
-		Mode:     sdk.TargetModeFullGraph,
 	})
 	if err != nil {
 		t.Fatalf("Match() error = %v", err)
@@ -184,7 +183,6 @@ func TestAudit_CacheHit_NoHTTPCall(t *testing.T) {
 	result, err := aud.Match(context.Background(), sdk.MatchRequest{
 		Graph:    g,
 		Registry: registry,
-		Mode:     sdk.TargetModeFullGraph,
 	})
 	if err != nil {
 		t.Fatalf("Match: %v", err)
@@ -250,7 +248,6 @@ func TestAudit_OSVFailure_NonFatal(t *testing.T) {
 	result, err := aud.Match(context.Background(), sdk.MatchRequest{
 		Graph:    g,
 		Registry: sdk.NewPackageRegistry(),
-		Mode:     sdk.TargetModeFullGraph,
 	})
 	if err != nil {
 		t.Fatalf("Match returned error on API failure (should be non-fatal): %v", err)

@@ -16,7 +16,7 @@ const Name = "govulncheck"
 // Analyzer is a Go reachability analyzer backed by govulncheck.
 //
 // It groups Go packages in the input graph by module root, runs the
-// configured Runner once per module, and annotates each PackageVulnerability
+// configured Runner once per module, and annotates each registry vulnerability
 // on Go packages with a Reachability result.
 type Analyzer struct {
 	// Runner is the underlying govulncheck driver. Defaults to
@@ -44,7 +44,6 @@ func (a Analyzer) Descriptor() model.AnalyzerDescriptor {
 		SupportedEcosystems: []model.Ecosystem{model.EcosystemGo},
 		SupportedManagers:   []model.PackageManager{model.PackageManagerGoMod},
 		SupportedLanguages:  []model.Language{model.LanguageGo},
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
 		SupportedTiers:      []model.ReachabilityTier{model.TierSymbol, model.TierPackage},
 	}
 }
@@ -86,7 +85,7 @@ func dependencyPURL(dep *model.Dependency) string {
 }
 
 // Analyze runs govulncheck per Go module root and writes Reachability
-// onto every Go PackageVulnerability in the graph. Errors degrade to
+// onto every Go registry vulnerability in the graph. Errors degrade to
 // Status=Unknown with a stable Reason — the engine relies on this to
 // keep the pipeline running.
 func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.AnalyzeResult, error) {
@@ -354,7 +353,7 @@ func annotateAllUnknown(req model.AnalyzeRequest, reason string, now time.Time) 
 	}
 }
 
-// lookupFinding resolves a PackageVulnerability against the runner's
+// lookupFinding resolves a registry vulnerability against the runner's
 // findings via OSV id and aliases. Grype emits CVE-prefixed identifiers
 // while govulncheck emits GO/GHSA ids; this function bridges the two via
 // the alias arrays produced by the OSV envelopes.

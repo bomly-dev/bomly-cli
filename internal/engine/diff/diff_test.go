@@ -138,7 +138,7 @@ func diffTestPipeline(t *testing.T, g *sdk.Graph, findings map[string][]sdk.Find
 		},
 	})
 	registry.RegisterAuditor(fakeAuditor{
-		descriptor:        sdk.AuditorDescriptor{Name: "severity-policy", Enabled: true, SupportedModes: []sdk.TargetMode{sdk.TargetModeFullGraph}},
+		descriptor:        sdk.AuditorDescriptor{Name: "severity-policy", Enabled: true},
 		findingsByPackage: findings,
 	})
 	return engine.NewPipeline(registry, zap.NewNop())
@@ -150,7 +150,6 @@ func detectorDescriptor() sdk.DetectorDescriptor {
 		Enabled:             true,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemNPM},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerNPM},
-		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph},
 	}
 }
 

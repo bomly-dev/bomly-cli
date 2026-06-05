@@ -321,6 +321,163 @@ func TestPipeline_ThreadsEnrichEnabledIntoResolveRequest(t *testing.T) {
 	}
 }
 
+func TestPipeline_ThreadsScopeFilterIntoPrimaryAndFiltersResult(t *testing.T) {
+	registry := newTestRegistry()
+	graph := scopedTestGraph(t)
+
+	seen := false
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{
+			Name:                "npm-detector",
+			Enabled:             true,
+			Origin:              sdk.CoreOrigin,
+			SupportedEcosystems: []Ecosystem{EcosystemNPM},
+			SupportedManagers:   []PackageManager{PackageManagerNPM},
+			SupportedModes:      []TargetMode{TargetModeFullGraph},
+		},
+		result: ResolveGraphResult{Graphs: SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+		onResolve: func(req ResolveGraphRequest) {
+			seen = true
+			if req.ScopeFilter != sdk.ScopeDevelopment {
+				t.Fatalf("expected development scope in detector request, got %q", req.ScopeFilter)
+			}
+		},
+	})
+
+	result, err := NewPipeline(registry, zap.NewNop()).Run(context.Background(), PipelineRequest{
+		ExecutionTarget: ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
+		Subprojects: []Subproject{{
+			ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
+			RelativePath:            ".",
+			PrimaryDetector:         "npm-detector",
+			DetectedPackageManagers: []PackageManager{PackageManagerNPM},
+			Ecosystem:               EcosystemNPM,
+		}},
+		ScopeFilter: sdk.ScopeDevelopment,
+	})
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	if !seen {
+		t.Fatal("expected detector to receive resolve request")
+	}
+	if _, ok := result.Graph.Node("pkg:npm/vitest@2.0.0"); !ok {
+		t.Fatalf("expected development dependency to remain: %s", result.Graph.PrettyString())
+	}
+	if _, ok := result.Graph.Node("pkg:npm/react@18.2.0"); ok {
+		t.Fatalf("expected runtime dependency to be filtered: %s", result.Graph.PrettyString())
+	}
+}
+
+func TestPipeline_ThreadsScopeFilterIntoFallbackDetector(t *testing.T) {
+	registry := newTestRegistry()
+	fallbackGraph := scopedTestGraph(t)
+
+	seenFallback := false
+	registry.registerDetector(fakeFallbackDetector{
+		fakeDetector: fakeDetector{
+			descriptor: DetectorDescriptor{Name: "npm-native", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}, SupportedModes: []TargetMode{TargetModeFullGraph}},
+			err:        errors.New("native failed"),
+		},
+		fallback: fakeDetector{
+			descriptor: DetectorDescriptor{Name: "npm-lockfile", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}, SupportedModes: []TargetMode{TargetModeFullGraph}},
+			result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+			onResolve: func(req ResolveGraphRequest) {
+				seenFallback = true
+				if req.ScopeFilter != sdk.ScopeRuntime {
+					t.Fatalf("expected runtime scope in fallback request, got %q", req.ScopeFilter)
+				}
+			},
+		},
+	})
+
+	results, err := NewPipeline(registry, zap.NewNop()).resolveDetectors(context.Background(), ResolveGraphRequest{
+		Ecosystem:      EcosystemNPM,
+		PackageManager: PackageManagerNPM,
+		Mode:           TargetModeFullGraph,
+		ScopeFilter:    sdk.ScopeRuntime,
+	}, registry.Detectors(ResolveGraphRequest{PackageManager: PackageManagerNPM, Mode: TargetModeFullGraph}), nil)
+	if err != nil {
+		t.Fatalf("resolveDetectors() error = %v", err)
+	}
+	if !seenFallback {
+		t.Fatal("expected fallback detector to receive resolve request")
+	}
+	graph, err := results[0].ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	if _, ok := graph.Node("react@18.2.0"); !ok {
+		t.Fatalf("expected runtime dependency to remain: %s", graph.PrettyString())
+	}
+	if _, ok := graph.Node("vitest@2.0.0"); ok {
+		t.Fatalf("expected development dependency to be filtered: %s", graph.PrettyString())
+	}
+}
+
+func TestPipeline_ThreadsScopeFilterIntoInstallFirstDetector(t *testing.T) {
+	registry := newTestRegistry()
+	graph := scopedTestGraph(t)
+	detector := &fakeInstallFirstDetector{
+		fakeDetector: fakeDetector{
+			descriptor: DetectorDescriptor{
+				Name:                 "pip-detector",
+				Enabled:              true,
+				Origin:               sdk.CoreOrigin,
+				SupportedEcosystems:  []Ecosystem{sdk.EcosystemPython},
+				SupportedManagers:    []PackageManager{sdk.PackageManagerPip},
+				SupportedModes:       []TargetMode{TargetModeFullGraph},
+				SupportsInstallFirst: true,
+			},
+			result: ResolveGraphResult{Graphs: SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "requirements.txt", Kind: "requirements.txt"})},
+		},
+		onInstall: func(req ResolveGraphRequest) {
+			if req.ScopeFilter != sdk.ScopeRuntime {
+				t.Fatalf("expected runtime scope in install-first request, got %q", req.ScopeFilter)
+			}
+		},
+	}
+	registry.registerDetector(detector)
+
+	if _, err := NewPipeline(registry, zap.NewNop()).Run(context.Background(), PipelineRequest{
+		ExecutionTarget: ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
+		Subprojects: []Subproject{{
+			ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
+			RelativePath:            ".",
+			PrimaryDetector:         "pip-detector",
+			DetectedPackageManagers: []PackageManager{sdk.PackageManagerPip},
+			Ecosystem:               sdk.EcosystemPython,
+		}},
+		ScopeFilter:  sdk.ScopeRuntime,
+		InstallFirst: true,
+	}); err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	if !detector.installed {
+		t.Fatal("expected install-first detector to install")
+	}
+}
+
+func scopedTestGraph(t *testing.T) *sdk.Graph {
+	t.Helper()
+	graph := sdk.New()
+	app := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "app", Version: "1.0.0", Type: "application"})
+	runtimeDep := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "react", Version: "18.2.0", PURL: "pkg:npm/react@18.2.0", Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	devDep := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "vitest", Version: "2.0.0", PURL: "pkg:npm/vitest@2.0.0", Scopes: sdk.ScopesOf(sdk.ScopeDevelopment)})
+	for _, dep := range []*sdk.Dependency{app, runtimeDep, devDep} {
+		if err := graph.AddNode(dep); err != nil {
+			t.Fatalf("add %q: %v", dep.ID, err)
+		}
+	}
+	if err := graph.AddEdge(app.ID, runtimeDep.ID); err != nil {
+		t.Fatalf("add runtime edge: %v", err)
+	}
+	if err := graph.AddEdge(app.ID, devDep.ID); err != nil {
+		t.Fatalf("add development edge: %v", err)
+	}
+	return graph
+}
+
 // ---------------------------------------------------------------------------
 // Pipeline hook tests
 // ---------------------------------------------------------------------------
@@ -616,6 +773,43 @@ func TestPipeline_RunExplain_ReturnsNotFoundWhenQueryIsAbsent(t *testing.T) {
 	})
 	if err == nil {
 		t.Fatal("expected missing dependency error")
+	}
+}
+
+func TestPipeline_RunExplain_UsesScopedDetectionResult(t *testing.T) {
+	registry := newTestRegistry()
+	registry.registerDetector(fakeDetector{
+		descriptor: DetectorDescriptor{Name: "npm-detector", Enabled: true, Origin: sdk.CoreOrigin, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}, SupportedModes: []TargetMode{TargetModeFullGraph}},
+		result:     ResolveGraphResult{Graphs: SingleGraphContainer(scopedTestGraph(t), sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
+	})
+
+	baseReq := PipelineRequest{
+		Subprojects: []Subproject{{
+			ExecutionTarget:         ExecutionTarget{Kind: ExecutionTargetFilesystem, Location: "/repo"},
+			RelativePath:            ".",
+			PrimaryDetector:         "npm-detector",
+			DetectedPackageManagers: []PackageManager{PackageManagerNPM},
+			Ecosystem:               EcosystemNPM,
+		}},
+		ScopeFilter: sdk.ScopeDevelopment,
+	}
+	result, err := NewPipeline(registry, zap.NewNop()).RunExplain(context.Background(), ExplainRequest{
+		Query:    "vitest",
+		Pipeline: baseReq,
+	})
+	if err != nil {
+		t.Fatalf("RunExplain() error = %v", err)
+	}
+	if len(result.Targets) != 1 {
+		t.Fatalf("expected one development target, got %#v", result.Targets)
+	}
+
+	_, err = NewPipeline(registry, zap.NewNop()).RunExplain(context.Background(), ExplainRequest{
+		Query:    "react",
+		Pipeline: baseReq,
+	})
+	if err == nil {
+		t.Fatal("expected runtime dependency to be absent from development-scoped explain")
 	}
 }
 

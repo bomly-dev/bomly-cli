@@ -25,7 +25,7 @@ flowchart TD
     B --> C[Build filtered registry]
     C --> D[Prepare runtime]
     D --> E[Discover and index subprojects]
-    E --> F[Run detector chains]
+    E --> F[Run detector chains with requested scope]
     F --> G[Consolidate graph]
     G --> H[Optional package enrichment]
     H --> I[Optional policy evaluation]
@@ -51,31 +51,29 @@ The scan engine is responsible for orchestration, not the CLI command handlers. 
 flowchart LR
     A[Runtime preparation]
     B[Subproject discovery]
-    C[Detector chains]
-    D[Scope filtering]
+    C[Detector chains with requested scope]
     E[Graph consolidation]
     F[Matchers]
     F2[Analyzers]
     G[Auditors]
     H[Output rendering]
 
-    A --> B --> C --> D --> E --> F --> F2 --> G --> H
+    A --> B --> C --> E --> F --> F2 --> G --> H
 ```
 
 Stage summary:
 
 1. Runtime preparation builds the filtered registry and execution plan.
 2. Subproject discovery finds supported package-manager roots for the target.
-3. Detector chains resolve dependency graphs per package manager.
-4. Scope filtering applies requested dependency scopes before consolidation.
-5. Consolidation merges subproject graphs into a unified view.
-6. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records.
-7. Analyzers run when `--reachability` is set. They consume the matched graph and annotate `sdk.Vulnerability.Reachability` (on the PURL-keyed registry package) with status (reachable/unreachable/unknown), tier (symbol/module/package/none), and call paths. Failures degrade to `Status=unknown` rather than aborting the pipeline. See `docs/REACHABILITY.md` for ecosystem coverage and tier semantics.
-8. Auditors evaluate policy against the enriched graph + registry pair and create reference-style findings (`PackageRef` + `VulnerabilityID`) when `--audit` is enabled. The built-in `vulnerability`, `license`, and `package` auditors cover advisory thresholds, SPDX policy, and denied or suspicious packages respectively.
-9. Users combine `--enrich --audit` when they want external matcher data to feed policy evaluation in the same run.
-10. Output rendering emits text, JSON, SARIF, or SBOM documents.
+3. Detector chains resolve dependency graphs per package manager. When `--scope` is set, the requested scope is part of the detector request so build-tool detectors can narrow command execution where the package manager supports it. All detector results then pass through the shared SDK scope filter before consolidation.
+4. Consolidation merges subproject graphs into a unified view.
+5. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records.
+6. Analyzers run when `--reachability` is set. They consume the matched graph and annotate `sdk.Vulnerability.Reachability` (on the PURL-keyed registry package) with status (reachable/unreachable/unknown), tier (symbol/module/package/none), and call paths. Failures degrade to `Status=unknown` rather than aborting the pipeline. See `docs/REACHABILITY.md` for ecosystem coverage and tier semantics.
+7. Auditors evaluate policy against the enriched graph + registry pair and create reference-style findings (`PackageRef` + `VulnerabilityID`) when `--audit` is enabled. The built-in `vulnerability`, `license`, and `package` auditors cover advisory thresholds, SPDX policy, and denied or suspicious packages respectively.
+8. Users combine `--enrich --audit` when they want external matcher data to feed policy evaluation in the same run.
+9. Output rendering emits text, JSON, SARIF, or SBOM documents.
 
-`bomly explain` reuses the same resolution, scope filtering, consolidation, and matching stages, then performs dependency path selection in its explain orchestration before optional component audit.
+`bomly explain` reuses the same scope-aware resolution, consolidation, and matching stages, then performs dependency path selection in its explain orchestration before optional component audit.
 
 ### Decision: YAML configuration is nested at the file boundary
 

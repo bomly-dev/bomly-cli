@@ -83,7 +83,7 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a Maven dependency graph for the scan engine.
 func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	depsGraph, err := d.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose)
+	depsGraph, err := d.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, req.ScopeFilter)
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
@@ -104,7 +104,7 @@ func (d Detector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
-func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool) (*sdk.Graph, error) {
+func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool, scopeFilter sdk.Scope) (*sdk.Graph, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -115,7 +115,7 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 		return nil, fmt.Errorf("resolve maven runner: %w", err)
 	}
 
-	args := append(prefixArgs, "dependency:tree", "-DoutputType=tgf")
+	args := mavenDependencyTreeArgs(prefixArgs, scopeFilter)
 	cmd := system.Command(executable, args...)
 	cmd.Dir = projectPath
 	if d.WorkingDir != "" {
@@ -146,6 +146,17 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 	duration := time.Since(started)
 	logger.Info(fmt.Sprintf("Maven dependencies detector found %d dependencies in %s", depsGraph.Size(), logging.FormatDuration(duration)))
 	return depsGraph, nil
+}
+
+func mavenDependencyTreeArgs(prefixArgs []string, scopeFilter sdk.Scope) []string {
+	args := append(append([]string(nil), prefixArgs...), "dependency:tree", "-DoutputType=tgf")
+	switch scopeFilter {
+	case sdk.ScopeRuntime:
+		args = append(args, "-Dscope=runtime")
+	case sdk.ScopeDevelopment:
+		args = append(args, "-Dscope=test")
+	}
+	return args
 }
 
 func (d Detector) resolveRunner(projectPath ...string) (string, []string, error) {

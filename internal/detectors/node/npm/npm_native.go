@@ -62,7 +62,7 @@ func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves an npm dependency graph via npm ls.
 func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	depsGraph, err := d.base().ResolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "npm", []string{"ls", "--all", "--json", "--package-lock-only"}, "NPM detector", node.DepGraphFromNPMJSON)
+	depsGraph, err := d.base().ResolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "npm", npmListArgs(req.ScopeFilter), "NPM detector", node.DepGraphFromNPMJSON)
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
@@ -82,6 +82,14 @@ func (d NativeDetector) FallbackDetector() sdk.Detector {
 
 func (d NativeDetector) base() node.BaseDetector {
 	return node.BaseDetector{Logger: d.Logger, WorkingDir: d.WorkingDir}
+}
+
+func npmListArgs(scope sdk.Scope) []string {
+	args := []string{"ls", "--all", "--json", "--package-lock-only"}
+	if scope == sdk.ScopeRuntime {
+		args = append(args, "--omit=dev")
+	}
+	return args
 }
 
 // Install prepares npm dependencies before graph resolution.

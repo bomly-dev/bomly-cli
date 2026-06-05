@@ -22,6 +22,7 @@ type ScanRequest struct {
 	Reachability bool   `json:"reachability"`
 	FailOn       string `json:"fail_on"`
 	Ecosystems   string `json:"ecosystems"`
+	Scope        string `json:"scope"`
 }
 
 // ExplainRequest holds per-call overrides for the bomly_explain tool.

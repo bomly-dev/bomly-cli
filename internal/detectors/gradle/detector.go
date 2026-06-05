@@ -82,7 +82,7 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a Gradle dependency graph for the scan engine.
 func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	depsGraph, err := d.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose)
+	depsGraph, err := d.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, req.ScopeFilter)
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
@@ -103,7 +103,7 @@ func (d Detector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
-func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool) (*sdk.Graph, error) {
+func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool, scopeFilter sdk.Scope) (*sdk.Graph, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -117,6 +117,28 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 	executable, args, err := d.commandSpec(workingDir)
 	if err != nil {
 		return nil, fmt.Errorf("resolve gradle command: %w", err)
+	}
+
+	if scopedArgs := gradleScopedDependenciesArgs(args, scopeFilter); len(scopedArgs) > 0 {
+		depsGraph, err := d.runDependencies(stderr, workingDir, verbose, executable, scopedArgs)
+		if err == nil {
+			return depsGraph, nil
+		}
+		logger.Debug("gradle scoped dependencies detector failed; retrying full graph",
+			zap.String("working_dir", workingDir),
+			zap.String("executable", executable),
+			zap.Strings("args", scopedArgs),
+			zap.Error(err),
+		)
+	}
+
+	return d.runDependencies(stderr, workingDir, verbose, executable, args)
+}
+
+func (d Detector) runDependencies(stderr io.Writer, workingDir string, verbose bool, executable string, args []string) (*sdk.Graph, error) {
+	logger := d.Logger
+	if logger == nil {
+		logger = zap.NewNop()
 	}
 
 	cmd := system.Command(executable, args...)
@@ -149,6 +171,20 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 	logger.Info(fmt.Sprintf("Gradle dependencies detector found %d dependencies in %s", depsGraph.Size(), logging.FormatDuration(duration)))
 
 	return depsGraph, nil
+}
+
+func gradleScopedDependenciesArgs(baseArgs []string, scopeFilter sdk.Scope) []string {
+	configuration := ""
+	switch scopeFilter {
+	case sdk.ScopeRuntime:
+		configuration = "runtimeClasspath"
+	case sdk.ScopeDevelopment:
+		configuration = "testRuntimeClasspath"
+	default:
+		return nil
+	}
+	args := append([]string(nil), baseArgs...)
+	return append(args, "--configuration", configuration)
 }
 
 func (d Detector) commandSpec(workingDir string) (string, []string, error) {

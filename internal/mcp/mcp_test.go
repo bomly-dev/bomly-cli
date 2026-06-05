@@ -18,6 +18,7 @@ import (
 type mockAdapter struct {
 	scanResult    output.ScanResponse
 	scanErr       error
+	scanReq       mcp.ScanRequest
 	explainResult output.ExplainResponse
 	explainErr    error
 	diffResult    output.DiffResponse
@@ -28,7 +29,8 @@ type mockAdapter struct {
 	fixErr        error
 }
 
-func (m *mockAdapter) RunScan(_ context.Context, _ mcp.ScanRequest) (output.ScanResponse, error) {
+func (m *mockAdapter) RunScan(_ context.Context, req mcp.ScanRequest) (output.ScanResponse, error) {
+	m.scanReq = req
 	return m.scanResult, m.scanErr
 }
 func (m *mockAdapter) RunExplain(_ context.Context, _ mcp.ExplainRequest) (output.ExplainResponse, error) {
@@ -117,6 +119,21 @@ func TestScanTool_ReturnsJSONResult(t *testing.T) {
 	}
 	if resp.Command != "scan" {
 		t.Errorf("Command = %q, want %q", resp.Command, "scan")
+	}
+}
+
+func TestScanTool_PropagatesScope(t *testing.T) {
+	adapter := &mockAdapter{
+		scanResult: output.ScanResponse{Command: "scan", SchemaVersion: "1"},
+	}
+	c := newTestClient(t, adapter)
+	result := callTool(t, c, "bomly_scan", map[string]any{"path": "/tmp", "scope": "runtime"})
+
+	if result.IsError {
+		t.Fatalf("unexpected tool error: %v", result.Content)
+	}
+	if adapter.scanReq.Scope != "runtime" {
+		t.Fatalf("ScanRequest.Scope = %q, want runtime", adapter.scanReq.Scope)
 	}
 }
 

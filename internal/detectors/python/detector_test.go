@@ -139,6 +139,60 @@ func TestFilterPythonToolPackagesKeepsDeclaredTools(t *testing.T) {
 	}
 }
 
+func TestPipShouldInstallDevRequirements(t *testing.T) {
+	tests := []struct {
+		name                 string
+		scope                sdk.Scope
+		requirementsFile     string
+		devRequirementsExist bool
+		want                 bool
+	}{
+		{
+			name:                 "runtime skips dev requirements",
+			scope:                sdk.ScopeRuntime,
+			requirementsFile:     "requirements.txt",
+			devRequirementsExist: true,
+			want:                 false,
+		},
+		{
+			name:                 "development installs dev requirements",
+			scope:                sdk.ScopeDevelopment,
+			requirementsFile:     "requirements.txt",
+			devRequirementsExist: true,
+			want:                 true,
+		},
+		{
+			name:                 "unknown installs dev requirements to preserve full graph",
+			scope:                sdk.ScopeUnknown,
+			requirementsFile:     "requirements.txt",
+			devRequirementsExist: true,
+			want:                 true,
+		},
+		{
+			name:                 "primary dev file is not installed twice",
+			scope:                sdk.ScopeDevelopment,
+			requirementsFile:     "requirements-dev.txt",
+			devRequirementsExist: true,
+			want:                 false,
+		},
+		{
+			name:                 "missing dev file is skipped",
+			scope:                sdk.ScopeDevelopment,
+			requirementsFile:     "requirements.txt",
+			devRequirementsExist: false,
+			want:                 false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := pipShouldInstallDevRequirements(tt.scope, tt.requirementsFile, tt.devRequirementsExist)
+			if got != tt.want {
+				t.Fatalf("pipShouldInstallDevRequirements() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestAttachDeclaredPositions(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(dir+"/requirements.txt", []byte(

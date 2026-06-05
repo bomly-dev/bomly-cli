@@ -148,6 +148,29 @@ func TestDepGraphFromGoList(t *testing.T) {
 	}
 }
 
+func TestDepGraphFromGoList_RuntimeScopeSkipsTestImports(t *testing.T) {
+	raw := []byte(`
+{"ImportPath":"example.com/demo","Module":{"Path":"example.com/demo","Main":true},"Imports":["github.com/google/uuid"],"TestImports":["github.com/stretchr/testify/require"]}
+{"ImportPath":"github.com/google/uuid","Module":{"Path":"github.com/google/uuid","Version":"v1.6.0"}}
+{"ImportPath":"github.com/stretchr/testify/require","Module":{"Path":"github.com/stretchr/testify","Version":"v1.9.0"},"Imports":["github.com/davecgh/go-spew/spew"]}
+{"ImportPath":"github.com/davecgh/go-spew/spew","Module":{"Path":"github.com/davecgh/go-spew","Version":"v1.1.1"}}
+`)
+
+	g, err := depGraphFromGoListWithScope(raw, "example.com/demo", nil, sdk.ScopeRuntime)
+	if err != nil {
+		t.Fatalf("depGraphFromGoListWithScope() error = %v", err)
+	}
+	if _, ok := g.Node("github.com/google/uuid@v1.6.0"); !ok {
+		t.Fatal("expected runtime dependency package")
+	}
+	if _, ok := g.Node("github.com/stretchr/testify@v1.9.0"); ok {
+		t.Fatalf("did not expect test dependency in runtime graph: %s", g.PrettyString())
+	}
+	if _, ok := g.Node("github.com/davecgh/go-spew@v1.1.1"); ok {
+		t.Fatalf("did not expect transitive test dependency in runtime graph: %s", g.PrettyString())
+	}
+}
+
 func TestDepGraphFromGoList_PrefersRuntimeScope(t *testing.T) {
 	raw := []byte(`
 {"ImportPath":"example.com/demo","Module":{"Path":"example.com/demo","Main":true},"Imports":["example.com/shared/pkg"]}

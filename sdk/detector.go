@@ -33,6 +33,7 @@ type DetectionRequest struct {
 	EnrichmentEnabled  bool            `json:"enrichmentEnabled,omitempty"`
 	DetectorFilter     DetectorFilter  `json:"detectorFilter"`
 	Mode               TargetMode      `json:"mode,omitempty"`
+	ScopeFilter        Scope           `json:"scopeFilter,omitempty"`
 	Query              DependencyQuery `json:"query"`
 	InstallFirst       bool            `json:"installFirst,omitempty"`
 	InstallArgs        []string        `json:"installArgs,omitempty"`

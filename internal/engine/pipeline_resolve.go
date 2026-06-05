@@ -118,6 +118,7 @@ func (p *Pipeline) resolveSubproject(ctx context.Context, req PipelineRequest, s
 		EnrichmentEnabled: req.EnrichEnabled || req.MatchEnabled,
 		DetectorFilter:    req.DetectorFilter,
 		Mode:              sdk.TargetModeFullGraph,
+		ScopeFilter:       req.ScopeFilter,
 		InstallFirst:      req.InstallFirst,
 		InstallArgs:       req.InstallArgs,
 		CoreVersion:       req.CoreVersion,
@@ -242,6 +243,10 @@ func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest
 	}
 	if result.Graphs == nil || result.Graphs.Len() == 0 {
 		return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: no graph data", descriptor.Name), progress)
+	}
+	result, err = sdk.FilterDetectionResultByScope(result, req.ScopeFilter)
+	if err != nil {
+		return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: scope filter: %w", descriptor.Name, err), progress)
 	}
 
 	result.SubprojectInfo = req.Subproject

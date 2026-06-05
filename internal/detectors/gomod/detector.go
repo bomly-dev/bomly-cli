@@ -111,7 +111,7 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a Go module dependency graph for the scan engine.
 func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	depsGraph, err := d.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose)
+	depsGraph, err := d.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, req.ScopeFilter)
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
@@ -126,7 +126,7 @@ func (d Detector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
-func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool) (*sdk.Graph, error) {
+func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool, scopeFilter sdk.Scope) (*sdk.Graph, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -166,7 +166,7 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 		return nil, fmt.Errorf("run go list -deps -json all: %w", err)
 	}
 
-	depsGraph, err := depGraphFromGoList(raw, modulePath, directRequires)
+	depsGraph, err := depGraphFromGoListWithScope(raw, modulePath, directRequires, scopeFilter)
 	if err != nil {
 		logger.Error(fmt.Sprintf("Failed to map Go module output to a dependency graph: %v", err))
 		logger.Debug("go module output mapping failed", zap.Error(err))
@@ -190,6 +190,10 @@ func buildGoListArgs() []string {
 }
 
 func depGraphFromGoList(raw []byte, rootModule string, directRequires []moduleRef) (*sdk.Graph, error) {
+	return depGraphFromGoListWithScope(raw, rootModule, directRequires, sdk.ScopeUnknown)
+}
+
+func depGraphFromGoListWithScope(raw []byte, rootModule string, directRequires []moduleRef, scopeFilter sdk.Scope) (*sdk.Graph, error) {
 	if strings.TrimSpace(rootModule) == "" {
 		return nil, errors.New("go module path is empty")
 	}
@@ -273,11 +277,13 @@ func depGraphFromGoList(raw []byte, rootModule string, directRequires []moduleRe
 		if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, mergedScope, current.pkg.Imports, packageRecords, packageModules, directLines, &queue); err != nil {
 			return nil, err
 		}
-		if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.TestImports, packageRecords, packageModules, directLines, &queue); err != nil {
-			return nil, err
-		}
-		if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.XTestImports, packageRecords, packageModules, directLines, &queue); err != nil {
-			return nil, err
+		if scopeFilter != sdk.ScopeRuntime {
+			if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.TestImports, packageRecords, packageModules, directLines, &queue); err != nil {
+				return nil, err
+			}
+			if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.XTestImports, packageRecords, packageModules, directLines, &queue); err != nil {
+				return nil, err
+			}
 		}
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"testing"
 
@@ -80,6 +81,49 @@ func TestDetectorCommandSpec_MakesUnixWrapperExecutable(t *testing.T) {
 	}
 	if info.Mode()&0o111 == 0 {
 		t.Fatalf("expected wrapper to be executable, mode=%#o", info.Mode().Perm())
+	}
+}
+
+func TestGradleScopedDependenciesArgs(t *testing.T) {
+	tests := []struct {
+		name   string
+		scope  sdk.Scope
+		want   []string
+		isZero bool
+	}{
+		{
+			name:  "runtime selects runtimeClasspath",
+			scope: sdk.ScopeRuntime,
+			want:  []string{"dependencies", "--console=plain", "--configuration", "runtimeClasspath"},
+		},
+		{
+			name:  "development selects testRuntimeClasspath",
+			scope: sdk.ScopeDevelopment,
+			want:  []string{"dependencies", "--console=plain", "--configuration", "testRuntimeClasspath"},
+		},
+		{
+			name:   "unknown resolves all configurations",
+			scope:  sdk.ScopeUnknown,
+			isZero: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			base := []string{"dependencies", "--console=plain"}
+			got := gradleScopedDependenciesArgs(base, tt.scope)
+			if tt.isZero {
+				if got != nil {
+					t.Fatalf("gradleScopedDependenciesArgs() = %#v, want nil", got)
+				}
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("gradleScopedDependenciesArgs() = %#v, want %#v", got, tt.want)
+			}
+			if !reflect.DeepEqual(base, []string{"dependencies", "--console=plain"}) {
+				t.Fatalf("base args mutated: %#v", base)
+			}
+		})
 	}
 }
 

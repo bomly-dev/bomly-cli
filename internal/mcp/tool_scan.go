@@ -19,6 +19,7 @@ func registerScanTool(s *server.MCPServer, mcpCtx MCPContext) {
 		mcplib.WithBoolean("reachability", mcplib.Description("[Experimental] Run code analysis to confirm whether vulnerabilities are reachable from application code (requires enrich)")),
 		mcplib.WithString("fail_on", mcplib.Description("Audit finding constraint: any, low, medium, high, critical, reachable, or exploitable")),
 		mcplib.WithString("ecosystems", mcplib.Description("Ecosystem filter; supports +name/-name modifiers")),
+		mcplib.WithString("scope", mcplib.Description("Filter dependencies by scope: runtime or development")),
 	)
 	s.AddTool(tool, func(ctx context.Context, req mcplib.CallToolRequest) (*mcplib.CallToolResult, error) {
 		scanReq := ScanRequest{
@@ -31,6 +32,7 @@ func registerScanTool(s *server.MCPServer, mcpCtx MCPContext) {
 			Reachability: req.GetBool("reachability", false),
 			FailOn:       req.GetString("fail_on", ""),
 			Ecosystems:   req.GetString("ecosystems", ""),
+			Scope:        req.GetString("scope", ""),
 		}
 		result, err := mcpCtx.Adapter.RunScan(ctx, scanReq)
 		if err != nil {

@@ -89,6 +89,7 @@ func TestInteractiveListModel_ViewIncludesDetails(t *testing.T) {
 	}
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
 	model.SelectView(2)
+	expandTreeLayers(model, 2)
 	model.Move(3)
 	view := model.View(90, 26)
 
@@ -270,6 +271,7 @@ func TestScanInteractiveModel_MultiManifestNavigation(t *testing.T) {
 	wrapper := &teaModel{inner: model, width: 100, height: 20}
 	updated, _ := wrapper.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("2")})
 	wrapper = updated.(*teaModel)
+	expandTreeLayers(model, 2)
 	plain = render.StripANSI(wrapper.View())
 	if !strings.Contains(plain, "multi (2 manifests)") || !strings.Contains(plain, "zod@3.23.0") {
 		t.Fatalf("expected unified component tree, got:\n%s", plain)
@@ -660,6 +662,7 @@ func TestScanInteractiveModel_FiltersAndScopeBadges(t *testing.T) {
 	}
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
 	model.SelectView(2)
+	expandTreeLayers(model, 2)
 
 	plain := render.StripANSI(model.View(100, 30))
 	if !strings.Contains(plain, "react@18.2.0") || !strings.Contains(plain, "vitest@2.0.0") {
@@ -718,6 +721,7 @@ func TestScanInteractiveModel_EcosystemFilterUpdatesComponents(t *testing.T) {
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
 	model.SelectView(2)
 	model.ecosystemFilter = "npm"
+	expandTreeLayers(model, 2)
 	model.rebuildListPreserveSelection()
 
 	plain := render.StripANSI(model.View(110, 32))
@@ -833,6 +837,7 @@ func TestScanInteractiveModel_UsesEnrichedVulnerabilitiesWithoutFindings(t *test
 	}
 
 	model.SelectView(2)
+	expandTreeLayers(model, 2)
 	model.Move(3)
 	components := render.StripANSI(model.View(110, 32))
 	if !strings.Contains(components, "react@18.2.0") || !strings.Contains(components, "HIGH") {
@@ -978,6 +983,7 @@ func TestScanInteractiveModel_VulnerabilityFilterEmptyStateDistinguishesNoMatche
 func TestScanInteractiveModel_ReachabilityFilterCyclesFromKeyboard(t *testing.T) {
 	model := newScanReachabilityFilterModel(t, true)
 	model.SelectView(2)
+	expandTreeLayers(model, 2)
 	wrapper := &teaModel{inner: model, width: 180, height: 40}
 
 	components := render.StripANSI(model.View(180, 40))
@@ -1088,6 +1094,7 @@ func TestScanInteractiveModel_SeverityFilterIncludesAnyAndNone(t *testing.T) {
 
 	model := newScanReachabilityFilterModel(t, true)
 	model.SelectView(2)
+	expandTreeLayers(model, 2)
 	model.CycleSeverityFilter()
 	if model.severityFilter != "any" {
 		t.Fatalf("expected first severity cycle to select any, got %q", model.severityFilter)
@@ -1169,28 +1176,41 @@ func newScanReachabilityFilterModel(t *testing.T, enabled bool) *scanModel {
 func assertInteractiveListTitles(t *testing.T, model *scanModel, contains, excludes []string) {
 	t.Helper()
 	titles := make([]string, 0, len(model.List().items))
-	titleSet := make(map[string]struct{}, len(model.List().items))
 	for _, item := range model.List().items {
 		titles = append(titles, item.title)
-		titleSet[item.title] = struct{}{}
 	}
 	joined := strings.Join(titles, "\n")
 	for _, want := range contains {
-		if _, ok := titleSet[want]; !ok {
+		if !listTitlesContain(titles, want) {
 			t.Fatalf("expected interactive list titles to contain %q, got:\n%s", want, joined)
 		}
 	}
 	for _, excluded := range excludes {
-		if _, ok := titleSet[excluded]; ok {
+		if listTitlesContain(titles, excluded) {
 			t.Fatalf("expected interactive list titles to exclude %q, got:\n%s", excluded, joined)
 		}
 	}
 }
 
+func expandTreeLayers(model treeControlModel, layers int) {
+	for i := 0; i < layers; i++ {
+		model.ExpandAll()
+	}
+}
+
+func listTitlesContain(titles []string, want string) bool {
+	for _, title := range titles {
+		if title == want || strings.HasPrefix(title, want+"  ") {
+			return true
+		}
+	}
+	return false
+}
+
 func assertInteractiveItemBadges(t *testing.T, model *scanModel, title string, expectedReachability []string) {
 	t.Helper()
 	for _, item := range model.List().items {
-		if item.title != title {
+		if item.title != title && !strings.HasPrefix(item.title, title+"  ") {
 			continue
 		}
 		var actual []string
@@ -1280,6 +1300,7 @@ func TestScanInteractiveModel_ComponentTreeExpandsSelectedNode(t *testing.T) {
 
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
 	model.SelectView(2)
+	expandTreeLayers(model, 2)
 	plain := render.StripANSI(model.View(100, 24))
 	if !strings.Contains(plain, "react@18.2.0") {
 		t.Fatalf("expected direct dependency in component tree, got:\n%s", plain)
@@ -1296,6 +1317,77 @@ func TestScanInteractiveModel_ComponentTreeExpandsSelectedNode(t *testing.T) {
 	}
 	if !strings.Contains(plain, "└─") && !strings.Contains(plain, "├─") {
 		t.Fatalf("expected component tree to use box-drawing connectors, got:\n%s", plain)
+	}
+}
+
+func TestScanInteractiveModel_ComponentExpandCollapseAllProgressesByLayer(t *testing.T) {
+	g := sdk.New()
+	root := sdk.NewDependencyRef("demo-app", "1.0.0")
+	direct := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0"})
+	transitive := sdk.NewDependency(sdk.Dependency{Name: "loose-envify", Version: "1.4.0"})
+	for _, pkg := range []*sdk.Dependency{root, direct, transitive} {
+		if err := g.AddNode(pkg); err != nil {
+			t.Fatalf("add package: %v", err)
+		}
+	}
+	if err := g.AddEdge(root.ID, direct.ID); err != nil {
+		t.Fatalf("add root dependency: %v", err)
+	}
+	if err := g.AddEdge(direct.ID, transitive.ID); err != nil {
+		t.Fatalf("add transitive dependency: %v", err)
+	}
+
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
+			RelativePath:            ".",
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
+		},
+		DetectorName: "npm-detector",
+		Origin:       sdk.CoreOrigin,
+		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+	}})
+	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+
+	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
+	model.SelectView(2)
+	assertViewContains(t, model, []string{"package-lock.json"}, []string{"demo-app@1.0.0", "react@18.2.0", "loose-envify@1.4.0"})
+
+	model.ExpandAll()
+	assertViewContains(t, model, []string{"demo-app@1.0.0"}, []string{"react@18.2.0", "loose-envify@1.4.0"})
+
+	model.ExpandAll()
+	assertViewContains(t, model, []string{"react@18.2.0"}, []string{"loose-envify@1.4.0"})
+
+	model.ExpandAll()
+	assertViewContains(t, model, []string{"loose-envify@1.4.0"}, nil)
+
+	model.CollapseAll()
+	assertViewContains(t, model, []string{"react@18.2.0"}, []string{"loose-envify@1.4.0"})
+
+	model.CollapseAll()
+	assertViewContains(t, model, []string{"demo-app@1.0.0"}, []string{"react@18.2.0"})
+
+	model.CollapseAll()
+	assertViewContains(t, model, []string{"package-lock.json"}, []string{"demo-app@1.0.0"})
+}
+
+func assertViewContains(t *testing.T, model *scanModel, contains, excludes []string) {
+	t.Helper()
+	plain := render.StripANSI(model.View(120, 30))
+	for _, want := range contains {
+		if !strings.Contains(plain, want) {
+			t.Fatalf("expected view to contain %q, got:\n%s", want, plain)
+		}
+	}
+	for _, excluded := range excludes {
+		if strings.Contains(plain, excluded) {
+			t.Fatalf("expected view to exclude %q, got:\n%s", excluded, plain)
+		}
 	}
 }
 

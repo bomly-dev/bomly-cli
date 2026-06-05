@@ -68,7 +68,7 @@ type diffModel struct {
 	findingGroup    string
 	findingExpanded map[string]bool
 
-	postureGroup    string // "repository" (default) or "check"
+	postureGroup    string // "check" (default) or "repository"
 	postureExpanded map[string]bool
 
 	sourceSide         diffSourceSide
@@ -85,17 +85,17 @@ func NewDiff(payload output.DiffResponse, baseGraph, headGraph sdk.ConsolidatedG
 		headGraph:          headGraph,
 		componentsGroup:    componentsGroupStatus,
 		componentsExpanded: map[string]bool{},
-		vulnGroup:          "status",
+		vulnGroup:          "severity",
 		vulnExpanded:       map[string]bool{},
 		licenseGroup:       "license",
 		licenseExpanded:    map[string]bool{},
 		findingGroup:       "status",
 		findingExpanded:    map[string]bool{},
-		postureGroup:       "repository",
+		postureGroup:       "check",
 		postureExpanded:    map[string]bool{},
 		sourceSide:         diffSourceBase,
-		sourceBaseExpanded: map[string]bool{"root": true, "manifests": true},
-		sourceHeadExpanded: map[string]bool{"root": true, "manifests": true},
+		sourceBaseExpanded: map[string]bool{"root": true},
+		sourceHeadExpanded: map[string]bool{"root": true},
 	}
 	m.shellModel = newShell(ShellSpec{
 		TopBar: m.topBarLine,
@@ -151,7 +151,7 @@ func (m *diffModel) CycleGroup() {
 	case "findings":
 		m.findingGroup = nextFindingGroup(m.findingGroup)
 	case "posture":
-		m.postureGroup = cycleString(m.postureGroup, []string{"repository", "check"})
+		m.postureGroup = cycleString(m.postureGroup, []string{"check", "repository"})
 	case "source":
 		if m.sourceSide == diffSourceBase {
 			m.sourceSide = diffSourceHead
@@ -323,11 +323,8 @@ func (m *diffModel) setAllExpansion(expanded bool) {
 	if list == nil {
 		return
 	}
-	for _, item := range list.items {
-		if !item.canOpen || item.key == "" {
-			continue
-		}
-		expansion[item.key] = expanded
+	if !setVisibleExpansionLayer(list, expansion, expanded) {
+		return
 	}
 	m.rebuildPreserveSelection()
 }

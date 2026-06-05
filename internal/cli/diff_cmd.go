@@ -80,6 +80,9 @@ func newDiffCmd() *cobra.Command {
 			if err != nil {
 				return exit.InvalidInputError("%v", err)
 			}
+			if err := validatePrimaryReportFormat(outputFormat); err != nil {
+				return exit.InvalidInputError("%v", err)
+			}
 			if outputFormat == output.FormatSARIF && !current.Audit {
 				return exit.InvalidInputError("--format sarif requires --audit")
 			}
@@ -90,7 +93,7 @@ func newDiffCmd() *cobra.Command {
 			if err := validateReportOutputs(outputSpecs); err != nil {
 				return exit.InvalidInputError("%v", err)
 			}
-			if hasOutputFormat(outputSpecs, render.OutputFormatSARIF) && !current.Audit {
+			if hasOutputFormat(outputSpecs, output.FormatSARIF) && !current.Audit {
 				return exit.InvalidInputError("-o sarif requires --audit")
 			}
 			if current.Interactive && len(outputSpecs) > 0 {
@@ -165,23 +168,21 @@ func newDiffCmd() *cobra.Command {
 			markdownRenderer := func(w io.Writer) error {
 				return render.DiffMarkdown(w, payload)
 			}
+			textRenderer := func(w io.Writer) error {
+				return render.Diff(w, payload)
+			}
+			reportRenderers := output.Renderers{
+				Markdown: markdownRenderer,
+				Text:     textRenderer,
+			}
 			sarifRenderer := func(w io.Writer) error {
 				return output.WriteSARIF(w, diffResult.Findings, diffResult.Head.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: current.Reachability})
 			}
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
 				for _, spec := range outputSpecs {
-					switch spec.Format {
-					case render.OutputFormatMarkdown:
-						if err := writeRenderedOutput(streams.reportWriter(), spec, markdownRenderer); err != nil {
-							return err
-						}
-					case render.OutputFormatSARIF:
-						if err := writeRenderedOutput(streams.reportWriter(), spec, sarifRenderer); err != nil {
-							return err
-						}
-					default:
-						return exit.InvalidInputError("output format %q is only supported by scan", spec.Label)
+					if err := writeReportOutput(streams.reportWriter(), spec, payload, reportRenderers, sarifRenderer); err != nil {
+						return err
 					}
 				}
 			}
@@ -202,12 +203,7 @@ func newDiffCmd() *cobra.Command {
 			if outputFormat == output.FormatMarkdown || outputFormat == output.FormatText {
 				prog.SeparateReport()
 			}
-			err = output.Write(streams.reportWriter(), outputFormat, payload, output.Renderers{
-				Markdown: markdownRenderer,
-				Text: func(w io.Writer) error {
-					return render.Diff(w, payload)
-				},
-			})
+			err = output.Write(streams.reportWriter(), outputFormat, payload, reportRenderers)
 			if err == nil && current.Audit && diffResult.Audit != nil {
 				if failing := output.FailingFindingCount(diffResult.Audit.Introduced); failing > 0 {
 					return exit.PolicyViolationFindings(failing)

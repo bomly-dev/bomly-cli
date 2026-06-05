@@ -7,23 +7,14 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
-)
-
-// OutputFormat identifies one additional output target.
-type OutputFormat string
-
-const (
-	OutputFormatMarkdown  OutputFormat = "markdown"
-	OutputFormatSARIF     OutputFormat = "sarif"
-	OutputFormatSPDX      OutputFormat = "spdx"
-	OutputFormatCycloneDX OutputFormat = "cyclonedx"
 )
 
 // OutputSpec describes one parsed -o argument: an output format and the
 // destination path (empty path means stdout).
 type OutputSpec struct {
-	Format OutputFormat
+	Format output.Format
 	Target sbom.Target
 	Label  string
 	Path   string
@@ -31,22 +22,28 @@ type OutputSpec struct {
 
 // IsSBOM reports whether this output is a standard SBOM artifact.
 func (s OutputSpec) IsSBOM() bool {
-	return s.Format == OutputFormatSPDX || s.Format == OutputFormatCycloneDX
+	return s.Format.IsSBOM()
 }
 
 // ParseOutputFormat normalizes a user-supplied output format string.
-func ParseOutputFormat(value string) (OutputFormat, sbom.Target, string, error) {
-	switch strings.ToLower(strings.TrimSpace(value)) {
-	case "markdown", "md":
-		return OutputFormatMarkdown, "", "markdown", nil
-	case "sarif":
-		return OutputFormatSARIF, "", "sarif", nil
-	case "spdx", "spdx-json":
-		return OutputFormatSPDX, sbom.TargetSPDX23JSON, "spdx", nil
-	case "cyclonedx", "cyclonedx-json":
-		return OutputFormatCycloneDX, sbom.TargetCycloneDX16JSON, "cyclonedx", nil
-	default:
+func ParseOutputFormat(value string) (output.Format, sbom.Target, string, error) {
+	format, err := output.ParseFormat(value)
+	if err != nil {
 		return "", "", "", fmt.Errorf("unsupported output format %q", value)
+	}
+	target, _ := SBOMTarget(format)
+	return format, target, string(format), nil
+}
+
+// SBOMTarget returns the SBOM encoder target for an SBOM output format.
+func SBOMTarget(format output.Format) (sbom.Target, bool) {
+	switch format {
+	case output.FormatSPDX:
+		return sbom.TargetSPDX23JSON, true
+	case output.FormatCycloneDX:
+		return sbom.TargetCycloneDX16JSON, true
+	default:
+		return "", false
 	}
 }
 

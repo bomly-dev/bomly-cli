@@ -79,6 +79,10 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 
 ## Code Conventions
 
+### Shared Types
+
+- Use canonical shared types directly instead of creating local type aliases or re-exported constants just to rename them. For example, if `internal/output.Format` owns CLI output formats, downstream packages should store and compare `output.Format` / `output.FormatJSON` directly rather than introducing `render.OutputFormat` aliases.
+
 ### Errors
 
 ```go

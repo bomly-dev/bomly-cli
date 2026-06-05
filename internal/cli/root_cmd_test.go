@@ -633,6 +633,49 @@ func TestRoot_DiffCommand_JSONOutputWithMarkdownOutputFile(t *testing.T) {
 	}
 }
 
+func TestRoot_DiffCommand_TextOutputWithJSONOutputFile(t *testing.T) {
+	requireGit(t)
+	tempHome := t.TempDir()
+	t.Setenv("HOME", tempHome)
+	if runtime.GOOS == "windows" {
+		t.Setenv("USERPROFILE", tempHome)
+	}
+
+	setDynamicFakeNPMOnPath(t)
+	repoDir, baseSHA, headSHA := createGitNPMRepoHistory(t)
+	reportPath := filepath.Join(t.TempDir(), "reports", "diff.json")
+
+	root, err := newRootCmd("0.9.0-test")
+	if err != nil {
+		t.Fatalf("newRootCmd() error = %v", err)
+	}
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	root.SetOut(&stdout)
+	root.SetErr(&stderr)
+	root.SetArgs([]string{"diff", "--path", repoDir, "--ecosystems", "npm", "--base", baseSHA, "--head", headSHA, "--format", "text", "-o", "json=" + reportPath})
+
+	if err := root.Execute(); err != nil {
+		t.Fatalf("root.Execute() error = %v; stderr=%s", err, stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "Dependency diff") {
+		t.Fatalf("expected primary text diff output, got:\n%s", stdout.String())
+	}
+
+	data, err := os.ReadFile(reportPath)
+	if err != nil {
+		t.Fatalf("read JSON report: %v", err)
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(data, &payload); err != nil {
+		t.Fatalf("unmarshal JSON report: %v\n%s", err, data)
+	}
+	if got := payload["command"]; got != "diff" {
+		t.Fatalf("expected diff command in JSON report, got %#v", got)
+	}
+}
+
 func TestRoot_ScanCommand_MarkdownOutput(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
@@ -743,6 +786,75 @@ func TestRoot_ScanCommand_JSONOutputWithMarkdownOutputFile(t *testing.T) {
 	}
 	if !strings.Contains(string(summary), "# Bomly Scan Summary") || !strings.Contains(string(summary), "react@18.2.0") {
 		t.Fatalf("unexpected Markdown summary:\n%s", summary)
+	}
+}
+
+func TestRoot_ScanCommand_MarkdownOutputWithJSONAndTextOutputFiles(t *testing.T) {
+	tempHome := t.TempDir()
+	t.Setenv("HOME", tempHome)
+	if runtime.GOOS == "windows" {
+		t.Setenv("USERPROFILE", tempHome)
+	}
+
+	projectDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte(`{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "react": "^18.2.0"
+  }
+}
+`), 0o644); err != nil {
+		t.Fatalf("write package.json: %v", err)
+	}
+	setFakeNPMOnPath(t, `{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "react": {
+      "version": "18.2.0"
+    }
+  }
+}`)
+	reportDir := t.TempDir()
+	jsonPath := filepath.Join(reportDir, "scan.json")
+	textPath := filepath.Join(reportDir, "scan.txt")
+
+	root, err := newRootCmd("0.9.0-test")
+	if err != nil {
+		t.Fatalf("newRootCmd() error = %v", err)
+	}
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	root.SetOut(&stdout)
+	root.SetErr(&stderr)
+	root.SetArgs([]string{"scan", "--path", projectDir, "--ecosystems", "npm", "--format", "markdown", "-o", "json=" + jsonPath, "-o", "text=" + textPath})
+
+	if err := root.Execute(); err != nil {
+		t.Fatalf("root.Execute() error = %v; stderr=%s", err, stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "# Bomly Scan Summary") {
+		t.Fatalf("expected primary Markdown output, got:\n%s", stdout.String())
+	}
+
+	jsonData, err := os.ReadFile(jsonPath)
+	if err != nil {
+		t.Fatalf("read JSON report: %v", err)
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(jsonData, &payload); err != nil {
+		t.Fatalf("unmarshal JSON report: %v\n%s", err, jsonData)
+	}
+	if got := payload["command"]; got != "scan" {
+		t.Fatalf("expected scan command in JSON report, got %#v", got)
+	}
+
+	textData, err := os.ReadFile(textPath)
+	if err != nil {
+		t.Fatalf("read text report: %v", err)
+	}
+	if !strings.Contains(string(textData), "Dependency report for demo-app") || !strings.Contains(string(textData), "react") {
+		t.Fatalf("unexpected text report:\n%s", textData)
 	}
 }
 
@@ -1215,6 +1327,71 @@ func TestRoot_WhyCommand_JSONOutput(t *testing.T) {
 	}
 }
 
+func TestRoot_WhyCommand_TextOutputWithJSONOutputFile(t *testing.T) {
+	tempHome := t.TempDir()
+	t.Setenv("HOME", tempHome)
+	if runtime.GOOS == "windows" {
+		t.Setenv("USERPROFILE", tempHome)
+	}
+
+	projectDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte(`{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "react": "^18.2.0"
+  }
+}
+`), 0o644); err != nil {
+		t.Fatalf("write package.json: %v", err)
+	}
+	setFakeNPMOnPath(t, `{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "react": {
+      "version": "18.2.0",
+      "dependencies": {
+        "loose-envify": {
+          "version": "1.4.0"
+        }
+      }
+    }
+  }
+}`)
+	reportPath := filepath.Join(t.TempDir(), "reports", "explain.json")
+
+	root, err := newRootCmd("0.9.0-test")
+	if err != nil {
+		t.Fatalf("newRootCmd() error = %v", err)
+	}
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	root.SetOut(&stdout)
+	root.SetErr(&stderr)
+	root.SetArgs([]string{"explain", "loose-envify", "--path", projectDir, "--ecosystems", "npm", "--format", "text", "-o", "json=" + reportPath})
+
+	if err := root.Execute(); err != nil {
+		t.Fatalf("root.Execute() error = %v; stderr=%s", err, stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "loose-envify") {
+		t.Fatalf("expected primary text explain output, got:\n%s", stdout.String())
+	}
+
+	data, err := os.ReadFile(reportPath)
+	if err != nil {
+		t.Fatalf("read JSON report: %v", err)
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(data, &payload); err != nil {
+		t.Fatalf("unmarshal JSON report: %v\n%s", err, data)
+	}
+	if got := payload["command"]; got != "explain" {
+		t.Fatalf("expected explain command in JSON report, got %#v", got)
+	}
+}
+
 func TestRoot_WhyCommand_MarkdownOutput(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
@@ -1482,6 +1659,87 @@ func TestRoot_ScanCommand_SBOMJSONOutput(t *testing.T) {
 	packages, ok := payload["packages"].([]any)
 	if !ok || len(packages) < 2 {
 		t.Fatalf("expected SPDX packages, got %#v", payload["packages"])
+	}
+}
+
+func TestRoot_ScanCommand_PrimarySBOMFormats(t *testing.T) {
+	tests := []struct {
+		name      string
+		format    string
+		assertDoc func(*testing.T, map[string]any)
+	}{
+		{
+			name:   "spdx",
+			format: "spdx",
+			assertDoc: func(t *testing.T, payload map[string]any) {
+				t.Helper()
+				if got := payload["spdxVersion"]; got == nil {
+					t.Fatalf("expected SPDX document, got %#v", payload)
+				}
+			},
+		},
+		{
+			name:   "cyclonedx",
+			format: "cyclonedx",
+			assertDoc: func(t *testing.T, payload map[string]any) {
+				t.Helper()
+				if got := payload["bomFormat"]; got != "CycloneDX" {
+					t.Fatalf("expected CycloneDX document, got %#v", payload)
+				}
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			tempHome := t.TempDir()
+			t.Setenv("HOME", tempHome)
+			if runtime.GOOS == "windows" {
+				t.Setenv("USERPROFILE", tempHome)
+			}
+
+			projectDir := t.TempDir()
+			if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte(`{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "react": "^18.2.0"
+  }
+}
+`), 0o644); err != nil {
+				t.Fatalf("write package.json: %v", err)
+			}
+			setFakeNPMOnPath(t, `{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "react": {
+      "version": "18.2.0"
+    }
+  }
+}`)
+
+			root, err := newRootCmd("0.9.0-test")
+			if err != nil {
+				t.Fatalf("newRootCmd() error = %v", err)
+			}
+
+			var stdout bytes.Buffer
+			var stderr bytes.Buffer
+			root.SetOut(&stdout)
+			root.SetErr(&stderr)
+			root.SetArgs([]string{"scan", "--path", projectDir, "--ecosystems", "npm", "--format", tc.format})
+
+			if err := root.Execute(); err != nil {
+				t.Fatalf("root.Execute() error = %v; stderr=%s", err, stderr.String())
+			}
+
+			var payload map[string]any
+			if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+				t.Fatalf("unmarshal output: %v\n%s", err, stdout.String())
+			}
+			tc.assertDoc(t, payload)
+		})
 	}
 }
 
@@ -1872,6 +2130,111 @@ func TestRoot_ScanCommand_TreeFormatRejected(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), `parse format: unsupported format "tree"`) {
 		t.Fatalf("expected tree format error, got %v", err)
+	}
+}
+
+func TestRoot_ReportCommandsRejectPrimarySBOMFormats(t *testing.T) {
+	tests := []struct {
+		name string
+		args []string
+		want string
+	}{
+		{
+			name: "diff spdx",
+			args: []string{"diff", "--base", "base", "--head", "head", "--format", "spdx"},
+			want: "--format spdx is only supported by scan",
+		},
+		{
+			name: "explain cyclonedx",
+			args: []string{"explain", "react", "--format", "cyclonedx"},
+			want: "--format cyclonedx is only supported by scan",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			tempHome := t.TempDir()
+			t.Setenv("HOME", tempHome)
+			if runtime.GOOS == "windows" {
+				t.Setenv("USERPROFILE", tempHome)
+			}
+
+			root, err := newRootCmd("0.9.0-test")
+			if err != nil {
+				t.Fatalf("newRootCmd() error = %v", err)
+			}
+
+			var stdout bytes.Buffer
+			var stderr bytes.Buffer
+			root.SetOut(&stdout)
+			root.SetErr(&stderr)
+			root.SetArgs(tc.args)
+
+			err = normalizeExecuteError(root.Execute())
+			if err == nil {
+				t.Fatal("expected scan-only format error")
+			}
+			if exit.Code(err) != ExitCodeInvalidInput {
+				t.Fatalf("expected invalid input exit code, got %d (err=%v)", exit.Code(err), err)
+			}
+			if !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("expected error to contain %q, got %v", tc.want, err)
+			}
+			if stdout.Len() != 0 {
+				t.Fatalf("expected no stdout output, got %q", stdout.String())
+			}
+		})
+	}
+}
+
+func TestRoot_DiffCommand_SARIFRequiresAudit(t *testing.T) {
+	tests := []struct {
+		name string
+		args []string
+		want string
+	}{
+		{
+			name: "primary format",
+			args: []string{"diff", "--base", "base", "--head", "head", "--format", "sarif"},
+			want: "--format sarif requires --audit",
+		},
+		{
+			name: "additional output",
+			args: []string{"diff", "--base", "base", "--head", "head", "-o", "sarif=bomly.sarif"},
+			want: "-o sarif requires --audit",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			tempHome := t.TempDir()
+			t.Setenv("HOME", tempHome)
+			if runtime.GOOS == "windows" {
+				t.Setenv("USERPROFILE", tempHome)
+			}
+
+			root, err := newRootCmd("0.9.0-test")
+			if err != nil {
+				t.Fatalf("newRootCmd() error = %v", err)
+			}
+
+			var stdout bytes.Buffer
+			var stderr bytes.Buffer
+			root.SetOut(&stdout)
+			root.SetErr(&stderr)
+			root.SetArgs(tc.args)
+
+			err = normalizeExecuteError(root.Execute())
+			if err == nil {
+				t.Fatal("expected SARIF audit requirement error")
+			}
+			if exit.Code(err) != ExitCodeInvalidInput {
+				t.Fatalf("expected invalid input exit code, got %d (err=%v)", exit.Code(err), err)
+			}
+			if !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("expected error to contain %q, got %v", tc.want, err)
+			}
+		})
 	}
 }
 

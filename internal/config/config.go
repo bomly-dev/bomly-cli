@@ -41,8 +41,8 @@ type Resolved struct {
 	TyposquatMode         string   `doc:"Typosquatting policy mode: warn or fail" env:"BOMLY_TYPOSQUAT_MODE" default:"warn"`
 	WarnOnly              bool     `doc:"Downgrade failing findings to warnings" env:"BOMLY_WARN_ONLY"`
 	Analyzers             string   `doc:"Reachability analyzer selectors; supports +name and -name modifiers" env:"BOMLY_ANALYZERS"`
-	Format                string   `doc:"Primary report format: text, json, markdown, or sarif" env:"BOMLY_FORMAT"`
-	Outputs               []string `doc:"Additional output target(s) as <format> or <format>=<path>. Repeatable; formats include markdown, spdx, and cyclonedx" env:"BOMLY_OUTPUT"`
+	Format                string   `doc:"Primary output format: text, json, markdown, sarif, spdx, or cyclonedx. SBOM formats are scan-only" env:"BOMLY_FORMAT"`
+	Outputs               []string `doc:"Additional output target(s) as <format> or <format>=<path>. Repeatable; supports text, json, markdown, sarif, spdx, and cyclonedx" env:"BOMLY_OUTPUT"`
 	Interactive           bool     `doc:"Enable interactive TUI mode" env:"BOMLY_INTERACTIVE"`
 	Ecosystems            string   `doc:"Ecosystem selectors; supports +name and -name modifiers" env:"BOMLY_ECOSYSTEMS"`
 	Detectors             string   `doc:"Detector selectors; supports +name and -name modifiers" env:"BOMLY_DETECTORS"`

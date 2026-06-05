@@ -93,7 +93,7 @@
             "pkg:pypi/mypy-extensions@1.1.0",
             "pkg:pypi/packaging@26.2",
             "pkg:pypi/pathspec@1.1.1",
-            "pkg:pypi/platformdirs@4.9.6",
+            "pkg:pypi/platformdirs@4.10.0",
             "pkg:pypi/typing-extensions@4.15.0"
           ],
           "id": "pkg:pypi/black@23.12.1",
@@ -116,10 +116,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 8.7,
-                  "Source": "",
-                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:H/VA:N/SC:N/SI:N/SA:N",
-                  "Version": "4.0"
+                  "score": 8.7,
+                  "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:H/VA:N/SC:N/SI:N/SA:N",
+                  "version": "4.0"
                 }
               ],
               "cwes": [
@@ -135,9 +134,9 @@
               "epss": [
                 {
                   "cve": "CVE-2026-32274",
-                  "date": "2026-05-23",
+                  "date": "2026-06-04",
                   "epss": 0.00023,
-                  "percentile": 0.06884
+                  "percentile": 0.06834
                 }
               ],
               "fix_available": [
@@ -173,28 +172,28 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-3936-cmfr-pm3m"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-3936-cmfr-pm3m"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/psf/black/security/advisories/GHSA-3936-cmfr-pm3m"
+                  "type": "advisory",
+                  "url": "https://github.com/psf/black/security/advisories/GHSA-3936-cmfr-pm3m"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/psf/black/pull/5038"
+                  "type": "advisory",
+                  "url": "https://github.com/psf/black/pull/5038"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/psf/black/commit/4937fe6cf241139ddbfc16b0bdbb5b422798909d"
+                  "type": "advisory",
+                  "url": "https://github.com/psf/black/commit/4937fe6cf241139ddbfc16b0bdbb5b422798909d"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/psf/black/releases/tag/26.3.1"
+                  "type": "advisory",
+                  "url": "https://github.com/psf/black/releases/tag/26.3.1"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2026-32274"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-32274"
                 }
               ],
               "risk_score": 0.01863,
@@ -210,10 +209,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 5.3,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
-                  "Version": "3.1"
+                  "score": 5.3,
+                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
+                  "version": "3.1"
                 }
               ],
               "cwes": [
@@ -235,9 +233,9 @@
               "epss": [
                 {
                   "cve": "CVE-2024-21503",
-                  "date": "2026-05-23",
+                  "date": "2026-06-04",
                   "epss": 0.00081,
-                  "percentile": 0.23752
+                  "percentile": 0.23905
                 }
               ],
               "fix_available": [
@@ -273,28 +271,28 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-fj7x-q9j7-g6q6"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-fj7x-q9j7-g6q6"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2024-21503"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2024-21503"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/psf/black/commit/f00093672628d212b8965a8993cee8bedf5fe9b8"
+                  "type": "advisory",
+                  "url": "https://github.com/psf/black/commit/f00093672628d212b8965a8993cee8bedf5fe9b8"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/psf/black/releases/tag/24.3.0"
+                  "type": "advisory",
+                  "url": "https://github.com/psf/black/releases/tag/24.3.0"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://security.snyk.io/vuln/SNYK-PYTHON-BLACK-6256273"
+                  "type": "advisory",
+                  "url": "https://security.snyk.io/vuln/SNYK-PYTHON-BLACK-6256273"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/black/PYSEC-2024-48.yaml"
+                  "type": "advisory",
+                  "url": "https://github.com/pypa/advisory-database/tree/main/vulns/black/PYSEC-2024-48.yaml"
                 }
               ],
               "risk_score": 0.041714999999999995,
@@ -533,7 +531,7 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/distlib@0.4.0",
+          "id": "pkg:pypi/distlib@0.4.1",
           "licenses": [
             {
               "spdxExpression": "PSF-2.0",
@@ -542,9 +540,9 @@
             }
           ],
           "name": "distlib",
-          "purl": "pkg:pypi/distlib@0.4.0",
+          "purl": "pkg:pypi/distlib@0.4.1",
           "scope": "runtime",
-          "version": "0.4.0",
+          "version": "0.4.1",
           "vulnerabilities": []
         },
         {
@@ -581,16 +579,14 @@
               ],
               "cvss": [
                 {
-                  "Score": 4.9,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:H/I:N/A:N",
-                  "Version": "3.1"
+                  "score": 4.9,
+                  "vector": "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:H/I:N/A:N",
+                  "version": "3.1"
                 },
                 {
-                  "Score": 6.9,
-                  "Source": "",
-                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:H/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N",
-                  "Version": "4.0"
+                  "score": 6.9,
+                  "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:H/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N",
+                  "version": "4.0"
                 }
               ],
               "cwes": [
@@ -606,9 +602,9 @@
               "epss": [
                 {
                   "cve": "CVE-2021-33203",
-                  "date": "2026-05-23",
-                  "epss": 0.00327,
-                  "percentile": 0.55704
+                  "date": "2026-06-04",
+                  "epss": 0.00143,
+                  "percentile": 0.34125
                 }
               ],
               "fix_available": [
@@ -650,51 +646,51 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-68w8-qjq3-2gfm"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-68w8-qjq3-2gfm"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2021-33203"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2021-33203"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://groups.google.com/forum/#!forum/django-announce"
+                  "type": "advisory",
+                  "url": "https://groups.google.com/forum/#!forum/django-announce"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/django/django/commit/053cc9534d174dc89daba36724ed2dcb36755b90"
+                  "type": "advisory",
+                  "url": "https://github.com/django/django/commit/053cc9534d174dc89daba36724ed2dcb36755b90"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/django/django/commit/20c67a0693c4ede2b09af02574823485e82e4c8f"
+                  "type": "advisory",
+                  "url": "https://github.com/django/django/commit/20c67a0693c4ede2b09af02574823485e82e4c8f"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/django/django/commit/dfaba12cda060b8b292ae1d271b44bf810b1c5b9"
+                  "type": "advisory",
+                  "url": "https://github.com/django/django/commit/dfaba12cda060b8b292ae1d271b44bf810b1c5b9"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://docs.djangoproject.com/en/3.2/releases/security"
+                  "type": "advisory",
+                  "url": "https://docs.djangoproject.com/en/3.2/releases/security"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/django/PYSEC-2021-98.yaml"
+                  "type": "advisory",
+                  "url": "https://github.com/pypa/advisory-database/tree/main/vulns/django/PYSEC-2021-98.yaml"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/B4SQG2EAF4WCI2SLRL6XRDJ3RPK3ZRDV"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/B4SQG2EAF4WCI2SLRL6XRDJ3RPK3ZRDV"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://security.netapp.com/advisory/ntap-20210727-0004"
+                  "type": "advisory",
+                  "url": "https://security.netapp.com/advisory/ntap-20210727-0004"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://www.djangoproject.com/weblog/2021/jun/02/security-releases"
+                  "type": "advisory",
+                  "url": "https://www.djangoproject.com/weblog/2021/jun/02/security-releases"
                 }
               ],
-              "risk_score": 0.178215,
+              "risk_score": 0.077935,
               "severity": "medium",
               "severity_source": "github:language:python",
               "source": "grype",
@@ -707,10 +703,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 7.1,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:C/C:H/I:L/A:N",
-                  "Version": "3.1"
+                  "score": 7.1,
+                  "vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:C/C:H/I:L/A:N",
+                  "version": "3.1"
                 }
               ],
               "cwes": [
@@ -726,9 +721,9 @@
               "epss": [
                 {
                   "cve": "CVE-2025-57833",
-                  "date": "2026-05-23",
-                  "epss": 0.00041,
-                  "percentile": 0.12606
+                  "date": "2026-06-04",
+                  "epss": 0.00074,
+                  "percentile": 0.22438
                 }
               ],
               "fix_available": [
@@ -770,51 +765,51 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-6w2r-r2m5-xq5w"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-6w2r-r2m5-xq5w"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2025-57833"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2025-57833"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://docs.djangoproject.com/en/dev/releases/security"
+                  "type": "advisory",
+                  "url": "https://docs.djangoproject.com/en/dev/releases/security"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://groups.google.com/g/django-announce"
+                  "type": "advisory",
+                  "url": "https://groups.google.com/g/django-announce"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://medium.com/@EyalSec/django-unauthenticated-0-click-rce-and-sql-injection-using-default-configuration-059964f3f898"
+                  "type": "advisory",
+                  "url": "https://medium.com/@EyalSec/django-unauthenticated-0-click-rce-and-sql-injection-using-default-configuration-059964f3f898"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://www.djangoproject.com/weblog/2025/sep/03/security-releases"
+                  "type": "advisory",
+                  "url": "https://www.djangoproject.com/weblog/2025/sep/03/security-releases"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/django/django/commit/102965ea93072fe3c39a30be437c683ec1106ef5"
+                  "type": "advisory",
+                  "url": "https://github.com/django/django/commit/102965ea93072fe3c39a30be437c683ec1106ef5"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/django/django/commit/31334e6965ad136a5e369993b01721499c5d1a92"
+                  "type": "advisory",
+                  "url": "https://github.com/django/django/commit/31334e6965ad136a5e369993b01721499c5d1a92"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/django/django/commit/4c044fcc866ec226f612c475950b690b0139d243"
+                  "type": "advisory",
+                  "url": "https://github.com/django/django/commit/4c044fcc866ec226f612c475950b690b0139d243"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2025/09/msg00017.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2025/09/msg00017.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "http://www.openwall.com/lists/oss-security/2025/09/03/3"
+                  "type": "advisory",
+                  "url": "http://www.openwall.com/lists/oss-security/2025/09/03/3"
                 }
               ],
-              "risk_score": 0.029930000000000002,
+              "risk_score": 0.05402,
               "severity": "high",
               "severity_source": "github:language:python",
               "source": "grype",
@@ -827,10 +822,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 4,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:N/I:L/A:N",
-                  "Version": "3.1"
+                  "score": 4,
+                  "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:N/I:L/A:N",
+                  "version": "3.1"
                 }
               ],
               "cwes": [
@@ -846,9 +840,9 @@
               "epss": [
                 {
                   "cve": "CVE-2025-48432",
-                  "date": "2026-05-23",
+                  "date": "2026-06-04",
                   "epss": 0.00411,
-                  "percentile": 0.61604
+                  "percentile": 0.61754
                 }
               ],
               "fix_available": [
@@ -890,48 +884,48 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-7xr5-9hcq-chf9"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-7xr5-9hcq-chf9"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2025-48432"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2025-48432"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://docs.djangoproject.com/en/dev/releases/security"
+                  "type": "advisory",
+                  "url": "https://docs.djangoproject.com/en/dev/releases/security"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://groups.google.com/g/django-announce"
+                  "type": "advisory",
+                  "url": "https://groups.google.com/g/django-announce"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://www.djangoproject.com/weblog/2025/jun/04/security-releases"
+                  "type": "advisory",
+                  "url": "https://www.djangoproject.com/weblog/2025/jun/04/security-releases"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "http://www.openwall.com/lists/oss-security/2025/06/04/5"
+                  "type": "advisory",
+                  "url": "http://www.openwall.com/lists/oss-security/2025/06/04/5"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/django/PYSEC-2025-47.yaml"
+                  "type": "advisory",
+                  "url": "https://github.com/pypa/advisory-database/tree/main/vulns/django/PYSEC-2025-47.yaml"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://www.djangoproject.com/weblog/2025/jun/10/bugfix-releases"
+                  "type": "advisory",
+                  "url": "https://www.djangoproject.com/weblog/2025/jun/10/bugfix-releases"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "http://www.openwall.com/lists/oss-security/2025/06/10/2"
+                  "type": "advisory",
+                  "url": "http://www.openwall.com/lists/oss-security/2025/06/10/2"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "http://www.openwall.com/lists/oss-security/2025/06/10/3"
+                  "type": "advisory",
+                  "url": "http://www.openwall.com/lists/oss-security/2025/06/10/3"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "http://www.openwall.com/lists/oss-security/2025/06/10/4"
+                  "type": "advisory",
+                  "url": "http://www.openwall.com/lists/oss-security/2025/06/10/4"
                 }
               ],
               "risk_score": 0.18495,
@@ -947,10 +941,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 8.8,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
-                  "Version": "3.1"
+                  "score": 8.8,
+                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+                  "version": "3.1"
                 }
               ],
               "cwes": [
@@ -966,9 +959,9 @@
               "epss": [
                 {
                   "cve": "CVE-2022-36359",
-                  "date": "2026-05-23",
-                  "epss": 0.00675,
-                  "percentile": 0.71685
+                  "date": "2026-06-04",
+                  "epss": 0.0113,
+                  "percentile": 0.78658
                 }
               ],
               "fix_available": [
@@ -1013,63 +1006,63 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-8x94-hmjh-97hq"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-8x94-hmjh-97hq"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2022-36359"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2022-36359"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/django/PYSEC-2022-245.yaml"
+                  "type": "advisory",
+                  "url": "https://github.com/pypa/advisory-database/tree/main/vulns/django/PYSEC-2022-245.yaml"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://groups.google.com/g/django-announce/c/8cz--gvaJr4"
+                  "type": "advisory",
+                  "url": "https://groups.google.com/g/django-announce/c/8cz--gvaJr4"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "http://www.openwall.com/lists/oss-security/2022/08/03/1"
+                  "type": "advisory",
+                  "url": "http://www.openwall.com/lists/oss-security/2022/08/03/1"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://www.debian.org/security/2022/dsa-5254"
+                  "type": "advisory",
+                  "url": "https://www.debian.org/security/2022/dsa-5254"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/django/django/commit/b3e4494d759202a3b6bf247fd34455bf13be5b80"
+                  "type": "advisory",
+                  "url": "https://github.com/django/django/commit/b3e4494d759202a3b6bf247fd34455bf13be5b80"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/django/django/commit/b7d9529cbe0af4adabb6ea5d01ed8dcce3668fb3"
+                  "type": "advisory",
+                  "url": "https://github.com/django/django/commit/b7d9529cbe0af4adabb6ea5d01ed8dcce3668fb3"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/django/django/commit/bd062445cffd3f6cc6dcd20d13e2abed818fa173"
+                  "type": "advisory",
+                  "url": "https://github.com/django/django/commit/bd062445cffd3f6cc6dcd20d13e2abed818fa173"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://docs.djangoproject.com/en/4.0/releases/security"
+                  "type": "advisory",
+                  "url": "https://docs.djangoproject.com/en/4.0/releases/security"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/HWY6DQWRVBALV73BPUVBXC3QIYUM24IK"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/HWY6DQWRVBALV73BPUVBXC3QIYUM24IK"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/LTZVAKU5ALQWOKFTPISE257VCVIYGFQI"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/LTZVAKU5ALQWOKFTPISE257VCVIYGFQI"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://security.netapp.com/advisory/ntap-20220915-0008"
+                  "type": "advisory",
+                  "url": "https://security.netapp.com/advisory/ntap-20220915-0008"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://www.djangoproject.com/weblog/2022/aug/03/security-releases"
+                  "type": "advisory",
+                  "url": "https://www.djangoproject.com/weblog/2022/aug/03/security-releases"
                 }
               ],
-              "risk_score": 0.550125,
+              "risk_score": 0.92095,
               "severity": "high",
               "severity_source": "github:language:python",
               "source": "grype",
@@ -1082,10 +1075,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 9.1,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N",
-                  "Version": "3.1"
+                  "score": 9.1,
+                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N",
+                  "version": "3.1"
                 }
               ],
               "cwes": [
@@ -1101,9 +1093,9 @@
               "epss": [
                 {
                   "cve": "CVE-2025-64459",
-                  "date": "2026-05-23",
-                  "epss": 0.00256,
-                  "percentile": 0.49062
+                  "date": "2026-06-04",
+                  "epss": 0.00296,
+                  "percentile": 0.53184
                 }
               ],
               "fix_available": [
@@ -1145,51 +1137,51 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-frmv-pr5f-9mcr"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-frmv-pr5f-9mcr"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2025-64459"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2025-64459"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://docs.djangoproject.com/en/dev/releases/security"
+                  "type": "advisory",
+                  "url": "https://docs.djangoproject.com/en/dev/releases/security"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://groups.google.com/g/django-announce"
+                  "type": "advisory",
+                  "url": "https://groups.google.com/g/django-announce"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://www.djangoproject.com/weblog/2025/nov/05/security-releases"
+                  "type": "advisory",
+                  "url": "https://www.djangoproject.com/weblog/2025/nov/05/security-releases"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/django/django/commit/06dd38324ac3d60d83d9f3adabf0dcdf423d2a85"
+                  "type": "advisory",
+                  "url": "https://github.com/django/django/commit/06dd38324ac3d60d83d9f3adabf0dcdf423d2a85"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/django/django/commit/59ae82e67053d281ff4562a24bbba21299f0a7d4"
+                  "type": "advisory",
+                  "url": "https://github.com/django/django/commit/59ae82e67053d281ff4562a24bbba21299f0a7d4"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/django/django/commit/6703f364d767e949c5b0e4016433ef75063b4f9b"
+                  "type": "advisory",
+                  "url": "https://github.com/django/django/commit/6703f364d767e949c5b0e4016433ef75063b4f9b"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/django/django/commit/72d2c87431f2ae0431d65d0ec792047f078c8241"
+                  "type": "advisory",
+                  "url": "https://github.com/django/django/commit/72d2c87431f2ae0431d65d0ec792047f078c8241"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://shivasurya.me/security/django/2025/11/07/django-sql-injection-CVE-2025-64459.html"
+                  "type": "advisory",
+                  "url": "https://shivasurya.me/security/django/2025/11/07/django-sql-injection-CVE-2025-64459.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/omarkurt/django-connector-CVE-2025-64459-testbed"
+                  "type": "advisory",
+                  "url": "https://github.com/omarkurt/django-connector-CVE-2025-64459-testbed"
                 }
               ],
-              "risk_score": 0.23168000000000002,
+              "risk_score": 0.26788,
               "severity": "critical",
               "severity_source": "github:language:python",
               "source": "grype",
@@ -1202,10 +1194,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 7.5,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
-                  "Version": "3.1"
+                  "score": 7.5,
+                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                  "version": "3.1"
                 }
               ],
               "cwes": [
@@ -1221,9 +1212,9 @@
               "epss": [
                 {
                   "cve": "CVE-2025-64458",
-                  "date": "2026-05-23",
-                  "epss": 0.00024,
-                  "percentile": 0.07074
+                  "date": "2026-06-04",
+                  "epss": 0.00026,
+                  "percentile": 0.07678
                 }
               ],
               "fix_available": [
@@ -1263,43 +1254,43 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-qw25-v68c-qjf3"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-qw25-v68c-qjf3"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2025-64458"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2025-64458"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://docs.djangoproject.com/en/dev/releases/security"
+                  "type": "advisory",
+                  "url": "https://docs.djangoproject.com/en/dev/releases/security"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://groups.google.com/g/django-announce"
+                  "type": "advisory",
+                  "url": "https://groups.google.com/g/django-announce"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://www.djangoproject.com/weblog/2025/nov/05/security-releases"
+                  "type": "advisory",
+                  "url": "https://www.djangoproject.com/weblog/2025/nov/05/security-releases"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/django/django/commit/3790593781d26168e7306b5b2f8ea0309de16242"
+                  "type": "advisory",
+                  "url": "https://github.com/django/django/commit/3790593781d26168e7306b5b2f8ea0309de16242"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/django/django/commit/4f5d904b63751dea9ffc3b0e046404a7fa5881ac"
+                  "type": "advisory",
+                  "url": "https://github.com/django/django/commit/4f5d904b63751dea9ffc3b0e046404a7fa5881ac"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/django/django/commit/6e13348436fccf8f22982921d6a3a3e65c956a9f"
+                  "type": "advisory",
+                  "url": "https://github.com/django/django/commit/6e13348436fccf8f22982921d6a3a3e65c956a9f"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/django/django/commit/770eea38d7a0e9ba9455140b5a9a9e33618226a7"
+                  "type": "advisory",
+                  "url": "https://github.com/django/django/commit/770eea38d7a0e9ba9455140b5a9a9e33618226a7"
                 }
               ],
-              "risk_score": 0.018000000000000002,
+              "risk_score": 0.019499999999999997,
               "severity": "high",
               "severity_source": "github:language:python",
               "source": "grype",
@@ -1312,16 +1303,14 @@
               ],
               "cvss": [
                 {
-                  "Score": 3.7,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
-                  "Version": "3.1"
+                  "score": 3.7,
+                  "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
+                  "version": "3.1"
                 },
                 {
-                  "Score": 6.3,
-                  "Source": "",
-                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:L/VI:N/VA:N/SC:N/SI:N/SA:N",
-                  "Version": "4.0"
+                  "score": 6.3,
+                  "vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:L/VI:N/VA:N/SC:N/SI:N/SA:N",
+                  "version": "4.0"
                 }
               ],
               "cwes": [
@@ -1337,9 +1326,9 @@
               "epss": [
                 {
                   "cve": "CVE-2024-45231",
-                  "date": "2026-05-23",
+                  "date": "2026-06-04",
                   "epss": 0.00235,
-                  "percentile": 0.46357
+                  "percentile": 0.46486
                 }
               ],
               "fix_available": [
@@ -1378,36 +1367,36 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-rrqc-c2jx-6jgv"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-rrqc-c2jx-6jgv"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2024-45231"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2024-45231"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://docs.djangoproject.com/en/dev/releases/security"
+                  "type": "advisory",
+                  "url": "https://docs.djangoproject.com/en/dev/releases/security"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://groups.google.com/forum/#%21forum/django-announce"
+                  "type": "advisory",
+                  "url": "https://groups.google.com/forum/#%21forum/django-announce"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://www.djangoproject.com/weblog/2024/sep/03/security-releases"
+                  "type": "advisory",
+                  "url": "https://www.djangoproject.com/weblog/2024/sep/03/security-releases"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/django/django/commit/3c733c78d6f8e50296d6e248968b6516c92a53ca"
+                  "type": "advisory",
+                  "url": "https://github.com/django/django/commit/3c733c78d6f8e50296d6e248968b6516c92a53ca"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/django/django/commit/96d84047715ea1715b4bd1594e46122b8a77b9e2"
+                  "type": "advisory",
+                  "url": "https://github.com/django/django/commit/96d84047715ea1715b4bd1594e46122b8a77b9e2"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/django/django/commit/bf4888d317ba4506d091eeac6e8b4f1fcc731199"
+                  "type": "advisory",
+                  "url": "https://github.com/django/django/commit/bf4888d317ba4506d091eeac6e8b4f1fcc731199"
                 }
               ],
               "risk_score": 0.11750000000000001,
@@ -1423,7 +1412,7 @@
             "pkg:pypi/typing-extensions@4.15.0",
             "pkg:pypi/urllib3@1.24.1"
           ],
-          "id": "pkg:pypi/dulwich@1.2.4",
+          "id": "pkg:pypi/dulwich@1.2.6",
           "licenses": [
             {
               "spdxExpression": "Apache-2.0 OR GPL-2.0-or-later",
@@ -1432,9 +1421,9 @@
             }
           ],
           "name": "dulwich",
-          "purl": "pkg:pypi/dulwich@1.2.4",
+          "purl": "pkg:pypi/dulwich@1.2.6",
           "scope": "runtime",
-          "version": "1.2.4",
+          "version": "1.2.6",
           "vulnerabilities": []
         },
         {
@@ -1483,7 +1472,7 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/filelock@3.29.0",
+          "id": "pkg:pypi/filelock@3.29.1",
           "licenses": [
             {
               "spdxExpression": "MIT",
@@ -1492,15 +1481,15 @@
             }
           ],
           "name": "filelock",
-          "purl": "pkg:pypi/filelock@3.29.0",
+          "purl": "pkg:pypi/filelock@3.29.1",
           "scope": "runtime",
-          "version": "3.29.0",
+          "version": "3.29.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
             "pkg:pypi/packaging@26.2",
-            "pkg:pypi/platformdirs@4.9.6"
+            "pkg:pypi/platformdirs@4.10.0"
           ],
           "id": "pkg:pypi/findpython@0.8.0",
           "licenses": [
@@ -1657,10 +1646,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 6.9,
-                  "Source": "",
-                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N",
-                  "Version": "4.0"
+                  "score": 6.9,
+                  "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N",
+                  "version": "4.0"
                 }
               ],
               "data_source": "https://github.com/advisories/GHSA-65pc-fj4g-8rjx",
@@ -1695,12 +1683,12 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-65pc-fj4g-8rjx"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-65pc-fj4g-8rjx"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/kjd/idna/security/advisories/GHSA-65pc-fj4g-8rjx"
+                  "type": "advisory",
+                  "url": "https://github.com/kjd/idna/security/advisories/GHSA-65pc-fj4g-8rjx"
                 }
               ],
               "severity": "medium",
@@ -1715,16 +1703,14 @@
               ],
               "cvss": [
                 {
-                  "Score": 6.2,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
-                  "Version": "3.1"
+                  "score": 6.2,
+                  "vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                  "version": "3.1"
                 },
                 {
-                  "Score": 6.9,
-                  "Source": "",
-                  "Vector": "CVSS:4.0/AV:L/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N",
-                  "Version": "4.0"
+                  "score": 6.9,
+                  "vector": "CVSS:4.0/AV:L/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N",
+                  "version": "4.0"
                 }
               ],
               "cwes": [
@@ -1740,9 +1726,9 @@
               "epss": [
                 {
                   "cve": "CVE-2024-3651",
-                  "date": "2026-05-23",
-                  "epss": 0.00675,
-                  "percentile": 0.7171
+                  "date": "2026-06-04",
+                  "epss": 0.00689,
+                  "percentile": 0.7215
                 }
               ],
               "fix_available": [
@@ -1784,51 +1770,51 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-jjg7-2v4v-x38h"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-jjg7-2v4v-x38h"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/kjd/idna/security/advisories/GHSA-jjg7-2v4v-x38h"
+                  "type": "advisory",
+                  "url": "https://github.com/kjd/idna/security/advisories/GHSA-jjg7-2v4v-x38h"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2024-3651"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2024-3651"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/kjd/idna/commit/1d365e17e10d72d0b7876316fc7b9ca0eebdd38d"
+                  "type": "advisory",
+                  "url": "https://github.com/kjd/idna/commit/1d365e17e10d72d0b7876316fc7b9ca0eebdd38d"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://huntr.com/bounties/93d78d07-d791-4b39-a845-cbfabc44aadb"
+                  "type": "advisory",
+                  "url": "https://huntr.com/bounties/93d78d07-d791-4b39-a845-cbfabc44aadb"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/idna/PYSEC-2024-60.yaml"
+                  "type": "advisory",
+                  "url": "https://github.com/pypa/advisory-database/tree/main/vulns/idna/PYSEC-2024-60.yaml"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2024/05/msg00006.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2024/05/msg00006.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/F2S5E23N6E52S46KGNYTDFB75LOC4N4D"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/F2S5E23N6E52S46KGNYTDFB75LOC4N4D"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/S5IDLLD2IKSIVRBSLB34WTSYGLMWUFWF"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/S5IDLLD2IKSIVRBSLB34WTSYGLMWUFWF"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/ULSC7HBJKXB3BZV367WM5BR6DFEC4Z43"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/ULSC7HBJKXB3BZV367WM5BR6DFEC4Z43"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/4YQUPYH3SVZ5GFF2CDQ55FCM575AZTF2"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/4YQUPYH3SVZ5GFF2CDQ55FCM575AZTF2"
                 }
               ],
-              "risk_score": 0.3898125,
+              "risk_score": 0.3978975,
               "severity": "medium",
               "severity_source": "github:language:python",
               "source": "grype",
@@ -1994,10 +1980,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 5.4,
-                  "Source": "",
-                  "Vector": "CVSS:4.0/AV:L/AC:L/AT:P/PR:L/UI:P/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N",
-                  "Version": "4.0"
+                  "score": 5.4,
+                  "vector": "CVSS:4.0/AV:L/AC:L/AT:P/PR:L/UI:P/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N",
+                  "version": "4.0"
                 }
               ],
               "cwes": [
@@ -2013,9 +1998,9 @@
               "epss": [
                 {
                   "cve": "CVE-2025-27516",
-                  "date": "2026-05-23",
+                  "date": "2026-06-04",
                   "epss": 0.00121,
-                  "percentile": 0.30655
+                  "percentile": 0.30683
                 }
               ],
               "fix_available": [
@@ -2051,28 +2036,28 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-cpwx-vrp4-4pq7"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-cpwx-vrp4-4pq7"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pallets/jinja/security/advisories/GHSA-cpwx-vrp4-4pq7"
+                  "type": "advisory",
+                  "url": "https://github.com/pallets/jinja/security/advisories/GHSA-cpwx-vrp4-4pq7"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pallets/jinja/commit/90457bbf33b8662926ae65cdde4c4c32e756e403"
+                  "type": "advisory",
+                  "url": "https://github.com/pallets/jinja/commit/90457bbf33b8662926ae65cdde4c4c32e756e403"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2025-27516"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2025-27516"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2025/04/msg00045.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2025/04/msg00045.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2025/04/msg00022.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2025/04/msg00022.html"
                 }
               ],
               "risk_score": 0.06292,
@@ -2088,16 +2073,14 @@
               ],
               "cvss": [
                 {
-                  "Score": 5.3,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
-                  "Version": "3.1"
+                  "score": 5.3,
+                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
+                  "version": "3.1"
                 },
                 {
-                  "Score": 6.9,
-                  "Source": "",
-                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N",
-                  "Version": "4.0"
+                  "score": 6.9,
+                  "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N",
+                  "version": "4.0"
                 }
               ],
               "cwes": [
@@ -2113,9 +2096,9 @@
               "epss": [
                 {
                   "cve": "CVE-2020-28493",
-                  "date": "2026-05-23",
+                  "date": "2026-06-04",
                   "epss": 0.00207,
-                  "percentile": 0.42877
+                  "percentile": 0.4297
                 }
               ],
               "fix_available": [
@@ -2154,40 +2137,40 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-g3rq-g295-4j3m"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-g3rq-g295-4j3m"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2020-28493"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2020-28493"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pallets/jinja/pull/1343"
+                  "type": "advisory",
+                  "url": "https://github.com/pallets/jinja/pull/1343"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pallets/jinja/blob/ab81fd9c277900c85da0c322a2ff9d68a235b2e6/src/jinja2/utils.py%23L20"
+                  "type": "advisory",
+                  "url": "https://github.com/pallets/jinja/blob/ab81fd9c277900c85da0c322a2ff9d68a235b2e6/src/jinja2/utils.py%23L20"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://snyk.io/vuln/SNYK-PYTHON-JINJA2-1012994"
+                  "type": "advisory",
+                  "url": "https://snyk.io/vuln/SNYK-PYTHON-JINJA2-1012994"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://security.gentoo.org/glsa/202107-19"
+                  "type": "advisory",
+                  "url": "https://security.gentoo.org/glsa/202107-19"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pallets/jinja/commit/15ef8f09b659f9100610583938005a7a10472d4d"
+                  "type": "advisory",
+                  "url": "https://github.com/pallets/jinja/commit/15ef8f09b659f9100610583938005a7a10472d4d"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/jinja2/PYSEC-2021-66.yaml"
+                  "type": "advisory",
+                  "url": "https://github.com/pypa/advisory-database/tree/main/vulns/jinja2/PYSEC-2021-66.yaml"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/PVAKCOO7VBVUBM3Q6CBBTPBFNP5NDXF4"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/PVAKCOO7VBVUBM3Q6CBBTPBFNP5NDXF4"
                 }
               ],
               "risk_score": 0.11488499999999996,
@@ -2203,10 +2186,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 5.4,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N",
-                  "Version": "3.1"
+                  "score": 5.4,
+                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N",
+                  "version": "3.1"
                 }
               ],
               "cwes": [
@@ -2228,9 +2210,9 @@
               "epss": [
                 {
                   "cve": "CVE-2024-22195",
-                  "date": "2026-05-23",
+                  "date": "2026-06-04",
                   "epss": 0.00151,
-                  "percentile": 0.35276
+                  "percentile": 0.35377
                 }
               ],
               "fix_available": [
@@ -2270,44 +2252,44 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-h5c8-rqwp-cp95"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-h5c8-rqwp-cp95"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pallets/jinja/security/advisories/GHSA-h5c8-rqwp-cp95"
+                  "type": "advisory",
+                  "url": "https://github.com/pallets/jinja/security/advisories/GHSA-h5c8-rqwp-cp95"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2024-22195"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2024-22195"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pallets/jinja/commit/716795349a41d4983a9a4771f7d883c96ea17be7"
+                  "type": "advisory",
+                  "url": "https://github.com/pallets/jinja/commit/716795349a41d4983a9a4771f7d883c96ea17be7"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pallets/jinja/releases/tag/3.1.3"
+                  "type": "advisory",
+                  "url": "https://github.com/pallets/jinja/releases/tag/3.1.3"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2024/01/msg00010.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2024/01/msg00010.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/5XCWZD464AJJJUBOO7CMPXQ4ROBC6JX2"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/5XCWZD464AJJJUBOO7CMPXQ4ROBC6JX2"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/DELCVUUYX75I5K4Q5WMJG4MUZJA6VAIP"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/DELCVUUYX75I5K4Q5WMJG4MUZJA6VAIP"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/O7YWRBX6JQCWC2XXCTZ55C7DPMGICCN3"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/O7YWRBX6JQCWC2XXCTZ55C7DPMGICCN3"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2024/12/msg00009.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2024/12/msg00009.html"
                 }
               ],
               "risk_score": 0.07852,
@@ -2323,10 +2305,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 5.4,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N",
-                  "Version": "3.1"
+                  "score": 5.4,
+                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N",
+                  "version": "3.1"
                 }
               ],
               "cwes": [
@@ -2342,9 +2323,9 @@
               "epss": [
                 {
                   "cve": "CVE-2024-34064",
-                  "date": "2026-05-23",
-                  "epss": 0.00936,
-                  "percentile": 0.76426
+                  "date": "2026-06-04",
+                  "epss": 0.0123,
+                  "percentile": 0.795
                 }
               ],
               "fix_available": [
@@ -2383,43 +2364,43 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-h75v-3vvj-5mfj"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-h75v-3vvj-5mfj"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pallets/jinja/security/advisories/GHSA-h75v-3vvj-5mfj"
+                  "type": "advisory",
+                  "url": "https://github.com/pallets/jinja/security/advisories/GHSA-h75v-3vvj-5mfj"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pallets/jinja/commit/0668239dc6b44ef38e7a6c9f91f312fd4ca581cb"
+                  "type": "advisory",
+                  "url": "https://github.com/pallets/jinja/commit/0668239dc6b44ef38e7a6c9f91f312fd4ca581cb"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2024-34064"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2024-34064"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/567XIGSZMABG6TSMYWD7MIYNJSUQQRUC"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/567XIGSZMABG6TSMYWD7MIYNJSUQQRUC"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/GCLF44KY43BSVMTE6S53B4V5WP3FRRSE"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/GCLF44KY43BSVMTE6S53B4V5WP3FRRSE"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/SSCBHIL6BYKR5NRCBXP4XMP2CEEKGFVS"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/SSCBHIL6BYKR5NRCBXP4XMP2CEEKGFVS"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/ZALNWE3TXPPHVPSI3AZ5CTMSTAVN5UMS"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/ZALNWE3TXPPHVPSI3AZ5CTMSTAVN5UMS"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2024/12/msg00009.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2024/12/msg00009.html"
                 }
               ],
-              "risk_score": 0.48672000000000004,
+              "risk_score": 0.6396000000000001,
               "severity": "medium",
               "severity_source": "github:language:python",
               "source": "grype",
@@ -2432,16 +2413,14 @@
               ],
               "cvss": [
                 {
-                  "Score": 7.8,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
-                  "Version": "3.1"
+                  "score": 7.8,
+                  "vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
+                  "version": "3.1"
                 },
                 {
-                  "Score": 5.4,
-                  "Source": "",
-                  "Vector": "CVSS:4.0/AV:L/AC:L/AT:P/PR:L/UI:P/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N",
-                  "Version": "4.0"
+                  "score": 5.4,
+                  "vector": "CVSS:4.0/AV:L/AC:L/AT:P/PR:L/UI:P/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N",
+                  "version": "4.0"
                 }
               ],
               "cwes": [
@@ -2463,9 +2442,9 @@
               "epss": [
                 {
                   "cve": "CVE-2024-56326",
-                  "date": "2026-05-23",
-                  "epss": 0.00586,
-                  "percentile": 0.69315
+                  "date": "2026-06-04",
+                  "epss": 0.0057,
+                  "percentile": 0.68966
                 }
               ],
               "fix_available": [
@@ -2501,31 +2480,31 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-q2x7-8rv6-6q7h"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-q2x7-8rv6-6q7h"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pallets/jinja/security/advisories/GHSA-q2x7-8rv6-6q7h"
+                  "type": "advisory",
+                  "url": "https://github.com/pallets/jinja/security/advisories/GHSA-q2x7-8rv6-6q7h"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pallets/jinja/releases/tag/3.1.5"
+                  "type": "advisory",
+                  "url": "https://github.com/pallets/jinja/releases/tag/3.1.5"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2024-56326"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2024-56326"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pallets/jinja/commit/48b0687e05a5466a91cd5812d604fa37ad0943b4"
+                  "type": "advisory",
+                  "url": "https://github.com/pallets/jinja/commit/48b0687e05a5466a91cd5812d604fa37ad0943b4"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2025/04/msg00022.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2025/04/msg00022.html"
                 }
               ],
-              "risk_score": 0.33987999999999996,
+              "risk_score": 0.3306,
               "severity": "medium",
               "severity_source": "github:language:python",
               "source": "grype",
@@ -2703,7 +2682,7 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/pbs-installer@2026.5.10",
+          "id": "pkg:pypi/pbs-installer@2026.6.2",
           "licenses": [
             {
               "spdxExpression": "MIT",
@@ -2712,9 +2691,9 @@
             }
           ],
           "name": "pbs-installer",
-          "purl": "pkg:pypi/pbs-installer@2026.5.10",
+          "purl": "pkg:pypi/pbs-installer@2026.6.2",
           "scope": "runtime",
-          "version": "2026.5.10",
+          "version": "2026.6.2",
           "vulnerabilities": []
         },
         {
@@ -2735,7 +2714,7 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/platformdirs@4.9.6",
+          "id": "pkg:pypi/platformdirs@4.10.0",
           "licenses": [
             {
               "spdxExpression": "MIT",
@@ -2744,9 +2723,9 @@
             }
           ],
           "name": "platformdirs",
-          "purl": "pkg:pypi/platformdirs@4.9.6",
+          "purl": "pkg:pypi/platformdirs@4.10.0",
           "scope": "runtime",
-          "version": "4.9.6",
+          "version": "4.10.0",
           "vulnerabilities": []
         },
         {
@@ -2871,10 +2850,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 7.5,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
-                  "Version": "3.1"
+                  "score": 7.5,
+                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
+                  "version": "3.1"
                 }
               ],
               "cwes": [
@@ -2896,9 +2874,9 @@
               "epss": [
                 {
                   "cve": "CVE-2026-32597",
-                  "date": "2026-05-23",
+                  "date": "2026-06-04",
                   "epss": 0.00014,
-                  "percentile": 0.02811
+                  "percentile": 0.02677
                 }
               ],
               "fix_available": [
@@ -2933,20 +2911,20 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-752w-5fwx-jx9f"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-752w-5fwx-jx9f"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/jpadilla/pyjwt/security/advisories/GHSA-752w-5fwx-jx9f"
+                  "type": "advisory",
+                  "url": "https://github.com/jpadilla/pyjwt/security/advisories/GHSA-752w-5fwx-jx9f"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2026-32597"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-32597"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2026/05/msg00008.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2026/05/msg00008.html"
                 }
               ],
               "risk_score": 0.010499999999999999,
@@ -2962,10 +2940,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 7.5,
-                  "Source": "",
-                  "Vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
-                  "Version": "3.0"
+                  "score": 7.5,
+                  "vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
+                  "version": "3.0"
                 }
               ],
               "data_source": "https://github.com/advisories/GHSA-r9jw-mwhq-wp62",
@@ -2973,9 +2950,9 @@
               "epss": [
                 {
                   "cve": "CVE-2017-11424",
-                  "date": "2026-05-23",
+                  "date": "2026-06-04",
                   "epss": 0.00193,
-                  "percentile": 0.40913
+                  "percentile": 0.40994
                 }
               ],
               "fix_available": [
@@ -3011,24 +2988,24 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-r9jw-mwhq-wp62"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-r9jw-mwhq-wp62"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2017-11424"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2017-11424"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/jpadilla/pyjwt/pull/277"
+                  "type": "advisory",
+                  "url": "https://github.com/jpadilla/pyjwt/pull/277"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "http://www.debian.org/security/2017/dsa-3979"
+                  "type": "advisory",
+                  "url": "http://www.debian.org/security/2017/dsa-3979"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/pyjwt/PYSEC-2017-24.yaml"
+                  "type": "advisory",
+                  "url": "https://github.com/pypa/advisory-database/tree/main/vulns/pyjwt/PYSEC-2017-24.yaml"
                 }
               ],
               "risk_score": 0.14475,
@@ -3045,7 +3022,7 @@
             "pkg:pypi/dill@0.4.1",
             "pkg:pypi/isort@5.13.2",
             "pkg:pypi/mccabe@0.7.0",
-            "pkg:pypi/platformdirs@4.9.6",
+            "pkg:pypi/platformdirs@4.10.0",
             "pkg:pypi/tomlkit@0.15.0",
             "pkg:pypi/typing-extensions@4.15.0"
           ],
@@ -3124,10 +3101,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 6.8,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:C/C:L/I:L/A:L",
-                  "Version": "3.1"
+                  "score": 6.8,
+                  "vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:C/C:L/I:L/A:L",
+                  "version": "3.1"
                 }
               ],
               "cwes": [
@@ -3143,9 +3119,9 @@
               "epss": [
                 {
                   "cve": "CVE-2025-71176",
-                  "date": "2026-05-23",
-                  "epss": 0.00006,
-                  "percentile": 0.00414
+                  "date": "2026-06-04",
+                  "epss": 0.00009,
+                  "percentile": 0.01006
                 }
               ],
               "fix_available": [
@@ -3182,35 +3158,35 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-6w46-j5rx-g56g"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-6w46-j5rx-g56g"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2025-71176"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2025-71176"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pytest-dev/pytest/issues/13669"
+                  "type": "advisory",
+                  "url": "https://github.com/pytest-dev/pytest/issues/13669"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://www.openwall.com/lists/oss-security/2026/01/21/5"
+                  "type": "advisory",
+                  "url": "https://www.openwall.com/lists/oss-security/2026/01/21/5"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pytest-dev/pytest/pull/14343"
+                  "type": "advisory",
+                  "url": "https://github.com/pytest-dev/pytest/pull/14343"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pytest-dev/pytest/commit/95d8423bd24992deea5b9df32555fa1741679e2c"
+                  "type": "advisory",
+                  "url": "https://github.com/pytest-dev/pytest/commit/95d8423bd24992deea5b9df32555fa1741679e2c"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pytest-dev/pytest/releases/tag/9.0.3"
+                  "type": "advisory",
+                  "url": "https://github.com/pytest-dev/pytest/releases/tag/9.0.3"
                 }
               ],
-              "risk_score": 0.00354,
+              "risk_score": 0.0053100000000000005,
               "severity": "medium",
               "severity_source": "github:language:python",
               "source": "grype",
@@ -3220,10 +3196,10 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/filelock@3.29.0",
-            "pkg:pypi/platformdirs@4.9.6"
+            "pkg:pypi/filelock@3.29.1",
+            "pkg:pypi/platformdirs@4.10.0"
           ],
-          "id": "pkg:pypi/python-discovery@1.3.1",
+          "id": "pkg:pypi/python-discovery@1.4.0",
           "licenses": [
             {
               "spdxExpression": "non-standard",
@@ -3232,9 +3208,9 @@
             }
           ],
           "name": "python-discovery",
-          "purl": "pkg:pypi/python-discovery@1.3.1",
+          "purl": "pkg:pypi/python-discovery@1.4.0",
           "scope": "runtime",
-          "version": "1.3.1",
+          "version": "1.4.0",
           "vulnerabilities": []
         },
         {
@@ -3350,10 +3326,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 5.3,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N",
-                  "Version": "3.1"
+                  "score": 5.3,
+                  "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N",
+                  "version": "3.1"
                 }
               ],
               "cwes": [
@@ -3369,9 +3344,9 @@
               "epss": [
                 {
                   "cve": "CVE-2024-47081",
-                  "date": "2026-05-23",
-                  "epss": 0.00227,
-                  "percentile": 0.45344
+                  "date": "2026-06-04",
+                  "epss": 0.00208,
+                  "percentile": 0.43204
                 }
               ],
               "fix_available": [
@@ -3414,55 +3389,55 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-9hjg-9r4m-mvj7"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-9hjg-9r4m-mvj7"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/psf/requests/security/advisories/GHSA-9hjg-9r4m-mvj7"
+                  "type": "advisory",
+                  "url": "https://github.com/psf/requests/security/advisories/GHSA-9hjg-9r4m-mvj7"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2024-47081"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2024-47081"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/psf/requests/pull/6965"
+                  "type": "advisory",
+                  "url": "https://github.com/psf/requests/pull/6965"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/psf/requests/commit/96ba401c1296ab1dda74a2365ef36d88f7d144ef"
+                  "type": "advisory",
+                  "url": "https://github.com/psf/requests/commit/96ba401c1296ab1dda74a2365ef36d88f7d144ef"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://requests.readthedocs.io/en/latest/api/#requests.Session.trust_env"
+                  "type": "advisory",
+                  "url": "https://requests.readthedocs.io/en/latest/api/#requests.Session.trust_env"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://seclists.org/fulldisclosure/2025/Jun/2"
+                  "type": "advisory",
+                  "url": "https://seclists.org/fulldisclosure/2025/Jun/2"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "http://seclists.org/fulldisclosure/2025/Jun/2"
+                  "type": "advisory",
+                  "url": "http://seclists.org/fulldisclosure/2025/Jun/2"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "http://www.openwall.com/lists/oss-security/2025/06/03/11"
+                  "type": "advisory",
+                  "url": "http://www.openwall.com/lists/oss-security/2025/06/03/11"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "http://www.openwall.com/lists/oss-security/2025/06/03/9"
+                  "type": "advisory",
+                  "url": "http://www.openwall.com/lists/oss-security/2025/06/03/9"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "http://www.openwall.com/lists/oss-security/2025/06/04/1"
+                  "type": "advisory",
+                  "url": "http://www.openwall.com/lists/oss-security/2025/06/04/1"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "http://www.openwall.com/lists/oss-security/2025/06/04/6"
+                  "type": "advisory",
+                  "url": "http://www.openwall.com/lists/oss-security/2025/06/04/6"
                 }
               ],
-              "risk_score": 0.11690500000000001,
+              "risk_score": 0.10712,
               "severity": "medium",
               "severity_source": "github:language:python",
               "source": "grype",
@@ -3475,10 +3450,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 5.6,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:L/AC:H/PR:H/UI:R/S:U/C:H/I:H/A:N",
-                  "Version": "3.1"
+                  "score": 5.6,
+                  "vector": "CVSS:3.1/AV:L/AC:H/PR:H/UI:R/S:U/C:H/I:H/A:N",
+                  "version": "3.1"
                 }
               ],
               "cwes": [
@@ -3494,9 +3468,9 @@
               "epss": [
                 {
                   "cve": "CVE-2024-35195",
-                  "date": "2026-05-23",
-                  "epss": 0.00046,
-                  "percentile": 0.14254
+                  "date": "2026-06-04",
+                  "epss": 0.00044,
+                  "percentile": 0.13977
                 }
               ],
               "fix_available": [
@@ -3534,35 +3508,35 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-9wx4-h78v-vm56"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-9wx4-h78v-vm56"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/psf/requests/security/advisories/GHSA-9wx4-h78v-vm56"
+                  "type": "advisory",
+                  "url": "https://github.com/psf/requests/security/advisories/GHSA-9wx4-h78v-vm56"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/psf/requests/pull/6655"
+                  "type": "advisory",
+                  "url": "https://github.com/psf/requests/pull/6655"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/psf/requests/commit/a58d7f2ffb4d00b46dca2d70a3932a0b37e22fac"
+                  "type": "advisory",
+                  "url": "https://github.com/psf/requests/commit/a58d7f2ffb4d00b46dca2d70a3932a0b37e22fac"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2024-35195"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2024-35195"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/IYLSNK5TL46Q6XPRVMHVWS63MVJQOK4Q"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/IYLSNK5TL46Q6XPRVMHVWS63MVJQOK4Q"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/N7WP6EYDSUOCOJYHDK5NX43PYZ4SNHGZ"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/N7WP6EYDSUOCOJYHDK5NX43PYZ4SNHGZ"
                 }
               ],
-              "risk_score": 0.024380000000000002,
+              "risk_score": 0.023320000000000004,
               "severity": "medium",
               "severity_source": "github:language:python",
               "source": "grype",
@@ -3575,10 +3549,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 4.4,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:L/AC:H/PR:L/UI:R/S:U/C:N/I:H/A:N",
-                  "Version": "3.1"
+                  "score": 4.4,
+                  "vector": "CVSS:3.1/AV:L/AC:H/PR:L/UI:R/S:U/C:N/I:H/A:N",
+                  "version": "3.1"
                 }
               ],
               "cwes": [
@@ -3594,9 +3567,9 @@
               "epss": [
                 {
                   "cve": "CVE-2026-25645",
-                  "date": "2026-05-23",
-                  "epss": 0.00004,
-                  "percentile": 0.00193
+                  "date": "2026-06-04",
+                  "epss": 0.00005,
+                  "percentile": 0.00254
                 }
               ],
               "fix_available": [
@@ -3632,27 +3605,27 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-gc5v-m9x4-r6x2"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-gc5v-m9x4-r6x2"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/psf/requests/security/advisories/GHSA-gc5v-m9x4-r6x2"
+                  "type": "advisory",
+                  "url": "https://github.com/psf/requests/security/advisories/GHSA-gc5v-m9x4-r6x2"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/psf/requests/commit/66d21cb07bd6255b1280291c4fafb71803cdb3b7"
+                  "type": "advisory",
+                  "url": "https://github.com/psf/requests/commit/66d21cb07bd6255b1280291c4fafb71803cdb3b7"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/psf/requests/releases/tag/v2.33.0"
+                  "type": "advisory",
+                  "url": "https://github.com/psf/requests/releases/tag/v2.33.0"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2026-25645"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-25645"
                 }
               ],
-              "risk_score": 0.0018800000000000004,
+              "risk_score": 0.00235,
               "severity": "medium",
               "severity_source": "github:language:python",
               "source": "grype",
@@ -3665,10 +3638,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 6.1,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:C/C:H/I:N/A:N",
-                  "Version": "3.1"
+                  "score": 6.1,
+                  "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:C/C:H/I:N/A:N",
+                  "version": "3.1"
                 }
               ],
               "cwes": [
@@ -3684,9 +3656,9 @@
               "epss": [
                 {
                   "cve": "CVE-2023-32681",
-                  "date": "2026-05-23",
-                  "epss": 0.06278,
-                  "percentile": 0.9103
+                  "date": "2026-06-04",
+                  "epss": 0.06086,
+                  "percentile": 0.90917
                 }
               ],
               "fix_available": [
@@ -3727,47 +3699,47 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-j8r2-6x86-q33q"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-j8r2-6x86-q33q"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/psf/requests/security/advisories/GHSA-j8r2-6x86-q33q"
+                  "type": "advisory",
+                  "url": "https://github.com/psf/requests/security/advisories/GHSA-j8r2-6x86-q33q"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/psf/requests/commit/74ea7cf7a6a27a4eeb2ae24e162bcc942a6706d5"
+                  "type": "advisory",
+                  "url": "https://github.com/psf/requests/commit/74ea7cf7a6a27a4eeb2ae24e162bcc942a6706d5"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2023-32681"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2023-32681"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/psf/requests/releases/tag/v2.31.0"
+                  "type": "advisory",
+                  "url": "https://github.com/psf/requests/releases/tag/v2.31.0"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/requests/PYSEC-2023-74.yaml"
+                  "type": "advisory",
+                  "url": "https://github.com/pypa/advisory-database/tree/main/vulns/requests/PYSEC-2023-74.yaml"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2023/06/msg00018.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2023/06/msg00018.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://security.gentoo.org/glsa/202309-08"
+                  "type": "advisory",
+                  "url": "https://security.gentoo.org/glsa/202309-08"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/AW7HNFGYP44RT3DUDQXG2QT3OEV2PJ7Y"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/AW7HNFGYP44RT3DUDQXG2QT3OEV2PJ7Y"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/KOYASTZDGQG2BWLSNBPL3TQRL2G7QYNZ"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/KOYASTZDGQG2BWLSNBPL3TQRL2G7QYNZ"
                 }
               ],
-              "risk_score": 3.4842899999999997,
+              "risk_score": 3.3777299999999997,
               "severity": "medium",
               "severity_source": "github:language:python",
               "source": "grype",
@@ -3813,12 +3785,12 @@
             "pkg:pypi/crashtest@0.4.1",
             "pkg:pypi/cryptography@48.0.0",
             "pkg:pypi/dill@0.4.1",
-            "pkg:pypi/distlib@0.4.0",
+            "pkg:pypi/distlib@0.4.1",
             "pkg:pypi/django@1.11.29",
-            "pkg:pypi/dulwich@1.2.4",
+            "pkg:pypi/dulwich@1.2.6",
             "pkg:pypi/fastjsonschema@2.21.2",
             "pkg:pypi/feedparser@6.0.8",
-            "pkg:pypi/filelock@3.29.0",
+            "pkg:pypi/filelock@3.29.1",
             "pkg:pypi/findpython@0.8.0",
             "pkg:pypi/gitdb@4.0.12",
             "pkg:pypi/gitpython@3.1.50",
@@ -3845,9 +3817,9 @@
             "pkg:pypi/mypy-extensions@1.1.0",
             "pkg:pypi/packaging@26.2",
             "pkg:pypi/pathspec@1.1.1",
-            "pkg:pypi/pbs-installer@2026.5.10",
+            "pkg:pypi/pbs-installer@2026.6.2",
             "pkg:pypi/pkginfo@1.12.1.2",
-            "pkg:pypi/platformdirs@4.9.6",
+            "pkg:pypi/platformdirs@4.10.0",
             "pkg:pypi/pluggy@1.6.0",
             "pkg:pypi/poetry-core@2.4.0",
             "pkg:pypi/pyasn1@0.6.3",
@@ -3858,7 +3830,7 @@
             "pkg:pypi/pyproject-hooks@1.2.0",
             "pkg:pypi/pytest-cov@4.1.0",
             "pkg:pypi/pytest@7.4.3",
-            "pkg:pypi/python-discovery@1.3.1",
+            "pkg:pypi/python-discovery@1.4.0",
             "pkg:pypi/pytz@2026.2",
             "pkg:pypi/pyyaml@6.0.3",
             "pkg:pypi/rapidfuzz@3.14.5",
@@ -3873,10 +3845,10 @@
             "pkg:pypi/sqlalchemy@1.4.46",
             "pkg:pypi/stevedore@5.8.0",
             "pkg:pypi/tomlkit@0.15.0",
-            "pkg:pypi/trove-classifiers@2026.5.22.10",
+            "pkg:pypi/trove-classifiers@2026.6.1.19",
             "pkg:pypi/typing-extensions@4.15.0",
             "pkg:pypi/urllib3@1.24.1",
-            "pkg:pypi/virtualenv@21.3.3"
+            "pkg:pypi/virtualenv@21.4.2"
           ],
           "id": "pkg:pypi/root",
           "licenses": [],
@@ -3918,10 +3890,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 7.5,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
-                  "Version": "3.1"
+                  "score": 7.5,
+                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+                  "version": "3.1"
                 }
               ],
               "cwes": [
@@ -3937,9 +3908,9 @@
               "epss": [
                 {
                   "cve": "CVE-2020-13757",
-                  "date": "2026-05-23",
+                  "date": "2026-06-04",
                   "epss": 0.00098,
-                  "percentile": 0.26797
+                  "percentile": 0.26937
                 }
               ],
               "fix_available": [
@@ -3978,36 +3949,36 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-537h-rv9q-vvph"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-537h-rv9q-vvph"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2020-13757"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2020-13757"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/sybrenstuvel/python-rsa/issues/146"
+                  "type": "advisory",
+                  "url": "https://github.com/sybrenstuvel/python-rsa/issues/146"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/sybrenstuvel/python-rsa/issues/146#issuecomment-641845667"
+                  "type": "advisory",
+                  "url": "https://github.com/sybrenstuvel/python-rsa/issues/146#issuecomment-641845667"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/rsa/PYSEC-2020-99.yaml"
+                  "type": "advisory",
+                  "url": "https://github.com/pypa/advisory-database/tree/main/vulns/rsa/PYSEC-2020-99.yaml"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/2KILTHBHNSDUCYV22ODLOKTICJJ7JQIQ"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/2KILTHBHNSDUCYV22ODLOKTICJJ7JQIQ"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/ZYB65VNILRBTXL6EITQTH2PZPK7I23MW"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/ZYB65VNILRBTXL6EITQTH2PZPK7I23MW"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://usn.ubuntu.com/4478-1"
+                  "type": "advisory",
+                  "url": "https://usn.ubuntu.com/4478-1"
                 }
               ],
               "risk_score": 0.0735,
@@ -4023,16 +3994,14 @@
               ],
               "cvss": [
                 {
-                  "Score": 5.9,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
-                  "Version": "3.1"
+                  "score": 5.9,
+                  "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
+                  "version": "3.1"
                 },
                 {
-                  "Score": 8.2,
-                  "Source": "",
-                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N",
-                  "Version": "4.0"
+                  "score": 8.2,
+                  "vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N",
+                  "version": "4.0"
                 }
               ],
               "cwes": [
@@ -4054,9 +4023,9 @@
               "epss": [
                 {
                   "cve": "CVE-2020-25658",
-                  "date": "2026-05-23",
+                  "date": "2026-06-04",
                   "epss": 0.00144,
-                  "percentile": 0.34253
+                  "percentile": 0.34352
                 }
               ],
               "fix_available": [
@@ -4104,72 +4073,72 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-xrx6-fmxq-rjj2"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-xrx6-fmxq-rjj2"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2020-25658"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2020-25658"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/sybrenstuvel/python-rsa/issues/165"
+                  "type": "advisory",
+                  "url": "https://github.com/sybrenstuvel/python-rsa/issues/165"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/sybrenstuvel/python-rsa/commit/dae8ce0d85478e16f2368b2341632775313d41ed"
+                  "type": "advisory",
+                  "url": "https://github.com/sybrenstuvel/python-rsa/commit/dae8ce0d85478e16f2368b2341632775313d41ed"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://bugzilla.redhat.com/show_bug.cgi?id=CVE-2020-25658"
+                  "type": "advisory",
+                  "url": "https://bugzilla.redhat.com/show_bug.cgi?id=CVE-2020-25658"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://access.redhat.com/errata/RHSA-2020:5634"
+                  "type": "advisory",
+                  "url": "https://access.redhat.com/errata/RHSA-2020:5634"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://access.redhat.com/errata/RHSA-2021:0637"
+                  "type": "advisory",
+                  "url": "https://access.redhat.com/errata/RHSA-2021:0637"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://access.redhat.com/errata/RHSA-2022:1716"
+                  "type": "advisory",
+                  "url": "https://access.redhat.com/errata/RHSA-2022:1716"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://access.redhat.com/security/cve/CVE-2020-25658"
+                  "type": "advisory",
+                  "url": "https://access.redhat.com/security/cve/CVE-2020-25658"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://bugzilla.redhat.com/show_bug.cgi?id=1889972"
+                  "type": "advisory",
+                  "url": "https://bugzilla.redhat.com/show_bug.cgi?id=1889972"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/rsa/PYSEC-2020-100.yaml"
+                  "type": "advisory",
+                  "url": "https://github.com/pypa/advisory-database/tree/main/vulns/rsa/PYSEC-2020-100.yaml"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/2SAF67KDGSOHLVFTRDOHNEAFDRSSYIWA"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/2SAF67KDGSOHLVFTRDOHNEAFDRSSYIWA"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/APF364QJ2IYLPDNVFBOEJ24QP2WLVLJP"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/APF364QJ2IYLPDNVFBOEJ24QP2WLVLJP"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/QY4PJWTYSOV7ZEYZVMYIF6XRU73CY6O7"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce%40lists.fedoraproject.org/message/QY4PJWTYSOV7ZEYZVMYIF6XRU73CY6O7"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/2SAF67KDGSOHLVFTRDOHNEAFDRSSYIWA"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/2SAF67KDGSOHLVFTRDOHNEAFDRSSYIWA"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/APF364QJ2IYLPDNVFBOEJ24QP2WLVLJP"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/APF364QJ2IYLPDNVFBOEJ24QP2WLVLJP"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/QY4PJWTYSOV7ZEYZVMYIF6XRU73CY6O7"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/QY4PJWTYSOV7ZEYZVMYIF6XRU73CY6O7"
                 }
               ],
               "risk_score": 0.10476,
@@ -4309,7 +4278,7 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/trove-classifiers@2026.5.22.10",
+          "id": "pkg:pypi/trove-classifiers@2026.6.1.19",
           "licenses": [
             {
               "spdxExpression": "non-standard",
@@ -4318,9 +4287,9 @@
             }
           ],
           "name": "trove-classifiers",
-          "purl": "pkg:pypi/trove-classifiers@2026.5.22.10",
+          "purl": "pkg:pypi/trove-classifiers@2026.6.1.19",
           "scope": "runtime",
-          "version": "2026.5.22.10",
+          "version": "2026.6.1.19",
           "vulnerabilities": []
         },
         {
@@ -4371,10 +4340,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 8.9,
-                  "Source": "",
-                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:H",
-                  "Version": "4.0"
+                  "score": 8.9,
+                  "vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:H",
+                  "version": "4.0"
                 }
               ],
               "cwes": [
@@ -4390,9 +4358,9 @@
               "epss": [
                 {
                   "cve": "CVE-2025-66471",
-                  "date": "2026-05-23",
+                  "date": "2026-06-04",
                   "epss": 0.00017,
-                  "percentile": 0.04407
+                  "percentile": 0.04581
                 }
               ],
               "fix_available": [
@@ -4427,20 +4395,20 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-2xpw-w6gg-jr37"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-2xpw-w6gg-jr37"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/security/advisories/GHSA-2xpw-w6gg-jr37"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/security/advisories/GHSA-2xpw-w6gg-jr37"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/commit/c19571de34c47de3a766541b041637ba5f716ed7"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/commit/c19571de34c47de3a766541b041637ba5f716ed7"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2025-66471"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2025-66471"
                 }
               ],
               "risk_score": 0.013940000000000003,
@@ -4456,10 +4424,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 4.4,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:H/I:N/A:N",
-                  "Version": "3.1"
+                  "score": 4.4,
+                  "vector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:H/I:N/A:N",
+                  "version": "3.1"
                 }
               ],
               "cwes": [
@@ -4475,9 +4442,9 @@
               "epss": [
                 {
                   "cve": "CVE-2024-37891",
-                  "date": "2026-05-23",
-                  "epss": 0.00216,
-                  "percentile": 0.44059
+                  "date": "2026-06-04",
+                  "epss": 0.00222,
+                  "percentile": 0.44855
                 }
               ],
               "fix_available": [
@@ -4516,39 +4483,39 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-34jh-p97f-mpxf"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-34jh-p97f-mpxf"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/security/advisories/GHSA-34jh-p97f-mpxf"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/security/advisories/GHSA-34jh-p97f-mpxf"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2024-37891"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2024-37891"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/commit/40b6d1605814dd1db0a46e202d6e56f2e4c9a468"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/commit/40b6d1605814dd1db0a46e202d6e56f2e4c9a468"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/commit/accff72ecc2f6cf5a76d9570198a93ac7c90270e"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/commit/accff72ecc2f6cf5a76d9570198a93ac7c90270e"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2024/12/msg00020.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2024/12/msg00020.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://security.netapp.com/advisory/ntap-20240822-0003"
+                  "type": "advisory",
+                  "url": "https://security.netapp.com/advisory/ntap-20240822-0003"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://www.vicarius.io/vsociety/posts/proxy-authorization-header-handling-vulnerability-in-urllib3-cve-2024-37891"
+                  "type": "advisory",
+                  "url": "https://www.vicarius.io/vsociety/posts/proxy-authorization-header-handling-vulnerability-in-urllib3-cve-2024-37891"
                 }
               ],
-              "risk_score": 0.10152000000000001,
+              "risk_score": 0.10434000000000002,
               "severity": "medium",
               "severity_source": "github:language:python",
               "source": "grype",
@@ -4561,16 +4528,14 @@
               ],
               "cvss": [
                 {
-                  "Score": 7.5,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
-                  "Version": "3.1"
+                  "score": 7.5,
+                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                  "version": "3.1"
                 },
                 {
-                  "Score": 8.9,
-                  "Source": "",
-                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:H",
-                  "Version": "4.0"
+                  "score": 8.9,
+                  "vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:H",
+                  "version": "4.0"
                 }
               ],
               "cwes": [
@@ -4586,9 +4551,9 @@
               "epss": [
                 {
                   "cve": "CVE-2026-21441",
-                  "date": "2026-05-23",
+                  "date": "2026-06-04",
                   "epss": 0.00032,
-                  "percentile": 0.09448
+                  "percentile": 0.0955
                 }
               ],
               "fix_available": [
@@ -4624,24 +4589,24 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-38jv-5279-wg99"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-38jv-5279-wg99"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/security/advisories/GHSA-38jv-5279-wg99"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/security/advisories/GHSA-38jv-5279-wg99"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/commit/8864ac407bba8607950025e0979c4c69bc7abc7b"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/commit/8864ac407bba8607950025e0979c4c69bc7abc7b"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2026-21441"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-21441"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2026/01/msg00017.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2026/01/msg00017.html"
                 }
               ],
               "risk_score": 0.025119999999999996,
@@ -4657,16 +4622,14 @@
               ],
               "cvss": [
                 {
-                  "Score": 4.2,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:A/AC:H/PR:H/UI:N/S:U/C:H/I:N/A:N",
-                  "Version": "3.1"
+                  "score": 4.2,
+                  "vector": "CVSS:3.1/AV:A/AC:H/PR:H/UI:N/S:U/C:H/I:N/A:N",
+                  "version": "3.1"
                 },
                 {
-                  "Score": 5.7,
-                  "Source": "",
-                  "Vector": "CVSS:4.0/AV:A/AC:L/AT:P/PR:H/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N",
-                  "Version": "4.0"
+                  "score": 5.7,
+                  "vector": "CVSS:4.0/AV:A/AC:L/AT:P/PR:H/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N",
+                  "version": "4.0"
                 }
               ],
               "cwes": [
@@ -4682,9 +4645,9 @@
               "epss": [
                 {
                   "cve": "CVE-2023-45803",
-                  "date": "2026-05-23",
+                  "date": "2026-06-04",
                   "epss": 0.00056,
-                  "percentile": 0.17524
+                  "percentile": 0.17744
                 }
               ],
               "fix_available": [
@@ -4729,60 +4692,60 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-g4mx-q9vg-27p4"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-g4mx-q9vg-27p4"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/security/advisories/GHSA-g4mx-q9vg-27p4"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/security/advisories/GHSA-g4mx-q9vg-27p4"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/commit/4e50fbc5db74e32cabd5ccc1ab81fc103adfe0b3"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/commit/4e50fbc5db74e32cabd5ccc1ab81fc103adfe0b3"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/commit/b594c5ceaca38e1ac215f916538fb128e3526a36"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/commit/b594c5ceaca38e1ac215f916538fb128e3526a36"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/releases/tag/1.26.18"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/releases/tag/1.26.18"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/releases/tag/2.0.7"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/releases/tag/2.0.7"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2023-45803"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2023-45803"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/commit/4e98d57809dacab1cbe625fddeec1a290c478ea9"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/commit/4e98d57809dacab1cbe625fddeec1a290c478ea9"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://www.rfc-editor.org/rfc/rfc9110.html#name-get"
+                  "type": "advisory",
+                  "url": "https://www.rfc-editor.org/rfc/rfc9110.html#name-get"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2023-212.yaml"
+                  "type": "advisory",
+                  "url": "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2023-212.yaml"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/4R2Y5XK3WALSR3FNAGN7JBYV2B343ZKB"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/4R2Y5XK3WALSR3FNAGN7JBYV2B343ZKB"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/5F5CUBAN5XMEBVBZPHFITBLMJV5FIJJ5"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/5F5CUBAN5XMEBVBZPHFITBLMJV5FIJJ5"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/PPDPLM6UUMN55ESPQWJFLLIZY4ZKCNRX"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/PPDPLM6UUMN55ESPQWJFLLIZY4ZKCNRX"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2024/12/msg00020.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2024/12/msg00020.html"
                 }
               ],
               "risk_score": 0.02786,
@@ -4798,10 +4761,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 8.9,
-                  "Source": "",
-                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:H",
-                  "Version": "4.0"
+                  "score": 8.9,
+                  "vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:H",
+                  "version": "4.0"
                 }
               ],
               "cwes": [
@@ -4817,9 +4779,9 @@
               "epss": [
                 {
                   "cve": "CVE-2025-66418",
-                  "date": "2026-05-23",
-                  "epss": 0.00019,
-                  "percentile": 0.05303
+                  "date": "2026-06-04",
+                  "epss": 0.00021,
+                  "percentile": 0.05945
                 }
               ],
               "fix_available": [
@@ -4854,23 +4816,23 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-gm62-xv2j-4w53"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-gm62-xv2j-4w53"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/security/advisories/GHSA-gm62-xv2j-4w53"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/security/advisories/GHSA-gm62-xv2j-4w53"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/commit/24d7b67eac89f94e11003424bcf0d8f7b72222a8"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/commit/24d7b67eac89f94e11003424bcf0d8f7b72222a8"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2025-66418"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2025-66418"
                 }
               ],
-              "risk_score": 0.015580000000000002,
+              "risk_score": 0.017220000000000003,
               "severity": "high",
               "severity_source": "github:language:python",
               "source": "grype",
@@ -4883,16 +4845,14 @@
               ],
               "cvss": [
                 {
-                  "Score": 6.1,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
-                  "Version": "3.1"
+                  "score": 6.1,
+                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+                  "version": "3.1"
                 },
                 {
-                  "Score": 5.3,
-                  "Source": "",
-                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:P/VC:N/VI:N/VA:N/SC:L/SI:L/SA:N",
-                  "Version": "4.0"
+                  "score": 5.3,
+                  "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:P/VC:N/VI:N/VA:N/SC:L/SI:L/SA:N",
+                  "version": "4.0"
                 }
               ],
               "cwes": [
@@ -4908,9 +4868,9 @@
               "epss": [
                 {
                   "cve": "CVE-2018-25091",
-                  "date": "2026-05-23",
+                  "date": "2026-06-04",
                   "epss": 0.00223,
-                  "percentile": 0.44918
+                  "percentile": 0.45046
                 }
               ],
               "fix_available": [
@@ -4947,28 +4907,28 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-gwvm-45gx-3cf8"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-gwvm-45gx-3cf8"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2018-25091"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2018-25091"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/issues/1510"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/issues/1510"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/commit/adb358f8e06865406d1f05e581a16cbea2136fbc"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/commit/adb358f8e06865406d1f05e581a16cbea2136fbc"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/compare/1.24.1...1.24.2"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/compare/1.24.1...1.24.2"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2023-207.yaml"
+                  "type": "advisory",
+                  "url": "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2023-207.yaml"
                 }
               ],
               "risk_score": 0.119305,
@@ -4984,16 +4944,14 @@
               ],
               "cvss": [
                 {
-                  "Score": 7.5,
-                  "Source": "",
-                  "Vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
-                  "Version": "3.0"
+                  "score": 7.5,
+                  "vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
+                  "version": "3.0"
                 },
                 {
-                  "Score": 8.7,
-                  "Source": "",
-                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:H/VA:N/SC:N/SI:N/SA:N",
-                  "Version": "4.0"
+                  "score": 8.7,
+                  "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:H/VA:N/SC:N/SI:N/SA:N",
+                  "version": "4.0"
                 }
               ],
               "cwes": [
@@ -5009,9 +4967,9 @@
               "epss": [
                 {
                   "cve": "CVE-2019-11324",
-                  "date": "2026-05-23",
-                  "epss": 0.01043,
-                  "percentile": 0.77711
+                  "date": "2026-06-04",
+                  "epss": 0.01015,
+                  "percentile": 0.77495
                 }
               ],
               "fix_available": [
@@ -5058,71 +5016,71 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-mh33-7rrq-662w"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-mh33-7rrq-662w"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2019-11324"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2019-11324"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/compare/a6ec68a...1efadf4"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/compare/a6ec68a...1efadf4"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://access.redhat.com/errata/RHSA-2019:3335"
+                  "type": "advisory",
+                  "url": "https://access.redhat.com/errata/RHSA-2019:3335"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://access.redhat.com/errata/RHSA-2019:3590"
+                  "type": "advisory",
+                  "url": "https://access.redhat.com/errata/RHSA-2019:3590"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2021/06/msg00015.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2021/06/msg00015.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "http://lists.opensuse.org/opensuse-security-announce/2019-09/msg00039.html"
+                  "type": "advisory",
+                  "url": "http://lists.opensuse.org/opensuse-security-announce/2019-09/msg00039.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "http://lists.opensuse.org/opensuse-security-announce/2019-09/msg00041.html"
+                  "type": "advisory",
+                  "url": "http://lists.opensuse.org/opensuse-security-announce/2019-09/msg00041.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "http://www.openwall.com/lists/oss-security/2019/04/19/1"
+                  "type": "advisory",
+                  "url": "http://www.openwall.com/lists/oss-security/2019/04/19/1"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/commit/1efadf43dc63317cd9eaa3e0fdb9e05ab07254b1"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/commit/1efadf43dc63317cd9eaa3e0fdb9e05ab07254b1"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2023/10/msg00012.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2023/10/msg00012.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2019-133.yaml"
+                  "type": "advisory",
+                  "url": "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2019-133.yaml"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/NKGPJLVLVYCL4L4B4G5TIOTVK4BKPG72"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/NKGPJLVLVYCL4L4B4G5TIOTVK4BKPG72"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/XOSA2NT4DUQDBEIWE6O7KKD24XND7TE2"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/XOSA2NT4DUQDBEIWE6O7KKD24XND7TE2"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://pypi.org/project/urllib3/1.24.2"
+                  "type": "advisory",
+                  "url": "https://pypi.org/project/urllib3/1.24.2"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://usn.ubuntu.com/3990-1"
+                  "type": "advisory",
+                  "url": "https://usn.ubuntu.com/3990-1"
                 }
               ],
-              "risk_score": 0.8135400000000002,
+              "risk_score": 0.7917000000000001,
               "severity": "high",
               "severity_source": "github:language:python",
               "source": "grype",
@@ -5135,10 +5093,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 5.3,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:U/C:H/I:N/A:N",
-                  "Version": "3.1"
+                  "score": 5.3,
+                  "vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:U/C:H/I:N/A:N",
+                  "version": "3.1"
                 }
               ],
               "cwes": [
@@ -5154,9 +5111,9 @@
               "epss": [
                 {
                   "cve": "CVE-2025-50181",
-                  "date": "2026-05-23",
-                  "epss": 0.00087,
-                  "percentile": 0.24869
+                  "date": "2026-06-04",
+                  "epss": 0.00079,
+                  "percentile": 0.23444
                 }
               ],
               "fix_available": [
@@ -5192,27 +5149,27 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-pq67-6m6q-mj2v"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-pq67-6m6q-mj2v"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/security/advisories/GHSA-pq67-6m6q-mj2v"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/security/advisories/GHSA-pq67-6m6q-mj2v"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/commit/f05b1329126d5be6de501f9d1e3e36738bc08857"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/commit/f05b1329126d5be6de501f9d1e3e36738bc08857"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2025-50181"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2025-50181"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/releases/tag/2.5.0"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/releases/tag/2.5.0"
                 }
               ],
-              "risk_score": 0.044805000000000005,
+              "risk_score": 0.040685,
               "severity": "medium",
               "severity_source": "github:language:python",
               "source": "grype",
@@ -5225,16 +5182,14 @@
               ],
               "cvss": [
                 {
-                  "Score": 5.3,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
-                  "Version": "3.1"
+                  "score": 5.3,
+                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
+                  "version": "3.1"
                 },
                 {
-                  "Score": 8.2,
-                  "Source": "",
-                  "Vector": "CVSS:4.0/AV:N/AC:H/AT:P/PR:N/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N",
-                  "Version": "4.0"
+                  "score": 8.2,
+                  "vector": "CVSS:4.0/AV:N/AC:H/AT:P/PR:N/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N",
+                  "version": "4.0"
                 }
               ],
               "cwes": [
@@ -5250,9 +5205,9 @@
               "epss": [
                 {
                   "cve": "CVE-2026-44431",
-                  "date": "2026-05-23",
+                  "date": "2026-06-04",
                   "epss": 0.00013,
-                  "percentile": 0.02208
+                  "percentile": 0.02172
                 }
               ],
               "fix_available": [
@@ -5286,16 +5241,16 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-qccp-gfcp-xxvc"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-qccp-gfcp-xxvc"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/security/advisories/GHSA-qccp-gfcp-xxvc"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/security/advisories/GHSA-qccp-gfcp-xxvc"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2026-44431"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-44431"
                 }
               ],
               "risk_score": 0.009262499999999998,
@@ -5311,16 +5266,14 @@
               ],
               "cvss": [
                 {
-                  "Score": 6.1,
-                  "Source": "",
-                  "Vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
-                  "Version": "3.0"
+                  "score": 6.1,
+                  "vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+                  "version": "3.0"
                 },
                 {
-                  "Score": 5.3,
-                  "Source": "",
-                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:P/VC:N/VI:N/VA:N/SC:L/SI:L/SA:N",
-                  "Version": "4.0"
+                  "score": 5.3,
+                  "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:P/VC:N/VI:N/VA:N/SC:L/SI:L/SA:N",
+                  "version": "4.0"
                 }
               ],
               "cwes": [
@@ -5336,9 +5289,9 @@
               "epss": [
                 {
                   "cve": "CVE-2019-11236",
-                  "date": "2026-05-23",
+                  "date": "2026-06-04",
                   "epss": 0.00575,
-                  "percentile": 0.68992
+                  "percentile": 0.69137
                 }
               ],
               "fix_available": [
@@ -5387,76 +5340,76 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-r64q-w8jr-g9qp"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-r64q-w8jr-g9qp"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2019-11236"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2019-11236"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/issues/1553"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/issues/1553"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://access.redhat.com/errata/RHSA-2019:2272"
+                  "type": "advisory",
+                  "url": "https://access.redhat.com/errata/RHSA-2019:2272"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://access.redhat.com/errata/RHSA-2019:3335"
+                  "type": "advisory",
+                  "url": "https://access.redhat.com/errata/RHSA-2019:3335"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://access.redhat.com/errata/RHSA-2019:3590"
+                  "type": "advisory",
+                  "url": "https://access.redhat.com/errata/RHSA-2019:3590"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2019/06/msg00016.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2019/06/msg00016.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2021/06/msg00015.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2021/06/msg00015.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "http://lists.opensuse.org/opensuse-security-announce/2019-09/msg00039.html"
+                  "type": "advisory",
+                  "url": "http://lists.opensuse.org/opensuse-security-announce/2019-09/msg00039.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "http://lists.opensuse.org/opensuse-security-announce/2019-09/msg00041.html"
+                  "type": "advisory",
+                  "url": "http://lists.opensuse.org/opensuse-security-announce/2019-09/msg00041.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2019-132.yaml"
+                  "type": "advisory",
+                  "url": "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2019-132.yaml"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2023/10/msg00012.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2023/10/msg00012.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/NKGPJLVLVYCL4L4B4G5TIOTVK4BKPG72"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/NKGPJLVLVYCL4L4B4G5TIOTVK4BKPG72"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/R62XGEYPUTXMRHGX5I37EBCGQ5COHGKR"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/R62XGEYPUTXMRHGX5I37EBCGQ5COHGKR"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/TBI45HO533KYHNB5YRO43TBYKA3E3VRL"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/TBI45HO533KYHNB5YRO43TBYKA3E3VRL"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/XOSA2NT4DUQDBEIWE6O7KKD24XND7TE2"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/XOSA2NT4DUQDBEIWE6O7KKD24XND7TE2"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://usn.ubuntu.com/3990-1"
+                  "type": "advisory",
+                  "url": "https://usn.ubuntu.com/3990-1"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://usn.ubuntu.com/3990-2"
+                  "type": "advisory",
+                  "url": "https://usn.ubuntu.com/3990-2"
                 }
               ],
               "risk_score": 0.307625,
@@ -5472,16 +5425,14 @@
               ],
               "cvss": [
                 {
-                  "Score": 5.9,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:H/I:H/A:N",
-                  "Version": "3.1"
+                  "score": 5.9,
+                  "vector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:H/I:H/A:N",
+                  "version": "3.1"
                 },
                 {
-                  "Score": 7.4,
-                  "Source": "",
-                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:H/UI:N/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N",
-                  "Version": "4.0"
+                  "score": 7.4,
+                  "vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:H/UI:N/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N",
+                  "version": "4.0"
                 }
               ],
               "cwes": [
@@ -5497,9 +5448,9 @@
               "epss": [
                 {
                   "cve": "CVE-2023-43804",
-                  "date": "2026-05-23",
-                  "epss": 0.00976,
-                  "percentile": 0.76935
+                  "date": "2026-06-04",
+                  "epss": 0.0095,
+                  "percentile": 0.76722
                 }
               ],
               "fix_available": [
@@ -5543,59 +5494,59 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-v845-jxx5-vc9f"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-v845-jxx5-vc9f"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/security/advisories/GHSA-v845-jxx5-vc9f"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/security/advisories/GHSA-v845-jxx5-vc9f"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/commit/01220354d389cd05474713f8c982d05c9b17aafb"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/commit/01220354d389cd05474713f8c982d05c9b17aafb"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/commit/644124ecd0b6e417c527191f866daa05a5a2056d"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/commit/644124ecd0b6e417c527191f866daa05a5a2056d"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2023-43804"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2023-43804"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2023/10/msg00012.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2023/10/msg00012.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2023-192.yaml"
+                  "type": "advisory",
+                  "url": "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2023-192.yaml"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/5F5CUBAN5XMEBVBZPHFITBLMJV5FIJJ5"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/5F5CUBAN5XMEBVBZPHFITBLMJV5FIJJ5"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/I3PR7C6RJ6JUBQKIJ644DMIJSUP36VDY"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/I3PR7C6RJ6JUBQKIJ644DMIJSUP36VDY"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/NDAGZXYJ7H2G3SB47M453VQVNAWKAEJJ"
+                  "type": "advisory",
+                  "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/NDAGZXYJ7H2G3SB47M453VQVNAWKAEJJ"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://security.netapp.com/advisory/ntap-20241213-0007"
+                  "type": "advisory",
+                  "url": "https://security.netapp.com/advisory/ntap-20241213-0007"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://www.vicarius.io/vsociety/posts/cve-2023-43804-urllib3-vulnerability-3"
+                  "type": "advisory",
+                  "url": "https://www.vicarius.io/vsociety/posts/cve-2023-43804-urllib3-vulnerability-3"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2024/12/msg00020.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2024/12/msg00020.html"
                 }
               ],
-              "risk_score": 0.69052,
+              "risk_score": 0.672125,
               "severity": "high",
               "severity_source": "github:language:python",
               "source": "grype",
@@ -5608,16 +5559,14 @@
               ],
               "cvss": [
                 {
-                  "Score": 6.5,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N",
-                  "Version": "3.1"
+                  "score": 6.5,
+                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N",
+                  "version": "3.1"
                 },
                 {
-                  "Score": 6.9,
-                  "Source": "",
-                  "Vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N",
-                  "Version": "4.0"
+                  "score": 6.9,
+                  "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N",
+                  "version": "4.0"
                 }
               ],
               "cwes": [
@@ -5633,9 +5582,9 @@
               "epss": [
                 {
                   "cve": "CVE-2020-26137",
-                  "date": "2026-05-23",
+                  "date": "2026-06-04",
                   "epss": 0.00279,
-                  "percentile": 0.5139
+                  "percentile": 0.51551
                 }
               ],
               "fix_available": [
@@ -5677,48 +5626,48 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-wqvq-5m8c-6g24"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-wqvq-5m8c-6g24"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2020-26137"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2020-26137"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/pull/1800"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/pull/1800"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/urllib3/urllib3/commit/1dd69c5c5982fae7c87a620d487c2ebf7a6b436b"
+                  "type": "advisory",
+                  "url": "https://github.com/urllib3/urllib3/commit/1dd69c5c5982fae7c87a620d487c2ebf7a6b436b"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://bugs.python.org/issue39603"
+                  "type": "advisory",
+                  "url": "https://bugs.python.org/issue39603"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2021/06/msg00015.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2021/06/msg00015.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://www.oracle.com/security-alerts/cpuoct2021.html"
+                  "type": "advisory",
+                  "url": "https://www.oracle.com/security-alerts/cpuoct2021.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://www.oracle.com/security-alerts/cpujul2022.html"
+                  "type": "advisory",
+                  "url": "https://www.oracle.com/security-alerts/cpujul2022.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://lists.debian.org/debian-lts-announce/2023/10/msg00012.html"
+                  "type": "advisory",
+                  "url": "https://lists.debian.org/debian-lts-announce/2023/10/msg00012.html"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2020-148.yaml"
+                  "type": "advisory",
+                  "url": "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2020-148.yaml"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://usn.ubuntu.com/4570-1"
+                  "type": "advisory",
+                  "url": "https://usn.ubuntu.com/4570-1"
                 }
               ],
               "risk_score": 0.163215,
@@ -5731,13 +5680,13 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/distlib@0.4.0",
-            "pkg:pypi/filelock@3.29.0",
-            "pkg:pypi/platformdirs@4.9.6",
-            "pkg:pypi/python-discovery@1.3.1",
+            "pkg:pypi/distlib@0.4.1",
+            "pkg:pypi/filelock@3.29.1",
+            "pkg:pypi/platformdirs@4.10.0",
+            "pkg:pypi/python-discovery@1.4.0",
             "pkg:pypi/typing-extensions@4.15.0"
           ],
-          "id": "pkg:pypi/virtualenv@21.3.3",
+          "id": "pkg:pypi/virtualenv@21.4.2",
           "licenses": [
             {
               "spdxExpression": "MIT",
@@ -5746,9 +5695,9 @@
             }
           ],
           "name": "virtualenv",
-          "purl": "pkg:pypi/virtualenv@21.3.3",
+          "purl": "pkg:pypi/virtualenv@21.4.2",
           "scope": "runtime",
-          "version": "21.3.3",
+          "version": "21.4.2",
           "vulnerabilities": []
         }
       ],

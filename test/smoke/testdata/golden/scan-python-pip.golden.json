@@ -79,7 +79,7 @@
             "pkg:pypi/mypy-extensions@1.1.0",
             "pkg:pypi/packaging@26.2",
             "pkg:pypi/pathspec@1.1.1",
-            "pkg:pypi/platformdirs@4.9.6",
+            "pkg:pypi/platformdirs@4.10.0",
             "pkg:pypi/typing-extensions@4.15.0"
           ],
           "id": "pkg:pypi/black@23.12.1",
@@ -246,12 +246,12 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/distlib@0.4.0",
+          "id": "pkg:pypi/distlib@0.4.1",
           "licenses": [],
           "name": "distlib",
-          "purl": "pkg:pypi/distlib@0.4.0",
+          "purl": "pkg:pypi/distlib@0.4.1",
           "scope": "runtime",
-          "version": "0.4.0",
+          "version": "0.4.1",
           "vulnerabilities": []
         },
         {
@@ -281,12 +281,12 @@
             "pkg:pypi/typing-extensions@4.15.0",
             "pkg:pypi/urllib3@1.24.1"
           ],
-          "id": "pkg:pypi/dulwich@1.2.4",
+          "id": "pkg:pypi/dulwich@1.2.6",
           "licenses": [],
           "name": "dulwich",
-          "purl": "pkg:pypi/dulwich@1.2.4",
+          "purl": "pkg:pypi/dulwich@1.2.6",
           "scope": "runtime",
-          "version": "1.2.4",
+          "version": "1.2.6",
           "vulnerabilities": []
         },
         {
@@ -323,18 +323,18 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/filelock@3.29.0",
+          "id": "pkg:pypi/filelock@3.29.1",
           "licenses": [],
           "name": "filelock",
-          "purl": "pkg:pypi/filelock@3.29.0",
+          "purl": "pkg:pypi/filelock@3.29.1",
           "scope": "runtime",
-          "version": "3.29.0",
+          "version": "3.29.1",
           "vulnerabilities": []
         },
         {
           "dependencies": [
             "pkg:pypi/packaging@26.2",
-            "pkg:pypi/platformdirs@4.9.6"
+            "pkg:pypi/platformdirs@4.10.0"
           ],
           "id": "pkg:pypi/findpython@0.8.0",
           "licenses": [],
@@ -651,12 +651,12 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/pbs-installer@2026.5.10",
+          "id": "pkg:pypi/pbs-installer@2026.6.2",
           "licenses": [],
           "name": "pbs-installer",
-          "purl": "pkg:pypi/pbs-installer@2026.5.10",
+          "purl": "pkg:pypi/pbs-installer@2026.6.2",
           "scope": "runtime",
-          "version": "2026.5.10",
+          "version": "2026.6.2",
           "vulnerabilities": []
         },
         {
@@ -671,12 +671,12 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/platformdirs@4.9.6",
+          "id": "pkg:pypi/platformdirs@4.10.0",
           "licenses": [],
           "name": "platformdirs",
-          "purl": "pkg:pypi/platformdirs@4.9.6",
+          "purl": "pkg:pypi/platformdirs@4.10.0",
           "scope": "runtime",
-          "version": "4.9.6",
+          "version": "4.10.0",
           "vulnerabilities": []
         },
         {
@@ -755,7 +755,7 @@
             "pkg:pypi/dill@0.4.1",
             "pkg:pypi/isort@5.13.2",
             "pkg:pypi/mccabe@0.7.0",
-            "pkg:pypi/platformdirs@4.9.6",
+            "pkg:pypi/platformdirs@4.10.0",
             "pkg:pypi/tomlkit@0.15.0",
             "pkg:pypi/typing-extensions@4.15.0"
           ],
@@ -836,15 +836,15 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/filelock@3.29.0",
-            "pkg:pypi/platformdirs@4.9.6"
+            "pkg:pypi/filelock@3.29.1",
+            "pkg:pypi/platformdirs@4.10.0"
           ],
-          "id": "pkg:pypi/python-discovery@1.3.1",
+          "id": "pkg:pypi/python-discovery@1.4.0",
           "licenses": [],
           "name": "python-discovery",
-          "purl": "pkg:pypi/python-discovery@1.3.1",
+          "purl": "pkg:pypi/python-discovery@1.4.0",
           "scope": "runtime",
-          "version": "1.3.1",
+          "version": "1.4.0",
           "vulnerabilities": []
         },
         {
@@ -956,12 +956,12 @@
             "pkg:pypi/crashtest@0.4.1",
             "pkg:pypi/cryptography@48.0.0",
             "pkg:pypi/dill@0.4.1",
-            "pkg:pypi/distlib@0.4.0",
+            "pkg:pypi/distlib@0.4.1",
             "pkg:pypi/django@1.11.29",
-            "pkg:pypi/dulwich@1.2.4",
+            "pkg:pypi/dulwich@1.2.6",
             "pkg:pypi/fastjsonschema@2.21.2",
             "pkg:pypi/feedparser@6.0.8",
-            "pkg:pypi/filelock@3.29.0",
+            "pkg:pypi/filelock@3.29.1",
             "pkg:pypi/findpython@0.8.0",
             "pkg:pypi/gitdb@4.0.12",
             "pkg:pypi/gitpython@3.1.50",
@@ -988,9 +988,9 @@
             "pkg:pypi/mypy-extensions@1.1.0",
             "pkg:pypi/packaging@26.2",
             "pkg:pypi/pathspec@1.1.1",
-            "pkg:pypi/pbs-installer@2026.5.10",
+            "pkg:pypi/pbs-installer@2026.6.2",
             "pkg:pypi/pkginfo@1.12.1.2",
-            "pkg:pypi/platformdirs@4.9.6",
+            "pkg:pypi/platformdirs@4.10.0",
             "pkg:pypi/pluggy@1.6.0",
             "pkg:pypi/poetry-core@2.4.0",
             "pkg:pypi/pyasn1@0.6.3",
@@ -1001,7 +1001,7 @@
             "pkg:pypi/pyproject-hooks@1.2.0",
             "pkg:pypi/pytest-cov@4.1.0",
             "pkg:pypi/pytest@7.4.3",
-            "pkg:pypi/python-discovery@1.3.1",
+            "pkg:pypi/python-discovery@1.4.0",
             "pkg:pypi/pytz@2026.2",
             "pkg:pypi/pyyaml@6.0.3",
             "pkg:pypi/rapidfuzz@3.14.5",
@@ -1016,10 +1016,10 @@
             "pkg:pypi/sqlalchemy@1.4.46",
             "pkg:pypi/stevedore@5.8.0",
             "pkg:pypi/tomlkit@0.15.0",
-            "pkg:pypi/trove-classifiers@2026.5.22.10",
+            "pkg:pypi/trove-classifiers@2026.6.1.19",
             "pkg:pypi/typing-extensions@4.15.0",
             "pkg:pypi/urllib3@1.24.1",
-            "pkg:pypi/virtualenv@21.3.3"
+            "pkg:pypi/virtualenv@21.4.2"
           ],
           "id": "pkg:pypi/root",
           "licenses": [],
@@ -1136,12 +1136,12 @@
         },
         {
           "dependencies": [],
-          "id": "pkg:pypi/trove-classifiers@2026.5.22.10",
+          "id": "pkg:pypi/trove-classifiers@2026.6.1.19",
           "licenses": [],
           "name": "trove-classifiers",
-          "purl": "pkg:pypi/trove-classifiers@2026.5.22.10",
+          "purl": "pkg:pypi/trove-classifiers@2026.6.1.19",
           "scope": "runtime",
-          "version": "2026.5.22.10",
+          "version": "2026.6.1.19",
           "vulnerabilities": []
         },
         {
@@ -1176,18 +1176,18 @@
         },
         {
           "dependencies": [
-            "pkg:pypi/distlib@0.4.0",
-            "pkg:pypi/filelock@3.29.0",
-            "pkg:pypi/platformdirs@4.9.6",
-            "pkg:pypi/python-discovery@1.3.1",
+            "pkg:pypi/distlib@0.4.1",
+            "pkg:pypi/filelock@3.29.1",
+            "pkg:pypi/platformdirs@4.10.0",
+            "pkg:pypi/python-discovery@1.4.0",
             "pkg:pypi/typing-extensions@4.15.0"
           ],
-          "id": "pkg:pypi/virtualenv@21.3.3",
+          "id": "pkg:pypi/virtualenv@21.4.2",
           "licenses": [],
           "name": "virtualenv",
-          "purl": "pkg:pypi/virtualenv@21.3.3",
+          "purl": "pkg:pypi/virtualenv@21.4.2",
           "scope": "runtime",
-          "version": "21.3.3",
+          "version": "21.4.2",
           "vulnerabilities": []
         }
       ],

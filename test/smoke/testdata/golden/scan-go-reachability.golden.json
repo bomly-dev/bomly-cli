@@ -417,10 +417,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 7.5,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
-                  "Version": "3.1"
+                  "score": 7.5,
+                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                  "version": "3.1"
                 }
               ],
               "cwes": [
@@ -436,9 +435,9 @@
               "epss": [
                 {
                   "cve": "CVE-2022-32149",
-                  "date": "2026-05-23",
-                  "epss": 0.00056,
-                  "percentile": 0.17429
+                  "date": "2026-06-04",
+                  "epss": 0.00054,
+                  "percentile": 0.17217
                 }
               ],
               "fix_available": [
@@ -458,41 +457,9 @@
               "reachability": {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "govulncheck",
-                "call_paths": [
-                  {
-                    "frames": [
-                      {
-                        "position": {}
-                      }
-                    ],
-                    "sink": {
-                      "module": "golang.org/x/text"
-                    }
-                  },
-                  {
-                    "frames": [
-                      {
-                        "package": "golang.org/x/text/language",
-                        "position": {}
-                      }
-                    ],
-                    "sink": {
-                      "module": "golang.org/x/text",
-                      "package": "golang.org/x/text/language"
-                    }
-                  }
-                ],
-                "status": "reachable",
-                "symbols": [
-                  {
-                    "module": "golang.org/x/text"
-                  },
-                  {
-                    "module": "golang.org/x/text",
-                    "package": "golang.org/x/text/language"
-                  }
-                ],
-                "tier": "symbol"
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
               },
               "reasons": [
                 "Also known as: CVE-2022-32149",
@@ -509,43 +476,43 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-69ch-w2m2-3vjp"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-69ch-w2m2-3vjp"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2022-32149"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2022-32149"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://go.dev/cl/442235"
+                  "type": "advisory",
+                  "url": "https://go.dev/cl/442235"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://go.dev/issue/56152"
+                  "type": "advisory",
+                  "url": "https://go.dev/issue/56152"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://groups.google.com/g/golang-announce/c/-hjNw559_tE/m/KlGTfid5CAAJ"
+                  "type": "advisory",
+                  "url": "https://groups.google.com/g/golang-announce/c/-hjNw559_tE/m/KlGTfid5CAAJ"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://pkg.go.dev/vuln/GO-2022-1059"
+                  "type": "advisory",
+                  "url": "https://pkg.go.dev/vuln/GO-2022-1059"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/golang/go/issues/56152"
+                  "type": "advisory",
+                  "url": "https://github.com/golang/go/issues/56152"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://github.com/golang/text/commit/434eadcdbc3b0256971992e8c70027278364c72c"
+                  "type": "advisory",
+                  "url": "https://github.com/golang/text/commit/434eadcdbc3b0256971992e8c70027278364c72c"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://security.netapp.com/advisory/ntap-20230203-0006"
+                  "type": "advisory",
+                  "url": "https://security.netapp.com/advisory/ntap-20230203-0006"
                 }
               ],
-              "risk_score": 0.041999999999999996,
+              "risk_score": 0.040499999999999994,
               "severity": "high",
               "severity_source": "github:language:go",
               "source": "grype",
@@ -558,10 +525,9 @@
               ],
               "cvss": [
                 {
-                  "Score": 7.5,
-                  "Source": "",
-                  "Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
-                  "Version": "3.1"
+                  "score": 7.5,
+                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                  "version": "3.1"
                 }
               ],
               "cwes": [
@@ -583,9 +549,9 @@
               "epss": [
                 {
                   "cve": "CVE-2021-38561",
-                  "date": "2026-05-23",
+                  "date": "2026-06-04",
                   "epss": 0.00053,
-                  "percentile": 0.16643
+                  "percentile": 0.16869
                 }
               ],
               "fix_available": [
@@ -605,75 +571,9 @@
               "reachability": {
                 "analyzed_at": "\u003ctimestamp\u003e",
                 "analyzer": "govulncheck",
-                "call_paths": [
-                  {
-                    "frames": [
-                      {
-                        "position": {}
-                      }
-                    ],
-                    "sink": {
-                      "module": "golang.org/x/text"
-                    }
-                  },
-                  {
-                    "frames": [
-                      {
-                        "package": "golang.org/x/text/language",
-                        "position": {}
-                      }
-                    ],
-                    "sink": {
-                      "module": "golang.org/x/text",
-                      "package": "golang.org/x/text/language"
-                    }
-                  },
-                  {
-                    "frames": [
-                      {
-                        "function": "Parse",
-                        "package": "golang.org/x/text/language",
-                        "position": {
-                          "column": 0,
-                          "file": "language/parse.go",
-                          "line": 0
-                        }
-                      },
-                      {
-                        "function": "Baz",
-                        "package": "github.com/srcclr/example-go-modules/sub3",
-                        "position": {
-                          "column": 0,
-                          "file": "sub3/sub3.go",
-                          "line": 0
-                        }
-                      }
-                    ],
-                    "sink": {
-                      "kind": "function",
-                      "module": "github.com/srcclr/example-go-modules",
-                      "package": "github.com/srcclr/example-go-modules/sub3",
-                      "symbol": "Baz"
-                    }
-                  }
-                ],
-                "status": "reachable",
-                "symbols": [
-                  {
-                    "module": "golang.org/x/text"
-                  },
-                  {
-                    "module": "golang.org/x/text",
-                    "package": "golang.org/x/text/language"
-                  },
-                  {
-                    "kind": "function",
-                    "module": "github.com/srcclr/example-go-modules",
-                    "package": "github.com/srcclr/example-go-modules/sub3",
-                    "symbol": "Baz"
-                  }
-                ],
-                "tier": "symbol"
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
               },
               "reasons": [
                 "Also known as: CVE-2021-38561",
@@ -689,36 +589,36 @@
               ],
               "references": [
                 {
-                  "Type": "data_source",
-                  "URL": "https://github.com/advisories/GHSA-ppp9-7jff-5vj2"
+                  "type": "data_source",
+                  "url": "https://github.com/advisories/GHSA-ppp9-7jff-5vj2"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://nvd.nist.gov/vuln/detail/CVE-2021-38561"
+                  "type": "advisory",
+                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2021-38561"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://deps.dev/advisory/OSV/GO-2021-0113"
+                  "type": "advisory",
+                  "url": "https://deps.dev/advisory/OSV/GO-2021-0113"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://go.googlesource.com/text/+/383b2e75a7a4198c42f8f87833eefb772868a56f"
+                  "type": "advisory",
+                  "url": "https://go.googlesource.com/text/+/383b2e75a7a4198c42f8f87833eefb772868a56f"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://groups.google.com/g/golang-announce"
+                  "type": "advisory",
+                  "url": "https://groups.google.com/g/golang-announce"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://pkg.go.dev/golang.org/x/text/language"
+                  "type": "advisory",
+                  "url": "https://pkg.go.dev/golang.org/x/text/language"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://go.dev/cl/340830"
+                  "type": "advisory",
+                  "url": "https://go.dev/cl/340830"
                 },
                 {
-                  "Type": "advisory",
-                  "URL": "https://pkg.go.dev/vuln/GO-2021-0113"
+                  "type": "advisory",
+                  "url": "https://pkg.go.dev/vuln/GO-2021-0113"
                 }
               ],
               "risk_score": 0.039749999999999994,
@@ -726,6 +626,167 @@
               "severity_source": "github:language:go",
               "source": "grype",
               "title": "golang.org/x/text/language Out-of-bounds Read vulnerability"
+            },
+            {
+              "affected_version_range": "\u003c0.3.7 (go)",
+              "aliases": [
+                "CVE-2021-38561",
+                "GHSA-ppp9-7jff-5vj2"
+              ],
+              "cvss": [
+                {
+                  "score": 7.5,
+                  "source": "nvd@nist.gov",
+                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                  "version": "3.1"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2021-38561",
+                  "id": "CWE-125",
+                  "source": "nvd@nist.gov",
+                  "type": "Primary"
+                },
+                {
+                  "cve": "CVE-2021-38561",
+                  "id": "CWE-125",
+                  "source": "134c704f-9b21-4f2e-91b3-4a467353bcc0",
+                  "type": "Secondary"
+                }
+              ],
+              "data_source": "https://go.dev/cl/340830",
+              "description": "Due to improper index calculation, an incorrectly formatted language tag can cause Parse to panic via an out of bounds read. If Parse is used to process untrusted user inputs, this may be used as a vector for a denial of service attack.",
+              "epss": [
+                {
+                  "cve": "CVE-2021-38561",
+                  "date": "2026-06-04",
+                  "epss": 0.00053,
+                  "percentile": 0.16869
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2021-10-06",
+                  "kind": "advisory",
+                  "version": "0.3.7"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "0.3.7",
+              "fixed_versions": [
+                "0.3.7"
+              ],
+              "id": "GO-2021-0113",
+              "namespace": "govulndb:language:go",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "govulncheck",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2021-38561, GHSA-ppp9-7jff-5vj2",
+                "Fix available: upgrade to 0.3.7",
+                "Fix state: fixed",
+                "https://go.googlesource.com/text/+/383b2e75a7a4198c42f8f87833eefb772868a56f"
+              ],
+              "references": [
+                {
+                  "type": "data_source",
+                  "url": "https://go.dev/cl/340830"
+                },
+                {
+                  "type": "advisory",
+                  "url": "https://go.googlesource.com/text/+/383b2e75a7a4198c42f8f87833eefb772868a56f"
+                }
+              ],
+              "risk_score": 0.039749999999999994,
+              "severity": "high",
+              "severity_source": "govulndb:language:go",
+              "source": "grype",
+              "title": "Due to improper index calculation, an incorrectly formatted language tag can cause Parse to panic via an out of bounds read. If Parse is used to process untrusted user inputs, this may be used as a vector for a denial of service attack."
+            },
+            {
+              "affected_version_range": "\u003c0.3.8 (go)",
+              "aliases": [
+                "CVE-2022-32149",
+                "GHSA-69ch-w2m2-3vjp"
+              ],
+              "cvss": [
+                {
+                  "score": 7.5,
+                  "source": "nvd@nist.gov",
+                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                  "version": "3.1"
+                }
+              ],
+              "cwes": [
+                {
+                  "cve": "CVE-2022-32149",
+                  "id": "CWE-772",
+                  "source": "nvd@nist.gov",
+                  "type": "Primary"
+                }
+              ],
+              "data_source": "https://go.dev/issue/56152",
+              "description": "An attacker may cause a denial of service by crafting an Accept-Language header which ParseAcceptLanguage will take significant time to parse.",
+              "epss": [
+                {
+                  "cve": "CVE-2022-32149",
+                  "date": "2026-06-04",
+                  "epss": 0.00054,
+                  "percentile": 0.17217
+                }
+              ],
+              "fix_available": [
+                {
+                  "date": "2022-10-11",
+                  "kind": "advisory",
+                  "version": "0.3.8"
+                }
+              ],
+              "fix_state": "fixed",
+              "fixed_in": "0.3.8",
+              "fixed_versions": [
+                "0.3.8"
+              ],
+              "id": "GO-2022-1059",
+              "namespace": "govulndb:language:go",
+              "reachability": {
+                "analyzed_at": "\u003ctimestamp\u003e",
+                "analyzer": "govulncheck",
+                "reason": "package-not-imported",
+                "status": "unreachable",
+                "tier": "package"
+              },
+              "reasons": [
+                "Also known as: CVE-2022-32149, GHSA-69ch-w2m2-3vjp",
+                "Fix available: upgrade to 0.3.8",
+                "Fix state: fixed",
+                "https://go.dev/cl/442235",
+                "https://groups.google.com/g/golang-announce/c/-hjNw559_tE/m/KlGTfid5CAAJ"
+              ],
+              "references": [
+                {
+                  "type": "data_source",
+                  "url": "https://go.dev/issue/56152"
+                },
+                {
+                  "type": "advisory",
+                  "url": "https://go.dev/cl/442235"
+                },
+                {
+                  "type": "advisory",
+                  "url": "https://groups.google.com/g/golang-announce/c/-hjNw559_tE/m/KlGTfid5CAAJ"
+                }
+              ],
+              "risk_score": 0.040499999999999994,
+              "severity": "high",
+              "severity_source": "govulndb:language:go",
+              "source": "grype",
+              "title": "An attacker may cause a denial of service by crafting an Accept-Language header which ParseAcceptLanguage will take significant time to parse."
             }
           ]
         },
@@ -779,7 +840,7 @@
     ],
     "analyzer_stats": {
       "govulncheck": {
-        "reachable": 2
+        "unreachable": 4
       }
     },
     "duration_ms": 0,

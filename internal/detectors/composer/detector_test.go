@@ -22,19 +22,19 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	runtimePkg, ok := g.Package("monolog:monolog@3.7.0")
+	runtimePkg, ok := g.Node("monolog:monolog@3.7.0")
 	if !ok {
 		t.Fatal("expected monolog package")
 	}
-	if runtimePkg.Scope != string(sdk.ScopeRuntime) {
-		t.Fatalf("expected runtime scope, got %q", runtimePkg.Scope)
+	if string(runtimePkg.PrimaryScope()) != string(sdk.ScopeRuntime) {
+		t.Fatalf("expected runtime scope, got %q", string(runtimePkg.PrimaryScope()))
 	}
-	devPkg, ok := g.Package("phpunit:phpunit@11.4.3")
+	devPkg, ok := g.Node("phpunit:phpunit@11.4.3")
 	if !ok {
 		t.Fatal("expected phpunit package")
 	}
-	if devPkg.Scope != string(sdk.ScopeDevelopment) {
-		t.Fatalf("expected development scope, got %q", devPkg.Scope)
+	if string(devPkg.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+		t.Fatalf("expected development scope, got %q", string(devPkg.PrimaryScope()))
 	}
 }
 
@@ -89,19 +89,19 @@ func TestDepGraphFromLock(t *testing.T) {
 		t.Fatalf("expected 5 packages, got %d", g.Size())
 	}
 
-	shared, ok := g.Package("vendor:shared@3.4.5")
+	shared, ok := g.Node("vendor:shared@3.4.5")
 	if !ok {
 		t.Fatal("expected shared package to exist")
 	}
-	if got := shared.Scope; got != string(sdk.ScopeRuntime) {
+	if got := string(shared.PrimaryScope()); got != string(sdk.ScopeRuntime) {
 		t.Fatalf("expected shared scope runtime, got %q", got)
 	}
 
-	devTool, ok := g.Package("vendor:dev-tool@4.0.0")
+	devTool, ok := g.Node("vendor:dev-tool@4.0.0")
 	if !ok {
 		t.Fatal("expected dev package to exist")
 	}
-	if got := devTool.Scope; got != string(sdk.ScopeDevelopment) {
+	if got := string(devTool.PrimaryScope()); got != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected dev package scope development, got %q", got)
 	}
 }

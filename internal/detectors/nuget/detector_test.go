@@ -24,7 +24,7 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	pkg, ok := g.Package("Newtonsoft.Json@13.0.3")
+	pkg, ok := g.Node("Newtonsoft.Json@13.0.3")
 	if !ok {
 		t.Fatal("expected Newtonsoft.Json package")
 	}
@@ -65,23 +65,23 @@ func TestDepGraphFromLockMultiTarget(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
-	root, ok := g.Package("root")
+	root, ok := g.Node("root")
 	if !ok {
 		t.Fatal("expected root package")
 	}
-	deps, err := g.Dependencies(root.ID)
+	deps, err := g.DirectDependencies(root.ID)
 	if err != nil {
 		t.Fatalf("root dependencies: %v", err)
 	}
 	if len(deps) != 1 || deps[0].Name != "Newtonsoft.Json" {
 		t.Fatalf("expected root to depend on Newtonsoft.Json, got %#v", deps)
 	}
-	systemText, ok := g.Package("System.Text.Json@8.0.0")
+	systemText, ok := g.Node("System.Text.Json@8.0.0")
 	if !ok {
 		t.Fatal("expected System.Text.Json package")
 	}
-	if systemText.Scope != string(sdk.ScopeRuntime) {
-		t.Fatalf("expected transitive runtime scope, got %q", systemText.Scope)
+	if string(systemText.PrimaryScope()) != string(sdk.ScopeRuntime) {
+		t.Fatalf("expected transitive runtime scope, got %q", string(systemText.PrimaryScope()))
 	}
 }
 
@@ -91,7 +91,7 @@ func TestDepGraphFromPackagesConfig(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromPackagesConfig() error = %v", err)
 	}
-	pkg, ok := g.Package("NUnit@4.2.2")
+	pkg, ok := g.Node("NUnit@4.2.2")
 	if !ok {
 		t.Fatal("expected NUnit package")
 	}
@@ -120,12 +120,12 @@ func TestDepGraphFromProjectFiles(t *testing.T) {
 		t.Fatalf("depGraphFromProjectFiles() error = %v", err)
 	}
 	for _, want := range []string{"System.Runtime.Extensions@4.3.0", "Newtonsoft.Json@13.0.3"} {
-		pkg, ok := g.Package(want)
+		pkg, ok := g.Node(want)
 		if !ok {
 			t.Fatalf("expected package %q", want)
 		}
-		if pkg.Scope != string(sdk.ScopeRuntime) {
-			t.Fatalf("expected runtime scope for %q, got %q", want, pkg.Scope)
+		if string(pkg.PrimaryScope()) != string(sdk.ScopeRuntime) {
+			t.Fatalf("expected runtime scope for %q, got %q", want, string(pkg.PrimaryScope()))
 		}
 	}
 }
@@ -170,14 +170,14 @@ func TestDepGraphFromDepsFiles(t *testing.T) {
 		t.Fatalf("depGraphFromDepsFiles() error = %v", err)
 	}
 	for _, want := range []string{"System.Runtime.Extensions@4.3.0", "GSF.Core@2.1.326-beta", "Antlr@3.5.0.2", "FSharp.Core@6.0.7"} {
-		if _, ok := g.Package(want); !ok {
+		if _, ok := g.Node(want); !ok {
 			t.Fatalf("expected package %q, got %s", want, g.PrettyString())
 		}
 	}
-	if _, ok := g.Package("demo@1.0.0"); ok {
+	if _, ok := g.Node("demo@1.0.0"); ok {
 		t.Fatalf("project package should not be included: %s", g.PrettyString())
 	}
-	deps, err := g.Dependencies("GSF.Core@2.1.326-beta")
+	deps, err := g.DirectDependencies("GSF.Core@2.1.326-beta")
 	if err != nil {
 		t.Fatalf("GSF.Core dependencies: %v", err)
 	}
@@ -190,12 +190,12 @@ func TestDepGraphFromDepsFiles(t *testing.T) {
 			t.Fatalf("expected GSF.Core -> %s, got %#v", want, deps)
 		}
 	}
-	runtime, ok := g.Package("System.Runtime.Extensions@4.3.0")
+	runtime, ok := g.Node("System.Runtime.Extensions@4.3.0")
 	if !ok {
 		t.Fatal("expected System.Runtime.Extensions")
 	}
-	if runtime.Scope != string(sdk.ScopeRuntime) {
-		t.Fatalf("expected runtime scope, got %q", runtime.Scope)
+	if string(runtime.PrimaryScope()) != string(sdk.ScopeRuntime) {
+		t.Fatalf("expected runtime scope, got %q", string(runtime.PrimaryScope()))
 	}
 }
 

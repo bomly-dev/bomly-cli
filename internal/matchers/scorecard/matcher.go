@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
+	"github.com/bomly-dev/bomly-cli/internal/matchers"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/cache"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
@@ -128,13 +129,9 @@ func (m *Matcher) Descriptor() sdk.MatcherDescriptor {
 		Enabled:             false,
 		Origin:              sdk.CoreOrigin,
 		SupportedEcosystems: nil,
-		SupportedModes: []sdk.TargetMode{
-			sdk.TargetModeFullGraph,
-			sdk.TargetModeComponent,
-		},
-		Priority:     90,
-		Required:     false,
-		Capabilities: []string{"project-posture"},
+		Priority:            90,
+		Required:            false,
+		Capabilities:        []string{"project-posture"},
 	}
 }
 
@@ -146,7 +143,7 @@ func (m *Matcher) Ready() bool {
 
 // Applicable reports whether this matcher applies to the given request.
 func (m *Matcher) Applicable(_ context.Context, req sdk.MatchRequest) (bool, error) {
-	return req.Mode == sdk.TargetModeFullGraph || req.Mode == sdk.TargetModeComponent, nil
+	return true, nil
 }
 
 // Match resolves Scorecard runs for every package whose upstream source
@@ -156,22 +153,19 @@ func (m *Matcher) Applicable(_ context.Context, req sdk.MatchRequest) (bool, err
 // abort the pipeline.
 func (m *Matcher) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
 	started := time.Now()
-	if req.Graph == nil {
-		return sdk.MatchResult{}, nil
+	if req.Graph == nil || req.Registry == nil {
+		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{"scorecard"}}, nil
 	}
-	packages := req.Graph.Packages()
-	if req.Mode == sdk.TargetModeComponent && req.Target != nil {
-		packages = []*sdk.Package{req.Target}
-	}
+	packages := matchers.RegistryPackagesForGraph(req.Graph, req.Registry, req.Target)
 	if len(packages) == 0 {
-		return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, nil
+		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{"scorecard"}}, nil
 	}
 
 	stats := matchStats{requestedPackages: len(packages)}
 	m.logger.Info(fmt.Sprintf("Scorecard enriching %d packages with project posture data", len(packages)))
 
 	// Group packages by resolved repo so we only fetch each repo once.
-	reposByPkg := make(map[string]string, len(packages)) // pkg.ID -> repo key
+	reposByPkg := make(map[string]string, len(packages)) // pkg.PURL -> repo key
 	pkgsByRepo := make(map[string][]*sdk.Package)
 	repoOrder := make([]string, 0)
 	for _, pkg := range packages {
@@ -180,7 +174,7 @@ func (m *Matcher) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchRes
 			stats.unresolvedRepos++
 			continue
 		}
-		reposByPkg[pkg.ID] = repo
+		reposByPkg[pkg.PURL] = repo
 		if _, seen := pkgsByRepo[repo]; !seen {
 			repoOrder = append(repoOrder, repo)
 		}
@@ -190,7 +184,7 @@ func (m *Matcher) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchRes
 
 	if len(repoOrder) == 0 {
 		m.logger.Info(fmt.Sprintf("Scorecard enrichment skipped — no resolvable github.com repos (%d packages) in %s", stats.requestedPackages, logging.FormatDuration(time.Since(started))))
-		return sdk.MatchResult{Graph: req.Graph, Target: req.Target, MatcherRuns: []string{"scorecard"}}, nil
+		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{"scorecard"}}, nil
 	}
 
 	// Fetch each unique repo. Cache check first; 404 is cached as a sentinel.
@@ -224,7 +218,7 @@ func (m *Matcher) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchRes
 			m.logger.Warn("scorecard: fetch failed", zap.String("repo", repo), zap.Error(err))
 			if m.config.Stderr != nil {
 				if _, werr := fmt.Fprintf(m.config.Stderr, "warn: scorecard fetch failed for %s: %v\n", repo, err); werr != nil {
-					return sdk.MatchResult{}, werr
+					return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{"scorecard"}}, werr
 				}
 			}
 		default:
@@ -242,7 +236,7 @@ func (m *Matcher) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchRes
 		if pkg == nil {
 			continue
 		}
-		repo, ok := reposByPkg[pkg.ID]
+		repo, ok := reposByPkg[pkg.PURL]
 		if !ok {
 			continue
 		}
@@ -273,8 +267,7 @@ func (m *Matcher) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchRes
 	m.logger.Info(fmt.Sprintf("Scorecard enrichment attached %d packages across %d repos in %s", stats.enrichedPackages, stats.uniqueRepos, logging.FormatDuration(time.Since(started))))
 
 	return sdk.MatchResult{
-		Graph:       req.Graph,
-		Target:      req.Target,
+		Registry:    req.Registry,
 		MatcherRuns: []string{"scorecard"},
 	}, nil
 }

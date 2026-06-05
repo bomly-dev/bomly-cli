@@ -73,7 +73,6 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 		Technique:           sdk.LockfileTechnique,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemDart},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerPub},
-		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
 	}
 }
@@ -143,7 +142,7 @@ func depGraphFromLock(raw []byte, manifest pubspec) (*sdk.Graph, error) {
 	}
 	g := sdk.New()
 	root := rootNode(manifest)
-	if err := g.AddPackage(root); err != nil {
+	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 	for _, name := range sortedPackageNames(lock.Packages) {
@@ -151,24 +150,24 @@ func depGraphFromLock(raw []byte, manifest pubspec) (*sdk.Graph, error) {
 		node := packageNode(name, pkg)
 		scope := scopeForPackage(name, pkg, manifest)
 		if scope != "" {
-			sdk.MergePackageScope(node, scope)
+			node.AddScope(scope)
 		}
 		if err := addNodeIfMissing(g, node); err != nil {
 			return nil, err
 		}
-		if err := g.AddDependency(root.ID, node.ID); err != nil {
+		if err := g.AddEdge(root.ID, node.ID); err != nil {
 			return nil, fmt.Errorf("add pub dependency %q: %w", node.ID, err)
 		}
 	}
 	return g, nil
 }
 
-func rootNode(manifest pubspec) *sdk.Package {
+func rootNode(manifest pubspec) *sdk.Dependency {
 	name := strings.TrimSpace(manifest.Name)
 	if name == "" {
 		name = "root"
 	}
-	return sdk.NewPackage(sdk.Package{
+	return sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemDart),
 		Name:        name,
 		Version:     strings.TrimSpace(manifest.Version),
@@ -176,10 +175,11 @@ func rootNode(manifest pubspec) *sdk.Package {
 		Type:        "application",
 		Language:    "dart",
 	})
+
 }
 
-func packageNode(name string, pkg pubLockPackage) *sdk.Package {
-	node := sdk.NewPackage(sdk.Package{
+func packageNode(name string, pkg pubLockPackage) *sdk.Dependency {
+	node := sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemDart),
 		Name:        name,
 		Version:     strings.TrimSpace(pkg.Version),
@@ -191,6 +191,7 @@ func packageNode(name string, pkg pubLockPackage) *sdk.Package {
 			"source": strings.TrimSpace(pkg.Source),
 		},
 	})
+
 	if resolved := resolvedURL(pkg.Description); resolved != "" {
 		node.ResolvedURL = resolved
 	}
@@ -246,11 +247,11 @@ func sortedPackageNames(packages map[string]pubLockPackage) []string {
 	return values
 }
 
-func addNodeIfMissing(g *sdk.Graph, node *sdk.Package) error {
-	if _, ok := g.Package(node.ID); ok {
+func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
+	if _, ok := g.Node(node.ID); ok {
 		return nil
 	}
-	if err := g.AddPackage(node); err != nil {
+	if err := g.AddNode(node); err != nil {
 		return fmt.Errorf("add node %q: %w", node.ID, err)
 	}
 	return nil

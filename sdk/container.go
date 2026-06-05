@@ -11,10 +11,14 @@ type ManifestMetadata struct {
 	Kind ManifestKind `json:"kind,omitempty"`
 }
 
-// GraphEntry describes one manifest-scoped dependency graph.
+// GraphEntry describes one manifest-scoped dependency graph. Detection-time
+// package facts discovered alongside the graph (licenses, digests, copyright
+// pulled from lockfiles) are carried in Packages for folding into the global
+// package registry during consolidation.
 type GraphEntry struct {
 	Graph    *Graph           `json:"graph,omitempty"`
 	Manifest ManifestMetadata `json:"manifest"`
+	Packages []*Package       `json:"packages,omitempty"`
 }
 
 // GraphContainer groups one or more manifest-scoped dependency graphs.
@@ -64,14 +68,14 @@ func (c *GraphContainer) ConsolidatedGraph() (*Graph, error) {
 	return merged, nil
 }
 
-// MergeGraph adds all packages and relationships from src into dst.
+// MergeGraph adds all nodes and relationships from src into dst.
 func MergeGraph(dst, src *Graph) error {
 	if dst == nil || src == nil {
 		return nil
 	}
 	var mergeErr error
-	src.WalkPackages(func(pkg *Package) bool {
-		if err := addPackageIfMissing(dst, pkg); err != nil {
+	src.WalkNodes(func(node *Dependency) bool {
+		if err := addNodeIfMissing(dst, node); err != nil {
 			mergeErr = err
 			return false
 		}
@@ -80,8 +84,8 @@ func MergeGraph(dst, src *Graph) error {
 	if mergeErr != nil {
 		return mergeErr
 	}
-	src.WalkRelationships(func(from, to *Package) bool {
-		if err := dst.AddDependency(from.ID, to.ID); err != nil {
+	src.WalkEdges(func(from, to *Dependency) bool {
+		if err := dst.AddEdge(from.ID, to.ID); err != nil {
 			mergeErr = err
 			return false
 		}
@@ -90,13 +94,13 @@ func MergeGraph(dst, src *Graph) error {
 	return mergeErr
 }
 
-func addPackageIfMissing(g *Graph, pkg *Package) error {
-	if pkg == nil {
+func addNodeIfMissing(g *Graph, node *Dependency) error {
+	if node == nil {
 		return nil
 	}
-	clone := pkg.Clone()
-	err := g.AddPackage(clone)
-	if err != nil && !errors.Is(err, ErrPackageAlreadyExist) {
+	clone := node.Clone()
+	err := g.AddNode(clone)
+	if err != nil && !errors.Is(err, ErrNodeAlreadyExist) {
 		return err
 	}
 	return nil

@@ -40,16 +40,21 @@ func TestMatchEnrichesPackageMetadata(t *testing.T) {
 	}
 
 	g := sdk.New()
-	pkg := sdk.NewPackage(sdk.Package{Ecosystem: "python", Name: "django", Version: "4.2.9"})
-	if err := g.AddPackage(pkg); err != nil {
-		t.Fatalf("AddPackage() error = %v", err)
+	dep := sdk.NewDependency(sdk.Dependency{Ecosystem: "python", Name: "django", Version: "4.2.9"})
+	if err := g.AddNode(dep); err != nil {
+		t.Fatalf("AddNode() error = %v", err)
 	}
 
-	_, err = checker.Match(context.Background(), sdk.MatchRequest{Graph: g, Mode: sdk.TargetModeFullGraph})
+	registry := sdk.NewPackageRegistry()
+	_, err = checker.Match(context.Background(), sdk.MatchRequest{Graph: g, Registry: registry})
 	if err != nil {
 		t.Fatalf("Match() error = %v", err)
 	}
 
+	pkg, ok := registry.Get(sdk.CanonicalPackageURLFromDependency(dep))
+	if !ok {
+		t.Fatalf("expected registry package for django")
+	}
 	got, ok := pkg.Metadata[metadataEOLKey].(map[string]any)
 	if !ok {
 		t.Fatalf("expected eol metadata map, got %#v", pkg.Metadata[metadataEOLKey])

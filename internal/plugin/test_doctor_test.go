@@ -97,7 +97,6 @@ func (d *detector) Descriptor(context.Context) (*schemav1.DetectorDescriptor, er
 		Name:           "` + id + `",
 		Enabled:        true,
 		Origin:         schemav1.ExternalOrigin,
-		SupportedModes: []schemav1.TargetMode{schemav1.TargetModeFullGraph},
 		Capabilities:   []string{"dependency-detection"},
 	}, nil
 }

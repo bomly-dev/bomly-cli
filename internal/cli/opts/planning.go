@@ -69,7 +69,6 @@ func planContainerSubprojects(registryValue *engine.Registry, req Request) ([]sd
 			Ecosystem:       singleEcosystem(plan.SupportedEcosystems, req.EcosystemFilter),
 			PackageManager:  singlePackageManager(plan.SupportedManagers),
 			DetectorFilter:  req.DetectorFilter,
-			Mode:            sdk.TargetModeFullGraph,
 		}, []string{detectorName})
 		chain := expandDetectorNames(registryValue, detectorList)
 		if len(chain) == 0 {
@@ -270,7 +269,6 @@ func plannedSubprojectForPackageManager(
 		Ecosystem:       manager.Ecosystem(),
 		PackageManager:  manager,
 		DetectorFilter:  detectorFilter,
-		Mode:            sdk.TargetModeFullGraph,
 	}
 	chain := expandDetectorNames(registryValue, registryValue.PlannedDetectors(resolveReq, detectorNamesForPackageManager(registryValue, executionTarget.Kind, candidatePath, manager)))
 	if len(chain) == 0 {
@@ -330,7 +328,6 @@ func plannedPluginSubprojectsForPath(
 			Ecosystem:       singleEcosystem(plan.SupportedEcosystems, ecosystemFilter),
 			PackageManager:  singlePackageManager(plan.SupportedManagers),
 			DetectorFilter:  detectorFilter,
-			Mode:            sdk.TargetModeFullGraph,
 		}, []string{detectorName})
 		chain := expandDetectorNames(registryValue, detectorList)
 		if len(chain) == 0 {

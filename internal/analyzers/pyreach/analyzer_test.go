@@ -29,9 +29,7 @@ func (f *fakeRunner) Run(_ context.Context, projectDir string) (RunnerResult, er
 }
 
 // newPythonProjectDir creates a temp directory that looks like a
-// Python project (pyproject.toml + a tiny app.py). The fixture is
-// intentionally minimal — most pyreach tests inject a fake runner
-// so the disk-walking scanner is exercised separately.
+// Python project (pyproject.toml + a tiny app.py).
 func newPythonProjectDir(t *testing.T) string {
 	t.Helper()
 	dir := t.TempDir()
@@ -45,29 +43,45 @@ func newPythonProjectDir(t *testing.T) string {
 	return dir
 }
 
-// newPyGraph builds a single-package graph rooted at projectDir with
-// the supplied vulnerabilities attached.
-func newPyGraph(t *testing.T, projectDir, name string, vulns ...model.PackageVulnerability) *model.Graph {
+func newSeed() (*model.Graph, *model.PackageRegistry) {
+	return model.New(), model.NewPackageRegistry()
+}
+
+// addPyDep adds a Python dependency node to g and (when vulns are supplied) a
+// registry package keyed by the dependency PURL carrying them.
+func addPyDep(t *testing.T, g *model.Graph, reg *model.PackageRegistry, projectDir, name, version string, vulns ...model.Vulnerability) *model.Dependency {
 	t.Helper()
-	g := model.New()
-	pkg := model.NewPackage(model.Package{
-		Name:            name,
-		Version:         "1.0.0",
-		Ecosystem:       string(model.EcosystemPython),
-		BuildSystem:     "pip",
-		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "requirements.txt")}},
-		Vulnerabilities: vulns,
+	dep := model.NewDependency(model.Dependency{
+		Name:        name,
+		Version:     version,
+		Ecosystem:   string(model.EcosystemPython),
+		BuildSystem: "pip",
+		Locations:   []model.PackageLocation{{RealPath: filepath.Join(projectDir, "requirements.txt")}},
 	})
-	if err := g.AddPackage(pkg); err != nil {
+	purl := model.CanonicalPackageURLFromDependency(dep)
+	dep.PackageRef = purl
+	if err := g.AddNode(dep); err != nil {
 		t.Fatal(err)
 	}
-	return g
+	pkg := reg.Ensure(purl)
+	pkg.Vulnerabilities = append(pkg.Vulnerabilities, vulns...)
+	return dep
+}
+
+// reachOf returns the reachability for a dependency's first vulnerability.
+func reachOf(t *testing.T, reg *model.PackageRegistry, dep *model.Dependency) *model.Reachability {
+	t.Helper()
+	pkg, ok := reg.Get(dep.PackageRef)
+	if !ok || pkg == nil || len(pkg.Vulnerabilities) == 0 {
+		t.Fatalf("no registry vulnerability for %s", dep.Name)
+	}
+	return pkg.Vulnerabilities[0].Reachability
 }
 
 func TestAnalyzerMarksReachableWhenPackageIsImported(t *testing.T) {
 	projectDir := newPythonProjectDir(t)
-	vuln := model.PackageVulnerability{ID: "GHSA-test", Source: "osv", Severity: "high"}
-	g := newPyGraph(t, projectDir, "requests", vuln)
+	g, reg := newSeed()
+	dep := addPyDep(t, g, reg, projectDir, "requests", "1.0.0", model.Vulnerability{ID: "GHSA-test", Source: "osv", ParsedSeverity: "high"})
 
 	a := Analyzer{
 		DisableCache: true,
@@ -79,14 +93,11 @@ func TestAnalyzerMarksReachableWhenPackageIsImported(t *testing.T) {
 		},
 	}
 
-	res, err := a.Analyze(context.Background(), model.AnalyzeRequest{
-		Graph:       g,
-		ProjectPath: projectDir,
-	})
+	res, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Analyze err: %v", err)
 	}
-	r := res.Graph.Packages()[0].Vulnerabilities[0].Reachability
+	r := reachOf(t, reg, dep)
 	if r == nil {
 		t.Fatal("expected Reachability to be set")
 	}
@@ -103,8 +114,8 @@ func TestAnalyzerMarksReachableWhenPackageIsImported(t *testing.T) {
 
 func TestAnalyzerMarksUnreachableWhenPackageNotImported(t *testing.T) {
 	projectDir := newPythonProjectDir(t)
-	vuln := model.PackageVulnerability{ID: "GHSA-test", Source: "osv", Severity: "high"}
-	g := newPyGraph(t, projectDir, "left-pad", vuln)
+	g, reg := newSeed()
+	dep := addPyDep(t, g, reg, projectDir, "left-pad", "1.0.0", model.Vulnerability{ID: "GHSA-test", Source: "osv", ParsedSeverity: "high"})
 
 	a := Analyzer{
 		DisableCache: true,
@@ -115,15 +126,10 @@ func TestAnalyzerMarksUnreachableWhenPackageNotImported(t *testing.T) {
 			},
 		},
 	}
-
-	_, err := a.Analyze(context.Background(), model.AnalyzeRequest{
-		Graph:       g,
-		ProjectPath: projectDir,
-	})
-	if err != nil {
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir}); err != nil {
 		t.Fatal(err)
 	}
-	r := g.Packages()[0].Vulnerabilities[0].Reachability
+	r := reachOf(t, reg, dep)
 	if r.Status != model.ReachabilityUnreachable || r.Tier != model.TierPackage || r.Reason != "package-not-imported" {
 		t.Errorf("unexpected reachability: %+v", r)
 	}
@@ -131,21 +137,17 @@ func TestAnalyzerMarksUnreachableWhenPackageNotImported(t *testing.T) {
 
 func TestAnalyzerDegradesToUnknownOnRunnerError(t *testing.T) {
 	projectDir := newPythonProjectDir(t)
-	vuln := model.PackageVulnerability{ID: "GHSA-test", Source: "osv", Severity: "high"}
-	g := newPyGraph(t, projectDir, "requests", vuln)
+	g, reg := newSeed()
+	dep := addPyDep(t, g, reg, projectDir, "requests", "1.0.0", model.Vulnerability{ID: "GHSA-test", Source: "osv", ParsedSeverity: "high"})
 
 	a := Analyzer{
 		DisableCache: true,
 		Runner:       &fakeRunner{err: errors.New("project dir not accessible: not found")},
 	}
-	_, err := a.Analyze(context.Background(), model.AnalyzeRequest{
-		Graph:       g,
-		ProjectPath: projectDir,
-	})
-	if err != nil {
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir}); err != nil {
 		t.Fatalf("Analyze should not error on runner failure: %v", err)
 	}
-	r := g.Packages()[0].Vulnerabilities[0].Reachability
+	r := reachOf(t, reg, dep)
 	if r.Status != model.ReachabilityUnknown {
 		t.Errorf("status = %q, want unknown", r.Status)
 	}
@@ -154,17 +156,11 @@ func TestAnalyzerDegradesToUnknownOnRunnerError(t *testing.T) {
 	}
 }
 
-// TestAnalyzerNormalisesDistributionNames covers the case where the
-// import set is normalized but the graph package name is not — both
-// sides go through canonicalDistName before comparison so PEP 503
-// equivalents (PyYAML / pyyaml, my_pkg / my-pkg) match.
 func TestAnalyzerNormalisesDistributionNames(t *testing.T) {
 	projectDir := newPythonProjectDir(t)
-	vuln := model.PackageVulnerability{ID: "GHSA-test", Source: "osv", Severity: "high"}
-	g := newPyGraph(t, projectDir, "PyYAML", vuln)
+	g, reg := newSeed()
+	dep := addPyDep(t, g, reg, projectDir, "PyYAML", "1.0.0", model.Vulnerability{ID: "GHSA-test", Source: "osv", ParsedSeverity: "high"})
 
-	// Runner emits the canonicalised "pyyaml" form (which is what
-	// moduleToDistribution would produce for `import yaml`).
 	a := Analyzer{
 		DisableCache: true,
 		Runner: &fakeRunner{
@@ -174,11 +170,10 @@ func TestAnalyzerNormalisesDistributionNames(t *testing.T) {
 			},
 		},
 	}
-	_, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: projectDir})
-	if err != nil {
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir}); err != nil {
 		t.Fatal(err)
 	}
-	r := g.Packages()[0].Vulnerabilities[0].Reachability
+	r := reachOf(t, reg, dep)
 	if r == nil || r.Status != model.ReachabilityReachable {
 		t.Errorf("PyYAML / pyyaml not matched: %+v", r)
 	}
@@ -187,65 +182,34 @@ func TestAnalyzerNormalisesDistributionNames(t *testing.T) {
 func TestAnalyzerApplicableRequiresPythonVulns(t *testing.T) {
 	a := Analyzer{}
 
-	g := model.New()
-	goPkg := model.NewPackage(model.Package{Name: "lib", Ecosystem: "go", Vulnerabilities: []model.PackageVulnerability{{ID: "x"}}})
-	_ = g.AddPackage(goPkg)
-	ok, err := a.Applicable(context.Background(), model.AnalyzeRequest{Graph: g})
-	if err != nil || ok {
+	g, reg := newSeed()
+	goDep := model.NewDependency(model.Dependency{Name: "lib", Ecosystem: "go"})
+	goDep.PackageRef = model.CanonicalPackageURLFromDependency(goDep)
+	_ = g.AddNode(goDep)
+	reg.Ensure(goDep.PackageRef).Vulnerabilities = []model.Vulnerability{{ID: "x"}}
+	if ok, err := a.Applicable(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg}); err != nil || ok {
 		t.Errorf("Applicable on go-only graph = (%v, %v); want (false, nil)", ok, err)
 	}
 
-	g = model.New()
-	pyPkg := model.NewPackage(model.Package{Name: "requests", Ecosystem: string(model.EcosystemPython), Vulnerabilities: []model.PackageVulnerability{{ID: "x"}}})
-	_ = g.AddPackage(pyPkg)
-	ok, err = a.Applicable(context.Background(), model.AnalyzeRequest{Graph: g})
-	if err != nil || !ok {
+	g, reg = newSeed()
+	addPyDep(t, g, reg, t.TempDir(), "requests", "1.0.0", model.Vulnerability{ID: "x"})
+	if ok, err := a.Applicable(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg}); err != nil || !ok {
 		t.Errorf("Applicable on python-with-vulns graph = (%v, %v); want (true, nil)", ok, err)
 	}
 
-	g = model.New()
-	pyNoVulns := model.NewPackage(model.Package{Name: "requests", Ecosystem: string(model.EcosystemPython)})
-	_ = g.AddPackage(pyNoVulns)
-	ok, err = a.Applicable(context.Background(), model.AnalyzeRequest{Graph: g})
-	if err != nil || ok {
+	g, reg = newSeed()
+	addPyDep(t, g, reg, t.TempDir(), "requests", "1.0.0") // no vulns
+	if ok, err := a.Applicable(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg}); err != nil || ok {
 		t.Errorf("Applicable on python-without-vulns graph = (%v, %v); want (false, nil)", ok, err)
 	}
 }
 
-// TestAnalyzerMarksTransitiveDepReachable is the headline correctness
-// test for the closure expansion. The import scanner only returns
-// the top-level distributions imported in app source. Transitively
-// reachable distributions (urllib3 pulled in by requests) must still
-// be reported as reachable.
 func TestAnalyzerMarksTransitiveDepReachable(t *testing.T) {
 	projectDir := newPythonProjectDir(t)
-	requestsVuln := model.PackageVulnerability{ID: "GHSA-direct", Source: "osv", Severity: "high"}
-	urllib3Vuln := model.PackageVulnerability{ID: "GHSA-transitive", Source: "osv", Severity: "high"}
-
-	g := model.New()
-	requests := model.NewPackage(model.Package{
-		Name:            "requests",
-		Version:         "2.32.3",
-		Ecosystem:       string(model.EcosystemPython),
-		BuildSystem:     "pip",
-		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "requirements.txt")}},
-		Vulnerabilities: []model.PackageVulnerability{requestsVuln},
-	})
-	urllib3 := model.NewPackage(model.Package{
-		Name:            "urllib3",
-		Version:         "2.2.1",
-		Ecosystem:       string(model.EcosystemPython),
-		BuildSystem:     "pip",
-		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "requirements.txt")}},
-		Vulnerabilities: []model.PackageVulnerability{urllib3Vuln},
-	})
-	if err := g.AddPackage(requests); err != nil {
-		t.Fatal(err)
-	}
-	if err := g.AddPackage(urllib3); err != nil {
-		t.Fatal(err)
-	}
-	if err := g.AddDependency(requests.ID, urllib3.ID); err != nil {
+	g, reg := newSeed()
+	requests := addPyDep(t, g, reg, projectDir, "requests", "2.32.3", model.Vulnerability{ID: "GHSA-direct", Source: "osv", ParsedSeverity: "high"})
+	urllib3 := addPyDep(t, g, reg, projectDir, "urllib3", "2.2.1", model.Vulnerability{ID: "GHSA-transitive", Source: "osv", ParsedSeverity: "high"})
+	if err := g.AddEdge(requests.ID, urllib3.ID); err != nil {
 		t.Fatal(err)
 	}
 
@@ -253,62 +217,32 @@ func TestAnalyzerMarksTransitiveDepReachable(t *testing.T) {
 		DisableCache: true,
 		Runner: &fakeRunner{
 			result: RunnerResult{
-				// App source only imports requests directly.
 				ImportedDistributions: map[string]struct{}{"requests": {}},
 				SourceFiles:           1,
 			},
 		},
 	}
-
-	_, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: projectDir})
-	if err != nil {
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir}); err != nil {
 		t.Fatal(err)
 	}
 
-	for _, pkg := range g.Packages() {
-		r := pkg.Vulnerabilities[0].Reachability
+	for _, dep := range []*model.Dependency{requests, urllib3} {
+		r := reachOf(t, reg, dep)
 		if r == nil {
-			t.Fatalf("%s: missing Reachability", pkg.Name)
+			t.Fatalf("%s: missing Reachability", dep.Name)
 		}
 		if r.Status != model.ReachabilityReachable {
-			t.Errorf("%s: status = %q, want reachable", pkg.Name, r.Status)
+			t.Errorf("%s: status = %q, want reachable", dep.Name, r.Status)
 		}
 	}
 }
 
-// TestAnalyzerDoesNotExpandThroughUnimportedRoots ensures the
-// closure only walks from the directly-imported seed set. A
-// vulnerable transitive dep that is NOT reachable from any imported
-// distribution should stay unreachable.
 func TestAnalyzerDoesNotExpandThroughUnimportedRoots(t *testing.T) {
 	projectDir := newPythonProjectDir(t)
-	pytestVuln := model.PackageVulnerability{ID: "GHSA-devtool", Source: "osv", Severity: "high"}
-	transVuln := model.PackageVulnerability{ID: "GHSA-trans", Source: "osv", Severity: "high"}
-
-	g := model.New()
-	pytest := model.NewPackage(model.Package{
-		Name:            "pytest",
-		Version:         "8.0.0",
-		Ecosystem:       string(model.EcosystemPython),
-		BuildSystem:     "pip",
-		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "requirements.txt")}},
-		Vulnerabilities: []model.PackageVulnerability{pytestVuln},
-	})
-	pluggy := model.NewPackage(model.Package{
-		Name:            "pluggy",
-		Version:         "1.0.0",
-		Ecosystem:       string(model.EcosystemPython),
-		BuildSystem:     "pip",
-		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "requirements.txt")}},
-		Vulnerabilities: []model.PackageVulnerability{transVuln},
-	})
-	if err := g.AddPackage(pytest); err != nil {
-		t.Fatal(err)
-	}
-	if err := g.AddPackage(pluggy); err != nil {
-		t.Fatal(err)
-	}
-	if err := g.AddDependency(pytest.ID, pluggy.ID); err != nil {
+	g, reg := newSeed()
+	pytest := addPyDep(t, g, reg, projectDir, "pytest", "8.0.0", model.Vulnerability{ID: "GHSA-devtool", Source: "osv", ParsedSeverity: "high"})
+	pluggy := addPyDep(t, g, reg, projectDir, "pluggy", "1.0.0", model.Vulnerability{ID: "GHSA-trans", Source: "osv", ParsedSeverity: "high"})
+	if err := g.AddEdge(pytest.ID, pluggy.ID); err != nil {
 		t.Fatal(err)
 	}
 
@@ -316,44 +250,39 @@ func TestAnalyzerDoesNotExpandThroughUnimportedRoots(t *testing.T) {
 		DisableCache: true,
 		Runner: &fakeRunner{
 			result: RunnerResult{
-				// Unrelated import; pytest is dev-only and not seen.
 				ImportedDistributions: map[string]struct{}{"flask": {}},
 				SourceFiles:           1,
 			},
 		},
 	}
-	_, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: projectDir})
-	if err != nil {
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir}); err != nil {
 		t.Fatal(err)
 	}
-	for _, pkg := range g.Packages() {
-		r := pkg.Vulnerabilities[0].Reachability
+	for _, dep := range []*model.Dependency{pytest, pluggy} {
+		r := reachOf(t, reg, dep)
 		if r == nil {
-			t.Fatalf("%s: missing Reachability", pkg.Name)
+			t.Fatalf("%s: missing Reachability", dep.Name)
 		}
 		if r.Status != model.ReachabilityUnreachable {
-			t.Errorf("%s: status = %q, want unreachable", pkg.Name, r.Status)
+			t.Errorf("%s: status = %q, want unreachable", dep.Name, r.Status)
 		}
 	}
 }
 
-// TestComputeReachablePackageHopsHandlesCycles guards against the
-// classic BFS pitfall: a → b → a should not loop, and the hop count
-// for a transitive dep should be the shortest distance.
 func TestComputeReachablePackageHopsHandlesCycles(t *testing.T) {
 	g := model.New()
-	a := model.NewPackage(model.Package{Name: "a", Version: "1.0.0", Ecosystem: string(model.EcosystemPython)})
-	b := model.NewPackage(model.Package{Name: "b", Version: "1.0.0", Ecosystem: string(model.EcosystemPython)})
-	if err := g.AddPackage(a); err != nil {
+	a := model.NewDependency(model.Dependency{Name: "a", Version: "1.0.0", Ecosystem: string(model.EcosystemPython)})
+	b := model.NewDependency(model.Dependency{Name: "b", Version: "1.0.0", Ecosystem: string(model.EcosystemPython)})
+	if err := g.AddNode(a); err != nil {
 		t.Fatal(err)
 	}
-	if err := g.AddPackage(b); err != nil {
+	if err := g.AddNode(b); err != nil {
 		t.Fatal(err)
 	}
-	if err := g.AddDependency(a.ID, b.ID); err != nil {
+	if err := g.AddEdge(a.ID, b.ID); err != nil {
 		t.Fatal(err)
 	}
-	if err := g.AddDependency(b.ID, a.ID); err != nil {
+	if err := g.AddEdge(b.ID, a.ID); err != nil {
 		t.Fatal(err)
 	}
 
@@ -367,21 +296,15 @@ func TestComputeReachablePackageHopsHandlesCycles(t *testing.T) {
 }
 
 func TestAnalyzerMarksUnknownWhenNoProjectRootDiscovered(t *testing.T) {
-	dir := t.TempDir()
-	g := model.New()
-	pkg := model.NewPackage(model.Package{
-		Name:            "requests",
-		Ecosystem:       string(model.EcosystemPython),
-		Vulnerabilities: []model.PackageVulnerability{{ID: "x"}},
-	})
-	_ = g.AddPackage(pkg)
+	dir := t.TempDir() // no pyproject.toml
+	g, reg := newSeed()
+	dep := addPyDep(t, g, reg, dir, "requests", "1.0.0", model.Vulnerability{ID: "x"})
 
 	a := Analyzer{DisableCache: true, Runner: &fakeRunner{}}
-	_, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: dir})
-	if err != nil {
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: dir}); err != nil {
 		t.Fatal(err)
 	}
-	r := g.Packages()[0].Vulnerabilities[0].Reachability
+	r := reachOf(t, reg, dep)
 	if r == nil || r.Status != model.ReachabilityUnknown {
 		t.Errorf("expected Unknown status, got %+v", r)
 	}

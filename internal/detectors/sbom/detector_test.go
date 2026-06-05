@@ -48,7 +48,7 @@ func TestDetectorResolveGraph_NormalizesImportedComponentIDs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	deps, err := g.Dependencies("demo-app@1.0.0")
+	deps, err := g.DirectDependencies("demo-app@1.0.0")
 	if err != nil {
 		t.Fatalf("Dependencies() error = %v", err)
 	}
@@ -59,26 +59,28 @@ func TestDetectorResolveGraph_NormalizesImportedComponentIDs(t *testing.T) {
 
 func TestDetectorResolveGraph_PrefersImportedPURLIdentity(t *testing.T) {
 	g := sdk.New()
-	app := sdk.NewPackage(sdk.Package{
+	app := sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   "npm",
 		BuildSystem: "npm",
 		Name:        "demo-app",
 		Version:     "1.0.0",
 		PURL:        "pkg:npm/demo-app@1.0.0",
 	})
-	react := sdk.NewPackage(sdk.Package{
+
+	react := sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   "npm",
 		BuildSystem: "npm",
 		Name:        "react",
 		Version:     "18.2.0",
 		PURL:        "pkg:npm/react@18.2.0",
 	})
-	for _, pkg := range []*sdk.Package{app, react} {
-		if err := g.AddPackage(pkg); err != nil {
+
+	for _, pkg := range []*sdk.Dependency{app, react} {
+		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package %s: %v", pkg.ID, err)
 		}
 	}
-	if err := g.AddDependency(app.ID, react.ID); err != nil {
+	if err := g.AddEdge(app.ID, react.ID); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 
@@ -99,7 +101,7 @@ func TestDetectorResolveGraph_PrefersImportedPURLIdentity(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	reactPkg, ok := resolvedGraph.Package("pkg:npm/react@18.2.0")
+	reactPkg, ok := resolvedGraph.Node("pkg:npm/react@18.2.0")
 	if !ok || reactPkg == nil {
 		t.Fatalf("expected PURL-normalized react package, got %s", resolvedGraph.PrettyString())
 	}
@@ -158,21 +160,20 @@ func requestForSBOMPath(path string) sdk.DetectionRequest {
 		},
 		PackageManager: sdk.PackageManagerSBOM,
 		Ecosystem:      sdk.EcosystemSBOM,
-		Mode:           sdk.TargetModeFullGraph,
 	}
 }
 
 func writeSBOMFixture(t *testing.T, target sbom.Target) string {
 	t.Helper()
 	g := sdk.New()
-	app := sdk.NewPackageRef("demo-app", "1.0.0")
-	react := sdk.NewPackageRef("react", "18.2.0")
-	for _, pkg := range []*sdk.Package{app, react} {
-		if err := g.AddPackage(pkg); err != nil {
+	app := sdk.NewDependencyRef("demo-app", "1.0.0")
+	react := sdk.NewDependencyRef("react", "18.2.0")
+	for _, pkg := range []*sdk.Dependency{app, react} {
+		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
 		}
 	}
-	if err := g.AddDependency(app.ID, react.ID); err != nil {
+	if err := g.AddEdge(app.ID, react.ID); err != nil {
 		t.Fatalf("add dependency: %v", err)
 	}
 
@@ -199,7 +200,7 @@ func verifyResolvedGraph(t *testing.T, result sdk.DetectionResult, wantDependenc
 	if g == nil || g.Size() == 0 {
 		t.Fatal("expected resolved graph")
 	}
-	for _, pkg := range g.Packages() {
+	for _, pkg := range g.Nodes() {
 		if pkg != nil && pkg.StableID() == wantDependencyID {
 			return
 		}

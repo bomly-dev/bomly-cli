@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bomly-dev/bomly-cli/internal/matchers"
 	matchercache "github.com/bomly-dev/bomly-cli/internal/matchers/cache"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
@@ -26,6 +27,9 @@ const (
 	statusUnknown        = "unknown"
 
 	metadataEOLKey = "endoflife.date"
+
+	// matcherName labels this matcher in MatchResult.MatcherRuns.
+	matcherName = "eol"
 
 	defaultAPIBase  = "https://endoflife.date/api"
 	defaultCacheTTL = 24 * time.Hour
@@ -115,13 +119,12 @@ func New(config Config) (*Checker, error) {
 // Descriptor returns matcher registration metadata.
 func (c *Checker) Descriptor() sdk.MatcherDescriptor {
 	return sdk.MatcherDescriptor{
-		Name:           "eol-checker",
-		Enabled:        false,
-		Origin:         sdk.CoreOrigin,
-		SupportedModes: []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
-		Priority:       80,
-		Required:       false,
-		Capabilities:   []string{"eol-enrichment", "http-cache"},
+		Name:         "eol-checker",
+		Enabled:      false,
+		Origin:       sdk.CoreOrigin,
+		Priority:     80,
+		Required:     false,
+		Capabilities: []string{"eol-enrichment", "http-cache"},
 	}
 }
 
@@ -137,21 +140,18 @@ func (c *Checker) Applicable(_ context.Context, req sdk.MatchRequest) (bool, err
 
 // Match enriches packages with EOL status metadata.
 func (c *Checker) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
-	if req.Graph == nil {
-		c.logger.Debug("eol: skipped because graph is nil")
-		return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, nil
+	if req.Graph == nil || req.Registry == nil {
+		c.logger.Debug("eol: skipped because graph or registry is nil")
+		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, nil
 	}
 
-	packages := req.Graph.Packages()
-	if req.Mode == sdk.TargetModeComponent && req.Target != nil {
-		packages = []*sdk.Package{req.Target}
-	}
-	c.logger.Info("eol: matcher invoked", zap.String("mode", string(req.Mode)), zap.Int("packages", len(packages)))
+	packages := matchers.RegistryPackagesForGraph(req.Graph, req.Registry, req.Target)
+	c.logger.Info("eol: matcher invoked", zap.Int("packages", len(packages)))
 
 	products, err := c.fetchProducts(ctx)
 	if err != nil {
 		c.logger.Warn("eol: failed to fetch products", zap.Error(err))
-		return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, err
+		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, err
 	}
 
 	enrichedCount := 0
@@ -190,7 +190,7 @@ func (c *Checker) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchRes
 		zap.Int("cycle_errors", cycleErrorCount),
 	)
 
-	return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, nil
+	return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, nil
 }
 
 type dateOrBool struct {
@@ -206,8 +206,7 @@ func (d *dateOrBool) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 	if trimmed == "true" || trimmed == "false" {
-		value := trimmed == "true"
-		d.Bool = &value
+		d.Bool = new(trimmed == "true")
 		d.Date = ""
 		return nil
 	}

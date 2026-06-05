@@ -19,7 +19,7 @@ type ExplainRequest struct {
 // ExplainTarget contains one selected manifest where the queried dependency exists.
 type ExplainTarget struct {
 	Manifest     sdk.ConsolidatedManifest
-	Dependency   *sdk.Package
+	Dependency   *sdk.Dependency
 	Paths        []explain.Path
 	Findings     []sdk.Finding
 	FocusedGraph *sdk.Graph
@@ -46,9 +46,6 @@ func (p *Pipeline) RunExplain(ctx context.Context, req ExplainRequest) (ExplainR
 	if err := p.runResolve(ctx, &base, pipeReq); err != nil {
 		return ExplainResult{PipelineResult: base}, err
 	}
-	if err := p.runScopeFilter(&base, pipeReq); err != nil {
-		return ExplainResult{PipelineResult: base}, err
-	}
 	if err := p.runConsolidate(&base, pipeReq); err != nil {
 		return ExplainResult{PipelineResult: base}, err
 	}
@@ -72,7 +69,7 @@ func (p *Pipeline) RunExplain(ctx context.Context, req ExplainRequest) (ExplainR
 
 		var findings []sdk.Finding
 		if auditEnabled {
-			auditResult, warnings := p.auditComponent(ctx, g, dependency, pipeReq)
+			auditResult, warnings := p.auditComponent(ctx, g, base.Registry, dependency, pipeReq)
 			findings = auditResult.Findings
 			allFindings = append(allFindings, findings...)
 			result.AuditWarnings = append(result.AuditWarnings, warnings...)
@@ -107,7 +104,7 @@ func (p *Pipeline) RunExplain(ctx context.Context, req ExplainRequest) (ExplainR
 		return result, fmt.Errorf("%w: %s", explain.ErrDependencyNotFound, req.Query)
 	}
 
-	if auditEnabled && !GraphHasVulnerabilityData(base.Graph) {
+	if auditEnabled && !RegistryHasVulnerabilityData(base.Registry) {
 		result.AuditWarnings = append(result.AuditWarnings, PipelineWarning{
 			Source:  "vulnerability",
 			Message: "no vulnerability enrichment input was available; policy evaluation may produce no findings",

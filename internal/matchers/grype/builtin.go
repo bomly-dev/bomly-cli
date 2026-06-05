@@ -19,6 +19,7 @@ import (
 	"github.com/anchore/syft/syft/cpe"
 	syftPkg "github.com/anchore/syft/syft/pkg"
 	"github.com/bomly-dev/bomly-cli/internal/logging"
+	"github.com/bomly-dev/bomly-cli/internal/matchers"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
@@ -36,8 +37,8 @@ func (a Matcher) Ready() bool {
 // Match attaches Grype vulnerability matches to packages in the graph.
 func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
 	started := time.Now()
-	if req.Graph == nil {
-		return sdk.MatchResult{}, nil
+	if req.Graph == nil || req.Registry == nil {
+		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, nil
 	}
 
 	logger := a.logger()
@@ -64,16 +65,13 @@ func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult
 		if needsDownload {
 			action = "downloading"
 		}
-		return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, fmt.Errorf("grype vulnerability DB %s failed: %w", action, err)
+		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, fmt.Errorf("grype vulnerability DB %s failed: %w", action, err)
 	}
 	if status != nil {
 		logger.Debug(fmt.Sprintf("Grype vulnerability DB loaded, built at %s", status.Built))
 	}
 
-	packages := req.Graph.Packages()
-	if req.Mode == sdk.TargetModeComponent && req.Target != nil {
-		packages = []*sdk.Package{req.Target}
-	}
+	packages := matchers.RegistryPackagesForGraph(req.Graph, req.Registry, req.Target)
 	logger.Info(fmt.Sprintf("Grype enriching %d packages with vulnerability data", len(packages)))
 	grypePkgs := make([]grypepkg.Package, 0, len(packages))
 	for _, p := range packages {
@@ -91,20 +89,23 @@ func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult
 
 	matches, _, err := vm.FindMatches(grypePkgs, grypepkg.Context{})
 	if err != nil {
-		return sdk.MatchResult{}, fmt.Errorf("grype: find matches: %w", err)
+		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, fmt.Errorf("grype: find matches: %w", err)
 	}
 
-	applyMatches(matches, req.Graph)
+	applyMatches(matches, req.Registry)
 	logger.Info(fmt.Sprintf("Grype enrichment matched vulnerabilities in %s", logging.FormatDuration(time.Since(started))))
 	return sdk.MatchResult{
-		Graph:  req.Graph,
-		Target: req.Target,
+		Registry:    req.Registry,
+		MatcherRuns: []string{matcherName},
 	}, nil
 }
 
+// graphPkgToGrypePkg builds a Grype package from a registry package, using the
+// canonical PURL as the correlation ID so matches can be mapped back to the
+// registry.
 func graphPkgToGrypePkg(p *sdk.Package) grypepkg.Package {
 	return grypepkg.Package{
-		ID:       grypepkg.ID(p.ID),
+		ID:       grypepkg.ID(p.PURL),
 		Name:     p.Name,
 		Version:  p.Version,
 		PURL:     p.PURL,
@@ -189,34 +190,32 @@ func ecosystemToSyftLanguage(ecosystem string) syftPkg.Language {
 	}
 }
 
-// applyMatches converts Grype match results into first-class package vulnerability enrichment.
-func applyMatches(matches *grypematch.Matches, g *sdk.Graph) {
-	if matches == nil {
+// applyMatches converts Grype match results into vulnerability enrichment on the
+// PURL-keyed package registry. The Grype package ID was set to the canonical
+// PURL by graphPkgToGrypePkg.
+func applyMatches(matches *grypematch.Matches, registry *sdk.PackageRegistry) {
+	if matches == nil || registry == nil {
 		return
 	}
 
-	pkgByID := make(map[grypepkg.ID]*sdk.Package)
-	for _, p := range g.Packages() {
-		pkgByID[grypepkg.ID(p.ID)] = p
-	}
-
 	for _, m := range matches.Sorted() {
-		graphPkg := pkgByID[m.Package.ID]
-		if graphPkg == nil {
-			graphPkg = &sdk.Package{
-				ID:      string(m.Package.ID),
-				Name:    m.Package.Name,
-				Version: m.Package.Version,
-				PURL:    m.Package.PURL,
-			}
+		purl := string(m.Package.ID)
+		if purl == "" {
+			purl = m.Package.PURL
 		}
-
-		graphPkg.Matched = true
-		graphPkg.Vulnerabilities = appendOrMergeVulnerability(graphPkg.Vulnerabilities, mapBuiltinMatch(m))
+		if purl == "" {
+			continue
+		}
+		pkg := registry.Ensure(purl)
+		if pkg == nil {
+			continue
+		}
+		pkg.Matched = true
+		pkg.Vulnerabilities = appendOrMergeVulnerability(pkg.Vulnerabilities, mapBuiltinMatch(m))
 	}
 }
 
-func mapBuiltinMatch(m grypematch.Match) sdk.PackageVulnerability {
+func mapBuiltinMatch(m grypematch.Match) sdk.Vulnerability {
 	vuln := m.Vulnerability
 	advisory := grypeAdvisory{
 		ID:                   vuln.ID,

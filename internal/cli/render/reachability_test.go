@@ -11,26 +11,37 @@ import (
 
 func TestScanRendersReachabilityColumnWhenEnabled(t *testing.T) {
 	g := model.New()
-	pkg := model.NewPackage(model.Package{Name: "lib", Version: "1.0.0", Ecosystem: "go"})
-	if err := g.AddPackage(pkg); err != nil {
+	const libPURL = "pkg:go/lib@1.0.0"
+	pkg := model.NewDependency(model.Dependency{Name: "lib", Version: "1.0.0", Ecosystem: "go", PURL: libPURL})
+	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
 	}
+	registry := model.NewPackageRegistry()
+	regPkg := registry.Ensure(libPURL)
+	regPkg.Name = "lib"
+	regPkg.Version = "1.0.0"
+	regPkg.Vulnerabilities = []model.Vulnerability{{
+		ID:     "CVE-2024-0001",
+		Title:  "tls bypass",
+		Source: "osv",
+		Reachability: &model.Reachability{
+			Status:   model.ReachabilityReachable,
+			Tier:     model.TierSymbol,
+			Analyzer: "govulncheck",
+		},
+	}}
 	findings := []model.Finding{
 		{
-			ID:       "CVE-2024-0001",
-			Kind:     model.FindingKindVulnerability,
-			Package:  pkg,
-			Severity: "high",
-			Title:    "tls bypass",
-			Source:   "osv",
-			Reachability: &model.Reachability{
-				Status:   model.ReachabilityReachable,
-				Tier:     model.TierSymbol,
-				Analyzer: "govulncheck",
-			},
+			ID:              "CVE-2024-0001",
+			VulnerabilityID: "CVE-2024-0001",
+			Kind:            model.FindingKindVulnerability,
+			PackageRef:      libPURL,
+			Severity:        "high",
+			Title:           "tls bypass",
+			Source:          "osv",
 		},
 	}
-	out := Scan([]output.ScanManifest{}, g, findings, true /*enrich*/, true /*audit*/, true /*reachability*/)
+	out := Scan([]output.ScanManifest{}, g, registry, findings, true /*enrich*/, true /*audit*/, true /*reachability*/)
 	if !strings.Contains(out, "REACHABILITY") {
 		t.Fatalf("expected REACHABILITY column when reachabilityEnabled=true; got:\n%s", out)
 	}
@@ -196,14 +207,14 @@ func TestExplainTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 
 func TestScanOmitsReachabilityColumnWhenDisabled(t *testing.T) {
 	g := model.New()
-	pkg := model.NewPackage(model.Package{Name: "lib", Version: "1.0.0", Ecosystem: "go"})
-	if err := g.AddPackage(pkg); err != nil {
+	pkg := model.NewDependency(model.Dependency{Name: "lib", Version: "1.0.0", Ecosystem: "go"})
+	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
 	}
 	findings := []model.Finding{
-		{ID: "CVE-2024-0001", Kind: model.FindingKindVulnerability, Package: pkg, Severity: "high", Title: "x", Source: "osv"},
+		{ID: "CVE-2024-0001", Kind: model.FindingKindVulnerability, PackageRef: pkg.PURL, Severity: "high", Title: "x", Source: "osv"},
 	}
-	out := Scan([]output.ScanManifest{}, g, findings, true, true, false)
+	out := Scan([]output.ScanManifest{}, g, nil, findings, true, true, false)
 	if strings.Contains(out, "REACHABILITY") {
 		t.Fatalf("REACHABILITY column should not appear when reachabilityEnabled=false; got:\n%s", out)
 	}

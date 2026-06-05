@@ -150,7 +150,7 @@ func newDiffCmd() *cobra.Command {
 				prog.CompleteStep("Enriched packages", matchProgressChildren(nil, runs, warnings))
 			}
 
-			auditPayload := diffAuditOutput(diffResult.Audit)
+			auditPayload := diffAuditOutput(diffResult.Audit, diffResult.Base.Registry, diffResult.Head.Registry)
 			if current.Audit {
 				runs, findings := combineAuditProgress(diffResult.Base, diffResult.Head)
 				warnings := append(append([]engine.PipelineWarning{}, diffResult.Base.AuditWarnings...), diffResult.Head.AuditWarnings...)
@@ -159,12 +159,14 @@ func newDiffCmd() *cobra.Command {
 			}
 
 			reportOptions := reportOptionsFromPipelineResults(current.Reachability, diffResult.Base, diffResult.Head)
+			reportOptions.BaseRegistry = diffResult.Base.Registry
+			reportOptions.HeadRegistry = diffResult.Head.Registry
 			payload := output.BuildDiffResponse(projectIdentifier, compBase, compHead, diffResult.Base.Consolidated, diffResult.Head.Consolidated, auditPayload, started, reportOptions)
 			markdownRenderer := func(w io.Writer) error {
 				return render.DiffMarkdown(w, payload)
 			}
 			sarifRenderer := func(w io.Writer) error {
-				return output.WriteSARIF(w, diffResult.Findings, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: current.Reachability})
+				return output.WriteSARIF(w, diffResult.Findings, diffResult.Head.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: current.Reachability})
 			}
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
@@ -189,11 +191,11 @@ func newDiffCmd() *cobra.Command {
 			}
 			if outputFormat == output.FormatSARIF {
 				prog.Success("Resolved Graph")
-				return output.WriteSARIF(streams.reportWriter(), diffResult.Findings, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: current.Reachability})
+				return output.WriteSARIF(streams.reportWriter(), diffResult.Findings, diffResult.Head.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: current.Reachability})
 			}
 			if current.Interactive {
 				prog.Stop()
-				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewDiff(payload, diffResult.Base.Consolidated, diffResult.Head.Consolidated).WithEnrichEnabled(current.Enrich)))
+				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewDiff(payload, diffResult.Base.Consolidated, diffResult.Head.Consolidated).WithRegistry(diffResult.Base.Registry, diffResult.Head.Registry).WithEnrichEnabled(current.Enrich)))
 			}
 
 			prog.Success("Resolved Graph")

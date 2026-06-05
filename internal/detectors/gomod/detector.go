@@ -103,7 +103,6 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 		Technique:            sdk.BuildToolTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemGo},
 		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerGoMod},
-		SupportedModes:       []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:         []string{"graph-resolution", "component-targeting", "module-graph"},
 		SupportsInstallFirst: true,
 	}
@@ -111,7 +110,7 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a Go module dependency graph for the scan engine.
 func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	depsGraph, err := d.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose)
+	depsGraph, err := d.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, req.ScopeFilter)
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
@@ -126,7 +125,7 @@ func (d Detector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
-func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool) (*sdk.Graph, error) {
+func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool, scopeFilter sdk.Scope) (*sdk.Graph, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -166,7 +165,7 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 		return nil, fmt.Errorf("run go list -deps -json all: %w", err)
 	}
 
-	depsGraph, err := depGraphFromGoList(raw, modulePath, directRequires)
+	depsGraph, err := depGraphFromGoListWithScope(raw, modulePath, directRequires, scopeFilter)
 	if err != nil {
 		logger.Error(fmt.Sprintf("Failed to map Go module output to a dependency graph: %v", err))
 		logger.Debug("go module output mapping failed", zap.Error(err))
@@ -190,6 +189,10 @@ func buildGoListArgs() []string {
 }
 
 func depGraphFromGoList(raw []byte, rootModule string, directRequires []moduleRef) (*sdk.Graph, error) {
+	return depGraphFromGoListWithScope(raw, rootModule, directRequires, sdk.ScopeUnknown)
+}
+
+func depGraphFromGoListWithScope(raw []byte, rootModule string, directRequires []moduleRef, scopeFilter sdk.Scope) (*sdk.Graph, error) {
 	if strings.TrimSpace(rootModule) == "" {
 		return nil, errors.New("go module path is empty")
 	}
@@ -211,11 +214,11 @@ func depGraphFromGoList(raw []byte, rootModule string, directRequires []moduleRe
 	}
 
 	depsGraph := sdk.New()
-	rootNode := sdk.NewPackage(sdk.Package{
+	rootNode := sdk.NewDependency(sdk.Dependency{
 		Ecosystem: string(sdk.EcosystemGo),
 		Name:      rootModule,
 	})
-	if err := depsGraph.AddPackage(rootNode); err != nil {
+	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
@@ -270,14 +273,18 @@ func depGraphFromGoList(raw []byte, rootModule string, directRequires []moduleRe
 			}
 		}
 
-		if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, mergedScope, current.pkg.Imports, packageRecords, packageModules, directLines, &queue); err != nil {
-			return nil, err
+		if scopeFilter != sdk.ScopeDevelopment || mergedScope == sdk.ScopeDevelopment {
+			if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, mergedScope, current.pkg.Imports, packageRecords, packageModules, directLines, &queue); err != nil {
+				return nil, err
+			}
 		}
-		if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.TestImports, packageRecords, packageModules, directLines, &queue); err != nil {
-			return nil, err
-		}
-		if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.XTestImports, packageRecords, packageModules, directLines, &queue); err != nil {
-			return nil, err
+		if scopeFilter != sdk.ScopeRuntime {
+			if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.TestImports, packageRecords, packageModules, directLines, &queue); err != nil {
+				return nil, err
+			}
+			if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.XTestImports, packageRecords, packageModules, directLines, &queue); err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -336,7 +343,7 @@ func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNod
 				return err
 			}
 			if from.Path != to.Path || from.Version != to.Version {
-				if err := depsGraph.AddDependency(fromID, pkg.ID); err != nil {
+				if err := depsGraph.AddEdge(fromID, pkg.ID); err != nil {
 					return fmt.Errorf("add go dependency %q -> %q: %w", fromID, pkg.ID, err)
 				}
 			}
@@ -346,15 +353,17 @@ func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNod
 	return nil
 }
 
-func packageFromModuleNode(node moduleNode, scope sdk.Scope, directLines map[string]int) *sdk.Package {
-	pkg := sdk.Package{
+func packageFromModuleNode(node moduleNode, scope sdk.Scope, directLines map[string]int) *sdk.Dependency {
+	dep := sdk.Dependency{
 		Ecosystem: string(sdk.EcosystemGo),
 		Name:      node.Path,
 		Version:   node.Version,
-		Scope:     string(scope),
+	}
+	if scope != sdk.ScopeUnknown {
+		dep.Scopes = []sdk.Scope{scope}
 	}
 	if line, ok := directLines[node.Path]; ok && line > 0 {
-		pkg.Locations = []sdk.PackageLocation{
+		dep.Locations = []sdk.PackageLocation{
 			{
 				RealPath:   "go.mod",
 				AccessPath: "go.mod",
@@ -362,11 +371,11 @@ func packageFromModuleNode(node moduleNode, scope sdk.Scope, directLines map[str
 			},
 		}
 	}
-	return sdk.NewPackage(pkg)
+	return sdk.NewDependency(dep)
 }
 
 func moduleNodeID(node moduleNode) string {
-	return sdk.NewPackage(sdk.Package{
+	return sdk.NewDependency(sdk.Dependency{
 		Ecosystem: string(sdk.EcosystemGo),
 		Name:      node.Path,
 		Version:   node.Version,
@@ -505,12 +514,12 @@ func appendUniqueModule(modules []moduleRef, seen map[string]struct{}, ref modul
 	return append(modules, ref)
 }
 
-func addOrMergeModuleNode(depsGraph *sdk.Graph, node *sdk.Package, scope sdk.Scope) error {
-	if existing, ok := depsGraph.Package(node.ID); ok {
-		sdk.MergePackageScope(existing, scope)
+func addOrMergeModuleNode(depsGraph *sdk.Graph, node *sdk.Dependency, scope sdk.Scope) error {
+	if existing, ok := depsGraph.Node(node.ID); ok {
+		existing.AddScope(scope)
 		return nil
 	}
-	if err := depsGraph.AddPackage(node); err != nil {
+	if err := depsGraph.AddNode(node); err != nil {
 		return fmt.Errorf("add node %q: %w", node.ID, err)
 	}
 	return nil

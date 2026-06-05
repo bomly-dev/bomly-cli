@@ -26,7 +26,7 @@ func FindWhy(deps *sdk.Graph, query string) (output.PackageRef, []Path, error) {
 }
 
 // FindWhyPackage resolves a target package and returns the package plus all root-to-target paths.
-func FindWhyPackage(deps *sdk.Graph, query string) (*sdk.Package, []Path, error) {
+func FindWhyPackage(deps *sdk.Graph, query string) (*sdk.Dependency, []Path, error) {
 	target, err := resolveTarget(deps, query)
 	if err != nil {
 		return nil, nil, err
@@ -39,7 +39,7 @@ func FindWhyPackage(deps *sdk.Graph, query string) (*sdk.Package, []Path, error)
 
 	paths := make([]Path, 0, len(rawPaths))
 	for _, rawPath := range rawPaths {
-		paths = append(paths, toPath(rawPath.Packages, rawPath.Cyclic, rawPath.CycleTo))
+		paths = append(paths, toPath(rawPath.Nodes, rawPath.Cyclic, rawPath.CycleTo))
 	}
 	sort.Slice(paths, func(i, j int) bool {
 		return pathKey(paths[i]) < pathKey(paths[j])
@@ -48,10 +48,10 @@ func FindWhyPackage(deps *sdk.Graph, query string) (*sdk.Package, []Path, error)
 	return target, paths, nil
 }
 
-func resolveTarget(deps *sdk.Graph, query string) (*sdk.Package, error) {
-	var exact *sdk.Package
-	var matches []*sdk.Package
-	for _, pkg := range deps.Packages() {
+func resolveTarget(deps *sdk.Graph, query string) (*sdk.Dependency, error) {
+	var exact *sdk.Dependency
+	var matches []*sdk.Dependency
+	for _, pkg := range deps.Nodes() {
 		if pkg.ID == query {
 			exact = pkg
 			break
@@ -70,7 +70,7 @@ func resolveTarget(deps *sdk.Graph, query string) (*sdk.Package, error) {
 	return matches[0], nil
 }
 
-func toPath(packages []*sdk.Package, cyclic bool, cycleTo string) Path {
+func toPath(packages []*sdk.Dependency, cyclic bool, cycleTo string) Path {
 	refs := make([]output.PackageRef, 0, len(packages))
 	for _, pkg := range packages {
 		refs = append(refs, output.PackageFromGraphPackage(pkg))
@@ -106,12 +106,12 @@ func GraphFromPaths(source *sdk.Graph, paths []Path) (*sdk.Graph, error) {
 	}
 	for _, path := range paths {
 		for i, ref := range path.Packages {
-			pkg, ok := source.Package(ref.ID)
+			pkg, ok := source.Node(ref.ID)
 			if !ok || pkg == nil {
 				continue
 			}
-			if _, exists := focused.Package(pkg.ID); !exists {
-				if err := focused.AddPackage(pkg.Clone()); err != nil {
+			if _, exists := focused.Node(pkg.ID); !exists {
+				if err := focused.AddNode(pkg.Clone()); err != nil {
 					return nil, err
 				}
 			}
@@ -119,16 +119,16 @@ func GraphFromPaths(source *sdk.Graph, paths []Path) (*sdk.Graph, error) {
 				continue
 			}
 			parentRef := path.Packages[i-1]
-			parent, ok := source.Package(parentRef.ID)
+			parent, ok := source.Node(parentRef.ID)
 			if !ok || parent == nil {
 				continue
 			}
-			if _, exists := focused.Package(parent.ID); !exists {
-				if err := focused.AddPackage(parent.Clone()); err != nil {
+			if _, exists := focused.Node(parent.ID); !exists {
+				if err := focused.AddNode(parent.Clone()); err != nil {
 					return nil, err
 				}
 			}
-			if err := focused.AddDependency(parent.ID, pkg.ID); err != nil && !errors.Is(err, sdk.ErrCycleDetected) {
+			if err := focused.AddEdge(parent.ID, pkg.ID); err != nil && !errors.Is(err, sdk.ErrCycleDetected) {
 				return nil, err
 			}
 		}

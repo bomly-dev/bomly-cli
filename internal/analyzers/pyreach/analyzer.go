@@ -16,7 +16,7 @@ const Name = "pyreach"
 // Analyzer is a Tier-3 (package-level) reachability analyzer for
 // Python packages. It groups Python packages in the input graph by
 // project root, runs the configured Runner once per project, and
-// annotates each PackageVulnerability on Python packages with a
+// annotates each registry vulnerability on Python packages with a
 // Reachability result.
 //
 // Tier-3 caveat: "unreachable" here means "the application source
@@ -60,7 +60,6 @@ func (a Analyzer) Descriptor() model.AnalyzerDescriptor {
 			model.PackageManagerSetupPy,
 		},
 		SupportedLanguages: []model.Language{model.LanguagePython},
-		SupportedModes:     []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
 		SupportedTiers:     []model.ReachabilityTier{model.TierPackage},
 	}
 }
@@ -73,27 +72,53 @@ func (a Analyzer) Ready() bool { return true }
 // Applicable reports whether the request graph contains at least one
 // Python package with attached vulnerabilities.
 func (a Analyzer) Applicable(_ context.Context, req model.AnalyzeRequest) (bool, error) {
-	if req.Graph == nil {
+	if req.Graph == nil || req.Registry == nil {
 		return false, nil
 	}
-	for _, pkg := range req.Graph.Packages() {
-		if pkg == nil || len(pkg.Vulnerabilities) == 0 {
+	for _, dep := range req.Graph.Nodes() {
+		if dep == nil || !isPythonPackage(dep) {
 			continue
 		}
-		if isPythonPackage(pkg) {
-			return true, nil
+		pkg, ok := req.Registry.Get(dependencyPURL(dep))
+		if !ok || pkg == nil || len(pkg.Vulnerabilities) == 0 {
+			continue
 		}
+		return true, nil
 	}
 	return false, nil
 }
 
+// dependencyPURL returns the registry key for a dependency node.
+func dependencyPURL(dep *model.Dependency) string {
+	if dep == nil {
+		return ""
+	}
+	if dep.PackageRef != "" {
+		return dep.PackageRef
+	}
+	return model.CanonicalPackageURLFromDependency(dep)
+}
+
+// vulnerabilitiesForDependency returns the registry vulnerabilities for a
+// dependency node, or nil when the package is absent from the registry.
+func vulnerabilitiesForDependency(req model.AnalyzeRequest, dep *model.Dependency) []model.Vulnerability {
+	if req.Registry == nil || dep == nil {
+		return nil
+	}
+	pkg, ok := req.Registry.Get(dependencyPURL(dep))
+	if !ok || pkg == nil {
+		return nil
+	}
+	return pkg.Vulnerabilities
+}
+
 // Analyze runs the configured Runner per discovered Python project
-// root and writes Reachability onto every Python PackageVulnerability
+// root and writes Reachability onto every Python registry vulnerability
 // in the graph. Errors degrade to Status=Unknown with a stable Reason
 // — the engine relies on this to keep the pipeline running.
 func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.AnalyzeResult, error) {
 	logger := a.logger()
-	if req.Graph == nil {
+	if req.Graph == nil || req.Registry == nil {
 		return model.AnalyzeResult{}, nil
 	}
 	runner := a.Runner
@@ -105,8 +130,8 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 	projectRoots := discoverProjectRoots(req)
 	if len(projectRoots) == 0 {
 		logger.Info("pyreach: no Python project roots discovered; marking all Python vulnerabilities as unknown")
-		annotateAllUnknown(req.Graph, "no-project-root-discovered", time.Now())
-		return resultFromGraph(req.Graph), nil
+		annotateAllUnknown(req, "no-project-root-discovered", time.Now())
+		return resultForRequest(), nil
 	}
 
 	logger.Info("pyreach: starting reachability analysis",
@@ -125,7 +150,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		case <-ctx.Done():
 			logger.Info("pyreach: context cancelled; skipping project",
 				zap.String("project_root", root))
-			annotateProjectUnknown(req.Graph, root, "cancelled", time.Now())
+			annotateProjectUnknown(req, root, "cancelled", time.Now())
 			continue
 		default:
 		}
@@ -139,7 +164,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 				zap.Duration("duration", time.Since(projectStart)),
 				zap.Error(err))
 			reason := failureReason(err)
-			added := annotateProjectUnknown(req.Graph, root, reason, time.Now())
+			added := annotateProjectUnknown(req, root, reason, time.Now())
 			stats.Unknown += added
 			continue
 		}
@@ -148,7 +173,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		} else {
 			cacheMisses++
 		}
-		applied := applyRunnerResult(req.Graph, root, runResult, time.Now())
+		applied := applyRunnerResult(req, root, runResult, time.Now())
 		stats.Reachable += applied.reachable
 		stats.Unreachable += applied.unreachable
 		stats.Unknown += applied.unknown
@@ -175,7 +200,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		zap.Duration("duration", time.Since(overallStart)),
 	)
 
-	out := resultFromGraph(req.Graph)
+	out := resultForRequest()
 	out.AnalyzerStats = map[string]model.ReachabilityStats{Name: stats}
 	return out, nil
 }
@@ -229,8 +254,8 @@ func (a Analyzer) cache() *resultCache {
 	return newResultCache(a.CacheDir, a.CacheTTL)
 }
 
-func resultFromGraph(g *model.Graph) model.AnalyzeResult {
-	return model.AnalyzeResult{Graph: g, AnalyzerRuns: []string{Name}}
+func resultForRequest() model.AnalyzeResult {
+	return model.AnalyzeResult{AnalyzerRuns: []string{Name}}
 }
 
 // applyOutcome reports per-vuln Reachability outcomes for telemetry.
@@ -250,20 +275,21 @@ type applyOutcome struct {
 // requests) would be missed otherwise. The closure follows
 // Graph.Dependencies edges, so it sees exactly the dep tree the
 // Python detector resolved from the lockfile.
-func applyRunnerResult(g *model.Graph, projectRoot string, runRes RunnerResult, now time.Time) applyOutcome {
+func applyRunnerResult(req model.AnalyzeRequest, projectRoot string, runRes RunnerResult, now time.Time) applyOutcome {
 	var outcome applyOutcome
 	timestamp := now.UTC().Format(time.RFC3339)
-	hopsByID := computeReachablePackageHops(g, runRes.ImportedDistributions)
+	hopsByID := computeReachablePackageHops(req.Graph, runRes.ImportedDistributions)
 	dynamicImports := runRes.DynamicImportsDetected
-	for _, pkg := range g.Packages() {
-		if pkg == nil || !isPythonPackage(pkg) {
+	for _, dep := range req.Graph.Nodes() {
+		if dep == nil || !isPythonPackage(dep) {
 			continue
 		}
-		if !packageBelongsToProjectRoot(pkg, projectRoot) {
+		if !packageBelongsToProjectRoot(dep, projectRoot) {
 			continue
 		}
-		for i := range pkg.Vulnerabilities {
-			vuln := &pkg.Vulnerabilities[i]
+		vulns := vulnerabilitiesForDependency(req, dep)
+		for i := range vulns {
+			vuln := &vulns[i]
 			if vuln.Reachability != nil && vuln.Reachability.Analyzer == Name {
 				continue
 			}
@@ -273,7 +299,7 @@ func applyRunnerResult(g *model.Graph, projectRoot string, runRes RunnerResult, 
 				Tier:                   model.TierPackage,
 				DynamicImportsDetected: dynamicImports,
 			}
-			if hops, ok := hopsByID[pkg.ID]; ok {
+			if hops, ok := hopsByID[dep.ID]; ok {
 				r.Status = model.ReachabilityReachable
 				h := hops
 				r.Hops = &h
@@ -302,7 +328,7 @@ func computeReachablePackageHops(g *model.Graph, imports map[string]struct{}) ma
 		return hops
 	}
 	queue := make([]string, 0)
-	for _, pkg := range g.Packages() {
+	for _, pkg := range g.Nodes() {
 		if pkg == nil || !isPythonPackage(pkg) {
 			continue
 		}
@@ -319,7 +345,7 @@ func computeReachablePackageHops(g *model.Graph, imports map[string]struct{}) ma
 		id := queue[0]
 		queue = queue[1:]
 		current := hops[id]
-		deps, err := g.Dependencies(id)
+		deps, err := g.DirectDependencies(id)
 		if err != nil {
 			continue
 		}
@@ -341,7 +367,7 @@ func computeReachablePackageHops(g *model.Graph, imports map[string]struct{}) ma
 // of its known forms) appears in the runner's import set. Names are
 // compared in PEP 503 normalized form so that hyphens, underscores,
 // and case differences don't cause mismatches.
-func isPackageImported(pkg *model.Package, imports map[string]struct{}) bool {
+func isPackageImported(pkg *model.Dependency, imports map[string]struct{}) bool {
 	if pkg == nil || len(imports) == 0 {
 		return false
 	}
@@ -358,21 +384,22 @@ func isPackageImported(pkg *model.Package, imports map[string]struct{}) bool {
 	return false
 }
 
-func annotateProjectUnknown(g *model.Graph, projectRoot, reason string, now time.Time) int {
+func annotateProjectUnknown(req model.AnalyzeRequest, projectRoot, reason string, now time.Time) int {
 	timestamp := now.UTC().Format(time.RFC3339)
 	count := 0
-	for _, pkg := range g.Packages() {
-		if pkg == nil || !isPythonPackage(pkg) {
+	for _, dep := range req.Graph.Nodes() {
+		if dep == nil || !isPythonPackage(dep) {
 			continue
 		}
-		if !packageBelongsToProjectRoot(pkg, projectRoot) {
+		if !packageBelongsToProjectRoot(dep, projectRoot) {
 			continue
 		}
-		for i := range pkg.Vulnerabilities {
-			if pkg.Vulnerabilities[i].Reachability != nil {
+		vulns := vulnerabilitiesForDependency(req, dep)
+		for i := range vulns {
+			if vulns[i].Reachability != nil {
 				continue
 			}
-			pkg.Vulnerabilities[i].Reachability = &model.Reachability{
+			vulns[i].Reachability = &model.Reachability{
 				Analyzer:   Name,
 				Status:     model.ReachabilityUnknown,
 				Tier:       model.TierNone,
@@ -385,17 +412,18 @@ func annotateProjectUnknown(g *model.Graph, projectRoot, reason string, now time
 	return count
 }
 
-func annotateAllUnknown(g *model.Graph, reason string, now time.Time) {
+func annotateAllUnknown(req model.AnalyzeRequest, reason string, now time.Time) {
 	timestamp := now.UTC().Format(time.RFC3339)
-	for _, pkg := range g.Packages() {
-		if pkg == nil || !isPythonPackage(pkg) {
+	for _, dep := range req.Graph.Nodes() {
+		if dep == nil || !isPythonPackage(dep) {
 			continue
 		}
-		for i := range pkg.Vulnerabilities {
-			if pkg.Vulnerabilities[i].Reachability != nil {
+		vulns := vulnerabilitiesForDependency(req, dep)
+		for i := range vulns {
+			if vulns[i].Reachability != nil {
 				continue
 			}
-			pkg.Vulnerabilities[i].Reachability = &model.Reachability{
+			vulns[i].Reachability = &model.Reachability{
 				Analyzer:   Name,
 				Status:     model.ReachabilityUnknown,
 				Tier:       model.TierNone,
@@ -410,7 +438,7 @@ func annotateAllUnknown(g *model.Graph, reason string, now time.Time) {
 // runs per-project, so any Python package physically located under
 // projectRoot (or with no recorded location) is treated as belonging
 // to it.
-func packageBelongsToProjectRoot(pkg *model.Package, projectRoot string) bool {
+func packageBelongsToProjectRoot(pkg *model.Dependency, projectRoot string) bool {
 	if pkg == nil {
 		return false
 	}

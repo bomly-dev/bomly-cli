@@ -40,7 +40,7 @@ func discoverProjectRoots(req model.AnalyzeRequest) []string {
 	}
 
 	if req.Graph != nil {
-		for _, pkg := range req.Graph.Packages() {
+		for _, pkg := range req.Graph.Nodes() {
 			if pkg == nil || !isPythonPackage(pkg) {
 				continue
 			}
@@ -131,7 +131,7 @@ func isInsideVendoredTree(dir string) bool {
 // isPythonPackage reports whether pkg's ecosystem or build system
 // identifies it as a Python (PyPI) package. Mirrors the equivalent
 // helpers in govulncheck and jsreach.
-func isPythonPackage(pkg *model.Package) bool {
+func isPythonPackage(pkg *model.Dependency) bool {
 	if pkg == nil {
 		return false
 	}

@@ -237,7 +237,6 @@ func TestPrepareLoadsAndRunsExternalDetector(t *testing.T) {
 		Subproject:      subprojects[0],
 		Ecosystem:       sdk.EcosystemGo,
 		PackageManager:  sdk.PackageManagerGoMod,
-		Mode:            sdk.TargetModeFullGraph,
 	}, []string{"acme.detector.gomod"})
 	if len(detectors) != 1 {
 		t.Fatalf("expected one planned detector, got %d", len(detectors))
@@ -248,7 +247,7 @@ func TestPrepareLoadsAndRunsExternalDetector(t *testing.T) {
 		Subproject:      subprojects[0],
 		Ecosystem:       sdk.EcosystemGo,
 		PackageManager:  sdk.PackageManagerGoMod,
-		Mode:            sdk.TargetModeFullGraph,
+		ScopeFilter:     sdk.ScopeRuntime,
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -259,6 +258,57 @@ func TestPrepareLoadsAndRunsExternalDetector(t *testing.T) {
 	}
 	if graph == nil || graph.Size() != 1 {
 		t.Fatalf("expected one package in plugin graph, got %#v", graph)
+	}
+	if _, ok := graph.Node("example.com/runtime@v1.0.0"); !ok {
+		t.Fatalf("expected plugin detector to receive runtime scope, got %s", graph.PrettyString())
+	}
+}
+
+func TestExternalMatcherReceivesAndReturnsRegistry(t *testing.T) {
+	root := t.TempDir()
+	binaryPath := filepath.Join(t.TempDir(), executableName("bomly-plugin-matcher"))
+	if err := testutil.BuildGoBinary(t, binaryPath, fakeMatcherPluginSource("acme.matcher.registry")); err != nil {
+		t.Fatalf("build fake matcher plugin: %v", err)
+	}
+	if _, err := managedplugin.Install(context.Background(), root, binaryPath, managedplugin.InstallOptions{DevBinary: true}); err != nil {
+		t.Fatalf("Install() error = %v", err)
+	}
+	if _, err := managedplugin.Enable(root, "acme.matcher.registry"); err != nil {
+		t.Fatalf("Enable() error = %v", err)
+	}
+
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
+	if err := managedplugin.RegisterRuntimePlugins(context.Background(), reg, root); err != nil {
+		t.Fatalf("RegisterRuntimePlugins() error = %v", err)
+	}
+	matchers := reg.Matchers(sdk.MatchRequest{
+		MatcherFilter: sdk.MatcherFilter{Include: []string{"acme.matcher.registry"}},
+	})
+	if len(matchers) != 1 {
+		t.Fatalf("expected one external matcher, got %d", len(matchers))
+	}
+
+	const purl = "pkg:npm/react@18.2.0"
+	registry := sdk.NewPackageRegistry()
+	registry.Ensure(purl).Name = "react"
+	result, err := matchers[0].Match(context.Background(), sdk.MatchRequest{
+		Registry: registry,
+	})
+	if err != nil {
+		t.Fatalf("Match() error = %v", err)
+	}
+	if result.Registry == nil {
+		t.Fatal("expected external matcher to return registry")
+	}
+	pkg, ok := result.Registry.Get(purl)
+	if !ok {
+		t.Fatalf("expected matched package %q", purl)
+	}
+	if len(pkg.Licenses) != 1 || pkg.Licenses[0].SPDXExpression != "MIT" {
+		t.Fatalf("expected registry enrichment from external matcher, got %#v", pkg.Licenses)
+	}
+	if len(result.MatcherRuns) != 1 || result.MatcherRuns[0] != "acme.matcher.registry" {
+		t.Fatalf("expected matcher run marker, got %#v", result.MatcherRuns)
 	}
 }
 
@@ -288,7 +338,6 @@ func (d *detector) Descriptor(ctx context.Context) (*schemav1.DetectorDescriptor
 		Name:           "` + id + `",
 		Enabled:        true,
 		Origin:         schemav1.ExternalOrigin,
-		SupportedModes: []schemav1.TargetMode{schemav1.TargetModeFullGraph, schemav1.TargetModeComponent},
 		Capabilities:   []string{"dependency-detection"},
 	}, nil
 }
@@ -306,15 +355,18 @@ func (d *detector) Applicable(context.Context, *schemav1.DetectRequest) (*schema
 }
 
 func (d *detector) Detect(ctx context.Context, req *schemav1.DetectRequest) (*schemav1.DetectResponse, error) {
-	packageNode := &schemav1.Package{
-		ID:        "example.com/demo@v1.0.0",
-		Ecosystem: string(schemav1.EcosystemGo),
-		Name:      "example.com/demo",
-		Version:   "v1.0.0",
-		PURL:      "pkg:golang/example.com/demo@v1.0.0",
+	name := "example.com/demo"
+	if req.ScopeFilter != schemav1.ScopeUnknown {
+		name = "example.com/" + string(req.ScopeFilter)
 	}
+	packageNode := schemav1.NewDependencyWithID(name + "@v1.0.0", schemav1.Dependency{
+		Ecosystem: string(schemav1.EcosystemGo),
+		Name:      name,
+		Version:   "v1.0.0",
+		PURL:      "pkg:golang/" + name + "@v1.0.0",
+	})
 	graph := schemav1.New()
-	if err := graph.AddPackage(packageNode); err != nil {
+	if err := graph.AddNode(packageNode); err != nil {
 		return nil, err
 	}
 	return &schemav1.DetectResponse{
@@ -336,6 +388,64 @@ func (d *detector) Detect(ctx context.Context, req *schemav1.DetectRequest) (*sc
 
 func main() {
 	schemav1.ServeDetector(&detector{})
+}
+`
+}
+
+func fakeMatcherPluginSource(id string) string {
+	return `package main
+
+import (
+	"context"
+	"fmt"
+	schemav1 "github.com/bomly-dev/bomly-cli/sdk"
+)
+
+type matcher struct{}
+
+func (m *matcher) Metadata(ctx context.Context) (*schemav1.PluginMetadata, error) {
+	return &schemav1.PluginMetadata{
+		ID:               "` + id + `",
+		Name:             "Fake Matcher",
+		Version:          "1.0.0",
+		Kind:             schemav1.PluginKindMatcher,
+		PluginAPIVersion: schemav1.PluginAPIVersion,
+	}, nil
+}
+
+func (m *matcher) Descriptor(ctx context.Context) (*schemav1.MatcherDescriptor, error) {
+	return &schemav1.MatcherDescriptor{
+		Name:           "` + id + `",
+		Enabled:        true,
+		Origin:         schemav1.ExternalOrigin,
+	}, nil
+}
+
+func (m *matcher) Ready(context.Context, *schemav1.MatchRequest) (*schemav1.ReadyResponse, error) {
+	return &schemav1.ReadyResponse{Ready: true}, nil
+}
+
+func (m *matcher) Applicable(context.Context, *schemav1.MatchRequest) (*schemav1.ApplicableResponse, error) {
+	return &schemav1.ApplicableResponse{Applicable: true}, nil
+}
+
+func (m *matcher) Match(ctx context.Context, req *schemav1.MatchRequest) (*schemav1.MatchResponse, error) {
+	if req.Registry == nil {
+		return nil, fmt.Errorf("registry is nil")
+	}
+	pkg, ok := req.Registry.Get("pkg:npm/react@18.2.0")
+	if !ok || pkg == nil {
+		return nil, fmt.Errorf("expected registry package")
+	}
+	pkg.Licenses = []schemav1.PackageLicense{{SPDXExpression: "MIT"}}
+	return &schemav1.MatchResponse{
+		Registry:    req.Registry,
+		MatcherRuns: []string{"` + id + `"},
+	}, nil
+}
+
+func main() {
+	schemav1.ServeMatcher(&matcher{})
 }
 `
 }
@@ -365,7 +475,6 @@ func (d *detector) Descriptor(ctx context.Context) (*schemav1.DetectorDescriptor
 		Name:           "` + id + `",
 		Enabled:        true,
 		Origin:         schemav1.ExternalOrigin,
-		SupportedModes: []schemav1.TargetMode{schemav1.TargetModeFullGraph, schemav1.TargetModeComponent},
 		Capabilities:   []string{"dependency-detection"},
 	}, nil
 }

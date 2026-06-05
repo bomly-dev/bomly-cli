@@ -9,15 +9,15 @@ import (
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
-func diffAuditOutput(audit *diffengine.Audit) *output.DiffAudit {
+func diffAuditOutput(audit *diffengine.Audit, baseRegistry, headRegistry *sdk.PackageRegistry) *output.DiffAudit {
 	if audit == nil {
 		return nil
 	}
 	combined := append(append([]sdk.Finding{}, audit.Introduced...), audit.Persisted...)
 	return &output.DiffAudit{
-		Introduced:   output.FindingsFromScan(audit.Introduced),
-		Resolved:     output.FindingsFromScan(audit.Resolved),
-		Persisted:    output.FindingsFromScan(audit.Persisted),
+		Introduced:   output.FindingsFromScan(audit.Introduced, headRegistry),
+		Resolved:     output.FindingsFromScan(audit.Resolved, baseRegistry),
+		Persisted:    output.FindingsFromScan(audit.Persisted, headRegistry),
 		AuditSummary: output.SummaryFromFindings(combined),
 	}
 }
@@ -56,7 +56,7 @@ func reportOptionsFromPipelineResults(enabled bool, results ...engine.PipelineRe
 	}
 }
 
-func explainPackageRef(pkg *sdk.Package) output.PackageRef {
+func explainPackageRef(pkg *sdk.Dependency) output.PackageRef {
 	ref := output.PackageFromGraphPackage(pkg)
 	if pkg == nil {
 		return ref

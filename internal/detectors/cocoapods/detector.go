@@ -64,7 +64,6 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 		Technique:           sdk.LockfileTechnique,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemSwift},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerCocoaPods},
-		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "component-targeting", "lockfile-parsing"},
 	}
 }
@@ -113,7 +112,7 @@ func depGraphFromLock(raw []byte, testPods map[string]bool) (*sdk.Graph, error) 
 	}
 	g := sdk.New()
 	root := rootNode()
-	if err := g.AddPackage(root); err != nil {
+	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 	for _, name := range sortedPodNames(specs) {
@@ -133,7 +132,7 @@ func depGraphFromLock(raw []byte, testPods map[string]bool) (*sdk.Graph, error) 
 				continue
 			}
 			child := packageNode(childSpec.Name, childSpec.Version, lock.Checksums[rootPodName(childSpec.Name)])
-			if err := g.AddDependency(parent.ID, child.ID); err != nil {
+			if err := g.AddEdge(parent.ID, child.ID); err != nil {
 				return nil, fmt.Errorf("add CocoaPods dependency %q -> %q: %w", parent.ID, child.ID, err)
 			}
 		}
@@ -148,27 +147,27 @@ func depGraphFromLock(raw []byte, testPods map[string]bool) (*sdk.Graph, error) 
 		if testPods[rootPodName(dep)] {
 			scope = sdk.ScopeDevelopment
 		}
-		if existing, ok := g.Package(node.ID); ok {
-			sdk.MergePackageScope(existing, scope)
+		if existing, ok := g.Node(node.ID); ok {
+			existing.AddScope(scope)
 		}
-		if err := g.AddDependency(root.ID, node.ID); err != nil {
+		if err := g.AddEdge(root.ID, node.ID); err != nil {
 			return nil, fmt.Errorf("add CocoaPods root dependency %q: %w", node.ID, err)
 		}
 	}
 	// BFS scope propagation: runtime always beats development.
-	directDeps, _ := g.Dependencies(root.ID)
+	directDeps, _ := g.DirectDependencies(root.ID)
 	propagated := make(map[string]sdk.Scope, g.Size())
-	queue := make([]*sdk.Package, 0, len(directDeps))
+	queue := make([]*sdk.Dependency, 0, len(directDeps))
 	for _, dep := range directDeps {
 		if dep == nil {
 			continue
 		}
-		scope := sdk.Scope(dep.Scope)
+		scope := dep.PrimaryScope()
 		if scope == sdk.ScopeUnknown {
 			scope = sdk.ScopeRuntime
 		}
 		propagated[dep.ID] = sdk.MergeScope(propagated[dep.ID], scope)
-		sdk.MergePackageScope(dep, propagated[dep.ID])
+		dep.AddScope(propagated[dep.ID])
 		queue = append(queue, dep)
 	}
 	for len(queue) > 0 {
@@ -178,7 +177,7 @@ func depGraphFromLock(raw []byte, testPods map[string]bool) (*sdk.Graph, error) 
 		if scope == sdk.ScopeUnknown {
 			continue
 		}
-		children, err := g.Dependencies(current.ID)
+		children, err := g.DirectDependencies(current.ID)
 		if err != nil {
 			continue
 		}
@@ -187,18 +186,18 @@ func depGraphFromLock(raw []byte, testPods map[string]bool) (*sdk.Graph, error) 
 				continue
 			}
 			next := sdk.MergeScope(propagated[child.ID], scope)
-			if next == propagated[child.ID] && sdk.Scope(child.Scope) == next {
+			if next == propagated[child.ID] && child.PrimaryScope() == next {
 				continue
 			}
 			propagated[child.ID] = next
-			sdk.MergePackageScope(child, next)
+			child.AddScope(next)
 			queue = append(queue, child)
 		}
 	}
 	// Any pods still without scope default to runtime.
-	for _, pkg := range g.Packages() {
-		if pkg != nil && pkg.ID != root.ID && sdk.Scope(pkg.Scope) == sdk.ScopeUnknown {
-			sdk.MergePackageScope(pkg, sdk.ScopeRuntime)
+	for _, pkg := range g.Nodes() {
+		if pkg != nil && pkg.ID != root.ID && pkg.PrimaryScope() == sdk.ScopeUnknown {
+			pkg.AddScope(sdk.ScopeRuntime)
 		}
 	}
 	return g, nil
@@ -313,18 +312,19 @@ func rootDependencies(values []string) []string {
 	return roots
 }
 
-func rootNode() *sdk.Package {
-	return sdk.NewPackage(sdk.Package{
+func rootNode() *sdk.Dependency {
+	return sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemSwift),
 		Name:        "root",
 		BuildSystem: sdk.PackageManagerCocoaPods.Name(),
 		Type:        "application",
 		Language:    "swift",
 	})
+
 }
 
-func packageNode(name, version, checksum string) *sdk.Package { //nolint:unparam
-	node := sdk.NewPackage(sdk.Package{
+func packageNode(name, version, checksum string) *sdk.Dependency { //nolint:unparam
+	node := sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemSwift),
 		Name:        name,
 		Version:     strings.TrimSpace(version),
@@ -333,6 +333,7 @@ func packageNode(name, version, checksum string) *sdk.Package { //nolint:unparam
 		Language:    "swift",
 		PURL:        sdk.BuildPackageURL("cocoapods", "", name, version),
 	})
+
 	if strings.TrimSpace(checksum) != "" {
 		node.Digests = append(node.Digests, sdk.Digest{Algorithm: "podspec-checksum", Value: strings.TrimSpace(checksum)})
 	}
@@ -369,11 +370,11 @@ func sortedPodNames(specs map[string]podSpec) []string {
 	return values
 }
 
-func addNodeIfMissing(g *sdk.Graph, node *sdk.Package) error {
-	if _, ok := g.Package(node.ID); ok {
+func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
+	if _, ok := g.Node(node.ID); ok {
 		return nil
 	}
-	if err := g.AddPackage(node); err != nil {
+	if err := g.AddNode(node); err != nil {
 		return fmt.Errorf("add node %q: %w", node.ID, err)
 	}
 	return nil

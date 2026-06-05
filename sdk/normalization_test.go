@@ -6,9 +6,9 @@ import (
 )
 
 func TestNormalizePackageIdentityPython(t *testing.T) {
-	pkg := &Package{Ecosystem: string(EcosystemPython), Name: " Requests_Toolbelt ", Version: "1.0.0RC1"}
+	pkg := &Dependency{Ecosystem: string(EcosystemPython), Name: " Requests_Toolbelt ", Version: "1.0.0RC1"}
 
-	NormalizePackageIdentity(pkg)
+	NormalizeDependencyIdentity(pkg)
 
 	if pkg.Name != "requests-toolbelt" {
 		normReturnNameMismatch(t, pkg.Name, "requests-toolbelt")
@@ -20,9 +20,9 @@ func TestNormalizePackageIdentityPython(t *testing.T) {
 }
 
 func TestNormalizePackageIdentityRust(t *testing.T) {
-	pkg := &Package{BuildSystem: "cargo", Name: "Serde_JSON", Version: "1.0.0-RC1"}
+	pkg := &Dependency{BuildSystem: "cargo", Name: "Serde_JSON", Version: "1.0.0-RC1"}
 
-	NormalizePackageIdentity(pkg)
+	NormalizeDependencyIdentity(pkg)
 
 	if pkg.Name != "serde-json" {
 		normReturnNameMismatch(t, pkg.Name, "serde-json")
@@ -34,9 +34,9 @@ func TestNormalizePackageIdentityRust(t *testing.T) {
 }
 
 func TestNormalizePackageIdentityNPMScopedName(t *testing.T) {
-	pkg := &Package{Ecosystem: string(EcosystemNPM), Name: "@Types/Node", Version: "20.11.30"}
+	pkg := &Dependency{Ecosystem: string(EcosystemNPM), Name: "@Types/Node", Version: "20.11.30"}
 
-	NormalizePackageIdentity(pkg)
+	NormalizeDependencyIdentity(pkg)
 
 	if pkg.Org != "types" {
 		normReturnNameMismatch(t, pkg.Org, "types")
@@ -48,9 +48,9 @@ func TestNormalizePackageIdentityNPMScopedName(t *testing.T) {
 }
 
 func TestNormalizePackageIdentityGoPath(t *testing.T) {
-	pkg := &Package{Ecosystem: string(EcosystemGo), Name: "github.com\\Example\\lib//v2", Version: "V2.1.0-RC1"}
+	pkg := &Dependency{Ecosystem: string(EcosystemGo), Name: "github.com\\Example\\lib//v2", Version: "V2.1.0-RC1"}
 
-	NormalizePackageIdentity(pkg)
+	NormalizeDependencyIdentity(pkg)
 
 	if pkg.Name != "github.com/Example/lib/v2" {
 		normReturnNameMismatch(t, pkg.Name, "github.com/Example/lib/v2")

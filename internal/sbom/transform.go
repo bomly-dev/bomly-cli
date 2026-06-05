@@ -21,18 +21,18 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 	components := make([]Component, 0, componentCount)
 	depsByRef := make(map[string][]string, componentCount)
 
-	g.WalkPackages(func(pkg *sdk.Package) bool {
+	g.WalkNodes(func(pkg *sdk.Dependency) bool {
 		components = append(components, Component{
 			ID:             pkg.ID,
 			Name:           pkg.QualifiedName(),
 			Version:        pkg.Version,
-			Scope:          pkg.Scope,
+			Scope:          string(pkg.PrimaryScope()),
 			PURL:           pkg.PURL,
 			Ecosystem:      pkg.Ecosystem,
 			PackageManager: pkg.BuildSystem,
 			Type:           pkg.Type,
 			Copyright:      pkg.Copyright,
-			Licenses:       componentLicenses(pkg.Licenses),
+			Licenses:       componentLicenses(sdk.DetectionLicenses(pkg)),
 		})
 		depsByRef[pkg.ID] = nil
 		return true
@@ -42,7 +42,7 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 		return components[i].ID < components[j].ID
 	})
 
-	g.WalkRelationships(func(from, to *sdk.Package) bool {
+	g.WalkEdges(func(from, to *sdk.Dependency) bool {
 		depsByRef[from.ID] = append(depsByRef[from.ID], to.ID)
 		return true
 	})

@@ -25,7 +25,7 @@ flowchart TD
     B --> C[Build filtered registry]
     C --> D[Prepare runtime]
     D --> E[Discover and index subprojects]
-    E --> F[Run detector chains]
+    E --> F[Run detector chains with requested scope]
     F --> G[Consolidate graph]
     G --> H[Optional package enrichment]
     H --> I[Optional policy evaluation]
@@ -51,31 +51,29 @@ The scan engine is responsible for orchestration, not the CLI command handlers. 
 flowchart LR
     A[Runtime preparation]
     B[Subproject discovery]
-    C[Detector chains]
-    D[Scope filtering]
+    C[Detector chains with requested scope]
     E[Graph consolidation]
     F[Matchers]
     F2[Analyzers]
     G[Auditors]
     H[Output rendering]
 
-    A --> B --> C --> D --> E --> F --> F2 --> G --> H
+    A --> B --> C --> E --> F --> F2 --> G --> H
 ```
 
 Stage summary:
 
 1. Runtime preparation builds the filtered registry and execution plan.
 2. Subproject discovery finds supported package-manager roots for the target.
-3. Detector chains resolve dependency graphs per package manager.
-4. Scope filtering applies requested dependency scopes before consolidation.
-5. Consolidation merges subproject graphs into a unified view.
-6. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records.
-7. Analyzers run when `--reachability` is set. They consume the matched graph and annotate `PackageVulnerability.Reachability` with status (reachable/unreachable/unknown), tier (symbol/module/package/none), and call paths. Failures degrade to `Status=unknown` rather than aborting the pipeline. See `docs/REACHABILITY.md` for ecosystem coverage and tier semantics.
-8. Auditors evaluate policy against the enriched package graph and create findings when `--audit` is enabled. The built-in `vulnerability`, `license`, and `package` auditors cover advisory thresholds, SPDX policy, and denied or suspicious packages respectively.
-9. Users combine `--enrich --audit` when they want external matcher data to feed policy evaluation in the same run.
-10. Output rendering emits text, JSON, SARIF, or SBOM documents.
+3. Detector chains resolve dependency graphs per package manager. When `--scope` is set, the requested scope is part of the detector request so build-tool detectors can narrow command execution where the package manager supports it. All detector results then pass through the shared SDK scope filter before consolidation.
+4. Consolidation merges subproject graphs into a unified view.
+5. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records.
+6. Analyzers run when `--reachability` is set. They consume the matched graph and annotate `sdk.Vulnerability.Reachability` (on the PURL-keyed registry package) with status (reachable/unreachable/unknown), tier (symbol/module/package/none), and call paths. Failures degrade to `Status=unknown` rather than aborting the pipeline. See `docs/REACHABILITY.md` for ecosystem coverage and tier semantics.
+7. Auditors evaluate policy against the enriched graph + registry pair and create reference-style findings (`PackageRef` + `VulnerabilityID`) when `--audit` is enabled. The built-in `vulnerability`, `license`, and `package` auditors cover advisory thresholds, SPDX policy, and denied or suspicious packages respectively.
+8. Users combine `--enrich --audit` when they want external matcher data to feed policy evaluation in the same run.
+9. Output rendering emits text, JSON, SARIF, or SBOM documents.
 
-`bomly explain` reuses the same resolution, scope filtering, consolidation, and matching stages, then performs dependency path selection in its explain orchestration before optional component audit.
+`bomly explain` reuses the same scope-aware resolution, consolidation, and matching stages, then performs dependency path selection in its explain orchestration before optional component audit.
 
 ### Decision: YAML configuration is nested at the file boundary
 
@@ -83,7 +81,19 @@ Bomly's YAML files use strict nested groups such as `target`, `analysis`, `polic
 
 ### Decision: Reachability annotates vulnerabilities, not findings
 
-Reachability data lives on `PackageVulnerability.Reachability` rather than only on `Finding.Reachability` because `--reachability` must be useful without `--audit`. Matchers attach the vulnerability; the analyzer enriches it; the policy auditor copies the annotation onto each emitted Finding when `--audit` runs. This keeps a single source of truth on the package graph and lets the consolidation layer's existing per-vuln merge propagate analyzer output to per-manifest entry graphs without bespoke wiring.
+Reachability data lives on `sdk.Vulnerability.Reachability` rather than on `Finding.Reachability` because `--reachability` must be useful without `--audit`. Matchers populate the OSV-aligned `Vulnerability` record on the PURL-keyed registry package; the analyzer enriches it in place; the output layer resolves the analyzer's annotation by `(Finding.PackageRef, Finding.VulnerabilityID)` when emitting SARIF and the JSON `Finding` projection. This keeps a single source of truth (the registry) and removes the per-manifest sync that the old graph-mutating model required.
+
+### Decision: Three-collection domain model — dependencies, packages, findings
+
+`sdk` separates three pipeline concerns that the original model conflated:
+
+1. **`sdk.Dependency`** (`sdk/dependency.go`) is a detection-time graph node. It carries identity (`ID`, `Name`, `Version`, `PURL`), detection metadata (`Scopes`, `Locations`, `FoundBy`), edges through the `Graph`, and a `PackageRef` (PURL) that links to a matching artifact. It does **not** carry licenses, vulnerabilities, or scorecard data.
+2. **`sdk.Package`** (`sdk/package.go`) is a matching artifact keyed by PURL on a `sdk.PackageRegistry`. It carries `Licenses`, `Vulnerabilities` (OSV-aligned `sdk.Vulnerability`), `Scorecard`, `EOL`, and similar enrichment. There is one entry per unique PURL across the whole pipeline, so 50 dependencies referencing the same package share one set of CVEs and one license decision.
+3. **`sdk.Finding`** (`sdk/vulnerability.go`) is a reference-style audit result. It carries policy fields (`Severity`, `Disposition`, `Reasons`, `Auditor`) plus the references `PackageRef` (PURL) and, for vulnerability findings, `VulnerabilityID`. It does **not** copy CVSS / EPSS / KEV / CWE — consumers resolve those by following the references back into the registry.
+
+`sdk.Vulnerability` is OSV-aligned (id, aliases, summary, details, severity, affected, references, database_specific) and extended with Bomly's matching-stage fields (CVSS, EPSS, KEV, CWE, FixedVersions, AffectedSymbols, `Reachability`). The OSV matcher maps `internal/matchers/osv/response.go` directly to this shape; grype / depsdev / clearlydefined / eol / scorecard write the equivalent records.
+
+Pipeline plumbing: `engine.PipelineResult` exposes `Graph`, `Registry`, `Findings`, and `RiskScores`. The registry is built right after consolidation (`consolidation.BuildPackageRegistry`) and threaded through match/analyze/audit requests; output helpers (`BuildScanResponse`, `WriteSARIF`, `FindingsFromScan`, `PackagesFromGraph`) all accept `*sdk.PackageRegistry` and re-enrich their projections by resolving `PackageRef` and `VulnerabilityID`. See `docs/MODELS.md` for the full schema reference.
 
 ### Decision: Reachability analyzers derive local hierarchy closures
 
@@ -189,7 +199,7 @@ Cache failures are non-fatal. The command should warn and continue rather than f
 | `internal/registry`   | Support metadata, package-manager discovery, and built-in detector, matcher, and auditor wiring |
 | `internal/detectors`  | Detector contracts and ecosystem implementations                                                |
 | `internal/auditors`   | Policy evaluators and finding creation                                                          |
-| `internal/analyzers`  | Reachability analyzers (govulncheck for Go) that annotate `PackageVulnerability.Reachability`   |
+| `internal/analyzers`  | Reachability analyzers (govulncheck for Go, jsreach for JS/TS, pyreach for Python, jvmreach for JVM languages) that annotate `sdk.Vulnerability.Reachability` on registry packages |
 | `internal/matchers`   | Matcher contracts plus shared enrichment helpers used by built-in matchers                      |
 | `internal/engine/diff` | Diff pipeline orchestration and audit delta classification                                    |
 | `internal/engine/explain` | Dependency path traversal                                                                   |

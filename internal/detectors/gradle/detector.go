@@ -74,7 +74,6 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 		Technique:            sdk.BuildToolTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemMaven},
 		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerGradle},
-		SupportedModes:       []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:         []string{"graph-resolution", "component-targeting"},
 		SupportsInstallFirst: true,
 	}
@@ -82,7 +81,7 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a Gradle dependency graph for the scan engine.
 func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	depsGraph, err := d.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose)
+	depsGraph, err := d.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, req.ScopeFilter)
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
@@ -103,7 +102,7 @@ func (d Detector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
-func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool) (*sdk.Graph, error) {
+func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool, scopeFilter sdk.Scope) (*sdk.Graph, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -117,6 +116,28 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 	executable, args, err := d.commandSpec(workingDir)
 	if err != nil {
 		return nil, fmt.Errorf("resolve gradle command: %w", err)
+	}
+
+	if scopedArgs := gradleScopedDependenciesArgs(args, scopeFilter); len(scopedArgs) > 0 {
+		depsGraph, err := d.runDependencies(stderr, workingDir, verbose, executable, scopedArgs)
+		if err == nil {
+			return depsGraph, nil
+		}
+		logger.Debug("gradle scoped dependencies detector failed; retrying full graph",
+			zap.String("working_dir", workingDir),
+			zap.String("executable", executable),
+			zap.Strings("args", scopedArgs),
+			zap.Error(err),
+		)
+	}
+
+	return d.runDependencies(stderr, workingDir, verbose, executable, args)
+}
+
+func (d Detector) runDependencies(stderr io.Writer, workingDir string, verbose bool, executable string, args []string) (*sdk.Graph, error) {
+	logger := d.Logger
+	if logger == nil {
+		logger = zap.NewNop()
 	}
 
 	cmd := system.Command(executable, args...)
@@ -149,6 +170,20 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 	logger.Info(fmt.Sprintf("Gradle dependencies detector found %d dependencies in %s", depsGraph.Size(), logging.FormatDuration(duration)))
 
 	return depsGraph, nil
+}
+
+func gradleScopedDependenciesArgs(baseArgs []string, scopeFilter sdk.Scope) []string {
+	configuration := ""
+	switch scopeFilter {
+	case sdk.ScopeRuntime:
+		configuration = "runtimeClasspath"
+	case sdk.ScopeDevelopment:
+		configuration = "testRuntimeClasspath"
+	default:
+		return nil
+	}
+	args := append([]string(nil), baseArgs...)
+	return append(args, "--configuration", configuration)
 }
 
 func (d Detector) commandSpec(workingDir string) (string, []string, error) {
@@ -226,12 +261,13 @@ func depGraphFromGradleOutput(raw []byte, rootName string) (*sdk.Graph, error) {
 	}
 
 	depsGraph := sdk.New()
-	rootNode := sdk.NewPackage(sdk.Package{
+	rootNode := sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemMaven),
 		Name:        rootName,
 		BuildSystem: sdk.PackageManagerGradle.Name(),
 	})
-	if err := depsGraph.AddPackage(rootNode); err != nil {
+
+	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
@@ -258,12 +294,12 @@ func depGraphFromGradleOutput(raw []byte, rootName string) (*sdk.Graph, error) {
 
 		stack = stack[:depth+1]
 		parentID := stack[len(stack)-1]
-		if existing, ok := depsGraph.Package(node.ID); ok {
-			sdk.MergePackageScope(existing, sdk.Scope(node.Scope))
-		} else if err := depsGraph.AddPackage(node); err != nil && !errors.Is(err, sdk.ErrPackageAlreadyExist) {
+		if existing, ok := depsGraph.Node(node.ID); ok {
+			existing.AddScope(node.PrimaryScope())
+		} else if err := depsGraph.AddNode(node); err != nil && !errors.Is(err, sdk.ErrNodeAlreadyExist) {
 			return nil, fmt.Errorf("add node %q: %w", node.ID, err)
 		}
-		if err := depsGraph.AddDependency(parentID, node.ID); err != nil {
+		if err := depsGraph.AddEdge(parentID, node.ID); err != nil {
 			return nil, fmt.Errorf("add dependency %q -> %q: %w", parentID, node.ID, err)
 		}
 
@@ -283,7 +319,7 @@ func isGradleConfigurationHeader(line string) bool {
 	return strings.HasSuffix(line, "Classpath")
 }
 
-func parseGradleDependencyLine(line string, scope sdk.Scope) (*sdk.Package, int, bool) {
+func parseGradleDependencyLine(line string, scope sdk.Scope) (*sdk.Dependency, int, bool) {
 	idx := strings.Index(line, "+--- ")
 	if idx < 0 {
 		idx = strings.Index(line, "\\--- ")
@@ -338,18 +374,20 @@ func gradleDependencyToken(value string) string {
 	return token
 }
 
-func gradleNodeFromToken(token string, scope sdk.Scope) (*sdk.Package, bool) {
+func gradleNodeFromToken(token string, scope sdk.Scope) (*sdk.Dependency, bool) {
 	if strings.HasPrefix(token, "project ") {
 		name := strings.TrimSpace(strings.TrimPrefix(token, "project "))
 		if name == "" {
 			return nil, false
 		}
-		return sdk.NewPackage(sdk.Package{
-			Ecosystem:   string(sdk.EcosystemMaven),
-			Name:        name,
-			Scope:       string(scope),
-			BuildSystem: sdk.PackageManagerGradle.Name(),
-		}), true
+		return sdk.NewDependency(sdk.Dependency{
+				Ecosystem:   string(sdk.EcosystemMaven),
+				Name:        name,
+				Scopes:      sdk.ScopesOf(scope),
+				BuildSystem: sdk.PackageManagerGradle.Name(),
+			}),
+
+			true
 	}
 
 	parts := strings.Split(token, ":")
@@ -359,14 +397,16 @@ func gradleNodeFromToken(token string, scope sdk.Scope) (*sdk.Package, bool) {
 
 	version := parts[len(parts)-1]
 	name := strings.Join(parts[1:len(parts)-1], ":")
-	return sdk.NewPackage(sdk.Package{
-		Ecosystem:   string(sdk.EcosystemMaven),
-		Name:        name,
-		Version:     version,
-		Scope:       string(scope),
-		Org:         parts[0],
-		BuildSystem: sdk.PackageManagerGradle.Name(),
-	}), true
+	return sdk.NewDependency(sdk.Dependency{
+			Ecosystem:   string(sdk.EcosystemMaven),
+			Name:        name,
+			Version:     version,
+			Scopes:      sdk.ScopesOf(scope),
+			Org:         parts[0],
+			BuildSystem: sdk.PackageManagerGradle.Name(),
+		}),
+
+		true
 }
 
 func scopeFromGradleConfiguration(value string) sdk.Scope {

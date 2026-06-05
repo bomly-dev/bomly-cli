@@ -37,11 +37,10 @@ func (d *detector) Metadata(context.Context) (*sdk.PluginMetadata, error) {
 
 func (d *detector) Descriptor(context.Context) (*sdk.DetectorDescriptor, error) {
 	return &sdk.DetectorDescriptor{
-		Name:           pluginID,
-		Enabled:        true,
-		Origin:         sdk.ExternalOrigin,
-		SupportedModes: []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
-		Capabilities:   []string{"dependency-detection"},
+		Name:         pluginID,
+		Enabled:      true,
+		Origin:       sdk.ExternalOrigin,
+		Capabilities: []string{"dependency-detection"},
 	}, nil
 }
 
@@ -67,16 +66,15 @@ func (d *detector) Detect(ctx context.Context, req *sdk.DetectRequest) (*sdk.Det
 	if err != nil {
 		return nil, err
 	}
-	pkg := &sdk.Package{
-		ID:        moduleName + "@v0.0.0",
+	pkg := sdk.NewDependency(sdk.Dependency{
 		Ecosystem: string(sdk.EcosystemGo),
 		Name:      moduleName,
 		Version:   "v0.0.0",
 		PURL:      "pkg:golang/" + moduleName + "@v0.0.0",
 		FoundBy:   pluginID,
-	}
+	})
 	graph := sdk.New()
-	if err := graph.AddPackage(pkg); err != nil {
+	if err := graph.AddNode(pkg); err != nil {
 		return nil, err
 	}
 	return &sdk.DetectResponse{

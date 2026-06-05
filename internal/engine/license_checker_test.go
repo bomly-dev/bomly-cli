@@ -11,23 +11,22 @@ type fakeMatcher struct {
 	name     string
 	enabled  bool
 	priority int
-	run      func(*sdk.Graph)
+	run      func(reg *sdk.PackageRegistry)
 }
 
 func (f fakeMatcher) Descriptor() MatcherDescriptor {
 	return MatcherDescriptor{
-		Name:           f.name,
-		Enabled:        f.enabled,
-		Priority:       f.priority,
-		SupportedModes: []TargetMode{TargetModeFullGraph, TargetModeComponent},
+		Name:     f.name,
+		Enabled:  f.enabled,
+		Priority: f.priority,
 	}
 }
 
 func (f fakeMatcher) Match(_ context.Context, req MatchRequest) (MatchResult, error) {
 	if f.run != nil {
-		f.run(req.Graph)
+		f.run(req.Registry)
 	}
-	return MatchResult{Graph: req.Graph, Target: req.Target}, nil
+	return MatchResult{Registry: req.Registry}, nil
 }
 
 func TestRegistryMatchers_PreservesRegistrationOrder(t *testing.T) {
@@ -35,7 +34,7 @@ func TestRegistryMatchers_PreservesRegistrationOrder(t *testing.T) {
 	registry.registerMatcher(fakeMatcher{name: "fallback", enabled: true, priority: 90})
 	registry.registerMatcher(fakeMatcher{name: "primary", enabled: true, priority: 100})
 
-	matchers := registry.Matchers(MatchRequest{Mode: TargetModeFullGraph})
+	matchers := registry.Matchers(MatchRequest{})
 	if len(matchers) != 2 {
 		t.Fatalf("expected 2 matchers, got %d", len(matchers))
 	}
@@ -52,13 +51,12 @@ func TestRegistryMatchers_UsesEnabledDefaultsButAllowsExplicitInclude(t *testing
 	registry.registerMatcher(fakeMatcher{name: "default-on", enabled: true, priority: 100})
 	registry.registerMatcher(fakeMatcher{name: "default-off", enabled: false, priority: 90})
 
-	matchers := registry.Matchers(MatchRequest{Mode: TargetModeFullGraph})
+	matchers := registry.Matchers(MatchRequest{})
 	if len(matchers) != 1 || matchers[0].Descriptor().Name != "default-on" {
 		t.Fatalf("expected only enabled-by-default matcher, got %#v", matchers)
 	}
 
 	matchers = registry.Matchers(MatchRequest{
-		Mode:          TargetModeFullGraph,
 		MatcherFilter: sdk.MatcherFilter{Include: []string{"default-off"}},
 	})
 	if len(matchers) != 1 || matchers[0].Descriptor().Name != "default-off" {
@@ -68,13 +66,15 @@ func TestRegistryMatchers_UsesEnabledDefaultsButAllowsExplicitInclude(t *testing
 
 func TestEngineMatch_RunsMultipleMatchersWithoutOverwritingExistingLicenses(t *testing.T) {
 	registry := newTestRegistry()
+	const purl = "pkg:npm/react@18.2.0"
+
 	registry.registerMatcher(fakeMatcher{
 		name:     "first",
 		enabled:  true,
 		priority: 100,
-		run: func(g *sdk.Graph) {
-			pkg, _ := g.Package("react@18.2.0")
-			if pkg != nil && len(pkg.Licenses) == 0 {
+		run: func(reg *sdk.PackageRegistry) {
+			pkg := reg.Ensure(purl)
+			if len(pkg.Licenses) == 0 {
 				pkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
 			}
 		},
@@ -83,9 +83,9 @@ func TestEngineMatch_RunsMultipleMatchersWithoutOverwritingExistingLicenses(t *t
 		name:     "second",
 		enabled:  true,
 		priority: 90,
-		run: func(g *sdk.Graph) {
-			pkg, _ := g.Package("react@18.2.0")
-			if pkg != nil && len(pkg.Licenses) == 0 {
+		run: func(reg *sdk.PackageRegistry) {
+			pkg := reg.Ensure(purl)
+			if len(pkg.Licenses) == 0 {
 				pkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "Apache-2.0"}}
 			}
 		},
@@ -93,20 +93,21 @@ func TestEngineMatch_RunsMultipleMatchersWithoutOverwritingExistingLicenses(t *t
 	engine := NewEngine(registry)
 
 	g := sdk.New()
-	pkg := sdk.NewPackage(sdk.Package{Ecosystem: "npm", Name: "react", Version: "18.2.0"})
-	if err := g.AddPackage(pkg); err != nil {
-		t.Fatalf("add package: %v", err)
-	}
+	reg := sdk.NewPackageRegistry()
 
 	result, err := engine.Match(context.Background(), MatchRequest{
-		Mode:  TargetModeFullGraph,
-		Graph: g,
+		Graph:    g,
+		Registry: reg,
 	})
 	if err != nil {
 		t.Fatalf("Match() error = %v", err)
 	}
-	if result.Graph != g {
-		t.Fatalf("expected graph to be returned unchanged by pointer")
+	if result.Registry == nil {
+		t.Fatalf("expected registry to be returned by match result")
+	}
+	pkg, ok := result.Registry.Get(purl)
+	if !ok {
+		t.Fatalf("expected react package to be in registry")
 	}
 	values := pkg.LicenseValues()
 	if len(values) != 1 || values[0] != "MIT" {

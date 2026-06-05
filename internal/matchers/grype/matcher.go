@@ -26,7 +26,7 @@ type Matcher struct {
 	DistConfigOverride any
 }
 
-func appendOrMergeVulnerability(existing []sdk.PackageVulnerability, entry sdk.PackageVulnerability) []sdk.PackageVulnerability {
+func appendOrMergeVulnerability(existing []sdk.Vulnerability, entry sdk.Vulnerability) []sdk.Vulnerability {
 	for idx, vulnerability := range existing {
 		if vulnerability.Source == entry.Source && vulnerability.ID == entry.ID {
 			existing[idx] = mergePackageVulnerability(vulnerability, entry)
@@ -43,7 +43,6 @@ func (a Matcher) Descriptor() sdk.MatcherDescriptor {
 		Enabled:             true,
 		Origin:              sdk.BundledOrigin,
 		SupportedEcosystems: nil, // nil = all ecosystems
-		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Priority:            a.Priority,
 		Required:            false,
 	}

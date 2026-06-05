@@ -47,6 +47,9 @@ type diffModel struct {
 	baseGraph sdk.ConsolidatedGraph
 	headGraph sdk.ConsolidatedGraph
 
+	baseRegistry *sdk.PackageRegistry
+	headRegistry *sdk.PackageRegistry
+
 	enrichEnabled bool
 
 	componentsGroup        componentsGroup
@@ -109,6 +112,18 @@ func NewDiff(payload output.DiffResponse, baseGraph, headGraph sdk.ConsolidatedG
 			return m.diffFooterSummary(), m.diffLegend()
 		},
 	})
+	return m
+}
+
+// WithRegistry attaches the base/head package registries so source-tree package
+// details can show matcher and analyzer enrichment by PURL.
+func (m *diffModel) WithRegistry(base, head *sdk.PackageRegistry) *diffModel {
+	if m == nil {
+		return nil
+	}
+	m.baseRegistry = base
+	m.headRegistry = head
+	m.Rebuild()
 	return m
 }
 
@@ -871,7 +886,7 @@ func classifyRelationships(g *sdk.Graph) map[string]string {
 		out[r.ID] = "root"
 	}
 	for rid := range rootIDs {
-		deps, _ := g.Dependencies(rid)
+		deps, _ := g.DirectDependencies(rid)
 		for _, d := range deps {
 			if d == nil {
 				continue
@@ -885,7 +900,7 @@ func classifyRelationships(g *sdk.Graph) map[string]string {
 			out[d.ID] = "direct"
 		}
 	}
-	for _, pkg := range g.Packages() {
+	for _, pkg := range g.Nodes() {
 		if pkg == nil {
 			continue
 		}
@@ -2949,8 +2964,8 @@ func (m *diffModel) buildSourceTab() *listModel {
 	// Build BOTH sides' items up front — the focused side's items also
 	// power list-level state (visibleItemIndices, expand, search) by
 	// living in the listModel.items slice.
-	baseItems := diffSourceItems(m.baseGraph, m.sourceBaseExpanded, "base")
-	headItems := diffSourceItems(m.headGraph, m.sourceHeadExpanded, "head")
+	baseItems := diffSourceItems(m.baseGraph, m.baseRegistry, m.sourceBaseExpanded, "base")
+	headItems := diffSourceItems(m.headGraph, m.headRegistry, m.sourceHeadExpanded, "head")
 	focusedItems := baseItems
 	if focused == diffSourceHead {
 		focusedItems = headItems
@@ -3060,7 +3075,7 @@ func sourceItemPlain(it listItem) string {
 	return it.tree + marker + it.title
 }
 
-func diffSourceItems(consolidated sdk.ConsolidatedGraph, expanded map[string]bool, sidePrefix string) []listItem {
+func diffSourceItems(consolidated sdk.ConsolidatedGraph, registry *sdk.PackageRegistry, expanded map[string]bool, sidePrefix string) []listItem {
 	items := []listItem{sourceNode(fmt.Sprintf("%s: {}", sidePrefix), "root", "", 0, true, expandedValue(expanded, "root", true))}
 	if !expandedValue(expanded, "root", true) {
 		return items
@@ -3117,7 +3132,7 @@ func diffSourceItems(consolidated sdk.ConsolidatedGraph, expanded map[string]boo
 				items = append(items, sourceNode("(no consolidated graph)", "", prefix+"└─ ", 2, false, false))
 				break
 			}
-			pkgs := graph.Packages()
+			pkgs := graph.Nodes()
 			sort.Slice(pkgs, func(i, j int) bool { return packageSortKey(pkgs[i]) < packageSortKey(pkgs[j]) })
 			limit := len(pkgs)
 			truncated := false
@@ -3141,7 +3156,7 @@ func diffSourceItems(consolidated sdk.ConsolidatedGraph, expanded map[string]boo
 				} else {
 					childPrefix += "│  "
 				}
-				items = append(items, sourceLeafItems(packageRawLines(pkg), childPrefix)...)
+				items = append(items, sourceLeafItems(packageRawLines(pkg, registry), childPrefix)...)
 			}
 			if truncated {
 				items = append(items, sourceNode(fmt.Sprintf("(showing 200 of %d packages)", len(pkgs)), "", prefix+"└─ ", 2, false, false))

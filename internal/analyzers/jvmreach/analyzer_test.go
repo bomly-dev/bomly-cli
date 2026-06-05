@@ -49,28 +49,46 @@ func newJVMProjectDir(t *testing.T) string {
 	return dir
 }
 
-func newJVMGraph(t *testing.T, projectDir, group, artifact string, vulns ...model.PackageVulnerability) *model.Graph {
+func newSeed() (*model.Graph, *model.PackageRegistry) {
+	return model.New(), model.NewPackageRegistry()
+}
+
+// addJVMDep adds a Maven dependency node + (when vulns supplied) a registry
+// package keyed by the dependency PURL carrying those vulnerabilities.
+func addJVMDep(t *testing.T, g *model.Graph, reg *model.PackageRegistry, projectDir, group, artifact, version string, vulns ...model.Vulnerability) *model.Dependency {
 	t.Helper()
-	g := model.New()
-	pkg := model.NewPackage(model.Package{
-		Name:            artifact,
-		Org:             group,
-		Version:         "1.0.0",
-		Ecosystem:       string(model.EcosystemMaven),
-		BuildSystem:     "maven",
-		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "pom.xml")}},
-		Vulnerabilities: vulns,
+	dep := model.NewDependency(model.Dependency{
+		Name:        artifact,
+		Org:         group,
+		Version:     version,
+		Ecosystem:   string(model.EcosystemMaven),
+		BuildSystem: "maven",
+		Locations:   []model.PackageLocation{{RealPath: filepath.Join(projectDir, "pom.xml")}},
 	})
-	if err := g.AddPackage(pkg); err != nil {
+	purl := model.CanonicalPackageURLFromDependency(dep)
+	dep.PackageRef = purl
+	if err := g.AddNode(dep); err != nil {
 		t.Fatal(err)
 	}
-	return g
+	pkg := reg.Ensure(purl)
+	pkg.Vulnerabilities = append(pkg.Vulnerabilities, vulns...)
+	return dep
+}
+
+func reachOf(t *testing.T, reg *model.PackageRegistry, dep *model.Dependency) *model.Reachability {
+	t.Helper()
+	pkg, ok := reg.Get(dep.PackageRef)
+	if !ok || pkg == nil || len(pkg.Vulnerabilities) == 0 {
+		t.Fatalf("no registry vulnerability for %s:%s", dep.Org, dep.Name)
+	}
+	return pkg.Vulnerabilities[0].Reachability
 }
 
 func TestAnalyzerMarksReachableWhenArtifactIsImported(t *testing.T) {
 	projectDir := newJVMProjectDir(t)
-	vuln := model.PackageVulnerability{ID: "GHSA-test", Source: "osv", Severity: "high"}
-	g := newJVMGraph(t, projectDir, "com.fasterxml.jackson.core", "jackson-databind", vuln)
+	g, reg := newSeed()
+	dep := addJVMDep(t, g, reg, projectDir, "com.fasterxml.jackson.core", "jackson-databind", "1.0.0",
+		model.Vulnerability{ID: "GHSA-test", Source: "osv", ParsedSeverity: "high"})
 
 	a := Analyzer{
 		DisableCache: true,
@@ -83,11 +101,11 @@ func TestAnalyzerMarksReachableWhenArtifactIsImported(t *testing.T) {
 			},
 		},
 	}
-	res, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: projectDir})
+	res, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir})
 	if err != nil {
 		t.Fatalf("Analyze err: %v", err)
 	}
-	r := res.Graph.Packages()[0].Vulnerabilities[0].Reachability
+	r := reachOf(t, reg, dep)
 	if r == nil || r.Status != model.ReachabilityReachable || r.Tier != model.TierPackage {
 		t.Errorf("unexpected reachability: %+v", r)
 	}
@@ -98,8 +116,9 @@ func TestAnalyzerMarksReachableWhenArtifactIsImported(t *testing.T) {
 
 func TestAnalyzerMarksUnreachableWhenArtifactNotImported(t *testing.T) {
 	projectDir := newJVMProjectDir(t)
-	vuln := model.PackageVulnerability{ID: "GHSA-test", Source: "osv", Severity: "high"}
-	g := newJVMGraph(t, projectDir, "log4j", "log4j", vuln)
+	g, reg := newSeed()
+	dep := addJVMDep(t, g, reg, projectDir, "log4j", "log4j", "1.0.0",
+		model.Vulnerability{ID: "GHSA-test", Source: "osv", ParsedSeverity: "high"})
 
 	a := Analyzer{
 		DisableCache: true,
@@ -112,11 +131,10 @@ func TestAnalyzerMarksUnreachableWhenArtifactNotImported(t *testing.T) {
 			},
 		},
 	}
-	_, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: projectDir})
-	if err != nil {
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir}); err != nil {
 		t.Fatal(err)
 	}
-	r := g.Packages()[0].Vulnerabilities[0].Reachability
+	r := reachOf(t, reg, dep)
 	if r.Status != model.ReachabilityUnreachable || r.Reason != "package-not-imported" {
 		t.Errorf("unexpected reachability: %+v", r)
 	}
@@ -124,57 +142,31 @@ func TestAnalyzerMarksUnreachableWhenArtifactNotImported(t *testing.T) {
 
 func TestAnalyzerDegradesToUnknownOnRunnerError(t *testing.T) {
 	projectDir := newJVMProjectDir(t)
-	vuln := model.PackageVulnerability{ID: "GHSA-test", Source: "osv", Severity: "high"}
-	g := newJVMGraph(t, projectDir, "com.fasterxml.jackson.core", "jackson-databind", vuln)
+	g, reg := newSeed()
+	dep := addJVMDep(t, g, reg, projectDir, "com.fasterxml.jackson.core", "jackson-databind", "1.0.0",
+		model.Vulnerability{ID: "GHSA-test", Source: "osv", ParsedSeverity: "high"})
 
 	a := Analyzer{
 		DisableCache: true,
 		Runner:       &fakeRunner{err: errors.New("project dir not accessible: not found")},
 	}
-	_, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: projectDir})
-	if err != nil {
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir}); err != nil {
 		t.Fatalf("Analyze should not error on runner failure: %v", err)
 	}
-	r := g.Packages()[0].Vulnerabilities[0].Reachability
+	r := reachOf(t, reg, dep)
 	if r.Status != model.ReachabilityUnknown || r.Reason != "missing-toolchain" {
 		t.Errorf("unexpected: %+v", r)
 	}
 }
 
-// Transitive expansion is the headline correctness test: the
-// scanner only sees direct imports, but the BFS through the dep
-// graph must lift downstream artifacts to reachable too.
 func TestAnalyzerMarksTransitiveDepReachable(t *testing.T) {
 	projectDir := newJVMProjectDir(t)
-	directVuln := model.PackageVulnerability{ID: "GHSA-direct", Source: "osv", Severity: "high"}
-	transVuln := model.PackageVulnerability{ID: "GHSA-trans", Source: "osv", Severity: "high"}
-
-	g := model.New()
-	direct := model.NewPackage(model.Package{
-		Name:            "jackson-databind",
-		Org:             "com.fasterxml.jackson.core",
-		Version:         "2.17.0",
-		Ecosystem:       string(model.EcosystemMaven),
-		BuildSystem:     "maven",
-		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "pom.xml")}},
-		Vulnerabilities: []model.PackageVulnerability{directVuln},
-	})
-	trans := model.NewPackage(model.Package{
-		Name:            "jackson-core",
-		Org:             "com.fasterxml.jackson.core",
-		Version:         "2.17.0",
-		Ecosystem:       string(model.EcosystemMaven),
-		BuildSystem:     "maven",
-		Locations:       []model.PackageLocation{{RealPath: filepath.Join(projectDir, "pom.xml")}},
-		Vulnerabilities: []model.PackageVulnerability{transVuln},
-	})
-	if err := g.AddPackage(direct); err != nil {
-		t.Fatal(err)
-	}
-	if err := g.AddPackage(trans); err != nil {
-		t.Fatal(err)
-	}
-	if err := g.AddDependency(direct.ID, trans.ID); err != nil {
+	g, reg := newSeed()
+	direct := addJVMDep(t, g, reg, projectDir, "com.fasterxml.jackson.core", "jackson-databind", "2.17.0",
+		model.Vulnerability{ID: "GHSA-direct", Source: "osv", ParsedSeverity: "high"})
+	trans := addJVMDep(t, g, reg, projectDir, "com.fasterxml.jackson.core", "jackson-core", "2.17.0",
+		model.Vulnerability{ID: "GHSA-trans", Source: "osv", ParsedSeverity: "high"})
+	if err := g.AddEdge(direct.ID, trans.ID); err != nil {
 		t.Fatal(err)
 	}
 
@@ -189,32 +181,31 @@ func TestAnalyzerMarksTransitiveDepReachable(t *testing.T) {
 			},
 		},
 	}
-	_, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: projectDir})
-	if err != nil {
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: projectDir}); err != nil {
 		t.Fatal(err)
 	}
-	for _, pkg := range g.Packages() {
-		r := pkg.Vulnerabilities[0].Reachability
+	for _, dep := range []*model.Dependency{direct, trans} {
+		r := reachOf(t, reg, dep)
 		if r == nil || r.Status != model.ReachabilityReachable {
-			t.Errorf("%s:%s: status = %v, want reachable", pkg.Org, pkg.Name, r)
+			t.Errorf("%s:%s: status = %v, want reachable", dep.Org, dep.Name, r)
 		}
 	}
 }
 
 func TestComputeReachablePackageHopsHandlesCycles(t *testing.T) {
 	g := model.New()
-	a := model.NewPackage(model.Package{Name: "a", Org: "g", Version: "1", Ecosystem: string(model.EcosystemMaven)})
-	b := model.NewPackage(model.Package{Name: "b", Org: "g", Version: "1", Ecosystem: string(model.EcosystemMaven)})
-	if err := g.AddPackage(a); err != nil {
+	a := model.NewDependency(model.Dependency{Name: "a", Org: "g", Version: "1", Ecosystem: string(model.EcosystemMaven)})
+	b := model.NewDependency(model.Dependency{Name: "b", Org: "g", Version: "1", Ecosystem: string(model.EcosystemMaven)})
+	if err := g.AddNode(a); err != nil {
 		t.Fatal(err)
 	}
-	if err := g.AddPackage(b); err != nil {
+	if err := g.AddNode(b); err != nil {
 		t.Fatal(err)
 	}
-	if err := g.AddDependency(a.ID, b.ID); err != nil {
+	if err := g.AddEdge(a.ID, b.ID); err != nil {
 		t.Fatal(err)
 	}
-	if err := g.AddDependency(b.ID, a.ID); err != nil {
+	if err := g.AddEdge(b.ID, a.ID); err != nil {
 		t.Fatal(err)
 	}
 	got := computeReachablePackageHops(g, map[string]struct{}{"g:a": {}})
@@ -228,38 +219,32 @@ func TestComputeReachablePackageHopsHandlesCycles(t *testing.T) {
 
 func TestAnalyzerApplicableRequiresJVMVulns(t *testing.T) {
 	a := Analyzer{}
-	g := model.New()
-	pyPkg := model.NewPackage(model.Package{Name: "requests", Ecosystem: string(model.EcosystemPython), Vulnerabilities: []model.PackageVulnerability{{ID: "x"}}})
-	_ = g.AddPackage(pyPkg)
-	ok, _ := a.Applicable(context.Background(), model.AnalyzeRequest{Graph: g})
-	if ok {
+
+	g, reg := newSeed()
+	pyDep := model.NewDependency(model.Dependency{Name: "requests", Ecosystem: string(model.EcosystemPython)})
+	pyDep.PackageRef = model.CanonicalPackageURLFromDependency(pyDep)
+	_ = g.AddNode(pyDep)
+	reg.Ensure(pyDep.PackageRef).Vulnerabilities = []model.Vulnerability{{ID: "x"}}
+	if ok, _ := a.Applicable(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg}); ok {
 		t.Errorf("Applicable on python-only graph = true; want false")
 	}
-	g = model.New()
-	jvm := model.NewPackage(model.Package{Name: "jackson-databind", Org: "com.fasterxml.jackson.core", Ecosystem: string(model.EcosystemMaven), Vulnerabilities: []model.PackageVulnerability{{ID: "x"}}})
-	_ = g.AddPackage(jvm)
-	ok, _ = a.Applicable(context.Background(), model.AnalyzeRequest{Graph: g})
-	if !ok {
+
+	g, reg = newSeed()
+	addJVMDep(t, g, reg, t.TempDir(), "com.fasterxml.jackson.core", "jackson-databind", "1.0.0", model.Vulnerability{ID: "x"})
+	if ok, _ := a.Applicable(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg}); !ok {
 		t.Errorf("Applicable on jvm-with-vulns graph = false; want true")
 	}
 }
 
 func TestAnalyzerMarksUnknownWhenNoProjectRootDiscovered(t *testing.T) {
 	dir := t.TempDir()
-	g := model.New()
-	pkg := model.NewPackage(model.Package{
-		Name:            "jackson-databind",
-		Org:             "com.fasterxml.jackson.core",
-		Ecosystem:       string(model.EcosystemMaven),
-		Vulnerabilities: []model.PackageVulnerability{{ID: "x"}},
-	})
-	_ = g.AddPackage(pkg)
+	g, reg := newSeed()
+	dep := addJVMDep(t, g, reg, dir, "com.fasterxml.jackson.core", "jackson-databind", "1.0.0", model.Vulnerability{ID: "x"})
 	a := Analyzer{DisableCache: true, Runner: &fakeRunner{}}
-	_, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: dir})
-	if err != nil {
+	if _, err := a.Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: dir}); err != nil {
 		t.Fatal(err)
 	}
-	r := g.Packages()[0].Vulnerabilities[0].Reachability
+	r := reachOf(t, reg, dep)
 	if r == nil || r.Status != model.ReachabilityUnknown || r.Reason != "no-project-root-discovered" {
 		t.Errorf("unexpected: %+v", r)
 	}
@@ -284,7 +269,6 @@ func TestLibraryRunnerWalksProjectAndResolvesArtifacts(t *testing.T) {
 			"import org.apache.logging.log4j.LogManager;\n"+
 			"import java.util.List;\n"+
 			"class App {}\n")
-	// Build outputs that must be skipped:
 	must("target/classes/com/decompiled/Junk.java",
 		"package com.decompiled;\nimport never.seen.Class;\n")
 
@@ -303,7 +287,6 @@ func TestLibraryRunnerWalksProjectAndResolvesArtifacts(t *testing.T) {
 			t.Errorf("missing %q in imported set: %v", coord, got.ImportedArtifacts)
 		}
 	}
-	// Stdlib must not leak in.
 	if _, ok := got.ImportedArtifacts["java.util:list"]; ok {
 		t.Errorf("stdlib leaked into import set")
 	}

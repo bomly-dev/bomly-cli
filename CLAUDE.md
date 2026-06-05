@@ -42,8 +42,11 @@ internal/cli/render/             CLI presentation layer: ANSI primitives, text h
 internal/tui/                    Interactive Bubbletea terminal UI (Run, NewScan, NewDiff,
                                  NewScanNavigator, Model interface). ErrNotATerminal sentinel
                                  lets the cli surface missing-tty as an invalid-input exit
-sdk/                             Neutral domain types, ecosystem/package-manager identifiers,
-                                 support-matrix data
+sdk/                             Neutral domain types (Dependency, Package, Vulnerability,
+                                 Finding, PackageRegistry, Graph, Reachability),
+                                 ecosystem/package-manager identifiers, support-matrix data.
+                                 See docs/MODELS.md for the three-collection model
+                                 (manifests→dependencies / packages by PURL / findings by ref).
 internal/config/                 Resolved + File: the canonical config schema + YAML shape that
                                  the configref / schemajson / schemadocs generators read
 internal/selector/               Generic +/- selector resolver (Resolve, Catalog, ParseCSV,
@@ -69,8 +72,9 @@ internal/analyzers/*             Reachability analyzers (govulncheck — Go;
                                  Each is backed by a single in-process
                                  implementation (no builtin/external
                                  build-tag split). Run after matchers;
-                                 annotate PackageVulnerability.Reachability
-                                 and never abort the pipeline on failure
+                                 annotate sdk.Vulnerability.Reachability on
+                                 registry packages, and never abort the
+                                 pipeline on failure
 internal/auditors/*              Policy evaluators (policy, noop)
 internal/sbom/                   SPDX 2.3 / CycloneDX codec
 internal/attestation/            Experimental SBOM attestation subject resolution,
@@ -228,6 +232,7 @@ For squash-merges, the squash commit title/body determines the version bump.
 | Doc | Covers |
 | --- | --- |
 | `docs/ARCHITECTURE.md` | Full pipeline, detector model, decision log |
+| `docs/MODELS.md` | Domain model: Dependency / Package / Vulnerability / Finding / PackageRegistry |
 | `docs/CI.md` | GitHub Actions, release workflow |
 | `docs/CONFIG_REFERENCE.md` | All config keys, env vars, defaults (generated) |
 | `docs/SUPPORT_MATRIX.md` | Ecosystem detector coverage (generated) |

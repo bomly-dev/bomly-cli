@@ -8,9 +8,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
+	"github.com/bomly-dev/bomly-cli/internal/matchers"
 	"github.com/bomly-dev/bomly-cli/internal/sbom"
 	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
@@ -31,10 +33,17 @@ func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult
 
 	logger := a.logger()
 
+	if req.Graph == nil || req.Registry == nil {
+		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, nil
+	}
+
+	// Seed the registry so SPDX serialization and match correlation share PURLs.
+	_ = matchers.RegistryPackagesForGraph(req.Graph, req.Registry, req.Target)
+
 	// Serialize graph as SPDX JSON to feed to grype stdin.
 	spdxBytes, err := sbom.MarshalDepGraphJSON(req.Graph, sbom.TargetSPDX23JSON, sbom.BuildOptions{}, sbom.EncodeOptions{})
 	if err != nil {
-		return sdk.MatchResult{}, fmt.Errorf("grype: serialize sbom: %w", err)
+		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, fmt.Errorf("grype: serialize sbom: %w", err)
 	}
 
 	var stdout, stderr bytes.Buffer
@@ -46,18 +55,18 @@ func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult
 	logger.Debug("running external grype matcher")
 	if err := cmd.Run(); err != nil {
 		logger.Warn(fmt.Sprintf("grype CLI failed: %v (stderr: %s)", err, stderr.String()))
-		return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, fmt.Errorf("grype match failed: %w", err)
+		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, fmt.Errorf("grype match failed: %w", err)
 	}
 
-	err = parseGrypeJSONOutput(stdout.Bytes(), req.Graph)
+	err = parseGrypeJSONOutput(stdout.Bytes(), req.Registry)
 	if err != nil {
-		return sdk.MatchResult{}, fmt.Errorf("grype: parse output: %w", err)
+		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, fmt.Errorf("grype: parse output: %w", err)
 	}
 
 	logger.Info(fmt.Sprintf("External grype enrichment completed in %s", logging.FormatDuration(time.Since(started))))
 	return sdk.MatchResult{
-		Graph:  req.Graph,
-		Target: req.Target,
+		Registry:    req.Registry,
+		MatcherRuns: []string{matcherName},
 	}, nil
 }
 
@@ -166,44 +175,31 @@ type grypeJSONArtifact struct {
 	PURL    string   `json:"purl"`
 }
 
-func parseGrypeJSONOutput(data []byte, g *sdk.Graph) error {
+func parseGrypeJSONOutput(data []byte, registry *sdk.PackageRegistry) error {
 	var out grypeJSONOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return fmt.Errorf("decode grype json: %w", err)
 	}
-
-	pkgByPURL := make(map[string]*sdk.Package)
-	pkgByID := make(map[string]*sdk.Package)
-	for _, p := range g.Packages() {
-		if p.ID != "" {
-			pkgByID[p.ID] = p
-		}
-		if p.PURL != "" {
-			pkgByPURL[p.PURL] = p
-		}
+	if registry == nil {
+		return nil
 	}
 
 	for _, m := range out.Matches {
-		graphPkg := pkgByPURL[m.Artifact.PURL]
-		if graphPkg == nil {
-			graphPkg = pkgByID[m.Artifact.ID]
+		purl := strings.TrimSpace(m.Artifact.PURL)
+		if purl == "" {
+			continue
 		}
-		if graphPkg == nil {
-			graphPkg = &sdk.Package{
-				ID:      m.Artifact.ID,
-				Name:    m.Artifact.Name,
-				Version: m.Artifact.Version,
-				PURL:    m.Artifact.PURL,
-			}
+		pkg := registry.Ensure(purl)
+		if pkg == nil {
+			continue
 		}
-
-		graphPkg.Matched = true
-		graphPkg.Vulnerabilities = appendOrMergeVulnerability(graphPkg.Vulnerabilities, mapGrypeJSONMatch(m))
+		pkg.Matched = true
+		pkg.Vulnerabilities = appendOrMergeVulnerability(pkg.Vulnerabilities, mapGrypeJSONMatch(m))
 	}
 	return nil
 }
 
-func mapGrypeJSONMatch(m grypeJSONMatch) sdk.PackageVulnerability {
+func mapGrypeJSONMatch(m grypeJSONMatch) sdk.Vulnerability {
 	advisory := grypeAdvisory{
 		ID:                   m.Vulnerability.ID,
 		Namespace:            m.Vulnerability.Namespace,

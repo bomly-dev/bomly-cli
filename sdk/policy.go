@@ -147,11 +147,11 @@ func SeverityMeets(candidate, threshold string) bool {
 // constraints (AND semantics). When constraints is empty, every
 // vulnerability matches (the historical behaviour of `--audit` without
 // `--fail-on`).
-func (v PackageVulnerability) MatchesConstraints(constraints []FailOnConstraint) bool {
+func (v Vulnerability) MatchesConstraints(constraints []FailOnConstraint) bool {
 	for _, c := range constraints {
 		switch c.Kind {
 		case SeverityConstraint:
-			if !SeverityMeets(v.Severity, c.Value) {
+			if !SeverityMeets(v.ParsedSeverity, c.Value) {
 				return false
 			}
 		case ReachabilityConstraint:
@@ -172,10 +172,4 @@ func (v PackageVulnerability) MatchesConstraints(constraints []FailOnConstraint)
 		}
 	}
 	return true
-}
-
-// IsExploitable reports whether advisory metadata says this vulnerability is
-// known exploitable.
-func (v PackageVulnerability) IsExploitable() bool {
-	return v.KEVExploited || len(v.KnownExploited) > 0
 }

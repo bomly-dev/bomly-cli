@@ -3,14 +3,15 @@ package sdk
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 )
 
 type graphJSON struct {
-	Packages     []*Package       `json:"packages,omitempty"`
-	Dependencies []DependencyEdge `json:"dependencies,omitempty"`
+	Nodes []*Dependency    `json:"nodes,omitempty"`
+	Edges []DependencyEdge `json:"edges,omitempty"`
 }
 
-// DependencyEdge captures one directed relationship between package IDs.
+// DependencyEdge captures one directed relationship between node IDs.
 type DependencyEdge struct {
 	FromID string `json:"fromId"`
 	ToID   string `json:"toId"`
@@ -22,14 +23,14 @@ func (g *Graph) MarshalJSON() ([]byte, error) {
 		return []byte("null"), nil
 	}
 	payload := graphJSON{
-		Packages: make([]*Package, 0, g.Size()),
+		Nodes: make([]*Dependency, 0, g.Size()),
 	}
-	g.WalkPackages(func(pkg *Package) bool {
-		payload.Packages = append(payload.Packages, pkg)
+	g.WalkNodes(func(node *Dependency) bool {
+		payload.Nodes = append(payload.Nodes, node)
 		return true
 	})
-	g.WalkRelationships(func(from, to *Package) bool {
-		payload.Dependencies = append(payload.Dependencies, DependencyEdge{FromID: from.ID, ToID: to.ID})
+	g.WalkEdges(func(from, to *Dependency) bool {
+		payload.Edges = append(payload.Edges, DependencyEdge{FromID: from.ID, ToID: to.ID})
 		return true
 	})
 	return json.Marshal(payload)
@@ -45,18 +46,63 @@ func (g *Graph) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &payload); err != nil {
 		return err
 	}
-	out := NewWithCapacity(len(payload.Packages))
-	for _, pkg := range payload.Packages {
-		if err := out.AddPackage(pkg); err != nil {
+	out := NewWithCapacity(len(payload.Nodes))
+	for _, node := range payload.Nodes {
+		if err := out.AddNode(node); err != nil {
 			return err
 		}
 	}
-	for _, edge := range payload.Dependencies {
-		if err := out.AddDependency(edge.FromID, edge.ToID); err != nil {
+	for _, edge := range payload.Edges {
+		if err := out.AddEdge(edge.FromID, edge.ToID); err != nil {
 			return err
 		}
 	}
 	*g = *out
+	return nil
+}
+
+// MarshalJSON encodes a package registry as a stable PURL-keyed object for
+// plugin transport.
+func (r *PackageRegistry) MarshalJSON() ([]byte, error) {
+	if r == nil {
+		return []byte("null"), nil
+	}
+	payload := make(map[string]*Package, r.Len())
+	for _, pkg := range r.All() {
+		if pkg == nil || pkg.PURL == "" {
+			continue
+		}
+		payload[pkg.PURL] = pkg.Clone()
+	}
+	return json.Marshal(payload)
+}
+
+// UnmarshalJSON decodes a PURL-keyed package registry from plugin transport.
+func (r *PackageRegistry) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		*r = *NewPackageRegistry()
+		return nil
+	}
+	payload := map[string]*Package{}
+	if err := json.Unmarshal(data, &payload); err != nil {
+		return err
+	}
+	out := NewPackageRegistry()
+	purls := make([]string, 0, len(payload))
+	for purl := range payload {
+		purls = append(purls, purl)
+	}
+	sort.Strings(purls)
+	for _, purl := range purls {
+		pkg := payload[purl]
+		if pkg == nil {
+			pkg = &Package{}
+		}
+		clone := pkg.Clone()
+		clone.PURL = purl
+		out.Add(clone)
+	}
+	*r = *out
 	return nil
 }
 

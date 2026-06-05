@@ -71,7 +71,6 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 		Technique:           sdk.ManifestTechnique,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemGitHub},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerGitHubActions},
-		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "component-targeting", "local-transitive-expansion"},
 	}
 }
@@ -110,8 +109,8 @@ func depGraphContainerFromRepository(projectPath string) (*sdk.GraphContainer, e
 	}
 
 	depsGraph := sdk.New()
-	workflowNodes := make(map[string]*sdk.Package, len(workflowFiles))
-	actionNodes := make(map[string]*sdk.Package, len(actionFiles))
+	workflowNodes := make(map[string]*sdk.Dependency, len(workflowFiles))
+	actionNodes := make(map[string]*sdk.Dependency, len(actionFiles))
 
 	for _, relPath := range workflowFiles {
 		node := localWorkflowNode(relPath)
@@ -185,7 +184,7 @@ func depGraphContainerFromRepository(projectPath string) (*sdk.GraphContainer, e
 }
 
 func graphReachableFromRoot(source *sdk.Graph, rootID string) (*sdk.Graph, error) {
-	root, ok := source.Package(rootID)
+	root, ok := source.Node(rootID)
 	if !ok {
 		return nil, fmt.Errorf("github actions root %q not found", rootID)
 	}
@@ -198,7 +197,7 @@ func graphReachableFromRoot(source *sdk.Graph, rootID string) (*sdk.Graph, error
 	for len(queue) > 0 {
 		currentID := queue[0]
 		queue = queue[1:]
-		deps, err := source.Dependencies(currentID)
+		deps, err := source.DirectDependencies(currentID)
 		if err != nil {
 			return nil, err
 		}
@@ -206,7 +205,7 @@ func graphReachableFromRoot(source *sdk.Graph, rootID string) (*sdk.Graph, error
 			if err := addNodeIfMissing(out, dep.Clone()); err != nil {
 				return nil, err
 			}
-			if err := out.AddDependency(currentID, dep.ID); err != nil {
+			if err := out.AddEdge(currentID, dep.ID); err != nil {
 				return nil, err
 			}
 			if _, ok := seen[dep.ID]; ok {
@@ -307,7 +306,7 @@ func parseActionRefs(path string) ([]string, error) {
 	return uniqueStrings(refs), nil
 }
 
-func addReferenceEdges(depsGraph *sdk.Graph, parent *sdk.Package, callerRelPath string, refs []string, workflowNodes map[string]*sdk.Package, actionNodes map[string]*sdk.Package) error {
+func addReferenceEdges(depsGraph *sdk.Graph, parent *sdk.Dependency, callerRelPath string, refs []string, workflowNodes map[string]*sdk.Dependency, actionNodes map[string]*sdk.Dependency) error {
 	for _, ref := range refs {
 		node, err := resolveReference(ref, callerRelPath, workflowNodes, actionNodes)
 		if err != nil {
@@ -319,14 +318,14 @@ func addReferenceEdges(depsGraph *sdk.Graph, parent *sdk.Package, callerRelPath 
 		if err := addNodeIfMissing(depsGraph, node); err != nil {
 			return err
 		}
-		if err := depsGraph.AddDependency(parent.ID, node.ID); err != nil {
+		if err := depsGraph.AddEdge(parent.ID, node.ID); err != nil {
 			return fmt.Errorf("add dependency %q -> %q: %w", parent.ID, node.ID, err)
 		}
 	}
 	return nil
 }
 
-func resolveReference(ref, callerRelPath string, workflowNodes map[string]*sdk.Package, actionNodes map[string]*sdk.Package) (*sdk.Package, error) {
+func resolveReference(ref, callerRelPath string, workflowNodes map[string]*sdk.Dependency, actionNodes map[string]*sdk.Dependency) (*sdk.Dependency, error) {
 	ref = strings.TrimSpace(ref)
 	if ref == "" || strings.HasPrefix(ref, "docker://") {
 		return nil, nil
@@ -361,16 +360,18 @@ func resolveReference(ref, callerRelPath string, workflowNodes map[string]*sdk.P
 	if strings.Contains(name, ".github/workflows/") {
 		typeName = "workflow"
 	}
-	return sdk.NewPackage(sdk.Package{
-		Ecosystem:   string(sdk.EcosystemGitHub),
-		Org:         org,
-		Name:        packageName,
-		Version:     version,
-		Scope:       string(sdk.ScopeRuntime),
-		BuildSystem: sdk.PackageManagerGitHubActions.Name(),
-		Type:        typeName,
-		Language:    "yaml",
-	}), nil
+	return sdk.NewDependency(sdk.Dependency{
+			Ecosystem:   string(sdk.EcosystemGitHub),
+			Org:         org,
+			Name:        packageName,
+			Version:     version,
+			Scopes:      sdk.ScopesOf(sdk.ScopeRuntime),
+			BuildSystem: sdk.PackageManagerGitHubActions.Name(),
+			Type:        typeName,
+			Language:    "yaml",
+		}),
+
+		nil
 }
 
 func localReferenceCandidates(ref, callerRelPath string) []string {
@@ -396,37 +397,39 @@ func splitExternalActionName(value string) (string, string) {
 	return parts[0], strings.Join(parts[1:], "/")
 }
 
-func localWorkflowNode(relPath string) *sdk.Package {
+func localWorkflowNode(relPath string) *sdk.Dependency {
 	cleanPath := filepath.ToSlash(filepath.Clean(relPath))
-	return sdk.NewPackageWithID("workflow:"+cleanPath, sdk.Package{
+	return sdk.NewDependencyWithID("workflow:"+cleanPath, sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemGitHub),
 		Name:        cleanPath,
 		Version:     "local",
-		Scope:       string(sdk.ScopeRuntime),
+		Scopes:      sdk.ScopesOf(sdk.ScopeRuntime),
 		BuildSystem: sdk.PackageManagerGitHubActions.Name(),
 		Type:        "workflow",
 		Language:    "yaml",
 	})
+
 }
 
-func localActionNode(relPath string) *sdk.Package {
+func localActionNode(relPath string) *sdk.Dependency {
 	cleanPath := filepath.ToSlash(filepath.Clean(relPath))
-	return sdk.NewPackageWithID("action:"+cleanPath, sdk.Package{
+	return sdk.NewDependencyWithID("action:"+cleanPath, sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemGitHub),
 		Name:        cleanPath,
 		Version:     "local",
-		Scope:       string(sdk.ScopeRuntime),
+		Scopes:      sdk.ScopesOf(sdk.ScopeRuntime),
 		BuildSystem: sdk.PackageManagerGitHubActions.Name(),
 		Type:        "action",
 		Language:    "yaml",
 	})
+
 }
 
-func addNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Package) error {
-	if _, ok := depsGraph.Package(node.ID); ok {
+func addNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
+	if _, ok := depsGraph.Node(node.ID); ok {
 		return nil
 	}
-	if err := depsGraph.AddPackage(node); err != nil {
+	if err := depsGraph.AddNode(node); err != nil {
 		return fmt.Errorf("add node %q: %w", node.ID, err)
 	}
 	return nil

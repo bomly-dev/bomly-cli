@@ -63,22 +63,27 @@ func TestJVMDescriptorAndRunnerResult(t *testing.T) {
 }
 
 func TestJVMStandaloneApplyRunnerResult(t *testing.T) {
+	const purl = "pkg:maven/com.fasterxml.jackson.core/jackson-databind"
 	g := model.New()
-	pkg := model.NewPackage(model.Package{
-		Name:            "jackson-databind",
-		Org:             "com.fasterxml.jackson.core",
-		Ecosystem:       string(model.EcosystemMaven),
-		Vulnerabilities: []model.PackageVulnerability{{ID: "GHSA-1"}},
+	pkg := model.NewDependency(model.Dependency{
+		Name:      "jackson-databind",
+		Org:       "com.fasterxml.jackson.core",
+		Ecosystem: string(model.EcosystemMaven),
+		PURL:      purl,
 	})
-	if err := g.AddPackage(pkg); err != nil {
+	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
 	}
-	got := applyRunnerResult(g, jvmProjectFixture("dynamic"), RunnerResult{
+	reg := model.NewPackageRegistry()
+	reg.Ensure(purl).Vulnerabilities = []model.Vulnerability{{ID: "GHSA-1"}}
+	req := model.AnalyzeRequest{Graph: g, Registry: reg}
+	got := applyRunnerResult(req, jvmProjectFixture("dynamic"), RunnerResult{
 		ImportedArtifacts: map[string]struct{}{"com.fasterxml.jackson.core:jackson-databind": {}},
 		SourceFiles:       1,
 	}, time.Time{})
-	if got.reachable != 1 || pkg.Vulnerabilities[0].Reachability.Status != model.ReachabilityReachable {
-		t.Fatalf("outcome = %+v reachability=%+v", got, pkg.Vulnerabilities[0].Reachability)
+	vulns := reg.Ensure(purl).Vulnerabilities
+	if got.reachable != 1 || vulns[0].Reachability == nil || vulns[0].Reachability.Status != model.ReachabilityReachable {
+		t.Fatalf("outcome = %+v reachability=%+v", got, vulns[0].Reachability)
 	}
 }
 

@@ -24,19 +24,19 @@ func TestDetectorResolveGraphFromFixture(t *testing.T) {
 	if graph == nil {
 		t.Fatal("expected graph")
 	}
-	zlib, ok := graph.Package("zlib@1.2.13")
+	zlib, ok := graph.Node("zlib@1.2.13")
 	if !ok {
-		t.Fatalf("expected zlib package, got %v", graph.Packages())
+		t.Fatalf("expected zlib package, got %v", graph.Nodes())
 	}
 	if zlib.PURL != "pkg:conan/zlib@1.2.13" {
 		t.Fatalf("expected zlib PURL, got %q", zlib.PURL)
 	}
-	cmake, ok := graph.Package("cmake@3.27.0")
+	cmake, ok := graph.Node("cmake@3.27.0")
 	if !ok {
-		t.Fatalf("expected cmake package, got %v", graph.Packages())
+		t.Fatalf("expected cmake package, got %v", graph.Nodes())
 	}
-	if cmake.Scope != string(sdk.ScopeDevelopment) {
-		t.Fatalf("expected cmake development scope, got %q", cmake.Scope)
+	if string(cmake.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+		t.Fatalf("expected cmake development scope, got %q", string(cmake.PrimaryScope()))
 	}
 }
 
@@ -61,7 +61,7 @@ class Demo(ConanFile):
 		t.Fatalf("ResolveGraph returned error: %v", err)
 	}
 	graph := result.Graphs.Entries[0].Graph
-	if _, ok := graph.Package("fmt@10.2.1"); !ok {
-		t.Fatalf("expected fmt package, got %v", graph.Packages())
+	if _, ok := graph.Node("fmt@10.2.1"); !ok {
+		t.Fatalf("expected fmt package, got %v", graph.Nodes())
 	}
 }

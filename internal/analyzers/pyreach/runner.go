@@ -3,7 +3,7 @@
 // rooted at a Python project (pyproject.toml / setup.py / requirements.txt
 // / Pipfile / poetry.lock / pdm.lock / uv.lock), scans every reachable
 // .py file for top-level import statements, maps the imported module
-// names to PyPI distribution names, and reports each PackageVulnerability
+// names to PyPI distribution names, and reports each registry vulnerability
 // as Reachable / Unreachable / Unknown depending on whether the
 // distribution appears in the import set (expanded transitively through
 // the dep graph).

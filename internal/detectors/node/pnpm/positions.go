@@ -60,7 +60,7 @@ func AttachPnpmLockPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositions(g, positions, func(pkg *sdk.Package) string {
+	detectors.AttachPositions(g, positions, func(pkg *sdk.Dependency) string {
 		if pkg == nil {
 			return ""
 		}

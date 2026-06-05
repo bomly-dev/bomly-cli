@@ -23,10 +23,9 @@ type Auditor struct {
 
 func (a Auditor) Descriptor() sdk.AuditorDescriptor {
 	return sdk.AuditorDescriptor{
-		Name:           auditorName,
-		Enabled:        true,
-		Origin:         sdk.CoreOrigin,
-		SupportedModes: []sdk.TargetMode{sdk.TargetModeFullGraph},
+		Name:    auditorName,
+		Enabled: true,
+		Origin:  sdk.CoreOrigin,
 	}
 }
 
@@ -48,7 +47,10 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 	if req.Graph == nil {
 		return sdk.AuditResult{}, nil
 	}
-	packages := req.Graph.Packages()
+	packages := req.Graph.Nodes()
+	if req.Target != nil {
+		packages = []*sdk.Dependency{req.Target}
+	}
 	findings := make([]sdk.Finding, 0)
 	baseNames := protectedNames(req.BaselineGraph, a.ProtectedPackages)
 	baseIDs := packageIDs(req.BaselineGraph)
@@ -90,19 +92,24 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 			findings = append(findings, f)
 		}
 	}
-	return sdk.AuditResult{Graph: req.Graph, Target: req.Target, Findings: findings}, nil
+	return sdk.AuditResult{Findings: findings}, nil
 }
 
-func finding(pkg *sdk.Package, id, title string, disposition sdk.FindingDisposition) sdk.Finding {
+func finding(pkg *sdk.Dependency, id, title string, disposition sdk.FindingDisposition) sdk.Finding {
+	purl := pkg.PackageRef
+	if purl == "" {
+		purl = sdk.CanonicalPackageURLFromDependency(pkg)
+	}
 	return sdk.Finding{
-		ID:          fmt.Sprintf("%s:%s:%s", auditorName, id, pkg.ID),
-		Kind:        sdk.FindingKindPackage,
-		Package:     pkg,
-		Title:       title,
-		Severity:    "unknown",
-		Source:      auditorName,
-		Auditor:     auditorName,
-		Disposition: disposition,
+		ID:             fmt.Sprintf("%s:%s:%s", auditorName, id, pkg.ID),
+		Kind:           sdk.FindingKindPackage,
+		Title:          title,
+		Severity:       "unknown",
+		Source:         auditorName,
+		Auditor:        auditorName,
+		Disposition:    disposition,
+		PackageRef:     purl,
+		DependencyRefs: []string{pkg.ID},
 	}
 }
 
@@ -111,7 +118,7 @@ func packageIDs(graph *sdk.Graph) map[string]struct{} {
 	if graph == nil {
 		return ids
 	}
-	for _, pkg := range graph.Packages() {
+	for _, pkg := range graph.Nodes() {
 		if pkg != nil {
 			ids[pkg.ID] = struct{}{}
 		}
@@ -124,7 +131,7 @@ func packageDisplayNames(graph *sdk.Graph) map[string]struct{} {
 	if graph == nil {
 		return names
 	}
-	for _, pkg := range graph.Packages() {
+	for _, pkg := range graph.Nodes() {
 		if pkg != nil {
 			names[strings.ToLower(strings.TrimSpace(pkg.DisplayName()))] = struct{}{}
 		}
@@ -137,7 +144,7 @@ func protectedNames(graph *sdk.Graph, configured []string) []string {
 	if graph == nil {
 		return names
 	}
-	for _, pkg := range graph.Packages() {
+	for _, pkg := range graph.Nodes() {
 		if pkg == nil {
 			continue
 		}
@@ -146,8 +153,8 @@ func protectedNames(graph *sdk.Graph, configured []string) []string {
 	return names
 }
 
-func deniedPackage(pkg *sdk.Package, denied []string) bool {
-	canonical := sdk.CanonicalPackageURLFromPackage(pkg)
+func deniedPackage(pkg *sdk.Dependency, denied []string) bool {
+	canonical := sdk.CanonicalPackageURLFromDependency(pkg)
 	base := sdk.PackageURLBase(canonical)
 	if canonical == "" || base == "" {
 		return false
@@ -169,8 +176,8 @@ func deniedPackage(pkg *sdk.Package, denied []string) bool {
 	return false
 }
 
-func deniedGroup(pkg *sdk.Package, denied []string) bool {
-	base := sdk.PackageURLBase(sdk.CanonicalPackageURLFromPackage(pkg))
+func deniedGroup(pkg *sdk.Dependency, denied []string) bool {
+	base := sdk.PackageURLBase(sdk.CanonicalPackageURLFromDependency(pkg))
 	if base == "" {
 		return false
 	}
@@ -270,13 +277,12 @@ func maxInt(values ...int) int {
 	return best
 }
 
-func scopeAllowed(pkg *sdk.Package, allowed []sdk.Scope) bool {
+func scopeAllowed(pkg *sdk.Dependency, allowed []sdk.Scope) bool {
 	if len(allowed) == 0 {
 		return true
 	}
-	scope := sdk.Scope(pkg.Scope)
 	for _, candidate := range allowed {
-		if candidate == scope {
+		if pkg.HasScope(candidate) {
 			return true
 		}
 	}

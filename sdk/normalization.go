@@ -12,8 +12,8 @@ const (
 	normMetadataOriginalVersionKey = "bomly.normalization.original_version"
 )
 
-// NormalizePackageIdentity applies ecosystem-aware package normalization in place.
-func NormalizePackageIdentity(pkg *Package) {
+// NormalizeDependencyIdentity applies ecosystem-aware identity normalization in place.
+func NormalizeDependencyIdentity(pkg *Dependency) {
 	if pkg == nil {
 		return
 	}
@@ -55,7 +55,7 @@ func NormalizePackageIdentity(pkg *Package) {
 	normRecordMetadata(pkg, applied, originalName, originalOrg, originalVersion)
 }
 
-func normNPM(pkg *Package) []string {
+func normNPM(pkg *Dependency) []string {
 	applied := make([]string, 0, 2)
 	if scope, name, ok := normSplitScopedNPMName(pkg.Name); ok {
 		pkg.Org = scope
@@ -73,7 +73,7 @@ func normNPM(pkg *Package) []string {
 	return applied
 }
 
-func normPython(pkg *Package) []string {
+func normPython(pkg *Dependency) []string {
 	normalized := normCanonicalizePythonName(pkg.Name)
 	if normalized == pkg.Name {
 		return nil
@@ -82,7 +82,7 @@ func normPython(pkg *Package) []string {
 	return []string{"name"}
 }
 
-func normRust(pkg *Package) []string {
+func normRust(pkg *Dependency) []string {
 	normalized := normCollapseRepeated(strings.ToLower(strings.ReplaceAll(pkg.Name, "_", "-")), '-')
 	if normalized == pkg.Name {
 		return nil
@@ -91,7 +91,7 @@ func normRust(pkg *Package) []string {
 	return []string{"name"}
 }
 
-func normMaven(pkg *Package) []string {
+func normMaven(pkg *Dependency) []string {
 	applied := make([]string, 0, 2)
 	if normalizedOrg := strings.ToLower(pkg.Org); normalizedOrg != pkg.Org {
 		pkg.Org = normalizedOrg
@@ -104,7 +104,7 @@ func normMaven(pkg *Package) []string {
 	return applied
 }
 
-func normGo(pkg *Package) []string {
+func normGo(pkg *Dependency) []string {
 	applied := make([]string, 0, 2)
 	if normalizedOrg := normNormalizeSlashPath(pkg.Org); normalizedOrg != pkg.Org {
 		pkg.Org = normalizedOrg
@@ -117,7 +117,7 @@ func normGo(pkg *Package) []string {
 	return applied
 }
 
-func normComposer(pkg *Package) []string {
+func normComposer(pkg *Dependency) []string {
 	if len(pkg.Version) > 1 && (pkg.Version[0] == 'v' || pkg.Version[0] == 'V') {
 		pkg.Version = pkg.Version[1:]
 		return []string{"version"}
@@ -125,7 +125,7 @@ func normComposer(pkg *Package) []string {
 	return nil
 }
 
-func normEffectiveEcosystem(pkg *Package) string {
+func normEffectiveEcosystem(pkg *Dependency) string {
 	if pkg == nil {
 		return ""
 	}
@@ -240,7 +240,7 @@ func normCollapseRepeated(value string, separator rune) string {
 	return builder.String()
 }
 
-func normRecordMetadata(pkg *Package, applied []string, originalName, originalOrg, originalVersion string) {
+func normRecordMetadata(pkg *Dependency, applied []string, originalName, originalOrg, originalVersion string) {
 	if pkg == nil || len(applied) == 0 {
 		return
 	}

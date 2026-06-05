@@ -8,17 +8,17 @@ import (
 
 func TestFindWhy_MarksCyclicPaths(t *testing.T) {
 	deps := sdk.New()
-	app := sdk.NewPackageRef("app", "")
-	b := sdk.NewPackageRef("b", "")
-	c := sdk.NewPackageRef("c", "")
+	app := sdk.NewDependencyRef("app", "")
+	b := sdk.NewDependencyRef("b", "")
+	c := sdk.NewDependencyRef("c", "")
 
-	for _, pkg := range []*sdk.Package{app, b, c} {
-		if err := deps.AddPackage(pkg); err != nil {
+	for _, pkg := range []*sdk.Dependency{app, b, c} {
+		if err := deps.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.ID, err)
 		}
 	}
 	for _, edge := range [][2]string{{app.ID, b.ID}, {b.ID, c.ID}, {c.ID, b.ID}} {
-		if err := deps.AddDependency(edge[0], edge[1]); err != nil {
+		if err := deps.AddEdge(edge[0], edge[1]); err != nil {
 			t.Fatalf("add dependency %q -> %q: %v", edge[0], edge[1], err)
 		}
 	}

@@ -76,10 +76,10 @@ func plannedSubprojectChildren(subprojects []sdk.Subproject) []progress.Child {
 			}
 		}
 		detail := string(s.Ecosystem)
-		if detail != "" {
-			label += " (" + detail + ")"
+		if detail == "" {
+			detail = "unknown ecosystem"
 		}
-		children = append(children, progress.Child{Label: label})
+		children = append(children, progress.Child{Label: label, Detail: "[" + detail + "]"})
 	}
 	return children
 }
@@ -282,27 +282,26 @@ func diffPolicyOutcomeProgressChild(audit *diffengine.Audit) progress.Child {
 
 // matchProgressChildren returns ✔ children for each successful matcher run
 // and ⚠ children for each warning.
-func matchProgressChildren(g *sdk.Graph, runs []string, warnings []engine.PipelineWarning) []progress.Child {
+func matchProgressChildren(registry *sdk.PackageRegistry, runs []string, warnings []engine.PipelineWarning) []progress.Child {
 	children := make([]progress.Child, 0, len(runs)+len(warnings))
 	for _, name := range runs {
 		children = append(children, progress.Child{
 			Icon:   progress.CheckMark,
 			Label:  humanizeMatcherName(name),
-			Detail: matcherProgressDetail(g, name),
+			Detail: matcherProgressDetail(registry, name),
 		})
 	}
 	children = append(children, warningProgressChildren(warnings)...)
 	return children
 }
 
-func matcherProgressDetail(g *sdk.Graph, matcherName string) string {
-	if g == nil {
+func matcherProgressDetail(registry *sdk.PackageRegistry, matcherName string) string {
+	if registry == nil {
 		return ""
 	}
-
 	packages := 0
 	vulnerabilities := 0
-	for _, pkg := range g.Packages() {
+	for _, pkg := range registry.All() {
 		if pkg == nil {
 			continue
 		}

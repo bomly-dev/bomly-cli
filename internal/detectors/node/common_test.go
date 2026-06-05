@@ -29,13 +29,13 @@ func TestAnnotateScopesFromPackageJSON(t *testing.T) {
 	}
 
 	depsGraph := sdk.New()
-	root := sdk.NewPackage(sdk.Package{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0"})
-	react := sdk.NewPackage(sdk.Package{Ecosystem: "npm", Name: "react", Version: "18.2.0"})
-	scheduler := sdk.NewPackage(sdk.Package{Ecosystem: "npm", Name: "scheduler", Version: "0.23.0"})
-	vitest := sdk.NewPackage(sdk.Package{Ecosystem: "npm", Name: "vitest", Version: "2.0.0"})
-	chai := sdk.NewPackage(sdk.Package{Ecosystem: "npm", Name: "chai", Version: "5.1.0"})
-	for _, pkg := range []*sdk.Package{root, react, scheduler, vitest, chai} {
-		if err := depsGraph.AddPackage(pkg); err != nil {
+	root := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0"})
+	react := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "react", Version: "18.2.0"})
+	scheduler := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "scheduler", Version: "0.23.0"})
+	vitest := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "vitest", Version: "2.0.0"})
+	chai := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "chai", Version: "5.1.0"})
+	for _, pkg := range []*sdk.Dependency{root, react, scheduler, vitest, chai} {
+		if err := depsGraph.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.ID, err)
 		}
 	}
@@ -45,7 +45,7 @@ func TestAnnotateScopesFromPackageJSON(t *testing.T) {
 		{react.ID, scheduler.ID},
 		{vitest.ID, chai.ID},
 	} {
-		if err := depsGraph.AddDependency(edge[0], edge[1]); err != nil {
+		if err := depsGraph.AddEdge(edge[0], edge[1]); err != nil {
 			t.Fatalf("add dependency %q -> %q: %v", edge[0], edge[1], err)
 		}
 	}
@@ -54,11 +54,65 @@ func TestAnnotateScopesFromPackageJSON(t *testing.T) {
 		t.Fatalf("AnnotateScopesFromPackageJSON() error = %v", err)
 	}
 
-	if react.Scope != string(sdk.ScopeRuntime) || scheduler.Scope != string(sdk.ScopeRuntime) {
-		t.Fatalf("expected runtime scopes for runtime chain, got react=%q scheduler=%q", react.Scope, scheduler.Scope)
+	if string(react.PrimaryScope()) != string(sdk.ScopeRuntime) || string(scheduler.PrimaryScope()) != string(sdk.ScopeRuntime) {
+		t.Fatalf("expected runtime scopes for runtime chain, got react=%q scheduler=%q", string(react.PrimaryScope()), string(scheduler.PrimaryScope()))
 	}
-	if vitest.Scope != string(sdk.ScopeDevelopment) || chai.Scope != string(sdk.ScopeDevelopment) {
-		t.Fatalf("expected development scopes for dev chain, got vitest=%q chai=%q", vitest.Scope, chai.Scope)
+	if string(vitest.PrimaryScope()) != string(sdk.ScopeDevelopment) || string(chai.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+		t.Fatalf("expected development scopes for dev chain, got vitest=%q chai=%q", string(vitest.PrimaryScope()), string(chai.PrimaryScope()))
+	}
+}
+
+func TestAnnotateScopesFromPackageJSON_DevelopmentFilterExcludesRuntime(t *testing.T) {
+	projectDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte(`{
+  "name": "demo-app",
+  "version": "1.0.0",
+  "dependencies": {
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "vitest": "^2.0.0"
+  }
+}`), 0o644); err != nil {
+		t.Fatalf("write package.json: %v", err)
+	}
+
+	depsGraph := sdk.New()
+	root := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0"})
+	react := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "react", Version: "18.2.0"})
+	vitest := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "vitest", Version: "2.0.0"})
+	shared := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "shared", Version: "1.0.0"})
+	for _, pkg := range []*sdk.Dependency{root, react, vitest, shared} {
+		if err := depsGraph.AddNode(pkg); err != nil {
+			t.Fatalf("add package %q: %v", pkg.ID, err)
+		}
+	}
+	for _, edge := range [][2]string{
+		{root.ID, react.ID},
+		{root.ID, vitest.ID},
+		{react.ID, shared.ID},
+		{vitest.ID, shared.ID},
+	} {
+		if err := depsGraph.AddEdge(edge[0], edge[1]); err != nil {
+			t.Fatalf("add dependency %q -> %q: %v", edge[0], edge[1], err)
+		}
+	}
+
+	if err := node.AnnotateScopesFromPackageJSON(projectDir, depsGraph); err != nil {
+		t.Fatalf("AnnotateScopesFromPackageJSON() error = %v", err)
+	}
+	filtered, err := sdk.FilterGraphByScope(depsGraph, sdk.ScopeDevelopment)
+	if err != nil {
+		t.Fatalf("FilterGraphByScope() error = %v", err)
+	}
+	if _, ok := filtered.Node(vitest.ID); !ok {
+		t.Fatalf("expected development dependency to remain: %s", filtered.PrettyString())
+	}
+	if _, ok := filtered.Node(react.ID); ok {
+		t.Fatalf("expected runtime dependency to be filtered: %s", filtered.PrettyString())
+	}
+	if _, ok := filtered.Node(shared.ID); ok {
+		t.Fatalf("expected runtime-primary shared dependency to be filtered: %s", filtered.PrettyString())
 	}
 }
 

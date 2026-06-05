@@ -80,12 +80,12 @@ func TestDiscoverWorkspaceHierarchiesFromTestdata(t *testing.T) {
 func TestDiscoverProjectRootsDeduplicatesGraphAndTargetSources(t *testing.T) {
 	root := workspaceFixture("npm-array")
 	g := model.New()
-	pkg := model.NewPackage(model.Package{
+	pkg := model.NewDependency(model.Dependency{
 		Name:      "lodash",
 		Ecosystem: "npm",
 		Locations: []model.PackageLocation{{RealPath: filepath.Join(root, "package-lock.json")}},
 	})
-	if err := g.AddPackage(pkg); err != nil {
+	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
 	}
 	got := discoverProjectRoots(model.AnalyzeRequest{
@@ -195,21 +195,26 @@ func TestAnalyzerBuiltInRunnerTraversesWorkspaceTestdata(t *testing.T) {
 		t.Fatalf("shared imports = %v, want lodash", sharedResult.ImportedPackages)
 	}
 	g := model.New()
-	lodash := model.NewPackage(model.Package{Name: "lodash", Version: "1", Ecosystem: "npm", Vulnerabilities: []model.PackageVulnerability{{ID: "lodash"}}})
-	leftPad := model.NewPackage(model.Package{Name: "left-pad", Version: "1", Ecosystem: "npm", Vulnerabilities: []model.PackageVulnerability{{ID: "left-pad"}}})
-	if err := g.AddPackage(lodash); err != nil {
+	reg := model.NewPackageRegistry()
+	lodashPURL := "pkg:npm/lodash@1"
+	leftPadPURL := "pkg:npm/left-pad@1"
+	lodash := model.NewDependency(model.Dependency{Name: "lodash", Version: "1", Ecosystem: "npm", PURL: lodashPURL})
+	leftPad := model.NewDependency(model.Dependency{Name: "left-pad", Version: "1", Ecosystem: "npm", PURL: leftPadPURL})
+	reg.Ensure(lodashPURL).Vulnerabilities = []model.Vulnerability{{ID: "lodash"}}
+	reg.Ensure(leftPadPURL).Vulnerabilities = []model.Vulnerability{{ID: "left-pad"}}
+	if err := g.AddNode(lodash); err != nil {
 		t.Fatal(err)
 	}
-	if err := g.AddPackage(leftPad); err != nil {
+	if err := g.AddNode(leftPad); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := (Analyzer{DisableCache: true, Runner: runner}).Analyze(context.Background(), model.AnalyzeRequest{Graph: g, ProjectPath: root}); err != nil {
+	if _, err := (Analyzer{DisableCache: true, Runner: runner}).Analyze(context.Background(), model.AnalyzeRequest{Graph: g, Registry: reg, ProjectPath: root}); err != nil {
 		t.Fatal(err)
 	}
-	if got := lodash.Vulnerabilities[0].Reachability; got == nil || got.Status != model.ReachabilityReachable || got.Hops == nil || *got.Hops != 1 {
+	if got := reg.Ensure(lodashPURL).Vulnerabilities[0].Reachability; got == nil || got.Status != model.ReachabilityReachable || got.Hops == nil || *got.Hops != 1 {
 		t.Fatalf("lodash reachability = %+v, want reachable at workspace hop 1", got)
 	}
-	if got := leftPad.Vulnerabilities[0].Reachability; got == nil || got.Status != model.ReachabilityUnreachable {
+	if got := reg.Ensure(leftPadPURL).Vulnerabilities[0].Reachability; got == nil || got.Status != model.ReachabilityUnreachable {
 		t.Fatalf("left-pad reachability = %+v, want unreachable from unused workspace", got)
 	}
 }

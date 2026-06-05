@@ -11,13 +11,13 @@ import (
 func TestAttachPositionsNilSafe(t *testing.T) {
 	// All-nil inputs must not panic.
 	AttachPositions(nil, nil, nil)
-	AttachPositions(sdk.New(), nil, func(*sdk.Package) string { return "" })
+	AttachPositions(sdk.New(), nil, func(*sdk.Dependency) string { return "" })
 	AttachPositions(sdk.New(), map[string]*sdk.SourcePosition{"x": {File: "f"}}, nil)
 }
 
 func TestAttachPositionsDoesNotDuplicate(t *testing.T) {
 	g := sdk.New()
-	pkg := sdk.NewPackage(sdk.Package{
+	pkg := sdk.NewDependency(sdk.Dependency{
 		Name:      "foo",
 		Version:   "1.0.0",
 		Ecosystem: "test",
@@ -25,14 +25,14 @@ func TestAttachPositionsDoesNotDuplicate(t *testing.T) {
 			{RealPath: "lock.txt", Position: &sdk.SourcePosition{File: "lock.txt", Line: 1}},
 		},
 	})
-	_ = g.AddPackage(pkg)
+	_ = g.AddNode(pkg)
 
 	positions := map[string]*sdk.SourcePosition{
 		"foo": {File: "lock.txt", Line: 5},
 	}
-	AttachPositions(g, positions, func(p *sdk.Package) string { return p.Name })
+	AttachPositions(g, positions, func(p *sdk.Dependency) string { return p.Name })
 
-	got, _ := g.Package("foo@1.0.0")
+	got, _ := g.Node("foo@1.0.0")
 	if got == nil {
 		t.Fatal("missing foo")
 	}
@@ -43,16 +43,16 @@ func TestAttachPositionsDoesNotDuplicate(t *testing.T) {
 
 func TestAttachPositionsHonorsNameKey(t *testing.T) {
 	g := sdk.New()
-	pkg := sdk.NewPackage(sdk.Package{Name: "Foo", Version: "1", Ecosystem: "test"})
-	_ = g.AddPackage(pkg)
+	pkg := sdk.NewDependency(sdk.Dependency{Name: "Foo", Version: "1", Ecosystem: "test"})
+	_ = g.AddNode(pkg)
 
-	// Map keyed by lowercase name; nameKey lowercases the package.
+	// Map keyed by lowercase name; nameKey lowercases the node.
 	positions := map[string]*sdk.SourcePosition{"foo": {File: "lock", Line: 42}}
-	AttachPositions(g, positions, func(p *sdk.Package) string {
+	AttachPositions(g, positions, func(p *sdk.Dependency) string {
 		return toLower(p.Name)
 	})
 
-	got, _ := g.Package("Foo@1")
+	got, _ := g.Node("Foo@1")
 	if got == nil {
 		t.Fatal("missing Foo")
 	}

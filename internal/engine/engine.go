@@ -33,12 +33,10 @@ func NewEngine(registry *Registry) *Engine {
 func (e *Engine) Audit(ctx context.Context, req sdk.AuditRequest) (sdk.AuditResult, error) {
 	auditorsList := e.registry.Auditors(req)
 	if len(auditorsList) == 0 {
-		return sdk.AuditResult{}, fmt.Errorf("%w for ecosystem %q, package manager %q, and mode %q", ErrNoAuditor, req.Ecosystem, req.PackageManager, req.Mode)
+		return sdk.AuditResult{}, fmt.Errorf("%w for ecosystem %q, and package manager %q", ErrNoAuditor, req.Ecosystem, req.PackageManager)
 	}
 
 	aggregated := sdk.AuditResult{
-		Graph:           req.Graph,
-		Target:          req.Target,
 		AuditorFindings: make(map[string]int),
 	}
 	var errs []error
@@ -67,9 +65,6 @@ func (e *Engine) Audit(ctx context.Context, req sdk.AuditRequest) (sdk.AuditResu
 		aggregated.AuditorFindings[name] += len(result.Findings)
 		aggregated.Findings = append(aggregated.Findings, result.Findings...)
 		aggregated.RiskScores = append(aggregated.RiskScores, result.RiskScores...)
-		if aggregated.Graph == nil {
-			aggregated.Graph = result.Graph
-		}
 	}
 	if len(errs) > 0 {
 		return aggregated, errors.Join(errs...)
@@ -84,12 +79,11 @@ func (e *Engine) Audit(ctx context.Context, req sdk.AuditRequest) (sdk.AuditResu
 func (e *Engine) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.AnalyzeResult, error) {
 	analyzers := e.registry.Analyzers(req)
 	if len(analyzers) == 0 {
-		return sdk.AnalyzeResult{Graph: req.Graph, Target: req.Target}, nil
+		return sdk.AnalyzeResult{Registry: req.Registry}, nil
 	}
 
 	aggregated := sdk.AnalyzeResult{
-		Graph:         req.Graph,
-		Target:        req.Target,
+		Registry:      req.Registry,
 		AnalyzerStats: make(map[string]sdk.ReachabilityStats),
 	}
 	var errs []error
@@ -114,13 +108,9 @@ func (e *Engine) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.Analy
 			continue
 		}
 		aggregated.AnalyzerRuns = append(aggregated.AnalyzerRuns, name)
-		if result.Graph != nil {
-			aggregated.Graph = result.Graph
-			req.Graph = result.Graph
-		}
-		if result.Target != nil {
-			aggregated.Target = result.Target
-			req.Target = result.Target
+		if result.Registry != nil {
+			aggregated.Registry = result.Registry
+			req.Registry = result.Registry
 		}
 		for analyzerName, stats := range result.AnalyzerStats {
 			aggregated.AnalyzerStats[analyzerName] = stats
@@ -136,12 +126,11 @@ func (e *Engine) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.Analy
 func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
 	matcherList := e.registry.Matchers(req)
 	if len(matcherList) == 0 {
-		return sdk.MatchResult{Graph: req.Graph, Target: req.Target}, nil
+		return sdk.MatchResult{Registry: req.Registry}, nil
 	}
 
 	aggregated := sdk.MatchResult{
-		Graph:  req.Graph,
-		Target: req.Target,
+		Registry: req.Registry,
 	}
 	var errs []error
 	for _, matcher := range matcherList {
@@ -166,13 +155,9 @@ func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResu
 			continue
 		}
 		aggregated.MatcherRuns = append(aggregated.MatcherRuns, name)
-		if result.Graph != nil {
-			aggregated.Graph = result.Graph
-			req.Graph = result.Graph
-		}
-		if result.Target != nil {
-			aggregated.Target = result.Target
-			req.Target = result.Target
+		if result.Registry != nil {
+			aggregated.Registry = result.Registry
+			req.Registry = result.Registry
 		}
 	}
 	if len(errs) > 0 {

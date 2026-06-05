@@ -33,8 +33,7 @@ func Code(err error) int {
 	if err == nil {
 		return exitCodeSuccess
 	}
-	var coded *exitError
-	if errors.As(err, &coded) {
+	if coded, ok := errors.AsType[*exitError](err); ok {
 		return coded.code
 	}
 	return exitCodeExecutionError

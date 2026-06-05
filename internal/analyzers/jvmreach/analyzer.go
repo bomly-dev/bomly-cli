@@ -17,7 +17,7 @@ const Name = "jvmreach"
 // Analyzer is a Tier-3 (package-level) reachability analyzer for
 // JVM-ecosystem packages. It groups Maven artifacts in the input
 // graph by project root, runs the configured Runner once per
-// project, and annotates each PackageVulnerability on JVM packages
+// project, and annotates each registry vulnerability on JVM packages
 // with a Reachability result.
 //
 // Tier-3 caveat: "unreachable" means "the application source does
@@ -53,7 +53,6 @@ func (a Analyzer) Descriptor() model.AnalyzerDescriptor {
 			model.LanguageScala,
 			model.LanguageGroovy,
 		},
-		SupportedModes: []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
 		SupportedTiers: []model.ReachabilityTier{model.TierPackage},
 	}
 }
@@ -61,18 +60,45 @@ func (a Analyzer) Descriptor() model.AnalyzerDescriptor {
 func (a Analyzer) Ready() bool { return true }
 
 func (a Analyzer) Applicable(_ context.Context, req model.AnalyzeRequest) (bool, error) {
-	if req.Graph == nil {
+	if req.Graph == nil || req.Registry == nil {
 		return false, nil
 	}
-	for _, pkg := range req.Graph.Packages() {
-		if pkg == nil || len(pkg.Vulnerabilities) == 0 {
+	for _, pkg := range req.Graph.Nodes() {
+		if pkg == nil || !isJVMPackage(pkg) {
 			continue
 		}
-		if isJVMPackage(pkg) {
-			return true, nil
+		regPkg, ok := req.Registry.Get(dependencyPURL(pkg))
+		if !ok || regPkg == nil || len(regPkg.Vulnerabilities) == 0 {
+			continue
 		}
+		return true, nil
 	}
 	return false, nil
+}
+
+// dependencyPURL returns the registry key for a dependency node.
+func dependencyPURL(dep *model.Dependency) string {
+	if dep == nil {
+		return ""
+	}
+	if dep.PackageRef != "" {
+		return dep.PackageRef
+	}
+	return dep.PURL
+}
+
+// vulnerabilitiesForDep returns the registry slice for a dependency. The
+// caller may mutate the returned slice in place; entries live on the
+// shared backing array owned by the registry package.
+func vulnerabilitiesForDep(req model.AnalyzeRequest, dep *model.Dependency) []model.Vulnerability {
+	if req.Registry == nil || dep == nil {
+		return nil
+	}
+	pkg, ok := req.Registry.Get(dependencyPURL(dep))
+	if !ok || pkg == nil {
+		return nil
+	}
+	return pkg.Vulnerabilities
 }
 
 func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.AnalyzeResult, error) {
@@ -89,8 +115,8 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 	hierarchies := discoverModuleHierarchies(req)
 	if len(hierarchies) == 0 {
 		logger.Info("jvmreach: no JVM project roots discovered; marking all JVM vulnerabilities as unknown")
-		annotateAllUnknown(req.Graph, "no-project-root-discovered", time.Now())
-		return resultFromGraph(req.Graph), nil
+		annotateAllUnknown(req, "no-project-root-discovered", time.Now())
+		return resultFromRequest(req), nil
 	}
 
 	logger.Info("jvmreach: starting reachability analysis",
@@ -110,7 +136,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		case <-ctx.Done():
 			logger.Info("jvmreach: context cancelled; skipping project",
 				zap.String("project_root", root))
-			annotateProjectUnknown(req.Graph, root, "cancelled", time.Now())
+			annotateProjectUnknown(req, root, "cancelled", time.Now())
 			continue
 		default:
 		}
@@ -121,10 +147,10 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		cacheMisses += misses
 		var applied applyOutcome
 		if closure.incomplete {
-			added := annotateProjectUnknown(req.Graph, root, closure.reason, time.Now())
+			added := annotateProjectUnknown(req, root, closure.reason, time.Now())
 			applied.unknown += added
 		} else {
-			applied = applyImportedArtifactSeeds(req.Graph, root, closure.importedArtifacts, closure.dynamicImports, time.Now())
+			applied = applyImportedArtifactSeeds(req, root, closure.importedArtifacts, closure.dynamicImports, time.Now())
 		}
 		stats.Reachable += applied.reachable
 		stats.Unreachable += applied.unreachable
@@ -153,7 +179,7 @@ func (a Analyzer) Analyze(ctx context.Context, req model.AnalyzeRequest) (model.
 		zap.Duration("duration", time.Since(overallStart)),
 	)
 
-	out := resultFromGraph(req.Graph)
+	out := resultFromRequest(req)
 	out.AnalyzerStats = map[string]model.ReachabilityStats{Name: stats}
 	return out, nil
 }
@@ -361,8 +387,8 @@ func (a Analyzer) cache() *resultCache {
 	return newResultCache(a.CacheDir, a.CacheTTL)
 }
 
-func resultFromGraph(g *model.Graph) model.AnalyzeResult {
-	return model.AnalyzeResult{Graph: g, AnalyzerRuns: []string{Name}}
+func resultFromRequest(req model.AnalyzeRequest) model.AnalyzeResult {
+	return model.AnalyzeResult{Registry: req.Registry, AnalyzerRuns: []string{Name}}
 }
 
 type applyOutcome struct{ reachable, unreachable, unknown int }
@@ -371,23 +397,27 @@ type applyOutcome struct{ reachable, unreachable, unknown int }
 // package is attributable to projectRoot. A package is "reachable"
 // iff its `groupId:artifactId` is in the transitive closure of the
 // runner's imported-artifact set, expanded through Graph.Dependencies.
-func applyRunnerResult(g *model.Graph, projectRoot string, runRes RunnerResult, now time.Time) applyOutcome {
-	return applyImportedArtifactSeeds(g, projectRoot, artifactSeedDepths(runRes.ImportedArtifacts, 0), runRes.DynamicImportsDetected, now)
+func applyRunnerResult(req model.AnalyzeRequest, projectRoot string, runRes RunnerResult, now time.Time) applyOutcome {
+	return applyImportedArtifactSeeds(req, projectRoot, artifactSeedDepths(runRes.ImportedArtifacts, 0), runRes.DynamicImportsDetected, now)
 }
 
-func applyImportedArtifactSeeds(g *model.Graph, projectRoot string, imports map[string]int, dynamicImports bool, now time.Time) applyOutcome {
+func applyImportedArtifactSeeds(req model.AnalyzeRequest, projectRoot string, imports map[string]int, dynamicImports bool, now time.Time) applyOutcome {
 	var outcome applyOutcome
+	if req.Graph == nil {
+		return outcome
+	}
 	timestamp := now.UTC().Format(time.RFC3339)
-	hopsByID := computeReachablePackageHopsFromSeeds(g, imports)
-	for _, pkg := range g.Packages() {
+	hopsByID := computeReachablePackageHopsFromSeeds(req.Graph, imports)
+	for _, pkg := range req.Graph.Nodes() {
 		if pkg == nil || !isJVMPackage(pkg) {
 			continue
 		}
 		if !packageBelongsToProjectRoot(pkg, projectRoot) {
 			continue
 		}
-		for i := range pkg.Vulnerabilities {
-			vuln := &pkg.Vulnerabilities[i]
+		vulns := vulnerabilitiesForDep(req, pkg)
+		for i := range vulns {
+			vuln := &vulns[i]
 			if vuln.Reachability != nil && vuln.Reachability.Analyzer == Name {
 				continue
 			}
@@ -428,7 +458,7 @@ func computeReachablePackageHopsFromSeeds(g *model.Graph, imports map[string]int
 		return hops
 	}
 	queue := make([]string, 0)
-	for _, pkg := range g.Packages() {
+	for _, pkg := range g.Nodes() {
 		if pkg == nil || !isJVMPackage(pkg) {
 			continue
 		}
@@ -445,7 +475,7 @@ func computeReachablePackageHopsFromSeeds(g *model.Graph, imports map[string]int
 		id := queue[0]
 		queue = queue[1:]
 		current := hops[id]
-		deps, err := g.Dependencies(id)
+		deps, err := g.DirectDependencies(id)
 		if err != nil {
 			continue
 		}
@@ -463,13 +493,13 @@ func computeReachablePackageHopsFromSeeds(g *model.Graph, imports map[string]int
 	return hops
 }
 
-func importedArtifactDepth(pkg *model.Package, imports map[string]int) int {
+func importedArtifactDepth(pkg *model.Dependency, imports map[string]int) int {
 	return imports[canonicalCoord(pkg.Org, baseArtifactName(pkg.Name))]
 }
 
 // isPackageImported reports whether pkg's Maven coordinate (built
 // from Org / Name) appears in the runner's import set.
-func isPackageImported(pkg *model.Package, imports map[string]int) bool {
+func isPackageImported(pkg *model.Dependency, imports map[string]int) bool {
 	if pkg == nil || len(imports) == 0 {
 		return false
 	}
@@ -492,21 +522,25 @@ func baseArtifactName(name string) string {
 	return name
 }
 
-func annotateProjectUnknown(g *model.Graph, projectRoot, reason string, now time.Time) int {
+func annotateProjectUnknown(req model.AnalyzeRequest, projectRoot, reason string, now time.Time) int {
+	if req.Graph == nil {
+		return 0
+	}
 	timestamp := now.UTC().Format(time.RFC3339)
 	count := 0
-	for _, pkg := range g.Packages() {
+	for _, pkg := range req.Graph.Nodes() {
 		if pkg == nil || !isJVMPackage(pkg) {
 			continue
 		}
 		if !packageBelongsToProjectRoot(pkg, projectRoot) {
 			continue
 		}
-		for i := range pkg.Vulnerabilities {
-			if pkg.Vulnerabilities[i].Reachability != nil {
+		vulns := vulnerabilitiesForDep(req, pkg)
+		for i := range vulns {
+			if vulns[i].Reachability != nil {
 				continue
 			}
-			pkg.Vulnerabilities[i].Reachability = &model.Reachability{
+			vulns[i].Reachability = &model.Reachability{
 				Analyzer:   Name,
 				Status:     model.ReachabilityUnknown,
 				Tier:       model.TierNone,
@@ -519,17 +553,21 @@ func annotateProjectUnknown(g *model.Graph, projectRoot, reason string, now time
 	return count
 }
 
-func annotateAllUnknown(g *model.Graph, reason string, now time.Time) {
+func annotateAllUnknown(req model.AnalyzeRequest, reason string, now time.Time) {
+	if req.Graph == nil {
+		return
+	}
 	timestamp := now.UTC().Format(time.RFC3339)
-	for _, pkg := range g.Packages() {
+	for _, pkg := range req.Graph.Nodes() {
 		if pkg == nil || !isJVMPackage(pkg) {
 			continue
 		}
-		for i := range pkg.Vulnerabilities {
-			if pkg.Vulnerabilities[i].Reachability != nil {
+		vulns := vulnerabilitiesForDep(req, pkg)
+		for i := range vulns {
+			if vulns[i].Reachability != nil {
 				continue
 			}
-			pkg.Vulnerabilities[i].Reachability = &model.Reachability{
+			vulns[i].Reachability = &model.Reachability{
 				Analyzer:   Name,
 				Status:     model.ReachabilityUnknown,
 				Tier:       model.TierNone,
@@ -540,7 +578,7 @@ func annotateAllUnknown(g *model.Graph, reason string, now time.Time) {
 	}
 }
 
-func packageBelongsToProjectRoot(pkg *model.Package, projectRoot string) bool {
+func packageBelongsToProjectRoot(pkg *model.Dependency, projectRoot string) bool {
 	if pkg == nil {
 		return false
 	}

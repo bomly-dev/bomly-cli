@@ -221,7 +221,6 @@ func (d *Detector) Descriptor(ctx context.Context) (*sdk.DetectorDescriptor, err
         Name:           "acme.detector.example",
         Enabled:        true,
         Origin:         sdk.ExternalOrigin,
-        SupportedModes: []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
         Capabilities:   []string{"dependency-detection"},
     }, nil
 }
@@ -254,6 +253,47 @@ Required SDK hooks:
 - auditors must implement `Descriptor`, `Ready`, `Applicable`, and `Audit`
 
 Detector plugins may additionally implement `Install` when they support install-first execution.
+
+## Registry-Aware Matchers And Auditors
+
+Bomly's plugin model uses the same three-collection shape as the in-process engine:
+
+- `sdk.Dependency` nodes live in `req.Graph` and describe detected dependency instances plus relationships.
+- `sdk.Package` records live in `req.Registry`, keyed by canonical PURL.
+- `sdk.Finding` values reference registry packages by PURL instead of embedding copied package or vulnerability data.
+
+Matchers enrich the registry in place:
+
+```go
+func (m *Matcher) Match(ctx context.Context, req *sdk.MatchRequest) (*sdk.MatchResponse, error) {
+    pkg := req.Registry.Ensure("pkg:npm/lodash@4.17.15")
+    pkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
+    pkg.Vulnerabilities = append(pkg.Vulnerabilities, sdk.Vulnerability{ID: "GHSA-...", Source: "acme"})
+    return &sdk.MatchResponse{Registry: req.Registry, MatcherRuns: []string{"acme.matcher"}}, nil
+}
+```
+
+Auditors read `req.Graph` and `req.Registry`, then emit reference-style findings:
+
+```go
+finding := sdk.Finding{
+    ID:              "GHSA-...",
+    Kind:            sdk.FindingKindVulnerability,
+    PackageRef:      "pkg:npm/lodash@4.17.15",
+    VulnerabilityID: "GHSA-...",
+    Disposition:     sdk.FindingDispositionFail,
+}
+```
+
+Detector plugins should build dependency graphs with the SDK constructors:
+
+```go
+dep := sdk.NewDependency(sdk.Dependency{Name: "lodash", Version: "4.17.15", PURL: "pkg:npm/lodash@4.17.15"})
+_ = graph.AddNode(dep)
+_ = graph.AddEdge(parent.ID, dep.ID)
+```
+
+See [`docs/MODELS.md`](MODELS.md) for the full model reference and migration notes.
 
 ## Supported Install Sources
 

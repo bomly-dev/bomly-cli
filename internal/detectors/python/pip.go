@@ -44,7 +44,6 @@ func (d PipDetector) Descriptor() sdk.DetectorDescriptor {
 		Technique:            sdk.BuildToolTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemPython},
 		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerPip},
-		SupportedModes:       []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:         []string{"graph-resolution", "component-targeting"},
 		SupportsInstallFirst: true,
 	}
@@ -101,7 +100,7 @@ func (d PipDetector) Install(ctx context.Context, req sdk.DetectionRequest) erro
 	}
 	// Also install requirements-dev.txt when present alongside the primary file.
 	devReqPath := filepath.Join(workingDir, "requirements-dev.txt")
-	if exists, _ := system.FileExists(devReqPath); exists && requirementsFile != "requirements-dev.txt" {
+	if exists, _ := system.FileExists(devReqPath); pipShouldInstallDevRequirements(req.ScopeFilter, requirementsFile, exists) {
 		devCommand, err := pythonCommand()
 		if err != nil {
 			return err
@@ -112,4 +111,8 @@ func (d PipDetector) Install(ctx context.Context, req sdk.DetectionRequest) erro
 		}
 	}
 	return nil
+}
+
+func pipShouldInstallDevRequirements(scopeFilter sdk.Scope, requirementsFile string, devRequirementsExist bool) bool {
+	return devRequirementsExist && requirementsFile != "requirements-dev.txt" && scopeFilter != sdk.ScopeRuntime
 }

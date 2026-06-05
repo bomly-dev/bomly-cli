@@ -53,7 +53,6 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 		Technique:           sdk.SBOMTechnique,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemSBOM},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerSBOM},
-		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "sbom-import"},
 	}
 }
@@ -159,7 +158,7 @@ func normalizeSBOMGraphIdentity(src *sdk.Graph) (*sdk.Graph, error) {
 
 	normalized := sdk.NewWithCapacity(src.Size())
 	idMap := make(map[string]string, src.Size())
-	for _, pkg := range src.Packages() {
+	for _, pkg := range src.Nodes() {
 		if pkg == nil {
 			continue
 		}
@@ -172,15 +171,15 @@ func normalizeSBOMGraphIdentity(src *sdk.Graph) (*sdk.Graph, error) {
 		if clone.ID == "" {
 			clone.ID = pkg.ID
 		}
-		if _, exists := normalized.Package(clone.ID); !exists {
-			if err := normalized.AddPackage(clone); err != nil {
+		if _, exists := normalized.Node(clone.ID); !exists {
+			if err := normalized.AddNode(clone); err != nil {
 				return nil, fmt.Errorf("normalize sbom package %q: %w", clone.ID, err)
 			}
 		}
 		idMap[pkg.ID] = clone.ID
 	}
 
-	for _, pkg := range src.Packages() {
+	for _, pkg := range src.Nodes() {
 		if pkg == nil {
 			continue
 		}
@@ -188,7 +187,7 @@ func normalizeSBOMGraphIdentity(src *sdk.Graph) (*sdk.Graph, error) {
 		if fromID == "" {
 			continue
 		}
-		deps, err := src.Dependencies(pkg.ID)
+		deps, err := src.DirectDependencies(pkg.ID)
 		if err != nil {
 			return nil, fmt.Errorf("normalize sbom dependencies for %q: %w", pkg.ID, err)
 		}
@@ -200,7 +199,7 @@ func normalizeSBOMGraphIdentity(src *sdk.Graph) (*sdk.Graph, error) {
 			if toID == "" || toID == fromID {
 				continue
 			}
-			if err := normalized.AddDependency(fromID, toID); err != nil {
+			if err := normalized.AddEdge(fromID, toID); err != nil {
 				return nil, fmt.Errorf("normalize sbom dependency %q -> %q: %w", fromID, toID, err)
 			}
 		}

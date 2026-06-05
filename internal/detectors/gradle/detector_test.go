@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"testing"
 
@@ -83,6 +84,49 @@ func TestDetectorCommandSpec_MakesUnixWrapperExecutable(t *testing.T) {
 	}
 }
 
+func TestGradleScopedDependenciesArgs(t *testing.T) {
+	tests := []struct {
+		name   string
+		scope  sdk.Scope
+		want   []string
+		isZero bool
+	}{
+		{
+			name:  "runtime selects runtimeClasspath",
+			scope: sdk.ScopeRuntime,
+			want:  []string{"dependencies", "--console=plain", "--configuration", "runtimeClasspath"},
+		},
+		{
+			name:  "development selects testRuntimeClasspath",
+			scope: sdk.ScopeDevelopment,
+			want:  []string{"dependencies", "--console=plain", "--configuration", "testRuntimeClasspath"},
+		},
+		{
+			name:   "unknown resolves all configurations",
+			scope:  sdk.ScopeUnknown,
+			isZero: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			base := []string{"dependencies", "--console=plain"}
+			got := gradleScopedDependenciesArgs(base, tt.scope)
+			if tt.isZero {
+				if got != nil {
+					t.Fatalf("gradleScopedDependenciesArgs() = %#v, want nil", got)
+				}
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("gradleScopedDependenciesArgs() = %#v, want %#v", got, tt.want)
+			}
+			if !reflect.DeepEqual(base, []string{"dependencies", "--console=plain"}) {
+				t.Fatalf("base args mutated: %#v", base)
+			}
+		})
+	}
+}
+
 func TestDepGraphFromGradleOutput(t *testing.T) {
 	raw := []byte(`runtimeClasspath - Runtime classpath of source set 'main'.
 +--- org.springframework:spring-core:6.1.1
@@ -104,7 +148,7 @@ testRuntimeClasspath - Test runtime classpath of source set 'test'.
 		t.Fatalf("expected 7 packages, got %d", g.Size())
 	}
 
-	rootDeps, err := g.Dependencies("demo")
+	rootDeps, err := g.DirectDependencies("demo")
 	if err != nil {
 		t.Fatalf("dependencies(root) error = %v", err)
 	}
@@ -112,7 +156,7 @@ testRuntimeClasspath - Test runtime classpath of source set 'test'.
 		t.Fatalf("expected 3 root deps, got %d", len(rootDeps))
 	}
 
-	guavaDeps, err := g.Dependencies("com.google.guava:guava@33.0.0-jre")
+	guavaDeps, err := g.DirectDependencies("com.google.guava:guava@33.0.0-jre")
 	if err != nil {
 		t.Fatalf("dependencies(guava) error = %v", err)
 	}
@@ -120,22 +164,22 @@ testRuntimeClasspath - Test runtime classpath of source set 'test'.
 		t.Fatalf("expected 2 guava deps, got %d", len(guavaDeps))
 	}
 
-	if _, ok := g.Package("org.springframework:spring-jcl@6.1.1"); !ok {
+	if _, ok := g.Node("org.springframework:spring-jcl@6.1.1"); !ok {
 		t.Fatalf("expected transitive dependency package")
 	}
-	guava, _ := g.Package("com.google.guava:guava@33.0.0-jre")
+	guava, _ := g.Node("com.google.guava:guava@33.0.0-jre")
 	if guava.Ecosystem != "maven" || guava.Org != "com.google.guava" || guava.Name != "guava" || guava.BuildSystem != "gradle" {
 		t.Fatalf("unexpected gradle coordinates: %#v", guava)
 	}
-	if guava.Scope != string(sdk.ScopeRuntime) {
-		t.Fatalf("expected runtime scope for guava, got %q", guava.Scope)
+	if string(guava.PrimaryScope()) != string(sdk.ScopeRuntime) {
+		t.Fatalf("expected runtime scope for guava, got %q", string(guava.PrimaryScope()))
 	}
-	junit, ok := g.Package("org.junit:junit-bom@5.10.2")
+	junit, ok := g.Node("org.junit:junit-bom@5.10.2")
 	if !ok {
 		t.Fatal("expected junit package")
 	}
-	if junit.Scope != string(sdk.ScopeDevelopment) {
-		t.Fatalf("expected development scope for junit, got %q", junit.Scope)
+	if string(junit.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+		t.Fatalf("expected development scope for junit, got %q", string(junit.PrimaryScope()))
 	}
 }
 
@@ -149,7 +193,7 @@ func TestDepGraphFromGradleOutput_UsesResolvedVersion(t *testing.T) {
 		t.Fatalf("depGraphFromGradleOutput() error = %v", err)
 	}
 
-	if _, ok := g.Package("org.slf4j:slf4j-api@2.0.12"); !ok {
+	if _, ok := g.Node("org.slf4j:slf4j-api@2.0.12"); !ok {
 		t.Fatalf("expected resolved version package to exist")
 	}
 }

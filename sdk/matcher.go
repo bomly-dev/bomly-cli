@@ -28,35 +28,34 @@ type MatcherDescriptor struct {
 	Origin              DetectorOrigin   `json:"origin,omitempty"`
 	SupportedEcosystems []Ecosystem      `json:"supportedEcosystems,omitempty"`
 	SupportedManagers   []PackageManager `json:"supportedManagers,omitempty"`
-	SupportedModes      []TargetMode     `json:"supportedModes,omitempty"`
 	Priority            int              `json:"priority,omitempty"`
 	Required            bool             `json:"required,omitempty"`
 	Capabilities        []string         `json:"capabilities,omitempty"`
 }
 
-// MatchRequest defines input for a matcher.
+// MatchRequest defines input for a matcher. Matchers enrich the package
+// Registry keyed by PURL; the dependency Graph provides identity and structure.
 type MatchRequest struct {
-	ProjectPath     string          `json:"projectPath,omitempty"`
-	ExecutionTarget ExecutionTarget `json:"executionTarget"`
-	SubprojectInfo  Subproject      `json:"subprojectInfo"`
-	Ecosystem       Ecosystem       `json:"ecosystem,omitempty"`
-	PackageManager  PackageManager  `json:"packageManager,omitempty"`
-	Mode            TargetMode      `json:"mode,omitempty"`
-	Query           PackageQuery    `json:"query"`
-	Graph           *Graph          `json:"graph,omitempty"`
-	Target          *Package        `json:"target,omitempty"`
-	MatcherFilter   MatcherFilter   `json:"matcherFilter"`
-	Stderr          io.Writer       `json:"-"`
+	ProjectPath     string           `json:"projectPath,omitempty"`
+	ExecutionTarget ExecutionTarget  `json:"executionTarget"`
+	SubprojectInfo  Subproject       `json:"subprojectInfo"`
+	Ecosystem       Ecosystem        `json:"ecosystem,omitempty"`
+	PackageManager  PackageManager   `json:"packageManager,omitempty"`
+	Query           PackageQuery     `json:"query"`
+	Graph           *Graph           `json:"graph,omitempty"`
+	Registry        *PackageRegistry `json:"registry,omitempty"`
+	Target          *Dependency      `json:"target,omitempty"`
+	MatcherFilter   MatcherFilter    `json:"matcherFilter"`
+	Stderr          io.Writer        `json:"-"`
 }
 
-// MatchResult contains the graph after matcher enrichment.
+// MatchResult contains the package registry after matcher enrichment.
 type MatchResult struct {
-	Graph       *Graph   `json:"graph,omitempty"`
-	Target      *Package `json:"target,omitempty"`
-	MatcherRuns []string `json:"matcherRuns,omitempty"`
+	Registry    *PackageRegistry `json:"registry,omitempty"`
+	MatcherRuns []string         `json:"matcherRuns,omitempty"`
 }
 
-// Matcher enriches graph packages with license data.
+// Matcher enriches registry packages with license and vulnerability data.
 type Matcher interface {
 	Descriptor() MatcherDescriptor
 	Ready() bool

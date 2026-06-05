@@ -70,7 +70,6 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 		Technique:            sdk.LockfileTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemRuby},
 		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerBundler},
-		SupportedModes:       []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:         []string{"graph-resolution", "component-targeting", "lockfile-parsing", "best-effort-scope"},
 		SupportsInstallFirst: true,
 	}
@@ -174,14 +173,15 @@ func depGraphFromLock(raw []byte, directScopes map[string]sdk.Scope) (*sdk.Graph
 	}
 
 	depsGraph := sdk.New()
-	rootNode := sdk.NewPackage(sdk.Package{
+	rootNode := sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemRuby),
 		Name:        "root",
 		BuildSystem: sdk.PackageManagerBundler.Name(),
 		Type:        "application",
 		Language:    "ruby",
 	})
-	if err := depsGraph.AddPackage(rootNode); err != nil {
+
+	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}
 
@@ -200,7 +200,7 @@ func depGraphFromLock(raw []byte, directScopes map[string]sdk.Scope) (*sdk.Graph
 				continue
 			}
 			child := gemNode(childSpec.Name, childSpec.Version)
-			if err := depsGraph.AddDependency(parent.ID, child.ID); err != nil {
+			if err := depsGraph.AddEdge(parent.ID, child.ID); err != nil {
 				return nil, fmt.Errorf("add dependency %q -> %q: %w", parent.ID, child.ID, err)
 			}
 		}
@@ -221,10 +221,10 @@ func depGraphFromLock(raw []byte, directScopes map[string]sdk.Scope) (*sdk.Graph
 		if scope == sdk.ScopeUnknown {
 			scope = sdk.ScopeRuntime
 		}
-		if existing, ok := depsGraph.Package(node.ID); ok {
-			sdk.MergePackageScope(existing, scope)
+		if existing, ok := depsGraph.Node(node.ID); ok {
+			existing.AddScope(scope)
 		}
-		if err := depsGraph.AddDependency(rootNode.ID, node.ID); err != nil {
+		if err := depsGraph.AddEdge(rootNode.ID, node.ID); err != nil {
 			return nil, fmt.Errorf("add root dependency %q: %w", node.ID, err)
 		}
 	}
@@ -242,8 +242,8 @@ func depGraphFromLock(raw []byte, directScopes map[string]sdk.Scope) (*sdk.Graph
 				return
 			}
 			node := gemNode(spec.Name, spec.Version)
-			if existing, ok := depsGraph.Package(node.ID); ok {
-				sdk.MergePackageScope(existing, scope)
+			if existing, ok := depsGraph.Node(node.ID); ok {
+				existing.AddScope(scope)
 			}
 			for _, child := range spec.Dependencies {
 				walk(child, scope)
@@ -446,8 +446,8 @@ func scopeForGroupLabels(labels []string) sdk.Scope {
 	return sdk.ScopeDevelopment
 }
 
-func gemNode(name, version string) *sdk.Package {
-	return sdk.NewPackage(sdk.Package{
+func gemNode(name, version string) *sdk.Dependency {
+	return sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemRuby),
 		Name:        strings.TrimSpace(name),
 		Version:     strings.TrimSpace(version),
@@ -455,13 +455,14 @@ func gemNode(name, version string) *sdk.Package {
 		Type:        "gem",
 		Language:    "ruby",
 	})
+
 }
 
-func addGemNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Package) error {
-	if _, ok := depsGraph.Package(node.ID); ok {
+func addGemNodeIfMissing(depsGraph *sdk.Graph, node *sdk.Dependency) error {
+	if _, ok := depsGraph.Node(node.ID); ok {
 		return nil
 	}
-	if err := depsGraph.AddPackage(node); err != nil {
+	if err := depsGraph.AddNode(node); err != nil {
 		return fmt.Errorf("add node %q: %w", node.ID, err)
 	}
 	return nil

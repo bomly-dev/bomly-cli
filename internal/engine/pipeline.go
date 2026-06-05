@@ -12,7 +12,7 @@ import (
 )
 
 // Pipeline orchestrates a full scan through a sequence of typed stages:
-// pre-resolve hooks -> detect -> scope filter -> consolidate -> match -> analyze -> audit -> post-resolve hooks.
+// pre-resolve hooks -> detect -> consolidate -> match -> analyze -> audit -> post-resolve hooks.
 type Pipeline struct {
 	Registry *Registry
 	Logger   *zap.Logger
@@ -55,9 +55,6 @@ func (p *Pipeline) RunPreAudit(ctx context.Context, req PipelineRequest) (Pipeli
 	if err := p.runResolve(ctx, &result, req); err != nil {
 		return result, err
 	}
-	if err := p.runScopeFilter(&result, req); err != nil {
-		return result, err
-	}
 	if err := p.runConsolidate(&result, req); err != nil {
 		return result, err
 	}
@@ -67,14 +64,14 @@ func (p *Pipeline) RunPreAudit(ctx context.Context, req PipelineRequest) (Pipeli
 }
 
 // RunAuditGraph evaluates policy for graph using req's configured auditors.
-func (p *Pipeline) RunAuditGraph(ctx context.Context, graph *sdk.Graph, req PipelineRequest) (sdk.AuditResult, []PipelineWarning) {
+func (p *Pipeline) RunAuditGraph(ctx context.Context, graph *sdk.Graph, registry *sdk.PackageRegistry, req PipelineRequest) (sdk.AuditResult, []PipelineWarning) {
 	if !req.AuditEnabled || graph == nil {
 		return sdk.AuditResult{}, nil
 	}
 	if req.Progress != nil {
 		req.Progress.StartStage("Evaluating policy", 1)
 	}
-	auditResult, auditWarnings := p.audit(ctx, graph, req)
+	auditResult, auditWarnings := p.audit(ctx, graph, registry, req)
 	auditResult.Findings = DeduplicateFindings(auditResult.Findings)
 	if req.WarnOnly {
 		for idx := range auditResult.Findings {
@@ -116,18 +113,6 @@ func (p *Pipeline) runResolve(ctx context.Context, result *PipelineResult, req P
 	return nil
 }
 
-func (p *Pipeline) runScopeFilter(result *PipelineResult, req PipelineRequest) error {
-	if req.ScopeFilter == sdk.ScopeUnknown {
-		return nil
-	}
-	filtered, err := filterResultsByScope(result.ResolveResults, req.ScopeFilter)
-	if err != nil {
-		return fmt.Errorf("scope filter: %w", err)
-	}
-	result.ResolveResults = filtered
-	return nil
-}
-
 func (p *Pipeline) runConsolidate(result *PipelineResult, req PipelineRequest) error {
 	consolidated, err := consolidation.ConsolidateGraphs(result.ResolveResults)
 	if err != nil {
@@ -139,13 +124,8 @@ func (p *Pipeline) runConsolidate(result *PipelineResult, req PipelineRequest) e
 	if err != nil {
 		return fmt.Errorf("consolidated graph: %w", err)
 	}
-	if req.ScopeFilter != sdk.ScopeUnknown {
-		selectedGraph, err = FilterGraphByScope(selectedGraph, req.ScopeFilter)
-		if err != nil {
-			return fmt.Errorf("scope filter consolidated: %w", err)
-		}
-	}
 	result.Graph = selectedGraph
+	result.Registry = consolidation.BuildPackageRegistry(consolidated)
 	p.logUnexpectedMultiRootGraph("consolidated", "", "", selectedGraph, sdk.ManifestMetadata{})
 	return nil
 }
@@ -236,8 +216,8 @@ func (p *Pipeline) analyze(ctx context.Context, result *PipelineResult, req Pipe
 	aReq := sdk.AnalyzeRequest{
 		ProjectPath:     req.ProjectPath,
 		ExecutionTarget: req.ExecutionTarget,
-		Mode:            sdk.TargetModeFullGraph,
 		Graph:           result.Graph,
+		Registry:        result.Registry,
 		AnalyzerFilter:  req.AnalyzerFilter,
 		Stderr:          req.Stderr,
 	}
@@ -246,9 +226,8 @@ func (p *Pipeline) analyze(ctx context.Context, result *PipelineResult, req Pipe
 	if len(analyzeResult.AnalyzerStats) > 0 {
 		result.AnalyzerStats = analyzeResult.AnalyzerStats
 	}
-	if analyzeResult.Graph != nil {
-		result.Graph = analyzeResult.Graph
-		consolidation.SyncConsolidatedEnrichmentToManifests(&result.Consolidated, analyzeResult.Graph)
+	if analyzeResult.Registry != nil {
+		result.Registry = analyzeResult.Registry
 	}
 	if err != nil {
 		result.AnalyzeWarnings = PipelineWarningsFromError(err, "analyzer")
@@ -263,13 +242,13 @@ func (p *Pipeline) runAudit(ctx context.Context, result *PipelineResult, req Pip
 	if req.Progress != nil {
 		req.Progress.StartStage("Evaluating policy", 1)
 	}
-	if !GraphHasVulnerabilityData(result.Graph) {
+	if !RegistryHasVulnerabilityData(result.Registry) {
 		result.AuditWarnings = append(result.AuditWarnings, PipelineWarning{
 			Source:  "vulnerability",
 			Message: "no vulnerability enrichment input was available; policy evaluation may produce no findings",
 		})
 	}
-	auditResult, auditWarnings := p.audit(ctx, result.Graph, req)
+	auditResult, auditWarnings := p.audit(ctx, result.Graph, result.Registry, req)
 	result.Findings = DeduplicateFindings(auditResult.Findings)
 	if req.WarnOnly {
 		for idx := range result.Findings {
@@ -318,16 +297,15 @@ func (p *Pipeline) match(ctx context.Context, result *PipelineResult, req Pipeli
 	mReq := sdk.MatchRequest{
 		ProjectPath:     req.ProjectPath,
 		ExecutionTarget: req.ExecutionTarget,
-		Mode:            sdk.TargetModeFullGraph,
 		Graph:           result.Graph,
+		Registry:        result.Registry,
 		MatcherFilter:   req.MatcherFilter,
 		Stderr:          req.Stderr,
 	}
 	matchResult, err := p.engine.Match(ctx, mReq)
 	result.MatcherRuns = matchResult.MatcherRuns
-	if matchResult.Graph != nil {
-		result.Graph = matchResult.Graph
-		consolidation.SyncConsolidatedEnrichmentToManifests(&result.Consolidated, matchResult.Graph)
+	if matchResult.Registry != nil {
+		result.Registry = matchResult.Registry
 	}
 	if err != nil {
 		result.MatchWarnings = PipelineWarningsFromError(err, "matcher")
@@ -335,12 +313,12 @@ func (p *Pipeline) match(ctx context.Context, result *PipelineResult, req Pipeli
 	}
 }
 
-func (p *Pipeline) audit(ctx context.Context, g *sdk.Graph, req PipelineRequest) (sdk.AuditResult, []PipelineWarning) {
+func (p *Pipeline) audit(ctx context.Context, g *sdk.Graph, registry *sdk.PackageRegistry, req PipelineRequest) (sdk.AuditResult, []PipelineWarning) {
 	auditReq := sdk.AuditRequest{
 		ProjectPath:     req.ProjectPath,
 		ExecutionTarget: req.ExecutionTarget,
-		Mode:            sdk.TargetModeFullGraph,
 		Graph:           g,
+		Registry:        registry,
 		BaselineGraph:   req.BaselineGraph,
 		AuditorFilter:   req.AuditorFilter,
 		Stderr:          req.Stderr,
@@ -354,15 +332,15 @@ func (p *Pipeline) audit(ctx context.Context, g *sdk.Graph, req PipelineRequest)
 	return result, warnings
 }
 
-func (p *Pipeline) auditComponent(ctx context.Context, g *sdk.Graph, target *sdk.Package, req PipelineRequest) (sdk.AuditResult, []PipelineWarning) {
+func (p *Pipeline) auditComponent(ctx context.Context, g *sdk.Graph, registry *sdk.PackageRegistry, target *sdk.Dependency, req PipelineRequest) (sdk.AuditResult, []PipelineWarning) {
 	if g == nil || target == nil {
 		return sdk.AuditResult{}, nil
 	}
 	auditReq := sdk.AuditRequest{
 		ProjectPath:     req.ProjectPath,
 		ExecutionTarget: req.ExecutionTarget,
-		Mode:            sdk.TargetModeComponent,
 		Graph:           g,
+		Registry:        registry,
 		Target:          target,
 		Ecosystem:       sdk.Ecosystem(target.Ecosystem),
 		AuditorFilter:   req.AuditorFilter,

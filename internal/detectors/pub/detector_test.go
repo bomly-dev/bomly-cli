@@ -22,12 +22,12 @@ func TestDetectorResolveGraphFromFixtureProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	pkg, ok := g.Package("test@1.25.8")
+	pkg, ok := g.Node("test@1.25.8")
 	if !ok {
 		t.Fatal("expected test package")
 	}
-	if pkg.Scope != string(sdk.ScopeDevelopment) {
-		t.Fatalf("expected development scope, got %q", pkg.Scope)
+	if string(pkg.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+		t.Fatalf("expected development scope, got %q", string(pkg.PrimaryScope()))
 	}
 }
 
@@ -66,23 +66,23 @@ func TestDepGraphFromLockScopesDirectDependencies(t *testing.T) {
 	if err != nil {
 		t.Fatalf("depGraphFromLock() error = %v", err)
 	}
-	root, ok := g.Package("demo@1.0.0")
+	root, ok := g.Node("demo@1.0.0")
 	if !ok {
 		t.Fatal("expected root package")
 	}
-	deps, err := g.Dependencies(root.ID)
+	deps, err := g.DirectDependencies(root.ID)
 	if err != nil {
 		t.Fatalf("root dependencies: %v", err)
 	}
 	if len(deps) != 3 {
 		t.Fatalf("expected three direct dependencies, got %d", len(deps))
 	}
-	dev, ok := g.Package("test@1.25.8")
+	dev, ok := g.Node("test@1.25.8")
 	if !ok {
 		t.Fatal("expected test package")
 	}
-	if dev.Scope != string(sdk.ScopeDevelopment) {
-		t.Fatalf("expected dev scope, got %q", dev.Scope)
+	if string(dev.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+		t.Fatalf("expected dev scope, got %q", string(dev.PrimaryScope()))
 	}
 	if dev.PURL != "pkg:pub/test@1.25.8" {
 		t.Fatalf("unexpected purl %q", dev.PURL)
@@ -104,19 +104,19 @@ func TestDepGraphFromPubDepsJSONBuildsTransitiveScopes(t *testing.T) {
 		t.Fatalf("depGraphFromPubDepsJSON() error = %v", err)
 	}
 
-	collection, ok := graph.Package("collection@1.18.0")
+	collection, ok := graph.Node("collection@1.18.0")
 	if !ok {
-		t.Fatalf("expected collection package, got %v", graph.Packages())
+		t.Fatalf("expected collection package, got %v", graph.Nodes())
 	}
-	if collection.Scope != string(sdk.ScopeRuntime) {
-		t.Fatalf("expected shared transitive dependency to be runtime, got %q", collection.Scope)
+	if string(collection.PrimaryScope()) != string(sdk.ScopeRuntime) {
+		t.Fatalf("expected shared transitive dependency to be runtime, got %q", string(collection.PrimaryScope()))
 	}
 
-	testPkg, ok := graph.Package("test@1.25.8")
+	testPkg, ok := graph.Node("test@1.25.8")
 	if !ok {
 		t.Fatal("expected test package")
 	}
-	if testPkg.Scope != string(sdk.ScopeDevelopment) {
-		t.Fatalf("expected dev direct dependency, got %q", testPkg.Scope)
+	if string(testPkg.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+		t.Fatalf("expected dev direct dependency, got %q", string(testPkg.PrimaryScope()))
 	}
 }

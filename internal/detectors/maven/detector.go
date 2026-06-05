@@ -75,7 +75,6 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 		Technique:            sdk.BuildToolTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemMaven},
 		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerMaven},
-		SupportedModes:       []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:         []string{"graph-resolution", "component-targeting", "wrapper-detection"},
 		SupportsInstallFirst: true,
 	}
@@ -83,7 +82,7 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a Maven dependency graph for the scan engine.
 func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	depsGraph, err := d.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose)
+	depsGraph, err := d.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, req.ScopeFilter)
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
@@ -104,7 +103,7 @@ func (d Detector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
-func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool) (*sdk.Graph, error) {
+func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool, scopeFilter sdk.Scope) (*sdk.Graph, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -115,7 +114,7 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 		return nil, fmt.Errorf("resolve maven runner: %w", err)
 	}
 
-	args := append(prefixArgs, "dependency:tree", "-DoutputType=tgf")
+	args := mavenDependencyTreeArgs(prefixArgs, scopeFilter)
 	cmd := system.Command(executable, args...)
 	cmd.Dir = projectPath
 	if d.WorkingDir != "" {
@@ -146,6 +145,17 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 	duration := time.Since(started)
 	logger.Info(fmt.Sprintf("Maven dependencies detector found %d dependencies in %s", depsGraph.Size(), logging.FormatDuration(duration)))
 	return depsGraph, nil
+}
+
+func mavenDependencyTreeArgs(prefixArgs []string, scopeFilter sdk.Scope) []string {
+	args := append(append([]string(nil), prefixArgs...), "dependency:tree", "-DoutputType=tgf")
+	switch scopeFilter {
+	case sdk.ScopeRuntime:
+		args = append(args, "-Dscope=runtime")
+	case sdk.ScopeDevelopment:
+		args = append(args, "-Dscope=test")
+	}
+	return args
 }
 
 func (d Detector) resolveRunner(projectPath ...string) (string, []string, error) {
@@ -202,7 +212,7 @@ func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
 	scanner := bufio.NewScanner(strings.NewReader(string(raw)))
 	inEdges := false
 
-	tgfPackages := make(map[string]*sdk.Package)
+	tgfPackages := make(map[string]*sdk.Dependency)
 	tgfGraph := sdk.New()
 	type edge struct {
 		from string
@@ -229,9 +239,9 @@ func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
 				return nil, err
 			}
 			tgfPackages[id] = node
-			if existing, ok := tgfGraph.Package(node.ID); ok {
-				sdk.MergePackageScope(existing, sdk.Scope(node.Scope))
-			} else if err := tgfGraph.AddPackage(node); err != nil && !errors.Is(err, sdk.ErrPackageAlreadyExist) {
+			if existing, ok := tgfGraph.Node(node.ID); ok {
+				existing.AddScope(node.PrimaryScope())
+			} else if err := tgfGraph.AddNode(node); err != nil && !errors.Is(err, sdk.ErrNodeAlreadyExist) {
 				return nil, fmt.Errorf("add maven package %q: %w", node.ID, err)
 			}
 			continue
@@ -260,7 +270,7 @@ func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
 		if !ok {
 			return nil, fmt.Errorf("maven tgf references unknown package %q", item.to)
 		}
-		if err := tgfGraph.AddDependency(fromNode.ID, toNode.ID); err != nil {
+		if err := tgfGraph.AddEdge(fromNode.ID, toNode.ID); err != nil {
 			return nil, fmt.Errorf("add maven dependency %q -> %q: %w", fromNode.ID, toNode.ID, err)
 		}
 	}
@@ -316,7 +326,7 @@ func looksLikeMavenCoords(coords string) bool {
 	return strings.Count(coords, ":") >= 3
 }
 
-func parseTGFNodeLine(line string) (string, *sdk.Package, error) {
+func parseTGFNodeLine(line string) (string, *sdk.Dependency, error) {
 	parts := strings.Fields(line)
 	if len(parts) < 2 {
 		return "", nil, fmt.Errorf("parse maven tgf package %q: expected identifier and coordinates", line)
@@ -329,7 +339,7 @@ func parseTGFNodeLine(line string) (string, *sdk.Package, error) {
 	return parts[0], node, nil
 }
 
-func nodeFromMavenCoords(coords string) (*sdk.Package, error) {
+func nodeFromMavenCoords(coords string) (*sdk.Dependency, error) {
 	parts := strings.Split(coords, ":")
 	if len(parts) < 4 {
 		return nil, fmt.Errorf("parse maven coordinates %q: expected at least 4 segments", coords)
@@ -355,11 +365,11 @@ func nodeFromMavenCoords(coords string) (*sdk.Package, error) {
 		}
 	}
 
-	return sdk.NewPackage(sdk.Package{
+	return sdk.NewDependency(sdk.Dependency{
 		Ecosystem:   string(sdk.EcosystemMaven),
 		Name:        name,
 		Version:     parts[versionIndex],
-		Scope:       string(scope),
+		Scopes:      sdk.ScopesOf(scope),
 		Org:         groupID,
 		BuildSystem: sdk.PackageManagerMaven.Name(),
 	}), nil

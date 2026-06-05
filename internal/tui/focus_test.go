@@ -14,18 +14,23 @@ import (
 func newScanModelWithPosture(t *testing.T, repo string, score float64) *scanModel {
 	t.Helper()
 	g := sdk.New()
-	root := sdk.NewPackageRef("demo-app", "1.0.0")
-	dep := sdk.NewPackage(sdk.Package{Name: "lib", Version: "1.0.0"})
-	dep.Scorecard = newTestScorecardTUI(repo, score,
+	root := sdk.NewDependencyRef("demo-app", "1.0.0")
+	const libPURL = "pkg:npm/lib@1.0.0"
+	dep := sdk.NewDependency(sdk.Dependency{Name: "lib", Version: "1.0.0", PURL: libPURL})
+	registry := sdk.NewPackageRegistry()
+	regLib := registry.Ensure(libPURL)
+	regLib.Name = "lib"
+	regLib.Version = "1.0.0"
+	regLib.Scorecard = newTestScorecardTUI(repo, score,
 		sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 2, Reason: "off"},
 		sdk.PackageScorecardCheck{Name: "Code-Review", Score: 8, Reason: "ok"},
 	)
-	for _, pkg := range []*sdk.Package{root, dep} {
-		if err := g.AddPackage(pkg); err != nil {
+	for _, pkg := range []*sdk.Dependency{root, dep} {
+		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add: %v", err)
 		}
 	}
-	if err := g.AddDependency(root.ID, dep.ID); err != nil {
+	if err := g.AddEdge(root.ID, dep.ID); err != nil {
 		t.Fatalf("add dep: %v", err)
 	}
 	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
@@ -43,7 +48,7 @@ func newScanModelWithPosture(t *testing.T, repo string, score float64) *scanMode
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph: %v", err)
 	}
-	return NewScan(output.ProjectDescriptor{Name: "demo", Path: "/tmp/demo"}, consolidated, graphValue, nil).WithEnrichEnabled(true)
+	return NewScan(output.ProjectDescriptor{Name: "demo", Path: "/tmp/demo"}, consolidated, graphValue, nil).WithRegistry(registry).WithEnrichEnabled(true)
 }
 
 func TestTabSeven_SwitchesToPostureTab(t *testing.T) {
@@ -146,26 +151,35 @@ func TestTabCycle_ResetsDetailsFocus(t *testing.T) {
 func TestPostureGrouping_ByCheckRendersFailingFirst(t *testing.T) {
 	t.Parallel()
 	g := sdk.New()
-	rootA := sdk.NewPackageRef("app", "1.0.0")
-	a := sdk.NewPackage(sdk.Package{Name: "a", Version: "1"})
-	a.Scorecard = newTestScorecardTUI("github.com/example/a", 6.0,
+	rootA := sdk.NewDependencyRef("app", "1.0.0")
+	const aPURL = "pkg:npm/a@1"
+	const bPURL = "pkg:npm/b@1"
+	a := sdk.NewDependency(sdk.Dependency{Name: "a", Version: "1", PURL: aPURL})
+	b := sdk.NewDependency(sdk.Dependency{Name: "b", Version: "1", PURL: bPURL})
+	registry := sdk.NewPackageRegistry()
+	regA := registry.Ensure(aPURL)
+	regA.Name = "a"
+	regA.Version = "1"
+	regA.Scorecard = newTestScorecardTUI("github.com/example/a", 6.0,
 		sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 1},
 		sdk.PackageScorecardCheck{Name: "Code-Review", Score: 9},
 	)
-	b := sdk.NewPackage(sdk.Package{Name: "b", Version: "1"})
-	b.Scorecard = newTestScorecardTUI("github.com/example/b", 4.0,
+	regB := registry.Ensure(bPURL)
+	regB.Name = "b"
+	regB.Version = "1"
+	regB.Scorecard = newTestScorecardTUI("github.com/example/b", 4.0,
 		sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 0},
 		sdk.PackageScorecardCheck{Name: "Code-Review", Score: 7},
 	)
-	for _, pkg := range []*sdk.Package{rootA, a, b} {
-		if err := g.AddPackage(pkg); err != nil {
+	for _, pkg := range []*sdk.Dependency{rootA, a, b} {
+		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add: %v", err)
 		}
 	}
-	if err := g.AddDependency(rootA.ID, a.ID); err != nil {
+	if err := g.AddEdge(rootA.ID, a.ID); err != nil {
 		t.Fatalf("dep a: %v", err)
 	}
-	if err := g.AddDependency(rootA.ID, b.ID); err != nil {
+	if err := g.AddEdge(rootA.ID, b.ID); err != nil {
 		t.Fatalf("dep b: %v", err)
 	}
 	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
@@ -183,7 +197,7 @@ func TestPostureGrouping_ByCheckRendersFailingFirst(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph: %v", err)
 	}
-	model := NewScan(output.ProjectDescriptor{Name: "demo", Path: "/tmp/demo"}, consolidated, graphValue, nil).WithEnrichEnabled(true)
+	model := NewScan(output.ProjectDescriptor{Name: "demo", Path: "/tmp/demo"}, consolidated, graphValue, nil).WithRegistry(registry).WithEnrichEnabled(true)
 	model.SelectView(6)
 
 	// Cycle the group via `g`.

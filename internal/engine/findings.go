@@ -17,11 +17,12 @@ func DeduplicateFindings(findings []sdk.Finding) []sdk.Finding {
 			out = append(out, finding)
 			continue
 		}
-		pkgID := ""
-		if finding.Package != nil {
-			pkgID = finding.Package.ID
+		// Reference-style Finding: dedup by (PackageRef, VulnerabilityID).
+		vulnID := finding.VulnerabilityID
+		if vulnID == "" {
+			vulnID = finding.ID
 		}
-		k := key{pkgID: pkgID, vulnID: finding.ID}
+		k := key{pkgID: finding.PackageRef, vulnID: vulnID}
 		rank := findingSourceRank(finding.Source)
 		if existing, ok := best[k]; !ok {
 			best[k] = entry{idx: len(out), rank: rank}

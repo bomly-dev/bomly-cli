@@ -1,10 +1,6 @@
 package engine
 
-import (
-	"strings"
-
-	"github.com/bomly-dev/bomly-cli/sdk"
-)
+import "strings"
 
 // unwrapJoinedErrors splits an error returned by errors.Join into its parts.
 func unwrapJoinedErrors(err error) []error {
@@ -43,33 +39,4 @@ func parseWarningSource(text, prefix string) (source, message string) {
 		return "", text
 	}
 	return rest[:idx], rest[idx+2:]
-}
-
-// filterResultsByScope applies scope filtering to each graph entry in the results.
-func filterResultsByScope(results []sdk.DetectionResult, scope sdk.Scope) ([]sdk.DetectionResult, error) {
-	if scope == sdk.ScopeUnknown {
-		return results, nil
-	}
-	filtered := make([]sdk.DetectionResult, 0, len(results))
-	for _, result := range results {
-		if result.Graphs == nil {
-			filtered = append(filtered, result)
-			continue
-		}
-		entries := make([]sdk.GraphEntry, 0, len(result.Graphs.Entries))
-		for _, entry := range result.Graphs.Entries {
-			if entry.Graph == nil {
-				entries = append(entries, entry)
-				continue
-			}
-			graphView, err := FilterGraphByScope(entry.Graph, scope)
-			if err != nil {
-				return nil, err
-			}
-			entries = append(entries, sdk.GraphEntry{Graph: graphView, Manifest: entry.Manifest})
-		}
-		result.Graphs = &sdk.GraphContainer{Entries: entries}
-		filtered = append(filtered, result)
-	}
-	return filtered, nil
 }

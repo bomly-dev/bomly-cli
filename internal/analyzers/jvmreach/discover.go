@@ -95,7 +95,7 @@ func discoverStandaloneProjectRoots(req model.AnalyzeRequest) []string {
 		roots = append(roots, clean)
 	}
 	if req.Graph != nil {
-		for _, pkg := range req.Graph.Packages() {
+		for _, pkg := range req.Graph.Nodes() {
 			if pkg == nil || !isJVMPackage(pkg) {
 				continue
 			}
@@ -335,7 +335,7 @@ func findProjectRoot(start string) string {
 }
 
 // isJVMPackage reports whether pkg's ecosystem, build system, or language identifies it as JVM.
-func isJVMPackage(pkg *model.Package) bool {
+func isJVMPackage(pkg *model.Dependency) bool {
 	if pkg == nil {
 		return false
 	}

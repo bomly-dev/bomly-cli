@@ -73,21 +73,22 @@ func TestJSDescriptorAndRunnerResult(t *testing.T) {
 }
 
 func TestJSStandaloneApplyRunnerResult(t *testing.T) {
+	const purl = "pkg:npm/lodash"
 	g := model.New()
-	pkg := model.NewPackage(model.Package{
-		Name:            "lodash",
-		Ecosystem:       "npm",
-		Vulnerabilities: []model.PackageVulnerability{{ID: "GHSA-1"}},
-	})
-	if err := g.AddPackage(pkg); err != nil {
+	pkg := model.NewDependency(model.Dependency{Name: "lodash", Ecosystem: "npm", PURL: purl})
+	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
 	}
-	got := applyRunnerResult(g, jsProjectFixture("entrypoints"), RunnerResult{
+	reg := model.NewPackageRegistry()
+	reg.Ensure(purl).Vulnerabilities = []model.Vulnerability{{ID: "GHSA-1"}}
+	req := model.AnalyzeRequest{Graph: g, Registry: reg}
+	got := applyRunnerResult(req, jsProjectFixture("entrypoints"), RunnerResult{
 		ImportedPackages: map[string]struct{}{"lodash": {}},
 		EntryPoints:      []string{"index.js"},
 	}, time.Time{})
-	if got.reachable != 1 || pkg.Vulnerabilities[0].Reachability.Status != model.ReachabilityReachable {
-		t.Fatalf("outcome = %+v reachability=%+v", got, pkg.Vulnerabilities[0].Reachability)
+	vulns := reg.Ensure(purl).Vulnerabilities
+	if got.reachable != 1 || vulns[0].Reachability == nil || vulns[0].Reachability.Status != model.ReachabilityReachable {
+		t.Fatalf("outcome = %+v reachability=%+v", got, vulns[0].Reachability)
 	}
 }
 

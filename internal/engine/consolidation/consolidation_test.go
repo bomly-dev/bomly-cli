@@ -8,18 +8,18 @@ import (
 
 func TestNormalizeGraphPackageIdentity_CollapsesEquivalentPythonPackages(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewPackageWithID("app@1.0.0", sdk.Package{Name: "app", Version: "1.0.0"})
-	pyA := sdk.NewPackageWithID("Requests_Toolbelt@1.0.0RC1", sdk.Package{Ecosystem: "python", Name: "Requests_Toolbelt", Version: "1.0.0RC1"})
-	pyB := sdk.NewPackageWithID("requests-toolbelt@1.0.0rc1", sdk.Package{Ecosystem: "python", Name: "requests-toolbelt", Version: "1.0.0rc1"})
-	for _, pkg := range []*sdk.Package{root, pyA, pyB} {
-		if err := g.AddPackage(pkg); err != nil {
+	root := sdk.NewDependencyWithID("app@1.0.0", sdk.Dependency{Name: "app", Version: "1.0.0"})
+	pyA := sdk.NewDependencyWithID("Requests_Toolbelt@1.0.0RC1", sdk.Dependency{Ecosystem: "python", Name: "Requests_Toolbelt", Version: "1.0.0RC1"})
+	pyB := sdk.NewDependencyWithID("requests-toolbelt@1.0.0rc1", sdk.Dependency{Ecosystem: "python", Name: "requests-toolbelt", Version: "1.0.0rc1"})
+	for _, pkg := range []*sdk.Dependency{root, pyA, pyB} {
+		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("AddPackage(%q) error = %v", pkg.ID, err)
 		}
 	}
-	if err := g.AddDependency(root.ID, pyA.ID); err != nil {
+	if err := g.AddEdge(root.ID, pyA.ID); err != nil {
 		t.Fatalf("AddDependency(pyA) error = %v", err)
 	}
-	if err := g.AddDependency(root.ID, pyB.ID); err != nil {
+	if err := g.AddEdge(root.ID, pyB.ID); err != nil {
 		t.Fatalf("AddDependency(pyB) error = %v", err)
 	}
 
@@ -32,11 +32,11 @@ func TestNormalizeGraphPackageIdentity_CollapsesEquivalentPythonPackages(t *test
 		t.Fatalf("expected duplicate python packages to collapse to 2 nodes, got %d", normalized.Size())
 	}
 	depID := "pkg:pypi/requests-toolbelt@1.0.0rc1"
-	dep, ok := normalized.Package(depID)
+	dep, ok := normalized.Node(depID)
 	if !ok {
 		t.Fatalf("expected normalized python package %q", depID)
 	}
-	deps, err := normalized.Dependencies("pkg:generic/app@1.0.0")
+	deps, err := normalized.DirectDependencies("pkg:generic/app@1.0.0")
 	if err != nil {
 		t.Fatalf("Dependencies() error = %v", err)
 	}
@@ -53,14 +53,14 @@ func TestNormalizeGraphPackageIdentity_NormalizesScopedNPMPackage(t *testing.T) 
 		[]nodeFixture{{id: "@Types/Node@20.11.30", name: "@Types/Node", version: "20.11.30"}},
 		nil,
 	)
-	pkg, _ := g.Package("@Types/Node@20.11.30")
+	pkg, _ := g.Node("@Types/Node@20.11.30")
 	pkg.Ecosystem = "npm"
 
 	normalized, err := normalizeGraphPackageIdentity(g)
 	if err != nil {
 		t.Fatalf("normalizeGraphPackageIdentity() error = %v", err)
 	}
-	if _, ok := normalized.Package("pkg:npm/%40types/node@20.11.30"); !ok {
+	if _, ok := normalized.Node("pkg:npm/%40types/node@20.11.30"); !ok {
 		t.Fatal("expected scoped npm package to normalize to canonical namespace and name")
 	}
 }
@@ -95,17 +95,17 @@ func TestConsolidateGraphs_PreservesManifestRoots(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	if _, ok := mergedGraph.Package("subproject:npm:apps/web"); ok {
+	if _, ok := mergedGraph.Node("subproject:npm:apps/web"); ok {
 		t.Fatal("did not expect synthetic npm subproject root")
 	}
-	if _, ok := mergedGraph.Package("subproject:gomod:services/api"); ok {
+	if _, ok := mergedGraph.Node("subproject:gomod:services/api"); ok {
 		t.Fatal("did not expect synthetic go subproject root")
 	}
 
-	if _, ok := mergedGraph.Package("apps/web/package-lock.json"); ok {
+	if _, ok := mergedGraph.Node("apps/web/package-lock.json"); ok {
 		t.Fatal("did not expect manifest node in merged graph")
 	}
-	if _, ok := mergedGraph.Package("pkg:generic/web-app@1.0.0"); !ok {
+	if _, ok := mergedGraph.Node("pkg:generic/web-app@1.0.0"); !ok {
 		t.Fatal("expected normalized project root package in merged graph")
 	}
 
@@ -126,21 +126,21 @@ func TestConsolidateGraphs_RejectsMultipleExecutionTargets(t *testing.T) {
 
 func TestConsolidateGraphs_DeduplicatesManifestAndPrefersNative(t *testing.T) {
 	nativeGraph := sdk.New()
-	nativeRoot := sdk.NewPackage(sdk.Package{Ecosystem: "maven", Org: "org.owasp.webgoat", Name: "webgoat", Version: "1.0.0"})
-	nativeDep := sdk.NewPackage(sdk.Package{Ecosystem: "maven", Org: "org.slf4j", Name: "slf4j-api", Version: "2.0.9"})
-	if err := nativeGraph.AddPackage(nativeRoot); err != nil {
+	nativeRoot := sdk.NewDependency(sdk.Dependency{Ecosystem: "maven", Org: "org.owasp.webgoat", Name: "webgoat", Version: "1.0.0"})
+	nativeDep := sdk.NewDependency(sdk.Dependency{Ecosystem: "maven", Org: "org.slf4j", Name: "slf4j-api", Version: "2.0.9"})
+	if err := nativeGraph.AddNode(nativeRoot); err != nil {
 		t.Fatalf("add native root: %v", err)
 	}
-	if err := nativeGraph.AddPackage(nativeDep); err != nil {
+	if err := nativeGraph.AddNode(nativeDep); err != nil {
 		t.Fatalf("add native dep: %v", err)
 	}
-	if err := nativeGraph.AddDependency(nativeRoot.ID, nativeDep.ID); err != nil {
+	if err := nativeGraph.AddEdge(nativeRoot.ID, nativeDep.ID); err != nil {
 		t.Fatalf("add native dependency: %v", err)
 	}
 
 	syftGraph := sdk.New()
-	syftRoot := sdk.NewPackageWithID("1234567890123456", sdk.Package{Ecosystem: "maven", Org: "org.owasp.webgoat", Name: "webgoat", Version: "1.0.0", PURL: "pkg:maven/org.owasp.webgoat/webgoat@1.0.0"})
-	if err := syftGraph.AddPackage(syftRoot); err != nil {
+	syftRoot := sdk.NewDependencyWithID("1234567890123456", sdk.Dependency{Ecosystem: "maven", Org: "org.owasp.webgoat", Name: "webgoat", Version: "1.0.0", PURL: "pkg:maven/org.owasp.webgoat/webgoat@1.0.0"})
+	if err := syftGraph.AddNode(syftRoot); err != nil {
 		t.Fatalf("add syft root: %v", err)
 	}
 
@@ -181,10 +181,10 @@ func TestConsolidateGraphs_DeduplicatesManifestAndPrefersNative(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	if _, ok := mergedGraph.Package("pkg:maven/org.owasp.webgoat/webgoat@1.0.0"); !ok {
+	if _, ok := mergedGraph.Node("pkg:maven/org.owasp.webgoat/webgoat@1.0.0"); !ok {
 		t.Fatal("expected native root ID to be normalized to purl")
 	}
-	if _, ok := mergedGraph.Package("pkg:maven/org.slf4j/slf4j-api@2.0.9"); !ok {
+	if _, ok := mergedGraph.Node("pkg:maven/org.slf4j/slf4j-api@2.0.9"); !ok {
 		t.Fatal("expected native dependency ID to be normalized to purl")
 	}
 }
@@ -203,12 +203,12 @@ func TestManifestDedupPriorityPrefersNativeOverSyft(t *testing.T) {
 
 func TestConsolidateGraphs_SynthesizesManifestRootWhenEntryHasMultipleRoots(t *testing.T) {
 	actionsGraph := sdk.New()
-	checkout := sdk.NewPackage(sdk.Package{Ecosystem: "github-actions", Name: "actions/checkout", Version: "v4.1.6"})
-	setupJava := sdk.NewPackage(sdk.Package{Ecosystem: "github-actions", Name: "actions/setup-java", Version: "v5"})
-	if err := actionsGraph.AddPackage(checkout); err != nil {
+	checkout := sdk.NewDependency(sdk.Dependency{Ecosystem: "github-actions", Name: "actions/checkout", Version: "v4.1.6"})
+	setupJava := sdk.NewDependency(sdk.Dependency{Ecosystem: "github-actions", Name: "actions/setup-java", Version: "v5"})
+	if err := actionsGraph.AddNode(checkout); err != nil {
 		t.Fatalf("add checkout: %v", err)
 	}
-	if err := actionsGraph.AddPackage(setupJava); err != nil {
+	if err := actionsGraph.AddNode(setupJava); err != nil {
 		t.Fatalf("add setup-java: %v", err)
 	}
 
@@ -236,7 +236,7 @@ func TestConsolidateGraphs_SynthesizesManifestRootWhenEntryHasMultipleRoots(t *t
 	}
 
 	virtualRootID := ".github/actions/java-setup"
-	virtualRoot, ok := mergedGraph.Package(virtualRootID)
+	virtualRoot, ok := mergedGraph.Node(virtualRootID)
 	if !ok {
 		t.Fatalf("expected synthesized virtual root package %q", virtualRootID)
 	}
@@ -244,7 +244,7 @@ func TestConsolidateGraphs_SynthesizesManifestRootWhenEntryHasMultipleRoots(t *t
 		t.Fatalf("expected virtual root type manifest, got %q", virtualRoot.Type)
 	}
 
-	deps, err := mergedGraph.Dependencies(virtualRootID)
+	deps, err := mergedGraph.DirectDependencies(virtualRootID)
 	if err != nil {
 		t.Fatalf("Dependencies() error = %v", err)
 	}
@@ -255,15 +255,15 @@ func TestConsolidateGraphs_SynthesizesManifestRootWhenEntryHasMultipleRoots(t *t
 
 func TestConsolidateGraphs_PrefersApplicationRootWhenEntryHasMultipleRoots(t *testing.T) {
 	npmGraph := sdk.New()
-	app := sdk.NewPackage(sdk.Package{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0", Type: "application"})
-	react := sdk.NewPackage(sdk.Package{Ecosystem: "npm", Name: "react", Version: "18.2.0"})
-	orphan := sdk.NewPackage(sdk.Package{Ecosystem: "npm", Name: "string-width", Version: "2.1.1"})
-	for _, pkg := range []*sdk.Package{app, react, orphan} {
-		if err := npmGraph.AddPackage(pkg); err != nil {
+	app := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0", Type: "application"})
+	react := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "react", Version: "18.2.0"})
+	orphan := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "string-width", Version: "2.1.1"})
+	for _, pkg := range []*sdk.Dependency{app, react, orphan} {
+		if err := npmGraph.AddNode(pkg); err != nil {
 			t.Fatalf("add %s: %v", pkg.ID, err)
 		}
 	}
-	if err := npmGraph.AddDependency(app.ID, react.ID); err != nil {
+	if err := npmGraph.AddEdge(app.ID, react.ID); err != nil {
 		t.Fatalf("link app->react: %v", err)
 	}
 
@@ -296,11 +296,11 @@ func TestConsolidateGraphs_PrefersApplicationRootWhenEntryHasMultipleRoots(t *te
 	if err != nil {
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
-	if _, ok := mergedGraph.Package("package-lock.json"); ok {
+	if _, ok := mergedGraph.Node("package-lock.json"); ok {
 		t.Fatal("did not expect synthesized manifest package for npm graph with application root")
 	}
 
-	deps, err := mergedGraph.Dependencies("pkg:npm/demo-app@1.0.0")
+	deps, err := mergedGraph.DirectDependencies("pkg:npm/demo-app@1.0.0")
 	if err != nil {
 		t.Fatalf("Dependencies(app) error = %v", err)
 	}
@@ -318,12 +318,12 @@ type nodeFixture struct {
 func graphFixture(packages []nodeFixture, relationships [][2]string) *sdk.Graph {
 	g := sdk.New()
 	for _, pkg := range packages {
-		if err := g.AddPackage(sdk.NewPackageRefWithID(pkg.id, pkg.name, pkg.version)); err != nil {
+		if err := g.AddNode(sdk.NewDependencyRefWithID(pkg.id, pkg.name, pkg.version)); err != nil {
 			panic(err)
 		}
 	}
 	for _, relationship := range relationships {
-		if err := g.AddDependency(relationship[0], relationship[1]); err != nil {
+		if err := g.AddEdge(relationship[0], relationship[1]); err != nil {
 			panic(err)
 		}
 	}

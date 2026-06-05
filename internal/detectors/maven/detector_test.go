@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"testing"
 
@@ -30,7 +31,7 @@ func TestDepGraphFromMavenTGF(t *testing.T) {
 		t.Fatalf("expected 4 packages, got %d", g.Size())
 	}
 
-	rootDeps, err := g.Dependencies("com.example:demo-app@1.0.0")
+	rootDeps, err := g.DirectDependencies("com.example:demo-app@1.0.0")
 	if err != nil {
 		t.Fatalf("dependencies(root) error = %v", err)
 	}
@@ -38,7 +39,7 @@ func TestDepGraphFromMavenTGF(t *testing.T) {
 		t.Fatalf("unexpected root deps: %#v", rootDeps)
 	}
 
-	logbackDeps, err := g.Dependencies("ch.qos.logback:logback-classic@1.5.6")
+	logbackDeps, err := g.DirectDependencies("ch.qos.logback:logback-classic@1.5.6")
 	if err != nil {
 		t.Fatalf("dependencies(logback-classic) error = %v", err)
 	}
@@ -76,7 +77,7 @@ func TestDepGraphFromMavenTGF_WithMavenLogPrefixes(t *testing.T) {
 		t.Fatalf("expected 4 packages, got %d", g.Size())
 	}
 
-	rootDeps, err := g.Dependencies("com.srcclr:example-java-maven@1.0-SNAPSHOT")
+	rootDeps, err := g.DirectDependencies("com.srcclr:example-java-maven@1.0-SNAPSHOT")
 	if err != nil {
 		t.Fatalf("dependencies(root) error = %v", err)
 	}
@@ -87,7 +88,7 @@ func TestDepGraphFromMavenTGF_WithMavenLogPrefixes(t *testing.T) {
 		t.Fatalf("unexpected root deps: %#v", rootDeps)
 	}
 
-	strutsDeps, err := g.Dependencies("org.apache.struts:struts2-core@2.5.12")
+	strutsDeps, err := g.DirectDependencies("org.apache.struts:struts2-core@2.5.12")
 	if err != nil {
 		t.Fatalf("dependencies(struts2-core) error = %v", err)
 	}
@@ -113,8 +114,8 @@ func TestNodeFromMavenCoords_WithClassifier(t *testing.T) {
 	if node.ID != "com.example:demo-artifact:sources@1.0.0" {
 		t.Fatalf("unexpected package id %q", node.ID)
 	}
-	if node.Scope != string(sdk.ScopeDevelopment) {
-		t.Fatalf("expected development scope, got %q", node.Scope)
+	if string(node.PrimaryScope()) != string(sdk.ScopeDevelopment) {
+		t.Fatalf("expected development scope, got %q", string(node.PrimaryScope()))
 	}
 }
 
@@ -131,6 +132,46 @@ func TestMavenDetectorApplicable(t *testing.T) {
 	}
 	if !applicable {
 		t.Fatal("expected pom.xml to make detector applicable")
+	}
+}
+
+func TestMavenDependencyTreeArgsScopeFilter(t *testing.T) {
+	tests := []struct {
+		name      string
+		prefix    []string
+		scope     sdk.Scope
+		want      []string
+		unchanged []string
+	}{
+		{
+			name:  "unknown resolves full tree",
+			scope: sdk.ScopeUnknown,
+			want:  []string{"dependency:tree", "-DoutputType=tgf"},
+		},
+		{
+			name:   "runtime selects runtime scope",
+			prefix: []string{"./mvnw"},
+			scope:  sdk.ScopeRuntime,
+			want:   []string{"./mvnw", "dependency:tree", "-DoutputType=tgf", "-Dscope=runtime"},
+		},
+		{
+			name:      "development selects test scope",
+			prefix:    []string{"-f", "demo/pom.xml"},
+			scope:     sdk.ScopeDevelopment,
+			want:      []string{"-f", "demo/pom.xml", "dependency:tree", "-DoutputType=tgf", "-Dscope=test"},
+			unchanged: []string{"-f", "demo/pom.xml"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := mavenDependencyTreeArgs(tt.prefix, tt.scope)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("mavenDependencyTreeArgs() = %#v, want %#v", got, tt.want)
+			}
+			if tt.unchanged != nil && !reflect.DeepEqual(tt.prefix, tt.unchanged) {
+				t.Fatalf("prefix was mutated: %#v, want %#v", tt.prefix, tt.unchanged)
+			}
+		})
 	}
 }
 

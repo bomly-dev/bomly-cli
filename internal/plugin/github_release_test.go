@@ -40,10 +40,9 @@ func TestResolveGitHubReleaseAndInstall(t *testing.T) {
 			platformKey(): filepath.ToSlash(filepath.Join("bin", filepath.Base(binaryPath))),
 		},
 		DetectorDescriptor: &plugschema.DetectorDescriptor{
-			Name:           "acme.detector.release",
-			Enabled:        true,
-			Origin:         plugschema.ExternalOrigin,
-			SupportedModes: []plugschema.TargetMode{plugschema.TargetModeFullGraph, plugschema.TargetModeComponent},
+			Name:    "acme.detector.release",
+			Enabled: true,
+			Origin:  plugschema.ExternalOrigin,
 			PackageManagerSupport: []plugschema.PackageManagerSupport{
 				plugschema.Support(plugschema.PackageManagerGoMod, "go.mod"),
 			},
@@ -217,7 +216,6 @@ func (d *detector) Descriptor(ctx context.Context) (*schemav1.DetectorDescriptor
 		Name:           "` + id + `",
 		Enabled:        true,
 		Origin:         schemav1.ExternalOrigin,
-		SupportedModes: []schemav1.TargetMode{schemav1.TargetModeFullGraph, schemav1.TargetModeComponent},
 		Capabilities:   []string{"dependency-detection"},
 	}, nil
 }
@@ -235,15 +233,14 @@ func (d *detector) Applicable(context.Context, *schemav1.DetectRequest) (*schema
 }
 
 func (d *detector) Detect(ctx context.Context, req *schemav1.DetectRequest) (*schemav1.DetectResponse, error) {
-	packageNode := &schemav1.Package{
-		ID:        "example.com/demo@v1.0.0",
+	packageNode := schemav1.NewDependencyWithID("example.com/demo@v1.0.0", schemav1.Dependency{
 		Ecosystem: string(schemav1.EcosystemGo),
 		Name:      "example.com/demo",
 		Version:   "v1.0.0",
 		PURL:      "pkg:golang/example.com/demo@v1.0.0",
-	}
+	})
 	graph := schemav1.New()
-	if err := graph.AddPackage(packageNode); err != nil {
+	if err := graph.AddNode(packageNode); err != nil {
 		return nil, err
 	}
 	return &schemav1.DetectResponse{

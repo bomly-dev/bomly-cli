@@ -44,7 +44,6 @@ func (a Analyzer) Descriptor() model.AnalyzerDescriptor {
 		SupportedEcosystems: []model.Ecosystem{model.EcosystemGo},
 		SupportedManagers:   []model.PackageManager{model.PackageManagerGoMod},
 		SupportedLanguages:  []model.Language{model.LanguageGo},
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
 		SupportedTiers:      []model.ReachabilityTier{model.TierSymbol, model.TierPackage},
 	}
 }

@@ -8,15 +8,14 @@ import "github.com/bomly-dev/bomly-cli/sdk"
 // packages are deduplicated by PURL so a matcher enriches each unique package
 // once regardless of how many dependency instances reference it.
 //
-// When mode is component-scoped and target is set, only the target dependency
-// is considered.
-func RegistryPackagesForGraph(g *sdk.Graph, reg *sdk.PackageRegistry, mode sdk.TargetMode, target *sdk.Dependency) []*sdk.Package {
+// When a target is set, only the target dependency is considered.
+func RegistryPackagesForGraph(g *sdk.Graph, reg *sdk.PackageRegistry, target *sdk.Dependency) []*sdk.Package {
 	if g == nil || reg == nil {
 		return nil
 	}
 
 	deps := g.Nodes()
-	if mode == sdk.TargetModeComponent && target != nil {
+	if target != nil {
 		deps = []*sdk.Dependency{target}
 	}
 

@@ -14,7 +14,6 @@ type ResolveGraphResult = sdk.DetectionResult
 type DetectorFilter = sdk.DetectorFilter
 type PackageManager = sdk.PackageManager
 type Ecosystem = sdk.Ecosystem
-type TargetMode = sdk.TargetMode
 type ComponentQuery = sdk.DependencyQuery
 type Scope = sdk.Scope
 
@@ -52,8 +51,6 @@ const (
 	EcosystemRPM                    = sdk.EcosystemRPM
 	EcosystemAPK                    = sdk.EcosystemAPK
 	EcosystemSBOM                   = sdk.EcosystemSBOM
-	TargetModeFullGraph             = sdk.TargetModeFullGraph
-	TargetModeComponent             = sdk.TargetModeComponent
 	ExecutionTargetFilesystem       = sdk.ExecutionTargetFilesystem
 	ExecutionTargetWorkingDirectory = sdk.ExecutionTargetWorkingDirectory
 	ExecutionTargetContainerImage   = sdk.ExecutionTargetContainerImage

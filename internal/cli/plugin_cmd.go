@@ -527,7 +527,7 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 	}
 
 	seenFallbackTraversal := make(map[string]struct{})
-	for _, detector := range reg.Detectors(plugschema.DetectionRequest{Mode: plugschema.TargetModeFullGraph}) {
+	for _, detector := range reg.Detectors(plugschema.DetectionRequest{}) {
 		collectFallbackDetectorDescriptors(detector, detectorByName, seenFallbackTraversal)
 	}
 
@@ -750,7 +750,6 @@ func cloneDetectorDescriptor(descriptor *plugschema.DetectorDescriptor) *plugsch
 	copyValue := *descriptor
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
-	copyValue.SupportedModes = append([]plugschema.TargetMode(nil), descriptor.SupportedModes...)
 	copyValue.PackageManagerSupport = completeDetectorPackageManagerSupport(descriptor.SupportedManagers, descriptor.PackageManagerSupport)
 	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
 	copyValue.FallbackDetectors = append([]string(nil), descriptor.FallbackDetectors...)
@@ -801,7 +800,6 @@ func cloneMatcherDescriptor(descriptor *plugschema.MatcherDescriptor) *plugschem
 	copyValue := *descriptor
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
-	copyValue.SupportedModes = append([]plugschema.TargetMode(nil), descriptor.SupportedModes...)
 	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
 	return &copyValue
 }
@@ -813,7 +811,6 @@ func cloneAuditorDescriptor(descriptor *plugschema.AuditorDescriptor) *plugschem
 	copyValue := *descriptor
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
-	copyValue.SupportedModes = append([]plugschema.TargetMode(nil), descriptor.SupportedModes...)
 	return &copyValue
 }
 
@@ -825,7 +822,6 @@ func cloneAnalyzerDescriptor(descriptor *plugschema.AnalyzerDescriptor) *plugsch
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
 	copyValue.SupportedLanguages = append([]plugschema.Language(nil), descriptor.SupportedLanguages...)
-	copyValue.SupportedModes = append([]plugschema.TargetMode(nil), descriptor.SupportedModes...)
 	copyValue.SupportedTiers = append([]plugschema.ReachabilityTier(nil), descriptor.SupportedTiers...)
 	return &copyValue
 }

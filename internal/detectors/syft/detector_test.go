@@ -357,7 +357,6 @@ func TestDetectorResolveGraph_UsesSyftLibrary(t *testing.T) {
 	result, err := detector.ResolveGraph(context.Background(), sdk.DetectionRequest{
 		ProjectPath:    projectDir,
 		PackageManager: sdk.PackageManagerNPM,
-		Mode:           sdk.TargetModeComponent,
 		Query:          sdk.DependencyQuery{Name: "react"},
 	})
 	if err != nil {

@@ -43,7 +43,7 @@ func TestLicenseAuditorAllowDeny(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g, registry := mkScenario(tt.license)
-			result, err := tt.auditor.Audit(context.Background(), sdk.AuditRequest{Graph: g, Registry: registry, Mode: sdk.TargetModeFullGraph})
+			result, err := tt.auditor.Audit(context.Background(), sdk.AuditRequest{Graph: g, Registry: registry})
 			if err != nil {
 				t.Fatalf("Audit() error = %v", err)
 			}

@@ -627,7 +627,6 @@ func runtimeMetadataMatchesManifest(metadata *plugschema.PluginMetadata, detecto
 		}
 		if !slices.Equal(detector.FallbackDetectors, manifest.DetectorDescriptor.FallbackDetectors) ||
 			detector.Origin != manifest.DetectorDescriptor.Origin ||
-			!slices.Equal(detector.SupportedModes, manifest.DetectorDescriptor.SupportedModes) ||
 			detector.SupportsInstallFirst != manifest.DetectorDescriptor.SupportsInstallFirst {
 			return fmt.Errorf("plugin runtime detector descriptor does not match manifest detector descriptor")
 		}
@@ -635,14 +634,14 @@ func runtimeMetadataMatchesManifest(metadata *plugschema.PluginMetadata, detecto
 		if matcher == nil || manifest.MatcherDescriptor == nil {
 			return errors.New("plugin runtime matcher descriptor is missing")
 		}
-		if matcher.Origin != manifest.MatcherDescriptor.Origin || !slices.Equal(matcher.SupportedModes, manifest.MatcherDescriptor.SupportedModes) {
+		if matcher.Origin != manifest.MatcherDescriptor.Origin {
 			return fmt.Errorf("plugin runtime matcher descriptor does not match manifest matcher descriptor")
 		}
 	case plugschema.PluginKindAuditor:
 		if auditor == nil || manifest.AuditorDescriptor == nil {
 			return errors.New("plugin runtime auditor descriptor is missing")
 		}
-		if auditor.Origin != manifest.AuditorDescriptor.Origin || !slices.Equal(auditor.SupportedModes, manifest.AuditorDescriptor.SupportedModes) {
+		if auditor.Origin != manifest.AuditorDescriptor.Origin {
 			return fmt.Errorf("plugin runtime auditor descriptor does not match manifest auditor descriptor")
 		}
 	}
@@ -749,7 +748,6 @@ func cloneDetectorDescriptor(descriptor *plugschema.DetectorDescriptor) *plugsch
 	copyValue := *descriptor
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
-	copyValue.SupportedModes = append([]plugschema.TargetMode(nil), descriptor.SupportedModes...)
 	copyValue.PackageManagerSupport = clonePackageManagerSupport(descriptor.PackageManagerSupport)
 	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
 	copyValue.FallbackDetectors = append([]string(nil), descriptor.FallbackDetectors...)
@@ -830,7 +828,6 @@ func cloneMatcherDescriptor(descriptor *plugschema.MatcherDescriptor) *plugschem
 	copyValue := *descriptor
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
-	copyValue.SupportedModes = append([]plugschema.TargetMode(nil), descriptor.SupportedModes...)
 	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
 	return &copyValue
 }
@@ -842,7 +839,6 @@ func cloneAuditorDescriptor(descriptor *plugschema.AuditorDescriptor) *plugschem
 	copyValue := *descriptor
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
-	copyValue.SupportedModes = append([]plugschema.TargetMode(nil), descriptor.SupportedModes...)
 	return &copyValue
 }
 
@@ -854,7 +850,6 @@ func cloneAnalyzerDescriptor(descriptor *plugschema.AnalyzerDescriptor) *plugsch
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
 	copyValue.SupportedLanguages = append([]plugschema.Language(nil), descriptor.SupportedLanguages...)
-	copyValue.SupportedModes = append([]plugschema.TargetMode(nil), descriptor.SupportedModes...)
 	copyValue.SupportedTiers = append([]plugschema.ReachabilityTier(nil), descriptor.SupportedTiers...)
 	return &copyValue
 }

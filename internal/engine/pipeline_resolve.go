@@ -117,7 +117,6 @@ func (p *Pipeline) resolveSubproject(ctx context.Context, req PipelineRequest, s
 		PackageManager:    sub.PrimaryPackageManager(),
 		EnrichmentEnabled: req.EnrichEnabled || req.MatchEnabled,
 		DetectorFilter:    req.DetectorFilter,
-		Mode:              sdk.TargetModeFullGraph,
 		InstallFirst:      req.InstallFirst,
 		InstallArgs:       req.InstallArgs,
 		CoreVersion:       req.CoreVersion,

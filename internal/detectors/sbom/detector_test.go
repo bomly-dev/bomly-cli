@@ -160,7 +160,6 @@ func requestForSBOMPath(path string) sdk.DetectionRequest {
 		},
 		PackageManager: sdk.PackageManagerSBOM,
 		Ecosystem:      sdk.EcosystemSBOM,
-		Mode:           sdk.TargetModeFullGraph,
 	}
 }
 

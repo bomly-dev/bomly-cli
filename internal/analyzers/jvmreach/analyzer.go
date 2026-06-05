@@ -53,7 +53,6 @@ func (a Analyzer) Descriptor() model.AnalyzerDescriptor {
 			model.LanguageScala,
 			model.LanguageGroovy,
 		},
-		SupportedModes: []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
 		SupportedTiers: []model.ReachabilityTier{model.TierPackage},
 	}
 }

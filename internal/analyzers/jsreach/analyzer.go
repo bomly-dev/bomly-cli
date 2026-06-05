@@ -50,7 +50,6 @@ func (a Analyzer) Descriptor() model.AnalyzerDescriptor {
 		SupportedEcosystems: []model.Ecosystem{model.EcosystemNPM},
 		SupportedManagers:   []model.PackageManager{model.PackageManagerNPM, model.PackageManagerPNPM, model.PackageManagerYarn},
 		SupportedLanguages:  []model.Language{model.LanguageJavaScript, model.LanguageTypeScript},
-		SupportedModes:      []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
 		SupportedTiers:      []model.ReachabilityTier{model.TierPackage},
 	}
 }

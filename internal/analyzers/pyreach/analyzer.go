@@ -60,7 +60,6 @@ func (a Analyzer) Descriptor() model.AnalyzerDescriptor {
 			model.PackageManagerSetupPy,
 		},
 		SupportedLanguages: []model.Language{model.LanguagePython},
-		SupportedModes:     []model.TargetMode{model.TargetModeFullGraph, model.TargetModeComponent},
 		SupportedTiers:     []model.ReachabilityTier{model.TierPackage},
 	}
 }

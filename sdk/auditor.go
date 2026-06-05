@@ -29,7 +29,6 @@ type AuditRequest struct {
 	SubprojectInfo  Subproject       `json:"subprojectInfo"`
 	Ecosystem       Ecosystem        `json:"ecosystem,omitempty"`
 	PackageManager  PackageManager   `json:"packageManager,omitempty"`
-	Mode            TargetMode       `json:"mode,omitempty"`
 	Query           PackageQuery     `json:"query"`
 	Graph           *Graph           `json:"graph,omitempty"`
 	BaselineGraph   *Graph           `json:"baselineGraph,omitempty"`
@@ -54,7 +53,6 @@ type AuditorDescriptor struct {
 	Origin              DetectorOrigin   `json:"origin,omitempty"`
 	SupportedEcosystems []Ecosystem      `json:"supportedEcosystems,omitempty"`
 	SupportedManagers   []PackageManager `json:"supportedManagers,omitempty"`
-	SupportedModes      []TargetMode     `json:"supportedModes,omitempty"`
 }
 
 // Auditor analyzes graphs or components and returns findings.

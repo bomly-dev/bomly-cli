@@ -32,7 +32,6 @@ type DetectionRequest struct {
 	// enrichment when a downstream command has opted into package enrichment.
 	EnrichmentEnabled  bool            `json:"enrichmentEnabled,omitempty"`
 	DetectorFilter     DetectorFilter  `json:"detectorFilter"`
-	Mode               TargetMode      `json:"mode,omitempty"`
 	Query              DependencyQuery `json:"query"`
 	InstallFirst       bool            `json:"installFirst,omitempty"`
 	InstallArgs        []string        `json:"installArgs,omitempty"`
@@ -65,7 +64,6 @@ type DetectorDescriptor struct {
 	Technique             DetectorTechnique       `json:"technique,omitempty"`
 	SupportedEcosystems   []Ecosystem             `json:"supportedEcosystems,omitempty"`
 	SupportedManagers     []PackageManager        `json:"supportedManagers,omitempty"`
-	SupportedModes        []TargetMode            `json:"supportedModes,omitempty"`
 	PackageManagerSupport []PackageManagerSupport `json:"packageManagerSupport,omitempty"`
 	Capabilities          []string                `json:"capabilities,omitempty"`
 	FallbackDetectors     []string                `json:"fallbackDetectors,omitempty"`

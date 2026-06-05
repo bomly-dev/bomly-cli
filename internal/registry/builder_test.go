@@ -16,7 +16,6 @@ func TestBuildScanRegistryRegistersDetectorForEveryPackageManager(t *testing.T) 
 		detectorChain := builtins.Detectors(sdk.DetectionRequest{
 			Ecosystem:      packageManager.Ecosystem(),
 			PackageManager: packageManager,
-			Mode:           sdk.TargetModeFullGraph,
 		})
 		if len(detectorChain) == 0 {
 			t.Fatalf("expected detectors for package manager %q", packageManager.Name())
@@ -31,7 +30,6 @@ func TestBuildScanRegistryUsesSyftForUnclaimedManagers(t *testing.T) {
 	detectorChain := builtins.Detectors(sdk.DetectionRequest{
 		Ecosystem:      sdk.PackageManagerTerraform.Ecosystem(),
 		PackageManager: sdk.PackageManagerTerraform,
-		Mode:           sdk.TargetModeFullGraph,
 	})
 	if len(detectorChain) != 1 {
 		t.Fatalf("expected a single detector for %q, got %d", sdk.PackageManagerTerraform.Name(), len(detectorChain))
@@ -67,7 +65,6 @@ func TestBuildScanRegistryKeepsNativeDetectorFirstForNativeManagers(t *testing.T
 		detectorChain := builtins.Detectors(sdk.DetectionRequest{
 			Ecosystem:      tc.manager.Ecosystem(),
 			PackageManager: tc.manager,
-			Mode:           sdk.TargetModeFullGraph,
 		})
 		if len(detectorChain) == 0 {
 			t.Fatalf("expected at least one detector for %q", tc.manager.Name())

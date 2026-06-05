@@ -44,7 +44,6 @@ func (d PipDetector) Descriptor() sdk.DetectorDescriptor {
 		Technique:            sdk.BuildToolTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemPython},
 		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerPip},
-		SupportedModes:       []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:         []string{"graph-resolution", "component-targeting"},
 		SupportsInstallFirst: true,
 	}

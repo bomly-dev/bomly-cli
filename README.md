@@ -170,7 +170,7 @@ See [docs/CONFIG_REFERENCE.md](docs/CONFIG_REFERENCE.md) for the generated refer
 
 Bomly supports managed external plugins for detectors, matchers, and auditors.
 
-The common workflow is:
+Install, enable, and verify external plugins before they can participate in scans:
 
 ```bash
 # Install a published plugin from GitHub Releases
@@ -186,7 +186,7 @@ bomly scan --path ./my-go-project --detectors acme.detector.example --json
 
 Detector plugins declare package-manager support and evidence patterns through their detector contract. Bomly uses those patterns during runtime preparation so external detectors can participate in subproject discovery alongside built-ins.
 
-The full getting-started guide lives in [docs/PLUGINS.md](docs/PLUGINS.md), and the working example plugin lives in [examples/plugins/go-module-detector](examples/plugins/go-module-detector).
+The plugin hub lives in [docs/PLUGINS.md](docs/PLUGINS.md). Implementation guides are available for [detectors](docs/plugins/how-to-implement-detector.md), [matchers](docs/plugins/how-to-implement-matcher.md), and [auditors](docs/plugins/how-to-implement-auditor.md). The working example plugin lives in [examples/plugins/go-module-detector](examples/plugins/go-module-detector).
 
 ## Architecture
 

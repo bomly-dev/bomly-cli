@@ -11,14 +11,14 @@ func TestDeriveConfidence(t *testing.T) {
 	}{
 		{"nil hops -> unknown", nil, false, ConfidenceUnknown},
 		{"nil hops with dynamic still unknown", nil, true, ConfidenceUnknown},
-		{"hops=0 -> high", intPtr(0), false, ConfidenceHigh},
-		{"hops=1 -> medium", intPtr(1), false, ConfidenceMedium},
-		{"hops=3 -> medium", intPtr(3), false, ConfidenceMedium},
-		{"hops=4 -> low", intPtr(4), false, ConfidenceLow},
-		{"hops=10 -> low", intPtr(10), false, ConfidenceLow},
-		{"dynamic forces low for direct", intPtr(0), true, ConfidenceLow},
-		{"dynamic forces low for medium chain", intPtr(2), true, ConfidenceLow},
-		{"dynamic forces low for long chain", intPtr(8), true, ConfidenceLow},
+		{"hops=0 -> high", new(0), false, ConfidenceHigh},
+		{"hops=1 -> medium", new(1), false, ConfidenceMedium},
+		{"hops=3 -> medium", new(3), false, ConfidenceMedium},
+		{"hops=4 -> low", new(4), false, ConfidenceLow},
+		{"hops=10 -> low", new(10), false, ConfidenceLow},
+		{"dynamic forces low for direct", new(0), true, ConfidenceLow},
+		{"dynamic forces low for medium chain", new(2), true, ConfidenceLow},
+		{"dynamic forces low for long chain", new(8), true, ConfidenceLow},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -30,10 +30,9 @@ func TestDeriveConfidence(t *testing.T) {
 }
 
 func TestReachabilityCloneDeepCopiesHops(t *testing.T) {
-	five := 5
 	src := &Reachability{
 		Status:                 ReachabilityReachable,
-		Hops:                   &five,
+		Hops:                   new(5),
 		Confidence:             ConfidenceMedium,
 		DynamicImportsDetected: true,
 	}

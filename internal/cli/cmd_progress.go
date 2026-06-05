@@ -76,10 +76,10 @@ func plannedSubprojectChildren(subprojects []sdk.Subproject) []progress.Child {
 			}
 		}
 		detail := string(s.Ecosystem)
-		if detail != "" {
-			label += " (" + detail + ")"
+		if detail == "" {
+			detail = "unknown ecosystem"
 		}
-		children = append(children, progress.Child{Label: label})
+		children = append(children, progress.Child{Label: label, Detail: "[" + detail + "]"})
 	}
 	return children
 }

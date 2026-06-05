@@ -378,8 +378,7 @@ func (a *Matcher) fetchVulnDetails(ids []string, stats *auditStats) map[string]*
 				if stats != nil {
 					stats.detailCacheHits++
 				}
-				v := found
-				result[id] = &v
+				result[id] = new(found)
 				continue
 			}
 		}

@@ -43,8 +43,7 @@ func (e *PackageEOL) Clone() *PackageEOL {
 	if e == nil {
 		return nil
 	}
-	clone := *e
-	return &clone
+	return new(*e)
 }
 
 // Package describes one matching artifact: the PURL-keyed, deduplicated record

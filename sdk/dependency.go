@@ -201,8 +201,7 @@ func (d *Dependency) Clone() *Dependency {
 		for i, loc := range d.Locations {
 			clone.Locations[i] = loc
 			if loc.Position != nil {
-				pos := *loc.Position
-				clone.Locations[i].Position = &pos
+				clone.Locations[i].Position = new(*loc.Position)
 			}
 		}
 	}

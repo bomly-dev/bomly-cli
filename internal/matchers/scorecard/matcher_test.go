@@ -80,7 +80,7 @@ func TestMatch_AttachesScorecardToPackages(t *testing.T) {
 	g := newGraph(t, dep)
 	registry := sdk.NewPackageRegistry()
 
-	res, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: g, Registry: registry, Mode: sdk.TargetModeFullGraph})
+	res, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: g, Registry: registry})
 	if err != nil {
 		t.Fatalf("Match: %v", err)
 	}
@@ -118,7 +118,7 @@ func TestMatch_CacheHitSkipsAPI(t *testing.T) {
 	}
 	dep1 := sdk.NewDependency(sdk.Dependency{PURL: "pkg:github/ossf/scorecard@v5.0.0", Version: "v5.0.0"})
 	reg1 := sdk.NewPackageRegistry()
-	if _, err := matcher1.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep1), Registry: reg1, Mode: sdk.TargetModeFullGraph}); err != nil {
+	if _, err := matcher1.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep1), Registry: reg1}); err != nil {
 		t.Fatalf("first Match: %v", err)
 	}
 
@@ -129,7 +129,7 @@ func TestMatch_CacheHitSkipsAPI(t *testing.T) {
 	}
 	dep2 := sdk.NewDependency(sdk.Dependency{PURL: "pkg:github/ossf/scorecard@v5.0.0", Version: "v5.0.0"})
 	reg2 := sdk.NewPackageRegistry()
-	if _, err := matcher2.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep2), Registry: reg2, Mode: sdk.TargetModeFullGraph}); err != nil {
+	if _, err := matcher2.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep2), Registry: reg2}); err != nil {
 		t.Fatalf("second Match: %v", err)
 	}
 	if scorecardOf(reg2, dep2) == nil {
@@ -152,7 +152,7 @@ func TestMatch_NotFoundCachedAsSentinel(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
-	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep1), Registry: reg1, Mode: sdk.TargetModeFullGraph}); err != nil {
+	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep1), Registry: reg1}); err != nil {
 		t.Fatalf("Match: %v", err)
 	}
 	if scorecardOf(reg1, dep1) != nil {
@@ -162,7 +162,7 @@ func TestMatch_NotFoundCachedAsSentinel(t *testing.T) {
 	// Second invocation should hit the sentinel cache (no extra API call).
 	dep2 := sdk.NewDependency(sdk.Dependency{PURL: "pkg:github/unscored/repo@1.0.0", Version: "1.0.0"})
 	reg2 := sdk.NewPackageRegistry()
-	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep2), Registry: reg2, Mode: sdk.TargetModeFullGraph}); err != nil {
+	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep2), Registry: reg2}); err != nil {
 		t.Fatalf("second Match: %v", err)
 	}
 	if got := atomic.LoadInt32(calls); got != 1 {
@@ -178,7 +178,7 @@ func TestMatch_ServerErrorIsNonFatal(t *testing.T) {
 	matcher := newMatcher(t, base)
 	dep := sdk.NewDependency(sdk.Dependency{PURL: "pkg:github/example/repo@1.0.0", Version: "1.0.0"})
 	reg := sdk.NewPackageRegistry()
-	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep), Registry: reg, Mode: sdk.TargetModeFullGraph}); err != nil {
+	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep), Registry: reg}); err != nil {
 		t.Fatalf("Match must not return an error on transport failure; got %v", err)
 	}
 	if scorecardOf(reg, dep) != nil {
@@ -196,7 +196,7 @@ func TestMatch_SkipsPackagesWithoutResolvableRepo(t *testing.T) {
 	matcher := newMatcher(t, srv.URL)
 	dep := sdk.NewDependency(sdk.Dependency{PURL: "pkg:npm/internal-only@1.0.0", Version: "1.0.0"})
 	reg := sdk.NewPackageRegistry()
-	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep), Registry: reg, Mode: sdk.TargetModeFullGraph}); err != nil {
+	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep), Registry: reg}); err != nil {
 		t.Fatalf("Match: %v", err)
 	}
 	if called {
@@ -223,7 +223,6 @@ func TestMatch_ComponentModeOnlyEnrichesTarget(t *testing.T) {
 		Graph:    g,
 		Registry: reg,
 		Target:   target,
-		Mode:     sdk.TargetModeComponent,
 	}); err != nil {
 		t.Fatalf("Match: %v", err)
 	}

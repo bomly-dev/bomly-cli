@@ -23,10 +23,9 @@ type Auditor struct {
 
 func (a Auditor) Descriptor() sdk.AuditorDescriptor {
 	return sdk.AuditorDescriptor{
-		Name:           auditorName,
-		Enabled:        true,
-		Origin:         sdk.CoreOrigin,
-		SupportedModes: []sdk.TargetMode{sdk.TargetModeFullGraph},
+		Name:    auditorName,
+		Enabled: true,
+		Origin:  sdk.CoreOrigin,
 	}
 }
 

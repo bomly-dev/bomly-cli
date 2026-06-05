@@ -38,11 +38,6 @@ func ValidateDetectorDescriptor(descriptor *DetectorDescriptor) error {
 	if strings.TrimSpace(descriptor.Name) == "" {
 		return fmt.Errorf("detector descriptor name is required")
 	}
-	for _, mode := range descriptor.SupportedModes {
-		if strings.TrimSpace(string(mode)) == "" {
-			return fmt.Errorf("detector descriptor supported modes must not contain empty values")
-		}
-	}
 	for _, manager := range descriptor.SupportedManagers {
 		if strings.TrimSpace(manager.Name()) == "" {
 			return fmt.Errorf("detector descriptor supported managers must not contain empty values")
@@ -69,11 +64,6 @@ func ValidateMatcherDescriptor(descriptor *MatcherDescriptor) error {
 	if strings.TrimSpace(descriptor.Name) == "" {
 		return fmt.Errorf("matcher descriptor name is required")
 	}
-	for _, mode := range descriptor.SupportedModes {
-		if strings.TrimSpace(string(mode)) == "" {
-			return fmt.Errorf("matcher descriptor supported modes must not contain empty values")
-		}
-	}
 	for _, manager := range descriptor.SupportedManagers {
 		if strings.TrimSpace(manager.Name()) == "" {
 			return fmt.Errorf("matcher descriptor supported managers must not contain empty values")
@@ -89,11 +79,6 @@ func ValidateAuditorDescriptor(descriptor *AuditorDescriptor) error {
 	}
 	if strings.TrimSpace(descriptor.Name) == "" {
 		return fmt.Errorf("auditor descriptor name is required")
-	}
-	for _, mode := range descriptor.SupportedModes {
-		if strings.TrimSpace(string(mode)) == "" {
-			return fmt.Errorf("auditor descriptor supported modes must not contain empty values")
-		}
 	}
 	for _, manager := range descriptor.SupportedManagers {
 		if strings.TrimSpace(manager.Name()) == "" {

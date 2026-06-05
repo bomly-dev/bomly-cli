@@ -221,7 +221,6 @@ func (d *Detector) Descriptor(ctx context.Context) (*sdk.DetectorDescriptor, err
         Name:           "acme.detector.example",
         Enabled:        true,
         Origin:         sdk.ExternalOrigin,
-        SupportedModes: []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
         Capabilities:   []string{"dependency-detection"},
     }, nil
 }

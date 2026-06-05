@@ -38,7 +38,7 @@ func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult
 	}
 
 	// Seed the registry so SPDX serialization and match correlation share PURLs.
-	_ = matchers.RegistryPackagesForGraph(req.Graph, req.Registry, req.Mode, req.Target)
+	_ = matchers.RegistryPackagesForGraph(req.Graph, req.Registry, req.Target)
 
 	// Serialize graph as SPDX JSON to feed to grype stdin.
 	spdxBytes, err := sbom.MarshalDepGraphJSON(req.Graph, sbom.TargetSPDX23JSON, sbom.BuildOptions{}, sbom.EncodeOptions{})

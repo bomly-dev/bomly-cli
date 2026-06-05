@@ -33,7 +33,7 @@ func TestDescriptor_Name(t *testing.T) {
 func TestMatch_NilGraph_ReturnsEmpty(t *testing.T) {
 	a := Matcher{Priority: 90}
 	registry := sdk.NewPackageRegistry()
-	result, err := a.Match(context.Background(), sdk.MatchRequest{Graph: nil, Registry: registry, Mode: sdk.TargetModeFullGraph})
+	result, err := a.Match(context.Background(), sdk.MatchRequest{Graph: nil, Registry: registry})
 	if err != nil {
 		t.Fatalf("Match with nil graph: %v", err)
 	}
@@ -77,7 +77,7 @@ func TestMatch_DBNotPresent_AttemptsDownloadAndReturnsEmpty(t *testing.T) {
 	}
 	registry := sdk.NewPackageRegistry()
 
-	result, err := a.Match(context.Background(), sdk.MatchRequest{Graph: g, Registry: registry, Mode: sdk.TargetModeFullGraph})
+	result, err := a.Match(context.Background(), sdk.MatchRequest{Graph: g, Registry: registry})
 	if err == nil {
 		t.Fatal("expected non-nil error when DB download fails")
 	}

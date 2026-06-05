@@ -71,7 +71,7 @@ func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult
 		logger.Debug(fmt.Sprintf("Grype vulnerability DB loaded, built at %s", status.Built))
 	}
 
-	packages := matchers.RegistryPackagesForGraph(req.Graph, req.Registry, req.Mode, req.Target)
+	packages := matchers.RegistryPackagesForGraph(req.Graph, req.Registry, req.Target)
 	logger.Info(fmt.Sprintf("Grype enriching %d packages with vulnerability data", len(packages)))
 	grypePkgs := make([]grypepkg.Package, 0, len(packages))
 	for _, p := range packages {

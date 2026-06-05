@@ -40,10 +40,9 @@ func TestResolveGitHubReleaseAndInstall(t *testing.T) {
 			platformKey(): filepath.ToSlash(filepath.Join("bin", filepath.Base(binaryPath))),
 		},
 		DetectorDescriptor: &plugschema.DetectorDescriptor{
-			Name:           "acme.detector.release",
-			Enabled:        true,
-			Origin:         plugschema.ExternalOrigin,
-			SupportedModes: []plugschema.TargetMode{plugschema.TargetModeFullGraph, plugschema.TargetModeComponent},
+			Name:    "acme.detector.release",
+			Enabled: true,
+			Origin:  plugschema.ExternalOrigin,
 			PackageManagerSupport: []plugschema.PackageManagerSupport{
 				plugschema.Support(plugschema.PackageManagerGoMod, "go.mod"),
 			},
@@ -217,7 +216,6 @@ func (d *detector) Descriptor(ctx context.Context) (*schemav1.DetectorDescriptor
 		Name:           "` + id + `",
 		Enabled:        true,
 		Origin:         schemav1.ExternalOrigin,
-		SupportedModes: []schemav1.TargetMode{schemav1.TargetModeFullGraph, schemav1.TargetModeComponent},
 		Capabilities:   []string{"dependency-detection"},
 	}, nil
 }

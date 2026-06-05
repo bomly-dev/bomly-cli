@@ -29,8 +29,7 @@ type AnalyzerDescriptor struct {
 	SupportedEcosystems []Ecosystem      `json:"supportedEcosystems,omitempty"`
 	SupportedManagers   []PackageManager `json:"supportedManagers,omitempty"`
 	// SupportedLanguages is the analyzer's primary dispatch axis.
-	SupportedLanguages []Language   `json:"supportedLanguages,omitempty"`
-	SupportedModes     []TargetMode `json:"supportedModes,omitempty"`
+	SupportedLanguages []Language `json:"supportedLanguages,omitempty"`
 	// SupportedTiers communicates the precision the analyzer can deliver.
 	SupportedTiers []ReachabilityTier `json:"supportedTiers,omitempty"`
 	Priority       int                `json:"priority,omitempty"`
@@ -45,7 +44,6 @@ type AnalyzeRequest struct {
 	Ecosystem       Ecosystem        `json:"ecosystem,omitempty"`
 	PackageManager  PackageManager   `json:"packageManager,omitempty"`
 	Language        Language         `json:"language,omitempty"`
-	Mode            TargetMode       `json:"mode,omitempty"`
 	Query           PackageQuery     `json:"query"`
 	Graph           *Graph           `json:"graph,omitempty"`
 	Registry        *PackageRegistry `json:"registry,omitempty"`

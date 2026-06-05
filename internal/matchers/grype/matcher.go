@@ -43,7 +43,6 @@ func (a Matcher) Descriptor() sdk.MatcherDescriptor {
 		Enabled:             true,
 		Origin:              sdk.BundledOrigin,
 		SupportedEcosystems: nil, // nil = all ecosystems
-		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Priority:            a.Priority,
 		Required:            false,
 	}

@@ -127,13 +127,12 @@ func New(config Config) (*Checker, error) {
 // Descriptor returns the matcher registration metadata.
 func (c *Checker) Descriptor() sdk.MatcherDescriptor {
 	return sdk.MatcherDescriptor{
-		Name:           "depsdev-license-checker",
-		Enabled:        true,
-		Origin:         sdk.CoreOrigin,
-		SupportedModes: []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
-		Priority:       100,
-		Required:       false,
-		Capabilities:   []string{"license-enrichment", "batch-http"},
+		Name:         "depsdev-license-checker",
+		Enabled:      true,
+		Origin:       sdk.CoreOrigin,
+		Priority:     100,
+		Required:     false,
+		Capabilities: []string{"license-enrichment", "batch-http"},
 	}
 }
 
@@ -152,7 +151,7 @@ func (c *Checker) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchRes
 	if req.Graph == nil || req.Registry == nil {
 		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, nil
 	}
-	packages := matchers.RegistryPackagesForGraph(req.Graph, req.Registry, req.Mode, req.Target)
+	packages := matchers.RegistryPackagesForGraph(req.Graph, req.Registry, req.Target)
 	packages = matchers.MissingLicensePackages(packages)
 	if len(packages) == 0 {
 		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, nil

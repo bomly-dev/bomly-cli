@@ -37,11 +37,10 @@ func (d *detector) Metadata(context.Context) (*sdk.PluginMetadata, error) {
 
 func (d *detector) Descriptor(context.Context) (*sdk.DetectorDescriptor, error) {
 	return &sdk.DetectorDescriptor{
-		Name:           pluginID,
-		Enabled:        true,
-		Origin:         sdk.ExternalOrigin,
-		SupportedModes: []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
-		Capabilities:   []string{"dependency-detection"},
+		Name:         pluginID,
+		Enabled:      true,
+		Origin:       sdk.ExternalOrigin,
+		Capabilities: []string{"dependency-detection"},
 	}, nil
 }
 

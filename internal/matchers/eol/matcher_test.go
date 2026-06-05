@@ -46,7 +46,7 @@ func TestMatchEnrichesPackageMetadata(t *testing.T) {
 	}
 
 	registry := sdk.NewPackageRegistry()
-	_, err = checker.Match(context.Background(), sdk.MatchRequest{Graph: g, Registry: registry, Mode: sdk.TargetModeFullGraph})
+	_, err = checker.Match(context.Background(), sdk.MatchRequest{Graph: g, Registry: registry})
 	if err != nil {
 		t.Fatalf("Match() error = %v", err)
 	}

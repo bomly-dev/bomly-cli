@@ -237,7 +237,6 @@ func TestPrepareLoadsAndRunsExternalDetector(t *testing.T) {
 		Subproject:      subprojects[0],
 		Ecosystem:       sdk.EcosystemGo,
 		PackageManager:  sdk.PackageManagerGoMod,
-		Mode:            sdk.TargetModeFullGraph,
 	}, []string{"acme.detector.gomod"})
 	if len(detectors) != 1 {
 		t.Fatalf("expected one planned detector, got %d", len(detectors))
@@ -248,7 +247,6 @@ func TestPrepareLoadsAndRunsExternalDetector(t *testing.T) {
 		Subproject:      subprojects[0],
 		Ecosystem:       sdk.EcosystemGo,
 		PackageManager:  sdk.PackageManagerGoMod,
-		Mode:            sdk.TargetModeFullGraph,
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -280,7 +278,6 @@ func TestExternalMatcherReceivesAndReturnsRegistry(t *testing.T) {
 		t.Fatalf("RegisterRuntimePlugins() error = %v", err)
 	}
 	matchers := reg.Matchers(sdk.MatchRequest{
-		Mode:          sdk.TargetModeFullGraph,
 		MatcherFilter: sdk.MatcherFilter{Include: []string{"acme.matcher.registry"}},
 	})
 	if len(matchers) != 1 {
@@ -291,7 +288,6 @@ func TestExternalMatcherReceivesAndReturnsRegistry(t *testing.T) {
 	registry := sdk.NewPackageRegistry()
 	registry.Ensure(purl).Name = "react"
 	result, err := matchers[0].Match(context.Background(), sdk.MatchRequest{
-		Mode:     sdk.TargetModeFullGraph,
 		Registry: registry,
 	})
 	if err != nil {
@@ -338,7 +334,6 @@ func (d *detector) Descriptor(ctx context.Context) (*schemav1.DetectorDescriptor
 		Name:           "` + id + `",
 		Enabled:        true,
 		Origin:         schemav1.ExternalOrigin,
-		SupportedModes: []schemav1.TargetMode{schemav1.TargetModeFullGraph, schemav1.TargetModeComponent},
 		Capabilities:   []string{"dependency-detection"},
 	}, nil
 }
@@ -415,7 +410,6 @@ func (m *matcher) Descriptor(ctx context.Context) (*schemav1.MatcherDescriptor, 
 		Name:           "` + id + `",
 		Enabled:        true,
 		Origin:         schemav1.ExternalOrigin,
-		SupportedModes: []schemav1.TargetMode{schemav1.TargetModeFullGraph, schemav1.TargetModeComponent},
 	}, nil
 }
 
@@ -473,7 +467,6 @@ func (d *detector) Descriptor(ctx context.Context) (*schemav1.DetectorDescriptor
 		Name:           "` + id + `",
 		Enabled:        true,
 		Origin:         schemav1.ExternalOrigin,
-		SupportedModes: []schemav1.TargetMode{schemav1.TargetModeFullGraph, schemav1.TargetModeComponent},
 		Capabilities:   []string{"dependency-detection"},
 	}, nil
 }

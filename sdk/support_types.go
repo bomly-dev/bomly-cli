@@ -32,13 +32,3 @@ const (
 	// MultipleTechnique applies several of the above strategies depending on the target.
 	MultipleTechnique DetectorTechnique = "multiple"
 )
-
-// TargetMode describes whether an operation targets a whole graph or a single component.
-type TargetMode string
-
-const (
-	// TargetModeFullGraph requests whole-project resolution or analysis.
-	TargetModeFullGraph TargetMode = "full-graph"
-	// TargetModeComponent requests a single-component targeted query.
-	TargetModeComponent TargetMode = "component"
-)

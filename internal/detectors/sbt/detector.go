@@ -64,7 +64,6 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 		Technique:           sdk.ManifestTechnique,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemScala, sdk.EcosystemMaven},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerSBT},
-		SupportedModes:      []sdk.TargetMode{sdk.TargetModeFullGraph, sdk.TargetModeComponent},
 		Capabilities:        []string{"graph-resolution", "component-targeting", "manifest-parsing", "scope-annotation"},
 	}
 }

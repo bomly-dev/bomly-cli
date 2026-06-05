@@ -129,13 +129,9 @@ func (m *Matcher) Descriptor() sdk.MatcherDescriptor {
 		Enabled:             false,
 		Origin:              sdk.CoreOrigin,
 		SupportedEcosystems: nil,
-		SupportedModes: []sdk.TargetMode{
-			sdk.TargetModeFullGraph,
-			sdk.TargetModeComponent,
-		},
-		Priority:     90,
-		Required:     false,
-		Capabilities: []string{"project-posture"},
+		Priority:            90,
+		Required:            false,
+		Capabilities:        []string{"project-posture"},
 	}
 }
 
@@ -147,7 +143,7 @@ func (m *Matcher) Ready() bool {
 
 // Applicable reports whether this matcher applies to the given request.
 func (m *Matcher) Applicable(_ context.Context, req sdk.MatchRequest) (bool, error) {
-	return req.Mode == sdk.TargetModeFullGraph || req.Mode == sdk.TargetModeComponent, nil
+	return true, nil
 }
 
 // Match resolves Scorecard runs for every package whose upstream source
@@ -160,7 +156,7 @@ func (m *Matcher) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchRes
 	if req.Graph == nil || req.Registry == nil {
 		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{"scorecard"}}, nil
 	}
-	packages := matchers.RegistryPackagesForGraph(req.Graph, req.Registry, req.Mode, req.Target)
+	packages := matchers.RegistryPackagesForGraph(req.Graph, req.Registry, req.Target)
 	if len(packages) == 0 {
 		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{"scorecard"}}, nil
 	}

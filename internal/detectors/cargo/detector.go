@@ -132,7 +132,7 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 		logger.Debug("cargo detector failure details", fields...)
 		return sdk.DetectionResult{}, fmt.Errorf("run cargo metadata: %w", err)
 	}
-	g, err := depGraphFromMetadata(raw)
+	g, err := depGraphFromMetadataWithScope(raw, req.ScopeFilter)
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
@@ -155,7 +155,7 @@ func (d Detector) resolveFromLock(req sdk.DetectionRequest) (sdk.DetectionResult
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("read Cargo.toml: %w", err)
 	}
-	g, err := depGraphFromLock(lockRaw, manifestRaw)
+	g, err := depGraphFromLockWithScope(lockRaw, manifestRaw, req.ScopeFilter)
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
@@ -171,6 +171,10 @@ func (d Detector) workingDir(projectPath string) string {
 }
 
 func depGraphFromMetadata(raw []byte) (*sdk.Graph, error) {
+	return depGraphFromMetadataWithScope(raw, sdk.ScopeUnknown)
+}
+
+func depGraphFromMetadataWithScope(raw []byte, scopeFilter sdk.Scope) (*sdk.Graph, error) {
 	var out metadataOutput
 	dec := json.NewDecoder(bytes.NewReader(raw))
 	if err := dec.Decode(&out); err != nil {
@@ -232,12 +236,15 @@ func depGraphFromMetadata(raw []byte) (*sdk.Graph, error) {
 			if err := g.AddEdge(parent.ID, child.ID); err != nil {
 				return nil, fmt.Errorf("add Cargo dependency %q -> %q: %w", parent.ID, child.ID, err)
 			}
-			if existing, ok := g.Node(child.ID); ok {
-				existing.AddScope(scopeForDepKinds(dep.DepKinds))
+			if parent.Type == "application" {
+				if existing, ok := g.Node(child.ID); ok {
+					existing.AddScope(scopeForDepKinds(dep.DepKinds))
+				}
 			}
 		}
 	}
-	return g, nil
+	propagateScopesFromApplicationRoots(g)
+	return sdk.FilterGraphByScope(g, scopeFilter)
 }
 
 func rootNode() *sdk.Dependency {
@@ -311,6 +318,10 @@ type cargoManifest struct {
 }
 
 func depGraphFromLock(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
+	return depGraphFromLockWithScope(lockRaw, manifestRaw, sdk.ScopeUnknown)
+}
+
+func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scope) (*sdk.Graph, error) {
 	packages := parseCargoLockPackages(string(lockRaw))
 	if len(packages) == 0 {
 		return nil, fmt.Errorf("cargo.lock does not contain any packages")
@@ -390,6 +401,28 @@ func depGraphFromLock(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 	// BFS: propagate runtime/development scope from direct deps into the transitive tree.
 	// Runtime always wins over development.
 	directDeps, _ := g.DirectDependencies(root.ID)
+	propagateScopes(g, directDeps, root.ID)
+
+	return sdk.FilterGraphByScope(g, scopeFilter)
+}
+
+func propagateScopesFromApplicationRoots(g *sdk.Graph) {
+	if g == nil {
+		return
+	}
+	for _, root := range g.Nodes() {
+		if root == nil || root.Type != "application" {
+			continue
+		}
+		directDeps, err := g.DirectDependencies(root.ID)
+		if err != nil {
+			continue
+		}
+		propagateScopes(g, directDeps, root.ID)
+	}
+}
+
+func propagateScopes(g *sdk.Graph, directDeps []*sdk.Dependency, rootID string) {
 	propagated := make(map[string]sdk.Scope, g.Size())
 	queue := make([]*sdk.Dependency, 0, len(directDeps))
 	for _, dep := range directDeps {
@@ -399,6 +432,7 @@ func depGraphFromLock(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 		scope := dep.PrimaryScope()
 		if scope == sdk.ScopeUnknown {
 			scope = sdk.ScopeRuntime
+			dep.AddScope(scope)
 		}
 		propagated[dep.ID] = scope
 		queue = append(queue, dep)
@@ -415,7 +449,7 @@ func depGraphFromLock(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 			continue
 		}
 		for _, child := range children {
-			if child == nil || child.ID == root.ID {
+			if child == nil || child.ID == rootID {
 				continue
 			}
 			nextScope := sdk.MergeScope(propagated[child.ID], scope)
@@ -427,8 +461,6 @@ func depGraphFromLock(lockRaw, manifestRaw []byte) (*sdk.Graph, error) {
 			queue = append(queue, child)
 		}
 	}
-
-	return g, nil
 }
 
 func parseCargoLockPackages(text string) []lockPackage {

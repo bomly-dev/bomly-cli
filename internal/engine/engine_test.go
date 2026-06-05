@@ -52,6 +52,20 @@ func (f fakeDetector) Applicable(_ context.Context, _ ResolveGraphRequest) (bool
 	return *f.applicable, nil
 }
 
+type fakeInstallFirstDetector struct {
+	fakeDetector
+	installed bool
+	onInstall func(ResolveGraphRequest)
+}
+
+func (f *fakeInstallFirstDetector) Install(_ context.Context, req ResolveGraphRequest) error {
+	f.installed = true
+	if f.onInstall != nil {
+		f.onInstall(req)
+	}
+	return nil
+}
+
 type fakeAuditor struct {
 	descriptor AuditorDescriptor
 	result     AuditResult

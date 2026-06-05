@@ -209,9 +209,13 @@ func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (o
 	if err != nil {
 		return output.ScanResponse{}, err
 	}
+	scopeFilter, err := sdk.ParseScope(req.Scope)
+	if err != nil {
+		return output.ScanResponse{}, err
+	}
 
 	pipeline := engine.NewPipeline(cmdCtx.Registry(), a.logger)
-	pipeReq := cmdCtx.PipelineRequest(sdk.ScopeUnknown, io.Discard)
+	pipeReq := cmdCtx.PipelineRequest(scopeFilter, io.Discard)
 	pipeResult, runErr := scanengine.Run(ctx, pipeline, pipeReq)
 	if runErr != nil && len(pipeResult.ResolveResults) == 0 {
 		return output.ScanResponse{}, runErr

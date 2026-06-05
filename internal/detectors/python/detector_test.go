@@ -139,6 +139,106 @@ func TestFilterPythonToolPackagesKeepsDeclaredTools(t *testing.T) {
 	}
 }
 
+func TestPipShouldInstallDevRequirements(t *testing.T) {
+	tests := []struct {
+		name                 string
+		scope                sdk.Scope
+		requirementsFile     string
+		devRequirementsExist bool
+		want                 bool
+	}{
+		{
+			name:                 "runtime skips dev requirements",
+			scope:                sdk.ScopeRuntime,
+			requirementsFile:     "requirements.txt",
+			devRequirementsExist: true,
+			want:                 false,
+		},
+		{
+			name:                 "development installs dev requirements",
+			scope:                sdk.ScopeDevelopment,
+			requirementsFile:     "requirements.txt",
+			devRequirementsExist: true,
+			want:                 true,
+		},
+		{
+			name:                 "unknown installs dev requirements to preserve full graph",
+			scope:                sdk.ScopeUnknown,
+			requirementsFile:     "requirements.txt",
+			devRequirementsExist: true,
+			want:                 true,
+		},
+		{
+			name:                 "primary dev file is not installed twice",
+			scope:                sdk.ScopeDevelopment,
+			requirementsFile:     "requirements-dev.txt",
+			devRequirementsExist: true,
+			want:                 false,
+		},
+		{
+			name:                 "missing dev file is skipped",
+			scope:                sdk.ScopeDevelopment,
+			requirementsFile:     "requirements.txt",
+			devRequirementsExist: false,
+			want:                 false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := pipShouldInstallDevRequirements(tt.scope, tt.requirementsFile, tt.devRequirementsExist)
+			if got != tt.want {
+				t.Fatalf("pipShouldInstallDevRequirements() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestAnnotateGraphScopes_DevelopmentFilterExcludesRuntime(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "requirements.txt"), []byte("requests==2.32.0\n"), 0o644); err != nil {
+		t.Fatalf("write requirements: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "requirements-dev.txt"), []byte("pytest==8.0.0\n"), 0o644); err != nil {
+		t.Fatalf("write dev requirements: %v", err)
+	}
+
+	g := sdk.New()
+	root := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemPython), Name: "demo-app", Version: "1.0.0"})
+	requests := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemPython), Name: "requests", Version: "2.32.0"})
+	pytest := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemPython), Name: "pytest", Version: "8.0.0"})
+	shared := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemPython), Name: "pluggy", Version: "1.5.0"})
+	for _, pkg := range []*sdk.Dependency{root, requests, pytest, shared} {
+		if err := g.AddNode(pkg); err != nil {
+			t.Fatalf("add package %q: %v", pkg.ID, err)
+		}
+	}
+	for _, edge := range [][2]string{
+		{root.ID, requests.ID},
+		{root.ID, pytest.ID},
+		{requests.ID, shared.ID},
+		{pytest.ID, shared.ID},
+	} {
+		if err := g.AddEdge(edge[0], edge[1]); err != nil {
+			t.Fatalf("add dependency %q -> %q: %v", edge[0], edge[1], err)
+		}
+	}
+
+	annotateGraphScopes(g, dir)
+	filtered, err := sdk.FilterGraphByScope(g, sdk.ScopeDevelopment)
+	if err != nil {
+		t.Fatalf("FilterGraphByScope() error = %v", err)
+	}
+	if _, ok := filtered.Node(pytest.ID); !ok {
+		t.Fatalf("expected development dependency to remain: %s", filtered.PrettyString())
+	}
+	if _, ok := filtered.Node(requests.ID); ok {
+		t.Fatalf("expected runtime dependency to be filtered: %s", filtered.PrettyString())
+	}
+	if _, ok := filtered.Node(shared.ID); ok {
+		t.Fatalf("expected runtime-primary shared dependency to be filtered: %s", filtered.PrettyString())
+	}
+}
+
 func TestAttachDeclaredPositions(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(dir+"/requirements.txt", []byte(

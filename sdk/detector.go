@@ -32,6 +32,7 @@ type DetectionRequest struct {
 	// enrichment when a downstream command has opted into package enrichment.
 	EnrichmentEnabled  bool            `json:"enrichmentEnabled,omitempty"`
 	DetectorFilter     DetectorFilter  `json:"detectorFilter"`
+	ScopeFilter        Scope           `json:"scopeFilter,omitempty"`
 	Query              DependencyQuery `json:"query"`
 	InstallFirst       bool            `json:"installFirst,omitempty"`
 	InstallArgs        []string        `json:"installArgs,omitempty"`

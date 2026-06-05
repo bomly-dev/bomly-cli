@@ -247,6 +247,7 @@ func TestPrepareLoadsAndRunsExternalDetector(t *testing.T) {
 		Subproject:      subprojects[0],
 		Ecosystem:       sdk.EcosystemGo,
 		PackageManager:  sdk.PackageManagerGoMod,
+		ScopeFilter:     sdk.ScopeRuntime,
 	})
 	if err != nil {
 		t.Fatalf("ResolveGraph() error = %v", err)
@@ -257,6 +258,9 @@ func TestPrepareLoadsAndRunsExternalDetector(t *testing.T) {
 	}
 	if graph == nil || graph.Size() != 1 {
 		t.Fatalf("expected one package in plugin graph, got %#v", graph)
+	}
+	if _, ok := graph.Node("example.com/runtime@v1.0.0"); !ok {
+		t.Fatalf("expected plugin detector to receive runtime scope, got %s", graph.PrettyString())
 	}
 }
 
@@ -351,11 +355,15 @@ func (d *detector) Applicable(context.Context, *schemav1.DetectRequest) (*schema
 }
 
 func (d *detector) Detect(ctx context.Context, req *schemav1.DetectRequest) (*schemav1.DetectResponse, error) {
-	packageNode := schemav1.NewDependencyWithID("example.com/demo@v1.0.0", schemav1.Dependency{
+	name := "example.com/demo"
+	if req.ScopeFilter != schemav1.ScopeUnknown {
+		name = "example.com/" + string(req.ScopeFilter)
+	}
+	packageNode := schemav1.NewDependencyWithID(name + "@v1.0.0", schemav1.Dependency{
 		Ecosystem: string(schemav1.EcosystemGo),
-		Name:      "example.com/demo",
+		Name:      name,
 		Version:   "v1.0.0",
-		PURL:      "pkg:golang/example.com/demo@v1.0.0",
+		PURL:      "pkg:golang/" + name + "@v1.0.0",
 	})
 	graph := schemav1.New()
 	if err := graph.AddNode(packageNode); err != nil {

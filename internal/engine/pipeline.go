@@ -12,7 +12,7 @@ import (
 )
 
 // Pipeline orchestrates a full scan through a sequence of typed stages:
-// pre-resolve hooks -> detect -> scope filter -> consolidate -> match -> analyze -> audit -> post-resolve hooks.
+// pre-resolve hooks -> detect -> consolidate -> match -> analyze -> audit -> post-resolve hooks.
 type Pipeline struct {
 	Registry *Registry
 	Logger   *zap.Logger
@@ -53,9 +53,6 @@ func (p *Pipeline) RunPreAudit(ctx context.Context, req PipelineRequest) (Pipeli
 		return result, err
 	}
 	if err := p.runResolve(ctx, &result, req); err != nil {
-		return result, err
-	}
-	if err := p.runScopeFilter(&result, req); err != nil {
 		return result, err
 	}
 	if err := p.runConsolidate(&result, req); err != nil {
@@ -116,18 +113,6 @@ func (p *Pipeline) runResolve(ctx context.Context, result *PipelineResult, req P
 	return nil
 }
 
-func (p *Pipeline) runScopeFilter(result *PipelineResult, req PipelineRequest) error {
-	if req.ScopeFilter == sdk.ScopeUnknown {
-		return nil
-	}
-	filtered, err := filterResultsByScope(result.ResolveResults, req.ScopeFilter)
-	if err != nil {
-		return fmt.Errorf("scope filter: %w", err)
-	}
-	result.ResolveResults = filtered
-	return nil
-}
-
 func (p *Pipeline) runConsolidate(result *PipelineResult, req PipelineRequest) error {
 	consolidated, err := consolidation.ConsolidateGraphs(result.ResolveResults)
 	if err != nil {
@@ -138,12 +123,6 @@ func (p *Pipeline) runConsolidate(result *PipelineResult, req PipelineRequest) e
 	selectedGraph, err := consolidated.Graphs.ConsolidatedGraph()
 	if err != nil {
 		return fmt.Errorf("consolidated graph: %w", err)
-	}
-	if req.ScopeFilter != sdk.ScopeUnknown {
-		selectedGraph, err = FilterGraphByScope(selectedGraph, req.ScopeFilter)
-		if err != nil {
-			return fmt.Errorf("scope filter consolidated: %w", err)
-		}
 	}
 	result.Graph = selectedGraph
 	result.Registry = consolidation.BuildPackageRegistry(consolidated)

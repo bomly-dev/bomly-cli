@@ -61,7 +61,7 @@ func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a pnpm dependency graph via pnpm list.
 func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	depsGraph, err := d.base().ResolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "pnpm", []string{"list", "--json", "--depth", "Infinity"}, "pnpm detector", node.DepGraphFromPNPMJSON)
+	depsGraph, err := d.base().ResolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "pnpm", pnpmListArgs(req.ScopeFilter), "pnpm detector", node.DepGraphFromPNPMJSON)
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
@@ -81,6 +81,17 @@ func (d NativeDetector) FallbackDetector() sdk.Detector {
 
 func (d NativeDetector) base() node.BaseDetector {
 	return node.BaseDetector{Logger: d.Logger, WorkingDir: d.WorkingDir}
+}
+
+func pnpmListArgs(scope sdk.Scope) []string {
+	args := []string{"list", "--json", "--depth", "Infinity"}
+	switch scope {
+	case sdk.ScopeRuntime:
+		args = append(args, "--prod")
+	case sdk.ScopeDevelopment:
+		args = append(args, "--dev")
+	}
+	return args
 }
 
 // Install prepares pnpm dependencies before graph resolution.

@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"testing"
 
@@ -131,6 +132,46 @@ func TestMavenDetectorApplicable(t *testing.T) {
 	}
 	if !applicable {
 		t.Fatal("expected pom.xml to make detector applicable")
+	}
+}
+
+func TestMavenDependencyTreeArgsScopeFilter(t *testing.T) {
+	tests := []struct {
+		name      string
+		prefix    []string
+		scope     sdk.Scope
+		want      []string
+		unchanged []string
+	}{
+		{
+			name:  "unknown resolves full tree",
+			scope: sdk.ScopeUnknown,
+			want:  []string{"dependency:tree", "-DoutputType=tgf"},
+		},
+		{
+			name:   "runtime selects runtime scope",
+			prefix: []string{"./mvnw"},
+			scope:  sdk.ScopeRuntime,
+			want:   []string{"./mvnw", "dependency:tree", "-DoutputType=tgf", "-Dscope=runtime"},
+		},
+		{
+			name:      "development selects test scope",
+			prefix:    []string{"-f", "demo/pom.xml"},
+			scope:     sdk.ScopeDevelopment,
+			want:      []string{"-f", "demo/pom.xml", "dependency:tree", "-DoutputType=tgf", "-Dscope=test"},
+			unchanged: []string{"-f", "demo/pom.xml"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := mavenDependencyTreeArgs(tt.prefix, tt.scope)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("mavenDependencyTreeArgs() = %#v, want %#v", got, tt.want)
+			}
+			if tt.unchanged != nil && !reflect.DeepEqual(tt.prefix, tt.unchanged) {
+				t.Fatalf("prefix was mutated: %#v, want %#v", tt.prefix, tt.unchanged)
+			}
+		})
 	}
 }
 

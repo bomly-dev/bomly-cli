@@ -85,13 +85,13 @@ func newScanNavigator(titlePrefix string, project output.ProjectDescriptor, cons
 		explainQuery:          strings.TrimSpace(explainQuery),
 		sourceExpanded:        map[string]bool{"root": true},
 		componentExpanded:     map[string]bool{},
-		vulnerabilityGroup:    "component",
+		vulnerabilityGroup:    "severity",
 		vulnerabilityExpanded: map[string]bool{},
 		licenseGroup:          "license",
 		licenseExpanded:       map[string]bool{},
 		findingGroup:          "type",
 		findingExpanded:       map[string]bool{},
-		postureGroup:          "repository",
+		postureGroup:          "check",
 		postureExpanded:       map[string]bool{},
 	}
 	if len(manifests) == 1 {
@@ -239,51 +239,32 @@ func (m *scanModel) setAllTreeNodes(expanded bool) {
 	if m == nil || m.List() == nil {
 		return
 	}
-	for _, item := range m.List().items {
-		if !item.canOpen || item.key == "" {
-			continue
-		}
-		switch m.currentScanView() {
-		case interactiveScanViewPackages:
-			m.componentExpanded[item.key] = expanded
-		case interactiveScanViewVulns:
-			m.vulnerabilityExpanded[item.key] = expanded
-		case interactiveScanViewLicenses:
-			m.licenseExpanded[item.key] = expanded
-		case interactiveScanViewFindings:
-			m.findingExpanded[item.key] = expanded
-		case interactiveScanViewPosture:
-			m.postureExpanded[item.key] = expanded
-		case interactiveScanViewSource:
-			m.sourceExpanded[item.key] = expanded
-		}
-	}
-	if m.currentScanView() == interactiveScanViewPackages {
-		m.componentExpanded["project"] = expanded
-		for _, manifest := range m.manifests {
-			m.componentExpanded["manifest:"+manifest.id] = expanded
-		}
-		if m.graphValue != nil {
-			for _, pkg := range m.graphValue.Nodes() {
-				if pkg != nil {
-					m.componentExpanded[pkg.ID] = expanded
-				}
-			}
-		}
-	}
-	if m.currentScanView() == interactiveScanViewSource {
-		for _, key := range []string{"root", "target", "manifests", "packages", "relationships"} {
-			m.sourceExpanded[key] = expanded
-		}
-		if m.graphValue != nil {
-			for _, pkg := range m.graphValue.Nodes() {
-				if pkg != nil {
-					m.sourceExpanded["package:"+pkg.ID] = expanded
-				}
-			}
-		}
+	if !setVisibleExpansionLayer(m.List(), m.currentTreeExpansionMap(), expanded) {
+		return
 	}
 	m.rebuildListPreserveSelection()
+}
+
+func (m *scanModel) currentTreeExpansionMap() map[string]bool {
+	if m == nil {
+		return nil
+	}
+	switch m.currentScanView() {
+	case interactiveScanViewPackages:
+		return m.componentExpanded
+	case interactiveScanViewVulns:
+		return m.vulnerabilityExpanded
+	case interactiveScanViewLicenses:
+		return m.licenseExpanded
+	case interactiveScanViewFindings:
+		return m.findingExpanded
+	case interactiveScanViewPosture:
+		return m.postureExpanded
+	case interactiveScanViewSource:
+		return m.sourceExpanded
+	default:
+		return nil
+	}
 }
 
 func (m *scanModel) CycleGroup() {
@@ -292,13 +273,13 @@ func (m *scanModel) CycleGroup() {
 	}
 	switch m.currentScanView() {
 	case interactiveScanViewVulns:
-		m.vulnerabilityGroup = nextFilterValue(m.vulnerabilityGroup, []string{"component", "severity", "ecosystem"})
+		m.vulnerabilityGroup = nextFilterValue(m.vulnerabilityGroup, []string{"severity", "component", "ecosystem"})
 	case interactiveScanViewLicenses:
 		m.licenseGroup = nextFilterValue(m.licenseGroup, []string{"license", "category", "recognition"})
 	case interactiveScanViewFindings:
 		m.findingGroup = nextFilterValue(m.findingGroup, []string{"type", "severity", "component", "ecosystem"})
 	case interactiveScanViewPosture:
-		m.postureGroup = nextFilterValue(m.postureGroup, []string{"repository", "check"})
+		m.postureGroup = nextFilterValue(m.postureGroup, []string{"check", "repository"})
 	default:
 		return
 	}
@@ -613,7 +594,7 @@ func (m *scanModel) buildComponentsTreeListModel() *listModel {
 		for idx, manifest := range m.manifests {
 			manifestLast := idx == len(m.manifests)-1
 			manifestKey := "manifest:" + manifest.id
-			manifestExpanded := expandedValue(m.componentExpanded, manifestKey, true)
+			manifestExpanded := expandedValue(m.componentExpanded, manifestKey, false)
 			manifestTree := "├─ "
 			if manifestLast {
 				manifestTree = "└─ "
@@ -639,7 +620,7 @@ func (m *scanModel) buildComponentsTreeListModel() *listModel {
 					badges = append([]badge{{label: sev, kind: "severity-" + strings.ToLower(sev)}}, badges...)
 				}
 				deps, _ := m.graphValue.DirectDependencies(row.id)
-				expanded := expandedValue(m.componentExpanded, row.id, row.relationship == "root")
+				expanded := expandedValue(m.componentExpanded, row.id, false)
 				if row.repeated {
 					deps = nil
 					expanded = false
@@ -1090,7 +1071,7 @@ func (m *scanModel) buildVulnsListModel() *listModel {
 func (m *scanModel) vulnerabilityItems(vulnerabilities []packageVulnerabilityRow) []listItem {
 	group := strings.TrimSpace(m.vulnerabilityGroup)
 	if group == "" {
-		group = "component"
+		group = "severity"
 	}
 	groups := make(map[string][]packageVulnerabilityRow)
 	for _, vulnerability := range vulnerabilities {
@@ -1101,10 +1082,7 @@ func (m *scanModel) vulnerabilityItems(vulnerabilities []packageVulnerabilityRow
 	items := make([]listItem, 0, len(vulnerabilities)+len(keys))
 	for _, key := range keys {
 		groupKey := group + ":" + key
-		expanded, ok := m.vulnerabilityExpanded[groupKey]
-		if !ok {
-			expanded = true
-		}
+		expanded := expandedValue(m.vulnerabilityExpanded, groupKey, true)
 		groupVulnerabilities := groups[key]
 		items = append(items, listItem{
 			title:    fmt.Sprintf("%s (%d)", key, len(groupVulnerabilities)),
@@ -1205,7 +1183,7 @@ func (m *scanModel) vulnerabilityControlsLine() string {
 
 func (m *scanModel) vulnerabilityStateLine(showing, total int) string {
 	state := render.Style("Filter: ", render.Dim) + render.Style(valueOrDefault(m.severityFilter, "All"), render.BgYellow, render.Bold) +
-		render.Style(" | Group: ", render.Dim) + render.Style(valueOrDefault(m.vulnerabilityGroup, "component"), render.BgYellow, render.Bold) +
+		render.Style(" | Group: ", render.Dim) + render.Style(valueOrDefault(m.vulnerabilityGroup, "severity"), render.BgYellow, render.Bold) +
 		render.Style(" | Showing: ", render.Dim) + fmt.Sprintf("%d/%d", showing, total)
 	if m.reachabilityFilterAvailable() {
 		state += render.Style(" | Reachability: ", render.Dim) + render.Style(titleCase(valueOrDefault(m.reachabilityFilter, "All")), render.BgYellow, render.Bold)
@@ -1552,7 +1530,7 @@ func (m *scanModel) buildFindingsListModel() *listModel {
 // list lines up one row per source repository (worst-scoring first), and
 // the details pane shows the full Scorecard breakdown plus the packages
 // that resolved to the selected repo. The `g` key cycles between two
-// grouping axes: "repository" (default) and "check".
+// grouping axes: "check" (default) and "repository".
 func (m *scanModel) buildPostureListModel() *listModel {
 	rows := postureRowsFromGraph(m.graphValue, m.registry)
 	repoWidth := 40
@@ -1572,7 +1550,7 @@ func (m *scanModel) buildPostureListModel() *listModel {
 		}
 	}
 
-	group := valueOrDefault(m.postureGroup, "repository")
+	group := valueOrDefault(m.postureGroup, "check")
 	var items []listItem
 	var listTitle, listHeader string
 	switch group {
@@ -1861,7 +1839,7 @@ func (m *scanModel) sourceExplorerItems() []listItem {
 		if section.last {
 			tree = "└─ "
 		}
-		expanded := expandedValue(m.sourceExpanded, section.key, section.key == "target")
+		expanded := expandedValue(m.sourceExpanded, section.key, false)
 		items = append(items, sourceNode(section.title, section.key, tree, 1, true, expanded))
 		if !expanded {
 			continue
@@ -2455,13 +2433,7 @@ func (m *scanModel) componentTreeRows(rootID string) []listPackageRow {
 		}
 		rows = append(rows, row)
 
-		expanded := m.componentExpanded[pkg.ID]
-		if depth == 0 {
-			expanded = true
-			if _, ok := m.componentExpanded[pkg.ID]; ok {
-				expanded = m.componentExpanded[pkg.ID]
-			}
-		}
+		expanded := expandedValue(m.componentExpanded, pkg.ID, false)
 		if !expanded {
 			return
 		}

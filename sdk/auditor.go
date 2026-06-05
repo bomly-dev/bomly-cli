@@ -33,7 +33,7 @@ type AuditRequest struct {
 	Query           PackageQuery     `json:"query"`
 	Graph           *Graph           `json:"graph,omitempty"`
 	BaselineGraph   *Graph           `json:"baselineGraph,omitempty"`
-	Registry        *PackageRegistry `json:"-"`
+	Registry        *PackageRegistry `json:"registry,omitempty"`
 	Target          *Dependency      `json:"target,omitempty"`
 	AuditorFilter   AuditorFilter    `json:"auditorFilter"`
 	Stderr          io.Writer        `json:"-"`

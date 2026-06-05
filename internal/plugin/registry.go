@@ -184,9 +184,13 @@ func (m externalMatcher) Match(ctx context.Context, req sdk.MatchRequest) (sdk.M
 		return sdk.MatchResult{}, fmt.Errorf("run external matcher %s: %w", m.info.ID, err)
 	}
 	if resp == nil {
-		return sdk.MatchResult{}, nil
+		return sdk.MatchResult{Registry: req.Registry}, nil
 	}
-	return *resp, nil
+	result := *resp
+	if result.Registry == nil {
+		result.Registry = req.Registry
+	}
+	return result, nil
 }
 
 func newExternalMatcher(info PluginInfo, ctx context.Context) sdk.Matcher {

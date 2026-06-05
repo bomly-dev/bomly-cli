@@ -314,7 +314,8 @@ func BuildExplainResponse(project ProjectDescriptor, query string, targets []Exp
 
 // BuildDiffResponse constructs the structured diff payload from consolidated manifest selections.
 func BuildDiffResponse(projectPath, baseRef, headRef string, baseConsolidated, headConsolidated sdk.ConsolidatedGraph, audit *DiffAudit, started time.Time, options ...ReportOptions) DiffResponse {
-	results, summary := diffResultsFromConsolidated(baseConsolidated, headConsolidated)
+	reportOptions := firstReportOptions(options)
+	results, summary := diffResultsFromConsolidated(baseConsolidated, headConsolidated, reportOptions.BaseRegistry, reportOptions.HeadRegistry)
 	response := DiffResponse{
 		SchemaVersion: SchemaVersion,
 		Command:       "diff",
@@ -331,7 +332,7 @@ func BuildDiffResponse(projectPath, baseRef, headRef string, baseConsolidated, h
 		Audit:      audit,
 		Metadata:   Metadata{DurationMS: time.Since(started).Milliseconds()},
 	}
-	return response.WithReportOptions(firstReportOptions(options))
+	return response.WithReportOptions(reportOptions)
 }
 
 // WithReportOptions annotates a DiffResponse with optional report data and
@@ -524,7 +525,7 @@ type diffManifestRef struct {
 	PackageManager string
 }
 
-func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.ConsolidatedGraph) (DiffResults, DiffSummary) {
+func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.ConsolidatedGraph, baseRegistry, headRegistry *sdk.PackageRegistry) (DiffResults, DiffSummary) {
 	baseByKey := manifestSnapshotsByConsolidated(baseConsolidated)
 	headByKey := manifestSnapshotsByConsolidated(headConsolidated)
 	keys := make([]string, 0, len(baseByKey)+len(headByKey))
@@ -560,7 +561,7 @@ func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.Consolid
 				Subproject:     headManifest.Manifest.Subproject,
 				Ecosystem:      headManifest.Manifest.Ecosystem,
 				PackageManager: headManifest.Manifest.PackageManager,
-				Added:          diffPackageChangesFromPackages(headManifest.Graph.Nodes()),
+				Added:          diffPackageChangesFromPackages(headManifest.Graph.Nodes(), headRegistry),
 			}
 			results.Manifests = append(results.Manifests, result)
 			summary.AddedManifestCount++
@@ -574,7 +575,7 @@ func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.Consolid
 				Subproject:     baseManifest.Manifest.Subproject,
 				Ecosystem:      baseManifest.Manifest.Ecosystem,
 				PackageManager: baseManifest.Manifest.PackageManager,
-				Removed:        diffPackageChangesFromPackages(baseManifest.Graph.Nodes()),
+				Removed:        diffPackageChangesFromPackages(baseManifest.Graph.Nodes(), baseRegistry),
 			}
 			results.Manifests = append(results.Manifests, result)
 			summary.RemovedManifestCount++
@@ -597,9 +598,9 @@ func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.Consolid
 				Subproject:     headManifest.Manifest.Subproject,
 				Ecosystem:      headManifest.Manifest.Ecosystem,
 				PackageManager: headManifest.Manifest.PackageManager,
-				Added:          diffPackageChangesFromPackages(manifestDiff.Added),
-				Removed:        diffPackageChangesFromPackages(manifestDiff.Removed),
-				Changed:        diffChangedPackagesFromDiff(manifestDiff.Updated),
+				Added:          diffPackageChangesFromPackages(manifestDiff.Added, headRegistry),
+				Removed:        diffPackageChangesFromPackages(manifestDiff.Removed, baseRegistry),
+				Changed:        diffChangedPackagesFromDiff(manifestDiff.Updated, baseRegistry, headRegistry),
 			}
 			if len(result.Added) == 0 && len(result.Removed) == 0 && len(result.Changed) == 0 {
 				summary.UnchangedManifestCount++
@@ -983,21 +984,21 @@ func isSBOMPseudoPackage(pkg *sdk.Dependency, rootIDs map[string]struct{}) bool 
 	return false
 }
 
-func diffPackageChangesFromPackages(packages []*sdk.Dependency) []DiffPackageChange {
+func diffPackageChangesFromPackages(packages []*sdk.Dependency, registry *sdk.PackageRegistry) []DiffPackageChange {
 	changes := make([]DiffPackageChange, 0, len(packages))
 	for _, pkg := range packages {
-		changes = append(changes, DiffPackageChange{Package: PackageFromGraphPackage(pkg)})
+		changes = append(changes, DiffPackageChange{Package: PackageFromDependencyAndRegistry(pkg, registry)})
 	}
 	sort.Slice(changes, func(i, j int) bool { return changes[i].Package.ID < changes[j].Package.ID })
 	return changes
 }
 
-func diffChangedPackagesFromDiff(changes []sdk.VersionChange) []DiffChangedPackage {
+func diffChangedPackagesFromDiff(changes []sdk.VersionChange, baseRegistry, headRegistry *sdk.PackageRegistry) []DiffChangedPackage {
 	out := make([]DiffChangedPackage, 0, len(changes))
 	for _, change := range changes {
 		out = append(out, DiffChangedPackage{
-			After:  PackageFromGraphPackage(change.After),
-			Before: PackageFromGraphPackage(change.Before),
+			After:  PackageFromDependencyAndRegistry(change.After, headRegistry),
+			Before: PackageFromDependencyAndRegistry(change.Before, baseRegistry),
 		})
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].After.ID < out[j].After.ID })

@@ -317,6 +317,10 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (o
 		return output.DiffResponse{}, err
 	}
 
+	reportOptions := reportOptionsFromPipelineResults(o.GetConfig().Reachability, diffResult.Base, diffResult.Head)
+	reportOptions.BaseRegistry = diffResult.Base.Registry
+	reportOptions.HeadRegistry = diffResult.Head.Registry
+
 	return output.BuildDiffResponse(
 		projectIdentifier,
 		req.Base,
@@ -325,7 +329,7 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (o
 		diffResult.Head.Consolidated,
 		diffAuditOutput(diffResult.Audit, diffResult.Base.Registry, diffResult.Head.Registry),
 		started,
-		reportOptionsFromPipelineResults(o.GetConfig().Reachability, diffResult.Base, diffResult.Head),
+		reportOptions,
 	), nil
 }
 

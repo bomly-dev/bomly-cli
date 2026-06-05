@@ -48,7 +48,7 @@ type AnalyzeRequest struct {
 	Mode            TargetMode       `json:"mode,omitempty"`
 	Query           PackageQuery     `json:"query"`
 	Graph           *Graph           `json:"graph,omitempty"`
-	Registry        *PackageRegistry `json:"-"`
+	Registry        *PackageRegistry `json:"registry,omitempty"`
 	Target          *Dependency      `json:"target,omitempty"`
 	AnalyzerFilter  AnalyzerFilter   `json:"analyzerFilter"`
 	Stderr          io.Writer        `json:"-"`
@@ -64,7 +64,7 @@ type ReachabilityStats struct {
 
 // AnalyzeResult contains the registry after analyzer enrichment.
 type AnalyzeResult struct {
-	Registry      *PackageRegistry             `json:"-"`
+	Registry      *PackageRegistry             `json:"registry,omitempty"`
 	AnalyzerRuns  []string                     `json:"analyzerRuns,omitempty"`
 	AnalyzerStats map[string]ReachabilityStats `json:"analyzerStats,omitempty"`
 }

@@ -23,7 +23,7 @@ const (
 	// PluginKindAuditor evaluates findings and risk.
 	PluginKindAuditor PluginKind = "auditor"
 	// PluginKindAnalyzer runs code analysis (e.g. reachability) over the
-	// matched graph and annotates PackageVulnerability entries.
+	// matched graph and annotates registry vulnerability entries.
 	PluginKindAnalyzer PluginKind = "analyzer"
 )
 

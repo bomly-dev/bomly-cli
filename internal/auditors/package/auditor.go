@@ -48,6 +48,9 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 		return sdk.AuditResult{}, nil
 	}
 	packages := req.Graph.Nodes()
+	if req.Target != nil {
+		packages = []*sdk.Dependency{req.Target}
+	}
 	findings := make([]sdk.Finding, 0)
 	baseNames := protectedNames(req.BaselineGraph, a.ProtectedPackages)
 	baseIDs := packageIDs(req.BaselineGraph)

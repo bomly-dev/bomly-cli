@@ -14,10 +14,25 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 )
 
 var update = flag.Bool("update", false, "update golden files")
+
+var (
+	goldenWritesMu sync.Mutex
+	goldenWrites   = map[string]string{}
+)
+
+// parallelSubtest runs a leaf smoke case under Go's -parallel scheduler.
+func parallelSubtest(t *testing.T, name string, run func(t *testing.T)) {
+	t.Helper()
+	t.Run(name, func(t *testing.T) {
+		t.Parallel()
+		run(t)
+	})
+}
 
 // runBomly executes the built CLI binary with the given arguments and returns
 // stdout, stderr, and exit code. It does not fail the test on non-zero exit.
@@ -31,8 +46,13 @@ func runBomly(t *testing.T, args ...string) (stdout, stderr string, exitCode int
 // inherited and env entries are appended (overriding duplicates).
 func runBomlyWithEnv(t *testing.T, env []string, args ...string) (stdout, stderr string, exitCode int) {
 	t.Helper()
+	return runBomlyBinaryWithEnv(t, bomlyBin, env, args...)
+}
 
-	cmd := exec.Command(bomlyBin, args...)
+func runBomlyBinaryWithEnv(t *testing.T, bin string, env []string, args ...string) (stdout, stderr string, exitCode int) {
+	t.Helper()
+
+	cmd := exec.Command(bin, args...)
 	cmd.Env = append(os.Environ(), env...)
 
 	// Isolate plugin/config discovery to a throwaway home directory so the
@@ -539,10 +559,11 @@ func assertGolden(t *testing.T, name string, got []byte) {
 	gp := goldenPath(name)
 
 	if *update {
+		claimGoldenWrite(t, gp)
 		if err := os.MkdirAll(filepath.Dir(gp), 0o755); err != nil {
 			t.Fatalf("create golden dir: %v", err)
 		}
-		if err := os.WriteFile(gp, got, 0o644); err != nil {
+		if err := writeFileAtomic(gp, got, 0o644); err != nil {
 			t.Fatalf("write golden file: %v", err)
 		}
 		t.Logf("updated golden file %s", gp)
@@ -562,6 +583,66 @@ func assertGolden(t *testing.T, name string, got []byte) {
 		t.Errorf("output does not match golden file %s\n\n--- want ---\n%s\n--- got ---\n%s\n\n--- diff (first divergence) ---\n%s",
 			gp, string(want), string(got), firstDiff(want, got))
 	}
+}
+
+func claimGoldenWrite(t *testing.T, path string) {
+	t.Helper()
+
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		t.Fatalf("resolve golden path %s: %v", path, err)
+	}
+
+	goldenWritesMu.Lock()
+	defer goldenWritesMu.Unlock()
+
+	if owner, ok := goldenWrites[abs]; ok {
+		t.Fatalf("golden file %s is already claimed by %s; duplicate smoke golden names cannot run safely in update mode", path, owner)
+	}
+	goldenWrites[abs] = t.Name()
+}
+
+func writeFileAtomic(path string, data []byte, perm os.FileMode) error {
+	dir := filepath.Dir(path)
+	base := filepath.Base(path)
+
+	tmp, err := os.CreateTemp(dir, "."+base+".tmp-*")
+	if err != nil {
+		return fmt.Errorf("create temp file: %w", err)
+	}
+	tmpPath := tmp.Name()
+	defer func() {
+		_ = os.Remove(tmpPath)
+	}()
+
+	if _, err := tmp.Write(data); err != nil {
+		_ = tmp.Close()
+		return fmt.Errorf("write temp file: %w", err)
+	}
+	if err := tmp.Chmod(perm); err != nil {
+		_ = tmp.Close()
+		return fmt.Errorf("chmod temp file: %w", err)
+	}
+	if err := tmp.Sync(); err != nil {
+		_ = tmp.Close()
+		return fmt.Errorf("sync temp file: %w", err)
+	}
+	if err := tmp.Close(); err != nil {
+		return fmt.Errorf("close temp file: %w", err)
+	}
+	if err := os.Rename(tmpPath, path); err != nil {
+		if runtime.GOOS == "windows" {
+			if removeErr := os.Remove(path); removeErr != nil && !os.IsNotExist(removeErr) {
+				return fmt.Errorf("remove existing file after rename failed: %w", removeErr)
+			}
+			if retryErr := os.Rename(tmpPath, path); retryErr != nil {
+				return fmt.Errorf("replace target after removing existing file: %w", retryErr)
+			}
+			return nil
+		}
+		return fmt.Errorf("replace target: %w", err)
+	}
+	return nil
 }
 
 func normalizeLineEndings(b []byte) []byte {

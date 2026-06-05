@@ -18,7 +18,7 @@ import (
 func TestPluginWorkflows(t *testing.T) {
 	requireTool(t, "go")
 
-	t.Run("dev-install-scan", func(t *testing.T) {
+	parallelSubtest(t, "dev-install-scan", func(t *testing.T) {
 		binaryPath, manifest := buildExamplePlugin(t)
 		projectDir := createExamplePluginProject(t)
 		env := pluginWorkflowEnv(t)
@@ -66,7 +66,7 @@ func TestPluginWorkflows(t *testing.T) {
 		assertGolden(t, "plugin-scan-dev", normalizeJSON(t, []byte(scanStdout)))
 	})
 
-	t.Run("archive-install-scan", func(t *testing.T) {
+	parallelSubtest(t, "archive-install-scan", func(t *testing.T) {
 		binaryPath, manifest := buildExamplePlugin(t)
 		archivePath := packageExamplePluginArchive(t, binaryPath)
 		projectDir := createExamplePluginProject(t)

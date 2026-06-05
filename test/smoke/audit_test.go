@@ -107,7 +107,8 @@ func TestAuditScan(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+		tc := tc
+		parallelSubtest(t, tc.name, func(t *testing.T) {
 			for _, tool := range tc.tools {
 				requireTool(t, tool)
 			}
@@ -147,7 +148,8 @@ func TestContainerAuditScan(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+		tc := tc
+		parallelSubtest(t, tc.name, func(t *testing.T) {
 			stdout, stderr, code := runBomlyWithEnv(t, auditEnv, tc.args...)
 			if code != 0 {
 				t.Fatalf("bomly exited %d\nstderr:\n%s", code, stderr)
@@ -184,7 +186,8 @@ func TestAuditDiffAndExplain(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+		tc := tc
+		parallelSubtest(t, tc.name, func(t *testing.T) {
 			for _, tool := range tc.tools {
 				requireTool(t, tool)
 			}

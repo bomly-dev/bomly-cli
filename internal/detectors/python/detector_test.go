@@ -193,6 +193,52 @@ func TestPipShouldInstallDevRequirements(t *testing.T) {
 	}
 }
 
+func TestAnnotateGraphScopes_DevelopmentFilterExcludesRuntime(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "requirements.txt"), []byte("requests==2.32.0\n"), 0o644); err != nil {
+		t.Fatalf("write requirements: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "requirements-dev.txt"), []byte("pytest==8.0.0\n"), 0o644); err != nil {
+		t.Fatalf("write dev requirements: %v", err)
+	}
+
+	g := sdk.New()
+	root := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemPython), Name: "demo-app", Version: "1.0.0"})
+	requests := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemPython), Name: "requests", Version: "2.32.0"})
+	pytest := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemPython), Name: "pytest", Version: "8.0.0"})
+	shared := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemPython), Name: "pluggy", Version: "1.5.0"})
+	for _, pkg := range []*sdk.Dependency{root, requests, pytest, shared} {
+		if err := g.AddNode(pkg); err != nil {
+			t.Fatalf("add package %q: %v", pkg.ID, err)
+		}
+	}
+	for _, edge := range [][2]string{
+		{root.ID, requests.ID},
+		{root.ID, pytest.ID},
+		{requests.ID, shared.ID},
+		{pytest.ID, shared.ID},
+	} {
+		if err := g.AddEdge(edge[0], edge[1]); err != nil {
+			t.Fatalf("add dependency %q -> %q: %v", edge[0], edge[1], err)
+		}
+	}
+
+	annotateGraphScopes(g, dir)
+	filtered, err := sdk.FilterGraphByScope(g, sdk.ScopeDevelopment)
+	if err != nil {
+		t.Fatalf("FilterGraphByScope() error = %v", err)
+	}
+	if _, ok := filtered.Node(pytest.ID); !ok {
+		t.Fatalf("expected development dependency to remain: %s", filtered.PrettyString())
+	}
+	if _, ok := filtered.Node(requests.ID); ok {
+		t.Fatalf("expected runtime dependency to be filtered: %s", filtered.PrettyString())
+	}
+	if _, ok := filtered.Node(shared.ID); ok {
+		t.Fatalf("expected runtime-primary shared dependency to be filtered: %s", filtered.PrettyString())
+	}
+}
+
 func TestAttachDeclaredPositions(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(dir+"/requirements.txt", []byte(

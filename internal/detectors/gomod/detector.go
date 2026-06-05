@@ -273,8 +273,10 @@ func depGraphFromGoListWithScope(raw []byte, rootModule string, directRequires [
 			}
 		}
 
-		if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, mergedScope, current.pkg.Imports, packageRecords, packageModules, directLines, &queue); err != nil {
-			return nil, err
+		if scopeFilter != sdk.ScopeDevelopment || mergedScope == sdk.ScopeDevelopment {
+			if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, mergedScope, current.pkg.Imports, packageRecords, packageModules, directLines, &queue); err != nil {
+				return nil, err
+			}
 		}
 		if scopeFilter != sdk.ScopeRuntime {
 			if err := enqueueImportedPackages(depsGraph, rootNode.ID, currentModule, sdk.ScopeDevelopment, current.pkg.TestImports, packageRecords, packageModules, directLines, &queue); err != nil {

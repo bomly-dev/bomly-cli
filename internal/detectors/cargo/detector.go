@@ -236,8 +236,10 @@ func depGraphFromMetadataWithScope(raw []byte, scopeFilter sdk.Scope) (*sdk.Grap
 			if err := g.AddEdge(parent.ID, child.ID); err != nil {
 				return nil, fmt.Errorf("add Cargo dependency %q -> %q: %w", parent.ID, child.ID, err)
 			}
-			if existing, ok := g.Node(child.ID); ok {
-				existing.AddScope(scopeForDepKinds(dep.DepKinds))
+			if parent.Type == "application" {
+				if existing, ok := g.Node(child.ID); ok {
+					existing.AddScope(scopeForDepKinds(dep.DepKinds))
+				}
 			}
 		}
 	}

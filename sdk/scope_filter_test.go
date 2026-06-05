@@ -7,7 +7,8 @@ func TestFilterGraphByScope(t *testing.T) {
 	root := NewDependency(Dependency{Name: "app", Version: "1.0.0"})
 	runtimeDep := NewDependency(Dependency{Name: "react", Version: "18.2.0", Scopes: ScopesOf(ScopeRuntime)})
 	devDep := NewDependency(Dependency{Name: "vitest", Version: "2.0.0", Scopes: ScopesOf(ScopeDevelopment)})
-	for _, pkg := range []*Dependency{root, runtimeDep, devDep} {
+	sharedDep := NewDependency(Dependency{Name: "shared", Version: "1.0.0", Scopes: ScopesOf(ScopeDevelopment, ScopeRuntime)})
+	for _, pkg := range []*Dependency{root, runtimeDep, devDep, sharedDep} {
 		if err := depsGraph.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.ID, err)
 		}
@@ -18,19 +19,39 @@ func TestFilterGraphByScope(t *testing.T) {
 	if err := depsGraph.AddEdge(root.ID, devDep.ID); err != nil {
 		t.Fatalf("add development dependency: %v", err)
 	}
+	if err := depsGraph.AddEdge(root.ID, sharedDep.ID); err != nil {
+		t.Fatalf("add shared dependency: %v", err)
+	}
 
 	filtered, err := FilterGraphByScope(depsGraph, ScopeRuntime)
 	if err != nil {
 		t.Fatalf("FilterGraphByScope() error = %v", err)
 	}
-	if filtered.Size() != 2 {
-		t.Fatalf("expected 2 packages after runtime filter, got %d", filtered.Size())
+	if filtered.Size() != 3 {
+		t.Fatalf("expected 3 packages after runtime filter, got %d", filtered.Size())
 	}
 	if _, ok := filtered.Node(runtimeDep.ID); !ok {
 		t.Fatal("expected runtime dependency to be kept")
 	}
+	if _, ok := filtered.Node(sharedDep.ID); !ok {
+		t.Fatal("expected dependency shared with runtime to be kept")
+	}
 	if _, ok := filtered.Node(devDep.ID); ok {
 		t.Fatal("expected development dependency to be removed")
+	}
+
+	filtered, err = FilterGraphByScope(depsGraph, ScopeDevelopment)
+	if err != nil {
+		t.Fatalf("FilterGraphByScope() error = %v", err)
+	}
+	if _, ok := filtered.Node(devDep.ID); !ok {
+		t.Fatal("expected development dependency to be kept")
+	}
+	if _, ok := filtered.Node(runtimeDep.ID); ok {
+		t.Fatal("expected runtime dependency to be removed")
+	}
+	if _, ok := filtered.Node(sharedDep.ID); ok {
+		t.Fatal("expected runtime-primary shared dependency to be removed from development filter")
 	}
 }
 

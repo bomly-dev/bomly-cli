@@ -17,7 +17,7 @@ func FilterGraphByScope(src *Graph, scope Scope) (*Graph, error) {
 		allowed[root.ID] = struct{}{}
 	}
 	src.WalkNodes(func(dep *Dependency) bool {
-		if dep != nil && dep.HasScope(scope) {
+		if dep != nil && dep.PrimaryScope() == scope {
 			allowed[dep.ID] = struct{}{}
 		}
 		return true

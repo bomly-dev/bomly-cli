@@ -324,7 +324,6 @@ func TestPipeline_ThreadsScopeFilterIntoPrimaryAndFiltersResult(t *testing.T) {
 			Origin:              sdk.CoreOrigin,
 			SupportedEcosystems: []Ecosystem{EcosystemNPM},
 			SupportedManagers:   []PackageManager{PackageManagerNPM},
-			SupportedModes:      []TargetMode{TargetModeFullGraph},
 		},
 		result: ResolveGraphResult{Graphs: SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 		onResolve: func(req ResolveGraphRequest) {
@@ -367,11 +366,11 @@ func TestPipeline_ThreadsScopeFilterIntoFallbackDetector(t *testing.T) {
 	seenFallback := false
 	registry.registerDetector(fakeFallbackDetector{
 		fakeDetector: fakeDetector{
-			descriptor: DetectorDescriptor{Name: "npm-native", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}, SupportedModes: []TargetMode{TargetModeFullGraph}},
+			descriptor: DetectorDescriptor{Name: "npm-native", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 			err:        errors.New("native failed"),
 		},
 		fallback: fakeDetector{
-			descriptor: DetectorDescriptor{Name: "npm-lockfile", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}, SupportedModes: []TargetMode{TargetModeFullGraph}},
+			descriptor: DetectorDescriptor{Name: "npm-lockfile", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 			result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 			onResolve: func(req ResolveGraphRequest) {
 				seenFallback = true
@@ -385,9 +384,8 @@ func TestPipeline_ThreadsScopeFilterIntoFallbackDetector(t *testing.T) {
 	results, err := NewPipeline(registry, zap.NewNop()).resolveDetectors(context.Background(), ResolveGraphRequest{
 		Ecosystem:      EcosystemNPM,
 		PackageManager: PackageManagerNPM,
-		Mode:           TargetModeFullGraph,
 		ScopeFilter:    sdk.ScopeRuntime,
-	}, registry.Detectors(ResolveGraphRequest{PackageManager: PackageManagerNPM, Mode: TargetModeFullGraph}), nil)
+	}, registry.Detectors(ResolveGraphRequest{PackageManager: PackageManagerNPM}), nil)
 	if err != nil {
 		t.Fatalf("resolveDetectors() error = %v", err)
 	}
@@ -417,7 +415,6 @@ func TestPipeline_ThreadsScopeFilterIntoInstallFirstDetector(t *testing.T) {
 				Origin:               sdk.CoreOrigin,
 				SupportedEcosystems:  []Ecosystem{sdk.EcosystemPython},
 				SupportedManagers:    []PackageManager{sdk.PackageManagerPip},
-				SupportedModes:       []TargetMode{TargetModeFullGraph},
 				SupportsInstallFirst: true,
 			},
 			result: ResolveGraphResult{Graphs: SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "requirements.txt", Kind: "requirements.txt"})},
@@ -767,7 +764,7 @@ func TestPipeline_RunExplain_ReturnsNotFoundWhenQueryIsAbsent(t *testing.T) {
 func TestPipeline_RunExplain_UsesScopedDetectionResult(t *testing.T) {
 	registry := newTestRegistry()
 	registry.registerDetector(fakeDetector{
-		descriptor: DetectorDescriptor{Name: "npm-detector", Enabled: true, Origin: sdk.CoreOrigin, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}, SupportedModes: []TargetMode{TargetModeFullGraph}},
+		descriptor: DetectorDescriptor{Name: "npm-detector", Enabled: true, Origin: sdk.CoreOrigin, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 		result:     ResolveGraphResult{Graphs: SingleGraphContainer(scopedTestGraph(t), sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 

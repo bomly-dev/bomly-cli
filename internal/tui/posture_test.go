@@ -67,7 +67,7 @@ func TestPostureTab_ScanRendersList(t *testing.T) {
 	plain := render.StripANSI(model.View(160, 40))
 	for _, want := range []string{
 		"Posture",
-		"Repositories (1)",
+		"Checks (2)",
 		"github.com/example/lib",
 		"3.5/10",
 		"Repository Posture", // details pane title
@@ -207,11 +207,17 @@ func TestPostureTab_DiffRendersList(t *testing.T) {
 		Results: output.DiffResults{
 			Dependencies: output.DiffDependencyResults{
 				Changed: []output.DiffChangedPackage{{
-					Before: output.PackageRef{Name: "shared", Scorecard: newTestScorecardTUI("github.com/shared/repo", 5.0)},
-					After:  output.PackageRef{Name: "shared", Scorecard: newTestScorecardTUI("github.com/shared/repo", 8.0)},
+					Before: output.PackageRef{Name: "shared", Scorecard: newTestScorecardTUI("github.com/shared/repo", 5.0,
+						sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 4},
+					)},
+					After: output.PackageRef{Name: "shared", Scorecard: newTestScorecardTUI("github.com/shared/repo", 8.0,
+						sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 7},
+					)},
 				}},
 				Added: []output.DiffPackageChange{{
-					Package: output.PackageRef{Name: "new", Scorecard: newTestScorecardTUI("github.com/new/repo", 6.0)},
+					Package: output.PackageRef{Name: "new", Scorecard: newTestScorecardTUI("github.com/new/repo", 6.0,
+						sdk.PackageScorecardCheck{Name: "Code-Review", Score: 6},
+					)},
 				}},
 			},
 		},
@@ -222,7 +228,7 @@ func TestPostureTab_DiffRendersList(t *testing.T) {
 	plain := render.StripANSI(model.View(160, 40))
 	for _, want := range []string{
 		"Posture",
-		"Repositories (2)",
+		"Checks (2)",
 		"github.com/shared/repo",
 		"github.com/new/repo",
 		"Posture Delta",

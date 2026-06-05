@@ -149,6 +149,46 @@ type listPanel struct {
 
 const interactiveCommonNavigationHelp = "Up/Down or j/k move; Enter focus details (Up/Down scroll, Esc back); Home/End jump; q quits"
 
+func setVisibleExpansionLayer(list *listModel, expansion map[string]bool, expanded bool) bool {
+	if list == nil || expansion == nil {
+		return false
+	}
+	visible := list.visibleItemIndices()
+	if len(visible) == 0 {
+		return false
+	}
+	targetDepth := -1
+	for _, index := range visible {
+		item := list.items[index]
+		if !item.canOpen || item.key == "" || item.expanded == expanded {
+			continue
+		}
+		if targetDepth < 0 {
+			targetDepth = item.depth
+			continue
+		}
+		if expanded && item.depth < targetDepth {
+			targetDepth = item.depth
+		}
+		if !expanded && item.depth > targetDepth {
+			targetDepth = item.depth
+		}
+	}
+	if targetDepth < 0 {
+		return false
+	}
+	changed := false
+	for _, index := range visible {
+		item := list.items[index]
+		if !item.canOpen || item.key == "" || item.depth != targetDepth || item.expanded == expanded {
+			continue
+		}
+		expansion[item.key] = expanded
+		changed = true
+	}
+	return changed
+}
+
 type listPackageRow struct {
 	id               string
 	rootID           string
@@ -226,7 +266,7 @@ type scanModel struct {
 	licenseExpanded       map[string]bool
 	findingGroup          string
 	findingExpanded       map[string]bool
-	postureGroup          string // "repository" (default) or "check"
+	postureGroup          string // "check" (default) or "repository"
 	postureExpanded       map[string]bool
 }
 

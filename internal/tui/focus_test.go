@@ -200,13 +200,9 @@ func TestPostureGrouping_ByCheckRendersFailingFirst(t *testing.T) {
 	model := NewScan(output.ProjectDescriptor{Name: "demo", Path: "/tmp/demo"}, consolidated, graphValue, nil).WithRegistry(registry).WithEnrichEnabled(true)
 	model.SelectView(6)
 
-	// Cycle the group via `g`.
 	wrapper := &teaModel{inner: model, width: 200, height: 60}
-	updated, _ := wrapper.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'g'}})
-	wrapper = updated.(*teaModel)
-
 	plain := render.StripANSI(wrapper.View())
-	// Header should show "Checks (N)" once grouped by check.
+	// Header should show "Checks (N)" in the default check-grouped view.
 	if !strings.Contains(plain, "Checks (2)") {
 		t.Errorf("expected Checks (2) header in check-grouped view; got:\n%s", plain)
 	}
@@ -247,7 +243,6 @@ func TestPostureDiffGrouping_ByCheckRegressionsFirst(t *testing.T) {
 	}
 	model := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
 	model.SelectView(6)
-	model.CycleGroup()
 
 	wrapper := &teaModel{inner: model, width: 200, height: 60}
 	plain := render.StripANSI(wrapper.View())

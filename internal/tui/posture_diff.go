@@ -774,7 +774,7 @@ func postureDiffCheckGroupRowDetails(group postureDiffCheckGroup, r postureDiffC
 // buildPostureTab is the diffModel's TabSpec.Build for the Posture tab.
 // Layout mirrors the other diff tabs: top summary panels, single main
 // list, secondary details pane. The `g` key cycles the grouping axis
-// between "repository" (default) and "check".
+// between "check" (default) and "repository".
 func (m *diffModel) buildPostureTab() *listModel {
 	rows := postureDiffRowsFromPayload(m.payload.Results.Dependencies)
 	repoWidth := 24
@@ -787,7 +787,7 @@ func (m *diffModel) buildPostureTab() *listModel {
 		repoWidth = 56
 	}
 
-	group := valueOrDefault(m.postureGroup, "repository")
+	group := valueOrDefault(m.postureGroup, "check")
 	var items []listItem
 	var listTitle, listHeader string
 	switch group {

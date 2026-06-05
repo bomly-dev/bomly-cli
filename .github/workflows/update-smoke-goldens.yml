@@ -109,11 +109,28 @@ jobs:
           git commit -m "test: update smoke golden files"
           git push --set-upstream origin "${branch_name}"
 
-          gh pr create \
+          pr_output=""
+          set +e
+          pr_output="$(gh pr create \
             --base "${BASE_REF}" \
             --head "${branch_name}" \
             --title "test: update smoke golden files" \
-            --body "Automated smoke golden update generated from \`${SOURCE_REF}\` after maintainer review."
+            --body "Automated smoke golden update generated from \`${SOURCE_REF}\` after maintainer review." 2>&1)"
+          pr_status=$?
+          set -e
+
+          if [[ ${pr_status} -ne 0 ]]; then
+            if grep -Fq "GitHub Actions is not permitted to create or approve pull requests" <<<"${pr_output}"; then
+              manual_pr_url="https://github.com/${GITHUB_REPOSITORY}/pull/new/${branch_name}"
+              echo "::warning::${pr_output}"
+              echo "::notice::Branch ${branch_name} was pushed successfully. Open a pull request manually: ${manual_pr_url}"
+            else
+              echo "${pr_output}" >&2
+              exit "${pr_status}"
+            fi
+          else
+            echo "${pr_output}"
+          fi
 
       - name: Report no-op run
         if: steps.changes.outputs.changed != 'true'

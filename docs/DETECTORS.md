@@ -50,7 +50,7 @@ bomly scan --detectors go-detector
 bomly scan --detectors -syft-detector
 
 # Add an external plugin detector
-bomly scan --detectors +acme.detector.example
+bomly scan --detectors +security-team.detector.gomod
 ```
 
 Pass the bare detector name to filter to only that detector, `+name` to add it on top of defaults, or `-name` to remove it.

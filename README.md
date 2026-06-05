@@ -174,14 +174,14 @@ Install, enable, and verify external plugins before they can participate in scan
 
 ```bash
 # Install a published plugin from GitHub Releases
-bomly plugin install github:acme/bomly-plugin-example@v1.2.0
-bomly plugin enable acme.detector.example
+bomly plugin install github:security-team/bomly-plugin-gomod@v1.2.0
+bomly plugin enable security-team.detector.gomod
 
 # Verify it
-bomly plugin verify acme.detector.example
+bomly plugin verify security-team.detector.gomod
 
 # Run it explicitly during a scan
-bomly scan --path ./my-go-project --detectors acme.detector.example --json
+bomly scan --path ./my-go-project --detectors security-team.detector.gomod --json
 ```
 
 Detector plugins declare package-manager support and evidence patterns through their detector contract. Bomly uses those patterns during runtime preparation so external detectors can participate in subproject discovery alongside built-ins.

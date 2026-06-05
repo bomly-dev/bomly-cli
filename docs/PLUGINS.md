@@ -120,7 +120,7 @@ Install a plugin:
 bomly plugin install ./dist/bomly-plugin-example.tar.gz
 bomly plugin install ./bin/bomly-example-gomod-detector --dev
 bomly plugin install https://example.com/bomly-plugin-example.tar.gz --checksum sha256:...
-bomly plugin install github:acme/bomly-plugin-example@v1.2.0
+bomly plugin install github:security-team/bomly-plugin-gomod@v1.2.0
 ```
 
 Check a plugin:
@@ -145,13 +145,13 @@ Plugin selectors use the same `+/-` grammar as built-in components:
 
 ```bash
 # Use only this detector.
-bomly scan --detectors acme.detector.example
+bomly scan --detectors security-team.detector.gomod
 
 # Add an external matcher to the default matcher set.
-bomly scan --enrich --matchers +acme.matcher.example
+bomly scan --enrich --matchers +security-team.matcher.vulnfeed
 
 # Use one auditor explicitly.
-bomly scan --audit --auditors acme.auditor.example
+bomly scan --audit --auditors security-team.auditor.policy
 ```
 
 Detector plugins can participate in subproject discovery. Their manifest records `detectorDescriptor.packageManagerSupport`, and each support entry names a package manager plus evidence patterns such as `go.mod`. Bomly uses those patterns during runtime preparation so external detectors can join the same scan-planning flow as built-ins.
@@ -164,7 +164,7 @@ Per-plugin configuration lives under `plugins.<plugin-id>`:
 
 ```yaml
 plugins:
-  acme.matcher.example:
+  security-team.matcher.vulnfeed:
     api_base: https://api.example.com
 ```
 

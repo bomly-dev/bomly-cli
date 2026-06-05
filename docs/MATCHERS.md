@@ -37,7 +37,7 @@ bomly scan --enrich --matchers osv
 bomly scan --enrich --matchers -depsdev-license-checker,-clearlydefined-license-checker
 
 # Add an external plugin matcher
-bomly scan --enrich --matchers +acme.matcher.example
+bomly scan --enrich --matchers +security-team.matcher.vulnfeed
 ```
 
 ## Network endpoints

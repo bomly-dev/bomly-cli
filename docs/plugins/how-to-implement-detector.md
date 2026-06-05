@@ -17,14 +17,14 @@ import (
     "github.com/bomly-dev/bomly-cli/sdk"
 )
 
-const pluginID = "acme.detector.example"
+const pluginID = "security-team.detector.gomod"
 
 type detector struct{}
 
 func (d *detector) Metadata(context.Context) (*sdk.PluginMetadata, error) {
     return &sdk.PluginMetadata{
         ID:               pluginID,
-        Name:             "Acme Example Detector",
+        Name:             "Security Team Go Module Detector",
         Version:          "0.1.0",
         Kind:             sdk.PluginKindDetector,
         PluginAPIVersion: sdk.PluginAPIVersion,
@@ -131,9 +131,9 @@ Return `req.Subproject` and `req.ExecutionTarget` in the response so Bomly can k
 For development, build and install the binary directly:
 
 ```bash
-go build -o ./bin/acme-detector ./cmd/acme-detector
-bomly plugin install ./bin/acme-detector --dev
-bomly plugin enable acme.detector.example
+go build -o ./bin/security-team-gomod-detector ./cmd/security-team-gomod-detector
+bomly plugin install ./bin/security-team-gomod-detector --dev
+bomly plugin enable security-team.detector.gomod
 ```
 
 For distribution, package a `bomly-plugin.json` manifest with the binary:
@@ -141,7 +141,7 @@ For distribution, package a `bomly-plugin.json` manifest with the binary:
 ```text
 bomly-plugin.json
 bin/
-  acme-detector
+  security-team-gomod-detector
 README.md
 LICENSE
 ```
@@ -153,21 +153,21 @@ The detector manifest must include `detectorDescriptor.packageManagerSupport`; B
 Check installation and runtime readiness:
 
 ```bash
-bomly plugin verify acme.detector.example
-bomly plugin test acme.detector.example
-bomly plugin doctor acme.detector.example
+bomly plugin verify security-team.detector.gomod
+bomly plugin test security-team.detector.gomod
+bomly plugin doctor security-team.detector.gomod
 ```
 
 Run only this detector:
 
 ```bash
-bomly scan --path ./my-project --detectors acme.detector.example --json
+bomly scan --path ./my-project --detectors security-team.detector.gomod --json
 ```
 
 Or add it to the default detector set:
 
 ```bash
-bomly scan --path ./my-project --detectors +acme.detector.example
+bomly scan --path ./my-project --detectors +security-team.detector.gomod
 ```
 
 ## Implementation Checklist

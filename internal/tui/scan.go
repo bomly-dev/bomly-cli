@@ -358,12 +358,16 @@ func (m *scanModel) CycleReachabilityFilter() {
 }
 
 func (m *scanModel) reachabilityFilterAvailable() bool {
-	if m == nil || !m.reachabilityEnabled || m.graphValue == nil {
+	if m == nil || !m.reachabilityEnabled || m.graphValue == nil || m.registry == nil {
 		return false
 	}
-	// TODO(batch-6): vulnerabilities live on registry packages; this returns
-	// false until *sdk.PackageRegistry is plumbed through the TUI.
-	_ = m
+	for _, pkg := range m.graphValue.Nodes() {
+		for _, v := range vulnsForDependency(m.registry, pkg) {
+			if v.Reachability != nil {
+				return true
+			}
+		}
+	}
 	return false
 }
 
@@ -486,7 +490,7 @@ func (m *scanModel) commandLabel() string {
 }
 
 func (m *scanModel) scanStatusLine() string {
-	stats := scanStats(m.graphValue)
+	stats := scanStats(m.graphValue, m.registry)
 	return render.Style("Components: ", render.Dim) + render.Style(fmt.Sprintf("%d", stats.components), render.Cyan, render.Bold) +
 		render.Style(" | Vulns: ", render.Dim) + severityText(fmt.Sprintf("%d", stats.vulnerabilities)) +
 		render.Style(" | Licenses: ", render.Dim) + render.Style(fmt.Sprintf("%d", stats.licenses), render.Cyan, render.Bold) +
@@ -494,7 +498,7 @@ func (m *scanModel) scanStatusLine() string {
 }
 
 func (m *scanModel) scanFooterSummary() string {
-	stats := scanStats(m.graphValue)
+	stats := scanStats(m.graphValue, m.registry)
 	return fmt.Sprintf("Components: %d | Vulns: %d | Licenses: %d | Findings: %d", stats.components, stats.vulnerabilities, stats.licenses, len(m.findings))
 }
 
@@ -592,7 +596,7 @@ func (m *scanModel) buildManifestListModel() *listModel {
 
 func (m *scanModel) buildComponentsTreeListModel() *listModel {
 	totalComponents := packageCount(m.graphValue)
-	maxSevByID := maxVulnerabilitySeverityByPkgID(m.graphValue)
+	maxSevByID := maxVulnerabilitySeverityByPkgID(m.graphValue, m.registry)
 	filteredComponentCount := m.filteredComponentCount(maxSevByID)
 	items := make([]listItem, 0, totalComponents+len(m.manifests)+1)
 	projectKey := "project"
@@ -644,7 +648,7 @@ func (m *scanModel) buildComponentsTreeListModel() *listModel {
 					title:    row.displayName,
 					subtitle: row.relationship,
 					badges:   badges,
-					details:  componentDetails(m.graphValue, row, manifest),
+					details:  componentDetails(m.graphValue, m.registry, row, manifest),
 					key:      row.id,
 					tree:     componentForestPrefix(manifestLast, row),
 					depth:    row.depth + 2,
@@ -756,7 +760,7 @@ func (m *scanModel) filterComponentRows(rows []listPackageRow, maxSevByID map[st
 		kept := rows[:0]
 		for _, row := range rows {
 			pkg, _ := m.graphValue.Node(row.id)
-			if packageMatchesReachabilityFilter(pkg, m.reachabilityFilter) {
+			if packageMatchesReachabilityFilter(vulnsForDependency(m.registry, pkg), m.reachabilityFilter) {
 				kept = append(kept, row)
 			}
 		}
@@ -774,14 +778,35 @@ func (m *scanModel) filterComponentRows(rows []listPackageRow, maxSevByID map[st
 	return kept
 }
 
-func packageMatchesReachabilityFilter(pkg *sdk.Dependency, filter string) bool {
+func packageMatchesReachabilityFilter(vulns []sdk.Vulnerability, filter string) bool {
 	if filter == "" {
 		return true
 	}
-	// TODO(batch-6): vulnerabilities live on registry packages; this returns
-	// true (no filtering) until *sdk.PackageRegistry is plumbed through the TUI.
-	_ = pkg
-	return true
+	hasReachable := false
+	hasMatching := false
+	for _, v := range vulns {
+		if v.Reachability == nil {
+			continue
+		}
+		status := string(v.Reachability.Status)
+		if status == string(sdk.ReachabilityReachable) {
+			hasReachable = true
+		}
+		if status == filter {
+			hasMatching = true
+		}
+	}
+	switch filter {
+	case string(sdk.ReachabilityReachable):
+		return hasReachable
+	case string(sdk.ReachabilityUnreachable):
+		// Mixed packages (with at least one reachable vuln) are excluded from
+		// the unreachable filter so users can drill into truly-unreachable
+		// dependencies without noise.
+		return hasMatching && !hasReachable
+	default:
+		return hasMatching
+	}
 }
 
 func packageMatchesSeverityFilter(maxSeverity, filter string) bool {
@@ -857,8 +882,8 @@ func manifestEcosystem(graphValue *sdk.Graph, row listPackageRow) string {
 }
 
 func (m *scanModel) buildOverviewListModel() *listModel {
-	vulnerabilities := packageVulnerabilityRows(m.graphValue)
-	stats := scanStats(m.graphValue)
+	vulnerabilities := packageVulnerabilityRows(m.graphValue, m.registry)
+	stats := scanStats(m.graphValue, m.registry)
 	items := []listItem{
 		{
 			title:    "Target Information",
@@ -897,12 +922,12 @@ func (m *scanModel) buildOverviewListModel() *listModel {
 		{
 			title:    "Components by License",
 			subtitle: "distribution",
-			details:  licenseDistributionDetails(m.graphValue),
+			details:  licenseDistributionDetails(m.graphValue, m.registry),
 		},
 		{
 			title:    "Top Vulnerable Components",
 			subtitle: "top",
-			details:  topVulnerableComponentDetails(m.graphValue),
+			details:  topVulnerableComponentDetails(m.graphValue, m.registry),
 		},
 		{
 			title:    "Top Depended-On Components",
@@ -934,8 +959,8 @@ func (m *scanModel) overviewDashboardView(width, height int) string {
 		return m.shellModel.View(width, height) //nolint:staticcheck // explicit selector bypasses the View shadow on the embedding model
 	}
 
-	vulnerabilities := packageVulnerabilityRows(m.graphValue)
-	stats := scanStats(m.graphValue)
+	vulnerabilities := packageVulnerabilityRows(m.graphValue, m.registry)
+	stats := scanStats(m.graphValue, m.registry)
 	cardHeight := 9
 	gap := 1
 	leftHalf := (width - gap) / 2
@@ -953,8 +978,8 @@ func (m *scanModel) overviewDashboardView(width, height int) string {
 			severityCardLine(vulnerabilities, "low", m.reachabilityEnabled),
 		), summaryWidth, cardHeight, render.Red),
 		boxView("Licenses", summaryCountCardLines(stats.licenses, "Unique Licenses", summaryWidth-2, render.Yellow,
-			fmt.Sprintf("%d unknown", unknownLicenseCount(m.graphValue)),
-			fmt.Sprintf("%d unrecognized", unrecognizedLicenseCount(m.graphValue)),
+			fmt.Sprintf("%d unknown", unknownLicenseCount(m.graphValue, m.registry)),
+			fmt.Sprintf("%d unrecognized", unrecognizedLicenseCount(m.graphValue, m.registry)),
 		), summaryWidth, cardHeight, render.Yellow),
 		boxView("Target", []string{
 			render.Style("Name: ", render.Dim) + valueOrDash(m.project.Name),
@@ -974,7 +999,7 @@ func (m *scanModel) overviewDashboardView(width, height int) string {
 	remaining := bodyHeight - cardHeight - 1
 	leftWidth := width / 2
 	rightWidth := width - leftWidth - 1
-	topVuln := topVulnerableComponentStats(m.graphValue, 8)
+	topVuln := topVulnerableComponentStats(m.graphValue, m.registry, 8)
 	leftA := remaining / 3
 	if leftA < 7 && remaining >= 14 {
 		leftA = 7
@@ -999,9 +1024,9 @@ func (m *scanModel) overviewDashboardView(width, height int) string {
 		rightC = 4
 	}
 	rightContent := stackBoxes(
-		boxView("License Distribution", coloredDistributionLines(groupedLicenseCounts(m.graphValue, 10), stats.components, 10, rightWidth-2), rightWidth, rightA, render.Yellow),
+		boxView("License Distribution", coloredDistributionLines(groupedLicenseCounts(m.graphValue, m.registry, 10), stats.components, 10, rightWidth-2), rightWidth, rightA, render.Yellow),
 		boxView("Vulnerability Severity", severityDistributionLines(vulnerabilities, rightWidth-2, m.reachabilityEnabled), rightWidth, rightB, render.Red),
-		boxView(fmt.Sprintf("Top Vulnerable Components (%d)", vulnerableComponentTotal(m.graphValue)), topVulnerableTableLines(topVuln, rightWidth-2), rightWidth, rightC, render.Red),
+		boxView(fmt.Sprintf("Top Vulnerable Components (%d)", vulnerableComponentTotal(m.graphValue, m.registry)), topVulnerableTableLines(topVuln, rightWidth-2), rightWidth, rightC, render.Red),
 	)
 	lines = append(lines, joinColumns(leftContent, rightContent, leftWidth, rightWidth)...)
 	lines = append(lines, footerLines...)
@@ -1009,7 +1034,7 @@ func (m *scanModel) overviewDashboardView(width, height int) string {
 }
 
 func (m *scanModel) buildVulnsListModel() *listModel {
-	all := packageVulnerabilityRows(m.graphValue)
+	all := packageVulnerabilityRows(m.graphValue, m.registry)
 
 	// Apply severity and reachability filters.
 	filtered := all
@@ -1392,7 +1417,7 @@ func vulnerabilityDetails(row packageVulnerabilityRow) []string {
 }
 
 func (m *scanModel) buildLicensesListModel() *listModel {
-	rows := licenseRows(m.graphValue)
+	rows := licenseRows(m.graphValue, m.registry)
 	totalComponents := graphSize(m.graphValue)
 	items := m.licenseItems(rows, totalComponents)
 
@@ -1648,7 +1673,7 @@ func (m *scanModel) findingItems(findings []sdk.Finding) []listItem {
 	group := valueOrDefault(m.findingGroup, "type")
 	grouped := make(map[string][]sdk.Finding)
 	for _, finding := range findings {
-		grouped[findingGroupKey(finding, group)] = append(grouped[findingGroupKey(finding, group)], finding)
+		grouped[m.findingGroupKey(finding, group)] = append(grouped[m.findingGroupKey(finding, group)], finding)
 	}
 	keys := sortedFindingGroupKeys(grouped)
 	items := make([]listItem, 0, len(findings)+len(keys))
@@ -1672,7 +1697,7 @@ func (m *scanModel) findingItems(findings []sdk.Finding) []listItem {
 				title:    finding.ID,
 				subtitle: string(finding.Kind),
 				badges:   []badge{{label: finding.Severity, kind: "severity-" + strings.ToLower(finding.Severity)}},
-				details:  findingDetails(finding),
+				details:  m.findingDetails(finding),
 				tree:     treePrefix(nil, idx == len(groupFindings)-1, 1),
 				depth:    1,
 			})
@@ -1681,21 +1706,33 @@ func (m *scanModel) findingItems(findings []sdk.Finding) []listItem {
 	return items
 }
 
-func findingGroupKey(finding sdk.Finding, group string) string {
+func (m *scanModel) findingGroupKey(finding sdk.Finding, group string) string {
 	switch group {
 	case "severity":
 		return titleCase(valueOrDefault(finding.Severity, "unknown"))
 	case "component":
-		return valueOrDefault(findingPackageName(finding), "unknown component")
+		return valueOrDefault(m.findingPackageName(finding), "unknown component")
 	case "ecosystem":
-		// TODO(batch-6): resolve PackageRef → registry package → Ecosystem.
+		if m != nil && m.registry != nil && finding.PackageRef != "" {
+			if pkg, ok := m.registry.Get(finding.PackageRef); ok && pkg != nil && pkg.Ecosystem != "" {
+				return pkg.Ecosystem
+			}
+		}
 		return "unknown"
 	default:
 		return titleCase(string(finding.Kind))
 	}
 }
 
-func findingPackageName(finding sdk.Finding) string {
+func (m *scanModel) findingPackageName(finding sdk.Finding) string {
+	if m != nil && m.registry != nil && finding.PackageRef != "" {
+		if pkg, ok := m.registry.Get(finding.PackageRef); ok && pkg != nil && pkg.Name != "" {
+			if pkg.Version != "" {
+				return pkg.Name + "@" + pkg.Version
+			}
+			return pkg.Name
+		}
+	}
 	return finding.PackageRef
 }
 
@@ -1709,26 +1746,68 @@ func findingGroupDetails(key, group string, findings []sdk.Finding) []string {
 	}
 }
 
-func findingDetails(finding sdk.Finding) []string {
-	// TODO(batch-6): resolve PackageRef → registry package → DisplayName.
-	pkg := finding.PackageRef
+func (m *scanModel) findingDetails(finding sdk.Finding) []string {
+	pkgDisplay := m.findingPackageName(finding)
 	details := []string{
 		render.Style("Finding", render.Bold, render.Cyan),
 		"",
 		render.Style("  ID: ", render.Dim) + valueOrDash(finding.ID),
 		render.Style("  Kind: ", render.Dim) + valueOrDash(string(finding.Kind)),
 		render.Style("  Severity: ", render.Dim) + severityText(finding.Severity),
-		render.Style("  Package: ", render.Dim) + valueOrDash(pkg),
+		render.Style("  Package: ", render.Dim) + valueOrDash(pkgDisplay),
 		render.Style("  Title: ", render.Dim) + valueOrDash(finding.Title),
 		render.Style("  Source: ", render.Dim) + valueOrDash(finding.Source),
-		// TODO(batch-6): the rich vuln properties (Namespace, DataSource,
-		// FixedIn, FixState, KEVExploited, EPSS, CWEs, Description) now live
-		// on the registry Vulnerability. Look it up via finding.PackageRef +
-		// finding.VulnerabilityID once *sdk.PackageRegistry reaches the TUI.
-		"",
-		render.Style(fmt.Sprintf("Reasons (%d)", len(finding.Reasons)), render.Bold, render.Magenta),
-		"",
 	}
+	if m != nil && m.registry != nil && finding.PackageRef != "" {
+		if pkg, ok := m.registry.Get(finding.PackageRef); ok && pkg != nil {
+			vulnID := finding.VulnerabilityID
+			if vulnID == "" {
+				vulnID = finding.ID
+			}
+			for i := range pkg.Vulnerabilities {
+				v := &pkg.Vulnerabilities[i]
+				if v.ID != vulnID {
+					matched := false
+					for _, alias := range v.Aliases {
+						if alias == vulnID {
+							matched = true
+							break
+						}
+					}
+					if !matched {
+						continue
+					}
+				}
+				if v.FixedIn != "" {
+					details = append(details, render.Style("  Fixed in: ", render.Dim)+v.FixedIn)
+				}
+				if v.FixState != "" {
+					details = append(details, render.Style("  Fix state: ", render.Dim)+v.FixState)
+				}
+				if v.KEVExploited {
+					details = append(details, render.Style("  KEV: ", render.Dim)+"yes")
+				}
+				if len(v.EPSS) > 0 {
+					details = append(details, render.Style("  EPSS: ", render.Dim)+fmt.Sprintf("%.2f", v.EPSS[0].EPSS))
+				}
+				if len(v.CWEs) > 0 {
+					ids := make([]string, 0, len(v.CWEs))
+					for _, c := range v.CWEs {
+						ids = append(ids, c.ID)
+					}
+					details = append(details, render.Style("  CWEs: ", render.Dim)+strings.Join(ids, ", "))
+				}
+				if v.Reachability != nil {
+					details = append(details, render.Style("  Reachability: ", render.Dim)+string(v.Reachability.Status))
+				}
+				if v.Details != "" {
+					details = append(details, render.Style("  Description: ", render.Dim)+v.Details)
+				}
+				break
+			}
+		}
+	}
+	details = append(details, "", render.Style(fmt.Sprintf("Reasons (%d)", len(finding.Reasons)), render.Bold, render.Magenta), "")
 	return append(details, indentLines(finding.Reasons)...)
 }
 
@@ -1837,7 +1916,7 @@ func (m *scanModel) sourceSectionChildren(section, prefix string) []listItem {
 			} else {
 				childPrefix += "│  "
 			}
-			out = append(out, sourceLeafItems(packageRawLines(pkg), childPrefix)...)
+			out = append(out, sourceLeafItems(packageRawLines(pkg, m.registry), childPrefix)...)
 		}
 		return out
 	case "relationships":
@@ -1848,11 +1927,18 @@ func (m *scanModel) sourceSectionChildren(section, prefix string) []listItem {
 	}
 }
 
-func packageRawLines(pkg *sdk.Dependency) []string {
+func packageRawLines(pkg *sdk.Dependency, registry *sdk.PackageRegistry) []string {
 	if pkg == nil {
 		return nil
 	}
-	licenseValues := []string(nil) /* TODO(batch-6) registry licenses */
+	var licenseValues []string
+	for _, lic := range licensesForDependency(registry, pkg) {
+		if id := strings.TrimSpace(lic.SPDXExpression); id != "" {
+			licenseValues = append(licenseValues, id)
+		} else if v := strings.TrimSpace(lic.Value); v != "" {
+			licenseValues = append(licenseValues, v)
+		}
+	}
 	lines := []string{
 		fmt.Sprintf("name: %q", valueOrDash(pkg.Name)),
 		fmt.Sprintf("version: %q", valueOrDash(pkg.Version)),
@@ -1861,7 +1947,7 @@ func packageRawLines(pkg *sdk.Dependency) []string {
 		fmt.Sprintf("type: %q", valueOrDash(pkg.Type)),
 		fmt.Sprintf("purl: %q", valueOrDash(pkg.PURL)),
 		fmt.Sprintf("licenses: %q", strings.Join(licenseValues, ", ")),
-		fmt.Sprintf("vulnerabilities: %d", len([]sdk.Vulnerability(nil) /* TODO(batch-6) registry vulns */)),
+		fmt.Sprintf("vulnerabilities: %d", len(vulnsForDependency(registry, pkg))),
 	}
 	for idx, location := range pkg.Locations {
 		lines = append(lines, fmt.Sprintf("locations[%d]: {realPath: %q, accessPath: %q}", idx, location.RealPath, location.AccessPath))
@@ -1936,7 +2022,7 @@ type licensePackageRef struct {
 	scope       string
 }
 
-func licenseRows(graphValue *sdk.Graph) []licenseRow {
+func licenseRows(graphValue *sdk.Graph, registry *sdk.PackageRegistry) []licenseRow {
 	if graphValue == nil {
 		return nil
 	}
@@ -1946,7 +2032,11 @@ func licenseRows(graphValue *sdk.Graph) []licenseRow {
 		if pkg == nil {
 			continue
 		}
-		for _, licenseValue := range []string(nil) /* TODO(batch-6) registry licenses */ {
+		for _, lic := range licensesForDependency(registry, pkg) {
+			licenseValue := strings.TrimSpace(lic.SPDXExpression)
+			if licenseValue == "" {
+				licenseValue = strings.TrimSpace(lic.Value)
+			}
 			licenseValue = strings.TrimSpace(licenseValue)
 			if licenseValue == "" {
 				continue
@@ -2069,7 +2159,7 @@ func (m *scanModel) buildComponentListModel(manifest listPackageRow) *listModel 
 
 	rows := m.componentTreeRows(manifest.rootID)
 	// Compute highest severity per package for badge display, filtering, and sorting.
-	maxSevByID := maxVulnerabilitySeverityByPkgID(m.graphValue)
+	maxSevByID := maxVulnerabilitySeverityByPkgID(m.graphValue, m.registry)
 	rows = m.filterComponentRows(rows, maxSevByID)
 
 	// Sort: highest severity first, then relationship, then ID.
@@ -2108,7 +2198,7 @@ func (m *scanModel) buildComponentListModel(manifest listPackageRow) *listModel 
 			title:    row.displayName,
 			subtitle: row.relationship,
 			badges:   badges,
-			details:  componentDetails(m.graphValue, row, manifest),
+			details:  componentDetails(m.graphValue, m.registry, row, manifest),
 			key:      row.id,
 			tree:     row.tree,
 			depth:    row.depth,
@@ -2148,7 +2238,7 @@ func (m *scanModel) buildExplainComponentListModel(manifest listPackageRow) *lis
 			rows = append(rows, row)
 		}
 	}
-	maxSevByID := maxVulnerabilitySeverityByPkgID(m.graphValue)
+	maxSevByID := maxVulnerabilitySeverityByPkgID(m.graphValue, m.registry)
 	rows = m.filterComponentRows(rows, maxSevByID)
 	sort.Slice(rows, func(i, j int) bool {
 		si := severityRank(maxSevByID[rows[i].id])
@@ -2171,7 +2261,7 @@ func (m *scanModel) buildExplainComponentListModel(manifest listPackageRow) *lis
 			title:    row.displayName,
 			subtitle: row.relationship,
 			badges:   badges,
-			details:  componentDetails(m.graphValue, row, manifest),
+			details:  componentDetails(m.graphValue, m.registry, row, manifest),
 		})
 	}
 	targetPkg, _ := m.graphValue.Node(manifest.targetID)
@@ -2451,7 +2541,7 @@ func componentBaseName(value string) string {
 	return value
 }
 
-func componentDetails(graphValue *sdk.Graph, row listPackageRow, manifest listPackageRow) []string {
+func componentDetails(graphValue *sdk.Graph, registry *sdk.PackageRegistry, row listPackageRow, manifest listPackageRow) []string {
 	lines := []string{
 		render.Style("Component", render.Bold, render.Cyan),
 		"",
@@ -2505,10 +2595,7 @@ func componentDetails(graphValue *sdk.Graph, row listPackageRow, manifest listPa
 	if graphValue != nil {
 		pkg, _ = graphValue.Node(row.id)
 	}
-	vulnerabilities := []sdk.Vulnerability(nil)
-	if pkg != nil {
-		vulnerabilities = []sdk.Vulnerability(nil) /* TODO(batch-6) registry vulns */
-	}
+	vulnerabilities := vulnsForDependency(registry, pkg)
 	lines = append(lines, render.Style(fmt.Sprintf("Vulnerabilities (%d)", len(vulnerabilities)), render.Bold, render.Cyan), "")
 	if len(vulnerabilities) == 0 {
 		lines = append(lines, render.Style("  (none)", render.Dim))
@@ -2539,15 +2626,12 @@ func componentDetails(graphValue *sdk.Graph, row listPackageRow, manifest listPa
 	lines = append(lines, "")
 
 	// Licenses section
-	licenseCount := 0
-	if pkg != nil {
-		licenseCount = len([]sdk.PackageLicense(nil) /* TODO(batch-6) registry licenses */)
-	}
-	lines = append(lines, render.Style(fmt.Sprintf("Licenses (%d)", licenseCount), render.Bold, render.Cyan), "")
-	if pkg == nil || len([]sdk.PackageLicense(nil) /* TODO(batch-6) registry licenses */) == 0 {
+	licenses := licensesForDependency(registry, pkg)
+	lines = append(lines, render.Style(fmt.Sprintf("Licenses (%d)", len(licenses)), render.Bold, render.Cyan), "")
+	if len(licenses) == 0 {
 		lines = append(lines, render.Style("  (none)", render.Dim))
 	} else {
-		for _, lic := range []sdk.PackageLicense(nil) /* TODO(batch-6) registry licenses */ {
+		for _, lic := range licenses {
 			expr := lic.SPDXExpression
 			if expr == "" {
 				expr = lic.Value
@@ -2575,7 +2659,7 @@ type packageVulnerabilityRow struct {
 	vulnerability sdk.Vulnerability
 }
 
-func packageVulnerabilityRows(graphValue *sdk.Graph) []packageVulnerabilityRow {
+func packageVulnerabilityRows(graphValue *sdk.Graph, registry *sdk.PackageRegistry) []packageVulnerabilityRow {
 	if graphValue == nil {
 		return nil
 	}
@@ -2584,14 +2668,14 @@ func packageVulnerabilityRows(graphValue *sdk.Graph) []packageVulnerabilityRow {
 		if pkg == nil {
 			continue
 		}
-		for _, vulnerability := range []sdk.Vulnerability(nil) /* TODO(batch-6) registry vulns */ {
+		for _, vulnerability := range vulnsForDependency(registry, pkg) {
 			rows = append(rows, packageVulnerabilityRow{pkg: pkg, vulnerability: vulnerability})
 		}
 	}
 	return rows
 }
 
-func scanStats(graphValue *sdk.Graph) scanOverviewStats {
+func scanStats(graphValue *sdk.Graph, registry *sdk.PackageRegistry) scanOverviewStats {
 	stats := scanOverviewStats{ecosystems: make(map[string]int)}
 	licenseSet := make(map[string]struct{})
 	if graphValue != nil {
@@ -2605,10 +2689,16 @@ func scanStats(graphValue *sdk.Graph) scanOverviewStats {
 			} else {
 				stats.ecosystems["unknown"]++
 			}
-			for _, licenseValue := range []string(nil) /* TODO(batch-6) registry licenses */ {
-				licenseSet[licenseValue] = struct{}{}
+			for _, lic := range licensesForDependency(registry, pkg) {
+				id := strings.TrimSpace(lic.SPDXExpression)
+				if id == "" {
+					id = strings.TrimSpace(lic.Value)
+				}
+				if id != "" {
+					licenseSet[id] = struct{}{}
+				}
 			}
-			stats.vulnerabilities += len([]sdk.Vulnerability(nil) /* TODO(batch-6) registry vulns */)
+			stats.vulnerabilities += len(vulnsForDependency(registry, pkg))
 		}
 	}
 	stats.licenses = len(licenseSet)
@@ -2686,9 +2776,9 @@ func compactDistributionLines(counts map[string]int, limit int) []string {
 	return lines
 }
 
-func compactLicenseLines(graphValue *sdk.Graph, limit int) []string {
+func compactLicenseLines(graphValue *sdk.Graph, registry *sdk.PackageRegistry, limit int) []string {
 	counts := make(map[string]int)
-	for _, row := range licenseRows(graphValue) {
+	for _, row := range licenseRows(graphValue, registry) {
 		counts[row.license] = len(row.packages)
 	}
 	return compactDistributionLines(counts, limit)
@@ -2850,9 +2940,9 @@ func paletteColor(idx int) string {
 	return palette[idx%len(palette)]
 }
 
-func unknownLicenseCount(graphValue *sdk.Graph) int {
+func unknownLicenseCount(graphValue *sdk.Graph, registry *sdk.PackageRegistry) int {
 	count := 0
-	for _, row := range licenseRows(graphValue) {
+	for _, row := range licenseRows(graphValue, registry) {
 		if isUnknownLicense(row.license) {
 			count += len(row.packages)
 		}
@@ -2860,9 +2950,9 @@ func unknownLicenseCount(graphValue *sdk.Graph) int {
 	return count
 }
 
-func unrecognizedLicenseCount(graphValue *sdk.Graph) int {
+func unrecognizedLicenseCount(graphValue *sdk.Graph, registry *sdk.PackageRegistry) int {
 	count := 0
-	for _, row := range licenseRows(graphValue) {
+	for _, row := range licenseRows(graphValue, registry) {
 		if !isUnknownLicense(row.license) && !looksLikeSPDXLicense(row.license) {
 			count += len(row.packages)
 		}
@@ -2886,9 +2976,9 @@ func looksLikeSPDXLicense(value string) bool {
 	return strings.Contains(value, "-") || strings.EqualFold(value, "MIT") || strings.EqualFold(value, "ISC") || strings.EqualFold(value, "BSD")
 }
 
-func groupedLicenseCounts(graphValue *sdk.Graph, limit int) map[string]int {
+func groupedLicenseCounts(graphValue *sdk.Graph, registry *sdk.PackageRegistry, limit int) map[string]int {
 	counts := make(map[string]int)
-	for _, row := range licenseRows(graphValue) {
+	for _, row := range licenseRows(graphValue, registry) {
 		counts[row.license] = len(row.packages)
 	}
 	keys := sortedCountKeys(counts)
@@ -2919,8 +3009,8 @@ type componentStat struct {
 	displayPctMax int
 }
 
-func topVulnerableComponentStats(graphValue *sdk.Graph, limit int) []componentStat {
-	counts, severities := packageVulnerabilityStats(graphValue)
+func topVulnerableComponentStats(graphValue *sdk.Graph, registry *sdk.PackageRegistry, limit int) []componentStat {
+	counts, severities := packageVulnerabilityStats(graphValue, registry)
 	stats := make([]componentStat, 0, len(counts))
 	for name, count := range counts {
 		stats = append(stats, componentStat{name: name, vulns: count, maxSeverity: severities[name]})
@@ -2940,8 +3030,8 @@ func topVulnerableComponentStats(graphValue *sdk.Graph, limit int) []componentSt
 	return stats
 }
 
-func topDependedOnComponentStats(graphValue *sdk.Graph, limit int) []componentStat {
-	vulnCounts, _ := packageVulnerabilityStats(graphValue)
+func topDependedOnComponentStats(graphValue *sdk.Graph, registry *sdk.PackageRegistry, limit int) []componentStat {
+	vulnCounts, _ := packageVulnerabilityStats(graphValue, registry)
 	stats := make([]componentStat, 0)
 	if graphValue != nil {
 		for _, pkg := range graphValue.Nodes() {
@@ -2968,17 +3058,18 @@ func topDependedOnComponentStats(graphValue *sdk.Graph, limit int) []componentSt
 	return stats
 }
 
-func packageVulnerabilityStats(graphValue *sdk.Graph) (map[string]int, map[string]string) {
+func packageVulnerabilityStats(graphValue *sdk.Graph, registry *sdk.PackageRegistry) (map[string]int, map[string]string) {
 	counts := make(map[string]int)
 	severities := make(map[string]string)
 	if graphValue != nil {
 		for _, pkg := range graphValue.Nodes() {
-			if pkg == nil || len([]sdk.Vulnerability(nil) /* TODO(batch-6) registry vulns */) == 0 {
+			vulns := vulnsForDependency(registry, pkg)
+			if pkg == nil || len(vulns) == 0 {
 				continue
 			}
 			name := packageDisplayName(pkg)
-			counts[name] += len([]sdk.Vulnerability(nil) /* TODO(batch-6) registry vulns */)
-			for _, vuln := range []sdk.Vulnerability(nil) /* TODO(batch-6) registry vulns */ {
+			counts[name] += len(vulns)
+			for _, vuln := range vulns {
 				if severityRank(vuln.ParsedSeverity) < severityRank(severities[name]) {
 					severities[name] = vuln.ParsedSeverity
 				}
@@ -3083,8 +3174,8 @@ func displayManifestsWithRemainder(manifests []listPackageRow, limit int) ([]lis
 	return manifests[:limit], len(manifests) - limit
 }
 
-func vulnerableComponentTotal(graphValue *sdk.Graph) int {
-	counts, _ := packageVulnerabilityStats(graphValue)
+func vulnerableComponentTotal(graphValue *sdk.Graph, registry *sdk.PackageRegistry) int {
+	counts, _ := packageVulnerabilityStats(graphValue, registry)
 	return len(counts)
 }
 
@@ -3142,32 +3233,33 @@ func stackBoxes(boxes ...[]string) []string {
 	return out
 }
 
-func licenseDistributionDetails(graphValue *sdk.Graph) []string {
+func licenseDistributionDetails(graphValue *sdk.Graph, registry *sdk.PackageRegistry) []string {
 	counts := make(map[string]int)
-	for _, row := range licenseRows(graphValue) {
+	for _, row := range licenseRows(graphValue, registry) {
 		counts[row.license] = len(row.packages)
 	}
 	return distributionDetails("License Distribution", counts)
 }
 
-func topVulnerableComponentDetails(graphValue *sdk.Graph) []string {
-	return distributionDetails("Top Vulnerable Components", topCounts(topVulnerableCounts(graphValue), 10))
+func topVulnerableComponentDetails(graphValue *sdk.Graph, registry *sdk.PackageRegistry) []string {
+	return distributionDetails("Top Vulnerable Components", topCounts(topVulnerableCounts(graphValue, registry), 10))
 }
 
 func topDependedOnDetails(graphValue *sdk.Graph) []string {
 	return distributionDetails("Top Depended-On Components", topCounts(topDependedOnCounts(graphValue), 10))
 }
 
-func topVulnerableCounts(graphValue *sdk.Graph) map[string]int {
+func topVulnerableCounts(graphValue *sdk.Graph, registry *sdk.PackageRegistry) map[string]int {
 	counts := make(map[string]int)
 	if graphValue == nil {
 		return counts
 	}
 	for _, pkg := range graphValue.Nodes() {
-		if pkg == nil || len([]sdk.Vulnerability(nil) /* TODO(batch-6) registry vulns */) == 0 {
+		vulns := vulnsForDependency(registry, pkg)
+		if pkg == nil || len(vulns) == 0 {
 			continue
 		}
-		counts[packageDisplayName(pkg)] += len([]sdk.Vulnerability(nil) /* TODO(batch-6) registry vulns */)
+		counts[packageDisplayName(pkg)] += len(vulns)
 	}
 	return counts
 }

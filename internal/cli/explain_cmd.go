@@ -111,7 +111,7 @@ func newExplainCmd() *cobra.Command {
 			}
 			if context.ResolvedConfig.Interactive {
 				prog.Stop()
-				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewExplain(payload.Project, args[0], explainResult.FocusedConsolidated, explainResult.FocusedGraph, explainResult.Findings).WithEnrichEnabled(context.ResolvedConfig.Enrich)))
+				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewExplain(payload.Project, args[0], explainResult.FocusedConsolidated, explainResult.FocusedGraph, explainResult.Findings).WithRegistry(explainResult.Registry).WithEnrichEnabled(context.ResolvedConfig.Enrich)))
 			}
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")

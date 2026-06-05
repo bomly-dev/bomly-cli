@@ -82,8 +82,8 @@ func Scan(manifests []output.ScanManifest, g *sdk.Graph, registry *sdk.PackageRe
 			if sorted[i].ID != sorted[j].ID {
 				return sorted[i].ID < sorted[j].ID
 			}
-			// TODO(batch-6): plumb the registry through so we can resolve
-			// PackageRef → DisplayName for prettier ordering.
+			// Sort by PackageRef (PURL) when severity and ID match — keeps
+			// ordering stable across runs without an extra registry lookup.
 			return sorted[i].PackageRef < sorted[j].PackageRef
 		})
 		tw := tabwriter.NewWriter(&b, 0, 0, 2, ' ', 0)

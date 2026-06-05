@@ -766,11 +766,15 @@ func TestScanInteractiveModel_ManifestDetailsIncludeDetectorMetadata(t *testing.
 }
 
 func TestScanInteractiveModel_FindingsCanGroupByEcosystem(t *testing.T) {
-	t.Skip("TODO(batch-6): TUI internals still stub vulnerability/license reads; needs registry-aware list/overview builders.")
-	pkg := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Ecosystem: "npm"})
+	const purl = "pkg:npm/react@18.2.0"
+	registry := sdk.NewPackageRegistry()
+	reg := registry.Ensure(purl)
+	reg.Name = "react"
+	reg.Version = "18.2.0"
+	reg.Ecosystem = "npm"
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, sdk.ConsolidatedGraph{}, sdk.New(), []sdk.Finding{
-		{ID: "F-1", Kind: sdk.FindingKindLicense, Severity: "high", PackageRef: pkg.PURL},
-	})
+		{ID: "F-1", Kind: sdk.FindingKindLicense, Severity: "high", PackageRef: purl},
+	}).WithRegistry(registry)
 	model.SelectView(5)
 	for range 3 {
 		model.CycleGroup()
@@ -783,15 +787,16 @@ func TestScanInteractiveModel_FindingsCanGroupByEcosystem(t *testing.T) {
 }
 
 func TestScanInteractiveModel_UsesEnrichedVulnerabilitiesWithoutFindings(t *testing.T) {
-	t.Skip("TODO(batch-6): rewrite this test using *sdk.PackageRegistry + WithRegistry(); inlined Vulnerabilities on Dependency are no longer supported.")
 	g := sdk.New()
 	root := sdk.NewDependency(sdk.Dependency{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"})
-	dep := sdk.NewDependency(sdk.Dependency{
-		Name:      "react",
-		Version:   "18.2.0",
-		Ecosystem: "npm",
-	})
-	_ = []sdk.Vulnerability{{ // TODO(batch-6): move into registry
+	const reactPURL = "pkg:npm/react@18.2.0"
+	dep := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Ecosystem: "npm", PURL: reactPURL})
+	registry := sdk.NewPackageRegistry()
+	regPkg := registry.Ensure(reactPURL)
+	regPkg.Name = "react"
+	regPkg.Version = "18.2.0"
+	regPkg.Ecosystem = "npm"
+	regPkg.Vulnerabilities = []sdk.Vulnerability{{
 		ID: "CVE-2026-0001", Source: "osv", Title: "demo issue", ParsedSeverity: "high",
 	}}
 	for _, pkg := range []*sdk.Dependency{root, dep} {
@@ -818,7 +823,7 @@ func TestScanInteractiveModel_UsesEnrichedVulnerabilitiesWithoutFindings(t *test
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 
-	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
+	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil).WithRegistry(registry)
 	overview := render.StripANSI(model.View(120, 32))
 	if !strings.Contains(overview, "Components: 2 | Vulns: 1 | Licenses: 0 | Findings: 0") {
 		t.Fatalf("expected overview to count enriched vulnerabilities without findings, got:\n%s", overview)
@@ -854,11 +859,19 @@ func TestScanInteractiveModel_UsesEnrichedVulnerabilitiesWithoutFindings(t *test
 }
 
 func TestScanInteractiveModel_VulnerabilityFilterKeepsGlobalSummaries(t *testing.T) {
-	t.Skip("TODO(batch-6): rewrite this test using *sdk.PackageRegistry; vulnerability enrichment no longer lives on graph dependencies.")
 	g := sdk.New()
 	root := sdk.NewDependency(sdk.Dependency{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"})
-	react := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Ecosystem: "npm"})
-	lodash := sdk.NewDependency(sdk.Dependency{Name: "lodash", Version: "4.17.20", Ecosystem: "npm"})
+	const reactPURL = "pkg:npm/react@18.2.0"
+	const lodashPURL = "pkg:npm/lodash@4.17.20"
+	react := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Ecosystem: "npm", PURL: reactPURL})
+	lodash := sdk.NewDependency(sdk.Dependency{Name: "lodash", Version: "4.17.20", Ecosystem: "npm", PURL: lodashPURL})
+	registry := sdk.NewPackageRegistry()
+	rp := registry.Ensure(reactPURL)
+	rp.Name, rp.Version, rp.Ecosystem = "react", "18.2.0", "npm"
+	rp.Vulnerabilities = []sdk.Vulnerability{{ID: "CVE-HIGH", ParsedSeverity: "high"}}
+	lp := registry.Ensure(lodashPURL)
+	lp.Name, lp.Version, lp.Ecosystem = "lodash", "4.17.20", "npm"
+	lp.Vulnerabilities = []sdk.Vulnerability{{ID: "CVE-LOW", ParsedSeverity: "low"}}
 	for _, pkg := range []*sdk.Dependency{root, react, lodash} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
@@ -885,7 +898,7 @@ func TestScanInteractiveModel_VulnerabilityFilterKeepsGlobalSummaries(t *testing
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 
-	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil).WithEnrichEnabled(true)
+	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil).WithRegistry(registry).WithEnrichEnabled(true)
 	model.SelectView(3)
 	model.severityFilter = "high"
 	model.rebuildListPreserveSelection()
@@ -910,10 +923,14 @@ func TestScanInteractiveModel_VulnerabilityFilterKeepsGlobalSummaries(t *testing
 }
 
 func TestScanInteractiveModel_VulnerabilityFilterEmptyStateDistinguishesNoMatchesFromNoEnrich(t *testing.T) {
-	t.Skip("TODO(batch-6): rewrite this test using *sdk.PackageRegistry; vulnerability enrichment no longer lives on graph dependencies.")
 	g := sdk.New()
 	root := sdk.NewDependency(sdk.Dependency{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"})
-	dep := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Ecosystem: "npm"})
+	const reactPURL = "pkg:npm/react@18.2.0"
+	dep := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Ecosystem: "npm", PURL: reactPURL})
+	registry := sdk.NewPackageRegistry()
+	rp := registry.Ensure(reactPURL)
+	rp.Name, rp.Version, rp.Ecosystem = "react", "18.2.0", "npm"
+	rp.Vulnerabilities = []sdk.Vulnerability{{ID: "CVE-HIGH", ParsedSeverity: "high"}}
 	for _, pkg := range []*sdk.Dependency{root, dep} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
@@ -938,7 +955,7 @@ func TestScanInteractiveModel_VulnerabilityFilterEmptyStateDistinguishesNoMatche
 		t.Fatalf("ConsolidatedGraph() error = %v", err)
 	}
 
-	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil).WithEnrichEnabled(true)
+	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil).WithRegistry(registry).WithEnrichEnabled(true)
 	model.SelectView(3)
 	model.severityFilter = "low"
 	model.rebuildListPreserveSelection()
@@ -959,7 +976,6 @@ func TestScanInteractiveModel_VulnerabilityFilterEmptyStateDistinguishesNoMatche
 }
 
 func TestScanInteractiveModel_ReachabilityFilterCyclesFromKeyboard(t *testing.T) {
-	t.Skip("TODO(batch-6): TUI internals still stub vulnerability/license reads; needs registry-aware list/overview builders.")
 	model := newScanReachabilityFilterModel(t, true)
 	model.SelectView(2)
 	wrapper := &teaModel{inner: model, width: 180, height: 40}
@@ -1036,7 +1052,6 @@ func TestScanInteractiveModel_ReachabilityFilterUnavailableIsHiddenAndNoOp(t *te
 }
 
 func TestScanInteractiveModel_OverviewShowsReachableSeverityCountsWhenEnabled(t *testing.T) {
-	t.Skip("TODO(batch-6): TUI internals still stub vulnerability/license reads; needs registry-aware list/overview builders.")
 	enabled := newScanReachabilityFilterModel(t, true)
 	plain := render.StripANSI(enabled.View(240, 48))
 	if !strings.Contains(plain, "6 High (2 reachable)") {
@@ -1051,7 +1066,6 @@ func TestScanInteractiveModel_OverviewShowsReachableSeverityCountsWhenEnabled(t 
 }
 
 func TestScanInteractiveModel_VulnerabilityRowsShowReachabilityBadgesWhenEnabled(t *testing.T) {
-	t.Skip("TODO(batch-6): TUI internals still stub vulnerability/license reads; needs registry-aware list/overview builders.")
 	model := newScanReachabilityFilterModel(t, true)
 	model.SelectView(3)
 	assertInteractiveItemBadges(t, model, "CVE-REACHABLE", []string{"reachable"})
@@ -1065,7 +1079,6 @@ func TestScanInteractiveModel_VulnerabilityRowsShowReachabilityBadgesWhenEnabled
 }
 
 func TestScanInteractiveModel_SeverityFilterIncludesAnyAndNone(t *testing.T) {
-	t.Skip("TODO(batch-6): TUI internals still stub vulnerability/license reads; needs registry-aware list/overview builders.")
 	if got := nextSeverityFilter(""); got != "any" {
 		t.Fatalf("nextSeverityFilter(all) = %q, want any", got)
 	}
@@ -1223,7 +1236,7 @@ func TestTopDependedOnComponentStats_UsesTransitiveDependents(t *testing.T) {
 		}
 	}
 
-	stats := topDependedOnComponentStats(g, 3)
+	stats := topDependedOnComponentStats(g, nil, 3)
 	if len(stats) == 0 {
 		t.Fatalf("expected depended-on component stats")
 	}
@@ -1287,7 +1300,6 @@ func TestScanInteractiveModel_ComponentTreeExpandsSelectedNode(t *testing.T) {
 }
 
 func TestScanInteractiveModel_OverviewDashboardUsesBordersAndBars(t *testing.T) {
-	t.Skip("TODO(batch-6): TUI internals still stub vulnerability/license reads; needs registry-aware list/overview builders.")
 	g := sdk.New()
 	root := sdk.NewDependency(sdk.Dependency{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"})
 	dep := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Ecosystem: "npm"})
@@ -1434,14 +1446,12 @@ func TestInteractiveListModel_SearchIgnoresDependencyDetailText(t *testing.T) {
 	if len(visible) != 1 || visible[0] != 1 {
 		t.Fatalf("expected only the syft entry to match, got %#v", visible)
 	}
-	t.Skip("TODO(batch-6): TUI internals still stub vulnerability/license reads; needs registry-aware list/overview builders.")
 	if model.selected != 1 {
 		t.Fatalf("expected selection to jump to the syft entry, got %d", model.selected)
 	}
 }
 
 func TestBuildLicensesListModel_GroupsByUniqueLicense(t *testing.T) {
-	t.Skip("TODO(batch-6): TUI internals still stub vulnerability/license reads; needs registry-aware list/overview builders.")
 	g := sdk.New()
 	app := sdk.NewDependencyRef("demo-app", "1.0.0")
 	react := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})

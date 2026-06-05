@@ -3141,7 +3141,7 @@ func diffSourceItems(consolidated sdk.ConsolidatedGraph, expanded map[string]boo
 				} else {
 					childPrefix += "│  "
 				}
-				items = append(items, sourceLeafItems(packageRawLines(pkg), childPrefix)...)
+				items = append(items, sourceLeafItems(packageRawLines(pkg, nil), childPrefix)...)
 			}
 			if truncated {
 				items = append(items, sourceNode(fmt.Sprintf("(showing 200 of %d packages)", len(pkgs)), "", prefix+"└─ ", 2, false, false))

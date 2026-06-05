@@ -310,9 +310,35 @@ func nextSeverityFilter(current string) string {
 	return nextFilterValue(current, values)
 }
 
+// vulnsForDependency returns the matching-stage vulnerabilities for a
+// dependency by resolving its PURL against the registry. Returns nil when
+// either input is nil or the registry has no entry for the PURL.
+func vulnsForDependency(registry *sdk.PackageRegistry, dep *sdk.Dependency) []sdk.Vulnerability {
+	if registry == nil || dep == nil || dep.PURL == "" {
+		return nil
+	}
+	pkg, ok := registry.Get(dep.PURL)
+	if !ok || pkg == nil {
+		return nil
+	}
+	return pkg.Vulnerabilities
+}
+
+// licensesForDependency returns the matching-stage licenses for a dependency
+// when the registry has them; otherwise it falls back to the detection-time
+// licenses stashed on the dependency.
+func licensesForDependency(registry *sdk.PackageRegistry, dep *sdk.Dependency) []sdk.PackageLicense {
+	if registry != nil && dep != nil && dep.PURL != "" {
+		if pkg, ok := registry.Get(dep.PURL); ok && pkg != nil && len(pkg.Licenses) > 0 {
+			return pkg.Licenses
+		}
+	}
+	return sdk.DetectionLicenses(dep)
+}
+
 // maxVulnerabilitySeverityByPkgID returns a map from package ID to the
 // highest severity found across that package's enriched vulnerabilities.
-func maxVulnerabilitySeverityByPkgID(graphValue *sdk.Graph) map[string]string {
+func maxVulnerabilitySeverityByPkgID(graphValue *sdk.Graph, registry *sdk.PackageRegistry) map[string]string {
 	result := make(map[string]string)
 	if graphValue == nil {
 		return result
@@ -321,7 +347,7 @@ func maxVulnerabilitySeverityByPkgID(graphValue *sdk.Graph) map[string]string {
 		if pkg == nil {
 			continue
 		}
-		for _, vulnerability := range []sdk.Vulnerability(nil) /* TODO(batch-6) registry vulns */ {
+		for _, vulnerability := range vulnsForDependency(registry, pkg) {
 			current := result[pkg.ID]
 			if severityRank(vulnerability.ParsedSeverity) < severityRank(current) {
 				result[pkg.ID] = vulnerability.ParsedSeverity

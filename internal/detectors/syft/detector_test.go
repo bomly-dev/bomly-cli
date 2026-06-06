@@ -92,14 +92,14 @@ func TestDetectorApplicable_ContainerTarget(t *testing.T) {
 func TestDetectorDescriptor_AdvertisesDetectorEnrichment(t *testing.T) {
 	descriptor := Detector{}.Descriptor()
 	found := false
-	for _, capability := range descriptor.Capabilities {
+	for _, capability := range descriptor.Tags {
 		if capability == "detector-enrichment" {
 			found = true
 			break
 		}
 	}
 	if !found {
-		t.Fatalf("expected syft detector capabilities to include detector-enrichment, got %#v", descriptor.Capabilities)
+		t.Fatalf("expected syft detector tags to include detector-enrichment, got %#v", descriptor.Tags)
 	}
 }
 

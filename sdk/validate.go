@@ -13,12 +13,6 @@ func ValidateMetadata(metadata *PluginMetadata) error {
 	if strings.TrimSpace(metadata.ID) == "" {
 		return fmt.Errorf("plugin metadata id is required")
 	}
-	if strings.TrimSpace(metadata.Name) == "" {
-		return fmt.Errorf("plugin metadata name is required")
-	}
-	if strings.TrimSpace(metadata.Version) == "" {
-		return fmt.Errorf("plugin metadata version is required")
-	}
 	switch metadata.Kind {
 	case PluginKindDetector, PluginKindMatcher, PluginKindAuditor, PluginKindAnalyzer:
 	default:

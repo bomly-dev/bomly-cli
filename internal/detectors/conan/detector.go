@@ -88,7 +88,7 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 		Technique:           sdk.LockfileTechnique,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemCPP},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerConan},
-		Capabilities:        []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
+		Tags:                []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
 	}
 }
 

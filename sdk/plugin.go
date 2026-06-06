@@ -43,26 +43,9 @@ const (
 
 // PluginMetadata describes the runtime metadata exposed by a plugin binary.
 type PluginMetadata struct {
-	ID                     string     `json:"id"`
-	Name                   string     `json:"name"`
-	Version                string     `json:"version"`
-	Kind                   PluginKind `json:"kind"`
-	PluginAPIVersion       string     `json:"pluginApiVersion"`
-	BomlyVersionConstraint string     `json:"bomlyVersionConstraint,omitempty"`
-	Description            string     `json:"description,omitempty"`
-	Homepage               string     `json:"homepage,omitempty"`
-	License                string     `json:"license,omitempty"`
-}
-
-// PluginCapabilities describes when a plugin can participate in runtime planning.
-type PluginCapabilities struct {
-	Ecosystems       []Ecosystem        `json:"ecosystems,omitempty"`
-	PackageManagers  []PackageManager   `json:"packageManagers,omitempty"`
-	EvidencePatterns []string           `json:"evidencePatterns,omitempty"`
-	TargetTypes      []PluginTargetType `json:"targetTypes,omitempty"`
-	InputTypes       []string           `json:"inputTypes,omitempty"`
-	OutputTypes      []string           `json:"outputTypes,omitempty"`
-	Features         []string           `json:"features,omitempty"`
+	ID               string     `json:"id"`
+	Kind             PluginKind `json:"kind"`
+	PluginAPIVersion string     `json:"pluginApiVersion"`
 }
 
 // ReadyResponse reports whether a plugin is ready to run.

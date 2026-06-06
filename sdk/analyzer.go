@@ -32,7 +32,6 @@ type AnalyzerDescriptor struct {
 	SupportedLanguages []Language `json:"supportedLanguages,omitempty"`
 	// SupportedTiers communicates the precision the analyzer can deliver.
 	SupportedTiers []ReachabilityTier `json:"supportedTiers,omitempty"`
-	Priority       int                `json:"priority,omitempty"`
 }
 
 // AnalyzeRequest defines input for an analyzer. Analyzers annotate

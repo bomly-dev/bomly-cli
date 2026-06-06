@@ -130,9 +130,8 @@ func (m *Matcher) Descriptor() sdk.MatcherDescriptor {
 		Enabled:             false,
 		Origin:              sdk.CoreOrigin,
 		SupportedEcosystems: nil,
-		Priority:            90,
 		Required:            false,
-		Capabilities:        []string{"project-posture"},
+		Tags:                []string{"project-posture"},
 	}
 }
 

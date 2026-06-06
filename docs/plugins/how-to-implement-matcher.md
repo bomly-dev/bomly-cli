@@ -24,8 +24,6 @@ type matcher struct{}
 func (m *matcher) Metadata(context.Context) (*sdk.PluginMetadata, error) {
     return &sdk.PluginMetadata{
         ID:               pluginID,
-        Name:             "ClearlyDefined License Matcher",
-        Version:          "0.1.0",
         Kind:             sdk.PluginKindMatcher,
         PluginAPIVersion: sdk.PluginAPIVersion,
     }, nil
@@ -33,11 +31,8 @@ func (m *matcher) Metadata(context.Context) (*sdk.PluginMetadata, error) {
 
 func (m *matcher) Descriptor(context.Context) (*sdk.MatcherDescriptor, error) {
     return &sdk.MatcherDescriptor{
-        Name:         pluginID,
-        Enabled:      false,
-        Origin:       sdk.ExternalOrigin,
-        Priority:     100,
-        Capabilities: []string{"license-enrichment", "http", "cache"},
+        Name: pluginID,
+        Tags: []string{"license-enrichment", "http", "cache"},
     }, nil
 }
 
@@ -78,12 +73,12 @@ func main() {
 }
 ```
 
-The working example repo is [bomly-plugin-clearlydefined-license](https://github.com/bomly-dev/bomly-plugin-clearlydefined-license). It shows a standalone HTTP matcher with plugin-local cache and proxy-aware SDK HTTP clients.
+The working example repo is [bomly-plugin-clearlydefined-matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-matcher). It shows a standalone HTTP matcher with plugin-local cache and proxy-aware SDK HTTP clients.
 
 ## What Each Hook Does
 
-- `Metadata` returns the plugin identity. The ID, version, kind, and API version must match the installed manifest.
-- `Descriptor` describes the matcher registration. Use `sdk.ExternalOrigin` for external plugins.
+- `Metadata` returns the runtime identity: ID, kind, and plugin API version. Package fields such as version and homepage belong in `bomly-plugin.json`.
+- `Descriptor` describes the matcher registration. Bomly infers external origin and enabled state for installed plugins.
 - `Ready` reports whether the plugin can run in the current environment.
 - `Applicable` reports whether the matcher should run for the current request.
 - `Match` reads `sdk.MatchRequest` and returns a `sdk.MatchResponse` with the enriched registry.
@@ -150,8 +145,8 @@ If the matcher produces deterministic output for a fixed input and service versi
 For development, build and install the binary directly:
 
 ```bash
-go build -o ./bin/bomly-plugin-clearlydefined-license .
-bomly plugin install ./bin/bomly-plugin-clearlydefined-license --dev
+go build -o ./bin/bomly-plugin-clearlydefined-matcher .
+bomly plugin install ./bin/bomly-plugin-clearlydefined-matcher --dev
 bomly plugin enable clearlydefined-license-matcher
 ```
 
@@ -160,7 +155,7 @@ For distribution, package a `bomly-plugin.json` manifest with the binary:
 ```text
 bomly-plugin.json
 bin/
-  bomly-plugin-clearlydefined-license
+  bomly-plugin-clearlydefined-matcher
 README.md
 LICENSE
 ```

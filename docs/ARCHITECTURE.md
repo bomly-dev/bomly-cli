@@ -245,7 +245,7 @@ Plugin authors import `sdk` instead of depending on `internal/` packages. The SD
 - `ServeMatcher`
 - `ServeAuditor`
 - Versioned request and response structs in `sdk`
-- Identity metadata plus role descriptors for component type, supported modes, matcher priority, matcher required-ness, detector fallback wiring, and install-first support
+- Identity metadata plus role descriptors for component type, supported modes, matcher required-ness, detector fallback wiring, and install-first support
 - Optional runtime hooks for readiness, applicability, and detector install-first execution
 
 The SDK keeps HashiCorp plumbing out of plugin implementations while preserving a typed boundary. Built-ins now use the same SDK contract in-process and are adapted back into the scan engine through shared SDK-to-runtime adapters. That keeps built-ins and external plugins on one metadata and execution model while leaving installation and verification as external-plugin-only concerns.

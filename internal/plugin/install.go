@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -109,9 +110,10 @@ func installGitHubRelease(ctx context.Context, tempDir, source string, opts Inst
 		expectedChecksum = resolution.ExpectedChecksum
 	}
 	manifest, checksum, err := installRemoteArchive(ctx, tempDir, resolution.DownloadURL, InstallOptions{
-		Checksum:              expectedChecksum,
-		InsecureSkipChecksum:  opts.InsecureSkipChecksum || expectedChecksum == "",
-		githubReleaseDownload: true,
+		Checksum:               expectedChecksum,
+		InsecureSkipChecksum:   opts.InsecureSkipChecksum || expectedChecksum == "",
+		githubReleaseDownload:  true,
+		githubReleaseAssetName: resolution.ArchiveName,
 	})
 	if err != nil {
 		return Manifest{}, "", "", false, err
@@ -174,6 +176,7 @@ func installRemoteArchive(ctx context.Context, tempDir, source string, opts Inst
 		return Manifest{}, "", fmt.Errorf("create plugin download request: %w", err)
 	}
 	if opts.githubReleaseDownload {
+		req.Header.Set("Accept", "application/octet-stream")
 		applyGitHubAuthHeader(req)
 	}
 	client, err := httpClientFromLaunchContext(ctx, 0)
@@ -188,7 +191,13 @@ func installRemoteArchive(ctx context.Context, tempDir, source string, opts Inst
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return Manifest{}, "", fmt.Errorf("download plugin archive: unexpected status %s", resp.Status)
 	}
-	downloadName := filepath.Base(resp.Request.URL.Path)
+	downloadName := strings.TrimSpace(opts.githubReleaseAssetName)
+	if downloadName == "" {
+		downloadName = filenameFromContentDisposition(resp.Header.Get("Content-Disposition"))
+	}
+	if downloadName == "" {
+		downloadName = filepath.Base(resp.Request.URL.Path)
+	}
 	if strings.TrimSpace(downloadName) == "" || downloadName == "." || downloadName == "/" {
 		downloadName = "downloaded-plugin"
 	}
@@ -205,6 +214,20 @@ func installRemoteArchive(ctx context.Context, tempDir, source string, opts Inst
 		return Manifest{}, "", fmt.Errorf("close downloaded plugin archive: %w", err)
 	}
 	return installArchiveAtPath(ctx, tempDir, archivePath, source, opts.Checksum, opts.InsecureSkipChecksum)
+}
+
+func filenameFromContentDisposition(value string) string {
+	if strings.TrimSpace(value) == "" {
+		return ""
+	}
+	_, params, err := mime.ParseMediaType(value)
+	if err != nil {
+		return ""
+	}
+	if name := strings.TrimSpace(params["filename"]); name != "" {
+		return filepath.Base(name)
+	}
+	return ""
 }
 
 func installLocalArtifact(ctx context.Context, tempDir, source string, opts InstallOptions) (Manifest, string, error) {

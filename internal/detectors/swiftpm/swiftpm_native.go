@@ -48,7 +48,7 @@ func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
 		Technique:           sdk.BuildToolTechnique,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemSwift},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerSwiftPM},
-		Capabilities:        []string{"graph-resolution", "component-targeting"},
+		Tags:                []string{"graph-resolution", "component-targeting"},
 	}
 }
 

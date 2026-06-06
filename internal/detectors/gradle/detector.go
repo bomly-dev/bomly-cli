@@ -74,7 +74,7 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 		Technique:            sdk.BuildToolTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemMaven},
 		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerGradle},
-		Capabilities:         []string{"graph-resolution", "component-targeting"},
+		Tags:                 []string{"graph-resolution", "component-targeting"},
 		SupportsInstallFirst: true,
 	}
 }

@@ -43,7 +43,7 @@ func (d PoetryDetector) Descriptor() sdk.DetectorDescriptor {
 		Technique:            sdk.BuildToolTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemPython},
 		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerPoetry},
-		Capabilities:         []string{"graph-resolution", "component-targeting"},
+		Tags:                 []string{"graph-resolution", "component-targeting"},
 		SupportsInstallFirst: true,
 	}
 }

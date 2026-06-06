@@ -104,10 +104,11 @@ type InstalledDB struct {
 
 // InstallOptions controls plugin installation behavior.
 type InstallOptions struct {
-	DevBinary             bool
-	Checksum              string
-	InsecureSkipChecksum  bool
-	githubReleaseDownload bool
+	DevBinary              bool
+	Checksum               string
+	InsecureSkipChecksum   bool
+	githubReleaseDownload  bool
+	githubReleaseAssetName string
 }
 
 // InstallResult describes the installed plugin.
@@ -311,6 +312,18 @@ func normalizeManifest(manifest Manifest) Manifest {
 	if manifest.Kind == plugschema.PluginKindDetector && manifest.DetectorDescriptor != nil {
 		manifest.DetectorDescriptor = normalizeDetectorDescriptor(manifest.DetectorDescriptor)
 	}
+	if manifest.DetectorDescriptor != nil {
+		manifest.DetectorDescriptor.Enabled = true
+		manifest.DetectorDescriptor.Origin = plugschema.ExternalOrigin
+	}
+	if manifest.MatcherDescriptor != nil {
+		manifest.MatcherDescriptor.Enabled = true
+		manifest.MatcherDescriptor.Origin = plugschema.ExternalOrigin
+	}
+	if manifest.AuditorDescriptor != nil {
+		manifest.AuditorDescriptor.Enabled = true
+		manifest.AuditorDescriptor.Origin = plugschema.ExternalOrigin
+	}
 	return manifest
 }
 
@@ -320,10 +333,23 @@ func manifestForDisk(manifest Manifest) Manifest {
 		manifest.DetectorDescriptor.SupportedEcosystems = nil
 		manifest.DetectorDescriptor.SupportedManagers = nil
 	}
+	if manifest.DetectorDescriptor != nil {
+		manifest.DetectorDescriptor.Enabled = false
+		manifest.DetectorDescriptor.Origin = ""
+	}
+	if manifest.MatcherDescriptor != nil {
+		manifest.MatcherDescriptor.Enabled = false
+		manifest.MatcherDescriptor.Origin = ""
+	}
+	if manifest.AuditorDescriptor != nil {
+		manifest.AuditorDescriptor.Enabled = false
+		manifest.AuditorDescriptor.Origin = ""
+	}
 	return manifest
 }
 
 func validateManifest(manifest Manifest) error {
+	manifest = normalizeManifest(manifest)
 	switch manifest.SchemaVersion {
 	case "", plugschema.PackageManifestSchemaVersion:
 	default:
@@ -556,17 +582,13 @@ func manifestFromMetadata(metadata *plugschema.PluginMetadata, detector *plugsch
 	}
 	return withCanonicalManifestDefaults(Manifest{
 		ID:                 metadata.ID,
-		Name:               metadata.Name,
-		Version:            metadata.Version,
+		Name:               metadata.ID,
+		Version:            "0.0.0-dev",
 		Kind:               metadata.Kind,
-		BomlyVersion:       metadata.BomlyVersionConstraint,
 		Entrypoint:         map[string]string{platformKey(): filepath.ToSlash(filepath.Join("bin", binaryName))},
 		DetectorDescriptor: cloneDetectorDescriptorWithSupport(detector, packageManagerSupport),
 		MatcherDescriptor:  cloneMatcherDescriptor(matcher),
 		AuditorDescriptor:  cloneAuditorDescriptor(auditor),
-		Description:        metadata.Description,
-		Homepage:           metadata.Homepage,
-		License:            metadata.License,
 	}, source), nil
 }
 
@@ -574,28 +596,94 @@ func manifestWithRuntimeContract(manifest Manifest, metadata *plugschema.PluginM
 	if metadata == nil {
 		return manifest
 	}
-	if manifest.Description == "" {
-		manifest.Description = metadata.Description
-	}
-	if manifest.Homepage == "" {
-		manifest.Homepage = metadata.Homepage
-	}
-	if manifest.License == "" {
-		manifest.License = metadata.License
-	}
-	if manifest.BomlyVersion == "" {
-		manifest.BomlyVersion = metadata.BomlyVersionConstraint
-	}
 	if manifest.DetectorDescriptor == nil {
 		manifest.DetectorDescriptor = cloneDetectorDescriptorWithSupport(detector, packageManagerSupport)
+	} else {
+		manifest.DetectorDescriptor = mergeDetectorDescriptor(manifest.DetectorDescriptor, detector, packageManagerSupport)
 	}
 	if manifest.MatcherDescriptor == nil {
 		manifest.MatcherDescriptor = cloneMatcherDescriptor(matcher)
+	} else {
+		manifest.MatcherDescriptor = mergeMatcherDescriptor(manifest.MatcherDescriptor, matcher)
 	}
 	if manifest.AuditorDescriptor == nil {
 		manifest.AuditorDescriptor = cloneAuditorDescriptor(auditor)
+	} else {
+		manifest.AuditorDescriptor = mergeAuditorDescriptor(manifest.AuditorDescriptor, auditor)
 	}
-	return manifest
+	return normalizeManifest(manifest)
+}
+
+func mergeDetectorDescriptor(manifest, runtimeDescriptor *plugschema.DetectorDescriptor, packageManagerSupport []plugschema.PackageManagerSupport) *plugschema.DetectorDescriptor {
+	if manifest == nil {
+		return cloneDetectorDescriptorWithSupport(runtimeDescriptor, packageManagerSupport)
+	}
+	merged := cloneDetectorDescriptor(manifest)
+	if runtimeDescriptor == nil {
+		return normalizeDetectorDescriptor(merged)
+	}
+	if len(merged.PackageManagerSupport) == 0 {
+		merged.PackageManagerSupport = clonePackageManagerSupport(packageManagerSupport)
+	}
+	if len(merged.FallbackDetectors) == 0 {
+		merged.FallbackDetectors = append([]string(nil), runtimeDescriptor.FallbackDetectors...)
+	}
+	if merged.Technique == "" {
+		merged.Technique = runtimeDescriptor.Technique
+	}
+	if len(merged.Tags) == 0 {
+		merged.Tags = append([]string(nil), runtimeDescriptor.Tags...)
+	}
+	if runtimeDescriptor.SupportsInstallFirst {
+		merged.SupportsInstallFirst = true
+	}
+	return normalizeDetectorDescriptor(merged)
+}
+
+func mergeMatcherDescriptor(manifest, runtimeDescriptor *plugschema.MatcherDescriptor) *plugschema.MatcherDescriptor {
+	if manifest == nil {
+		return cloneMatcherDescriptor(runtimeDescriptor)
+	}
+	merged := cloneMatcherDescriptor(manifest)
+	if runtimeDescriptor == nil {
+		return merged
+	}
+	if merged.DisplayName == "" {
+		merged.DisplayName = runtimeDescriptor.DisplayName
+	}
+	if len(merged.Aliases) == 0 {
+		merged.Aliases = append([]string(nil), runtimeDescriptor.Aliases...)
+	}
+	if len(merged.SupportedEcosystems) == 0 {
+		merged.SupportedEcosystems = append([]plugschema.Ecosystem(nil), runtimeDescriptor.SupportedEcosystems...)
+	}
+	if len(merged.SupportedManagers) == 0 {
+		merged.SupportedManagers = append([]plugschema.PackageManager(nil), runtimeDescriptor.SupportedManagers...)
+	}
+	if runtimeDescriptor.Required {
+		merged.Required = true
+	}
+	if len(merged.Tags) == 0 {
+		merged.Tags = append([]string(nil), runtimeDescriptor.Tags...)
+	}
+	return merged
+}
+
+func mergeAuditorDescriptor(manifest, runtimeDescriptor *plugschema.AuditorDescriptor) *plugschema.AuditorDescriptor {
+	if manifest == nil {
+		return cloneAuditorDescriptor(runtimeDescriptor)
+	}
+	merged := cloneAuditorDescriptor(manifest)
+	if runtimeDescriptor == nil {
+		return merged
+	}
+	if len(merged.SupportedEcosystems) == 0 {
+		merged.SupportedEcosystems = append([]plugschema.Ecosystem(nil), runtimeDescriptor.SupportedEcosystems...)
+	}
+	if len(merged.SupportedManagers) == 0 {
+		merged.SupportedManagers = append([]plugschema.PackageManager(nil), runtimeDescriptor.SupportedManagers...)
+	}
+	return merged
 }
 
 func runtimeMetadataMatchesManifest(metadata *plugschema.PluginMetadata, detector *plugschema.DetectorDescriptor, packageManagerSupport []plugschema.PackageManagerSupport, matcher *plugschema.MatcherDescriptor, auditor *plugschema.AuditorDescriptor, manifest Manifest) error {
@@ -607,9 +695,6 @@ func runtimeMetadataMatchesManifest(metadata *plugschema.PluginMetadata, detecto
 	}
 	if metadata.ID != manifest.ID {
 		return fmt.Errorf("plugin runtime metadata id %q does not match manifest id %q", metadata.ID, manifest.ID)
-	}
-	if metadata.Version != manifest.Version {
-		return fmt.Errorf("plugin runtime metadata version %q does not match manifest version %q", metadata.Version, manifest.Version)
 	}
 	if metadata.Kind != manifest.Kind {
 		return fmt.Errorf("plugin runtime metadata kind %q does not match manifest kind %q", metadata.Kind, manifest.Kind)
@@ -626,7 +711,8 @@ func runtimeMetadataMatchesManifest(metadata *plugschema.PluginMetadata, detecto
 			return fmt.Errorf("plugin runtime detector package manager support does not match manifest detector support")
 		}
 		if !slices.Equal(detector.FallbackDetectors, manifest.DetectorDescriptor.FallbackDetectors) ||
-			detector.Origin != manifest.DetectorDescriptor.Origin ||
+			detector.Technique != manifest.DetectorDescriptor.Technique ||
+			!slices.Equal(detector.Tags, manifest.DetectorDescriptor.Tags) ||
 			detector.SupportsInstallFirst != manifest.DetectorDescriptor.SupportsInstallFirst {
 			return fmt.Errorf("plugin runtime detector descriptor does not match manifest detector descriptor")
 		}
@@ -634,14 +720,20 @@ func runtimeMetadataMatchesManifest(metadata *plugschema.PluginMetadata, detecto
 		if matcher == nil || manifest.MatcherDescriptor == nil {
 			return errors.New("plugin runtime matcher descriptor is missing")
 		}
-		if matcher.Origin != manifest.MatcherDescriptor.Origin {
+		if matcher.DisplayName != manifest.MatcherDescriptor.DisplayName ||
+			!slices.Equal(matcher.Aliases, manifest.MatcherDescriptor.Aliases) ||
+			!slices.Equal(matcher.SupportedEcosystems, manifest.MatcherDescriptor.SupportedEcosystems) ||
+			!slices.Equal(matcher.SupportedManagers, manifest.MatcherDescriptor.SupportedManagers) ||
+			matcher.Required != manifest.MatcherDescriptor.Required ||
+			!slices.Equal(matcher.Tags, manifest.MatcherDescriptor.Tags) {
 			return fmt.Errorf("plugin runtime matcher descriptor does not match manifest matcher descriptor")
 		}
 	case plugschema.PluginKindAuditor:
 		if auditor == nil || manifest.AuditorDescriptor == nil {
 			return errors.New("plugin runtime auditor descriptor is missing")
 		}
-		if auditor.Origin != manifest.AuditorDescriptor.Origin {
+		if !slices.Equal(auditor.SupportedEcosystems, manifest.AuditorDescriptor.SupportedEcosystems) ||
+			!slices.Equal(auditor.SupportedManagers, manifest.AuditorDescriptor.SupportedManagers) {
 			return fmt.Errorf("plugin runtime auditor descriptor does not match manifest auditor descriptor")
 		}
 	}
@@ -747,7 +839,7 @@ func cloneDetectorDescriptor(descriptor *plugschema.DetectorDescriptor) *plugsch
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
 	copyValue.PackageManagerSupport = clonePackageManagerSupport(descriptor.PackageManagerSupport)
-	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
+	copyValue.Tags = append([]string(nil), descriptor.Tags...)
 	copyValue.FallbackDetectors = append([]string(nil), descriptor.FallbackDetectors...)
 	return &copyValue
 }
@@ -827,7 +919,7 @@ func cloneMatcherDescriptor(descriptor *plugschema.MatcherDescriptor) *plugschem
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
 	copyValue.Aliases = append([]string(nil), descriptor.Aliases...)
-	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
+	copyValue.Tags = append([]string(nil), descriptor.Tags...)
 	return &copyValue
 }
 

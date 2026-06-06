@@ -53,7 +53,7 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 		Technique:           sdk.SBOMTechnique,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemSBOM},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerSBOM},
-		Capabilities:        []string{"graph-resolution", "sbom-import"},
+		Tags:                []string{"graph-resolution", "sbom-import"},
 	}
 }
 

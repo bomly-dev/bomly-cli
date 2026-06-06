@@ -21,9 +21,9 @@ Use the implementation guides when you are writing one:
 Example plugin repositories live outside this repo so each plugin type can show a realistic package, release, and README:
 
 - [Bun Lock Detector](https://github.com/bomly-dev/bomly-plugin-bun-lock-detector) — detector example using `PackageManagerOther`
-- [ClearlyDefined License Matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-license) — matcher example for license enrichment
-- [EOL Lifecycle Matcher](https://github.com/bomly-dev/bomly-plugin-eol-lifecycle) — matcher example for lifecycle metadata
-- [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-dependency-auditor) — auditor example that emits warning findings
+- [ClearlyDefined License Matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-matcher) — matcher example for license enrichment
+- [EOL Lifecycle Matcher](https://github.com/bomly-dev/bomly-plugin-eol-matcher) — matcher example for lifecycle metadata
+- [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor) — auditor example that emits warning findings
 
 ## How Plugins Run
 
@@ -272,7 +272,7 @@ External plugins are native OS subprocesses. They are not sandboxed, not contain
 - Plugin API version compatibility with the running core version
 - Entrypoint binary exists at the recorded path
 - SHA256 checksum matches the installed record, when a checksum was recorded
-- Runtime-reported metadata matches the manifest identity, version, kind, and API version
+- Runtime-reported metadata matches the manifest identity, kind, and API version
 
 **What Bomly cannot enforce:**
 

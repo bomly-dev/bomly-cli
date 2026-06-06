@@ -66,7 +66,7 @@ type DetectorDescriptor struct {
 	SupportedEcosystems   []Ecosystem             `json:"supportedEcosystems,omitempty"`
 	SupportedManagers     []PackageManager        `json:"supportedManagers,omitempty"`
 	PackageManagerSupport []PackageManagerSupport `json:"packageManagerSupport,omitempty"`
-	Capabilities          []string                `json:"capabilities,omitempty"`
+	Tags                  []string                `json:"tags,omitempty"`
 	FallbackDetectors     []string                `json:"fallbackDetectors,omitempty"`
 	SupportsInstallFirst  bool                    `json:"supportsInstallFirst,omitempty"`
 }

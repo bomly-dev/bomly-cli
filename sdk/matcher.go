@@ -30,9 +30,8 @@ type MatcherDescriptor struct {
 	Origin              DetectorOrigin   `json:"origin,omitempty"`
 	SupportedEcosystems []Ecosystem      `json:"supportedEcosystems,omitempty"`
 	SupportedManagers   []PackageManager `json:"supportedManagers,omitempty"`
-	Priority            int              `json:"priority,omitempty"`
 	Required            bool             `json:"required,omitempty"`
-	Capabilities        []string         `json:"capabilities,omitempty"`
+	Tags                []string         `json:"tags,omitempty"`
 }
 
 // MatchRequest defines input for a matcher. Matchers enrich the package

@@ -60,6 +60,7 @@ func (d externalDetector) Descriptor() sdk.DetectorDescriptor {
 		return sdk.DetectorDescriptor{}
 	}
 	desc := *cloneDetectorDescriptor(d.info.DetectorDescriptor)
+	desc.Enabled = true
 	desc.Origin = sdk.ExternalOrigin
 	return desc
 }
@@ -147,7 +148,10 @@ func (m externalMatcher) Descriptor() sdk.MatcherDescriptor {
 	if m.info.MatcherDescriptor == nil {
 		return sdk.MatcherDescriptor{}
 	}
-	return *cloneMatcherDescriptor(m.info.MatcherDescriptor)
+	desc := *cloneMatcherDescriptor(m.info.MatcherDescriptor)
+	desc.Enabled = true
+	desc.Origin = sdk.ExternalOrigin
+	return desc
 }
 
 func (m externalMatcher) Ready() bool {
@@ -210,7 +214,10 @@ func (a externalAuditor) Descriptor() sdk.AuditorDescriptor {
 	if a.info.AuditorDescriptor == nil {
 		return sdk.AuditorDescriptor{}
 	}
-	return *cloneAuditorDescriptor(a.info.AuditorDescriptor)
+	desc := *cloneAuditorDescriptor(a.info.AuditorDescriptor)
+	desc.Enabled = true
+	desc.Origin = sdk.ExternalOrigin
+	return desc
 }
 
 func (a externalAuditor) Ready() bool {
@@ -271,14 +278,8 @@ func launchContext(ctx context.Context, fallback context.Context) context.Contex
 
 func metadataFromPluginInfo(info PluginInfo) *sdk.PluginMetadata {
 	return &sdk.PluginMetadata{
-		ID:                     info.ID,
-		Name:                   info.Name,
-		Version:                info.Version,
-		Kind:                   info.Kind,
-		PluginAPIVersion:       info.PluginAPIVersion,
-		BomlyVersionConstraint: info.BomlyVersion,
-		Description:            info.Description,
-		Homepage:               info.Homepage,
-		License:                info.License,
+		ID:               info.ID,
+		Kind:             info.Kind,
+		PluginAPIVersion: info.PluginAPIVersion,
 	}
 }

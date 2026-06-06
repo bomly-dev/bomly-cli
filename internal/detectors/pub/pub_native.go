@@ -48,7 +48,7 @@ func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
 		Technique:           sdk.BuildToolTechnique,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemDart},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerPub},
-		Capabilities:        []string{"graph-resolution", "component-targeting", "scope-annotation"},
+		Tags:                []string{"graph-resolution", "component-targeting", "scope-annotation"},
 	}
 }
 

@@ -64,7 +64,7 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 		Technique:           sdk.LockfileTechnique,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemSwift},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerCocoaPods},
-		Capabilities:        []string{"graph-resolution", "component-targeting", "lockfile-parsing"},
+		Tags:                []string{"graph-resolution", "component-targeting", "lockfile-parsing"},
 	}
 }
 

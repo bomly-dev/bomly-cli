@@ -71,7 +71,7 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 		Technique:           sdk.ManifestTechnique,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemGitHub},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerGitHubActions},
-		Capabilities:        []string{"graph-resolution", "component-targeting", "local-transitive-expansion"},
+		Tags:                []string{"graph-resolution", "component-targeting", "local-transitive-expansion"},
 	}
 }
 

@@ -112,8 +112,6 @@ type detector struct{}
 func (d *detector) Metadata(context.Context) (*schemav1.PluginMetadata, error) {
 	return &schemav1.PluginMetadata{
 		ID:               "` + id + `",
-		Name:             "CLI Health Detector",
-		Version:          "1.0.0",
 		Kind:             schemav1.PluginKindDetector,
 		PluginAPIVersion: schemav1.PluginAPIVersion,
 	}, nil
@@ -124,7 +122,7 @@ func (d *detector) Descriptor(context.Context) (*schemav1.DetectorDescriptor, er
 		Name:           "` + id + `",
 		Enabled:        true,
 		Origin:         schemav1.ExternalOrigin,
-		Capabilities:   []string{"dependency-detection"},
+		Tags:           []string{"dependency-detection"},
 	}, nil
 }
 

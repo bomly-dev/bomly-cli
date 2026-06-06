@@ -49,7 +49,7 @@ func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
 		Technique:           sdk.BuildToolTechnique,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemScala, sdk.EcosystemMaven},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerSBT},
-		Capabilities:        []string{"graph-resolution", "component-targeting", "scope-annotation"},
+		Tags:                []string{"graph-resolution", "component-targeting", "scope-annotation"},
 	}
 }
 

@@ -103,7 +103,7 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 		Technique:            sdk.BuildToolTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemGo},
 		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerGoMod},
-		Capabilities:         []string{"graph-resolution", "component-targeting", "module-graph"},
+		Tags:                 []string{"graph-resolution", "component-targeting", "module-graph"},
 		SupportsInstallFirst: true,
 	}
 }

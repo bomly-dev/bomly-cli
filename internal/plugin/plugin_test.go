@@ -326,8 +326,6 @@ type detector struct{}
 func (d *detector) Metadata(ctx context.Context) (*schemav1.PluginMetadata, error) {
 	return &schemav1.PluginMetadata{
 		ID:               "` + id + `",
-		Name:             "Fake Detector",
-		Version:          "1.0.0",
 		Kind:             schemav1.PluginKindDetector,
 		PluginAPIVersion: schemav1.PluginAPIVersion,
 	}, nil
@@ -338,7 +336,7 @@ func (d *detector) Descriptor(ctx context.Context) (*schemav1.DetectorDescriptor
 		Name:           "` + id + `",
 		Enabled:        true,
 		Origin:         schemav1.ExternalOrigin,
-		Capabilities:   []string{"dependency-detection"},
+		Tags:   []string{"dependency-detection"},
 	}, nil
 }
 
@@ -406,8 +404,6 @@ type matcher struct{}
 func (m *matcher) Metadata(ctx context.Context) (*schemav1.PluginMetadata, error) {
 	return &schemav1.PluginMetadata{
 		ID:               "` + id + `",
-		Name:             "Fake Matcher",
-		Version:          "1.0.0",
 		Kind:             schemav1.PluginKindMatcher,
 		PluginAPIVersion: schemav1.PluginAPIVersion,
 	}, nil
@@ -467,8 +463,6 @@ type detector struct{}
 func (d *detector) Metadata(ctx context.Context) (*schemav1.PluginMetadata, error) {
 	return &schemav1.PluginMetadata{
 		ID:               "` + id + `",
-		Name:             "Invalid Detector",
-		Version:          "1.0.0",
 		Kind:             schemav1.PluginKindDetector,
 		PluginAPIVersion: schemav1.PluginAPIVersion,
 	}, nil
@@ -479,7 +473,7 @@ func (d *detector) Descriptor(ctx context.Context) (*schemav1.DetectorDescriptor
 		Name:           "` + id + `",
 		Enabled:        true,
 		Origin:         schemav1.ExternalOrigin,
-		Capabilities:   []string{"dependency-detection"},
+		Tags:   []string{"dependency-detection"},
 	}, nil
 }
 

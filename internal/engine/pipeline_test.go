@@ -683,7 +683,7 @@ func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testin
 		result:     ResolveGraphResult{Graphs: SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 	registry.registerMatcher(fakeMatcher{
-		name:    "license-checker",
+		name:    "license-matcher",
 		enabled: true,
 		run: func(reg *sdk.PackageRegistry) {
 			pkg := reg.Ensure(dep.PURL)
@@ -802,9 +802,8 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 	registry := newTestRegistry()
 	const reactPURL = "pkg:npm/react@18.2.0"
 	registry.registerMatcher(fakeMatcher{
-		name:     "license-checker",
-		enabled:  true,
-		priority: 100,
+		name:    "license-matcher",
+		enabled: true,
 		run: func(reg *sdk.PackageRegistry) {
 			pkg := reg.Ensure(reactPURL)
 			pkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
@@ -965,7 +964,7 @@ func TestParseWarningSource(t *testing.T) {
 	}{
 		{"detector go-mod: not ready", "detector", "go-mod", "not ready"},
 		{"auditor grype: applicability check failed", "auditor", "grype", "applicability check failed"},
-		{"matcher license-checker: not applicable", "matcher", "license-checker", "not applicable"},
+		{"matcher license-matcher: not applicable", "matcher", "license-matcher", "not applicable"},
 		{"subproject . (go/go): no chain", "detector", "", "subproject . (go/go): no chain"},
 		{"unrelated error text", "detector", "", "unrelated error text"},
 		{"detector nocolon", "detector", "", "detector nocolon"},

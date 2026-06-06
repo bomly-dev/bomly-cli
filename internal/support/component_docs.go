@@ -610,8 +610,8 @@ func renderMatcherMarkdown(descriptor sdk.MatcherDescriptor) string {
 	fmt.Fprintf(&b, "| Uses network | %s |\n", yesNo(behavior.UsesNetwork))
 	fmt.Fprintf(&b, "| Cache behavior | %s |\n", behavior.Cache)
 	fmt.Fprintf(&b, "| Output fields | %s |\n", strings.Join(behavior.OutputFields, ", "))
-	if len(descriptor.Capabilities) > 0 {
-		fmt.Fprintf(&b, "| Capabilities | %s |\n", codeList(descriptor.Capabilities))
+	if len(descriptor.Tags) > 0 {
+		fmt.Fprintf(&b, "| Tags | %s |\n", codeList(descriptor.Tags))
 	}
 	if len(descriptor.SupportedEcosystems) > 0 {
 		fmt.Fprintf(&b, "| Ecosystems | %s |\n", ecosystemCodeList(descriptor.SupportedEcosystems))

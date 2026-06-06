@@ -119,7 +119,7 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 		Technique:           sdk.MultipleTechnique,
 		SupportedEcosystems: supportedEcosystems,
 		SupportedManagers:   supportedManagers,
-		Capabilities:        []string{"graph-resolution", "component-targeting", "sbom-import", "detector-enrichment"},
+		Tags:                []string{"graph-resolution", "component-targeting", "sbom-import", "detector-enrichment"},
 	}
 }
 

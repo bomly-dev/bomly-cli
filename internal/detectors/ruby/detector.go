@@ -70,7 +70,7 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 		Technique:            sdk.LockfileTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemRuby},
 		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerBundler},
-		Capabilities:         []string{"graph-resolution", "component-targeting", "lockfile-parsing", "best-effort-scope"},
+		Tags:                 []string{"graph-resolution", "component-targeting", "lockfile-parsing", "best-effort-scope"},
 		SupportsInstallFirst: true,
 	}
 }

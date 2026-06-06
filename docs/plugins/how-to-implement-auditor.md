@@ -24,8 +24,6 @@ type auditor struct{}
 func (a *auditor) Metadata(context.Context) (*sdk.PluginMetadata, error) {
     return &sdk.PluginMetadata{
         ID:               pluginID,
-        Name:             "Meme Dependency Auditor",
-        Version:          "0.1.0",
         Kind:             sdk.PluginKindAuditor,
         PluginAPIVersion: sdk.PluginAPIVersion,
     }, nil
@@ -33,9 +31,7 @@ func (a *auditor) Metadata(context.Context) (*sdk.PluginMetadata, error) {
 
 func (a *auditor) Descriptor(context.Context) (*sdk.AuditorDescriptor, error) {
     return &sdk.AuditorDescriptor{
-        Name:    pluginID,
-        Enabled: false,
-        Origin:  sdk.ExternalOrigin,
+        Name: pluginID,
     }, nil
 }
 
@@ -69,12 +65,12 @@ func main() {
 }
 ```
 
-The working example repo is [bomly-plugin-meme-dependency-auditor](https://github.com/bomly-dev/bomly-plugin-meme-dependency-auditor). It shows a small auditor that reads graph nodes and emits reference-style package findings.
+The working example repo is [bomly-plugin-meme-auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor). It shows a small auditor that reads graph nodes and emits reference-style package findings.
 
 ## What Each Hook Does
 
-- `Metadata` returns the plugin identity. The ID, version, kind, and API version must match the installed manifest.
-- `Descriptor` describes the auditor registration. Use `sdk.ExternalOrigin` for external plugins.
+- `Metadata` returns the runtime identity: ID, kind, and plugin API version. Package fields such as version and homepage belong in `bomly-plugin.json`.
+- `Descriptor` describes the auditor registration. Bomly infers external origin and enabled state for installed plugins.
 - `Ready` reports whether the plugin can run in the current environment.
 - `Applicable` reports whether the auditor should run for the current request.
 - `Audit` reads `sdk.AuditRequest` and returns findings, risk scores, and run metadata.
@@ -143,8 +139,8 @@ _ = client
 For development, build and install the binary directly:
 
 ```bash
-go build -o ./bin/bomly-plugin-meme-dependency-auditor .
-bomly plugin install ./bin/bomly-plugin-meme-dependency-auditor --dev
+go build -o ./bin/bomly-plugin-meme-auditor .
+bomly plugin install ./bin/bomly-plugin-meme-auditor --dev
 bomly plugin enable bomly.examples.auditor.meme-deps
 ```
 
@@ -153,7 +149,7 @@ For distribution, package a `bomly-plugin.json` manifest with the binary:
 ```text
 bomly-plugin.json
 bin/
-  bomly-plugin-meme-dependency-auditor
+  bomly-plugin-meme-auditor
 README.md
 LICENSE
 ```

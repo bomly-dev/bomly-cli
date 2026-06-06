@@ -619,8 +619,6 @@ func collectDetectorInstances(primaries []plugschema.Detector) map[string]plugsc
 func builtInMetadata(id string, kind plugschema.PluginKind) *plugschema.PluginMetadata {
 	return &plugschema.PluginMetadata{
 		ID:               id,
-		Name:             id,
-		Version:          "builtin",
 		Kind:             kind,
 		PluginAPIVersion: plugschema.PluginAPIVersion,
 	}
@@ -664,15 +662,12 @@ func detectorPluginInfo(metadata *plugschema.PluginMetadata, descriptor *plugsch
 		Manifest: managedplugin.Manifest{
 			SchemaVersion:      plugschema.PackageManifestSchemaVersion,
 			ID:                 metadata.ID,
-			Name:               metadata.Name,
+			Name:               metadata.ID,
 			Version:            nonEmptyString(coreVersion, "unknown"),
 			Kind:               metadata.Kind,
 			Runtime:            "builtin",
 			PluginAPIVersion:   plugschema.PluginAPIVersion,
 			DetectorDescriptor: cloneDetectorDescriptor(descriptor),
-			Description:        metadata.Description,
-			Homepage:           metadata.Homepage,
-			License:            metadata.License,
 		},
 		BuiltIn:    true,
 		Enabled:    enabled,
@@ -685,15 +680,12 @@ func matcherPluginInfo(metadata *plugschema.PluginMetadata, descriptor *plugsche
 		Manifest: managedplugin.Manifest{
 			SchemaVersion:     plugschema.PackageManifestSchemaVersion,
 			ID:                metadata.ID,
-			Name:              metadata.Name,
+			Name:              metadata.ID,
 			Version:           nonEmptyString(coreVersion, "unknown"),
 			Kind:              metadata.Kind,
 			Runtime:           "builtin",
 			PluginAPIVersion:  plugschema.PluginAPIVersion,
 			MatcherDescriptor: cloneMatcherDescriptor(descriptor),
-			Description:       metadata.Description,
-			Homepage:          metadata.Homepage,
-			License:           metadata.License,
 		},
 		BuiltIn:    true,
 		Enabled:    enabled,
@@ -706,15 +698,12 @@ func auditorPluginInfo(metadata *plugschema.PluginMetadata, descriptor *plugsche
 		Manifest: managedplugin.Manifest{
 			SchemaVersion:     plugschema.PackageManifestSchemaVersion,
 			ID:                metadata.ID,
-			Name:              metadata.Name,
+			Name:              metadata.ID,
 			Version:           nonEmptyString(coreVersion, "unknown"),
 			Kind:              metadata.Kind,
 			Runtime:           "builtin",
 			PluginAPIVersion:  plugschema.PluginAPIVersion,
 			AuditorDescriptor: cloneAuditorDescriptor(descriptor),
-			Description:       metadata.Description,
-			Homepage:          metadata.Homepage,
-			License:           metadata.License,
 		},
 		BuiltIn:    true,
 		Enabled:    enabled,
@@ -727,15 +716,12 @@ func analyzerPluginInfo(metadata *plugschema.PluginMetadata, descriptor *plugsch
 		Manifest: managedplugin.Manifest{
 			SchemaVersion:      plugschema.PackageManifestSchemaVersion,
 			ID:                 metadata.ID,
-			Name:               metadata.Name,
+			Name:               metadata.ID,
 			Version:            nonEmptyString(coreVersion, "unknown"),
 			Kind:               metadata.Kind,
 			Runtime:            "builtin",
 			PluginAPIVersion:   plugschema.PluginAPIVersion,
 			AnalyzerDescriptor: cloneAnalyzerDescriptor(descriptor),
-			Description:        metadata.Description,
-			Homepage:           metadata.Homepage,
-			License:            metadata.License,
 		},
 		BuiltIn:    true,
 		Enabled:    enabled,
@@ -751,7 +737,7 @@ func cloneDetectorDescriptor(descriptor *plugschema.DetectorDescriptor) *plugsch
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
 	copyValue.PackageManagerSupport = completeDetectorPackageManagerSupport(descriptor.SupportedManagers, descriptor.PackageManagerSupport)
-	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
+	copyValue.Tags = append([]string(nil), descriptor.Tags...)
 	copyValue.FallbackDetectors = append([]string(nil), descriptor.FallbackDetectors...)
 	return &copyValue
 }
@@ -801,7 +787,7 @@ func cloneMatcherDescriptor(descriptor *plugschema.MatcherDescriptor) *plugschem
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
 	copyValue.Aliases = append([]string(nil), descriptor.Aliases...)
-	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
+	copyValue.Tags = append([]string(nil), descriptor.Tags...)
 	return &copyValue
 }
 
@@ -942,11 +928,11 @@ func pluginInfoFeatures(info managedplugin.PluginInfo) []string {
 	switch info.Kind {
 	case plugschema.PluginKindDetector:
 		if info.DetectorDescriptor != nil {
-			return append([]string(nil), info.DetectorDescriptor.Capabilities...)
+			return append([]string(nil), info.DetectorDescriptor.Tags...)
 		}
 	case plugschema.PluginKindMatcher:
 		if info.MatcherDescriptor != nil {
-			return append([]string(nil), info.MatcherDescriptor.Capabilities...)
+			return append([]string(nil), info.MatcherDescriptor.Tags...)
 		}
 	}
 	return nil

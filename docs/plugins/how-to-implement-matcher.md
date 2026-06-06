@@ -17,14 +17,14 @@ import (
     "github.com/bomly-dev/bomly-cli/sdk"
 )
 
-const pluginID = "clearlydefined-license-checker"
+const pluginID = "clearlydefined-license-matcher"
 
 type matcher struct{}
 
 func (m *matcher) Metadata(context.Context) (*sdk.PluginMetadata, error) {
     return &sdk.PluginMetadata{
         ID:               pluginID,
-        Name:             "ClearlyDefined License Checker",
+        Name:             "ClearlyDefined License Matcher",
         Version:          "0.1.0",
         Kind:             sdk.PluginKindMatcher,
         PluginAPIVersion: sdk.PluginAPIVersion,
@@ -110,7 +110,7 @@ Per-plugin config lives under `plugins.<plugin-id>`:
 
 ```yaml
 plugins:
-  clearlydefined-license-checker:
+  clearlydefined-license-matcher:
     api_base: https://api.clearlydefined.io
 ```
 
@@ -147,7 +147,7 @@ For development, build and install the binary directly:
 ```bash
 go build -o ./bin/bomly-plugin-clearlydefined-license .
 bomly plugin install ./bin/bomly-plugin-clearlydefined-license --dev
-bomly plugin enable clearlydefined-license-checker
+bomly plugin enable clearlydefined-license-matcher
 ```
 
 For distribution, package a `bomly-plugin.json` manifest with the binary:
@@ -165,21 +165,21 @@ LICENSE
 Check installation and runtime readiness:
 
 ```bash
-bomly plugin verify clearlydefined-license-checker
-bomly plugin test clearlydefined-license-checker
-bomly plugin doctor clearlydefined-license-checker
+bomly plugin verify clearlydefined-license-matcher
+bomly plugin test clearlydefined-license-matcher
+bomly plugin doctor clearlydefined-license-matcher
 ```
 
 Run only this matcher during enrichment:
 
 ```bash
-bomly scan --path ./my-project --enrich --matchers clearlydefined-license-checker --json
+bomly scan --path ./my-project --enrich --matchers clearlydefined-license-matcher --json
 ```
 
 Or add it to the default matcher set:
 
 ```bash
-bomly scan --path ./my-project --enrich --matchers +clearlydefined-license-checker
+bomly scan --path ./my-project --enrich --matchers +clearlydefined-license-matcher
 ```
 
 ## Implementation Checklist

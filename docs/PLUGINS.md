@@ -22,6 +22,7 @@ Example plugin repositories live outside this repo so each plugin type can show 
 
 - [Bun Lock Detector](https://github.com/bomly-dev/bomly-plugin-bun-lock-detector) — detector example using `PackageManagerOther`
 - [ClearlyDefined License Matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-license) — matcher example for license enrichment
+- [EOL Lifecycle Matcher](https://github.com/bomly-dev/bomly-plugin-eol-lifecycle) — matcher example for lifecycle metadata
 - [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-dependency-auditor) — auditor example that emits warning findings
 
 ## How Plugins Run
@@ -68,8 +69,8 @@ bomly scan --path ./my-bun-project --detectors bomly.examples.detector.bun-lock
 The matcher and auditor examples use the same workflow:
 
 ```bash
-bomly plugin enable clearlydefined-license-checker
-bomly scan --enrich --matchers +clearlydefined-license-checker
+bomly plugin enable clearlydefined-license-matcher
+bomly scan --enrich --matchers +clearlydefined-license-matcher
 
 bomly plugin enable bomly.examples.auditor.meme-deps
 bomly scan --audit --auditors +bomly.examples.auditor.meme-deps
@@ -146,7 +147,7 @@ Plugin selectors use the same `+/-` grammar as built-in components:
 bomly scan --detectors bomly.examples.detector.bun-lock
 
 # Add an external matcher to the default matcher set.
-bomly scan --enrich --matchers +clearlydefined-license-checker
+bomly scan --enrich --matchers +clearlydefined-license-matcher
 
 # Use one auditor explicitly.
 bomly scan --audit --auditors bomly.examples.auditor.meme-deps
@@ -162,7 +163,7 @@ Per-plugin configuration lives under `plugins.<plugin-id>`:
 
 ```yaml
 plugins:
-  clearlydefined-license-checker:
+  clearlydefined-license-matcher:
     api_base: https://api.clearlydefined.io
 ```
 

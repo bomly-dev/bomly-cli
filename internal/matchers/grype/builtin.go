@@ -38,7 +38,7 @@ func (a Matcher) Ready() bool {
 func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
 	started := time.Now()
 	if req.Graph == nil || req.Registry == nil {
-		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, nil
+		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}, MatcherRunDetails: grypeMatcherRuns(0, 0)}, nil
 	}
 
 	logger := a.logger()
@@ -65,7 +65,7 @@ func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult
 		if needsDownload {
 			action = "downloading"
 		}
-		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, fmt.Errorf("grype vulnerability DB %s failed: %w", action, err)
+		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}, MatcherRunDetails: grypeMatcherRuns(0, 0)}, fmt.Errorf("grype vulnerability DB %s failed: %w", action, err)
 	}
 	if status != nil {
 		logger.Debug(fmt.Sprintf("Grype vulnerability DB loaded, built at %s", status.Built))
@@ -89,14 +89,16 @@ func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult
 
 	matches, _, err := vm.FindMatches(grypePkgs, grypepkg.Context{})
 	if err != nil {
-		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, fmt.Errorf("grype: find matches: %w", err)
+		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}, MatcherRunDetails: grypeMatcherRuns(0, 0)}, fmt.Errorf("grype: find matches: %w", err)
 	}
 
 	applyMatches(matches, req.Registry)
+	matchedPackages, vulnerabilities := grypeMatchCounts(matches)
 	logger.Info(fmt.Sprintf("Grype enrichment matched vulnerabilities in %s", logging.FormatDuration(time.Since(started))))
 	return sdk.MatchResult{
-		Registry:    req.Registry,
-		MatcherRuns: []string{matcherName},
+		Registry:          req.Registry,
+		MatcherRuns:       []string{matcherName},
+		MatcherRunDetails: grypeMatcherRuns(matchedPackages, vulnerabilities),
 	}, nil
 }
 
@@ -213,6 +215,25 @@ func applyMatches(matches *grypematch.Matches, registry *sdk.PackageRegistry) {
 		pkg.Matched = true
 		pkg.Vulnerabilities = appendOrMergeVulnerability(pkg.Vulnerabilities, mapBuiltinMatch(m))
 	}
+}
+
+func grypeMatchCounts(matches *grypematch.Matches) (int, int) {
+	if matches == nil {
+		return 0, 0
+	}
+	seen := make(map[string]struct{})
+	vulnerabilities := 0
+	for _, m := range matches.Sorted() {
+		purl := string(m.Package.ID)
+		if purl == "" {
+			purl = m.Package.PURL
+		}
+		if purl != "" {
+			seen[purl] = struct{}{}
+		}
+		vulnerabilities++
+	}
+	return len(seen), vulnerabilities
 }
 
 func mapBuiltinMatch(m grypematch.Match) sdk.Vulnerability {

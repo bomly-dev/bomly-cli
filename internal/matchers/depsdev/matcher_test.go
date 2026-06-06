@@ -121,7 +121,7 @@ func TestCheckerMatch_EnrichesMissingOnly(t *testing.T) {
 	}
 	logOutput := stderr.String()
 	for _, want := range []string{
-		"deps.dev: license check summary",
+		"deps.dev: license matcher summary",
 		`"cache_hits": 0`,
 		`"cache_misses": 1`,
 		`"api_requests": 1`,

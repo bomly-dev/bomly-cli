@@ -18,7 +18,7 @@ prose/
 
 `<ecosystem>` matches `sdk.Ecosystem` values (`go`, `npm`, `maven`,
 `python`, …). `<name>` matches `sdk.MatcherDescriptor.Name`
-(`osv`, `grype`, `depsdev-license-checker`, …).
+(`osv`, `grype`, `depsdev-license-matcher`, …).
 
 ## Template
 

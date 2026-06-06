@@ -2,6 +2,7 @@ package cli
 
 import (
 	"io"
+	"sort"
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
@@ -148,9 +149,9 @@ func newDiffCmd() *cobra.Command {
 			detectionChildren = append(detectionChildren, warningProgressChildren(resolutionWarnings)...)
 			prog.CompleteStep("Detected Dependencies", detectionChildren)
 			if current.Enrich {
-				runs := uniqueStrings(diffResult.Base.MatcherRuns, diffResult.Head.MatcherRuns)
+				runs := combineMatcherRunDetails(diffResult.Base.MatcherRunDetails, diffResult.Head.MatcherRunDetails)
 				warnings := append(append([]engine.PipelineWarning{}, diffResult.Base.MatchWarnings...), diffResult.Head.MatchWarnings...)
-				prog.CompleteStep("Enriched packages", matchProgressChildren(nil, runs, warnings))
+				prog.CompleteStep("Enriched packages", matchProgressChildren(runs, warnings))
 			}
 
 			auditPayload := diffAuditOutput(diffResult.Audit, diffResult.Base.Registry, diffResult.Head.Registry)
@@ -257,4 +258,34 @@ func combineAuditProgress(results ...engine.PipelineResult) ([]string, map[strin
 		}
 	}
 	return runs, counts
+}
+
+func combineMatcherRunDetails(groups ...[]sdk.MatcherRun) []sdk.MatcherRun {
+	byName := make(map[string]sdk.MatcherRun)
+	order := make([]string, 0)
+	for _, runs := range groups {
+		for _, run := range runs {
+			if run.Name == "" {
+				continue
+			}
+			existing, ok := byName[run.Name]
+			if !ok {
+				byName[run.Name] = run
+				order = append(order, run.Name)
+				continue
+			}
+			if existing.DisplayName == "" {
+				existing.DisplayName = run.DisplayName
+			}
+			existing.MatchedPackages += run.MatchedPackages
+			existing.Vulnerabilities += run.Vulnerabilities
+			byName[run.Name] = existing
+		}
+	}
+	sort.Strings(order)
+	out := make([]sdk.MatcherRun, 0, len(order))
+	for _, name := range order {
+		out = append(out, byName[name])
+	}
+	return out
 }

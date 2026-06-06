@@ -134,7 +134,8 @@ func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResu
 	}
 	var errs []error
 	for _, matcher := range matcherList {
-		name := matcher.Descriptor().Name
+		descriptor := matcher.Descriptor()
+		name := descriptor.Name
 		if !matcher.Ready() {
 			errs = append(errs, fmt.Errorf("matcher %s: not ready", name))
 			continue
@@ -155,6 +156,7 @@ func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResu
 			continue
 		}
 		aggregated.MatcherRuns = append(aggregated.MatcherRuns, name)
+		aggregated.MatcherRunDetails = append(aggregated.MatcherRunDetails, matcherRunDetail(descriptor, result.MatcherRunDetails))
 		if result.Registry != nil {
 			aggregated.Registry = result.Registry
 			req.Registry = result.Registry
@@ -164,4 +166,16 @@ func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResu
 		return aggregated, errors.Join(errs...)
 	}
 	return aggregated, nil
+}
+
+func matcherRunDetail(descriptor sdk.MatcherDescriptor, details []sdk.MatcherRun) sdk.MatcherRun {
+	for _, detail := range details {
+		if detail.Name == descriptor.Name {
+			if detail.DisplayName == "" {
+				detail.DisplayName = descriptor.DisplayName
+			}
+			return detail
+		}
+	}
+	return sdk.MatcherRun{Name: descriptor.Name, DisplayName: descriptor.DisplayName}
 }

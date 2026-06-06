@@ -184,7 +184,7 @@ Permitted enrichment-time services:
 - OSV
 - CISA KEV
 - deps.dev
-- endoflife.date
+- OpenSSF Scorecard
 
 Cache failures are non-fatal. The command should warn and continue rather than failing hard.
 

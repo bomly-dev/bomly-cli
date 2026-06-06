@@ -282,87 +282,37 @@ func diffPolicyOutcomeProgressChild(audit *diffengine.Audit) progress.Child {
 
 // matchProgressChildren returns ✔ children for each successful matcher run
 // and ⚠ children for each warning.
-func matchProgressChildren(registry *sdk.PackageRegistry, runs []string, warnings []engine.PipelineWarning) []progress.Child {
+func matchProgressChildren(runs []sdk.MatcherRun, warnings []engine.PipelineWarning) []progress.Child {
 	children := make([]progress.Child, 0, len(runs)+len(warnings))
-	for _, name := range runs {
+	for _, run := range runs {
 		children = append(children, progress.Child{
 			Icon:   progress.CheckMark,
-			Label:  humanizeMatcherName(name),
-			Detail: matcherProgressDetail(registry, name),
+			Label:  matcherRunLabel(run),
+			Detail: matcherProgressDetail(run),
 		})
 	}
 	children = append(children, warningProgressChildren(warnings)...)
 	return children
 }
 
-func matcherProgressDetail(registry *sdk.PackageRegistry, matcherName string) string {
-	if registry == nil {
-		return ""
+func matcherProgressDetail(run sdk.MatcherRun) string {
+	if run.Vulnerabilities > 0 {
+		return fmt.Sprintf("[%d matched packages, %d vulnerabilities]", run.MatchedPackages, run.Vulnerabilities)
 	}
-	packages := 0
-	vulnerabilities := 0
-	for _, pkg := range registry.All() {
-		if pkg == nil {
-			continue
-		}
-		switch matcherName {
-		case opts.DepsdevCheckerName:
-			if packageHasLicenseSource(pkg, "deps.dev") {
-				packages++
-			}
-		case opts.ClearlyDefinedCheckerName:
-			if packageHasLicenseSource(pkg, "ClearlyDefined", "external-clearlydefined") {
-				packages++
-			}
-		case opts.OSVMatcherName, opts.GrypeMatcherName:
-			matchedPackage := false
-			for _, vulnerability := range pkg.Vulnerabilities {
-				if vulnerability.Source != matcherName {
-					continue
-				}
-				vulnerabilities++
-				matchedPackage = true
-			}
-			if matchedPackage {
-				packages++
-			}
-		case opts.EOLCheckerName:
-			if pkg.Metadata != nil {
-				if _, ok := pkg.Metadata[opts.EOLMetadataKey]; ok {
-					packages++
-				}
-			}
-		}
+	if run.MatchedPackages > 0 {
+		return fmt.Sprintf("[%d matched packages]", run.MatchedPackages)
 	}
-
-	switch matcherName {
-	case opts.DepsdevCheckerName, opts.ClearlyDefinedCheckerName, opts.EOLCheckerName:
-		return fmt.Sprintf("[%d matched packages]", packages)
-	case opts.OSVMatcherName, opts.GrypeMatcherName:
-		return fmt.Sprintf("[%d matched packages, %d vulnerabilities]", packages, vulnerabilities)
-	default:
-		if vulnerabilities > 0 {
-			return fmt.Sprintf("[%d matched packages, %d vulnerabilities]", packages, vulnerabilities)
-		}
-		if packages > 0 {
-			return fmt.Sprintf("[%d matched packages]", packages)
-		}
-		return ""
-	}
+	return ""
 }
 
-func packageHasLicenseSource(pkg *sdk.Package, sourceTypes ...string) bool {
-	if pkg == nil {
-		return false
+func matcherRunLabel(run sdk.MatcherRun) string {
+	if strings.TrimSpace(run.DisplayName) != "" {
+		return strings.TrimSpace(run.DisplayName)
 	}
-	for _, license := range pkg.Licenses {
-		for _, sourceType := range sourceTypes {
-			if strings.EqualFold(license.Type, sourceType) {
-				return true
-			}
-		}
+	if strings.TrimSpace(run.Name) == "" {
+		return ""
 	}
-	return false
+	return titleWords(strings.ReplaceAll(strings.TrimSpace(run.Name), "-", " "))
 }
 
 // humanizeDetectorName converts a detector name like "maven-detector" to "Maven Detector".
@@ -403,27 +353,6 @@ func humanizeAuditorSource(source string) string {
 	}
 }
 
-// humanizeMatcherName converts a matcher name like "depsdev-license-checker" to "deps.dev".
-func humanizeMatcherName(name string) string {
-	switch name {
-	case "depsdev-license-checker":
-		return "deps.dev"
-	case "clearlydefined-license-checker":
-		return "ClearlyDefined"
-	default:
-		name = strings.TrimSuffix(name, "-license-checker")
-		parts := strings.Split(name, "-")
-		for i, part := range parts {
-			if isAcronym(part) {
-				parts[i] = strings.ToUpper(part)
-			} else if len(part) > 0 {
-				parts[i] = strings.ToUpper(part[:1]) + part[1:]
-			}
-		}
-		return strings.Join(parts, " ")
-	}
-}
-
 func isAcronym(s string) bool {
 	switch strings.ToLower(s) {
 	case "npm", "pnpm", "osv", "sbom", "uv":
@@ -431,4 +360,18 @@ func isAcronym(s string) bool {
 	default:
 		return false
 	}
+}
+
+func titleWords(value string) string {
+	parts := strings.Fields(value)
+	for i, part := range parts {
+		if isAcronym(part) {
+			parts[i] = strings.ToUpper(part)
+			continue
+		}
+		if len(part) > 0 {
+			parts[i] = strings.ToUpper(part[:1]) + part[1:]
+		}
+	}
+	return strings.Join(parts, " ")
 }

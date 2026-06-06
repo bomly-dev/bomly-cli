@@ -184,9 +184,10 @@ func New(config Config) (*Matcher, error) {
 // Descriptor returns the matcher registration metadata.
 func (a *Matcher) Descriptor() sdk.MatcherDescriptor {
 	return sdk.MatcherDescriptor{
-		Name:    "osv",
-		Enabled: false,
-		Origin:  sdk.CoreOrigin,
+		Name:        "osv",
+		DisplayName: "OSV",
+		Enabled:     false,
+		Origin:      sdk.CoreOrigin,
 		// nil SupportedEcosystems means all ecosystems; OSV handles ecosystem
 		// selection internally via PURL or name+ecosystem queries.
 		SupportedEcosystems: nil,
@@ -292,7 +293,7 @@ func (a *Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResul
 				}
 			}
 			applyPackageVulnerabilityEnrichment(req.Registry, deps, enriched)
-			return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{"osv"}}, nil
+			return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{"osv"}, MatcherRunDetails: osvMatcherRuns(enriched)}, nil
 		}
 
 		for i, result := range results {
@@ -358,9 +359,23 @@ func (a *Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResul
 
 	applyPackageVulnerabilityEnrichment(req.Registry, deps, enriched)
 	return sdk.MatchResult{
-		Registry:    req.Registry,
-		MatcherRuns: []string{"osv"},
+		Registry:          req.Registry,
+		MatcherRuns:       []string{"osv"},
+		MatcherRunDetails: osvMatcherRuns(enriched),
 	}, nil
+}
+
+func osvMatcherRuns(enriched map[string][]sdk.Vulnerability) []sdk.MatcherRun {
+	vulnerabilities := 0
+	for _, entries := range enriched {
+		vulnerabilities += len(entries)
+	}
+	return []sdk.MatcherRun{{
+		Name:            "osv",
+		DisplayName:     "OSV",
+		MatchedPackages: len(enriched),
+		Vulnerabilities: vulnerabilities,
+	}}
 }
 
 // fetchVulnDetails retrieves full OsvVulnerability records for the given IDs,

@@ -107,6 +107,7 @@ type examplePluginPackage struct {
 
 func buildExamplePlugin(t *testing.T) examplePluginPackage {
 	t.Helper()
+	// TODO: Replace this generated fixture with the public example plugin repos once they can be cloned in CI.
 	binaryName := "bomly-example-gomod-detector"
 	if runtime.GOOS == "windows" {
 		binaryName += ".exe"
@@ -134,6 +135,7 @@ func buildExamplePlugin(t *testing.T) examplePluginPackage {
 
 func writeExamplePluginSource(t *testing.T, dir string) {
 	t.Helper()
+	// TODO: Use the real external detector example when the private plugin repos become public.
 	repoPath := filepath.ToSlash(repoRoot(t))
 	goMod := "module bomly-smoke-plugin\n\ngo 1.25\n\nrequire github.com/bomly-dev/bomly-cli v0.0.0\n\nreplace github.com/bomly-dev/bomly-cli => " + repoPath + "\n"
 	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(goMod), 0o644); err != nil {

@@ -24,6 +24,8 @@ func (f MatcherFilter) Excludes(name string) bool {
 // MatcherDescriptor describes a matcher registration.
 type MatcherDescriptor struct {
 	Name                string           `json:"name"`
+	DisplayName         string           `json:"displayName,omitempty"`
+	Aliases             []string         `json:"aliases,omitempty"`
 	Enabled             bool             `json:"enabled,omitempty"`
 	Origin              DetectorOrigin   `json:"origin,omitempty"`
 	SupportedEcosystems []Ecosystem      `json:"supportedEcosystems,omitempty"`
@@ -51,8 +53,17 @@ type MatchRequest struct {
 
 // MatchResult contains the package registry after matcher enrichment.
 type MatchResult struct {
-	Registry    *PackageRegistry `json:"registry,omitempty"`
-	MatcherRuns []string         `json:"matcherRuns,omitempty"`
+	Registry          *PackageRegistry `json:"registry,omitempty"`
+	MatcherRuns       []string         `json:"matcherRuns,omitempty"`
+	MatcherRunDetails []MatcherRun     `json:"matcherRunDetails,omitempty"`
+}
+
+// MatcherRun describes one completed matcher run and optional summary counts.
+type MatcherRun struct {
+	Name            string `json:"name"`
+	DisplayName     string `json:"displayName,omitempty"`
+	MatchedPackages int    `json:"matchedPackages,omitempty"`
+	Vulnerabilities int    `json:"vulnerabilities,omitempty"`
 }
 
 // Matcher enriches registry packages with license and vulnerability data.

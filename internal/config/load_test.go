@@ -121,10 +121,6 @@ matchers:
     kev:
       cache_dir: cache/kev
       cache_ttl: 2h
-  eol:
-    api_base: https://eol.example
-    cache_dir: cache/eol
-    cache_ttl: 3h
   scorecard:
     api_base: https://scorecard.example
     cache_dir: cache/scorecard
@@ -164,7 +160,7 @@ matchers:
 	if resolved.Format != "json" || len(resolved.Outputs) != 1 || !resolved.Interactive || !resolved.Quiet || resolved.Verbosity != 2 {
 		t.Fatalf("output/logging config = %#v", resolved)
 	}
-	if resolved.OsvAPIBase != "https://osv.example" || resolved.OsvCacheTTL != "1h" || resolved.KEVCacheTTL != "2h" || resolved.EOLAPIBase != "https://eol.example" || resolved.EOLCacheTTL != "3h" || resolved.ScorecardAPIBase != "https://scorecard.example" || resolved.ScorecardCacheTTL != "4h" {
+	if resolved.OsvAPIBase != "https://osv.example" || resolved.OsvCacheTTL != "1h" || resolved.KEVCacheTTL != "2h" || resolved.ScorecardAPIBase != "https://scorecard.example" || resolved.ScorecardCacheTTL != "4h" {
 		t.Fatalf("matcher config = %#v", resolved)
 	}
 }

@@ -31,7 +31,6 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/swiftpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/syft"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/depsdev"
-	"github.com/bomly-dev/bomly-cli/internal/matchers/eol"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/grype"
 	osvmatcher "github.com/bomly-dev/bomly-cli/internal/matchers/osv"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/scorecard"
@@ -60,9 +59,6 @@ type RegistryConfigs struct {
 	OsvCacheTTL           string
 	KEVCacheDir           string
 	KEVCacheTTL           string
-	EOLAPIBase            string
-	EOLCacheDir           string
-	EOLCacheTTL           string
 	ScorecardAPIBase      string
 	ScorecardCacheDir     string
 	ScorecardCacheTTL     string
@@ -154,7 +150,6 @@ func (r *Registry) registerMatchers() {
 	r.registerGrypeMatcher()
 	r.registerOSVMatcher()
 	r.registerDepsDevMatcher()
-	r.registerEOLMatcher()
 	r.registerScorecardMatcher()
 }
 
@@ -202,45 +197,13 @@ func (r *Registry) registerOSVMatcher() {
 	}
 }
 
-func (r *Registry) registerEOLMatcher() {
-	eolCfg := eol.DefaultConfig()
-	eolCfg.Logger = r.logger
-	eolCfg.HTTPClientProvider = r.httpClientProvider()
-	if r.configs.EOLAPIBase != "" {
-		eolCfg.APIBase = r.configs.EOLAPIBase
-	}
-	if r.configs.EOLCacheDir != "" {
-		eolCfg.CacheDir = r.configs.EOLCacheDir
-	}
-	if r.configs.EOLCacheTTL != "" {
-		if d, err := time.ParseDuration(r.configs.EOLCacheTTL); err == nil {
-			eolCfg.CacheTTL = d
-		} else {
-			r.logger.Warn("eol: invalid cache_ttl; using default", zap.String("value", r.configs.EOLCacheTTL), zap.Error(err))
-		}
-	}
-	eolChecker, err := eol.New(eolCfg)
-	if err != nil {
-		r.logger.Warn("endoflife.date checker unavailable", zap.Error(err))
-	} else {
-		for _, matcher := range builtInMatchers([]sdk.Matcher{eolChecker}) {
-			r.RegisterMatcher(matcher)
-		}
-		r.logger.Debug("endoflife.date matcher configured",
-			zap.String("api_base", eolCfg.APIBase),
-			zap.String("cache_dir", eolCfg.CacheDir),
-			zap.Duration("cache_ttl", eolCfg.CacheTTL),
-		)
-	}
-}
-
 func (r *Registry) registerDepsDevMatcher() {
 	depsDevCfg := depsdev.DefaultConfig()
 	depsDevCfg.Logger = r.logger
 	depsDevCfg.HTTPClientProvider = r.httpClientProvider()
 	depsDevChecker, err := depsdev.New(depsDevCfg)
 	if err != nil {
-		r.logger.Warn("deps.dev license checker unavailable", zap.Error(err))
+		r.logger.Warn("deps.dev license matcher unavailable", zap.Error(err))
 	} else {
 		for _, matcher := range builtInMatchers([]sdk.Matcher{depsDevChecker}) {
 			r.RegisterMatcher(matcher)

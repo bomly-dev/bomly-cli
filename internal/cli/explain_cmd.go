@@ -93,7 +93,7 @@ func newExplainCmd() *cobra.Command {
 			prog.CompleteStep("Detected Dependencies", detectionChildren)
 			prog.Advance("Finding dependency paths")
 			if len(explainResult.MatcherRuns) > 0 || len(explainResult.MatchWarnings) > 0 {
-				prog.CompleteStep("Enriched packages", matchProgressChildren(explainResult.Registry, explainResult.MatcherRuns, explainResult.MatchWarnings))
+				prog.CompleteStep("Enriched packages", matchProgressChildren(explainResult.MatcherRunDetails, explainResult.MatchWarnings))
 			}
 
 			targets := make([]output.ExplainTargetResponse, 0, len(explainResult.Targets))

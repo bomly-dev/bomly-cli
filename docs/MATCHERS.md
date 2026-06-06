@@ -9,8 +9,8 @@ Bomly is **offline-safe by default**. Matchers that use the network only run whe
 | Kind | Examples | What it adds |
 | --- | --- | --- |
 | Vulnerability | `osv`, `grype` | CVE / GHSA / OSV IDs, severity, CVSS, aliases, fixed versions, references, KEV signal |
-| License | `depsdev-license-checker` | SPDX expression, declared/discovered split, license source |
-| Lifecycle | `eol` | End-of-life status for ecosystems and runtimes (via endoflife.date) |
+| License | `depsdev-license-matcher` | SPDX expression, declared/discovered split, license source |
+| Lifecycle | External plugin | End-of-life status from a plugin such as `eol-lifecycle-matcher` |
 
 The full live list lives in the CLI:
 
@@ -33,11 +33,11 @@ Use `--matchers` to restrict or extend the set with the standard `+/-` selector 
 # Only OSV
 bomly scan --enrich --matchers osv
 
-# Default set minus the built-in license checker
-bomly scan --enrich --matchers -depsdev-license-checker
+# Default set minus the built-in license matcher
+bomly scan --enrich --matchers -depsdev-license-matcher
 
 # Add an external plugin matcher
-bomly scan --enrich --matchers +clearlydefined-license-checker
+bomly scan --enrich --matchers +clearlydefined-license-matcher
 ```
 
 ## Network endpoints
@@ -47,7 +47,6 @@ When `--enrich` is set, Bomly may call:
 - `api.osv.dev` — OSV vulnerability database
 - `api.cisa.gov` — CISA Known Exploited Vulnerabilities catalog
 - `api.deps.dev` — Google's deps.dev package metadata
-- `endoflife.date` — lifecycle data
 
 These are the **only** hosts Bomly's built-in matchers contact during enrichment. No telemetry. No data exfiltration. No credentials sent. External plugin matchers may contact their own documented services after you install and enable them. See [docs/ARCHITECTURE.md](ARCHITECTURE.md) for the full network model.
 
@@ -69,7 +68,6 @@ Per-matcher subdirectories and TTLs:
 | OSV (vulnerability details) | `osv-vulns/` | 7d |
 | CISA KEV | `kev/` | 6h |
 | deps.dev | `licenses/depsdev/` | 24h |
-| endoflife.date | `eol/` | 24h |
 
 To clear the cache, delete the directory:
 
@@ -78,7 +76,7 @@ rm -rf ~/.bomly/cache    # Unix/macOS
 Remove-Item -Recurse $env:USERPROFILE\.bomly\cache  # PowerShell
 ```
 
-Override cache locations with matcher-specific keys such as `matchers.osv.cache_dir`, `matchers.eol.cache_dir`, and `matchers.scorecard.cache_dir`; see [CONFIG_REFERENCE.md](CONFIG_REFERENCE.md). Cache failures are **always non-fatal** — Bomly logs a warning and continues.
+Override cache locations with matcher-specific keys such as `matchers.osv.cache_dir` and `matchers.scorecard.cache_dir`; see [CONFIG_REFERENCE.md](CONFIG_REFERENCE.md). External plugins may expose their own cache config under `plugins.<plugin-id>`. Cache failures are **always non-fatal** — Bomly logs a warning and continues.
 
 ## Failure semantics
 

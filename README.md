@@ -10,7 +10,7 @@ One binary. Native detectors for the ecosystems developers use every day. Offlin
 
 - **One CLI, full pipeline.** Detect, enrich, audit, explain, diff, and write SBOMs from the same binary.
 - **Native detectors first.** Real dependency graphs (with edges) for Go, npm, pnpm, yarn, Maven, Gradle, Python, Composer, Bundler, GitHub Actions, and SBOM ingest. Syft fills the long tail for containers and rarer ecosystems.
-- **Offline-safe by default.** A scan without `--enrich` makes zero outbound HTTP calls. Built-in enrichment uses OSV, KEV, deps.dev, and endoflife.date.
+- **Offline-safe by default.** A scan without `--enrich` makes zero outbound HTTP calls. Built-in enrichment uses OSV, KEV, deps.dev, and OpenSSF Scorecard.
 - **Reachability that respects your time** (experimental). `--reachability` tells you whether your app actually calls a vulnerable symbol — Tier-1 (`govulncheck`) for Go; Tier-3 import-graph closure for npm, Python, and JVM languages. See [REACHABILITY.md](docs/REACHABILITY.md) for limitations.
 - **Stable exit codes for CI.** `0` clean, `2` policy violation, plus 1, 3, 4 for other failure classes. See [Exit codes](docs/EXIT_CODES.md).
 
@@ -18,7 +18,7 @@ One binary. Native detectors for the ecosystems developers use every day. Offlin
 
 - Scan local trees, SBOMs (SPDX 2.3, CycloneDX 1.6), Git repositories, container images.
 - Write SBOMs in either format as the primary output or alongside any report: `--format spdx`, `-o cyclonedx=…`.
-- Enrich with OSV, KEV, deps.dev, and endoflife.date via `--enrich`.
+- Enrich with OSV, KEV, deps.dev, and OpenSSF Scorecard via `--enrich`; lifecycle enrichment can be added with an external matcher plugin.
 - Audit with `--audit --fail-on <severity>`; SARIF emitted with `--format sarif`.
 - Explain transitive paths with `bomly explain <package>`.
 - Diff dependency state across Git refs or SBOM files with `bomly diff`.
@@ -186,7 +186,7 @@ bomly scan --path ./my-bun-project --detectors bomly.examples.detector.bun-lock 
 
 Detector plugins declare package-manager support and evidence patterns through their detector contract. Bomly uses those patterns during runtime preparation so external detectors can participate in subproject discovery alongside built-ins.
 
-The plugin hub lives in [docs/PLUGINS.md](docs/PLUGINS.md). Implementation guides are available for [detectors](docs/plugins/how-to-implement-detector.md), [matchers](docs/plugins/how-to-implement-matcher.md), and [auditors](docs/plugins/how-to-implement-auditor.md). Example plugin repos are [Bun Lock Detector](https://github.com/bomly-dev/bomly-plugin-bun-lock-detector), [ClearlyDefined License Matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-license), and [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-dependency-auditor).
+The plugin hub lives in [docs/PLUGINS.md](docs/PLUGINS.md). Implementation guides are available for [detectors](docs/plugins/how-to-implement-detector.md), [matchers](docs/plugins/how-to-implement-matcher.md), and [auditors](docs/plugins/how-to-implement-auditor.md). Example plugin repos are [Bun Lock Detector](https://github.com/bomly-dev/bomly-plugin-bun-lock-detector), [ClearlyDefined License Matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-license), [EOL Lifecycle Matcher](https://github.com/bomly-dev/bomly-plugin-eol-lifecycle), and [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-dependency-auditor).
 
 ## Architecture
 

@@ -1,6 +1,7 @@
 package opts
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -73,15 +74,19 @@ func TestResolveMatcherFilter_DefaultLeavesMatcherSelectionToRegistryDefaults(t 
 	}
 }
 
-func TestResolveMatcherFilter_ClearlyDefinedAliasRequiresInstalledMatcher(t *testing.T) {
+func TestResolveMatcherFilter_UsesDescriptorAliases(t *testing.T) {
 	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
-	reg.Build()
-	_, err := resolveMatcherFilter("+clearlydefined", reg)
-	if err == nil {
-		t.Fatal("expected error for unavailable external matcher alias")
+	reg.RegisterMatcher(fakeMatcher{descriptor: sdk.MatcherDescriptor{
+		Name:    "example-license-matcher",
+		Enabled: false,
+		Aliases: []string{"example-license"},
+	}})
+	filter, err := resolveMatcherFilter("+example-license", reg)
+	if err != nil {
+		t.Fatalf("resolveMatcherFilter() error = %v", err)
 	}
-	if !strings.Contains(err.Error(), "unknown matcher selector") {
-		t.Fatalf("expected unknown matcher selector message, got %q", err.Error())
+	if contains(filter.Exclude, "example-license-matcher") {
+		t.Fatalf("expected aliased matcher not to be excluded, got %#v", filter)
 	}
 }
 
@@ -161,4 +166,24 @@ func containsEcosystem(values []sdk.Ecosystem, target sdk.Ecosystem) bool {
 		}
 	}
 	return false
+}
+
+type fakeMatcher struct {
+	descriptor sdk.MatcherDescriptor
+}
+
+func (f fakeMatcher) Descriptor() sdk.MatcherDescriptor {
+	return f.descriptor
+}
+
+func (f fakeMatcher) Ready() bool {
+	return true
+}
+
+func (f fakeMatcher) Applicable(context.Context, sdk.MatchRequest) (bool, error) {
+	return true, nil
+}
+
+func (f fakeMatcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
+	return sdk.MatchResult{Registry: req.Registry}, nil
 }

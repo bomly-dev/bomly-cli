@@ -76,14 +76,6 @@ YAML files use the nested keys documented below. Unknown keys and the former fla
 | `matchers.osv.kev.cache_dir` | `BOMLY_KEV_CACHE_DIR` | `string` | - | Directory for the CISA KEV cache |
 | `matchers.osv.kev.cache_ttl` | `BOMLY_KEV_CACHE_TTL` | `string` | 24h | TTL for cached KEV data (e.g. 24h) |
 
-## EOL enrichment settings
-
-| YAML Key | Environment Variable | Type | Default | Description |
-|----------|---------------------|------|---------|-------------|
-| `matchers.eol.api_base` | `BOMLY_EOL_API_BASE` | `string` | https://endoflife.date/api | Base URL for the endoflife.date API |
-| `matchers.eol.cache_dir` | `BOMLY_EOL_CACHE_DIR` | `string` | - | Directory for the EOL cache |
-| `matchers.eol.cache_ttl` | `BOMLY_EOL_CACHE_TTL` | `string` | 24h | TTL for cached EOL responses (e.g. 24h) |
-
 ## Scorecard matcher settings
 
 | YAML Key | Environment Variable | Type | Default | Description |
@@ -111,9 +103,6 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 | `detectors` | `components.detectors` |
 | `ecosystems` | `components.ecosystems` |
 | `enrich` | `analysis.enrich` |
-| `eol_api_base` | `matchers.eol.api_base` |
-| `eol_cache_dir` | `matchers.eol.cache_dir` |
-| `eol_cache_ttl` | `matchers.eol.cache_ttl` |
 | `fail_on` | `policy.fail_on` |
 | `fail_on_scopes` | `policy.fail_on_scopes` |
 | `format` | `output.format` |
@@ -257,13 +246,6 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 #       cache_dir: ""
 #       TTL for cached KEV data (e.g. 24h)
 #       cache_ttl: 24h
-#   eol:
-#     Base URL for the endoflife.date API
-#     api_base: https://endoflife.date/api
-#     Directory for the EOL cache
-#     cache_dir: ""
-#     TTL for cached EOL responses (e.g. 24h)
-#     cache_ttl: 24h
 #   scorecard:
 #     Base URL for the OpenSSF Scorecard public API
 #     api_base: https://api.scorecard.dev

@@ -88,7 +88,7 @@ func newScanCmd() *cobra.Command {
 			detectionChildren = append(detectionChildren, warningProgressChildren(pipeResult.DetectorWarnings)...)
 			prog.CompleteStep("Detected Dependencies", detectionChildren)
 			if len(pipeResult.MatcherRuns) > 0 || len(pipeResult.MatchWarnings) > 0 {
-				prog.CompleteStep("Enriched packages", matchProgressChildren(pipeResult.Registry, pipeResult.MatcherRuns, pipeResult.MatchWarnings))
+				prog.CompleteStep("Enriched packages", matchProgressChildren(pipeResult.MatcherRunDetails, pipeResult.MatchWarnings))
 			}
 
 			consolidated := pipeResult.Consolidated

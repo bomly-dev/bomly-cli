@@ -826,6 +826,7 @@ func cloneMatcherDescriptor(descriptor *plugschema.MatcherDescriptor) *plugschem
 	copyValue := *descriptor
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
+	copyValue.Aliases = append([]string(nil), descriptor.Aliases...)
 	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
 	return &copyValue
 }

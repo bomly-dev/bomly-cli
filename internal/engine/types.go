@@ -85,7 +85,7 @@ type PipelineResult struct {
 	AuditWarnings    []PipelineWarning
 	MatchWarnings    []PipelineWarning
 	AnalyzeWarnings  []PipelineWarning
-	MatcherRuns      []string
+	MatcherStats     []sdk.MatcherStats
 	AuditorRuns      []string
 	AnalyzerRuns     []string
 	AuditorFindings  map[string]int

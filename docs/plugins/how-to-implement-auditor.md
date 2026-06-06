@@ -17,14 +17,14 @@ import (
     "github.com/bomly-dev/bomly-cli/sdk"
 )
 
-const pluginID = "security-team.auditor.policy"
+const pluginID = "bomly.examples.auditor.meme-deps"
 
 type auditor struct{}
 
 func (a *auditor) Metadata(context.Context) (*sdk.PluginMetadata, error) {
     return &sdk.PluginMetadata{
         ID:               pluginID,
-        Name:             "Security Team Policy Auditor",
+        Name:             "Meme Dependency Auditor",
         Version:          "0.1.0",
         Kind:             sdk.PluginKindAuditor,
         PluginAPIVersion: sdk.PluginAPIVersion,
@@ -34,7 +34,7 @@ func (a *auditor) Metadata(context.Context) (*sdk.PluginMetadata, error) {
 func (a *auditor) Descriptor(context.Context) (*sdk.AuditorDescriptor, error) {
     return &sdk.AuditorDescriptor{
         Name:    pluginID,
-        Enabled: true,
+        Enabled: false,
         Origin:  sdk.ExternalOrigin,
     }, nil
 }
@@ -52,8 +52,8 @@ func (a *auditor) Audit(ctx context.Context, req *sdk.AuditRequest) (*sdk.AuditR
         ID:          "security-team-policy-example",
         Kind:        sdk.FindingKindPackage,
         PackageRef:  "pkg:npm/lodash@4.17.21",
-        Disposition: sdk.FindingDispositionFail,
-        Title:       "Example policy finding",
+        Disposition: sdk.FindingDispositionWarn,
+        Title:       "Dependency has unusually high meme density",
         Source:      pluginID,
     }
 
@@ -68,6 +68,8 @@ func main() {
     sdk.ServeAuditor(&auditor{})
 }
 ```
+
+The working example repo is [bomly-plugin-meme-dependency-auditor](https://github.com/bomly-dev/bomly-plugin-meme-dependency-auditor). It shows a small auditor that reads graph nodes and emits reference-style package findings.
 
 ## What Each Hook Does
 
@@ -107,8 +109,9 @@ Per-plugin config lives under `plugins.<plugin-id>`:
 
 ```yaml
 plugins:
-  security-team.auditor.policy:
-    policy_file: ./bomly-policy.yaml
+  bomly.examples.auditor.meme-deps:
+    extra_packages:
+      - totally-not-suspicious
 ```
 
 Read it with:
@@ -140,9 +143,9 @@ _ = client
 For development, build and install the binary directly:
 
 ```bash
-go build -o ./bin/security-team-policy-auditor ./cmd/security-team-policy-auditor
-bomly plugin install ./bin/security-team-policy-auditor --dev
-bomly plugin enable security-team.auditor.policy
+go build -o ./bin/bomly-plugin-meme-dependency-auditor .
+bomly plugin install ./bin/bomly-plugin-meme-dependency-auditor --dev
+bomly plugin enable bomly.examples.auditor.meme-deps
 ```
 
 For distribution, package a `bomly-plugin.json` manifest with the binary:
@@ -150,7 +153,7 @@ For distribution, package a `bomly-plugin.json` manifest with the binary:
 ```text
 bomly-plugin.json
 bin/
-  security-team-policy-auditor
+  bomly-plugin-meme-dependency-auditor
 README.md
 LICENSE
 ```
@@ -160,21 +163,21 @@ LICENSE
 Check installation and runtime readiness:
 
 ```bash
-bomly plugin verify security-team.auditor.policy
-bomly plugin test security-team.auditor.policy
-bomly plugin doctor security-team.auditor.policy
+bomly plugin verify bomly.examples.auditor.meme-deps
+bomly plugin test bomly.examples.auditor.meme-deps
+bomly plugin doctor bomly.examples.auditor.meme-deps
 ```
 
 Run only this auditor:
 
 ```bash
-bomly scan --path ./my-project --audit --auditors security-team.auditor.policy --json
+bomly scan --path ./my-project --audit --auditors bomly.examples.auditor.meme-deps --json
 ```
 
 Or add it to the default auditor set:
 
 ```bash
-bomly scan --path ./my-project --audit --auditors +security-team.auditor.policy
+bomly scan --path ./my-project --audit --auditors +bomly.examples.auditor.meme-deps
 ```
 
 ## Implementation Checklist

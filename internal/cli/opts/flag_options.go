@@ -368,26 +368,22 @@ func availableMatcherOptions() []string {
 		if name == "" {
 			continue
 		}
-		// Internal names replaced by user-facing aliases below.
-		if name == clearlyDefinedCheckerName || name == depsdevCheckerName || name == eolCheckerName {
-			continue
-		}
 		if _, ok := seen[name]; ok {
-			continue
+		} else {
+			seen[name] = struct{}{}
+			options = append(options, name)
 		}
-		seen[name] = struct{}{}
-		options = append(options, name)
-	}
-	// Emit user-facing aliases only.
-	for _, alias := range []string{clearlyDefinedCheckerAlias, depsdevCheckerAlias, eolCheckerAlias} {
-		if alias == "" {
-			continue
+		for _, alias := range descriptor.Aliases {
+			alias = strings.TrimSpace(alias)
+			if alias == "" {
+				continue
+			}
+			if _, ok := seen[alias]; ok {
+				continue
+			}
+			seen[alias] = struct{}{}
+			options = append(options, alias)
 		}
-		if _, ok := seen[alias]; ok {
-			continue
-		}
-		seen[alias] = struct{}{}
-		options = append(options, alias)
 	}
 	sort.Strings(options)
 	return options

@@ -113,7 +113,7 @@ type Vulnerability struct {
 }
 ```
 
-Matchers (OSV, grype, depsdev, clearlydefined, eol, scorecard) write these records onto registry packages by PURL. Reachability is the only field analyzers touch; they annotate it in place.
+Matchers (OSV, grype, depsdev, eol, scorecard, and enabled external matcher plugins) write these records onto registry packages by PURL. Reachability is the only field analyzers touch; they annotate it in place.
 
 ## `sdk.Finding` — reference-style audit result
 
@@ -231,7 +231,7 @@ func (m Matcher) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResu
         pkg.Vulnerabilities = append(pkg.Vulnerabilities, vulnsForPURL(pkg.PURL)...)
         pkg.Matched = true
     }
-    return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, nil
+    return sdk.MatchResult{Registry: req.Registry, MatcherStats: sdk.MatcherStats{Name: matcherName}}, nil
 }
 ```
 

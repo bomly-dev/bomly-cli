@@ -20,23 +20,7 @@ type detectorOptionRow struct {
 }
 
 const (
-	OSVMatcherName             = "osv"
-	GrypeMatcherName           = "grype"
-	VulnerabilityAuditorName   = "vulnerability"
-	ClearlyDefinedCheckerName  = "clearlydefined-license-checker"
-	clearlyDefinedCheckerAlias = "clearlydefined"
-	DepsdevCheckerName         = "depsdev-license-checker"
-	depsdevCheckerAlias        = "deps.dev"
-	EOLCheckerName             = "eol-checker"
-	eolCheckerAlias            = "eol"
-	EOLMetadataKey             = "endoflife.date"
-
-	osvMatcherName            = OSVMatcherName
-	grypeMatcherName          = GrypeMatcherName
-	clearlyDefinedCheckerName = ClearlyDefinedCheckerName
-	depsdevCheckerName        = DepsdevCheckerName
-	eolCheckerName            = EOLCheckerName
-	eolMetadataKey            = EOLMetadataKey
+	VulnerabilityAuditorName = "vulnerability"
 )
 
 func buildDetectorOptionRows(reg *engine.Registry) []detectorOptionRow {
@@ -198,6 +182,7 @@ func buildAuditorSelectorCatalog(reg *engine.Registry) catalog {
 func buildMatcherSelectorCatalog(reg *engine.Registry) catalog {
 	available := make([]string, 0)
 	aliasToName := make(map[string]string)
+	simplified := make([]string, 0)
 	for _, descriptor := range reg.MatcherDescriptors() {
 		name := strings.TrimSpace(descriptor.Name)
 		if name == "" {
@@ -205,34 +190,17 @@ func buildMatcherSelectorCatalog(reg *engine.Registry) catalog {
 		}
 		available = append(available, name)
 		aliasToName[name] = name
-	}
-	// User-facing aliases (shown in help/completions).
-	aliasToName[clearlyDefinedCheckerAlias] = clearlyDefinedCheckerName
-	aliasToName[depsdevCheckerAlias] = depsdevCheckerName
-	aliasToName[eolCheckerAlias] = eolCheckerName
-	aliasToName["osv"] = osvMatcherName
-	aliasToName["grype"] = grypeMatcherName
-	// Full internal names accepted silently for backward compat but not shown in help.
-	aliasToName[clearlyDefinedCheckerName] = clearlyDefinedCheckerName
-	aliasToName[depsdevCheckerName] = depsdevCheckerName
-	aliasToName[eolCheckerName] = eolCheckerName
-	aliasToName[osvMatcherName] = osvMatcherName
-	aliasToName[grypeMatcherName] = grypeMatcherName
-
-	simplified := make([]string, 0, len(available))
-	for _, name := range available {
-		switch name {
-		case clearlyDefinedCheckerName:
-			simplified = append(simplified, fmt.Sprintf("%s (%s)", clearlyDefinedCheckerAlias, clearlyDefinedCheckerName))
-		case depsdevCheckerName:
-			simplified = append(simplified, fmt.Sprintf("%s (%s)", depsdevCheckerAlias, depsdevCheckerName))
-		case eolCheckerName:
-			simplified = append(simplified, fmt.Sprintf("%s (%s)", eolCheckerAlias, eolCheckerName))
-		case osvMatcherName:
-			simplified = append(simplified, osvMatcherName)
-		case grypeMatcherName:
-			simplified = append(simplified, grypeMatcherName)
-		default:
+		for _, alias := range descriptor.Aliases {
+			alias = strings.TrimSpace(alias)
+			if alias != "" {
+				aliasToName[alias] = name
+			}
+		}
+		if descriptor.DisplayName != "" {
+			simplified = append(simplified, descriptor.DisplayName+" ("+name+")")
+		} else if len(descriptor.Aliases) > 0 && strings.TrimSpace(descriptor.Aliases[0]) != "" {
+			simplified = append(simplified, strings.TrimSpace(descriptor.Aliases[0])+" ("+name+")")
+		} else {
 			simplified = append(simplified, name)
 		}
 	}

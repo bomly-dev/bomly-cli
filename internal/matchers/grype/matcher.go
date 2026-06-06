@@ -40,6 +40,7 @@ func appendOrMergeVulnerability(existing []sdk.Vulnerability, entry sdk.Vulnerab
 func (a Matcher) Descriptor() sdk.MatcherDescriptor {
 	return sdk.MatcherDescriptor{
 		Name:                matcherName,
+		DisplayName:         "Grype",
 		Enabled:             true,
 		Origin:              sdk.BundledOrigin,
 		SupportedEcosystems: nil, // nil = all ecosystems
@@ -73,4 +74,17 @@ func (a Matcher) logger() *zap.Logger {
 		return a.Logger
 	}
 	return zap.NewNop()
+}
+
+func grypeMatcherStats(matchedPackages, unmatchedPackages, vulnerabilities int) sdk.MatcherStats {
+	if unmatchedPackages < 0 {
+		unmatchedPackages = 0
+	}
+	return sdk.MatcherStats{
+		Name:              matcherName,
+		DisplayName:       "Grype",
+		MatchedPackages:   matchedPackages,
+		UnmatchedPackages: unmatchedPackages,
+		Vulnerabilities:   vulnerabilities,
+	}
 }

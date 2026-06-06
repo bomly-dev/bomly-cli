@@ -22,11 +22,11 @@ func (f fakeMatcher) Descriptor() MatcherDescriptor {
 	}
 }
 
-func (f fakeMatcher) Match(_ context.Context, req MatchRequest) (MatchResult, error) {
+func (f fakeMatcher) Match(_ context.Context, req MatchRequest) (sdk.MatchResult, error) {
 	if f.run != nil {
 		f.run(req.Registry)
 	}
-	return MatchResult{Registry: req.Registry}, nil
+	return sdk.MatchResult{Registry: req.Registry}, nil
 }
 
 func TestRegistryMatchers_PreservesRegistrationOrder(t *testing.T) {

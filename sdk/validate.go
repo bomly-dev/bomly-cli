@@ -64,6 +64,11 @@ func ValidateMatcherDescriptor(descriptor *MatcherDescriptor) error {
 	if strings.TrimSpace(descriptor.Name) == "" {
 		return fmt.Errorf("matcher descriptor name is required")
 	}
+	for _, alias := range descriptor.Aliases {
+		if strings.TrimSpace(alias) == "" {
+			return fmt.Errorf("matcher descriptor aliases must not contain empty values")
+		}
+	}
 	for _, manager := range descriptor.SupportedManagers {
 		if strings.TrimSpace(manager.Name()) == "" {
 			return fmt.Errorf("matcher descriptor supported managers must not contain empty values")

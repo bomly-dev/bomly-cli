@@ -68,7 +68,7 @@ See [Scan targets](SCAN_TARGETS.md) for the full target list.
 bomly scan --enrich
 ```
 
-This calls OSV, KEV, deps.dev, ClearlyDefined, and endoflife.date. All responses are cached under `~/.bomly/cache/`. See [Matchers](MATCHERS.md) for the per-source list and cache TTLs.
+This calls the enabled built-in matchers, including OSV, KEV, deps.dev, and OpenSSF Scorecard when selected. Responses are cached under `~/.bomly/cache/`. See [Matchers](MATCHERS.md) for the per-source list and cache TTLs. ClearlyDefined license and endoflife.date lifecycle enrichment are available as external matcher plugins.
 
 ## Generate an SBOM
 

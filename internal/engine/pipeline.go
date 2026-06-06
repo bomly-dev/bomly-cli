@@ -303,7 +303,7 @@ func (p *Pipeline) match(ctx context.Context, result *PipelineResult, req Pipeli
 		Stderr:          req.Stderr,
 	}
 	matchResult, err := p.engine.Match(ctx, mReq)
-	result.MatcherRuns = matchResult.MatcherRuns
+	result.MatcherStats = matchResult.MatcherStats
 	if matchResult.Registry != nil {
 		result.Registry = matchResult.Registry
 	}

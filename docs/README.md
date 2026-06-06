@@ -26,6 +26,7 @@ How Bomly thinks about your project.
 - [Reachability](REACHABILITY.md) — narrowing findings to code your app actually calls
 - [Plugins](PLUGINS.md) — install, trust, configure, and package external plugins
 - Plugin implementation guides: [detector](plugins/how-to-implement-detector.md), [matcher](plugins/how-to-implement-matcher.md), [auditor](plugins/how-to-implement-auditor.md)
+- Example plugin repos: [Bun detector](https://github.com/bomly-dev/bomly-plugin-bun-lock-detector), [ClearlyDefined matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-license), [EOL lifecycle matcher](https://github.com/bomly-dev/bomly-plugin-eol-lifecycle), [Meme auditor](https://github.com/bomly-dev/bomly-plugin-meme-dependency-auditor)
 - [Glossary](GLOSSARY.md) — every term, one sentence each
 
 ## Reference

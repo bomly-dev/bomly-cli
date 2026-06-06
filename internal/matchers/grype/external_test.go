@@ -54,7 +54,7 @@ func TestParseGrypeJSONOutputCarriesRichFields(t *testing.T) {
 			}
 		}]
 	}`)
-	if err := parseGrypeJSONOutput(data, registry); err != nil {
+	if _, _, err := parseGrypeJSONOutput(data, registry); err != nil {
 		t.Fatalf("parseGrypeJSONOutput: %v", err)
 	}
 	pkg, ok := registry.Get(purl)

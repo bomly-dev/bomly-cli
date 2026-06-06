@@ -16,6 +16,13 @@ var (
 	ErrNoMatcher = errors.New("no matcher available")
 )
 
+// MatchResult contains aggregate matcher output after the engine runs all
+// selected matchers for a pipeline stage.
+type MatchResult struct {
+	Registry     *sdk.PackageRegistry
+	MatcherStats []sdk.MatcherStats
+}
+
 // Engine orchestrates detector and auditor execution.
 type Engine struct {
 	registry *Registry
@@ -123,18 +130,19 @@ func (e *Engine) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.Analy
 }
 
 // Match runs registered matchers against the graph and returns the enriched graph.
-func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
+func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (MatchResult, error) {
 	matcherList := e.registry.Matchers(req)
 	if len(matcherList) == 0 {
-		return sdk.MatchResult{Registry: req.Registry}, nil
+		return MatchResult{Registry: req.Registry}, nil
 	}
 
-	aggregated := sdk.MatchResult{
+	aggregated := MatchResult{
 		Registry: req.Registry,
 	}
 	var errs []error
 	for _, matcher := range matcherList {
-		name := matcher.Descriptor().Name
+		descriptor := matcher.Descriptor()
+		name := descriptor.Name
 		if !matcher.Ready() {
 			errs = append(errs, fmt.Errorf("matcher %s: not ready", name))
 			continue
@@ -154,7 +162,7 @@ func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResu
 			errs = append(errs, fmt.Errorf("matcher %s: %w", name, err))
 			continue
 		}
-		aggregated.MatcherRuns = append(aggregated.MatcherRuns, name)
+		aggregated.MatcherStats = append(aggregated.MatcherStats, matcherStats(descriptor, result.MatcherStats))
 		if result.Registry != nil {
 			aggregated.Registry = result.Registry
 			req.Registry = result.Registry
@@ -164,4 +172,14 @@ func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResu
 		return aggregated, errors.Join(errs...)
 	}
 	return aggregated, nil
+}
+
+func matcherStats(descriptor sdk.MatcherDescriptor, stats sdk.MatcherStats) sdk.MatcherStats {
+	if stats.Name == "" {
+		stats.Name = descriptor.Name
+	}
+	if stats.DisplayName == "" {
+		stats.DisplayName = descriptor.DisplayName
+	}
+	return stats
 }

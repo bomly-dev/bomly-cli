@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/testutil"
@@ -21,6 +22,9 @@ import (
 )
 
 func TestResolveGitHubReleaseAndInstall(t *testing.T) {
+	const token = "ghp_private_release_token"
+	t.Setenv("BOMLY_GITHUB_TOKEN", token)
+
 	root := t.TempDir()
 	binaryName := "bomly-plugin-release"
 	if runtime.GOOS == "windows" {
@@ -58,6 +62,7 @@ func TestResolveGitHubReleaseAndInstall(t *testing.T) {
 	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/repos/acme/release-detector/releases/tags/v1.0.0":
+			assertGitHubAuthHeader(t, r, token)
 			_ = json.NewEncoder(w).Encode(map[string]any{
 				"tag_name": "v1.0.0",
 				"assets": []map[string]any{
@@ -66,8 +71,10 @@ func TestResolveGitHubReleaseAndInstall(t *testing.T) {
 				},
 			})
 		case "/download/" + archiveName:
+			assertGitHubAuthHeader(t, r, token)
 			_, _ = w.Write(archiveBytes)
 		case "/download/SHA256SUMS":
+			assertGitHubAuthHeader(t, r, token)
 			_, _ = w.Write([]byte(checksum[len("sha256:"):] + "  " + archiveName + "\n"))
 		default:
 			http.NotFound(w, r)
@@ -96,6 +103,44 @@ func TestResolveGitHubReleaseAndInstall(t *testing.T) {
 	}
 	if result.ResolvedSource != server.URL+"/download/"+archiveName {
 		t.Fatalf("expected resolved source to be archive download URL, got %q", result.ResolvedSource)
+	}
+}
+
+func TestResolveGitHubReleaseRedactsTokenFromErrors(t *testing.T) {
+	const token = "ghp_secret_error_token"
+	t.Setenv("BOMLY_GITHUB_TOKEN", token)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertGitHubAuthHeader(t, r, token)
+		http.Error(w, "token "+token+" is not welcome here", http.StatusForbidden)
+	}))
+	defer server.Close()
+
+	origBase := githubReleaseAPIBase
+	origClient := pluginHTTPClient
+	githubReleaseAPIBase = server.URL
+	pluginHTTPClient = server.Client()
+	defer func() {
+		githubReleaseAPIBase = origBase
+		pluginHTTPClient = origClient
+	}()
+
+	_, err := resolveGitHubRelease(context.Background(), "github:acme/release-detector@v1.0.0")
+	if err == nil {
+		t.Fatal("expected resolveGitHubRelease error")
+	}
+	if strings.Contains(err.Error(), token) {
+		t.Fatalf("expected error to redact GitHub token, got %q", err.Error())
+	}
+	if !strings.Contains(err.Error(), "[redacted]") {
+		t.Fatalf("expected redacted marker in error, got %q", err.Error())
+	}
+}
+
+func assertGitHubAuthHeader(t *testing.T, r *http.Request, token string) {
+	t.Helper()
+	if got := r.Header.Get("Authorization"); got != "Bearer "+token {
+		t.Fatalf("expected GitHub auth header, got %q", got)
 	}
 }
 

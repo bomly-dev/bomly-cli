@@ -73,11 +73,6 @@ type Resolved struct {
 	KEVCacheDir string `doc:"Directory for the CISA KEV cache" env:"BOMLY_KEV_CACHE_DIR"`
 	KEVCacheTTL string `doc:"TTL for cached KEV data (e.g. 24h)" env:"BOMLY_KEV_CACHE_TTL" default:"24h"`
 
-	// EOL enrichment settings
-	EOLAPIBase  string `doc:"Base URL for the endoflife.date API" env:"BOMLY_EOL_API_BASE" default:"https://endoflife.date/api"`
-	EOLCacheDir string `doc:"Directory for the EOL cache" env:"BOMLY_EOL_CACHE_DIR"`
-	EOLCacheTTL string `doc:"TTL for cached EOL responses (e.g. 24h)" env:"BOMLY_EOL_CACHE_TTL" default:"24h"`
-
 	// Scorecard matcher settings
 	ScorecardAPIBase  string `doc:"Base URL for the OpenSSF Scorecard public API" env:"BOMLY_SCORECARD_API_BASE" default:"https://api.scorecard.dev"`
 	ScorecardCacheDir string `doc:"Directory for the Scorecard response cache" env:"BOMLY_SCORECARD_CACHE_DIR"`
@@ -177,7 +172,6 @@ type ProxyFile struct {
 // MatchersFile configures built-in enrichment matchers.
 type MatchersFile struct {
 	OSV       OSVMatcherFile       `yaml:"osv,omitempty"`
-	EOL       EOLMatcherFile       `yaml:"eol,omitempty"`
 	Scorecard ScorecardMatcherFile `yaml:"scorecard,omitempty"`
 }
 
@@ -193,13 +187,6 @@ type OSVMatcherFile struct {
 type KEVFile struct {
 	CacheDir *string `yaml:"cache_dir,omitempty" resolved:"KEVCacheDir" legacy:"kev_cache_dir"`
 	CacheTTL *string `yaml:"cache_ttl,omitempty" resolved:"KEVCacheTTL" legacy:"kev_cache_ttl"`
-}
-
-// EOLMatcherFile configures endoflife.date enrichment.
-type EOLMatcherFile struct {
-	APIBase  *string `yaml:"api_base,omitempty" resolved:"EOLAPIBase" legacy:"eol_api_base"`
-	CacheDir *string `yaml:"cache_dir,omitempty" resolved:"EOLCacheDir" legacy:"eol_cache_dir"`
-	CacheTTL *string `yaml:"cache_ttl,omitempty" resolved:"EOLCacheTTL" legacy:"eol_cache_ttl"`
 }
 
 // ScorecardMatcherFile configures OpenSSF Scorecard enrichment.

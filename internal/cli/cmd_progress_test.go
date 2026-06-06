@@ -10,39 +10,20 @@ import (
 )
 
 func TestMatchProgressChildren_ReportsMatcherCounts(t *testing.T) {
-	registry := sdk.NewPackageRegistry()
-	react := registry.Ensure("pkg:npm/react@18.2.0")
-	react.Licenses = []sdk.PackageLicense{{Type: "deps.dev", Value: "MIT"}}
-	react.Vulnerabilities = []sdk.Vulnerability{
-		{ID: "OSV-1", Source: "osv"},
-		{ID: "CVE-1", Source: "grype"},
-	}
-	zod := registry.Ensure("pkg:npm/zod@3.23.0")
-	zod.Licenses = []sdk.PackageLicense{{Type: "ClearlyDefined", Value: "Apache-2.0"}}
-	zod.Vulnerabilities = []sdk.Vulnerability{{ID: "OSV-2", Source: "osv"}}
-
-	children := matchProgressChildren(registry, []string{
-		opts.DepsdevCheckerName,
-		opts.ClearlyDefinedCheckerName,
-		opts.OSVMatcherName,
-		opts.GrypeMatcherName,
+	children := matchProgressChildren([]sdk.MatcherStats{
+		{Name: "license-matcher", DisplayName: "Example License Matcher", MatchedPackages: 2, Licenses: 3},
+		{Name: "vulnerability-matcher", DisplayName: "Example Vulnerability Matcher", MatchedPackages: 3, UnmatchedPackages: 1, Vulnerabilities: 4},
 	}, nil)
 
 	details := make(map[string]string, len(children))
 	for _, child := range children {
 		details[child.Label] = child.Detail
 	}
-	if details["deps.dev"] != "[1 matched packages]" {
-		t.Fatalf("expected deps.dev package count, got %#v", children)
+	if details["Example License Matcher"] != "[2 matched packages, 3 licenses]" {
+		t.Fatalf("expected license matcher package count, got %#v", children)
 	}
-	if details["ClearlyDefined"] != "[1 matched packages]" {
-		t.Fatalf("expected ClearlyDefined package count, got %#v", children)
-	}
-	if details["OSV"] != "[2 matched packages, 2 vulnerabilities]" {
-		t.Fatalf("expected OSV matcher counts, got %#v", children)
-	}
-	if details["Grype"] != "[1 matched packages, 1 vulnerabilities]" {
-		t.Fatalf("expected Grype matcher counts, got %#v", children)
+	if details["Example Vulnerability Matcher"] != "[3 matched packages, 1 unmatched packages, 4 vulnerabilities]" {
+		t.Fatalf("expected vulnerability matcher counts, got %#v", children)
 	}
 }
 

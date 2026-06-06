@@ -109,7 +109,7 @@ func TestBuildScanRegistryRegistersBuiltInMatchers(t *testing.T) {
 	}
 
 	// Core matchers are implemented directly in Bomly's codebase; they use CoreOrigin.
-	for _, name := range []string{"osv", "depsdev-license-checker", "clearlydefined-license-checker", "eol-checker"} {
+	for _, name := range []string{"osv", "depsdev-license-matcher", "scorecard"} {
 		origin, ok := got[name]
 		if !ok {
 			t.Fatalf("expected built-in matcher %q to be registered; got %#v", name, got)

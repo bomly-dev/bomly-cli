@@ -75,21 +75,20 @@ type PipelineWarning struct {
 
 // PipelineResult contains the full output of a pipeline run.
 type PipelineResult struct {
-	ResolveResults    []sdk.DetectionResult
-	Consolidated      sdk.ConsolidatedGraph
-	Graph             *sdk.Graph
-	Registry          *sdk.PackageRegistry
-	Findings          []sdk.Finding
-	RiskScores        []sdk.RiskScore
-	DetectorWarnings  []PipelineWarning
-	AuditWarnings     []PipelineWarning
-	MatchWarnings     []PipelineWarning
-	AnalyzeWarnings   []PipelineWarning
-	MatcherRuns       []string
-	MatcherRunDetails []sdk.MatcherRun
-	AuditorRuns       []string
-	AnalyzerRuns      []string
-	AuditorFindings   map[string]int
-	AnalyzerStats     map[string]sdk.ReachabilityStats
-	PartialErrors     error
+	ResolveResults   []sdk.DetectionResult
+	Consolidated     sdk.ConsolidatedGraph
+	Graph            *sdk.Graph
+	Registry         *sdk.PackageRegistry
+	Findings         []sdk.Finding
+	RiskScores       []sdk.RiskScore
+	DetectorWarnings []PipelineWarning
+	AuditWarnings    []PipelineWarning
+	MatchWarnings    []PipelineWarning
+	AnalyzeWarnings  []PipelineWarning
+	MatcherStats     []sdk.MatcherStats
+	AuditorRuns      []string
+	AnalyzerRuns     []string
+	AuditorFindings  map[string]int
+	AnalyzerStats    map[string]sdk.ReachabilityStats
+	PartialErrors    error
 }

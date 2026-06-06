@@ -10,19 +10,19 @@ import (
 )
 
 func TestMatchProgressChildren_ReportsMatcherCounts(t *testing.T) {
-	children := matchProgressChildren([]sdk.MatcherRun{
-		{Name: "license-matcher", DisplayName: "Example License Matcher", MatchedPackages: 2},
-		{Name: "vulnerability-matcher", DisplayName: "Example Vulnerability Matcher", MatchedPackages: 3, Vulnerabilities: 4},
+	children := matchProgressChildren([]sdk.MatcherStats{
+		{Name: "license-matcher", DisplayName: "Example License Matcher", MatchedPackages: 2, Licenses: 3},
+		{Name: "vulnerability-matcher", DisplayName: "Example Vulnerability Matcher", MatchedPackages: 3, UnmatchedPackages: 1, Vulnerabilities: 4},
 	}, nil)
 
 	details := make(map[string]string, len(children))
 	for _, child := range children {
 		details[child.Label] = child.Detail
 	}
-	if details["Example License Matcher"] != "[2 matched packages]" {
+	if details["Example License Matcher"] != "[2 matched packages, 3 licenses]" {
 		t.Fatalf("expected license matcher package count, got %#v", children)
 	}
-	if details["Example Vulnerability Matcher"] != "[3 matched packages, 4 vulnerabilities]" {
+	if details["Example Vulnerability Matcher"] != "[3 matched packages, 1 unmatched packages, 4 vulnerabilities]" {
 		t.Fatalf("expected vulnerability matcher counts, got %#v", children)
 	}
 }

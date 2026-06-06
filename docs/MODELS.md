@@ -231,7 +231,7 @@ func (m Matcher) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResu
         pkg.Vulnerabilities = append(pkg.Vulnerabilities, vulnsForPURL(pkg.PURL)...)
         pkg.Matched = true
     }
-    return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}}, nil
+    return sdk.MatchResult{Registry: req.Registry, MatcherStats: sdk.MatcherStats{Name: matcherName}}, nil
 }
 ```
 

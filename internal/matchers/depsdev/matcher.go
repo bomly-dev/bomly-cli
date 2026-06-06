@@ -25,7 +25,7 @@ const (
 	// SourceType identifies deps.dev license provenance in sdk.PackageLicense.Type.
 	SourceType = "external-depsdev"
 
-	// matcherName labels this matcher in MatchResult.MatcherRuns.
+	// matcherName labels this matcher in MatchResult.MatcherStats.
 	matcherName = "depsdev-license-matcher"
 
 	defaultAPIBase   = "https://api.deps.dev/v3alpha"
@@ -80,8 +80,10 @@ type checkStats struct {
 	cacheHits          int
 	cacheMisses        int
 	cacheApplied       int
+	cacheLicenses      int
 	apiRequests        int
 	apiEnriched        int
+	apiLicenses        int
 	cacheWriteFailures int
 	responseMisses     int
 }
@@ -151,12 +153,12 @@ func (c *Checker) Applicable(_ context.Context, req sdk.MatchRequest) (bool, err
 // Match enriches missing package licenses via deps.dev.
 func (c *Checker) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
 	if req.Graph == nil || req.Registry == nil {
-		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}, MatcherRunDetails: matcherRuns(0)}, nil
+		return sdk.MatchResult{Registry: req.Registry, MatcherStats: matcherStats(0, 0, 0)}, nil
 	}
 	packages := matchers.RegistryPackagesForGraph(req.Graph, req.Registry, req.Target)
 	packages = matchers.MissingLicensePackages(packages)
 	if len(packages) == 0 {
-		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}, MatcherRunDetails: matcherRuns(0)}, nil
+		return sdk.MatchResult{Registry: req.Registry, MatcherStats: matcherStats(0, 0, 0)}, nil
 	}
 
 	stats := checkStats{requested: len(packages)}
@@ -169,8 +171,9 @@ func (c *Checker) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchRes
 		}
 		if cached, hit := cache.Get[[]string](c.cache, cacheKey); hit {
 			stats.cacheHits++
-			if applyLicenses(pkg, cached) {
+			if count := applyLicenses(pkg, cached); count > 0 {
 				stats.cacheApplied++
+				stats.cacheLicenses += count
 			}
 			continue
 		}
@@ -185,7 +188,7 @@ func (c *Checker) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchRes
 		}
 		chunk := pendingItems[start:end]
 		if err := c.fetchBatch(ctx, chunk, &stats); err != nil {
-			return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}, MatcherRunDetails: matcherRuns(stats.cacheApplied + stats.apiEnriched)}, err
+			return sdk.MatchResult{Registry: req.Registry, MatcherStats: matcherStats(stats.cacheApplied+stats.apiEnriched, stats.requested-stats.cacheApplied-stats.apiEnriched, stats.cacheLicenses+stats.apiLicenses)}, err
 		}
 	}
 	c.logger.Debug(
@@ -194,22 +197,33 @@ func (c *Checker) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchRes
 		zap.Int("cache_hits", stats.cacheHits),
 		zap.Int("cache_misses", stats.cacheMisses),
 		zap.Int("cache_applied", stats.cacheApplied),
+		zap.Int("cache_licenses", stats.cacheLicenses),
 		zap.Int("api_requests", stats.apiRequests),
 		zap.Int("api_enriched", stats.apiEnriched),
+		zap.Int("api_licenses", stats.apiLicenses),
 		zap.Int("response_misses", stats.responseMisses),
 		zap.Int("cache_write_failures", stats.cacheWriteFailures),
 		zap.Int("unsupported", stats.unsupported),
 	)
 
-	return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}, MatcherRunDetails: matcherRuns(stats.cacheApplied + stats.apiEnriched)}, nil
+	matchedPackages := stats.cacheApplied + stats.apiEnriched
+	return sdk.MatchResult{
+		Registry:     req.Registry,
+		MatcherStats: matcherStats(matchedPackages, stats.requested-matchedPackages, stats.cacheLicenses+stats.apiLicenses),
+	}, nil
 }
 
-func matcherRuns(matchedPackages int) []sdk.MatcherRun {
-	return []sdk.MatcherRun{{
-		Name:            matcherName,
-		DisplayName:     "deps.dev License Matcher",
-		MatchedPackages: matchedPackages,
-	}}
+func matcherStats(matchedPackages, unmatchedPackages, licenses int) sdk.MatcherStats {
+	if unmatchedPackages < 0 {
+		unmatchedPackages = 0
+	}
+	return sdk.MatcherStats{
+		Name:              matcherName,
+		DisplayName:       "deps.dev License Matcher",
+		MatchedPackages:   matchedPackages,
+		UnmatchedPackages: unmatchedPackages,
+		Licenses:          licenses,
+	}
 }
 
 func (c *Checker) fetchBatch(ctx context.Context, items []pending, stats *checkStats) error {
@@ -266,8 +280,11 @@ func (c *Checker) fetchBatch(ctx context.Context, items []pending, stats *checkS
 			}
 			c.logger.Warn("deps.dev: cache write failed", zap.Error(err))
 		}
-		if applyLicenses(items[idx].pkg, values) {
+		if count := applyLicenses(items[idx].pkg, values); count > 0 {
 			enriched++
+			if stats != nil {
+				stats.apiLicenses += count
+			}
 		}
 	}
 	if stats != nil {
@@ -279,17 +296,17 @@ func (c *Checker) fetchBatch(ctx context.Context, items []pending, stats *checkS
 	return nil
 }
 
-func applyLicenses(pkg *sdk.Package, values []string) bool {
+func applyLicenses(pkg *sdk.Package, values []string) int {
 	if pkg == nil || len(pkg.Licenses) > 0 {
-		return false
+		return 0
 	}
 	normalized := matchers.NormalizeLicenseSet(values, SourceType)
 	if len(normalized) == 0 {
-		return false
+		return 0
 	}
 	pkg.Licenses = normalized
 	pkg.Matched = true
-	return true
+	return len(normalized)
 }
 
 func versionRequestFromPackage(pkg *sdk.Package) (versionRequest, cache.Key, bool) {

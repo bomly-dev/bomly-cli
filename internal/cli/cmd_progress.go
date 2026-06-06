@@ -282,37 +282,47 @@ func diffPolicyOutcomeProgressChild(audit *diffengine.Audit) progress.Child {
 
 // matchProgressChildren returns ✔ children for each successful matcher run
 // and ⚠ children for each warning.
-func matchProgressChildren(runs []sdk.MatcherRun, warnings []engine.PipelineWarning) []progress.Child {
-	children := make([]progress.Child, 0, len(runs)+len(warnings))
-	for _, run := range runs {
+func matchProgressChildren(stats []sdk.MatcherStats, warnings []engine.PipelineWarning) []progress.Child {
+	children := make([]progress.Child, 0, len(stats)+len(warnings))
+	for _, stat := range stats {
 		children = append(children, progress.Child{
 			Icon:   progress.CheckMark,
-			Label:  matcherRunLabel(run),
-			Detail: matcherProgressDetail(run),
+			Label:  matcherStatsLabel(stat),
+			Detail: matcherProgressDetail(stat),
 		})
 	}
 	children = append(children, warningProgressChildren(warnings)...)
 	return children
 }
 
-func matcherProgressDetail(run sdk.MatcherRun) string {
-	if run.Vulnerabilities > 0 {
-		return fmt.Sprintf("[%d matched packages, %d vulnerabilities]", run.MatchedPackages, run.Vulnerabilities)
+func matcherProgressDetail(stats sdk.MatcherStats) string {
+	parts := make([]string, 0, 4)
+	if stats.MatchedPackages > 0 {
+		parts = append(parts, fmt.Sprintf("%d matched packages", stats.MatchedPackages))
 	}
-	if run.MatchedPackages > 0 {
-		return fmt.Sprintf("[%d matched packages]", run.MatchedPackages)
+	if stats.UnmatchedPackages > 0 {
+		parts = append(parts, fmt.Sprintf("%d unmatched packages", stats.UnmatchedPackages))
 	}
-	return ""
-}
-
-func matcherRunLabel(run sdk.MatcherRun) string {
-	if strings.TrimSpace(run.DisplayName) != "" {
-		return strings.TrimSpace(run.DisplayName)
+	if stats.Licenses > 0 {
+		parts = append(parts, fmt.Sprintf("%d licenses", stats.Licenses))
 	}
-	if strings.TrimSpace(run.Name) == "" {
+	if stats.Vulnerabilities > 0 {
+		parts = append(parts, fmt.Sprintf("%d vulnerabilities", stats.Vulnerabilities))
+	}
+	if len(parts) == 0 {
 		return ""
 	}
-	return titleWords(strings.ReplaceAll(strings.TrimSpace(run.Name), "-", " "))
+	return "[" + strings.Join(parts, ", ") + "]"
+}
+
+func matcherStatsLabel(stats sdk.MatcherStats) string {
+	if strings.TrimSpace(stats.DisplayName) != "" {
+		return strings.TrimSpace(stats.DisplayName)
+	}
+	if strings.TrimSpace(stats.Name) == "" {
+		return ""
+	}
+	return titleWords(strings.ReplaceAll(strings.TrimSpace(stats.Name), "-", " "))
 }
 
 // humanizeDetectorName converts a detector name like "maven-detector" to "Maven Detector".

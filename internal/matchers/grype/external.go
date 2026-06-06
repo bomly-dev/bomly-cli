@@ -28,13 +28,13 @@ func (a Matcher) Ready() bool {
 func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
 	started := time.Now()
 	if req.Graph == nil {
-		return sdk.MatchResult{MatcherRuns: []string{matcherName}, MatcherRunDetails: grypeMatcherRuns(0, 0)}, nil
+		return sdk.MatchResult{MatcherStats: grypeMatcherStats(0, 0, 0)}, nil
 	}
 
 	logger := a.logger()
 
 	if req.Graph == nil || req.Registry == nil {
-		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}, MatcherRunDetails: grypeMatcherRuns(0, 0)}, nil
+		return sdk.MatchResult{Registry: req.Registry, MatcherStats: grypeMatcherStats(0, 0, 0)}, nil
 	}
 
 	// Seed the registry so SPDX serialization and match correlation share PURLs.
@@ -43,7 +43,7 @@ func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult
 	// Serialize graph as SPDX JSON to feed to grype stdin.
 	spdxBytes, err := sbom.MarshalDepGraphJSON(req.Graph, sbom.TargetSPDX23JSON, sbom.BuildOptions{}, sbom.EncodeOptions{})
 	if err != nil {
-		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}, MatcherRunDetails: grypeMatcherRuns(0, 0)}, fmt.Errorf("grype: serialize sbom: %w", err)
+		return sdk.MatchResult{Registry: req.Registry, MatcherStats: grypeMatcherStats(0, 0, 0)}, fmt.Errorf("grype: serialize sbom: %w", err)
 	}
 
 	var stdout, stderr bytes.Buffer
@@ -55,19 +55,18 @@ func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult
 	logger.Debug("running external grype matcher")
 	if err := cmd.Run(); err != nil {
 		logger.Warn(fmt.Sprintf("grype CLI failed: %v (stderr: %s)", err, stderr.String()))
-		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}, MatcherRunDetails: grypeMatcherRuns(0, 0)}, fmt.Errorf("grype match failed: %w", err)
+		return sdk.MatchResult{Registry: req.Registry, MatcherStats: grypeMatcherStats(0, 0, 0)}, fmt.Errorf("grype match failed: %w", err)
 	}
 
 	matchedPackages, vulnerabilities, err := parseGrypeJSONOutput(stdout.Bytes(), req.Registry)
 	if err != nil {
-		return sdk.MatchResult{Registry: req.Registry, MatcherRuns: []string{matcherName}, MatcherRunDetails: grypeMatcherRuns(0, 0)}, fmt.Errorf("grype: parse output: %w", err)
+		return sdk.MatchResult{Registry: req.Registry, MatcherStats: grypeMatcherStats(0, 0, 0)}, fmt.Errorf("grype: parse output: %w", err)
 	}
 
 	logger.Info(fmt.Sprintf("External grype enrichment completed in %s", logging.FormatDuration(time.Since(started))))
 	return sdk.MatchResult{
-		Registry:          req.Registry,
-		MatcherRuns:       []string{matcherName},
-		MatcherRunDetails: grypeMatcherRuns(matchedPackages, vulnerabilities),
+		Registry:     req.Registry,
+		MatcherStats: grypeMatcherStats(matchedPackages, registryPackageCount(req.Registry)-matchedPackages, vulnerabilities),
 	}, nil
 }
 
@@ -202,6 +201,13 @@ func parseGrypeJSONOutput(data []byte, registry *sdk.PackageRegistry) (int, int,
 		pkg.Vulnerabilities = appendOrMergeVulnerability(pkg.Vulnerabilities, mapGrypeJSONMatch(m))
 	}
 	return len(seen), vulnerabilities, nil
+}
+
+func registryPackageCount(registry *sdk.PackageRegistry) int {
+	if registry == nil {
+		return 0
+	}
+	return len(registry.All())
 }
 
 func mapGrypeJSONMatch(m grypeJSONMatch) sdk.Vulnerability {

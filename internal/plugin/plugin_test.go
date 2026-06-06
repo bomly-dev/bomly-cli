@@ -307,8 +307,8 @@ func TestExternalMatcherReceivesAndReturnsRegistry(t *testing.T) {
 	if len(pkg.Licenses) != 1 || pkg.Licenses[0].SPDXExpression != "MIT" {
 		t.Fatalf("expected registry enrichment from external matcher, got %#v", pkg.Licenses)
 	}
-	if len(result.MatcherRuns) != 1 || result.MatcherRuns[0] != "acme.matcher.registry" {
-		t.Fatalf("expected matcher run marker, got %#v", result.MatcherRuns)
+	if result.MatcherStats.Name != "acme.matcher.registry" || result.MatcherStats.Licenses != 1 {
+		t.Fatalf("expected matcher stats marker, got %#v", result.MatcherStats)
 	}
 }
 
@@ -439,8 +439,12 @@ func (m *matcher) Match(ctx context.Context, req *schemav1.MatchRequest) (*schem
 	}
 	pkg.Licenses = []schemav1.PackageLicense{{SPDXExpression: "MIT"}}
 	return &schemav1.MatchResponse{
-		Registry:    req.Registry,
-		MatcherRuns: []string{"` + id + `"},
+		Registry: req.Registry,
+		MatcherStats: schemav1.MatcherStats{
+			Name: "` + id + `",
+			MatchedPackages: 1,
+			Licenses: 1,
+		},
 	}, nil
 }
 

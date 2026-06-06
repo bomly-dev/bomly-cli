@@ -63,8 +63,13 @@ func (m *matcher) Match(ctx context.Context, req *sdk.MatchRequest) (*sdk.MatchR
     })
 
     return &sdk.MatchResponse{
-        Registry:    registry,
-        MatcherRuns: []string{pluginID},
+        Registry: registry,
+        MatcherStats: sdk.MatcherStats{
+            Name: pluginID,
+            MatchedPackages: 1,
+            Licenses: 1,
+            Vulnerabilities: 1,
+        },
     }, nil
 }
 
@@ -186,7 +191,7 @@ bomly scan --path ./my-project --enrich --matchers +clearlydefined-license-match
 
 - Return stable `PluginMetadata` and keep it in sync with the manifest.
 - Enrich `req.Registry`; do not replace graph identity.
-- Return `MatcherRuns` with the matcher ID.
+- Return `MatcherStats` with the matcher ID and useful counts.
 - Keep external network calls behind explicit enrichment.
 - Honor proxy settings through the SDK HTTP provider.
 - Wrap errors with useful context and avoid panics.

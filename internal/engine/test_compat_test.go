@@ -25,7 +25,6 @@ type AuditResult = sdk.AuditResult
 type Matcher = sdk.Matcher
 type MatcherDescriptor = sdk.MatcherDescriptor
 type MatchRequest = sdk.MatchRequest
-type MatchResult = sdk.MatchResult
 
 type ExecutionTarget = sdk.ExecutionTarget
 type ExecutionTargetKind = sdk.ExecutionTargetKind

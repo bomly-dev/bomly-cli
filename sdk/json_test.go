@@ -91,7 +91,7 @@ func TestPluginRequestResponseRegistryJSON(t *testing.T) {
 		t.Fatalf("match request registry package = %#v, ok=%v", pkg, ok)
 	}
 
-	resultData, err := json.Marshal(MatchResult{Registry: registry, MatcherRuns: []string{"test-matcher"}})
+	resultData, err := json.Marshal(MatchResult{Registry: registry, MatcherStats: MatcherStats{Name: "test-matcher"}})
 	if err != nil {
 		t.Fatalf("marshal match result: %v", err)
 	}

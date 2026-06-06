@@ -76,11 +76,15 @@ func (a Matcher) logger() *zap.Logger {
 	return zap.NewNop()
 }
 
-func grypeMatcherRuns(matchedPackages, vulnerabilities int) []sdk.MatcherRun {
-	return []sdk.MatcherRun{{
-		Name:            matcherName,
-		DisplayName:     "Grype",
-		MatchedPackages: matchedPackages,
-		Vulnerabilities: vulnerabilities,
-	}}
+func grypeMatcherStats(matchedPackages, unmatchedPackages, vulnerabilities int) sdk.MatcherStats {
+	if unmatchedPackages < 0 {
+		unmatchedPackages = 0
+	}
+	return sdk.MatcherStats{
+		Name:              matcherName,
+		DisplayName:       "Grype",
+		MatchedPackages:   matchedPackages,
+		UnmatchedPackages: unmatchedPackages,
+		Vulnerabilities:   vulnerabilities,
+	}
 }

@@ -207,13 +207,11 @@ func buildMatcherSelectorCatalog(reg *engine.Registry) catalog {
 		aliasToName[name] = name
 	}
 	// User-facing aliases (shown in help/completions).
-	aliasToName[clearlyDefinedCheckerAlias] = clearlyDefinedCheckerName
 	aliasToName[depsdevCheckerAlias] = depsdevCheckerName
 	aliasToName[eolCheckerAlias] = eolCheckerName
 	aliasToName["osv"] = osvMatcherName
 	aliasToName["grype"] = grypeMatcherName
 	// Full internal names accepted silently for backward compat but not shown in help.
-	aliasToName[clearlyDefinedCheckerName] = clearlyDefinedCheckerName
 	aliasToName[depsdevCheckerName] = depsdevCheckerName
 	aliasToName[eolCheckerName] = eolCheckerName
 	aliasToName[osvMatcherName] = osvMatcherName
@@ -223,6 +221,8 @@ func buildMatcherSelectorCatalog(reg *engine.Registry) catalog {
 	for _, name := range available {
 		switch name {
 		case clearlyDefinedCheckerName:
+			aliasToName[clearlyDefinedCheckerAlias] = clearlyDefinedCheckerName
+			aliasToName[clearlyDefinedCheckerName] = clearlyDefinedCheckerName
 			simplified = append(simplified, fmt.Sprintf("%s (%s)", clearlyDefinedCheckerAlias, clearlyDefinedCheckerName))
 		case depsdevCheckerName:
 			simplified = append(simplified, fmt.Sprintf("%s (%s)", depsdevCheckerAlias, depsdevCheckerName))

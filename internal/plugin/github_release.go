@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -77,6 +78,7 @@ func resolveGitHubRelease(ctx context.Context, source string) (githubReleaseReso
 		return githubReleaseResolution{}, fmt.Errorf("create GitHub release request: %w", err)
 	}
 	req.Header.Set("Accept", "application/vnd.github+json")
+	applyGitHubAuthHeader(req)
 	client, err := githubReleaseHTTPClient(ctx)
 	if err != nil {
 		return githubReleaseResolution{}, err
@@ -88,7 +90,7 @@ func resolveGitHubRelease(ctx context.Context, source string) (githubReleaseReso
 	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
-		return githubReleaseResolution{}, fmt.Errorf("fetch GitHub release metadata: unexpected status %s (%s)", resp.Status, strings.TrimSpace(string(body)))
+		return githubReleaseResolution{}, fmt.Errorf("fetch GitHub release metadata: unexpected status %s (%s)", resp.Status, redactGitHubSecrets(strings.TrimSpace(string(body))))
 	}
 	var release githubReleaseResponse
 	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
@@ -170,6 +172,7 @@ func fetchChecksumLine(ctx context.Context, downloadURL, assetName string) (stri
 		return "", err
 	}
 	req.Header.Set("Accept", "application/octet-stream")
+	applyGitHubAuthHeader(req)
 	client, err := githubReleaseHTTPClient(ctx)
 	if err != nil {
 		return "", err
@@ -205,4 +208,32 @@ func githubReleaseHTTPClient(ctx context.Context) (*http.Client, error) {
 		return pluginHTTPClient, nil
 	}
 	return httpClientFromLaunchContext(ctx, 0)
+}
+
+func applyGitHubAuthHeader(req *http.Request) {
+	if req == nil {
+		return
+	}
+	token := githubAuthTokenFromEnv()
+	if token == "" {
+		return
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+}
+
+func githubAuthTokenFromEnv() string {
+	for _, name := range []string{"BOMLY_GITHUB_TOKEN", "GITHUB_TOKEN", "GH_TOKEN", "GITHUB_AUTH_TOKEN"} {
+		if token := strings.TrimSpace(os.Getenv(name)); token != "" {
+			return token
+		}
+	}
+	return ""
+}
+
+func redactGitHubSecrets(value string) string {
+	token := githubAuthTokenFromEnv()
+	if token == "" || value == "" {
+		return value
+	}
+	return strings.ReplaceAll(value, token, "[redacted]")
 }

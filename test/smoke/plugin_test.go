@@ -19,22 +19,22 @@ func TestPluginWorkflows(t *testing.T) {
 	requireTool(t, "go")
 
 	parallelSubtest(t, "dev-install-scan", func(t *testing.T) {
-		binaryPath, manifest := buildExamplePlugin(t)
+		plugin := buildExamplePlugin(t)
 		projectDir := createExamplePluginProject(t)
 		env := pluginWorkflowEnv(t)
 
-		stdout, stderr, code := runBomlyWithEnv(t, env, "plugin", "install", binaryPath, "--dev")
+		stdout, stderr, code := runBomlyWithEnv(t, env, "plugin", "install", plugin.BinaryPath, "--dev")
 		if code != 0 {
 			t.Fatalf("plugin install --dev exited %d\nstderr:\n%s", code, stderr)
 		}
-		if !strings.Contains(stdout, "Installed "+manifest["id"].(string)+"@"+manifest["version"].(string)) {
+		if !strings.Contains(stdout, "Installed "+plugin.ID+"@"+plugin.Version) {
 			t.Fatalf("unexpected install output:\n%s", stdout)
 		}
-		if _, enableStderr, enableCode := runBomlyWithEnv(t, env, "plugin", "enable", manifest["id"].(string)); enableCode != 0 {
+		if _, enableStderr, enableCode := runBomlyWithEnv(t, env, "plugin", "enable", plugin.ID); enableCode != 0 {
 			t.Fatalf("plugin enable exited %d\nstderr:\n%s", enableCode, enableStderr)
 		}
 
-		verifyStdout, verifyStderr, verifyCode := runBomlyWithEnv(t, env, "plugin", "verify", manifest["id"].(string))
+		verifyStdout, verifyStderr, verifyCode := runBomlyWithEnv(t, env, "plugin", "verify", plugin.ID)
 		if verifyCode != 0 {
 			t.Fatalf("plugin verify exited %d\nstderr:\n%s", verifyCode, verifyStderr)
 		}
@@ -46,18 +46,18 @@ func TestPluginWorkflows(t *testing.T) {
 		if listCode != 0 {
 			t.Fatalf("plugin list exited %d\nstderr:\n%s", listCode, listStderr)
 		}
-		assertPluginListed(t, listStdout, manifest["id"].(string))
+		assertPluginListed(t, listStdout, plugin.ID)
 
-		infoStdout, infoStderr, infoCode := runBomlyWithEnv(t, env, "plugin", "info", manifest["id"].(string), "--json")
+		infoStdout, infoStderr, infoCode := runBomlyWithEnv(t, env, "plugin", "info", plugin.ID, "--json")
 		if infoCode != 0 {
 			t.Fatalf("plugin info exited %d\nstderr:\n%s", infoCode, infoStderr)
 		}
-		assertPluginInfo(t, infoStdout, manifest["id"].(string))
+		assertPluginInfo(t, infoStdout, plugin.ID)
 
 		scanStdout, scanStderr, scanCode := runBomlyWithEnv(t, env,
 			"scan",
 			"--path", projectDir,
-			"--detectors", manifest["id"].(string),
+			"--detectors", plugin.ID,
 			"--format", "json",
 		)
 		if scanCode != 0 {
@@ -67,27 +67,26 @@ func TestPluginWorkflows(t *testing.T) {
 	})
 
 	parallelSubtest(t, "archive-install-scan", func(t *testing.T) {
-		binaryPath, manifest := buildExamplePlugin(t)
-		archivePath := packageExamplePluginArchive(t, binaryPath)
+		plugin := buildExamplePlugin(t)
+		archivePath := packageExamplePluginArchive(t, plugin)
 		projectDir := createExamplePluginProject(t)
-		pluginID := manifest["id"].(string)
 		env := pluginWorkflowEnv(t)
 
 		stdout, stderr, code := runBomlyWithEnv(t, env, "plugin", "install", archivePath)
 		if code != 0 {
 			t.Fatalf("plugin install archive exited %d\nstderr:\n%s", code, stderr)
 		}
-		if !strings.Contains(stdout, "Installed "+pluginID+"@"+manifest["version"].(string)) {
+		if !strings.Contains(stdout, "Installed "+plugin.ID+"@"+plugin.Version) {
 			t.Fatalf("unexpected archive install output:\n%s", stdout)
 		}
-		if _, enableStderr, enableCode := runBomlyWithEnv(t, env, "plugin", "enable", pluginID); enableCode != 0 {
+		if _, enableStderr, enableCode := runBomlyWithEnv(t, env, "plugin", "enable", plugin.ID); enableCode != 0 {
 			t.Fatalf("plugin enable exited %d\nstderr:\n%s", enableCode, enableStderr)
 		}
 
 		scanStdout, scanStderr, scanCode := runBomlyWithEnv(t, env,
 			"scan",
 			"--path", projectDir,
-			"--detectors", pluginID,
+			"--detectors", plugin.ID,
 			"--format", "json",
 		)
 		if scanCode != 0 {
@@ -97,38 +96,213 @@ func TestPluginWorkflows(t *testing.T) {
 	})
 }
 
-func buildExamplePlugin(t *testing.T) (string, map[string]any) {
+type examplePluginPackage struct {
+	BinaryPath   string
+	SourceDir    string
+	ManifestPath string
+	ReadmePath   string
+	ID           string
+	Version      string
+}
+
+func buildExamplePlugin(t *testing.T) examplePluginPackage {
 	t.Helper()
-	exampleDir := filepath.Join(repoRoot(t), "examples", "plugins", "go-module-detector")
-	manifestPath := filepath.Join(exampleDir, "bomly-plugin.json")
-	raw, err := os.ReadFile(manifestPath)
-	if err != nil {
-		t.Fatalf("read example plugin manifest: %v", err)
-	}
-	var manifest map[string]any
-	if err := json.Unmarshal(raw, &manifest); err != nil {
-		t.Fatalf("decode example plugin manifest: %v", err)
-	}
 	binaryName := "bomly-example-gomod-detector"
 	if runtime.GOOS == "windows" {
 		binaryName += ".exe"
 	}
+	sourceDir := t.TempDir()
+	writeExamplePluginSource(t, sourceDir)
+	manifestPath := filepath.Join(sourceDir, "bomly-plugin.json")
+	readmePath := filepath.Join(sourceDir, "README.md")
 	binaryPath := filepath.Join(t.TempDir(), binaryName)
-	build := exec.Command("go", "build", "-o", binaryPath, "./examples/plugins/go-module-detector")
-	build.Dir = repoRoot(t)
+	build := exec.Command("go", "build", "-mod=mod", "-o", binaryPath, ".")
+	build.Dir = sourceDir
 	output, err := build.CombinedOutput()
 	if err != nil {
 		t.Fatalf("build example plugin: %v\n%s", err, string(output))
 	}
-	return binaryPath, manifest
+	return examplePluginPackage{
+		BinaryPath:   binaryPath,
+		SourceDir:    sourceDir,
+		ManifestPath: manifestPath,
+		ReadmePath:   readmePath,
+		ID:           "bomly.example.gomod-detector",
+		Version:      "0.1.0",
+	}
 }
 
-func packageExamplePluginArchive(t *testing.T, binaryPath string) string {
+func writeExamplePluginSource(t *testing.T, dir string) {
 	t.Helper()
-	exampleDir := filepath.Join(repoRoot(t), "examples", "plugins", "go-module-detector")
-	manifestPath := filepath.Join(exampleDir, "bomly-plugin.json")
-	readmePath := filepath.Join(exampleDir, "README.md")
+	repoPath := filepath.ToSlash(repoRoot(t))
+	goMod := "module bomly-smoke-plugin\n\ngo 1.25\n\nrequire github.com/bomly-dev/bomly-cli v0.0.0\n\nreplace github.com/bomly-dev/bomly-cli => " + repoPath + "\n"
+	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(goMod), 0o644); err != nil {
+		t.Fatalf("write plugin go.mod: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "main.go"), []byte(examplePluginMainSource), 0o644); err != nil {
+		t.Fatalf("write plugin main.go: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "bomly-plugin.json"), []byte(examplePluginManifest), 0o644); err != nil {
+		t.Fatalf("write plugin manifest: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "README.md"), []byte("# Smoke Plugin Fixture\n\nGenerated by the smoke test.\n"), 0o644); err != nil {
+		t.Fatalf("write plugin README: %v", err)
+	}
+}
 
+const examplePluginMainSource = `package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/bomly-dev/bomly-cli/sdk"
+)
+
+const (
+	pluginID      = "bomly.example.gomod-detector"
+	pluginVersion = "0.1.0"
+)
+
+type detector struct{}
+
+func (d *detector) Metadata(context.Context) (*sdk.PluginMetadata, error) {
+	return &sdk.PluginMetadata{
+		ID:               pluginID,
+		Name:             "Bomly Example Go Module Detector",
+		Version:          pluginVersion,
+		Kind:             sdk.PluginKindDetector,
+		PluginAPIVersion: sdk.PluginAPIVersion,
+		Description:      "Example managed detector plugin that reads a local go.mod and returns the module itself as a single package.",
+		Homepage:         "https://github.com/bomly-dev/bomly-plugin-bun-lock-detector",
+		License:          "Apache-2.0",
+	}, nil
+}
+
+func (d *detector) Descriptor(context.Context) (*sdk.DetectorDescriptor, error) {
+	return &sdk.DetectorDescriptor{
+		Name:         pluginID,
+		Enabled:      true,
+		Origin:       sdk.ExternalOrigin,
+		Capabilities: []string{"dependency-detection"},
+	}, nil
+}
+
+func (d *detector) PackageManagerSupport(context.Context) ([]sdk.PackageManagerSupport, error) {
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerGoMod, "go.mod")}, nil
+}
+
+func (d *detector) Ready(context.Context, *sdk.DetectRequest) (*sdk.ReadyResponse, error) {
+	return &sdk.ReadyResponse{Ready: true}, nil
+}
+
+func (d *detector) Applicable(context.Context, *sdk.DetectRequest) (*sdk.ApplicableResponse, error) {
+	return &sdk.ApplicableResponse{Applicable: true}, nil
+}
+
+func (d *detector) Detect(ctx context.Context, req *sdk.DetectRequest) (*sdk.DetectResponse, error) {
+	moduleName, err := readModuleName(filepath.Join(req.ProjectPath, "go.mod"))
+	if err != nil {
+		return nil, err
+	}
+	pkg := sdk.NewDependency(sdk.Dependency{
+		Ecosystem: string(sdk.EcosystemGo),
+		Name:      moduleName,
+		Version:   "v0.0.0",
+		PURL:      "pkg:golang/" + moduleName + "@v0.0.0",
+		FoundBy:   pluginID,
+	})
+	graph := sdk.New()
+	if err := graph.AddNode(pkg); err != nil {
+		return nil, err
+	}
+	return &sdk.DetectResponse{
+		SubprojectInfo:      req.Subproject,
+		RootExecutionTarget: req.ExecutionTarget,
+		DetectorName:        pluginID,
+		Origin:              sdk.ExternalOrigin,
+		Graphs: &sdk.GraphContainer{
+			Entries: []sdk.GraphEntry{{
+				Manifest: sdk.ManifestMetadata{
+					Path: filepath.Join(req.ProjectPath, "go.mod"),
+					Kind: sdk.ManifestKind("go.mod"),
+				},
+				Graph: graph,
+			}},
+		},
+	}, nil
+}
+
+func readModuleName(path string) (string, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("read go.mod: %w", err)
+	}
+	for _, line := range strings.Split(string(data), "\n") {
+		line = strings.TrimSpace(line)
+		if !strings.HasPrefix(line, "module ") {
+			continue
+		}
+		name := strings.TrimSpace(strings.TrimPrefix(line, "module"))
+		if name == "" {
+			return "", fmt.Errorf("go.mod module directive is empty")
+		}
+		return name, nil
+	}
+	return "", fmt.Errorf("go.mod does not contain a module directive")
+}
+
+func main() {
+	sdk.ServeDetector(&detector{})
+}
+`
+
+const examplePluginManifest = `{
+  "schemaVersion": "bomly.plugin.package.v1",
+  "id": "bomly.example.gomod-detector",
+  "name": "Bomly Example Go Module Detector",
+  "version": "0.1.0",
+  "kind": "detector",
+  "runtime": "hashicorp-grpc",
+  "pluginApiVersion": "bomly.plugin.v1",
+  "bomlyVersion": ">=0.1.0",
+  "entrypoint": {
+    "linux/amd64": "bin/bomly-example-gomod-detector",
+    "darwin/arm64": "bin/bomly-example-gomod-detector",
+    "windows/amd64": "bin/bomly-example-gomod-detector.exe"
+  },
+  "detectorDescriptor": {
+    "name": "bomly.example.gomod-detector",
+    "enabled": true,
+    "origin": "external",
+    "supportedModes": [
+      "full-graph",
+      "component"
+    ],
+    "packageManagerSupport": [
+      {
+        "packageManager": "gomod",
+        "evidencePatterns": [
+          "go.mod"
+        ]
+      }
+    ],
+    "capabilities": [
+      "dependency-detection"
+    ]
+  },
+  "source": "local:smoke-test",
+  "homepage": "https://github.com/bomly-dev/bomly-plugin-bun-lock-detector",
+  "license": "Apache-2.0",
+  "description": "Example managed detector plugin that reads a local go.mod and returns the module itself as a single package."
+}
+`
+
+func packageExamplePluginArchive(t *testing.T, plugin examplePluginPackage) string {
+	t.Helper()
 	if runtime.GOOS == "windows" {
 		archivePath := filepath.Join(t.TempDir(), "bomly-example-gomod-detector_windows_amd64.zip")
 		file, err := os.Create(archivePath)
@@ -136,9 +310,9 @@ func packageExamplePluginArchive(t *testing.T, binaryPath string) string {
 			t.Fatalf("create plugin zip: %v", err)
 		}
 		zw := zip.NewWriter(file)
-		addZipFile(t, zw, "bomly-plugin.json", manifestPath)
-		addZipFile(t, zw, "README.md", readmePath)
-		addZipFile(t, zw, "bin/"+filepath.Base(binaryPath), binaryPath)
+		addZipFile(t, zw, "bomly-plugin.json", plugin.ManifestPath)
+		addZipFile(t, zw, "README.md", plugin.ReadmePath)
+		addZipFile(t, zw, "bin/"+filepath.Base(plugin.BinaryPath), plugin.BinaryPath)
 		if err := zw.Close(); err != nil {
 			t.Fatalf("close plugin zip: %v", err)
 		}
@@ -155,9 +329,9 @@ func packageExamplePluginArchive(t *testing.T, binaryPath string) string {
 	}
 	gzw := gzip.NewWriter(file)
 	tw := tar.NewWriter(gzw)
-	addTarFile(t, tw, "bomly-plugin.json", manifestPath)
-	addTarFile(t, tw, "README.md", readmePath)
-	addTarFile(t, tw, "bin/"+filepath.Base(binaryPath), binaryPath)
+	addTarFile(t, tw, "bomly-plugin.json", plugin.ManifestPath)
+	addTarFile(t, tw, "README.md", plugin.ReadmePath)
+	addTarFile(t, tw, "bin/"+filepath.Base(plugin.BinaryPath), plugin.BinaryPath)
 	if err := tw.Close(); err != nil {
 		t.Fatalf("close plugin tar writer: %v", err)
 	}

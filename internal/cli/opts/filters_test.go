@@ -73,15 +73,15 @@ func TestResolveMatcherFilter_DefaultLeavesMatcherSelectionToRegistryDefaults(t 
 	}
 }
 
-func TestResolveMatcherFilter_PlusSyntaxAddsClearlyDefined(t *testing.T) {
+func TestResolveMatcherFilter_ClearlyDefinedAliasRequiresInstalledMatcher(t *testing.T) {
 	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
-	filter, err := resolveMatcherFilter("+clearlydefined", reg)
-	if err != nil {
-		t.Fatalf("resolveMatcherFilter() error = %v", err)
+	_, err := resolveMatcherFilter("+clearlydefined", reg)
+	if err == nil {
+		t.Fatal("expected error for unavailable external matcher alias")
 	}
-	if contains(filter.Exclude, clearlyDefinedCheckerName) {
-		t.Fatalf("expected clearlydefined matcher not to be excluded, got %#v", filter)
+	if !strings.Contains(err.Error(), "unknown matcher selector") {
+		t.Fatalf("expected unknown matcher selector message, got %q", err.Error())
 	}
 }
 

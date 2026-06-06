@@ -9,7 +9,7 @@ Bomly is **offline-safe by default**. Matchers that use the network only run whe
 | Kind | Examples | What it adds |
 | --- | --- | --- |
 | Vulnerability | `osv`, `grype` | CVE / GHSA / OSV IDs, severity, CVSS, aliases, fixed versions, references, KEV signal |
-| License | `depsdev-license-checker`, `clearlydefined-license-checker` | SPDX expression, declared/discovered split, license source |
+| License | `depsdev-license-checker` | SPDX expression, declared/discovered split, license source |
 | Lifecycle | `eol` | End-of-life status for ecosystems and runtimes (via endoflife.date) |
 
 The full live list lives in the CLI:
@@ -33,11 +33,11 @@ Use `--matchers` to restrict or extend the set with the standard `+/-` selector 
 # Only OSV
 bomly scan --enrich --matchers osv
 
-# Default set minus license checkers
-bomly scan --enrich --matchers -depsdev-license-checker,-clearlydefined-license-checker
+# Default set minus the built-in license checker
+bomly scan --enrich --matchers -depsdev-license-checker
 
 # Add an external plugin matcher
-bomly scan --enrich --matchers +security-team.matcher.vulnfeed
+bomly scan --enrich --matchers +clearlydefined-license-checker
 ```
 
 ## Network endpoints
@@ -47,10 +47,9 @@ When `--enrich` is set, Bomly may call:
 - `api.osv.dev` — OSV vulnerability database
 - `api.cisa.gov` — CISA Known Exploited Vulnerabilities catalog
 - `api.deps.dev` — Google's deps.dev package metadata
-- `api.clearlydefined.io` — ClearlyDefined license data
 - `endoflife.date` — lifecycle data
 
-These are the **only** hosts Bomly contacts during enrichment. No telemetry. No data exfiltration. No credentials sent. See [docs/ARCHITECTURE.md](ARCHITECTURE.md) for the full network model.
+These are the **only** hosts Bomly's built-in matchers contact during enrichment. No telemetry. No data exfiltration. No credentials sent. External plugin matchers may contact their own documented services after you install and enable them. See [docs/ARCHITECTURE.md](ARCHITECTURE.md) for the full network model.
 
 ## Cache
 
@@ -70,7 +69,6 @@ Per-matcher subdirectories and TTLs:
 | OSV (vulnerability details) | `osv-vulns/` | 7d |
 | CISA KEV | `kev/` | 6h |
 | deps.dev | `licenses/depsdev/` | 24h |
-| ClearlyDefined | `licenses/clearlydefined/` | 24h |
 | endoflife.date | `eol/` | 24h |
 
 To clear the cache, delete the directory:

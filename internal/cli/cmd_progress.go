@@ -311,7 +311,7 @@ func matcherProgressDetail(registry *sdk.PackageRegistry, matcherName string) st
 				packages++
 			}
 		case opts.ClearlyDefinedCheckerName:
-			if packageHasLicenseSource(pkg, "ClearlyDefined") {
+			if packageHasLicenseSource(pkg, "ClearlyDefined", "external-clearlydefined") {
 				packages++
 			}
 		case opts.OSVMatcherName, opts.GrypeMatcherName:
@@ -351,13 +351,15 @@ func matcherProgressDetail(registry *sdk.PackageRegistry, matcherName string) st
 	}
 }
 
-func packageHasLicenseSource(pkg *sdk.Package, sourceType string) bool {
+func packageHasLicenseSource(pkg *sdk.Package, sourceTypes ...string) bool {
 	if pkg == nil {
 		return false
 	}
 	for _, license := range pkg.Licenses {
-		if license.Type == sourceType {
-			return true
+		for _, sourceType := range sourceTypes {
+			if strings.EqualFold(license.Type, sourceType) {
+				return true
+			}
 		}
 	}
 	return false

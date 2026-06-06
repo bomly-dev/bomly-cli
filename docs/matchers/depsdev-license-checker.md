@@ -55,14 +55,14 @@ If you want license data without vulnerability data (e.g. to feed a license-comp
 
 ```bash
 bomly scan --enrich \
-  --matchers depsdev-license-checker,clearlydefined-license-checker
+  --matchers depsdev-license-checker
 ```
 
-This skips OSV/Grype/EOL and only runs the license matchers.
+This skips OSV/Grype/EOL and only runs the built-in license matcher. You can add external license matchers after installing and enabling them.
 
 ## Limitations
 
 - **deps.dev's license accuracy varies by ecosystem.** It is highest for ecosystems where the package registry exposes a license field (npm, RubyGems, Cargo). For Java/Maven, deps.dev reads `<licenses>` from POMs, which is often incomplete or non-SPDX.
 - **Pre-release versions** may not have license metadata published yet.
-- **Private packages** are not in deps.dev. Use `clearlydefined-license-checker` or have your detector resolve the license from the manifest.
+- **Private packages** are not in deps.dev. Have your detector resolve license data from the manifest, or install an external license matcher that covers your private source.
 - **Rate limits** apply. The cache keeps repeated runs cheap.

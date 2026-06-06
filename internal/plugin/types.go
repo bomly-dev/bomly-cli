@@ -104,9 +104,10 @@ type InstalledDB struct {
 
 // InstallOptions controls plugin installation behavior.
 type InstallOptions struct {
-	DevBinary            bool
-	Checksum             string
-	InsecureSkipChecksum bool
+	DevBinary             bool
+	Checksum              string
+	InsecureSkipChecksum  bool
+	githubReleaseDownload bool
 }
 
 // InstallResult describes the installed plugin.

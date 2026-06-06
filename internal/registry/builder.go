@@ -30,7 +30,6 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/sbt"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/swiftpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/syft"
-	"github.com/bomly-dev/bomly-cli/internal/matchers/clearlydefined"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/depsdev"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/eol"
 	"github.com/bomly-dev/bomly-cli/internal/matchers/grype"
@@ -155,7 +154,6 @@ func (r *Registry) registerMatchers() {
 	r.registerGrypeMatcher()
 	r.registerOSVMatcher()
 	r.registerDepsDevMatcher()
-	r.registerClearlyDefinedMatcher()
 	r.registerEOLMatcher()
 	r.registerScorecardMatcher()
 }
@@ -285,21 +283,6 @@ func (r *Registry) registerScorecardMatcher() {
 		zap.String("cache_dir", scoreCfg.CacheDir),
 		zap.Duration("cache_ttl", scoreCfg.CacheTTL),
 	)
-}
-
-func (r *Registry) registerClearlyDefinedMatcher() {
-	clearlyDefinedCfg := clearlydefined.DefaultConfig()
-	clearlyDefinedCfg.Logger = r.logger
-	clearlyDefinedCfg.HTTPClientProvider = r.httpClientProvider()
-	clearlyDefinedChecker, err := clearlydefined.New(clearlyDefinedCfg)
-	if err != nil {
-		r.logger.Warn("ClearlyDefined license checker unavailable", zap.Error(err))
-	} else {
-		for _, matcher := range builtInMatchers([]sdk.Matcher{clearlyDefinedChecker}) {
-			r.RegisterMatcher(matcher)
-		}
-		r.logger.Debug("ClearlyDefined matcher configured")
-	}
 }
 
 func (r *Registry) httpClientProvider() *sdk.HTTPClientProvider {

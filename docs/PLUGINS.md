@@ -18,7 +18,11 @@ Use the implementation guides when you are writing one:
 - [How To Implement A Matcher Plugin](plugins/how-to-implement-matcher.md)
 - [How To Implement An Auditor Plugin](plugins/how-to-implement-auditor.md)
 
-The repository also includes a working detector example at [`examples/plugins/go-module-detector`](../examples/plugins/go-module-detector).
+Example plugin repositories live outside this repo so each plugin type can show a realistic package, release, and README:
+
+- [Bun Lock Detector](https://github.com/bomly-dev/bomly-plugin-bun-lock-detector) — detector example using `PackageManagerOther`
+- [ClearlyDefined License Matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-license) — matcher example for license enrichment
+- [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-dependency-auditor) — auditor example that emits warning findings
 
 ## How Plugins Run
 
@@ -47,52 +51,45 @@ Treat `bomly plugin enable` as the trust decision. When enabled, a plugin runs w
 
 Repository-declared plugins are never executed automatically. The host must explicitly install and enable the plugin before it can run.
 
-## Try The Example Plugin
+## Try The Example Plugins
 
-Build the example detector from the repository root:
-
-```bash
-go build -o ./bin/bomly-example-gomod-detector ./examples/plugins/go-module-detector
-```
-
-On Windows, Go writes `./bin/bomly-example-gomod-detector.exe`. `bomly plugin install --dev` accepts either the extensionless path or the explicit `.exe` path.
-
-Install and enable it for local development:
+Each example repo has a `bomly-plugin.json`, a small Go implementation, tests, and packaging notes.
 
 ```bash
-bomly plugin install ./bin/bomly-example-gomod-detector --dev
-bomly plugin enable bomly.example.gomod-detector
+git clone git@github.com:bomly-dev/bomly-plugin-bun-lock-detector.git
+cd bomly-plugin-bun-lock-detector
+go test ./...
+go build -o ./bin/bomly-plugin-bun-lock-detector .
+bomly plugin install ./bin/bomly-plugin-bun-lock-detector --dev
+bomly plugin enable bomly.examples.detector.bun-lock
+bomly scan --path ./my-bun-project --detectors bomly.examples.detector.bun-lock
 ```
 
-Check that Bomly can see it:
+The matcher and auditor examples use the same workflow:
+
+```bash
+bomly plugin enable clearlydefined-license-checker
+bomly scan --enrich --matchers +clearlydefined-license-checker
+
+bomly plugin enable bomly.examples.auditor.meme-deps
+bomly scan --audit --auditors +bomly.examples.auditor.meme-deps
+```
+
+Check that Bomly can see any installed plugin:
 
 ```bash
 bomly plugin list --external
-bomly plugin info bomly.example.gomod-detector
-```
-
-Run verification and readiness checks:
-
-```bash
-bomly plugin verify bomly.example.gomod-detector
-bomly plugin test bomly.example.gomod-detector
-bomly plugin doctor bomly.example.gomod-detector
-```
-
-Select it explicitly during a scan:
-
-```bash
-bomly scan \
-  --path ./my-go-project \
-  --detectors bomly.example.gomod-detector \
-  --json
+bomly plugin info <plugin-id>
+bomly plugin verify <plugin-id>
+bomly plugin test <plugin-id>
+bomly plugin doctor <plugin-id>
 ```
 
 Disable or uninstall it later:
 
 ```bash
-bomly plugin disable bomly.example.gomod-detector
-bomly plugin uninstall bomly.example.gomod-detector
+bomly plugin disable <plugin-id>
+bomly plugin uninstall <plugin-id>
 ```
 
 ## Common Commands
@@ -118,9 +115,10 @@ Install a plugin:
 
 ```bash
 bomly plugin install ./dist/bomly-plugin-example.tar.gz
-bomly plugin install ./bin/bomly-example-gomod-detector --dev
+bomly plugin install ./bin/bomly-plugin-example --dev
 bomly plugin install https://example.com/bomly-plugin-example.tar.gz --checksum sha256:...
-bomly plugin install github:security-team/bomly-plugin-gomod@v1.2.0
+bomly plugin install https://example.com/bomly-plugin-example.tar.gz --insecure-skip-checksum
+bomly plugin install github:bomly-dev/bomly-plugin-bun-lock-detector@v0.1.0
 ```
 
 Check a plugin:
@@ -145,13 +143,13 @@ Plugin selectors use the same `+/-` grammar as built-in components:
 
 ```bash
 # Use only this detector.
-bomly scan --detectors security-team.detector.gomod
+bomly scan --detectors bomly.examples.detector.bun-lock
 
 # Add an external matcher to the default matcher set.
-bomly scan --enrich --matchers +security-team.matcher.vulnfeed
+bomly scan --enrich --matchers +clearlydefined-license-checker
 
 # Use one auditor explicitly.
-bomly scan --audit --auditors security-team.auditor.policy
+bomly scan --audit --auditors bomly.examples.auditor.meme-deps
 ```
 
 Detector plugins can participate in subproject discovery. Their manifest records `detectorDescriptor.packageManagerSupport`, and each support entry names a package manager plus evidence patterns such as `go.mod`. Bomly uses those patterns during runtime preparation so external detectors can join the same scan-planning flow as built-ins.
@@ -164,8 +162,8 @@ Per-plugin configuration lives under `plugins.<plugin-id>`:
 
 ```yaml
 plugins:
-  security-team.matcher.vulnfeed:
-    api_base: https://api.example.com
+  clearlydefined-license-checker:
+    api_base: https://api.clearlydefined.io
 ```
 
 External plugins can read only their own config through the SDK:
@@ -252,6 +250,16 @@ Current supported sources are:
 - GitHub Release via `github:owner/repo@tag`
 
 For GitHub Release installs, Bomly resolves release metadata, selects the asset matching the current OS and architecture, and uses a `SHA256SUMS` asset when present to verify the archive automatically.
+
+For private GitHub Releases, set one of these environment variables before installing:
+
+```bash
+export BOMLY_GITHUB_TOKEN=<token-with-release-access>
+# Also accepted: GITHUB_TOKEN, GH_TOKEN, GITHUB_AUTH_TOKEN
+bomly plugin install github:bomly-dev/bomly-plugin-bun-lock-detector@v0.1.0
+```
+
+Bomly attaches the token only to `github:owner/repo@tag` metadata, checksum, and asset downloads. Direct URL installs do not receive GitHub auth headers.
 
 ## Security Model
 

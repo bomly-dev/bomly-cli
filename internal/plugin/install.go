@@ -109,8 +109,9 @@ func installGitHubRelease(ctx context.Context, tempDir, source string, opts Inst
 		expectedChecksum = resolution.ExpectedChecksum
 	}
 	manifest, checksum, err := installRemoteArchive(ctx, tempDir, resolution.DownloadURL, InstallOptions{
-		Checksum:             expectedChecksum,
-		InsecureSkipChecksum: opts.InsecureSkipChecksum || expectedChecksum == "",
+		Checksum:              expectedChecksum,
+		InsecureSkipChecksum:  opts.InsecureSkipChecksum || expectedChecksum == "",
+		githubReleaseDownload: true,
 	})
 	if err != nil {
 		return Manifest{}, "", "", false, err
@@ -171,6 +172,9 @@ func installRemoteArchive(ctx context.Context, tempDir, source string, opts Inst
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, source, nil)
 	if err != nil {
 		return Manifest{}, "", fmt.Errorf("create plugin download request: %w", err)
+	}
+	if opts.githubReleaseDownload {
+		applyGitHubAuthHeader(req)
 	}
 	client, err := httpClientFromLaunchContext(ctx, 0)
 	if err != nil {

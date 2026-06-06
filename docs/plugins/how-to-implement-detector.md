@@ -17,14 +17,14 @@ import (
     "github.com/bomly-dev/bomly-cli/sdk"
 )
 
-const pluginID = "security-team.detector.gomod"
+const pluginID = "bomly.examples.detector.bun-lock"
 
 type detector struct{}
 
 func (d *detector) Metadata(context.Context) (*sdk.PluginMetadata, error) {
     return &sdk.PluginMetadata{
         ID:               pluginID,
-        Name:             "Security Team Go Module Detector",
+        Name:             "Bun Lock Detector",
         Version:          "0.1.0",
         Kind:             sdk.PluginKindDetector,
         PluginAPIVersion: sdk.PluginAPIVersion,
@@ -42,7 +42,7 @@ func (d *detector) Descriptor(context.Context) (*sdk.DetectorDescriptor, error) 
 
 func (d *detector) PackageManagerSupport(context.Context) ([]sdk.PackageManagerSupport, error) {
     return []sdk.PackageManagerSupport{
-        sdk.Support(sdk.PackageManagerGoMod, "go.mod"),
+        sdk.Support(sdk.PackageManagerOther, "bun.lock", "bun.lockb", "package.json"),
     }, nil
 }
 
@@ -57,10 +57,10 @@ func (d *detector) Applicable(context.Context, *sdk.DetectRequest) (*sdk.Applica
 func (d *detector) Detect(ctx context.Context, req *sdk.DetectRequest) (*sdk.DetectResponse, error) {
     graph := sdk.New()
     dep := sdk.NewDependency(sdk.Dependency{
-        Ecosystem: string(sdk.EcosystemGo),
-        Name:      "example.com/app",
-        Version:   "v0.0.0",
-        PURL:      "pkg:golang/example.com/app@v0.0.0",
+        Ecosystem: string(sdk.EcosystemNPM),
+        Name:      "is-odd",
+        Version:   "3.0.1",
+        PURL:      "pkg:npm/is-odd@3.0.1",
         FoundBy:   pluginID,
     })
     if err := graph.AddNode(dep); err != nil {
@@ -73,7 +73,7 @@ func (d *detector) Detect(ctx context.Context, req *sdk.DetectRequest) (*sdk.Det
         Origin:              sdk.ExternalOrigin,
         Graphs: &sdk.GraphContainer{
             Entries: []sdk.GraphEntry{{
-                Manifest: sdk.ManifestMetadata{Path: "go.mod", Kind: sdk.ManifestKind("go.mod")},
+                Manifest: sdk.ManifestMetadata{Path: "package.json", Kind: sdk.ManifestKind("package.json")},
                 Graph:    graph,
             }},
         },
@@ -85,7 +85,7 @@ func main() {
 }
 ```
 
-The working example in this repository is [`examples/plugins/go-module-detector`](../../examples/plugins/go-module-detector).
+The working example repo is [bomly-plugin-bun-lock-detector](https://github.com/bomly-dev/bomly-plugin-bun-lock-detector). It demonstrates `sdk.PackageManagerOther` for a package manager Bomly does not model directly yet.
 
 ## What Each Hook Does
 
@@ -131,9 +131,9 @@ Return `req.Subproject` and `req.ExecutionTarget` in the response so Bomly can k
 For development, build and install the binary directly:
 
 ```bash
-go build -o ./bin/security-team-gomod-detector ./cmd/security-team-gomod-detector
-bomly plugin install ./bin/security-team-gomod-detector --dev
-bomly plugin enable security-team.detector.gomod
+go build -o ./bin/bomly-plugin-bun-lock-detector .
+bomly plugin install ./bin/bomly-plugin-bun-lock-detector --dev
+bomly plugin enable bomly.examples.detector.bun-lock
 ```
 
 For distribution, package a `bomly-plugin.json` manifest with the binary:
@@ -153,21 +153,21 @@ The detector manifest must include `detectorDescriptor.packageManagerSupport`; B
 Check installation and runtime readiness:
 
 ```bash
-bomly plugin verify security-team.detector.gomod
-bomly plugin test security-team.detector.gomod
-bomly plugin doctor security-team.detector.gomod
+bomly plugin verify bomly.examples.detector.bun-lock
+bomly plugin test bomly.examples.detector.bun-lock
+bomly plugin doctor bomly.examples.detector.bun-lock
 ```
 
 Run only this detector:
 
 ```bash
-bomly scan --path ./my-project --detectors security-team.detector.gomod --json
+bomly scan --path ./my-project --detectors bomly.examples.detector.bun-lock --json
 ```
 
 Or add it to the default detector set:
 
 ```bash
-bomly scan --path ./my-project --detectors +security-team.detector.gomod
+bomly scan --path ./my-project --detectors +bomly.examples.detector.bun-lock
 ```
 
 ## Implementation Checklist

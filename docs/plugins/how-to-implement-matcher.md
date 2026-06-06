@@ -17,14 +17,14 @@ import (
     "github.com/bomly-dev/bomly-cli/sdk"
 )
 
-const pluginID = "security-team.matcher.vulnfeed"
+const pluginID = "clearlydefined-license-checker"
 
 type matcher struct{}
 
 func (m *matcher) Metadata(context.Context) (*sdk.PluginMetadata, error) {
     return &sdk.PluginMetadata{
         ID:               pluginID,
-        Name:             "Security Team Vulnerability Feed Matcher",
+        Name:             "ClearlyDefined License Checker",
         Version:          "0.1.0",
         Kind:             sdk.PluginKindMatcher,
         PluginAPIVersion: sdk.PluginAPIVersion,
@@ -34,10 +34,10 @@ func (m *matcher) Metadata(context.Context) (*sdk.PluginMetadata, error) {
 func (m *matcher) Descriptor(context.Context) (*sdk.MatcherDescriptor, error) {
     return &sdk.MatcherDescriptor{
         Name:         pluginID,
-        Enabled:      true,
+        Enabled:      false,
         Origin:       sdk.ExternalOrigin,
         Priority:     100,
-        Capabilities: []string{"package-enrichment"},
+        Capabilities: []string{"license-enrichment", "http", "cache"},
     }, nil
 }
 
@@ -59,7 +59,7 @@ func (m *matcher) Match(ctx context.Context, req *sdk.MatchRequest) (*sdk.MatchR
     pkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
     pkg.Vulnerabilities = append(pkg.Vulnerabilities, sdk.Vulnerability{
         ID:     "GHSA-example",
-        Source: "security-team",
+        Source: "example-feed",
     })
 
     return &sdk.MatchResponse{
@@ -72,6 +72,8 @@ func main() {
     sdk.ServeMatcher(&matcher{})
 }
 ```
+
+The working example repo is [bomly-plugin-clearlydefined-license](https://github.com/bomly-dev/bomly-plugin-clearlydefined-license). It shows a standalone HTTP matcher with plugin-local cache and proxy-aware SDK HTTP clients.
 
 ## What Each Hook Does
 
@@ -108,8 +110,8 @@ Per-plugin config lives under `plugins.<plugin-id>`:
 
 ```yaml
 plugins:
-  security-team.matcher.vulnfeed:
-    api_base: https://api.example.com
+  clearlydefined-license-checker:
+    api_base: https://api.clearlydefined.io
 ```
 
 Read it with:
@@ -143,9 +145,9 @@ If the matcher produces deterministic output for a fixed input and service versi
 For development, build and install the binary directly:
 
 ```bash
-go build -o ./bin/security-team-vulnfeed-matcher ./cmd/security-team-vulnfeed-matcher
-bomly plugin install ./bin/security-team-vulnfeed-matcher --dev
-bomly plugin enable security-team.matcher.vulnfeed
+go build -o ./bin/bomly-plugin-clearlydefined-license .
+bomly plugin install ./bin/bomly-plugin-clearlydefined-license --dev
+bomly plugin enable clearlydefined-license-checker
 ```
 
 For distribution, package a `bomly-plugin.json` manifest with the binary:
@@ -153,7 +155,7 @@ For distribution, package a `bomly-plugin.json` manifest with the binary:
 ```text
 bomly-plugin.json
 bin/
-  security-team-vulnfeed-matcher
+  bomly-plugin-clearlydefined-license
 README.md
 LICENSE
 ```
@@ -163,21 +165,21 @@ LICENSE
 Check installation and runtime readiness:
 
 ```bash
-bomly plugin verify security-team.matcher.vulnfeed
-bomly plugin test security-team.matcher.vulnfeed
-bomly plugin doctor security-team.matcher.vulnfeed
+bomly plugin verify clearlydefined-license-checker
+bomly plugin test clearlydefined-license-checker
+bomly plugin doctor clearlydefined-license-checker
 ```
 
 Run only this matcher during enrichment:
 
 ```bash
-bomly scan --path ./my-project --enrich --matchers security-team.matcher.vulnfeed --json
+bomly scan --path ./my-project --enrich --matchers clearlydefined-license-checker --json
 ```
 
 Or add it to the default matcher set:
 
 ```bash
-bomly scan --path ./my-project --enrich --matchers +security-team.matcher.vulnfeed
+bomly scan --path ./my-project --enrich --matchers +clearlydefined-license-checker
 ```
 
 ## Implementation Checklist

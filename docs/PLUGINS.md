@@ -1,68 +1,170 @@
 # Managed Plugins
 
-Bomly supports managed external plugins for detectors, matchers, and auditors.
+Bomly plugins let you extend scans without changing the Bomly binary. Today, managed external plugins can add:
 
-This document covers the current workflow for building, installing, verifying, and running them.
+- **detectors** that turn project files into dependency graphs
+- **matchers** that enrich packages with vulnerabilities, licenses, lifecycle data, or other package metadata
+- **auditors** that turn graph and registry data into findings or risk scores
 
-## What Managed Plugins Are
+External analyzer plugins are not supported yet. `bomly plugin list --analyzers` can show built-in reachability analyzers, but the external plugin runtime currently serves only detectors, matchers, and auditors through `sdk.ServeDetector`, `sdk.ServeMatcher`, and `sdk.ServeAuditor`.
 
-Managed plugins are Go binaries that use the Bomly plugin SDK and run in a separate process through HashiCorp `go-plugin`.
+## Start Here
 
-The SDK contract is also the source of truth for built-in detectors, matchers, and auditors. Built-ins run in-process and skip installation, enable/disable state, and verification, but they use the same metadata and execution contract as external plugins.
+Use this page when you want to install, trust, configure, package, or troubleshoot a managed plugin.
+
+Use the implementation guides when you are writing one:
+
+- [How To Implement A Detector Plugin](plugins/how-to-implement-detector.md)
+- [How To Implement A Matcher Plugin](plugins/how-to-implement-matcher.md)
+- [How To Implement An Auditor Plugin](plugins/how-to-implement-auditor.md)
+
+The repository also includes a working detector example at [`examples/plugins/go-module-detector`](../examples/plugins/go-module-detector).
+
+## How Plugins Run
+
+Managed plugins are Go binaries that use Bomly's public `sdk` package. Bomly starts each enabled external plugin as a separate native OS subprocess through HashiCorp `go-plugin` in gRPC mode.
 
 Bomly owns:
 
-- installation
-- manifest validation
-- checksum enforcement for direct URL installs
-- plugin store layout
-- enable and disable state
-- runtime loading during scan preparation
+- installing plugin packages
+- validating `bomly-plugin.json`
+- checking recorded checksums
+- storing plugins under `~/.bomly/plugins`
+- enabling and disabling plugins
+- loading enabled plugins during scan runtime preparation
 
 Plugins do not get install hooks, post-install scripts, or automatic execution from repository checkouts.
 
-## Runtime Policy
+## Trust And Enablement
 
-Installed external plugins are disabled by default. They do not participate in scans until you enable them with `bomly plugin enable <id>`.
+Installed external plugins are disabled by default. They do not participate in scans until you enable them:
 
-Enabled plugins are loaded during runtime preparation in local and CI workflows. Treat `bomly plugin enable` as the trust decision for running that external binary.
+```bash
+bomly plugin enable <plugin-id>
+```
 
-When enabled, a plugin binary runs as a native OS subprocess with the same user-level privileges as the bomly process. It can read and write files, make network connections, and execute system calls within those privileges.
+Treat `bomly plugin enable` as the trust decision. When enabled, a plugin runs with the same user-level privileges as the Bomly process. It can read and write files, make network connections, spawn child processes, and access environment variables available to that user.
+
+Repository-declared plugins are never executed automatically. The host must explicitly install and enable the plugin before it can run.
+
+## Try The Example Plugin
+
+Build the example detector from the repository root:
+
+```bash
+go build -o ./bin/bomly-example-gomod-detector ./examples/plugins/go-module-detector
+```
+
+On Windows, Go writes `./bin/bomly-example-gomod-detector.exe`. `bomly plugin install --dev` accepts either the extensionless path or the explicit `.exe` path.
+
+Install and enable it for local development:
+
+```bash
+bomly plugin install ./bin/bomly-example-gomod-detector --dev
+bomly plugin enable bomly.example.gomod-detector
+```
+
+Check that Bomly can see it:
+
+```bash
+bomly plugin list --external
+bomly plugin info bomly.example.gomod-detector
+```
+
+Run verification and readiness checks:
+
+```bash
+bomly plugin verify bomly.example.gomod-detector
+bomly plugin test bomly.example.gomod-detector
+bomly plugin doctor bomly.example.gomod-detector
+```
+
+Select it explicitly during a scan:
+
+```bash
+bomly scan \
+  --path ./my-go-project \
+  --detectors bomly.example.gomod-detector \
+  --json
+```
+
+Disable or uninstall it later:
+
+```bash
+bomly plugin disable bomly.example.gomod-detector
+bomly plugin uninstall bomly.example.gomod-detector
+```
+
+## Common Commands
+
+List plugins:
+
+```bash
+bomly plugin list
+bomly plugin list --external
+bomly plugin list --detectors
+bomly plugin list --matchers --json
+bomly plugin list --auditors
+```
+
+Show one plugin:
+
+```bash
+bomly plugin info <plugin-id>
+bomly plugin info <plugin-id> --json
+```
+
+Install a plugin:
+
+```bash
+bomly plugin install ./dist/bomly-plugin-example.tar.gz
+bomly plugin install ./bin/bomly-example-gomod-detector --dev
+bomly plugin install https://example.com/bomly-plugin-example.tar.gz --checksum sha256:...
+bomly plugin install github:security-team/bomly-plugin-gomod@v1.2.0
+```
+
+Check a plugin:
+
+```bash
+bomly plugin verify <plugin-id> # manifest, checksum, binary, runtime metadata
+bomly plugin test <plugin-id>   # runtime readiness
+bomly plugin doctor <plugin-id> # verify + test
+```
+
+Enable, disable, or remove a plugin:
+
+```bash
+bomly plugin enable <plugin-id>
+bomly plugin disable <plugin-id>
+bomly plugin uninstall <plugin-id>
+```
+
+## Select Plugins During A Scan
+
+Plugin selectors use the same `+/-` grammar as built-in components:
+
+```bash
+# Use only this detector.
+bomly scan --detectors security-team.detector.gomod
+
+# Add an external matcher to the default matcher set.
+bomly scan --enrich --matchers +security-team.matcher.vulnfeed
+
+# Use one auditor explicitly.
+bomly scan --audit --auditors security-team.auditor.policy
+```
+
+Detector plugins can participate in subproject discovery. Their manifest records `detectorDescriptor.packageManagerSupport`, and each support entry names a package manager plus evidence patterns such as `go.mod`. Bomly uses those patterns during runtime preparation so external detectors can join the same scan-planning flow as built-ins.
 
 ## Configuration And Proxy Support
 
 Bomly passes the active plugin API version, the explicit `BOMLY_CONFIG` path when one was provided, proxy settings, and the enabled plugin's own config to managed plugin subprocesses.
 
-Proxy settings can be configured with a direct proxy URL:
-
-```yaml
-network:
-  proxy:
-    url: http://proxy.example:8080
-    no_proxy: localhost,127.0.0.1,.corp.example
-```
-
-For environments that manage proxy details separately, Bomly also accepts decomposed proxy settings:
-
-```yaml
-network:
-  proxy:
-    type: http # http, https, or socks5
-    host: proxy.example
-    port: 8080
-    username: my-user
-    password: my-password
-    no_proxy: localhost,127.0.0.1,.corp.example
-  ca_cert_file: /path/to/proxy-ca-chain.pem
-```
-
-Equivalent environment variables are `BOMLY_HTTP_PROXY`, `BOMLY_HTTP_NO_PROXY`, `BOMLY_HTTP_PROXY_TYPE`, `BOMLY_HTTP_PROXY_HOST`, `BOMLY_HTTP_PROXY_PORT`, `BOMLY_HTTP_PROXY_USERNAME`, `BOMLY_HTTP_PROXY_PASSWORD`, and `BOMLY_HTTP_CA_CERT_FILE`. When Bomly proxy fields are not set, Bomly's SDK HTTP client still honors standard `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY` environment variables. For compatibility with non-SDK plugin code, Bomly also forwards the effective proxy values to plugin subprocesses using the standard proxy environment variable names.
-
 Per-plugin configuration lives under `plugins.<plugin-id>`:
 
 ```yaml
 plugins:
-  acme.matcher:
+  security-team.matcher.vulnfeed:
     api_base: https://api.example.com
 ```
 
@@ -79,7 +181,34 @@ if err := sdk.DecodePluginConfigFromEnv(&cfg); err != nil {
 }
 ```
 
-Plugins that make outbound HTTP calls should create one process-local provider with `sdk.NewHTTPClientProviderFromEnv()` and reuse it for timeout-specific clients. This keeps proxy settings consistent while preserving Go's HTTP connection pooling:
+Proxy settings can be configured with a direct proxy URL:
+
+```yaml
+network:
+  proxy:
+    url: http://proxy.example:8080
+    no_proxy: localhost,127.0.0.1,.corp.example
+```
+
+Bomly also accepts decomposed proxy settings:
+
+```yaml
+network:
+  proxy:
+    type: http # http, https, or socks5
+    host: proxy.example
+    port: 8080
+    username: my-user
+    password: my-password
+    no_proxy: localhost,127.0.0.1,.corp.example
+  ca_cert_file: /path/to/proxy-ca-chain.pem
+```
+
+Equivalent environment variables are `BOMLY_HTTP_PROXY`, `BOMLY_HTTP_NO_PROXY`, `BOMLY_HTTP_PROXY_TYPE`, `BOMLY_HTTP_PROXY_HOST`, `BOMLY_HTTP_PROXY_PORT`, `BOMLY_HTTP_PROXY_USERNAME`, `BOMLY_HTTP_PROXY_PASSWORD`, and `BOMLY_HTTP_CA_CERT_FILE`.
+
+When Bomly proxy fields are not set, Bomly's SDK HTTP client still honors standard `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY` environment variables. For compatibility with non-SDK plugin code, Bomly also forwards the effective proxy values using the standard proxy environment variable names.
+
+Plugins that make outbound HTTP calls should create one process-local provider with `sdk.NewHTTPClientProviderFromEnv()` and reuse it for timeout-specific clients:
 
 ```go
 provider, err := sdk.NewHTTPClientProviderFromEnv()
@@ -89,11 +218,9 @@ if err != nil {
 client := provider.Client(20 * time.Second)
 ```
 
-## Plugin Layout
+## Package Layout
 
-External plugin packages include a `bomly-plugin.json` manifest and a platform entrypoint binary.
-
-Typical layout:
+An external plugin package includes a `bomly-plugin.json` manifest and one or more platform entrypoint binaries:
 
 ```text
 bomly-plugin.json
@@ -113,187 +240,7 @@ Installed plugins are stored under:
       <version>/
 ```
 
-## Discovery Patterns
-
-Detector plugin manifests declare package-manager support inside `detectorDescriptor.packageManagerSupport`. Each support entry names a package manager and can include evidence patterns such as `go.mod`; Bomly derives ecosystem and manager planning data from those entries.
-
-Bomly uses those patterns during runtime preparation:
-
-- matching files can create or augment the normal package-manager subproject plan
-- pattern-driven support can still plan a standalone detector subproject when it does not map to a built-in package-manager pattern
-
-That keeps external detectors inside the same scan-planning flow as built-ins instead of dispatching them ad hoc from CLI commands.
-
-## Getting Started
-
-The repo includes a working example detector plugin at:
-
-[`examples/plugins/go-module-detector`](../examples/plugins/go-module-detector)
-
-Build it from the repository root:
-
-```bash
-go build -o ./bin/bomly-example-gomod-detector ./examples/plugins/go-module-detector
-```
-
-On Windows, the built file is `./bin/bomly-example-gomod-detector.exe`. `bomly plugin install --dev` accepts either the extensionless path or the explicit `.exe` path.
-
-Install it in development mode:
-
-```bash
-bomly plugin install ./bin/bomly-example-gomod-detector --dev
-bomly plugin enable bomly.example.gomod-detector
-```
-
-List installed plugins:
-
-```bash
-bomly plugin list --external --json
-```
-
-Verify the installation:
-
-```bash
-bomly plugin verify bomly.example.gomod-detector
-```
-
-Test runtime readiness (without running verify):
-
-```bash
-bomly plugin test bomly.example.gomod-detector
-```
-
-Run a full health check (verify + test):
-
-```bash
-bomly plugin doctor bomly.example.gomod-detector
-```
-
-Run a scan with the plugin selected explicitly:
-
-```bash
-bomly scan \
-  --path ./my-go-project \
-  --detectors bomly.example.gomod-detector \
-  --json
-```
-
-Disable or uninstall it later:
-
-```bash
-bomly plugin disable bomly.example.gomod-detector
-bomly plugin uninstall bomly.example.gomod-detector
-```
-
-## Authoring Model
-
-Plugin authors import:
-
-```text
-github.com/bomly-dev/bomly-cli/sdk
-```
-
-Minimal detector example:
-
-```go
-package main
-
-import (
-    "context"
-
-    "github.com/bomly-dev/bomly-cli/sdk"
-)
-
-type Detector struct{}
-
-func (d *Detector) Metadata(ctx context.Context) (*sdk.PluginMetadata, error) {
-    return &sdk.PluginMetadata{
-        ID:               "acme.detector.example",
-        Name:             "Acme Example Detector",
-        Version:          "1.0.0",
-        Kind:             sdk.PluginKindDetector,
-        PluginAPIVersion: sdk.PluginAPIVersion,
-    }, nil
-}
-
-func (d *Detector) Descriptor(ctx context.Context) (*sdk.DetectorDescriptor, error) {
-    return &sdk.DetectorDescriptor{
-        Name:           "acme.detector.example",
-        Enabled:        true,
-        Origin:         sdk.ExternalOrigin,
-        Capabilities:   []string{"dependency-detection"},
-    }, nil
-}
-
-func (d *Detector) PackageManagerSupport(context.Context) ([]sdk.PackageManagerSupport, error) {
-    return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerGoMod, "go.mod")}, nil
-}
-
-func (d *Detector) Ready(context.Context, *sdk.DetectRequest) (*sdk.ReadyResponse, error) {
-    return &sdk.ReadyResponse{Ready: true}, nil
-}
-
-func (d *Detector) Applicable(context.Context, *sdk.DetectRequest) (*sdk.ApplicableResponse, error) {
-    return &sdk.ApplicableResponse{Applicable: true}, nil
-}
-
-func (d *Detector) Detect(ctx context.Context, req *sdk.DetectRequest) (*sdk.DetectResponse, error) {
-    return &sdk.DetectResponse{}, nil
-}
-
-func main() {
-    sdk.ServeDetector(&Detector{})
-}
-```
-
-Required SDK hooks:
-
-- detectors must implement `Descriptor`, `PackageManagerSupport`, `Ready`, `Applicable`, and `Detect`
-- matchers must implement `Descriptor`, `Ready`, `Applicable`, and `Match`
-- auditors must implement `Descriptor`, `Ready`, `Applicable`, and `Audit`
-
-Detector plugins may additionally implement `Install` when they support install-first execution.
-
-## Registry-Aware Matchers And Auditors
-
-Bomly's plugin model uses the same three-collection shape as the in-process engine:
-
-- `sdk.Dependency` nodes live in `req.Graph` and describe detected dependency instances plus relationships.
-- `sdk.Package` records live in `req.Registry`, keyed by canonical PURL.
-- `sdk.Finding` values reference registry packages by PURL instead of embedding copied package or vulnerability data.
-
-Matchers enrich the registry in place:
-
-```go
-func (m *Matcher) Match(ctx context.Context, req *sdk.MatchRequest) (*sdk.MatchResponse, error) {
-    pkg := req.Registry.Ensure("pkg:npm/lodash@4.17.15")
-    pkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
-    pkg.Vulnerabilities = append(pkg.Vulnerabilities, sdk.Vulnerability{ID: "GHSA-...", Source: "acme"})
-    return &sdk.MatchResponse{Registry: req.Registry, MatcherRuns: []string{"acme.matcher"}}, nil
-}
-```
-
-Auditors read `req.Graph` and `req.Registry`, then emit reference-style findings:
-
-```go
-finding := sdk.Finding{
-    ID:              "GHSA-...",
-    Kind:            sdk.FindingKindVulnerability,
-    PackageRef:      "pkg:npm/lodash@4.17.15",
-    VulnerabilityID: "GHSA-...",
-    Disposition:     sdk.FindingDispositionFail,
-}
-```
-
-Detector plugins should build dependency graphs with the SDK constructors:
-
-```go
-dep := sdk.NewDependency(sdk.Dependency{Name: "lodash", Version: "4.17.15", PURL: "pkg:npm/lodash@4.17.15"})
-_ = graph.AddNode(dep)
-_ = graph.AddEdge(parent.ID, dep.ID)
-```
-
-See [`docs/MODELS.md`](MODELS.md) for the full model reference and migration notes.
+The manifest identity must match the runtime metadata returned by the plugin binary. A detector manifest must also include package-manager support so Bomly can plan when the detector should run.
 
 ## Supported Install Sources
 
@@ -304,24 +251,15 @@ Current supported sources are:
 - direct URL with checksum
 - GitHub Release via `github:owner/repo@tag`
 
-Examples:
-
-```bash
-bomly plugin install ./dist/bomly-plugin-example.tar.gz
-bomly plugin install ./bin/bomly-example-gomod-detector --dev
-bomly plugin install https://example.com/bomly-plugin-example.tar.gz --checksum sha256:...
-bomly plugin install github:acme/bomly-plugin-example@v1.2.0
-```
-
-For GitHub Release installs, Bomly resolves the release metadata, selects the asset matching the current OS and architecture, and uses a `SHA256SUMS` asset when present to verify the archive automatically.
+For GitHub Release installs, Bomly resolves release metadata, selects the asset matching the current OS and architecture, and uses a `SHA256SUMS` asset when present to verify the archive automatically.
 
 ## Security Model
 
-External plugins are native OS subprocesses. They are not sandboxed, not containerized, and not restricted by Bomly in any way beyond the operating system's standard user-level privilege boundary. When a plugin runs, it inherits the full privileges of the user invoking bomly: it can read and write files, open network connections, spawn child processes, and access environment variables.
+External plugins are native OS subprocesses. They are not sandboxed, not containerized, and not restricted by Bomly beyond the operating system's standard user-level privilege boundary.
 
 **What Bomly validates before executing a plugin:**
 
-- Manifest schema and required fields (ID, version, kind, runtime, API version)
+- Manifest schema and required fields: ID, version, kind, runtime, API version
 - Plugin API version compatibility with the running core version
 - Entrypoint binary exists at the recorded path
 - SHA256 checksum matches the installed record, when a checksum was recorded
@@ -337,9 +275,9 @@ External plugins are native OS subprocesses. They are not sandboxed, not contain
 **Installation mode risk:**
 
 | Source | Integrity guarantee |
-|--------|---------------------|
-| Local archive (`bomly plugin install ./plugin.tar.gz --checksum sha256:...`) | Strongest: checksum ties the installed binary to the declared archive |
-| GitHub Release (`github:owner/repo@tag`) | SHA256SUMS asset verified automatically when present |
+| --- | --- |
+| Local archive with `--checksum sha256:...` | Strongest: checksum ties the installed binary to the declared archive |
+| GitHub Release with `SHA256SUMS` | Release asset is verified automatically when checksums are present |
 | Direct URL with `--checksum` | Checksum ties the download to the declared identity |
 | Direct URL with `--insecure-skip-checksum` | None: the downloaded binary may differ from the declared source |
 | Local binary with `--dev` | None: appropriate only for binaries you built locally |
@@ -348,6 +286,6 @@ External plugins are native OS subprocesses. They are not sandboxed, not contain
 
 - Always supply `--checksum` for direct URL installs.
 - Run `bomly plugin verify <id>` before enabling any plugin installed from an external source.
-- Treat `bomly plugin enable` as the explicit trust decision for granting execution privileges. Do not enable plugins you did not build or obtain from a source you control.
-- Prefer `github:owner/repo@tag` installs — they resolve the asset for your current OS and architecture and verify against the published SHA256SUMS automatically.
-- Repository-declared plugins are never executed automatically. Bomly requires an explicit `bomly plugin enable` on the host before any external plugin participates in a scan.
+- Treat `bomly plugin enable` as the explicit trust decision for granting execution privileges.
+- Prefer `github:owner/repo@tag` installs when releases publish `SHA256SUMS`.
+- Do not enable plugins you did not build or obtain from a source you control.

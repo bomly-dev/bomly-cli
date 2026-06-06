@@ -37,5 +37,4 @@ Run it explicitly:
 bomly scan --path ./some-go-module --detectors bomly.example.gomod-detector --format json
 ```
 
-For the full plugin workflow, see [docs/PLUGINS.md](../../../docs/PLUGINS.md).
-
+For the full plugin workflow, see [docs/PLUGINS.md](../../../docs/PLUGINS.md). For the detector authoring walkthrough, see [How To Implement A Detector Plugin](../../../docs/plugins/how-to-implement-detector.md).

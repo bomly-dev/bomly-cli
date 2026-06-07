@@ -21,6 +21,8 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/plugin/runtime/hashicorp"
 	plugschema "github.com/bomly-dev/bomly-cli/sdk"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // Install installs a managed plugin from a local archive, local dev binary, or direct URL.
@@ -77,7 +79,6 @@ func Install(ctx context.Context, root, source string, opts InstallOptions) (*In
 	record := InstalledPlugin{
 		ID:       manifest.ID,
 		Version:  manifest.Version,
-		Enabled:  false,
 		Source:   source,
 		Checksum: checksum,
 		Path:     finalDir,
@@ -137,15 +138,11 @@ func installDevBinary(ctx context.Context, tempDir, source string) (Manifest, st
 	if err != nil {
 		return Manifest{}, "", fmt.Errorf("prepare plugin binary for launch: %w", err)
 	}
-	metadata, err := fetchRuntimeMetadata(ctx, binaryPath)
+	snapshot, err := discoverRuntimeSnapshot(ctx, binaryPath)
 	if err != nil {
 		return Manifest{}, "", err
 	}
-	detectorDescriptor, packageManagerSupport, matcherDescriptor, auditorDescriptor, err := fetchRuntimeDescriptors(ctx, binaryPath, metadata.Kind, metadata.ID)
-	if err != nil {
-		return Manifest{}, "", err
-	}
-	manifest, err := manifestFromMetadata(metadata, detectorDescriptor, packageManagerSupport, matcherDescriptor, auditorDescriptor, source, filepath.Base(binaryPath))
+	manifest, err := manifestFromRuntimeSnapshot(snapshot, source, filepath.Base(binaryPath))
 	if err != nil {
 		return Manifest{}, "", err
 	}
@@ -158,6 +155,9 @@ func installDevBinary(ctx context.Context, tempDir, source string) (Manifest, st
 		return Manifest{}, "", fmt.Errorf("copy plugin binary: %w", err)
 	}
 	if err := writeManifest(tempDir, manifest); err != nil {
+		return Manifest{}, "", err
+	}
+	if err := writeRuntimeSnapshot(tempDir, snapshot); err != nil {
 		return Manifest{}, "", err
 	}
 	checksum, err := checksumFile(binaryPath)
@@ -271,20 +271,18 @@ func installArchiveAtPath(ctx context.Context, tempDir, archivePath, source, exp
 	if _, err := os.Stat(fullEntrypoint); err != nil {
 		return Manifest{}, "", fmt.Errorf("plugin entrypoint %q is missing: %w", entry, err)
 	}
-	metadata, err := fetchRuntimeMetadata(ctx, fullEntrypoint, manifest.ID)
-	if err != nil {
-		return Manifest{}, "", err
-	}
-	detectorDescriptor, packageManagerSupport, matcherDescriptor, auditorDescriptor, err := fetchRuntimeDescriptors(ctx, fullEntrypoint, metadata.Kind, metadata.ID)
-	if err != nil {
-		return Manifest{}, "", err
-	}
 	manifest = withCanonicalManifestDefaults(manifest, source)
-	manifest = manifestWithRuntimeContract(manifest, metadata, detectorDescriptor, packageManagerSupport, matcherDescriptor, auditorDescriptor)
-	if err := runtimeMetadataMatchesManifest(metadata, detectorDescriptor, packageManagerSupport, matcherDescriptor, auditorDescriptor, manifest); err != nil {
+	snapshot, err := fetchRuntimeSnapshot(ctx, fullEntrypoint, manifest.Kind, manifest.ID)
+	if err != nil {
+		return Manifest{}, "", err
+	}
+	if err := runtimeSnapshotMatchesManifest(snapshot, manifest); err != nil {
 		return Manifest{}, "", err
 	}
 	if err := writeManifest(tempDir, manifest); err != nil {
+		return Manifest{}, "", err
+	}
+	if err := writeRuntimeSnapshot(tempDir, snapshot); err != nil {
 		return Manifest{}, "", err
 	}
 	return manifest, checksum, nil
@@ -459,43 +457,106 @@ func normalizeWindowsExecutableForLaunch(tempDir, binaryPath string) (string, er
 	return launchPath, nil
 }
 
-func fetchRuntimeMetadata(ctx context.Context, executable string, pluginID ...string) (*plugschema.PluginMetadata, error) {
-	client, err := startPlugin(ctx, executable, firstString(pluginID))
+func discoverRuntimeSnapshot(ctx context.Context, executable string) (RuntimeDescriptorSnapshot, error) {
+	client, err := startPlugin(ctx, executable, "")
 	if err != nil {
-		return nil, err
+		return RuntimeDescriptorSnapshot{}, err
 	}
 	defer client.Close()
-	metadata, err := client.Raw().Metadata(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("query plugin metadata: %w", err)
+	var snapshots []RuntimeDescriptorSnapshot
+	if snapshot, err := detectorSnapshot(ctx, client.Raw()); err == nil {
+		snapshots = append(snapshots, snapshot)
+	} else if !isUnimplemented(err) {
+		return RuntimeDescriptorSnapshot{}, err
 	}
-	return metadata, nil
+	if snapshot, err := matcherSnapshot(ctx, client.Raw()); err == nil {
+		snapshots = append(snapshots, snapshot)
+	} else if !isUnimplemented(err) {
+		return RuntimeDescriptorSnapshot{}, err
+	}
+	if snapshot, err := auditorSnapshot(ctx, client.Raw()); err == nil {
+		snapshots = append(snapshots, snapshot)
+	} else if !isUnimplemented(err) {
+		return RuntimeDescriptorSnapshot{}, err
+	}
+	switch len(snapshots) {
+	case 0:
+		return RuntimeDescriptorSnapshot{}, errors.New("plugin dev binary does not serve a detector, matcher, or auditor descriptor")
+	case 1:
+		return normalizeRuntimeSnapshot(snapshots[0]), nil
+	default:
+		return RuntimeDescriptorSnapshot{}, errors.New("plugin dev binary serves multiple component roles; one package must serve exactly one role")
+	}
 }
 
-func fetchRuntimeDescriptors(ctx context.Context, executable string, kind plugschema.PluginKind, pluginID ...string) (*plugschema.DetectorDescriptor, []plugschema.PackageManagerSupport, *plugschema.MatcherDescriptor, *plugschema.AuditorDescriptor, error) {
+func fetchRuntimeSnapshot(ctx context.Context, executable string, kind plugschema.PluginKind, pluginID ...string) (RuntimeDescriptorSnapshot, error) {
 	client, err := startPlugin(ctx, executable, firstString(pluginID))
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return RuntimeDescriptorSnapshot{}, err
 	}
 	defer client.Close()
 
 	switch kind {
 	case plugschema.PluginKindDetector:
-		descriptor, err := client.Raw().DetectorDescriptor(ctx)
-		if err != nil {
-			return nil, nil, nil, nil, err
-		}
-		support, err := client.Raw().DetectorPackageManagerSupport(ctx)
-		return descriptor, support, nil, nil, err
+		return detectorSnapshot(ctx, client.Raw())
 	case plugschema.PluginKindMatcher:
-		descriptor, err := client.Raw().MatcherDescriptor(ctx)
-		return nil, nil, descriptor, nil, err
+		return matcherSnapshot(ctx, client.Raw())
 	case plugschema.PluginKindAuditor:
-		descriptor, err := client.Raw().AuditorDescriptor(ctx)
-		return nil, nil, nil, descriptor, err
+		return auditorSnapshot(ctx, client.Raw())
 	default:
-		return nil, nil, nil, nil, fmt.Errorf("unsupported plugin kind %q", kind)
+		return RuntimeDescriptorSnapshot{}, fmt.Errorf("unsupported plugin kind %q", kind)
 	}
+}
+
+func detectorSnapshot(ctx context.Context, client plugschema.Client) (RuntimeDescriptorSnapshot, error) {
+	descriptor, err := client.DetectorDescriptor(ctx)
+	if err != nil {
+		return RuntimeDescriptorSnapshot{}, err
+	}
+	support, err := client.DetectorPackageManagerSupport(ctx)
+	if err != nil {
+		return RuntimeDescriptorSnapshot{}, err
+	}
+	descriptor = cloneDetectorDescriptorWithSupport(descriptor, support)
+	return normalizeRuntimeSnapshot(RuntimeDescriptorSnapshot{
+		SchemaVersion:      plugschema.RuntimeDescriptorSnapshotSchemaVersion,
+		ID:                 descriptor.Name,
+		Kind:               plugschema.PluginKindDetector,
+		PluginAPIVersion:   plugschema.PluginAPIVersion,
+		DetectorDescriptor: descriptor,
+	}), nil
+}
+
+func matcherSnapshot(ctx context.Context, client plugschema.Client) (RuntimeDescriptorSnapshot, error) {
+	descriptor, err := client.MatcherDescriptor(ctx)
+	if err != nil {
+		return RuntimeDescriptorSnapshot{}, err
+	}
+	return normalizeRuntimeSnapshot(RuntimeDescriptorSnapshot{
+		SchemaVersion:     plugschema.RuntimeDescriptorSnapshotSchemaVersion,
+		ID:                descriptor.Name,
+		Kind:              plugschema.PluginKindMatcher,
+		PluginAPIVersion:  plugschema.PluginAPIVersion,
+		MatcherDescriptor: cloneMatcherDescriptor(descriptor),
+	}), nil
+}
+
+func auditorSnapshot(ctx context.Context, client plugschema.Client) (RuntimeDescriptorSnapshot, error) {
+	descriptor, err := client.AuditorDescriptor(ctx)
+	if err != nil {
+		return RuntimeDescriptorSnapshot{}, err
+	}
+	return normalizeRuntimeSnapshot(RuntimeDescriptorSnapshot{
+		SchemaVersion:     plugschema.RuntimeDescriptorSnapshotSchemaVersion,
+		ID:                descriptor.Name,
+		Kind:              plugschema.PluginKindAuditor,
+		PluginAPIVersion:  plugschema.PluginAPIVersion,
+		AuditorDescriptor: cloneAuditorDescriptor(descriptor),
+	}), nil
+}
+
+func isUnimplemented(err error) bool {
+	return status.Code(err) == codes.Unimplemented
 }
 
 type runtimeClient struct {

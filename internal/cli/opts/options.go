@@ -243,7 +243,7 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 	scanRegistry := engine.NewRegistry(registryConfigs, *logger)
 	scanRegistry.Build()
 
-	if err := o.registerInstalledPluginMetadata(ctx, scanRegistry); err != nil {
+	if err := o.registerInstalledPluginDescriptors(ctx, scanRegistry); err != nil {
 		if cleanup != nil {
 			_ = cleanup()
 		}
@@ -613,7 +613,7 @@ func (o *Options) resolveExecutionTarget(logger *zap.Logger) (sdk.ExecutionTarge
 	return sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: projectPath}, projectPath, nil, nil
 }
 
-func (o *Options) registerInstalledPluginMetadata(ctx context.Context, reg *engine.Registry) error {
+func (o *Options) registerInstalledPluginDescriptors(ctx context.Context, reg *engine.Registry) error {
 	if reg == nil {
 		return nil
 	}

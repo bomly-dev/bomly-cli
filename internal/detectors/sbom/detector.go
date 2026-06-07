@@ -48,8 +48,6 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
 		Name:                detectors.NameSBOM,
-		Enabled:             true,
-		Origin:              sdk.CoreOrigin,
 		Technique:           sdk.SBOMTechnique,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemSBOM},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerSBOM},
@@ -105,7 +103,6 @@ func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk
 	return sdk.DetectionResult{
 		SubprojectInfo: req.Subproject,
 		DetectorName:   d.Descriptor().Name,
-		Origin:         d.Descriptor().Origin,
 		Technique:      d.Descriptor().Technique,
 		Graphs:         normalizeSBOMGraphContainer(normalizeSBOMManifestMetadata(graphs, req)),
 	}, nil

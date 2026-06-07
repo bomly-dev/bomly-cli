@@ -9,6 +9,9 @@ const PackageManifestSchemaVersion = "bomly.plugin.package.v1"
 // InstalledPluginsSchemaVersion is the installed plugin database schema version.
 const InstalledPluginsSchemaVersion = "bomly.installed-plugins.v1"
 
+// RuntimeDescriptorSnapshotSchemaVersion is Bomly's internal installed descriptor snapshot schema.
+const RuntimeDescriptorSnapshotSchemaVersion = "bomly.plugin.runtime-descriptor.v1"
+
 // RuntimeHashiCorpGRPC identifies the supported external plugin runtime.
 const RuntimeHashiCorpGRPC = "hashicorp-grpc"
 
@@ -40,13 +43,6 @@ const (
 	// PluginTargetTypeSBOM marks SBOM file support.
 	PluginTargetTypeSBOM PluginTargetType = "sbom"
 )
-
-// PluginMetadata describes the runtime metadata exposed by a plugin binary.
-type PluginMetadata struct {
-	ID               string     `json:"id"`
-	Kind             PluginKind `json:"kind"`
-	PluginAPIVersion string     `json:"pluginApiVersion"`
-}
 
 // ReadyResponse reports whether a plugin is ready to run.
 type ReadyResponse struct {

@@ -44,8 +44,6 @@ func (d NativeDetector) Applicable(ctx context.Context, req sdk.DetectionRequest
 func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
 		Name:                detectors.NameSBTNative,
-		Enabled:             true,
-		Origin:              sdk.CoreOrigin,
 		Technique:           sdk.BuildToolTechnique,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemScala, sdk.EcosystemMaven},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerSBT},

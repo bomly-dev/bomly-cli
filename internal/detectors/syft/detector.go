@@ -114,8 +114,6 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	supportedManagers := d.SupportedManagers
 	return sdk.DetectorDescriptor{
 		Name:                detectors.NameSyft,
-		Enabled:             true,
-		Origin:              sdk.BundledOrigin,
 		Technique:           sdk.MultipleTechnique,
 		SupportedEcosystems: supportedEcosystems,
 		SupportedManagers:   supportedManagers,

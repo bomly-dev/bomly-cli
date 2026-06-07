@@ -49,8 +49,6 @@ func (d NativeDetector) Applicable(ctx context.Context, req sdk.DetectionRequest
 func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
 		Name:                 detectors.NameYarnNative,
-		Enabled:              true,
-		Origin:               sdk.CoreOrigin,
 		Technique:            sdk.BuildToolTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemNPM},
 		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerYarn},

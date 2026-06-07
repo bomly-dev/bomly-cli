@@ -127,10 +127,7 @@ func (m *Matcher) Descriptor() sdk.MatcherDescriptor {
 	return sdk.MatcherDescriptor{
 		Name:                "scorecard",
 		DisplayName:         "OpenSSF Scorecard",
-		Enabled:             false,
-		Origin:              sdk.CoreOrigin,
 		SupportedEcosystems: nil,
-		Required:            false,
 		Tags:                []string{"project-posture"},
 	}
 }

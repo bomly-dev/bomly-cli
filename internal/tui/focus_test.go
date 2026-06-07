@@ -41,7 +41,6 @@ func newScanModelWithPosture(t *testing.T, repo string, score float64) *scanMode
 			Ecosystem:       sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       sdk.CoreOrigin,
 		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
@@ -190,7 +189,6 @@ func TestPostureGrouping_ByCheckRendersFailingFirst(t *testing.T) {
 			Ecosystem:       sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       sdk.CoreOrigin,
 		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()

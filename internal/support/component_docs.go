@@ -605,7 +605,7 @@ func renderMatcherMarkdown(descriptor sdk.MatcherDescriptor) string {
 	b.WriteString("| Property | Value |\n")
 	b.WriteString("| --- | --- |\n")
 	fmt.Fprintf(&b, "| Matcher name | `%s` |\n", descriptor.Name)
-	fmt.Fprintf(&b, "| Runs by default | %s |\n", yesNo(descriptor.Enabled && !behavior.RequiresEnrich))
+	fmt.Fprintf(&b, "| Runs by default | %s |\n", yesNo(matcherRunsByDefault(descriptor.Name) && !behavior.RequiresEnrich))
 	fmt.Fprintf(&b, "| Requires enrichment | %s |\n", yesNo(behavior.RequiresEnrich))
 	fmt.Fprintf(&b, "| Uses network | %s |\n", yesNo(behavior.UsesNetwork))
 	fmt.Fprintf(&b, "| Cache behavior | %s |\n", behavior.Cache)
@@ -624,6 +624,15 @@ func renderMatcherMarkdown(descriptor sdk.MatcherDescriptor) string {
 		b.WriteString(prose)
 	}
 	return b.String()
+}
+
+func matcherRunsByDefault(name string) bool {
+	switch name {
+	case "grype", "depsdev-license-matcher":
+		return true
+	default:
+		return false
+	}
 }
 
 type matcherDocBehavior struct {

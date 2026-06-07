@@ -83,8 +83,6 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
 		Name:                detectors.NameConan,
-		Enabled:             true,
-		Origin:              sdk.CoreOrigin,
 		Technique:           sdk.LockfileTechnique,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemCPP},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerConan},

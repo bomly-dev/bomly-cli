@@ -29,6 +29,14 @@ Example plugin repositories live outside this repo so each plugin type can show 
 
 Managed plugins are Go binaries that use Bomly's public `sdk` package. Bomly starts each enabled external plugin as a separate native OS subprocess through HashiCorp `go-plugin` in gRPC mode.
 
+Plugin identity is split into three clear places:
+
+- **Manifest = package.** `bomly-plugin.json` records install and package fields: ID, name, version, description, homepage, license, source, Bomly version constraint, runtime, plugin API version, and entrypoint.
+- **Descriptor = component.** The plugin binary returns one role descriptor: detector, matcher, or auditor. The descriptor owns the component name, display name, aliases, tags, supported ecosystems, supported package managers, and role-specific behavior.
+- **Installed DB = trust and state.** Bomly records checksum, enabled/disabled state, install path, and an internal descriptor snapshot when a plugin is installed. Plugin authors do not write that snapshot.
+
+There is no `Metadata()` hook. For packaged plugins, Bomly reads `id`, `kind`, and `pluginApiVersion` from `bomly-plugin.json`, launches the binary, fetches the matching descriptor, and requires `descriptor.name == manifest.id`. For dev-binary installs without a manifest, Bomly probes detector, matcher, and auditor descriptors and accepts the binary only when exactly one role responds.
+
 Bomly owns:
 
 - installing plugin packages
@@ -125,7 +133,7 @@ bomly plugin install github:bomly-dev/bomly-plugin-bun-lock-detector@v0.1.0
 Check a plugin:
 
 ```bash
-bomly plugin verify <plugin-id> # manifest, checksum, binary, runtime metadata
+bomly plugin verify <plugin-id> # manifest, checksum, binary, runtime descriptor
 bomly plugin test <plugin-id>   # runtime readiness
 bomly plugin doctor <plugin-id> # verify + test
 ```
@@ -153,7 +161,7 @@ bomly scan --enrich --matchers +clearlydefined-license-matcher
 bomly scan --audit --auditors bomly.examples.auditor.meme-deps
 ```
 
-Detector plugins can participate in subproject discovery. Their manifest records `detectorDescriptor.packageManagerSupport`, and each support entry names a package manager plus evidence patterns such as `go.mod`. Bomly uses those patterns during runtime preparation so external detectors can join the same scan-planning flow as built-ins.
+Detector plugins can participate in subproject discovery. Their runtime descriptor and `PackageManagerSupport` response record package-manager support and evidence patterns such as `go.mod`. Bomly stores that verified descriptor snapshot during install so external detectors can join the same scan-planning flow as built-ins.
 
 ## Configuration And Proxy Support
 
@@ -226,7 +234,6 @@ bomly-plugin.json
 bin/
   bomly-plugin-example
 README.md
-LICENSE
 ```
 
 Installed plugins are stored under:
@@ -239,7 +246,7 @@ Installed plugins are stored under:
       <version>/
 ```
 
-The manifest identity must match the runtime metadata returned by the plugin binary. A detector manifest must also include package-manager support so Bomly can plan when the detector should run.
+The manifest identity must match the runtime descriptor returned by the plugin binary. A detector plugin must also return package-manager support so Bomly can plan when the detector should run.
 
 ## Supported Install Sources
 
@@ -272,7 +279,7 @@ External plugins are native OS subprocesses. They are not sandboxed, not contain
 - Plugin API version compatibility with the running core version
 - Entrypoint binary exists at the recorded path
 - SHA256 checksum matches the installed record, when a checksum was recorded
-- Runtime-reported metadata matches the manifest identity, kind, and API version
+- Runtime descriptor matches the manifest identity, kind, API version, and installed descriptor snapshot
 
 **What Bomly cannot enforce:**
 

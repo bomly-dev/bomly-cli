@@ -39,7 +39,7 @@ func TestResolveDetectors_RunsMatchingDetector(t *testing.T) {
 	nativeGraph.AddNode(sdk.NewDependencyRef("app", "1.0.0"))
 
 	registry.registerDetector(fakeDetector{
-		descriptor: DetectorDescriptor{Name: "npm-native", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		descriptor: DetectorDescriptor{Name: "npm-native", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 		result:     ResolveGraphResult{Graphs: SingleGraphContainer(nativeGraph, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 
@@ -68,7 +68,7 @@ func TestResolveDetectors_ReportsDetectorDetail(t *testing.T) {
 	}
 
 	registry.registerDetector(fakeDetector{
-		descriptor: DetectorDescriptor{Name: "npm-native", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		descriptor: DetectorDescriptor{Name: "npm-native", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 		result:     ResolveGraphResult{Graphs: SingleGraphContainer(graph, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 
@@ -103,11 +103,11 @@ func TestResolveDetectors_FallsBackWhenPrimaryFails(t *testing.T) {
 
 	registry.registerDetector(fakeFallbackDetector{
 		fakeDetector: fakeDetector{
-			descriptor: DetectorDescriptor{Name: "go-native", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
+			descriptor: DetectorDescriptor{Name: "go-native", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
 			err:        errors.New("go not installed"),
 		},
 		fallback: fakeDetector{
-			descriptor: DetectorDescriptor{Name: "syft-detector", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
+			descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
 			result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
 		},
 	})
@@ -136,11 +136,11 @@ func TestResolveDetectors_DoesNotRunExcludedFallback(t *testing.T) {
 
 	registry.registerDetector(fakeFallbackDetector{
 		fakeDetector: fakeDetector{
-			descriptor: DetectorDescriptor{Name: "go-native", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
+			descriptor: DetectorDescriptor{Name: "go-native", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
 			err:        errors.New("go not installed"),
 		},
 		fallback: fakeDetector{
-			descriptor: DetectorDescriptor{Name: "syft-detector", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
+			descriptor: DetectorDescriptor{Name: "syft-detector", SupportedEcosystems: []Ecosystem{EcosystemGo}, SupportedManagers: []PackageManager{PackageManagerGoMod}},
 			result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
 		},
 	})
@@ -169,8 +169,6 @@ func TestPipeline_UsesPlannedDetectorChainWithoutEagerFallbackExecution(t *testi
 		fakeDetector: fakeDetector{
 			descriptor: DetectorDescriptor{
 				Name:                "go-native",
-				Enabled:             true,
-				Origin:              sdk.CoreOrigin,
 				SupportedEcosystems: []Ecosystem{EcosystemGo},
 				SupportedManagers:   []PackageManager{PackageManagerGoMod},
 			},
@@ -179,8 +177,6 @@ func TestPipeline_UsesPlannedDetectorChainWithoutEagerFallbackExecution(t *testi
 		fallback: fakeDetector{
 			descriptor: DetectorDescriptor{
 				Name:      "syft-detector",
-				Enabled:   true,
-				Origin:    sdk.BundledOrigin,
 				Technique: sdk.MultipleTechnique,
 			},
 			result: ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
@@ -189,8 +185,6 @@ func TestPipeline_UsesPlannedDetectorChainWithoutEagerFallbackExecution(t *testi
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{
 			Name:      "syft-detector",
-			Enabled:   true,
-			Origin:    sdk.BundledOrigin,
 			Technique: sdk.MultipleTechnique,
 		},
 		result: ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"})},
@@ -231,8 +225,6 @@ func TestPipeline_DoesNotEnableDetectorEnrichmentForAuditOnly(t *testing.T) {
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{
 			Name:                "syft-detector",
-			Enabled:             true,
-			Origin:              sdk.BundledOrigin,
 			Technique:           sdk.MultipleTechnique,
 			SupportedEcosystems: []Ecosystem{EcosystemNPM},
 			SupportedManagers:   []PackageManager{PackageManagerNPM},
@@ -277,8 +269,6 @@ func TestPipeline_ThreadsEnrichEnabledIntoResolveRequest(t *testing.T) {
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{
 			Name:                "syft-detector",
-			Enabled:             true,
-			Origin:              sdk.BundledOrigin,
 			Technique:           sdk.MultipleTechnique,
 			SupportedEcosystems: []Ecosystem{EcosystemNPM},
 			SupportedManagers:   []PackageManager{PackageManagerNPM},
@@ -320,8 +310,6 @@ func TestPipeline_ThreadsScopeFilterIntoPrimaryAndFiltersResult(t *testing.T) {
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{
 			Name:                "npm-detector",
-			Enabled:             true,
-			Origin:              sdk.CoreOrigin,
 			SupportedEcosystems: []Ecosystem{EcosystemNPM},
 			SupportedManagers:   []PackageManager{PackageManagerNPM},
 		},
@@ -366,11 +354,11 @@ func TestPipeline_ThreadsScopeFilterIntoFallbackDetector(t *testing.T) {
 	seenFallback := false
 	registry.registerDetector(fakeFallbackDetector{
 		fakeDetector: fakeDetector{
-			descriptor: DetectorDescriptor{Name: "npm-native", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+			descriptor: DetectorDescriptor{Name: "npm-native", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 			err:        errors.New("native failed"),
 		},
 		fallback: fakeDetector{
-			descriptor: DetectorDescriptor{Name: "npm-lockfile", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+			descriptor: DetectorDescriptor{Name: "npm-lockfile", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 			result:     ResolveGraphResult{Graphs: SingleGraphContainer(fallbackGraph, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 			onResolve: func(req ResolveGraphRequest) {
 				seenFallback = true
@@ -411,8 +399,6 @@ func TestPipeline_ThreadsScopeFilterIntoInstallFirstDetector(t *testing.T) {
 		fakeDetector: fakeDetector{
 			descriptor: DetectorDescriptor{
 				Name:                 "pip-detector",
-				Enabled:              true,
-				Origin:               sdk.CoreOrigin,
 				SupportedEcosystems:  []Ecosystem{sdk.EcosystemPython},
 				SupportedManagers:    []PackageManager{sdk.PackageManagerPip},
 				SupportsInstallFirst: true,
@@ -504,7 +490,7 @@ func TestPipeline_PreResolveHook_CalledBeforeDetectors(t *testing.T) {
 	registry.RegisterPreResolveHook(hook)
 
 	registry.registerDetector(fakeDetector{
-		descriptor: DetectorDescriptor{Name: "npm-detector", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		descriptor: DetectorDescriptor{Name: "npm-detector", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 		result:     ResolveGraphResult{Graphs: SingleGraphContainer(sdk.New(), sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 
@@ -534,7 +520,7 @@ func TestPipeline_PostResolveHook_CalledAfterAudit(t *testing.T) {
 	registry.RegisterPostResolveHook(postHook)
 
 	registry.registerDetector(fakeDetector{
-		descriptor: DetectorDescriptor{Name: "npm-detector", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		descriptor: DetectorDescriptor{Name: "npm-detector", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 		result:     ResolveGraphResult{Graphs: SingleGraphContainer(sdk.New(), sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 
@@ -591,7 +577,7 @@ func TestPipeline_Run_ProducesConsolidatedResult(t *testing.T) {
 	g.AddEdge("app@1.0.0", "react@18.2.0")
 
 	registry.registerDetector(fakeDetector{
-		descriptor: DetectorDescriptor{Name: "npm-detector", Enabled: true, Origin: sdk.CoreOrigin, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		descriptor: DetectorDescriptor{Name: "npm-detector", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 		result:     ResolveGraphResult{Graphs: SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 
@@ -632,11 +618,11 @@ func TestPipeline_Run_DeduplicatesAuditFindings(t *testing.T) {
 		t.Fatalf("add package: %v", err)
 	}
 	registry.registerDetector(fakeDetector{
-		descriptor: DetectorDescriptor{Name: "npm-detector", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		descriptor: DetectorDescriptor{Name: "npm-detector", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 		result:     ResolveGraphResult{Graphs: SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 	registry.registerAuditor(fakeAuditor{
-		descriptor: AuditorDescriptor{Name: "severity-policy", Enabled: true},
+		descriptor: AuditorDescriptor{Name: "severity-policy"},
 		result: AuditResult{Findings: []Finding{
 			{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "osv", PackageRef: pkg.PURL},
 			{ID: "CVE-1", VulnerabilityID: "CVE-1", Kind: sdk.FindingKindVulnerability, Source: "grype", PackageRef: pkg.PURL},
@@ -679,19 +665,18 @@ func TestPipeline_RunExplain_FocusesSelectedManifestAndAuditsComponent(t *testin
 		t.Fatalf("add dependency: %v", err)
 	}
 	registry.registerDetector(fakeDetector{
-		descriptor: DetectorDescriptor{Name: "npm-detector", Enabled: true, Origin: sdk.CoreOrigin, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		descriptor: DetectorDescriptor{Name: "npm-detector", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 		result:     ResolveGraphResult{Graphs: SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 	registry.registerMatcher(fakeMatcher{
-		name:    "license-matcher",
-		enabled: true,
+		name: "license-matcher",
 		run: func(reg *sdk.PackageRegistry) {
 			pkg := reg.Ensure(dep.PURL)
 			pkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
 		},
 	})
 	registry.registerAuditor(fakeAuditor{
-		descriptor: AuditorDescriptor{Name: "severity-policy", Enabled: true},
+		descriptor: AuditorDescriptor{Name: "severity-policy"},
 		run: func(req AuditRequest) AuditResult {
 			if req.Target == nil || req.Target.ID != dep.ID {
 				t.Fatalf("expected component target %q, got %#v", dep.ID, req.Target)
@@ -742,7 +727,7 @@ func TestPipeline_RunExplain_ReturnsNotFoundWhenQueryIsAbsent(t *testing.T) {
 		t.Fatalf("add package: %v", err)
 	}
 	registry.registerDetector(fakeDetector{
-		descriptor: DetectorDescriptor{Name: "npm-detector", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		descriptor: DetectorDescriptor{Name: "npm-detector", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 		result:     ResolveGraphResult{Graphs: SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 
@@ -764,7 +749,7 @@ func TestPipeline_RunExplain_ReturnsNotFoundWhenQueryIsAbsent(t *testing.T) {
 func TestPipeline_RunExplain_UsesScopedDetectionResult(t *testing.T) {
 	registry := newTestRegistry()
 	registry.registerDetector(fakeDetector{
-		descriptor: DetectorDescriptor{Name: "npm-detector", Enabled: true, Origin: sdk.CoreOrigin, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		descriptor: DetectorDescriptor{Name: "npm-detector", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 		result:     ResolveGraphResult{Graphs: SingleGraphContainer(scopedTestGraph(t), sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 
@@ -802,8 +787,7 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 	registry := newTestRegistry()
 	const reactPURL = "pkg:npm/react@18.2.0"
 	registry.registerMatcher(fakeMatcher{
-		name:    "license-matcher",
-		enabled: true,
+		name: "license-matcher",
 		run: func(reg *sdk.PackageRegistry) {
 			pkg := reg.Ensure(reactPURL)
 			pkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
@@ -860,11 +844,11 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 	}
 
 	registry.registerDetector(fakeDetector{
-		descriptor: DetectorDescriptor{Name: "npm-detector", Enabled: true, Origin: sdk.CoreOrigin, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		descriptor: DetectorDescriptor{Name: "npm-detector", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 		result:     ResolveGraphResult{Graphs: SingleGraphContainer(nativeGraph, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"})},
 	})
 	registry.registerDetector(fakeDetector{
-		descriptor: DetectorDescriptor{Name: "sbom-detector", Enabled: true, Origin: sdk.CoreOrigin, SupportedEcosystems: []Ecosystem{EcosystemSBOM}, SupportedManagers: []PackageManager{PackageManagerSBOM}},
+		descriptor: DetectorDescriptor{Name: "sbom-detector", SupportedEcosystems: []Ecosystem{EcosystemSBOM}, SupportedManagers: []PackageManager{PackageManagerSBOM}},
 		result:     ResolveGraphResult{Graphs: SingleGraphContainer(sbomGraph, sdk.ManifestMetadata{Path: "app.spdx.json", Kind: "spdx"})},
 	})
 
@@ -919,8 +903,8 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 
 func TestRegistry_Detectors_RespectsFilter(t *testing.T) {
 	registry := newTestRegistry()
-	registry.registerDetector(fakeDetector{descriptor: DetectorDescriptor{Name: "npm-native", Enabled: true, SupportedManagers: []PackageManager{PackageManagerNPM}}})
-	registry.registerDetector(fakeDetector{descriptor: DetectorDescriptor{Name: "syft-detector", Enabled: true, SupportedManagers: []PackageManager{PackageManagerNPM}}})
+	registry.registerDetector(fakeDetector{descriptor: DetectorDescriptor{Name: "npm-native", SupportedManagers: []PackageManager{PackageManagerNPM}}})
+	registry.registerDetector(fakeDetector{descriptor: DetectorDescriptor{Name: "syft-detector", SupportedManagers: []PackageManager{PackageManagerNPM}}})
 
 	detectors := registry.Detectors(ResolveGraphRequest{
 		PackageManager: PackageManagerNPM,

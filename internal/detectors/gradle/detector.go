@@ -69,8 +69,6 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
 		Name:                 detectors.NameGradle,
-		Enabled:              true,
-		Origin:               sdk.CoreOrigin,
 		Technique:            sdk.BuildToolTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemMaven},
 		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerGradle},

@@ -59,8 +59,6 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
 		Name:                detectors.NameSBT,
-		Enabled:             true,
-		Origin:              sdk.CoreOrigin,
 		Technique:           sdk.ManifestTechnique,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemScala, sdk.EcosystemMaven},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerSBT},

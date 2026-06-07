@@ -59,8 +59,6 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
 		Name:                detectors.NameCocoaPods,
-		Enabled:             true,
-		Origin:              sdk.CoreOrigin,
 		Technique:           sdk.LockfileTechnique,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemSwift},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerCocoaPods},

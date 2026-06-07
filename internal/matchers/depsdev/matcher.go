@@ -132,9 +132,6 @@ func (c *Checker) Descriptor() sdk.MatcherDescriptor {
 		Name:        "depsdev-license-matcher",
 		DisplayName: "deps.dev License Matcher",
 		Aliases:     []string{"deps.dev"},
-		Enabled:     true,
-		Origin:      sdk.CoreOrigin,
-		Required:    false,
 		Tags:        []string{"license-enrichment", "batch-http"},
 	}
 }

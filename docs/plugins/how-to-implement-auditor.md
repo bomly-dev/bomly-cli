@@ -21,17 +21,13 @@ const pluginID = "bomly.examples.auditor.meme-deps"
 
 type auditor struct{}
 
-func (a *auditor) Metadata(context.Context) (*sdk.PluginMetadata, error) {
-    return &sdk.PluginMetadata{
-        ID:               pluginID,
-        Kind:             sdk.PluginKindAuditor,
-        PluginAPIVersion: sdk.PluginAPIVersion,
-    }, nil
-}
 
 func (a *auditor) Descriptor(context.Context) (*sdk.AuditorDescriptor, error) {
     return &sdk.AuditorDescriptor{
-        Name: pluginID,
+        Name:        pluginID,
+        DisplayName: "Meme Dependency Auditor",
+        Aliases:     []string{"meme-deps"},
+        Tags:        []string{"policy", "meme"},
     }, nil
 }
 
@@ -69,8 +65,7 @@ The working example repo is [bomly-plugin-meme-auditor](https://github.com/bomly
 
 ## What Each Hook Does
 
-- `Metadata` returns the runtime identity: ID, kind, and plugin API version. Package fields such as version and homepage belong in `bomly-plugin.json`.
-- `Descriptor` describes the auditor registration. Bomly infers external origin and enabled state for installed plugins.
+- `Descriptor` describes the component identity, display name, aliases, tags, and support.
 - `Ready` reports whether the plugin can run in the current environment.
 - `Applicable` reports whether the auditor should run for the current request.
 - `Audit` reads `sdk.AuditRequest` and returns findings, risk scores, and run metadata.
@@ -144,15 +139,16 @@ bomly plugin install ./bin/bomly-plugin-meme-auditor --dev
 bomly plugin enable bomly.examples.auditor.meme-deps
 ```
 
-For distribution, package a `bomly-plugin.json` manifest with the binary:
+For distribution, package a package-only `bomly-plugin.json` manifest with the binary:
 
 ```text
 bomly-plugin.json
 bin/
   bomly-plugin-meme-auditor
 README.md
-LICENSE
 ```
+
+The manifest contains package and install fields only. Bomly probes the binary at install time, verifies `descriptor.name == manifest.id`, and writes its own internal descriptor snapshot for plugin list, selectors, verification, and runtime registration.
 
 ## Test It
 
@@ -178,7 +174,6 @@ bomly scan --path ./my-project --audit --auditors +bomly.examples.auditor.meme-d
 
 ## Implementation Checklist
 
-- Return stable `PluginMetadata` and keep it in sync with the manifest.
 - Read `req.Graph` and `req.Registry`; emit reference-style findings.
 - Return `AuditorRuns` with the auditor ID.
 - Use actionable finding summaries and dispositions.

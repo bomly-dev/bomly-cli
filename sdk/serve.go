@@ -19,7 +19,6 @@ const pluginName = "bomly"
 
 // ServedDetector is the detector interface exposed to external plugin authors.
 type ServedDetector interface {
-	Metadata(context.Context) (*PluginMetadata, error)
 	Descriptor(context.Context) (*DetectorDescriptor, error)
 	PackageManagerSupport(context.Context) ([]PackageManagerSupport, error)
 	Ready(context.Context, *DetectRequest) (*ReadyResponse, error)
@@ -34,7 +33,6 @@ type DetectorInstaller interface {
 
 // ServedMatcher is the matcher interface exposed to external plugin authors.
 type ServedMatcher interface {
-	Metadata(context.Context) (*PluginMetadata, error)
 	Descriptor(context.Context) (*MatcherDescriptor, error)
 	Ready(context.Context, *MatchRequest) (*ReadyResponse, error)
 	Applicable(context.Context, *MatchRequest) (*ApplicableResponse, error)
@@ -43,7 +41,6 @@ type ServedMatcher interface {
 
 // ServedAuditor is the auditor interface exposed to external plugin authors.
 type ServedAuditor interface {
-	Metadata(context.Context) (*PluginMetadata, error)
 	Descriptor(context.Context) (*AuditorDescriptor, error)
 	Ready(context.Context, *AuditRequest) (*ReadyResponse, error)
 	Applicable(context.Context, *AuditRequest) (*ApplicableResponse, error)
@@ -52,7 +49,6 @@ type ServedAuditor interface {
 
 // Client is the generic runtime client used by Bomly core.
 type Client interface {
-	Metadata(context.Context) (*PluginMetadata, error)
 	DetectorDescriptor(context.Context) (*DetectorDescriptor, error)
 	DetectorPackageManagerSupport(context.Context) ([]PackageManagerSupport, error)
 	DetectorReady(context.Context, *DetectRequest) (*ReadyResponse, error)
@@ -137,7 +133,6 @@ type serviceServer struct {
 }
 
 type pluginServiceServer interface {
-	Metadata(context.Context, *emptypb.Empty) (*wrapperspb.BytesValue, error)
 	DetectorDescriptor(context.Context, *emptypb.Empty) (*wrapperspb.BytesValue, error)
 	DetectorPackageManagerSupport(context.Context, *emptypb.Empty) (*wrapperspb.BytesValue, error)
 	DetectorReady(context.Context, *wrapperspb.BytesValue) (*wrapperspb.BytesValue, error)
@@ -152,34 +147,6 @@ type pluginServiceServer interface {
 	AuditorReady(context.Context, *wrapperspb.BytesValue) (*wrapperspb.BytesValue, error)
 	AuditorApplicable(context.Context, *wrapperspb.BytesValue) (*wrapperspb.BytesValue, error)
 	Audit(context.Context, *wrapperspb.BytesValue) (*wrapperspb.BytesValue, error)
-}
-
-func (s *serviceServer) Metadata(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.BytesValue, error) {
-	var (
-		metadata *PluginMetadata
-		err      error
-	)
-	switch {
-	case s.detector != nil:
-		metadata, err = s.detector.Metadata(ctx)
-	case s.matcher != nil:
-		metadata, err = s.matcher.Metadata(ctx)
-	case s.auditor != nil:
-		metadata, err = s.auditor.Metadata(ctx)
-	default:
-		return nil, status.Error(codes.Unimplemented, "plugin metadata unavailable")
-	}
-	if err != nil {
-		return nil, err
-	}
-	if err := ValidateMetadata(metadata); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid plugin metadata: %v", err)
-	}
-	data, err := json.Marshal(metadata)
-	if err != nil {
-		return nil, fmt.Errorf("marshal response: %w", err)
-	}
-	return wrapperspb.Bytes(data), nil
 }
 
 func (s *serviceServer) DetectorDescriptor(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.BytesValue, error) {
@@ -393,14 +360,6 @@ type serviceClient struct {
 	conn grpc.ClientConnInterface
 }
 
-func (c *serviceClient) Metadata(ctx context.Context) (*PluginMetadata, error) {
-	out := new(wrapperspb.BytesValue)
-	if err := c.conn.Invoke(ctx, "/bomly.plugin.v1.Plugin/Metadata", &emptypb.Empty{}, out); err != nil {
-		return nil, err
-	}
-	return unmarshalBytes[PluginMetadata](out.Value)
-}
-
 func (c *serviceClient) DetectorDescriptor(ctx context.Context) (*DetectorDescriptor, error) {
 	out := new(wrapperspb.BytesValue)
 	if err := c.conn.Invoke(ctx, "/bomly.plugin.v1.Plugin/DetectorDescriptor", &emptypb.Empty{}, out); err != nil {
@@ -482,7 +441,6 @@ func registerPluginService(server *grpc.Server, impl *serviceServer) {
 		ServiceName: "bomly.plugin.v1.Plugin",
 		HandlerType: (*pluginServiceServer)(nil),
 		Methods: []grpc.MethodDesc{
-			{MethodName: "Metadata", Handler: metadataHandler},
 			{MethodName: "DetectorDescriptor", Handler: detectorDescriptorHandler},
 			{MethodName: "DetectorPackageManagerSupport", Handler: detectorPackageManagerSupportHandler},
 			{MethodName: "DetectorReady", Handler: detectorReadyHandler},
@@ -499,20 +457,6 @@ func registerPluginService(server *grpc.Server, impl *serviceServer) {
 			{MethodName: "Audit", Handler: auditHandler},
 		},
 	}, impl)
-}
-
-func metadataHandler(srv interface{}, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	method := func(ctx context.Context, req any) (any, error) {
-		return srv.(*serviceServer).Metadata(ctx, req.(*emptypb.Empty))
-	}
-	if interceptor == nil {
-		return method(ctx, in)
-	}
-	return interceptor(ctx, in, &grpc.UnaryServerInfo{Server: srv, FullMethod: "/bomly.plugin.v1.Plugin/Metadata"}, method)
 }
 
 func detectHandler(srv interface{}, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {

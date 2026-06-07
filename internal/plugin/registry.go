@@ -12,6 +12,7 @@ import (
 
 type registryWriter interface {
 	RegisterDetector(sdk.Detector)
+	RegisterDetectorWithOptions(sdk.Detector, registry.ComponentOptions)
 	RegisterMatcher(sdk.Matcher)
 	RegisterAuditor(sdk.Auditor)
 	RegisterDetectorDiscoveryPlan(string, registry.DetectorDiscoveryPlan)
@@ -33,8 +34,8 @@ func RegisterRuntimePlugins(ctx context.Context, reg registryWriter, root string
 	for _, info := range infos {
 		switch info.Kind {
 		case sdk.PluginKindDetector:
-			reg.RegisterDetector(newExternalDetector(info, ctx))
-			if plan, ok := detectorDiscoveryPlan(info.Manifest); ok {
+			reg.RegisterDetectorWithOptions(newExternalDetector(info, ctx), registry.ComponentOptions{DefaultEnabled: true, Origin: sdk.ExternalOrigin})
+			if plan, ok := detectorDiscoveryPlan(info); ok {
 				reg.RegisterDetectorDiscoveryPlan(info.ID, plan)
 			}
 		case sdk.PluginKindMatcher:
@@ -51,18 +52,11 @@ type externalDetector struct {
 	launchCtx context.Context
 }
 
-func (d externalDetector) Metadata(context.Context) (*sdk.PluginMetadata, error) {
-	return metadataFromPluginInfo(d.info), nil
-}
-
 func (d externalDetector) Descriptor() sdk.DetectorDescriptor {
 	if d.info.DetectorDescriptor == nil {
 		return sdk.DetectorDescriptor{}
 	}
-	desc := *cloneDetectorDescriptor(d.info.DetectorDescriptor)
-	desc.Enabled = true
-	desc.Origin = sdk.ExternalOrigin
-	return desc
+	return *cloneDetectorDescriptor(d.info.DetectorDescriptor)
 }
 
 func (d externalDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
@@ -140,18 +134,11 @@ type externalMatcher struct {
 	launchCtx context.Context
 }
 
-func (m externalMatcher) Metadata(context.Context) (*sdk.PluginMetadata, error) {
-	return metadataFromPluginInfo(m.info), nil
-}
-
 func (m externalMatcher) Descriptor() sdk.MatcherDescriptor {
 	if m.info.MatcherDescriptor == nil {
 		return sdk.MatcherDescriptor{}
 	}
-	desc := *cloneMatcherDescriptor(m.info.MatcherDescriptor)
-	desc.Enabled = true
-	desc.Origin = sdk.ExternalOrigin
-	return desc
+	return *cloneMatcherDescriptor(m.info.MatcherDescriptor)
 }
 
 func (m externalMatcher) Ready() bool {
@@ -206,18 +193,11 @@ type externalAuditor struct {
 	launchCtx context.Context
 }
 
-func (a externalAuditor) Metadata(context.Context) (*sdk.PluginMetadata, error) {
-	return metadataFromPluginInfo(a.info), nil
-}
-
 func (a externalAuditor) Descriptor() sdk.AuditorDescriptor {
 	if a.info.AuditorDescriptor == nil {
 		return sdk.AuditorDescriptor{}
 	}
-	desc := *cloneAuditorDescriptor(a.info.AuditorDescriptor)
-	desc.Enabled = true
-	desc.Origin = sdk.ExternalOrigin
-	return desc
+	return *cloneAuditorDescriptor(a.info.AuditorDescriptor)
 }
 
 func (a externalAuditor) Ready() bool {
@@ -274,12 +254,4 @@ func launchContext(ctx context.Context, fallback context.Context) context.Contex
 		return WithLaunchOptions(ctx, options)
 	}
 	return WithLaunchOptions(ctx, LaunchOptions{})
-}
-
-func metadataFromPluginInfo(info PluginInfo) *sdk.PluginMetadata {
-	return &sdk.PluginMetadata{
-		ID:               info.ID,
-		Kind:             info.Kind,
-		PluginAPIVersion: info.PluginAPIVersion,
-	}
 }

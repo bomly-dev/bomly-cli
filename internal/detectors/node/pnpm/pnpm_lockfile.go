@@ -47,8 +47,6 @@ func (d LockfileDetector) Applicable(ctx context.Context, req sdk.DetectionReque
 func (d LockfileDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
 		Name:                 detectors.NamePNPM,
-		Enabled:              true,
-		Origin:               sdk.CoreOrigin,
 		Technique:            sdk.LockfileTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemNPM},
 		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerPNPM},

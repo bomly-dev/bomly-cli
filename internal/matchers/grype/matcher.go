@@ -39,10 +39,7 @@ func (a Matcher) Descriptor() sdk.MatcherDescriptor {
 	return sdk.MatcherDescriptor{
 		Name:                matcherName,
 		DisplayName:         "Grype",
-		Enabled:             true,
-		Origin:              sdk.BundledOrigin,
 		SupportedEcosystems: nil, // nil = all ecosystems
-		Required:            false,
 	}
 }
 

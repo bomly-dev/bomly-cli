@@ -26,12 +26,9 @@ type MatcherDescriptor struct {
 	Name                string           `json:"name"`
 	DisplayName         string           `json:"displayName,omitempty"`
 	Aliases             []string         `json:"aliases,omitempty"`
-	Enabled             bool             `json:"enabled,omitempty"`
-	Origin              DetectorOrigin   `json:"origin,omitempty"`
+	Tags                []string         `json:"tags,omitempty"`
 	SupportedEcosystems []Ecosystem      `json:"supportedEcosystems,omitempty"`
 	SupportedManagers   []PackageManager `json:"supportedManagers,omitempty"`
-	Required            bool             `json:"required,omitempty"`
-	Tags                []string         `json:"tags,omitempty"`
 }
 
 // MatchRequest defines input for a matcher. Matchers enrich the package

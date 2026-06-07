@@ -258,11 +258,11 @@ Managed plugin installation is owned by Bomly rather than by the runtime library
 2. Validate checksums when required.
 3. Extract archives safely into a temp directory.
 4. Validate `bomly-plugin.json`.
-5. Start the plugin through the SDK/gRPC runtime and compare runtime metadata plus role descriptors with the manifest.
+5. Start the plugin through the SDK/gRPC runtime, fetch the role descriptor named by the manifest kind, require `descriptor.name == manifest.id`, and store Bomly's internal descriptor snapshot.
 6. Move the plugin into `~/.bomly/plugins/store/<id>/<version>`.
 7. Update `installed.json` atomically.
 
-The installer rejects archive path traversal, absolute paths, unsupported entrypoints, and incompatible runtime metadata.
+The installer rejects archive path traversal, absolute paths, unsupported entrypoints, incompatible manifests, and runtime descriptors that do not match the manifest identity.
 
 ## Plugin Selection
 

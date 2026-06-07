@@ -42,7 +42,6 @@ func TestInteractiveManifestRows_OnlyIncludesManifests(t *testing.T) {
 			Ecosystem:               sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       sdk.CoreOrigin,
 		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	rows := manifestRows(consolidated)
@@ -80,7 +79,6 @@ func TestInteractiveListModel_ViewIncludesDetails(t *testing.T) {
 			Ecosystem:               sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       sdk.CoreOrigin,
 		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
@@ -180,7 +178,6 @@ func TestNewScanInteractiveModel_ViewIncludesGraphSummary(t *testing.T) {
 			Ecosystem:               sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       sdk.CoreOrigin,
 		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
@@ -242,7 +239,6 @@ func TestScanInteractiveModel_MultiManifestNavigation(t *testing.T) {
 				Ecosystem:               sdk.EcosystemMaven,
 			},
 			DetectorName: "maven-detector",
-			Origin:       sdk.CoreOrigin,
 			Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r1, c1), sdk.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}),
 		},
 		{
@@ -254,7 +250,6 @@ func TestScanInteractiveModel_MultiManifestNavigation(t *testing.T) {
 				Ecosystem:               sdk.EcosystemNPM,
 			},
 			DetectorName: "npm-detector",
-			Origin:       sdk.CoreOrigin,
 			Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r2, c2), sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 		},
 	})
@@ -306,7 +301,6 @@ func TestScanInteractiveModel_SingleManifestAutoEntry_NoBackNavigation(t *testin
 			Ecosystem:               sdk.EcosystemMaven,
 		},
 		DetectorName: "maven-detector",
-		Origin:       sdk.CoreOrigin,
 		Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r1, c1), sdk.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
@@ -653,7 +647,6 @@ func TestScanInteractiveModel_FiltersAndScopeBadges(t *testing.T) {
 			Ecosystem:               sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       sdk.CoreOrigin,
 		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
@@ -710,7 +703,6 @@ func TestScanInteractiveModel_EcosystemFilterUpdatesComponents(t *testing.T) {
 			Ecosystem:               sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       sdk.CoreOrigin,
 		Technique:    sdk.LockfileTechnique,
 		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
@@ -749,7 +741,6 @@ func TestScanInteractiveModel_ManifestDetailsIncludeDetectorMetadata(t *testing.
 			Ecosystem:               sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       sdk.CoreOrigin,
 		Technique:    sdk.LockfileTechnique,
 		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
@@ -819,7 +810,6 @@ func TestScanInteractiveModel_UsesEnrichedVulnerabilitiesWithoutFindings(t *test
 			Ecosystem:               sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       sdk.CoreOrigin,
 		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
@@ -895,7 +885,6 @@ func TestScanInteractiveModel_VulnerabilityFilterKeepsGlobalSummaries(t *testing
 			Ecosystem:               sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       sdk.CoreOrigin,
 		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
@@ -952,7 +941,6 @@ func TestScanInteractiveModel_VulnerabilityFilterEmptyStateDistinguishesNoMatche
 			Ecosystem:               sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       sdk.CoreOrigin,
 		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
@@ -1163,7 +1151,6 @@ func newScanReachabilityFilterModel(t *testing.T, enabled bool) *scanModel {
 			Ecosystem:               sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       sdk.CoreOrigin,
 		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
@@ -1290,7 +1277,6 @@ func TestScanInteractiveModel_ComponentTreeExpandsSelectedNode(t *testing.T) {
 			Ecosystem:               sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       sdk.CoreOrigin,
 		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
@@ -1345,7 +1331,6 @@ func TestScanInteractiveModel_ComponentExpandCollapseAllProgressesByLayer(t *tes
 			Ecosystem:               sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       sdk.CoreOrigin,
 		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
@@ -1413,7 +1398,6 @@ func TestScanInteractiveModel_OverviewDashboardUsesBordersAndBars(t *testing.T) 
 			Ecosystem:               sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       sdk.CoreOrigin,
 		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
@@ -1571,7 +1555,6 @@ func TestBuildLicensesListModel_GroupsByUniqueLicense(t *testing.T) {
 			Ecosystem:               sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       sdk.CoreOrigin,
 		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()

@@ -21,18 +21,13 @@ const pluginID = "bomly.examples.detector.bun-lock"
 
 type detector struct{}
 
-func (d *detector) Metadata(context.Context) (*sdk.PluginMetadata, error) {
-    return &sdk.PluginMetadata{
-        ID:               pluginID,
-        Kind:             sdk.PluginKindDetector,
-        PluginAPIVersion: sdk.PluginAPIVersion,
-    }, nil
-}
 
 func (d *detector) Descriptor(context.Context) (*sdk.DetectorDescriptor, error) {
     return &sdk.DetectorDescriptor{
-        Name: pluginID,
-        Tags: []string{"dependency-detection", "bun"},
+        Name:        pluginID,
+        DisplayName: "Bun Lock Detector",
+        Aliases:     []string{"bun-lock"},
+        Tags:        []string{"dependency-detection", "bun"},
     }, nil
 }
 
@@ -83,8 +78,7 @@ The working example repo is [bomly-plugin-bun-lock-detector](https://github.com/
 
 ## What Each Hook Does
 
-- `Metadata` returns the runtime identity: ID, kind, and plugin API version. Package fields such as version and homepage belong in `bomly-plugin.json`.
-- `Descriptor` describes the detector registration. Bomly infers external origin and enabled state for installed plugins.
+- `Descriptor` describes the component identity, display name, aliases, tags, support, and detector behavior.
 - `PackageManagerSupport` tells Bomly which package managers and evidence patterns can plan this detector.
 - `Ready` reports whether the plugin can run in the current environment.
 - `Applicable` reports whether the plugin should run for the current request.
@@ -130,17 +124,16 @@ bomly plugin install ./bin/bomly-plugin-bun-lock-detector --dev
 bomly plugin enable bomly.examples.detector.bun-lock
 ```
 
-For distribution, package a `bomly-plugin.json` manifest with the binary:
+For distribution, package a package-only `bomly-plugin.json` manifest with the binary:
 
 ```text
 bomly-plugin.json
 bin/
-  security-team-gomod-detector
+  bomly-plugin-bun-lock-detector
 README.md
-LICENSE
 ```
 
-The detector manifest must include `detectorDescriptor.packageManagerSupport`; Bomly uses it for subproject discovery and scan planning.
+The manifest contains package and install fields only: ID, kind, version, runtime, API version, Bomly version constraint, entrypoint, source, homepage, description, and license. Bomly probes the binary at install time, verifies `descriptor.name == manifest.id`, and writes its own internal descriptor snapshot for plugin list, selectors, verification, and runtime registration.
 
 ## Test It
 
@@ -166,7 +159,6 @@ bomly scan --path ./my-project --detectors +bomly.examples.detector.bun-lock
 
 ## Implementation Checklist
 
-- Return stable `PluginMetadata` and keep it in sync with the manifest.
 - Declare accurate package-manager support and evidence patterns.
 - Wrap errors with useful context.
 - Avoid panics in normal flow.

@@ -41,24 +41,29 @@ func Verify(ctx context.Context, root, id string) (*VerifyResult, error) {
 		}
 		checks = append(checks, "checksum matches")
 	}
-	metadata, err := fetchRuntimeMetadata(ctx, fullEntrypoint, manifest.ID)
+	installedSnapshot, err := readRuntimeSnapshot(record.Path)
 	if err != nil {
 		return nil, err
 	}
-	detectorDescriptor, packageManagerSupport, matcherDescriptor, auditorDescriptor, err := fetchRuntimeDescriptors(ctx, fullEntrypoint, metadata.Kind, metadata.ID)
+	liveSnapshot, err := fetchRuntimeSnapshot(ctx, fullEntrypoint, manifest.Kind, manifest.ID)
 	if err != nil {
 		return nil, err
 	}
-	if err := runtimeMetadataMatchesManifest(metadata, detectorDescriptor, packageManagerSupport, matcherDescriptor, auditorDescriptor, manifest); err != nil {
+	if err := runtimeSnapshotMatchesManifest(liveSnapshot, manifest); err != nil {
 		return nil, err
 	}
-	checks = append(checks, "runtime metadata matches manifest", "plugin API version compatible")
+	if err := runtimeSnapshotMatchesSnapshot(liveSnapshot, installedSnapshot); err != nil {
+		return nil, err
+	}
+	checks = append(checks, "runtime descriptor matches installed snapshot", "plugin API version compatible")
 	return &VerifyResult{
 		PluginInfo: PluginInfo{
-			Manifest:   manifest,
-			Installed:  record,
-			Enabled:    record.Enabled,
-			Entrypoint: fullEntrypoint,
+			Manifest:           manifest,
+			DetectorDescriptor: installedSnapshot.DetectorDescriptor,
+			MatcherDescriptor:  installedSnapshot.MatcherDescriptor,
+			AuditorDescriptor:  installedSnapshot.AuditorDescriptor,
+			Installed:          record,
+			Entrypoint:         fullEntrypoint,
 		},
 		Checks: checks,
 	}, nil

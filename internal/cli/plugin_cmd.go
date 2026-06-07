@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"slices"
 	"sort"
 	"strings"
 
@@ -341,7 +342,7 @@ func newPluginVerifyCmd() *cobra.Command {
 	var jsonOutput bool
 	cmd := &cobra.Command{
 		Use:   "verify <id>",
-		Short: "Verify an installed plugin manifest, binary, checksum, and runtime metadata",
+		Short: "Verify an installed plugin manifest, binary, checksum, and runtime descriptor",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options, err := commandOptions(cmd)
@@ -515,8 +516,7 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 		d := descriptor
 		detectorByName[d.Name] = d
 		registeredNames[d.Name] = struct{}{}
-		metadata := builtInMetadata(d.Name, plugschema.PluginKindDetector)
-		info := detectorPluginInfo(metadata, &d, coreVersion, d.Enabled)
+		info := detectorPluginInfo(&d, coreVersion, reg.DefaultEnabledDetectorNames(), string(reg.DetectorOrigin(d.Name)))
 		if det, ok := detectorInstances[d.Name]; ok {
 			det := det
 			info.ReadyFn = func(_ context.Context) (bool, string, error) {
@@ -541,8 +541,7 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 	sort.Strings(additionalNames)
 	for _, name := range additionalNames {
 		d := detectorByName[name]
-		metadata := builtInMetadata(d.Name, plugschema.PluginKindDetector)
-		info := detectorPluginInfo(metadata, &d, coreVersion, d.Enabled)
+		info := detectorPluginInfo(&d, coreVersion, reg.DefaultEnabledDetectorNames(), string(reg.DetectorOrigin(d.Name)))
 		if det, ok := detectorInstances[d.Name]; ok {
 			det := det
 			info.ReadyFn = func(_ context.Context) (bool, string, error) {
@@ -554,8 +553,7 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 
 	for _, descriptor := range reg.MatcherDescriptors() {
 		d := descriptor
-		metadata := builtInMetadata(d.Name, plugschema.PluginKindMatcher)
-		info := matcherPluginInfo(metadata, &d, coreVersion, d.Enabled)
+		info := matcherPluginInfo(&d, coreVersion, reg.DefaultEnabledMatcherNames())
 		if m, ok := matcherInstances[d.Name]; ok {
 			m := m
 			info.ReadyFn = func(_ context.Context) (bool, string, error) {
@@ -566,8 +564,7 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 	}
 	for _, descriptor := range reg.AuditorDescriptors() {
 		d := descriptor
-		metadata := builtInMetadata(d.Name, plugschema.PluginKindAuditor)
-		info := auditorPluginInfo(metadata, &d, coreVersion, d.Enabled)
+		info := auditorPluginInfo(&d, coreVersion, reg.DefaultEnabledAuditorNames())
 		if a, ok := auditorInstances[d.Name]; ok {
 			a := a
 			info.ReadyFn = func(_ context.Context) (bool, string, error) {
@@ -578,8 +575,7 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 	}
 	for _, descriptor := range reg.AnalyzerDescriptors() {
 		d := descriptor
-		metadata := builtInMetadata(d.Name, plugschema.PluginKindAnalyzer)
-		info := analyzerPluginInfo(metadata, &d, coreVersion, d.Enabled)
+		info := analyzerPluginInfo(&d, coreVersion, reg.DefaultEnabledAnalyzerNames())
 		if a, ok := analyzerInstances[d.Name]; ok {
 			a := a
 			info.ReadyFn = func(_ context.Context) (bool, string, error) {
@@ -616,14 +612,6 @@ func collectDetectorInstances(primaries []plugschema.Detector) map[string]plugsc
 	return out
 }
 
-func builtInMetadata(id string, kind plugschema.PluginKind) *plugschema.PluginMetadata {
-	return &plugschema.PluginMetadata{
-		ID:               id,
-		Kind:             kind,
-		PluginAPIVersion: plugschema.PluginAPIVersion,
-	}
-}
-
 func collectFallbackDetectorDescriptors(
 	detector plugschema.Detector,
 	detectorByName map[string]plugschema.DetectorDescriptor,
@@ -657,75 +645,75 @@ func collectFallbackDetectorDescriptors(
 	collectFallbackDetectorDescriptors(fallback, detectorByName, seen)
 }
 
-func detectorPluginInfo(metadata *plugschema.PluginMetadata, descriptor *plugschema.DetectorDescriptor, coreVersion string, enabled bool) managedplugin.PluginInfo {
+func detectorPluginInfo(descriptor *plugschema.DetectorDescriptor, coreVersion string, defaultEnabled []string, sourceType string) managedplugin.PluginInfo {
 	return managedplugin.PluginInfo{
 		Manifest: managedplugin.Manifest{
-			SchemaVersion:      plugschema.PackageManifestSchemaVersion,
-			ID:                 metadata.ID,
-			Name:               metadata.ID,
-			Version:            nonEmptyString(coreVersion, "unknown"),
-			Kind:               metadata.Kind,
-			Runtime:            "builtin",
-			PluginAPIVersion:   plugschema.PluginAPIVersion,
-			DetectorDescriptor: cloneDetectorDescriptor(descriptor),
+			SchemaVersion:    plugschema.PackageManifestSchemaVersion,
+			ID:               descriptor.Name,
+			Name:             descriptor.Name,
+			Version:          nonEmptyString(coreVersion, "unknown"),
+			Kind:             plugschema.PluginKindDetector,
+			Runtime:          "builtin",
+			PluginAPIVersion: plugschema.PluginAPIVersion,
 		},
-		BuiltIn:    true,
-		Enabled:    enabled,
-		SourceType: string(descriptor.Origin),
+		DetectorDescriptor: cloneDetectorDescriptor(descriptor),
+		BuiltIn:            true,
+		Enabled:            slices.Contains(defaultEnabled, descriptor.Name),
+		SourceType:         sourceType,
 	}
 }
 
-func matcherPluginInfo(metadata *plugschema.PluginMetadata, descriptor *plugschema.MatcherDescriptor, coreVersion string, enabled bool) managedplugin.PluginInfo {
+func matcherPluginInfo(descriptor *plugschema.MatcherDescriptor, coreVersion string, defaultEnabled []string) managedplugin.PluginInfo {
 	return managedplugin.PluginInfo{
 		Manifest: managedplugin.Manifest{
-			SchemaVersion:     plugschema.PackageManifestSchemaVersion,
-			ID:                metadata.ID,
-			Name:              metadata.ID,
-			Version:           nonEmptyString(coreVersion, "unknown"),
-			Kind:              metadata.Kind,
-			Runtime:           "builtin",
-			PluginAPIVersion:  plugschema.PluginAPIVersion,
-			MatcherDescriptor: cloneMatcherDescriptor(descriptor),
+			SchemaVersion:    plugschema.PackageManifestSchemaVersion,
+			ID:               descriptor.Name,
+			Name:             descriptor.Name,
+			Version:          nonEmptyString(coreVersion, "unknown"),
+			Kind:             plugschema.PluginKindMatcher,
+			Runtime:          "builtin",
+			PluginAPIVersion: plugschema.PluginAPIVersion,
 		},
-		BuiltIn:    true,
-		Enabled:    enabled,
-		SourceType: string(descriptor.Origin),
+		MatcherDescriptor: cloneMatcherDescriptor(descriptor),
+		BuiltIn:           true,
+		Enabled:           slices.Contains(defaultEnabled, descriptor.Name),
+		SourceType:        "builtin",
 	}
 }
 
-func auditorPluginInfo(metadata *plugschema.PluginMetadata, descriptor *plugschema.AuditorDescriptor, coreVersion string, enabled bool) managedplugin.PluginInfo {
+func auditorPluginInfo(descriptor *plugschema.AuditorDescriptor, coreVersion string, defaultEnabled []string) managedplugin.PluginInfo {
 	return managedplugin.PluginInfo{
 		Manifest: managedplugin.Manifest{
-			SchemaVersion:     plugschema.PackageManifestSchemaVersion,
-			ID:                metadata.ID,
-			Name:              metadata.ID,
-			Version:           nonEmptyString(coreVersion, "unknown"),
-			Kind:              metadata.Kind,
-			Runtime:           "builtin",
-			PluginAPIVersion:  plugschema.PluginAPIVersion,
-			AuditorDescriptor: cloneAuditorDescriptor(descriptor),
+			SchemaVersion:    plugschema.PackageManifestSchemaVersion,
+			ID:               descriptor.Name,
+			Name:             descriptor.Name,
+			Version:          nonEmptyString(coreVersion, "unknown"),
+			Kind:             plugschema.PluginKindAuditor,
+			Runtime:          "builtin",
+			PluginAPIVersion: plugschema.PluginAPIVersion,
 		},
-		BuiltIn:    true,
-		Enabled:    enabled,
-		SourceType: string(descriptor.Origin),
+		AuditorDescriptor: cloneAuditorDescriptor(descriptor),
+		BuiltIn:           true,
+		Enabled:           slices.Contains(defaultEnabled, descriptor.Name),
+		SourceType:        "builtin",
 	}
 }
 
-func analyzerPluginInfo(metadata *plugschema.PluginMetadata, descriptor *plugschema.AnalyzerDescriptor, coreVersion string, enabled bool) managedplugin.PluginInfo {
+func analyzerPluginInfo(descriptor *plugschema.AnalyzerDescriptor, coreVersion string, defaultEnabled []string) managedplugin.PluginInfo {
 	return managedplugin.PluginInfo{
 		Manifest: managedplugin.Manifest{
-			SchemaVersion:      plugschema.PackageManifestSchemaVersion,
-			ID:                 metadata.ID,
-			Name:               metadata.ID,
-			Version:            nonEmptyString(coreVersion, "unknown"),
-			Kind:               metadata.Kind,
-			Runtime:            "builtin",
-			PluginAPIVersion:   plugschema.PluginAPIVersion,
-			AnalyzerDescriptor: cloneAnalyzerDescriptor(descriptor),
+			SchemaVersion:    plugschema.PackageManifestSchemaVersion,
+			ID:               descriptor.Name,
+			Name:             descriptor.Name,
+			Version:          nonEmptyString(coreVersion, "unknown"),
+			Kind:             plugschema.PluginKindAnalyzer,
+			Runtime:          "builtin",
+			PluginAPIVersion: plugschema.PluginAPIVersion,
 		},
-		BuiltIn:    true,
-		Enabled:    enabled,
-		SourceType: string(descriptor.Origin),
+		AnalyzerDescriptor: cloneAnalyzerDescriptor(descriptor),
+		BuiltIn:            true,
+		Enabled:            slices.Contains(defaultEnabled, descriptor.Name),
+		SourceType:         "builtin",
 	}
 }
 
@@ -832,6 +820,12 @@ func renderPluginInfo(w io.Writer, info managedplugin.PluginInfo) error {
 		{"Version", info.Version},
 		{"Runtime", info.Runtime},
 	}
+	if displayName := pluginInfoDisplayName(info); displayName != "" {
+		lines = append(lines, [2]string{"Display Name", displayName})
+	}
+	if aliases := pluginInfoAliases(info); len(aliases) > 0 {
+		lines = append(lines, [2]string{"Aliases", strings.Join(aliases, ", ")})
+	}
 	if ecosystems := pluginInfoEcosystems(info); len(ecosystems) > 0 {
 		lines = append(lines, [2]string{"Ecosystems", joinEcosystems(ecosystems)})
 	}
@@ -841,8 +835,8 @@ func renderPluginInfo(w io.Writer, info managedplugin.PluginInfo) error {
 	if languages := pluginInfoLanguages(info); len(languages) > 0 {
 		lines = append(lines, [2]string{"Languages", joinLanguages(languages)})
 	}
-	if features := pluginInfoFeatures(info); len(features) > 0 {
-		lines = append(lines, [2]string{"Features", strings.Join(features, ", ")})
+	if tags := pluginInfoTags(info); len(tags) > 0 {
+		lines = append(lines, [2]string{"Tags", strings.Join(tags, ", ")})
 	}
 	if info.Description != "" {
 		lines = append(lines, [2]string{"Description", info.Description})
@@ -924,7 +918,7 @@ func pluginInfoLanguages(info managedplugin.PluginInfo) []plugschema.Language {
 	return nil
 }
 
-func pluginInfoFeatures(info managedplugin.PluginInfo) []string {
+func pluginInfoTags(info managedplugin.PluginInfo) []string {
 	switch info.Kind {
 	case plugschema.PluginKindDetector:
 		if info.DetectorDescriptor != nil {
@@ -933,6 +927,58 @@ func pluginInfoFeatures(info managedplugin.PluginInfo) []string {
 	case plugschema.PluginKindMatcher:
 		if info.MatcherDescriptor != nil {
 			return append([]string(nil), info.MatcherDescriptor.Tags...)
+		}
+	case plugschema.PluginKindAuditor:
+		if info.AuditorDescriptor != nil {
+			return append([]string(nil), info.AuditorDescriptor.Tags...)
+		}
+	case plugschema.PluginKindAnalyzer:
+		if info.AnalyzerDescriptor != nil {
+			return append([]string(nil), info.AnalyzerDescriptor.Tags...)
+		}
+	}
+	return nil
+}
+
+func pluginInfoDisplayName(info managedplugin.PluginInfo) string {
+	switch info.Kind {
+	case plugschema.PluginKindDetector:
+		if info.DetectorDescriptor != nil {
+			return strings.TrimSpace(info.DetectorDescriptor.DisplayName)
+		}
+	case plugschema.PluginKindMatcher:
+		if info.MatcherDescriptor != nil {
+			return strings.TrimSpace(info.MatcherDescriptor.DisplayName)
+		}
+	case plugschema.PluginKindAuditor:
+		if info.AuditorDescriptor != nil {
+			return strings.TrimSpace(info.AuditorDescriptor.DisplayName)
+		}
+	case plugschema.PluginKindAnalyzer:
+		if info.AnalyzerDescriptor != nil {
+			return strings.TrimSpace(info.AnalyzerDescriptor.DisplayName)
+		}
+	}
+	return ""
+}
+
+func pluginInfoAliases(info managedplugin.PluginInfo) []string {
+	switch info.Kind {
+	case plugschema.PluginKindDetector:
+		if info.DetectorDescriptor != nil {
+			return cleanStrings(info.DetectorDescriptor.Aliases)
+		}
+	case plugschema.PluginKindMatcher:
+		if info.MatcherDescriptor != nil {
+			return cleanStrings(info.MatcherDescriptor.Aliases)
+		}
+	case plugschema.PluginKindAuditor:
+		if info.AuditorDescriptor != nil {
+			return cleanStrings(info.AuditorDescriptor.Aliases)
+		}
+	case plugschema.PluginKindAnalyzer:
+		if info.AnalyzerDescriptor != nil {
+			return cleanStrings(info.AnalyzerDescriptor.Aliases)
 		}
 	}
 	return nil
@@ -1203,6 +1249,9 @@ func wrapPluginListTableCell(value string, width int) []string {
 }
 
 func pluginListName(info managedplugin.PluginInfo) string {
+	if displayName := pluginInfoDisplayName(info); displayName != "" {
+		return fmt.Sprintf("%s (%s)", displayName, info.ID)
+	}
 	return nonEmptyString(info.Name, info.ID)
 }
 
@@ -1215,6 +1264,24 @@ func summarizePluginListValue(value string, maxItems int) string {
 		return value
 	}
 	return strings.Join(parts[:maxItems], ", ") + fmt.Sprintf(", +%d more*", len(parts)-maxItems)
+}
+
+func cleanStrings(values []string) []string {
+	out := make([]string, 0, len(values))
+	seen := make(map[string]struct{}, len(values))
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value == "" {
+			continue
+		}
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		out = append(out, value)
+	}
+	sort.Strings(out)
+	return out
 }
 
 func pluginTypeValue(info managedplugin.PluginInfo) string {

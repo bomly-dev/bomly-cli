@@ -43,15 +43,6 @@ func TestResolveGitHubReleaseAndInstall(t *testing.T) {
 		Entrypoint: map[string]string{
 			platformKey(): filepath.ToSlash(filepath.Join("bin", filepath.Base(binaryPath))),
 		},
-		DetectorDescriptor: &plugschema.DetectorDescriptor{
-			Name:    "acme.detector.release",
-			Enabled: true,
-			Origin:  plugschema.ExternalOrigin,
-			PackageManagerSupport: []plugschema.PackageManagerSupport{
-				plugschema.Support(plugschema.PackageManagerGoMod, "go.mod"),
-			},
-			Tags: []string{"dependency-detection"},
-		},
 	}, "github:acme/release-detector@v1.0.0")
 
 	archiveName := "bomly-plugin-release_" + runtime.GOOS + "_" + runtime.GOARCH + archiveSuffix()
@@ -292,19 +283,9 @@ import (
 
 type detector struct{}
 
-func (d *detector) Metadata(ctx context.Context) (*schemav1.PluginMetadata, error) {
-	return &schemav1.PluginMetadata{
-		ID:               "` + id + `",
-		Kind:             schemav1.PluginKindDetector,
-		PluginAPIVersion: schemav1.PluginAPIVersion,
-	}, nil
-}
-
 func (d *detector) Descriptor(ctx context.Context) (*schemav1.DetectorDescriptor, error) {
 	return &schemav1.DetectorDescriptor{
 		Name:           "` + id + `",
-		Enabled:        true,
-		Origin:         schemav1.ExternalOrigin,
 		Tags:   []string{"dependency-detection"},
 	}, nil
 }
@@ -336,7 +317,6 @@ func (d *detector) Detect(ctx context.Context, req *schemav1.DetectRequest) (*sc
 		SubprojectInfo:      req.Subproject,
 		RootExecutionTarget: req.ExecutionTarget,
 		DetectorName:        "` + id + `",
-		Origin:              schemav1.ExternalOrigin,
 		Graphs: &schemav1.GraphContainer{
 			Entries: []schemav1.GraphEntry{{
 				Manifest: schemav1.ManifestMetadata{

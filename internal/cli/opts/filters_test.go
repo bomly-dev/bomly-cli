@@ -12,25 +12,31 @@ import (
 
 func TestResolveDetectorFilter_AliasAndExplicitSet(t *testing.T) {
 	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
-	reg.Build()
-	filter, err := resolveDetectorFilter("npm", reg)
+	reg.RegisterDetector(fakeDetector{descriptor: sdk.DetectorDescriptor{
+		Name:    "example-detector",
+		Aliases: []string{"example"},
+	}})
+	filter, err := resolveDetectorFilter("example", reg)
 	if err != nil {
 		t.Fatalf("resolveDetectorFilter() error = %v", err)
 	}
-	if len(filter.Include) != 1 || filter.Include[0] != "npm-detector" {
-		t.Fatalf("expected npm-detector include, got %#v", filter)
+	if len(filter.Include) != 1 || filter.Include[0] != "example-detector" {
+		t.Fatalf("expected example-detector include, got %#v", filter)
 	}
 }
 
 func TestResolveDetectorFilter_DefaultMinusToken(t *testing.T) {
 	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
-	reg.Build()
-	filter, err := resolveDetectorFilter("-npm", reg)
+	reg.RegisterDetector(fakeDetector{descriptor: sdk.DetectorDescriptor{
+		Name:    "example-detector",
+		Aliases: []string{"example"},
+	}})
+	filter, err := resolveDetectorFilter("-example", reg)
 	if err != nil {
 		t.Fatalf("resolveDetectorFilter() error = %v", err)
 	}
-	if len(filter.Exclude) == 0 || !contains(filter.Exclude, "npm-detector") {
-		t.Fatalf("expected npm-detector in exclusion list, got %#v", filter)
+	if len(filter.Exclude) == 0 || !contains(filter.Exclude, "example-detector") {
+		t.Fatalf("expected example-detector in exclusion list, got %#v", filter)
 	}
 }
 
@@ -78,7 +84,6 @@ func TestResolveMatcherFilter_UsesDescriptorAliases(t *testing.T) {
 	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
 	reg.RegisterMatcher(fakeMatcher{descriptor: sdk.MatcherDescriptor{
 		Name:    "example-license-matcher",
-		Enabled: false,
 		Aliases: []string{"example-license"},
 	}})
 	filter, err := resolveMatcherFilter("+example-license", reg)
@@ -87,6 +92,36 @@ func TestResolveMatcherFilter_UsesDescriptorAliases(t *testing.T) {
 	}
 	if contains(filter.Exclude, "example-license-matcher") {
 		t.Fatalf("expected aliased matcher not to be excluded, got %#v", filter)
+	}
+}
+
+func TestResolveAuditorFilter_UsesDescriptorAliases(t *testing.T) {
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
+	reg.RegisterAuditor(fakeAuditor{descriptor: sdk.AuditorDescriptor{
+		Name:    "example-auditor",
+		Aliases: []string{"example-audit"},
+	}})
+	filter, err := ResolveAuditorFilter("+example-audit", reg)
+	if err != nil {
+		t.Fatalf("ResolveAuditorFilter() error = %v", err)
+	}
+	if contains(filter.Exclude, "example-auditor") {
+		t.Fatalf("expected aliased auditor not to be excluded, got %#v", filter)
+	}
+}
+
+func TestResolveAnalyzerFilter_UsesDescriptorAliases(t *testing.T) {
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
+	reg.RegisterAnalyzer(fakeAnalyzer{descriptor: sdk.AnalyzerDescriptor{
+		Name:    "example-analyzer",
+		Aliases: []string{"example-reach"},
+	}})
+	filter, err := ResolveAnalyzerFilter("+example-reach", reg)
+	if err != nil {
+		t.Fatalf("ResolveAnalyzerFilter() error = %v", err)
+	}
+	if contains(filter.Exclude, "example-analyzer") {
+		t.Fatalf("expected aliased analyzer not to be excluded, got %#v", filter)
 	}
 }
 
@@ -186,4 +221,68 @@ func (f fakeMatcher) Applicable(context.Context, sdk.MatchRequest) (bool, error)
 
 func (f fakeMatcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult, error) {
 	return sdk.MatchResult{Registry: req.Registry}, nil
+}
+
+type fakeDetector struct {
+	descriptor sdk.DetectorDescriptor
+}
+
+func (f fakeDetector) Descriptor() sdk.DetectorDescriptor {
+	return f.descriptor
+}
+
+func (f fakeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
+	return nil
+}
+
+func (f fakeDetector) Ready() bool {
+	return true
+}
+
+func (f fakeDetector) Applicable(context.Context, sdk.DetectionRequest) (bool, error) {
+	return true, nil
+}
+
+func (f fakeDetector) ResolveGraph(context.Context, sdk.DetectionRequest) (sdk.DetectionResult, error) {
+	return sdk.DetectionResult{}, nil
+}
+
+type fakeAuditor struct {
+	descriptor sdk.AuditorDescriptor
+}
+
+func (f fakeAuditor) Descriptor() sdk.AuditorDescriptor {
+	return f.descriptor
+}
+
+func (f fakeAuditor) Ready() bool {
+	return true
+}
+
+func (f fakeAuditor) Applicable(context.Context, sdk.AuditRequest) (bool, error) {
+	return true, nil
+}
+
+func (f fakeAuditor) Audit(context.Context, sdk.AuditRequest) (sdk.AuditResult, error) {
+	return sdk.AuditResult{}, nil
+}
+
+type fakeAnalyzer struct {
+	descriptor sdk.AnalyzerDescriptor
+}
+
+func (f fakeAnalyzer) Descriptor() sdk.AnalyzerDescriptor {
+	return f.descriptor
+}
+
+func (f fakeAnalyzer) Ready() bool {
+	return true
+}
+
+func (f fakeAnalyzer) Applicable(context.Context, sdk.AnalyzeRequest) (bool, error) {
+	return true, nil
+}
+
+func (f fakeAnalyzer) Analyze(context.Context, sdk.AnalyzeRequest) (sdk.AnalyzeResult, error) {
+	return sdk.AnalyzeResult{}, nil
 }

@@ -43,8 +43,6 @@ func (d PipenvDetector) Applicable(ctx context.Context, req sdk.DetectionRequest
 func (d PipenvDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
 		Name:                 detectors.NamePipenv,
-		Enabled:              true,
-		Origin:               sdk.CoreOrigin,
 		Technique:            sdk.BuildToolTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemPython},
 		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerPipenv},

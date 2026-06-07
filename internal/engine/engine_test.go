@@ -105,11 +105,11 @@ func (f fakeAuditor) Applicable(_ context.Context, _ AuditRequest) (bool, error)
 func TestEngineAudit_AggregatesAuditorResults(t *testing.T) {
 	registry := newTestRegistry()
 	registry.registerAuditor(fakeAuditor{
-		descriptor: AuditorDescriptor{Name: "a", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		descriptor: AuditorDescriptor{Name: "a", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 		result:     AuditResult{Findings: []Finding{{ID: "1"}}},
 	})
 	registry.registerAuditor(fakeAuditor{
-		descriptor: AuditorDescriptor{Name: "b", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		descriptor: AuditorDescriptor{Name: "b", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 		result:     AuditResult{Findings: []Finding{{ID: "2"}}, RiskScores: []RiskScore{{Score: 50}}},
 	})
 
@@ -129,11 +129,11 @@ func TestEngineAudit_AggregatesAuditorResults(t *testing.T) {
 func TestEngineAudit_ReturnsPartialResultsWhenAnAuditorFails(t *testing.T) {
 	registry := newTestRegistry()
 	registry.registerAuditor(fakeAuditor{
-		descriptor: AuditorDescriptor{Name: "working", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		descriptor: AuditorDescriptor{Name: "working", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 		result:     AuditResult{Findings: []Finding{{ID: "1"}}},
 	})
 	registry.registerAuditor(fakeAuditor{
-		descriptor: AuditorDescriptor{Name: "broken", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		descriptor: AuditorDescriptor{Name: "broken", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 		err:        errors.New("boom"),
 	})
 
@@ -150,15 +150,15 @@ func TestEngineAudit_ReturnsPartialResultsWhenAnAuditorFails(t *testing.T) {
 func TestEngineAudit_SkipsNotReadyOrNotApplicableAuditors(t *testing.T) {
 	registry := newTestRegistry()
 	registry.registerAuditor(fakeAuditor{
-		descriptor: AuditorDescriptor{Name: "not-ready", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		descriptor: AuditorDescriptor{Name: "not-ready", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 		ready:      new(false),
 	})
 	registry.registerAuditor(fakeAuditor{
-		descriptor: AuditorDescriptor{Name: "not-applicable", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		descriptor: AuditorDescriptor{Name: "not-applicable", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 		applicable: new(false),
 	})
 	registry.registerAuditor(fakeAuditor{
-		descriptor: AuditorDescriptor{Name: "usable", Enabled: true, SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
+		descriptor: AuditorDescriptor{Name: "usable", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
 		result:     AuditResult{Findings: []Finding{{ID: "1"}}},
 	})
 

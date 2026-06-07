@@ -3,6 +3,7 @@ package registry
 import (
 	"strings"
 
+	rootdetectors "github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/cargo"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/cocoapods"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/composer"
@@ -334,7 +335,11 @@ func buildDetectorOriginCatalog(detectorList []sdk.Detector) map[string]sdk.Dete
 		if descriptor.Name == "" {
 			continue
 		}
-		catalog[descriptor.Name] = descriptor.Origin
+		if descriptor.Name == rootdetectors.NameSyft {
+			catalog[descriptor.Name] = sdk.BundledOrigin
+		} else {
+			catalog[descriptor.Name] = sdk.CoreOrigin
+		}
 	}
 	return catalog
 }

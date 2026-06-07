@@ -24,15 +24,15 @@ func (f AnalyzerFilter) Excludes(name string) bool {
 // AnalyzerDescriptor describes an analyzer registration.
 type AnalyzerDescriptor struct {
 	Name                string           `json:"name"`
-	Enabled             bool             `json:"enabled,omitempty"`
-	Origin              DetectorOrigin   `json:"origin,omitempty"`
+	DisplayName         string           `json:"displayName,omitempty"`
+	Aliases             []string         `json:"aliases,omitempty"`
+	Tags                []string         `json:"tags,omitempty"`
 	SupportedEcosystems []Ecosystem      `json:"supportedEcosystems,omitempty"`
 	SupportedManagers   []PackageManager `json:"supportedManagers,omitempty"`
 	// SupportedLanguages is the analyzer's primary dispatch axis.
 	SupportedLanguages []Language `json:"supportedLanguages,omitempty"`
 	// SupportedTiers communicates the precision the analyzer can deliver.
 	SupportedTiers []ReachabilityTier `json:"supportedTiers,omitempty"`
-	Priority       int                `json:"priority,omitempty"`
 }
 
 // AnalyzeRequest defines input for an analyzer. Analyzers annotate

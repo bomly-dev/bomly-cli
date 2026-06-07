@@ -186,7 +186,7 @@ bomly scan --path ./my-bun-project --detectors bomly.examples.detector.bun-lock 
 
 Detector plugins declare package-manager support and evidence patterns through their detector contract. Bomly uses those patterns during runtime preparation so external detectors can participate in subproject discovery alongside built-ins.
 
-The plugin hub lives in [docs/PLUGINS.md](docs/PLUGINS.md). Implementation guides are available for [detectors](docs/plugins/how-to-implement-detector.md), [matchers](docs/plugins/how-to-implement-matcher.md), and [auditors](docs/plugins/how-to-implement-auditor.md). Example plugin repos are [Bun Lock Detector](https://github.com/bomly-dev/bomly-plugin-bun-lock-detector), [ClearlyDefined License Matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-license), [EOL Lifecycle Matcher](https://github.com/bomly-dev/bomly-plugin-eol-lifecycle), and [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-dependency-auditor).
+The plugin hub lives in [docs/PLUGINS.md](docs/PLUGINS.md). Implementation guides are available for [detectors](docs/plugins/how-to-implement-detector.md), [matchers](docs/plugins/how-to-implement-matcher.md), and [auditors](docs/plugins/how-to-implement-auditor.md). Example plugin repos are [Bun Lock Detector](https://github.com/bomly-dev/bomly-plugin-bun-lock-detector), [ClearlyDefined License Matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-matcher), [EOL Lifecycle Matcher](https://github.com/bomly-dev/bomly-plugin-eol-matcher), and [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor).
 
 ## Architecture
 

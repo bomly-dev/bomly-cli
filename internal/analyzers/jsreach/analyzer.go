@@ -45,8 +45,6 @@ type Analyzer struct {
 func (a Analyzer) Descriptor() model.AnalyzerDescriptor {
 	return model.AnalyzerDescriptor{
 		Name:                Name,
-		Enabled:             true,
-		Origin:              model.BundledOrigin,
 		SupportedEcosystems: []model.Ecosystem{model.EcosystemNPM},
 		SupportedManagers:   []model.PackageManager{model.PackageManagerNPM, model.PackageManagerPNPM, model.PackageManagerYarn},
 		SupportedLanguages:  []model.Language{model.LanguageJavaScript, model.LanguageTypeScript},

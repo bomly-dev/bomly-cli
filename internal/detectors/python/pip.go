@@ -39,12 +39,10 @@ func (d PipDetector) Applicable(ctx context.Context, req sdk.DetectionRequest) (
 func (d PipDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
 		Name:                 detectors.NamePip,
-		Enabled:              true,
-		Origin:               sdk.CoreOrigin,
 		Technique:            sdk.BuildToolTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemPython},
 		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerPip},
-		Capabilities:         []string{"graph-resolution", "component-targeting"},
+		Tags:                 []string{"graph-resolution", "component-targeting"},
 		SupportsInstallFirst: true,
 	}
 }

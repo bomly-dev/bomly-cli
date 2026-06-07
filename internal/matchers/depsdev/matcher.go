@@ -129,14 +129,10 @@ func New(config Config) (*Checker, error) {
 // Descriptor returns the matcher registration metadata.
 func (c *Checker) Descriptor() sdk.MatcherDescriptor {
 	return sdk.MatcherDescriptor{
-		Name:         "depsdev-license-matcher",
-		DisplayName:  "deps.dev License Matcher",
-		Aliases:      []string{"deps.dev"},
-		Enabled:      true,
-		Origin:       sdk.CoreOrigin,
-		Priority:     100,
-		Required:     false,
-		Capabilities: []string{"license-enrichment", "batch-http"},
+		Name:        "depsdev-license-matcher",
+		DisplayName: "deps.dev License Matcher",
+		Aliases:     []string{"deps.dev"},
+		Tags:        []string{"license-enrichment", "batch-http"},
 	}
 }
 

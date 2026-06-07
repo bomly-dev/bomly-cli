@@ -8,17 +8,13 @@ import (
 )
 
 type fakeMatcher struct {
-	name     string
-	enabled  bool
-	priority int
-	run      func(reg *sdk.PackageRegistry)
+	name string
+	run  func(reg *sdk.PackageRegistry)
 }
 
 func (f fakeMatcher) Descriptor() MatcherDescriptor {
 	return MatcherDescriptor{
-		Name:     f.name,
-		Enabled:  f.enabled,
-		Priority: f.priority,
+		Name: f.name,
 	}
 }
 
@@ -31,8 +27,8 @@ func (f fakeMatcher) Match(_ context.Context, req MatchRequest) (sdk.MatchResult
 
 func TestRegistryMatchers_PreservesRegistrationOrder(t *testing.T) {
 	registry := newTestRegistry()
-	registry.registerMatcher(fakeMatcher{name: "fallback", enabled: true, priority: 90})
-	registry.registerMatcher(fakeMatcher{name: "primary", enabled: true, priority: 100})
+	registry.registerMatcher(fakeMatcher{name: "fallback"})
+	registry.registerMatcher(fakeMatcher{name: "primary"})
 
 	matchers := registry.Matchers(MatchRequest{})
 	if len(matchers) != 2 {
@@ -48,8 +44,8 @@ func TestRegistryMatchers_PreservesRegistrationOrder(t *testing.T) {
 
 func TestRegistryMatchers_UsesEnabledDefaultsButAllowsExplicitInclude(t *testing.T) {
 	registry := newTestRegistry()
-	registry.registerMatcher(fakeMatcher{name: "default-on", enabled: true, priority: 100})
-	registry.registerMatcher(fakeMatcher{name: "default-off", enabled: false, priority: 90})
+	registry.registerMatcher(fakeMatcher{name: "default-on"})
+	registry.RegisterMatcherWithOptions(fakeMatcher{name: "default-off"}, ComponentOptions{DefaultEnabled: false})
 
 	matchers := registry.Matchers(MatchRequest{})
 	if len(matchers) != 1 || matchers[0].Descriptor().Name != "default-on" {
@@ -69,9 +65,7 @@ func TestEngineMatch_RunsMultipleMatchersWithoutOverwritingExistingLicenses(t *t
 	const purl = "pkg:npm/react@18.2.0"
 
 	registry.registerMatcher(fakeMatcher{
-		name:     "first",
-		enabled:  true,
-		priority: 100,
+		name: "first",
 		run: func(reg *sdk.PackageRegistry) {
 			pkg := reg.Ensure(purl)
 			if len(pkg.Licenses) == 0 {
@@ -80,9 +74,7 @@ func TestEngineMatch_RunsMultipleMatchersWithoutOverwritingExistingLicenses(t *t
 		},
 	})
 	registry.registerMatcher(fakeMatcher{
-		name:     "second",
-		enabled:  true,
-		priority: 90,
+		name: "second",
 		run: func(reg *sdk.PackageRegistry) {
 			pkg := reg.Ensure(purl)
 			if len(pkg.Licenses) == 0 {

@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -25,7 +26,9 @@ type githubReleaseResponse struct {
 }
 
 type githubReleaseAsset struct {
+	ID                 int64  `json:"id"`
 	Name               string `json:"name"`
+	APIURL             string `json:"url"`
 	BrowserDownloadURL string `json:"browser_download_url"`
 }
 
@@ -100,9 +103,13 @@ func resolveGitHubRelease(ctx context.Context, source string) (githubReleaseReso
 	if err != nil {
 		return githubReleaseResolution{}, err
 	}
-	checksum, ok := selectGitHubReleaseChecksum(ctx, asset.Name, release.Assets)
+	downloadURL := githubReleaseAssetDownloadURL(spec, asset)
+	if downloadURL == "" {
+		return githubReleaseResolution{}, fmt.Errorf("no GitHub API download endpoint found for asset %q", asset.Name)
+	}
+	checksum, ok := selectGitHubReleaseChecksum(ctx, spec, asset.Name, release.Assets)
 	return githubReleaseResolution{
-		DownloadURL:      asset.BrowserDownloadURL,
+		DownloadURL:      downloadURL,
 		ExpectedChecksum: checksum,
 		ArchiveName:      asset.Name,
 		ResolvedSource:   source,
@@ -152,18 +159,32 @@ func assetMatchesPlatform(name string) bool {
 	return strings.Contains(name, runtime.GOOS) && strings.Contains(name, runtime.GOARCH)
 }
 
-func selectGitHubReleaseChecksum(ctx context.Context, assetName string, assets []githubReleaseAsset) (string, bool) {
+func selectGitHubReleaseChecksum(ctx context.Context, spec githubReleaseSpec, assetName string, assets []githubReleaseAsset) (string, bool) {
 	for _, asset := range assets {
 		lower := strings.ToLower(asset.Name)
 		if lower != "sha256sums" && lower != "sha256sums.txt" {
 			continue
 		}
-		value, err := fetchChecksumLine(ctx, asset.BrowserDownloadURL, assetName)
+		downloadURL := githubReleaseAssetDownloadURL(spec, asset)
+		if strings.TrimSpace(downloadURL) == "" {
+			continue
+		}
+		value, err := fetchChecksumLine(ctx, downloadURL, assetName)
 		if err == nil && value != "" {
 			return value, true
 		}
 	}
 	return "", false
+}
+
+func githubReleaseAssetDownloadURL(spec githubReleaseSpec, asset githubReleaseAsset) string {
+	if value := strings.TrimSpace(asset.APIURL); value != "" {
+		return value
+	}
+	if asset.ID > 0 {
+		return strings.TrimRight(githubReleaseAPIBase, "/") + "/repos/" + url.PathEscape(spec.Owner) + "/" + url.PathEscape(spec.Repo) + "/releases/assets/" + strconv.FormatInt(asset.ID, 10)
+	}
+	return strings.TrimSpace(asset.BrowserDownloadURL)
 }
 
 func fetchChecksumLine(ctx context.Context, downloadURL, assetName string) (string, error) {
@@ -195,8 +216,9 @@ func fetchChecksumLine(ctx context.Context, downloadURL, assetName string) (stri
 		if len(fields) < 2 {
 			continue
 		}
-		name := strings.TrimPrefix(fields[1], "*")
-		if name == assetName || name == baseName {
+		name := strings.TrimPrefix(strings.TrimSpace(fields[1]), "*")
+		cleanName := filepath.ToSlash(filepath.Clean(filepath.FromSlash(name)))
+		if name == assetName || name == baseName || filepath.Base(cleanName) == baseName {
 			return "sha256:" + fields[0], nil
 		}
 	}

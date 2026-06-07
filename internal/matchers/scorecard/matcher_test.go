@@ -243,9 +243,6 @@ func TestDescriptor_OptIn(t *testing.T) {
 	if d.Name != "scorecard" {
 		t.Errorf("Name = %q", d.Name)
 	}
-	if d.Enabled {
-		t.Error("descriptor should ship Enabled=false (opt-in)")
-	}
 	if !matcher.Ready() {
 		t.Error("Ready should be true; no runtime dependency")
 	}

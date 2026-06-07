@@ -5,38 +5,13 @@ import (
 	"strings"
 )
 
-// ValidateMetadata validates plugin runtime metadata exposed through the SDK.
-func ValidateMetadata(metadata *PluginMetadata) error {
-	if metadata == nil {
-		return fmt.Errorf("plugin metadata is nil")
-	}
-	if strings.TrimSpace(metadata.ID) == "" {
-		return fmt.Errorf("plugin metadata id is required")
-	}
-	if strings.TrimSpace(metadata.Name) == "" {
-		return fmt.Errorf("plugin metadata name is required")
-	}
-	if strings.TrimSpace(metadata.Version) == "" {
-		return fmt.Errorf("plugin metadata version is required")
-	}
-	switch metadata.Kind {
-	case PluginKindDetector, PluginKindMatcher, PluginKindAuditor, PluginKindAnalyzer:
-	default:
-		return fmt.Errorf("plugin metadata kind %q is invalid", metadata.Kind)
-	}
-	if apiVersion := strings.TrimSpace(metadata.PluginAPIVersion); apiVersion != PluginAPIVersion {
-		return fmt.Errorf("plugin metadata API version %q is unsupported", apiVersion)
-	}
-	return nil
-}
-
 // ValidateDetectorDescriptor validates typed detector registration data.
 func ValidateDetectorDescriptor(descriptor *DetectorDescriptor) error {
 	if descriptor == nil {
 		return fmt.Errorf("detector descriptor is nil")
 	}
-	if strings.TrimSpace(descriptor.Name) == "" {
-		return fmt.Errorf("detector descriptor name is required")
+	if err := validateComponentDescriptor("detector", componentFromDetectorDescriptor(*descriptor)); err != nil {
+		return err
 	}
 	for _, manager := range descriptor.SupportedManagers {
 		if strings.TrimSpace(manager.Name()) == "" {
@@ -61,20 +36,7 @@ func ValidateMatcherDescriptor(descriptor *MatcherDescriptor) error {
 	if descriptor == nil {
 		return fmt.Errorf("matcher descriptor is nil")
 	}
-	if strings.TrimSpace(descriptor.Name) == "" {
-		return fmt.Errorf("matcher descriptor name is required")
-	}
-	for _, alias := range descriptor.Aliases {
-		if strings.TrimSpace(alias) == "" {
-			return fmt.Errorf("matcher descriptor aliases must not contain empty values")
-		}
-	}
-	for _, manager := range descriptor.SupportedManagers {
-		if strings.TrimSpace(manager.Name()) == "" {
-			return fmt.Errorf("matcher descriptor supported managers must not contain empty values")
-		}
-	}
-	return nil
+	return validateComponentDescriptor("matcher", componentFromMatcherDescriptor(*descriptor))
 }
 
 // ValidateAuditorDescriptor validates typed auditor registration data.
@@ -82,13 +44,46 @@ func ValidateAuditorDescriptor(descriptor *AuditorDescriptor) error {
 	if descriptor == nil {
 		return fmt.Errorf("auditor descriptor is nil")
 	}
+	return validateComponentDescriptor("auditor", componentFromAuditorDescriptor(*descriptor))
+}
+
+// ValidateAnalyzerDescriptor validates typed analyzer registration data.
+func ValidateAnalyzerDescriptor(descriptor *AnalyzerDescriptor) error {
+	if descriptor == nil {
+		return fmt.Errorf("analyzer descriptor is nil")
+	}
+	return validateComponentDescriptor("analyzer", componentFromAnalyzerDescriptor(*descriptor))
+}
+
+func validateComponentDescriptor(kind string, descriptor ComponentDescriptor) error {
 	if strings.TrimSpace(descriptor.Name) == "" {
-		return fmt.Errorf("auditor descriptor name is required")
+		return fmt.Errorf("%s descriptor name is required", kind)
+	}
+	for _, alias := range descriptor.Aliases {
+		if strings.TrimSpace(alias) == "" {
+			return fmt.Errorf("%s descriptor aliases must not contain empty values", kind)
+		}
 	}
 	for _, manager := range descriptor.SupportedManagers {
 		if strings.TrimSpace(manager.Name()) == "" {
-			return fmt.Errorf("auditor descriptor supported managers must not contain empty values")
+			return fmt.Errorf("%s descriptor supported managers must not contain empty values", kind)
 		}
 	}
 	return nil
+}
+
+func componentFromDetectorDescriptor(descriptor DetectorDescriptor) ComponentDescriptor {
+	return ComponentDescriptor{Name: descriptor.Name, DisplayName: descriptor.DisplayName, Aliases: descriptor.Aliases, Tags: descriptor.Tags, SupportedEcosystems: descriptor.SupportedEcosystems, SupportedManagers: descriptor.SupportedManagers}
+}
+
+func componentFromMatcherDescriptor(descriptor MatcherDescriptor) ComponentDescriptor {
+	return ComponentDescriptor(descriptor)
+}
+
+func componentFromAuditorDescriptor(descriptor AuditorDescriptor) ComponentDescriptor {
+	return ComponentDescriptor(descriptor)
+}
+
+func componentFromAnalyzerDescriptor(descriptor AnalyzerDescriptor) ComponentDescriptor {
+	return ComponentDescriptor{Name: descriptor.Name, DisplayName: descriptor.DisplayName, Aliases: descriptor.Aliases, Tags: descriptor.Tags, SupportedEcosystems: descriptor.SupportedEcosystems, SupportedManagers: descriptor.SupportedManagers}
 }

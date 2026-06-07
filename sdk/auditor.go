@@ -49,8 +49,9 @@ type AuditResult struct {
 // AuditorDescriptor describes an auditor registration.
 type AuditorDescriptor struct {
 	Name                string           `json:"name"`
-	Enabled             bool             `json:"enabled,omitempty"`
-	Origin              DetectorOrigin   `json:"origin,omitempty"`
+	DisplayName         string           `json:"displayName,omitempty"`
+	Aliases             []string         `json:"aliases,omitempty"`
+	Tags                []string         `json:"tags,omitempty"`
 	SupportedEcosystems []Ecosystem      `json:"supportedEcosystems,omitempty"`
 	SupportedManagers   []PackageManager `json:"supportedManagers,omitempty"`
 }

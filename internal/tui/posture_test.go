@@ -53,7 +53,6 @@ func TestPostureTab_ScanRendersList(t *testing.T) {
 			Ecosystem:       sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       sdk.CoreOrigin,
 		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
@@ -95,7 +94,6 @@ func TestPostureTab_ScanEmptyStateHints(t *testing.T) {
 			Ecosystem:       sdk.EcosystemNPM,
 		},
 		DetectorName: "npm-detector",
-		Origin:       sdk.CoreOrigin,
 		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json"}),
 	}})
 	graphValue, err := consolidated.Graphs.ConsolidatedGraph()

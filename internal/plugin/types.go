@@ -65,23 +65,30 @@ func LaunchOptionsFromContext(ctx context.Context) (LaunchOptions, bool) {
 
 // Manifest describes one installed managed plugin package.
 type Manifest struct {
+	SchemaVersion    string                `json:"schemaVersion"`
+	ID               string                `json:"id"`
+	Name             string                `json:"name"`
+	Version          string                `json:"version"`
+	Kind             plugschema.PluginKind `json:"kind"`
+	Runtime          string                `json:"runtime"`
+	PluginAPIVersion string                `json:"pluginApiVersion"`
+	BomlyVersion     string                `json:"bomlyVersion"`
+	Entrypoint       map[string]string     `json:"entrypoint"`
+	Source           string                `json:"source,omitempty"`
+	Description      string                `json:"description,omitempty"`
+	Homepage         string                `json:"homepage,omitempty"`
+	License          string                `json:"license,omitempty"`
+}
+
+// RuntimeDescriptorSnapshot stores Bomly-verified runtime descriptors for an installed plugin.
+type RuntimeDescriptorSnapshot struct {
 	SchemaVersion      string                         `json:"schemaVersion"`
 	ID                 string                         `json:"id"`
-	Name               string                         `json:"name"`
-	Version            string                         `json:"version"`
 	Kind               plugschema.PluginKind          `json:"kind"`
-	Runtime            string                         `json:"runtime"`
 	PluginAPIVersion   string                         `json:"pluginApiVersion"`
-	BomlyVersion       string                         `json:"bomlyVersion"`
-	Entrypoint         map[string]string              `json:"entrypoint"`
 	DetectorDescriptor *plugschema.DetectorDescriptor `json:"detectorDescriptor,omitempty"`
 	MatcherDescriptor  *plugschema.MatcherDescriptor  `json:"matcherDescriptor,omitempty"`
 	AuditorDescriptor  *plugschema.AuditorDescriptor  `json:"auditorDescriptor,omitempty"`
-	AnalyzerDescriptor *plugschema.AnalyzerDescriptor `json:"analyzerDescriptor,omitempty"`
-	Source             string                         `json:"source,omitempty"`
-	Description        string                         `json:"description,omitempty"`
-	Homepage           string                         `json:"homepage,omitempty"`
-	License            string                         `json:"license,omitempty"`
 }
 
 // InstalledPlugin records one plugin installation.
@@ -104,10 +111,11 @@ type InstalledDB struct {
 
 // InstallOptions controls plugin installation behavior.
 type InstallOptions struct {
-	DevBinary             bool
-	Checksum              string
-	InsecureSkipChecksum  bool
-	githubReleaseDownload bool
+	DevBinary              bool
+	Checksum               string
+	InsecureSkipChecksum   bool
+	githubReleaseDownload  bool
+	githubReleaseAssetName string
 }
 
 // InstallResult describes the installed plugin.
@@ -121,11 +129,15 @@ type InstallResult struct {
 // PluginInfo is the combined managed-plugin view used by the CLI and runtime loader.
 type PluginInfo struct {
 	Manifest
-	Installed  *InstalledPlugin
-	BuiltIn    bool
-	Enabled    bool
-	Entrypoint string
-	SourceType string
+	DetectorDescriptor *plugschema.DetectorDescriptor `json:"detectorDescriptor,omitempty"`
+	MatcherDescriptor  *plugschema.MatcherDescriptor  `json:"matcherDescriptor,omitempty"`
+	AuditorDescriptor  *plugschema.AuditorDescriptor  `json:"auditorDescriptor,omitempty"`
+	AnalyzerDescriptor *plugschema.AnalyzerDescriptor `json:"analyzerDescriptor,omitempty"`
+	Installed          *InstalledPlugin
+	BuiltIn            bool
+	Enabled            bool
+	Entrypoint         string
+	SourceType         string
 	// ReadyFn, when non-nil, is called by Test() to probe readiness for built-in plugins.
 	// Populated by the CLI layer from the in-process component instance.
 	// Never serialized to JSON.
@@ -283,6 +295,10 @@ func manifestPath(dir string) string {
 	return filepath.Join(dir, "bomly-plugin.json")
 }
 
+func runtimeSnapshotPath(dir string) string {
+	return filepath.Join(dir, "bomly-plugin.runtime.json")
+}
+
 func readManifest(dir string) (Manifest, error) {
 	data, err := os.ReadFile(manifestPath(dir))
 	if err != nil {
@@ -297,7 +313,7 @@ func readManifest(dir string) (Manifest, error) {
 }
 
 func writeManifest(dir string, manifest Manifest) error {
-	data, err := json.MarshalIndent(manifestForDisk(manifest), "", "  ")
+	data, err := json.MarshalIndent(manifest, "", "  ")
 	if err != nil {
 		return fmt.Errorf("encode plugin manifest: %w", err)
 	}
@@ -307,23 +323,75 @@ func writeManifest(dir string, manifest Manifest) error {
 	return nil
 }
 
-func normalizeManifest(manifest Manifest) Manifest {
-	if manifest.Kind == plugschema.PluginKindDetector && manifest.DetectorDescriptor != nil {
-		manifest.DetectorDescriptor = normalizeDetectorDescriptor(manifest.DetectorDescriptor)
+func readRuntimeSnapshot(dir string) (RuntimeDescriptorSnapshot, error) {
+	data, err := os.ReadFile(runtimeSnapshotPath(dir))
+	if err != nil {
+		return RuntimeDescriptorSnapshot{}, fmt.Errorf("read plugin runtime descriptor snapshot: %w", err)
 	}
-	return manifest
+	var snapshot RuntimeDescriptorSnapshot
+	if err := json.Unmarshal(data, &snapshot); err != nil {
+		return RuntimeDescriptorSnapshot{}, fmt.Errorf("decode plugin runtime descriptor snapshot: %w", err)
+	}
+	snapshot = normalizeRuntimeSnapshot(snapshot)
+	return snapshot, validateRuntimeSnapshot(snapshot)
 }
 
-func manifestForDisk(manifest Manifest) Manifest {
-	if manifest.Kind == plugschema.PluginKindDetector && manifest.DetectorDescriptor != nil {
-		manifest.DetectorDescriptor = cloneDetectorDescriptor(manifest.DetectorDescriptor)
-		manifest.DetectorDescriptor.SupportedEcosystems = nil
-		manifest.DetectorDescriptor.SupportedManagers = nil
+func writeRuntimeSnapshot(dir string, snapshot RuntimeDescriptorSnapshot) error {
+	snapshot = normalizeRuntimeSnapshot(snapshot)
+	if err := validateRuntimeSnapshot(snapshot); err != nil {
+		return err
 	}
+	data, err := json.MarshalIndent(snapshot, "", "  ")
+	if err != nil {
+		return fmt.Errorf("encode plugin runtime descriptor snapshot: %w", err)
+	}
+	if err := os.WriteFile(runtimeSnapshotPath(dir), data, 0o644); err != nil {
+		return fmt.Errorf("write plugin runtime descriptor snapshot: %w", err)
+	}
+	return nil
+}
+
+func normalizeRuntimeSnapshot(snapshot RuntimeDescriptorSnapshot) RuntimeDescriptorSnapshot {
+	if snapshot.SchemaVersion == "" {
+		snapshot.SchemaVersion = plugschema.RuntimeDescriptorSnapshotSchemaVersion
+	}
+	if snapshot.Kind == plugschema.PluginKindDetector && snapshot.DetectorDescriptor != nil {
+		snapshot.DetectorDescriptor = normalizeDetectorDescriptor(snapshot.DetectorDescriptor)
+	}
+	return snapshot
+}
+
+func validateRuntimeSnapshot(snapshot RuntimeDescriptorSnapshot) error {
+	if snapshot.SchemaVersion != plugschema.RuntimeDescriptorSnapshotSchemaVersion {
+		return fmt.Errorf("unsupported plugin runtime descriptor snapshot schema version %q", snapshot.SchemaVersion)
+	}
+	if strings.TrimSpace(snapshot.ID) == "" {
+		return errors.New("plugin runtime descriptor snapshot id is required")
+	}
+	if apiVersion := strings.TrimSpace(snapshot.PluginAPIVersion); apiVersion != plugschema.PluginAPIVersion {
+		return fmt.Errorf("plugin runtime descriptor snapshot API version %q is unsupported", apiVersion)
+	}
+	switch snapshot.Kind {
+	case plugschema.PluginKindDetector:
+		if snapshot.DetectorDescriptor == nil || len(snapshot.DetectorDescriptor.PackageManagerSupport) == 0 {
+			return errors.New("detector plugin runtime snapshot must include detector descriptor and package manager support")
+		}
+		return plugschema.ValidateDetectorDescriptor(snapshot.DetectorDescriptor)
+	case plugschema.PluginKindMatcher:
+		return plugschema.ValidateMatcherDescriptor(snapshot.MatcherDescriptor)
+	case plugschema.PluginKindAuditor:
+		return plugschema.ValidateAuditorDescriptor(snapshot.AuditorDescriptor)
+	default:
+		return fmt.Errorf("plugin runtime descriptor snapshot kind %q is invalid", snapshot.Kind)
+	}
+}
+
+func normalizeManifest(manifest Manifest) Manifest {
 	return manifest
 }
 
 func validateManifest(manifest Manifest) error {
+	manifest = normalizeManifest(manifest)
 	switch manifest.SchemaVersion {
 	case "", plugschema.PackageManifestSchemaVersion:
 	default:
@@ -348,23 +416,6 @@ func validateManifest(manifest Manifest) error {
 	}
 	if apiVersion := strings.TrimSpace(manifest.PluginAPIVersion); apiVersion != plugschema.PluginAPIVersion {
 		return fmt.Errorf("plugin API version %q is unsupported", apiVersion)
-	}
-	if manifest.Kind == plugschema.PluginKindDetector && (manifest.DetectorDescriptor == nil || len(manifest.DetectorDescriptor.PackageManagerSupport) == 0) {
-		return errors.New("detector plugins must declare at least one package manager support entry")
-	}
-	switch manifest.Kind {
-	case plugschema.PluginKindDetector:
-		if err := plugschema.ValidateDetectorDescriptor(manifest.DetectorDescriptor); err != nil {
-			return err
-		}
-	case plugschema.PluginKindMatcher:
-		if err := plugschema.ValidateMatcherDescriptor(manifest.MatcherDescriptor); err != nil {
-			return err
-		}
-	case plugschema.PluginKindAuditor:
-		if err := plugschema.ValidateAuditorDescriptor(manifest.AuditorDescriptor); err != nil {
-			return err
-		}
 	}
 	entry, err := entrypointForManifest(manifest)
 	if err != nil {
@@ -464,16 +515,16 @@ func updateInstalledPlugin(root, id string, mutate func(*InstalledPlugin) error)
 	return nil, fmt.Errorf("plugin %q is not installed", id)
 }
 
-func detectorDiscoveryPlan(manifest Manifest) (registry.DetectorDiscoveryPlan, bool) {
-	if manifest.Kind != plugschema.PluginKindDetector {
+func detectorDiscoveryPlan(info PluginInfo) (registry.DetectorDiscoveryPlan, bool) {
+	if info.Kind != plugschema.PluginKindDetector {
 		return registry.DetectorDiscoveryPlan{}, false
 	}
-	if manifest.DetectorDescriptor == nil {
+	if info.DetectorDescriptor == nil {
 		return registry.DetectorDiscoveryPlan{}, false
 	}
-	descriptor := manifest.DetectorDescriptor
+	descriptor := info.DetectorDescriptor
 	managers := make([]plugschema.PackageManager, 0, len(descriptor.PackageManagerSupport))
-	ecosystems := make([]plugschema.Ecosystem, 0, len(manifest.DetectorDescriptor.SupportedEcosystems))
+	ecosystems := make([]plugschema.Ecosystem, 0, len(descriptor.SupportedEcosystems))
 	patterns := make([]string, 0)
 	seenPatterns := make(map[string]struct{})
 	for _, support := range descriptor.PackageManagerSupport {
@@ -505,7 +556,7 @@ func detectorDiscoveryPlan(manifest Manifest) (registry.DetectorDiscoveryPlan, b
 			patterns = append(patterns, pattern)
 		}
 	}
-	for _, raw := range manifest.DetectorDescriptor.SupportedEcosystems {
+	for _, raw := range descriptor.SupportedEcosystems {
 		eco, err := plugschema.ParseEcosystem(string(raw))
 		if err == nil && !slices.Contains(ecosystems, eco) {
 			ecosystems = append(ecosystems, eco)
@@ -544,105 +595,60 @@ func findInstalled(root, id string) (*InstalledPlugin, error) {
 	return nil, fmt.Errorf("plugin %q is not installed", id)
 }
 
-func manifestFromMetadata(metadata *plugschema.PluginMetadata, detector *plugschema.DetectorDescriptor, packageManagerSupport []plugschema.PackageManagerSupport, matcher *plugschema.MatcherDescriptor, auditor *plugschema.AuditorDescriptor, source string, binaryName string) (Manifest, error) {
-	if metadata == nil {
-		return Manifest{}, errors.New("plugin metadata is nil")
-	}
-	if err := plugschema.ValidateMetadata(metadata); err != nil {
+func manifestFromRuntimeSnapshot(snapshot RuntimeDescriptorSnapshot, source string, binaryName string) (Manifest, error) {
+	if err := validateRuntimeSnapshot(snapshot); err != nil {
 		return Manifest{}, err
 	}
 	if strings.TrimSpace(binaryName) == "" {
 		return Manifest{}, errors.New("plugin binary name is empty")
 	}
 	return withCanonicalManifestDefaults(Manifest{
-		ID:                 metadata.ID,
-		Name:               metadata.Name,
-		Version:            metadata.Version,
-		Kind:               metadata.Kind,
-		BomlyVersion:       metadata.BomlyVersionConstraint,
-		Entrypoint:         map[string]string{platformKey(): filepath.ToSlash(filepath.Join("bin", binaryName))},
-		DetectorDescriptor: cloneDetectorDescriptorWithSupport(detector, packageManagerSupport),
-		MatcherDescriptor:  cloneMatcherDescriptor(matcher),
-		AuditorDescriptor:  cloneAuditorDescriptor(auditor),
-		Description:        metadata.Description,
-		Homepage:           metadata.Homepage,
-		License:            metadata.License,
+		ID:         snapshot.ID,
+		Name:       snapshot.ID,
+		Version:    "0.0.0-dev",
+		Kind:       snapshot.Kind,
+		Entrypoint: map[string]string{platformKey(): filepath.ToSlash(filepath.Join("bin", binaryName))},
 	}, source), nil
 }
 
-func manifestWithRuntimeContract(manifest Manifest, metadata *plugschema.PluginMetadata, detector *plugschema.DetectorDescriptor, packageManagerSupport []plugschema.PackageManagerSupport, matcher *plugschema.MatcherDescriptor, auditor *plugschema.AuditorDescriptor) Manifest {
-	if metadata == nil {
-		return manifest
-	}
-	if manifest.Description == "" {
-		manifest.Description = metadata.Description
-	}
-	if manifest.Homepage == "" {
-		manifest.Homepage = metadata.Homepage
-	}
-	if manifest.License == "" {
-		manifest.License = metadata.License
-	}
-	if manifest.BomlyVersion == "" {
-		manifest.BomlyVersion = metadata.BomlyVersionConstraint
-	}
-	if manifest.DetectorDescriptor == nil {
-		manifest.DetectorDescriptor = cloneDetectorDescriptorWithSupport(detector, packageManagerSupport)
-	}
-	if manifest.MatcherDescriptor == nil {
-		manifest.MatcherDescriptor = cloneMatcherDescriptor(matcher)
-	}
-	if manifest.AuditorDescriptor == nil {
-		manifest.AuditorDescriptor = cloneAuditorDescriptor(auditor)
-	}
-	return manifest
-}
-
-func runtimeMetadataMatchesManifest(metadata *plugschema.PluginMetadata, detector *plugschema.DetectorDescriptor, packageManagerSupport []plugschema.PackageManagerSupport, matcher *plugschema.MatcherDescriptor, auditor *plugschema.AuditorDescriptor, manifest Manifest) error {
-	if metadata == nil {
-		return errors.New("plugin metadata is nil")
-	}
-	if err := plugschema.ValidateMetadata(metadata); err != nil {
+func runtimeSnapshotMatchesManifest(snapshot RuntimeDescriptorSnapshot, manifest Manifest) error {
+	if err := validateRuntimeSnapshot(snapshot); err != nil {
 		return err
 	}
-	if metadata.ID != manifest.ID {
-		return fmt.Errorf("plugin runtime metadata id %q does not match manifest id %q", metadata.ID, manifest.ID)
+	if snapshot.ID != manifest.ID {
+		return fmt.Errorf("plugin runtime descriptor name %q does not match manifest id %q", snapshot.ID, manifest.ID)
 	}
-	if metadata.Version != manifest.Version {
-		return fmt.Errorf("plugin runtime metadata version %q does not match manifest version %q", metadata.Version, manifest.Version)
+	if snapshot.Kind != manifest.Kind {
+		return fmt.Errorf("plugin runtime kind %q does not match manifest kind %q", snapshot.Kind, manifest.Kind)
 	}
-	if metadata.Kind != manifest.Kind {
-		return fmt.Errorf("plugin runtime metadata kind %q does not match manifest kind %q", metadata.Kind, manifest.Kind)
+	if snapshot.PluginAPIVersion != manifest.PluginAPIVersion {
+		return fmt.Errorf("plugin runtime API version %q does not match manifest API version %q", snapshot.PluginAPIVersion, manifest.PluginAPIVersion)
 	}
-	if metadata.PluginAPIVersion != manifest.PluginAPIVersion {
-		return fmt.Errorf("plugin runtime metadata API version %q does not match manifest API version %q", metadata.PluginAPIVersion, manifest.PluginAPIVersion)
+	return nil
+}
+
+func runtimeSnapshotMatchesSnapshot(live, installed RuntimeDescriptorSnapshot) error {
+	if err := validateRuntimeSnapshot(live); err != nil {
+		return err
 	}
-	switch manifest.Kind {
+	if err := validateRuntimeSnapshot(installed); err != nil {
+		return err
+	}
+	if live.ID != installed.ID || live.Kind != installed.Kind || live.PluginAPIVersion != installed.PluginAPIVersion {
+		return fmt.Errorf("plugin runtime descriptor identity does not match installed snapshot")
+	}
+	switch installed.Kind {
 	case plugschema.PluginKindDetector:
-		if detector == nil || manifest.DetectorDescriptor == nil {
-			return errors.New("plugin runtime detector descriptor is missing")
-		}
-		if !packageManagerSupportEqual(packageManagerSupport, manifest.DetectorDescriptor.PackageManagerSupport) {
-			return fmt.Errorf("plugin runtime detector package manager support does not match manifest detector support")
-		}
-		if !slices.Equal(detector.FallbackDetectors, manifest.DetectorDescriptor.FallbackDetectors) ||
-			detector.Origin != manifest.DetectorDescriptor.Origin ||
-			detector.SupportsInstallFirst != manifest.DetectorDescriptor.SupportsInstallFirst {
-			return fmt.Errorf("plugin runtime detector descriptor does not match manifest detector descriptor")
+		if !detectorDescriptorEqual(live.DetectorDescriptor, installed.DetectorDescriptor) {
+			return fmt.Errorf("plugin runtime detector descriptor does not match installed snapshot")
 		}
 	case plugschema.PluginKindMatcher:
-		if matcher == nil || manifest.MatcherDescriptor == nil {
-			return errors.New("plugin runtime matcher descriptor is missing")
-		}
-		if matcher.Origin != manifest.MatcherDescriptor.Origin {
-			return fmt.Errorf("plugin runtime matcher descriptor does not match manifest matcher descriptor")
+		if !matcherDescriptorEqual(live.MatcherDescriptor, installed.MatcherDescriptor) {
+			return fmt.Errorf("plugin runtime matcher descriptor does not match installed snapshot")
 		}
 	case plugschema.PluginKindAuditor:
-		if auditor == nil || manifest.AuditorDescriptor == nil {
-			return errors.New("plugin runtime auditor descriptor is missing")
-		}
-		if auditor.Origin != manifest.AuditorDescriptor.Origin {
-			return fmt.Errorf("plugin runtime auditor descriptor does not match manifest auditor descriptor")
+		if !auditorDescriptorEqual(live.AuditorDescriptor, installed.AuditorDescriptor) {
+			return fmt.Errorf("plugin runtime auditor descriptor does not match installed snapshot")
 		}
 	}
 	return nil
@@ -669,12 +675,19 @@ func LoadInstalledPlugins(root string) ([]PluginInfo, error) {
 		if err != nil {
 			return nil, err
 		}
+		snapshot, err := readRuntimeSnapshot(item.Path)
+		if err != nil {
+			return nil, fmt.Errorf("read installed plugin %s: %w", item.ID, err)
+		}
 		infos = append(infos, PluginInfo{
-			Manifest:   manifest,
-			Installed:  new(item),
-			Enabled:    item.Enabled,
-			Entrypoint: filepath.Join(item.Path, entry),
-			SourceType: "external",
+			Manifest:           manifest,
+			DetectorDescriptor: cloneDetectorDescriptor(snapshot.DetectorDescriptor),
+			MatcherDescriptor:  cloneMatcherDescriptor(snapshot.MatcherDescriptor),
+			AuditorDescriptor:  cloneAuditorDescriptor(snapshot.AuditorDescriptor),
+			Installed:          new(item),
+			Enabled:            item.Enabled,
+			Entrypoint:         filepath.Join(item.Path, entry),
+			SourceType:         "external",
 		})
 	}
 	return infos, nil
@@ -720,23 +733,75 @@ func LoadRuntimePlugins(root string) ([]PluginInfo, error) {
 		if err != nil {
 			return nil, err
 		}
+		snapshot, err := readRuntimeSnapshot(item.Path)
+		if err != nil {
+			return nil, fmt.Errorf("read installed plugin %s: %w", item.ID, err)
+		}
 		out = append(out, PluginInfo{
-			Manifest:   manifest,
-			Installed:  new(item),
-			Enabled:    item.Enabled,
-			Entrypoint: filepath.Join(item.Path, entry),
-			SourceType: "external",
+			Manifest:           manifest,
+			DetectorDescriptor: cloneDetectorDescriptor(snapshot.DetectorDescriptor),
+			MatcherDescriptor:  cloneMatcherDescriptor(snapshot.MatcherDescriptor),
+			AuditorDescriptor:  cloneAuditorDescriptor(snapshot.AuditorDescriptor),
+			Installed:          new(item),
+			Enabled:            item.Enabled,
+			Entrypoint:         filepath.Join(item.Path, entry),
+			SourceType:         "external",
 		})
 	}
 	return out, nil
 }
 
 type metadataClient interface {
-	Metadata(context.Context) (*plugschema.PluginMetadata, error)
 	DetectorDescriptor(context.Context) (*plugschema.DetectorDescriptor, error)
 	DetectorPackageManagerSupport(context.Context) ([]plugschema.PackageManagerSupport, error)
 	MatcherDescriptor(context.Context) (*plugschema.MatcherDescriptor, error)
 	AuditorDescriptor(context.Context) (*plugschema.AuditorDescriptor, error)
+}
+
+func detectorDescriptorEqual(left, right *plugschema.DetectorDescriptor) bool {
+	if left == nil || right == nil {
+		return left == nil && right == nil
+	}
+	return componentDescriptorEqual(componentFromDetectorDescriptor(*left), componentFromDetectorDescriptor(*right)) &&
+		left.Technique == right.Technique &&
+		packageManagerSupportEqual(left.PackageManagerSupport, right.PackageManagerSupport) &&
+		slices.Equal(left.FallbackDetectors, right.FallbackDetectors) &&
+		left.SupportsInstallFirst == right.SupportsInstallFirst
+}
+
+func matcherDescriptorEqual(left, right *plugschema.MatcherDescriptor) bool {
+	if left == nil || right == nil {
+		return left == nil && right == nil
+	}
+	return componentDescriptorEqual(componentFromMatcherDescriptor(*left), componentFromMatcherDescriptor(*right))
+}
+
+func auditorDescriptorEqual(left, right *plugschema.AuditorDescriptor) bool {
+	if left == nil || right == nil {
+		return left == nil && right == nil
+	}
+	return componentDescriptorEqual(componentFromAuditorDescriptor(*left), componentFromAuditorDescriptor(*right))
+}
+
+func componentDescriptorEqual(left, right plugschema.ComponentDescriptor) bool {
+	return left.Name == right.Name &&
+		left.DisplayName == right.DisplayName &&
+		slices.Equal(left.Aliases, right.Aliases) &&
+		slices.Equal(left.Tags, right.Tags) &&
+		slices.Equal(left.SupportedEcosystems, right.SupportedEcosystems) &&
+		slices.Equal(left.SupportedManagers, right.SupportedManagers)
+}
+
+func componentFromDetectorDescriptor(descriptor plugschema.DetectorDescriptor) plugschema.ComponentDescriptor {
+	return plugschema.ComponentDescriptor{Name: descriptor.Name, DisplayName: descriptor.DisplayName, Aliases: descriptor.Aliases, Tags: descriptor.Tags, SupportedEcosystems: descriptor.SupportedEcosystems, SupportedManagers: descriptor.SupportedManagers}
+}
+
+func componentFromMatcherDescriptor(descriptor plugschema.MatcherDescriptor) plugschema.ComponentDescriptor {
+	return plugschema.ComponentDescriptor(descriptor)
+}
+
+func componentFromAuditorDescriptor(descriptor plugschema.AuditorDescriptor) plugschema.ComponentDescriptor {
+	return plugschema.ComponentDescriptor(descriptor)
 }
 
 func cloneDetectorDescriptor(descriptor *plugschema.DetectorDescriptor) *plugschema.DetectorDescriptor {
@@ -747,7 +812,7 @@ func cloneDetectorDescriptor(descriptor *plugschema.DetectorDescriptor) *plugsch
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
 	copyValue.PackageManagerSupport = clonePackageManagerSupport(descriptor.PackageManagerSupport)
-	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
+	copyValue.Tags = append([]string(nil), descriptor.Tags...)
 	copyValue.FallbackDetectors = append([]string(nil), descriptor.FallbackDetectors...)
 	return &copyValue
 }
@@ -827,7 +892,7 @@ func cloneMatcherDescriptor(descriptor *plugschema.MatcherDescriptor) *plugschem
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
 	copyValue.Aliases = append([]string(nil), descriptor.Aliases...)
-	copyValue.Capabilities = append([]string(nil), descriptor.Capabilities...)
+	copyValue.Tags = append([]string(nil), descriptor.Tags...)
 	return &copyValue
 }
 

@@ -94,7 +94,6 @@ func (p *Pipeline) RunExplain(ctx context.Context, req ExplainRequest) (ExplainR
 		focusedResults = append(focusedResults, sdk.DetectionResult{
 			SubprojectInfo: manifest.Subproject,
 			DetectorName:   manifest.DetectorName,
-			Origin:         manifest.Origin,
 			Technique:      manifest.Technique,
 			Graphs:         sdk.SingleGraphContainer(focusedGraph, manifest.Entry.Manifest),
 		})

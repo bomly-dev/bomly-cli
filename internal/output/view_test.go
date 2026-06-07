@@ -753,7 +753,6 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 				Ecosystem:               sdk.EcosystemNPM,
 			},
 			DetectorName: "npm-detector",
-			Origin:       sdk.CoreOrigin,
 			Technique:    sdk.BuildToolTechnique,
 			Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
 				Graph:    nativeGraph,
@@ -769,7 +768,6 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 				Ecosystem:               sdk.EcosystemSBOM,
 			},
 			DetectorName: "sbom-detector",
-			Origin:       sdk.CoreOrigin,
 			Technique:    sdk.SBOMTechnique,
 			Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
 				Graph:    sbomGraph,
@@ -822,7 +820,6 @@ func sbomDiffResults(graph *sdk.Graph, location, manifestPath string) []sdk.Dete
 			Ecosystem:               sdk.EcosystemSBOM,
 		},
 		DetectorName: "sbom-detector",
-		Origin:       sdk.CoreOrigin,
 		Technique:    sdk.SBOMTechnique,
 		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
 			Graph:    graph,

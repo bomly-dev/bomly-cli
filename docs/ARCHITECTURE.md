@@ -245,7 +245,7 @@ Plugin authors import `sdk` instead of depending on `internal/` packages. The SD
 - `ServeMatcher`
 - `ServeAuditor`
 - Versioned request and response structs in `sdk`
-- Identity metadata plus role descriptors for component type, supported modes, matcher priority, matcher required-ness, detector fallback wiring, and install-first support
+- Identity metadata plus role descriptors for component type, supported modes, matcher required-ness, detector fallback wiring, and install-first support
 - Optional runtime hooks for readiness, applicability, and detector install-first execution
 
 The SDK keeps HashiCorp plumbing out of plugin implementations while preserving a typed boundary. Built-ins now use the same SDK contract in-process and are adapted back into the scan engine through shared SDK-to-runtime adapters. That keeps built-ins and external plugins on one metadata and execution model while leaving installation and verification as external-plugin-only concerns.
@@ -258,11 +258,11 @@ Managed plugin installation is owned by Bomly rather than by the runtime library
 2. Validate checksums when required.
 3. Extract archives safely into a temp directory.
 4. Validate `bomly-plugin.json`.
-5. Start the plugin through the SDK/gRPC runtime and compare runtime metadata plus role descriptors with the manifest.
+5. Start the plugin through the SDK/gRPC runtime, fetch the role descriptor named by the manifest kind, require `descriptor.name == manifest.id`, and store Bomly's internal descriptor snapshot.
 6. Move the plugin into `~/.bomly/plugins/store/<id>/<version>`.
 7. Update `installed.json` atomically.
 
-The installer rejects archive path traversal, absolute paths, unsupported entrypoints, and incompatible runtime metadata.
+The installer rejects archive path traversal, absolute paths, unsupported entrypoints, incompatible manifests, and runtime descriptors that do not match the manifest identity.
 
 ## Plugin Selection
 

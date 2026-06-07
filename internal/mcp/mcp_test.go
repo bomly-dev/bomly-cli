@@ -213,7 +213,7 @@ func TestDiffTool_ReturnsJSONResult(t *testing.T) {
 func TestPluginsTool_ReturnsJSONResult(t *testing.T) {
 	adapter := &mockAdapter{
 		plugins: []managedplugin.PluginInfo{
-			{Manifest: managedplugin.Manifest{Kind: "detector"}, BuiltIn: true, Enabled: true},
+			{Manifest: managedplugin.Manifest{Kind: "detector"}, BuiltIn: true},
 		},
 	}
 	c := newTestClient(t, adapter)

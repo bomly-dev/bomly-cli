@@ -48,8 +48,6 @@ type Analyzer struct {
 func (a Analyzer) Descriptor() model.AnalyzerDescriptor {
 	return model.AnalyzerDescriptor{
 		Name:                Name,
-		Enabled:             true,
-		Origin:              model.BundledOrigin,
 		SupportedEcosystems: []model.Ecosystem{model.EcosystemPython},
 		SupportedManagers: []model.PackageManager{
 			model.PackageManagerPip,

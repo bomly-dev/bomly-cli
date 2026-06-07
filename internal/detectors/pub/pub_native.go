@@ -43,12 +43,10 @@ func (d NativeDetector) Applicable(ctx context.Context, req sdk.DetectionRequest
 func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
 		Name:                detectors.NamePubNative,
-		Enabled:             true,
-		Origin:              sdk.CoreOrigin,
 		Technique:           sdk.BuildToolTechnique,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemDart},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerPub},
-		Capabilities:        []string{"graph-resolution", "component-targeting", "scope-annotation"},
+		Tags:                []string{"graph-resolution", "component-targeting", "scope-annotation"},
 	}
 }
 

@@ -181,7 +181,7 @@ func (p *Pipeline) resolveDetectors(ctx context.Context, req sdk.DetectionReques
 func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest, detector sdk.Detector, progress ProgressReporter) ([]sdk.DetectionResult, error) {
 	descriptor := detector.Descriptor()
 	support := detector.PackageManagerSupport()
-	reportProgressDetail(progress, "Detecting dependencies", detectorProgressDetail(req.Subproject, descriptor.Name))
+	reportProgressDetail(progress, "Detecting dependencies", detectorProgressDetail(req.Subproject, descriptor.Label()))
 	p.Logger.Debug("pipeline: detector starting",
 		zap.String("detector", descriptor.Name),
 		zap.String("subproject", req.Subproject.RelativePath),
@@ -250,7 +250,7 @@ func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest
 
 	result.SubprojectInfo = req.Subproject
 	result.DetectorName = descriptor.Name
-	result.Origin = descriptor.Origin
+	result.Origin = p.Registry.DetectorOrigin(descriptor.Name)
 	result.Technique = descriptor.Technique
 	packages, edges := graphContainerStats(result.Graphs)
 	p.Logger.Debug("pipeline: detector succeeded",

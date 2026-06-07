@@ -91,12 +91,10 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
 		Name:                 detectors.NameCargo,
-		Enabled:              true,
-		Origin:               sdk.CoreOrigin,
 		Technique:            sdk.LockfileTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemRust},
 		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerCargo},
-		Capabilities:         []string{"graph-resolution", "component-targeting", "module-graph", "scope-annotation"},
+		Tags:                 []string{"graph-resolution", "component-targeting", "module-graph", "scope-annotation"},
 		SupportsInstallFirst: true,
 	}
 }

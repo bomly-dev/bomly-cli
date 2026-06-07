@@ -12,7 +12,7 @@ Fetches package metadata from deps.dev to improve license coverage.
 | Uses network | Yes |
 | Cache behavior | Uses Bomly's matcher cache; cache failures are non-fatal. |
 | Output fields | license value, license source, matched package flag |
-| Capabilities | `license-enrichment`, `batch-http` |
+| Tags | `license-enrichment`, `batch-http` |
 
 ## User notes
 

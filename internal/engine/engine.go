@@ -48,7 +48,9 @@ func (e *Engine) Audit(ctx context.Context, req sdk.AuditRequest) (sdk.AuditResu
 	}
 	var errs []error
 	for _, auditor := range auditorsList {
-		name := auditor.Descriptor().Name
+		descriptor := auditor.Descriptor()
+		name := descriptor.Name
+		label := descriptor.Label()
 		if !auditor.Ready() {
 			errs = append(errs, fmt.Errorf("auditor %s: not ready", name))
 			continue
@@ -68,8 +70,8 @@ func (e *Engine) Audit(ctx context.Context, req sdk.AuditRequest) (sdk.AuditResu
 			errs = append(errs, fmt.Errorf("auditor %s: %w", name, err))
 			continue
 		}
-		aggregated.AuditorRuns = append(aggregated.AuditorRuns, name)
-		aggregated.AuditorFindings[name] += len(result.Findings)
+		aggregated.AuditorRuns = append(aggregated.AuditorRuns, label)
+		aggregated.AuditorFindings[label] += len(result.Findings)
 		aggregated.Findings = append(aggregated.Findings, result.Findings...)
 		aggregated.RiskScores = append(aggregated.RiskScores, result.RiskScores...)
 	}
@@ -95,7 +97,9 @@ func (e *Engine) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.Analy
 	}
 	var errs []error
 	for _, analyzer := range analyzers {
-		name := analyzer.Descriptor().Name
+		descriptor := analyzer.Descriptor()
+		name := descriptor.Name
+		label := descriptor.Label()
 		if !analyzer.Ready() {
 			errs = append(errs, fmt.Errorf("analyzer %s: not ready", name))
 			continue
@@ -114,7 +118,7 @@ func (e *Engine) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.Analy
 			errs = append(errs, fmt.Errorf("analyzer %s: %w", name, err))
 			continue
 		}
-		aggregated.AnalyzerRuns = append(aggregated.AnalyzerRuns, name)
+		aggregated.AnalyzerRuns = append(aggregated.AnalyzerRuns, label)
 		if result.Registry != nil {
 			aggregated.Registry = result.Registry
 			req.Registry = result.Registry

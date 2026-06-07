@@ -323,14 +323,25 @@ func availableAuditorOptions(logger *zap.Logger) []string {
 	reg.Build()
 	for _, descriptor := range reg.AuditorDescriptors() {
 		name := descriptor.Name
-		if name == "" {
+		if name = strings.TrimSpace(name); name == "" {
 			continue
 		}
 		if _, ok := seen[name]; ok {
-			continue
+		} else {
+			seen[name] = struct{}{}
+			options = append(options, name)
 		}
-		seen[name] = struct{}{}
-		options = append(options, name)
+		for _, alias := range descriptor.Aliases {
+			alias = strings.TrimSpace(alias)
+			if alias == "" {
+				continue
+			}
+			if _, ok := seen[alias]; ok {
+				continue
+			}
+			seen[alias] = struct{}{}
+			options = append(options, alias)
+		}
 	}
 	sort.Strings(options)
 	return options
@@ -344,14 +355,25 @@ func availableAnalyzerOptions() []string {
 	reg.Build()
 	for _, descriptor := range reg.AnalyzerDescriptors() {
 		name := descriptor.Name
-		if name == "" {
+		if name = strings.TrimSpace(name); name == "" {
 			continue
 		}
 		if _, ok := seen[name]; ok {
-			continue
+		} else {
+			seen[name] = struct{}{}
+			options = append(options, name)
 		}
-		seen[name] = struct{}{}
-		options = append(options, name)
+		for _, alias := range descriptor.Aliases {
+			alias = strings.TrimSpace(alias)
+			if alias == "" {
+				continue
+			}
+			if _, ok := seen[alias]; ok {
+				continue
+			}
+			seen[alias] = struct{}{}
+			options = append(options, alias)
+		}
 	}
 	sort.Strings(options)
 	return options

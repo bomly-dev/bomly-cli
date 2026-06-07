@@ -12,7 +12,7 @@ Attaches the latest OpenSSF Scorecard run to packages whose upstream source repo
 | Uses network | Yes |
 | Cache behavior | Uses Bomly's matcher cache (24h TTL); cache failures are non-fatal. Unscored repos are cached as a sentinel so repeated runs do not refetch. |
 | Output fields | scorecard.aggregateScore, scorecard.checks[], scorecard.repository, scorecard.runDate, scorecard.scorecardVersion |
-| Capabilities | `project-posture` |
+| Tags | `project-posture` |
 
 ## User notes
 

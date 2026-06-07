@@ -39,8 +39,6 @@ type Analyzer struct {
 func (a Analyzer) Descriptor() model.AnalyzerDescriptor {
 	return model.AnalyzerDescriptor{
 		Name:                Name,
-		Enabled:             true,
-		Origin:              model.BundledOrigin,
 		SupportedEcosystems: []model.Ecosystem{model.EcosystemMaven, model.EcosystemScala},
 		SupportedManagers: []model.PackageManager{
 			model.PackageManagerMaven,

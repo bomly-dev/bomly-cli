@@ -43,12 +43,10 @@ func (d NativeDetector) Applicable(ctx context.Context, req sdk.DetectionRequest
 func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
 		Name:                detectors.NameSwiftPMNative,
-		Enabled:             true,
-		Origin:              sdk.CoreOrigin,
 		Technique:           sdk.BuildToolTechnique,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemSwift},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerSwiftPM},
-		Capabilities:        []string{"graph-resolution", "component-targeting"},
+		Tags:                []string{"graph-resolution", "component-targeting"},
 	}
 }
 

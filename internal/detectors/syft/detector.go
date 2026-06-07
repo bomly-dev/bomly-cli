@@ -114,12 +114,10 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	supportedManagers := d.SupportedManagers
 	return sdk.DetectorDescriptor{
 		Name:                detectors.NameSyft,
-		Enabled:             true,
-		Origin:              sdk.BundledOrigin,
 		Technique:           sdk.MultipleTechnique,
 		SupportedEcosystems: supportedEcosystems,
 		SupportedManagers:   supportedManagers,
-		Capabilities:        []string{"graph-resolution", "component-targeting", "sbom-import", "detector-enrichment"},
+		Tags:                []string{"graph-resolution", "component-targeting", "sbom-import", "detector-enrichment"},
 	}
 }
 

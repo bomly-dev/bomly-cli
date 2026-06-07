@@ -65,12 +65,10 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
 		Name:                 detectors.NameBundler,
-		Enabled:              true,
-		Origin:               sdk.CoreOrigin,
 		Technique:            sdk.LockfileTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemRuby},
 		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerBundler},
-		Capabilities:         []string{"graph-resolution", "component-targeting", "lockfile-parsing", "best-effort-scope"},
+		Tags:                 []string{"graph-resolution", "component-targeting", "lockfile-parsing", "best-effort-scope"},
 		SupportsInstallFirst: true,
 	}
 }

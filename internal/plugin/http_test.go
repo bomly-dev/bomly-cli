@@ -31,14 +31,6 @@ func TestInstallRemoteArchiveUsesConfiguredProxy(t *testing.T) {
 		Entrypoint: map[string]string{
 			platformKey(): filepath.ToSlash(filepath.Join("bin", filepath.Base(binaryPath))),
 		},
-		DetectorDescriptor: &plugschema.DetectorDescriptor{
-			Name:    "acme.detector.proxy",
-			Enabled: true,
-			Origin:  plugschema.ExternalOrigin,
-			PackageManagerSupport: []plugschema.PackageManagerSupport{
-				plugschema.Support(plugschema.PackageManagerGoMod, "go.mod"),
-			},
-		},
 	}, "http://plugins.example/bomly-plugin-proxy"+archiveSuffix())
 	archiveBytes := buildPluginArchive(t, manifest, binaryPath)
 	checksum := checksumForBytes(archiveBytes)

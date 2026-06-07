@@ -60,8 +60,7 @@ func TestEngineAnalyzeRunsApplicableAndCollectsStats(t *testing.T) {
 	g := sdk.New()
 	a := &fakeAnalyzer{
 		descriptor: sdk.AnalyzerDescriptor{
-			Name:    "fake",
-			Enabled: true,
+			Name: "fake",
 		},
 		result: sdk.AnalyzeResult{
 			AnalyzerStats: map[string]sdk.ReachabilityStats{
@@ -94,15 +93,13 @@ func TestEngineAnalyzeAggregatesErrorsAndContinues(t *testing.T) {
 	g := sdk.New()
 	failing := &fakeAnalyzer{
 		descriptor: sdk.AnalyzerDescriptor{
-			Name:    "boom",
-			Enabled: true,
+			Name: "boom",
 		},
 		err: errors.New("boom"),
 	}
 	ok := &fakeAnalyzer{
 		descriptor: sdk.AnalyzerDescriptor{
-			Name:    "ok",
-			Enabled: true,
+			Name: "ok",
 		},
 		result: sdk.AnalyzeResult{},
 	}
@@ -130,7 +127,6 @@ func TestEngineAnalyzeRespectsLanguageFilter(t *testing.T) {
 	goOnly := &fakeAnalyzer{
 		descriptor: sdk.AnalyzerDescriptor{
 			Name:               "goonly",
-			Enabled:            true,
 			SupportedLanguages: []sdk.Language{sdk.LanguageGo},
 		},
 		result: sdk.AnalyzeResult{},

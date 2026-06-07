@@ -17,13 +17,10 @@ import (
 )
 
 func TestDescriptor_Name(t *testing.T) {
-	a := Matcher{Priority: 90}
+	a := Matcher{}
 	d := a.Descriptor()
 	if d.Name != "grype" {
 		t.Errorf("Descriptor.Name = %q, want %q", d.Name, "grype")
-	}
-	if d.Priority != 90 {
-		t.Errorf("Descriptor.Priority = %d, want 90", d.Priority)
 	}
 	if d.SupportedEcosystems != nil {
 		t.Error("SupportedEcosystems should be nil (all ecosystems)")
@@ -31,7 +28,7 @@ func TestDescriptor_Name(t *testing.T) {
 }
 
 func TestMatch_NilGraph_ReturnsEmpty(t *testing.T) {
-	a := Matcher{Priority: 90}
+	a := Matcher{}
 	registry := sdk.NewPackageRegistry()
 	result, err := a.Match(context.Background(), sdk.MatchRequest{Graph: nil, Registry: registry})
 	if err != nil {
@@ -43,7 +40,7 @@ func TestMatch_NilGraph_ReturnsEmpty(t *testing.T) {
 }
 
 func TestReady_TrueWhenDBDirAbsent(t *testing.T) {
-	a := Matcher{Priority: 90, DBDir: filepath.Join(t.TempDir(), "nonexistent-db")}
+	a := Matcher{DBDir: filepath.Join(t.TempDir(), "nonexistent-db")}
 	if !a.Ready() {
 		t.Error("Ready() = false, want true because the bundled matcher can download the DB")
 	}
@@ -51,7 +48,7 @@ func TestReady_TrueWhenDBDirAbsent(t *testing.T) {
 
 func TestDBExists_TrueWhenDBDirExists(t *testing.T) {
 	dir := t.TempDir()
-	a := Matcher{Priority: 90, DBDir: dir}
+	a := Matcher{DBDir: dir}
 	if !a.dbExists() {
 		t.Error("dbExists() = false, want true when DB dir exists")
 	}
@@ -65,7 +62,6 @@ func TestMatch_DBNotPresent_AttemptsDownloadAndReturnsEmpty(t *testing.T) {
 	badDist.CheckTimeout = 2 * time.Second
 
 	a := Matcher{
-		Priority:           90,
 		DBDir:              filepath.Join(t.TempDir(), "no-db"),
 		DistConfigOverride: &badDist,
 	}
@@ -87,7 +83,7 @@ func TestMatch_DBNotPresent_AttemptsDownloadAndReturnsEmpty(t *testing.T) {
 }
 
 func TestDBDir_DefaultUsesOSCacheDir(t *testing.T) {
-	a := Matcher{Priority: 90}
+	a := Matcher{}
 	dir := a.dbDir()
 	if dir == "" {
 		t.Error("dbDir() = empty string, want non-empty path")

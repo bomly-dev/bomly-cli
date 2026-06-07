@@ -14,6 +14,7 @@ import (
 
 type detectorOptionRow struct {
 	Name            string
+	DisplayName     string
 	Aliases         []string
 	Ecosystems      []string
 	PackageManagers []string
@@ -33,14 +34,18 @@ func buildDetectorOptionRows(reg *engine.Registry) []detectorOptionRow {
 		if name == "" {
 			continue
 		}
-		row := &detectorOptionRow{Name: name}
-		if alias := detectorShortAlias(name); alias != "" {
-			row.Aliases = []string{alias}
-		}
+		row := &detectorOptionRow{Name: name, DisplayName: strings.TrimSpace(descriptor.DisplayName)}
+		row.Aliases = appendAliases(row.Aliases, descriptor.Aliases...)
 		for _, ecosystem := range descriptor.SupportedEcosystems {
 			value := strings.TrimSpace(string(ecosystem))
 			if value != "" {
 				row.Ecosystems = appendUnique(row.Ecosystems, value)
+			}
+		}
+		for _, manager := range descriptor.SupportedManagers {
+			value := strings.TrimSpace(manager.Name())
+			if value != "" {
+				row.PackageManagers = appendUnique(row.PackageManagers, value)
 			}
 		}
 		rows[name] = row
@@ -83,11 +88,7 @@ func buildDetectorSelectorCatalog(reg *engine.Registry) catalog {
 	for _, row := range rows {
 		available = append(available, row.Name)
 		aliasToName[row.Name] = row.Name
-		if len(row.Aliases) > 0 {
-			simplified = append(simplified, fmt.Sprintf("%s (%s)", row.Aliases[0], row.Name))
-		} else {
-			simplified = append(simplified, row.Name)
-		}
+		simplified = append(simplified, catalogItemLabel(row.Name, row.DisplayName, row.Aliases))
 		for _, alias := range row.Aliases {
 			aliasToName[alias] = row.Name
 		}
@@ -164,6 +165,7 @@ func ecosystemStringSliceToValues(items []string) ([]sdk.Ecosystem, error) {
 func buildAuditorSelectorCatalog(reg *engine.Registry) catalog {
 	available := make([]string, 0)
 	aliasToName := make(map[string]string)
+	simplified := make([]string, 0)
 	for _, descriptor := range reg.AuditorDescriptors() {
 		name := strings.TrimSpace(descriptor.Name)
 		if name == "" {
@@ -171,9 +173,14 @@ func buildAuditorSelectorCatalog(reg *engine.Registry) catalog {
 		}
 		available = append(available, name)
 		aliasToName[name] = name
+		for _, alias := range descriptor.Aliases {
+			alias = strings.TrimSpace(alias)
+			if alias != "" {
+				aliasToName[alias] = name
+			}
+		}
+		simplified = append(simplified, catalogItemLabel(name, descriptor.DisplayName, descriptor.Aliases))
 	}
-	simplified := make([]string, 0, len(available))
-	simplified = append(simplified, available...)
 	sort.Strings(available)
 	sort.Strings(simplified)
 	return catalog{Kind: "auditor", Available: available, AliasToName: aliasToName, Items: simplified}
@@ -196,25 +203,11 @@ func buildMatcherSelectorCatalog(reg *engine.Registry) catalog {
 				aliasToName[alias] = name
 			}
 		}
-		if descriptor.DisplayName != "" {
-			simplified = append(simplified, descriptor.DisplayName+" ("+name+")")
-		} else if len(descriptor.Aliases) > 0 && strings.TrimSpace(descriptor.Aliases[0]) != "" {
-			simplified = append(simplified, strings.TrimSpace(descriptor.Aliases[0])+" ("+name+")")
-		} else {
-			simplified = append(simplified, name)
-		}
+		simplified = append(simplified, catalogItemLabel(name, descriptor.DisplayName, descriptor.Aliases))
 	}
 	sort.Strings(available)
 	sort.Strings(simplified)
 	return catalog{Kind: "matcher", Available: available, AliasToName: aliasToName, Items: simplified}
-}
-
-func detectorShortAlias(name string) string {
-	trimmed := strings.TrimSpace(strings.ToLower(name))
-	if strings.HasSuffix(trimmed, "-detector") {
-		return strings.TrimSuffix(trimmed, "-detector")
-	}
-	return ""
 }
 
 // resolveSelector wraps selector.Resolve and translates the typed unknown-selector
@@ -279,6 +272,7 @@ func resolveMatcherFilter(raw string, reg *engine.Registry) (sdk.MatcherFilter, 
 func buildAnalyzerSelectorCatalog(reg *engine.Registry) catalog {
 	available := make([]string, 0)
 	aliasToName := make(map[string]string)
+	simplified := make([]string, 0)
 	for _, descriptor := range reg.AnalyzerDescriptors() {
 		name := strings.TrimSpace(descriptor.Name)
 		if name == "" {
@@ -286,11 +280,43 @@ func buildAnalyzerSelectorCatalog(reg *engine.Registry) catalog {
 		}
 		available = append(available, name)
 		aliasToName[name] = name
+		for _, alias := range descriptor.Aliases {
+			alias = strings.TrimSpace(alias)
+			if alias != "" {
+				aliasToName[alias] = name
+			}
+		}
+		simplified = append(simplified, catalogItemLabel(name, descriptor.DisplayName, descriptor.Aliases))
 	}
-	simplified := append([]string(nil), available...)
 	sort.Strings(available)
 	sort.Strings(simplified)
 	return catalog{Kind: "analyzer", Available: available, AliasToName: aliasToName, Items: simplified}
+}
+
+func catalogItemLabel(name, displayName string, aliases []string) string {
+	name = strings.TrimSpace(name)
+	displayName = strings.TrimSpace(displayName)
+	if displayName != "" {
+		return fmt.Sprintf("%s (%s)", displayName, name)
+	}
+	for _, alias := range aliases {
+		alias = strings.TrimSpace(alias)
+		if alias != "" {
+			return fmt.Sprintf("%s (%s)", alias, name)
+		}
+	}
+	return name
+}
+
+func appendAliases(dst []string, aliases ...string) []string {
+	for _, alias := range aliases {
+		alias = strings.TrimSpace(alias)
+		if alias == "" {
+			continue
+		}
+		dst = appendUnique(dst, alias)
+	}
+	return dst
 }
 
 // ResolveAnalyzerFilter parses --analyzers and returns an AnalyzerFilter.
@@ -313,15 +339,7 @@ func defaultEnabledAnalyzerNames(reg *engine.Registry) []string {
 	if reg == nil {
 		return nil
 	}
-	names := make([]string, 0)
-	for _, descriptor := range reg.AnalyzerDescriptors() {
-		if descriptor.Name == "" || !descriptor.Enabled {
-			continue
-		}
-		names = append(names, descriptor.Name)
-	}
-	sort.Strings(names)
-	return names
+	return reg.DefaultEnabledAnalyzerNames()
 }
 
 func filterAllowsName(include, exclude []string, name string) bool {
@@ -353,43 +371,19 @@ func defaultEnabledDetectorNames(reg *engine.Registry) []string {
 	if reg == nil {
 		return nil
 	}
-	names := make([]string, 0)
-	for _, descriptor := range reg.DetectorDescriptors() {
-		if descriptor.Name == "" || !descriptor.Enabled {
-			continue
-		}
-		names = append(names, descriptor.Name)
-	}
-	sort.Strings(names)
-	return names
+	return reg.DefaultEnabledDetectorNames()
 }
 
 func defaultEnabledAuditorNames(reg *engine.Registry) []string {
 	if reg == nil {
 		return nil
 	}
-	names := make([]string, 0)
-	for _, descriptor := range reg.AuditorDescriptors() {
-		if descriptor.Name == "" || !descriptor.Enabled {
-			continue
-		}
-		names = append(names, descriptor.Name)
-	}
-	sort.Strings(names)
-	return names
+	return reg.DefaultEnabledAuditorNames()
 }
 
 func defaultEnabledMatcherNames(reg *engine.Registry) []string {
 	if reg == nil {
 		return nil
 	}
-	names := make([]string, 0)
-	for _, descriptor := range reg.MatcherDescriptors() {
-		if descriptor.Name == "" || !descriptor.Enabled {
-			continue
-		}
-		names = append(names, descriptor.Name)
-	}
-	sort.Strings(names)
-	return names
+	return reg.DefaultEnabledMatcherNames()
 }

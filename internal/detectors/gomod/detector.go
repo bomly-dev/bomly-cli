@@ -98,12 +98,10 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
 		Name:                 detectors.NameGoMod,
-		Enabled:              true,
-		Origin:               sdk.CoreOrigin,
 		Technique:            sdk.BuildToolTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemGo},
 		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerGoMod},
-		Capabilities:         []string{"graph-resolution", "component-targeting", "module-graph"},
+		Tags:                 []string{"graph-resolution", "component-targeting", "module-graph"},
 		SupportsInstallFirst: true,
 	}
 }

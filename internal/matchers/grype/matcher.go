@@ -15,8 +15,6 @@ const matcherName = "grype"
 
 // Matcher uses the Grype library or CLI to match packages against a vulnerability database.
 type Matcher struct {
-	// Priority controls the order in which this auditor runs relative to others.
-	Priority int
 	// DBDir is the directory that contains the Grype vulnerability database.
 	// Defaults to the OS cache directory / grype / db.
 	DBDir string
@@ -41,11 +39,7 @@ func (a Matcher) Descriptor() sdk.MatcherDescriptor {
 	return sdk.MatcherDescriptor{
 		Name:                matcherName,
 		DisplayName:         "Grype",
-		Enabled:             true,
-		Origin:              sdk.BundledOrigin,
 		SupportedEcosystems: nil, // nil = all ecosystems
-		Priority:            a.Priority,
-		Required:            false,
 	}
 }
 

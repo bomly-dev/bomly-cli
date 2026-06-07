@@ -60,13 +60,13 @@ func (r DetectionResult) ConsolidatedGraph() (*Graph, error) {
 // DetectorDescriptor describes a detector registration.
 type DetectorDescriptor struct {
 	Name                  string                  `json:"name"`
-	Enabled               bool                    `json:"enabled,omitempty"`
-	Origin                DetectorOrigin          `json:"origin,omitempty"`
-	Technique             DetectorTechnique       `json:"technique,omitempty"`
+	DisplayName           string                  `json:"displayName,omitempty"`
+	Aliases               []string                `json:"aliases,omitempty"`
+	Tags                  []string                `json:"tags,omitempty"`
 	SupportedEcosystems   []Ecosystem             `json:"supportedEcosystems,omitempty"`
 	SupportedManagers     []PackageManager        `json:"supportedManagers,omitempty"`
+	Technique             DetectorTechnique       `json:"technique,omitempty"`
 	PackageManagerSupport []PackageManagerSupport `json:"packageManagerSupport,omitempty"`
-	Capabilities          []string                `json:"capabilities,omitempty"`
 	FallbackDetectors     []string                `json:"fallbackDetectors,omitempty"`
 	SupportsInstallFirst  bool                    `json:"supportsInstallFirst,omitempty"`
 }

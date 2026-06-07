@@ -17,6 +17,9 @@ type RegistryFilter = registry.RegistryFilter
 // DetectorDiscoveryPlan describes how one detector participates in runtime planning.
 type DetectorDiscoveryPlan = registry.DetectorDiscoveryPlan
 
+// ComponentOptions records Bomly-owned registry behavior for a component.
+type ComponentOptions = registry.ComponentOptions
+
 // Registry wraps the shared registry with scan-specific hook registration.
 type Registry struct {
 	*registry.Registry

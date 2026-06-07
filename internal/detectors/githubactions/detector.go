@@ -66,12 +66,10 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
 		Name:                detectors.NameGitHubActions,
-		Enabled:             true,
-		Origin:              sdk.CoreOrigin,
 		Technique:           sdk.ManifestTechnique,
 		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemGitHub},
 		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerGitHubActions},
-		Capabilities:        []string{"graph-resolution", "component-targeting", "local-transitive-expansion"},
+		Tags:                []string{"graph-resolution", "component-targeting", "local-transitive-expansion"},
 	}
 }
 

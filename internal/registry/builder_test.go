@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"slices"
 	"testing"
 	"time"
 
@@ -92,30 +93,25 @@ func TestBuildScanRegistryRegistersBuiltInMatchers(t *testing.T) {
 	builtins := NewRegistry(RegistryConfigs{}, *zap.NewNop())
 	builtins.Build()
 
-	got := make(map[string]sdk.DetectorOrigin)
+	got := make(map[string]struct{})
 	for _, descriptor := range builtins.MatcherDescriptors() {
-		got[descriptor.Name] = descriptor.Origin
+		got[descriptor.Name] = struct{}{}
 	}
 
-	// grype is a bundled third-party library; it keeps BundledOrigin.
-	for _, name := range []string{"grype"} {
-		origin, ok := got[name]
-		if !ok {
+	for _, name := range []string{"grype", "osv", "depsdev-license-matcher", "scorecard"} {
+		if _, ok := got[name]; !ok {
 			t.Fatalf("expected built-in matcher %q to be registered; got %#v", name, got)
-		}
-		if origin != sdk.BundledOrigin {
-			t.Fatalf("expected matcher %q to be bundled origin, got %q", name, origin)
 		}
 	}
-
-	// Core matchers are implemented directly in Bomly's codebase; they use CoreOrigin.
-	for _, name := range []string{"osv", "depsdev-license-matcher", "scorecard"} {
-		origin, ok := got[name]
-		if !ok {
-			t.Fatalf("expected built-in matcher %q to be registered; got %#v", name, got)
+	defaults := builtins.DefaultEnabledMatcherNames()
+	for _, name := range []string{"grype", "depsdev-license-matcher"} {
+		if !slices.Contains(defaults, name) {
+			t.Fatalf("expected matcher %q to be enabled by default; got %#v", name, defaults)
 		}
-		if origin != sdk.CoreOrigin {
-			t.Fatalf("expected matcher %q to be core origin, got %q", name, origin)
+	}
+	for _, name := range []string{"osv", "scorecard"} {
+		if slices.Contains(defaults, name) {
+			t.Fatalf("expected matcher %q to be opt-in; got %#v", name, defaults)
 		}
 	}
 }

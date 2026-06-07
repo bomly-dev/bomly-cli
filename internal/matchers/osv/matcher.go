@@ -186,13 +186,9 @@ func (a *Matcher) Descriptor() sdk.MatcherDescriptor {
 	return sdk.MatcherDescriptor{
 		Name:        "osv",
 		DisplayName: "OSV",
-		Enabled:     false,
-		Origin:      sdk.CoreOrigin,
 		// nil SupportedEcosystems means all ecosystems; OSV handles ecosystem
 		// selection internally via PURL or name+ecosystem queries.
 		SupportedEcosystems: nil,
-		Priority:            100,
-		Required:            false,
 	}
 }
 

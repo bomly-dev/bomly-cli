@@ -43,15 +43,6 @@ func TestResolveGitHubReleaseAndInstall(t *testing.T) {
 		Entrypoint: map[string]string{
 			platformKey(): filepath.ToSlash(filepath.Join("bin", filepath.Base(binaryPath))),
 		},
-		DetectorDescriptor: &plugschema.DetectorDescriptor{
-			Name:    "acme.detector.release",
-			Enabled: true,
-			Origin:  plugschema.ExternalOrigin,
-			PackageManagerSupport: []plugschema.PackageManagerSupport{
-				plugschema.Support(plugschema.PackageManagerGoMod, "go.mod"),
-			},
-			Capabilities: []string{"dependency-detection"},
-		},
 	}, "github:acme/release-detector@v1.0.0")
 
 	archiveName := "bomly-plugin-release_" + runtime.GOOS + "_" + runtime.GOARCH + archiveSuffix()
@@ -59,6 +50,8 @@ func TestResolveGitHubReleaseAndInstall(t *testing.T) {
 	checksum := checksumForBytes(archiveBytes)
 
 	var server *httptest.Server
+	archiveAssetPath := "/repos/acme/release-detector/releases/assets/101"
+	checksumAssetPath := "/repos/acme/release-detector/releases/assets/102"
 	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/repos/acme/release-detector/releases/tags/v1.0.0":
@@ -66,16 +59,24 @@ func TestResolveGitHubReleaseAndInstall(t *testing.T) {
 			_ = json.NewEncoder(w).Encode(map[string]any{
 				"tag_name": "v1.0.0",
 				"assets": []map[string]any{
-					{"name": archiveName, "browser_download_url": server.URL + "/download/" + archiveName},
-					{"name": "SHA256SUMS", "browser_download_url": server.URL + "/download/SHA256SUMS"},
+					{"id": 101, "name": archiveName, "url": server.URL + archiveAssetPath, "browser_download_url": server.URL + "/download/" + archiveName},
+					{"id": 102, "name": "SHA256SUMS", "url": server.URL + checksumAssetPath, "browser_download_url": server.URL + "/download/SHA256SUMS"},
 				},
 			})
-		case "/download/" + archiveName:
+		case archiveAssetPath:
 			assertGitHubAuthHeader(t, r, token)
+			if got := r.Header.Get("Accept"); got != "application/octet-stream" {
+				t.Fatalf("expected GitHub API asset download accept header, got %q", got)
+			}
 			_, _ = w.Write(archiveBytes)
-		case "/download/SHA256SUMS":
+		case checksumAssetPath:
 			assertGitHubAuthHeader(t, r, token)
-			_, _ = w.Write([]byte(checksum[len("sha256:"):] + "  " + archiveName + "\n"))
+			if got := r.Header.Get("Accept"); got != "application/octet-stream" {
+				t.Fatalf("expected GitHub API checksum download accept header, got %q", got)
+			}
+			_, _ = w.Write([]byte(checksum[len("sha256:"):] + "  dist/" + archiveName + "\n"))
+		case "/download/" + archiveName, "/download/SHA256SUMS":
+			http.NotFound(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -101,7 +102,7 @@ func TestResolveGitHubReleaseAndInstall(t *testing.T) {
 	if !result.ChecksumVerified {
 		t.Fatalf("expected GitHub release checksum verification to succeed")
 	}
-	if result.ResolvedSource != server.URL+"/download/"+archiveName {
+	if result.ResolvedSource != server.URL+archiveAssetPath {
 		t.Fatalf("expected resolved source to be archive download URL, got %q", result.ResolvedSource)
 	}
 }
@@ -134,6 +135,42 @@ func TestResolveGitHubReleaseRedactsTokenFromErrors(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "[redacted]") {
 		t.Fatalf("expected redacted marker in error, got %q", err.Error())
+	}
+}
+
+func TestFetchChecksumLineMatchesAssetBasenameVariants(t *testing.T) {
+	const assetName = "bomly-plugin-demo_linux_amd64.tar.gz"
+	const digest = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	tests := []struct {
+		name string
+		line string
+	}{
+		{name: "basename", line: digest + "  " + assetName + "\n"},
+		{name: "current-dir", line: digest + "  ./" + assetName + "\n"},
+		{name: "dist-prefix", line: digest + "  dist/" + assetName + "\n"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if got := r.Header.Get("Accept"); got != "application/octet-stream" {
+					t.Fatalf("expected checksum Accept header, got %q", got)
+				}
+				_, _ = w.Write([]byte(tt.line))
+			}))
+			defer server.Close()
+
+			origClient := pluginHTTPClient
+			pluginHTTPClient = server.Client()
+			defer func() { pluginHTTPClient = origClient }()
+
+			got, err := fetchChecksumLine(context.Background(), server.URL, assetName)
+			if err != nil {
+				t.Fatalf("fetchChecksumLine() error = %v", err)
+			}
+			if want := "sha256:" + digest; got != want {
+				t.Fatalf("fetchChecksumLine() = %q, want %q", got, want)
+			}
+		})
 	}
 }
 
@@ -246,22 +283,10 @@ import (
 
 type detector struct{}
 
-func (d *detector) Metadata(ctx context.Context) (*schemav1.PluginMetadata, error) {
-	return &schemav1.PluginMetadata{
-		ID:               "` + id + `",
-		Name:             "Fake Detector",
-		Version:          "1.0.0",
-		Kind:             schemav1.PluginKindDetector,
-		PluginAPIVersion: schemav1.PluginAPIVersion,
-	}, nil
-}
-
 func (d *detector) Descriptor(ctx context.Context) (*schemav1.DetectorDescriptor, error) {
 	return &schemav1.DetectorDescriptor{
 		Name:           "` + id + `",
-		Enabled:        true,
-		Origin:         schemav1.ExternalOrigin,
-		Capabilities:   []string{"dependency-detection"},
+		Tags:   []string{"dependency-detection"},
 	}, nil
 }
 
@@ -292,7 +317,6 @@ func (d *detector) Detect(ctx context.Context, req *schemav1.DetectRequest) (*sc
 		SubprojectInfo:      req.Subproject,
 		RootExecutionTarget: req.ExecutionTarget,
 		DetectorName:        "` + id + `",
-		Origin:              schemav1.ExternalOrigin,
 		Graphs: &schemav1.GraphContainer{
 			Entries: []schemav1.GraphEntry{{
 				Manifest: schemav1.ManifestMetadata{

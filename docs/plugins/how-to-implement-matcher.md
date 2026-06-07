@@ -21,23 +21,13 @@ const pluginID = "clearlydefined-license-matcher"
 
 type matcher struct{}
 
-func (m *matcher) Metadata(context.Context) (*sdk.PluginMetadata, error) {
-    return &sdk.PluginMetadata{
-        ID:               pluginID,
-        Name:             "ClearlyDefined License Matcher",
-        Version:          "0.1.0",
-        Kind:             sdk.PluginKindMatcher,
-        PluginAPIVersion: sdk.PluginAPIVersion,
-    }, nil
-}
 
 func (m *matcher) Descriptor(context.Context) (*sdk.MatcherDescriptor, error) {
     return &sdk.MatcherDescriptor{
-        Name:         pluginID,
-        Enabled:      false,
-        Origin:       sdk.ExternalOrigin,
-        Priority:     100,
-        Capabilities: []string{"license-enrichment", "http", "cache"},
+        Name:        pluginID,
+        DisplayName: "ClearlyDefined License Matcher",
+        Aliases:     []string{"clearlydefined", "licenses"},
+        Tags:        []string{"license-enrichment", "http", "cache"},
     }, nil
 }
 
@@ -66,6 +56,7 @@ func (m *matcher) Match(ctx context.Context, req *sdk.MatchRequest) (*sdk.MatchR
         Registry: registry,
         MatcherStats: sdk.MatcherStats{
             Name: pluginID,
+            DisplayName: "ClearlyDefined License Matcher",
             MatchedPackages: 1,
             Licenses: 1,
             Vulnerabilities: 1,
@@ -78,12 +69,11 @@ func main() {
 }
 ```
 
-The working example repo is [bomly-plugin-clearlydefined-license](https://github.com/bomly-dev/bomly-plugin-clearlydefined-license). It shows a standalone HTTP matcher with plugin-local cache and proxy-aware SDK HTTP clients.
+The working example repo is [bomly-plugin-clearlydefined-matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-matcher). It shows a standalone HTTP matcher with plugin-local cache and proxy-aware SDK HTTP clients.
 
 ## What Each Hook Does
 
-- `Metadata` returns the plugin identity. The ID, version, kind, and API version must match the installed manifest.
-- `Descriptor` describes the matcher registration. Use `sdk.ExternalOrigin` for external plugins.
+- `Descriptor` describes the component identity, display name, aliases, tags, and support.
 - `Ready` reports whether the plugin can run in the current environment.
 - `Applicable` reports whether the matcher should run for the current request.
 - `Match` reads `sdk.MatchRequest` and returns a `sdk.MatchResponse` with the enriched registry.
@@ -150,20 +140,21 @@ If the matcher produces deterministic output for a fixed input and service versi
 For development, build and install the binary directly:
 
 ```bash
-go build -o ./bin/bomly-plugin-clearlydefined-license .
-bomly plugin install ./bin/bomly-plugin-clearlydefined-license --dev
+go build -o ./bin/bomly-plugin-clearlydefined-matcher .
+bomly plugin install ./bin/bomly-plugin-clearlydefined-matcher --dev
 bomly plugin enable clearlydefined-license-matcher
 ```
 
-For distribution, package a `bomly-plugin.json` manifest with the binary:
+For distribution, package a package-only `bomly-plugin.json` manifest with the binary:
 
 ```text
 bomly-plugin.json
 bin/
-  bomly-plugin-clearlydefined-license
+  bomly-plugin-clearlydefined-matcher
 README.md
-LICENSE
 ```
+
+The manifest contains package and install fields only. Bomly probes the binary at install time, verifies `descriptor.name == manifest.id`, and writes its own internal descriptor snapshot for plugin list, selectors, verification, and runtime registration.
 
 ## Test It
 
@@ -189,7 +180,6 @@ bomly scan --path ./my-project --enrich --matchers +clearlydefined-license-match
 
 ## Implementation Checklist
 
-- Return stable `PluginMetadata` and keep it in sync with the manifest.
 - Enrich `req.Registry`; do not replace graph identity.
 - Return `MatcherStats` with the matcher ID and useful counts.
 - Keep external network calls behind explicit enrichment.

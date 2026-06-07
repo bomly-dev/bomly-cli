@@ -79,7 +79,6 @@ func Test(ctx context.Context, root, id string, builtins []PluginInfo) (*TestRes
 		PluginInfo: PluginInfo{
 			Manifest:   manifest,
 			Installed:  record,
-			Enabled:    record.Enabled,
 			Entrypoint: fullEntrypoint,
 		},
 		Ready: ready,

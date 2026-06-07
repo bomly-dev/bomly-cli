@@ -47,12 +47,10 @@ func (d LockfileDetector) Applicable(ctx context.Context, req sdk.DetectionReque
 func (d LockfileDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
 		Name:                 detectors.NameYarn,
-		Enabled:              true,
-		Origin:               sdk.CoreOrigin,
 		Technique:            sdk.LockfileTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemNPM},
 		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerYarn},
-		Capabilities:         []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
+		Tags:                 []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
 		SupportsInstallFirst: true,
 	}
 }

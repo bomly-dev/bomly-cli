@@ -246,12 +246,12 @@ func installLocalArtifact(ctx context.Context, tempDir, source string, opts Inst
 }
 
 func installArchiveAtPath(ctx context.Context, tempDir, archivePath, source, expectedChecksum string, skipChecksum bool) (Manifest, string, error) {
-	checksum, err := checksumFile(archivePath)
+	archiveChecksum, err := checksumFile(archivePath)
 	if err != nil {
 		return Manifest{}, "", err
 	}
-	if expectedChecksum != "" && checksum != expectedChecksum {
-		return Manifest{}, "", fmt.Errorf("plugin checksum mismatch: expected %s, got %s", expectedChecksum, checksum)
+	if expectedChecksum != "" && archiveChecksum != expectedChecksum {
+		return Manifest{}, "", fmt.Errorf("plugin checksum mismatch: expected %s, got %s", expectedChecksum, archiveChecksum)
 	}
 	if !skipChecksum && expectedChecksum == "" && isRemoteURL(source) {
 		return Manifest{}, "", errors.New("plugin checksum is required for URL installs")
@@ -285,7 +285,11 @@ func installArchiveAtPath(ctx context.Context, tempDir, archivePath, source, exp
 	if err := writeRuntimeSnapshot(tempDir, snapshot); err != nil {
 		return Manifest{}, "", err
 	}
-	return manifest, checksum, nil
+	entrypointChecksum, err := checksumFile(fullEntrypoint)
+	if err != nil {
+		return Manifest{}, "", err
+	}
+	return manifest, entrypointChecksum, nil
 }
 
 func extractArchive(archivePath, targetDir string) error {

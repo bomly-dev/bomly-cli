@@ -15,24 +15,24 @@ func TestValidateRejectsAuditWithoutEnrich(t *testing.T) {
 	}
 }
 
-func TestValidateRejectsReachabilityWithoutEnrich(t *testing.T) {
-	err := Validate(Resolved{Reachability: true})
+func TestValidateRejectsAnalyzeWithoutEnrich(t *testing.T) {
+	err := Validate(Resolved{Analyze: true})
 	if err == nil {
-		t.Fatal("Validate returned nil for --reachability without --enrich; want error")
+		t.Fatal("Validate returned nil for --analyze without --enrich; want error")
 	}
-	if !strings.Contains(err.Error(), "--reachability requires --enrich") {
-		t.Errorf("error message = %q, want it to mention '--reachability requires --enrich'", err.Error())
+	if !strings.Contains(err.Error(), "--analyze requires --enrich") {
+		t.Errorf("error message = %q, want it to mention '--analyze requires --enrich'", err.Error())
 	}
 }
 
-func TestValidateAcceptsAuditAndReachabilityWithEnrich(t *testing.T) {
+func TestValidateAcceptsAuditAndAnalyzeWithEnrich(t *testing.T) {
 	cases := []struct {
 		name string
 		cfg  Resolved
 	}{
 		{"audit + enrich", Resolved{Enrich: true, Audit: true}},
-		{"reachability + enrich", Resolved{Enrich: true, Reachability: true}},
-		{"all three", Resolved{Enrich: true, Audit: true, Reachability: true}},
+		{"analyze + enrich", Resolved{Enrich: true, Analyze: true}},
+		{"all three", Resolved{Enrich: true, Audit: true, Analyze: true}},
 		{"enrich alone", Resolved{Enrich: true}},
 		{"none of the three", Resolved{}},
 	}

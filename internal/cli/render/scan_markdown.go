@@ -39,7 +39,7 @@ func scanSummaryMarkdown(payload output.ScanResponse) []string {
 		fmt.Sprintf("- Policy findings: %s", scanAuditSummaryMarkdown(payload.AuditSummary)),
 	}
 	if payload.Metadata.ReachabilityEnabled {
-		lines = append(lines, fmt.Sprintf("- Reachability: %s", scanReachabilitySummaryMarkdown(payload.Manifests)))
+		lines = append(lines, fmt.Sprintf("- Reachability: %s", scanReachabilitySummaryMarkdown(payload.Packages)))
 	}
 	return lines
 }
@@ -58,27 +58,38 @@ func scanManifestMarkdown(payload output.ScanResponse) []string {
 			subproject,
 			ValueOrDash(manifest.Path),
 			ValueOrDash(manifest.PackageManager),
-			fmt.Sprintf("%d", len(manifest.Packages)),
+			fmt.Sprintf("%d", len(manifest.Dependencies)),
 		})
 	}
 	return markdownTable([]string{"Subproject", "Manifest", "Manager", "Packages"}, rows)
 }
 
 func scanInventoryMarkdown(payload output.ScanResponse) []string {
-	packages := scanPackages(payload.Manifests)
-	if len(packages) == 0 {
+	dependencies := scanDependencies(payload.Manifests)
+	if len(dependencies) == 0 {
 		return []string{"No packages detected."}
 	}
-	rows := make([][]string, 0, len(packages))
-	for _, pkg := range packages {
+	rows := make([][]string, 0, len(dependencies))
+	for _, dep := range dependencies {
 		rows = append(rows, []string{
-			ValueOrDash(markdownPackageDisplayName(pkg.PackageRef)),
-			ValueOrDash(pkg.Version),
-			ValueOrDash(pkg.Scope),
-			ValueOrDash(licenseList(pkg.Licenses)),
+			ValueOrDash(scanDependencyDisplayName(dep)),
+			ValueOrDash(dep.Version),
+			ValueOrDash(dep.PrimaryScope()),
+			ValueOrDash(licenseList(dep.Licenses)),
 		})
 	}
 	return markdownTable([]string{"Package", "Version", "Scope", "Licenses"}, rows)
+}
+
+func scanDependencyDisplayName(dep output.ScanDependency) string {
+	switch {
+	case dep.Name != "" && dep.Version != "":
+		return dep.Name + "@" + dep.Version
+	case dep.Name != "":
+		return dep.Name
+	default:
+		return dep.ID
+	}
 }
 
 func scanFindingsMarkdown(payload output.ScanResponse) []string {
@@ -122,26 +133,26 @@ func scanFindingsMarkdown(payload output.ScanResponse) []string {
 func scanPackageCount(manifests []output.ScanManifest) int {
 	total := 0
 	for _, manifest := range manifests {
-		total += len(manifest.Packages)
+		total += len(manifest.Dependencies)
 	}
 	return total
 }
 
-func scanPackages(manifests []output.ScanManifest) []output.ScanPackage {
-	packages := make([]output.ScanPackage, 0, scanPackageCount(manifests))
+func scanDependencies(manifests []output.ScanManifest) []output.ScanDependency {
+	dependencies := make([]output.ScanDependency, 0, scanPackageCount(manifests))
 	for _, manifest := range manifests {
-		packages = append(packages, manifest.Packages...)
+		dependencies = append(dependencies, manifest.Dependencies...)
 	}
-	sort.Slice(packages, func(i, j int) bool {
-		if packages[i].Name != packages[j].Name {
-			return packages[i].Name < packages[j].Name
+	sort.Slice(dependencies, func(i, j int) bool {
+		if dependencies[i].Name != dependencies[j].Name {
+			return dependencies[i].Name < dependencies[j].Name
 		}
-		if packages[i].Version != packages[j].Version {
-			return packages[i].Version < packages[j].Version
+		if dependencies[i].Version != dependencies[j].Version {
+			return dependencies[i].Version < dependencies[j].Version
 		}
-		return packages[i].ID < packages[j].ID
+		return dependencies[i].ID < dependencies[j].ID
 	})
-	return packages
+	return dependencies
 }
 
 func scanAuditSummaryMarkdown(summary *output.AuditSummary) string {
@@ -151,25 +162,23 @@ func scanAuditSummaryMarkdown(summary *output.AuditSummary) string {
 	return formatAuditSummary(summary, true)
 }
 
-func scanReachabilitySummaryMarkdown(manifests []output.ScanManifest) string {
+func scanReachabilitySummaryMarkdown(packages []output.ScanPackageEntry) string {
 	var reachable, unreachable, unknown, notApplicable, total int
-	for _, manifest := range manifests {
-		for _, pkg := range manifest.Packages {
-			for _, vuln := range pkg.Vulnerabilities {
-				if vuln.Reachability == nil {
-					continue
-				}
-				total++
-				switch vuln.Reachability.Status {
-				case "reachable":
-					reachable++
-				case "unreachable":
-					unreachable++
-				case "not_applicable":
-					notApplicable++
-				default:
-					unknown++
-				}
+	for _, pkg := range packages {
+		for _, vuln := range pkg.Vulnerabilities {
+			if vuln.Reachability == nil {
+				continue
+			}
+			total++
+			switch vuln.Reachability.Status {
+			case "reachable":
+				reachable++
+			case "unreachable":
+				unreachable++
+			case "not_applicable":
+				notApplicable++
+			default:
+				unknown++
 			}
 		}
 	}

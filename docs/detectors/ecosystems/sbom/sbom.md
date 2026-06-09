@@ -66,7 +66,7 @@ bomly diff --sbom --base ./v1.0.cdx.json --head ./v1.1.cdx.json
 
 ## Reachability
 
-> **Not applicable.** Reachability analyzers need access to source code; an SBOM-only input cannot satisfy that. `--reachability` produces `not_applicable` for SBOM ingest.
+> **Not applicable.** Reachability analyzers need access to source code; an SBOM-only input cannot satisfy that. `--analyze` produces `not_applicable` for SBOM ingest.
 
 ## Limitations
 

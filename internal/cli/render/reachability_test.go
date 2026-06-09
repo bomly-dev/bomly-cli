@@ -56,16 +56,13 @@ func TestScanRendersReachabilityColumnWhenEnabled(t *testing.T) {
 func TestScanMarkdownRendersReachabilityOnlyWhenEnabled(t *testing.T) {
 	payload := output.ScanResponse{
 		Metadata: output.Metadata{ReachabilityEnabled: true},
-		Manifests: []output.ScanManifest{{
-			Packages: []output.ScanPackage{{
-				PackageRef: output.PackageRef{
-					Name: "lib",
-					Vulnerabilities: []output.VulnerabilityRef{{
-						ID:           "CVE-2024-0001",
-						Source:       "osv",
-						Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
-					}},
-				},
+		Packages: []output.ScanPackageEntry{{
+			Purl: "pkg:golang/lib@1.0.0",
+			Name: "lib",
+			Vulnerabilities: []output.VulnerabilityRef{{
+				ID:           "CVE-2024-0001",
+				Source:       "osv",
+				Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
 			}},
 		}},
 		Findings: []output.AuditFinding{{

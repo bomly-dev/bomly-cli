@@ -188,30 +188,6 @@ func TestAudit(t *testing.T) {
 			},
 		},
 		{
-			// FailOnScopes restricts findings to matching-scope packages; packages
-			// with a different scope produce no finding.
-			name: "package outside FailOnScopes produces no finding",
-			auditor: Auditor{
-				DenyPackages: []string{"pkg:golang/github.com/evil/malware"},
-				FailOnScopes: []sdk.Scope{sdk.ScopeDevelopment},
-			},
-			// pkgDenied has scope "runtime" which is not in FailOnScopes.
-			graph:            graphOf(pkgDenied),
-			baseline:         sdk.New(),
-			wantFindingCount: 0,
-		},
-		{
-			// FailOnScopes: a matching scope does produce a finding.
-			name: "package inside FailOnScopes is checked",
-			auditor: Auditor{
-				DenyPackages: []string{"pkg:golang/github.com/evil/malware"},
-				FailOnScopes: []sdk.Scope{sdk.ScopeRuntime},
-			},
-			graph:            graphOf(pkgDenied),
-			baseline:         sdk.New(),
-			wantFindingCount: 1,
-		},
-		{
 			// Unrelated new package that does not resemble any protected name
 			// produces no finding.
 			name: "unrelated new package produces no finding",

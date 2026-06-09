@@ -13,25 +13,25 @@ import (
 
 // ScanRequest holds per-call overrides for the bomly_scan tool.
 type ScanRequest struct {
-	Path         string `json:"path"`
-	Container    string `json:"container"`
-	URL          string `json:"url"`
-	Ref          string `json:"ref"`
-	Enrich       bool   `json:"enrich"`
-	Audit        bool   `json:"audit"`
-	Reachability bool   `json:"reachability"`
-	FailOn       string `json:"fail_on"`
-	Ecosystems   string `json:"ecosystems"`
-	Scope        string `json:"scope"`
+	Path       string `json:"path"`
+	Container  string `json:"container"`
+	URL        string `json:"url"`
+	Ref        string `json:"ref"`
+	Enrich     bool   `json:"enrich"`
+	Audit      bool   `json:"audit"`
+	Analyze    bool   `json:"analyze"`
+	FailOn     string `json:"fail_on"`
+	Ecosystems string `json:"ecosystems"`
+	Scope      string `json:"scope"`
 }
 
 // ExplainRequest holds per-call overrides for the bomly_explain tool.
 type ExplainRequest struct {
-	Package      string `json:"package"`
-	Path         string `json:"path"`
-	Enrich       bool   `json:"enrich"`
-	Audit        bool   `json:"audit"`
-	Reachability bool   `json:"reachability"`
+	Package string `json:"package"`
+	Path    string `json:"path"`
+	Enrich  bool   `json:"enrich"`
+	Audit   bool   `json:"audit"`
+	Analyze bool   `json:"analyze"`
 }
 
 // DiffRequest holds per-call overrides for the bomly_diff tool.
@@ -42,9 +42,8 @@ type DiffRequest struct {
 	Container             string `json:"container"`
 	Enrich                bool   `json:"enrich"`
 	Audit                 bool   `json:"audit"`
-	Reachability          bool   `json:"reachability"`
+	Analyze               bool   `json:"analyze"`
 	FailOn                string `json:"fail_on"`
-	FailOnScopes          string `json:"fail_on_scopes"`
 	AllowVulnerabilityIDs string `json:"allow_vulnerability_ids"`
 	AllowLicenses         string `json:"allow_licenses"`
 	DenyLicenses          string `json:"deny_licenses"`
@@ -156,7 +155,7 @@ func BuildManifestFixTargets(
 		}
 
 		for _, manifest := range manifests {
-			for _, pkg := range manifest.Packages {
+			for _, pkg := range manifest.Dependencies {
 				if pkg.ID != targetInManifest.ID {
 					continue
 				}

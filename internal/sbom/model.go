@@ -1,6 +1,10 @@
 package sbom
 
-import "time"
+import (
+	"time"
+
+	"github.com/bomly-dev/bomly-cli/sdk"
+)
 
 // Target identifies an SBOM wire format target.
 type Target string
@@ -24,6 +28,11 @@ type BuildOptions struct {
 	Created         time.Time
 	RootComponentID string
 	SerialNumber    string
+
+	// Registry, when non-nil, supplies matching-stage enrichment (licenses,
+	// vulnerabilities, CPEs, digests, EOL) resolved by PURL and folded onto
+	// each component during projection.
+	Registry *sdk.PackageRegistry
 }
 
 // EncodeOptions controls JSON output formatting.
@@ -57,6 +66,12 @@ type Component struct {
 	Type           string
 	Copyright      string
 	Licenses       []License
+
+	// Matching-stage enrichment (populated when BuildOptions.Registry is set).
+	CPEs            []string
+	Digests         []Digest
+	Vulnerabilities []Vulnerability
+	EOL             *EOL
 }
 
 // Dependency describes one package relationship list in the intermediate SBOM model.
@@ -70,6 +85,36 @@ type License struct {
 	Value          string
 	SPDXExpression string
 	Type           string
+}
+
+// Digest is a content digest (algorithm + hex value) carried on a component.
+type Digest struct {
+	Algorithm string
+	Value     string
+}
+
+// Vulnerability is a format-agnostic projection of one matching-stage advisory
+// affecting a component. Encoders map it to the format's native representation
+// (CycloneDX vulnerabilities, SPDX SECURITY external references).
+type Vulnerability struct {
+	ID            string
+	Source        string
+	Severity      string
+	Score         *float64
+	Vector        string
+	Method        string
+	CWEs          []int
+	FixedVersions []string
+	Advisories    []string
+	Description   string
+}
+
+// EOL is a format-agnostic projection of end-of-life enrichment for a component.
+type EOL struct {
+	EOL           bool
+	EOLDate       string
+	Cycle         string
+	LatestVersion string
 }
 
 // NameOrID returns the component name when present, otherwise its stable ID.

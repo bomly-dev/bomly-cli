@@ -184,6 +184,13 @@ type PipelineResult struct {
 
 ## Output JSON contract (schema v1)
 
+The three collections map to three top-level keys: `manifests` (detection-stage
+dependencies, one node per instance), `packages` (matching-stage artifacts,
+deduplicated by PURL), and `findings` (reference-style audit results). Manifest
+dependencies are **lean** — they carry detection-time facts and a `package_ref`
+into `packages`, but no inlined vulnerabilities/scorecard. Enrichment lives once,
+in `packages`, and is resolved by PURL.
+
 ```jsonc
 {
   "schema_version": "1.0",
@@ -200,10 +207,18 @@ type PipelineResult struct {
           "depends_on": ["loose-envify@1.4.0"],
           "matched": true,
           "package_ref": "pkg:npm/react@18.2.0",
-          "licenses": [ /* detection-time license facts */ ],
-          "vulnerabilities": [ /* resolved from registry */ ]
+          "licenses": [ /* detection-time license facts only */ ]
         }
       ]
+    }
+  ],
+  "packages": [
+    {
+      "purl": "pkg:npm/react@18.2.0", "name": "react", "version": "18.2.0",
+      "ecosystem": "npm", "matched": true,
+      "licenses": [ /* matching-stage licenses */ ],
+      "vulnerabilities": [ /* OSV-aligned, with cvss/epss/reachability */ ],
+      "scorecard": { ... }, "eol": { ... }, "cpes": [ ... ], "digests": [ ... ]
     }
   ],
   "findings": [
@@ -217,6 +232,10 @@ type PipelineResult struct {
   "audit_summary": { "critical": 0, "high": 1, ... }
 }
 ```
+
+SARIF projects the same registry-resolved findings; SBOM (SPDX/CycloneDX)
+projects the `packages` enrichment onto components (licenses, vulnerabilities,
+CPEs, checksums, EOL).
 
 `bomly diff` and `bomly explain` use the same vocabulary. SARIF and SBOM output are projected from the same registry-aware helpers; see `docs/OUTPUT_FORMATS.md` and `docs/SBOM.md` for format-specific details.
 

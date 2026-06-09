@@ -2,13 +2,9 @@
   "command": "scan",
   "manifests": [
     {
-      "detector": "conan-detector",
-      "ecosystem": "cpp",
-      "kind": "conan.lock",
-      "package_manager": "conan",
-      "packages": [
+      "dependencies": [
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:conan/cmake@3.27.0",
           "licenses": [],
           "locations": [
@@ -22,13 +18,15 @@
             }
           ],
           "name": "cmake",
+          "package_ref": "pkg:conan/cmake@3.27.0",
           "purl": "pkg:conan/cmake@3.27.0",
-          "scope": "development",
-          "version": "3.27.0",
-          "vulnerabilities": []
+          "scopes": [
+            "development"
+          ],
+          "version": "3.27.0"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:conan/zlib@1.2.11"
           ],
           "id": "pkg:conan/openssl@1.1.1s",
@@ -44,13 +42,15 @@
             }
           ],
           "name": "openssl",
+          "package_ref": "pkg:conan/openssl@1.1.1s",
           "purl": "pkg:conan/openssl@1.1.1s",
-          "scope": "runtime",
-          "version": "1.1.1s",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.1.1s"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:conan/cmake@3.27.0",
             "pkg:conan/openssl@1.1.1s",
             "pkg:conan/zlib@1.2.11"
@@ -58,11 +58,11 @@
           "id": "pkg:conan/root",
           "licenses": [],
           "name": "root",
-          "purl": "pkg:conan/root",
-          "vulnerabilities": []
+          "package_ref": "pkg:conan/root",
+          "purl": "pkg:conan/root"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:conan/zlib@1.2.11",
           "licenses": [],
           "locations": [
@@ -76,12 +76,18 @@
             }
           ],
           "name": "zlib",
+          "package_ref": "pkg:conan/zlib@1.2.11",
           "purl": "pkg:conan/zlib@1.2.11",
-          "scope": "runtime",
-          "version": "1.2.11",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.2.11"
         }
       ],
+      "detector": "conan-detector",
+      "ecosystem": "cpp",
+      "kind": "conan.lock",
+      "package_manager": "conan",
       "path": "conan.lock",
       "subproject": "."
     }
@@ -89,6 +95,39 @@
   "metadata": {
     "duration_ms": 0
   },
+  "packages": [
+    {
+      "ecosystem": "cpp",
+      "licenses": [],
+      "name": "cmake",
+      "purl": "pkg:conan/cmake@3.27.0",
+      "version": "3.27.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "cpp",
+      "licenses": [],
+      "name": "openssl",
+      "purl": "pkg:conan/openssl@1.1.1s",
+      "version": "1.1.1s",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "cpp",
+      "licenses": [],
+      "name": "root",
+      "purl": "pkg:conan/root",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "cpp",
+      "licenses": [],
+      "name": "zlib",
+      "purl": "pkg:conan/zlib@1.2.11",
+      "version": "1.2.11",
+      "vulnerabilities": []
+    }
+  ],
   "project": {
     "ecosystem": "cpp",
     "name": "\u003cnormalized\u003e",

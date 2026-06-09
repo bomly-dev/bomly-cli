@@ -16,23 +16,23 @@ func registerScanTool(s *server.MCPServer, mcpCtx MCPContext) {
 		mcplib.WithString("ref", mcplib.Description("Git ref to checkout when using url")),
 		mcplib.WithBoolean("enrich", mcplib.Description("Enrich packages with vulnerability and license data from external sources")),
 		mcplib.WithBoolean("audit", mcplib.Description("Evaluate policy and produce findings from enriched vulnerability data (requires enrich)")),
-		mcplib.WithBoolean("reachability", mcplib.Description("[Experimental] Run code analysis to confirm whether vulnerabilities are reachable from application code (requires enrich)")),
+		mcplib.WithBoolean("analyze", mcplib.Description("[Experimental] Run code analysis to confirm whether vulnerabilities are reachable from application code (requires enrich)")),
 		mcplib.WithString("fail_on", mcplib.Description("Audit finding constraint: any, low, medium, high, critical, reachable, or exploitable")),
 		mcplib.WithString("ecosystems", mcplib.Description("Ecosystem filter; supports +name/-name modifiers")),
 		mcplib.WithString("scope", mcplib.Description("Filter dependencies by scope: runtime or development")),
 	)
 	s.AddTool(tool, func(ctx context.Context, req mcplib.CallToolRequest) (*mcplib.CallToolResult, error) {
 		scanReq := ScanRequest{
-			Path:         req.GetString("path", ""),
-			Container:    req.GetString("container", ""),
-			URL:          req.GetString("url", ""),
-			Ref:          req.GetString("ref", ""),
-			Enrich:       req.GetBool("enrich", false),
-			Audit:        req.GetBool("audit", false),
-			Reachability: req.GetBool("reachability", false),
-			FailOn:       req.GetString("fail_on", ""),
-			Ecosystems:   req.GetString("ecosystems", ""),
-			Scope:        req.GetString("scope", ""),
+			Path:       req.GetString("path", ""),
+			Container:  req.GetString("container", ""),
+			URL:        req.GetString("url", ""),
+			Ref:        req.GetString("ref", ""),
+			Enrich:     req.GetBool("enrich", false),
+			Audit:      req.GetBool("audit", false),
+			Analyze:    req.GetBool("analyze", false),
+			FailOn:     req.GetString("fail_on", ""),
+			Ecosystems: req.GetString("ecosystems", ""),
+			Scope:      req.GetString("scope", ""),
 		}
 		result, err := mcpCtx.Adapter.RunScan(ctx, scanReq)
 		if err != nil {

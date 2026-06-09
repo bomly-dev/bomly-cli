@@ -10,6 +10,7 @@ Complete reference for the `bomly scan` JSON output.
 | `command` | `string` | |
 | `project` | [`ProjectDescriptor`](#projectdescriptor) | |
 | `manifests` | Array<[`ScanManifest`](#scanmanifest)> | |
+| `packages` | Array<[`ScanPackageEntry`](#scanpackageentry)> | |
 | `findings` | Array<[`AuditFinding`](#auditfinding)> | |
 | `audit_summary` | [`AuditSummary`](#auditsummary) | |
 | `metadata` | [`Metadata`](#metadata) | |
@@ -104,6 +105,13 @@ Complete reference for the `bomly scan` JSON output.
 | `sink` | [`AffectedSymbol`](#affectedsymbol) | |
 | `frames` | Array<[`CallFrame`](#callframe)> | |
 
+### `Digest`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `algorithm` | `string` | |
+| `value` | `string` | |
+
 ### `EPSSScore`
 
 | Field | Type | Description |
@@ -160,6 +168,18 @@ Complete reference for the `bomly scan` JSON output.
 | `reachability_enabled` | `boolean` | |
 | `analyzer_runs` | Array<`string`> | |
 | `analyzer_stats` | `object` | |
+
+### `PackageEOL`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `source` | `string` | |
+| `cycle` | `string` | |
+| `eol` | `boolean` | |
+| `eol_date` | `string` | |
+| `latest_version` | `string` | |
+| `release_date` | `string` | |
+| `supported` | `boolean` | |
 
 ### `PackageRef`
 
@@ -239,6 +259,21 @@ Complete reference for the `bomly scan` JSON output.
 | `url` | `string` | |
 | `type` | `string` | |
 
+### `ScanDependency`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | |
+| `name` | `string` | |
+| `version` | `string` | |
+| `purl` | `string` | |
+| `scopes` | Array<`string`> | |
+| `depends_on` | Array<`string`> | |
+| `matched` | `boolean` | |
+| `package_ref` | `string` | |
+| `locations` | Array<[`LocationRef`](#locationref)> | |
+| `licenses` | Array<[`LicenseRef`](#licenseref)> | |
+
 ### `ScanManifest`
 
 | Field | Type | Description |
@@ -249,23 +284,24 @@ Complete reference for the `bomly scan` JSON output.
 | `ecosystem` | `string` | |
 | `package_manager` | `string` | |
 | `detector` | `string` | |
-| `packages` | Array<[`ScanPackage`](#scanpackage)> | |
+| `dependencies` | Array<[`ScanDependency`](#scandependency)> | |
 
-### `ScanPackage`
+### `ScanPackageEntry`
 
 | Field | Type | Description |
 |-------|------|-------------|
+| `purl` | `string` | |
 | `name` | `string` | |
 | `version` | `string` | |
-| `scope` | `string` | |
-| `purl` | `string` | |
-| `id` | `string` | |
-| `metadata` | `object` | |
-| `locations` | Array<[`LocationRef`](#locationref)> | |
+| `ecosystem` | `string` | |
+| `matched` | `boolean` | |
 | `licenses` | Array<[`LicenseRef`](#licenseref)> | |
 | `vulnerabilities` | Array<[`VulnerabilityRef`](#vulnerabilityref)> | |
 | `scorecard` | [`PackageScorecard`](#packagescorecard) | |
-| `dependencies` | Array<`string`> | |
+| `eol` | [`PackageEOL`](#packageeol) | |
+| `cpes` | Array<`string`> | |
+| `digests` | Array<[`Digest`](#digest)> | |
+| `metadata` | `object` | |
 
 ### `SourcePosition`
 

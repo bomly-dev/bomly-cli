@@ -495,48 +495,153 @@ func SummaryFromFindings(findings []sdk.Finding) *AuditSummary {
 
 // ScanTargetResponse represents one target-specific scan payload.
 type ScanTargetResponse struct {
-	Project  ProjectDescriptor `json:"project"`
-	Detector string            `json:"detector,omitempty"`
-	Packages []ScanPackage     `json:"packages"`
+	Project      ProjectDescriptor `json:"project"`
+	Detector     string            `json:"detector,omitempty"`
+	Dependencies []ScanDependency  `json:"dependencies"`
 }
 
-// ScanPackage is one dependency plus its direct dependency IDs.
-type ScanPackage struct {
-	PackageRef
-	Dependencies []string `json:"dependencies"`
+// ScanDependency is one detection-stage dependency node in a manifest. It is a
+// lean projection of sdk.Dependency: identity, scopes, edges, detection-time
+// licenses, and a package_ref (PURL) link into the top-level packages
+// collection. Matching-stage enrichment (vulnerabilities, scorecard, EOL,
+// licenses learned during matching) is NOT carried here — it lives on the
+// resolved ScanPackageEntry referenced by PackageRef.
+type ScanDependency struct {
+	ID         string        `json:"id"`
+	Name       string        `json:"name"`
+	Version    string        `json:"version,omitempty"`
+	Purl       string        `json:"purl,omitempty"`
+	Scopes     []string      `json:"scopes,omitempty"`
+	DependsOn  []string      `json:"depends_on"`
+	Matched    bool          `json:"matched,omitempty"`
+	PackageRef string        `json:"package_ref,omitempty"`
+	Locations  []LocationRef `json:"locations,omitempty"`
+	Licenses   []LicenseRef  `json:"licenses"`
 }
 
-// PackagesFromGraph converts a graph into stable scan package payloads.
-// When registry is non-nil, each PackageRef is enriched with matching-stage
-// data (vulnerabilities, scorecard, etc.) resolved by PURL.
-func PackagesFromGraph(g *sdk.Graph, registry *sdk.PackageRegistry) []ScanPackage {
+// PrimaryScope returns the merged precedence scope across the dependency's
+// recorded scopes, mirroring sdk.Dependency.PrimaryScope so text/markdown
+// renderers reproduce the same scope label as before the model split.
+func (d ScanDependency) PrimaryScope() string {
+	result := sdk.ScopeUnknown
+	for _, scope := range d.Scopes {
+		result = sdk.MergeScope(result, sdk.Scope(scope))
+	}
+	return string(result)
+}
+
+// ScanPackageEntry is one matching-stage artifact in the top-level packages
+// collection: a PURL-keyed, deduplicated projection of sdk.Package carrying the
+// enrichment (licenses, vulnerabilities, scorecard, EOL, CPEs, digests) that
+// manifest dependencies reference by package_ref.
+type ScanPackageEntry struct {
+	Purl            string                `json:"purl"`
+	Name            string                `json:"name,omitempty"`
+	Version         string                `json:"version,omitempty"`
+	Ecosystem       string                `json:"ecosystem,omitempty"`
+	Matched         bool                  `json:"matched,omitempty"`
+	Licenses        []LicenseRef          `json:"licenses"`
+	Vulnerabilities []VulnerabilityRef    `json:"vulnerabilities"`
+	Scorecard       *sdk.PackageScorecard `json:"scorecard,omitempty"`
+	EOL             *sdk.PackageEOL       `json:"eol,omitempty"`
+	CPEs            []string              `json:"cpes,omitempty"`
+	Digests         []sdk.Digest          `json:"digests,omitempty"`
+	Metadata        map[string]any        `json:"metadata,omitempty"`
+}
+
+func (p ScanPackageEntry) withoutReachability() ScanPackageEntry {
+	if len(p.Vulnerabilities) > 0 {
+		p.Vulnerabilities = append([]VulnerabilityRef(nil), p.Vulnerabilities...)
+		for idx := range p.Vulnerabilities {
+			p.Vulnerabilities[idx].Reachability = nil
+		}
+	}
+	return p
+}
+
+// DependenciesFromGraph converts a graph into stable, lean scan dependency
+// payloads. registry, when non-nil, supplies the Matched flag via PURL lookup;
+// all richer enrichment is surfaced through PackagesFromRegistry instead.
+func DependenciesFromGraph(g *sdk.Graph, registry *sdk.PackageRegistry) []ScanDependency {
 	if g == nil {
 		return nil
 	}
 
-	packages := g.Nodes()
-	payload := make([]ScanPackage, 0, len(packages))
-	for _, pkg := range packages {
-		deps, err := g.DirectDependencies(pkg.ID)
+	nodes := g.Nodes()
+	payload := make([]ScanDependency, 0, len(nodes))
+	for _, dep := range nodes {
+		if dep == nil {
+			continue
+		}
+		deps, err := g.DirectDependencies(dep.ID)
 		dependencyIDs := make([]string, 0, len(deps))
 		if err == nil {
-			for _, dep := range deps {
-				if dep == nil {
+			for _, child := range deps {
+				if child == nil {
 					continue
 				}
-				dependencyIDs = append(dependencyIDs, dep.ID)
+				dependencyIDs = append(dependencyIDs, child.ID)
 			}
 		}
-		payload = append(payload, ScanPackage{
-			PackageRef:   PackageFromDependencyAndRegistry(pkg, registry),
-			Dependencies: dependencyIDs,
+		scopes := make([]string, 0, len(dep.Scopes))
+		for _, scope := range dep.Scopes {
+			scopes = append(scopes, string(scope))
+		}
+		matched := dep.Matched
+		if pkg := lookupRegistryPackage(registry, dep.PURL); pkg != nil {
+			matched = matched || pkg.Matched
+		}
+		payload = append(payload, ScanDependency{
+			ID:         dep.ID,
+			Name:       dep.DisplayName(),
+			Version:    dep.Version,
+			Purl:       dep.PURL,
+			Scopes:     scopes,
+			DependsOn:  dependencyIDs,
+			Matched:    matched,
+			PackageRef: dep.PackageRef,
+			Locations:  LocationRefsFromGraphLocations(dep.Locations),
+			Licenses:   LicenseRefsFromGraphLicenses(sdk.DetectionLicenses(dep)),
 		})
 	}
 	sort.Slice(payload, func(i, j int) bool {
 		return payload[i].ID < payload[j].ID
 	})
 	for idx := range payload {
-		sort.Strings(payload[idx].Dependencies)
+		sort.Strings(payload[idx].DependsOn)
+	}
+	return payload
+}
+
+// PackagesFromRegistry projects the matching-stage registry into the top-level
+// packages collection, deduplicated by PURL. registry.All() is already
+// PURL-sorted. Returns a non-nil (possibly empty) slice so JSON consumers
+// always see a "packages" array.
+func PackagesFromRegistry(registry *sdk.PackageRegistry) []ScanPackageEntry {
+	if registry == nil {
+		return []ScanPackageEntry{}
+	}
+	all := registry.All()
+	payload := make([]ScanPackageEntry, 0, len(all))
+	for _, pkg := range all {
+		if pkg == nil {
+			continue
+		}
+		entry := ScanPackageEntry{
+			Purl:            pkg.PURL,
+			Name:            pkg.Name,
+			Version:         pkg.Version,
+			Ecosystem:       pkg.Ecosystem,
+			Matched:         pkg.Matched,
+			Licenses:        LicenseRefsFromGraphLicenses(pkg.Licenses),
+			Vulnerabilities: VulnerabilityRefsFromPackageVulnerabilities(pkg.Vulnerabilities),
+			Scorecard:       pkg.Scorecard.Clone(),
+			EOL:             pkg.EOL.Clone(),
+			CPEs:            append([]string(nil), pkg.CPEs...),
+			Digests:         append([]sdk.Digest(nil), pkg.Digests...),
+			Metadata:        cloneRefMetadata(pkg.Metadata),
+		}
+		payload = append(payload, entry)
 	}
 	return payload
 }

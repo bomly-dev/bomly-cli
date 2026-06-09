@@ -66,7 +66,7 @@ Promote the transitive to a top-level `PackageReference` at the fixed version, o
 
 ## Reachability
 
-> **Not yet supported.** Bomly has no .NET reachability analyzer today. `--reachability` produces `not_applicable` for NuGet packages.
+> **Not yet supported.** Bomly has no .NET reachability analyzer today. `--analyze` produces `not_applicable` for NuGet packages.
 
 ## Limitations
 

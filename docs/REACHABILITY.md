@@ -1,8 +1,8 @@
 # Reachability
 
-> ⚠️ **Experimental.** Reachability is opt-in (`--reachability`) and under active development. The output shape is stable, but ecosystem coverage is expanding and Tier-3 analyzers (`jsreach`, `pyreach`, `jvmreach`) report at package precision today — sufficient for triage, not a fix substitute. Do not use `--fail-on reachable` as the sole gate for security-critical decisions without understanding the limitations below.
+> ⚠️ **Experimental.** Reachability is opt-in (`--analyze`) and under active development. The output shape is stable, but ecosystem coverage is expanding and Tier-3 analyzers (`jsreach`, `pyreach`, `jvmreach`) report at package precision today — sufficient for triage, not a fix substitute. Do not use `--fail-on reachable` as the sole gate for security-critical decisions without understanding the limitations below.
 
-`--reachability` runs code analysis on top of vulnerability matching to confirm whether a finding is actually reachable from your application code. Reachability annotations are written onto the matching `sdk.Vulnerability` records inside the PURL-keyed `sdk.PackageRegistry`. The output layer resolves them at projection time via `(Finding.PackageRef, Finding.VulnerabilityID)`, so reachability surfaces consistently in JSON, SARIF, and the text/TUI views without needing a separate field on `Finding`. See `docs/MODELS.md` for the registry data model.
+`--analyze` runs code analysis on top of vulnerability matching to confirm whether a finding is actually reachable from your application code. Reachability annotations are written onto the matching `sdk.Vulnerability` records inside the PURL-keyed `sdk.PackageRegistry`. The output layer resolves them at projection time via `(Finding.PackageRef, Finding.VulnerabilityID)`, so reachability surfaces consistently in JSON, SARIF, and the text/TUI views without needing a separate field on `Finding`. See `docs/MODELS.md` for the registry data model.
 
 The point: stop chasing high-severity CVEs in transitive packages your code never imports.
 
@@ -10,10 +10,10 @@ The point: stop chasing high-severity CVEs in transitive packages your code neve
 
 ```sh
 # Annotate vulnerabilities with reachability (no audit required).
-bomly scan --enrich --reachability --json
+bomly scan --enrich --analyze --json
 
 # Fail only when a finding is BOTH low+ severity AND confirmed reachable.
-bomly scan --enrich --audit --reachability \
+bomly scan --enrich --audit --analyze \
   --fail-on low --fail-on reachable --json
 ```
 
@@ -50,7 +50,7 @@ The pipeline gains a new `analyze` stage between `match` and `process`:
 detect → consolidate → match → analyze → process → audit
 ```
 
-When `--reachability` is set, every applicable `Analyzer` runs against
+When `--analyze` is set, every applicable `Analyzer` runs against
 the matched graph. Analyzers dispatch on `(Language, Ecosystem,
 PackageManager)` and may produce results at three levels of precision
 (`Tier`):
@@ -87,7 +87,7 @@ degrade to `Status: unknown` with a stable, machine-readable `Reason`
 | Java / Kotlin / Scala / Groovy | `jvmreach`    | `package` | In-process line-oriented import scanner for JVM ecosystems (Maven, Gradle, SBT). Walks `.java` / `.kt` / `.kts` / `.scala` / `.groovy` source under the project root, scans top-of-file `import` statements (including Java `static`, Kotlin aliases, Scala selectors and wildcards), and maps Java/Kotlin/Scala package prefixes to Maven coordinates (`groupId:artifactId`) through a curated longest-prefix map. |
 
 Other ecosystems (Java, Rust) are tracked for follow-up phases.
-When `--reachability` is set on a project that has no applicable
+When `--analyze` is set on a project that has no applicable
 analyzer for the languages present, the pipeline still runs cleanly:
 vulnerabilities just keep their default `nil` reachability.
 
@@ -246,7 +246,7 @@ bomly scan --enrich --audit --fail-on low
 # Low+ severity AND confirmed reachable. nil reachability (no analyzer
 # ran on this vulnerability) does NOT match — the analyzer must have
 # affirmatively proven reachability.
-bomly scan --enrich --audit --reachability --fail-on low --fail-on reachable
+bomly scan --enrich --audit --analyze --fail-on low --fail-on reachable
 ```
 
 Future constraint kinds (e.g. `kev`, `has-fix`, `epss>0.5`) can be
@@ -277,7 +277,7 @@ Reachability data appears in three places:
 
 2. **Text scan report** gains a "Reachability" line in the executive
    summary plus a `REACHABILITY` column in the findings table when
-   `--reachability` is set. Each cell renders as `<status> (<tier>)`
+   `--analyze` is set. Each cell renders as `<status> (<tier>)`
    or `—` when no analyzer ran on that vulnerability.
 
 3. **SARIF output** populates `result.codeFlows` from
@@ -351,9 +351,9 @@ Reachability data appears in three places:
 Use the `--analyzers` selector to restrict or extend the default set:
 
 ```sh
-bomly scan --enrich --reachability --analyzers govulncheck
-bomly scan --enrich --reachability --analyzers -govulncheck    # disable
-bomly scan --enrich --reachability --analyzers govulncheck,jsreach
+bomly scan --enrich --analyze --analyzers govulncheck
+bomly scan --enrich --analyze --analyzers -govulncheck    # disable
+bomly scan --enrich --analyze --analyzers govulncheck,jsreach
 ```
 
 Selector syntax mirrors `--detectors`, `--matchers`, and `--auditors`:

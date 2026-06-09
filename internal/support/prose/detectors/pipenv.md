@@ -40,11 +40,11 @@ bomly scan --install-first --detectors pipenv-detector \
 
 ## Reachability (experimental)
 
-> **Experimental.** Reachability is opt-in via `--reachability`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
+> **Experimental.** Reachability is opt-in via `--analyze`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
 
 For Pipenv-managed packages, the analyzer is `pyreach` at **Tier-3 (package)**. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe).
 
 ## Limitations
 
 - **Pipenv 2024+** lock format is preferred; older formats parse but with reduced detail.
-- **`[dev-packages]`** is recorded with `development` scope; gate on `--fail-on-scope runtime` for production-only policy.
+- **`[dev-packages]`** is recorded with `development` scope.

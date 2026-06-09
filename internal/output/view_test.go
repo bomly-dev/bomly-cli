@@ -46,8 +46,8 @@ func TestBuildScanResponseIncludesAuditData(t *testing.T) {
 	if len(response.Manifests) != 1 {
 		t.Fatalf("expected 1 manifest, got %d", len(response.Manifests))
 	}
-	if got := len(response.Manifests[0].Packages); got != 4 {
-		t.Fatalf("expected 4 packages, got %d", got)
+	if got := len(response.Manifests[0].Dependencies); got != 4 {
+		t.Fatalf("expected 4 dependencies, got %d", got)
 	}
 	if filepath.Base(response.Manifests[0].Path) != "package-lock.json" {
 		t.Fatalf("expected normalized manifest path, got %#v", response.Manifests[0].Path)
@@ -107,7 +107,7 @@ func TestBuildScanResponseGatesReachability(t *testing.T) {
 	if disabled.Metadata.ReachabilityEnabled {
 		t.Fatal("reachability metadata should be omitted when disabled")
 	}
-	if got := scanPackageByName(t, disabled.Manifests[0].Packages, "react").Vulnerabilities[0].Reachability; got != nil {
+	if got := scanPackageByName(t, disabled.Packages, "react").Vulnerabilities[0].Reachability; got != nil {
 		t.Fatalf("disabled scan package reachability leaked: %#v", got)
 	}
 	if got := disabled.Findings[0].Reachability; got != nil {
@@ -128,7 +128,7 @@ func TestBuildScanResponseGatesReachability(t *testing.T) {
 	if enabled.Metadata.AnalyzerStats["jsreach"].Reachable != 1 {
 		t.Fatalf("unexpected analyzer stats: %#v", enabled.Metadata.AnalyzerStats)
 	}
-	if got := scanPackageByName(t, enabled.Manifests[0].Packages, "react").Vulnerabilities[0].Reachability; got == nil || got.Status != sdk.ReachabilityReachable {
+	if got := scanPackageByName(t, enabled.Packages, "react").Vulnerabilities[0].Reachability; got == nil || got.Status != sdk.ReachabilityReachable {
 		t.Fatalf("enabled scan package reachability missing: %#v", got)
 	}
 	if got := enabled.Findings[0].Reachability; got == nil || got.Status != sdk.ReachabilityReachable {
@@ -197,8 +197,8 @@ func TestBuildScanResponseDeduplicatesManifestAndPrefersNative(t *testing.T) {
 	if response.Manifests[0].Detector != "npm-detector" {
 		t.Fatalf("expected native detector to win, got %q", response.Manifests[0].Detector)
 	}
-	if got := len(response.Manifests[0].Packages); got != 4 {
-		t.Fatalf("expected native manifest packages, got %d", got)
+	if got := len(response.Manifests[0].Dependencies); got != 4 {
+		t.Fatalf("expected native manifest dependencies, got %d", got)
 	}
 }
 
@@ -782,10 +782,11 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 	}
 	// In the registry-mode model, matcher-supplied license data lives on
 	// the PURL-keyed *sdk.PackageRegistry. We seed it once and the scan
-	// response output layer (PackageFromDependencyAndRegistry) resolves the
-	// license back into every manifest's react package by PURL.
+	// response surfaces it in the deduplicated top-level packages collection;
+	// every manifest dependency references the same package by package_ref.
 	registry := sdk.NewPackageRegistry()
 	reactPkg := registry.Ensure("pkg:npm/react@18.2.0")
+	reactPkg.Name = "react"
 	reactPkg.Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
 	reactPkg.Matched = true
 
@@ -793,19 +794,36 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 	if len(response.Manifests) != 2 {
 		t.Fatalf("expected 2 manifests, got %d", len(response.Manifests))
 	}
+
+	// The matched package appears exactly once in the deduplicated packages
+	// collection, carrying the registry-learned MIT license.
+	reactEntries := 0
+	for _, pkg := range response.Packages {
+		if pkg.Purl != "pkg:npm/react@18.2.0" {
+			continue
+		}
+		reactEntries++
+		if got := len(pkg.Licenses); got != 1 || pkg.Licenses[0].SPDXExpression != "MIT" {
+			t.Fatalf("expected matched react package to include MIT license, got %#v", pkg.Licenses)
+		}
+		if !pkg.Matched {
+			t.Fatalf("expected matched react package to report matched=true")
+		}
+	}
+	if reactEntries != 1 {
+		t.Fatalf("expected react to appear once in deduplicated packages, got %d", reactEntries)
+	}
+
+	// Every manifest still references react via a lean dependency linked by PURL.
 	for _, manifest := range response.Manifests {
 		found := false
-		for _, pkg := range manifest.Packages {
-			if pkg.Purl != "pkg:npm/react@18.2.0" {
-				continue
-			}
-			found = true
-			if got := len(pkg.Licenses); got != 1 || pkg.Licenses[0].SPDXExpression != "MIT" {
-				t.Fatalf("expected manifest %q to include propagated MIT license, got %#v", manifest.Path, pkg.Licenses)
+		for _, dep := range manifest.Dependencies {
+			if dep.Purl == "pkg:npm/react@18.2.0" {
+				found = true
 			}
 		}
 		if !found {
-			t.Fatalf("expected manifest %q to contain react package", manifest.Path)
+			t.Fatalf("expected manifest %q to contain react dependency", manifest.Path)
 		}
 	}
 }
@@ -952,7 +970,7 @@ func newViewTestGraph(t *testing.T) *sdk.Graph {
 	return g
 }
 
-func scanPackageByName(t *testing.T, packages []output.ScanPackage, name string) output.ScanPackage {
+func scanPackageByName(t *testing.T, packages []output.ScanPackageEntry, name string) output.ScanPackageEntry {
 	t.Helper()
 	for _, pkg := range packages {
 		if pkg.Name == name {
@@ -960,5 +978,5 @@ func scanPackageByName(t *testing.T, packages []output.ScanPackage, name string)
 		}
 	}
 	t.Fatalf("package %q not found in %#v", name, packages)
-	return output.ScanPackage{}
+	return output.ScanPackageEntry{}
 }

@@ -24,11 +24,10 @@ YAML files use the nested keys documented below. Unknown keys and the former fla
 | `target.url` | `BOMLY_URL` | `string` | - | Remote Git URL to clone and scan |
 | `target.ref` | `BOMLY_REF` | `string` | - | Git ref to checkout when scanning a URL |
 | `target.sbom` | `BOMLY_SBOM` | `bool` | - | Treat the selected filesystem target as an SBOM file |
-| `analysis.enrich` | `BOMLY_ENRICH` | `bool` | - | Enrich packages with external license and vulnerability data |
-| `analysis.audit` | `BOMLY_AUDIT` | `bool` | - | Evaluate policy and create findings from package vulnerability data |
-| `analysis.reachability` | `BOMLY_REACHABILITY` | `bool` | - | Run code analysis to confirm whether vulnerabilities are reachable from application code |
+| `pipeline.enrich` | `BOMLY_ENRICH` | `bool` | - | Enrich packages with external license and vulnerability data |
+| `pipeline.audit` | `BOMLY_AUDIT` | `bool` | - | Evaluate policy and create findings from package vulnerability data |
+| `pipeline.analyze` | `BOMLY_ANALYZE` | `bool` | - | Run code analysis to confirm whether vulnerabilities are reachable from application code |
 | `policy.fail_on` | `BOMLY_FAIL_ON` | `[]string` | - | Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable |
-| `policy.fail_on_scopes` | `BOMLY_FAIL_ON_SCOPES` | `[]string` | - | Dependency scopes that may produce failing findings: runtime, development, unknown |
 | `policy.allow_vulnerability_ids` | `BOMLY_ALLOW_VULNERABILITY_IDS` | `[]string` | - | Vulnerability IDs to ignore during policy evaluation |
 | `policy.allow_licenses` | `BOMLY_ALLOW_LICENSES` | `[]string` | - | Allowed SPDX license identifiers or expressions |
 | `policy.deny_licenses` | `BOMLY_DENY_LICENSES` | `[]string` | - | Denied SPDX license identifiers or expressions |
@@ -47,8 +46,8 @@ YAML files use the nested keys documented below. Unknown keys and the former fla
 | `components.detectors` | `BOMLY_DETECTORS` | `string` | - | Detector selectors; supports +name and -name modifiers |
 | `components.auditors` | `BOMLY_AUDITORS` | `string` | - | Auditor selectors; supports +name and -name modifiers |
 | `components.matchers` | `BOMLY_MATCHERS` | `string` | - | Matcher selectors; supports +name and -name modifiers |
-| `analysis.install_first` | `BOMLY_INSTALL_FIRST` | `bool` | - | Run detector-specific dependency installation before resolving graphs |
-| `analysis.install_args` | `BOMLY_INSTALL_ARGS` | `[]string` | - | Additional detector-specific install arguments |
+| `pipeline.install_first` | `BOMLY_INSTALL_FIRST` | `bool` | - | Run detector-specific dependency installation before resolving graphs |
+| `pipeline.install_args` | `BOMLY_INSTALL_ARGS` | `[]string` | - | Additional detector-specific install arguments |
 | `logging.quiet` | `BOMLY_QUIET` | `bool` | - | Suppress all non-error output |
 | `logging.verbosity` | `BOMLY_VERBOSE` | `int` | - | Verbosity level (0=normal, 1=verbose, 2+=debug) |
 | `network.proxy.url` | `BOMLY_HTTP_PROXY` | `string` | - | Outbound HTTP proxy URL used by Bomly and managed plugins |
@@ -92,8 +91,9 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 |-----------------|-------------|
 | `allow_licenses` | `policy.allow_licenses` |
 | `allow_vulnerability_ids` | `policy.allow_vulnerability_ids` |
+| `analyze` | `pipeline.analyze` |
 | `analyzers` | `components.analyzers` |
-| `audit` | `analysis.audit` |
+| `audit` | `pipeline.audit` |
 | `auditors` | `components.auditors` |
 | `config` | `--config` |
 | `container` | `target.container` |
@@ -102,9 +102,8 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 | `deny_packages` | `policy.deny_packages` |
 | `detectors` | `components.detectors` |
 | `ecosystems` | `components.ecosystems` |
-| `enrich` | `analysis.enrich` |
+| `enrich` | `pipeline.enrich` |
 | `fail_on` | `policy.fail_on` |
-| `fail_on_scopes` | `policy.fail_on_scopes` |
 | `format` | `output.format` |
 | `http_ca_cert_file` | `network.ca_cert_file` |
 | `http_no_proxy` | `network.proxy.no_proxy` |
@@ -114,8 +113,8 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 | `http_proxy_port` | `network.proxy.port` |
 | `http_proxy_type` | `network.proxy.type` |
 | `http_proxy_username` | `network.proxy.username` |
-| `install_args` | `analysis.install_args` |
-| `install_first` | `analysis.install_first` |
+| `install_args` | `pipeline.install_args` |
+| `install_first` | `pipeline.install_first` |
 | `interactive` | `output.interactive` |
 | `kev_cache_dir` | `matchers.osv.kev.cache_dir` |
 | `kev_cache_ttl` | `matchers.osv.kev.cache_ttl` |
@@ -128,7 +127,6 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 | `path` | `target.path` |
 | `protected_packages` | `policy.protected_packages` |
 | `quiet` | `logging.quiet` |
-| `reachability` | `analysis.reachability` |
 | `ref` | `target.ref` |
 | `sbom` | `target.sbom` |
 | `scorecard_api_base` | `matchers.scorecard.api_base` |
@@ -156,13 +154,13 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 #   ref: ""
 #   Treat the selected filesystem target as an SBOM file
 #   sbom: false
-# analysis:
+# pipeline:
 #   Enrich packages with external license and vulnerability data
 #   enrich: false
 #   Evaluate policy and create findings from package vulnerability data
 #   audit: false
 #   Run code analysis to confirm whether vulnerabilities are reachable from application code
-#   reachability: false
+#   analyze: false
 #   Run detector-specific dependency installation before resolving graphs
 #   install_first: false
 #   Additional detector-specific install arguments
@@ -181,8 +179,6 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 # policy:
 #   Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable
 #   fail_on: []
-#   Dependency scopes that may produce failing findings: runtime, development, unknown
-#   fail_on_scopes: []
 #   Vulnerability IDs to ignore during policy evaluation
 #   allow_vulnerability_ids: []
 #   Allowed SPDX license identifiers or expressions

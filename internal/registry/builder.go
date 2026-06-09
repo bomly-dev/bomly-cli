@@ -45,7 +45,6 @@ type RegistryConfigs struct {
 	// auditor evaluates findings against this AND-set; an empty slice
 	// preserves the historical behaviour of emitting every finding.
 	FailOn                []sdk.FailOnConstraint
-	FailOnScopes          []sdk.Scope
 	AllowVulnerabilityIDs []string
 	AllowLicenses         []string
 	DenyLicenses          []string
@@ -408,14 +407,12 @@ func (r *Registry) registerAuditors() {
 	for _, auditor := range builtInAuditors([]sdk.Auditor{
 		vulnerability.Auditor{
 			FailOn:                append([]sdk.FailOnConstraint(nil), r.configs.FailOn...),
-			FailOnScopes:          append([]sdk.Scope(nil), r.configs.FailOnScopes...),
 			AllowVulnerabilityIDs: append([]string(nil), r.configs.AllowVulnerabilityIDs...),
 		},
 		license.Auditor{
 			AllowLicenses:  append([]string(nil), r.configs.AllowLicenses...),
 			DenyLicenses:   append([]string(nil), r.configs.DenyLicenses...),
 			ExemptPackages: append([]string(nil), r.configs.LicenseExemptPackages...),
-			FailOnScopes:   append([]sdk.Scope(nil), r.configs.FailOnScopes...),
 		},
 		packageauditor.Auditor{
 			DenyPackages:       append([]string(nil), r.configs.DenyPackages...),
@@ -423,7 +420,6 @@ func (r *Registry) registerAuditors() {
 			ProtectedPackages:  append([]string(nil), r.configs.ProtectedPackages...),
 			TyposquatThreshold: threshold,
 			TyposquatMode:      r.configs.TyposquatMode,
-			FailOnScopes:       append([]sdk.Scope(nil), r.configs.FailOnScopes...),
 		},
 	}) {
 		r.RegisterAuditor(auditor)

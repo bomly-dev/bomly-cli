@@ -24,7 +24,7 @@ func TestRenderScanReportIncludesProfessionalSections(t *testing.T) {
 		Kind:           "package-lock.json",
 		Subproject:     ".",
 		PackageManager: "npm",
-		Packages:       output.PackagesFromGraph(g, registry),
+		Dependencies:   output.DependenciesFromGraph(g, registry),
 	}}
 
 	report := render.Scan(manifests, g, registry, findings, true, true, false)
@@ -57,7 +57,7 @@ func TestRenderScanReportWithoutFindingsUsesCleanMessage(t *testing.T) {
 		Kind:           "package-lock.json",
 		Subproject:     ".",
 		PackageManager: "npm",
-		Packages:       output.PackagesFromGraph(g, registry),
+		Dependencies:   output.DependenciesFromGraph(g, registry),
 	}}, g, registry, nil, false, false, false)
 	if !strings.Contains(report, "Policy evaluation not enabled") {
 		t.Fatalf("expected not-audited message, got:\n%s", report)

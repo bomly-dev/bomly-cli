@@ -27,9 +27,8 @@ type Resolved struct {
 	SBOM                  bool     `doc:"Treat the selected filesystem target as an SBOM file" env:"BOMLY_SBOM"`
 	Enrich                bool     `doc:"Enrich packages with external license and vulnerability data" env:"BOMLY_ENRICH"`
 	Audit                 bool     `doc:"Evaluate policy and create findings from package vulnerability data" env:"BOMLY_AUDIT"`
-	Reachability          bool     `doc:"Run code analysis to confirm whether vulnerabilities are reachable from application code" env:"BOMLY_REACHABILITY"`
+	Analyze               bool     `doc:"Run code analysis to confirm whether vulnerabilities are reachable from application code" env:"BOMLY_ANALYZE"`
 	FailOn                []string `doc:"Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable" env:"BOMLY_FAIL_ON"`
-	FailOnScopes          []string `doc:"Dependency scopes that may produce failing findings: runtime, development, unknown" env:"BOMLY_FAIL_ON_SCOPES"`
 	AllowVulnerabilityIDs []string `doc:"Vulnerability IDs to ignore during policy evaluation" env:"BOMLY_ALLOW_VULNERABILITY_IDS"`
 	AllowLicenses         []string `doc:"Allowed SPDX license identifiers or expressions" env:"BOMLY_ALLOW_LICENSES"`
 	DenyLicenses          []string `doc:"Denied SPDX license identifiers or expressions" env:"BOMLY_DENY_LICENSES"`
@@ -86,7 +85,7 @@ type Resolved struct {
 // errors and generated documentation for the former flat YAML keys.
 type File struct {
 	Target     TargetFile                `yaml:"target,omitempty"`
-	Analysis   AnalysisFile              `yaml:"analysis,omitempty"`
+	Pipeline   PipelineFile              `yaml:"pipeline,omitempty"`
 	Components ComponentsFile            `yaml:"components,omitempty"`
 	Policy     PolicyFile                `yaml:"policy,omitempty"`
 	Output     OutputFile                `yaml:"output,omitempty"`
@@ -105,11 +104,11 @@ type TargetFile struct {
 	SBOM      *bool   `yaml:"sbom,omitempty" resolved:"SBOM" legacy:"sbom"`
 }
 
-// AnalysisFile configures optional analysis behavior and dependency preparation.
-type AnalysisFile struct {
+// PipelineFile configures optional pipeline behavior and dependency preparation.
+type PipelineFile struct {
 	Enrich       *bool     `yaml:"enrich,omitempty" resolved:"Enrich" legacy:"enrich"`
 	Audit        *bool     `yaml:"audit,omitempty" resolved:"Audit" legacy:"audit"`
-	Reachability *bool     `yaml:"reachability,omitempty" resolved:"Reachability" legacy:"reachability"`
+	Analyze      *bool     `yaml:"analyze,omitempty" resolved:"Analyze" legacy:"analyze"`
 	InstallFirst *bool     `yaml:"install_first,omitempty" resolved:"InstallFirst" legacy:"install_first"`
 	InstallArgs  *[]string `yaml:"install_args,omitempty" resolved:"InstallArgs" legacy:"install_args"`
 }
@@ -126,7 +125,6 @@ type ComponentsFile struct {
 // PolicyFile configures audit policy evaluation.
 type PolicyFile struct {
 	FailOn                *FailOnList `yaml:"fail_on,omitempty" resolved:"FailOn" legacy:"fail_on"`
-	FailOnScopes          *[]string   `yaml:"fail_on_scopes,omitempty" resolved:"FailOnScopes" legacy:"fail_on_scopes"`
 	AllowVulnerabilityIDs *[]string   `yaml:"allow_vulnerability_ids,omitempty" resolved:"AllowVulnerabilityIDs" legacy:"allow_vulnerability_ids"`
 	AllowLicenses         *[]string   `yaml:"allow_licenses,omitempty" resolved:"AllowLicenses" legacy:"allow_licenses"`
 	DenyLicenses          *[]string   `yaml:"deny_licenses,omitempty" resolved:"DenyLicenses" legacy:"deny_licenses"`

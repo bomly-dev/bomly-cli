@@ -86,5 +86,5 @@ esac
 
 ## See also
 
-- [Auditors](AUDITORS.md) — `--fail-on` and `--fail-on-scope` grammar
+- [Auditors](AUDITORS.md) — `--fail-on` grammar
 - [Troubleshooting](TROUBLESHOOTING.md) — what to try when you see exit 1 or 3

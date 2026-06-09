@@ -64,7 +64,7 @@ bomly explain actions/checkout
 
 ## Reachability
 
-> **Not applicable.** Every referenced action is treated as "imported"; `--reachability` produces `not_applicable` for GitHub Actions.
+> **Not applicable.** Every referenced action is treated as "imported"; `--analyze` produces `not_applicable` for GitHub Actions.
 
 ## Limitations
 

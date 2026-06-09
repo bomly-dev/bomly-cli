@@ -306,7 +306,7 @@ func Validate(cfg Resolved) error {
 	if cfg.Quiet && cfg.Verbosity > 0 {
 		return fmt.Errorf("--quiet cannot be combined with --verbose")
 	}
-	// Both --audit and --reachability operate on vulnerability data the
+	// Both --audit and --analyze operate on vulnerability data the
 	// matchers attach during enrichment. Without --enrich the matchers
 	// don't run and these flags would silently produce zero findings /
 	// no annotations, which is a confusing footgun. Require --enrich up
@@ -314,18 +314,11 @@ func Validate(cfg Resolved) error {
 	if cfg.Audit && !cfg.Enrich {
 		return fmt.Errorf("--audit requires --enrich")
 	}
-	if cfg.Reachability && !cfg.Enrich {
-		return fmt.Errorf("--reachability requires --enrich")
+	if cfg.Analyze && !cfg.Enrich {
+		return fmt.Errorf("--analyze requires --enrich")
 	}
 	if len(cfg.AllowLicenses) > 0 && len(cfg.DenyLicenses) > 0 {
 		return fmt.Errorf("--allow-license cannot be combined with --deny-license")
-	}
-	for _, scope := range cfg.FailOnScopes {
-		switch strings.ToLower(strings.TrimSpace(scope)) {
-		case "", "runtime", "development", "unknown":
-		default:
-			return fmt.Errorf("unsupported --fail-on-scope value %q (accepted: runtime, development, unknown)", scope)
-		}
 	}
 	if threshold := strings.TrimSpace(cfg.TyposquatThreshold); threshold != "" {
 		if _, err := strconv.ParseFloat(threshold, 64); err != nil {

@@ -162,7 +162,7 @@ func newDiffCmd() *cobra.Command {
 				prog.CompleteStep("Evaluated policy", children)
 			}
 
-			reportOptions := reportOptionsFromPipelineResults(current.Reachability, diffResult.Base, diffResult.Head)
+			reportOptions := reportOptionsFromPipelineResults(current.Analyze, diffResult.Base, diffResult.Head)
 			reportOptions.BaseRegistry = diffResult.Base.Registry
 			reportOptions.HeadRegistry = diffResult.Head.Registry
 			payload := output.BuildDiffResponse(projectIdentifier, compBase, compHead, diffResult.Base.Consolidated, diffResult.Head.Consolidated, auditPayload, started, reportOptions)
@@ -177,7 +177,7 @@ func newDiffCmd() *cobra.Command {
 				Text:     textRenderer,
 			}
 			sarifRenderer := func(w io.Writer) error {
-				return output.WriteSARIF(w, diffResult.Findings, diffResult.Head.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: current.Reachability})
+				return output.WriteSARIF(w, diffResult.Findings, diffResult.Head.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: current.Analyze})
 			}
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
@@ -193,7 +193,7 @@ func newDiffCmd() *cobra.Command {
 			}
 			if outputFormat == output.FormatSARIF {
 				prog.Success("Resolved Graph")
-				return output.WriteSARIF(streams.reportWriter(), diffResult.Findings, diffResult.Head.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: current.Reachability})
+				return output.WriteSARIF(streams.reportWriter(), diffResult.Findings, diffResult.Head.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: current.Analyze})
 			}
 			if current.Interactive {
 				prog.Stop()

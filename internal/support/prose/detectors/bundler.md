@@ -59,7 +59,7 @@ gem "nokogiri", ">= 1.16.5"
 
 ## Reachability
 
-> **Not yet supported.** Bomly has no Ruby reachability analyzer today. `--reachability` produces `not_applicable` for Ruby packages.
+> **Not yet supported.** Bomly has no Ruby reachability analyzer today. `--analyze` produces `not_applicable` for Ruby packages.
 
 ## Limitations
 

@@ -16,7 +16,6 @@ type Auditor struct {
 	AllowLicenses  []string
 	DenyLicenses   []string
 	ExemptPackages []string
-	FailOnScopes   []sdk.Scope
 }
 
 func (a Auditor) Descriptor() sdk.AuditorDescriptor {
@@ -65,7 +64,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 	seenPURL := make(map[string]struct{}, len(deps))
 	findings := make([]sdk.Finding, 0)
 	for _, dep := range deps {
-		if dep == nil || !scopeAllowed(dep, a.FailOnScopes) || packageExempt(dep, a.ExemptPackages) {
+		if dep == nil || packageExempt(dep, a.ExemptPackages) {
 			continue
 		}
 		if _, isRoot := rootIDs[dep.ID]; isRoot {
@@ -167,18 +166,6 @@ func intersectsLicenseList(values, denied []string) bool {
 			if strings.EqualFold(strings.TrimSpace(value), strings.TrimSpace(candidate)) {
 				return true
 			}
-		}
-	}
-	return false
-}
-
-func scopeAllowed(dep *sdk.Dependency, allowed []sdk.Scope) bool {
-	if len(allowed) == 0 {
-		return true
-	}
-	for _, candidate := range allowed {
-		if dep.HasScope(candidate) {
-			return true
 		}
 	}
 	return false

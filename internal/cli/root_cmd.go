@@ -176,7 +176,7 @@ func logResolvedOptions(cmd *cobra.Command) {
 		zap.Bool("enrich", resolved.Enrich),
 		zap.Bool("audit", resolved.Audit),
 		zap.Strings("fail_on", resolved.FailOn),
-		zap.Bool("reachability", resolved.Reachability),
+		zap.Bool("analyze", resolved.Analyze),
 		zap.String("analyzers", resolved.Analyzers),
 		zap.String("format", resolved.Format),
 		zap.Bool("interactive", resolved.Interactive),

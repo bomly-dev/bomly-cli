@@ -18,7 +18,6 @@ type Auditor struct {
 	ProtectedPackages  []string
 	TyposquatThreshold float64
 	TyposquatMode      string
-	FailOnScopes       []sdk.Scope
 }
 
 func (a Auditor) Descriptor() sdk.AuditorDescriptor {
@@ -60,7 +59,7 @@ func (a Auditor) Audit(_ context.Context, req sdk.AuditRequest) (sdk.AuditResult
 	baseDisplayNames := packageDisplayNames(req.BaselineGraph)
 
 	for _, pkg := range packages {
-		if pkg == nil || !scopeAllowed(pkg, a.FailOnScopes) {
+		if pkg == nil {
 			continue
 		}
 		if deniedPackage(pkg, a.DenyPackages) {
@@ -273,16 +272,4 @@ func maxInt(values ...int) int {
 		}
 	}
 	return best
-}
-
-func scopeAllowed(pkg *sdk.Dependency, allowed []sdk.Scope) bool {
-	if len(allowed) == 0 {
-		return true
-	}
-	for _, candidate := range allowed {
-		if pkg.HasScope(candidate) {
-			return true
-		}
-	}
-	return false
 }

@@ -111,7 +111,7 @@ func newExplainCmd() *cobra.Command {
 				prog.CompleteStep("Evaluated policy", auditProgressChildren(explainResult.AuditorRuns, explainResult.AuditorFindings, explainResult.AuditWarnings))
 			}
 
-			reportOptions := reportOptionsFromPipelineResults(context.ResolvedConfig.Reachability, explainResult.PipelineResult)
+			reportOptions := reportOptionsFromPipelineResults(context.ResolvedConfig.Analyze, explainResult.PipelineResult)
 			payload := output.BuildExplainResponse(context.ProjectDescriptor(), args[0], targets, started, reportOptions)
 			markdownRenderer := func(w io.Writer) error {
 				return render.ExplainMarkdown(w, payload)
@@ -134,7 +134,7 @@ func newExplainCmd() *cobra.Command {
 				Text:     textRenderer,
 			}
 			sarifRenderer := func(w io.Writer) error {
-				return output.WriteSARIF(w, explainResult.Findings, explainResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: context.ResolvedConfig.Reachability})
+				return output.WriteSARIF(w, explainResult.Findings, explainResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: context.ResolvedConfig.Analyze})
 			}
 			if context.ResolvedConfig.Interactive {
 				prog.Stop()

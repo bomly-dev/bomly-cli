@@ -12,17 +12,8 @@ import (
 // callers (tests, plugin adapters) stay functional.
 func RegistryConfigsFromResolved(cfg config.Resolved) engine.RegistryConfigs {
 	failOn, _ := sdk.ParseFailOnList(cfg.FailOn)
-	failOnScopes := make([]sdk.Scope, 0, len(cfg.FailOnScopes))
-	for _, rawScope := range cfg.FailOnScopes {
-		scope, err := sdk.ParseScope(rawScope)
-		if err != nil {
-			continue
-		}
-		failOnScopes = append(failOnScopes, scope)
-	}
 	return engine.RegistryConfigs{
 		FailOn:                failOn,
-		FailOnScopes:          failOnScopes,
 		AllowVulnerabilityIDs: append([]string(nil), cfg.AllowVulnerabilityIDs...),
 		AllowLicenses:         append([]string(nil), cfg.AllowLicenses...),
 		DenyLicenses:          append([]string(nil), cfg.DenyLicenses...),

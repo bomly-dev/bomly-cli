@@ -329,14 +329,16 @@ func normalizeSyntheticIDs(node any) {
 // "id" field so that the order is stable across runs regardless of server
 // response ordering.
 func sortPackagesByID(obj map[string]any) {
-	// scan response: obj.manifests[].packages[]
+	// scan response: obj.manifests[].dependencies[] (lean detection nodes)
 	if manifests, ok := obj["manifests"].([]any); ok {
 		for _, m := range manifests {
 			if mmap, ok := m.(map[string]any); ok {
-				sortObjSliceByKey(mmap, "packages", "id")
+				sortObjSliceByKey(mmap, "dependencies", "id")
 			}
 		}
 	}
+	// scan response: obj.packages[] (deduplicated matching-stage registry)
+	sortObjSliceByKey(obj, "packages", "purl")
 	// diff response: obj.results.manifests[].packages[]
 	if results, ok := obj["results"].(map[string]any); ok {
 		if manifests, ok := results["manifests"].([]any); ok {
@@ -445,6 +447,10 @@ func removeNonPURLPackages(obj map[string]any) {
 			}
 			if pkgs, ok := mmap["packages"].([]any); ok {
 				mmap["packages"] = filterPkgs(pkgs)
+			}
+			// scan/explain manifests carry lean detection-stage dependencies.
+			if deps, ok := mmap["dependencies"].([]any); ok {
+				mmap["dependencies"] = filterPkgs(deps)
 			}
 		}
 	}

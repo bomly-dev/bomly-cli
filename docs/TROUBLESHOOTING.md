@@ -26,7 +26,7 @@ bomly scan --audit --fail-on critical    # correct
 bomly scan --audit --fail-on severe      # exit 4
 ```
 
-See [Auditors](AUDITORS.md#-fail-on) for the grammar.
+See [Auditors](AUDITORS.md#--fail-on) for the grammar.
 
 ## "--format sarif requires --audit" (exit 4)
 

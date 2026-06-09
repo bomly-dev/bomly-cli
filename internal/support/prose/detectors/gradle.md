@@ -76,7 +76,7 @@ Re-lock and re-scan.
 
 > **Experimental.** Reachability is opt-in via `--analyze`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
 
-For Gradle packages, the analyzer is `jvmreach` at **Tier-3 (package)** — same caveats as Maven. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe).
+For Gradle packages, the analyzer is `jvmreach` at **Tier-3 (package)** — same caveats as Maven. See [REACHABILITY.md](../../../REACHABILITY.md#unreachable-is-not-safe).
 
 For multi-project builds, `jvmreach` reads standard `include(...)` declarations and `projectDir` overrides automatically. Dynamically computed settings and composite `includeBuild` closures remain best-effort.
 

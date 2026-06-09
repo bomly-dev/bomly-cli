@@ -13,5 +13,5 @@ Package managers Bomly recognizes in the `ruby` ecosystem:
 
 - Each package-manager page documents the exact commands Bomly runs (if any), the network behavior, and the lockfile or manifest formats supported.
 - Bomly tries detector chains from left to right. Later detectors in the chain are fallbacks Bomly uses when the preferred detector cannot produce graph data.
-- Install-first support means `--install-first` can run the package manager's normal install command before graph resolution. This downloads packages and modifies the filesystem; see [docs/DETECTORS.md](../../DETECTORS.md#install-first).
+- Install-first support means `--install-first` can run the package manager's normal install command before graph resolution. This downloads packages and modifies the filesystem; see [docs/DETECTORS.md](../../../DETECTORS.md#install-first).
 - Syft-backed entries provide broad compatibility, especially for containers and ecosystems without native Bomly graph resolution.

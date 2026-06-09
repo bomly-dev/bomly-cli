@@ -83,7 +83,7 @@ Re-scan.
 
 > **Experimental.** Reachability is opt-in via `--analyze`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
 
-For Maven packages, the analyzer is `jvmreach` at **Tier-3 (package)**. It walks `.java`, `.kt`, `.kts`, `.scala`, `.groovy` source files under the project root, parses top-of-file `import` statements, and maps fully-qualified-name prefixes to Maven coordinates via a curated longest-prefix map. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe).
+For Maven packages, the analyzer is `jvmreach` at **Tier-3 (package)**. It walks `.java`, `.kt`, `.kts`, `.scala`, `.groovy` source files under the project root, parses top-of-file `import` statements, and maps fully-qualified-name prefixes to Maven coordinates via a curated longest-prefix map. See [REACHABILITY.md](../../../REACHABILITY.md#unreachable-is-not-safe).
 
 For multi-module reactors, `jvmreach` reads parent `<modules>` declarations recursively and follows source namespace imports between consumed sibling modules before attributing external artifacts.
 

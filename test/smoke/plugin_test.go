@@ -164,32 +164,13 @@ import (
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
-const (
-	pluginID      = "bomly.example.gomod-detector"
-	pluginVersion = "0.1.0"
-)
+const pluginID = "bomly.example.gomod-detector"
 
 type detector struct{}
 
-func (d *detector) Metadata(context.Context) (*sdk.PluginMetadata, error) {
-	return &sdk.PluginMetadata{
-		ID:               pluginID,
-		Name:             "Bomly Example Go Module Detector",
-		Version:          pluginVersion,
-		Kind:             sdk.PluginKindDetector,
-		PluginAPIVersion: sdk.PluginAPIVersion,
-		Description:      "Example managed detector plugin that reads a local go.mod and returns the module itself as a single package.",
-		Homepage:         "https://github.com/bomly-dev/bomly-plugin-bun-lock-detector",
-		License:          "Apache-2.0",
-	}, nil
-}
-
 func (d *detector) Descriptor(context.Context) (*sdk.DetectorDescriptor, error) {
 	return &sdk.DetectorDescriptor{
-		Name:         pluginID,
-		Enabled:      true,
-		Origin:       sdk.ExternalOrigin,
-		Capabilities: []string{"dependency-detection"},
+		Name: pluginID,
 	}, nil
 }
 

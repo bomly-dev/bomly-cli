@@ -33,7 +33,6 @@ type PipelineRequest struct {
 	AnalyzerFilter             sdk.AnalyzerFilter
 	DetectorFilter             sdk.DetectorFilter
 	FailOn                     []sdk.FailOnConstraint
-	FailOnScopes               []sdk.Scope
 	AllowVulnerabilityIDs      []string
 	AllowLicenses              []string
 	DenyLicenses               []string

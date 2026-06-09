@@ -2,13 +2,9 @@
   "command": "scan",
   "manifests": [
     {
-      "detector": "bundler-detector",
-      "ecosystem": "ruby",
-      "kind": "Gemfile.lock",
-      "package_manager": "bundler",
-      "packages": [
+      "dependencies": [
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/actionpack@4.2.5",
             "pkg:gem/actionview@4.2.5",
             "pkg:gem/activejob@4.2.5",
@@ -28,13 +24,15 @@
             }
           ],
           "name": "actionmailer",
+          "package_ref": "pkg:gem/actionmailer@4.2.5",
           "purl": "pkg:gem/actionmailer@4.2.5",
-          "scope": "runtime",
-          "version": "4.2.5",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.2.5"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/actionview@4.2.5",
             "pkg:gem/activesupport@4.2.5",
             "pkg:gem/rack-test@0.6.3",
@@ -55,13 +53,16 @@
             }
           ],
           "name": "actionpack",
+          "package_ref": "pkg:gem/actionpack@4.2.5",
           "purl": "pkg:gem/actionpack@4.2.5",
-          "scope": "runtime",
-          "version": "4.2.5",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "4.2.5"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activesupport@4.2.5",
             "pkg:gem/builder@3.2.2",
             "pkg:gem/erubis@2.7.0",
@@ -81,13 +82,16 @@
             }
           ],
           "name": "actionview",
+          "package_ref": "pkg:gem/actionview@4.2.5",
           "purl": "pkg:gem/actionview@4.2.5",
-          "scope": "runtime",
-          "version": "4.2.5",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "4.2.5"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activesupport@4.2.5",
             "pkg:gem/globalid@0.3.6"
           ],
@@ -104,13 +108,15 @@
             }
           ],
           "name": "activejob",
+          "package_ref": "pkg:gem/activejob@4.2.5",
           "purl": "pkg:gem/activejob@4.2.5",
-          "scope": "runtime",
-          "version": "4.2.5",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.2.5"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activesupport@4.2.5",
             "pkg:gem/builder@3.2.2",
             "pkg:gem/i18n@0.7.0",
@@ -129,13 +135,15 @@
             }
           ],
           "name": "activemerchant",
+          "package_ref": "pkg:gem/activemerchant@1.47.0",
           "purl": "pkg:gem/activemerchant@1.47.0",
-          "scope": "runtime",
-          "version": "1.47.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.47.0"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activesupport@4.2.5",
             "pkg:gem/builder@3.2.2"
           ],
@@ -152,13 +160,16 @@
             }
           ],
           "name": "activemodel",
+          "package_ref": "pkg:gem/activemodel@4.2.5",
           "purl": "pkg:gem/activemodel@4.2.5",
-          "scope": "runtime",
-          "version": "4.2.5",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "4.2.5"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activemodel@4.2.5",
             "pkg:gem/activesupport@4.2.5",
             "pkg:gem/arel@6.0.3"
@@ -176,13 +187,15 @@
             }
           ],
           "name": "activerecord",
+          "package_ref": "pkg:gem/activerecord@4.2.5",
           "purl": "pkg:gem/activerecord@4.2.5",
-          "scope": "runtime",
-          "version": "4.2.5",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.2.5"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/i18n@0.7.0",
             "pkg:gem/json@1.8.3",
             "pkg:gem/minitest@5.9.0",
@@ -202,13 +215,16 @@
             }
           ],
           "name": "activesupport",
+          "package_ref": "pkg:gem/activesupport@4.2.5",
           "purl": "pkg:gem/activesupport@4.2.5",
-          "scope": "runtime",
-          "version": "4.2.5",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "4.2.5"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activerecord@4.2.5"
           ],
           "id": "pkg:gem/acts_as_list@0.7.4",
@@ -224,13 +240,15 @@
             }
           ],
           "name": "acts_as_list",
+          "package_ref": "pkg:gem/acts_as_list@0.7.4",
           "purl": "pkg:gem/acts_as_list@0.7.4",
-          "scope": "runtime",
-          "version": "0.7.4",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.7.4"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/addressable@2.4.0",
           "licenses": [],
           "locations": [
@@ -244,13 +262,15 @@
             }
           ],
           "name": "addressable",
+          "package_ref": "pkg:gem/addressable@2.4.0",
           "purl": "pkg:gem/addressable@2.4.0",
-          "scope": "runtime",
-          "version": "2.4.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.4.0"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/autoprefixer-rails@6.3.6.1",
             "pkg:gem/datetime_picker_rails@0.0.7",
             "pkg:gem/jquery-rails@4.1.1",
@@ -275,13 +295,15 @@
             }
           ],
           "name": "administrate",
+          "package_ref": "pkg:gem/administrate@0.1.4",
           "purl": "pkg:gem/administrate@0.1.4",
-          "scope": "runtime",
-          "version": "0.1.4",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.1.4"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/allison@2.0.3",
           "licenses": [],
           "locations": [
@@ -295,13 +317,15 @@
             }
           ],
           "name": "allison",
+          "package_ref": "pkg:gem/allison@2.0.3",
           "purl": "pkg:gem/allison@2.0.3",
-          "scope": "runtime",
-          "version": "2.0.3",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.0.3"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/arel@6.0.3",
           "licenses": [],
           "locations": [
@@ -315,13 +339,15 @@
             }
           ],
           "name": "arel",
+          "package_ref": "pkg:gem/arel@6.0.3",
           "purl": "pkg:gem/arel@6.0.3",
-          "scope": "runtime",
-          "version": "6.0.3",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "6.0.3"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activesupport@4.2.5",
             "pkg:gem/echoe@4.6.6"
           ],
@@ -338,13 +364,15 @@
             }
           ],
           "name": "authlogic",
+          "package_ref": "pkg:gem/authlogic@1.4.3",
           "purl": "pkg:gem/authlogic@1.4.3",
-          "scope": "runtime",
-          "version": "1.4.3",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.4.3"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/execjs@2.7.0"
           ],
           "id": "pkg:gem/autoprefixer-rails@6.3.6.1",
@@ -360,13 +388,15 @@
             }
           ],
           "name": "autoprefixer-rails",
+          "package_ref": "pkg:gem/autoprefixer-rails@6.3.6.1",
           "purl": "pkg:gem/autoprefixer-rails@6.3.6.1",
-          "scope": "runtime",
-          "version": "6.3.6.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "6.3.6.1"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activerecord@4.2.5"
           ],
           "id": "pkg:gem/awesome_nested_set@3.0.3",
@@ -382,13 +412,15 @@
             }
           ],
           "name": "awesome_nested_set",
+          "package_ref": "pkg:gem/awesome_nested_set@3.0.3",
           "purl": "pkg:gem/awesome_nested_set@3.0.3",
-          "scope": "runtime",
-          "version": "3.0.3",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.0.3"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/bcrypt@3.1.11",
           "licenses": [],
           "locations": [
@@ -402,13 +434,15 @@
             }
           ],
           "name": "bcrypt",
+          "package_ref": "pkg:gem/bcrypt@3.1.11",
           "purl": "pkg:gem/bcrypt@3.1.11",
-          "scope": "runtime",
-          "version": "3.1.11",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.1.11"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/autoprefixer-rails@6.3.6.1",
             "pkg:gem/sass@3.4.22"
           ],
@@ -425,13 +459,15 @@
             }
           ],
           "name": "bootstrap-sass",
+          "package_ref": "pkg:gem/bootstrap-sass@3.3.6",
           "purl": "pkg:gem/bootstrap-sass@3.3.6",
-          "scope": "runtime",
-          "version": "3.3.6",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.3.6"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/sass@3.4.22",
             "pkg:gem/thor@0.19.1"
           ],
@@ -448,13 +484,15 @@
             }
           ],
           "name": "bourbon",
+          "package_ref": "pkg:gem/bourbon@4.2.7",
           "purl": "pkg:gem/bourbon@4.2.7",
-          "scope": "runtime",
-          "version": "4.2.7",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.2.7"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/builder@3.2.2",
           "licenses": [],
           "locations": [
@@ -468,13 +506,16 @@
             }
           ],
           "name": "builder",
+          "package_ref": "pkg:gem/builder@3.2.2",
           "purl": "pkg:gem/builder@3.2.2",
-          "scope": "runtime",
-          "version": "3.2.2",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "3.2.2"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/byebug@9.0.4",
           "licenses": [],
           "locations": [
@@ -488,13 +529,15 @@
             }
           ],
           "name": "byebug",
+          "package_ref": "pkg:gem/byebug@9.0.4",
           "purl": "pkg:gem/byebug@9.0.4",
-          "scope": "development",
-          "version": "9.0.4",
-          "vulnerabilities": []
+          "scopes": [
+            "development"
+          ],
+          "version": "9.0.4"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/camertron-eprun@1.1.0",
           "licenses": [],
           "locations": [
@@ -508,13 +551,15 @@
             }
           ],
           "name": "camertron-eprun",
+          "package_ref": "pkg:gem/camertron-eprun@1.1.0",
           "purl": "pkg:gem/camertron-eprun@1.1.0",
-          "scope": "runtime",
-          "version": "1.1.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.1.0"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/cancancan@1.10.1",
           "licenses": [],
           "locations": [
@@ -528,13 +573,15 @@
             }
           ],
           "name": "cancancan",
+          "package_ref": "pkg:gem/cancancan@1.10.1",
           "purl": "pkg:gem/cancancan@1.10.1",
-          "scope": "runtime",
-          "version": "1.10.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.10.1"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/rails@4.2.5"
           ],
           "id": "pkg:gem/canonical-rails@0.0.11",
@@ -550,13 +597,15 @@
             }
           ],
           "name": "canonical-rails",
+          "package_ref": "pkg:gem/canonical-rails@0.0.11",
           "purl": "pkg:gem/canonical-rails@0.0.11",
-          "scope": "runtime",
-          "version": "0.0.11",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.0.11"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activesupport@4.2.5"
           ],
           "id": "pkg:gem/carmen@1.0.2",
@@ -572,13 +621,15 @@
             }
           ],
           "name": "carmen",
+          "package_ref": "pkg:gem/carmen@1.0.2",
           "purl": "pkg:gem/carmen@1.0.2",
-          "scope": "runtime",
-          "version": "1.0.2",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.2"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/cldr-plurals-runtime-rb@1.0.1",
           "licenses": [],
           "locations": [
@@ -592,13 +643,15 @@
             }
           ],
           "name": "cldr-plurals-runtime-rb",
+          "package_ref": "pkg:gem/cldr-plurals-runtime-rb@1.0.1",
           "purl": "pkg:gem/cldr-plurals-runtime-rb@1.0.1",
-          "scope": "runtime",
-          "version": "1.0.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.1"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activesupport@4.2.5"
           ],
           "id": "pkg:gem/climate_control@0.0.3",
@@ -614,13 +667,15 @@
             }
           ],
           "name": "climate_control",
+          "package_ref": "pkg:gem/climate_control@0.0.3",
           "purl": "pkg:gem/climate_control@0.0.3",
-          "scope": "runtime",
-          "version": "0.0.3",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.0.3"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/climate_control@0.0.3"
           ],
           "id": "pkg:gem/cocaine@0.5.8",
@@ -636,13 +691,15 @@
             }
           ],
           "name": "cocaine",
+          "package_ref": "pkg:gem/cocaine@0.5.8",
           "purl": "pkg:gem/cocaine@0.5.8",
-          "scope": "runtime",
-          "version": "0.5.8",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.5.8"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/coffee-script@2.4.1",
             "pkg:gem/railties@4.2.5"
           ],
@@ -659,13 +716,15 @@
             }
           ],
           "name": "coffee-rails",
+          "package_ref": "pkg:gem/coffee-rails@4.1.1",
           "purl": "pkg:gem/coffee-rails@4.1.1",
-          "scope": "runtime",
-          "version": "4.1.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.1.1"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/coffee-script-source@1.10.0",
           "licenses": [],
           "locations": [
@@ -679,13 +738,15 @@
             }
           ],
           "name": "coffee-script-source",
+          "package_ref": "pkg:gem/coffee-script-source@1.10.0",
           "purl": "pkg:gem/coffee-script-source@1.10.0",
-          "scope": "runtime",
-          "version": "1.10.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.10.0"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/coffee-script-source@1.10.0",
             "pkg:gem/execjs@2.7.0"
           ],
@@ -702,13 +763,15 @@
             }
           ],
           "name": "coffee-script",
+          "package_ref": "pkg:gem/coffee-script@2.4.1",
           "purl": "pkg:gem/coffee-script@2.4.1",
-          "scope": "runtime",
-          "version": "2.4.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.4.1"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/colorize@0.7.7",
           "licenses": [],
           "locations": [
@@ -722,13 +785,15 @@
             }
           ],
           "name": "colorize",
+          "package_ref": "pkg:gem/colorize@0.7.7",
           "purl": "pkg:gem/colorize@0.7.7",
-          "scope": "runtime",
-          "version": "0.7.7",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.7.7"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/concurrent-ruby@1.0.2",
           "licenses": [],
           "locations": [
@@ -742,13 +807,15 @@
             }
           ],
           "name": "concurrent-ruby",
+          "package_ref": "pkg:gem/concurrent-ruby@1.0.2",
           "purl": "pkg:gem/concurrent-ruby@1.0.2",
-          "scope": "runtime",
-          "version": "1.0.2",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.2"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/addressable@2.4.0"
           ],
           "id": "pkg:gem/css_parser@1.4.1",
@@ -764,13 +831,15 @@
             }
           ],
           "name": "css_parser",
+          "package_ref": "pkg:gem/css_parser@1.4.1",
           "purl": "pkg:gem/css_parser@1.4.1",
-          "scope": "runtime",
-          "version": "1.4.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.4.1"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/momentjs-rails@2.11.1"
           ],
           "id": "pkg:gem/datetime_picker_rails@0.0.7",
@@ -786,13 +855,15 @@
             }
           ],
           "name": "datetime_picker_rails",
+          "package_ref": "pkg:gem/datetime_picker_rails@0.0.7",
           "purl": "pkg:gem/datetime_picker_rails@0.0.7",
-          "scope": "runtime",
-          "version": "0.0.7",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.0.7"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/debug_inspector@0.0.2",
           "licenses": [],
           "locations": [
@@ -806,13 +877,15 @@
             }
           ],
           "name": "debug_inspector",
+          "package_ref": "pkg:gem/debug_inspector@0.0.2",
           "purl": "pkg:gem/debug_inspector@0.0.2",
-          "scope": "development",
-          "version": "0.0.2",
-          "vulnerabilities": []
+          "scopes": [
+            "development"
+          ],
+          "version": "0.0.2"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/colorize@0.7.7",
             "pkg:gem/nokogiri@1.6.7.2",
             "pkg:gem/polyglot@0.3.5",
@@ -831,13 +904,15 @@
             }
           ],
           "name": "deface",
+          "package_ref": "pkg:gem/deface@1.0.2",
           "purl": "pkg:gem/deface@1.0.2",
-          "scope": "runtime",
-          "version": "1.0.2",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.2"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/bcrypt@3.1.11",
             "pkg:gem/orm_adapter@0.5.0",
             "pkg:gem/railties@4.2.5",
@@ -857,13 +932,15 @@
             }
           ],
           "name": "devise",
+          "package_ref": "pkg:gem/devise@4.1.1",
           "purl": "pkg:gem/devise@4.1.1",
-          "scope": "runtime",
-          "version": "4.1.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.1.1"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/actionmailer@4.2.5",
             "pkg:gem/devise@4.1.1"
           ],
@@ -880,13 +957,15 @@
             }
           ],
           "name": "devise_invitable",
+          "package_ref": "pkg:gem/devise_invitable@1.3.4",
           "purl": "pkg:gem/devise_invitable@1.3.4",
-          "scope": "runtime",
-          "version": "1.3.4",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.3.4"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/allison@2.0.3",
             "pkg:gem/rake@11.1.2",
             "pkg:gem/rdoc@4.2.2",
@@ -905,13 +984,15 @@
             }
           ],
           "name": "echoe",
+          "package_ref": "pkg:gem/echoe@4.6.6",
           "purl": "pkg:gem/echoe@4.6.6",
-          "scope": "runtime",
-          "version": "4.6.6",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.6.6"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/erubis@2.7.0",
           "licenses": [],
           "locations": [
@@ -925,13 +1006,16 @@
             }
           ],
           "name": "erubis",
+          "package_ref": "pkg:gem/erubis@2.7.0",
           "purl": "pkg:gem/erubis@2.7.0",
-          "scope": "runtime",
-          "version": "2.7.0",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "2.7.0"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/execjs@2.7.0",
           "licenses": [],
           "locations": [
@@ -945,13 +1029,15 @@
             }
           ],
           "name": "execjs",
+          "package_ref": "pkg:gem/execjs@2.7.0",
           "purl": "pkg:gem/execjs@2.7.0",
-          "scope": "runtime",
-          "version": "2.7.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.7.0"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/hoe@3.15.0"
           ],
           "id": "pkg:gem/festivaltts4r@0.2.0",
@@ -967,13 +1053,15 @@
             }
           ],
           "name": "festivaltts4r",
+          "package_ref": "pkg:gem/festivaltts4r@0.2.0",
           "purl": "pkg:gem/festivaltts4r@0.2.0",
-          "scope": "runtime",
-          "version": "0.2.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.2.0"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/ffaker@1.32.1",
           "licenses": [],
           "locations": [
@@ -987,13 +1075,15 @@
             }
           ],
           "name": "ffaker",
+          "package_ref": "pkg:gem/ffaker@1.32.1",
           "purl": "pkg:gem/ffaker@1.32.1",
-          "scope": "runtime",
-          "version": "1.32.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.32.1"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/railties@4.2.5"
           ],
           "id": "pkg:gem/font-awesome-rails@4.6.3.0",
@@ -1009,13 +1099,15 @@
             }
           ],
           "name": "font-awesome-rails",
+          "package_ref": "pkg:gem/font-awesome-rails@4.6.3.0",
           "purl": "pkg:gem/font-awesome-rails@4.6.3.0",
-          "scope": "runtime",
-          "version": "4.6.3.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.6.3.0"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activerecord@4.2.5"
           ],
           "id": "pkg:gem/friendly_id@5.1.0",
@@ -1031,13 +1123,15 @@
             }
           ],
           "name": "friendly_id",
+          "package_ref": "pkg:gem/friendly_id@5.1.0",
           "purl": "pkg:gem/friendly_id@5.1.0",
-          "scope": "runtime",
-          "version": "5.1.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "5.1.0"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activesupport@4.2.5"
           ],
           "id": "pkg:gem/globalid@0.3.6",
@@ -1053,13 +1147,15 @@
             }
           ],
           "name": "globalid",
+          "package_ref": "pkg:gem/globalid@0.3.6",
           "purl": "pkg:gem/globalid@0.3.6",
-          "scope": "runtime",
-          "version": "0.3.6",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.3.6"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/highline@1.6.21",
           "licenses": [],
           "locations": [
@@ -1073,13 +1169,15 @@
             }
           ],
           "name": "highline",
+          "package_ref": "pkg:gem/highline@1.6.21",
           "purl": "pkg:gem/highline@1.6.21",
-          "scope": "runtime",
-          "version": "1.6.21",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.6.21"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/rake@11.1.2"
           ],
           "id": "pkg:gem/hoe@3.15.0",
@@ -1095,13 +1193,15 @@
             }
           ],
           "name": "hoe",
+          "package_ref": "pkg:gem/hoe@3.15.0",
           "purl": "pkg:gem/hoe@3.15.0",
-          "scope": "runtime",
-          "version": "3.15.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.15.0"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/htmlentities@4.3.4",
           "licenses": [],
           "locations": [
@@ -1115,13 +1215,15 @@
             }
           ],
           "name": "htmlentities",
+          "package_ref": "pkg:gem/htmlentities@4.3.4",
           "purl": "pkg:gem/htmlentities@4.3.4",
-          "scope": "runtime",
-          "version": "4.3.4",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.3.4"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/json@1.8.3",
             "pkg:gem/multi_xml@0.5.5"
           ],
@@ -1138,13 +1240,15 @@
             }
           ],
           "name": "httparty",
+          "package_ref": "pkg:gem/httparty@0.13.7",
           "purl": "pkg:gem/httparty@0.13.7",
-          "scope": "runtime",
-          "version": "0.13.7",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.13.7"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/i18n@0.7.0",
           "licenses": [],
           "locations": [
@@ -1158,13 +1262,16 @@
             }
           ],
           "name": "i18n",
+          "package_ref": "pkg:gem/i18n@0.7.0",
           "purl": "pkg:gem/i18n@0.7.0",
-          "scope": "runtime",
-          "version": "0.7.0",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "0.7.0"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activesupport@4.2.5",
             "pkg:gem/multi_json@1.12.1"
           ],
@@ -1181,13 +1288,15 @@
             }
           ],
           "name": "jbuilder",
+          "package_ref": "pkg:gem/jbuilder@2.4.1",
           "purl": "pkg:gem/jbuilder@2.4.1",
-          "scope": "runtime",
-          "version": "2.4.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.4.1"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/rails-dom-testing@1.0.7",
             "pkg:gem/railties@4.2.5",
             "pkg:gem/thor@0.19.1"
@@ -1205,13 +1314,15 @@
             }
           ],
           "name": "jquery-rails",
+          "package_ref": "pkg:gem/jquery-rails@4.1.1",
           "purl": "pkg:gem/jquery-rails@4.1.1",
-          "scope": "runtime",
-          "version": "4.1.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.1.1"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/railties@4.2.5"
           ],
           "id": "pkg:gem/jquery-ui-rails@5.0.5",
@@ -1227,13 +1338,15 @@
             }
           ],
           "name": "jquery-ui-rails",
+          "package_ref": "pkg:gem/jquery-ui-rails@5.0.5",
           "purl": "pkg:gem/jquery-ui-rails@5.0.5",
-          "scope": "runtime",
-          "version": "5.0.5",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "5.0.5"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/json@1.8.3",
           "licenses": [],
           "locations": [
@@ -1247,13 +1360,16 @@
             }
           ],
           "name": "json",
+          "package_ref": "pkg:gem/json@1.8.3",
           "purl": "pkg:gem/json@1.8.3",
-          "scope": "runtime",
-          "version": "1.8.3",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "1.8.3"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/json_pure@1.8.3",
           "licenses": [],
           "locations": [
@@ -1267,13 +1383,15 @@
             }
           ],
           "name": "json_pure",
+          "package_ref": "pkg:gem/json_pure@1.8.3",
           "purl": "pkg:gem/json_pure@1.8.3",
-          "scope": "runtime",
-          "version": "1.8.3",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.8.3"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/actionpack@4.2.5",
             "pkg:gem/activesupport@4.2.5"
           ],
@@ -1290,13 +1408,15 @@
             }
           ],
           "name": "kaminari",
+          "package_ref": "pkg:gem/kaminari@0.16.3",
           "purl": "pkg:gem/kaminari@0.16.3",
-          "scope": "runtime",
-          "version": "0.16.3",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.16.3"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/httparty@0.13.7"
           ],
           "id": "pkg:gem/lingq@0.3.1",
@@ -1312,13 +1432,15 @@
             }
           ],
           "name": "lingq",
+          "package_ref": "pkg:gem/lingq@0.3.1",
           "purl": "pkg:gem/lingq@0.3.1",
-          "scope": "runtime",
-          "version": "0.3.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.3.1"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/nokogiri@1.6.7.2"
           ],
           "id": "pkg:gem/loofah@2.0.3",
@@ -1334,13 +1456,16 @@
             }
           ],
           "name": "loofah",
+          "package_ref": "pkg:gem/loofah@2.0.3",
           "purl": "pkg:gem/loofah@2.0.3",
-          "scope": "runtime",
-          "version": "2.0.3",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "2.0.3"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/mime-types@3.1"
           ],
           "id": "pkg:gem/mail@2.6.4",
@@ -1356,13 +1481,15 @@
             }
           ],
           "name": "mail",
+          "package_ref": "pkg:gem/mail@2.6.4",
           "purl": "pkg:gem/mail@2.6.4",
-          "scope": "runtime",
-          "version": "2.6.4",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.6.4"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/mime-types-data@3.2016.0521",
           "licenses": [],
           "locations": [
@@ -1376,13 +1503,15 @@
             }
           ],
           "name": "mime-types-data",
+          "package_ref": "pkg:gem/mime-types-data@3.2016.0521",
           "purl": "pkg:gem/mime-types-data@3.2016.0521",
-          "scope": "runtime",
-          "version": "3.2016.0521",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.2016.0521"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/mime-types-data@3.2016.0521"
           ],
           "id": "pkg:gem/mime-types@3.1",
@@ -1398,13 +1527,15 @@
             }
           ],
           "name": "mime-types",
+          "package_ref": "pkg:gem/mime-types@3.1",
           "purl": "pkg:gem/mime-types@3.1",
-          "scope": "runtime",
-          "version": "3.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.1"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/mini_portile2@2.0.0",
           "licenses": [],
           "locations": [
@@ -1418,13 +1549,16 @@
             }
           ],
           "name": "mini_portile2",
+          "package_ref": "pkg:gem/mini_portile2@2.0.0",
           "purl": "pkg:gem/mini_portile2@2.0.0",
-          "scope": "runtime",
-          "version": "2.0.0",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "2.0.0"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/minitest@5.9.0",
           "licenses": [],
           "locations": [
@@ -1438,13 +1572,16 @@
             }
           ],
           "name": "minitest",
+          "package_ref": "pkg:gem/minitest@5.9.0",
           "purl": "pkg:gem/minitest@5.9.0",
-          "scope": "runtime",
-          "version": "5.9.0",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "5.9.0"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/railties@4.2.5"
           ],
           "id": "pkg:gem/momentjs-rails@2.11.1",
@@ -1460,13 +1597,15 @@
             }
           ],
           "name": "momentjs-rails",
+          "package_ref": "pkg:gem/momentjs-rails@2.11.1",
           "purl": "pkg:gem/momentjs-rails@2.11.1",
-          "scope": "runtime",
-          "version": "2.11.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.11.1"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/money@6.7.1"
           ],
           "id": "pkg:gem/monetize@1.4.0",
@@ -1482,13 +1621,15 @@
             }
           ],
           "name": "monetize",
+          "package_ref": "pkg:gem/monetize@1.4.0",
           "purl": "pkg:gem/monetize@1.4.0",
-          "scope": "runtime",
-          "version": "1.4.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.4.0"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/i18n@0.7.0",
             "pkg:gem/sixarm_ruby_unaccent@1.1.1"
           ],
@@ -1505,13 +1646,15 @@
             }
           ],
           "name": "money",
+          "package_ref": "pkg:gem/money@6.7.1",
           "purl": "pkg:gem/money@6.7.1",
-          "scope": "runtime",
-          "version": "6.7.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "6.7.1"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/multi_json@1.12.1",
           "licenses": [],
           "locations": [
@@ -1525,13 +1668,15 @@
             }
           ],
           "name": "multi_json",
+          "package_ref": "pkg:gem/multi_json@1.12.1",
           "purl": "pkg:gem/multi_json@1.12.1",
-          "scope": "runtime",
-          "version": "1.12.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.12.1"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/multi_xml@0.5.5",
           "licenses": [],
           "locations": [
@@ -1545,13 +1690,15 @@
             }
           ],
           "name": "multi_xml",
+          "package_ref": "pkg:gem/multi_xml@0.5.5",
           "purl": "pkg:gem/multi_xml@0.5.5",
-          "scope": "runtime",
-          "version": "0.5.5",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.5.5"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/bourbon@4.2.7",
             "pkg:gem/sass@3.4.22"
           ],
@@ -1568,13 +1715,15 @@
             }
           ],
           "name": "neat",
+          "package_ref": "pkg:gem/neat@1.7.4",
           "purl": "pkg:gem/neat@1.7.4",
-          "scope": "runtime",
-          "version": "1.7.4",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.7.4"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/mini_portile2@2.0.0"
           ],
           "id": "pkg:gem/nokogiri@1.6.7.2",
@@ -1590,13 +1739,16 @@
             }
           ],
           "name": "nokogiri",
+          "package_ref": "pkg:gem/nokogiri@1.6.7.2",
           "purl": "pkg:gem/nokogiri@1.6.7.2",
-          "scope": "runtime",
-          "version": "1.6.7.2",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "1.6.7.2"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/normalize-rails@3.0.3",
           "licenses": [],
           "locations": [
@@ -1610,13 +1762,15 @@
             }
           ],
           "name": "normalize-rails",
+          "package_ref": "pkg:gem/normalize-rails@3.0.3",
           "purl": "pkg:gem/normalize-rails@3.0.3",
-          "scope": "runtime",
-          "version": "3.0.3",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.0.3"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/orm_adapter@0.5.0",
           "licenses": [],
           "locations": [
@@ -1630,13 +1784,15 @@
             }
           ],
           "name": "orm_adapter",
+          "package_ref": "pkg:gem/orm_adapter@0.5.0",
           "purl": "pkg:gem/orm_adapter@0.5.0",
-          "scope": "runtime",
-          "version": "0.5.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.5.0"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activemodel@4.2.5",
             "pkg:gem/activesupport@4.2.5",
             "pkg:gem/cocaine@0.5.8",
@@ -1655,13 +1811,15 @@
             }
           ],
           "name": "paperclip",
+          "package_ref": "pkg:gem/paperclip@4.2.4",
           "purl": "pkg:gem/paperclip@4.2.4",
-          "scope": "runtime",
-          "version": "4.2.4",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.2.4"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activerecord@4.2.5"
           ],
           "id": "pkg:gem/paranoia@2.1.5",
@@ -1677,13 +1835,15 @@
             }
           ],
           "name": "paranoia",
+          "package_ref": "pkg:gem/paranoia@2.1.5",
           "purl": "pkg:gem/paranoia@2.1.5",
-          "scope": "runtime",
-          "version": "2.1.5",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.1.5"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activerecord@4.2.5"
           ],
           "id": "pkg:gem/polyamorous@1.3.0",
@@ -1699,13 +1859,15 @@
             }
           ],
           "name": "polyamorous",
+          "package_ref": "pkg:gem/polyamorous@1.3.0",
           "purl": "pkg:gem/polyamorous@1.3.0",
-          "scope": "runtime",
-          "version": "1.3.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.3.0"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/polyglot@0.3.5",
           "licenses": [],
           "locations": [
@@ -1719,13 +1881,15 @@
             }
           ],
           "name": "polyglot",
+          "package_ref": "pkg:gem/polyglot@0.3.5",
           "purl": "pkg:gem/polyglot@0.3.5",
-          "scope": "runtime",
-          "version": "0.3.5",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.3.5"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/actionmailer@4.2.5",
             "pkg:gem/premailer@1.8.6"
           ],
@@ -1742,13 +1906,15 @@
             }
           ],
           "name": "premailer-rails",
+          "package_ref": "pkg:gem/premailer-rails@1.9.2",
           "purl": "pkg:gem/premailer-rails@1.9.2",
-          "scope": "runtime",
-          "version": "1.9.2",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.9.2"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/css_parser@1.4.1",
             "pkg:gem/htmlentities@4.3.4"
           ],
@@ -1765,13 +1931,15 @@
             }
           ],
           "name": "premailer",
+          "package_ref": "pkg:gem/premailer@1.8.6",
           "purl": "pkg:gem/premailer@1.8.6",
-          "scope": "runtime",
-          "version": "1.8.6",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.8.6"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/puma@3.4.0",
           "licenses": [],
           "locations": [
@@ -1785,13 +1953,15 @@
             }
           ],
           "name": "puma",
+          "package_ref": "pkg:gem/puma@3.4.0",
           "purl": "pkg:gem/puma@3.4.0",
-          "scope": "runtime",
-          "version": "3.4.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.4.0"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activesupport@4.2.5"
           ],
           "id": "pkg:gem/rabl@0.11.8",
@@ -1807,13 +1977,15 @@
             }
           ],
           "name": "rabl",
+          "package_ref": "pkg:gem/rabl@0.11.8",
           "purl": "pkg:gem/rabl@0.11.8",
-          "scope": "runtime",
-          "version": "0.11.8",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.11.8"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/rack@1.6.4"
           ],
           "id": "pkg:gem/rack-ssl@1.0.0",
@@ -1829,13 +2001,15 @@
             }
           ],
           "name": "rack-ssl",
+          "package_ref": "pkg:gem/rack-ssl@1.0.0",
           "purl": "pkg:gem/rack-ssl@1.0.0",
-          "scope": "runtime",
-          "version": "1.0.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.0"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/rack@1.6.4"
           ],
           "id": "pkg:gem/rack-test@0.6.3",
@@ -1851,13 +2025,16 @@
             }
           ],
           "name": "rack-test",
+          "package_ref": "pkg:gem/rack-test@0.6.3",
           "purl": "pkg:gem/rack-test@0.6.3",
-          "scope": "runtime",
-          "version": "0.6.3",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "0.6.3"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/rack@1.6.4",
           "licenses": [],
           "locations": [
@@ -1871,13 +2048,16 @@
             }
           ],
           "name": "rack",
+          "package_ref": "pkg:gem/rack@1.6.4",
           "purl": "pkg:gem/rack@1.6.4",
-          "scope": "runtime",
-          "version": "1.6.4",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "1.6.4"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activesupport@4.2.5"
           ],
           "id": "pkg:gem/rails-deprecated_sanitizer@1.0.3",
@@ -1893,13 +2073,16 @@
             }
           ],
           "name": "rails-deprecated_sanitizer",
+          "package_ref": "pkg:gem/rails-deprecated_sanitizer@1.0.3",
           "purl": "pkg:gem/rails-deprecated_sanitizer@1.0.3",
-          "scope": "runtime",
-          "version": "1.0.3",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "1.0.3"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activesupport@4.2.5",
             "pkg:gem/nokogiri@1.6.7.2",
             "pkg:gem/rails-deprecated_sanitizer@1.0.3"
@@ -1917,13 +2100,16 @@
             }
           ],
           "name": "rails-dom-testing",
+          "package_ref": "pkg:gem/rails-dom-testing@1.0.7",
           "purl": "pkg:gem/rails-dom-testing@1.0.7",
-          "scope": "runtime",
-          "version": "1.0.7",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "1.0.7"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/loofah@2.0.3"
           ],
           "id": "pkg:gem/rails-html-sanitizer@1.0.3",
@@ -1939,13 +2125,16 @@
             }
           ],
           "name": "rails-html-sanitizer",
+          "package_ref": "pkg:gem/rails-html-sanitizer@1.0.3",
           "purl": "pkg:gem/rails-html-sanitizer@1.0.3",
-          "scope": "runtime",
-          "version": "1.0.3",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "1.0.3"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/actionmailer@4.2.5",
             "pkg:gem/actionpack@4.2.5",
             "pkg:gem/actionview@4.2.5",
@@ -1969,13 +2158,15 @@
             }
           ],
           "name": "rails",
+          "package_ref": "pkg:gem/rails@4.2.5",
           "purl": "pkg:gem/rails@4.2.5",
-          "scope": "runtime",
-          "version": "4.2.5",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.2.5"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/actionpack@4.2.5",
             "pkg:gem/activesupport@4.2.5",
             "pkg:gem/rake@11.1.2",
@@ -1994,13 +2185,16 @@
             }
           ],
           "name": "railties",
+          "package_ref": "pkg:gem/railties@4.2.5",
           "purl": "pkg:gem/railties@4.2.5",
-          "scope": "runtime",
-          "version": "4.2.5",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "4.2.5"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/rake@11.1.2",
           "licenses": [],
           "locations": [
@@ -2014,13 +2208,16 @@
             }
           ],
           "name": "rake",
+          "package_ref": "pkg:gem/rake@11.1.2",
           "purl": "pkg:gem/rake@11.1.2",
-          "scope": "runtime",
-          "version": "11.1.2",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "11.1.2"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/actionpack@4.2.5",
             "pkg:gem/activerecord@4.2.5",
             "pkg:gem/activesupport@4.2.5",
@@ -2040,13 +2237,15 @@
             }
           ],
           "name": "ransack",
+          "package_ref": "pkg:gem/ransack@1.4.1",
           "purl": "pkg:gem/ransack@1.4.1",
-          "scope": "runtime",
-          "version": "1.4.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.4.1"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/json@1.8.3"
           ],
           "id": "pkg:gem/rdoc@4.2.2",
@@ -2062,13 +2261,15 @@
             }
           ],
           "name": "rdoc",
+          "package_ref": "pkg:gem/rdoc@4.2.2",
           "purl": "pkg:gem/rdoc@4.2.2",
-          "scope": "runtime",
-          "version": "4.2.2",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.2.2"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/railties@4.2.5"
           ],
           "id": "pkg:gem/responders@2.2.0",
@@ -2084,13 +2285,15 @@
             }
           ],
           "name": "responders",
+          "package_ref": "pkg:gem/responders@2.2.0",
           "purl": "pkg:gem/responders@2.2.0",
-          "scope": "runtime",
-          "version": "2.2.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.2.0"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/administrate@0.1.4",
             "pkg:gem/authlogic@1.4.3",
             "pkg:gem/byebug@9.0.4",
@@ -2114,11 +2317,11 @@
           "id": "pkg:gem/root",
           "licenses": [],
           "name": "root",
-          "purl": "pkg:gem/root",
-          "vulnerabilities": []
+          "package_ref": "pkg:gem/root",
+          "purl": "pkg:gem/root"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/json_pure@1.8.3"
           ],
           "id": "pkg:gem/rubyforge@2.0.4",
@@ -2134,13 +2337,15 @@
             }
           ],
           "name": "rubyforge",
+          "package_ref": "pkg:gem/rubyforge@2.0.4",
           "purl": "pkg:gem/rubyforge@2.0.4",
-          "scope": "runtime",
-          "version": "2.0.4",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.0.4"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/railties@4.2.5",
             "pkg:gem/sass@3.4.22",
             "pkg:gem/sprockets-rails@2.3.3",
@@ -2160,13 +2365,15 @@
             }
           ],
           "name": "sass-rails",
+          "package_ref": "pkg:gem/sass-rails@5.0.4",
           "purl": "pkg:gem/sass-rails@5.0.4",
-          "scope": "runtime",
-          "version": "5.0.4",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "5.0.4"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/sass@3.4.22",
           "licenses": [],
           "locations": [
@@ -2180,13 +2387,15 @@
             }
           ],
           "name": "sass",
+          "package_ref": "pkg:gem/sass@3.4.22",
           "purl": "pkg:gem/sass@3.4.22",
-          "scope": "runtime",
-          "version": "3.4.22",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.4.22"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/thor@0.19.1"
           ],
           "id": "pkg:gem/select2-rails@3.5.9.1",
@@ -2202,13 +2411,15 @@
             }
           ],
           "name": "select2-rails",
+          "package_ref": "pkg:gem/select2-rails@3.5.9.1",
           "purl": "pkg:gem/select2-rails@3.5.9.1",
-          "scope": "runtime",
-          "version": "3.5.9.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.5.9.1"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/selectize-rails@0.12.1",
           "licenses": [],
           "locations": [
@@ -2222,13 +2433,15 @@
             }
           ],
           "name": "selectize-rails",
+          "package_ref": "pkg:gem/selectize-rails@0.12.1",
           "purl": "pkg:gem/selectize-rails@0.12.1",
-          "scope": "runtime",
-          "version": "0.12.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.12.1"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/rack@1.6.4",
             "pkg:gem/tilt@1.4.1"
           ],
@@ -2245,13 +2458,15 @@
             }
           ],
           "name": "sinatra",
+          "package_ref": "pkg:gem/sinatra@1.1.4",
           "purl": "pkg:gem/sinatra@1.1.4",
-          "scope": "runtime",
-          "version": "1.1.4",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.1.4"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/sixarm_ruby_unaccent@1.1.1",
           "licenses": [],
           "locations": [
@@ -2265,13 +2480,15 @@
             }
           ],
           "name": "sixarm_ruby_unaccent",
+          "package_ref": "pkg:gem/sixarm_ruby_unaccent@1.1.1",
           "purl": "pkg:gem/sixarm_ruby_unaccent@1.1.1",
-          "scope": "runtime",
-          "version": "1.1.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.1.1"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/spree_api@3.0.7",
             "pkg:gem/spree_backend@3.0.7",
             "pkg:gem/spree_cmd@3.0.7",
@@ -2292,13 +2509,15 @@
             }
           ],
           "name": "spree",
+          "package_ref": "pkg:gem/spree@3.0.7",
           "purl": "pkg:gem/spree@3.0.7",
-          "scope": "runtime",
-          "version": "3.0.7",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.0.7"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/rabl@0.11.8",
             "pkg:gem/spree_core@3.0.7",
             "pkg:gem/versioncake@2.3.1"
@@ -2316,13 +2535,15 @@
             }
           ],
           "name": "spree_api",
+          "package_ref": "pkg:gem/spree_api@3.0.7",
           "purl": "pkg:gem/spree_api@3.0.7",
-          "scope": "runtime",
-          "version": "3.0.7",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.0.7"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/bootstrap-sass@3.3.6",
             "pkg:gem/jquery-rails@4.1.1",
             "pkg:gem/jquery-ui-rails@5.0.5",
@@ -2343,13 +2564,15 @@
             }
           ],
           "name": "spree_backend",
+          "package_ref": "pkg:gem/spree_backend@3.0.7",
           "purl": "pkg:gem/spree_backend@3.0.7",
-          "scope": "runtime",
-          "version": "3.0.7",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.0.7"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/thor@0.19.1"
           ],
           "id": "pkg:gem/spree_cmd@3.0.7",
@@ -2365,13 +2588,15 @@
             }
           ],
           "name": "spree_cmd",
+          "package_ref": "pkg:gem/spree_cmd@3.0.7",
           "purl": "pkg:gem/spree_cmd@3.0.7",
-          "scope": "runtime",
-          "version": "3.0.7",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.0.7"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activemerchant@1.47.0",
             "pkg:gem/acts_as_list@0.7.4",
             "pkg:gem/awesome_nested_set@3.0.3",
@@ -2410,13 +2635,15 @@
             }
           ],
           "name": "spree_core",
+          "package_ref": "pkg:gem/spree_core@3.0.7",
           "purl": "pkg:gem/spree_core@3.0.7",
-          "scope": "runtime",
-          "version": "3.0.7",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.0.7"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/bootstrap-sass@3.3.6",
             "pkg:gem/canonical-rails@0.0.11",
             "pkg:gem/jquery-rails@4.1.1",
@@ -2436,13 +2663,15 @@
             }
           ],
           "name": "spree_frontend",
+          "package_ref": "pkg:gem/spree_frontend@3.0.7",
           "purl": "pkg:gem/spree_frontend@3.0.7",
-          "scope": "runtime",
-          "version": "3.0.7",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.0.7"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/spree_core@3.0.7"
           ],
           "id": "pkg:gem/spree_sample@3.0.7",
@@ -2458,13 +2687,15 @@
             }
           ],
           "name": "spree_sample",
+          "package_ref": "pkg:gem/spree_sample@3.0.7",
           "purl": "pkg:gem/spree_sample@3.0.7",
-          "scope": "runtime",
-          "version": "3.0.7",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.0.7"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/spring@1.7.1",
           "licenses": [],
           "locations": [
@@ -2478,13 +2709,15 @@
             }
           ],
           "name": "spring",
+          "package_ref": "pkg:gem/spring@1.7.1",
           "purl": "pkg:gem/spring@1.7.1",
-          "scope": "development",
-          "version": "1.7.1",
-          "vulnerabilities": []
+          "scopes": [
+            "development"
+          ],
+          "version": "1.7.1"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/actionpack@4.2.5",
             "pkg:gem/activesupport@4.2.5",
             "pkg:gem/sprockets@3.6.0"
@@ -2502,13 +2735,15 @@
             }
           ],
           "name": "sprockets-rails",
+          "package_ref": "pkg:gem/sprockets-rails@2.3.3",
           "purl": "pkg:gem/sprockets-rails@2.3.3",
-          "scope": "runtime",
-          "version": "2.3.3",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.3.3"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/concurrent-ruby@1.0.2",
             "pkg:gem/rack@1.6.4"
           ],
@@ -2525,13 +2760,15 @@
             }
           ],
           "name": "sprockets",
+          "package_ref": "pkg:gem/sprockets@3.6.0",
           "purl": "pkg:gem/sprockets@3.6.0",
-          "scope": "runtime",
-          "version": "3.6.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.6.0"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/sqlite3@1.3.11",
           "licenses": [],
           "locations": [
@@ -2545,13 +2782,15 @@
             }
           ],
           "name": "sqlite3",
+          "package_ref": "pkg:gem/sqlite3@1.3.11",
           "purl": "pkg:gem/sqlite3@1.3.11",
-          "scope": "runtime",
-          "version": "1.3.11",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.3.11"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activemodel@4.2.5",
             "pkg:gem/state_machines@0.4.0"
           ],
@@ -2568,13 +2807,15 @@
             }
           ],
           "name": "state_machines-activemodel",
+          "package_ref": "pkg:gem/state_machines-activemodel@0.4.0",
           "purl": "pkg:gem/state_machines-activemodel@0.4.0",
-          "scope": "runtime",
-          "version": "0.4.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.4.0"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activerecord@4.2.5",
             "pkg:gem/state_machines-activemodel@0.4.0"
           ],
@@ -2591,13 +2832,15 @@
             }
           ],
           "name": "state_machines-activerecord",
+          "package_ref": "pkg:gem/state_machines-activerecord@0.4.0",
           "purl": "pkg:gem/state_machines-activerecord@0.4.0",
-          "scope": "runtime",
-          "version": "0.4.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.4.0"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/state_machines@0.4.0",
           "licenses": [],
           "locations": [
@@ -2611,13 +2854,15 @@
             }
           ],
           "name": "state_machines",
+          "package_ref": "pkg:gem/state_machines@0.4.0",
           "purl": "pkg:gem/state_machines@0.4.0",
-          "scope": "runtime",
-          "version": "0.4.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.4.0"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/stringex@2.6.0",
           "licenses": [],
           "locations": [
@@ -2631,13 +2876,15 @@
             }
           ],
           "name": "stringex",
+          "package_ref": "pkg:gem/stringex@2.6.0",
           "purl": "pkg:gem/stringex@2.6.0",
-          "scope": "runtime",
-          "version": "2.6.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.6.0"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/thor@0.19.1",
           "licenses": [],
           "locations": [
@@ -2651,13 +2898,16 @@
             }
           ],
           "name": "thor",
+          "package_ref": "pkg:gem/thor@0.19.1",
           "purl": "pkg:gem/thor@0.19.1",
-          "scope": "runtime",
-          "version": "0.19.1",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "0.19.1"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/thread_safe@0.3.5",
           "licenses": [],
           "locations": [
@@ -2671,13 +2921,16 @@
             }
           ],
           "name": "thread_safe",
+          "package_ref": "pkg:gem/thread_safe@0.3.5",
           "purl": "pkg:gem/thread_safe@0.3.5",
-          "scope": "runtime",
-          "version": "0.3.5",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "0.3.5"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/tilt@1.4.1",
           "licenses": [],
           "locations": [
@@ -2691,13 +2944,15 @@
             }
           ],
           "name": "tilt",
+          "package_ref": "pkg:gem/tilt@1.4.1",
           "purl": "pkg:gem/tilt@1.4.1",
-          "scope": "runtime",
-          "version": "1.4.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.4.1"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/truncate_html@0.9.2",
           "licenses": [],
           "locations": [
@@ -2711,13 +2966,15 @@
             }
           ],
           "name": "truncate_html",
+          "package_ref": "pkg:gem/truncate_html@0.9.2",
           "purl": "pkg:gem/truncate_html@0.9.2",
-          "scope": "runtime",
-          "version": "0.9.2",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.9.2"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/coffee-rails@4.1.1"
           ],
           "id": "pkg:gem/turbolinks@2.5.3",
@@ -2733,13 +2990,15 @@
             }
           ],
           "name": "turbolinks",
+          "package_ref": "pkg:gem/turbolinks@2.5.3",
           "purl": "pkg:gem/turbolinks@2.5.3",
-          "scope": "runtime",
-          "version": "2.5.3",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.5.3"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/camertron-eprun@1.1.0",
             "pkg:gem/cldr-plurals-runtime-rb@1.0.1",
             "pkg:gem/json@1.8.3",
@@ -2758,22 +3017,26 @@
             }
           ],
           "name": "twitter_cldr",
+          "package_ref": "pkg:gem/twitter_cldr@3.3.0",
           "purl": "pkg:gem/twitter_cldr@3.3.0",
-          "scope": "runtime",
-          "version": "3.3.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.3.0"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:gem/tzinfo-data",
           "licenses": [],
           "name": "tzinfo-data",
+          "package_ref": "pkg:gem/tzinfo-data",
           "purl": "pkg:gem/tzinfo-data",
-          "scope": "runtime",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ]
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/thread_safe@0.3.5"
           ],
           "id": "pkg:gem/tzinfo@1.2.2",
@@ -2789,13 +3052,16 @@
             }
           ],
           "name": "tzinfo",
+          "package_ref": "pkg:gem/tzinfo@1.2.2",
           "purl": "pkg:gem/tzinfo@1.2.2",
-          "scope": "runtime",
-          "version": "1.2.2",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "1.2.2"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/execjs@2.7.0"
           ],
           "id": "pkg:gem/uglifier@3.0.0",
@@ -2811,13 +3077,15 @@
             }
           ],
           "name": "uglifier",
+          "package_ref": "pkg:gem/uglifier@3.0.0",
           "purl": "pkg:gem/uglifier@3.0.0",
-          "scope": "runtime",
-          "version": "3.0.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.0.0"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/actionpack@4.2.5",
             "pkg:gem/activesupport@4.2.5",
             "pkg:gem/railties@4.2.5",
@@ -2836,13 +3104,15 @@
             }
           ],
           "name": "versioncake",
+          "package_ref": "pkg:gem/versioncake@2.3.1",
           "purl": "pkg:gem/versioncake@2.3.1",
-          "scope": "runtime",
-          "version": "2.3.1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.3.1"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/rack@1.6.4"
           ],
           "id": "pkg:gem/warden@1.2.6",
@@ -2858,13 +3128,15 @@
             }
           ],
           "name": "warden",
+          "package_ref": "pkg:gem/warden@1.2.6",
           "purl": "pkg:gem/warden@1.2.6",
-          "scope": "runtime",
-          "version": "1.2.6",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.2.6"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:gem/activemodel@4.2.5",
             "pkg:gem/debug_inspector@0.0.2",
             "pkg:gem/railties@4.2.5"
@@ -2882,12 +3154,18 @@
             }
           ],
           "name": "web-console",
+          "package_ref": "pkg:gem/web-console@3.1.1",
           "purl": "pkg:gem/web-console@3.1.1",
-          "scope": "development",
-          "version": "3.1.1",
-          "vulnerabilities": []
+          "scopes": [
+            "development"
+          ],
+          "version": "3.1.1"
         }
       ],
+      "detector": "bundler-detector",
+      "ecosystem": "ruby",
+      "kind": "Gemfile.lock",
+      "package_manager": "bundler",
       "path": "Gemfile.lock",
       "subproject": "."
     }
@@ -2895,6 +3173,1038 @@
   "metadata": {
     "duration_ms": 0
   },
+  "packages": [
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "actionmailer",
+      "purl": "pkg:gem/actionmailer@4.2.5",
+      "version": "4.2.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "actionpack",
+      "purl": "pkg:gem/actionpack@4.2.5",
+      "version": "4.2.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "actionview",
+      "purl": "pkg:gem/actionview@4.2.5",
+      "version": "4.2.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "activejob",
+      "purl": "pkg:gem/activejob@4.2.5",
+      "version": "4.2.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "activemerchant",
+      "purl": "pkg:gem/activemerchant@1.47.0",
+      "version": "1.47.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "activemodel",
+      "purl": "pkg:gem/activemodel@4.2.5",
+      "version": "4.2.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "activerecord",
+      "purl": "pkg:gem/activerecord@4.2.5",
+      "version": "4.2.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "activesupport",
+      "purl": "pkg:gem/activesupport@4.2.5",
+      "version": "4.2.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "acts_as_list",
+      "purl": "pkg:gem/acts_as_list@0.7.4",
+      "version": "0.7.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "addressable",
+      "purl": "pkg:gem/addressable@2.4.0",
+      "version": "2.4.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "administrate",
+      "purl": "pkg:gem/administrate@0.1.4",
+      "version": "0.1.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "allison",
+      "purl": "pkg:gem/allison@2.0.3",
+      "version": "2.0.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "arel",
+      "purl": "pkg:gem/arel@6.0.3",
+      "version": "6.0.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "authlogic",
+      "purl": "pkg:gem/authlogic@1.4.3",
+      "version": "1.4.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "autoprefixer-rails",
+      "purl": "pkg:gem/autoprefixer-rails@6.3.6.1",
+      "version": "6.3.6.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "awesome_nested_set",
+      "purl": "pkg:gem/awesome_nested_set@3.0.3",
+      "version": "3.0.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "bcrypt",
+      "purl": "pkg:gem/bcrypt@3.1.11",
+      "version": "3.1.11",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "bootstrap-sass",
+      "purl": "pkg:gem/bootstrap-sass@3.3.6",
+      "version": "3.3.6",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "bourbon",
+      "purl": "pkg:gem/bourbon@4.2.7",
+      "version": "4.2.7",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "builder",
+      "purl": "pkg:gem/builder@3.2.2",
+      "version": "3.2.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "byebug",
+      "purl": "pkg:gem/byebug@9.0.4",
+      "version": "9.0.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "camertron-eprun",
+      "purl": "pkg:gem/camertron-eprun@1.1.0",
+      "version": "1.1.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "cancancan",
+      "purl": "pkg:gem/cancancan@1.10.1",
+      "version": "1.10.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "canonical-rails",
+      "purl": "pkg:gem/canonical-rails@0.0.11",
+      "version": "0.0.11",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "carmen",
+      "purl": "pkg:gem/carmen@1.0.2",
+      "version": "1.0.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "cldr-plurals-runtime-rb",
+      "purl": "pkg:gem/cldr-plurals-runtime-rb@1.0.1",
+      "version": "1.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "climate_control",
+      "purl": "pkg:gem/climate_control@0.0.3",
+      "version": "0.0.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "cocaine",
+      "purl": "pkg:gem/cocaine@0.5.8",
+      "version": "0.5.8",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "coffee-rails",
+      "purl": "pkg:gem/coffee-rails@4.1.1",
+      "version": "4.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "coffee-script-source",
+      "purl": "pkg:gem/coffee-script-source@1.10.0",
+      "version": "1.10.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "coffee-script",
+      "purl": "pkg:gem/coffee-script@2.4.1",
+      "version": "2.4.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "colorize",
+      "purl": "pkg:gem/colorize@0.7.7",
+      "version": "0.7.7",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "concurrent-ruby",
+      "purl": "pkg:gem/concurrent-ruby@1.0.2",
+      "version": "1.0.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "css_parser",
+      "purl": "pkg:gem/css_parser@1.4.1",
+      "version": "1.4.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "datetime_picker_rails",
+      "purl": "pkg:gem/datetime_picker_rails@0.0.7",
+      "version": "0.0.7",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "debug_inspector",
+      "purl": "pkg:gem/debug_inspector@0.0.2",
+      "version": "0.0.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "deface",
+      "purl": "pkg:gem/deface@1.0.2",
+      "version": "1.0.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "devise",
+      "purl": "pkg:gem/devise@4.1.1",
+      "version": "4.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "devise_invitable",
+      "purl": "pkg:gem/devise_invitable@1.3.4",
+      "version": "1.3.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "echoe",
+      "purl": "pkg:gem/echoe@4.6.6",
+      "version": "4.6.6",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "erubis",
+      "purl": "pkg:gem/erubis@2.7.0",
+      "version": "2.7.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "execjs",
+      "purl": "pkg:gem/execjs@2.7.0",
+      "version": "2.7.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "festivaltts4r",
+      "purl": "pkg:gem/festivaltts4r@0.2.0",
+      "version": "0.2.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "ffaker",
+      "purl": "pkg:gem/ffaker@1.32.1",
+      "version": "1.32.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "font-awesome-rails",
+      "purl": "pkg:gem/font-awesome-rails@4.6.3.0",
+      "version": "4.6.3.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "friendly_id",
+      "purl": "pkg:gem/friendly_id@5.1.0",
+      "version": "5.1.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "globalid",
+      "purl": "pkg:gem/globalid@0.3.6",
+      "version": "0.3.6",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "highline",
+      "purl": "pkg:gem/highline@1.6.21",
+      "version": "1.6.21",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "hoe",
+      "purl": "pkg:gem/hoe@3.15.0",
+      "version": "3.15.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "htmlentities",
+      "purl": "pkg:gem/htmlentities@4.3.4",
+      "version": "4.3.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "httparty",
+      "purl": "pkg:gem/httparty@0.13.7",
+      "version": "0.13.7",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "i18n",
+      "purl": "pkg:gem/i18n@0.7.0",
+      "version": "0.7.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "jbuilder",
+      "purl": "pkg:gem/jbuilder@2.4.1",
+      "version": "2.4.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "jquery-rails",
+      "purl": "pkg:gem/jquery-rails@4.1.1",
+      "version": "4.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "jquery-ui-rails",
+      "purl": "pkg:gem/jquery-ui-rails@5.0.5",
+      "version": "5.0.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "json",
+      "purl": "pkg:gem/json@1.8.3",
+      "version": "1.8.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "json_pure",
+      "purl": "pkg:gem/json_pure@1.8.3",
+      "version": "1.8.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "kaminari",
+      "purl": "pkg:gem/kaminari@0.16.3",
+      "version": "0.16.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "lingq",
+      "purl": "pkg:gem/lingq@0.3.1",
+      "version": "0.3.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "loofah",
+      "purl": "pkg:gem/loofah@2.0.3",
+      "version": "2.0.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "mail",
+      "purl": "pkg:gem/mail@2.6.4",
+      "version": "2.6.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "mime-types-data",
+      "purl": "pkg:gem/mime-types-data@3.2016.0521",
+      "version": "3.2016.0521",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "mime-types",
+      "purl": "pkg:gem/mime-types@3.1",
+      "version": "3.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "mini_portile2",
+      "purl": "pkg:gem/mini_portile2@2.0.0",
+      "version": "2.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "minitest",
+      "purl": "pkg:gem/minitest@5.9.0",
+      "version": "5.9.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "momentjs-rails",
+      "purl": "pkg:gem/momentjs-rails@2.11.1",
+      "version": "2.11.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "monetize",
+      "purl": "pkg:gem/monetize@1.4.0",
+      "version": "1.4.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "money",
+      "purl": "pkg:gem/money@6.7.1",
+      "version": "6.7.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "multi_json",
+      "purl": "pkg:gem/multi_json@1.12.1",
+      "version": "1.12.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "multi_xml",
+      "purl": "pkg:gem/multi_xml@0.5.5",
+      "version": "0.5.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "neat",
+      "purl": "pkg:gem/neat@1.7.4",
+      "version": "1.7.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "nokogiri",
+      "purl": "pkg:gem/nokogiri@1.6.7.2",
+      "version": "1.6.7.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "normalize-rails",
+      "purl": "pkg:gem/normalize-rails@3.0.3",
+      "version": "3.0.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "orm_adapter",
+      "purl": "pkg:gem/orm_adapter@0.5.0",
+      "version": "0.5.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "paperclip",
+      "purl": "pkg:gem/paperclip@4.2.4",
+      "version": "4.2.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "paranoia",
+      "purl": "pkg:gem/paranoia@2.1.5",
+      "version": "2.1.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "polyamorous",
+      "purl": "pkg:gem/polyamorous@1.3.0",
+      "version": "1.3.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "polyglot",
+      "purl": "pkg:gem/polyglot@0.3.5",
+      "version": "0.3.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "premailer-rails",
+      "purl": "pkg:gem/premailer-rails@1.9.2",
+      "version": "1.9.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "premailer",
+      "purl": "pkg:gem/premailer@1.8.6",
+      "version": "1.8.6",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "puma",
+      "purl": "pkg:gem/puma@3.4.0",
+      "version": "3.4.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "rabl",
+      "purl": "pkg:gem/rabl@0.11.8",
+      "version": "0.11.8",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "rack-ssl",
+      "purl": "pkg:gem/rack-ssl@1.0.0",
+      "version": "1.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "rack-test",
+      "purl": "pkg:gem/rack-test@0.6.3",
+      "version": "0.6.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "rack",
+      "purl": "pkg:gem/rack@1.6.4",
+      "version": "1.6.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "rails-deprecated_sanitizer",
+      "purl": "pkg:gem/rails-deprecated_sanitizer@1.0.3",
+      "version": "1.0.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "rails-dom-testing",
+      "purl": "pkg:gem/rails-dom-testing@1.0.7",
+      "version": "1.0.7",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "rails-html-sanitizer",
+      "purl": "pkg:gem/rails-html-sanitizer@1.0.3",
+      "version": "1.0.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "rails",
+      "purl": "pkg:gem/rails@4.2.5",
+      "version": "4.2.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "railties",
+      "purl": "pkg:gem/railties@4.2.5",
+      "version": "4.2.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "rake",
+      "purl": "pkg:gem/rake@11.1.2",
+      "version": "11.1.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "ransack",
+      "purl": "pkg:gem/ransack@1.4.1",
+      "version": "1.4.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "rdoc",
+      "purl": "pkg:gem/rdoc@4.2.2",
+      "version": "4.2.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "responders",
+      "purl": "pkg:gem/responders@2.2.0",
+      "version": "2.2.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "root",
+      "purl": "pkg:gem/root",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "rubyforge",
+      "purl": "pkg:gem/rubyforge@2.0.4",
+      "version": "2.0.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "sass-rails",
+      "purl": "pkg:gem/sass-rails@5.0.4",
+      "version": "5.0.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "sass",
+      "purl": "pkg:gem/sass@3.4.22",
+      "version": "3.4.22",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "select2-rails",
+      "purl": "pkg:gem/select2-rails@3.5.9.1",
+      "version": "3.5.9.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "selectize-rails",
+      "purl": "pkg:gem/selectize-rails@0.12.1",
+      "version": "0.12.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "sinatra",
+      "purl": "pkg:gem/sinatra@1.1.4",
+      "version": "1.1.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "sixarm_ruby_unaccent",
+      "purl": "pkg:gem/sixarm_ruby_unaccent@1.1.1",
+      "version": "1.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "spree",
+      "purl": "pkg:gem/spree@3.0.7",
+      "version": "3.0.7",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "spree_api",
+      "purl": "pkg:gem/spree_api@3.0.7",
+      "version": "3.0.7",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "spree_backend",
+      "purl": "pkg:gem/spree_backend@3.0.7",
+      "version": "3.0.7",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "spree_cmd",
+      "purl": "pkg:gem/spree_cmd@3.0.7",
+      "version": "3.0.7",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "spree_core",
+      "purl": "pkg:gem/spree_core@3.0.7",
+      "version": "3.0.7",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "spree_frontend",
+      "purl": "pkg:gem/spree_frontend@3.0.7",
+      "version": "3.0.7",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "spree_sample",
+      "purl": "pkg:gem/spree_sample@3.0.7",
+      "version": "3.0.7",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "spring",
+      "purl": "pkg:gem/spring@1.7.1",
+      "version": "1.7.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "sprockets-rails",
+      "purl": "pkg:gem/sprockets-rails@2.3.3",
+      "version": "2.3.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "sprockets",
+      "purl": "pkg:gem/sprockets@3.6.0",
+      "version": "3.6.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "sqlite3",
+      "purl": "pkg:gem/sqlite3@1.3.11",
+      "version": "1.3.11",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "state_machines-activemodel",
+      "purl": "pkg:gem/state_machines-activemodel@0.4.0",
+      "version": "0.4.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "state_machines-activerecord",
+      "purl": "pkg:gem/state_machines-activerecord@0.4.0",
+      "version": "0.4.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "state_machines",
+      "purl": "pkg:gem/state_machines@0.4.0",
+      "version": "0.4.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "stringex",
+      "purl": "pkg:gem/stringex@2.6.0",
+      "version": "2.6.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "thor",
+      "purl": "pkg:gem/thor@0.19.1",
+      "version": "0.19.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "thread_safe",
+      "purl": "pkg:gem/thread_safe@0.3.5",
+      "version": "0.3.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "tilt",
+      "purl": "pkg:gem/tilt@1.4.1",
+      "version": "1.4.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "truncate_html",
+      "purl": "pkg:gem/truncate_html@0.9.2",
+      "version": "0.9.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "turbolinks",
+      "purl": "pkg:gem/turbolinks@2.5.3",
+      "version": "2.5.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "twitter_cldr",
+      "purl": "pkg:gem/twitter_cldr@3.3.0",
+      "version": "3.3.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "tzinfo-data",
+      "purl": "pkg:gem/tzinfo-data",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "tzinfo",
+      "purl": "pkg:gem/tzinfo@1.2.2",
+      "version": "1.2.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "uglifier",
+      "purl": "pkg:gem/uglifier@3.0.0",
+      "version": "3.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "versioncake",
+      "purl": "pkg:gem/versioncake@2.3.1",
+      "version": "2.3.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "warden",
+      "purl": "pkg:gem/warden@1.2.6",
+      "version": "1.2.6",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "ruby",
+      "licenses": [],
+      "name": "web-console",
+      "purl": "pkg:gem/web-console@3.1.1",
+      "version": "3.1.1",
+      "vulnerabilities": []
+    }
+  ],
   "project": {
     "ecosystem": "ruby",
     "name": "\u003cnormalized\u003e",

@@ -71,9 +71,8 @@ func bindTargetFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
 func bindAnalysisFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
 	flags.BoolVar(&cfg.Enrich, "enrich", false, "Enrich packages with external license and vulnerability data")
 	flags.BoolVar(&cfg.Audit, "audit", false, "Evaluate policy and create findings from package vulnerability data")
-	flags.BoolVar(&cfg.Reachability, "reachability", false, "[Experimental] Run code analysis to confirm whether vulnerabilities are reachable from application code")
+	flags.BoolVar(&cfg.Analyze, "analyze", false, "[Experimental] Run code analysis to confirm whether vulnerabilities are reachable from application code")
 	flags.StringArrayVar(&cfg.FailOn, "fail-on", nil, "Constraint(s) for which findings should be created. Repeatable; constraints AND together. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable. Example: --fail-on low --fail-on reachable")
-	flags.StringArrayVar(&cfg.FailOnScopes, "fail-on-scope", nil, "Dependency scope that may produce failing findings: runtime, development, or unknown. Repeatable")
 	flags.StringArrayVar(&cfg.AllowVulnerabilityIDs, "allow-vulnerability-id", nil, "Vulnerability ID to ignore during policy evaluation. Repeatable")
 	flags.StringArrayVar(&cfg.AllowLicenses, "allow-license", nil, "Allowed SPDX license identifier or expression. Repeatable")
 	flags.StringArrayVar(&cfg.DenyLicenses, "deny-license", nil, "Denied SPDX license identifier or expression. Repeatable")
@@ -146,14 +145,11 @@ func applyFlagOverrides(dst *config.Resolved, flags config.Resolved, cmd *cobra.
 	if flagChanged(cmd, "audit") {
 		dst.Audit = flags.Audit
 	}
-	if flagChanged(cmd, "reachability") {
-		dst.Reachability = flags.Reachability
+	if flagChanged(cmd, "analyze") {
+		dst.Analyze = flags.Analyze
 	}
 	if flagChanged(cmd, "fail-on") {
 		dst.FailOn = append([]string(nil), flags.FailOn...)
-	}
-	if flagChanged(cmd, "fail-on-scope") {
-		dst.FailOnScopes = append([]string(nil), flags.FailOnScopes...)
 	}
 	if flagChanged(cmd, "allow-vulnerability-id") {
 		dst.AllowVulnerabilityIDs = append([]string(nil), flags.AllowVulnerabilityIDs...)

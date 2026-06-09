@@ -95,14 +95,14 @@ If your repository commits `vendor/`, the Go toolchain reads from `vendor/module
 
 ## Reachability (experimental)
 
-> **Experimental.** Reachability is opt-in via `--reachability`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
+> **Experimental.** Reachability is opt-in via `--analyze`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
 
 For Go, the analyzer is `govulncheck` at **Tier-1 (symbol)** — it builds a real call graph and reports a vulnerability as reachable only if your code can reach the specific vulnerable function or method. Reflection (`reflect.Value.Call`, etc.) and dynamic plugin loading are blind spots.
 
 `govulncheck` requires a buildable module. Build failures surface as `reachability.status=unknown` with a `reason` like `build-failed`, `missing-toolchain`, or `module-resolution-failed`.
 
 ```bash
-bomly scan --reachability --enrich --audit \
+bomly scan --analyze --enrich --audit \
   --fail-on high --fail-on reachable
 ```
 

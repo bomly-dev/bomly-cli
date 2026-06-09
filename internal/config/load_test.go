@@ -84,7 +84,7 @@ target:
 analysis:
   enrich: true
   audit: true
-  reachability: true
+  analyze: true
   install_first: true
   install_args: [--offline]
 components:
@@ -95,7 +95,6 @@ components:
   analyzers: govulncheck
 policy:
   fail_on: [high, reachable]
-  fail_on_scopes: [runtime]
   allow_vulnerability_ids: [CVE-2026-0001]
   allow_licenses: [MIT]
   deny_licenses: [GPL-3.0]
@@ -142,7 +141,7 @@ matchers:
 	if resolved.Container != "alpine:3.20" || resolved.URL == "" || resolved.Ref != "main" || !resolved.SBOM {
 		t.Fatalf("target config = %#v", resolved)
 	}
-	if !resolved.Enrich || !resolved.Audit || !resolved.Reachability || !resolved.InstallFirst {
+	if !resolved.Enrich || !resolved.Audit || !resolved.Analyze || !resolved.InstallFirst {
 		t.Fatalf("analysis config = %#v", resolved)
 	}
 	if len(resolved.InstallArgs) != 1 || resolved.InstallArgs[0] != "--offline" {
@@ -151,7 +150,7 @@ matchers:
 	if resolved.Ecosystems != "go,npm" || resolved.Detectors != "gomod" || resolved.Auditors != "policy" || resolved.Matchers != "osv" || resolved.Analyzers != "govulncheck" {
 		t.Fatalf("component config = %#v", resolved)
 	}
-	if len(resolved.FailOn) != 2 || len(resolved.FailOnScopes) != 1 || len(resolved.AllowVulnerabilityIDs) != 1 || len(resolved.AllowLicenses) != 1 || len(resolved.DenyLicenses) != 1 || len(resolved.LicenseExemptPackages) != 1 || len(resolved.DenyPackages) != 1 || len(resolved.DenyGroups) != 1 || len(resolved.ProtectedPackages) != 1 {
+	if len(resolved.FailOn) != 2 || len(resolved.AllowVulnerabilityIDs) != 1 || len(resolved.AllowLicenses) != 1 || len(resolved.DenyLicenses) != 1 || len(resolved.LicenseExemptPackages) != 1 || len(resolved.DenyPackages) != 1 || len(resolved.DenyGroups) != 1 || len(resolved.ProtectedPackages) != 1 {
 		t.Fatalf("policy config = %#v", resolved)
 	}
 	if resolved.TyposquatThreshold != "0.95" || resolved.TyposquatMode != "fail" || !resolved.WarnOnly {

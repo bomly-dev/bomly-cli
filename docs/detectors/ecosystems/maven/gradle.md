@@ -89,7 +89,7 @@ Re-lock and re-scan.
 
 ## Reachability (experimental)
 
-> **Experimental.** Reachability is opt-in via `--reachability`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
+> **Experimental.** Reachability is opt-in via `--analyze`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
 
 For Gradle packages, the analyzer is `jvmreach` at **Tier-3 (package)** — same caveats as Maven. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe).
 

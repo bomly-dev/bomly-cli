@@ -141,7 +141,7 @@ func TestScan(t *testing.T) {
 			// volatile fields (call frame line numbers, file paths,
 			// analyzed_at) via normalizeReachability.
 			name:  "scan-go-reachability",
-			args:  []string{"scan", "--url", "https://github.com/veracode/example-go-modules", "--ref", "555ebe70813318ce80f46e3c4fc6623012e0317d", "--enrich", "--reachability", "--format", "json"},
+			args:  []string{"scan", "--url", "https://github.com/veracode/example-go-modules", "--ref", "555ebe70813318ce80f46e3c4fc6623012e0317d", "--enrich", "--analyze", "--format", "json"},
 			tools: []string{"go"},
 		},
 		{
@@ -154,7 +154,7 @@ func TestScan(t *testing.T) {
 			// and "unreachable (package)" branches of the analyzer.
 			// Goldens scrub timestamps via normalizeReachability.
 			name:  "scan-npm-reachability",
-			args:  []string{"scan", "--url", "https://github.com/snyk-labs/nodejs-goof", "--ref", "add14ba59e98240d9e00a235dd7d42cd61ae9912", "--enrich", "--reachability", "--format", "json"},
+			args:  []string{"scan", "--url", "https://github.com/snyk-labs/nodejs-goof", "--ref", "add14ba59e98240d9e00a235dd7d42cd61ae9912", "--enrich", "--analyze", "--format", "json"},
 			tools: []string{"npm"},
 		},
 		{
@@ -169,7 +169,7 @@ func TestScan(t *testing.T) {
 			// override (jwt → pyjwt). Goldens scrub timestamps via
 			// normalizeReachability.
 			name:  "scan-python-pip-reachability",
-			args:  []string{"scan", "--url", "https://github.com/veracode/example-python3-pip", "--ref", "e19d10938caf3e06730c23047ae118cd59638e41", "--enrich", "--reachability", "--format", "json"},
+			args:  []string{"scan", "--url", "https://github.com/veracode/example-python3-pip", "--ref", "e19d10938caf3e06730c23047ae118cd59638e41", "--enrich", "--analyze", "--format", "json"},
 			tools: []string{"pip"},
 		},
 		{
@@ -184,7 +184,7 @@ func TestScan(t *testing.T) {
 			// package-prefix map. Goldens scrub timestamps via
 			// normalizeReachability.
 			name:  "scan-java-maven-reachability",
-			args:  []string{"scan", "--url", "https://github.com/veracode/example-java-maven", "--ref", "509948ba5a02ffab48e7260031d4a1e78d010891", "--enrich", "--reachability", "--format", "json"},
+			args:  []string{"scan", "--url", "https://github.com/veracode/example-java-maven", "--ref", "509948ba5a02ffab48e7260031d4a1e78d010891", "--enrich", "--analyze", "--format", "json"},
 			tools: []string{"mvn"},
 		},
 		{

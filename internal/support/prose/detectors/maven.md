@@ -81,7 +81,7 @@ Re-scan.
 
 ## Reachability (experimental)
 
-> **Experimental.** Reachability is opt-in via `--reachability`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
+> **Experimental.** Reachability is opt-in via `--analyze`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
 
 For Maven packages, the analyzer is `jvmreach` at **Tier-3 (package)**. It walks `.java`, `.kt`, `.kts`, `.scala`, `.groovy` source files under the project root, parses top-of-file `import` statements, and maps fully-qualified-name prefixes to Maven coordinates via a curated longest-prefix map. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe).
 

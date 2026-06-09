@@ -11,7 +11,7 @@ One binary. Native detectors for the ecosystems developers use every day. Offlin
 - **One CLI, full pipeline.** Detect, enrich, audit, explain, diff, and write SBOMs from the same binary.
 - **Native detectors first.** Real dependency graphs (with edges) for Go, npm, pnpm, yarn, Maven, Gradle, Python, Composer, Bundler, GitHub Actions, and SBOM ingest. Syft fills the long tail for containers and rarer ecosystems.
 - **Offline-safe by default.** A scan without `--enrich` makes zero outbound HTTP calls. Built-in enrichment uses OSV, KEV, deps.dev, and OpenSSF Scorecard.
-- **Reachability that respects your time** (experimental). `--reachability` tells you whether your app actually calls a vulnerable symbol — Tier-1 (`govulncheck`) for Go; Tier-3 import-graph closure for npm, Python, and JVM languages. See [REACHABILITY.md](docs/REACHABILITY.md) for limitations.
+- **Reachability that respects your time** (experimental). `--analyze` tells you whether your app actually calls a vulnerable symbol — Tier-1 (`govulncheck`) for Go; Tier-3 import-graph closure for npm, Python, and JVM languages. See [REACHABILITY.md](docs/REACHABILITY.md) for limitations.
 - **Stable exit codes for CI.** `0` clean, `2` policy violation, plus 1, 3, 4 for other failure classes. See [Exit codes](docs/EXIT_CODES.md).
 
 ## Highlights

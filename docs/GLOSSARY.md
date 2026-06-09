@@ -8,7 +8,7 @@ The vocabulary Bomly uses, with one-sentence definitions and pointers to the doc
 
 **Matcher** — Enriches the graph with external data (vulnerabilities, licenses, lifecycle). Runs only with `--enrich`. See [Matchers](MATCHERS.md).
 
-**Analyzer** — Annotates vulnerability findings with reachability data. Runs only with `--reachability`. See [Reachability](REACHABILITY.md).
+**Analyzer** — Annotates vulnerability findings with reachability data. Runs only with `--analyze`. See [Reachability](REACHABILITY.md).
 
 **Auditor** — Evaluates the enriched graph against policy and produces findings. Runs only with `--audit`. See [Auditors](AUDITORS.md).
 
@@ -49,8 +49,6 @@ The vocabulary Bomly uses, with one-sentence definitions and pointers to the doc
 ## CLI and policy
 
 **`--fail-on`** — Severity token (`any` / `low` / `medium` / `high` / `critical`) or `reachable`. Repeating ANDs constraints together. See [Auditors](AUDITORS.md).
-
-**`--fail-on-scope`** — Restricts `--fail-on` to a specific scope (`runtime` / `development` / `unknown`).
 
 **Exit code** — `0` success, `1` execution error, `2` policy violation, `3` resolution failure, `4` invalid input. See [Exit codes](EXIT_CODES.md).
 

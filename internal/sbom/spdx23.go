@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -40,6 +41,7 @@ func (spdx23Codec) encodeJSON(doc *Document, opts EncodeOptions) ([]byte, error)
 			PackageLicenseDeclared:    spdxLicenseValue(c.Licenses),
 			PackageLicenseConcluded:   spdxLicenseValue(c.Licenses),
 			PackageCopyrightText:      spdxCopyrightValue(c.Copyright),
+			PackageChecksums:          spdxChecksums(c.Digests),
 			PackageExternalReferences: spdxExternalReferences(c),
 		})
 	}
@@ -245,17 +247,68 @@ func parseSPDXCreated(ci *v23.CreationInfo) time.Time {
 }
 
 func spdxPackageComment(component Component) string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 4)
 	if scope := strings.TrimSpace(component.Scope); scope != "" {
 		fields = append(fields, "scope="+scope)
 	}
 	if typ := strings.TrimSpace(component.Type); typ != "" && !strings.EqualFold(typ, "package") {
 		fields = append(fields, "type="+typ)
 	}
+	if component.EOL != nil {
+		fields = append(fields, "eol="+strconv.FormatBool(component.EOL.EOL))
+		if date := strings.TrimSpace(component.EOL.EOLDate); date != "" {
+			fields = append(fields, "eol_date="+date)
+		}
+	}
 	if len(fields) == 0 {
 		return ""
 	}
 	return "bomly:" + strings.Join(fields, ";")
+}
+
+// spdxChecksums maps component digests onto SPDX package checksums, dropping
+// entries whose algorithm is not part of the SPDX checksum vocabulary.
+func spdxChecksums(digests []Digest) []common.Checksum {
+	if len(digests) == 0 {
+		return nil
+	}
+	out := make([]common.Checksum, 0, len(digests))
+	for _, d := range digests {
+		alg := spdxChecksumAlgorithm(d.Algorithm)
+		if alg == "" || strings.TrimSpace(d.Value) == "" {
+			continue
+		}
+		out = append(out, common.Checksum{Algorithm: alg, Value: d.Value})
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
+}
+
+func spdxChecksumAlgorithm(algorithm string) common.ChecksumAlgorithm {
+	switch strings.ToLower(strings.TrimSpace(algorithm)) {
+	case "md5":
+		return common.MD5
+	case "sha1", "sha-1":
+		return common.SHA1
+	case "sha224", "sha-224":
+		return common.SHA224
+	case "sha256", "sha-256":
+		return common.SHA256
+	case "sha384", "sha-384":
+		return common.SHA384
+	case "sha512", "sha-512":
+		return common.SHA512
+	case "sha3-256":
+		return common.SHA3_256
+	case "sha3-384":
+		return common.SHA3_384
+	case "sha3-512":
+		return common.SHA3_512
+	default:
+		return ""
+	}
 }
 
 func parseSPDXComponentType(p *v23.Package) string {
@@ -307,15 +360,51 @@ func spdxCopyrightValue(value string) string {
 }
 
 func spdxExternalReferences(component Component) []*v23.PackageExternalReference {
-	purl := strings.TrimSpace(component.PURL)
-	if purl == "" {
+	refs := make([]*v23.PackageExternalReference, 0, 1+len(component.CPEs)+len(component.Vulnerabilities))
+	if purl := strings.TrimSpace(component.PURL); purl != "" {
+		refs = append(refs, &v23.PackageExternalReference{
+			Category: "PACKAGE-MANAGER",
+			RefType:  "purl",
+			Locator:  purl,
+		})
+	}
+	for _, cpe := range component.CPEs {
+		cpe = strings.TrimSpace(cpe)
+		if cpe == "" {
+			continue
+		}
+		refs = append(refs, &v23.PackageExternalReference{
+			Category: "SECURITY",
+			RefType:  "cpe23Type",
+			Locator:  cpe,
+		})
+	}
+	for _, vuln := range component.Vulnerabilities {
+		locator := spdxVulnerabilityLocator(vuln)
+		if locator == "" {
+			continue
+		}
+		refs = append(refs, &v23.PackageExternalReference{
+			Category: "SECURITY",
+			RefType:  "advisory",
+			Locator:  locator,
+		})
+	}
+	if len(refs) == 0 {
 		return nil
 	}
-	return []*v23.PackageExternalReference{{
-		Category: "PACKAGE-MANAGER",
-		RefType:  "purl",
-		Locator:  purl,
-	}}
+	return refs
+}
+
+// spdxVulnerabilityLocator returns the best URL for a vulnerability external
+// reference, falling back to the advisory ID when no reference URL is known.
+func spdxVulnerabilityLocator(vuln Vulnerability) string {
+	if len(vuln.Advisories) > 0 {
+		if url := strings.TrimSpace(vuln.Advisories[0]); url != "" {
+			return url
+		}
+	}
+	return strings.TrimSpace(vuln.ID)
 }
 
 func parseSPDXLicenses(values ...string) []License {

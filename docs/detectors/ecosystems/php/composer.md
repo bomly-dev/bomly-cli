@@ -80,7 +80,7 @@ bomly scan --install-first --detectors composer-detector \
 
 ## Reachability
 
-> **Not yet supported.** Bomly has no PHP reachability analyzer today. `--reachability` produces `not_applicable` for Composer packages.
+> **Not yet supported.** Bomly has no PHP reachability analyzer today. `--analyze` produces `not_applicable` for Composer packages.
 
 ## Limitations
 

@@ -317,8 +317,8 @@ func TestBuildManifestFixTargets_DirectDependency(t *testing.T) {
 			Path:           "package.json",
 			Kind:           "npm-package",
 			PackageManager: "npm",
-			Packages: []output.ScanPackage{
-				{PackageRef: dep},
+			Dependencies: []output.ScanDependency{
+				{ID: dep.ID, Name: dep.Name, Version: dep.Version, Purl: dep.Purl},
 			},
 		},
 	}
@@ -353,8 +353,8 @@ func TestBuildManifestFixTargets_TransitiveDependency(t *testing.T) {
 		{
 			Path:           "package.json",
 			PackageManager: "npm",
-			Packages: []output.ScanPackage{
-				{PackageRef: directDep},
+			Dependencies: []output.ScanDependency{
+				{ID: directDep.ID, Name: directDep.Name, Version: directDep.Version, Purl: directDep.Purl},
 			},
 		},
 	}
@@ -382,8 +382,8 @@ func TestBuildManifestFixTargets_Deduplication(t *testing.T) {
 	}
 	manifests := []output.ScanManifest{
 		{
-			Path:     "package.json",
-			Packages: []output.ScanPackage{{PackageRef: dep}},
+			Path:         "package.json",
+			Dependencies: []output.ScanDependency{{ID: dep.ID, Name: dep.Name, Version: dep.Version, Purl: dep.Purl}},
 		},
 	}
 

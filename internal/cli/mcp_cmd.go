@@ -77,9 +77,8 @@ type mcpOverrides struct {
 	Ref                   string
 	Enrich                bool
 	Audit                 bool
-	Reachability          bool
+	Analyze               bool
 	FailOn                string
-	FailOnScopes          string
 	AllowVulnerabilityIDs string
 	AllowLicenses         string
 	DenyLicenses          string
@@ -104,7 +103,6 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 	applyStringOverride(&clone.ResolvedConfig.URL, o.URL)
 	applyStringOverride(&clone.ResolvedConfig.Ref, o.Ref)
 	applyFailOnOverride(&clone.ResolvedConfig.FailOn, o.FailOn)
-	applyCSVOverride(&clone.ResolvedConfig.FailOnScopes, o.FailOnScopes)
 	applyCSVOverride(&clone.ResolvedConfig.AllowVulnerabilityIDs, o.AllowVulnerabilityIDs)
 	applyCSVOverride(&clone.ResolvedConfig.AllowLicenses, o.AllowLicenses)
 	applyCSVOverride(&clone.ResolvedConfig.DenyLicenses, o.DenyLicenses)
@@ -121,8 +119,8 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 	if o.Audit {
 		clone.ResolvedConfig.Audit = true
 	}
-	if o.Reachability {
-		clone.ResolvedConfig.Reachability = true
+	if o.Analyze {
+		clone.ResolvedConfig.Analyze = true
 	}
 	if o.WarnOnly {
 		clone.ResolvedConfig.WarnOnly = true
@@ -134,7 +132,6 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 	applyStringOverride(&resolved.URL, o.URL)
 	applyStringOverride(&resolved.Ref, o.Ref)
 	applyFailOnOverride(&resolved.FailOn, o.FailOn)
-	applyCSVOverride(&resolved.FailOnScopes, o.FailOnScopes)
 	applyCSVOverride(&resolved.AllowVulnerabilityIDs, o.AllowVulnerabilityIDs)
 	applyCSVOverride(&resolved.AllowLicenses, o.AllowLicenses)
 	applyCSVOverride(&resolved.DenyLicenses, o.DenyLicenses)
@@ -151,8 +148,8 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 	if o.Audit {
 		resolved.Audit = true
 	}
-	if o.Reachability {
-		resolved.Reachability = true
+	if o.Analyze {
+		resolved.Analyze = true
 	}
 	if o.WarnOnly {
 		resolved.WarnOnly = true
@@ -195,15 +192,15 @@ func applyCSVOverride(target *[]string, value string) {
 func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (output.ScanResponse, error) {
 	started := time.Now()
 	o := a.cloneWithOverrides(mcpOverrides{
-		Path:         req.Path,
-		Container:    req.Container,
-		URL:          req.URL,
-		Ref:          req.Ref,
-		Enrich:       req.Enrich,
-		Audit:        req.Audit,
-		Reachability: req.Reachability,
-		FailOn:       req.FailOn,
-		Ecosystems:   req.Ecosystems,
+		Path:       req.Path,
+		Container:  req.Container,
+		URL:        req.URL,
+		Ref:        req.Ref,
+		Enrich:     req.Enrich,
+		Audit:      req.Audit,
+		Analyze:    req.Analyze,
+		FailOn:     req.FailOn,
+		Ecosystems: req.Ecosystems,
 	})
 	cmdCtx, err := o.Prepare(ctx, a.logger)
 	if err != nil {
@@ -231,17 +228,17 @@ func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (o
 		pipeResult.Registry,
 		findings,
 		started,
-		reportOptionsFromPipelineResults(cmdCtx.ResolvedConfig.Reachability, pipeResult),
+		reportOptionsFromPipelineResults(cmdCtx.ResolvedConfig.Analyze, pipeResult),
 	), nil
 }
 
 func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainRequest) (output.ExplainResponse, error) {
 	started := time.Now()
 	o := a.cloneWithOverrides(mcpOverrides{
-		Path:         req.Path,
-		Enrich:       req.Enrich,
-		Audit:        req.Audit,
-		Reachability: req.Reachability,
+		Path:    req.Path,
+		Enrich:  req.Enrich,
+		Audit:   req.Audit,
+		Analyze: req.Analyze,
 	})
 	cmdCtx, err := o.Prepare(ctx, a.logger)
 	if err != nil {
@@ -273,7 +270,7 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 		req.Package,
 		targets,
 		started,
-		reportOptionsFromPipelineResults(cmdCtx.ResolvedConfig.Reachability, explainResult.PipelineResult),
+		reportOptionsFromPipelineResults(cmdCtx.ResolvedConfig.Analyze, explainResult.PipelineResult),
 	), nil
 }
 
@@ -284,9 +281,8 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (o
 		Container:             req.Container,
 		Enrich:                req.Enrich,
 		Audit:                 req.Audit,
-		Reachability:          req.Reachability,
+		Analyze:               req.Analyze,
 		FailOn:                req.FailOn,
-		FailOnScopes:          req.FailOnScopes,
 		AllowVulnerabilityIDs: req.AllowVulnerabilityIDs,
 		AllowLicenses:         req.AllowLicenses,
 		DenyLicenses:          req.DenyLicenses,
@@ -321,7 +317,7 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (o
 		return output.DiffResponse{}, err
 	}
 
-	reportOptions := reportOptionsFromPipelineResults(o.GetConfig().Reachability, diffResult.Base, diffResult.Head)
+	reportOptions := reportOptionsFromPipelineResults(o.GetConfig().Analyze, diffResult.Base, diffResult.Head)
 	reportOptions.BaseRegistry = diffResult.Base.Registry
 	reportOptions.HeadRegistry = diffResult.Head.Registry
 

@@ -2,65 +2,73 @@
   "command": "scan",
   "manifests": [
     {
+      "dependencies": [
+        {
+          "depends_on": [],
+          "id": "pkg:githubactions/.github%2Factions%2Fbomly@local",
+          "licenses": [],
+          "name": ".github/actions/bomly",
+          "package_ref": "pkg:githubactions/.github%2Factions%2Fbomly@local",
+          "purl": "pkg:githubactions/.github%2Factions%2Fbomly@local",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "local"
+        }
+      ],
       "detector": "github-actions-detector",
       "ecosystem": "github-actions",
       "kind": "github-actions-action",
       "package_manager": "github-actions",
-      "packages": [
-        {
-          "dependencies": [],
-          "id": "pkg:githubactions/.github%2Factions%2Fbomly@local",
-          "licenses": [],
-          "name": ".github/actions/bomly",
-          "purl": "pkg:githubactions/.github%2Factions%2Fbomly@local",
-          "scope": "runtime",
-          "version": "local",
-          "vulnerabilities": []
-        }
-      ],
       "path": ".github/actions/bomly/action.yml",
       "subproject": "."
     },
     {
-      "detector": "github-actions-detector",
-      "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
-      "package_manager": "github-actions",
-      "packages": [
+      "dependencies": [
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:githubactions/.github%2Factions%2Fbomly@local",
           "licenses": [],
           "name": ".github/actions/bomly",
+          "package_ref": "pkg:githubactions/.github%2Factions%2Fbomly@local",
           "purl": "pkg:githubactions/.github%2Factions%2Fbomly@local",
-          "scope": "runtime",
-          "version": "local",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "local"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:githubactions/.github%2Factions%2Fbomly@local",
             "pkg:githubactions/actions/checkout@v1"
           ],
           "id": "pkg:githubactions/.github%2Fworkflows%2Fmain.yml@local",
           "licenses": [],
           "name": ".github/workflows/main.yml",
+          "package_ref": "pkg:githubactions/.github%2Fworkflows%2Fmain.yml@local",
           "purl": "pkg:githubactions/.github%2Fworkflows%2Fmain.yml@local",
-          "scope": "runtime",
-          "version": "local",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "local"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:githubactions/actions/checkout@v1",
           "licenses": [],
           "name": "actions:checkout",
+          "package_ref": "pkg:githubactions/actions/checkout@v1",
           "purl": "pkg:githubactions/actions/checkout@v1",
-          "scope": "runtime",
-          "version": "v1",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "v1"
         }
       ],
+      "detector": "github-actions-detector",
+      "ecosystem": "github-actions",
+      "kind": "github-actions-workflow",
+      "package_manager": "github-actions",
       "path": ".github/workflows/main.yml",
       "subproject": "."
     }
@@ -68,6 +76,32 @@
   "metadata": {
     "duration_ms": 0
   },
+  "packages": [
+    {
+      "ecosystem": "github-actions",
+      "licenses": [],
+      "name": ".github/actions/bomly",
+      "purl": "pkg:githubactions/.github%2Factions%2Fbomly@local",
+      "version": "local",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "github-actions",
+      "licenses": [],
+      "name": ".github/workflows/main.yml",
+      "purl": "pkg:githubactions/.github%2Fworkflows%2Fmain.yml@local",
+      "version": "local",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "github-actions",
+      "licenses": [],
+      "name": "checkout",
+      "purl": "pkg:githubactions/actions/checkout@v1",
+      "version": "v1",
+      "vulnerabilities": []
+    }
+  ],
   "project": {
     "ecosystem": "github-actions",
     "name": "\u003cnormalized\u003e",

@@ -73,7 +73,7 @@ bomly explain lodash --path ./monorepo
 
 ## Reachability (experimental)
 
-> **Experimental.** Reachability is opt-in via `--reachability`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
+> **Experimental.** Reachability is opt-in via `--analyze`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
 
 For npm packages, the analyzer is `jsreach` at **Tier-3 (package)**. It walks app source from `package.json` entry points and reports a package as reachable when there is any path from app source to that package through the npm dep graph. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe) — Tier-3 "unreachable" is a triage signal, not a safety guarantee.
 

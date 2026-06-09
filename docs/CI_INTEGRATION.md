@@ -220,5 +220,5 @@ Tune `--fail-on` to taste. `pre-push` keeps commits fast and only runs on push.
 
 - [Exit codes](EXIT_CODES.md) — what each CI exit means
 - [Output formats](OUTPUT_FORMATS.md) — SARIF, JSON, SBOM details
-- [Auditors](AUDITORS.md) — `--fail-on` and `--fail-on-scope`
+- [Auditors](AUDITORS.md) — `--fail-on`
 - [docs/CI.md](CI.md) — Bomly's own internal CI configuration (not for end users)

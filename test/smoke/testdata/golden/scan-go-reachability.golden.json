@@ -2,31 +2,25 @@
   "command": "scan",
   "manifests": [
     {
-      "detector": "go-detector",
-      "ecosystem": "go",
-      "kind": "go.mod",
-      "package_manager": "gomod",
-      "packages": [
+      "dependencies": [
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869"
           ],
           "id": "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
-          "licenses": [
-            {
-              "spdxExpression": "MIT",
-              "type": "external-depsdev",
-              "value": "MIT"
-            }
-          ],
+          "licenses": [],
+          "matched": true,
           "name": "github.com/bitly/go-simplejson",
+          "package_ref": "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
           "purl": "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
-          "scope": "runtime",
-          "version": "v0.5.0",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "v0.5.0"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:golang/github.com/kr/pretty@v0.3.1"
           ],
           "id": "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869",
@@ -42,48 +36,44 @@
             }
           ],
           "name": "github.com/bmizerany/assert",
+          "package_ref": "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869",
           "purl": "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869",
-          "scope": "development",
-          "version": "v0.0.0-20160611221934-b7ed37b82869",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
-          "licenses": [
-            {
-              "spdxExpression": "ISC",
-              "type": "external-depsdev",
-              "value": "ISC"
-            }
+          "scopes": [
+            "development"
           ],
-          "name": "github.com/davecgh/go-spew",
-          "purl": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
-          "scope": "development",
-          "version": "v1.1.1",
-          "vulnerabilities": []
+          "version": "v0.0.0-20160611221934-b7ed37b82869"
         },
         {
-          "dependencies": [
+          "depends_on": [],
+          "id": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
+          "licenses": [],
+          "matched": true,
+          "name": "github.com/davecgh/go-spew",
+          "package_ref": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
+          "purl": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "v1.1.1"
+        },
+        {
+          "depends_on": [
             "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
             "pkg:golang/github.com/mattn/go-isatty@v0.0.4"
           ],
           "id": "pkg:golang/github.com/fatih/color@v1.7.0",
-          "licenses": [
-            {
-              "spdxExpression": "MIT",
-              "type": "external-depsdev",
-              "value": "MIT"
-            }
-          ],
+          "licenses": [],
+          "matched": true,
           "name": "github.com/fatih/color",
+          "package_ref": "pkg:golang/github.com/fatih/color@v1.7.0",
           "purl": "pkg:golang/github.com/fatih/color@v1.7.0",
-          "scope": "runtime",
-          "version": "v1.7.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "v1.7.0"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:golang/github.com/google/go-querystring@v1.0.0"
           ],
           "id": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
@@ -99,21 +89,18 @@
             }
           ],
           "name": "github.com/google/go-github",
+          "package_ref": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
           "purl": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
-          "scope": "runtime",
-          "version": "v17.0.0+incompatible",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "v17.0.0+incompatible"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:golang/github.com/google/go-querystring@v1.0.0",
-          "licenses": [
-            {
-              "spdxExpression": "BSD-3-Clause",
-              "type": "external-depsdev",
-              "value": "BSD-3-Clause"
-            }
-          ],
+          "licenses": [],
           "locations": [
             {
               "access_path": "go.mod",
@@ -124,25 +111,22 @@
               "real_path": "go.mod"
             }
           ],
+          "matched": true,
           "name": "github.com/google/go-querystring",
+          "package_ref": "pkg:golang/github.com/google/go-querystring@v1.0.0",
           "purl": "pkg:golang/github.com/google/go-querystring@v1.0.0",
-          "scope": "runtime",
-          "version": "v1.0.0",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "v1.0.0"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:golang/github.com/kr/text@v0.2.0",
             "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0"
           ],
           "id": "pkg:golang/github.com/kr/pretty@v0.3.1",
-          "licenses": [
-            {
-              "spdxExpression": "MIT",
-              "type": "external-depsdev",
-              "value": "MIT"
-            }
-          ],
+          "licenses": [],
           "locations": [
             {
               "access_path": "go.mod",
@@ -153,164 +137,143 @@
               "real_path": "go.mod"
             }
           ],
+          "matched": true,
           "name": "github.com/kr/pretty",
+          "package_ref": "pkg:golang/github.com/kr/pretty@v0.3.1",
           "purl": "pkg:golang/github.com/kr/pretty@v0.3.1",
-          "scope": "development",
-          "version": "v0.3.1",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:golang/github.com/kr/text@v0.2.0",
-          "licenses": [
-            {
-              "spdxExpression": "MIT",
-              "type": "external-depsdev",
-              "value": "MIT"
-            }
+          "scopes": [
+            "development"
           ],
-          "name": "github.com/kr/text",
-          "purl": "pkg:golang/github.com/kr/text@v0.2.0",
-          "scope": "development",
-          "version": "v0.2.0",
-          "vulnerabilities": []
+          "version": "v0.3.1"
         },
         {
-          "dependencies": [
+          "depends_on": [],
+          "id": "pkg:golang/github.com/kr/text@v0.2.0",
+          "licenses": [],
+          "matched": true,
+          "name": "github.com/kr/text",
+          "package_ref": "pkg:golang/github.com/kr/text@v0.2.0",
+          "purl": "pkg:golang/github.com/kr/text@v0.2.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "v0.2.0"
+        },
+        {
+          "depends_on": [
             "pkg:golang/github.com/mattn/go-isatty@v0.0.4"
           ],
           "id": "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
-          "licenses": [
-            {
-              "spdxExpression": "MIT",
-              "type": "external-depsdev",
-              "value": "MIT"
-            }
-          ],
+          "licenses": [],
+          "matched": true,
           "name": "github.com/mattn/go-colorable",
+          "package_ref": "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
           "purl": "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
-          "scope": "runtime",
-          "version": "v0.0.9",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "v0.0.9"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:golang/github.com/mattn/go-isatty@v0.0.4",
-          "licenses": [
-            {
-              "spdxExpression": "MIT",
-              "type": "external-depsdev",
-              "value": "MIT"
-            }
-          ],
+          "licenses": [],
+          "matched": true,
           "name": "github.com/mattn/go-isatty",
+          "package_ref": "pkg:golang/github.com/mattn/go-isatty@v0.0.4",
           "purl": "pkg:golang/github.com/mattn/go-isatty@v0.0.4",
-          "scope": "runtime",
-          "version": "v0.0.4",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
-          "licenses": [
-            {
-              "spdxExpression": "MIT",
-              "type": "external-depsdev",
-              "value": "MIT"
-            }
+          "scopes": [
+            "development",
+            "runtime"
           ],
-          "name": "github.com/mattn/go-runewidth",
-          "purl": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
-          "scope": "runtime",
-          "version": "v0.0.4",
-          "vulnerabilities": []
+          "version": "v0.0.4"
         },
         {
-          "dependencies": [
+          "depends_on": [],
+          "id": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
+          "licenses": [],
+          "matched": true,
+          "name": "github.com/mattn/go-runewidth",
+          "package_ref": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
+          "purl": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "v0.0.4"
+        },
+        {
+          "depends_on": [
             "pkg:golang/github.com/mattn/go-runewidth@v0.0.4"
           ],
           "id": "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
-          "licenses": [
-            {
-              "spdxExpression": "MIT",
-              "type": "external-depsdev",
-              "value": "MIT"
-            }
-          ],
+          "licenses": [],
+          "matched": true,
           "name": "github.com/nsf/termbox-go",
+          "package_ref": "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
           "purl": "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
-          "scope": "runtime",
-          "version": "v0.0.0-20181027232701-60ab7e3d12ed",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "v0.0.0-20181027232701-60ab7e3d12ed"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:golang/github.com/fatih/color@v1.7.0"
           ],
           "id": "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
-          "licenses": [
-            {
-              "spdxExpression": "MIT",
-              "type": "external-depsdev",
-              "value": "MIT"
-            }
-          ],
+          "licenses": [],
+          "matched": true,
           "name": "github.com/nwidger/jsoncolor",
+          "package_ref": "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
           "purl": "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
-          "scope": "runtime",
-          "version": "v0.0.0-20170215171346-75a6de4340e5",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "v0.0.0-20170215171346-75a6de4340e5"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:golang/github.com/pkg/errors@v0.8.0",
-          "licenses": [
-            {
-              "spdxExpression": "BSD-2-Clause",
-              "type": "external-depsdev",
-              "value": "BSD-2-Clause"
-            }
-          ],
+          "licenses": [],
+          "matched": true,
           "name": "github.com/pkg/errors",
+          "package_ref": "pkg:golang/github.com/pkg/errors@v0.8.0",
           "purl": "pkg:golang/github.com/pkg/errors@v0.8.0",
-          "scope": "runtime",
-          "version": "v0.8.0",
-          "vulnerabilities": []
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "v0.8.0"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
-          "licenses": [
-            {
-              "spdxExpression": "BSD-3-Clause",
-              "type": "external-depsdev",
-              "value": "BSD-3-Clause"
-            }
-          ],
+          "licenses": [],
+          "matched": true,
           "name": "github.com/pmezard/go-difflib",
+          "package_ref": "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
           "purl": "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
-          "scope": "development",
-          "version": "v1.0.0",
-          "vulnerabilities": []
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
-          "licenses": [
-            {
-              "spdxExpression": "BSD-3-Clause",
-              "type": "external-depsdev",
-              "value": "BSD-3-Clause"
-            }
+          "scopes": [
+            "development"
           ],
-          "name": "github.com/rogpeppe/go-internal",
-          "purl": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
-          "scope": "development",
-          "version": "v1.9.0",
-          "vulnerabilities": []
+          "version": "v1.0.0"
         },
         {
-          "dependencies": [
+          "depends_on": [],
+          "id": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
+          "licenses": [],
+          "matched": true,
+          "name": "github.com/rogpeppe/go-internal",
+          "package_ref": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
+          "purl": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "v1.9.0"
+        },
+        {
+          "depends_on": [
             "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
             "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
             "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
@@ -319,13 +282,7 @@
             "pkg:golang/github.com/stretchr/testify@v1.8.2"
           ],
           "id": "pkg:golang/github.com/simeji/jid@v0.7.6",
-          "licenses": [
-            {
-              "spdxExpression": "MIT",
-              "type": "external-depsdev",
-              "value": "MIT"
-            }
-          ],
+          "licenses": [],
           "locations": [
             {
               "access_path": "go.mod",
@@ -336,14 +293,17 @@
               "real_path": "go.mod"
             }
           ],
+          "matched": true,
           "name": "github.com/simeji/jid",
+          "package_ref": "pkg:golang/github.com/simeji/jid@v0.7.6",
           "purl": "pkg:golang/github.com/simeji/jid@v0.7.6",
-          "scope": "runtime",
-          "version": "v0.7.6",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "v0.7.6"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
             "pkg:golang/github.com/google/go-querystring@v1.0.0",
             "pkg:golang/github.com/simeji/jid@v0.7.6",
@@ -352,23 +312,17 @@
           "id": "pkg:golang/github.com/srcclr/example-go-modules",
           "licenses": [],
           "name": "github.com/srcclr/example-go-modules",
-          "purl": "pkg:golang/github.com/srcclr/example-go-modules",
-          "vulnerabilities": []
+          "package_ref": "pkg:golang/github.com/srcclr/example-go-modules",
+          "purl": "pkg:golang/github.com/srcclr/example-go-modules"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
             "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
             "pkg:golang/gopkg.in/yaml.v3@v3.0.1"
           ],
           "id": "pkg:golang/github.com/stretchr/testify@v1.8.2",
-          "licenses": [
-            {
-              "spdxExpression": "MIT",
-              "type": "external-depsdev",
-              "value": "MIT"
-            }
-          ],
+          "licenses": [],
           "locations": [
             {
               "access_path": "go.mod",
@@ -379,22 +333,19 @@
               "real_path": "go.mod"
             }
           ],
+          "matched": true,
           "name": "github.com/stretchr/testify",
+          "package_ref": "pkg:golang/github.com/stretchr/testify@v1.8.2",
           "purl": "pkg:golang/github.com/stretchr/testify@v1.8.2",
-          "scope": "development",
-          "version": "v1.8.2",
-          "vulnerabilities": []
+          "scopes": [
+            "development"
+          ],
+          "version": "v1.8.2"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:golang/golang.org/x/text@v0.3.5",
-          "licenses": [
-            {
-              "spdxExpression": "BSD-3-Clause",
-              "type": "external-depsdev",
-              "value": "BSD-3-Clause"
-            }
-          ],
+          "licenses": [],
           "locations": [
             {
               "access_path": "go.mod",
@@ -405,431 +356,49 @@
               "real_path": "go.mod"
             }
           ],
+          "matched": true,
           "name": "golang.org/x/text",
+          "package_ref": "pkg:golang/golang.org/x/text@v0.3.5",
           "purl": "pkg:golang/golang.org/x/text@v0.3.5",
-          "scope": "runtime",
-          "version": "v0.3.5",
-          "vulnerabilities": [
-            {
-              "affected_version_range": "\u003c0.3.8 (go)",
-              "aliases": [
-                "CVE-2022-32149"
-              ],
-              "cvss": [
-                {
-                  "score": 7.5,
-                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
-                  "version": "3.1"
-                }
-              ],
-              "cwes": [
-                {
-                  "cve": "CVE-2022-32149",
-                  "id": "CWE-772",
-                  "source": "nvd@nist.gov",
-                  "type": "Primary"
-                }
-              ],
-              "data_source": "https://github.com/advisories/GHSA-69ch-w2m2-3vjp",
-              "description": "golang.org/x/text/language Denial of service via crafted Accept-Language header",
-              "epss": [
-                {
-                  "cve": "CVE-2022-32149",
-                  "date": "2026-06-04",
-                  "epss": 0.00054,
-                  "percentile": 0.17217
-                }
-              ],
-              "fix_available": [
-                {
-                  "date": "2023-02-23",
-                  "kind": "first-observed",
-                  "version": "0.3.8"
-                }
-              ],
-              "fix_state": "fixed",
-              "fixed_in": "0.3.8",
-              "fixed_versions": [
-                "0.3.8"
-              ],
-              "id": "GHSA-69ch-w2m2-3vjp",
-              "namespace": "github:language:go",
-              "reachability": {
-                "analyzed_at": "\u003ctimestamp\u003e",
-                "analyzer": "govulncheck",
-                "reason": "package-not-imported",
-                "status": "unreachable",
-                "tier": "package"
-              },
-              "reasons": [
-                "Also known as: CVE-2022-32149",
-                "Fix available: upgrade to 0.3.8",
-                "Fix state: fixed",
-                "https://github.com/golang/go/issues/56152",
-                "https://github.com/golang/text/commit/434eadcdbc3b0256971992e8c70027278364c72c",
-                "https://go.dev/cl/442235",
-                "https://go.dev/issue/56152",
-                "https://groups.google.com/g/golang-announce/c/-hjNw559_tE/m/KlGTfid5CAAJ",
-                "https://nvd.nist.gov/vuln/detail/CVE-2022-32149",
-                "https://pkg.go.dev/vuln/GO-2022-1059",
-                "https://security.netapp.com/advisory/ntap-20230203-0006"
-              ],
-              "references": [
-                {
-                  "type": "data_source",
-                  "url": "https://github.com/advisories/GHSA-69ch-w2m2-3vjp"
-                },
-                {
-                  "type": "advisory",
-                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2022-32149"
-                },
-                {
-                  "type": "advisory",
-                  "url": "https://go.dev/cl/442235"
-                },
-                {
-                  "type": "advisory",
-                  "url": "https://go.dev/issue/56152"
-                },
-                {
-                  "type": "advisory",
-                  "url": "https://groups.google.com/g/golang-announce/c/-hjNw559_tE/m/KlGTfid5CAAJ"
-                },
-                {
-                  "type": "advisory",
-                  "url": "https://pkg.go.dev/vuln/GO-2022-1059"
-                },
-                {
-                  "type": "advisory",
-                  "url": "https://github.com/golang/go/issues/56152"
-                },
-                {
-                  "type": "advisory",
-                  "url": "https://github.com/golang/text/commit/434eadcdbc3b0256971992e8c70027278364c72c"
-                },
-                {
-                  "type": "advisory",
-                  "url": "https://security.netapp.com/advisory/ntap-20230203-0006"
-                }
-              ],
-              "risk_score": 0.040499999999999994,
-              "severity": "high",
-              "severity_source": "github:language:go",
-              "source": "grype",
-              "title": "golang.org/x/text/language Denial of service via crafted Accept-Language header"
-            },
-            {
-              "affected_version_range": "\u003c0.3.7 (go)",
-              "aliases": [
-                "CVE-2021-38561"
-              ],
-              "cvss": [
-                {
-                  "score": 7.5,
-                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
-                  "version": "3.1"
-                }
-              ],
-              "cwes": [
-                {
-                  "cve": "CVE-2021-38561",
-                  "id": "CWE-125",
-                  "source": "nvd@nist.gov",
-                  "type": "Primary"
-                },
-                {
-                  "cve": "CVE-2021-38561",
-                  "id": "CWE-125",
-                  "source": "134c704f-9b21-4f2e-91b3-4a467353bcc0",
-                  "type": "Secondary"
-                }
-              ],
-              "data_source": "https://github.com/advisories/GHSA-ppp9-7jff-5vj2",
-              "description": "golang.org/x/text/language Out-of-bounds Read vulnerability",
-              "epss": [
-                {
-                  "cve": "CVE-2021-38561",
-                  "date": "2026-06-04",
-                  "epss": 0.00053,
-                  "percentile": 0.16869
-                }
-              ],
-              "fix_available": [
-                {
-                  "date": "2023-02-26",
-                  "kind": "first-observed",
-                  "version": "0.3.7"
-                }
-              ],
-              "fix_state": "fixed",
-              "fixed_in": "0.3.7",
-              "fixed_versions": [
-                "0.3.7"
-              ],
-              "id": "GHSA-ppp9-7jff-5vj2",
-              "namespace": "github:language:go",
-              "reachability": {
-                "analyzed_at": "\u003ctimestamp\u003e",
-                "analyzer": "govulncheck",
-                "reason": "package-not-imported",
-                "status": "unreachable",
-                "tier": "package"
-              },
-              "reasons": [
-                "Also known as: CVE-2021-38561",
-                "Fix available: upgrade to 0.3.7",
-                "Fix state: fixed",
-                "https://deps.dev/advisory/OSV/GO-2021-0113",
-                "https://go.dev/cl/340830",
-                "https://go.googlesource.com/text/+/383b2e75a7a4198c42f8f87833eefb772868a56f",
-                "https://groups.google.com/g/golang-announce",
-                "https://nvd.nist.gov/vuln/detail/CVE-2021-38561",
-                "https://pkg.go.dev/golang.org/x/text/language",
-                "https://pkg.go.dev/vuln/GO-2021-0113"
-              ],
-              "references": [
-                {
-                  "type": "data_source",
-                  "url": "https://github.com/advisories/GHSA-ppp9-7jff-5vj2"
-                },
-                {
-                  "type": "advisory",
-                  "url": "https://nvd.nist.gov/vuln/detail/CVE-2021-38561"
-                },
-                {
-                  "type": "advisory",
-                  "url": "https://deps.dev/advisory/OSV/GO-2021-0113"
-                },
-                {
-                  "type": "advisory",
-                  "url": "https://go.googlesource.com/text/+/383b2e75a7a4198c42f8f87833eefb772868a56f"
-                },
-                {
-                  "type": "advisory",
-                  "url": "https://groups.google.com/g/golang-announce"
-                },
-                {
-                  "type": "advisory",
-                  "url": "https://pkg.go.dev/golang.org/x/text/language"
-                },
-                {
-                  "type": "advisory",
-                  "url": "https://go.dev/cl/340830"
-                },
-                {
-                  "type": "advisory",
-                  "url": "https://pkg.go.dev/vuln/GO-2021-0113"
-                }
-              ],
-              "risk_score": 0.039749999999999994,
-              "severity": "high",
-              "severity_source": "github:language:go",
-              "source": "grype",
-              "title": "golang.org/x/text/language Out-of-bounds Read vulnerability"
-            },
-            {
-              "affected_version_range": "\u003c0.3.7 (go)",
-              "aliases": [
-                "CVE-2021-38561",
-                "GHSA-ppp9-7jff-5vj2"
-              ],
-              "cvss": [
-                {
-                  "score": 7.5,
-                  "source": "nvd@nist.gov",
-                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
-                  "version": "3.1"
-                }
-              ],
-              "cwes": [
-                {
-                  "cve": "CVE-2021-38561",
-                  "id": "CWE-125",
-                  "source": "nvd@nist.gov",
-                  "type": "Primary"
-                },
-                {
-                  "cve": "CVE-2021-38561",
-                  "id": "CWE-125",
-                  "source": "134c704f-9b21-4f2e-91b3-4a467353bcc0",
-                  "type": "Secondary"
-                }
-              ],
-              "data_source": "https://go.dev/cl/340830",
-              "description": "Due to improper index calculation, an incorrectly formatted language tag can cause Parse to panic via an out of bounds read. If Parse is used to process untrusted user inputs, this may be used as a vector for a denial of service attack.",
-              "epss": [
-                {
-                  "cve": "CVE-2021-38561",
-                  "date": "2026-06-04",
-                  "epss": 0.00053,
-                  "percentile": 0.16869
-                }
-              ],
-              "fix_available": [
-                {
-                  "date": "2021-10-06",
-                  "kind": "advisory",
-                  "version": "0.3.7"
-                }
-              ],
-              "fix_state": "fixed",
-              "fixed_in": "0.3.7",
-              "fixed_versions": [
-                "0.3.7"
-              ],
-              "id": "GO-2021-0113",
-              "namespace": "govulndb:language:go",
-              "reachability": {
-                "analyzed_at": "\u003ctimestamp\u003e",
-                "analyzer": "govulncheck",
-                "reason": "package-not-imported",
-                "status": "unreachable",
-                "tier": "package"
-              },
-              "reasons": [
-                "Also known as: CVE-2021-38561, GHSA-ppp9-7jff-5vj2",
-                "Fix available: upgrade to 0.3.7",
-                "Fix state: fixed",
-                "https://go.googlesource.com/text/+/383b2e75a7a4198c42f8f87833eefb772868a56f"
-              ],
-              "references": [
-                {
-                  "type": "data_source",
-                  "url": "https://go.dev/cl/340830"
-                },
-                {
-                  "type": "advisory",
-                  "url": "https://go.googlesource.com/text/+/383b2e75a7a4198c42f8f87833eefb772868a56f"
-                }
-              ],
-              "risk_score": 0.039749999999999994,
-              "severity": "high",
-              "severity_source": "govulndb:language:go",
-              "source": "grype",
-              "title": "Due to improper index calculation, an incorrectly formatted language tag can cause Parse to panic via an out of bounds read. If Parse is used to process untrusted user inputs, this may be used as a vector for a denial of service attack."
-            },
-            {
-              "affected_version_range": "\u003c0.3.8 (go)",
-              "aliases": [
-                "CVE-2022-32149",
-                "GHSA-69ch-w2m2-3vjp"
-              ],
-              "cvss": [
-                {
-                  "score": 7.5,
-                  "source": "nvd@nist.gov",
-                  "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
-                  "version": "3.1"
-                }
-              ],
-              "cwes": [
-                {
-                  "cve": "CVE-2022-32149",
-                  "id": "CWE-772",
-                  "source": "nvd@nist.gov",
-                  "type": "Primary"
-                }
-              ],
-              "data_source": "https://go.dev/issue/56152",
-              "description": "An attacker may cause a denial of service by crafting an Accept-Language header which ParseAcceptLanguage will take significant time to parse.",
-              "epss": [
-                {
-                  "cve": "CVE-2022-32149",
-                  "date": "2026-06-04",
-                  "epss": 0.00054,
-                  "percentile": 0.17217
-                }
-              ],
-              "fix_available": [
-                {
-                  "date": "2022-10-11",
-                  "kind": "advisory",
-                  "version": "0.3.8"
-                }
-              ],
-              "fix_state": "fixed",
-              "fixed_in": "0.3.8",
-              "fixed_versions": [
-                "0.3.8"
-              ],
-              "id": "GO-2022-1059",
-              "namespace": "govulndb:language:go",
-              "reachability": {
-                "analyzed_at": "\u003ctimestamp\u003e",
-                "analyzer": "govulncheck",
-                "reason": "package-not-imported",
-                "status": "unreachable",
-                "tier": "package"
-              },
-              "reasons": [
-                "Also known as: CVE-2022-32149, GHSA-69ch-w2m2-3vjp",
-                "Fix available: upgrade to 0.3.8",
-                "Fix state: fixed",
-                "https://go.dev/cl/442235",
-                "https://groups.google.com/g/golang-announce/c/-hjNw559_tE/m/KlGTfid5CAAJ"
-              ],
-              "references": [
-                {
-                  "type": "data_source",
-                  "url": "https://go.dev/issue/56152"
-                },
-                {
-                  "type": "advisory",
-                  "url": "https://go.dev/cl/442235"
-                },
-                {
-                  "type": "advisory",
-                  "url": "https://groups.google.com/g/golang-announce/c/-hjNw559_tE/m/KlGTfid5CAAJ"
-                }
-              ],
-              "risk_score": 0.040499999999999994,
-              "severity": "high",
-              "severity_source": "govulndb:language:go",
-              "source": "grype",
-              "title": "An attacker may cause a denial of service by crafting an Accept-Language header which ParseAcceptLanguage will take significant time to parse."
-            }
-          ]
-        },
-        {
-          "dependencies": [],
-          "id": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
-          "licenses": [
-            {
-              "spdxExpression": "BSD-2-Clause",
-              "type": "external-depsdev",
-              "value": "BSD-2-Clause"
-            }
+          "scopes": [
+            "development",
+            "runtime"
           ],
-          "name": "gopkg.in/check.v1",
-          "purl": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
-          "scope": "development",
-          "version": "v0.0.0-20161208181325-20d25e280405",
-          "vulnerabilities": []
+          "version": "v0.3.5"
         },
         {
-          "dependencies": [
+          "depends_on": [],
+          "id": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
+          "licenses": [],
+          "matched": true,
+          "name": "gopkg.in/check.v1",
+          "package_ref": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
+          "purl": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
+          "scopes": [
+            "development"
+          ],
+          "version": "v0.0.0-20161208181325-20d25e280405"
+        },
+        {
+          "depends_on": [
             "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405"
           ],
           "id": "pkg:golang/gopkg.in/yaml.v3@v3.0.1",
-          "licenses": [
-            {
-              "spdxExpression": "MIT",
-              "type": "external-depsdev",
-              "value": "MIT"
-            },
-            {
-              "spdxExpression": "Apache-2.0",
-              "type": "external-depsdev",
-              "value": "Apache-2.0"
-            }
-          ],
+          "licenses": [],
+          "matched": true,
           "name": "gopkg.in/yaml.v3",
+          "package_ref": "pkg:golang/gopkg.in/yaml.v3@v3.0.1",
           "purl": "pkg:golang/gopkg.in/yaml.v3@v3.0.1",
-          "scope": "development",
-          "version": "v3.0.1",
-          "vulnerabilities": []
+          "scopes": [
+            "development"
+          ],
+          "version": "v3.0.1"
         }
       ],
+      "detector": "go-detector",
+      "ecosystem": "go",
+      "kind": "go.mod",
+      "package_manager": "gomod",
       "path": "go.mod",
       "subproject": "."
     }
@@ -846,6 +415,700 @@
     "duration_ms": 0,
     "reachability_enabled": true
   },
+  "packages": [
+    {
+      "ecosystem": "go",
+      "licenses": [
+        {
+          "spdxExpression": "MIT",
+          "type": "external-depsdev",
+          "value": "MIT"
+        }
+      ],
+      "matched": true,
+      "name": "github.com/bitly/go-simplejson",
+      "purl": "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
+      "version": "v0.5.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [],
+      "name": "github.com/bmizerany/assert",
+      "purl": "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869",
+      "version": "v0.0.0-20160611221934-b7ed37b82869",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [
+        {
+          "spdxExpression": "ISC",
+          "type": "external-depsdev",
+          "value": "ISC"
+        }
+      ],
+      "matched": true,
+      "name": "github.com/davecgh/go-spew",
+      "purl": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
+      "version": "v1.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [
+        {
+          "spdxExpression": "MIT",
+          "type": "external-depsdev",
+          "value": "MIT"
+        }
+      ],
+      "matched": true,
+      "name": "github.com/fatih/color",
+      "purl": "pkg:golang/github.com/fatih/color@v1.7.0",
+      "version": "v1.7.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [],
+      "name": "github.com/google/go-github",
+      "purl": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
+      "version": "v17.0.0+incompatible",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [
+        {
+          "spdxExpression": "BSD-3-Clause",
+          "type": "external-depsdev",
+          "value": "BSD-3-Clause"
+        }
+      ],
+      "matched": true,
+      "name": "github.com/google/go-querystring",
+      "purl": "pkg:golang/github.com/google/go-querystring@v1.0.0",
+      "version": "v1.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [
+        {
+          "spdxExpression": "MIT",
+          "type": "external-depsdev",
+          "value": "MIT"
+        }
+      ],
+      "matched": true,
+      "name": "github.com/kr/pretty",
+      "purl": "pkg:golang/github.com/kr/pretty@v0.3.1",
+      "version": "v0.3.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [
+        {
+          "spdxExpression": "MIT",
+          "type": "external-depsdev",
+          "value": "MIT"
+        }
+      ],
+      "matched": true,
+      "name": "github.com/kr/text",
+      "purl": "pkg:golang/github.com/kr/text@v0.2.0",
+      "version": "v0.2.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [
+        {
+          "spdxExpression": "MIT",
+          "type": "external-depsdev",
+          "value": "MIT"
+        }
+      ],
+      "matched": true,
+      "name": "github.com/mattn/go-colorable",
+      "purl": "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
+      "version": "v0.0.9",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [
+        {
+          "spdxExpression": "MIT",
+          "type": "external-depsdev",
+          "value": "MIT"
+        }
+      ],
+      "matched": true,
+      "name": "github.com/mattn/go-isatty",
+      "purl": "pkg:golang/github.com/mattn/go-isatty@v0.0.4",
+      "version": "v0.0.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [
+        {
+          "spdxExpression": "MIT",
+          "type": "external-depsdev",
+          "value": "MIT"
+        }
+      ],
+      "matched": true,
+      "name": "github.com/mattn/go-runewidth",
+      "purl": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
+      "version": "v0.0.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [
+        {
+          "spdxExpression": "MIT",
+          "type": "external-depsdev",
+          "value": "MIT"
+        }
+      ],
+      "matched": true,
+      "name": "github.com/nsf/termbox-go",
+      "purl": "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
+      "version": "v0.0.0-20181027232701-60ab7e3d12ed",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [
+        {
+          "spdxExpression": "MIT",
+          "type": "external-depsdev",
+          "value": "MIT"
+        }
+      ],
+      "matched": true,
+      "name": "github.com/nwidger/jsoncolor",
+      "purl": "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
+      "version": "v0.0.0-20170215171346-75a6de4340e5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [
+        {
+          "spdxExpression": "BSD-2-Clause",
+          "type": "external-depsdev",
+          "value": "BSD-2-Clause"
+        }
+      ],
+      "matched": true,
+      "name": "github.com/pkg/errors",
+      "purl": "pkg:golang/github.com/pkg/errors@v0.8.0",
+      "version": "v0.8.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [
+        {
+          "spdxExpression": "BSD-3-Clause",
+          "type": "external-depsdev",
+          "value": "BSD-3-Clause"
+        }
+      ],
+      "matched": true,
+      "name": "github.com/pmezard/go-difflib",
+      "purl": "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
+      "version": "v1.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [
+        {
+          "spdxExpression": "BSD-3-Clause",
+          "type": "external-depsdev",
+          "value": "BSD-3-Clause"
+        }
+      ],
+      "matched": true,
+      "name": "github.com/rogpeppe/go-internal",
+      "purl": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
+      "version": "v1.9.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [
+        {
+          "spdxExpression": "MIT",
+          "type": "external-depsdev",
+          "value": "MIT"
+        }
+      ],
+      "matched": true,
+      "name": "github.com/simeji/jid",
+      "purl": "pkg:golang/github.com/simeji/jid@v0.7.6",
+      "version": "v0.7.6",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [],
+      "name": "github.com/srcclr/example-go-modules",
+      "purl": "pkg:golang/github.com/srcclr/example-go-modules",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [
+        {
+          "spdxExpression": "MIT",
+          "type": "external-depsdev",
+          "value": "MIT"
+        }
+      ],
+      "matched": true,
+      "name": "github.com/stretchr/testify",
+      "purl": "pkg:golang/github.com/stretchr/testify@v1.8.2",
+      "version": "v1.8.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [
+        {
+          "spdxExpression": "BSD-3-Clause",
+          "type": "external-depsdev",
+          "value": "BSD-3-Clause"
+        }
+      ],
+      "matched": true,
+      "name": "golang.org/x/text",
+      "purl": "pkg:golang/golang.org/x/text@v0.3.5",
+      "version": "v0.3.5",
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003c0.3.8 (go)",
+          "aliases": [
+            "CVE-2022-32149"
+          ],
+          "cvss": [
+            {
+              "score": 7.5,
+              "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+              "version": "3.1"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "CVE-2022-32149",
+              "id": "CWE-772",
+              "source": "nvd@nist.gov",
+              "type": "Primary"
+            }
+          ],
+          "data_source": "https://github.com/advisories/GHSA-69ch-w2m2-3vjp",
+          "description": "golang.org/x/text/language Denial of service via crafted Accept-Language header",
+          "epss": [
+            {
+              "cve": "CVE-2022-32149",
+              "date": "2026-06-07",
+              "epss": 0.00054,
+              "percentile": 0.17256
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "2023-02-23",
+              "kind": "first-observed",
+              "version": "0.3.8"
+            }
+          ],
+          "fix_state": "fixed",
+          "fixed_in": "0.3.8",
+          "fixed_versions": [
+            "0.3.8"
+          ],
+          "id": "GHSA-69ch-w2m2-3vjp",
+          "namespace": "github:language:go",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "govulncheck",
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "Also known as: CVE-2022-32149",
+            "Fix available: upgrade to 0.3.8",
+            "Fix state: fixed",
+            "https://github.com/golang/go/issues/56152",
+            "https://github.com/golang/text/commit/434eadcdbc3b0256971992e8c70027278364c72c",
+            "https://go.dev/cl/442235",
+            "https://go.dev/issue/56152",
+            "https://groups.google.com/g/golang-announce/c/-hjNw559_tE/m/KlGTfid5CAAJ",
+            "https://nvd.nist.gov/vuln/detail/CVE-2022-32149",
+            "https://pkg.go.dev/vuln/GO-2022-1059",
+            "https://security.netapp.com/advisory/ntap-20230203-0006"
+          ],
+          "references": [
+            {
+              "type": "data_source",
+              "url": "https://github.com/advisories/GHSA-69ch-w2m2-3vjp"
+            },
+            {
+              "type": "advisory",
+              "url": "https://nvd.nist.gov/vuln/detail/CVE-2022-32149"
+            },
+            {
+              "type": "advisory",
+              "url": "https://go.dev/cl/442235"
+            },
+            {
+              "type": "advisory",
+              "url": "https://go.dev/issue/56152"
+            },
+            {
+              "type": "advisory",
+              "url": "https://groups.google.com/g/golang-announce/c/-hjNw559_tE/m/KlGTfid5CAAJ"
+            },
+            {
+              "type": "advisory",
+              "url": "https://pkg.go.dev/vuln/GO-2022-1059"
+            },
+            {
+              "type": "advisory",
+              "url": "https://github.com/golang/go/issues/56152"
+            },
+            {
+              "type": "advisory",
+              "url": "https://github.com/golang/text/commit/434eadcdbc3b0256971992e8c70027278364c72c"
+            },
+            {
+              "type": "advisory",
+              "url": "https://security.netapp.com/advisory/ntap-20230203-0006"
+            }
+          ],
+          "risk_score": 0.040499999999999994,
+          "severity": "high",
+          "severity_source": "github:language:go",
+          "source": "grype",
+          "title": "golang.org/x/text/language Denial of service via crafted Accept-Language header"
+        },
+        {
+          "affected_version_range": "\u003c0.3.7 (go)",
+          "aliases": [
+            "CVE-2021-38561"
+          ],
+          "cvss": [
+            {
+              "score": 7.5,
+              "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+              "version": "3.1"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "CVE-2021-38561",
+              "id": "CWE-125",
+              "source": "nvd@nist.gov",
+              "type": "Primary"
+            },
+            {
+              "cve": "CVE-2021-38561",
+              "id": "CWE-125",
+              "source": "134c704f-9b21-4f2e-91b3-4a467353bcc0",
+              "type": "Secondary"
+            }
+          ],
+          "data_source": "https://github.com/advisories/GHSA-ppp9-7jff-5vj2",
+          "description": "golang.org/x/text/language Out-of-bounds Read vulnerability",
+          "epss": [
+            {
+              "cve": "CVE-2021-38561",
+              "date": "2026-06-07",
+              "epss": 0.00053,
+              "percentile": 0.1691
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "2023-02-26",
+              "kind": "first-observed",
+              "version": "0.3.7"
+            }
+          ],
+          "fix_state": "fixed",
+          "fixed_in": "0.3.7",
+          "fixed_versions": [
+            "0.3.7"
+          ],
+          "id": "GHSA-ppp9-7jff-5vj2",
+          "namespace": "github:language:go",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "govulncheck",
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "Also known as: CVE-2021-38561",
+            "Fix available: upgrade to 0.3.7",
+            "Fix state: fixed",
+            "https://deps.dev/advisory/OSV/GO-2021-0113",
+            "https://go.dev/cl/340830",
+            "https://go.googlesource.com/text/+/383b2e75a7a4198c42f8f87833eefb772868a56f",
+            "https://groups.google.com/g/golang-announce",
+            "https://nvd.nist.gov/vuln/detail/CVE-2021-38561",
+            "https://pkg.go.dev/golang.org/x/text/language",
+            "https://pkg.go.dev/vuln/GO-2021-0113"
+          ],
+          "references": [
+            {
+              "type": "data_source",
+              "url": "https://github.com/advisories/GHSA-ppp9-7jff-5vj2"
+            },
+            {
+              "type": "advisory",
+              "url": "https://nvd.nist.gov/vuln/detail/CVE-2021-38561"
+            },
+            {
+              "type": "advisory",
+              "url": "https://deps.dev/advisory/OSV/GO-2021-0113"
+            },
+            {
+              "type": "advisory",
+              "url": "https://go.googlesource.com/text/+/383b2e75a7a4198c42f8f87833eefb772868a56f"
+            },
+            {
+              "type": "advisory",
+              "url": "https://groups.google.com/g/golang-announce"
+            },
+            {
+              "type": "advisory",
+              "url": "https://pkg.go.dev/golang.org/x/text/language"
+            },
+            {
+              "type": "advisory",
+              "url": "https://go.dev/cl/340830"
+            },
+            {
+              "type": "advisory",
+              "url": "https://pkg.go.dev/vuln/GO-2021-0113"
+            }
+          ],
+          "risk_score": 0.039749999999999994,
+          "severity": "high",
+          "severity_source": "github:language:go",
+          "source": "grype",
+          "title": "golang.org/x/text/language Out-of-bounds Read vulnerability"
+        },
+        {
+          "affected_version_range": "\u003c0.3.7 (go)",
+          "aliases": [
+            "CVE-2021-38561",
+            "GHSA-ppp9-7jff-5vj2"
+          ],
+          "cvss": [
+            {
+              "score": 7.5,
+              "source": "nvd@nist.gov",
+              "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+              "version": "3.1"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "CVE-2021-38561",
+              "id": "CWE-125",
+              "source": "nvd@nist.gov",
+              "type": "Primary"
+            },
+            {
+              "cve": "CVE-2021-38561",
+              "id": "CWE-125",
+              "source": "134c704f-9b21-4f2e-91b3-4a467353bcc0",
+              "type": "Secondary"
+            }
+          ],
+          "data_source": "https://go.dev/cl/340830",
+          "description": "Due to improper index calculation, an incorrectly formatted language tag can cause Parse to panic via an out of bounds read. If Parse is used to process untrusted user inputs, this may be used as a vector for a denial of service attack.",
+          "epss": [
+            {
+              "cve": "CVE-2021-38561",
+              "date": "2026-06-07",
+              "epss": 0.00053,
+              "percentile": 0.1691
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "2021-10-06",
+              "kind": "advisory",
+              "version": "0.3.7"
+            }
+          ],
+          "fix_state": "fixed",
+          "fixed_in": "0.3.7",
+          "fixed_versions": [
+            "0.3.7"
+          ],
+          "id": "GO-2021-0113",
+          "namespace": "govulndb:language:go",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "govulncheck",
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "Also known as: CVE-2021-38561, GHSA-ppp9-7jff-5vj2",
+            "Fix available: upgrade to 0.3.7",
+            "Fix state: fixed",
+            "https://go.googlesource.com/text/+/383b2e75a7a4198c42f8f87833eefb772868a56f"
+          ],
+          "references": [
+            {
+              "type": "data_source",
+              "url": "https://go.dev/cl/340830"
+            },
+            {
+              "type": "advisory",
+              "url": "https://go.googlesource.com/text/+/383b2e75a7a4198c42f8f87833eefb772868a56f"
+            }
+          ],
+          "risk_score": 0.039749999999999994,
+          "severity": "high",
+          "severity_source": "govulndb:language:go",
+          "source": "grype",
+          "title": "Due to improper index calculation, an incorrectly formatted language tag can cause Parse to panic via an out of bounds read. If Parse is used to process untrusted user inputs, this may be used as a vector for a denial of service attack."
+        },
+        {
+          "affected_version_range": "\u003c0.3.8 (go)",
+          "aliases": [
+            "CVE-2022-32149",
+            "GHSA-69ch-w2m2-3vjp"
+          ],
+          "cvss": [
+            {
+              "score": 7.5,
+              "source": "nvd@nist.gov",
+              "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+              "version": "3.1"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "CVE-2022-32149",
+              "id": "CWE-772",
+              "source": "nvd@nist.gov",
+              "type": "Primary"
+            }
+          ],
+          "data_source": "https://go.dev/issue/56152",
+          "description": "An attacker may cause a denial of service by crafting an Accept-Language header which ParseAcceptLanguage will take significant time to parse.",
+          "epss": [
+            {
+              "cve": "CVE-2022-32149",
+              "date": "2026-06-07",
+              "epss": 0.00054,
+              "percentile": 0.17256
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "2022-10-11",
+              "kind": "advisory",
+              "version": "0.3.8"
+            }
+          ],
+          "fix_state": "fixed",
+          "fixed_in": "0.3.8",
+          "fixed_versions": [
+            "0.3.8"
+          ],
+          "id": "GO-2022-1059",
+          "namespace": "govulndb:language:go",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "govulncheck",
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "Also known as: CVE-2022-32149, GHSA-69ch-w2m2-3vjp",
+            "Fix available: upgrade to 0.3.8",
+            "Fix state: fixed",
+            "https://go.dev/cl/442235",
+            "https://groups.google.com/g/golang-announce/c/-hjNw559_tE/m/KlGTfid5CAAJ"
+          ],
+          "references": [
+            {
+              "type": "data_source",
+              "url": "https://go.dev/issue/56152"
+            },
+            {
+              "type": "advisory",
+              "url": "https://go.dev/cl/442235"
+            },
+            {
+              "type": "advisory",
+              "url": "https://groups.google.com/g/golang-announce/c/-hjNw559_tE/m/KlGTfid5CAAJ"
+            }
+          ],
+          "risk_score": 0.040499999999999994,
+          "severity": "high",
+          "severity_source": "govulndb:language:go",
+          "source": "grype",
+          "title": "An attacker may cause a denial of service by crafting an Accept-Language header which ParseAcceptLanguage will take significant time to parse."
+        }
+      ]
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [
+        {
+          "spdxExpression": "BSD-2-Clause",
+          "type": "external-depsdev",
+          "value": "BSD-2-Clause"
+        }
+      ],
+      "matched": true,
+      "name": "gopkg.in/check.v1",
+      "purl": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
+      "version": "v0.0.0-20161208181325-20d25e280405",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [
+        {
+          "spdxExpression": "MIT",
+          "type": "external-depsdev",
+          "value": "MIT"
+        },
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "gopkg.in/yaml.v3",
+      "purl": "pkg:golang/gopkg.in/yaml.v3@v3.0.1",
+      "version": "v3.0.1",
+      "vulnerabilities": []
+    }
+  ],
   "project": {
     "ecosystem": "go",
     "name": "\u003cnormalized\u003e",

@@ -114,14 +114,6 @@ func (o Options) AnalyzerFilter() sdk.AnalyzerFilter {
 // PipelineRequest builds the scan pipeline request for this prepared command context.
 func (o Options) PipelineRequest(scope sdk.Scope, stderr io.Writer) engine.PipelineRequest {
 	failOn, _ := sdk.ParseFailOnList(o.ResolvedConfig.FailOn)
-	failOnScopes := make([]sdk.Scope, 0, len(o.ResolvedConfig.FailOnScopes))
-	for _, rawScope := range o.ResolvedConfig.FailOnScopes {
-		parsed, err := sdk.ParseScope(rawScope)
-		if err != nil {
-			continue
-		}
-		failOnScopes = append(failOnScopes, parsed)
-	}
 	typosquatThreshold, _ := strconv.ParseFloat(strings.TrimSpace(o.ResolvedConfig.TyposquatThreshold), 64)
 	return engine.PipelineRequest{
 		ProjectPath:                o.executionTarget.Location,
@@ -129,14 +121,13 @@ func (o Options) PipelineRequest(scope sdk.Scope, stderr io.Writer) engine.Pipel
 		Subprojects:                o.Subprojects(),
 		EnrichEnabled:              o.ResolvedConfig.Enrich,
 		AuditEnabled:               o.ResolvedConfig.Audit,
-		AnalyzeReachabilityEnabled: o.ResolvedConfig.Reachability,
+		AnalyzeReachabilityEnabled: o.ResolvedConfig.Analyze,
 		ScopeFilter:                scope,
 		AuditorFilter:              o.auditorFilter,
 		MatcherFilter:              o.matcherFilter,
 		AnalyzerFilter:             o.analyzerFilter,
 		DetectorFilter:             o.detectorFilter,
 		FailOn:                     failOn,
-		FailOnScopes:               failOnScopes,
 		AllowVulnerabilityIDs:      append([]string(nil), o.ResolvedConfig.AllowVulnerabilityIDs...),
 		AllowLicenses:              append([]string(nil), o.ResolvedConfig.AllowLicenses...),
 		DenyLicenses:               append([]string(nil), o.ResolvedConfig.DenyLicenses...),

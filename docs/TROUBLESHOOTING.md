@@ -48,7 +48,6 @@ Check:
 
 - You passed `--enrich` (without it there are no vulnerabilities).
 - The matcher you expect actually ran: `bomly scan ... --enrich -v` shows matcher start/end logs.
-- `--fail-on-scope` isn't filtering them out — drop the flag temporarily and re-run.
 
 ## Enrichment is slow on first run
 
@@ -115,9 +114,9 @@ A plugin was built against a different version of Bomly's plugin SDK. Rebuild th
 
 ## Reachability shows everything as `unknown`
 
-Either you didn't pass `--reachability`, or the analyzer for the ecosystem isn't applicable.
+Either you didn't pass `--analyze`, or the analyzer for the ecosystem isn't applicable.
 
-- Reachability is opt-in. Add `--reachability`.
+- Reachability is opt-in. Add `--analyze`.
 - Each ecosystem has its own analyzer (Go: `govulncheck`; JS/TS: `jsreach`; Python: `pyreach`; JVM: `jvmreach`). If your project's ecosystem isn't listed, status will stay `not_applicable`.
 
 See [Reachability](REACHABILITY.md) for ecosystem coverage.

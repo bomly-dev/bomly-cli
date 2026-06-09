@@ -408,7 +408,7 @@ func renderScanManifestTable(manifests []output.ScanManifest) string {
 		if manager == "" {
 			manager = "-"
 		}
-		_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%d\n", subproject, pathValue, kind, manager, len(manifest.Packages))
+		_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%d\n", subproject, pathValue, kind, manager, len(manifest.Dependencies))
 	}
 	_ = tw.Flush()
 	return strings.TrimRight(b.String(), "\n") + "\n"

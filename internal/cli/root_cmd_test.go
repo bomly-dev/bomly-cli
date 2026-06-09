@@ -347,7 +347,7 @@ func TestRootHelp_IncludesAvailableOptionValuesSection(t *testing.T) {
 	if strings.Contains(helpText, "Explore available detectors, matchers, and auditors with `bomly plugin list`.") {
 		t.Fatalf("expected root help output to omit selector guidance, got:\n%s", helpText)
 	}
-	for _, nonGlobal := range []string{"--enrich", "--audit", "--reachability", "--ecosystems", "--detectors"} {
+	for _, nonGlobal := range []string{"--enrich", "--audit", "--analyze", "--ecosystems", "--detectors"} {
 		if strings.Contains(helpText, nonGlobal) {
 			t.Fatalf("expected root help output to omit non-global flag %q, got:\n%s", nonGlobal, helpText)
 		}
@@ -2878,7 +2878,7 @@ func scanPayloadPackages(payload map[string]any) ([]any, bool) {
 		if !ok {
 			continue
 		}
-		manifestPackages, ok := manifest["packages"].([]any)
+		manifestPackages, ok := manifest["dependencies"].([]any)
 		if !ok {
 			continue
 		}
@@ -2890,11 +2890,17 @@ func scanPayloadPackages(payload map[string]any) ([]any, bool) {
 func containsPackageWithScope(packages []any, targetName, targetScope string) bool {
 	for _, raw := range packages {
 		pkg, ok := raw.(map[string]any)
+		if !ok || pkg["name"] != targetName {
+			continue
+		}
+		scopes, ok := pkg["scopes"].([]any)
 		if !ok {
 			continue
 		}
-		if pkg["name"] == targetName && pkg["scope"] == targetScope {
-			return true
+		for _, scope := range scopes {
+			if value, ok := scope.(string); ok && value == targetScope {
+				return true
+			}
 		}
 	}
 	return false
@@ -2919,7 +2925,7 @@ func containsPackageDependency(packages []any, targetName, dependencyID string) 
 		if !ok || pkg["name"] != targetName {
 			continue
 		}
-		dependencies, ok := pkg["dependencies"].([]any)
+		dependencies, ok := pkg["depends_on"].([]any)
 		if !ok {
 			return false
 		}
@@ -2938,7 +2944,7 @@ func containsPackageDependencies(packages []any, targetName string, expected []s
 		if !ok || pkg["name"] != targetName {
 			continue
 		}
-		dependencies, ok := pkg["dependencies"].([]any)
+		dependencies, ok := pkg["depends_on"].([]any)
 		if !ok {
 			return false
 		}

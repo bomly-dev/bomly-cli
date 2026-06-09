@@ -50,6 +50,14 @@ The shape every Bomly subcommand emits. Each command has its own schema:
 | `bomly explain` | [explain.md](schemas/explain.md) |
 | `bomly diff` | [diff.md](schemas/diff.md) |
 
+`bomly scan` surfaces the three-collection model (see [MODELS.md](MODELS.md)):
+`manifests[].dependencies` are lean detection-stage nodes (identity, `scopes`,
+`depends_on`, `package_ref`); `packages` is the deduplicated matching-stage
+registry (licenses, vulnerabilities, scorecard, EOL, CPEs, digests) keyed by
+PURL; and `findings` is the reference-style audit output. Resolve a finding or a
+dependency to its enrichment by matching `package_ref`/`package.purl` into
+`packages`.
+
 Pipe into `jq` for common queries:
 
 ```bash

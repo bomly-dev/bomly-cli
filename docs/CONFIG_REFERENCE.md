@@ -26,9 +26,8 @@ YAML files use the nested keys documented below. Unknown keys and the former fla
 | `target.sbom` | `BOMLY_SBOM` | `bool` | - | Treat the selected filesystem target as an SBOM file |
 | `analysis.enrich` | `BOMLY_ENRICH` | `bool` | - | Enrich packages with external license and vulnerability data |
 | `analysis.audit` | `BOMLY_AUDIT` | `bool` | - | Evaluate policy and create findings from package vulnerability data |
-| `analysis.reachability` | `BOMLY_REACHABILITY` | `bool` | - | Run code analysis to confirm whether vulnerabilities are reachable from application code |
+| `analysis.analyze` | `BOMLY_ANALYZE` | `bool` | - | Run code analysis to confirm whether vulnerabilities are reachable from application code |
 | `policy.fail_on` | `BOMLY_FAIL_ON` | `[]string` | - | Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable |
-| `policy.fail_on_scopes` | `BOMLY_FAIL_ON_SCOPES` | `[]string` | - | Dependency scopes that may produce failing findings: runtime, development, unknown |
 | `policy.allow_vulnerability_ids` | `BOMLY_ALLOW_VULNERABILITY_IDS` | `[]string` | - | Vulnerability IDs to ignore during policy evaluation |
 | `policy.allow_licenses` | `BOMLY_ALLOW_LICENSES` | `[]string` | - | Allowed SPDX license identifiers or expressions |
 | `policy.deny_licenses` | `BOMLY_DENY_LICENSES` | `[]string` | - | Denied SPDX license identifiers or expressions |
@@ -92,6 +91,7 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 |-----------------|-------------|
 | `allow_licenses` | `policy.allow_licenses` |
 | `allow_vulnerability_ids` | `policy.allow_vulnerability_ids` |
+| `analyze` | `analysis.analyze` |
 | `analyzers` | `components.analyzers` |
 | `audit` | `analysis.audit` |
 | `auditors` | `components.auditors` |
@@ -104,7 +104,6 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 | `ecosystems` | `components.ecosystems` |
 | `enrich` | `analysis.enrich` |
 | `fail_on` | `policy.fail_on` |
-| `fail_on_scopes` | `policy.fail_on_scopes` |
 | `format` | `output.format` |
 | `http_ca_cert_file` | `network.ca_cert_file` |
 | `http_no_proxy` | `network.proxy.no_proxy` |
@@ -128,7 +127,6 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 | `path` | `target.path` |
 | `protected_packages` | `policy.protected_packages` |
 | `quiet` | `logging.quiet` |
-| `reachability` | `analysis.reachability` |
 | `ref` | `target.ref` |
 | `sbom` | `target.sbom` |
 | `scorecard_api_base` | `matchers.scorecard.api_base` |
@@ -162,7 +160,7 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 #   Evaluate policy and create findings from package vulnerability data
 #   audit: false
 #   Run code analysis to confirm whether vulnerabilities are reachable from application code
-#   reachability: false
+#   analyze: false
 #   Run detector-specific dependency installation before resolving graphs
 #   install_first: false
 #   Additional detector-specific install arguments
@@ -181,8 +179,6 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 # policy:
 #   Constraint(s) for which findings should be created. Repeatable; AND-ed. Severity: any|low|medium|high|critical. Reachability: reachable. Exploitability: exploitable
 #   fail_on: []
-#   Dependency scopes that may produce failing findings: runtime, development, unknown
-#   fail_on_scopes: []
 #   Vulnerability IDs to ignore during policy evaluation
 #   allow_vulnerability_ids: []
 #   Allowed SPDX license identifiers or expressions

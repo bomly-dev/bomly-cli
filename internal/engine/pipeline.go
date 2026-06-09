@@ -193,7 +193,7 @@ func (p *Pipeline) runMatch(ctx context.Context, result *PipelineResult, req Pip
 	}
 }
 
-// runAnalyze runs the reachability analyzer stage when --reachability is
+// runAnalyze runs the reachability analyzer stage when --analyze is
 // set. Errors degrade to warnings; analyzer failure must never abort the
 // pipeline.
 func (p *Pipeline) runAnalyze(ctx context.Context, result *PipelineResult, req PipelineRequest) {

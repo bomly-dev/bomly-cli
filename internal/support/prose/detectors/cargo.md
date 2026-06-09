@@ -65,7 +65,7 @@ openssl = { git = "https://github.com/sfackler/rust-openssl", tag = "openssl-v0.
 
 ## Reachability
 
-> **Not yet supported.** Bomly has no Rust reachability analyzer today. `--reachability` produces `not_applicable` for crates.
+> **Not yet supported.** Bomly has no Rust reachability analyzer today. `--analyze` produces `not_applicable` for crates.
 
 ## Limitations
 

@@ -68,7 +68,7 @@ Stage summary:
 3. Detector chains resolve dependency graphs per package manager. When `--scope` is set, the requested scope is part of the detector request so build-tool detectors can narrow command execution where the package manager supports it. All detector results then pass through the shared SDK scope filter before consolidation.
 4. Consolidation merges subproject graphs into a unified view.
 5. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records.
-6. Analyzers run when `--reachability` is set. They consume the matched graph and annotate `sdk.Vulnerability.Reachability` (on the PURL-keyed registry package) with status (reachable/unreachable/unknown), tier (symbol/module/package/none), and call paths. Failures degrade to `Status=unknown` rather than aborting the pipeline. See `docs/REACHABILITY.md` for ecosystem coverage and tier semantics.
+6. Analyzers run when `--analyze` is set. They consume the matched graph and annotate `sdk.Vulnerability.Reachability` (on the PURL-keyed registry package) with status (reachable/unreachable/unknown), tier (symbol/module/package/none), and call paths. Failures degrade to `Status=unknown` rather than aborting the pipeline. See `docs/REACHABILITY.md` for ecosystem coverage and tier semantics.
 7. Auditors evaluate policy against the enriched graph + registry pair and create reference-style findings (`PackageRef` + `VulnerabilityID`) when `--audit` is enabled. The built-in `vulnerability`, `license`, and `package` auditors cover advisory thresholds, SPDX policy, and denied or suspicious packages respectively.
 8. Users combine `--enrich --audit` when they want external matcher data to feed policy evaluation in the same run.
 9. Output rendering emits text, JSON, SARIF, or SBOM documents.
@@ -81,7 +81,7 @@ Bomly's YAML files use strict nested groups such as `target`, `analysis`, `polic
 
 ### Decision: Reachability annotates vulnerabilities, not findings
 
-Reachability data lives on `sdk.Vulnerability.Reachability` rather than on `Finding.Reachability` because `--reachability` must be useful without `--audit`. Matchers populate the OSV-aligned `Vulnerability` record on the PURL-keyed registry package; the analyzer enriches it in place; the output layer resolves the analyzer's annotation by `(Finding.PackageRef, Finding.VulnerabilityID)` when emitting SARIF and the JSON `Finding` projection. This keeps a single source of truth (the registry) and removes the per-manifest sync that the old graph-mutating model required.
+Reachability data lives on `sdk.Vulnerability.Reachability` rather than on `Finding.Reachability` because `--analyze` must be useful without `--audit`. Matchers populate the OSV-aligned `Vulnerability` record on the PURL-keyed registry package; the analyzer enriches it in place; the output layer resolves the analyzer's annotation by `(Finding.PackageRef, Finding.VulnerabilityID)` when emitting SARIF and the JSON `Finding` projection. This keeps a single source of truth (the registry) and removes the per-manifest sync that the old graph-mutating model required.
 
 ### Decision: Three-collection domain model — dependencies, packages, findings
 

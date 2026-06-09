@@ -81,12 +81,20 @@ Useful for release notes, supplier-update reviews, and CI checks on prebuilt SBO
 Both formats carry:
 
 - Package name, version, PURL.
-- License when a matcher resolved one (`--enrich` required).
 - Dependency relationships from the detector graph.
 - File-level evidence when the detector provided it.
-- Vulnerability annotations in CycloneDX when `--enrich` is set.
 
-Reachability annotations and Bomly-specific metadata are emitted in the JSON output (`--json` or `--format json`), not in the standard SBOM formats. See [Output formats](OUTPUT_FORMATS.md).
+When `--enrich` is set, components are enriched from the matching-stage package
+registry (keyed by PURL):
+
+- Licenses learned during matching (preferred over detection-time licenses).
+- Content digests as component hashes (CycloneDX `hashes`, SPDX `checksums`).
+- CPEs (CycloneDX `cpe`, SPDX `SECURITY`/`cpe23Type` external references).
+- Vulnerabilities — CycloneDX as a first-class `vulnerabilities` array (ratings,
+  CWEs, advisories, `affects`); SPDX as `SECURITY`/`advisory` external references.
+- End-of-life status (CycloneDX `bomly:eol*` properties, SPDX package comment).
+
+Reachability annotations and other Bomly-specific metadata are emitted in the JSON output (`--json` or `--format json`), not in the standard SBOM formats. See [Output formats](OUTPUT_FORMATS.md).
 
 ## Format conversion
 

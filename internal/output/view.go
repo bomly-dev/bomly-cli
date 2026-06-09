@@ -11,26 +11,30 @@ import (
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
-// ScanResponse is the structured payload for the scan command.
+// ScanResponse is the structured payload for the scan command. It surfaces the
+// three-collection model: manifests carry lean detection-stage dependencies,
+// packages is the deduplicated matching-stage registry projection, and findings
+// is the reference-style audit output.
 type ScanResponse struct {
-	SchemaVersion string            `json:"schema_version"`
-	Command       string            `json:"command"`
-	Project       ProjectDescriptor `json:"project"`
-	Manifests     []ScanManifest    `json:"manifests"`
-	Findings      []AuditFinding    `json:"findings,omitempty"`
-	AuditSummary  *AuditSummary     `json:"audit_summary,omitempty"`
-	Metadata      Metadata          `json:"metadata"`
+	SchemaVersion string             `json:"schema_version"`
+	Command       string             `json:"command"`
+	Project       ProjectDescriptor  `json:"project"`
+	Manifests     []ScanManifest     `json:"manifests"`
+	Packages      []ScanPackageEntry `json:"packages"`
+	Findings      []AuditFinding     `json:"findings,omitempty"`
+	AuditSummary  *AuditSummary      `json:"audit_summary,omitempty"`
+	Metadata      Metadata           `json:"metadata"`
 }
 
 // ScanManifest is one manifest-scoped dependency inventory in the scan payload.
 type ScanManifest struct {
-	Path           string        `json:"path,omitempty"`
-	Kind           string        `json:"kind,omitempty"`
-	Subproject     string        `json:"subproject,omitempty"`
-	Ecosystem      string        `json:"ecosystem,omitempty"`
-	PackageManager string        `json:"package_manager,omitempty"`
-	Detector       string        `json:"detector,omitempty"`
-	Packages       []ScanPackage `json:"packages"`
+	Path           string           `json:"path,omitempty"`
+	Kind           string           `json:"kind,omitempty"`
+	Subproject     string           `json:"subproject,omitempty"`
+	Ecosystem      string           `json:"ecosystem,omitempty"`
+	PackageManager string           `json:"package_manager,omitempty"`
+	Detector       string           `json:"detector,omitempty"`
+	Dependencies   []ScanDependency `json:"dependencies"`
 }
 
 // DiffResponse is the structured payload for the diff command.
@@ -182,6 +186,7 @@ func BuildScanResponse(project ProjectDescriptor, consolidated sdk.ConsolidatedG
 		Command:       "scan",
 		Project:       project,
 		Manifests:     ScanManifestsFromConsolidated(consolidated, registry),
+		Packages:      PackagesFromRegistry(registry),
 		Metadata:      Metadata{DurationMS: time.Since(started).Milliseconds()},
 	}
 	if len(findings) > 0 {
@@ -210,10 +215,8 @@ func (r ScanResponse) WithReportOptions(options ReportOptions) ScanResponse {
 	if options.ReachabilityEnabled {
 		return r
 	}
-	for manifestIdx := range r.Manifests {
-		for packageIdx := range r.Manifests[manifestIdx].Packages {
-			r.Manifests[manifestIdx].Packages[packageIdx].PackageRef = r.Manifests[manifestIdx].Packages[packageIdx].withoutReachability()
-		}
+	for idx := range r.Packages {
+		r.Packages[idx] = r.Packages[idx].withoutReachability()
 	}
 	for idx := range r.Findings {
 		r.Findings[idx] = r.Findings[idx].withoutReachability()
@@ -259,7 +262,7 @@ func scanManifestFromConsolidated(manifest sdk.ConsolidatedManifest, idx int, re
 		Ecosystem:      string(manifest.Subproject.Ecosystem),
 		PackageManager: manifest.Subproject.PrimaryPackageManager().Name(),
 		Detector:       manifest.DetectorName,
-		Packages:       PackagesFromGraph(manifest.Entry.Graph, registry),
+		Dependencies:   DependenciesFromGraph(manifest.Entry.Graph, registry),
 	}
 }
 

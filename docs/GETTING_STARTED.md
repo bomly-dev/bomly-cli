@@ -95,11 +95,11 @@ Exit `0` means clean. Exit `2` means at least one finding matched the threshold.
 Common combinations:
 
 ```bash
-# Fail on high or critical, runtime dependencies only
-bomly scan --enrich --audit --fail-on high --fail-on-scope runtime
+# Fail on high or critical findings
+bomly scan --enrich --audit --fail-on high
 
 # Fail only when a high-or-above finding is actually reachable
-bomly scan --enrich --audit --reachability --fail-on high --fail-on reachable
+bomly scan --enrich --audit --analyze --fail-on high --fail-on reachable
 ```
 
 See [Auditors](AUDITORS.md) for the full grammar and [Reachability](REACHABILITY.md) for what "reachable" means per ecosystem. Reachability is an **experimental** feature; review its limitations before gating CI on it.

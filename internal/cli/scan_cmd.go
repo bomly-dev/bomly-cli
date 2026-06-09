@@ -99,7 +99,7 @@ func newScanCmd() *cobra.Command {
 				findings = pipeResult.Findings
 				prog.CompleteStep("Evaluated policy", auditProgressChildren(pipeResult.AuditorRuns, pipeResult.AuditorFindings, pipeResult.AuditWarnings))
 			}
-			reportOptions := reportOptionsFromPipelineResults(commandCtx.ResolvedConfig.Reachability, pipeResult)
+			reportOptions := reportOptionsFromPipelineResults(commandCtx.ResolvedConfig.Analyze, pipeResult)
 			payload := output.BuildScanResponse(commandCtx.ProjectDescriptor(), consolidated, pipeResult.Registry, findings, started, reportOptions)
 			markdownRenderer := func(w io.Writer) error {
 				return render.ScanMarkdown(w, payload)
@@ -114,7 +114,7 @@ func newScanCmd() *cobra.Command {
 						return err
 					}
 				}
-				_, err := io.WriteString(w, render.Scan(payload.Manifests, selectedGraph, pipeResult.Registry, findings, commandCtx.ResolvedConfig.Enrich, commandCtx.ResolvedConfig.Audit, commandCtx.ResolvedConfig.Reachability))
+				_, err := io.WriteString(w, render.Scan(payload.Manifests, selectedGraph, pipeResult.Registry, findings, commandCtx.ResolvedConfig.Enrich, commandCtx.ResolvedConfig.Audit, commandCtx.ResolvedConfig.Analyze))
 				return err
 			}
 			reportRenderers := output.Renderers{
@@ -122,13 +122,13 @@ func newScanCmd() *cobra.Command {
 				Text:     textRenderer,
 			}
 			sarifRenderer := func(w io.Writer) error {
-				return output.WriteSARIF(w, findings, pipeResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: commandCtx.ResolvedConfig.Reachability})
+				return output.WriteSARIF(w, findings, pipeResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: commandCtx.ResolvedConfig.Analyze})
 			}
 
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
 				stdout := streams.reportWriter()
-				sbomBuildOpts := sbom.BuildOptions{ToolNames: sbomToolNames(resolved)}
+				sbomBuildOpts := sbom.BuildOptions{ToolNames: sbomToolNames(resolved), Registry: pipeResult.Registry}
 				for _, spec := range outputSpecs {
 					switch {
 					case spec.IsSBOM():
@@ -156,7 +156,7 @@ func newScanCmd() *cobra.Command {
 				if !ok {
 					return exit.InvalidInputError("output format %q is not supported by scan", graphOutputFormat)
 				}
-				rawDocument, err := sbom.MarshalDepGraphJSON(selectedGraph, target, sbom.BuildOptions{ToolNames: sbomToolNames(resolved)}, sbom.EncodeOptions{Pretty: true})
+				rawDocument, err := sbom.MarshalDepGraphJSON(selectedGraph, target, sbom.BuildOptions{ToolNames: sbomToolNames(resolved), Registry: pipeResult.Registry}, sbom.EncodeOptions{Pretty: true})
 				if err != nil {
 					return fmt.Errorf("marshal %s sbom: %w", graphOutputFormat, err)
 				}
@@ -174,7 +174,7 @@ func newScanCmd() *cobra.Command {
 
 			if commandCtx.ResolvedConfig.Interactive {
 				prog.Stop()
-				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewScan(payload.Project, consolidated, selectedGraph, findings).WithRegistry(pipeResult.Registry).WithEnrichEnabled(commandCtx.ResolvedConfig.Enrich).WithReachabilityEnabled(commandCtx.ResolvedConfig.Reachability)))
+				return exit.InteractiveResult(tui.Run(cmd.InOrStdin(), streams.interactiveWriter(), tui.NewScan(payload.Project, consolidated, selectedGraph, findings).WithRegistry(pipeResult.Registry).WithEnrichEnabled(commandCtx.ResolvedConfig.Enrich).WithReachabilityEnabled(commandCtx.ResolvedConfig.Analyze)))
 			}
 
 			writer, closeWriter, err := commandCtx.Writer(streams.reportWriter())

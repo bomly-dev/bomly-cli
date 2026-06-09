@@ -383,28 +383,12 @@ Repeat the flag to AND constraints together:
 bomly scan --enrich --audit --fail-on high
 
 # Fail only when a high-or-above finding is also reachable
-bomly scan --enrich --audit --reachability \
+bomly scan --enrich --audit --analyze \
   --fail-on high --fail-on reachable
 `+"```"+`
 
 Tokens are case-insensitive. An invalid token produces an exit-code 4 (invalid input) with the message:
 `+"`unsupported --fail-on value \"<x>\" (accepted: any, low, medium, high, critical, reachable)`"+`.
-
-## `+"`--fail-on-scope`"+`
-
-Use `+"`--fail-on-scope`"+` to restrict which dependency scopes feed into `+"`--fail-on`"+`:
-
-| Scope | Meaning |
-| --- | --- |
-| `+"`runtime`"+` | Required at runtime (e.g. `+"`dependencies`"+` in npm, non-test scope in Maven) |
-| `+"`development`"+` | Build- and test-only (e.g. `+"`devDependencies`"+` in npm, `+"`test`"+` scope in Maven) |
-| `+"`unknown`"+` | Detector could not classify the edge |
-
-Without `+"`--fail-on-scope`"+` all scopes count. Common pattern: gate CI on runtime only.
-
-`+"```bash"+`
-bomly scan --enrich --audit --fail-on high --fail-on-scope runtime
-`+"```"+`
 
 ## Exit codes from auditors
 
@@ -412,7 +396,7 @@ bomly scan --enrich --audit --fail-on high --fail-on-scope runtime
 | --- | --- |
 | 0 | Scan succeeded; no policy match for `+"`--fail-on`"+` |
 | 2 | Policy violation — at least one finding matched `+"`--fail-on`"+` |
-| 4 | Invalid `+"`--fail-on`"+` or `+"`--fail-on-scope`"+` value |
+| 4 | Invalid `+"`--fail-on`"+` value |
 
 See [EXIT_CODES.md](EXIT_CODES.md) for the full table.
 

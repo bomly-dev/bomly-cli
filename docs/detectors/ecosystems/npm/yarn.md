@@ -79,7 +79,7 @@ Bomly walks Berry workspaces and scans each as a subproject. Plug-and-Play (`.pn
 
 > **Experimental.** Reachability is opt-in via `--analyze`. The feature is stable in shape but may evolve; ecosystem coverage is expanding.
 
-For Yarn packages, the analyzer is `jsreach` at **Tier-3 (package)** — same caveats as npm. See [REACHABILITY.md](../../REACHABILITY.md#unreachable-is-not-safe).
+For Yarn packages, the analyzer is `jsreach` at **Tier-3 (package)** — same caveats as npm. See [REACHABILITY.md](../../../REACHABILITY.md#unreachable-is-not-safe).
 
 `jsreach` reads workspace arrays and Yarn-style `workspaces.packages` objects automatically, then follows imports between consumed sibling packages by package name.
 

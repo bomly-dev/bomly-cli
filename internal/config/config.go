@@ -85,7 +85,7 @@ type Resolved struct {
 // errors and generated documentation for the former flat YAML keys.
 type File struct {
 	Target     TargetFile                `yaml:"target,omitempty"`
-	Analysis   AnalysisFile              `yaml:"analysis,omitempty"`
+	Pipeline   PipelineFile              `yaml:"pipeline,omitempty"`
 	Components ComponentsFile            `yaml:"components,omitempty"`
 	Policy     PolicyFile                `yaml:"policy,omitempty"`
 	Output     OutputFile                `yaml:"output,omitempty"`
@@ -104,8 +104,8 @@ type TargetFile struct {
 	SBOM      *bool   `yaml:"sbom,omitempty" resolved:"SBOM" legacy:"sbom"`
 }
 
-// AnalysisFile configures optional analysis behavior and dependency preparation.
-type AnalysisFile struct {
+// PipelineFile configures optional pipeline behavior and dependency preparation.
+type PipelineFile struct {
 	Enrich       *bool     `yaml:"enrich,omitempty" resolved:"Enrich" legacy:"enrich"`
 	Audit        *bool     `yaml:"audit,omitempty" resolved:"Audit" legacy:"audit"`
 	Analyze      *bool     `yaml:"analyze,omitempty" resolved:"Analyze" legacy:"analyze"`

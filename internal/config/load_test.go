@@ -81,7 +81,7 @@ target:
   url: https://example.com/acme/repo.git
   ref: main
   sbom: true
-analysis:
+pipeline:
   enrich: true
   audit: true
   analyze: true
@@ -167,7 +167,7 @@ matchers:
 func TestApplyFileConfigClearsInheritedLists(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.yaml")
 	if err := os.WriteFile(path, []byte(`
-analysis:
+pipeline:
   enrich: false
   install_args: []
 policy:

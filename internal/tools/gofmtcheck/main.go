@@ -34,7 +34,7 @@ func main() {
 		exitf("run gofmt -l: %v", err)
 	}
 	if strings.TrimSpace(out) != "" {
-		fmt.Fprint(os.Stderr, out)
+		_, _ = fmt.Fprint(os.Stderr, out)
 		os.Exit(1)
 	}
 }
@@ -91,6 +91,6 @@ func runGofmtWithOutput(mode string, files []string) (string, error) {
 }
 
 func exitf(format string, args ...any) {
-	fmt.Fprintf(os.Stderr, format+"\n", args...)
+	_, _ = fmt.Fprintf(os.Stderr, format+"\n", args...)
 	os.Exit(1)
 }

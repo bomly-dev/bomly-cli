@@ -34,28 +34,6 @@ func nonEmptyStrings(values []string) []string {
 	return out
 }
 
-func epssLine(values []sdk.EPSSScore) string {
-	if len(values) == 0 {
-		return ""
-	}
-	parts := make([]string, 0, len(values))
-	for _, value := range values {
-		parts = append(parts, fmt.Sprintf("%.3f p%.0f", value.EPSS, value.Percentile*100))
-	}
-	return strings.Join(parts, ", ")
-}
-
-func cweLine(values []sdk.CWE) string {
-	if len(values) == 0 {
-		return ""
-	}
-	ids := make([]string, 0, len(values))
-	for _, value := range values {
-		ids = append(ids, value.ID)
-	}
-	return strings.Join(nonEmptyStrings(ids), ", ")
-}
-
 func exploitabilityLine(kev bool, known []sdk.KnownExploited, risk float64) string {
 	parts := make([]string, 0, 2)
 	if kev || len(known) > 0 {

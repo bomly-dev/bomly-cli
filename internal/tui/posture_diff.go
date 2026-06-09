@@ -58,10 +58,12 @@ func postureScoresDifferMeaningfully(before, after float64) bool {
 		return true
 	}
 	// Inconclusive ↔ scored transitions also count as meaningful, since the
-	// score column reads differently in each case.
-	beforeBand := postureScoreBand(before)
-	afterBand := postureScoreBand(after)
-	return beforeBand == "inconclusive" || afterBand == "inconclusive" && beforeBand != afterBand
+	// score column reads differently in each case. Only a transition counts:
+	// when exactly one side is inconclusive. Two inconclusive scores read the
+	// same and are not a meaningful change.
+	beforeInconclusive := postureScoreBand(before) == "inconclusive"
+	afterInconclusive := postureScoreBand(after) == "inconclusive"
+	return beforeInconclusive != afterInconclusive
 }
 
 // postureDiffRowsFromPayload aggregates the diff payload's per-package
@@ -771,11 +773,11 @@ func postureDiffCheckGroupRowDetails(group postureDiffCheckGroup, r postureDiffC
 	return lines
 }
 
-// buildPostureTab is the diffModel's TabSpec.Build for the Posture tab.
+// buildPostureTab is the DiffModel's TabSpec.Build for the Posture tab.
 // Layout mirrors the other diff tabs: top summary panels, single main
 // list, secondary details pane. The `g` key cycles the grouping axis
 // between "check" (default) and "repository".
-func (m *diffModel) buildPostureTab() *listModel {
+func (m *DiffModel) buildPostureTab() *listModel {
 	rows := postureDiffRowsFromPayload(m.payload.Results.Dependencies)
 	repoWidth := 24
 	for _, row := range rows {
@@ -826,7 +828,7 @@ func (m *diffModel) buildPostureTab() *listModel {
 // expandable group headers per check name, with affected repositories
 // underneath. Each row shows the per-check before/after rather than the
 // aggregate, so deltas are pegged to the specific failing check.
-func (m *diffModel) postureDiffItemsByCheck(rows []postureDiffRow, repoWidth int) ([]listItem, string, string) {
+func (m *DiffModel) postureDiffItemsByCheck(rows []postureDiffRow, repoWidth int) ([]listItem, string, string) {
 	groups := postureDiffCheckGroups(rows)
 	items := make([]listItem, 0, len(rows)+len(groups))
 	for _, group := range groups {

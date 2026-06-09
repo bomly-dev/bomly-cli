@@ -23,34 +23,6 @@ type packageManagerMatch struct {
 	score           int
 }
 
-// IndexDetectors identifies detectors along with their package managers for a filesystem path.
-func IndexDetectors(candidatePath string) ([]IndexedDetectors, error) {
-	managers, err := DetectPackageManagers(candidatePath)
-	if err != nil {
-		return nil, err
-	}
-	grouped := make([]IndexedDetectors, 0, len(managers))
-	indexByDetector := make(map[string]int, len(managers))
-	for _, manager := range managers {
-		detectorName := PrimaryDetectorForPackageManager(manager)
-		if detectorName == "" {
-			detectorName = manager.Name()
-		}
-		idx, ok := indexByDetector[detectorName]
-		if !ok {
-			idx = len(grouped)
-			indexByDetector[detectorName] = idx
-			grouped = append(grouped, IndexedDetectors{
-				Path:            candidatePath,
-				PrimaryDetector: detectorName,
-				PackageManagers: []sdk.PackageManager{},
-			})
-		}
-		grouped[idx].PackageManagers = appendUniquePackageManager(grouped[idx].PackageManagers, manager)
-	}
-	return grouped, nil
-}
-
 // DetectPackageManagers identifies package managers for a filesystem path.
 func DetectPackageManagers(candidatePath string) ([]sdk.PackageManager, error) {
 	info, err := os.Stat(candidatePath)
@@ -252,15 +224,6 @@ func uniquePackageManagers(values []sdk.PackageManager) []sdk.PackageManager {
 		result = append(result, value)
 	}
 	return result
-}
-
-func appendUniquePackageManager(values []sdk.PackageManager, value sdk.PackageManager) []sdk.PackageManager {
-	for _, existing := range values {
-		if existing == value {
-			return values
-		}
-	}
-	return append(values, value)
 }
 
 func isStrictSubset(left []string, right []string) bool {

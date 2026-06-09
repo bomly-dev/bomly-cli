@@ -45,8 +45,8 @@ func LoadTargets(path string) ([]Target, error) {
 	return targets, nil
 }
 
-// BenchmarkTargets filters targets to those enabled for the hidden benchmark.
-func BenchmarkTargets(targets []Target) []Target {
+// Targets filters targets to those enabled for the hidden benchmark.
+func Targets(targets []Target) []Target {
 	out := make([]Target, 0, len(targets))
 	for _, target := range targets {
 		if target.BenchmarkEnabled {

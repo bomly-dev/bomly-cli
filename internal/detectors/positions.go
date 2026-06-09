@@ -62,7 +62,7 @@ func ScanLines(path string, fn func(line int, text string)) error {
 		}
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	scanner := bufio.NewScanner(f)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, 1<<20)

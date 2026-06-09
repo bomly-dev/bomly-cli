@@ -182,8 +182,7 @@ func vulnerabilitiesFromPackage(vulns []sdk.Vulnerability) []Vulnerability {
 			vuln.Source = v.DataSource
 		}
 		if len(v.CVSS) > 0 {
-			score := v.CVSS[0].Score
-			vuln.Score = &score
+			vuln.Score = new(v.CVSS[0].Score)
 			vuln.Vector = v.CVSS[0].Vector
 			vuln.Method = cvssMethodForVersion(v.CVSS[0].Version)
 		}

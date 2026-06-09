@@ -16,7 +16,7 @@
 // esbuild binary on PATH. esbuild handles ESM, CJS, TS/TSX/JSX,
 // conditional exports, and subpath imports natively. The Runner interface
 // is preserved (rather than calling api.Build directly from the analyzer)
-// so unit tests can inject a fake runner for deterministic behaviour.
+// so unit tests can inject a fake runner for deterministic behavior.
 package jsreach
 
 import (
@@ -72,7 +72,7 @@ type RunnerResult struct {
 
 // hasResult reports whether the runner produced anything actionable.
 // A nil/empty ImportedPackages with no entry points means the runner
-// found no project structure to analyse and the analyzer should mark
+// found no project structure to analyze and the analyzer should mark
 // every npm vulnerability Unknown.
 func (r RunnerResult) hasResult() bool {
 	return len(r.EntryPoints) > 0

@@ -10,7 +10,7 @@ import (
 )
 
 func TestBuildScanRegistryRegistersDetectorForEveryPackageManager(t *testing.T) {
-	builtins := NewRegistry(RegistryConfigs{}, *zap.NewNop())
+	builtins := NewRegistry(Configs{}, *zap.NewNop())
 	builtins.Build()
 
 	for _, packageManager := range SupportedPackageManagers() {
@@ -25,7 +25,7 @@ func TestBuildScanRegistryRegistersDetectorForEveryPackageManager(t *testing.T) 
 }
 
 func TestBuildScanRegistryUsesSyftForUnclaimedManagers(t *testing.T) {
-	builtins := NewRegistry(RegistryConfigs{}, *zap.NewNop())
+	builtins := NewRegistry(Configs{}, *zap.NewNop())
 	builtins.Build()
 
 	detectorChain := builtins.Detectors(sdk.DetectionRequest{
@@ -41,7 +41,7 @@ func TestBuildScanRegistryUsesSyftForUnclaimedManagers(t *testing.T) {
 }
 
 func TestBuildScanRegistryKeepsNativeDetectorFirstForNativeManagers(t *testing.T) {
-	builtins := NewRegistry(RegistryConfigs{}, *zap.NewNop())
+	builtins := NewRegistry(Configs{}, *zap.NewNop())
 	builtins.Build()
 
 	testCases := []struct {
@@ -77,7 +77,7 @@ func TestBuildScanRegistryKeepsNativeDetectorFirstForNativeManagers(t *testing.T
 }
 
 func TestBuildScanRegistryRegistersContainerDiscoveryPlanForSyft(t *testing.T) {
-	builtins := NewRegistry(RegistryConfigs{}, *zap.NewNop())
+	builtins := NewRegistry(Configs{}, *zap.NewNop())
 	builtins.Build()
 
 	plan, ok := builtins.DiscoveryPlans()["syft-detector"]
@@ -90,7 +90,7 @@ func TestBuildScanRegistryRegistersContainerDiscoveryPlanForSyft(t *testing.T) {
 }
 
 func TestBuildScanRegistryRegistersBuiltInMatchers(t *testing.T) {
-	builtins := NewRegistry(RegistryConfigs{}, *zap.NewNop())
+	builtins := NewRegistry(Configs{}, *zap.NewNop())
 	builtins.Build()
 
 	got := make(map[string]struct{})
@@ -117,7 +117,7 @@ func TestBuildScanRegistryRegistersBuiltInMatchers(t *testing.T) {
 }
 
 func TestRegistryHTTPClientProviderReusesTransport(t *testing.T) {
-	builtins := NewRegistry(RegistryConfigs{HTTPProxy: "http://proxy.example:8080"}, *zap.NewNop())
+	builtins := NewRegistry(Configs{HTTPProxy: "http://proxy.example:8080"}, *zap.NewNop())
 
 	provider := builtins.httpClientProvider()
 	first := provider.Client(15 * time.Second)

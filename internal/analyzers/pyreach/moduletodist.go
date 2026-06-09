@@ -15,7 +15,7 @@ import "strings"
 // false negative (the analyzer reports the package as unreachable
 // when it actually was imported); the BFS through the dep graph
 // usually catches it via a transitive edge from a correctly-mapped
-// neighbour, but for top-level direct imports it is a real blind
+// neighbor, but for top-level direct imports it is a real blind
 // spot. PRs welcome.
 var moduleToDistOverrides = map[string]string{
 	// Common mismatches drawn from the most-downloaded PyPI packages.

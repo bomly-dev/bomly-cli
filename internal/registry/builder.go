@@ -39,11 +39,11 @@ import (
 	"go.uber.org/zap"
 )
 
-// RegistryConfigs holds built-in registry wiring options resolved by the CLI layer.
-type RegistryConfigs struct {
+// Configs holds built-in registry wiring options resolved by the CLI layer.
+type Configs struct {
 	// FailOn is the parsed list of --fail-on constraints. The policy
 	// auditor evaluates findings against this AND-set; an empty slice
-	// preserves the historical behaviour of emitting every finding.
+	// preserves the historical behavior of emitting every finding.
 	FailOn                []sdk.FailOnConstraint
 	AllowVulnerabilityIDs []string
 	AllowLicenses         []string
@@ -73,8 +73,8 @@ type RegistryConfigs struct {
 	HTTPClientProvider    *sdk.HTTPClientProvider
 }
 
-// RegistryFilter narrows a registry down to the runtime-relevant selections.
-type RegistryFilter struct {
+// Filter narrows a registry down to the runtime-relevant selections.
+type Filter struct {
 	DetectorFilter  sdk.DetectorFilter
 	AuditorFilter   sdk.AuditorFilter
 	MatcherFilter   sdk.MatcherFilter
@@ -103,7 +103,7 @@ func (p DetectorDiscoveryPlan) Clone() DetectorDiscoveryPlan {
 // Registry holds registered detectors, auditors, matchers, analyzers, and discovery plans.
 type Registry struct {
 	logger          *zap.Logger
-	configs         RegistryConfigs
+	configs         Configs
 	detectors       []sdk.Detector
 	auditors        []sdk.Auditor
 	matchers        []sdk.Matcher
@@ -185,7 +185,7 @@ func (a analyzerWithDescriptor) Descriptor() sdk.AnalyzerDescriptor {
 }
 
 // NewRegistry creates an empty registry.
-func NewRegistry(configs RegistryConfigs, logger zap.Logger) *Registry {
+func NewRegistry(configs Configs, logger zap.Logger) *Registry {
 	return &Registry{
 		logger:          &logger,
 		configs:         configs,
@@ -744,7 +744,7 @@ func (r *Registry) DiscoveryPlans() map[string]DetectorDiscoveryPlan {
 
 // Filter returns a copy of the registry filtered by the supplied detector, auditor,
 // matcher, and ecosystem selections.
-func (r *Registry) Filter(filter RegistryFilter) *Registry {
+func (r *Registry) Filter(filter Filter) *Registry {
 	filtered := NewRegistry(r.configs, *r.logger)
 	filtered.httpProvider = r.httpProvider
 	for key, enabled := range r.defaultEnabled {

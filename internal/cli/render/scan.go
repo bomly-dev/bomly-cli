@@ -43,18 +43,18 @@ func Scan(manifests []output.ScanManifest, g *sdk.Graph, registry *sdk.PackageRe
 	summary := output.SummaryFromFindings(findings)
 	roots, direct, transitive := scanRelationshipCounts(g)
 	runtimeCount, developmentCount, unknownScopeCount := scanScopeCounts(g)
-	fmt.Fprintf(&b, "Executive Summary\n")
-	fmt.Fprintf(&b, "  Packages: %d total\n", g.Size())
-	fmt.Fprintf(&b, "  Relationships: %d root, %d direct, %d transitive\n", roots, direct, transitive)
-	fmt.Fprintf(&b, "  Scopes: %d runtime, %d development, %d unspecified\n", runtimeCount, developmentCount, unknownScopeCount)
-	fmt.Fprintf(&b, "  Vulnerability enrichment: %s\n", formatEnrichmentSummary(registry, enrichEnabled))
-	fmt.Fprintf(&b, "  Policy findings: %s\n", formatAuditSummary(summary, auditEnabled))
+	_, _ = fmt.Fprintf(&b, "Executive Summary\n")
+	_, _ = fmt.Fprintf(&b, "  Packages: %d total\n", g.Size())
+	_, _ = fmt.Fprintf(&b, "  Relationships: %d root, %d direct, %d transitive\n", roots, direct, transitive)
+	_, _ = fmt.Fprintf(&b, "  Scopes: %d runtime, %d development, %d unspecified\n", runtimeCount, developmentCount, unknownScopeCount)
+	_, _ = fmt.Fprintf(&b, "  Vulnerability enrichment: %s\n", formatEnrichmentSummary(registry, enrichEnabled))
+	_, _ = fmt.Fprintf(&b, "  Policy findings: %s\n", formatAuditSummary(summary, auditEnabled))
 	if reachabilityEnabled {
-		fmt.Fprintf(&b, "  Reachability: %s\n", formatReachabilitySummary(registry))
+		_, _ = fmt.Fprintf(&b, "  Reachability: %s\n", formatReachabilitySummary(registry))
 	}
-	fmt.Fprintf(&b, "  Unique licenses: %d\n", scanUniqueLicenseCount(g, registry))
+	_, _ = fmt.Fprintf(&b, "  Unique licenses: %d\n", scanUniqueLicenseCount(g, registry))
 	if scoredCount, totalRepos := scorecardCounts(registry); totalRepos > 0 {
-		fmt.Fprintf(&b, "  Project posture: %d Scorecard run(s) across %d package(s)\n", totalRepos, scoredCount)
+		_, _ = fmt.Fprintf(&b, "  Project posture: %d Scorecard run(s) across %d package(s)\n", totalRepos, scoredCount)
 	}
 
 	b.WriteString("\nManifests\n")
@@ -656,23 +656,6 @@ func renderScorecardTable(registry *sdk.PackageRegistry) string {
 	}
 	_ = tw.Flush()
 	return strings.TrimRight(b.String(), "\n")
-}
-
-func packageLicenseIdentifiers(pkg *sdk.Package) string {
-	if pkg == nil || len(pkg.Licenses) == 0 {
-		return ""
-	}
-	values := make([]string, 0, len(pkg.Licenses))
-	for _, license := range pkg.Licenses {
-		if identifier := graphLicenseIdentifier(license); identifier != "" {
-			values = append(values, identifier)
-		}
-	}
-	if len(values) == 0 {
-		return ""
-	}
-	sort.Strings(values)
-	return strings.Join(values, ", ")
 }
 
 func graphLicenseIdentifier(license sdk.PackageLicense) string {

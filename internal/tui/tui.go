@@ -62,10 +62,6 @@ type navigationModel interface {
 	CanGoBack() bool
 }
 
-type toggleModel interface {
-	ToggleSelected()
-}
-
 type treeControlModel interface {
 	ExpandSelected()
 	CollapseSelected()
@@ -81,7 +77,7 @@ type detailScrollModel interface {
 	ScrollDetails(delta int)
 }
 
-// paneFocusModel routes Enter / arrow-key behaviour through the shared
+// paneFocusModel routes Enter / arrow-key behavior through the shared
 // focus state. The teaModel keyboard handler queries this interface so
 // every command's TUI (scan, explain, diff) gets the same Enter-to-focus,
 // arrow-keys-scroll-details flow without duplicating logic per command.
@@ -236,7 +232,7 @@ const (
 	interactiveScanViewSource   scanView = "source"
 )
 
-type scanModel struct {
+type ScanModel struct {
 	*shellModel
 
 	titlePrefix           string
@@ -745,7 +741,7 @@ func (m *listModel) View(width, height int) string {
 	if strings.TrimSpace(m.listHeader) != "" {
 		listLines = append([]string{render.Style(truncateToWidth(m.listHeader, listWidth-2), render.Dim, render.Bold)}, listLines...)
 	}
-	detailLines := []string{}
+	var detailLines []string
 	if !fullWidthList {
 		detailLines = m.visibleDetailLines(m.items[selectedIndex].details, detailWidth-2, contentHeight)
 	}
@@ -758,7 +754,7 @@ func (m *listModel) View(width, height int) string {
 	leftColor := render.Cyan
 	rightColor := render.Magenta
 	if m.detailsFocused {
-		// Flip the active box to a high-contrast colour and dim the inactive
+		// Flip the active box to a high-contrast color and dim the inactive
 		// one so the user sees at a glance which pane consumes arrow keys.
 		leftColor = render.Dim
 		rightColor = render.Yellow

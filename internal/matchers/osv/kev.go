@@ -60,7 +60,7 @@ func FetchKEVCatalog(cache *audcache.FileCache, clients ...*http.Client) (*KEVCa
 	if err != nil {
 		return nil, fmt.Errorf("fetch kev catalog: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("kev catalog returned status %d", resp.StatusCode)

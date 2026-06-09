@@ -1,4 +1,4 @@
-# Hand-written prose for generated docs
+# Handwritten prose for generated docs
 
 The files in this tree are embedded into the auto-generated detector and
 matcher pages by `internal/support/component_docs.go`. The structured

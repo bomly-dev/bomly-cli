@@ -1106,7 +1106,7 @@ func TestScanInteractiveModel_SeverityFilterIncludesAnyAndNone(t *testing.T) {
 	}
 }
 
-func newScanReachabilityFilterModel(t *testing.T, enabled bool) *scanModel {
+func newScanReachabilityFilterModel(t *testing.T, enabled bool) *ScanModel {
 	t.Helper()
 	vulnerability := func(id string, reachability *sdk.Reachability) sdk.Vulnerability {
 		return sdk.Vulnerability{ID: id, ParsedSeverity: "high", Reachability: reachability}
@@ -1160,7 +1160,7 @@ func newScanReachabilityFilterModel(t *testing.T, enabled bool) *scanModel {
 	return NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil).WithRegistry(registry).WithEnrichEnabled(true).WithReachabilityEnabled(enabled)
 }
 
-func assertInteractiveListTitles(t *testing.T, model *scanModel, contains, excludes []string) {
+func assertInteractiveListTitles(t *testing.T, model *ScanModel, contains, excludes []string) {
 	t.Helper()
 	titles := make([]string, 0, len(model.List().items))
 	for _, item := range model.List().items {
@@ -1194,7 +1194,7 @@ func listTitlesContain(titles []string, want string) bool {
 	return false
 }
 
-func assertInteractiveItemBadges(t *testing.T, model *scanModel, title string, expectedReachability []string) {
+func assertInteractiveItemBadges(t *testing.T, model *ScanModel, title string, expectedReachability []string) {
 	t.Helper()
 	for _, item := range model.List().items {
 		if item.title != title && !strings.HasPrefix(item.title, title+"  ") {
@@ -1361,7 +1361,7 @@ func TestScanInteractiveModel_ComponentExpandCollapseAllProgressesByLayer(t *tes
 	assertViewContains(t, model, []string{"package-lock.json"}, []string{"demo-app@1.0.0"})
 }
 
-func assertViewContains(t *testing.T, model *scanModel, contains, excludes []string) {
+func assertViewContains(t *testing.T, model *ScanModel, contains, excludes []string) {
 	t.Helper()
 	plain := render.StripANSI(model.View(120, 30))
 	for _, want := range contains {

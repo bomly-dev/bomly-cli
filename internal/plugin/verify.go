@@ -57,7 +57,7 @@ func Verify(ctx context.Context, root, id string) (*VerifyResult, error) {
 	}
 	checks = append(checks, "runtime descriptor matches installed snapshot", "plugin API version compatible")
 	return &VerifyResult{
-		PluginInfo: PluginInfo{
+		Info: Info{
 			Manifest:           manifest,
 			DetectorDescriptor: installedSnapshot.DetectorDescriptor,
 			MatcherDescriptor:  installedSnapshot.MatcherDescriptor,

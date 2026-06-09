@@ -198,7 +198,7 @@ func (a *Matcher) Ready() bool {
 }
 
 // Applicable reports whether this matcher applies to the given request.
-func (a *Matcher) Applicable(_ context.Context, req sdk.MatchRequest) (bool, error) {
+func (a *Matcher) Applicable(_ context.Context, _ sdk.MatchRequest) (bool, error) {
 	return true, nil
 }
 
@@ -249,7 +249,7 @@ func (a *Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResul
 			continue
 		}
 		if !a.config.BypassCache {
-			if found, hit := cache.Get[[]OsvVulnerability](a.cache, key); hit {
+			if found, hit := cache.Get[[]Vulnerability](a.cache, key); hit {
 				stats.cacheHits++
 				stats.cachedFindings += len(found)
 				for _, v := range found {
@@ -301,13 +301,13 @@ func (a *Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResul
 			}
 			// Fetch full details for each ID (checks detail cache first).
 			details := a.fetchVulnDetails(ids, &stats)
-			// Build full OsvVulnerability slice for package-level caching.
-			vulns := make([]OsvVulnerability, 0, len(result.Vulns))
+			// Build full Vulnerability slice for package-level caching.
+			vulns := make([]Vulnerability, 0, len(result.Vulns))
 			for _, ref := range result.Vulns {
 				if full, ok := details[ref.ID]; ok {
 					vulns = append(vulns, *full)
 				} else {
-					vulns = append(vulns, OsvVulnerability{ID: ref.ID, Modified: ref.Modified})
+					vulns = append(vulns, Vulnerability{ID: ref.ID, Modified: ref.Modified})
 				}
 			}
 			// Cache the full objects at the package level (24 h TTL).
@@ -380,8 +380,8 @@ func osvMatcherStats(enriched map[string][]sdk.Vulnerability, requestedPackages 
 
 // fetchVulnDetails retrieves full OsvVulnerability records for the given IDs,
 // checking the detail cache first and fetching from the OSV API for misses.
-func (a *Matcher) fetchVulnDetails(ids []string, stats *auditStats) map[string]*OsvVulnerability {
-	result := make(map[string]*OsvVulnerability, len(ids))
+func (a *Matcher) fetchVulnDetails(ids []string, stats *auditStats) map[string]*Vulnerability {
+	result := make(map[string]*Vulnerability, len(ids))
 	var toFetch []string
 	if stats != nil {
 		stats.detailRequested += len(ids)
@@ -389,7 +389,7 @@ func (a *Matcher) fetchVulnDetails(ids []string, stats *auditStats) map[string]*
 	for _, id := range ids {
 		key := cache.NewKey(id, "", "", "")
 		if a.detailCache != nil {
-			if found, hit := cache.Get[OsvVulnerability](a.detailCache, key); hit {
+			if found, hit := cache.Get[Vulnerability](a.detailCache, key); hit {
 				if stats != nil {
 					stats.detailCacheHits++
 				}
@@ -422,7 +422,7 @@ func (a *Matcher) fetchVulnDetails(ids []string, stats *auditStats) map[string]*
 				stats.detailFetchFailures++
 			}
 			a.logger.Warn("osv: failed to fetch vulnerability detail", zap.String("id", id), zap.Error(err))
-			result[id] = &OsvVulnerability{ID: id} // stub so we still emit the finding
+			result[id] = &Vulnerability{ID: id} // stub so we still emit the finding
 			continue
 		}
 		if stats != nil {

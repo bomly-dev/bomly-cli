@@ -7,7 +7,7 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-func registerDiffTool(s *server.MCPServer, mcpCtx MCPContext) {
+func registerDiffTool(s *server.MCPServer, mcpCtx Context) {
 	tool := mcplib.NewTool("bomly_diff",
 		mcplib.WithDescription("Compare dependency states between two Git refs. Returns added, removed, and changed packages with optional audit delta."),
 		mcplib.WithString("base",

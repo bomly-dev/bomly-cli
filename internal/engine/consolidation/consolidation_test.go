@@ -190,13 +190,13 @@ func TestConsolidateGraphs_DeduplicatesManifestAndPrefersNative(t *testing.T) {
 }
 
 func TestManifestDedupPriorityPrefersNativeOverSyft(t *testing.T) {
-	if got := ManifestDedupPriority(sdk.CoreOrigin, sdk.BuildToolTechnique); got != 1 {
+	if got := ManifestDedupPriority(sdk.CoreOrigin); got != 1 {
 		t.Fatalf("expected core build-tool detector priority 1, got %d", got)
 	}
-	if got := ManifestDedupPriority(sdk.BundledOrigin, sdk.MultipleTechnique); got != 2 {
+	if got := ManifestDedupPriority(sdk.BundledOrigin); got != 2 {
 		t.Fatalf("expected bundled multiple-technique detector priority 2, got %d", got)
 	}
-	if ManifestDedupPriority(sdk.CoreOrigin, sdk.BuildToolTechnique) >= ManifestDedupPriority(sdk.BundledOrigin, sdk.MultipleTechnique) {
+	if ManifestDedupPriority(sdk.CoreOrigin) >= ManifestDedupPriority(sdk.BundledOrigin) {
 		t.Fatal("expected core detector to outrank bundled multiple-technique detector for manifest deduplication")
 	}
 }

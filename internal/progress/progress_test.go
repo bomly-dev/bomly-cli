@@ -277,7 +277,7 @@ func TestMinStepDuration_CompleteBlocksForMinDuration(t *testing.T) {
 
 	stepA := p.Start("a", "Stage A")
 	// Step.Complete itself must block until the configured window elapses —
-	// this is what serialises per-step holds (each step's ✔ is visible
+	// this is what serializes per-step holds (each step's ✔ is visible
 	// for at least minStepDuration before the next CLI operation proceeds).
 	start := time.Now()
 	stepA.Complete("Did Stage A", nil)
@@ -376,7 +376,7 @@ func TestMinStepDuration_SuccessHonorsHold(t *testing.T) {
 
 	// Success is the normal exit path; with the hidden knob set, it must
 	// wait for the held step to satisfy its minimum on-screen duration
-	// before finalising and returning control to the caller. Without this,
+	// before finalizing and returning control to the caller. Without this,
 	// fast scans would force-promote everything in microseconds and the
 	// knob would be useless.
 	start := time.Now()

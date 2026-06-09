@@ -46,7 +46,7 @@ func (p *Pipeline) RunExplain(ctx context.Context, req ExplainRequest) (ExplainR
 	if err := p.runResolve(ctx, &base, pipeReq); err != nil {
 		return ExplainResult{PipelineResult: base}, err
 	}
-	if err := p.runConsolidate(&base, pipeReq); err != nil {
+	if err := p.runConsolidate(&base); err != nil {
 		return ExplainResult{PipelineResult: base}, err
 	}
 	p.runMatch(ctx, &base, pipeReq)

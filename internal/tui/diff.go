@@ -10,15 +10,6 @@ import (
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
-type diffStatus string
-
-const (
-	diffStatusAll     diffStatus = ""
-	diffStatusAdded   diffStatus = "added"
-	diffStatusRemoved diffStatus = "removed"
-	diffStatusChanged diffStatus = "changed"
-)
-
 // componentsGroup names the cycling-axis for the Components tab. "status"
 // groups Added/Changed/Removed; "manifest" groups by manifest (the old
 // nested tree); "ecosystem" groups by ecosystem.
@@ -37,10 +28,10 @@ const (
 	diffSourceHead diffSourceSide = "head"
 )
 
-// diffModel renders the interactive `bomly diff` TUI. Tab cycling, the tab
+// DiffModel renders the interactive `bomly diff` TUI. Tab cycling, the tab
 // strip, and the top bar are owned by the embedded *shellModel; this struct
 // holds diff payload data and per-tab state (filters, expansion maps).
-type diffModel struct {
+type DiffModel struct {
 	*shellModel
 
 	payload   output.DiffResponse
@@ -78,8 +69,8 @@ type diffModel struct {
 
 // NewDiff constructs the diff TUI model. baseGraph and headGraph are the
 // consolidated graphs from the two pipeline runs; they feed the Source tab.
-func NewDiff(payload output.DiffResponse, baseGraph, headGraph sdk.ConsolidatedGraph) *diffModel {
-	m := &diffModel{
+func NewDiff(payload output.DiffResponse, baseGraph, headGraph sdk.ConsolidatedGraph) *DiffModel {
+	m := &DiffModel{
 		payload:            payload,
 		baseGraph:          baseGraph,
 		headGraph:          headGraph,
@@ -117,7 +108,7 @@ func NewDiff(payload output.DiffResponse, baseGraph, headGraph sdk.ConsolidatedG
 
 // WithRegistry attaches the base/head package registries so source-tree package
 // details can show matcher and analyzer enrichment by PURL.
-func (m *diffModel) WithRegistry(base, head *sdk.PackageRegistry) *diffModel {
+func (m *DiffModel) WithRegistry(base, head *sdk.PackageRegistry) *DiffModel {
 	if m == nil {
 		return nil
 	}
@@ -129,7 +120,7 @@ func (m *diffModel) WithRegistry(base, head *sdk.PackageRegistry) *diffModel {
 
 // WithEnrichEnabled records whether enrichment ran, so empty Vuln/Findings
 // tabs can distinguish "not requested" from "no matches".
-func (m *diffModel) WithEnrichEnabled(enabled bool) *diffModel {
+func (m *DiffModel) WithEnrichEnabled(enabled bool) *DiffModel {
 	if m == nil {
 		return nil
 	}
@@ -140,7 +131,7 @@ func (m *diffModel) WithEnrichEnabled(enabled bool) *diffModel {
 
 // CycleGroup is the per-tab "g" key handler. Each tab interprets it
 // differently (grouping axis, source-side focus).
-func (m *diffModel) CycleGroup() {
+func (m *DiffModel) CycleGroup() {
 	switch m.ActiveTabID() {
 	case "components":
 		m.componentsGroup = nextComponentsGroup(m.componentsGroup)
@@ -166,7 +157,7 @@ func (m *diffModel) CycleGroup() {
 
 // CycleRelationshipFilter advances the relationship filter on the Components
 // tab (None → root → direct → transitive → None).
-func (m *diffModel) CycleRelationshipFilter() {
+func (m *DiffModel) CycleRelationshipFilter() {
 	if m.ActiveTabID() != "components" {
 		return
 	}
@@ -175,7 +166,7 @@ func (m *diffModel) CycleRelationshipFilter() {
 }
 
 // CycleScopeFilter advances the scope filter (None → runtime → development → unset → None).
-func (m *diffModel) CycleScopeFilter() {
+func (m *DiffModel) CycleScopeFilter() {
 	if m.ActiveTabID() != "components" {
 		return
 	}
@@ -185,7 +176,7 @@ func (m *diffModel) CycleScopeFilter() {
 
 // CycleSeverityFilter advances the severity filter on the Components tab
 // (driven by attached PackageRef.Vulnerabilities).
-func (m *diffModel) CycleSeverityFilter() {
+func (m *DiffModel) CycleSeverityFilter() {
 	if m.ActiveTabID() != "components" {
 		return
 	}
@@ -195,7 +186,7 @@ func (m *diffModel) CycleSeverityFilter() {
 
 // CycleEcosystemFilter advances the ecosystem filter, drawn from the
 // distinct ecosystems present across changed manifests.
-func (m *diffModel) CycleEcosystemFilter() {
+func (m *DiffModel) CycleEcosystemFilter() {
 	if m.ActiveTabID() != "components" {
 		return
 	}
@@ -237,19 +228,19 @@ func cycleString(current string, options []string) string {
 }
 
 // ToggleSelected toggles the expansion of the currently-focused tree node.
-func (m *diffModel) ToggleSelected() { m.setSelectedExpansion(toggleExpansion) }
+func (m *DiffModel) ToggleSelected() { m.setSelectedExpansion(toggleExpansion) }
 
 // ExpandSelected forces the focused node open.
-func (m *diffModel) ExpandSelected() { m.setSelectedExpansion(forceExpand) }
+func (m *DiffModel) ExpandSelected() { m.setSelectedExpansion(forceExpand) }
 
 // CollapseSelected forces the focused node closed.
-func (m *diffModel) CollapseSelected() { m.setSelectedExpansion(forceCollapse) }
+func (m *DiffModel) CollapseSelected() { m.setSelectedExpansion(forceCollapse) }
 
 // ExpandAll opens every expandable node in the active tab.
-func (m *diffModel) ExpandAll() { m.setAllExpansion(true) }
+func (m *DiffModel) ExpandAll() { m.setAllExpansion(true) }
 
 // CollapseAll closes every expandable node in the active tab.
-func (m *diffModel) CollapseAll() { m.setAllExpansion(false) }
+func (m *DiffModel) CollapseAll() { m.setAllExpansion(false) }
 
 type expansionAction int
 
@@ -259,7 +250,7 @@ const (
 	forceCollapse
 )
 
-func (m *diffModel) currentExpansionMap() map[string]bool {
+func (m *DiffModel) currentExpansionMap() map[string]bool {
 	switch m.ActiveTabID() {
 	case "components":
 		return m.componentsExpanded
@@ -280,7 +271,7 @@ func (m *diffModel) currentExpansionMap() map[string]bool {
 	return nil
 }
 
-func (m *diffModel) setSelectedExpansion(action expansionAction) {
+func (m *DiffModel) setSelectedExpansion(action expansionAction) {
 	expansion := m.currentExpansionMap()
 	if expansion == nil {
 		return
@@ -314,7 +305,7 @@ func (m *diffModel) setSelectedExpansion(action expansionAction) {
 	m.rebuildPreserveSelection()
 }
 
-func (m *diffModel) setAllExpansion(expanded bool) {
+func (m *DiffModel) setAllExpansion(expanded bool) {
 	expansion := m.currentExpansionMap()
 	if expansion == nil {
 		return
@@ -329,7 +320,7 @@ func (m *diffModel) setAllExpansion(expanded bool) {
 	m.rebuildPreserveSelection()
 }
 
-func (m *diffModel) rebuildPreserveSelection() {
+func (m *DiffModel) rebuildPreserveSelection() {
 	list := m.List()
 	prevSelected := 0
 	if list != nil {
@@ -347,7 +338,7 @@ func (m *diffModel) rebuildPreserveSelection() {
 // every diff tab. Each count is a *delta total* — items that changed
 // between base and head — so the numbers add up to "what this diff
 // represents." See diffAggregateCounts for the exact semantics.
-func (m *diffModel) diffFooterSummary() string {
+func (m *DiffModel) diffFooterSummary() string {
 	c := m.diffAggregateCounts()
 	return fmt.Sprintf("Manifests: %d | Packages: %d | Vulns: %d | Licenses: %d | Findings: %d",
 		c.ManifestDeltas, c.PackageDeltas, c.VulnDeltas, c.LicenseUniqueDeltas, c.FindingDeltas)
@@ -383,7 +374,7 @@ type diffAggregateCounts struct {
 	FindingDeltas       int
 }
 
-func (m *diffModel) diffAggregateCounts() diffAggregateCounts {
+func (m *DiffModel) diffAggregateCounts() diffAggregateCounts {
 	s := m.payload.Summary
 	out := diffAggregateCounts{
 		ManifestDeltas: s.AddedManifestCount + s.ChangedManifestCount + s.RemovedManifestCount,
@@ -410,7 +401,7 @@ func (m *diffModel) diffAggregateCounts() diffAggregateCounts {
 
 // diffLegend mirrors scan's legend so the keyboard help row reads identical
 // across commands.
-func (m *diffModel) diffLegend() string {
+func (m *DiffModel) diffLegend() string {
 	return strings.Join([]string{
 		keyHint("Tab", "switch"),
 		keyHint("Enter", "focus details"),
@@ -423,7 +414,7 @@ func (m *diffModel) diffLegend() string {
 	}, " ")
 }
 
-func (m *diffModel) topBarLine() string {
+func (m *DiffModel) topBarLine() string {
 	parts := []string{
 		render.Style(valueOrDash(m.payload.Project.Name), render.White, render.Bold),
 		render.Style(targetKindLabel(m.payload.Project), render.Dim),
@@ -443,7 +434,7 @@ func (m *diffModel) topBarLine() string {
 // render its custom dashboard layout. All other tabs (including Source,
 // which uses listModel.bodyOverride for its two-pane body) fall through
 // to the shared shellModel renderer so the chrome stays identical.
-func (m *diffModel) View(width, height int) string {
+func (m *DiffModel) View(width, height int) string {
 	if m == nil || m.shellModel == nil {
 		return ""
 	}
@@ -453,7 +444,7 @@ func (m *diffModel) View(width, height int) string {
 	return m.shellModel.View(width, height) //nolint:staticcheck // explicit selector bypasses the View shadow on the embedding model
 }
 
-func (m *diffModel) buildOverviewTab() *listModel {
+func (m *DiffModel) buildOverviewTab() *listModel {
 	summary := m.payload.Summary
 	items := []listItem{
 		{
@@ -603,7 +594,7 @@ type diffOverviewStats struct {
 	auditRan bool
 }
 
-func (m *diffModel) computeOverviewStats() diffOverviewStats {
+func (m *DiffModel) computeOverviewStats() diffOverviewStats {
 	out := diffOverviewStats{
 		ecosystems:       make(map[string]int),
 		scopes:           make(map[string]int),
@@ -757,7 +748,7 @@ func auditStatusLabel(status string) string {
 	return strings.ToLower(strings.TrimSpace(status))
 }
 
-// auditStatusTitle is auditStatusLabel with the first letter capitalised
+// auditStatusTitle is auditStatusLabel with the first letter capitalized
 // (for bucket headers and labels inside boxes).
 func auditStatusTitle(status string) string {
 	return titleCase(auditStatusLabel(status))
@@ -914,7 +905,7 @@ func classifyRelationships(g *sdk.Graph) map[string]string {
 // finding's Disposition gates the exit code (i.e. `output.FailingFindingCount`
 // returns > 0). Persisted and resolved findings never gate exit code on
 // their own.
-func (m *diffModel) overviewHeadline(width int) string {
+func (m *DiffModel) overviewHeadline(width int) string {
 	stats := m.computeOverviewStats()
 	v := m.auditVerdict()
 	parts := make([]string, 0, 4)
@@ -956,7 +947,7 @@ func (m *diffModel) overviewHeadline(width int) string {
 	return truncateToWidth(strings.Join(parts, sep), width)
 }
 
-func (m *diffModel) overviewDashboardView(width, height int) string {
+func (m *DiffModel) overviewDashboardView(width, height int) string {
 	if width < 80 || height < 22 {
 		return m.shellModel.View(width, height) //nolint:staticcheck // explicit selector bypasses the View shadow on the embedding model
 	}
@@ -1058,7 +1049,7 @@ func (m *diffModel) overviewDashboardView(width, height int) string {
 }
 
 // diffFooterLines mirrors scan's scanFooterLines for use by the dashboard.
-func (m *diffModel) diffFooterLines(width int) []string {
+func (m *DiffModel) diffFooterLines(width int) []string {
 	return []string{
 		statusBar(m.diffFooterSummary(), width),
 		centerLine(m.diffLegend(), width),
@@ -1213,7 +1204,7 @@ func diffVulnCount(p output.DiffResponse, status string) int {
 	return n
 }
 
-func (m *diffModel) overviewPanels() []listPanel {
+func (m *DiffModel) overviewPanels() []listPanel {
 	summary := m.payload.Summary
 	panels := []listPanel{
 		{title: "Manifests", lines: []string{
@@ -1243,7 +1234,7 @@ func (m *diffModel) overviewPanels() []listPanel {
 	return panels
 }
 
-func (m *diffModel) overviewAuditDetails() []string {
+func (m *DiffModel) overviewAuditDetails() []string {
 	audit := m.payload.Audit
 	if audit == nil {
 		return []string{render.Style("Audit data not available. Run with --enrich --audit.", render.Dim)}
@@ -1257,7 +1248,7 @@ func (m *diffModel) overviewAuditDetails() []string {
 	}
 }
 
-func (m *diffModel) overviewAuditSummaryDetails() []string {
+func (m *DiffModel) overviewAuditSummaryDetails() []string {
 	audit := m.payload.Audit
 	if audit == nil || audit.AuditSummary == nil {
 		return []string{render.Style("Severity histogram not available.", render.Dim)}
@@ -1275,7 +1266,7 @@ func (m *diffModel) overviewAuditSummaryDetails() []string {
 	}
 }
 
-func (m *diffModel) overviewTopChangedManifests() []string {
+func (m *DiffModel) overviewTopChangedManifests() []string {
 	type ranked struct {
 		name  string
 		count int
@@ -1325,7 +1316,7 @@ type flatComponentChange struct {
 	relationship string // root/direct/transitive — looked up in head/base graph
 }
 
-func (m *diffModel) collectComponentChanges() []flatComponentChange {
+func (m *DiffModel) collectComponentChanges() []flatComponentChange {
 	headRels := map[string]string{}
 	if g, _ := graphFromConsolidated(m.headGraph); g != nil {
 		headRels = classifyRelationships(g)
@@ -1387,13 +1378,6 @@ func (m *diffModel) collectComponentChanges() []flatComponentChange {
 	return out
 }
 
-func relationshipFromMap(rels map[string]string, id string) string {
-	if r, ok := rels[id]; ok {
-		return r
-	}
-	return ""
-}
-
 func maxSeverity(vulns []output.VulnerabilityRef) string {
 	best := ""
 	bestRank := severityRank("zzz")
@@ -1410,7 +1394,7 @@ func maxSeverity(vulns []output.VulnerabilityRef) string {
 	return best
 }
 
-func (m *diffModel) buildComponentsTab() *listModel {
+func (m *DiffModel) buildComponentsTab() *listModel {
 	all := m.collectComponentChanges()
 
 	// Apply filters.
@@ -1561,7 +1545,7 @@ func sortedComponentsGroupKeys(groups map[string][]flatComponentChange, group co
 	return keys
 }
 
-func (m *diffModel) componentsGroupDetails(key string, group componentsGroup, items []flatComponentChange) []string {
+func (m *DiffModel) componentsGroupDetails(key string, group componentsGroup, items []flatComponentChange) []string {
 	lines := []string{
 		render.Style(componentsGroupLabel(key, group), render.Bold, render.Cyan),
 		"",
@@ -1635,7 +1619,7 @@ func componentChangeBadges(c flatComponentChange) []badge {
 // row. For changed packages it shows BEFORE/AFTER for version, scope,
 // licenses, and vulnerabilities so the user can see exactly what shifted.
 // For added/removed packages it shows the package's full inventory.
-func (m *diffModel) detectorForManifest(mf output.DiffManifestResult) string {
+func (m *DiffModel) detectorForManifest(mf output.DiffManifestResult) string {
 	if det := lookupDetector(m.headGraph, mf); det != "" {
 		return det
 	}
@@ -1820,99 +1804,6 @@ func diffManifestKey(mf output.DiffManifestResult) string {
 	return mf.Path + "|" + mf.Subproject + "|" + mf.PackageManager
 }
 
-func sortedDiffManifests(manifests []output.DiffManifestResult) []output.DiffManifestResult {
-	sorted := append([]output.DiffManifestResult(nil), manifests...)
-	sort.Slice(sorted, func(i, j int) bool {
-		left := sorted[i]
-		right := sorted[j]
-		if left.Status != right.Status {
-			return render.DiffManifestStatusOrder(left.Status) < render.DiffManifestStatusOrder(right.Status)
-		}
-		if left.Path != right.Path {
-			return left.Path < right.Path
-		}
-		if left.PackageManager != right.PackageManager {
-			return left.PackageManager < right.PackageManager
-		}
-		return left.Subproject < right.Subproject
-	})
-	return sorted
-}
-
-func diffPackageDetails(title string, manifest output.DiffManifestResult, label, before, after string, pkg output.PackageRef) []string {
-	lines := []string{
-		render.Style(title, render.Bold, render.Cyan),
-		"",
-		render.Style("  Package: ", render.Dim) + valueOrDash(label),
-		render.Style("  Manifest: ", render.Dim) + render.DiffManifestDisplayLabel(manifest),
-		render.Style("  Status: ", render.Dim) + statusText(manifest.Status),
-		render.Style("  Ecosystem: ", render.Dim) + valueOrDash(manifest.Ecosystem),
-		render.Style("  Package manager: ", render.Dim) + valueOrDash(manifest.PackageManager),
-	}
-	if before != "" || after != "" {
-		lines = append(lines,
-			"",
-			render.Style("Version Change", render.Bold, render.Magenta),
-			"",
-			render.Style("  Before: ", render.Dim)+valueOrDash(before),
-			render.Style("  After: ", render.Dim)+valueOrDash(after),
-		)
-	}
-	if len(pkg.Licenses) > 0 {
-		lines = append(lines, "", render.Style("Licenses", render.Bold, render.Yellow), "")
-		for _, lic := range pkg.Licenses {
-			lines = append(lines, render.Style("  - ", render.Dim)+valueOrDash(lic.Identifier()))
-		}
-	}
-	if len(pkg.Vulnerabilities) > 0 {
-		lines = append(lines, "", render.Style("Vulnerabilities", render.Bold, render.Red), "")
-		for _, v := range pkg.Vulnerabilities {
-			lines = append(lines, render.Style("  - ", render.Dim)+severityText(v.Severity)+" "+valueOrDash(v.ID))
-		}
-	}
-	return lines
-}
-
-func diffManifestDetails(manifest output.DiffManifestResult) []string {
-	lines := []string{
-		render.Style("Manifest", render.Bold, render.Cyan),
-		render.Style("  Status: ", render.Dim) + statusText(manifest.Status),
-		render.Style("  Path: ", render.Dim) + valueOrDash(manifest.Path),
-		render.Style("  Kind: ", render.Dim) + valueOrDash(manifest.Kind),
-		render.Style("  Subproject: ", render.Dim) + valueOrDash(manifest.Subproject),
-		render.Style("  Ecosystem: ", render.Dim) + valueOrDash(manifest.Ecosystem),
-		render.Style("  Package manager: ", render.Dim) + valueOrDash(manifest.PackageManager),
-		"",
-	}
-	appendSection := func(title string, values []string) {
-		lines = append(lines, render.Style(title, render.Bold, render.Magenta))
-		if len(values) == 0 {
-			lines = append(lines, render.Style("  (none)", render.Dim), "")
-			return
-		}
-		for _, v := range values {
-			lines = append(lines, render.Style("  - ", render.Dim)+v)
-		}
-		lines = append(lines, "")
-	}
-	added := make([]string, 0, len(manifest.Added))
-	for _, change := range manifest.Added {
-		added = append(added, render.DiffPackageDisplayName(change.Package))
-	}
-	changed := make([]string, 0, len(manifest.Changed))
-	for _, change := range manifest.Changed {
-		changed = append(changed, fmt.Sprintf("%s (%s -> %s)", render.DiffPackageDisplayName(change.After), valueOrDash(change.Before.Version), valueOrDash(change.After.Version)))
-	}
-	removed := make([]string, 0, len(manifest.Removed))
-	for _, change := range manifest.Removed {
-		removed = append(removed, render.DiffPackageDisplayName(change.Package))
-	}
-	appendSection("Added packages", added)
-	appendSection("Changed packages", changed)
-	appendSection("Removed packages", removed)
-	return lines
-}
-
 // --- Vulnerabilities / Findings tab ---------------------------------------
 
 type auditDelta struct {
@@ -1925,7 +1816,7 @@ type auditDelta struct {
 // matching `keep`. A nil predicate keeps every finding — used by the
 // Findings tab which spans every FindingKind. The Vulnerabilities tab
 // passes isVulnerabilityFinding.
-func (m *diffModel) auditDeltas(keep func(output.AuditFinding) bool) []auditDelta {
+func (m *DiffModel) auditDeltas(keep func(output.AuditFinding) bool) []auditDelta {
 	out := make([]auditDelta, 0)
 	if m.payload.Audit == nil {
 		return out
@@ -1995,7 +1886,7 @@ func nextFindingGroup(group string) string {
 	}
 }
 
-func (m *diffModel) buildVulnsTab() *listModel {
+func (m *DiffModel) buildVulnsTab() *listModel {
 	list := m.buildAuditTab(auditTabConfig{
 		keep:       isVulnerabilityFinding,
 		group:      m.vulnGroup,
@@ -2008,7 +1899,7 @@ func (m *diffModel) buildVulnsTab() *listModel {
 	return list
 }
 
-func (m *diffModel) buildFindingsTab() *listModel {
+func (m *DiffModel) buildFindingsTab() *listModel {
 	// The Findings tab spans EVERY FindingKind — no kind filter. The
 	// "kind" group axis below uses AuditFinding.Kind so users can split
 	// the list by vulnerability / license / package / (other).
@@ -2065,19 +1956,7 @@ type auditVerdict struct {
 	HasNonVulnFindings       bool // true when at least one finding has Kind != vulnerability
 }
 
-// auditFindingFails mirrors output.FailingFindingCount's gate but operates
-// on the output.AuditFinding type that the TUI consumes. Keeping this
-// helper alongside the verdict struct makes the mapping explicit.
-func auditFindingFails(f output.AuditFinding) bool {
-	switch f.Disposition {
-	case "", string(sdk.FindingDispositionFail):
-		return true
-	default:
-		return false
-	}
-}
-
-func (m *diffModel) auditVerdict() auditVerdict {
+func (m *DiffModel) auditVerdict() auditVerdict {
 	v := auditVerdict{}
 	if m.payload.Audit == nil {
 		return v
@@ -2136,7 +2015,7 @@ func (v auditVerdict) Verdict() string {
 
 // findingsOutcomePanels renders the audit-outcome summary at the top of
 // the Findings tab.
-func (m *diffModel) findingsOutcomePanels() []listPanel {
+func (m *DiffModel) findingsOutcomePanels() []listPanel {
 	v := m.auditVerdict()
 	if !v.Ran {
 		return []listPanel{{
@@ -2201,7 +2080,7 @@ func (m *diffModel) findingsOutcomePanels() []listPanel {
 			byKind[findingKindOf(f)]++
 		}
 	}
-	kindLines := []string{}
+	var kindLines []string
 	for _, k := range []string{"vulnerability", "license", "package", "other"} {
 		if n := byKind[k]; n > 0 {
 			kindLines = append(kindLines, render.Style(fmt.Sprintf("%d %s", n, k), kindColor(k), render.Bold))
@@ -2235,7 +2114,7 @@ func kindColor(kind string) string {
 // vulnsOutcomePanels is the analogue of findingsOutcomePanels but scoped
 // to vulnerability-kind findings — so the outcome on the Vulnerabilities
 // tab agrees with the rows shown below.
-func (m *diffModel) vulnsOutcomePanels() []listPanel {
+func (m *DiffModel) vulnsOutcomePanels() []listPanel {
 	v := m.auditVerdict()
 	if !v.Ran {
 		return []listPanel{{
@@ -2304,7 +2183,7 @@ func (m *diffModel) vulnsOutcomePanels() []listPanel {
 			severity[sev]++
 		}
 	}
-	severityLines := []string{}
+	var severityLines []string
 	for _, sev := range []string{"critical", "high", "medium", "low", "unknown"} {
 		if n := severity[sev]; n > 0 {
 			severityLines = append(severityLines, render.Style(fmt.Sprintf("%d %s", n, titleCase(sev)), render.Red, render.Bold))
@@ -2328,7 +2207,7 @@ func verdictDeltaColor(n int, color string) string {
 	return color
 }
 
-func (m *diffModel) buildAuditTab(cfg auditTabConfig) *listModel {
+func (m *DiffModel) buildAuditTab(cfg auditTabConfig) *listModel {
 	deltas := m.auditDeltas(cfg.keep)
 	emptyState := fmt.Sprintf("No %s deltas were found.", cfg.itemNoun)
 	if m.payload.Audit == nil {
@@ -2560,7 +2439,7 @@ func auditDeltaDetails(d auditDelta) []string {
 		"",
 		render.Style("Status", render.Bold, render.Cyan),
 		render.Style("  Delta status: ", render.Dim)+statusText(auditStatusLabel(d.status)),
-		render.Style("  Disposition: ", render.Dim)+valueOrDash(string(f.Disposition)),
+		render.Style("  Disposition: ", render.Dim)+valueOrDash(f.Disposition),
 		render.Style("  Severity: ", render.Dim)+severityText(f.Severity),
 		"",
 		render.Style("Classification", render.Bold, render.Magenta),
@@ -2673,7 +2552,7 @@ type licenseDelta struct {
 	manifest string
 }
 
-func (m *diffModel) collectLicenseDeltas() []licenseDelta {
+func (m *DiffModel) collectLicenseDeltas() []licenseDelta {
 	out := make([]licenseDelta, 0)
 	add := func(status, pkgLabel, manifestLabel string, licenses []output.LicenseRef) {
 		for _, lic := range licenses {
@@ -2744,7 +2623,7 @@ func nextLicenseGroup(group string) string {
 	}
 }
 
-func (m *diffModel) buildLicensesTab() *listModel {
+func (m *DiffModel) buildLicensesTab() *listModel {
 	deltas := m.collectLicenseDeltas()
 	group := m.licenseGroup
 	if group == "" {
@@ -2948,7 +2827,7 @@ func licenseDeltaDetails(d licenseDelta) []string {
 // focused side (toggled with `g`) is the one whose key events (search,
 // expand, scroll) take effect; the unfocused side is rendered as static
 // tree text alongside it.
-func (m *diffModel) buildSourceTab() *listModel {
+func (m *DiffModel) buildSourceTab() *listModel {
 	focused := m.sourceSide
 	if focused == "" {
 		focused = diffSourceBase
@@ -2995,7 +2874,7 @@ func (m *diffModel) buildSourceTab() *listModel {
 // The focused side is rendered from the live listModel (so selection,
 // scrolling, and search highlighting work there); the other side is
 // rendered as static tree text.
-func (m *diffModel) renderSourceBody(width, height int, focused diffSourceSide, baseItems, headItems []listItem, list *listModel) []string {
+func (m *DiffModel) renderSourceBody(width, height int, focused diffSourceSide, baseItems, headItems []listItem, list *listModel) []string {
 	gap := 1
 	leftWidth := (width - gap) / 2
 	rightWidth := width - leftWidth - gap

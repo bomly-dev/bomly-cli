@@ -320,15 +320,6 @@ func manifestMetadataFromPackage(pkg *sdk.Dependency, manager sdk.PackageManager
 	return sdk.ManifestMetadata{Kind: kind}
 }
 
-func manifestLocationSuffixes(location string) []string {
-	parts := strings.Split(location, "/")
-	suffixes := make([]string, 0, len(parts))
-	for idx := range parts {
-		suffixes = append(suffixes, strings.Join(parts[idx:], "/"))
-	}
-	return suffixes
-}
-
 func normalizeGraphPath(value string) string {
 	value = filepath.ToSlash(strings.TrimSpace(value))
 	value = strings.TrimPrefix(value, "./")
@@ -417,17 +408,4 @@ func packageIDs(packages []*sdk.Dependency) []string {
 		ids = append(ids, pkg.ID)
 	}
 	return ids
-}
-
-// setDetectionLicenses stashes detection-time license facts on a dependency
-// node under MetadataKeyDetectionLicenses so consolidation can lift them into
-// the package registry.
-func setDetectionLicenses(node *sdk.Dependency, lics []sdk.PackageLicense) {
-	if node == nil || len(lics) == 0 {
-		return
-	}
-	if node.Metadata == nil {
-		node.Metadata = make(map[string]any, 1)
-	}
-	node.Metadata[sdk.MetadataKeyDetectionLicenses] = lics
 }

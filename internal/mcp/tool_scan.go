@@ -7,7 +7,7 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-func registerScanTool(s *server.MCPServer, mcpCtx MCPContext) {
+func registerScanTool(s *server.MCPServer, mcpCtx Context) {
 	tool := mcplib.NewTool("bomly_scan",
 		mcplib.WithDescription("Scan a project for dependencies, vulnerabilities, and policy findings. Returns structured JSON with all packages, manifests, and optional audit results."),
 		mcplib.WithString("path", mcplib.Description("Filesystem path to scan (defaults to cwd)")),

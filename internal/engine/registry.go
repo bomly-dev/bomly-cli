@@ -9,10 +9,10 @@ import (
 )
 
 // RegistryConfigs holds built-in registry wiring options resolved by the CLI layer.
-type RegistryConfigs = registry.RegistryConfigs
+type RegistryConfigs = registry.Configs
 
 // RegistryFilter narrows a registry down to the runtime-relevant selections.
-type RegistryFilter = registry.RegistryFilter
+type RegistryFilter = registry.Filter
 
 // DetectorDiscoveryPlan describes how one detector participates in runtime planning.
 type DetectorDiscoveryPlan = registry.DetectorDiscoveryPlan

@@ -34,7 +34,7 @@ import (
 //
 // The scanner is line-oriented. It tracks /* ... */ block comments
 // (but not nested) and skips // line comments. Triple-quoted Kotlin
-// raw strings and Scala interpolators are not modelled — false
+// raw strings and Scala interpolators are not modeled — false
 // positives there are harmless because the analyzer's downstream
 // prefix mapping won't have an entry for a string-literal FQN. The
 // scanner stops paying attention to imports after the first line

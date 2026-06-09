@@ -33,7 +33,7 @@ func (l *FailOnList) UnmarshalYAML(node *yaml.Node) error {
 		if err := node.Decode(&values); err != nil {
 			return fmt.Errorf("decode fail_on sequence: %w", err)
 		}
-		*l = FailOnList(values)
+		*l = values
 		return nil
 	default:
 		return fmt.Errorf("fail_on must be a string or list of strings (line %d, column %d)", node.Line, node.Column)

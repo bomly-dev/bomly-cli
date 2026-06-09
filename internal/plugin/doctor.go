@@ -6,7 +6,7 @@ import "context"
 // builtins should be the full list returned by ListPluginInfos for the current binary.
 // For built-in plugins the verify step is skipped (there is no external binary to inspect)
 // and readiness is reported as healthy without launching an external process.
-func Doctor(ctx context.Context, root, id string, builtins []PluginInfo) (*DoctorResult, error) {
+func Doctor(ctx context.Context, root, id string, builtins []Info) (*DoctorResult, error) {
 	testResult, err := Test(ctx, root, id, builtins)
 	if err != nil {
 		return nil, err
@@ -15,11 +15,11 @@ func Doctor(ctx context.Context, root, id string, builtins []PluginInfo) (*Docto
 	// Built-in: no external binary to verify.
 	if testResult.BuiltIn {
 		return &DoctorResult{
-			PluginInfo: testResult.PluginInfo,
-			Checks:     []string{"built-in: no external binary to verify"},
-			Ready:      true,
-			Healthy:    true,
-			Probe:      testResult.Probe,
+			Info:    testResult.Info,
+			Checks:  []string{"built-in: no external binary to verify"},
+			Ready:   true,
+			Healthy: true,
+			Probe:   testResult.Probe,
 		}, nil
 	}
 
@@ -29,10 +29,10 @@ func Doctor(ctx context.Context, root, id string, builtins []PluginInfo) (*Docto
 	}
 
 	return &DoctorResult{
-		PluginInfo: testResult.PluginInfo,
-		Checks:     append([]string(nil), verifyResult.Checks...),
-		Ready:      testResult.Ready,
-		Healthy:    testResult.Ready,
-		Probe:      testResult.Probe,
+		Info:    testResult.Info,
+		Checks:  append([]string(nil), verifyResult.Checks...),
+		Ready:   testResult.Ready,
+		Healthy: testResult.Ready,
+		Probe:   testResult.Probe,
 	}, nil
 }

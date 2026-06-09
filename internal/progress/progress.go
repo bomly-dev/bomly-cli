@@ -35,7 +35,6 @@ const (
 	titleWidth      = 35
 	childLabelWidth = 25
 	barWidth        = 20
-	spinnerFPS      = 100 * time.Millisecond
 
 	hideCursorSeq = "\x1b[?25l"
 	showCursorSeq = "\x1b[?25h"
@@ -90,7 +89,7 @@ type stepState uint8
 
 const (
 	stepActive    stepState = iota // spinner animating, bar live
-	stepFinishing                  // engine signalled CompleteStage; ✔ icon, bar at 100%, awaiting children
+	stepFinishing                  // engine signaled CompleteStage; ✔ icon, bar at 100%, awaiting children
 	stepSucceeded                  // ready to promote with ✔ + children
 	stepFailed                     // ready to promote with ✘
 )
@@ -411,7 +410,7 @@ func (p *Progress) CompleteStep(doneLabel string, children []Child) {
 	if s == nil {
 		// No matching step: emit a synthetic step that the renderer will
 		// promote on its next draw. This preserves today's "buffered pending
-		// step" behaviour when callers complete a label they never opened.
+		// step" behavior when callers complete a label they never opened.
 		p.dropImplicitInitialLocked()
 		s = &Step{
 			p:         p,
@@ -436,7 +435,7 @@ func (p *Progress) CompleteStep(doneLabel string, children []Child) {
 }
 
 // Advance flushes any prior implicit/in-flight steps and starts a new
-// labelled step. Preserves the legacy single-spinner API for callers like
+// labeled step. Preserves the legacy single-spinner API for callers like
 // scan_cmd's "Writing SBOM output" transition. Each silently-promoted prior
 // step gets its own hold (sequential, so the user sees each one transition).
 func (p *Progress) Advance(label string) {
@@ -553,7 +552,7 @@ func (p *Progress) Detail(label, detail string) {
 	if s == nil {
 		// As a fallback, open a step so the caller sees a line even when no
 		// explicit Start preceded the Detail call. This matches the legacy
-		// behaviour where Detail also updated the spinner's label.
+		// behavior where Detail also updated the spinner's label.
 		p.dropImplicitInitialLocked()
 		s = &Step{
 			p:         p,
@@ -670,7 +669,7 @@ func (p *Progress) CompleteStage(label string, total int) {
 	}
 	s.total = total
 	s.completed = total
-	// Engine signalled completion but the CLI still needs to supply the
+	// Engine signaled completion but the CLI still needs to supply the
 	// past-tense label + children. Hold the step in the region with a ✔
 	// icon and a full bar until CompleteStep arrives.
 	if s.state == stepActive {
@@ -732,7 +731,7 @@ func (p *Progress) finishAll(doneLabel string, state stepState, children []Child
 	now := time.Now()
 	target := p.findStepLocked(doneLabel)
 	if target == nil {
-		// No step matches — synthesise one so the user sees a final block.
+		// No step matches — synthesize one so the user sees a final block.
 		p.dropImplicitInitialLocked()
 		target = &Step{
 			p:         p,
@@ -770,7 +769,7 @@ func (p *Progress) finishAll(doneLabel string, state stepState, children []Child
 	p.finished = true
 	p.mu.Unlock()
 
-	// Honour the hold on the target step (and any siblings sharing doneAt)
+	// Honor the hold on the target step (and any siblings sharing doneAt)
 	// so the user sees the final ✔ before the program exits.
 	p.holdAfterDone(now)
 
@@ -842,7 +841,7 @@ func (p *Progress) drawLocked() {
 
 	// Move to top of previous live region and erase it.
 	if prev > 0 {
-		fmt.Fprintf(&buf, "\x1b[%dA", prev)
+		_, _ = fmt.Fprintf(&buf, "\x1b[%dA", prev)
 	}
 	buf.WriteString("\r")
 	for i := 0; i < prev; i++ {
@@ -852,7 +851,7 @@ func (p *Progress) drawLocked() {
 		}
 	}
 	if prev > 1 {
-		fmt.Fprintf(&buf, "\x1b[%dA", prev-1)
+		_, _ = fmt.Fprintf(&buf, "\x1b[%dA", prev-1)
 	}
 	if prev > 0 {
 		buf.WriteString("\r")

@@ -152,13 +152,13 @@ func pipfilePositions(path, relPath string) map[string]*sdk.SourcePosition {
 }
 
 // pyprojectTomlPositions returns positions for pyproject.toml.
-// Handles three flavours:
+// Handles three flavors:
 //
 //   - [project] dependencies / optional-dependencies lists (PEP 621)
 //   - [tool.poetry.dependencies] table (Poetry)
 //   - [tool.uv.dependencies] / [tool.pdm.dependencies] tables
 //
-// Each declaration appears on its own line in some recognisable
+// Each declaration appears on its own line in some recognizable
 // form. We extract a per-section name -> line index.
 var (
 	pyprojectProjectDepHeader = regexp.MustCompile(`^\[project\]\s*$`)

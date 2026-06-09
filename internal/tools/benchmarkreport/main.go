@@ -68,6 +68,6 @@ func reportMarkdown(content []byte) ([]byte, error) {
 }
 
 func exitf(format string, args ...any) {
-	fmt.Fprintf(os.Stderr, format+"\n", args...)
+	_, _ = fmt.Fprintf(os.Stderr, format+"\n", args...)
 	os.Exit(1)
 }

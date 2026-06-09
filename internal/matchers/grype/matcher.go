@@ -48,7 +48,7 @@ func (a Matcher) dbExists() bool {
 	return err == nil && info.IsDir()
 }
 
-func (a Matcher) Applicable(_ context.Context, req sdk.MatchRequest) (bool, error) {
+func (a Matcher) Applicable(_ context.Context, _ sdk.MatchRequest) (bool, error) {
 	return true, nil
 }
 

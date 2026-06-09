@@ -522,6 +522,9 @@ func detectorSnapshot(ctx context.Context, client plugschema.Client) (RuntimeDes
 		return RuntimeDescriptorSnapshot{}, err
 	}
 	descriptor = cloneDetectorDescriptorWithSupport(descriptor, support)
+	if descriptor == nil {
+		return RuntimeDescriptorSnapshot{}, fmt.Errorf("detector plugin returned an empty descriptor")
+	}
 	return normalizeRuntimeSnapshot(RuntimeDescriptorSnapshot{
 		SchemaVersion:      plugschema.RuntimeDescriptorSnapshotSchemaVersion,
 		ID:                 descriptor.Name,
@@ -536,6 +539,9 @@ func matcherSnapshot(ctx context.Context, client plugschema.Client) (RuntimeDesc
 	if err != nil {
 		return RuntimeDescriptorSnapshot{}, err
 	}
+	if descriptor == nil {
+		return RuntimeDescriptorSnapshot{}, fmt.Errorf("matcher plugin returned an empty descriptor")
+	}
 	return normalizeRuntimeSnapshot(RuntimeDescriptorSnapshot{
 		SchemaVersion:     plugschema.RuntimeDescriptorSnapshotSchemaVersion,
 		ID:                descriptor.Name,
@@ -549,6 +555,9 @@ func auditorSnapshot(ctx context.Context, client plugschema.Client) (RuntimeDesc
 	descriptor, err := client.AuditorDescriptor(ctx)
 	if err != nil {
 		return RuntimeDescriptorSnapshot{}, err
+	}
+	if descriptor == nil {
+		return RuntimeDescriptorSnapshot{}, fmt.Errorf("auditor plugin returned an empty descriptor")
 	}
 	return normalizeRuntimeSnapshot(RuntimeDescriptorSnapshot{
 		SchemaVersion:     plugschema.RuntimeDescriptorSnapshotSchemaVersion,

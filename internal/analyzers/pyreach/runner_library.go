@@ -62,7 +62,7 @@ func (r libraryRunner) Run(ctx context.Context, projectDir string) (RunnerResult
 				zap.Error(err))
 			return nil
 		}
-		defer f.Close()
+		defer func() { _ = f.Close() }()
 		fileImports, scanErr := scanImports(f)
 		if scanErr != nil {
 			r.logger.Debug("pyreach: scan failed for source file (continuing)",

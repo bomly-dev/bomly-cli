@@ -113,7 +113,7 @@ func Run(ctx context.Context, opts RunOptions) (RunSummary, error) {
 		if err := os.MkdirAll(caseDir, 0o755); err != nil {
 			return summary, fmt.Errorf("create benchmark case dir: %w", err)
 		}
-		fmt.Fprintf(opts.Notifications, "benchmark: running %s (%s)\n", target.Name, repoSlug(target.URL))
+		_, _ = fmt.Fprintf(opts.Notifications, "benchmark: running %s (%s)\n", target.Name, repoSlug(target.URL))
 		opts.Logger.Info("benchmark: case starting", zap.String("case", target.Name), zap.String("repository", target.URL), zap.String("ecosystem", string(target.Ecosystem)))
 		caseSummary, caseCompleted, caseErr := runCase(ctx, opts, caseDir, target, sources)
 		completedComparisons += caseCompleted
@@ -141,7 +141,7 @@ func Run(ctx context.Context, opts RunOptions) (RunSummary, error) {
 	if err := writeJSON(filepath.Join(opts.RunDir, "benchmark-summary.json"), summary); err != nil {
 		return summary, err
 	}
-	fmt.Fprintf(opts.Notifications, "benchmark: wrote artifacts to %s\n", opts.RunDir)
+	_, _ = fmt.Fprintf(opts.Notifications, "benchmark: wrote artifacts to %s\n", opts.RunDir)
 	opts.Logger.Info("benchmark: run completed", zap.String("status", summary.Status), zap.Int("completed_comparisons", completedComparisons), zap.String("run_dir", opts.RunDir))
 	if summary.Status == "failed" {
 		return summary, errors.New(summary.Reason)
@@ -183,7 +183,7 @@ func resolveTargets(ctx context.Context, opts RunOptions, ecosystems []sdk.Ecosy
 	if err != nil {
 		return nil, false, err
 	}
-	targets = BenchmarkTargets(targets)
+	targets = Targets(targets)
 	targets, err = filterTargetsByCase(targets, opts.SelectedCases)
 	if err != nil {
 		return nil, false, err

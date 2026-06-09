@@ -46,12 +46,12 @@ const (
 	SeverityCritical = "critical"
 )
 
-// Reachability constraint values currently supported.
+// ReachabilityValueReachable constraint values currently supported.
 const (
 	ReachabilityValueReachable = "reachable"
 )
 
-// Exploitability constraint values currently supported.
+// ExploitabilityValueExploitable constraint values currently supported.
 const (
 	ExploitabilityValueExploitable = "exploitable"
 )
@@ -145,7 +145,7 @@ func SeverityMeets(candidate, threshold string) bool {
 
 // MatchesConstraints evaluates one vulnerability against a set of
 // constraints (AND semantics). When constraints is empty, every
-// vulnerability matches (the historical behaviour of `--audit` without
+// vulnerability matches (the historical behavior of `--audit` without
 // `--fail-on`).
 func (v Vulnerability) MatchesConstraints(constraints []FailOnConstraint) bool {
 	for _, c := range constraints {
@@ -168,7 +168,7 @@ func (v Vulnerability) MatchesConstraints(constraints []FailOnConstraint) bool {
 		default:
 			// Unknown kinds are treated as no-op rather than as
 			// rejection so future constraint kinds can be added without
-			// breaking older auditor behaviour.
+			// breaking older auditor behavior.
 		}
 	}
 	return true

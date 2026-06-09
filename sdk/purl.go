@@ -155,14 +155,6 @@ func CanonicalPackageURLFromParts(existingPURL, ecosystem, buildSystem, typ, org
 	return BuildPackageURL(purlType, namespace, name, version)
 }
 
-// CanonicalPackageURLFromPackage returns the canonical package URL for pkg.
-func CanonicalPackageURLFromPackage(pkg *Package) string {
-	if pkg == nil {
-		return ""
-	}
-	return CanonicalPackageURLFromParts(pkg.PURL, pkg.Ecosystem, pkg.BuildSystem, pkg.Type, pkg.Org, pkg.Name, pkg.Version)
-}
-
 // CanonicalPackageURLFromDependency returns the canonical package URL for dep.
 func CanonicalPackageURLFromDependency(dep *Dependency) string {
 	if dep == nil {

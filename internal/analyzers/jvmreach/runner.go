@@ -18,7 +18,7 @@
 //
 // The runner reads source in-process. The Runner interface is
 // preserved so unit tests can inject a fake runner for deterministic
-// behaviour.
+// behavior.
 package jvmreach
 
 import (

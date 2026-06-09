@@ -79,7 +79,7 @@ func selectManifestEntries(results []sdk.DetectionResult) (sdk.ExecutionTarget, 
 			if err != nil {
 				return sdk.ExecutionTarget{}, nil, fmt.Errorf("normalize graph identity for %s entry %d: %w", result.SubprojectInfo.RelativePath, idx, err)
 			}
-			manifest := normalizeSubprojectManifest(result.SubprojectInfo, entry.Manifest, idx, result.Origin, result.Technique)
+			manifest := normalizeSubprojectManifest(result.SubprojectInfo, entry.Manifest, idx, result.Origin)
 			if err := ensureEntryRoot(normalizedGraph, manifest, idx); err != nil {
 				return sdk.ExecutionTarget{}, nil, fmt.Errorf("ensure entry root for %s entry %d: %w", result.SubprojectInfo.RelativePath, idx, err)
 			}
@@ -92,7 +92,7 @@ func selectManifestEntries(results []sdk.DetectionResult) (sdk.ExecutionTarget, 
 				detectorName:   result.DetectorName,
 				technique:      result.Technique,
 				rootManifestID: consolidatedEntryRootID(normalizedGraph, manifest, idx),
-				priority:       ManifestDedupPriority(result.Origin, result.Technique),
+				priority:       ManifestDedupPriority(result.Origin),
 			}
 
 			manifestKey := manifestDedupKey(result.SubprojectInfo, manifest)
@@ -122,7 +122,7 @@ func selectManifestEntries(results []sdk.DetectionResult) (sdk.ExecutionTarget, 
 	return executionTarget, selectedManifests, nil
 }
 
-func normalizeSubprojectManifest(subproject sdk.Subproject, manifest sdk.ManifestMetadata, idx int, origin sdk.DetectorOrigin, technique sdk.DetectorTechnique) sdk.ManifestMetadata {
+func normalizeSubprojectManifest(subproject sdk.Subproject, manifest sdk.ManifestMetadata, idx int, origin sdk.DetectorOrigin) sdk.ManifestMetadata {
 	if strings.TrimSpace(manifest.Path) == "" {
 		manifest.Path = subprojectManifestPath(subproject, idx)
 	}
@@ -144,7 +144,7 @@ func normalizeSubprojectManifest(subproject sdk.Subproject, manifest sdk.Manifes
 // 0. External detectors
 // 1. Core detectors (Bomly-native implementations)
 // 2. Bundled third-party detectors (e.g. Syft fallback)
-func ManifestDedupPriority(origin sdk.DetectorOrigin, technique sdk.DetectorTechnique) int {
+func ManifestDedupPriority(origin sdk.DetectorOrigin) int {
 	switch origin {
 	case sdk.ExternalOrigin:
 		return 0

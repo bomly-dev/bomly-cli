@@ -5,7 +5,7 @@
 // runs the analysis in-process so users never need a govulncheck binary on
 // PATH. The Runner interface is preserved (rather than calling scan.Source
 // directly from the analyzer) so unit tests can inject a fake runner for
-// deterministic behaviour.
+// deterministic behavior.
 package govulncheck
 
 import (

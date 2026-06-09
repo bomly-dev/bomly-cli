@@ -9,7 +9,7 @@ import (
 
 // projectFileMarkers names every file whose presence at a directory
 // makes that directory a Python project root. The list is the union
-// of the manifests recognised by Bomly's Python detectors (pip,
+// of the manifests recognized by Bomly's Python detectors (pip,
 // pipenv, poetry, uv, pdm, setuppy) plus the most common loose
 // requirements layouts.
 var projectFileMarkers = []string{
@@ -25,7 +25,7 @@ var projectFileMarkers = []string{
 	"requirements-dev.txt",
 }
 
-// hasProjectMarker returns true when dir contains any of the recognised
+// hasProjectMarker returns true when dir contains any of the recognized
 // Python project files. Used to filter out source-only subdirectories
 // when walking up from a package location.
 func hasProjectMarker(dir string) bool {

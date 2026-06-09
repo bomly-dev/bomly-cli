@@ -1,6 +1,7 @@
 package sdk
 
 import (
+	"errors"
 	"slices"
 	"strings"
 	"testing"
@@ -150,7 +151,7 @@ func TestTopologicalSort_ReturnsPartialOrderOnCycle(t *testing.T) {
 	}
 
 	order, err := g.TopologicalSort()
-	if err != ErrCycleDetected {
+	if !errors.Is(err, ErrCycleDetected) {
 		t.Fatalf("expected cycle error, got %v", err)
 	}
 	if got := idsOf(order); !slices.Equal(got, []string{"c"}) {

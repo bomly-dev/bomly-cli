@@ -11,7 +11,7 @@ import (
 
 // pubspecLockEntry matches a top-level entry under `packages:` in
 // pubspec.lock, indented by two spaces and ending in a colon.
-var pubspecLockEntry = regexp.MustCompile(`^  ([A-Za-z_][A-Za-z0-9_]*)\s*:\s*$`)
+var pubspecLockEntry = regexp.MustCompile(`^ {2}([A-Za-z_][A-Za-z0-9_]*)\s*:\s*$`)
 
 func pubspecLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
 	out := make(map[string]*sdk.SourcePosition)

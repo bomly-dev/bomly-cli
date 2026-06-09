@@ -126,8 +126,8 @@ type InstallResult struct {
 	ChecksumVerified bool
 }
 
-// PluginInfo is the combined managed-plugin view used by the CLI and runtime loader.
-type PluginInfo struct {
+// Info is the combined managed-plugin view used by the CLI and runtime loader.
+type Info struct {
 	Manifest
 	DetectorDescriptor *plugschema.DetectorDescriptor `json:"detectorDescriptor,omitempty"`
 	MatcherDescriptor  *plugschema.MatcherDescriptor  `json:"matcherDescriptor,omitempty"`
@@ -146,42 +146,42 @@ type PluginInfo struct {
 
 // VerifyResult describes the checks performed for one plugin.
 type VerifyResult struct {
-	PluginInfo
+	Info
 	Checks []string
 }
 
 // TestResult describes runtime readiness checks for one plugin.
 type TestResult struct {
-	PluginInfo
+	Info
 	Ready bool   `json:"ready"`
 	Probe string `json:"probe,omitempty"`
 }
 
 // DoctorResult describes combined verification and runtime readiness checks.
 type DoctorResult struct {
-	PluginInfo
+	Info
 	Checks  []string `json:"checks,omitempty"`
 	Ready   bool     `json:"ready"`
 	Healthy bool     `json:"healthy"`
 	Probe   string   `json:"probe,omitempty"`
 }
 
-// PluginListResponse is the structured JSON response for the plugin list command,
+// ListResponse is the structured JSON response for the plugin list command,
 // with plugins grouped by kind.
-type PluginListResponse struct {
-	Detectors []PluginInfo `json:"detectors"`
-	Matchers  []PluginInfo `json:"matchers"`
-	Auditors  []PluginInfo `json:"auditors"`
-	Analyzers []PluginInfo `json:"analyzers"`
+type ListResponse struct {
+	Detectors []Info `json:"detectors"`
+	Matchers  []Info `json:"matchers"`
+	Auditors  []Info `json:"auditors"`
+	Analyzers []Info `json:"analyzers"`
 }
 
 // GroupPluginInfos groups a flat slice of PluginInfo by kind into a PluginListResponse.
-func GroupPluginInfos(infos []PluginInfo) PluginListResponse {
-	resp := PluginListResponse{
-		Detectors: []PluginInfo{},
-		Matchers:  []PluginInfo{},
-		Auditors:  []PluginInfo{},
-		Analyzers: []PluginInfo{},
+func GroupPluginInfos(infos []Info) ListResponse {
+	resp := ListResponse{
+		Detectors: []Info{},
+		Matchers:  []Info{},
+		Auditors:  []Info{},
+		Analyzers: []Info{},
 	}
 	for _, info := range infos {
 		switch info.Kind {
@@ -515,7 +515,7 @@ func updateInstalledPlugin(root, id string, mutate func(*InstalledPlugin) error)
 	return nil, fmt.Errorf("plugin %q is not installed", id)
 }
 
-func detectorDiscoveryPlan(info PluginInfo) (registry.DetectorDiscoveryPlan, bool) {
+func detectorDiscoveryPlan(info Info) (registry.DetectorDiscoveryPlan, bool) {
 	if info.Kind != plugschema.PluginKindDetector {
 		return registry.DetectorDiscoveryPlan{}, false
 	}
@@ -655,7 +655,7 @@ func runtimeSnapshotMatchesSnapshot(live, installed RuntimeDescriptorSnapshot) e
 }
 
 // LoadInstalledPlugins returns the full installed managed-plugin set.
-func LoadInstalledPlugins(root string) ([]PluginInfo, error) {
+func LoadInstalledPlugins(root string) ([]Info, error) {
 	var err error
 	root, err = resolveRoot(root)
 	if err != nil {
@@ -665,7 +665,7 @@ func LoadInstalledPlugins(root string) ([]PluginInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	infos := make([]PluginInfo, 0, len(db.Plugins))
+	infos := make([]Info, 0, len(db.Plugins))
 	for _, item := range db.Plugins {
 		manifest, err := readManifest(item.Path)
 		if err != nil {
@@ -679,7 +679,7 @@ func LoadInstalledPlugins(root string) ([]PluginInfo, error) {
 		if err != nil {
 			return nil, fmt.Errorf("read installed plugin %s: %w", item.ID, err)
 		}
-		infos = append(infos, PluginInfo{
+		infos = append(infos, Info{
 			Manifest:           manifest,
 			DetectorDescriptor: cloneDetectorDescriptor(snapshot.DetectorDescriptor),
 			MatcherDescriptor:  cloneMatcherDescriptor(snapshot.MatcherDescriptor),
@@ -694,12 +694,12 @@ func LoadInstalledPlugins(root string) ([]PluginInfo, error) {
 }
 
 // ListPluginInfos returns built-in and installed plugin info in one list.
-func ListPluginInfos(root string, builtins []PluginInfo) ([]PluginInfo, error) {
+func ListPluginInfos(root string, builtins []Info) ([]Info, error) {
 	installed, err := LoadInstalledPlugins(root)
 	if err != nil {
 		return nil, err
 	}
-	all := append(append([]PluginInfo(nil), builtins...), installed...)
+	all := append(append([]Info(nil), builtins...), installed...)
 	sort.Slice(all, func(i, j int) bool {
 		if all[i].ID == all[j].ID {
 			return all[i].Version < all[j].Version
@@ -710,7 +710,7 @@ func ListPluginInfos(root string, builtins []PluginInfo) ([]PluginInfo, error) {
 }
 
 // LoadRuntimePlugins loads enabled external plugins.
-func LoadRuntimePlugins(root string) ([]PluginInfo, error) {
+func LoadRuntimePlugins(root string) ([]Info, error) {
 	var err error
 	root, err = resolveRoot(root)
 	if err != nil {
@@ -720,7 +720,7 @@ func LoadRuntimePlugins(root string) ([]PluginInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	out := make([]PluginInfo, 0, len(db.Plugins))
+	out := make([]Info, 0, len(db.Plugins))
 	for _, item := range db.Plugins {
 		if !item.Enabled {
 			continue
@@ -737,7 +737,7 @@ func LoadRuntimePlugins(root string) ([]PluginInfo, error) {
 		if err != nil {
 			return nil, fmt.Errorf("read installed plugin %s: %w", item.ID, err)
 		}
-		out = append(out, PluginInfo{
+		out = append(out, Info{
 			Manifest:           manifest,
 			DetectorDescriptor: cloneDetectorDescriptor(snapshot.DetectorDescriptor),
 			MatcherDescriptor:  cloneMatcherDescriptor(snapshot.MatcherDescriptor),
@@ -749,13 +749,6 @@ func LoadRuntimePlugins(root string) ([]PluginInfo, error) {
 		})
 	}
 	return out, nil
-}
-
-type metadataClient interface {
-	DetectorDescriptor(context.Context) (*plugschema.DetectorDescriptor, error)
-	DetectorPackageManagerSupport(context.Context) ([]plugschema.PackageManagerSupport, error)
-	MatcherDescriptor(context.Context) (*plugschema.MatcherDescriptor, error)
-	AuditorDescriptor(context.Context) (*plugschema.AuditorDescriptor, error)
 }
 
 func detectorDescriptorEqual(left, right *plugschema.DetectorDescriptor) bool {
@@ -903,17 +896,5 @@ func cloneAuditorDescriptor(descriptor *plugschema.AuditorDescriptor) *plugschem
 	copyValue := *descriptor
 	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
 	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
-	return &copyValue
-}
-
-func cloneAnalyzerDescriptor(descriptor *plugschema.AnalyzerDescriptor) *plugschema.AnalyzerDescriptor {
-	if descriptor == nil {
-		return nil
-	}
-	copyValue := *descriptor
-	copyValue.SupportedEcosystems = append([]plugschema.Ecosystem(nil), descriptor.SupportedEcosystems...)
-	copyValue.SupportedManagers = append([]plugschema.PackageManager(nil), descriptor.SupportedManagers...)
-	copyValue.SupportedLanguages = append([]plugschema.Language(nil), descriptor.SupportedLanguages...)
-	copyValue.SupportedTiers = append([]plugschema.ReachabilityTier(nil), descriptor.SupportedTiers...)
 	return &copyValue
 }

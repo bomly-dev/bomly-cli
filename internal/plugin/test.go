@@ -23,7 +23,7 @@ func isNotInstalledError(err error) bool {
 // builtins should be the full list returned by ListPluginInfos for the current binary;
 // when the id is found only in builtins, the plugin is reported as ready without
 // launching an external process.
-func Test(ctx context.Context, root, id string, builtins []PluginInfo) (*TestResult, error) {
+func Test(ctx context.Context, root, id string, builtins []Info) (*TestResult, error) {
 	var err error
 	root, err = resolveRoot(root)
 	if err != nil {
@@ -38,16 +38,16 @@ func Test(ctx context.Context, root, id string, builtins []PluginInfo) (*TestRes
 					if info.ReadyFn != nil {
 						ready, probe, readyErr := info.ReadyFn(ctx)
 						return &TestResult{
-							PluginInfo: info,
-							Ready:      ready,
-							Probe:      probe,
+							Info:  info,
+							Ready: ready,
+							Probe: probe,
 						}, readyErr
 					}
 					// No ReadyFn populated — treat as ready (should not happen in normal CLI usage).
 					return &TestResult{
-						PluginInfo: info,
-						Ready:      true,
-						Probe:      "builtin",
+						Info:  info,
+						Ready: true,
+						Probe: "builtin",
 					}, nil
 				}
 			}
@@ -76,7 +76,7 @@ func Test(ctx context.Context, root, id string, builtins []PluginInfo) (*TestRes
 	}
 
 	return &TestResult{
-		PluginInfo: PluginInfo{
+		Info: Info{
 			Manifest:   manifest,
 			Installed:  record,
 			Entrypoint: fullEntrypoint,

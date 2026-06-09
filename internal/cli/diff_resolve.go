@@ -3,7 +3,6 @@ package cli
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,7 +17,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func resolveGitDiffGraphs(ctx context.Context, options *opts.Options, prog *progress.Progress, logger *zap.Logger, baseRef, headRef string, stderr io.Writer) (diffResolvedTarget, diffResolvedTarget, string, []engine.PipelineWarning, error) {
+func resolveGitDiffGraphs(ctx context.Context, options *opts.Options, prog *progress.Progress, logger *zap.Logger, baseRef, headRef string) (diffResolvedTarget, diffResolvedTarget, string, []engine.PipelineWarning, error) {
 	repoRoot, repoCleanup, projectIdentifier, err := resolveDiffRepo(options, prog, logger)
 	if err != nil {
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, err
@@ -36,12 +35,12 @@ func resolveGitDiffGraphs(ctx context.Context, options *opts.Options, prog *prog
 	// Single indexing step covering both refs' Prepare phases.
 	indexStep := prog.StartWithDoneLabel("indexing", "Indexing subprojects", "Indexed subprojects")
 
-	baseTarget, err := resolveDiffResultsForRef(ctx, options, logger, repoRoot, baseRef, stderr)
+	baseTarget, err := resolveDiffResultsForRef(ctx, options, logger, repoRoot, baseRef)
 	if err != nil {
 		indexStep.Fail("Indexing subprojects failed")
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, err
 	}
-	headTarget, err := resolveDiffResultsForRef(ctx, options, logger, repoRoot, headRef, stderr)
+	headTarget, err := resolveDiffResultsForRef(ctx, options, logger, repoRoot, headRef)
 	if err != nil {
 		indexStep.Fail("Indexing subprojects failed")
 		_ = baseTarget.close()
@@ -80,7 +79,7 @@ func resolveDiffRepo(options *opts.Options, prog *progress.Progress, logger *zap
 	return repoRoot, nil, repoRoot, nil
 }
 
-func resolveDiffResultsForRef(ctx context.Context, options *opts.Options, logger *zap.Logger, repoRoot, ref string, stderr io.Writer) (diffResolvedTarget, error) {
+func resolveDiffResultsForRef(ctx context.Context, options *opts.Options, logger *zap.Logger, repoRoot, ref string) (diffResolvedTarget, error) {
 	materializedPath, err := git.MaterializeLocalRef(logger, repoRoot, ref)
 	if err != nil {
 		return diffResolvedTarget{}, exit.ResolutionFailureError(err)
@@ -101,7 +100,7 @@ func resolveDiffResultsForRef(ctx context.Context, options *opts.Options, logger
 	return diffResolvedTarget{Context: commandCtx}, nil
 }
 
-func resolveContainerDiffGraphs(ctx context.Context, options *opts.Options, prog *progress.Progress, logger *zap.Logger, baseRef, headRef string, stderr io.Writer) (diffResolvedTarget, diffResolvedTarget, string, []engine.PipelineWarning, error) {
+func resolveContainerDiffGraphs(ctx context.Context, options *opts.Options, prog *progress.Progress, logger *zap.Logger, baseRef, headRef string) (diffResolvedTarget, diffResolvedTarget, string, []engine.PipelineWarning, error) {
 	current := options.GetConfig()
 	refStep := prog.StartWithDoneLabel("input", "Resolving container references", "Resolved container references")
 	baseTarget, err := resolveContainerDiffTarget(current.Container, baseRef)
@@ -117,12 +116,12 @@ func resolveContainerDiffGraphs(ctx context.Context, options *opts.Options, prog
 	refStep.Complete("Resolved container references", nil)
 
 	indexStep := prog.StartWithDoneLabel("indexing", "Indexing subprojects", "Indexed subprojects")
-	baseResolved, err := resolveDiffResultsForExecutionTarget(ctx, options, logger, executionTargetForResolved(baseTarget), stderr)
+	baseResolved, err := resolveDiffResultsForExecutionTarget(ctx, options, logger, executionTargetForResolved(baseTarget))
 	if err != nil {
 		indexStep.Fail("Indexing subprojects failed")
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, err
 	}
-	headResolved, err := resolveDiffResultsForExecutionTarget(ctx, options, logger, executionTargetForResolved(headTarget), stderr)
+	headResolved, err := resolveDiffResultsForExecutionTarget(ctx, options, logger, executionTargetForResolved(headTarget))
 	if err != nil {
 		indexStep.Fail("Indexing subprojects failed")
 		_ = baseResolved.close()
@@ -142,7 +141,7 @@ func executionTargetForResolved(location string) sdk.ExecutionTarget {
 	return sdk.ExecutionTarget{Kind: sdk.ExecutionTargetContainerImage, Location: location}
 }
 
-func resolveDiffResultsForExecutionTarget(ctx context.Context, options *opts.Options, logger *zap.Logger, executionTarget sdk.ExecutionTarget, stderr io.Writer) (diffResolvedTarget, error) {
+func resolveDiffResultsForExecutionTarget(ctx context.Context, options *opts.Options, logger *zap.Logger, executionTarget sdk.ExecutionTarget) (diffResolvedTarget, error) {
 	commandCtx, err := options.PrepareForExecutionTarget(ctx, logger, executionTarget, nil)
 	if err != nil {
 		return diffResolvedTarget{}, err
@@ -204,23 +203,16 @@ func looksLikeContainerReference(value string) bool {
 
 // resolveSBOMDiffGraphs resolves dependency graph results for two SBOM files
 // and returns them along with a human-readable comparison label.
-func resolveSBOMDiffGraphs(
-	ctx context.Context,
-	options *opts.Options,
-	prog *progress.Progress,
-	logger *zap.Logger,
-	basePath, headPath string,
-	stderr io.Writer,
-) (diffResolvedTarget, diffResolvedTarget, string, []engine.PipelineWarning, error) {
+func resolveSBOMDiffGraphs(ctx context.Context, options *opts.Options, prog *progress.Progress, logger *zap.Logger, basePath, headPath string) (diffResolvedTarget, diffResolvedTarget, string, []engine.PipelineWarning, error) {
 	// For SBOM diff, reading the SBOM and "indexing" are the same operation —
 	// the SBOM file is itself the subproject. Use a single combined step.
 	step := prog.StartWithDoneLabel("indexing", "Reading SBOM files", "Read SBOM files")
-	baseResolved, err := resolveDiffResultsForSBOMFile(ctx, options, logger, basePath, stderr)
+	baseResolved, err := resolveDiffResultsForSBOMFile(ctx, options, logger, basePath)
 	if err != nil {
 		step.Fail("Reading SBOM files failed")
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, fmt.Errorf("resolve base SBOM %q: %w", basePath, err)
 	}
-	headResolved, err := resolveDiffResultsForSBOMFile(ctx, options, logger, headPath, stderr)
+	headResolved, err := resolveDiffResultsForSBOMFile(ctx, options, logger, headPath)
 	if err != nil {
 		step.Fail("Reading SBOM files failed")
 		_ = baseResolved.close()
@@ -233,13 +225,7 @@ func resolveSBOMDiffGraphs(
 }
 
 // resolveDiffResultsForSBOMFile builds one prepared runtime and graph resolution for an explicit SBOM file.
-func resolveDiffResultsForSBOMFile(
-	ctx context.Context,
-	options *opts.Options,
-	logger *zap.Logger,
-	sbomPath string,
-	stderr io.Writer,
-) (diffResolvedTarget, error) {
+func resolveDiffResultsForSBOMFile(ctx context.Context, options *opts.Options, logger *zap.Logger, sbomPath string) (diffResolvedTarget, error) {
 	absPath, err := system.ResolveExistingFile(sbomPath)
 	if err != nil {
 		return diffResolvedTarget{}, exit.InvalidInputError("resolve SBOM file %q: %v", sbomPath, err)

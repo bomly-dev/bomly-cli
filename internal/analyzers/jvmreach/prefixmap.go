@@ -23,7 +23,7 @@ import (
 // across vendors. Unlike Python (where `requests` the module almost
 // always lives in `requests` the dist), Java has no fallback. A
 // missing prefix produces a false-negative for direct imports; the
-// dep-graph BFS recovers it if any correctly-mapped neighbour is
+// dep-graph BFS recovers it if any correctly-mapped neighbor is
 // imported.
 //
 // Coordinates are stored lowercase, in `group:artifact` form. PRs
@@ -233,7 +233,7 @@ func isStdlibImport(fqn string) bool {
 // The match is longest-prefix component-wise (so
 // `com.fasterxml.jackson.databind.foo` resolves the `databind`
 // artifact, not the broader `core`). The lookup never falls through
-// to a synthesised coordinate — Java packages and Maven coordinates
+// to a synthesized coordinate — Java packages and Maven coordinates
 // have no usable identity relationship.
 func resolveArtifacts(fqn string) []string {
 	fqn = strings.TrimSpace(fqn)

@@ -105,7 +105,7 @@ func TestMatcherMatchEnrichesRegistry(t *testing.T) {
 		case "/v1/querybatch":
 			_ = json.NewEncoder(w).Encode(BatchResponse{Results: []BatchResult{{Vulns: []VulnRef{{ID: "OSV-2024-0001"}}}}})
 		case "/v1/vulns/OSV-2024-0001":
-			_ = json.NewEncoder(w).Encode(OsvVulnerability{ID: "OSV-2024-0001", Summary: "Test vuln"})
+			_ = json.NewEncoder(w).Encode(Vulnerability{ID: "OSV-2024-0001", Summary: "Test vuln"})
 		default:
 			w.WriteHeader(http.StatusNotFound)
 		}
@@ -171,7 +171,7 @@ func TestAudit_CacheHit_NoHTTPCall(t *testing.T) {
 
 	// Pre-populate cache so the matcher won't need to call the server.
 	key := audcache.NewKey(purl, "", "", "")
-	cached := []OsvVulnerability{{ID: "CVE-2020-1234", Summary: "test vuln"}}
+	cached := []Vulnerability{{ID: "CVE-2020-1234", Summary: "test vuln"}}
 	_ = audcache.Set(aud.cache, key, cached)
 
 	g := sdk.New()
@@ -339,7 +339,7 @@ func TestParseCVSSScore(t *testing.T) {
 }
 
 func TestExtractSeverity_CalculatesFromVector(t *testing.T) {
-	got := extractSeverity([]OsvSeverity{{
+	got := extractSeverity([]Severity{{
 		Type:  "CVSS_V3",
 		Score: "CVSS:3.1/AV:L/AC:H/PR:N/UI:R/S:U/C:N/I:N/A:L",
 	}})
@@ -350,7 +350,7 @@ func TestExtractSeverity_CalculatesFromVector(t *testing.T) {
 }
 
 func TestExtractSeverity_PrefersHigherVersion(t *testing.T) {
-	got := extractSeverity([]OsvSeverity{
+	got := extractSeverity([]Severity{
 		{Type: "CVSS_V2", Score: "AV:N/AC:L/Au:N/C:P/I:P/A:P"},
 		{Type: "CVSS_V4", Score: "AV:L/AC:H/AT:N/PR:N/UI:P/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N"},
 	})

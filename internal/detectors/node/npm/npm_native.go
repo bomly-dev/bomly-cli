@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// NPMNativeDetector resolves dependency graphs with npm CLI commands.
+// NativeDetector resolves dependency graphs with npm CLI commands.
 type NativeDetector struct {
 	Logger     *zap.Logger
 	WorkingDir string

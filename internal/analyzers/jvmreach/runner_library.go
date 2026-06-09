@@ -49,7 +49,7 @@ func (r libraryRunner) Run(ctx context.Context, projectDir string) (RunnerResult
 				zap.Error(err))
 			return nil
 		}
-		defer f.Close()
+		defer func() { _ = f.Close() }()
 		imports, scanErr := scanImports(f)
 		if scanErr != nil {
 			r.logger.Debug("jvmreach: scan failed (continuing)",

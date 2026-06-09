@@ -92,18 +92,18 @@ type OptionsAdapter interface {
 	RunScan(ctx context.Context, req ScanRequest) (output.ScanResponse, error)
 	RunExplain(ctx context.Context, req ExplainRequest) (output.ExplainResponse, error)
 	RunDiff(ctx context.Context, req DiffRequest) (output.DiffResponse, error)
-	ListPlugins(ctx context.Context) (managedplugin.PluginListResponse, error)
+	ListPlugins(ctx context.Context) (managedplugin.ListResponse, error)
 	VulnFixContext(ctx context.Context, req VulnFixRequest) (VulnFixResult, error)
 }
 
-// MCPContext carries the adapter and version into tool handlers.
-type MCPContext struct {
+// Context carries the adapter and version into tool handlers.
+type Context struct {
 	Adapter OptionsAdapter
 	Version string
 }
 
 // NewServer creates a configured MCP server with all bomly tools registered.
-func NewServer(mcpCtx MCPContext) *server.MCPServer {
+func NewServer(mcpCtx Context) *server.MCPServer {
 	s := server.NewMCPServer(
 		"bomly",
 		mcpCtx.Version,

@@ -110,11 +110,11 @@ func newDiffCmd() *cobra.Command {
 
 			switch {
 			case current.SBOM:
-				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveSBOMDiffGraphs(cmd.Context(), options, prog, logger, baseRef, headRef, streams.notificationWriter())
+				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveSBOMDiffGraphs(cmd.Context(), options, prog, logger, baseRef, headRef)
 			case current.Container != "":
-				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveContainerDiffGraphs(cmd.Context(), options, prog, logger, baseRef, headRef, streams.notificationWriter())
+				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveContainerDiffGraphs(cmd.Context(), options, prog, logger, baseRef, headRef)
 			default:
-				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveGitDiffGraphs(cmd.Context(), options, prog, logger, baseRef, headRef, streams.notificationWriter())
+				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveGitDiffGraphs(cmd.Context(), options, prog, logger, baseRef, headRef)
 			}
 			if err != nil {
 				return err

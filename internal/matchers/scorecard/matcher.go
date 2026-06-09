@@ -139,7 +139,7 @@ func (m *Matcher) Ready() bool {
 }
 
 // Applicable reports whether this matcher applies to the given request.
-func (m *Matcher) Applicable(_ context.Context, req sdk.MatchRequest) (bool, error) {
+func (m *Matcher) Applicable(_ context.Context, _ sdk.MatchRequest) (bool, error) {
 	return true, nil
 }
 

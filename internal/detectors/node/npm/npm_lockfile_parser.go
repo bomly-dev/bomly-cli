@@ -83,7 +83,7 @@ func npmLockPackageMetadata(entry npmLockPackage) *sdk.NPMPackageMetadata {
 		meta.PeerDependencies = entry.PeerDependencies
 	}
 	if len(entry.Engines) > 0 {
-		meta.Engines = map[string]string(entry.Engines)
+		meta.Engines = entry.Engines
 	}
 	return meta
 }

@@ -41,7 +41,7 @@ func TestPluginWorkflows(t *testing.T) {
 		if verifyCode != 0 {
 			t.Fatalf("plugin verify exited %d\nstderr:\n%s", verifyCode, verifyStderr)
 		}
-		if !strings.Contains(verifyStdout, "[ok] runtime metadata matches manifest") {
+		if !strings.Contains(verifyStdout, "[ok] runtime descriptor matches installed snapshot") {
 			t.Fatalf("unexpected verify output:\n%s", verifyStdout)
 		}
 

@@ -2,13 +2,9 @@
   "command": "scan",
   "manifests": [
     {
-      "detector": "syft-detector",
-      "ecosystem": "python",
-      "kind": "python",
-      "package_manager": "poetry",
-      "packages": [
+      "dependencies": [
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:pypi/pytz@2024.1"
           ],
           "id": "pkg:pypi/django@1.11.29",
@@ -20,12 +16,12 @@
             }
           ],
           "name": "django",
+          "package_ref": "pkg:pypi/django@1.11.29",
           "purl": "pkg:pypi/django@1.11.29",
-          "version": "1.11.29",
-          "vulnerabilities": []
+          "version": "1.11.29"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:pypi/sgmllib3k@1.0.0"
           ],
           "id": "pkg:pypi/feedparser@6.0.8",
@@ -37,12 +33,12 @@
             }
           ],
           "name": "feedparser",
+          "package_ref": "pkg:pypi/feedparser@6.0.8",
           "purl": "pkg:pypi/feedparser@6.0.8",
-          "version": "6.0.8",
-          "vulnerabilities": []
+          "version": "6.0.8"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:pypi/pyasn1@0.6.0",
           "licenses": [],
           "locations": [
@@ -52,12 +48,12 @@
             }
           ],
           "name": "pyasn1",
+          "package_ref": "pkg:pypi/pyasn1@0.6.0",
           "purl": "pkg:pypi/pyasn1@0.6.0",
-          "version": "0.6.0",
-          "vulnerabilities": []
+          "version": "0.6.0"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:pypi/pyjwt@0.4.2",
           "licenses": [],
           "locations": [
@@ -67,12 +63,12 @@
             }
           ],
           "name": "pyjwt",
+          "package_ref": "pkg:pypi/pyjwt@0.4.2",
           "purl": "pkg:pypi/pyjwt@0.4.2",
-          "version": "0.4.2",
-          "vulnerabilities": []
+          "version": "0.4.2"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:pypi/pytz@2024.1",
           "licenses": [],
           "locations": [
@@ -82,12 +78,12 @@
             }
           ],
           "name": "pytz",
+          "package_ref": "pkg:pypi/pytz@2024.1",
           "purl": "pkg:pypi/pytz@2024.1",
-          "version": "2024.1",
-          "vulnerabilities": []
+          "version": "2024.1"
         },
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:pypi/pyasn1@0.6.0"
           ],
           "id": "pkg:pypi/rsa@3.4",
@@ -99,12 +95,12 @@
             }
           ],
           "name": "rsa",
+          "package_ref": "pkg:pypi/rsa@3.4",
           "purl": "pkg:pypi/rsa@3.4",
-          "version": "3.4",
-          "vulnerabilities": []
+          "version": "3.4"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:pypi/sgmllib3k@1.0.0",
           "licenses": [],
           "locations": [
@@ -114,11 +110,15 @@
             }
           ],
           "name": "sgmllib3k",
+          "package_ref": "pkg:pypi/sgmllib3k@1.0.0",
           "purl": "pkg:pypi/sgmllib3k@1.0.0",
-          "version": "1.0.0",
-          "vulnerabilities": []
+          "version": "1.0.0"
         }
       ],
+      "detector": "syft-detector",
+      "ecosystem": "python",
+      "kind": "python",
+      "package_manager": "poetry",
       "path": "poetry.lock",
       "subproject": "."
     }
@@ -126,6 +126,64 @@
   "metadata": {
     "duration_ms": 0
   },
+  "packages": [
+    {
+      "ecosystem": "pypi",
+      "licenses": [],
+      "name": "django",
+      "purl": "pkg:pypi/django@1.11.29",
+      "version": "1.11.29",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "pypi",
+      "licenses": [],
+      "name": "feedparser",
+      "purl": "pkg:pypi/feedparser@6.0.8",
+      "version": "6.0.8",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "pypi",
+      "licenses": [],
+      "name": "pyasn1",
+      "purl": "pkg:pypi/pyasn1@0.6.0",
+      "version": "0.6.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "pypi",
+      "licenses": [],
+      "name": "pyjwt",
+      "purl": "pkg:pypi/pyjwt@0.4.2",
+      "version": "0.4.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "pypi",
+      "licenses": [],
+      "name": "pytz",
+      "purl": "pkg:pypi/pytz@2024.1",
+      "version": "2024.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "pypi",
+      "licenses": [],
+      "name": "rsa",
+      "purl": "pkg:pypi/rsa@3.4",
+      "version": "3.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "pypi",
+      "licenses": [],
+      "name": "sgmllib3k",
+      "purl": "pkg:pypi/sgmllib3k@1.0.0",
+      "version": "1.0.0",
+      "vulnerabilities": []
+    }
+  ],
   "project": {
     "ecosystem": "python",
     "name": "\u003cnormalized\u003e",

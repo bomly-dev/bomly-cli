@@ -718,9 +718,9 @@
           "epss": [
             {
               "cve": "CVE-2022-32149",
-              "date": "2026-06-07",
+              "date": "2026-06-08",
               "epss": 0.00054,
-              "percentile": 0.17256
+              "percentile": 0.17177
             }
           ],
           "fix_available": [
@@ -832,9 +832,9 @@
           "epss": [
             {
               "cve": "CVE-2021-38561",
-              "date": "2026-06-07",
+              "date": "2026-06-08",
               "epss": 0.00053,
-              "percentile": 0.1691
+              "percentile": 0.16829
             }
           ],
           "fix_available": [
@@ -943,9 +943,9 @@
           "epss": [
             {
               "cve": "CVE-2021-38561",
-              "date": "2026-06-07",
+              "date": "2026-06-08",
               "epss": 0.00053,
-              "percentile": 0.1691
+              "percentile": 0.16829
             }
           ],
           "fix_available": [
@@ -1018,9 +1018,9 @@
           "epss": [
             {
               "cve": "CVE-2022-32149",
-              "date": "2026-06-07",
+              "date": "2026-06-08",
               "epss": 0.00054,
-              "percentile": 0.17256
+              "percentile": 0.17177
             }
           ],
           "fix_available": [

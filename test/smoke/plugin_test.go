@@ -27,7 +27,10 @@ func TestPluginWorkflows(t *testing.T) {
 		if code != 0 {
 			t.Fatalf("plugin install --dev exited %d\nstderr:\n%s", code, stderr)
 		}
-		if !strings.Contains(stdout, "Installed "+plugin.ID+"@"+plugin.Version) {
+		// A --dev install synthesizes the manifest from the plugin's runtime
+		// gRPC descriptor (which carries no version), so the version is stamped
+		// "0.0.0-dev" rather than the manifest version used by archive installs.
+		if !strings.Contains(stdout, "Installed "+plugin.ID+"@0.0.0-dev") {
 			t.Fatalf("unexpected install output:\n%s", stdout)
 		}
 		if _, enableStderr, enableCode := runBomlyWithEnv(t, env, "plugin", "enable", plugin.ID); enableCode != 0 {

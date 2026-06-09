@@ -46,15 +46,6 @@ func allOutputsAreSBOM(specs []render.OutputSpec) bool {
 	return true
 }
 
-func validateMarkdownOnlyOutputs(specs []render.OutputSpec) error {
-	for _, spec := range specs {
-		if spec.Format != output.FormatMarkdown {
-			return fmt.Errorf("output format %q is only supported by scan", spec.Label)
-		}
-	}
-	return nil
-}
-
 func validateReportOutputs(specs []render.OutputSpec) error {
 	for _, spec := range specs {
 		switch spec.Format {

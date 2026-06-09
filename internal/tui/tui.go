@@ -62,10 +62,6 @@ type navigationModel interface {
 	CanGoBack() bool
 }
 
-type toggleModel interface {
-	ToggleSelected()
-}
-
 type treeControlModel interface {
 	ExpandSelected()
 	CollapseSelected()
@@ -236,7 +232,7 @@ const (
 	interactiveScanViewSource   scanView = "source"
 )
 
-type scanModel struct {
+type ScanModel struct {
 	*shellModel
 
 	titlePrefix           string
@@ -745,7 +741,7 @@ func (m *listModel) View(width, height int) string {
 	if strings.TrimSpace(m.listHeader) != "" {
 		listLines = append([]string{render.Style(truncateToWidth(m.listHeader, listWidth-2), render.Dim, render.Bold)}, listLines...)
 	}
-	detailLines := []string{}
+	var detailLines []string
 	if !fullWidthList {
 		detailLines = m.visibleDetailLines(m.items[selectedIndex].details, detailWidth-2, contentHeight)
 	}

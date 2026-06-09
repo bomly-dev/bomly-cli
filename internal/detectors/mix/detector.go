@@ -34,8 +34,8 @@ type mixPackage struct {
 }
 
 var (
-	mixLockHexPattern  = regexp.MustCompile(`"([^"]+)"\s*:\s*\{:(?:hex)\s*,\s*:([A-Za-z0-9_.-]+)\s*,\s*"([^"]+)"`)
-	mixDepPattern      = regexp.MustCompile(`\{(?:\s*:([A-Za-z0-9_.-]+)|\s*"([^"]+)")\s*,[^}\n]*(?:only:\s*(?::([A-Za-z0-9_]+)|\[([^\]]+)\]))?`)
+	mixLockHexPattern  = regexp.MustCompile(`"([^"]+)"\s*:\s*\{:hex\s*,\s*:([A-Za-z0-9_.-]+)\s*,\s*"([^"]+)"`)
+	mixDepPattern      = regexp.MustCompile(`\{(?:\s*:([A-Za-z0-9_.-]+)|\s*"([^"]+)")\s*,[^}\n]*(?:only:\s*(?::([A-Za-z0-9_]+)|\[([^]]+)]))?`)
 	mixOnlyAtomPattern = regexp.MustCompile(`:([A-Za-z0-9_]+)`)
 	// mixLockDepAtomPattern extracts a hex dep atom name from inside a dep tuple
 	// like `{:cowlib, "~> 2.11.0", [hex: :cowlib, ...]}` — we only want :cowlib.

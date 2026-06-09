@@ -183,7 +183,7 @@ func resolveTargets(ctx context.Context, opts RunOptions, ecosystems []sdk.Ecosy
 	if err != nil {
 		return nil, false, err
 	}
-	targets = BenchmarkTargets(targets)
+	targets = Targets(targets)
 	targets, err = filterTargetsByCase(targets, opts.SelectedCases)
 	if err != nil {
 		return nil, false, err

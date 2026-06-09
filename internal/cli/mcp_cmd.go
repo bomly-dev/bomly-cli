@@ -49,7 +49,7 @@ func newMcpServeCmd() *cobra.Command {
 				logger:  logger,
 				version: cmd.Root().Version,
 			}
-			s := mcp.NewServer(mcp.MCPContext{
+			s := mcp.NewServer(mcp.Context{
 				Adapter: adapter,
 				Version: cmd.Root().Version,
 			})
@@ -296,7 +296,7 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (o
 	})
 	logger := a.logger
 
-	baseTarget, headTarget, projectIdentifier, _, err := resolveGitDiffGraphs(ctx, o, nil, logger, req.Base, req.Head, io.Discard)
+	baseTarget, headTarget, projectIdentifier, _, err := resolveGitDiffGraphs(ctx, o, nil, logger, req.Base, req.Head)
 	if err != nil {
 		return output.DiffResponse{}, err
 	}
@@ -333,12 +333,12 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (o
 	), nil
 }
 
-func (a *mcpOptionsAdapter) ListPlugins(_ context.Context) (plugin.PluginListResponse, error) {
+func (a *mcpOptionsAdapter) ListPlugins(_ context.Context) (plugin.ListResponse, error) {
 	current := a.options.GetConfig()
 	builtins := builtInPluginInfos(current, a.version)
 	infos, err := plugin.ListPluginInfos("", builtins)
 	if err != nil {
-		return plugin.PluginListResponse{}, err
+		return plugin.ListResponse{}, err
 	}
 	return plugin.GroupPluginInfos(infos), nil
 }

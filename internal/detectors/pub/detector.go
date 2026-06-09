@@ -213,16 +213,6 @@ func scopeForPackage(name string, pkg pubLockPackage, manifest pubspec) sdk.Scop
 	}
 }
 
-func isDirectPubDependency(name string, pkg pubLockPackage, manifest pubspec) bool {
-	if _, ok := manifest.Dependencies[name]; ok {
-		return true
-	}
-	if _, ok := manifest.DevDependencies[name]; ok {
-		return true
-	}
-	return strings.HasPrefix(strings.TrimSpace(pkg.Dependency), "direct")
-}
-
 func resolvedURL(description any) string {
 	m, ok := description.(map[string]any)
 	if !ok {

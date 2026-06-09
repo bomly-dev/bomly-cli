@@ -44,38 +44,38 @@ type VulnRef struct {
 	Modified string `json:"modified"`
 }
 
-// OsvVulnerability is the full vulnerability as returned by GET /v1/vulns/{id}.
-type OsvVulnerability struct {
+// Vulnerability is the full vulnerability as returned by GET /v1/vulns/{id}.
+type Vulnerability struct {
 	ID               string            `json:"id"`
 	Summary          string            `json:"summary"`
 	Details          string            `json:"details"`
 	Aliases          []string          `json:"aliases"`
-	Severity         []OsvSeverity     `json:"severity"`
-	Affected         []OsvAffected     `json:"affected"`
+	Severity         []Severity        `json:"severity"`
+	Affected         []Affected        `json:"affected"`
 	Published        string            `json:"published"`
 	Modified         string            `json:"modified"`
 	DatabaseSpecific *DatabaseSpecific `json:"database_specific,omitempty"`
 }
 
-// OsvSeverity holds a CVSS vector and type.
-type OsvSeverity struct {
+// Severity holds a CVSS vector and type.
+type Severity struct {
 	Type  string `json:"type"`  // e.g. "CVSS_V3", "CVSS_V4"
 	Score string `json:"score"` // vector string or numeric score
 }
 
-// OsvAffected holds version ranges and specific affected versions.
-type OsvAffected struct {
-	Versions []string   `json:"versions"`
-	Ranges   []OsvRange `json:"ranges"`
+// Affected holds version ranges and specific affected versions.
+type Affected struct {
+	Versions []string `json:"versions"`
+	Ranges   []Range  `json:"ranges"`
 }
 
-// OsvRange holds a single range entry.
-type OsvRange struct {
-	Events []OsvEvent `json:"events"`
+// Range holds a single range entry.
+type Range struct {
+	Events []Event `json:"events"`
 }
 
-// OsvEvent holds introduced/fixed/last_affected markers.
-type OsvEvent struct {
+// Event holds introduced/fixed/last_affected markers.
+type Event struct {
 	Introduced   string `json:"introduced,omitempty"`
 	Fixed        string `json:"fixed,omitempty"`
 	LastAffected string `json:"last_affected,omitempty"`

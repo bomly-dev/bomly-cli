@@ -69,7 +69,7 @@ func fixtureDiffPayload() output.DiffResponse {
 	}
 }
 
-func newFixtureDiffModel() *diffModel {
+func newFixtureDiffModel() *DiffModel {
 	return NewDiff(fixtureDiffPayload(), sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
 }
 
@@ -1134,7 +1134,7 @@ func TestFindingsOutcomePanels_BucketsCoverAllKinds(t *testing.T) {
 // the Vulnerabilities tab's contribution too), and the By Kind panel
 // shows vulnerability + license + package counts.
 func TestFindingsOutcomePanels_SpansAllKinds(t *testing.T) {
-	intro := []output.AuditFinding{}
+	var intro []output.AuditFinding
 	for i := 0; i < 6; i++ {
 		intro = append(intro, output.AuditFinding{
 			ID:       "CVE-X-" + string(rune('A'+i)),
@@ -1144,7 +1144,7 @@ func TestFindingsOutcomePanels_SpansAllKinds(t *testing.T) {
 			Severity: "high",
 		})
 	}
-	persisted := []output.AuditFinding{}
+	var persisted []output.AuditFinding
 	for i := 0; i < 6; i++ {
 		persisted = append(persisted, output.AuditFinding{
 			ID:       "license:unknown-license:pkg-" + string(rune('A'+i)),

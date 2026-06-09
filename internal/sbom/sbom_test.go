@@ -100,8 +100,8 @@ func TestMarshalDepGraphJSON_SPDX23ToolCreators(t *testing.T) {
 func TestMarshalDepGraphJSON_SPDX23Scope(t *testing.T) {
 	g := sdk.New()
 	app := sdk.NewDependencyRef("app", "1.0.0")
-	react := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Scopes: sdk.ScopesOf(sdk.Scope("runtime"))})
-	vitest := sdk.NewDependency(sdk.Dependency{Name: "vitest", Version: "2.0.0", Scopes: sdk.ScopesOf(sdk.Scope("development"))})
+	react := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Scopes: sdk.ScopesOf("runtime")})
+	vitest := sdk.NewDependency(sdk.Dependency{Name: "vitest", Version: "2.0.0", Scopes: sdk.ScopesOf("development")})
 	for _, n := range []*sdk.Dependency{app, react, vitest} {
 		if err := g.AddNode(n); err != nil {
 			t.Fatalf("add package %s: %v", n.ID, err)
@@ -267,8 +267,8 @@ func TestMarshalDepGraphJSON_CycloneDXVersions(t *testing.T) {
 func TestMarshalDepGraphJSON_CycloneDXScope(t *testing.T) {
 	g := sdk.New()
 	app := sdk.NewDependencyRef("app", "1.0.0")
-	runtimeDep := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Scopes: sdk.ScopesOf(sdk.Scope("runtime"))})
-	devDep := sdk.NewDependency(sdk.Dependency{Name: "vitest", Version: "2.0.0", Scopes: sdk.ScopesOf(sdk.Scope("development"))})
+	runtimeDep := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Scopes: sdk.ScopesOf("runtime")})
+	devDep := sdk.NewDependency(sdk.Dependency{Name: "vitest", Version: "2.0.0", Scopes: sdk.ScopesOf("development")})
 	for _, n := range []*sdk.Dependency{app, runtimeDep, devDep} {
 		if err := g.AddNode(n); err != nil {
 			t.Fatalf("add package %s: %v", n.ID, err)

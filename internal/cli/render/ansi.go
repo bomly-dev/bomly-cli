@@ -47,13 +47,6 @@ func Style(value string, codes ...string) string {
 	return strings.Join(codes, "") + value + Reset
 }
 
-// ColorizeGraphTree highlights cycle/shared markers in dependency tree output.
-func ColorizeGraphTree(value string) string {
-	value = strings.ReplaceAll(value, "(cycle)", Wrap("(cycle)", Red))
-	value = strings.ReplaceAll(value, "(shared)", Wrap("(shared)", Yellow))
-	return value
-}
-
 // StripANSI removes any CSI escape sequences from value.
 func StripANSI(value string) string {
 	var out strings.Builder

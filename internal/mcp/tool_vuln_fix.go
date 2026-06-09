@@ -7,7 +7,7 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-func registerVulnFixTool(s *server.MCPServer, mcpCtx MCPContext) {
+func registerVulnFixTool(s *server.MCPServer, mcpCtx Context) {
 	tool := mcplib.NewTool("bomly_vuln_fix_context",
 		mcplib.WithDescription("Return actionable fix context for a vulnerability in a specific package. "+
 			"Identifies the manifest file(s) to edit, which package to upgrade, and what version to use. "+

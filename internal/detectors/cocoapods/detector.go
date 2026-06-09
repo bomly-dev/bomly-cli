@@ -215,7 +215,7 @@ func parsePodfileTestTargets(path string) map[string]bool {
 	}
 
 	type frame struct{ isTest bool }
-	stack := []frame{}
+	var stack []frame
 	mainPods := make(map[string]bool)
 	testPods := make(map[string]bool)
 

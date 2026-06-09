@@ -58,5 +58,3 @@ func TestReachabilityCloneDeepCopiesHops(t *testing.T) {
 		t.Error("DynamicImportsDetected not preserved")
 	}
 }
-
-func intPtr(v int) *int { return &v }

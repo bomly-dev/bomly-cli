@@ -107,24 +107,24 @@ func (r *PackageRegistry) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalJSON encodes a package manager by its canonical name.
-func (m PackageManager) MarshalJSON() ([]byte, error) {
-	return json.Marshal(m.Name())
+func (p PackageManager) MarshalJSON() ([]byte, error) {
+	return json.Marshal(p.Name())
 }
 
 // UnmarshalJSON decodes a package manager from its canonical name.
-func (m *PackageManager) UnmarshalJSON(data []byte) error {
+func (p *PackageManager) UnmarshalJSON(data []byte) error {
 	var value string
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
 	if value == "" {
-		*m = PackageManagerUnknown
+		*p = PackageManagerUnknown
 		return nil
 	}
 	manager, err := ParsePackageManager(value)
 	if err != nil {
 		return fmt.Errorf("parse package manager: %w", err)
 	}
-	*m = manager
+	*p = manager
 	return nil
 }

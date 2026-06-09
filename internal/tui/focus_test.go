@@ -11,7 +11,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func newScanModelWithPosture(t *testing.T, repo string, score float64) *scanModel {
+func newScanModelWithPosture(t *testing.T, repo string, score float64) *ScanModel {
 	t.Helper()
 	g := sdk.New()
 	root := sdk.NewDependencyRef("demo-app", "1.0.0")

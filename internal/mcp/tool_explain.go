@@ -7,7 +7,7 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-func registerExplainTool(s *server.MCPServer, mcpCtx MCPContext) {
+func registerExplainTool(s *server.MCPServer, mcpCtx Context) {
 	tool := mcplib.NewTool("bomly_explain",
 		mcplib.WithDescription("Explain why a dependency exists by returning all root-to-target paths through the dependency graph."),
 		mcplib.WithString("package",

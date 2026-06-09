@@ -14,20 +14,15 @@ type ResolveGraphResult = sdk.DetectionResult
 type DetectorFilter = sdk.DetectorFilter
 type PackageManager = sdk.PackageManager
 type Ecosystem = sdk.Ecosystem
-type ComponentQuery = sdk.DependencyQuery
-type Scope = sdk.Scope
 
-type Auditor = sdk.Auditor
 type AuditorDescriptor = sdk.AuditorDescriptor
 type AuditRequest = sdk.AuditRequest
 type AuditResult = sdk.AuditResult
 
-type Matcher = sdk.Matcher
 type MatcherDescriptor = sdk.MatcherDescriptor
 type MatchRequest = sdk.MatchRequest
 
 type ExecutionTarget = sdk.ExecutionTarget
-type ExecutionTargetKind = sdk.ExecutionTargetKind
 type Subproject = sdk.Subproject
 type Finding = sdk.Finding
 type RiskScore = sdk.RiskScore

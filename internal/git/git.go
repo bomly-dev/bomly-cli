@@ -71,15 +71,6 @@ func CheckoutRef(logger *zap.Logger, repoPath, ref string) error {
 	return checkoutCommit(logger, repoPath, commit, ref)
 }
 
-// ResolveHEAD returns the current HEAD commit SHA for repoPath.
-func ResolveHEAD(repoPath string) (string, error) {
-	stdout, err := runGit(repoPath, "rev-parse", "HEAD")
-	if err != nil {
-		return "", fmt.Errorf("resolve git HEAD: %w", err)
-	}
-	return strings.TrimSpace(stdout), nil
-}
-
 // MaterializeLocalRef clones sourceRepoPath into a temporary directory and checks out ref.
 // The caller owns cleanup of the returned directory.
 func MaterializeLocalRef(logger *zap.Logger, sourceRepoPath, ref string) (string, error) {

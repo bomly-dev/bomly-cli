@@ -7,7 +7,7 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-func registerPluginsTool(s *server.MCPServer, mcpCtx MCPContext) {
+func registerPluginsTool(s *server.MCPServer, mcpCtx Context) {
 	tool := mcplib.NewTool("bomly_plugins",
 		mcplib.WithDescription("List all available bomly plugins (built-in detectors, matchers, and auditors plus any installed external plugins) with their enabled/disabled state."),
 	)

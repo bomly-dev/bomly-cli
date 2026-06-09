@@ -137,16 +137,6 @@ func EcosystemAliasMap() map[string]string {
 	return aliases
 }
 
-// PreferredPackageManagerForEcosystem returns Bomly's default manager label for an ecosystem.
-func PreferredPackageManagerForEcosystem(ecosystem sdk.Ecosystem) (sdk.PackageManager, bool) {
-	for _, manager := range SupportedPackageManagers() {
-		if manager.Ecosystem() == ecosystem {
-			return manager, true
-		}
-	}
-	return sdk.PackageManagerUnknown, false
-}
-
 // EvidencePatternsForPackageManager returns built-in discovery evidence patterns.
 func EvidencePatternsForPackageManager(manager sdk.PackageManager) []string {
 	entry, ok := packageManagerSupport[manager]
@@ -163,15 +153,6 @@ func DetectorNamesForPackageManager(manager sdk.PackageManager) []string {
 		return nil
 	}
 	return append([]string(nil), entry.Detectors...)
-}
-
-// PrimaryDetectorForPackageManager returns the preferred built-in detector for a package manager.
-func PrimaryDetectorForPackageManager(manager sdk.PackageManager) string {
-	detectors := DetectorNamesForPackageManager(manager)
-	if len(detectors) == 0 {
-		return ""
-	}
-	return detectors[0]
 }
 
 // PackageManagersByDetector returns package managers whose built-in chain includes detectorName.
@@ -202,35 +183,6 @@ func SupportedEcosystemsForDetector(detectorName string) []sdk.Ecosystem {
 	seen := make(map[sdk.Ecosystem]struct{})
 	values := make([]sdk.Ecosystem, 0)
 	for _, manager := range SupportedPackageManagersForDetector(detectorName) {
-		ecosystem := manager.Ecosystem()
-		if ecosystem == sdk.EcosystemUnknown {
-			continue
-		}
-		if _, ok := seen[ecosystem]; ok {
-			continue
-		}
-		seen[ecosystem] = struct{}{}
-		values = append(values, ecosystem)
-	}
-	return values
-}
-
-// PreferredPackageManagersForDetector returns package managers whose preferred detector matches detectorName.
-func PreferredPackageManagersForDetector(detectorName string) []sdk.PackageManager {
-	values := make([]sdk.PackageManager, 0)
-	for _, manager := range SupportedPackageManagers() {
-		if PrimaryDetectorForPackageManager(manager) == detectorName {
-			values = append(values, manager)
-		}
-	}
-	return values
-}
-
-// PreferredEcosystemsForDetector returns ecosystems whose preferred package managers are backed by detectorName.
-func PreferredEcosystemsForDetector(detectorName string) []sdk.Ecosystem {
-	seen := make(map[sdk.Ecosystem]struct{})
-	values := make([]sdk.Ecosystem, 0)
-	for _, manager := range PreferredPackageManagersForDetector(detectorName) {
 		ecosystem := manager.Ecosystem()
 		if ecosystem == sdk.EcosystemUnknown {
 			continue

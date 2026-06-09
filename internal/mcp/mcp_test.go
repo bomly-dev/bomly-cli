@@ -23,7 +23,7 @@ type mockAdapter struct {
 	explainErr    error
 	diffResult    output.DiffResponse
 	diffErr       error
-	plugins       []managedplugin.PluginInfo
+	plugins       []managedplugin.Info
 	pluginsErr    error
 	fixResult     mcp.VulnFixResult
 	fixErr        error
@@ -39,7 +39,7 @@ func (m *mockAdapter) RunExplain(_ context.Context, _ mcp.ExplainRequest) (outpu
 func (m *mockAdapter) RunDiff(_ context.Context, _ mcp.DiffRequest) (output.DiffResponse, error) {
 	return m.diffResult, m.diffErr
 }
-func (m *mockAdapter) ListPlugins(_ context.Context) (managedplugin.PluginListResponse, error) {
+func (m *mockAdapter) ListPlugins(_ context.Context) (managedplugin.ListResponse, error) {
 	return managedplugin.GroupPluginInfos(m.plugins), m.pluginsErr
 }
 func (m *mockAdapter) VulnFixContext(_ context.Context, _ mcp.VulnFixRequest) (mcp.VulnFixResult, error) {
@@ -48,7 +48,7 @@ func (m *mockAdapter) VulnFixContext(_ context.Context, _ mcp.VulnFixRequest) (m
 
 func newTestClient(t *testing.T, adapter mcp.OptionsAdapter) *client.Client {
 	t.Helper()
-	s := mcp.NewServer(mcp.MCPContext{Adapter: adapter, Version: "test"})
+	s := mcp.NewServer(mcp.Context{Adapter: adapter, Version: "test"})
 	c, err := client.NewInProcessClient(s)
 	if err != nil {
 		t.Fatalf("NewInProcessClient: %v", err)
@@ -212,7 +212,7 @@ func TestDiffTool_ReturnsJSONResult(t *testing.T) {
 
 func TestPluginsTool_ReturnsJSONResult(t *testing.T) {
 	adapter := &mockAdapter{
-		plugins: []managedplugin.PluginInfo{
+		plugins: []managedplugin.Info{
 			{Manifest: managedplugin.Manifest{Kind: "detector"}, BuiltIn: true},
 		},
 	}
@@ -222,7 +222,7 @@ func TestPluginsTool_ReturnsJSONResult(t *testing.T) {
 	if result.IsError {
 		t.Fatalf("unexpected tool error: %v", result.Content)
 	}
-	var resp managedplugin.PluginListResponse
+	var resp managedplugin.ListResponse
 	text := result.Content[0].(mcplib.TextContent).Text
 	if err := json.Unmarshal([]byte(text), &resp); err != nil {
 		t.Fatalf("unmarshal: %v", err)

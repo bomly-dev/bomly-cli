@@ -35,7 +35,6 @@ const (
 	titleWidth      = 35
 	childLabelWidth = 25
 	barWidth        = 20
-	spinnerFPS      = 100 * time.Millisecond
 
 	hideCursorSeq = "\x1b[?25l"
 	showCursorSeq = "\x1b[?25h"

@@ -85,9 +85,9 @@ func isVulnsFound(err error) bool {
 	if err == nil {
 		return false
 	}
-	var sentinel interface{ Error() string }
-	if errors.As(err, &sentinel) {
-		msg := sentinel.Error()
+	type sentinel interface{ Error() string }
+	if typed, ok := errors.AsType[sentinel](err); ok {
+		msg := typed.Error()
 		// govulncheck's "exit code 3" surfaces here as either
 		// "exit status 3" (when shelling out to the toolchain) or as
 		// the in-process equivalent the library prints.

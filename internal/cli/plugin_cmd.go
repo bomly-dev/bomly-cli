@@ -79,7 +79,7 @@ func newPluginListCmd() *cobra.Command {
 				auditors:  includeAuditors,
 				analyzers: includeAnalyzers,
 			}
-			filtered := make([]managedplugin.PluginInfo, 0, len(all))
+			filtered := make([]managedplugin.Info, 0, len(all))
 			for _, info := range all {
 				if !kindFilter.includes(info.Kind) {
 					continue
@@ -490,8 +490,8 @@ func pluginCommandError(err error) error {
 	return err
 }
 
-func builtInPluginInfos(current config.Resolved, coreVersion string) []managedplugin.PluginInfo {
-	infos := make([]managedplugin.PluginInfo, 0)
+func builtInPluginInfos(current config.Resolved, coreVersion string) []managedplugin.Info {
+	infos := make([]managedplugin.Info, 0)
 	reg := registry.NewRegistry(opts.RegistryConfigsFromResolved(current), *zap.NewNop())
 	reg.Build()
 
@@ -645,8 +645,8 @@ func collectFallbackDetectorDescriptors(
 	collectFallbackDetectorDescriptors(fallback, detectorByName, seen)
 }
 
-func detectorPluginInfo(descriptor *plugschema.DetectorDescriptor, coreVersion string, defaultEnabled []string, sourceType string) managedplugin.PluginInfo {
-	return managedplugin.PluginInfo{
+func detectorPluginInfo(descriptor *plugschema.DetectorDescriptor, coreVersion string, defaultEnabled []string, sourceType string) managedplugin.Info {
+	return managedplugin.Info{
 		Manifest: managedplugin.Manifest{
 			SchemaVersion:    plugschema.PackageManifestSchemaVersion,
 			ID:               descriptor.Name,
@@ -663,8 +663,8 @@ func detectorPluginInfo(descriptor *plugschema.DetectorDescriptor, coreVersion s
 	}
 }
 
-func matcherPluginInfo(descriptor *plugschema.MatcherDescriptor, coreVersion string, defaultEnabled []string) managedplugin.PluginInfo {
-	return managedplugin.PluginInfo{
+func matcherPluginInfo(descriptor *plugschema.MatcherDescriptor, coreVersion string, defaultEnabled []string) managedplugin.Info {
+	return managedplugin.Info{
 		Manifest: managedplugin.Manifest{
 			SchemaVersion:    plugschema.PackageManifestSchemaVersion,
 			ID:               descriptor.Name,
@@ -681,8 +681,8 @@ func matcherPluginInfo(descriptor *plugschema.MatcherDescriptor, coreVersion str
 	}
 }
 
-func auditorPluginInfo(descriptor *plugschema.AuditorDescriptor, coreVersion string, defaultEnabled []string) managedplugin.PluginInfo {
-	return managedplugin.PluginInfo{
+func auditorPluginInfo(descriptor *plugschema.AuditorDescriptor, coreVersion string, defaultEnabled []string) managedplugin.Info {
+	return managedplugin.Info{
 		Manifest: managedplugin.Manifest{
 			SchemaVersion:    plugschema.PackageManifestSchemaVersion,
 			ID:               descriptor.Name,
@@ -699,8 +699,8 @@ func auditorPluginInfo(descriptor *plugschema.AuditorDescriptor, coreVersion str
 	}
 }
 
-func analyzerPluginInfo(descriptor *plugschema.AnalyzerDescriptor, coreVersion string, defaultEnabled []string) managedplugin.PluginInfo {
-	return managedplugin.PluginInfo{
+func analyzerPluginInfo(descriptor *plugschema.AnalyzerDescriptor, coreVersion string, defaultEnabled []string) managedplugin.Info {
+	return managedplugin.Info{
 		Manifest: managedplugin.Manifest{
 			SchemaVersion:    plugschema.PackageManifestSchemaVersion,
 			ID:               descriptor.Name,
@@ -810,7 +810,7 @@ func writeJSON(w io.Writer, value any) error {
 	return err
 }
 
-func renderPluginInfo(w io.Writer, info managedplugin.PluginInfo) error {
+func renderPluginInfo(w io.Writer, info managedplugin.Info) error {
 	lines := [][2]string{
 		{"ID", info.ID},
 		{"Name", nonEmptyString(info.Name, info.ID)},
@@ -864,7 +864,7 @@ func renderPluginInfo(w io.Writer, info managedplugin.PluginInfo) error {
 	return nil
 }
 
-func pluginInfoEcosystems(info managedplugin.PluginInfo) []plugschema.Ecosystem {
+func pluginInfoEcosystems(info managedplugin.Info) []plugschema.Ecosystem {
 	switch info.Kind {
 	case plugschema.PluginKindDetector:
 		if info.DetectorDescriptor != nil {
@@ -886,7 +886,7 @@ func pluginInfoEcosystems(info managedplugin.PluginInfo) []plugschema.Ecosystem 
 	return nil
 }
 
-func pluginInfoPackageManagers(info managedplugin.PluginInfo) []plugschema.PackageManager {
+func pluginInfoPackageManagers(info managedplugin.Info) []plugschema.PackageManager {
 	switch info.Kind {
 	case plugschema.PluginKindDetector:
 		if info.DetectorDescriptor != nil {
@@ -911,14 +911,14 @@ func pluginInfoPackageManagers(info managedplugin.PluginInfo) []plugschema.Packa
 // pluginInfoLanguages returns the SupportedLanguages list for plugin
 // kinds that carry one. Today only Analyzer plugins do; other kinds
 // return nil so `bomly plugin info` cleanly omits the Languages line.
-func pluginInfoLanguages(info managedplugin.PluginInfo) []plugschema.Language {
+func pluginInfoLanguages(info managedplugin.Info) []plugschema.Language {
 	if info.Kind == plugschema.PluginKindAnalyzer && info.AnalyzerDescriptor != nil {
 		return append([]plugschema.Language(nil), info.AnalyzerDescriptor.SupportedLanguages...)
 	}
 	return nil
 }
 
-func pluginInfoTags(info managedplugin.PluginInfo) []string {
+func pluginInfoTags(info managedplugin.Info) []string {
 	switch info.Kind {
 	case plugschema.PluginKindDetector:
 		if info.DetectorDescriptor != nil {
@@ -940,7 +940,7 @@ func pluginInfoTags(info managedplugin.PluginInfo) []string {
 	return nil
 }
 
-func pluginInfoDisplayName(info managedplugin.PluginInfo) string {
+func pluginInfoDisplayName(info managedplugin.Info) string {
 	switch info.Kind {
 	case plugschema.PluginKindDetector:
 		if info.DetectorDescriptor != nil {
@@ -962,7 +962,7 @@ func pluginInfoDisplayName(info managedplugin.PluginInfo) string {
 	return ""
 }
 
-func pluginInfoAliases(info managedplugin.PluginInfo) []string {
+func pluginInfoAliases(info managedplugin.Info) []string {
 	switch info.Kind {
 	case plugschema.PluginKindDetector:
 		if info.DetectorDescriptor != nil {
@@ -984,7 +984,7 @@ func pluginInfoAliases(info managedplugin.PluginInfo) []string {
 	return nil
 }
 
-func sortPluginInfos(items []managedplugin.PluginInfo) {
+func sortPluginInfos(items []managedplugin.Info) {
 	sort.Slice(items, func(i, j int) bool {
 		left := items[i]
 		right := items[j]
@@ -1006,7 +1006,7 @@ func sortPluginInfos(items []managedplugin.PluginInfo) {
 	})
 }
 
-func pluginSortEcosystem(info managedplugin.PluginInfo) string {
+func pluginSortEcosystem(info managedplugin.Info) string {
 	if info.Kind != plugschema.PluginKindDetector || info.DetectorDescriptor == nil {
 		return ""
 	}
@@ -1055,11 +1055,11 @@ func joinLanguages(values []plugschema.Language) string {
 	return strings.Join(items, ", ")
 }
 
-func renderPluginListTables(items []managedplugin.PluginInfo, kindFilter pluginKindFilter) string {
-	detectors := make([]managedplugin.PluginInfo, 0)
-	matchers := make([]managedplugin.PluginInfo, 0)
-	auditors := make([]managedplugin.PluginInfo, 0)
-	analyzers := make([]managedplugin.PluginInfo, 0)
+func renderPluginListTables(items []managedplugin.Info, kindFilter pluginKindFilter) string {
+	detectors := make([]managedplugin.Info, 0)
+	matchers := make([]managedplugin.Info, 0)
+	auditors := make([]managedplugin.Info, 0)
+	analyzers := make([]managedplugin.Info, 0)
 	for _, info := range items {
 		switch info.Kind {
 		case plugschema.PluginKindDetector:
@@ -1105,7 +1105,7 @@ func renderPluginListTables(items []managedplugin.PluginInfo, kindFilter pluginK
 	return b.String()
 }
 
-func detectorPluginRows(items []managedplugin.PluginInfo) [][]string {
+func detectorPluginRows(items []managedplugin.Info) [][]string {
 	rows := make([][]string, 0, len(items))
 	for _, info := range items {
 		rows = append(rows, []string{
@@ -1119,7 +1119,7 @@ func detectorPluginRows(items []managedplugin.PluginInfo) [][]string {
 	return rows
 }
 
-func basicPluginRows(items []managedplugin.PluginInfo) [][]string {
+func basicPluginRows(items []managedplugin.Info) [][]string {
 	rows := make([][]string, 0, len(items))
 	for _, info := range items {
 		rows = append(rows, []string{
@@ -1131,7 +1131,7 @@ func basicPluginRows(items []managedplugin.PluginInfo) [][]string {
 	return rows
 }
 
-func analyzerPluginRows(items []managedplugin.PluginInfo) [][]string {
+func analyzerPluginRows(items []managedplugin.Info) [][]string {
 	rows := make([][]string, 0, len(items))
 	for _, info := range items {
 		rows = append(rows, []string{
@@ -1248,7 +1248,7 @@ func wrapPluginListTableCell(value string, width int) []string {
 	return render.WrapLines(render.WrapTextLines(value, width), width)
 }
 
-func pluginListName(info managedplugin.PluginInfo) string {
+func pluginListName(info managedplugin.Info) string {
 	if displayName := pluginInfoDisplayName(info); displayName != "" {
 		return fmt.Sprintf("%s (%s)", displayName, info.ID)
 	}
@@ -1284,11 +1284,11 @@ func cleanStrings(values []string) []string {
 	return out
 }
 
-func pluginTypeValue(info managedplugin.PluginInfo) string {
+func pluginTypeValue(info managedplugin.Info) string {
 	return pluginSourceValue(info)
 }
 
-func pluginSourceValue(info managedplugin.PluginInfo) string {
+func pluginSourceValue(info managedplugin.Info) string {
 	if strings.TrimSpace(info.SourceType) != "" {
 		return info.SourceType
 	}
@@ -1298,7 +1298,7 @@ func pluginSourceValue(info managedplugin.PluginInfo) string {
 	return "external"
 }
 
-func pluginStateValue(info managedplugin.PluginInfo) string {
+func pluginStateValue(info managedplugin.Info) string {
 	if info.Enabled {
 		return "enabled"
 	}
@@ -1316,14 +1316,14 @@ func colorPluginState(state string) string {
 	}
 }
 
-func colorPluginType(value string, info managedplugin.PluginInfo) string {
+func colorPluginType(value string, info managedplugin.Info) string {
 	if !info.BuiltIn {
 		return render.Style(value, render.Yellow, render.Dim)
 	}
 	return value
 }
 
-func pluginDetectorPackageManagers(info managedplugin.PluginInfo) string {
+func pluginDetectorPackageManagers(info managedplugin.Info) string {
 	if info.DetectorDescriptor == nil {
 		return ""
 	}
@@ -1352,7 +1352,7 @@ func pluginDetectorPackageManagers(info managedplugin.PluginInfo) string {
 	return strings.Join(items, ", ")
 }
 
-func pluginAnalyzerLanguages(info managedplugin.PluginInfo) string {
+func pluginAnalyzerLanguages(info managedplugin.Info) string {
 	if info.AnalyzerDescriptor == nil {
 		return ""
 	}
@@ -1370,7 +1370,7 @@ func pluginAnalyzerLanguages(info managedplugin.PluginInfo) string {
 	return strings.Join(items, ", ")
 }
 
-func pluginAnalyzerEcosystems(info managedplugin.PluginInfo) string {
+func pluginAnalyzerEcosystems(info managedplugin.Info) string {
 	if info.AnalyzerDescriptor == nil {
 		return ""
 	}
@@ -1388,7 +1388,7 @@ func pluginAnalyzerEcosystems(info managedplugin.PluginInfo) string {
 	return strings.Join(items, ", ")
 }
 
-func pluginAnalyzerPackageManagers(info managedplugin.PluginInfo) string {
+func pluginAnalyzerPackageManagers(info managedplugin.Info) string {
 	if info.AnalyzerDescriptor == nil {
 		return ""
 	}
@@ -1406,7 +1406,7 @@ func pluginAnalyzerPackageManagers(info managedplugin.PluginInfo) string {
 	return strings.Join(items, ", ")
 }
 
-func pluginDetectorEcosystems(info managedplugin.PluginInfo) string {
+func pluginDetectorEcosystems(info managedplugin.Info) string {
 	if info.DetectorDescriptor == nil {
 		return ""
 	}
@@ -1418,40 +1418,6 @@ func pluginDetectorEcosystems(info managedplugin.PluginInfo) string {
 		}
 		if !containsPluginValue(items, name) {
 			items = append(items, name)
-		}
-	}
-	sort.Strings(items)
-	return strings.Join(items, ", ")
-}
-
-func pluginDetectorExpectedEvidence(info managedplugin.PluginInfo) string {
-	if info.DetectorDescriptor == nil {
-		return ""
-	}
-	items := make([]string, 0)
-	for _, support := range info.DetectorDescriptor.PackageManagerSupport {
-		for _, evidence := range support.EvidencePatterns {
-			entry := strings.TrimSpace(evidence)
-			if entry == "" {
-				continue
-			}
-			if !containsPluginValue(items, entry) {
-				items = append(items, entry)
-			}
-		}
-	}
-	if len(items) == 0 {
-		for _, manager := range info.DetectorDescriptor.SupportedManagers {
-			patterns := registry.EvidencePatternsForPackageManager(manager)
-			for _, pattern := range patterns {
-				entry := strings.TrimSpace(pattern)
-				if entry == "" {
-					continue
-				}
-				if !containsPluginValue(items, entry) {
-					items = append(items, entry)
-				}
-			}
 		}
 	}
 	sort.Strings(items)

@@ -48,7 +48,7 @@ func RegisterRuntimePlugins(ctx context.Context, reg registryWriter, root string
 }
 
 type externalDetector struct {
-	info      PluginInfo
+	info      Info
 	launchCtx context.Context
 }
 
@@ -125,12 +125,12 @@ func (d externalDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReq
 	return *resp, nil
 }
 
-func newExternalDetector(info PluginInfo, ctx context.Context) sdk.Detector {
+func newExternalDetector(info Info, ctx context.Context) sdk.Detector {
 	return externalDetector{info: info, launchCtx: launchContext(ctx, nil)}
 }
 
 type externalMatcher struct {
-	info      PluginInfo
+	info      Info
 	launchCtx context.Context
 }
 
@@ -184,12 +184,12 @@ func (m externalMatcher) Match(ctx context.Context, req sdk.MatchRequest) (sdk.M
 	return result, nil
 }
 
-func newExternalMatcher(info PluginInfo, ctx context.Context) sdk.Matcher {
+func newExternalMatcher(info Info, ctx context.Context) sdk.Matcher {
 	return externalMatcher{info: info, launchCtx: launchContext(ctx, nil)}
 }
 
 type externalAuditor struct {
-	info      PluginInfo
+	info      Info
 	launchCtx context.Context
 }
 
@@ -239,7 +239,7 @@ func (a externalAuditor) Audit(ctx context.Context, req sdk.AuditRequest) (sdk.A
 	return *resp, nil
 }
 
-func newExternalAuditor(info PluginInfo, ctx context.Context) sdk.Auditor {
+func newExternalAuditor(info Info, ctx context.Context) sdk.Auditor {
 	return externalAuditor{info: info, launchCtx: launchContext(ctx, nil)}
 }
 

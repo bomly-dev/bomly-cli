@@ -33,17 +33,6 @@ const (
 // PluginTargetType identifies the discovery target families a plugin supports.
 type PluginTargetType string
 
-const (
-	// PluginTargetTypeDirectory marks local directory support.
-	PluginTargetTypeDirectory PluginTargetType = "directory"
-	// PluginTargetTypeRepository marks git repository support.
-	PluginTargetTypeRepository PluginTargetType = "repository"
-	// PluginTargetTypeContainer marks container image support.
-	PluginTargetTypeContainer PluginTargetType = "container"
-	// PluginTargetTypeSBOM marks SBOM file support.
-	PluginTargetTypeSBOM PluginTargetType = "sbom"
-)
-
 // ReadyResponse reports whether a plugin is ready to run.
 type ReadyResponse struct {
 	Ready bool `json:"ready"`

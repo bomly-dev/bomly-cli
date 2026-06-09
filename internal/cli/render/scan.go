@@ -658,23 +658,6 @@ func renderScorecardTable(registry *sdk.PackageRegistry) string {
 	return strings.TrimRight(b.String(), "\n")
 }
 
-func packageLicenseIdentifiers(pkg *sdk.Package) string {
-	if pkg == nil || len(pkg.Licenses) == 0 {
-		return ""
-	}
-	values := make([]string, 0, len(pkg.Licenses))
-	for _, license := range pkg.Licenses {
-		if identifier := graphLicenseIdentifier(license); identifier != "" {
-			values = append(values, identifier)
-		}
-	}
-	if len(values) == 0 {
-		return ""
-	}
-	sort.Strings(values)
-	return strings.Join(values, ", ")
-}
-
 func graphLicenseIdentifier(license sdk.PackageLicense) string {
 	switch {
 	case strings.TrimSpace(license.SPDXExpression) != "":

@@ -113,7 +113,7 @@ func (c cycloneDXCodec) decodeJSON(data []byte) (*Document, error) {
 		for _, dep := range *bom.Dependencies {
 			ds := make([]string, 0)
 			if dep.Dependencies != nil {
-				ds = append(ds, (*dep.Dependencies)...)
+				ds = append(ds, *dep.Dependencies...)
 				for _, child := range ds {
 					inDegree[child]++
 				}
@@ -425,8 +425,7 @@ func cycloneDXVulnerability(v Vulnerability, refs []string) cdx.Vulnerability {
 			Vector:   v.Vector,
 		}
 		if v.Score != nil {
-			score := *v.Score
-			rating.Score = &score
+			rating.Score = new(*v.Score)
 		}
 		if v.Source != "" {
 			rating.Source = &cdx.Source{Name: v.Source}
@@ -435,8 +434,7 @@ func cycloneDXVulnerability(v Vulnerability, refs []string) cdx.Vulnerability {
 		vuln.Ratings = &ratings
 	}
 	if len(v.CWEs) > 0 {
-		cwes := append([]int(nil), v.CWEs...)
-		vuln.CWEs = &cwes
+		vuln.CWEs = new(append([]int(nil), v.CWEs...))
 	}
 	if len(v.Advisories) > 0 {
 		advisories := make([]cdx.Advisory, 0, len(v.Advisories))

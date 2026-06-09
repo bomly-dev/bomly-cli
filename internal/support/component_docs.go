@@ -558,7 +558,7 @@ func writeMatcherDocs(outputDir string) error {
 	if err := os.MkdirAll(outputDir, 0o755); err != nil {
 		return fmt.Errorf("create %s: %w", outputDir, err)
 	}
-	reg := registry.NewRegistry(registry.RegistryConfigs{}, *zap.NewNop())
+	reg := registry.NewRegistry(registry.Configs{}, *zap.NewNop())
 	reg.Build()
 	descriptors := reg.MatcherDescriptors()
 	sort.Slice(descriptors, func(i, j int) bool { return descriptors[i].Name < descriptors[j].Name })
@@ -688,7 +688,7 @@ func chainSupportsInstallFirst(detectors []string) bool {
 }
 
 func detectorSupportsInstallFirst(detectorName string) bool {
-	reg := registry.NewRegistry(registry.RegistryConfigs{}, *zap.NewNop())
+	reg := registry.NewRegistry(registry.Configs{}, *zap.NewNop())
 	reg.Build()
 	for _, descriptor := range reg.DetectorDescriptors() {
 		if descriptor.Name == detectorName {

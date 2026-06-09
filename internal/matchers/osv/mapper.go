@@ -2,13 +2,13 @@ package osv
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	gocvss20 "github.com/pandatix/go-cvss/20"
 	gocvss30 "github.com/pandatix/go-cvss/30"
 	gocvss31 "github.com/pandatix/go-cvss/31"
 	gocvss40 "github.com/pandatix/go-cvss/40"
-	"strconv"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
@@ -16,7 +16,7 @@ import (
 // MapVulnerability converts one OsvVulnerability into an OSV-aligned
 // sdk.Vulnerability, carrying the spec fields through verbatim and computing
 // Bomly enrichment extensions (parsed severity band, CVSS scores, CWEs, fix).
-func MapVulnerability(v OsvVulnerability) sdk.Vulnerability {
+func MapVulnerability(v Vulnerability) sdk.Vulnerability {
 	return sdk.Vulnerability{
 		// OSV-aligned core
 		ID:               v.ID,
@@ -39,7 +39,7 @@ func MapVulnerability(v OsvVulnerability) sdk.Vulnerability {
 	}
 }
 
-func mapSeverities(severities []OsvSeverity) []sdk.Severity {
+func mapSeverities(severities []Severity) []sdk.Severity {
 	if len(severities) == 0 {
 		return nil
 	}
@@ -50,7 +50,7 @@ func mapSeverities(severities []OsvSeverity) []sdk.Severity {
 	return out
 }
 
-func mapAffected(affected []OsvAffected) []sdk.Affected {
+func mapAffected(affected []Affected) []sdk.Affected {
 	if len(affected) == 0 {
 		return nil
 	}
@@ -80,7 +80,7 @@ func mapDatabaseSpecific(ds *DatabaseSpecific) map[string]any {
 	return map[string]any{"cwe_ids": append([]string(nil), ds.CweIDs...)}
 }
 
-func mapCWEs(v OsvVulnerability) []sdk.CWE {
+func mapCWEs(v Vulnerability) []sdk.CWE {
 	cweIDs := extractCWEs(v.DatabaseSpecific)
 	if len(cweIDs) == 0 {
 		return nil
@@ -101,7 +101,7 @@ func firstNonEmpty(a, b string) string {
 
 // extractSeverity derives a normalized severity band from OSV severity entries.
 // Prefers CVSS v4 > v3.1 > v3 > v2 > unknown.
-func extractSeverity(severities []OsvSeverity) string {
+func extractSeverity(severities []Severity) string {
 	scores := map[string]float64{}
 	for _, s := range severities {
 		if score := parseCVSSScore(s.Type, s.Score); score > 0 {
@@ -203,7 +203,7 @@ func cvssScoreToBand(score float64) string {
 	}
 }
 
-func buildReasons(v OsvVulnerability) []string {
+func buildReasons(v Vulnerability) []string {
 	var reasons []string
 	if fixed := extractFixedVersion(v.Affected); fixed != "" {
 		reasons = append(reasons, fmt.Sprintf("Fix available: upgrade to %s", fixed))
@@ -217,7 +217,7 @@ func buildReasons(v OsvVulnerability) []string {
 	return reasons
 }
 
-func buildCVSS(severities []OsvSeverity) []sdk.CVSSScore {
+func buildCVSS(severities []Severity) []sdk.CVSSScore {
 	if len(severities) == 0 {
 		return nil
 	}
@@ -237,7 +237,7 @@ func buildCVSS(severities []OsvSeverity) []sdk.CVSSScore {
 	return scores
 }
 
-func extractFixedVersion(affected []OsvAffected) string {
+func extractFixedVersion(affected []Affected) string {
 	for _, a := range affected {
 		for _, r := range a.Ranges {
 			for _, e := range r.Events {

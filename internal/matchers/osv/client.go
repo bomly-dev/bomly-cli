@@ -73,7 +73,7 @@ func NewClient(config ClientConfig) *Client {
 
 // GetVuln fetches the full vulnerability record for the given OSV ID.
 // Use this after query batch to enrich the minimal VulnRef data.
-func (c *Client) GetVuln(id string) (*OsvVulnerability, error) {
+func (c *Client) GetVuln(id string) (*Vulnerability, error) {
 	endpoint := c.config.APIBase + "/v1/vulns/" + url.PathEscape(id) // #nosec G107 — base URL from config
 
 	resp, err := c.http.Get(endpoint) //nolint:noctx
@@ -93,7 +93,7 @@ func (c *Client) GetVuln(id string) (*OsvVulnerability, error) {
 	if err != nil {
 		return nil, fmt.Errorf("osv read vuln %s: %w", id, err)
 	}
-	var vuln OsvVulnerability
+	var vuln Vulnerability
 	if err := json.Unmarshal(data, &vuln); err != nil {
 		return nil, fmt.Errorf("osv unmarshal vuln %s: %w", id, err)
 	}

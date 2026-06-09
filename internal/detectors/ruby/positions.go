@@ -13,7 +13,7 @@ import (
 // block of a Gemfile.lock. Example: "    railties (8.0.0)".
 // The 4-space indent distinguishes spec lines from the deeper-indented
 // dependency lines (6 spaces).
-var gemSpecLine = regexp.MustCompile(`^    ([a-zA-Z0-9._-]+) \(([^)]+)\)\s*$`)
+var gemSpecLine = regexp.MustCompile(`^ {4}([a-zA-Z0-9._-]+) \(([^)]+)\)\s*$`)
 
 // gemfileLockPositions returns a map from gem name to the line in
 // Gemfile.lock where the gem's spec entry appears.

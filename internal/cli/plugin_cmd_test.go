@@ -208,7 +208,7 @@ func runPluginListOutput(t *testing.T, args ...string) string {
 }
 
 func TestColorPluginType_HighlightsExternal(t *testing.T) {
-	info := managedplugin.PluginInfo{BuiltIn: false}
+	info := managedplugin.Info{BuiltIn: false}
 	colored := colorPluginType("external", info)
 	if colored == "external" {
 		t.Fatal("expected external plugin type to be ANSI-colored")
@@ -216,7 +216,7 @@ func TestColorPluginType_HighlightsExternal(t *testing.T) {
 }
 
 func TestSortPluginInfos_EnabledEcosystemThenID(t *testing.T) {
-	items := []managedplugin.PluginInfo{
+	items := []managedplugin.Info{
 		{Manifest: managedplugin.Manifest{ID: "z-disabled", Kind: plugschema.PluginKindDetector}},
 		{
 			Manifest: managedplugin.Manifest{

@@ -55,7 +55,7 @@ func (p *Pipeline) RunPreAudit(ctx context.Context, req PipelineRequest) (Pipeli
 	if err := p.runResolve(ctx, &result, req); err != nil {
 		return result, err
 	}
-	if err := p.runConsolidate(&result, req); err != nil {
+	if err := p.runConsolidate(&result); err != nil {
 		return result, err
 	}
 	p.runMatch(ctx, &result, req)
@@ -113,7 +113,7 @@ func (p *Pipeline) runResolve(ctx context.Context, result *PipelineResult, req P
 	return nil
 }
 
-func (p *Pipeline) runConsolidate(result *PipelineResult, req PipelineRequest) error {
+func (p *Pipeline) runConsolidate(result *PipelineResult) error {
 	consolidated, err := consolidation.ConsolidateGraphs(result.ResolveResults)
 	if err != nil {
 		return fmt.Errorf("consolidation: %w", err)

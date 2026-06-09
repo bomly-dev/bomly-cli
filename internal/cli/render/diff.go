@@ -9,22 +9,6 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/output"
 )
 
-// DiffManifestStatusOrder returns the sort rank for a diff manifest status.
-func DiffManifestStatusOrder(status string) int {
-	switch strings.ToLower(strings.TrimSpace(status)) {
-	case "removed":
-		return 0
-	case "added":
-		return 1
-	case "changed":
-		return 2
-	case "unchanged":
-		return 3
-	default:
-		return 99
-	}
-}
-
 // Diff writes the human-readable diff report for the diff command.
 func Diff(w io.Writer, payload output.DiffResponse) error {
 	lines := []string{

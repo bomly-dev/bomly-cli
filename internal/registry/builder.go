@@ -43,7 +43,7 @@ import (
 type RegistryConfigs struct {
 	// FailOn is the parsed list of --fail-on constraints. The policy
 	// auditor evaluates findings against this AND-set; an empty slice
-	// preserves the historical behaviour of emitting every finding.
+	// preserves the historical behavior of emitting every finding.
 	FailOn                []sdk.FailOnConstraint
 	AllowVulnerabilityIDs []string
 	AllowLicenses         []string

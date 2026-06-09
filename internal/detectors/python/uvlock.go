@@ -55,7 +55,7 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 		return nil, fmt.Errorf("uv.lock contains no packages")
 	}
 
-	// Index all packages by normalised name.
+	// Index all packages by normalized name.
 	nodesByName := make(map[string]*sdk.Dependency, len(lock.Package))
 	for i := range lock.Package {
 		pkg := &lock.Package[i]

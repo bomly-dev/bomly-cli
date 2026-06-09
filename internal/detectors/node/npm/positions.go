@@ -39,7 +39,7 @@ func packageLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
 }
 
 // finalNPMPathSegment extracts the package name from a
-// node_modules-style path. Handles scoped names by recognising the
+// node_modules-style path. Handles scoped names by recognizing the
 // trailing "@scope/pkg" pattern.
 func finalNPMPathSegment(p string) string {
 	parts := strings.Split(p, "/")

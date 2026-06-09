@@ -314,7 +314,7 @@ func findPackageJSONRoot(start string) string {
 // isInsideNodeModules reports whether the given directory is itself
 // inside a node_modules tree. The npm publish-time package.json files
 // installed under node_modules look identical to project roots; we
-// must skip them to avoid analysing a dependency as if it were the
+// must skip them to avoid analyzing a dependency as if it were the
 // application.
 func isInsideNodeModules(dir string) bool {
 	normalized := filepath.ToSlash(dir)

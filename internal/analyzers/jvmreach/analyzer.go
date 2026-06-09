@@ -22,7 +22,7 @@ const Name = "jvmreach"
 //
 // Tier-3 caveat: "unreachable" means "the application source does
 // not import this artifact, neither directly nor through any
-// dep-graph edge from a directly-imported neighbour". It does NOT
+// dep-graph edge from a directly-imported neighbor". It does NOT
 // mean "the vulnerability cannot be triggered" — reflection,
 // ServiceLoader, Spring component scanning, OSGi, and JPMS dynamic
 // loading are all invisible to a static scanner. See

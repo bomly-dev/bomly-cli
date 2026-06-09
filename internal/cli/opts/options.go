@@ -193,7 +193,7 @@ func (o *Options) Prepare(ctx context.Context, logger *zap.Logger) (Options, err
 }
 
 // ResolveExecutionTarget resolves where the scan should run: it clones a
-// remote repository, materialises an SBOM file, or resolves a local path.
+// remote repository, materializes an SBOM file, or resolves a local path.
 // The returned cleanup must be deferred by the caller. CLI commands call
 // this directly when they want to surface a dedicated "Cloning repository"
 // (or similar) progress step around just this phase, before calling

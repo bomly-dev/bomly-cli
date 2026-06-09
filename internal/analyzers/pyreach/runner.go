@@ -20,7 +20,7 @@
 // interpreter or third-party tool on PATH. The Runner interface is
 // preserved (rather than calling the scanner directly from the
 // analyzer) so unit tests can inject a fake runner for deterministic
-// behaviour.
+// behavior.
 package pyreach
 
 import (
@@ -80,7 +80,7 @@ type RunnerResult struct {
 
 // hasResult reports whether the runner produced anything actionable.
 // Zero source files means the runner found no project structure to
-// analyse and the analyzer should mark every Python vulnerability
+// analyze and the analyzer should mark every Python vulnerability
 // Unknown.
 func (r RunnerResult) hasResult() bool {
 	return r.SourceFiles > 0

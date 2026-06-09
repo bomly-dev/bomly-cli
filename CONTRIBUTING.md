@@ -86,7 +86,7 @@ Do not add skipped tests without a recorded reason.
 
 ## Documentation
 
-User-facing docs live in [`docs/`](docs/). Most pages are hand-written; some are generated.
+User-facing docs live in [`docs/`](docs/). Most pages are handwritten; some are generated.
 
 Run `make generate` after changing any of:
 

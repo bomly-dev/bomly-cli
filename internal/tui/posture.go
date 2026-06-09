@@ -98,7 +98,7 @@ func normalizedPostureScore(score float64) float64 {
 }
 
 // postureScoreBand buckets aggregate scores into broad categories so the
-// summary panels can show counts and the list rows can pick a colour.
+// summary panels can show counts and the list rows can pick a color.
 func postureScoreBand(score float64) string {
 	switch {
 	case score < 0:
@@ -129,9 +129,9 @@ func postureBandColor(band string) string {
 	}
 }
 
-// postureBandBadgeKind maps a band to a colour kind the list renderer
+// postureBandBadgeKind maps a band to a color kind the list renderer
 // understands. The list package only knows a fixed vocabulary; we reuse
-// the severity-* kinds so colours line up with the rest of the TUI.
+// the severity-* kinds so colors line up with the rest of the TUI.
 func postureBandBadgeKind(band string) string {
 	switch band {
 	case "critical":

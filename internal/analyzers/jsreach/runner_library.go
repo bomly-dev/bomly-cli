@@ -29,7 +29,7 @@ func NewRunner(logger *zap.Logger) Runner {
 //
 // The Runner interface is preserved (rather than calling api.Build
 // directly from the analyzer) so unit tests can inject a fakeRunner
-// for deterministic behaviour without invoking esbuild.
+// for deterministic behavior without invoking esbuild.
 type libraryRunner struct {
 	logger *zap.Logger
 }
@@ -109,7 +109,7 @@ func (r libraryRunner) Run(ctx context.Context, projectDir string) (RunnerResult
 		},
 	}
 
-	// Honour cancellation by surfacing it as a runner error. esbuild
+	// Honor cancellation by surfacing it as a runner error. esbuild
 	// itself doesn't take a context; we check before/after so a
 	// long-running pass still cancels at boundary.
 	if err := ctx.Err(); err != nil {

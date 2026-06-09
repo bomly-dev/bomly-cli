@@ -21,7 +21,7 @@ func NewRunner(logger *zap.Logger) Runner {
 // libraryRunner is the in-process implementation of Runner. The Runner
 // interface is preserved (rather than calling api.Build directly from
 // the analyzer) so unit tests can inject a fakeRunner for deterministic
-// behaviour without a real Go toolchain.
+// behavior without a real Go toolchain.
 type libraryRunner struct {
 	logger *zap.Logger
 }

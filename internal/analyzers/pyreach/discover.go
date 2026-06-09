@@ -13,7 +13,7 @@ import (
 // from the request, in priority order:
 //
 //  1. Each Python package's PackageLocation.RealPath: walk upward to
-//     the nearest directory containing a recognised project file
+//     the nearest directory containing a recognized project file
 //     (pyproject.toml, setup.py, requirements.txt, …). Skip
 //     directories inside venv/, site-packages/, etc. — those describe
 //     installed dependencies, not project roots.
@@ -69,7 +69,7 @@ func discoverProjectRoots(req model.AnalyzeRequest) []string {
 }
 
 // findProjectRoot walks upward from start until it finds a directory
-// that looks like a Python project root (contains any recognised
+// that looks like a Python project root (contains any recognized
 // project file). Returns "" when none is found before reaching the
 // filesystem root or hitting a path that is itself inside a venv /
 // site-packages tree.
@@ -85,7 +85,7 @@ func findProjectRoot(start string) string {
 		}
 		if isInsideVendoredTree(dir) {
 			// Walking through a venv / site-packages would attribute
-			// dep source to the project. Bail out when we recognise
+			// dep source to the project. Bail out when we recognize
 			// we're below such a directory.
 			parent := filepath.Dir(dir)
 			if parent == dir {

@@ -757,7 +757,7 @@ func auditStatusLabel(status string) string {
 	return strings.ToLower(strings.TrimSpace(status))
 }
 
-// auditStatusTitle is auditStatusLabel with the first letter capitalised
+// auditStatusTitle is auditStatusLabel with the first letter capitalized
 // (for bucket headers and labels inside boxes).
 func auditStatusTitle(status string) string {
 	return titleCase(auditStatusLabel(status))

@@ -379,7 +379,7 @@ func sortObjSliceByKey(parent map[string]any, key, sortField string) {
 }
 
 // sortStringSlices sorts any []string values (or []any values whose elements
-// are all strings) found anywhere in the JSON tree. This stabilises fields
+// are all strings) found anywhere in the JSON tree. This stabilizes fields
 // like the per-package "dependencies" array whose order varies between runs.
 func sortStringSlices(node any) {
 	switch v := node.(type) {

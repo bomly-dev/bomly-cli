@@ -32,7 +32,7 @@ func TestLibraryRunnerWalksProjectAndExtractsDistributions(t *testing.T) {
 	// Should be skipped: lives inside .venv/, so its imports must
 	// not leak into the result.
 	must(".venv/lib/python3.11/site-packages/django/__init__.py", "import django_internal\n")
-	// Should be skipped: build artefact.
+	// Should be skipped: build artifact.
 	must("build/lib/app.py", "import never_seen\n")
 
 	r := NewRunner(nil)

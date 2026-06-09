@@ -72,7 +72,7 @@ Each analyzer reports one of four statuses per vulnerability:
 | `not_applicable` | Analyzer cannot evaluate this vulnerability (e.g. no language match, no source available).         |
 
 Analyzer failures **never abort the pipeline**. Missing toolchains,
-broken builds, cancelled contexts, and other recoverable conditions all
+broken builds, canceled contexts, and other recoverable conditions all
 degrade to `Status: unknown` with a stable, machine-readable `Reason`
 (e.g. `missing-toolchain`, `build-failed`, `cancelled`,
 `no-module-root-discovered`).
@@ -180,7 +180,7 @@ specifics:
    the analyzer reports the distribution as unreachable when it
    actually was imported. The BFS through the dep graph usually
    recovers the case via a transitive edge from a correctly-mapped
-   neighbour. Adding an override is a one-line PR.
+   neighbor. Adding an override is a one-line PR.
 4. **The closure is only as accurate as the lockfile.** Same as
    `jsreach`: if the dep graph is incomplete, the closure can't
    reach what isn't there. The pip / poetry / pipenv / uv / pdm
@@ -213,7 +213,7 @@ Consequences:
 2. **The curated prefix map is small and biased toward popular
    libraries.** A missing prefix produces a false-negative for
    direct imports. The dep-graph BFS usually catches the case via
-   a transitive edge from a correctly-mapped neighbour, but unlike
+   a transitive edge from a correctly-mapped neighbor, but unlike
    Python there is no identity-normalization fallback. Adding a
    prefix is a one-line PR in
    `internal/analyzers/jvmreach/prefixmap.go`.
@@ -307,7 +307,7 @@ Reachability data appears in three places:
   - `invalid-go-mod` — `go.mod` syntax error.
   - `build-failed` — generic compile-stage failure (`syntax error`,
     `undefined:`, `imported and not used`, non-zero exit).
-  - `cancelled` — context cancelled or deadline exceeded.
+  - `cancelled` — context canceled or deadline exceeded.
   - `runner-error` — fallback when none of the above patterns match.
 - **Multi-module / multi-project repos**: `jsreach` and `jvmreach`
   automatically derive local workspace/module closures before

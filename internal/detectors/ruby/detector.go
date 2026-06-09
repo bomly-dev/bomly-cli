@@ -329,11 +329,11 @@ func parseBundlerLockfile(raw string) (map[string]lockSpec, []string, error) {
 
 func parseLockSpecHeader(value string) (string, string) {
 	open := strings.Index(value, " (")
-	close := strings.LastIndex(value, ")")
-	if open <= 0 || close <= open {
+	closeIdx := strings.LastIndex(value, ")")
+	if open <= 0 || closeIdx <= open {
 		return strings.TrimSpace(value), ""
 	}
-	return strings.TrimSpace(value[:open]), strings.TrimSpace(value[open+2 : close])
+	return strings.TrimSpace(value[:open]), strings.TrimSpace(value[open+2 : closeIdx])
 }
 
 func parseDependencyName(value string) string {

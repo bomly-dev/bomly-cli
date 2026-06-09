@@ -1210,7 +1210,7 @@ func topAffectedLines(vulnerabilities []packageVulnerabilityRow, limit, width in
 	if len(keys) == 0 {
 		return []string{render.Style("(none)", render.Dim)}
 	}
-	max := maxCount(counts)
+	maxVal := maxCount(counts)
 	lines := make([]string, 0, len(keys))
 	for idx, key := range keys {
 		labelWidth := width / 3
@@ -1224,7 +1224,7 @@ func topAffectedLines(vulnerabilities []packageVulnerabilityRow, limit, width in
 		if barWidth < 10 {
 			barWidth = 10
 		}
-		lines = append(lines, padRight(truncateToWidth(key, labelWidth), labelWidth)+render.Style(" ", render.Dim)+coloredBarLine(counts[key], max, barWidth, paletteColor(idx))+" "+fmt.Sprintf("%d", counts[key]))
+		lines = append(lines, padRight(truncateToWidth(key, labelWidth), labelWidth)+render.Style(" ", render.Dim)+coloredBarLine(counts[key], maxVal, barWidth, paletteColor(idx))+" "+fmt.Sprintf("%d", counts[key]))
 	}
 	return lines
 }
@@ -2737,14 +2737,14 @@ func severityDistributionLines(vulnerabilities []packageVulnerabilityRow, width 
 	for _, severity := range []string{"critical", "high", "medium", "low", "unknown"} {
 		total += counts[severity]
 	}
-	max := maxCount(counts)
+	maxVal := maxCount(counts)
 	lines := make([]string, 0, 5)
 	for _, severity := range []string{"critical", "high", "medium", "low", "unknown"} {
 		label := titleCase(severity)
 		if includeReachability {
 			label += fmt.Sprintf(" (%d reachable)", reachableCounts[severity])
 		}
-		lines = append(lines, distributionLine(label, counts[severity], total, max, severityColorCode(severity), width))
+		lines = append(lines, distributionLine(label, counts[severity], total, maxVal, severityColorCode(severity), width))
 	}
 	return lines
 }
@@ -2757,15 +2757,15 @@ func coloredDistributionLines(counts map[string]int, total, limit, width int) []
 	if len(keys) == 0 {
 		return []string{render.Style("(none)", render.Dim)}
 	}
-	max := maxCount(counts)
+	maxVal := maxCount(counts)
 	lines := make([]string, 0, len(keys))
 	for idx, key := range keys {
-		lines = append(lines, distributionLine(key, counts[key], total, max, paletteColor(idx), width))
+		lines = append(lines, distributionLine(key, counts[key], total, maxVal, paletteColor(idx), width))
 	}
 	return lines
 }
 
-func distributionLine(label string, value, total, max int, color string, width int) string {
+func distributionLine(label string, value, total, maxVal int, color string, width int) string {
 	if width < 32 {
 		width = 32
 	}
@@ -2810,13 +2810,13 @@ func distributionLine(label string, value, total, max int, color string, width i
 			}
 		}
 	}
-	return padRight(truncateToWidth(text, textWidth), textWidth+2) + coloredBarLine(value, max, barWidth, color)
+	return padRight(truncateToWidth(text, textWidth), textWidth+2) + coloredBarLine(value, maxVal, barWidth, color)
 }
 
-func coloredBarLine(value, max, width int, color string) string {
+func coloredBarLine(value, maxVal, width int, color string) string {
 	filled := 0
-	if max > 0 {
-		filled = value * width / max
+	if maxVal > 0 {
+		filled = value * width / maxVal
 		if value > 0 && filled == 0 {
 			filled = 1
 		}
@@ -3200,20 +3200,20 @@ func sortedCountKeys(counts map[string]int) []string {
 }
 
 func maxCount(counts map[string]int) int {
-	max := 0
+	maxVal := 0
 	for _, value := range counts {
-		if value > max {
-			max = value
+		if value > maxVal {
+			maxVal = value
 		}
 	}
-	return max
+	return maxVal
 }
 
-func barLine(value, max int) string {
+func barLine(value, maxVal int) string {
 	width := 18
 	filled := 0
-	if max > 0 {
-		filled = value * width / max
+	if maxVal > 0 {
+		filled = value * width / maxVal
 		if value > 0 && filled == 0 {
 			filled = 1
 		}

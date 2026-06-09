@@ -58,10 +58,12 @@ func postureScoresDifferMeaningfully(before, after float64) bool {
 		return true
 	}
 	// Inconclusive ↔ scored transitions also count as meaningful, since the
-	// score column reads differently in each case.
-	beforeBand := postureScoreBand(before)
-	afterBand := postureScoreBand(after)
-	return beforeBand == "inconclusive" || afterBand == "inconclusive" && beforeBand != afterBand
+	// score column reads differently in each case. Only a transition counts:
+	// when exactly one side is inconclusive. Two inconclusive scores read the
+	// same and are not a meaningful change.
+	beforeInconclusive := postureScoreBand(before) == "inconclusive"
+	afterInconclusive := postureScoreBand(after) == "inconclusive"
+	return beforeInconclusive != afterInconclusive
 }
 
 // postureDiffRowsFromPayload aggregates the diff payload's per-package

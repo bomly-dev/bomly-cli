@@ -171,7 +171,7 @@ func renderConfigMarkdown(fields []configField) string {
 			if envVar == "" {
 				envVar = "-"
 			}
-			fmt.Fprintf(&builder, "| `%s` | `%s` | `%s` | %s | %s |\n", field.YAMLKey, envVar, field.GoType, defaultVal, field.Doc)
+			_, _ = fmt.Fprintf(&builder, "| `%s` | `%s` | `%s` | %s | %s |\n", field.YAMLKey, envVar, field.GoType, defaultVal, field.Doc)
 		}
 		builder.WriteString("\n")
 	}
@@ -187,7 +187,7 @@ func renderConfigMarkdown(fields []configField) string {
 	}
 	sort.Strings(legacyKeys)
 	for _, key := range legacyKeys {
-		fmt.Fprintf(&builder, "| `%s` | `%s` |\n", key, migrations[key])
+		_, _ = fmt.Fprintf(&builder, "| `%s` | `%s` |\n", key, migrations[key])
 	}
 	builder.WriteString("\n")
 
@@ -223,7 +223,7 @@ func writeNestedConfigType(builder *strings.Builder, t reflect.Type, prefix stri
 			if !hasConfigPath(fields, path+".") {
 				continue
 			}
-			fmt.Fprintf(builder, "# %s%s:\n", strings.Repeat("  ", depth), key)
+			_, _ = fmt.Fprintf(builder, "# %s%s:\n", strings.Repeat("  ", depth), key)
 			writeNestedConfigType(builder, structField.Type, path, depth+1, fields)
 			continue
 		}
@@ -232,8 +232,8 @@ func writeNestedConfigType(builder *strings.Builder, t reflect.Type, prefix stri
 			continue
 		}
 		indent := strings.Repeat("  ", depth)
-		fmt.Fprintf(builder, "# %s%s\n", indent, field.Doc)
-		fmt.Fprintf(builder, "# %s%s: %s\n", indent, key, exampleConfigValue(field))
+		_, _ = fmt.Fprintf(builder, "# %s%s\n", indent, field.Doc)
+		_, _ = fmt.Fprintf(builder, "# %s%s: %s\n", indent, key, exampleConfigValue(field))
 	}
 }
 

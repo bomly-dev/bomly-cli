@@ -23,7 +23,6 @@ const ExitCodeInvalidInput = 4
 var (
 	testHelperBinDir  string
 	fakeGradleBinPath string
-	fakeGoBinPath     string
 )
 
 func TestMain(m *testing.M) {
@@ -61,7 +60,6 @@ func buildSharedTestHelpers(dir string) error {
 	if err := buildHelperBinary(dir, goPath, fakeGoSource()); err != nil {
 		return err
 	}
-	fakeGoBinPath = goPath
 
 	return nil
 }

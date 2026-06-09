@@ -841,7 +841,7 @@ func (p *Progress) drawLocked() {
 
 	// Move to top of previous live region and erase it.
 	if prev > 0 {
-		fmt.Fprintf(&buf, "\x1b[%dA", prev)
+		_, _ = fmt.Fprintf(&buf, "\x1b[%dA", prev)
 	}
 	buf.WriteString("\r")
 	for i := 0; i < prev; i++ {
@@ -851,7 +851,7 @@ func (p *Progress) drawLocked() {
 		}
 	}
 	if prev > 1 {
-		fmt.Fprintf(&buf, "\x1b[%dA", prev-1)
+		_, _ = fmt.Fprintf(&buf, "\x1b[%dA", prev-1)
 	}
 	if prev > 0 {
 		buf.WriteString("\r")

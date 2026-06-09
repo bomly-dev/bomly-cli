@@ -500,21 +500,21 @@ func renderDetectorEcosystemIndex(ecosystems []sdk.Ecosystem, byEcosystem map[sd
 			name := entry.Manager.Name()
 			links = append(links, fmt.Sprintf("[`%s`](%s/%s.md)", name, ecosystem, name))
 		}
-		fmt.Fprintf(&b, "| [%s](%s/) | %s |\n", ecosystem, ecosystem, strings.Join(links, ", "))
+		_, _ = fmt.Fprintf(&b, "| [%s](%s/) | %s |\n", ecosystem, ecosystem, strings.Join(links, ", "))
 	}
 	return b.String()
 }
 
 func renderEcosystemReadme(ecosystem sdk.Ecosystem, entries []registry.PackageManagerSupport) string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "# %s\n\n", titleWords(string(ecosystem)))
+	_, _ = fmt.Fprintf(&b, "# %s\n\n", titleWords(string(ecosystem)))
 	b.WriteString(generatedBanner + "\n\n")
-	fmt.Fprintf(&b, "Package managers Bomly recognizes in the `%s` ecosystem:\n\n", ecosystem)
+	_, _ = fmt.Fprintf(&b, "Package managers Bomly recognizes in the `%s` ecosystem:\n\n", ecosystem)
 	b.WriteString("| Package manager | Detector chain | Evidence patterns | Install-first support |\n")
 	b.WriteString("| --- | --- | --- | --- |\n")
 	for _, entry := range entries {
 		name := entry.Manager.Name()
-		fmt.Fprintf(&b, "| [`%s`](%s.md) | %s | %s | %s |\n",
+		_, _ = fmt.Fprintf(&b, "| [`%s`](%s.md) | %s | %s | %s |\n",
 			name,
 			name,
 			codeList(entry.Detectors),
@@ -533,17 +533,17 @@ func renderEcosystemReadme(ecosystem sdk.Ecosystem, entries []registry.PackageMa
 func renderPackageManagerMarkdown(ecosystem sdk.Ecosystem, entry registry.PackageManagerSupport) string {
 	name := entry.Manager.Name()
 	var b strings.Builder
-	fmt.Fprintf(&b, "# `%s` (%s ecosystem)\n\n", name, ecosystem)
+	_, _ = fmt.Fprintf(&b, "# `%s` (%s ecosystem)\n\n", name, ecosystem)
 	b.WriteString(generatedBanner + "\n\n")
-	fmt.Fprintf(&b, "Bomly uses this chain when it finds `%s` evidence.\n\n", name)
+	_, _ = fmt.Fprintf(&b, "Bomly uses this chain when it finds `%s` evidence.\n\n", name)
 	b.WriteString("| Property | Value |\n")
 	b.WriteString("| --- | --- |\n")
-	fmt.Fprintf(&b, "| Package manager | `%s` |\n", name)
-	fmt.Fprintf(&b, "| Ecosystem | `%s` |\n", ecosystem)
-	fmt.Fprintf(&b, "| Detector chain | %s |\n", codeList(entry.Detectors))
-	fmt.Fprintf(&b, "| Evidence patterns | %s |\n", codeListOrDash(entry.EvidencePatterns))
-	fmt.Fprintf(&b, "| Install-first support | %s |\n", yesNo(chainSupportsInstallFirst(entry.Detectors)))
-	fmt.Fprintf(&b, "| Native command hints | %s |\n", commandHintsForChain(entry.Detectors))
+	_, _ = fmt.Fprintf(&b, "| Package manager | `%s` |\n", name)
+	_, _ = fmt.Fprintf(&b, "| Ecosystem | `%s` |\n", ecosystem)
+	_, _ = fmt.Fprintf(&b, "| Detector chain | %s |\n", codeList(entry.Detectors))
+	_, _ = fmt.Fprintf(&b, "| Evidence patterns | %s |\n", codeListOrDash(entry.EvidencePatterns))
+	_, _ = fmt.Fprintf(&b, "| Install-first support | %s |\n", yesNo(chainSupportsInstallFirst(entry.Detectors)))
+	_, _ = fmt.Fprintf(&b, "| Native command hints | %s |\n", commandHintsForChain(entry.Detectors))
 	if prose := loadProse("detectors", name); prose != "" {
 		b.WriteString("\n")
 		b.WriteString(prose)
@@ -575,7 +575,7 @@ func renderMatcherIndex(descriptors []sdk.MatcherDescriptor) string {
 	b.WriteString("# Matcher Guides\n\n")
 	b.WriteString("These generated pages explain Bomly's built-in enrichment matchers.\n\n")
 	for _, descriptor := range descriptors {
-		fmt.Fprintf(&b, "- [%s](%s.md)\n", humanMatcherTitle(descriptor.Name), descriptor.Name)
+		_, _ = fmt.Fprintf(&b, "- [%s](%s.md)\n", humanMatcherTitle(descriptor.Name), descriptor.Name)
 	}
 	return b.String()
 }
@@ -583,22 +583,22 @@ func renderMatcherIndex(descriptors []sdk.MatcherDescriptor) string {
 func renderMatcherMarkdown(descriptor sdk.MatcherDescriptor) string {
 	behavior := matcherBehavior(descriptor.Name)
 	var b strings.Builder
-	fmt.Fprintf(&b, "# %s\n\n", humanMatcherTitle(descriptor.Name))
+	_, _ = fmt.Fprintf(&b, "# %s\n\n", humanMatcherTitle(descriptor.Name))
 	b.WriteString(generatedBanner + "\n\n")
-	fmt.Fprintf(&b, "%s\n\n", behavior.Summary)
+	_, _ = fmt.Fprintf(&b, "%s\n\n", behavior.Summary)
 	b.WriteString("| Property | Value |\n")
 	b.WriteString("| --- | --- |\n")
-	fmt.Fprintf(&b, "| Matcher name | `%s` |\n", descriptor.Name)
-	fmt.Fprintf(&b, "| Runs by default | %s |\n", yesNo(matcherRunsByDefault(descriptor.Name) && !behavior.RequiresEnrich))
-	fmt.Fprintf(&b, "| Requires enrichment | %s |\n", yesNo(behavior.RequiresEnrich))
-	fmt.Fprintf(&b, "| Uses network | %s |\n", yesNo(behavior.UsesNetwork))
-	fmt.Fprintf(&b, "| Cache behavior | %s |\n", behavior.Cache)
-	fmt.Fprintf(&b, "| Output fields | %s |\n", strings.Join(behavior.OutputFields, ", "))
+	_, _ = fmt.Fprintf(&b, "| Matcher name | `%s` |\n", descriptor.Name)
+	_, _ = fmt.Fprintf(&b, "| Runs by default | %s |\n", yesNo(matcherRunsByDefault(descriptor.Name) && !behavior.RequiresEnrich))
+	_, _ = fmt.Fprintf(&b, "| Requires enrichment | %s |\n", yesNo(behavior.RequiresEnrich))
+	_, _ = fmt.Fprintf(&b, "| Uses network | %s |\n", yesNo(behavior.UsesNetwork))
+	_, _ = fmt.Fprintf(&b, "| Cache behavior | %s |\n", behavior.Cache)
+	_, _ = fmt.Fprintf(&b, "| Output fields | %s |\n", strings.Join(behavior.OutputFields, ", "))
 	if len(descriptor.Tags) > 0 {
-		fmt.Fprintf(&b, "| Tags | %s |\n", codeList(descriptor.Tags))
+		_, _ = fmt.Fprintf(&b, "| Tags | %s |\n", codeList(descriptor.Tags))
 	}
 	if len(descriptor.SupportedEcosystems) > 0 {
-		fmt.Fprintf(&b, "| Ecosystems | %s |\n", ecosystemCodeList(descriptor.SupportedEcosystems))
+		_, _ = fmt.Fprintf(&b, "| Ecosystems | %s |\n", ecosystemCodeList(descriptor.SupportedEcosystems))
 	}
 	b.WriteString("\n## User notes\n\n")
 	b.WriteString(behavior.Notes)

@@ -99,7 +99,7 @@ func New(config Config) (*Checker, error) {
 	if strings.TrimSpace(config.CacheDir) == "" {
 		config.CacheDir = defaultCacheDir()
 	}
-	cache, err := cache.NewFileCache(config.CacheDir, config.CacheTTL)
+	fileCache, err := cache.NewFileCache(config.CacheDir, config.CacheTTL)
 	if err != nil {
 		return nil, fmt.Errorf("deps.dev matcher: %w", err)
 	}
@@ -120,7 +120,7 @@ func New(config Config) (*Checker, error) {
 	}
 	return &Checker{
 		client: client,
-		cache:  cache,
+		cache:  fileCache,
 		config: config,
 		logger: logger,
 	}, nil

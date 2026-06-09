@@ -77,42 +77,42 @@ func (o *Options) SetConfig(cfg config.Resolved) {
 }
 
 // Registry returns the filtered scan registry prepared for command execution.
-func (o Options) Registry() *engine.Registry {
+func (o *Options) Registry() *engine.Registry {
 	return o.registry
 }
 
 // ExecutionTarget returns the target prepared for command execution.
-func (o Options) ExecutionTarget() sdk.ExecutionTarget {
+func (o *Options) ExecutionTarget() sdk.ExecutionTarget {
 	return o.executionTarget
 }
 
 // Subprojects returns the subprojects prepared for command execution.
-func (o Options) Subprojects() []sdk.Subproject {
+func (o *Options) Subprojects() []sdk.Subproject {
 	return append([]sdk.Subproject(nil), o.subprojects...)
 }
 
 // DetectorFilter returns the detector filter prepared for command execution.
-func (o Options) DetectorFilter() sdk.DetectorFilter {
+func (o *Options) DetectorFilter() sdk.DetectorFilter {
 	return o.detectorFilter
 }
 
 // AuditorFilter returns the auditor filter prepared for command execution.
-func (o Options) AuditorFilter() sdk.AuditorFilter {
+func (o *Options) AuditorFilter() sdk.AuditorFilter {
 	return o.auditorFilter
 }
 
 // MatcherFilter returns the matcher filter prepared for command execution.
-func (o Options) MatcherFilter() sdk.MatcherFilter {
+func (o *Options) MatcherFilter() sdk.MatcherFilter {
 	return o.matcherFilter
 }
 
 // AnalyzerFilter returns the analyzer filter prepared for command execution.
-func (o Options) AnalyzerFilter() sdk.AnalyzerFilter {
+func (o *Options) AnalyzerFilter() sdk.AnalyzerFilter {
 	return o.analyzerFilter
 }
 
 // PipelineRequest builds the scan pipeline request for this prepared command context.
-func (o Options) PipelineRequest(scope sdk.Scope, stderr io.Writer) engine.PipelineRequest {
+func (o *Options) PipelineRequest(scope sdk.Scope, stderr io.Writer) engine.PipelineRequest {
 	failOn, _ := sdk.ParseFailOnList(o.ResolvedConfig.FailOn)
 	typosquatThreshold, _ := strconv.ParseFloat(strings.TrimSpace(o.ResolvedConfig.TyposquatThreshold), 64)
 	return engine.PipelineRequest{
@@ -146,7 +146,7 @@ func (o Options) PipelineRequest(scope sdk.Scope, stderr io.Writer) engine.Pipel
 }
 
 // Verbose reports whether verbose command output is enabled.
-func (o Options) Verbose() bool {
+func (o *Options) Verbose() bool {
 	return o.verbose
 }
 

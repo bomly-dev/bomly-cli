@@ -36,7 +36,9 @@ func (p *recordingProgress) Detail(label, detail string) {
 func TestResolveDetectors_RunsMatchingDetector(t *testing.T) {
 	registry := newTestRegistry()
 	nativeGraph := sdk.New()
-	nativeGraph.AddNode(sdk.NewDependencyRef("app", "1.0.0"))
+	if err := nativeGraph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
 
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "npm-native", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},
@@ -99,7 +101,9 @@ func TestResolveDetectors_ReportsDetectorDetail(t *testing.T) {
 func TestResolveDetectors_FallsBackWhenPrimaryFails(t *testing.T) {
 	registry := newTestRegistry()
 	fallbackGraph := sdk.New()
-	fallbackGraph.AddNode(sdk.NewDependencyRef("app", "1.0.0"))
+	if err := fallbackGraph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
 
 	registry.registerDetector(fakeFallbackDetector{
 		fakeDetector: fakeDetector{
@@ -132,7 +136,9 @@ func TestResolveDetectors_FallsBackWhenPrimaryFails(t *testing.T) {
 func TestResolveDetectors_DoesNotRunExcludedFallback(t *testing.T) {
 	registry := newTestRegistry()
 	fallbackGraph := sdk.New()
-	fallbackGraph.AddNode(sdk.NewDependencyRef("app", "1.0.0"))
+	if err := fallbackGraph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
 
 	registry.registerDetector(fakeFallbackDetector{
 		fakeDetector: fakeDetector{
@@ -163,7 +169,9 @@ func TestResolveDetectors_DoesNotRunExcludedFallback(t *testing.T) {
 func TestPipeline_UsesPlannedDetectorChainWithoutEagerFallbackExecution(t *testing.T) {
 	registry := newTestRegistry()
 	fallbackGraph := sdk.New()
-	fallbackGraph.AddNode(sdk.NewDependencyRef("app", "1.0.0"))
+	if err := fallbackGraph.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
 
 	registry.registerDetector(fakeFallbackDetector{
 		fakeDetector: fakeDetector{
@@ -572,9 +580,15 @@ func TestPipeline_PreResolveHookError_AbortsPipeline(t *testing.T) {
 func TestPipeline_Run_ProducesConsolidatedResult(t *testing.T) {
 	registry := newTestRegistry()
 	g := sdk.New()
-	g.AddNode(sdk.NewDependencyRef("app", "1.0.0"))
-	g.AddNode(sdk.NewDependencyRef("react", "18.2.0"))
-	g.AddEdge("app@1.0.0", "react@18.2.0")
+	if err := g.AddNode(sdk.NewDependencyRef("app", "1.0.0")); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
+	if err := g.AddNode(sdk.NewDependencyRef("react", "18.2.0")); err != nil {
+		t.Fatalf("add node: %v", err)
+	}
+	if err := g.AddEdge("app@1.0.0", "react@18.2.0"); err != nil {
+		t.Fatalf("add edge: %v", err)
+	}
 
 	registry.registerDetector(fakeDetector{
 		descriptor: DetectorDescriptor{Name: "npm-detector", SupportedEcosystems: []Ecosystem{EcosystemNPM}, SupportedManagers: []PackageManager{PackageManagerNPM}},

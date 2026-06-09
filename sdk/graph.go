@@ -691,15 +691,15 @@ type idIndexHeap struct {
 	items []int
 }
 
-func (h idIndexHeap) Len() int {
+func (h *idIndexHeap) Len() int {
 	return len(h.items)
 }
 
-func (h idIndexHeap) Less(i, j int) bool {
+func (h *idIndexHeap) Less(i, j int) bool {
 	return h.g.nodes[h.items[i]].ID < h.g.nodes[h.items[j]].ID
 }
 
-func (h idIndexHeap) Swap(i, j int) {
+func (h *idIndexHeap) Swap(i, j int) {
 	h.items[i], h.items[j] = h.items[j], h.items[i]
 }
 

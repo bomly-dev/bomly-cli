@@ -155,96 +155,9 @@ func writeExamplePluginSource(t *testing.T, dir string) {
 	}
 }
 
-const examplePluginMainSource = `package main
-
-import (
-	"context"
-	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
-
-	"github.com/bomly-dev/bomly-cli/sdk"
-)
-
-const pluginID = "bomly.example.gomod-detector"
-
-type detector struct{}
-
-func (d *detector) Descriptor(context.Context) (*sdk.DetectorDescriptor, error) {
-	return &sdk.DetectorDescriptor{
-		Name: pluginID,
-	}, nil
-}
-
-func (d *detector) PackageManagerSupport(context.Context) ([]sdk.PackageManagerSupport, error) {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerGoMod, "go.mod")}, nil
-}
-
-func (d *detector) Ready(context.Context, *sdk.DetectRequest) (*sdk.ReadyResponse, error) {
-	return &sdk.ReadyResponse{Ready: true}, nil
-}
-
-func (d *detector) Applicable(context.Context, *sdk.DetectRequest) (*sdk.ApplicableResponse, error) {
-	return &sdk.ApplicableResponse{Applicable: true}, nil
-}
-
-func (d *detector) Detect(ctx context.Context, req *sdk.DetectRequest) (*sdk.DetectResponse, error) {
-	moduleName, err := readModuleName(filepath.Join(req.ProjectPath, "go.mod"))
-	if err != nil {
-		return nil, err
-	}
-	pkg := sdk.NewDependency(sdk.Dependency{
-		Ecosystem: string(sdk.EcosystemGo),
-		Name:      moduleName,
-		Version:   "v0.0.0",
-		PURL:      "pkg:golang/" + moduleName + "@v0.0.0",
-		FoundBy:   pluginID,
-	})
-	graph := sdk.New()
-	if err := graph.AddNode(pkg); err != nil {
-		return nil, err
-	}
-	return &sdk.DetectResponse{
-		SubprojectInfo:      req.Subproject,
-		RootExecutionTarget: req.ExecutionTarget,
-		DetectorName:        pluginID,
-		Origin:              sdk.ExternalOrigin,
-		Graphs: &sdk.GraphContainer{
-			Entries: []sdk.GraphEntry{{
-				Manifest: sdk.ManifestMetadata{
-					Path: filepath.Join(req.ProjectPath, "go.mod"),
-					Kind: sdk.ManifestKind("go.mod"),
-				},
-				Graph: graph,
-			}},
-		},
-	}, nil
-}
-
-func readModuleName(path string) (string, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return "", fmt.Errorf("read go.mod: %w", err)
-	}
-	for _, line := range strings.Split(string(data), "\n") {
-		line = strings.TrimSpace(line)
-		if !strings.HasPrefix(line, "module ") {
-			continue
-		}
-		name := strings.TrimSpace(strings.TrimPrefix(line, "module"))
-		if name == "" {
-			return "", fmt.Errorf("go.mod module directive is empty")
-		}
-		return name, nil
-	}
-	return "", fmt.Errorf("go.mod does not contain a module directive")
-}
-
-func main() {
-	sdk.ServeDetector(&detector{})
-}
-`
+// examplePluginMainSource lives in the build-tag-free fixture_compile_test.go
+// so it is compile-checked by `make test`; it is reused here for the
+// end-to-end smoke workflow.
 
 const examplePluginManifest = `{
   "schemaVersion": "bomly.plugin.package.v1",

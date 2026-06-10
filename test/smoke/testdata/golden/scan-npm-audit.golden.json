@@ -2,173 +2,195 @@
   "command": "scan",
   "manifests": [
     {
-      "detector": "github-actions-detector",
-      "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
-      "package_manager": "github-actions",
-      "packages": [
+      "dependencies": [
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main"
           ],
           "id": "pkg:githubactions/.github%2Fworkflows%2Fnode-aught.yml@local",
           "licenses": [],
           "name": ".github/workflows/node-aught.yml",
+          "package_ref": "pkg:githubactions/.github%2Fworkflows%2Fnode-aught.yml@local",
           "purl": "pkg:githubactions/.github%2Fworkflows%2Fnode-aught.yml@local",
-          "scope": "runtime",
-          "version": "local",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "local"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main",
           "licenses": [],
           "name": "ljharb:actions/.github/workflows/node.yml",
+          "package_ref": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main",
           "purl": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main",
-          "scope": "runtime",
-          "version": "main",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "main"
         }
       ],
-      "path": ".github/workflows/node-aught.yml",
-      "subproject": "."
-    },
-    {
       "detector": "github-actions-detector",
       "ecosystem": "github-actions",
       "kind": "github-actions-workflow",
       "package_manager": "github-actions",
-      "packages": [
+      "path": ".github/workflows/node-aught.yml",
+      "subproject": "."
+    },
+    {
+      "dependencies": [
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fpretest.yml@main"
           ],
           "id": "pkg:githubactions/.github%2Fworkflows%2Fnode-pretest.yml@local",
           "licenses": [],
           "name": ".github/workflows/node-pretest.yml",
+          "package_ref": "pkg:githubactions/.github%2Fworkflows%2Fnode-pretest.yml@local",
           "purl": "pkg:githubactions/.github%2Fworkflows%2Fnode-pretest.yml@local",
-          "scope": "runtime",
-          "version": "local",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "local"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fpretest.yml@main",
           "licenses": [],
           "name": "ljharb:actions/.github/workflows/pretest.yml",
+          "package_ref": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fpretest.yml@main",
           "purl": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fpretest.yml@main",
-          "scope": "runtime",
-          "version": "main",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "main"
         }
       ],
-      "path": ".github/workflows/node-pretest.yml",
-      "subproject": "."
-    },
-    {
       "detector": "github-actions-detector",
       "ecosystem": "github-actions",
       "kind": "github-actions-workflow",
       "package_manager": "github-actions",
-      "packages": [
+      "path": ".github/workflows/node-pretest.yml",
+      "subproject": "."
+    },
+    {
+      "dependencies": [
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main"
           ],
           "id": "pkg:githubactions/.github%2Fworkflows%2Fnode-tens.yml@local",
           "licenses": [],
           "name": ".github/workflows/node-tens.yml",
+          "package_ref": "pkg:githubactions/.github%2Fworkflows%2Fnode-tens.yml@local",
           "purl": "pkg:githubactions/.github%2Fworkflows%2Fnode-tens.yml@local",
-          "scope": "runtime",
-          "version": "local",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "local"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main",
           "licenses": [],
           "name": "ljharb:actions/.github/workflows/node.yml",
+          "package_ref": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main",
           "purl": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main",
-          "scope": "runtime",
-          "version": "main",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "main"
         }
       ],
-      "path": ".github/workflows/node-tens.yml",
-      "subproject": "."
-    },
-    {
       "detector": "github-actions-detector",
       "ecosystem": "github-actions",
       "kind": "github-actions-workflow",
       "package_manager": "github-actions",
-      "packages": [
+      "path": ".github/workflows/node-tens.yml",
+      "subproject": "."
+    },
+    {
+      "dependencies": [
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:githubactions/actions/checkout@v3",
             "pkg:githubactions/ljharb/rebase@master"
           ],
           "id": "pkg:githubactions/.github%2Fworkflows%2Frebase.yml@local",
           "licenses": [],
           "name": ".github/workflows/rebase.yml",
+          "package_ref": "pkg:githubactions/.github%2Fworkflows%2Frebase.yml@local",
           "purl": "pkg:githubactions/.github%2Fworkflows%2Frebase.yml@local",
-          "scope": "runtime",
-          "version": "local",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "local"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:githubactions/actions/checkout@v3",
           "licenses": [],
           "name": "actions:checkout",
+          "package_ref": "pkg:githubactions/actions/checkout@v3",
           "purl": "pkg:githubactions/actions/checkout@v3",
-          "scope": "runtime",
-          "version": "v3",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "v3"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:githubactions/ljharb/rebase@master",
           "licenses": [],
           "name": "ljharb:rebase",
+          "package_ref": "pkg:githubactions/ljharb/rebase@master",
           "purl": "pkg:githubactions/ljharb/rebase@master",
-          "scope": "runtime",
-          "version": "master",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "master"
         }
       ],
-      "path": ".github/workflows/rebase.yml",
-      "subproject": "."
-    },
-    {
       "detector": "github-actions-detector",
       "ecosystem": "github-actions",
       "kind": "github-actions-workflow",
       "package_manager": "github-actions",
-      "packages": [
+      "path": ".github/workflows/rebase.yml",
+      "subproject": "."
+    },
+    {
+      "dependencies": [
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:githubactions/ljharb/require-allow-edits@main"
           ],
           "id": "pkg:githubactions/.github%2Fworkflows%2Frequire-allow-edits.yml@local",
           "licenses": [],
           "name": ".github/workflows/require-allow-edits.yml",
+          "package_ref": "pkg:githubactions/.github%2Fworkflows%2Frequire-allow-edits.yml@local",
           "purl": "pkg:githubactions/.github%2Fworkflows%2Frequire-allow-edits.yml@local",
-          "scope": "runtime",
-          "version": "local",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "local"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:githubactions/ljharb/require-allow-edits@main",
           "licenses": [],
           "name": "ljharb:require-allow-edits",
+          "package_ref": "pkg:githubactions/ljharb/require-allow-edits@main",
           "purl": "pkg:githubactions/ljharb/require-allow-edits@main",
-          "scope": "runtime",
-          "version": "main",
-          "vulnerabilities": []
+          "scopes": [
+            "runtime"
+          ],
+          "version": "main"
         }
       ],
+      "detector": "github-actions-detector",
+      "ecosystem": "github-actions",
+      "kind": "github-actions-workflow",
+      "package_manager": "github-actions",
       "path": ".github/workflows/require-allow-edits.yml",
       "subproject": "."
     }
@@ -176,6 +198,88 @@
   "metadata": {
     "duration_ms": 0
   },
+  "packages": [
+    {
+      "ecosystem": "github-actions",
+      "licenses": [],
+      "name": ".github/workflows/node-aught.yml",
+      "purl": "pkg:githubactions/.github%2Fworkflows%2Fnode-aught.yml@local",
+      "version": "local",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "github-actions",
+      "licenses": [],
+      "name": ".github/workflows/node-pretest.yml",
+      "purl": "pkg:githubactions/.github%2Fworkflows%2Fnode-pretest.yml@local",
+      "version": "local",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "github-actions",
+      "licenses": [],
+      "name": ".github/workflows/node-tens.yml",
+      "purl": "pkg:githubactions/.github%2Fworkflows%2Fnode-tens.yml@local",
+      "version": "local",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "github-actions",
+      "licenses": [],
+      "name": ".github/workflows/rebase.yml",
+      "purl": "pkg:githubactions/.github%2Fworkflows%2Frebase.yml@local",
+      "version": "local",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "github-actions",
+      "licenses": [],
+      "name": ".github/workflows/require-allow-edits.yml",
+      "purl": "pkg:githubactions/.github%2Fworkflows%2Frequire-allow-edits.yml@local",
+      "version": "local",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "github-actions",
+      "licenses": [],
+      "name": "checkout",
+      "purl": "pkg:githubactions/actions/checkout@v3",
+      "version": "v3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "github-actions",
+      "licenses": [],
+      "name": "actions/.github/workflows/node.yml",
+      "purl": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main",
+      "version": "main",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "github-actions",
+      "licenses": [],
+      "name": "actions/.github/workflows/pretest.yml",
+      "purl": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fpretest.yml@main",
+      "version": "main",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "github-actions",
+      "licenses": [],
+      "name": "rebase",
+      "purl": "pkg:githubactions/ljharb/rebase@master",
+      "version": "master",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "github-actions",
+      "licenses": [],
+      "name": "require-allow-edits",
+      "purl": "pkg:githubactions/ljharb/require-allow-edits@main",
+      "version": "main",
+      "vulnerabilities": []
+    }
+  ],
   "project": {
     "ecosystem": "multiple",
     "name": "\u003cnormalized\u003e",

@@ -2,13 +2,9 @@
   "command": "scan",
   "manifests": [
     {
-      "detector": "syft-detector",
-      "ecosystem": "maven",
-      "kind": "java-archive",
-      "package_manager": "maven",
-      "packages": [
+      "dependencies": [
         {
-          "dependencies": [
+          "depends_on": [
             "pkg:maven/com.h2database/h2@1.3.176",
             "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
             "pkg:maven/junit/junit@4.12",
@@ -29,19 +25,13 @@
               "real_path": "/pom.xml"
             }
           ],
-          "metadata": {
-            "bomly.normalization.applied": [
-              "version"
-            ],
-            "bomly.normalization.original_version": "1.0-SNAPSHOT"
-          },
           "name": "com.bomly:example-java-maven",
+          "package_ref": "pkg:maven/com.bomly/example-java-maven@1.0-SNAPSHOT",
           "purl": "pkg:maven/com.bomly/example-java-maven@1.0-SNAPSHOT",
-          "version": "1.0-snapshot",
-          "vulnerabilities": []
+          "version": "1.0-snapshot"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:maven/com.h2database/h2@1.3.176",
           "licenses": [],
           "locations": [
@@ -51,12 +41,12 @@
             }
           ],
           "name": "com.h2database:h2",
+          "package_ref": "pkg:maven/com.h2database/h2@1.3.176",
           "purl": "pkg:maven/com.h2database/h2@1.3.176",
-          "version": "1.3.176",
-          "vulnerabilities": []
+          "version": "1.3.176"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
           "licenses": [],
           "locations": [
@@ -66,12 +56,12 @@
             }
           ],
           "name": "com.orientechnologies:orientdb-server",
+          "package_ref": "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
           "purl": "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
-          "version": "2.1.9",
-          "vulnerabilities": []
+          "version": "2.1.9"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:maven/junit/junit@4.12",
           "licenses": [],
           "locations": [
@@ -81,12 +71,12 @@
             }
           ],
           "name": "junit:junit",
+          "package_ref": "pkg:maven/junit/junit@4.12",
           "purl": "pkg:maven/junit/junit@4.12",
-          "version": "4.12",
-          "vulnerabilities": []
+          "version": "4.12"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0",
           "licenses": [],
           "locations": [
@@ -96,12 +86,12 @@
             }
           ],
           "name": "net.bull.javamelody:javamelody-core",
+          "package_ref": "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0",
           "purl": "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0",
-          "version": "1.59.0",
-          "vulnerabilities": []
+          "version": "1.59.0"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
           "licenses": [],
           "locations": [
@@ -111,12 +101,12 @@
             }
           ],
           "name": "org.apache.kafka:kafka_2.11",
+          "package_ref": "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
           "purl": "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
-          "version": "0.9.0.1",
-          "vulnerabilities": []
+          "version": "0.9.0.1"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
           "licenses": [],
           "locations": [
@@ -126,12 +116,12 @@
             }
           ],
           "name": "org.apache.sling:org.apache.sling.engine",
+          "package_ref": "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
           "purl": "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
-          "version": "2.0.4-incubator",
-          "vulnerabilities": []
+          "version": "2.0.4-incubator"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:maven/org.apache.struts/struts2-core@2.5.13",
           "licenses": [],
           "locations": [
@@ -141,12 +131,12 @@
             }
           ],
           "name": "org.apache.struts:struts2-core",
+          "package_ref": "pkg:maven/org.apache.struts/struts2-core@2.5.13",
           "purl": "pkg:maven/org.apache.struts/struts2-core@2.5.13",
-          "version": "2.5.13",
-          "vulnerabilities": []
+          "version": "2.5.13"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
           "licenses": [],
           "locations": [
@@ -155,19 +145,13 @@
               "real_path": "/pom.xml"
             }
           ],
-          "metadata": {
-            "bomly.normalization.applied": [
-              "version"
-            ],
-            "bomly.normalization.original_version": "1.8.1.Final"
-          },
           "name": "org.keycloak:keycloak-saml-core",
+          "package_ref": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
           "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
-          "version": "1.8.1.final",
-          "vulnerabilities": []
+          "version": "1.8.1.final"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:maven/org.mindrot/jbcrypt@0.4",
           "licenses": [],
           "locations": [
@@ -177,12 +161,12 @@
             }
           ],
           "name": "org.mindrot:jbcrypt",
+          "package_ref": "pkg:maven/org.mindrot/jbcrypt@0.4",
           "purl": "pkg:maven/org.mindrot/jbcrypt@0.4",
-          "version": "0.4",
-          "vulnerabilities": []
+          "version": "0.4"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:maven/org.neo4j/neo4j-jmx@1.3",
           "licenses": [],
           "locations": [
@@ -192,12 +176,12 @@
             }
           ],
           "name": "org.neo4j:neo4j-jmx",
+          "package_ref": "pkg:maven/org.neo4j/neo4j-jmx@1.3",
           "purl": "pkg:maven/org.neo4j/neo4j-jmx@1.3",
-          "version": "1.3",
-          "vulnerabilities": []
+          "version": "1.3"
         },
         {
-          "dependencies": [],
+          "depends_on": [],
           "id": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
           "licenses": [],
           "locations": [
@@ -206,18 +190,16 @@
               "real_path": "/pom.xml"
             }
           ],
-          "metadata": {
-            "bomly.normalization.applied": [
-              "version"
-            ],
-            "bomly.normalization.original_version": "3.1.1.RELEASE"
-          },
           "name": "org.springframework:spring-web",
+          "package_ref": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
           "purl": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
-          "version": "3.1.1.release",
-          "vulnerabilities": []
+          "version": "3.1.1.release"
         }
       ],
+      "detector": "syft-detector",
+      "ecosystem": "maven",
+      "kind": "java-archive",
+      "package_manager": "maven",
       "path": "pom.xml",
       "subproject": "."
     }
@@ -225,6 +207,104 @@
   "metadata": {
     "duration_ms": 0
   },
+  "packages": [
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "example-java-maven",
+      "purl": "pkg:maven/com.bomly/example-java-maven@1.0-SNAPSHOT",
+      "version": "1.0-snapshot",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "h2",
+      "purl": "pkg:maven/com.h2database/h2@1.3.176",
+      "version": "1.3.176",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "orientdb-server",
+      "purl": "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
+      "version": "2.1.9",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "junit",
+      "purl": "pkg:maven/junit/junit@4.12",
+      "version": "4.12",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "javamelody-core",
+      "purl": "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0",
+      "version": "1.59.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "kafka_2.11",
+      "purl": "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
+      "version": "0.9.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "org.apache.sling.engine",
+      "purl": "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
+      "version": "2.0.4-incubator",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "struts2-core",
+      "purl": "pkg:maven/org.apache.struts/struts2-core@2.5.13",
+      "version": "2.5.13",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "keycloak-saml-core",
+      "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
+      "version": "1.8.1.final",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "jbcrypt",
+      "purl": "pkg:maven/org.mindrot/jbcrypt@0.4",
+      "version": "0.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "neo4j-jmx",
+      "purl": "pkg:maven/org.neo4j/neo4j-jmx@1.3",
+      "version": "1.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "spring-web",
+      "purl": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
+      "version": "3.1.1.release",
+      "vulnerabilities": []
+    }
+  ],
   "project": {
     "ecosystem": "maven",
     "name": "\u003cnormalized\u003e",

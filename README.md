@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/bomly-cli-wordmark.svg" alt="Bomly CLI" width="320">
+  <img src="assets/bomly-cli-wordmark.svg" alt="Bomly CLI" width="240">
 </p>
 
 <p align="center">

@@ -40,9 +40,6 @@ func (p *Pipeline) RunExplain(ctx context.Context, req ExplainRequest) (ExplainR
 	pipeReq.AuditEnabled = false
 
 	base := PipelineResult{}
-	if err := p.runPre(ctx, pipeReq); err != nil {
-		return ExplainResult{PipelineResult: base}, err
-	}
 	if err := p.runResolve(ctx, &base, pipeReq); err != nil {
 		return ExplainResult{PipelineResult: base}, err
 	}
@@ -122,15 +119,6 @@ func (p *Pipeline) RunExplain(ctx context.Context, req ExplainRequest) (ExplainR
 		return result, fmt.Errorf("focused explain graph: %w", err)
 	}
 	result.FocusedGraph = focusedGraph
-
-	postResult := result.PipelineResult
-	postResult.Consolidated = focusedConsolidated
-	postResult.Graph = focusedGraph
-	postResult.Findings = result.Findings
-	postResult.AuditWarnings = result.AuditWarnings
-	postResult.AuditorRuns = result.AuditorRuns
-	postResult.AuditorFindings = result.AuditorFindings
-	p.runPost(ctx, pipeReq, postResult)
 
 	return result, nil
 }

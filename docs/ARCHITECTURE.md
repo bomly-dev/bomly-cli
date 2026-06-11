@@ -194,7 +194,7 @@ Cache failures are non-fatal. The command should warn and continue rather than f
 |-----------------------|-------------------------------------------------------------------------------------------------|
 | `cmd/bomly`           | CLI entry point                                                                                 |
 | `internal/cli`        | Commands, config loading, progress, and help output                                             |
-| `internal/engine`     | Runtime preparation, orchestration, pipeline hooks, and consolidation                           |
+| `internal/engine`     | Runtime preparation, orchestration, and consolidation                                           |
 | `internal/registry`   | Support metadata, package-manager discovery, and built-in detector, matcher, and auditor wiring |
 | `internal/detectors`  | Detector contracts and ecosystem implementations                                                |
 | `internal/auditors`   | Policy evaluators and finding creation                                                          |
@@ -298,6 +298,6 @@ This keeps the scan engine recognizable while making it possible to migrate sele
 - Detector packages must not import `internal/engine` or `internal/registry`.
 - `sdk` owns shared neutral identifiers and support types.
 - `internal/registry` owns discovery, support-matrix data, and built-in registry wiring.
-- `internal/engine` owns runtime planning, orchestration, hook execution, and detector-chain reuse.
+- `internal/engine` owns runtime planning, orchestration, and detector-chain reuse.
 - `internal/plugin` owns managed plugin installation, verification, store state, and external runtime adapters.
 - The CLI resolves user input but should not perform its own independent discovery pass.

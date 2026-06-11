@@ -84,8 +84,6 @@ func Run(ctx context.Context, req Request) (Result, error) {
 		result.Audit = AuditSummary(result.Base.Findings, result.Head.Findings)
 		result.Findings = append(append([]sdk.Finding{}, result.Head.Findings...), result.Base.Findings...)
 	}
-	req.Base.Pipeline.RunPostResolveHooks(ctx, req.Base.Request, result.Base)
-	req.Head.Pipeline.RunPostResolveHooks(ctx, req.Head.Request, result.Head)
 	return result, nil
 }
 

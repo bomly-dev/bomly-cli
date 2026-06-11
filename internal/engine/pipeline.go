@@ -6,13 +6,12 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/engine/consolidation"
-	"github.com/bomly-dev/bomly-cli/internal/engine/hooks"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
 // Pipeline orchestrates a full scan through a sequence of typed stages:
-// pre-resolve hooks -> detect -> consolidate -> match -> analyze -> audit -> post-resolve hooks.
+// detect -> consolidate -> match -> analyze -> audit.
 type Pipeline struct {
 	Registry *Registry
 	Logger   *zap.Logger
@@ -41,17 +40,13 @@ func (p *Pipeline) Run(ctx context.Context, req PipelineRequest) (PipelineResult
 		return result, err
 	}
 	p.runAudit(ctx, &result, req)
-	p.runPost(ctx, req, result)
 	return result, nil
 }
 
 // RunPreAudit executes the pipeline through enrichment and analysis, stopping
-// before policy evaluation and post-resolve hooks.
+// before policy evaluation.
 func (p *Pipeline) RunPreAudit(ctx context.Context, req PipelineRequest) (PipelineResult, error) {
 	result := PipelineResult{}
-	if err := p.runPre(ctx, req); err != nil {
-		return result, err
-	}
 	if err := p.runResolve(ctx, &result, req); err != nil {
 		return result, err
 	}
@@ -84,18 +79,6 @@ func (p *Pipeline) RunAuditGraph(ctx context.Context, graph *sdk.Graph, registry
 		req.Progress.CompleteStage("Evaluating policy", 1)
 	}
 	return auditResult, auditWarnings
-}
-
-// RunPostResolveHooks executes post-resolve hooks with the supplied result.
-func (p *Pipeline) RunPostResolveHooks(ctx context.Context, req PipelineRequest, result PipelineResult) {
-	p.runPost(ctx, req, result)
-}
-
-func (p *Pipeline) runPre(ctx context.Context, req PipelineRequest) error {
-	if err := hooks.RunPre(ctx, p.Logger, p.Registry.PreResolveHooks(), preHookContext(req)); err != nil {
-		return fmt.Errorf("pre-resolve hook: %w", err)
-	}
-	return nil
 }
 
 func (p *Pipeline) runResolve(ctx context.Context, result *PipelineResult, req PipelineRequest) error {
@@ -263,30 +246,6 @@ func (p *Pipeline) runAudit(ctx context.Context, result *PipelineResult, req Pip
 	result.AuditWarnings = append(result.AuditWarnings, auditWarnings...)
 	if req.Progress != nil {
 		req.Progress.CompleteStage("Evaluating policy", 1)
-	}
-}
-
-func (p *Pipeline) runPost(ctx context.Context, req PipelineRequest, result PipelineResult) {
-	if err := hooks.RunPost(ctx, p.Logger, p.Registry.PostResolveHooks(), postHookContext(req, result)); err != nil {
-		p.Logger.Warn("pipeline: post-resolve hook error", zap.Error(err))
-	}
-}
-
-func preHookContext(req PipelineRequest) hooks.PreResolveContext {
-	return hooks.PreResolveContext{
-		ExecutionTarget: req.ExecutionTarget,
-		Subprojects:     req.Subprojects,
-		ProjectPath:     req.ProjectPath,
-		Stderr:          req.Stderr,
-	}
-}
-
-func postHookContext(req PipelineRequest, result PipelineResult) hooks.PostResolveContext {
-	return hooks.PostResolveContext{
-		Consolidated: result.Consolidated,
-		Findings:     result.Findings,
-		ProjectPath:  req.ProjectPath,
-		Stderr:       req.Stderr,
 	}
 }
 

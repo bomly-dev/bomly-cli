@@ -51,29 +51,27 @@ The scan engine is responsible for orchestration, not the CLI command handlers. 
 flowchart LR
     A[Runtime preparation]
     B[Subproject discovery]
-    C[Detector chains with requested scope]
-    E[Graph consolidation]
+    C[Detection: detector chains + graph consolidation]
     F[Matchers]
     F2[Analyzers]
     G[Auditors]
     H[Output rendering]
 
-    A --> B --> C --> E --> F --> F2 --> G --> H
+    A --> B --> C --> F --> F2 --> G --> H
 ```
 
 Stage summary:
 
 1. Runtime preparation builds the filtered registry and execution plan.
 2. Subproject discovery finds supported package-manager roots for the target.
-3. Detector chains resolve dependency graphs per package manager. When `--scope` is set, the requested scope is part of the detector request so build-tool detectors can narrow command execution where the package manager supports it. All detector results then pass through the shared SDK scope filter before consolidation.
-4. Consolidation merges subproject graphs into a unified view.
-5. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records.
-6. Analyzers run when `--analyze` is set. They consume the matched graph and annotate `sdk.Vulnerability.Reachability` (on the PURL-keyed registry package) with status (reachable/unreachable/unknown), tier (symbol/module/package/none), and call paths. Failures degrade to `Status=unknown` rather than aborting the pipeline. See `docs/REACHABILITY.md` for ecosystem coverage and tier semantics.
-7. Auditors evaluate policy against the enriched graph + registry pair and create reference-style findings (`PackageRef` + `VulnerabilityID`) when `--audit` is enabled. The built-in `vulnerability`, `license`, and `package` auditors cover advisory thresholds, SPDX policy, and denied or suspicious packages respectively.
-8. Users combine `--enrich --audit` when they want external matcher data to feed policy evaluation in the same run.
-9. Output rendering emits text, JSON, SARIF, or SBOM documents.
+3. Detection resolves a dependency graph per package manager and then consolidates the per-subproject graphs into the single graph and package registry the rest of the pipeline uses. When `--scope` is set, the requested scope is part of the detector request so build-tool detectors can narrow command execution where the package manager supports it; all detector results pass through the shared SDK scope filter, and consolidation is the tail of this stage rather than a separate step.
+4. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records.
+5. Analyzers run when `--analyze` is set. They consume the matched graph and annotate `sdk.Vulnerability.Reachability` (on the PURL-keyed registry package) with status (reachable/unreachable/unknown), tier (symbol/module/package/none), and call paths. Failures degrade to `Status=unknown` rather than aborting the pipeline. See `docs/REACHABILITY.md` for ecosystem coverage and tier semantics.
+6. Auditors evaluate policy against the enriched graph + registry pair and create reference-style findings (`PackageRef` + `VulnerabilityID`) when `--audit` is enabled. The built-in `vulnerability`, `license`, and `package` auditors cover advisory thresholds, SPDX policy, and denied or suspicious packages respectively.
+7. Users combine `--enrich --audit` when they want external matcher data to feed policy evaluation in the same run.
+8. Output rendering emits text, JSON, SARIF, or SBOM documents.
 
-`bomly explain` reuses the same scope-aware resolution, consolidation, and matching stages, then performs dependency path selection in its explain orchestration before optional component audit.
+`bomly explain` reuses the same detection (resolution + consolidation) and matching stages, then performs dependency path selection in its explain orchestration before optional component audit.
 
 ## Extensibility
 

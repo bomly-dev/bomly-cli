@@ -87,7 +87,7 @@ internal/testutil/               Test helpers (fake binary builder)
 
 **`bomly explain`** is implemented by `newExplainCmd` in `internal/cli/explain_cmd.go`.
 
-**Scan pipeline order**: `runtimePreparation → subprojectDiscovery → detect (per-package-manager chains) → scopeFilter → consolidate → match (license enrichment) → analyze (reachability, when --analyze is set) → audit → format`
+**Scan pipeline order**: `runtimePreparation → subprojectDiscovery → detect (per-package-manager chains; resolve + consolidate into one graph) → scopeFilter → match (license enrichment) → analyze (reachability, when --analyze is set) → audit → format`. Consolidation is the tail of the detect stage (`runDetect` = `runResolve` + `runConsolidate`), not a separate stage.
 
 Runtime preparation is owned by `internal/engine` and is reached through CLI option helpers before pipeline execution. The CLI resolves raw targets and flags but must not discover subprojects with a separate registry.
 

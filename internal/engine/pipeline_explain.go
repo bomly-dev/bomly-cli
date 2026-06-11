@@ -40,10 +40,7 @@ func (p *Pipeline) RunExplain(ctx context.Context, req ExplainRequest) (ExplainR
 	pipeReq.AuditEnabled = false
 
 	base := PipelineResult{}
-	if err := p.runResolve(ctx, &base, pipeReq); err != nil {
-		return ExplainResult{PipelineResult: base}, err
-	}
-	if err := p.runConsolidate(&base); err != nil {
+	if err := p.runDetect(ctx, &base, pipeReq); err != nil {
 		return ExplainResult{PipelineResult: base}, err
 	}
 	p.runMatch(ctx, &base, pipeReq)

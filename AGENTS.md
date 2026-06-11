@@ -53,7 +53,7 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for full detail. Component ma
 | `internal/testutil`    | Test helpers (fake binary builder)                                                                |
 | `internal/system`      | OS-level helpers                                                                                  |
 
-Scan pipeline: `runtimePreparation → subprojectDiscovery → detect (per-package-manager chains) → scopeFilter → consolidate → match (license enrichment on the consolidated graph) → analyze (reachability, when --analyze is set) → audit → format`.
+Scan pipeline: `runtimePreparation → subprojectDiscovery → detect (per-package-manager chains; resolve + consolidate into one graph) → scopeFilter → match (license enrichment on the consolidated graph) → audit → format`. Consolidation is the tail of the detect stage, not a separate stage.
 
 Runtime preparation is owned by `internal/engine`: build the filtered registry once, index the execution target with that same registry, and reuse the prepared runtime for `scan`, `diff`, `explain`, license enrichment, and auditing. The CLI resolves raw execution targets and flags, but it must not discover subprojects with a separate registry.
 

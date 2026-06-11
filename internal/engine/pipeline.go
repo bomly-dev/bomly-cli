@@ -11,7 +11,7 @@ import (
 )
 
 // Pipeline orchestrates a full scan through a sequence of typed stages:
-// detect -> consolidate -> match -> analyze -> audit.
+// detect (resolve + consolidate) -> match -> analyze -> audit.
 type Pipeline struct {
 	Registry *Registry
 	Logger   *zap.Logger
@@ -47,10 +47,7 @@ func (p *Pipeline) Run(ctx context.Context, req PipelineRequest) (PipelineResult
 // before policy evaluation.
 func (p *Pipeline) RunPreAudit(ctx context.Context, req PipelineRequest) (PipelineResult, error) {
 	result := PipelineResult{}
-	if err := p.runResolve(ctx, &result, req); err != nil {
-		return result, err
-	}
-	if err := p.runConsolidate(&result); err != nil {
+	if err := p.runDetect(ctx, &result, req); err != nil {
 		return result, err
 	}
 	p.runMatch(ctx, &result, req)
@@ -79,6 +76,16 @@ func (p *Pipeline) RunAuditGraph(ctx context.Context, graph *sdk.Graph, registry
 		req.Progress.CompleteStage("Evaluating policy", 1)
 	}
 	return auditResult, auditWarnings
+}
+
+// runDetect is the detection stage: it resolves each subproject's graph and then
+// consolidates them into the single graph and package registry the rest of the
+// pipeline operates on. Consolidation is the tail of detection, not a separate stage.
+func (p *Pipeline) runDetect(ctx context.Context, result *PipelineResult, req PipelineRequest) error {
+	if err := p.runResolve(ctx, result, req); err != nil {
+		return err
+	}
+	return p.runConsolidate(result)
 }
 
 func (p *Pipeline) runResolve(ctx context.Context, result *PipelineResult, req PipelineRequest) error {

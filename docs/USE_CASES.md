@@ -72,6 +72,37 @@ bomly scan --sbom --path sbom.json # audit an SBOM you already have
 
 Without `--enrich`, matchers make **zero** outbound HTTP calls. Note that some build-tool detectors (Go, Maven, Gradle) may fetch packages during normal resolution — pre-warm the local cache or commit a lockfile to stay fully offline. See [Detectors → Network behavior](DETECTORS.md#network-behavior).
 
+## Scan and audit a container image
+
+**Goal:** find what's inside an image and gate on it.
+
+```bash
+# Inventory an image (native lockfile detectors in layers + Syft for OS packages)
+bomly scan --container ghcr.io/example/app:latest
+
+# Audit an image and fail on high-severity vulnerabilities
+bomly scan --container ghcr.io/example/app:latest --enrich --audit --fail-on high
+
+# Generate an SBOM from an image
+bomly scan --container ghcr.io/example/app:latest -o spdx=image.spdx.json
+
+# Pin by digest for a reproducible scan
+bomly scan --container ghcr.io/example/app@sha256:<digest> --enrich --audit
+```
+
+Bomly pulls the image using your host's registry credentials — the same ones `docker`/`podman` use — so private images work once you've authenticated (`docker login ghcr.io`). Native detectors still parse lockfiles found in layers; everything else falls through to Syft. See [Scan targets](SCAN_TARGETS.md) for the full container behavior and exit codes.
+
+### Gate a base-image upgrade in CI
+
+```yaml
+      - name: Install Bomly
+        run: curl -sSfL https://github.com/bomly-dev/bomly-cli/releases/latest/download/bomly_linux_amd64.tar.gz | tar -xz -C /usr/local/bin bomly
+      - name: Audit the built image
+        run: bomly scan --container ${{ env.IMAGE }}:${{ github.sha }} --enrich --audit --fail-on high --format sarif > image.sarif
+```
+
+Exit code `2` fails the job on a policy violation; upload `image.sarif` to the Security tab as in [CI Integration](CI_INTEGRATION.md).
+
 ## Diff two releases
 
 **Goal:** see what changed in your dependency tree between two versions.
@@ -82,9 +113,12 @@ bomly diff --base v1.2.0 --head v1.3.0 --enrich --audit
 
 # Between two SBOM files (no checkout needed)
 bomly diff --sbom --base old.spdx.json --head new.spdx.json
+
+# Between two tags (or digests) of the same container image
+bomly diff --container ghcr.io/example/app --base 1.4.0 --head 1.5.0 --enrich --audit --fail-on high
 ```
 
-You get added, removed, and updated dependencies, plus introduced/resolved findings when `--audit` is set. Great for release notes and upgrade reviews.
+You get added, removed, and updated dependencies, plus introduced/resolved findings when `--audit` is set. Great for release notes, upgrade reviews, and catching what a base-image bump dragged in.
 
 ## Understand why a dependency is there
 

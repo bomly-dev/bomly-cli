@@ -73,7 +73,7 @@ logger.Warn("cache miss", zap.Error(err))
 - Add integration tests for new commands and user-visible flows.
 - Run `make test` before considering work complete.
 - Run `make smoke` if you touched a detector chain, matcher, auditor, or analyzer.
-- If you change GitHub Actions workflows or release behavior, update [docs/CI.md](docs/CI.md) and any affected install guidance in [README.md](README.md).
+- If you change GitHub Actions workflows or release behavior, update [docs/development/CI.md](docs/development/CI.md) and any affected install guidance in [README.md](README.md).
 
 ### Helpers
 

@@ -228,7 +228,7 @@ If a new analyzer / matcher / detector produces deterministic output for a fixed
 |--------------------------------------------------------|-----------------------------------------------------------------------------------------|
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)         | Full architecture: pipeline, detectors, auditors, plugins, trust model, decision log    |
 | [`docs/MODELS.md`](docs/MODELS.md)                     | Domain model reference: Dependency, Package, Vulnerability, Finding, PackageRegistry    |
-| [`docs/CI.md`](docs/CI.md)                             | CI setup and workflow (GitHub Actions)                                                  |
+| [`docs/development/CI.md`](docs/development/CI.md)     | CI setup and workflow (GitHub Actions)                                                  |
 | [`docs/CONFIG_REFERENCE.md`](docs/CONFIG_REFERENCE.md) | Generated config reference (all keys, env vars, defaults)                               |
 | [`docs/SUPPORT_MATRIX.md`](docs/SUPPORT_MATRIX.md)     | Ecosystem detector coverage                                                             |
 | `docs/schemas/*.json`, `docs/schemas/*.md`             | Generated JSON schemas and human-readable output docs for `scan`, `diff`, and `explain` |

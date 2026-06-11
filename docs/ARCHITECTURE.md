@@ -75,26 +75,30 @@ Stage summary:
 
 ## Extensibility
 
-Extensibility is the core of Bomly's design. The pipeline exposes four typed extension points, and **every built-in is an implementation of the same contract an external plugin implements** — there is no privileged internal path. Adding an ecosystem, an enrichment source, a reachability analyzer, or a policy gate does not require forking the engine.
+Extensibility is the core of Bomly's design. **Every built-in is an implementation of the same contract an external plugin implements** — there is no privileged internal path. Adding an ecosystem, an enrichment source, or a policy gate does not require forking the engine. Three extension points are pluggable today (detector, matcher, auditor); external **analyzer** plugins are planned — the built-in reachability analyzers are not yet loadable as plugins.
+
+The diagram shows where plugins hook into the run, after the runtime is configured and subprojects are indexed:
 
 ```mermaid
 flowchart LR
-    D[Detect] --> C[Consolidate] --> M[Match] --> An[Analyze] --> Au[Audit] --> O[Output]
+    R[Configure runtime] --> X[Index subprojects] --> D[Detect: resolve + consolidate] --> M[Match] --> An[Analyze] --> Au[Audit] --> O[Output]
 
     PD([Detector plugins]) -.-> D
     PM([Matcher plugins]) -.-> M
-    PAn([Analyzer plugins]) -.-> An
     PAu([Auditor plugins]) -.-> Au
+    PAn([Analyzer plugins: planned]) -. planned .-> An
 ```
 
-| Extension point | Contract (`sdk`) | Responsibility |
-| --- | --- | --- |
-| Detector | `sdk.Detector` | Turn evidence (lockfile, manifest, SBOM) into a dependency graph |
-| Matcher | `sdk.Matcher` | Enrich packages with vulnerability, license, or lifecycle data |
-| Analyzer | `sdk.Analyzer` | Annotate `sdk.Vulnerability.Reachability` for a language |
-| Auditor | `sdk.Auditor` | Evaluate policy and emit reference-style findings |
+| Extension point | Status | Contract (`sdk`) | Responsibility |
+| --- | --- | --- | --- |
+| Detector | Available | `sdk.Detector` | Turn evidence (lockfile, manifest, SBOM) into a dependency graph |
+| Matcher | Available | `sdk.Matcher` | Enrich packages with vulnerability, license, or lifecycle data |
+| Auditor | Available | `sdk.Auditor` | Evaluate policy and emit reference-style findings |
+| Analyzer | Planned | `sdk.Analyzer` | Annotate `sdk.Vulnerability.Reachability` for a language |
 
-External plugins run as versioned (`v1`) gRPC binaries and participate in the same runtime planning as built-ins: detector plugins declare evidence patterns and join subproject discovery; matcher, analyzer, and auditor plugins are selected with the same `--matchers` / `--analyzers` / `--auditors` selector grammar. Plugins are disabled until explicitly enabled. See [PLUGINS.md](PLUGINS.md) for the trust model and authoring guides.
+External plugins run as versioned (`v1`) gRPC binaries and participate in the same runtime planning as built-ins: detector plugins declare evidence patterns and join subproject discovery; matcher and auditor plugins are selected with the same `--matchers` / `--auditors` selector grammar. Plugins are disabled until explicitly enabled. See [PLUGINS.md](PLUGINS.md) for the trust model and authoring guides.
+
+Analyzers exist as a contract (`sdk.Analyzer`) and ship four built-in implementations (govulncheck, jsreach, pyreach, jvmreach), but the plugin runtime does not yet accept an analyzer kind, so they cannot be supplied by an external plugin today. Making analyzers a first-class plugin extension point is planned.
 
 ### Decision: YAML configuration is nested at the file boundary
 
@@ -190,7 +194,7 @@ GitHub Actions handles validation, security analysis, smoke coverage, and releas
 - Pushes to `main` run deeper quality checks and scheduled smoke coverage.
 - Semver tags publish draft prereleases to GitHub Releases with cross-platform archives and `SHA256SUMS`.
 
-See [CI and Release Pipeline](CI.md) for workflow details and release mechanics.
+See [CI and Release Pipeline](development/CI.md) for workflow details and release mechanics.
 
 ## Network Behavior
 

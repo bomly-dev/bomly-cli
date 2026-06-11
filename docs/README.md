@@ -46,5 +46,5 @@ Generated from code. Treat as authoritative.
 
 For contributors and release engineers.
 
-- [CI](CI.md) — Bomly's own internal CI configuration
+- [CI](development/CI.md) — Bomly's own internal CI configuration
 - [Contributing](../CONTRIBUTING.md) — build setup, code conventions, release process

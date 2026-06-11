@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>Dependency intelligence for modern software projects.</strong>
+  <strong>Analyze Your Software DNA.</strong>
 </p>
 
 <p align="center">
@@ -219,27 +219,29 @@ flowchart LR
 
 ### Extensible by design
 
-The pipeline is built around four typed extension points. Every built-in is just an
+The pipeline is built around typed extension points. Every built-in is just an
 implementation of the same contract an external plugin uses, so you can add an
-ecosystem, a vulnerability or license source, a reachability analyzer, or a policy
-check without forking Bomly.
+ecosystem, or a vulnerability or license source, or a policy check without forking
+Bomly. Three of these are pluggable today — **detectors, matchers, and auditors**;
+external **analyzer** plugins are planned (the built-in reachability analyzers are
+not yet an extension point).
 
 ```mermaid
 flowchart LR
-    D[Detect] --> C[Consolidate] --> M[Match] --> An[Analyze] --> Au[Audit] --> O[Output]
+    R[Configure runtime] --> X[Index subprojects] --> D[Detect: resolve + consolidate] --> M[Match] --> An[Analyze] --> Au[Audit] --> O[Output]
 
     PD([Detector plugins]) -.-> D
     PM([Matcher plugins]) -.-> M
-    PAn([Analyzer plugins]) -.-> An
     PAu([Auditor plugins]) -.-> Au
+    PAn([Analyzer plugins: planned]) -. planned .-> An
 ```
 
-| Extension point | Contract | Add support for |
-| --- | --- | --- |
-| Detector | turns evidence into a dependency graph | a new ecosystem or lockfile format |
-| Matcher | enriches packages | a new vulnerability, license, or lifecycle source |
-| Analyzer | annotates reachability | a new language's call-graph analysis |
-| Auditor | evaluates policy, emits findings | a custom org policy or gate |
+| Extension point | Status | Contract | Add support for |
+| --- | --- | --- | --- |
+| Detector | Available | turns evidence into a dependency graph | a new ecosystem or lockfile format |
+| Matcher | Available | enriches packages | a new vulnerability, license, or lifecycle source |
+| Auditor | Available | evaluates policy, emits findings | a custom org policy or gate |
+| Analyzer | Planned | annotates reachability | a new language's call-graph analysis |
 
 Plugins ship as signed, versioned gRPC binaries (`v1` protocol), are disabled until
 you explicitly enable them, and participate in the exact same planning flow as
@@ -292,7 +294,7 @@ Bomly uses GitHub Actions for:
 - automatic semantic version tagging on `main`
 - draft prerelease packaging to GitHub Releases
 
-See [docs/CI.md](docs/CI.md) for workflow triggers, required checks, release packaging, checksum handling, and the planned future attestation step.
+See [docs/development/CI.md](docs/development/CI.md) for workflow triggers, required checks, release packaging, checksum handling, and the planned future attestation step.
 
 To gate your **own** repository's pull requests, drop in the [Bomly review action](https://github.com/bomly-dev/bomly-review-action) — it diffs and audits dependency changes on each PR and posts a summary comment. See [docs/CI_INTEGRATION.md](docs/CI_INTEGRATION.md) for that and direct-CLI recipes across GitHub Actions, GitLab, Jenkins, Azure, and CircleCI.
 

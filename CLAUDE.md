@@ -229,7 +229,7 @@ For squash-merges, the squash commit title/body determines the version bump.
 | --- | --- |
 | `docs/ARCHITECTURE.md` | Full pipeline, detector model, decision log |
 | `docs/MODELS.md` | Domain model: Dependency / Package / Vulnerability / Finding / PackageRegistry |
-| `docs/CI.md` | GitHub Actions, release workflow |
+| `docs/development/CI.md` | GitHub Actions, release workflow |
 | `docs/CONFIG_REFERENCE.md` | All config keys, env vars, defaults (generated) |
 | `docs/SUPPORT_MATRIX.md` | Ecosystem detector coverage (generated) |
 | `docs/schemas/` | JSON schemas + human-readable output docs (generated) |

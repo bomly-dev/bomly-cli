@@ -6,11 +6,11 @@ License data comes from native detection or from a license matcher (deps.dev, Cl
 
 ## Options
 
-| Flag | Effect |
-| --- | --- |
-| `--allow-license <spdx>` | Permit only these SPDX licenses; anything else fails. Repeatable. |
-| `--deny-license <spdx>` | Fail on these SPDX licenses regardless of the allowlist. Repeatable. |
-| `--license-exempt-package <name>` | Waive license policy for a specific package. Repeatable. |
+| Flag | YAML key | Effect |
+| --- | --- | --- |
+| `--allow-license <spdx>` | `policy.allow_licenses` | Permit only these SPDX licenses; anything else fails. Repeatable. |
+| `--deny-license <spdx>` | `policy.deny_licenses` | Fail on these SPDX licenses regardless of the allowlist. Repeatable. |
+| `--license-exempt-package <name>` | `policy.license_exempt_packages` | Waive license policy for a specific package. Repeatable. |
 
 `--allow-license` and `--deny-license` accept SPDX identifiers (e.g. `MIT`, `Apache-2.0`, `GPL-3.0-only`).
 

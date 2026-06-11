@@ -10,7 +10,7 @@ Bomly is **offline-safe by default**. Matchers that use the network only run whe
 | --- | --- | --- |
 | Vulnerability | `osv`, `grype` | CVE / GHSA / OSV IDs, severity, CVSS, aliases, fixed versions, references, KEV signal |
 | License | `depsdev-license-matcher` | SPDX expression, declared/discovered split, license source |
-| Lifecycle | External plugin | End-of-life status from a plugin such as `eol-lifecycle-matcher` |
+| Lifecycle | External plugin | End-of-life status from a plugin such as the [eol-lifecycle-matcher](https://github.com/bomly-dev/bomly-plugin-eol-matcher) |
 
 The full live list lives in the CLI:
 
@@ -39,6 +39,8 @@ bomly scan --enrich --matchers -depsdev-license-matcher
 # Add an external plugin matcher
 bomly scan --enrich --matchers +clearlydefined-license-matcher
 ```
+
+External matchers are published as plugins — see the [ClearlyDefined License Matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-matcher) and [EOL Lifecycle Matcher](https://github.com/bomly-dev/bomly-plugin-eol-matcher) for worked examples, and [PLUGINS.md](PLUGINS.md) to install and enable them.
 
 ## Network endpoints
 

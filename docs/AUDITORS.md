@@ -18,7 +18,7 @@ bomly scan --enrich --audit --fail-on high
 | [`license`](auditors/license.md) | Package licenses vs. allow/deny SPDX policy | `--allow-license`, `--deny-license`, `--license-exempt-package` |
 | [`package`](auditors/package.md) | Denied packages and typosquatted names | `--deny-package`, `--deny-group`, `--protected-package`, `--typosquat-threshold`, `--typosquat-mode` |
 
-Select a subset with the `--auditors` selector (e.g. `--auditors license`). See the [per-auditor reference](auditors/) for options, examples, and limitations.
+Select a subset with the `--auditors` selector (e.g. `--auditors license`). See the [per-auditor reference](auditors/) for options, examples, and limitations. Auditors are also a plugin extension point — for a worked example of an external auditor, see the [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor).
 
 ## When auditors run
 
@@ -104,6 +104,35 @@ Combine with `--fail-on` to fail PRs that introduce new high-severity findings w
 ```bash
 bomly diff --base main --head HEAD --enrich --audit --fail-on high
 ```
+
+## Configure with a YAML file
+
+Compliance policy is usually the same across every scan, so set it once in a config file instead of repeating CLI flags. All auditor settings live under the `policy` key:
+
+```yaml
+policy:
+  fail_on: [high, reachable]              # severity / reachability gates
+  allow_vulnerability_ids: [GHSA-xxxx-yyyy-zzzz]
+  allow_licenses: [MIT, Apache-2.0, BSD-3-Clause]
+  deny_licenses: [GPL-3.0-only]
+  license_exempt_packages: [my-internal-lib]
+  deny_packages: [event-stream]
+  deny_groups: [com.evil]
+  protected_packages: [react, lodash]
+  typosquat_threshold: "0.90"
+  typosquat_mode: warn                    # warn | fail
+  warn_only: false
+```
+
+Bomly merges configuration from these sources, in increasing precedence:
+
+1. User-level `~/.bomly/config.yaml` — your defaults across every project.
+2. Repo-level `<project>/.bomly/config.yaml` — committed policy shared by the team (the usual home for a compliance policy).
+3. `--config <path>` — an explicit file.
+4. `BOMLY_*` environment variables.
+5. CLI flags.
+
+So a checked-in `.bomly/config.yaml` defines the team policy, and a CLI flag still overrides it for a one-off run. Every key is listed in [CONFIG_REFERENCE.md](CONFIG_REFERENCE.md).
 
 ## See also
 

@@ -51,29 +51,54 @@ The scan engine is responsible for orchestration, not the CLI command handlers. 
 flowchart LR
     A[Runtime preparation]
     B[Subproject discovery]
-    C[Detector chains with requested scope]
-    E[Graph consolidation]
+    C[Detection: detector chains + graph consolidation]
     F[Matchers]
     F2[Analyzers]
     G[Auditors]
     H[Output rendering]
 
-    A --> B --> C --> E --> F --> F2 --> G --> H
+    A --> B --> C --> F --> F2 --> G --> H
 ```
 
 Stage summary:
 
 1. Runtime preparation builds the filtered registry and execution plan.
 2. Subproject discovery finds supported package-manager roots for the target.
-3. Detector chains resolve dependency graphs per package manager. When `--scope` is set, the requested scope is part of the detector request so build-tool detectors can narrow command execution where the package manager supports it. All detector results then pass through the shared SDK scope filter before consolidation.
-4. Consolidation merges subproject graphs into a unified view.
-5. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records.
-6. Analyzers run when `--analyze` is set. They consume the matched graph and annotate `sdk.Vulnerability.Reachability` (on the PURL-keyed registry package) with status (reachable/unreachable/unknown), tier (symbol/module/package/none), and call paths. Failures degrade to `Status=unknown` rather than aborting the pipeline. See `docs/REACHABILITY.md` for ecosystem coverage and tier semantics.
-7. Auditors evaluate policy against the enriched graph + registry pair and create reference-style findings (`PackageRef` + `VulnerabilityID`) when `--audit` is enabled. The built-in `vulnerability`, `license`, and `package` auditors cover advisory thresholds, SPDX policy, and denied or suspicious packages respectively.
-8. Users combine `--enrich --audit` when they want external matcher data to feed policy evaluation in the same run.
-9. Output rendering emits text, JSON, SARIF, or SBOM documents.
+3. Detection resolves a dependency graph per package manager and then consolidates the per-subproject graphs into the single graph and package registry the rest of the pipeline uses. When `--scope` is set, the requested scope is part of the detector request so build-tool detectors can narrow command execution where the package manager supports it; all detector results pass through the shared SDK scope filter, and consolidation is the tail of this stage rather than a separate step.
+4. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records.
+5. Analyzers run when `--analyze` is set. They consume the matched graph and annotate `sdk.Vulnerability.Reachability` (on the PURL-keyed registry package) with status (reachable/unreachable/unknown), tier (symbol/module/package/none), and call paths. Failures degrade to `Status=unknown` rather than aborting the pipeline. See `docs/REACHABILITY.md` for ecosystem coverage and tier semantics.
+6. Auditors evaluate policy against the enriched graph + registry pair and create reference-style findings (`PackageRef` + `VulnerabilityID`) when `--audit` is enabled. The built-in `vulnerability`, `license`, and `package` auditors cover advisory thresholds, SPDX policy, and denied or suspicious packages respectively.
+7. Users combine `--enrich --audit` when they want external matcher data to feed policy evaluation in the same run.
+8. Output rendering emits text, JSON, SARIF, or SBOM documents.
 
-`bomly explain` reuses the same scope-aware resolution, consolidation, and matching stages, then performs dependency path selection in its explain orchestration before optional component audit.
+`bomly explain` reuses the same detection (resolution + consolidation) and matching stages, then performs dependency path selection in its explain orchestration before optional component audit.
+
+## Extensibility
+
+Extensibility is the core of Bomly's design. **Every built-in is an implementation of the same contract an external plugin implements** — there is no privileged internal path. Adding an ecosystem, an enrichment source, or a policy gate does not require forking the engine. Three extension points are pluggable today (detector, matcher, auditor); external **analyzer** plugins are planned — the built-in reachability analyzers are not yet loadable as plugins.
+
+The diagram shows where plugins hook into the run, after the runtime is configured and subprojects are indexed:
+
+```mermaid
+flowchart LR
+    R[Configure runtime] --> X[Index subprojects] --> D[Detect: resolve + consolidate] --> M[Match] --> An[Analyze] --> Au[Audit] --> O[Output]
+
+    PD([Detector plugins]) -.-> D
+    PM([Matcher plugins]) -.-> M
+    PAu([Auditor plugins]) -.-> Au
+    PAn([Analyzer plugins: planned]) -. planned .-> An
+```
+
+| Extension point | Status | Contract (`sdk`) | Responsibility |
+| --- | --- | --- | --- |
+| Detector | Available | `sdk.Detector` | Turn evidence (lockfile, manifest, SBOM) into a dependency graph |
+| Matcher | Available | `sdk.Matcher` | Enrich packages with vulnerability, license, or lifecycle data |
+| Auditor | Available | `sdk.Auditor` | Evaluate policy and emit reference-style findings |
+| Analyzer | Planned | `sdk.Analyzer` | Annotate `sdk.Vulnerability.Reachability` for a language |
+
+External plugins run as versioned (`v1`) gRPC binaries and participate in the same runtime planning as built-ins: detector plugins declare evidence patterns and join subproject discovery; matcher and auditor plugins are selected with the same `--matchers` / `--auditors` selector grammar. Plugins are disabled until explicitly enabled. See [PLUGINS.md](PLUGINS.md) for the trust model and authoring guides.
+
+Analyzers exist as a contract (`sdk.Analyzer`) and ship four built-in implementations (govulncheck, jsreach, pyreach, jvmreach), but the plugin runtime does not yet accept an analyzer kind, so they cannot be supplied by an external plugin today. Making analyzers a first-class plugin extension point is planned.
 
 ### Decision: YAML configuration is nested at the file boundary
 
@@ -169,7 +194,7 @@ GitHub Actions handles validation, security analysis, smoke coverage, and releas
 - Pushes to `main` run deeper quality checks and scheduled smoke coverage.
 - Semver tags publish draft prereleases to GitHub Releases with cross-platform archives and `SHA256SUMS`.
 
-See [CI and Release Pipeline](CI.md) for workflow details and release mechanics.
+See [CI and Release Pipeline](development/CI.md) for workflow details and release mechanics.
 
 ## Network Behavior
 
@@ -194,7 +219,7 @@ Cache failures are non-fatal. The command should warn and continue rather than f
 |-----------------------|-------------------------------------------------------------------------------------------------|
 | `cmd/bomly`           | CLI entry point                                                                                 |
 | `internal/cli`        | Commands, config loading, progress, and help output                                             |
-| `internal/engine`     | Runtime preparation, orchestration, pipeline hooks, and consolidation                           |
+| `internal/engine`     | Runtime preparation, orchestration, and consolidation                                           |
 | `internal/registry`   | Support metadata, package-manager discovery, and built-in detector, matcher, and auditor wiring |
 | `internal/detectors`  | Detector contracts and ecosystem implementations                                                |
 | `internal/auditors`   | Policy evaluators and finding creation                                                          |
@@ -298,6 +323,6 @@ This keeps the scan engine recognizable while making it possible to migrate sele
 - Detector packages must not import `internal/engine` or `internal/registry`.
 - `sdk` owns shared neutral identifiers and support types.
 - `internal/registry` owns discovery, support-matrix data, and built-in registry wiring.
-- `internal/engine` owns runtime planning, orchestration, hook execution, and detector-chain reuse.
+- `internal/engine` owns runtime planning, orchestration, and detector-chain reuse.
 - `internal/plugin` owns managed plugin installation, verification, store state, and external runtime adapters.
 - The CLI resolves user input but should not perform its own independent discovery pass.

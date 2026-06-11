@@ -1,6 +1,19 @@
-# Bomly
+<p align="center">
+  <img src="assets/bomly-cli-wordmark.svg" alt="Bomly CLI" width="240">
+</p>
 
-Dependency intelligence for modern software projects.
+<p align="center">
+  <strong>Analyze Your Software DNA.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/bomly-dev/bomly-cli/actions/workflows/ci.yml"><img src="https://github.com/bomly-dev/bomly-cli/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/bomly-dev/bomly-cli"><img src="https://api.scorecard.dev/projects/github.com/bomly-dev/bomly-cli/badge" alt="OpenSSF Scorecard"></a>
+  <a href="https://github.com/bomly-dev/bomly-cli/releases/latest"><img src="https://img.shields.io/github/v/release/bomly-dev/bomly-cli?sort=semver" alt="Latest release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/bomly-dev/bomly-cli" alt="License: Apache-2.0"></a>
+  <a href="https://pkg.go.dev/github.com/bomly-dev/bomly-cli"><img src="https://pkg.go.dev/badge/github.com/bomly-dev/bomly-cli.svg" alt="Go Reference"></a>
+  <a href="https://goreportcard.com/report/github.com/bomly-dev/bomly-cli"><img src="https://goreportcard.com/badge/github.com/bomly-dev/bomly-cli" alt="Go Report Card"></a>
+</p>
 
 Bomly scans source trees, SBOMs, Git refs, and container images, generates SPDX and CycloneDX SBOMs, enriches packages with vulnerability and license data, evaluates policy, and diffs dependency state across refs.
 
@@ -204,6 +217,39 @@ flowchart LR
     H --> I[Render text, JSON, SARIF, or SBOM]
 ```
 
+### Extensible by design
+
+The pipeline is built around typed extension points. Every built-in is just an
+implementation of the same contract an external plugin uses, so you can add an
+ecosystem, or a vulnerability or license source, or a policy check without forking
+Bomly. Three of these are pluggable today — **detectors, matchers, and auditors**;
+external **analyzer** plugins are planned (the built-in reachability analyzers are
+not yet an extension point).
+
+```mermaid
+flowchart LR
+    R[Configure runtime] --> X[Index subprojects] --> D[Detect: resolve + consolidate] --> M[Match] --> An[Analyze] --> Au[Audit] --> O[Output]
+
+    PD([Detector plugins]) -.-> D
+    PM([Matcher plugins]) -.-> M
+    PAu([Auditor plugins]) -.-> Au
+    PAn([Analyzer plugins: planned]) -. planned .-> An
+```
+
+| Extension point | Status | Contract | Add support for |
+| --- | --- | --- | --- |
+| Detector | Available | turns evidence into a dependency graph | a new ecosystem or lockfile format |
+| Matcher | Available | enriches packages | a new vulnerability, license, or lifecycle source |
+| Auditor | Available | evaluates policy, emits findings | a custom org policy or gate |
+| Analyzer | Planned | annotates reachability | a new language's call-graph analysis |
+
+Plugins ship as signed, versioned gRPC binaries (`v1` protocol), are disabled until
+you explicitly enable them, and participate in the exact same planning flow as
+built-ins. See [docs/PLUGINS.md](docs/PLUGINS.md) and the implementation guides for
+[detectors](docs/plugins/how-to-implement-detector.md),
+[matchers](docs/plugins/how-to-implement-matcher.md), and
+[auditors](docs/plugins/how-to-implement-auditor.md).
+
 More detail lives in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Repository Layout
@@ -248,7 +294,9 @@ Bomly uses GitHub Actions for:
 - automatic semantic version tagging on `main`
 - draft prerelease packaging to GitHub Releases
 
-See [docs/CI.md](docs/CI.md) for workflow triggers, required checks, release packaging, checksum handling, and the planned future attestation step.
+See [docs/development/CI.md](docs/development/CI.md) for workflow triggers, required checks, release packaging, checksum handling, and the planned future attestation step.
+
+To gate your **own** repository's pull requests, drop in the [Bomly review action](https://github.com/bomly-dev/bomly-review-action) — it diffs and audits dependency changes on each PR and posts a summary comment. See [docs/CI_INTEGRATION.md](docs/CI_INTEGRATION.md) for that and direct-CLI recipes across GitHub Actions, GitLab, Jenkins, Azure, and CircleCI.
 
 Contributor guidance lives in [CONTRIBUTING.md](CONTRIBUTING.md).
 

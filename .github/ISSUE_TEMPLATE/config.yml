@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or discussion
+    url: https://github.com/bomly-dev/bomly-cli/discussions
+    about: Ask questions, share ideas, and discuss usage with the community.
+  - name: Report a security vulnerability
+    url: https://github.com/bomly-dev/bomly-cli/security/advisories/new
+    about: Please report security issues privately, not as a public issue.
+  - name: Contact the maintainers
+    url: mailto:contact@bomly.dev
+    about: Reach the Bomly team for anything that doesn't fit an issue.

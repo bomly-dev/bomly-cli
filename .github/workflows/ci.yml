@@ -1,4 +1,4 @@
-name: CI
+name: Build & Test
 
 on:
   pull_request:
@@ -10,41 +10,86 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: build-test-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  validate:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
-
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
           cache: true
-          cache-dependency-path: |
-            go.sum
-
+          cache-dependency-path: go.sum
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
           version: v2.12.0
 
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
       - name: Run unit and integration tests
         run: make test
 
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
       - name: Build default Bomly binary
         run: go build -o /tmp/bomly ./cmd/bomly
-
       - name: Build lite Bomly binary
         run: go build -tags "bomly_external_syft,bomly_external_grype" -o /tmp/bomly-lite ./cmd/bomly
 
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
       - name: Check Go formatting
         run: make fmt-check
 
+  modules:
+    name: Module drift
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
       - name: Check module metadata drift
         shell: bash
         run: |
@@ -52,6 +97,18 @@ jobs:
           go mod tidy
           git diff --exit-code -- go.mod go.sum
 
+  generated-docs:
+    name: Generated docs drift
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
       - name: Check generated documentation drift
         shell: bash
         run: |

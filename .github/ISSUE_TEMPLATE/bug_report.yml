@@ -1,0 +1,47 @@
+name: Bug report
+description: Report incorrect behavior in the Bomly CLI
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Please fill out the sections below so we can reproduce and fix it quickly.
+
+        Do **not** report security vulnerabilities here — see the repository's Security tab for private reporting.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+      placeholder: Running `bomly scan` on a Go module reported no dependencies, but go.mod has several.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: The exact command(s) and, if possible, a minimal project or public repo + ref that triggers it.
+      placeholder: |
+        1. `git clone https://github.com/example/repo && cd repo`
+        2. `bomly scan --json`
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: version
+    attributes:
+      label: Bomly version and platform
+      description: Output of `bomly version` plus your OS/arch.
+      placeholder: |
+        bomly v0.2.3
+        macOS 14.5 arm64
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output
+      description: Paste relevant output. Re-run with `-vv` for debug logs if helpful. Scrub anything sensitive.
+      render: shell
+    validations:
+      required: false

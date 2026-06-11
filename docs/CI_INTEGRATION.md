@@ -1,6 +1,6 @@
 # CI Integration
 
-Drop-in recipes for running Bomly in CI. For Bomly's own CI configuration see [docs/CI.md](CI.md).
+Drop-in recipes for running Bomly in CI. For Bomly's own CI configuration see [docs/development/CI.md](development/CI.md).
 
 The pattern is the same everywhere: install Bomly, run `bomly scan` with `--audit --fail-on <severity>`, upload the SBOM and SARIF artifacts. Exit code 2 fails the build on policy violation; see [Exit codes](EXIT_CODES.md).
 
@@ -78,6 +78,36 @@ This fails only when the PR **introduces** a new high finding, ignoring pre-exis
 ```
 
 Cuts cold-start enrichment time from minutes to seconds. Cache TTLs are listed in [Matchers](MATCHERS.md#cache); a 24h TTL means cache hits stay fresh for a day even if the cache key changes.
+
+### Turnkey PR reviews with the Bomly review action
+
+The recipes above call the CLI directly. For GitHub pull requests, the [**Bomly review action**](https://github.com/bomly-dev/bomly-review-action) wraps the same `bomly diff --enrich --audit` flow into a single step: it installs the CLI, diffs the PR against its base, posts a Markdown summary comment, and uploads SARIF to the Security tab.
+
+```yaml
+name: Bomly Review
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so the base and head refs resolve
+      - uses: bomly-dev/bomly-review-action@v1
+        with:
+          fail-on-severity: high
+          deny-licenses: GPL-3.0-only
+```
+
+The action's inputs map onto the CLI policy flags (`fail-on-severity` → `--fail-on`, `deny-licenses` → `--deny-license`, `protected-packages` → `--protected-package`, and so on), so the policy you enforce locally is the policy it enforces on PRs. See the [action README](https://github.com/bomly-dev/bomly-review-action#readme) for the full input list. Bomly dogfoods this action — see the `Bomly Review` workflow in [docs/development/CI.md](development/CI.md).
 
 ## GitLab CI
 
@@ -221,4 +251,4 @@ Tune `--fail-on` to taste. `pre-push` keeps commits fast and only runs on push.
 - [Exit codes](EXIT_CODES.md) — what each CI exit means
 - [Output formats](OUTPUT_FORMATS.md) — SARIF, JSON, SBOM details
 - [Auditors](AUDITORS.md) — `--fail-on`
-- [docs/CI.md](CI.md) — Bomly's own internal CI configuration (not for end users)
+- [docs/development/CI.md](development/CI.md) — Bomly's own internal CI configuration (not for end users)

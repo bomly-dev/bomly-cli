@@ -3,19 +3,7 @@ package engine
 import (
 	"io"
 
-	"github.com/bomly-dev/bomly-cli/internal/engine/hooks"
 	"github.com/bomly-dev/bomly-cli/sdk"
-)
-
-// Hook types are re-exported from internal/engine/hooks for existing references
-// inside the engine package and as the registry's hook surface. Plugins should depend on
-// internal/engine/hooks directly.
-type (
-	HookDescriptor     = hooks.Descriptor
-	PreResolveContext  = hooks.PreResolveContext
-	PostResolveContext = hooks.PostResolveContext
-	PreResolveHook     = hooks.PreResolveHook
-	PostResolveHook    = hooks.PostResolveHook
 )
 
 // PipelineRequest defines input for a full pipeline run.

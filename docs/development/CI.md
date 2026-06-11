@@ -6,8 +6,11 @@ Bomly uses GitHub Actions for validation, security analysis, smoke coverage, and
 
 | Workflow               | Trigger                                        | Purpose                                                                                                                |
 |------------------------|------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
-| `CI`                   | Pull requests, pushes to `main`                | Fast validation: `golangci-lint`, `gofmt` drift checks, tests, build sanity, module drift, and generated-doc drift |
-| `Dependency Review`    | Pull requests touching `go.mod` or `go.sum`    | Review dependency changes before merge                                                                                 |
+| `Build & Test`         | Pull requests, pushes to `main`                | Fast validation split into parallel jobs: `lint`, `test`, `build`, `format`, `modules` (go.mod drift), and `generated-docs` (generated-doc drift) |
+| `CodeQL`               | Pull requests, pushes to `main`, weekly        | Static security/quality analysis for Go; results surface in the Security tab                                           |
+| `Scorecard`            | Pushes to `main`, weekly, manual dispatch      | OpenSSF Scorecard supply-chain checks; publishes results and uploads SARIF                                             |
+| `Dependency review`    | Pull requests                                  | GitHub dependency-review of added/changed dependencies; fails on high-severity introductions                          |
+| `Bomly Review`         | Pull requests                                  | Dogfoods the Bomly review action to diff and audit dependency changes on each PR                                       |
 | `Smoke`                | Merge queue, nightly schedule, manual dispatch | Slow end-to-end coverage against real repositories, SBOMs, and containers before merge, plus scheduled drift detection |
 | `Update Smoke Goldens` | Manual dispatch                                | Regenerate golden files on a chosen ref and open a PR when the changes are intentional                                 |
 | `Auto Version`         | Manual dispatch                                | Bump `cmd/bomly/main.go`, create a semver tag, and start the release workflow                                          |
@@ -17,9 +20,11 @@ Bomly uses GitHub Actions for validation, security analysis, smoke coverage, and
 
 For protected branches, require at least:
 
-- `CI`
-- `Dependency Review` when dependency metadata changes
+- The `Build & Test` jobs (`Lint`, `Test`, `Build`, `Format`, `Module drift`, `Generated docs drift`)
+- `Dependency review` when dependency metadata changes
 - `Smoke` on merge queue entries
+
+`Build & Test` runs each check as its own job so they execute in parallel and report independently. Because the checks are now per-job, update the required status checks in branch protection to the individual job names above (the previous single `CI` check no longer exists).
 
 `Smoke` is intentionally not a per-PR check; it is the slower pre-merge gate for merge queue entries and a nightly health monitor for upstream drift.
 
@@ -27,7 +32,7 @@ For protected branches, require at least:
 
 Bomly uses a layered merge policy:
 
-- `CI` provides fast feedback on every pull request.
+- `Build & Test` provides fast feedback on every pull request.
 - `Smoke` runs when a change enters the merge queue, which catches end-to-end regressions before merge without slowing every PR update.
 - The nightly `Smoke` run remains in place to catch ecosystem drift, container changes, and upstream repository changes that are unrelated to a new pull request.
 
@@ -122,14 +127,13 @@ For local parity, the Makefile exposes:
 
 The repository also ships a pre-commit hook in `.githooks/pre-commit`. Run `make install-hooks` once per clone to point Git at that hook directory.
 
-## Private Repo Cost Controls
+## Cost Controls
 
-This repository is currently private, so the workflow set is intentionally lean:
+The per-PR workflow set is intentionally lean so the common path stays fast:
 
-- `golangci-lint` runs inside the main `CI` workflow with the official action, pinned to the repository's lint version and using the action's built-in cache.
-- Standalone `go vet ./...` is not run separately in `CI` because `.golangci.yml` already enables `govet`.
-- `go test -race` is not enabled in CI because it adds runtime cost and is best reintroduced later if we need the extra concurrency diagnostics.
-- CodeQL is disabled for now because it is not available for the current private-repo setup. It can be restored when the repository goes public or the GitHub plan changes.
+- `golangci-lint` runs as the `lint` job in the `Build & Test` workflow with the official action, pinned to the repository's lint version and using the action's built-in cache.
+- Standalone `go vet ./...` is not run separately because `.golangci.yml` already enables `govet`.
+- `go test -race` is not enabled because it adds runtime cost and is best reintroduced later if we need the extra concurrency diagnostics.
 
 ## Build and Packaging Model
 
@@ -200,4 +204,4 @@ sha256sum --check SHA256SUMS
 Get-FileHash .\bomly_v0.2.0_windows_amd64.zip -Algorithm SHA256
 ```
 
-GitHub-native artifact attestations are intentionally deferred for now because the repository is private and the current plan assumes private-repo attestations are not available. The release workflow is structured, so provenance attestation steps can be added later after packaging and before release publication.
+GitHub-native artifact attestations are planned. The release workflow is structured so provenance attestation steps can be added after packaging and before release publication.

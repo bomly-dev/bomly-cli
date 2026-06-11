@@ -60,8 +60,6 @@ internal/engine/                 Pipeline core (pipeline.go, engine.go), Registr
 internal/engine/consolidation/   Cross-subproject graph consolidation, manifest dedup, enrichment
                                  sync (ConsolidateGraphs, ManifestDedupPriority,
                                  SyncConsolidatedEnrichmentToManifests)
-internal/engine/hooks/           Pre-/post-resolve hook contract + executor (Descriptor,
-                                 PreResolveHook, PostResolveHook, RunPre, RunPost)
 internal/registry/               Support/discovery registry; built-in wiring in builder.go
 internal/matchers/*              External enrichment: osv, grype, deps.dev, ClearlyDefined, eol, scorecard
 internal/matchers/cache          File-based cache shared by matchers
@@ -89,7 +87,7 @@ internal/testutil/               Test helpers (fake binary builder)
 
 **`bomly explain`** is implemented by `newExplainCmd` in `internal/cli/explain_cmd.go`.
 
-**Scan pipeline order**: `runtimePreparation → subprojectDiscovery → preResolveHooks → detect (per-package-manager chains) → scopeFilter → consolidate → match (license enrichment) → analyze (reachability, when --analyze is set) → audit → postResolveHooks → format`
+**Scan pipeline order**: `runtimePreparation → subprojectDiscovery → detect (per-package-manager chains; resolve + consolidate into one graph) → scopeFilter → match (license enrichment) → analyze (reachability, when --analyze is set) → audit → format`. Consolidation is the tail of the detect stage (`runDetect` = `runResolve` + `runConsolidate`), not a separate stage.
 
 Runtime preparation is owned by `internal/engine` and is reached through CLI option helpers before pipeline execution. The CLI resolves raw targets and flags but must not discover subprojects with a separate registry.
 
@@ -98,8 +96,8 @@ Runtime preparation is owned by `internal/engine` and is reached through CLI opt
 - `internal/detectors/*` and `internal/analyzers/*` must not import `internal/engine`, `internal/engine/*`, or `internal/registry`. Analyzers depend only on `sdk` and the vendored library that backs their runner.
 - `sdk` owns neutral identifiers that would otherwise create import cycles.
 - `internal/registry` owns package-manager discovery, support lookups, and built-in wiring in `builder.go`. Do not create a separate `registrybuilder` package.
-- `internal/engine` (pipeline core) may import `internal/engine/consolidation`, `internal/engine/hooks`, `internal/engine/explain`, `internal/detectors`, and `internal/registry`.
-- `internal/engine` subpackages (`consolidation`, `hooks`, `diff`, `explain`, `scan`) must not import `internal/cli`.
+- `internal/engine` (pipeline core) may import `internal/engine/consolidation`, `internal/engine/explain`, `internal/detectors`, and `internal/registry`.
+- `internal/engine` subpackages (`consolidation`, `diff`, `explain`, `scan`) must not import `internal/cli`.
 - `internal/config`, `internal/selector`, `internal/progress`, `internal/cli/render`, `internal/tui` must not import `internal/cli`. They are downstream of cobra wiring; cli consumes them, not the reverse.
 - `internal/tui` may import `internal/cli/render` (for ANSI primitives, text helpers, and shared sort/format helpers used by both the TUI and the text reports).
 - `cmd/bomly/main.go` is the only file outside `internal/cli` that imports `internal/cli`.
@@ -231,7 +229,7 @@ For squash-merges, the squash commit title/body determines the version bump.
 | --- | --- |
 | `docs/ARCHITECTURE.md` | Full pipeline, detector model, decision log |
 | `docs/MODELS.md` | Domain model: Dependency / Package / Vulnerability / Finding / PackageRegistry |
-| `docs/CI.md` | GitHub Actions, release workflow |
+| `docs/development/CI.md` | GitHub Actions, release workflow |
 | `docs/CONFIG_REFERENCE.md` | All config keys, env vars, defaults (generated) |
 | `docs/SUPPORT_MATRIX.md` | Ecosystem detector coverage (generated) |
 | `docs/schemas/` | JSON schemas + human-readable output docs (generated) |

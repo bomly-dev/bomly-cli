@@ -21,3 +21,6 @@ coverage
 
 # Qodana files
 qodana.yaml
+
+# Local scratch notes (not tracked)
+/notes

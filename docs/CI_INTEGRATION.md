@@ -79,6 +79,36 @@ This fails only when the PR **introduces** a new high finding, ignoring pre-exis
 
 Cuts cold-start enrichment time from minutes to seconds. Cache TTLs are listed in [Matchers](MATCHERS.md#cache); a 24h TTL means cache hits stay fresh for a day even if the cache key changes.
 
+### Turnkey PR reviews with the Bomly review action
+
+The recipes above call the CLI directly. For GitHub pull requests, the [**Bomly review action**](https://github.com/bomly-dev/bomly-review-action) wraps the same `bomly diff --enrich --audit` flow into a single step: it installs the CLI, diffs the PR against its base, posts a Markdown summary comment, and uploads SARIF to the Security tab.
+
+```yaml
+name: Bomly Review
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so the base and head refs resolve
+      - uses: bomly-dev/bomly-review-action@v1
+        with:
+          fail-on-severity: high
+          deny-licenses: GPL-3.0-only
+```
+
+The action's inputs map onto the CLI policy flags (`fail-on-severity` → `--fail-on`, `deny-licenses` → `--deny-license`, `protected-packages` → `--protected-package`, and so on), so the policy you enforce locally is the policy it enforces on PRs. See the [action README](https://github.com/bomly-dev/bomly-review-action#readme) for the full input list. Bomly dogfoods this action — see the `Bomly Review` workflow in [docs/CI.md](CI.md).
+
 ## GitLab CI
 
 ```yaml

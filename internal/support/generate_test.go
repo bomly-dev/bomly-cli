@@ -102,6 +102,8 @@ func TestRenderComponentDocs_IncludeGeneratedGuides(t *testing.T) {
 		filepath.Join(tmp, "detectors", "ecosystems", "npm", "yarn.md"),
 		filepath.Join(tmp, "detectors", "ecosystems", "python", "pip.md"),
 		filepath.Join(tmp, "matchers", "osv.md"),
+		filepath.Join(tmp, "auditors", "README.md"),
+		filepath.Join(tmp, "auditors", "vulnerability.md"),
 	} {
 		if _, err := os.Stat(path); err != nil {
 			t.Fatalf("expected generated doc %s: %v", path, err)

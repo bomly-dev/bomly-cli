@@ -75,6 +75,29 @@ Stage summary:
 
 `bomly explain` reuses the same scope-aware resolution, consolidation, and matching stages, then performs dependency path selection in its explain orchestration before optional component audit.
 
+## Extensibility
+
+Extensibility is the core of Bomly's design. The pipeline exposes four typed extension points, and **every built-in is an implementation of the same contract an external plugin implements** — there is no privileged internal path. Adding an ecosystem, an enrichment source, a reachability analyzer, or a policy gate does not require forking the engine.
+
+```mermaid
+flowchart LR
+    D[Detect] --> C[Consolidate] --> M[Match] --> An[Analyze] --> Au[Audit] --> O[Output]
+
+    PD([Detector plugins]) -.-> D
+    PM([Matcher plugins]) -.-> M
+    PAn([Analyzer plugins]) -.-> An
+    PAu([Auditor plugins]) -.-> Au
+```
+
+| Extension point | Contract (`sdk`) | Responsibility |
+| --- | --- | --- |
+| Detector | `sdk.Detector` | Turn evidence (lockfile, manifest, SBOM) into a dependency graph |
+| Matcher | `sdk.Matcher` | Enrich packages with vulnerability, license, or lifecycle data |
+| Analyzer | `sdk.Analyzer` | Annotate `sdk.Vulnerability.Reachability` for a language |
+| Auditor | `sdk.Auditor` | Evaluate policy and emit reference-style findings |
+
+External plugins run as versioned (`v1`) gRPC binaries and participate in the same runtime planning as built-ins: detector plugins declare evidence patterns and join subproject discovery; matcher, analyzer, and auditor plugins are selected with the same `--matchers` / `--analyzers` / `--auditors` selector grammar. Plugins are disabled until explicitly enabled. See [PLUGINS.md](PLUGINS.md) for the trust model and authoring guides.
+
 ### Decision: YAML configuration is nested at the file boundary
 
 Bomly's YAML files use strict nested groups such as `target`, `analysis`, `policy`, `network.proxy`, and `matchers.osv`, while `config.Resolved` remains flat. Nesting keeps customer-authored files readable without spreading YAML organization through the CLI and engine. Each YAML leaf maps back to one flat runtime field, and layered files preserve explicit zero values, including empty lists. Unknown keys and the former flat YAML keys fail with migration guidance so typos cannot silently disable requested behavior.

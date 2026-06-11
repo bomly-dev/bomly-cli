@@ -8,6 +8,7 @@ Task-oriented walkthroughs.
 
 - [Installation](INSTALLATION.md) — install methods, `bomly` vs `bomly-lite`, checksum verification, uninstall
 - [Getting Started](GETTING_STARTED.md) — first scan, enrich, audit, diff
+- [Use Cases](USE_CASES.md) — recipes for PR gates, SBOMs, triage, license and offline scans
 - [Scan Targets](SCAN_TARGETS.md) — directories, Git repos, containers, SBOMs
 - [Output Formats](OUTPUT_FORMATS.md) — text, JSON, SARIF, SBOM
 - [SBOM Formats](SBOM.md) — SPDX vs. CycloneDX, write and ingest
@@ -38,6 +39,7 @@ Generated from code. Treat as authoritative.
 - [Exit Codes](EXIT_CODES.md) — what each process exit value means
 - [Detector Ecosystem Guides](detectors/ecosystems/) — per-ecosystem detector chains
 - [Matcher Reference](matchers/) — per-matcher behavior, cache, output
+- [Auditor Reference](auditors/) — per-auditor options, examples, limitations
 - [JSON Schemas](schemas/scan.md) — scan, explain, diff output shapes
 
 ## Project

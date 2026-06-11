@@ -10,6 +10,16 @@ bomly scan --enrich --audit --fail-on high
 
 `--audit` alone is useful when you have ingested an SBOM that already carries vulnerability data, or when a matcher ran in a previous step.
 
+## Built-in auditors
+
+| Auditor | Checks | Policy flags |
+| --- | --- | --- |
+| [`vulnerability`](auditors/vulnerability.md) | Enriched advisories vs. severity / allowlist policy | `--fail-on`, `--allow-vulnerability-id` |
+| [`license`](auditors/license.md) | Package licenses vs. allow/deny SPDX policy | `--allow-license`, `--deny-license`, `--license-exempt-package` |
+| [`package`](auditors/package.md) | Denied packages and typosquatted names | `--deny-package`, `--deny-group`, `--protected-package`, `--typosquat-threshold`, `--typosquat-mode` |
+
+Select a subset with the `--auditors` selector (e.g. `--auditors license`). See the [per-auditor reference](auditors/) for options, examples, and limitations.
+
 ## When auditors run
 
 - `bomly scan --audit` evaluates the full graph.
@@ -97,6 +107,7 @@ bomly diff --base main --head HEAD --enrich --audit --fail-on high
 
 ## See also
 
+- [Per-auditor reference](auditors/) — options, examples, and limitations for each built-in auditor
 - [Exit codes](EXIT_CODES.md) — full table of process exit values
 - [Reachability](REACHABILITY.md) — narrowing findings to symbols actually called
 - [Output formats](OUTPUT_FORMATS.md) — text, JSON, SARIF rendering details

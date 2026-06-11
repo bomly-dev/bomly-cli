@@ -329,6 +329,16 @@ bomly scan --enrich --audit --fail-on high
 
 `+"`--audit`"+` alone is useful when you have ingested an SBOM that already carries vulnerability data, or when a matcher ran in a previous step.
 
+## Built-in auditors
+
+| Auditor | Checks | Policy flags |
+| --- | --- | --- |
+| [`+"`vulnerability`"+`](auditors/vulnerability.md) | Enriched advisories vs. severity / allowlist policy | `+"`--fail-on`"+`, `+"`--allow-vulnerability-id`"+` |
+| [`+"`license`"+`](auditors/license.md) | Package licenses vs. allow/deny SPDX policy | `+"`--allow-license`"+`, `+"`--deny-license`"+`, `+"`--license-exempt-package`"+` |
+| [`+"`package`"+`](auditors/package.md) | Denied packages and typosquatted names | `+"`--deny-package`"+`, `+"`--deny-group`"+`, `+"`--protected-package`"+`, `+"`--typosquat-threshold`"+`, `+"`--typosquat-mode`"+` |
+
+Select a subset with the `+"`--auditors`"+` selector (e.g. `+"`--auditors license`"+`). See the [per-auditor reference](auditors/) for options, examples, and limitations.
+
 ## When auditors run
 
 - `+"`bomly scan --audit`"+` evaluates the full graph.
@@ -416,6 +426,7 @@ bomly diff --base main --head HEAD --enrich --audit --fail-on high
 
 ## See also
 
+- [Per-auditor reference](auditors/) — options, examples, and limitations for each built-in auditor
 - [Exit codes](EXIT_CODES.md) — full table of process exit values
 - [Reachability](REACHABILITY.md) — narrowing findings to symbols actually called
 - [Output formats](OUTPUT_FORMATS.md) — text, JSON, SARIF rendering details
@@ -439,6 +450,9 @@ func WriteComponentDocs(docsDir string) error {
 		return err
 	}
 	if err := writeMatcherDocs(filepath.Join(docsDir, "matchers")); err != nil {
+		return err
+	}
+	if err := writeAuditorDocs(filepath.Join(docsDir, "auditors")); err != nil {
 		return err
 	}
 	return nil
@@ -608,6 +622,121 @@ func renderMatcherMarkdown(descriptor sdk.MatcherDescriptor) string {
 		b.WriteString(prose)
 	}
 	return b.String()
+}
+
+func writeAuditorDocs(outputDir string) error {
+	if err := os.RemoveAll(outputDir); err != nil {
+		return fmt.Errorf("clean %s: %w", outputDir, err)
+	}
+	if err := os.MkdirAll(outputDir, 0o755); err != nil {
+		return fmt.Errorf("create %s: %w", outputDir, err)
+	}
+	reg := registry.NewRegistry(registry.Configs{}, *zap.NewNop())
+	reg.Build()
+	descriptors := reg.AuditorDescriptors()
+	sort.Slice(descriptors, func(i, j int) bool { return descriptors[i].Name < descriptors[j].Name })
+	for _, descriptor := range descriptors {
+		if err := writeMarkdown(filepath.Join(outputDir, descriptor.Name+".md"), renderAuditorMarkdown(descriptor)); err != nil {
+			return err
+		}
+	}
+	return writeMarkdown(filepath.Join(outputDir, "README.md"), renderAuditorIndex(descriptors))
+}
+
+func renderAuditorIndex(descriptors []sdk.AuditorDescriptor) string {
+	var b strings.Builder
+	b.WriteString("# Auditor Guides\n\n")
+	b.WriteString("These generated pages explain Bomly's built-in policy auditors. See [AUDITORS.md](../AUDITORS.md) for the shared finding model, severity grammar, and `--fail-on` behavior.\n\n")
+	for _, descriptor := range descriptors {
+		_, _ = fmt.Fprintf(&b, "- [%s](%s.md)\n", humanAuditorTitle(descriptor.Name), descriptor.Name)
+	}
+	return b.String()
+}
+
+func renderAuditorMarkdown(descriptor sdk.AuditorDescriptor) string {
+	behavior := auditorBehavior(descriptor.Name)
+	var b strings.Builder
+	_, _ = fmt.Fprintf(&b, "# %s auditor\n\n", humanAuditorTitle(descriptor.Name))
+	b.WriteString(generatedBanner + "\n\n")
+	_, _ = fmt.Fprintf(&b, "%s\n\n", behavior.Summary)
+	b.WriteString("| Property | Value |\n")
+	b.WriteString("| --- | --- |\n")
+	_, _ = fmt.Fprintf(&b, "| Auditor name | `%s` |\n", descriptor.Name)
+	_, _ = fmt.Fprintf(&b, "| Finding kind | %s |\n", behavior.FindingKind)
+	_, _ = fmt.Fprintf(&b, "| Runs with `--audit` | Yes |\n")
+	_, _ = fmt.Fprintf(&b, "| Needs enrichment data | %s |\n", yesNo(behavior.RequiresEnrich))
+	_, _ = fmt.Fprintf(&b, "| Policy flags | %s |\n", codeListOrDash(behavior.PolicyFlags))
+	_, _ = fmt.Fprintf(&b, "| Finding reasons | %s |\n", strings.Join(behavior.Reasons, ", "))
+	if len(descriptor.Tags) > 0 {
+		_, _ = fmt.Fprintf(&b, "| Tags | %s |\n", codeList(descriptor.Tags))
+	}
+	b.WriteString("\n## User notes\n\n")
+	b.WriteString(behavior.Notes)
+	b.WriteString("\n")
+	if prose := loadProse("auditors", descriptor.Name); prose != "" {
+		b.WriteString("\n")
+		b.WriteString(prose)
+	}
+	return b.String()
+}
+
+type auditorDocBehavior struct {
+	Summary        string
+	FindingKind    string
+	RequiresEnrich bool
+	PolicyFlags    []string
+	Reasons        []string
+	Notes          string
+}
+
+func auditorBehavior(name string) auditorDocBehavior {
+	switch name {
+	case "vulnerability":
+		return auditorDocBehavior{
+			Summary:        "Evaluates enriched vulnerability records against severity and allowlist policy.",
+			FindingKind:    "vulnerability",
+			RequiresEnrich: true,
+			PolicyFlags:    []string{"--fail-on", "--allow-vulnerability-id"},
+			Reasons:        []string{"severity threshold", "reachable symbol", "KEV listing"},
+			Notes:          "Needs vulnerability data on packages, so pair it with `--enrich` (or ingest an SBOM that already carries advisories). `--allow-vulnerability-id` suppresses specific CVE/GHSA IDs you have triaged.",
+		}
+	case "license":
+		return auditorDocBehavior{
+			Summary:        "Evaluates package licenses against allow/deny SPDX policy.",
+			FindingKind:    "license",
+			RequiresEnrich: false,
+			PolicyFlags:    []string{"--allow-license", "--deny-license", "--license-exempt-package"},
+			Reasons:        []string{"denied license", "license not in allowlist", "missing license"},
+			Notes:          "Works on licenses already on the graph; run `--enrich` first when native detection did not resolve a license. `--license-exempt-package` waives the policy for specific packages. License values are matched as SPDX expressions.",
+		}
+	case "package":
+		return auditorDocBehavior{
+			Summary:        "Protects against denied packages and suspiciously similar (typosquatted) package names.",
+			FindingKind:    "package",
+			RequiresEnrich: false,
+			PolicyFlags:    []string{"--deny-package", "--deny-group", "--protected-package", "--typosquat-threshold", "--typosquat-mode"},
+			Reasons:        []string{"denied package", "denied group", "typosquat of protected package"},
+			Notes:          "Name-based, so it needs no enrichment and runs fully offline. Declare the packages you trust with `--protected-package`; Bomly flags lookalikes within `--typosquat-threshold`. `--typosquat-mode` controls how aggressively names are compared.",
+		}
+	default:
+		return auditorDocBehavior{
+			Summary:        "Evaluates the dependency graph against policy and produces findings.",
+			FindingKind:    "policy",
+			RequiresEnrich: false,
+			PolicyFlags:    nil,
+			Reasons:        []string{"policy match"},
+			Notes:          "Runs when `--audit` is set.",
+		}
+	}
+}
+
+func humanAuditorTitle(name string) string {
+	switch name {
+	case "osv":
+		return "OSV"
+	default:
+		return titleWords(strings.ReplaceAll(name, "-", " "))
+	}
 }
 
 func matcherRunsByDefault(name string) bool {

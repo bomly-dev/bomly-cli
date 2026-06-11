@@ -6,7 +6,7 @@ Bomly uses GitHub Actions for validation, security analysis, smoke coverage, and
 
 | Workflow               | Trigger                                        | Purpose                                                                                                                |
 |------------------------|------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
-| `CI`                   | Pull requests, pushes to `main`                | Fast validation: `golangci-lint`, `gofmt` drift checks, tests, build sanity, module drift, and generated-doc drift |
+| `Build & Test`         | Pull requests, pushes to `main`                | Fast validation split into parallel jobs: `lint`, `test`, `build`, `format`, `modules` (go.mod drift), and `generated-docs` (generated-doc drift) |
 | `CodeQL`               | Pull requests, pushes to `main`, weekly        | Static security/quality analysis for Go; results surface in the Security tab                                           |
 | `Scorecard`            | Pushes to `main`, weekly, manual dispatch      | OpenSSF Scorecard supply-chain checks; publishes results and uploads SARIF                                             |
 | `Dependency review`    | Pull requests                                  | GitHub dependency-review of added/changed dependencies; fails on high-severity introductions                          |
@@ -20,9 +20,11 @@ Bomly uses GitHub Actions for validation, security analysis, smoke coverage, and
 
 For protected branches, require at least:
 
-- `CI`
-- `Dependency Review` when dependency metadata changes
+- The `Build & Test` jobs (`Lint`, `Test`, `Build`, `Format`, `Module drift`, `Generated docs drift`)
+- `Dependency review` when dependency metadata changes
 - `Smoke` on merge queue entries
+
+`Build & Test` runs each check as its own job so they execute in parallel and report independently. Because the checks are now per-job, update the required status checks in branch protection to the individual job names above (the previous single `CI` check no longer exists).
 
 `Smoke` is intentionally not a per-PR check; it is the slower pre-merge gate for merge queue entries and a nightly health monitor for upstream drift.
 
@@ -30,7 +32,7 @@ For protected branches, require at least:
 
 Bomly uses a layered merge policy:
 
-- `CI` provides fast feedback on every pull request.
+- `Build & Test` provides fast feedback on every pull request.
 - `Smoke` runs when a change enters the merge queue, which catches end-to-end regressions before merge without slowing every PR update.
 - The nightly `Smoke` run remains in place to catch ecosystem drift, container changes, and upstream repository changes that are unrelated to a new pull request.
 
@@ -129,9 +131,9 @@ The repository also ships a pre-commit hook in `.githooks/pre-commit`. Run `make
 
 The per-PR workflow set is intentionally lean so the common path stays fast:
 
-- `golangci-lint` runs inside the main `CI` workflow with the official action, pinned to the repository's lint version and using the action's built-in cache.
-- Standalone `go vet ./...` is not run separately in `CI` because `.golangci.yml` already enables `govet`.
-- `go test -race` is not enabled in CI because it adds runtime cost and is best reintroduced later if we need the extra concurrency diagnostics.
+- `golangci-lint` runs as the `lint` job in the `Build & Test` workflow with the official action, pinned to the repository's lint version and using the action's built-in cache.
+- Standalone `go vet ./...` is not run separately because `.golangci.yml` already enables `govet`.
+- `go test -race` is not enabled because it adds runtime cost and is best reintroduced later if we need the extra concurrency diagnostics.
 
 ## Build and Packaging Model
 

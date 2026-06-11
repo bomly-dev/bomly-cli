@@ -18,11 +18,11 @@ make benchmark           # Hidden local dependency-graph benchmark
 make benchmark-report    # Analyze benchmark artifacts with Copilot CLI
 make run ARGS="scan"     # Run the CLI directly
 make fmt                 # Format code
-make lint                # golangci-lint v1.64.8
+make lint                # golangci-lint v2.12.0
 make generate            # Regenerate config reference, JSON schemas, support matrix
 ```
 
-**Always run `make test` after changes.** If you change `internal/config/config.go`, `internal/output/*`, `sdk/catalog.go`, `sdk/support_matrix.go`, or `internal/registry/support.go`, also run `make generate`.
+**Always run `make fmt`, `make lint`, and `make test` after changes and before pushing.** If you change `internal/config/config.go`, `internal/output/*`, `sdk/catalog.go`, `sdk/support_matrix.go`, or `internal/registry/support.go`, also run `make generate`.
 
 **Go version**: 1.25.8 (pinned — use exactly this to match CI formatting and build behavior).
 
@@ -77,6 +77,8 @@ internal/analyzers/*             Reachability analyzers (govulncheck — Go;
                                  pipeline on failure
 internal/auditors/*              Policy evaluators (policy, noop)
 internal/sbom/                   SPDX 2.3 / CycloneDX codec
+internal/attestation/            Experimental SBOM attestation subject resolution,
+                                 in-toto statement construction, and bundle verification
 internal/benchmark/              Hidden local dependency-graph benchmark, baseline scoring,
                                  and embedded smoke/benchmark repository presets
 internal/output/                 Text, JSON, SARIF 2.1.0, SBOM rendering + schema generation
@@ -141,6 +143,8 @@ _ = audcache.Set(cache, key, value)
 Cache failures are non-fatal — log a warning and continue.
 
 **Testing helpers**: `t.TempDir()`, `testutil.BuildGoBinary()`, `httptest.NewServer()`. Shared fake-binary setup lives in `internal/cli/root_test_main_test.go`. No tests may be conditionally skipped without a recorded reason.
+
+**TDD for security-sensitive features**: for user-visible security functionality, write failing unit or command tests first, implement the smallest clean change that passes, then refactor for readability and maintainability before broadening coverage.
 
 ## Feature Checklist
 

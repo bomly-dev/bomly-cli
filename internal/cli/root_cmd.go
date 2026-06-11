@@ -110,6 +110,7 @@ func newRootCmd(version string) (*cobra.Command, error) {
 	}
 
 	pluginCmd := newPluginCmd()
+	sbomCmd := newSBOMCmd()
 	mcpCmd := newMcpCmd()
 	versionCmd := newVersionCmd(version)
 	benchmarkCmd := newBenchmarkCmd()
@@ -118,6 +119,7 @@ func newRootCmd(version string) (*cobra.Command, error) {
 	root.AddCommand(scanCmd)
 	root.AddCommand(diffCmd)
 	root.AddCommand(pluginCmd)
+	root.AddCommand(sbomCmd)
 	root.AddCommand(mcpCmd)
 	root.AddCommand(versionCmd)
 	root.AddCommand(benchmarkCmd)

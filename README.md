@@ -1,6 +1,18 @@
-# Bomly
+<p align="center">
+  <img src="assets/bomly-cli-wordmark.svg" alt="Bomly CLI" width="320">
+</p>
 
-Dependency intelligence for modern software projects.
+<p align="center">
+  <strong>Dependency intelligence for modern software projects.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/bomly-dev/bomly-cli/actions/workflows/ci.yml"><img src="https://github.com/bomly-dev/bomly-cli/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/bomly-dev/bomly-cli/releases/latest"><img src="https://img.shields.io/github/v/release/bomly-dev/bomly-cli?sort=semver" alt="Latest release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/bomly-dev/bomly-cli" alt="License: Apache-2.0"></a>
+  <a href="https://pkg.go.dev/github.com/bomly-dev/bomly-cli"><img src="https://pkg.go.dev/badge/github.com/bomly-dev/bomly-cli.svg" alt="Go Reference"></a>
+  <a href="https://goreportcard.com/report/github.com/bomly-dev/bomly-cli"><img src="https://goreportcard.com/badge/github.com/bomly-dev/bomly-cli" alt="Go Report Card"></a>
+</p>
 
 Bomly scans source trees, SBOMs, Git refs, and container images, generates SPDX and CycloneDX SBOMs, enriches packages with vulnerability and license data, evaluates policy, and diffs dependency state across refs.
 

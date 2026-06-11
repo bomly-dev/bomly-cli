@@ -60,7 +60,7 @@ jobs:
 
           Each archive includes `LICENSE`, `NOTICE`, and a `licenses/` directory with the full license text for every bundled dependency.
 
-          GitHub-native artifact attestations are intentionally deferred while the repository remains private on a non-Enterprise plan.
+          GitHub-native artifact attestations are planned and will be added in a future release.
           EOF
 
       - name: Create draft prerelease

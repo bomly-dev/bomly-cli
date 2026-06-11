@@ -122,14 +122,13 @@ For local parity, the Makefile exposes:
 
 The repository also ships a pre-commit hook in `.githooks/pre-commit`. Run `make install-hooks` once per clone to point Git at that hook directory.
 
-## Private Repo Cost Controls
+## Cost Controls
 
-This repository is currently private, so the workflow set is intentionally lean:
+The per-PR workflow set is intentionally lean so the common path stays fast:
 
 - `golangci-lint` runs inside the main `CI` workflow with the official action, pinned to the repository's lint version and using the action's built-in cache.
 - Standalone `go vet ./...` is not run separately in `CI` because `.golangci.yml` already enables `govet`.
 - `go test -race` is not enabled in CI because it adds runtime cost and is best reintroduced later if we need the extra concurrency diagnostics.
-- CodeQL is disabled for now because it is not available for the current private-repo setup. It can be restored when the repository goes public or the GitHub plan changes.
 
 ## Build and Packaging Model
 
@@ -200,4 +199,4 @@ sha256sum --check SHA256SUMS
 Get-FileHash .\bomly_v0.2.0_windows_amd64.zip -Algorithm SHA256
 ```
 
-GitHub-native artifact attestations are intentionally deferred for now because the repository is private and the current plan assumes private-repo attestations are not available. The release workflow is structured, so provenance attestation steps can be added later after packaging and before release publication.
+GitHub-native artifact attestations are planned. The release workflow is structured so provenance attestation steps can be added after packaging and before release publication.

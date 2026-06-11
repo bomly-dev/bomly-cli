@@ -20,7 +20,7 @@ jobs:
           fetch-depth: 0
 
       - name: Review dependency changes
-        uses: bomly-dev/bomly-review-action@v1
+        uses: bomly-dev/bomly-dependency-review-action@v1
         with:
           fail-on-severity: high
           comment-summary-in-pr: always

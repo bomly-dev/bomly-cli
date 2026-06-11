@@ -127,7 +127,10 @@ func TestWriteSARIFOmitsCodeFlowsWhenNoReachability(t *testing.T) {
 	if strings.Contains(buf.String(), `"codeFlows"`) {
 		t.Errorf("codeFlows should be absent when no reachability; got:\n%s", buf.String())
 	}
-	if strings.Contains(buf.String(), `"properties"`) {
-		t.Errorf("properties should be absent when no reachability; got:\n%s", buf.String())
+	if strings.Contains(buf.String(), `"reachability"`) {
+		t.Errorf("reachability properties should be absent when no reachability; got:\n%s", buf.String())
+	}
+	if !strings.Contains(buf.String(), `"package_ref": "pkg:go/lib@1.0.0"`) {
+		t.Errorf("package metadata should still be present; got:\n%s", buf.String())
 	}
 }

@@ -134,7 +134,7 @@ func newExplainCmd() *cobra.Command {
 				Text:     textRenderer,
 			}
 			sarifRenderer := func(w io.Writer) error {
-				return output.WriteSARIF(w, explainResult.Findings, explainResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: context.ResolvedConfig.Analyze})
+				return output.WriteSARIF(w, explainResult.Findings, explainResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: context.ResolvedConfig.Analyze, LocationGraphs: []*sdk.Graph{explainResult.FocusedGraph}})
 			}
 			if context.ResolvedConfig.Interactive {
 				prog.Stop()

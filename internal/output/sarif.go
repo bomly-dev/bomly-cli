@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"path/filepath"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
@@ -108,6 +109,9 @@ type sarifThreadFlowLocation struct {
 // these fields give consumers everything needed to triage a finding
 // without parsing the parallel JSON output.
 type sarifProperties struct {
+	PackageRef             string               `json:"package_ref,omitempty"`
+	DependencyRefs         []string             `json:"dependency_refs,omitempty"`
+	LocationURIs           []string             `json:"location_uris,omitempty"`
 	FixedIn                string               `json:"fixed_in,omitempty"`
 	FixedVersions          []string             `json:"fixed_versions,omitempty"`
 	FixState               string               `json:"fix_state,omitempty"`
@@ -137,6 +141,7 @@ type sarifProperties struct {
 // SARIFOptions controls optional experimental data in SARIF output.
 type SARIFOptions struct {
 	IncludeReachability bool
+	LocationGraphs      []*sdk.Graph
 }
 
 // WriteSARIF writes findings as a SARIF 2.1.0 document to w.
@@ -179,20 +184,22 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, registry *sdk.PackageRegist
 		if f.PackageRef != "" {
 			msgText = fmt.Sprintf("%s in %s", f.Title, f.PackageRef)
 		}
+		locations, locationURIs := sarifLocationsForFinding(f, includeReachability, options)
 		result := sarifResult{
 			RuleID:    f.ID,
 			Level:     severityToSARIFLevel(f.Severity),
 			Message:   sarifMessage{Text: msgText},
-			Locations: sarifLocationsForFinding(f, pkg, f.PackageRef),
+			Locations: locations,
 		}
+		props := sarifPropertiesFromFinding(f, locationURIs)
 		if vuln != nil {
-			props := sarifPropertiesFromVulnerability(vuln, includeReachability)
-			if !sarifPropertiesEmpty(props) {
-				result.Properties = &props
-			}
+			props = mergeSARIFProperties(props, sarifPropertiesFromVulnerability(vuln, includeReachability))
 			if includeReachability && vuln.Reachability != nil && len(vuln.Reachability.CallPaths) > 0 {
 				result.CodeFlows = buildSARIFCodeFlows(vuln.Reachability.CallPaths)
 			}
+		}
+		if !sarifPropertiesEmpty(props) {
+			result.Properties = &props
 		}
 		results = append(results, result)
 	}
@@ -221,7 +228,10 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, registry *sdk.PackageRegist
 }
 
 func sarifPropertiesEmpty(props sarifProperties) bool {
-	return props.FixedIn == "" &&
+	return props.PackageRef == "" &&
+		len(props.DependencyRefs) == 0 &&
+		len(props.LocationURIs) == 0 &&
+		props.FixedIn == "" &&
 		len(props.FixedVersions) == 0 &&
 		props.FixState == "" &&
 		len(props.FixAvailable) == 0 &&
@@ -261,7 +271,7 @@ func buildSARIFCodeFlows(paths []sdk.CallPath) []sarifCodeFlow {
 			locs = append(locs, sarifThreadFlowLocation{
 				Location: sarifLocation{
 					PhysicalLocation: sarifPhysicalLocation{
-						ArtifactLocation: sarifArtifactLocation{URI: frame.Position.File},
+						ArtifactLocation: sarifArtifactLocation{URI: safeSARIFURI(frame.Position.File, "README.md")},
 						Region:           sarifRegionFromPosition(frame.Position),
 					},
 					Message: &sarifMessage{Text: sarifFrameDescription(frame)},
@@ -298,32 +308,222 @@ func sarifFrameDescription(frame sdk.CallFrame) string {
 
 // sarifLocationsForFinding builds the SARIF Locations array for a
 // finding. When the finding's package carries one or more
-// PackageLocation entries with a non-nil Position, one SARIF
-// location per entry is emitted with artifactLocation pointing at
-// the source file and a region carrying the line / column. When the
-// package has no positions, a single synthetic location is emitted
-// with the package's qualified name as URI — preserves backward
-// compat for SARIF consumers that already keyed on the package URI.
+// PackageLocation entries with a non-nil Position, one SARIF location per entry
+// is emitted with artifactLocation pointing at the source file and a region
+// carrying the line / column. When the package has no positions, a single
+// repository-relative fallback location is emitted so GitHub Code Scanning can
+// ingest the document; package identity stays in the result properties.
 //
 // PackageLocations without a Position but with a non-empty RealPath
 // still get a SARIF location with artifactLocation.uri = RealPath
 // and no region. This is honest: we know which file the dep lives
 // in but not exactly where.
-func sarifLocationsForFinding(f sdk.Finding, _ *sdk.Package, fallbackURI string) []sarifLocation {
-	// Locations are a detection-time concern on *sdk.Dependency; the registry
-	// Package carries the PURL identity used here as the synthetic SARIF URI.
-	// SARIF requires a non-empty Locations array, so we always emit one.
-	uri := strings.TrimSpace(fallbackURI)
-	if uri == "" {
-		uri = f.ID
+func sarifLocationsForFinding(f sdk.Finding, includeReachability bool, options []SARIFOptions) ([]sarifLocation, []string) {
+	locations := make([]sarifLocation, 0)
+	originalURIs := make([]string, 0)
+	seen := make(map[string]struct{})
+
+	for _, dep := range dependenciesForFinding(f, options) {
+		for _, loc := range dep.Locations {
+			uri, region := sarifLocationURIAndRegion(loc)
+			uri = strings.TrimSpace(uri)
+			if uri == "" {
+				continue
+			}
+			originalURIs = appendUniqueString(originalURIs, uri)
+			safeURI := safeSARIFURI(uri, "README.md")
+			key := fmt.Sprintf("%s:%d:%d:%d", safeURI, regionStartLine(region), regionStartColumn(region), regionEndLine(region))
+			if _, ok := seen[key]; ok {
+				continue
+			}
+			seen[key] = struct{}{}
+			locations = append(locations, sarifLocation{
+				PhysicalLocation: sarifPhysicalLocation{
+					ArtifactLocation: sarifArtifactLocation{URI: safeURI},
+					Region:           region,
+				},
+			})
+		}
+	}
+
+	if len(locations) > 0 {
+		return locations, originalURIs
+	}
+
+	// SARIF requires a non-empty locations array. When Bomly has no manifest
+	// location for the dependency, use a repository-relative fallback that
+	// GitHub Code Scanning can ingest and keep the package URI in properties.
+	fallback := firstNonEmpty(f.PackageRef, f.ID, "README.md")
+	if fallback != "" {
+		originalURIs = appendUniqueString(originalURIs, fallback)
 	}
 	return []sarifLocation{
 		{
 			PhysicalLocation: sarifPhysicalLocation{
-				ArtifactLocation: sarifArtifactLocation{URI: uri},
+				ArtifactLocation: sarifArtifactLocation{URI: safeSARIFURI(fallback, "README.md")},
 			},
 		},
+	}, originalURIs
+}
+
+func dependenciesForFinding(f sdk.Finding, options []SARIFOptions) []*sdk.Dependency {
+	if len(options) == 0 || len(options[0].LocationGraphs) == 0 || len(f.DependencyRefs) == 0 {
+		return nil
 	}
+	out := make([]*sdk.Dependency, 0, len(f.DependencyRefs))
+	for _, ref := range f.DependencyRefs {
+		for _, graph := range options[0].LocationGraphs {
+			if graph == nil {
+				continue
+			}
+			if dep, ok := graph.Node(ref); ok && dep != nil {
+				out = append(out, dep)
+				break
+			}
+		}
+	}
+	return out
+}
+
+func sarifLocationURIAndRegion(loc sdk.PackageLocation) (string, *sarifRegion) {
+	if loc.Position != nil {
+		uri := firstNonEmpty(loc.Position.File, loc.RealPath, loc.AccessPath)
+		return uri, sarifRegionFromPosition(*loc.Position)
+	}
+	return firstNonEmpty(loc.RealPath, loc.AccessPath), nil
+}
+
+func safeSARIFURI(uri, fallback string) string {
+	uri = filepath.ToSlash(strings.TrimSpace(uri))
+	if uri == "" {
+		return fallback
+	}
+	if hasNonFileURIScheme(uri) {
+		return fallback
+	}
+	return uri
+}
+
+func hasNonFileURIScheme(uri string) bool {
+	if len(uri) >= 3 && uri[1] == ':' && (uri[2] == '/' || uri[2] == '\\') {
+		return false
+	}
+	schemeEnd := strings.Index(uri, ":")
+	if schemeEnd <= 0 {
+		return false
+	}
+	for _, r := range uri[:schemeEnd] {
+		if (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '+' || r == '-' || r == '.' {
+			continue
+		}
+		return false
+	}
+	return !strings.EqualFold(uri[:schemeEnd], "file")
+}
+
+func regionStartLine(region *sarifRegion) int {
+	if region == nil {
+		return 0
+	}
+	return region.StartLine
+}
+
+func regionStartColumn(region *sarifRegion) int {
+	if region == nil {
+		return 0
+	}
+	return region.StartColumn
+}
+
+func regionEndLine(region *sarifRegion) int {
+	if region == nil {
+		return 0
+	}
+	return region.EndLine
+}
+
+func appendUniqueString(values []string, value string) []string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return values
+	}
+	for _, existing := range values {
+		if existing == value {
+			return values
+		}
+	}
+	return append(values, value)
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if strings.TrimSpace(value) != "" {
+			return strings.TrimSpace(value)
+		}
+	}
+	return ""
+}
+
+func sarifPropertiesFromFinding(f sdk.Finding, locationURIs []string) sarifProperties {
+	return sarifProperties{
+		PackageRef:     f.PackageRef,
+		DependencyRefs: append([]string(nil), f.DependencyRefs...),
+		LocationURIs:   append([]string(nil), locationURIs...),
+	}
+}
+
+func mergeSARIFProperties(base, extra sarifProperties) sarifProperties {
+	if extra.FixedIn != "" {
+		base.FixedIn = extra.FixedIn
+	}
+	base.FixedVersions = append(base.FixedVersions, extra.FixedVersions...)
+	if extra.FixState != "" {
+		base.FixState = extra.FixState
+	}
+	base.FixAvailable = append(base.FixAvailable, extra.FixAvailable...)
+	if extra.SeveritySource != "" {
+		base.SeveritySource = extra.SeveritySource
+	}
+	base.CVSS = append(base.CVSS, extra.CVSS...)
+	base.Aliases = append(base.Aliases, extra.Aliases...)
+	if extra.AffectedVersionRange != "" {
+		base.AffectedVersionRange = extra.AffectedVersionRange
+	}
+	base.References = append(base.References, extra.References...)
+	base.KEVExploited = extra.KEVExploited
+	base.KnownExploited = append(base.KnownExploited, extra.KnownExploited...)
+	base.EPSS = append(base.EPSS, extra.EPSS...)
+	base.CWEs = append(base.CWEs, extra.CWEs...)
+	if extra.RiskScore != 0 {
+		base.RiskScore = extra.RiskScore
+	}
+	if extra.DataSource != "" {
+		base.DataSource = extra.DataSource
+	}
+	if extra.Namespace != "" {
+		base.Namespace = extra.Namespace
+	}
+	base.CPEs = append(base.CPEs, extra.CPEs...)
+	if extra.Reachability != "" {
+		base.Reachability = extra.Reachability
+	}
+	if extra.ReachabilityTier != "" {
+		base.ReachabilityTier = extra.ReachabilityTier
+	}
+	if extra.ReachabilityReason != "" {
+		base.ReachabilityReason = extra.ReachabilityReason
+	}
+	if extra.Analyzer != "" {
+		base.Analyzer = extra.Analyzer
+	}
+	if extra.ReachabilityConfidence != "" {
+		base.ReachabilityConfidence = extra.ReachabilityConfidence
+	}
+	if extra.ReachabilityHops != nil {
+		base.ReachabilityHops = extra.ReachabilityHops
+	}
+	base.DynamicImportsDetected = extra.DynamicImportsDetected
+	return base
 }
 
 // sarifPropertiesFromVulnerability converts a registry vulnerability into

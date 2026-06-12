@@ -107,7 +107,7 @@ jobs:
           deny-licenses: GPL-3.0-only
 ```
 
-The action's inputs map onto the CLI policy flags (`fail-on` → `--fail-on`, `deny-licenses` → `--deny-license`, `protected-packages` → `--protected-package`, and so on), so the policy you enforce locally is the policy it enforces on PRs. See the [action README](https://github.com/bomly-dev/bomly-guard#readme) for the full input list. Bomly dogfoods this action — see the `Bomly Guard` workflow in [docs/development/CI.md](development/CI.md).
+The action's inputs map onto the CLI policy flags (`fail-on` → `--fail-on`, `deny-licenses` → `--deny-license`, `protected-packages` → `--protected-package`, and so on), so the policy you enforce locally is the policy it enforces on PRs. See [Bomly Guard](BOMLY_GUARD.md) for the full input and output reference. Bomly dogfoods this action — see the `Bomly Guard` workflow in [docs/development/CI.md](development/CI.md).
 
 ## GitLab CI
 

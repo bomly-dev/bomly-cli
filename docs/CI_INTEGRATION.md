@@ -81,7 +81,7 @@ Cuts cold-start enrichment time from minutes to seconds. Cache TTLs are listed i
 
 ### Turnkey PR reviews with the Bomly Guard action
 
-The recipes above call the CLI directly. For GitHub pull requests, the [**Bomly Guard action**](https://github.com/bomly-dev/bomly-guard) wraps the same `bomly diff --enrich --audit` flow into a single step: it installs the CLI, diffs the PR against its base, posts a Markdown summary comment, and uploads SARIF to the Security tab.
+The recipes above call the CLI directly. For GitHub pull requests, the [**Bomly Guard action**](https://github.com/bomly-dev/bomly-guard) wraps the same `bomly diff --enrich --audit` flow into a single step: it installs the CLI, diffs the PR against its base, writes a Markdown job summary (and can post it as a PR comment when you opt in via `comment-summary-in-pr`), and uploads SARIF to the Security tab.
 
 ```yaml
 name: Bomly Guard
@@ -105,9 +105,10 @@ jobs:
         with:
           fail-on: high
           deny-licenses: GPL-3.0-only
+          comment-summary-in-pr: on-failure   # opt in: comment only when the review fails
 ```
 
-The action's inputs map onto the CLI policy flags (`fail-on` → `--fail-on`, `deny-licenses` → `--deny-license`, `protected-packages` → `--protected-package`, and so on), so the policy you enforce locally is the policy it enforces on PRs. See the [action README](https://github.com/bomly-dev/bomly-guard#readme) for the full input list. Bomly dogfoods this action — see the `Bomly Guard` workflow in [docs/development/CI.md](development/CI.md).
+The action's inputs map onto the CLI policy flags (`fail-on` → `--fail-on`, `deny-licenses` → `--deny-license`, `protected-packages` → `--protected-package`, and so on), so the policy you enforce locally is the policy it enforces on PRs. See [Bomly Guard](BOMLY_GUARD.md) for the full input and output reference. Bomly dogfoods this action — see the `Bomly Guard` workflow in [docs/development/CI.md](development/CI.md).
 
 ## GitLab CI
 

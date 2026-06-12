@@ -277,16 +277,15 @@ func postureTopFailingLines(rows []postureRow, width int) []string {
 	if len(checks) == 0 {
 		return []string{render.Style("No failing checks across scored repos.", render.Dim)}
 	}
-	labelWidth := width / 2
-	if labelWidth < 18 {
-		labelWidth = 18
+	if width < 32 {
+		width = 32
 	}
-	if labelWidth > 32 {
-		labelWidth = 32
+	baseLabelWidth := width / 2
+	if baseLabelWidth < 18 {
+		baseLabelWidth = 18
 	}
-	barWidth := width - labelWidth - 12
-	if barWidth < 8 {
-		barWidth = 8
+	if baseLabelWidth > 32 {
+		baseLabelWidth = 32
 	}
 	out := make([]string, 0, len(checks))
 	maxFail := 0
@@ -296,9 +295,23 @@ func postureTopFailingLines(rows []postureRow, width int) []string {
 		}
 	}
 	for idx, c := range checks {
+		labelWidth := baseLabelWidth
+		suffix := fmt.Sprintf(" %d/%d", c.Failing, c.Total)
+		barWidth := width - labelWidth - 1 - len(suffix) - 2
+		if barWidth < 8 {
+			barWidth = 8
+			labelWidth = width - barWidth - 1 - len(suffix) - 2
+			if labelWidth < 8 {
+				labelWidth = 8
+				barWidth = width - labelWidth - 1 - len(suffix) - 2
+				if barWidth < 1 {
+					barWidth = 1
+				}
+			}
+		}
 		label := padRight(truncateToWidth(c.Name, labelWidth), labelWidth)
 		bar := coloredBarLine(c.Failing, maxFail, barWidth, paletteColor(idx))
-		out = append(out, label+render.Style(" ", render.Dim)+bar+fmt.Sprintf(" %d/%d", c.Failing, c.Total))
+		out = append(out, label+render.Style(" ", render.Dim)+bar+suffix)
 	}
 	return out
 }

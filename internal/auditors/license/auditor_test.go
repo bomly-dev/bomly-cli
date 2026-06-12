@@ -87,13 +87,42 @@ func TestLicenseAuditorUnknownLicenseUsesCompactFindingID(t *testing.T) {
 		t.Fatalf("expected 1 finding, got %#v", result.Findings)
 	}
 	finding := result.Findings[0]
-	if finding.ID != unknownLicenseFindingID {
-		t.Fatalf("finding ID = %q, want %q", finding.ID, unknownLicenseFindingID)
+	if !strings.HasPrefix(finding.ID, unknownLicenseFindingID+"-") {
+		t.Fatalf("finding ID = %q, want %q prefix", finding.ID, unknownLicenseFindingID+"-")
+	}
+	if parts := strings.Split(finding.ID, "-"); len(parts) != 4 || len(parts[1]) != 4 || len(parts[2]) != 4 || len(parts[3]) != 4 {
+		t.Fatalf("finding ID = %q, want compact UNKNOWN-xxxx-xxxx-xxxx shape", finding.ID)
 	}
 	if strings.Contains(finding.ID, dep.Name) || strings.Contains(finding.ID, purl) {
 		t.Fatalf("finding ID should not include package identity: %q", finding.ID)
 	}
 	if finding.PackageRef != purl {
 		t.Fatalf("finding package ref = %q, want %q", finding.PackageRef, purl)
+	}
+}
+
+func TestLicenseAuditorUnknownLicenseIDsDifferByPackage(t *testing.T) {
+	g := sdk.New()
+	root := sdk.NewDependencyRefWithID("app@1.0.0", "app", "1.0.0")
+	_ = g.AddNode(root)
+	for _, name := range []string{"left-pad", "is-odd"} {
+		dep := sdk.NewDependency(sdk.Dependency{Name: name, Version: "1.0.0", Ecosystem: "npm", BuildSystem: "npm"})
+		dep.PackageRef = sdk.CanonicalPackageURLFromDependency(dep)
+		_ = g.AddNode(dep)
+		_ = g.AddEdge(root.ID, dep.ID)
+	}
+
+	result, err := Auditor{}.Audit(context.Background(), sdk.AuditRequest{
+		Graph:    g,
+		Registry: sdk.NewPackageRegistry(),
+	})
+	if err != nil {
+		t.Fatalf("Audit() error = %v", err)
+	}
+	if len(result.Findings) != 2 {
+		t.Fatalf("expected 2 findings, got %#v", result.Findings)
+	}
+	if result.Findings[0].ID == result.Findings[1].ID {
+		t.Fatalf("unknown license finding IDs should differ by package, got %q", result.Findings[0].ID)
 	}
 }

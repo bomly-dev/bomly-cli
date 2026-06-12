@@ -441,8 +441,8 @@ func (m *ScanModel) scanTopBar() string {
 	if strings.TrimSpace(m.project.TargetRef) != "" {
 		targetParts = append(targetParts, render.Style("ref: "+m.project.TargetRef, render.Cyan, render.Bold))
 	}
-	return render.Style(" bomly ", render.BgCyan, render.Blue, render.Bold) + " " +
-		render.Style(m.commandLabel(), render.BgBlue, render.White, render.Bold) + " " +
+	return render.Style(" Bomly ", render.BgBrand, render.White, render.Bold) + " " +
+		render.Style(m.commandLabel(), render.BgNeutral, render.White, render.Bold) + " " +
 		strings.Join(targetParts, render.Style(" | ", render.Dim))
 }
 

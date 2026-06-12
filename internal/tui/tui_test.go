@@ -1222,6 +1222,23 @@ func TestScanInteractiveModel_ExplainTopBarUsesQuery(t *testing.T) {
 	}
 }
 
+func TestScanInteractiveModel_TopBarUsesBrandBadge(t *testing.T) {
+	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, sdk.ConsolidatedGraph{}, sdk.New(), nil)
+	view := model.View(100, 20)
+	if !strings.Contains(view, render.Style(" Bomly ", render.BgBrand, render.White, render.Bold)) {
+		t.Fatalf("expected top bar to render Bomly with brand background and white text, got:\n%s", view)
+	}
+	if !strings.Contains(view, render.Style("SCAN", render.BgNeutral, render.White, render.Bold)) {
+		t.Fatalf("expected command label to use neutral badge, got:\n%s", view)
+	}
+}
+
+func TestFindingRule_ClassifiesCompactUnknownLicenseID(t *testing.T) {
+	if got := findingRule(output.AuditFinding{ID: "UNKNOWN-as12-1235-fqwe"}, "fallback"); got != "unknown" {
+		t.Fatalf("findingRule() = %q, want unknown", got)
+	}
+}
+
 func TestTopDependedOnComponentStats_UsesTransitiveDependents(t *testing.T) {
 	g := sdk.New()
 	root := sdk.NewDependencyRef("root", "1.0.0")
@@ -1455,8 +1472,8 @@ func TestInteractiveStatusBadge_UsesDistinctReadableColors(t *testing.T) {
 	if direct == runtime {
 		t.Fatal("expected direct relationship badge to differ from runtime scope badge")
 	}
-	if !strings.Contains(direct, render.BgBlue) || !strings.Contains(direct, render.White) {
-		t.Fatalf("expected direct badge to use the interactive relationship palette, got %q", direct)
+	if !strings.Contains(direct, render.BgBrand) || !strings.Contains(direct, render.White) {
+		t.Fatalf("expected direct badge to use the interactive brand palette, got %q", direct)
 	}
 
 	manifest := statusBadge("manifest")

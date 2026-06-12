@@ -2,6 +2,8 @@ package license
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/base32"
 	"fmt"
 	"strings"
 
@@ -11,7 +13,7 @@ import (
 
 const (
 	auditorName             = "license"
-	unknownLicenseFindingID = "BOMLY-LIC-UNKNOWN"
+	unknownLicenseFindingID = "UNKNOWN"
 )
 
 // Auditor evaluates package licenses against allow/deny SPDX policy.
@@ -136,7 +138,7 @@ func registryLicenseValues(registry *sdk.PackageRegistry, purl string) []string 
 func finding(purl, depID, id, title string, disposition sdk.FindingDisposition) sdk.Finding {
 	findingID := fmt.Sprintf("%s:%s:%s", auditorName, id, purl)
 	if id == "unknown-license" {
-		findingID = unknownLicenseFindingID
+		findingID = unknownLicenseID(purl)
 	}
 	f := sdk.Finding{
 		ID:          findingID,
@@ -152,6 +154,18 @@ func finding(purl, depID, id, title string, disposition sdk.FindingDisposition) 
 		f.DependencyRefs = []string{depID}
 	}
 	return f
+}
+
+func unknownLicenseID(purl string) string {
+	sum := sha256.Sum256([]byte(strings.TrimSpace(purl)))
+	encoded := strings.ToLower(base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(sum[:]))
+	if len(encoded) > 12 {
+		encoded = encoded[:12]
+	}
+	if len(encoded) < 12 {
+		return unknownLicenseFindingID + "-" + encoded
+	}
+	return fmt.Sprintf("%s-%s-%s-%s", unknownLicenseFindingID, encoded[:4], encoded[4:8], encoded[8:12])
 }
 
 func packageExempt(dep *sdk.Dependency, exemptions []string) bool {

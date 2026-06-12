@@ -437,6 +437,7 @@ func TestFindingRule_StripsAuditorPrefixAndSuffix(t *testing.T) {
 	cases := []struct {
 		id, fallback, want string
 	}{
+		{"BOMLY-LIC-UNKNOWN", "fb", "unknown"},
 		{"license:unknown-license:pkg@1", "fb", "unknown"},
 		{"license:invalid-license:pkg@1", "fb", "invalid"},
 		{"license:denied-license:pkg@1", "fb", "denied"},

@@ -2,6 +2,7 @@ package license
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
@@ -57,5 +58,42 @@ func TestLicenseAuditorAllowDeny(t *testing.T) {
 				t.Errorf("want finding=%v got=%v", tt.wantFinding, hasFinding)
 			}
 		})
+	}
+}
+
+func TestLicenseAuditorUnknownLicenseUsesCompactFindingID(t *testing.T) {
+	g := sdk.New()
+	root := sdk.NewDependencyRefWithID("app@1.0.0", "app", "1.0.0")
+	_ = g.AddNode(root)
+	dep := sdk.NewDependency(sdk.Dependency{
+		Name:        "very-long-package-name-with-output-hostile-length",
+		Version:     "1.2.3",
+		Ecosystem:   "npm",
+		BuildSystem: "npm",
+	})
+	purl := sdk.CanonicalPackageURLFromDependency(dep)
+	dep.PackageRef = purl
+	_ = g.AddNode(dep)
+	_ = g.AddEdge(root.ID, dep.ID)
+
+	result, err := Auditor{}.Audit(context.Background(), sdk.AuditRequest{
+		Graph:    g,
+		Registry: sdk.NewPackageRegistry(),
+	})
+	if err != nil {
+		t.Fatalf("Audit() error = %v", err)
+	}
+	if len(result.Findings) != 1 {
+		t.Fatalf("expected 1 finding, got %#v", result.Findings)
+	}
+	finding := result.Findings[0]
+	if finding.ID != unknownLicenseFindingID {
+		t.Fatalf("finding ID = %q, want %q", finding.ID, unknownLicenseFindingID)
+	}
+	if strings.Contains(finding.ID, dep.Name) || strings.Contains(finding.ID, purl) {
+		t.Fatalf("finding ID should not include package identity: %q", finding.ID)
+	}
+	if finding.PackageRef != purl {
+		t.Fatalf("finding package ref = %q, want %q", finding.PackageRef, purl)
 	}
 }

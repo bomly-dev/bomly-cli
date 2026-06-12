@@ -9,7 +9,10 @@ import (
 	"github.com/github/go-spdx/v2/spdxexp"
 )
 
-const auditorName = "license"
+const (
+	auditorName             = "license"
+	unknownLicenseFindingID = "BOMLY-LIC-UNKNOWN"
+)
 
 // Auditor evaluates package licenses against allow/deny SPDX policy.
 type Auditor struct {
@@ -131,8 +134,12 @@ func registryLicenseValues(registry *sdk.PackageRegistry, purl string) []string 
 }
 
 func finding(purl, depID, id, title string, disposition sdk.FindingDisposition) sdk.Finding {
+	findingID := fmt.Sprintf("%s:%s:%s", auditorName, id, purl)
+	if id == "unknown-license" {
+		findingID = unknownLicenseFindingID
+	}
 	f := sdk.Finding{
-		ID:          fmt.Sprintf("%s:%s:%s", auditorName, id, purl),
+		ID:          findingID,
 		Kind:        sdk.FindingKindLicense,
 		Title:       title,
 		Severity:    "unknown",

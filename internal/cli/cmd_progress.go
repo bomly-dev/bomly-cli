@@ -380,6 +380,13 @@ func humanizeAnalyzerSource(name string) string {
 
 // humanizeAuditorSource converts an auditor source name to a display name.
 func humanizeAuditorSource(source string) string {
+	source = strings.TrimSpace(source)
+	if source == "" {
+		return "Auditor"
+	}
+	if strings.Contains(strings.ToLower(source), "auditor") {
+		return source
+	}
 	switch strings.ToLower(source) {
 	case "vulnerability":
 		return "Vulnerability Auditor"
@@ -395,8 +402,9 @@ func humanizeAuditorSource(source string) string {
 		if isAcronym(source) {
 			return strings.ToUpper(source) + " Auditor"
 		}
-		if len(source) > 0 {
-			return strings.ToUpper(source[:1]) + source[1:] + " Auditor"
+		label := titleWords(strings.ReplaceAll(source, "-", " "))
+		if label != "" {
+			return label + " Auditor"
 		}
 		return "Auditor"
 	}

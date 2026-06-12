@@ -158,6 +158,30 @@ func TestStepCompletionPromotion(t *testing.T) {
 	}
 }
 
+func TestFrozenBlockKeepsLongChildLabelsOnOneLine(t *testing.T) {
+	block := renderFrozenBlock(&Step{
+		done:  "Enriched packages",
+		state: stepSucceeded,
+		children: []Child{
+			{Icon: CheckMark, Label: "ClearlyDefined License Matcher", Detail: "[43 unmatched packages]"},
+			{Icon: CheckMark, Label: "endoflife.date Lifecycle Matcher", Detail: "[7 matched packages, 323 unmatched packages]"},
+		},
+	})
+
+	if strings.Contains(block, "\n      Matcher") {
+		t.Fatalf("expected long matcher labels to stay on one tree row, got:\n%s", block)
+	}
+	if !strings.Contains(block, "ClearlyDefined License Matcher") {
+		t.Fatalf("expected ClearlyDefined label, got:\n%s", block)
+	}
+	if !strings.Contains(block, "endoflife.date Lifecycle Matcher") {
+		t.Fatalf("expected endoflife label, got:\n%s", block)
+	}
+	if !strings.Contains(block, "ClearlyDefined License Matcher  ") || !strings.Contains(block, "[43 unmatched packages]") {
+		t.Fatalf("expected label column and detail to render together, got:\n%s", block)
+	}
+}
+
 func TestConcurrentSteps_NoRace(t *testing.T) {
 	var buf safeBuffer
 	p := New(&buf, true, "")

@@ -309,6 +309,5 @@ If you're reading code or tests that still reference the old shape, here is the 
 | `sdk.PackageIsDiffable`                       | `sdk.NodeIsDiffable`                                          |
 | `sdk.NormalizePackageIdentity`                | `sdk.NormalizeDependencyIdentity`                             |
 | `Finding{Package: pkg, ...vuln fields...}`    | `Finding{PackageRef: pkg.PURL, VulnerabilityID: vuln.ID, ...}` |
-| `GraphHasVulnerabilityData(g)`                | `RegistryHasVulnerabilityData(reg)`                           |
 | Single `Scope` string                         | `Scopes []Scope` via `sdk.ScopesOf(scope)`                    |
 | Detection-time licenses on `Dependency.Licenses` | `sdk.SetDetectionLicenses(dep, licenses)` / `sdk.DetectionLicenses(dep)` |

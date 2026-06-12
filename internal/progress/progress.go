@@ -696,7 +696,7 @@ func (p *Progress) CompleteStage(label string, total int) {
 	} else if s.done == "" {
 		s.done = label
 	}
-	s.state = stepSucceeded
+	s.state = stepFinishing
 	s.doneAt = time.Now()
 	doneAt := s.doneAt
 	p.mu.Unlock()

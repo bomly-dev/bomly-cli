@@ -97,12 +97,6 @@ func (p *Pipeline) RunExplain(ctx context.Context, req ExplainRequest) (ExplainR
 		return result, fmt.Errorf("%w: %s", explain.ErrDependencyNotFound, req.Query)
 	}
 
-	if auditEnabled && !RegistryHasVulnerabilityData(base.Registry) {
-		result.AuditWarnings = append(result.AuditWarnings, PipelineWarning{
-			Source:  "vulnerability",
-			Message: "no vulnerability enrichment input was available; policy evaluation may produce no findings",
-		})
-	}
 	result.Findings = DeduplicateFindings(allFindings)
 	result.AuditorFindings = auditorFindings
 

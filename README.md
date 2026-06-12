@@ -296,7 +296,7 @@ Bomly uses GitHub Actions for:
 
 See [docs/development/CI.md](docs/development/CI.md) for workflow triggers, required checks, release packaging, checksum handling, and the planned future attestation step.
 
-To gate your **own** repository's pull requests, drop in the [Bomly review action](https://github.com/bomly-dev/bomly-review-action) — it diffs and audits dependency changes on each PR and posts a summary comment. See [docs/CI_INTEGRATION.md](docs/CI_INTEGRATION.md) for that and direct-CLI recipes across GitHub Actions, GitLab, Jenkins, Azure, and CircleCI.
+To gate your **own** repository's pull requests, drop in the [Bomly Guard action](https://github.com/bomly-dev/bomly-guard) — it diffs and audits dependency changes on each PR and posts a summary comment. See [docs/CI_INTEGRATION.md](docs/CI_INTEGRATION.md) for that and direct-CLI recipes across GitHub Actions, GitLab, Jenkins, Azure, and CircleCI.
 
 Contributor guidance lives in [CONTRIBUTING.md](CONTRIBUTING.md).
 

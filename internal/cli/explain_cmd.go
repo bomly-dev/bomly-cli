@@ -95,6 +95,9 @@ func newExplainCmd() *cobra.Command {
 			if len(explainResult.MatcherStats) > 0 || len(explainResult.MatchWarnings) > 0 {
 				prog.CompleteStep("Enriched packages", matchProgressChildren(explainResult.MatcherStats, explainResult.MatchWarnings))
 			}
+			if context.ResolvedConfig.Analyze {
+				prog.CompleteStep("Analyzed reachability", analyzerProgressChildren(explainResult.AnalyzerRuns, explainResult.AnalyzerStats, explainResult.AnalyzeWarnings))
+			}
 
 			targets := make([]output.ExplainTargetResponse, 0, len(explainResult.Targets))
 			for _, target := range explainResult.Targets {

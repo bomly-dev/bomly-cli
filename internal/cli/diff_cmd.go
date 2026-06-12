@@ -153,6 +153,11 @@ func newDiffCmd() *cobra.Command {
 				warnings := append(append([]engine.PipelineWarning{}, diffResult.Base.MatchWarnings...), diffResult.Head.MatchWarnings...)
 				prog.CompleteStep("Enriched packages", matchProgressChildren(stats, warnings))
 			}
+			if current.Analyze {
+				runs, stats := combineAnalyzerProgress(diffResult.Base, diffResult.Head)
+				warnings := append(append([]engine.PipelineWarning{}, diffResult.Base.AnalyzeWarnings...), diffResult.Head.AnalyzeWarnings...)
+				prog.CompleteStep("Analyzed reachability", analyzerProgressChildren(runs, stats, warnings))
+			}
 
 			auditPayload := diffAuditOutput(diffResult.Audit, diffResult.Base.Registry, diffResult.Head.Registry)
 			if current.Audit {
@@ -258,6 +263,23 @@ func combineAuditProgress(results ...engine.PipelineResult) ([]string, map[strin
 		}
 	}
 	return runs, counts
+}
+
+func combineAnalyzerProgress(results ...engine.PipelineResult) ([]string, map[string]sdk.ReachabilityStats) {
+	var runs []string
+	statsByName := make(map[string]sdk.ReachabilityStats)
+	for _, result := range results {
+		runs = uniqueStrings(runs, result.AnalyzerRuns)
+		for name, stats := range result.AnalyzerStats {
+			existing := statsByName[name]
+			existing.Reachable += stats.Reachable
+			existing.Unreachable += stats.Unreachable
+			existing.Unknown += stats.Unknown
+			existing.NotApplicable += stats.NotApplicable
+			statsByName[name] = existing
+		}
+	}
+	return runs, statsByName
 }
 
 func combineMatcherStats(groups ...[]sdk.MatcherStats) []sdk.MatcherStats {

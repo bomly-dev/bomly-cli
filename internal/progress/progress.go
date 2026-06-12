@@ -57,9 +57,9 @@ const (
 var spin = bspinner.MiniDot
 
 // stageDoneLabels maps an engine stage's active (present-progressive) label to
-// the past-tense label the CLI later supplies via CompleteStep. Populated
-// implicitly at Start time so that CompleteStep("Detected Dependencies", …)
-// finds the same step opened by StartStage("Detecting dependencies", …).
+// the past-tense label shown when the stage completes. Populated implicitly at
+// Start time so that CompleteStep("Detected Dependencies", …) finds the same
+// step opened by StartStage("Detecting dependencies", …) when it is still live.
 var stageDoneLabels = map[string]string{
 	"Detecting dependencies": "Detected Dependencies",
 	"Enriching packages":     "Enriched packages",
@@ -233,6 +233,7 @@ type Progress struct {
 	mu              sync.Mutex
 	active          []*Step
 	pastToID        map[string]string
+	promoted        map[string]struct{}
 	frame           int
 	lastDrawnLines  int
 	cursorHidden    bool
@@ -287,6 +288,7 @@ func New(writer io.Writer, enabled bool, label string) *Progress {
 		writer:          writer,
 		enabled:         enabled,
 		pastToID:        make(map[string]string),
+		promoted:        make(map[string]struct{}),
 		minStepDuration: readMinStepDuration(),
 	}
 	if !p.enabled {
@@ -371,6 +373,7 @@ func (p *Progress) StartWithDoneLabel(id, activeLabel, doneLabel string) *Step {
 		startedAt: time.Now(),
 	}
 	p.active = append(p.active, s)
+	delete(p.promoted, id)
 	if activeLabel != "" {
 		p.pastToID[activeLabel] = id
 	}
@@ -405,6 +408,10 @@ func (p *Progress) CompleteStep(doneLabel string, children []Child) {
 		p.mu.Unlock()
 		return
 	}
+	if p.wasPromotedLocked(doneLabel) {
+		p.mu.Unlock()
+		return
+	}
 	s := p.findStepLocked(doneLabel)
 	now := time.Now()
 	if s == nil {
@@ -432,6 +439,20 @@ func (p *Progress) CompleteStep(doneLabel string, children []Child) {
 	doneAt := s.doneAt
 	p.mu.Unlock()
 	p.holdAfterDone(doneAt)
+}
+
+func (p *Progress) wasPromotedLocked(label string) bool {
+	if label == "" {
+		return false
+	}
+	if _, ok := p.promoted[label]; ok {
+		return true
+	}
+	if id, ok := p.pastToID[label]; ok {
+		_, ok = p.promoted[id]
+		return ok
+	}
+	return false
 }
 
 // Advance flushes any prior implicit/in-flight steps and starts a new
@@ -659,22 +680,27 @@ func (p *Progress) CompleteStage(label string, total int) {
 		total = 0
 	}
 	p.mu.Lock()
-	defer p.mu.Unlock()
 	if p.finished {
+		p.mu.Unlock()
 		return
 	}
 	s := p.findStepByActiveLabelLocked(label)
 	if s == nil {
+		p.mu.Unlock()
 		return
 	}
 	s.total = total
 	s.completed = total
-	// Engine signaled completion but the CLI still needs to supply the
-	// past-tense label + children. Hold the step in the region with a ✔
-	// icon and a full bar until CompleteStep arrives.
-	if s.state == stepActive {
-		s.state = stepFinishing
+	if done, ok := stageDoneLabels[label]; ok {
+		s.done = done
+	} else if s.done == "" {
+		s.done = label
 	}
+	s.state = stepSucceeded
+	s.doneAt = time.Now()
+	doneAt := s.doneAt
+	p.mu.Unlock()
+	p.holdAfterDone(doneAt)
 }
 
 // Success promotes the most-recent active step (or the step matching label
@@ -898,6 +924,10 @@ func (p *Progress) collectPromotionsLocked() []*Step {
 				continue
 			}
 			promos = append(promos, s)
+			if p.promoted == nil {
+				p.promoted = make(map[string]struct{})
+			}
+			p.promoted[s.id] = struct{}{}
 			continue
 		}
 		kept = append(kept, s)

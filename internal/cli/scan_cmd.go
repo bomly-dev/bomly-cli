@@ -90,6 +90,9 @@ func newScanCmd() *cobra.Command {
 			if len(pipeResult.MatcherStats) > 0 || len(pipeResult.MatchWarnings) > 0 {
 				prog.CompleteStep("Enriched packages", matchProgressChildren(pipeResult.MatcherStats, pipeResult.MatchWarnings))
 			}
+			if commandCtx.ResolvedConfig.Analyze {
+				prog.CompleteStep("Analyzed reachability", analyzerProgressChildren(pipeResult.AnalyzerRuns, pipeResult.AnalyzerStats, pipeResult.AnalyzeWarnings))
+			}
 
 			consolidated := pipeResult.Consolidated
 			selectedGraph := pipeResult.Graph

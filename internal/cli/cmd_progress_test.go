@@ -45,6 +45,21 @@ func TestAuditProgressChildren_UsesAuditorRunsNotFindingSources(t *testing.T) {
 	}
 }
 
+func TestAuditProgressChildren_DoesNotRepeatAuditorSuffix(t *testing.T) {
+	children := auditProgressChildren(
+		[]string{"Meme Dependency Auditor"},
+		map[string]int{"Meme Dependency Auditor": 0},
+		nil,
+	)
+
+	if len(children) != 1 {
+		t.Fatalf("expected 1 child, got %#v", children)
+	}
+	if children[0].Label != "Meme Dependency Auditor" {
+		t.Fatalf("unexpected auditor label: %#v", children[0])
+	}
+}
+
 func TestSubprojectProgressChildren_UsesGitIdentityWhenConcreteTargetIsFilesystem(t *testing.T) {
 	children := subprojectProgressChildren([]sdk.DetectionResult{{
 		SubprojectInfo: sdk.Subproject{

@@ -32,9 +32,10 @@ const (
 	CrossMark   = "✘"
 	WarningMark = "⚠"
 
-	titleWidth      = 35
-	childLabelWidth = 25
-	barWidth        = 20
+	titleWidth         = 35
+	childLabelWidth    = 25
+	maxChildLabelWidth = 38
+	barWidth           = 20
 
 	hideCursorSeq = "\x1b[?25l"
 	showCursorSeq = "\x1b[?25h"
@@ -1006,9 +1007,10 @@ func renderFrozenBlock(s *Step) string {
 	if len(s.children) == 0 {
 		return head
 	}
+	labelWidth := frozenChildLabelWidth(s.children)
 	t := tree.New().EnumeratorStyle(treeStyle)
 	for _, c := range s.children {
-		t = t.Child(renderChildNode(c))
+		t = t.Child(renderChildNode(c, labelWidth))
 	}
 	body := strings.TrimRight(t.String(), "\n")
 
@@ -1022,7 +1024,20 @@ func renderFrozenBlock(s *Step) string {
 	return buf.String()
 }
 
-func renderChildNode(c Child) string {
+func frozenChildLabelWidth(children []Child) int {
+	width := childLabelWidth
+	for _, child := range children {
+		if childWidth := lipgloss.Width(child.Label); childWidth > width {
+			width = childWidth
+		}
+	}
+	if width > maxChildLabelWidth {
+		return maxChildLabelWidth
+	}
+	return width
+}
+
+func renderChildNode(c Child, labelWidth int) string {
 	var icon string
 	if c.Icon != "" {
 		switch c.Icon {
@@ -1036,11 +1051,43 @@ func renderChildNode(c Child) string {
 			icon = c.Icon + " "
 		}
 	}
-	label := lipgloss.NewStyle().Width(childLabelWidth).Render(c.Label)
+	label := padRightVisible(truncateVisible(c.Label, labelWidth), labelWidth)
 	if c.Detail != "" {
 		return icon + label + " " + detailStyle.Render(c.Detail)
 	}
 	return icon + label
+}
+
+func truncateVisible(value string, width int) string {
+	if width <= 0 {
+		return ""
+	}
+	if lipgloss.Width(value) <= width {
+		return value
+	}
+	if width <= 3 {
+		return takeRunes(value, width)
+	}
+	return takeRunes(value, width-3) + "..."
+}
+
+func takeRunes(value string, count int) string {
+	if count <= 0 {
+		return ""
+	}
+	runes := []rune(value)
+	if len(runes) <= count {
+		return value
+	}
+	return string(runes[:count])
+}
+
+func padRightVisible(value string, width int) string {
+	padding := width - lipgloss.Width(value)
+	if padding <= 0 {
+		return value
+	}
+	return value + strings.Repeat(" ", padding)
 }
 
 // completedTask is preserved for source-level compatibility with prior tests

@@ -232,6 +232,7 @@ type Progress struct {
 
 	mu              sync.Mutex
 	active          []*Step
+	completed       []*Step
 	pastToID        map[string]string
 	promoted        map[string]struct{}
 	frame           int
@@ -408,8 +409,9 @@ func (p *Progress) CompleteStep(doneLabel string, children []Child) {
 		p.mu.Unlock()
 		return
 	}
-	if p.wasPromotedLocked(doneLabel) {
+	if p.updatePromotedLocked(doneLabel, children) {
 		p.mu.Unlock()
+		p.draw()
 		return
 	}
 	s := p.findStepLocked(doneLabel)
@@ -441,16 +443,25 @@ func (p *Progress) CompleteStep(doneLabel string, children []Child) {
 	p.holdAfterDone(doneAt)
 }
 
-func (p *Progress) wasPromotedLocked(label string) bool {
-	if label == "" {
+func (p *Progress) updatePromotedLocked(doneLabel string, children []Child) bool {
+	if doneLabel == "" {
 		return false
 	}
-	if _, ok := p.promoted[label]; ok {
-		return true
+	id := doneLabel
+	if mapped, ok := p.pastToID[doneLabel]; ok {
+		id = mapped
 	}
-	if id, ok := p.pastToID[label]; ok {
-		_, ok = p.promoted[id]
-		return ok
+	for _, s := range p.completed {
+		if s.id != id && s.done != doneLabel {
+			continue
+		}
+		if doneLabel != "" {
+			s.done = doneLabel
+		}
+		if len(s.children) == 0 && len(children) > 0 {
+			s.children = children
+		}
+		return true
 	}
 	return false
 }
@@ -696,7 +707,7 @@ func (p *Progress) CompleteStage(label string, total int) {
 	} else if s.done == "" {
 		s.done = label
 	}
-	s.state = stepFinishing
+	s.state = stepSucceeded
 	s.doneAt = time.Now()
 	doneAt := s.doneAt
 	p.mu.Unlock()
@@ -856,6 +867,7 @@ func (p *Progress) draw() {
 // remaining live region. Must be called with p.mu held.
 func (p *Progress) drawLocked() {
 	promotions := p.collectPromotionsLocked()
+	p.completed = append(p.completed, promotions...)
 	frame := spin.Frames[p.frame]
 	prev := p.lastDrawnLines
 
@@ -883,13 +895,16 @@ func (p *Progress) drawLocked() {
 		buf.WriteString("\r")
 	}
 
-	// Write promoted (now permanent) blocks above the new live region.
-	for _, promo := range promotions {
-		buf.WriteString(renderFrozenBlock(promo))
+	// Write completed blocks above the live region. They stay in the render
+	// model so command code can attach children after engine stages finish.
+	newLines := 0
+	for _, completed := range p.completed {
+		block := renderFrozenBlock(completed)
+		buf.WriteString(block)
+		newLines += strings.Count(block, "\n")
 	}
 
 	// Write the new live region.
-	newLines := 0
 	for _, s := range p.active {
 		buf.WriteString(renderActiveLine(s, frame))
 		buf.WriteString("\n")

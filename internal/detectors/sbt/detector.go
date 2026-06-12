@@ -155,25 +155,25 @@ func readOptional(path string) ([]byte, error) {
 
 func rootNode() *sdk.Dependency {
 	return sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   string(sdk.EcosystemScala),
-		Name:        "root",
-		BuildSystem: sdk.PackageManagerSBT.Name(),
-		Type:        "application",
-		Language:    "scala",
+		Ecosystem:      sdk.EcosystemScala,
+		Name:           "root",
+		PackageManager: sdk.PackageManagerSBT,
+		Type:           sdk.PackageTypeApplication,
+		Language:       "scala",
 	})
 
 }
 
 func packageNode(pkg sbtPackage) *sdk.Dependency {
 	node := sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   string(sdk.EcosystemScala),
-		Org:         strings.TrimSpace(pkg.Org),
-		Name:        strings.TrimSpace(pkg.Name),
-		Version:     strings.TrimSpace(pkg.Version),
-		BuildSystem: sdk.PackageManagerSBT.Name(),
-		Type:        "package",
-		Language:    "scala",
-		PURL:        sdk.BuildPackageURL("maven", pkg.Org, pkg.Name, pkg.Version),
+		Ecosystem:      sdk.EcosystemScala,
+		Org:            strings.TrimSpace(pkg.Org),
+		Name:           strings.TrimSpace(pkg.Name),
+		Version:        strings.TrimSpace(pkg.Version),
+		PackageManager: sdk.PackageManagerSBT,
+		Type:           sdk.PackageTypePackage,
+		Language:       "scala",
+		PURL:           sdk.BuildPackageURL("maven", pkg.Org, pkg.Name, pkg.Version),
 	})
 
 	if pkg.Scope != "" {

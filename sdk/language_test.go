@@ -63,17 +63,17 @@ func TestLanguageFromPackage(t *testing.T) {
 	}{
 		{
 			name: "explicit Language wins",
-			pkg:  Package{Language: "kotlin", BuildSystem: "maven"},
+			pkg:  Package{Language: LanguageKotlin, PackageManager: PackageManagerMaven},
 			want: LanguageKotlin,
 		},
 		{
-			name: "fallback to BuildSystem primary",
-			pkg:  Package{BuildSystem: "maven"},
+			name: "fallback to PackageManager primary",
+			pkg:  Package{PackageManager: PackageManagerMaven},
 			want: LanguageJava,
 		},
 		{
 			name: "fallback for npm",
-			pkg:  Package{BuildSystem: "npm"},
+			pkg:  Package{PackageManager: PackageManagerNPM},
 			want: LanguageJavaScript,
 		},
 		{
@@ -83,7 +83,7 @@ func TestLanguageFromPackage(t *testing.T) {
 		},
 		{
 			name: "OS-level pm has no language",
-			pkg:  Package{BuildSystem: "apk"},
+			pkg:  Package{PackageManager: PackageManagerAPK},
 			want: LanguageUnknown,
 		},
 	}

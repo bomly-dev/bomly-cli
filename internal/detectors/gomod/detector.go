@@ -213,7 +213,7 @@ func depGraphFromGoListWithScope(raw []byte, rootModule string, directRequires [
 
 	depsGraph := sdk.New()
 	rootNode := sdk.NewDependency(sdk.Dependency{
-		Ecosystem: string(sdk.EcosystemGo),
+		Ecosystem: sdk.EcosystemGo,
 		Name:      rootModule,
 	})
 	if err := depsGraph.AddNode(rootNode); err != nil {
@@ -353,7 +353,7 @@ func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNod
 
 func packageFromModuleNode(node moduleNode, scope sdk.Scope, directLines map[string]int) *sdk.Dependency {
 	dep := sdk.Dependency{
-		Ecosystem: string(sdk.EcosystemGo),
+		Ecosystem: sdk.EcosystemGo,
 		Name:      node.Path,
 		Version:   node.Version,
 	}
@@ -374,7 +374,7 @@ func packageFromModuleNode(node moduleNode, scope sdk.Scope, directLines map[str
 
 func moduleNodeID(node moduleNode) string {
 	return sdk.NewDependency(sdk.Dependency{
-		Ecosystem: string(sdk.EcosystemGo),
+		Ecosystem: sdk.EcosystemGo,
 		Name:      node.Path,
 		Version:   node.Version,
 	}).ID

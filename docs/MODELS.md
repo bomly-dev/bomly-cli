@@ -24,7 +24,7 @@ findings (reference-style) ─(PackageRef + VulnerabilityID)─┘
 ```go
 type Dependency struct {
     // Identity
-    ID, Name, Version, PURL, Ecosystem, Type, Org, BuildSystem, Language string
+    ID, Name, Version, PURL, Ecosystem, Type, Org, PackageManager, Language string
 
     // Detection metadata
     Scopes      []Scope             // runtime / development / unknown; supports multiple

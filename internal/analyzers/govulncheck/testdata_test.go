@@ -25,7 +25,7 @@ func TestDiscoverModuleRootsFromTestdata(t *testing.T) {
 	g := model.New()
 	pkg := model.NewDependency(model.Dependency{
 		Name:      "example.com/lib",
-		Ecosystem: string(model.EcosystemGo),
+		Ecosystem: model.EcosystemGo,
 		Locations: []model.PackageLocation{{RealPath: filepath.Join(root, "nested", "file.go")}},
 	})
 	if err := g.AddNode(pkg); err != nil {
@@ -122,7 +122,7 @@ func TestGovulncheckAnalyzerMarksUnknownWithoutModuleRoot(t *testing.T) {
 	g := model.New()
 	pkg := model.NewDependency(model.Dependency{
 		Name:      "example.com/lib",
-		Ecosystem: string(model.EcosystemGo),
+		Ecosystem: model.EcosystemGo,
 		PURL:      purl,
 	})
 	if err := g.AddNode(pkg); err != nil {

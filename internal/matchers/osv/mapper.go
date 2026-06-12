@@ -45,7 +45,7 @@ func mapSeverities(severities []Severity) []sdk.Severity {
 	}
 	out := make([]sdk.Severity, 0, len(severities))
 	for _, s := range severities {
-		out = append(out, sdk.Severity{Type: s.Type, Score: s.Score})
+		out = append(out, sdk.Severity{Type: sdk.SeverityType(strings.TrimSpace(s.Type)), Score: s.Score})
 	}
 	return out
 }
@@ -101,7 +101,7 @@ func firstNonEmpty(a, b string) string {
 
 // extractSeverity derives a normalized severity band from OSV severity entries.
 // Prefers CVSS v4 > v3.1 > v3 > v2 > unknown.
-func extractSeverity(severities []Severity) string {
+func extractSeverity(severities []Severity) sdk.SeverityLevel {
 	scores := map[string]float64{}
 	for _, s := range severities {
 		if score := parseCVSSScore(s.Type, s.Score); score > 0 {
@@ -113,7 +113,7 @@ func extractSeverity(severities []Severity) string {
 			return cvssScoreToBand(score)
 		}
 	}
-	return "unknown"
+	return sdk.SeverityUnknown
 }
 
 func parseCVSSScore(kind, raw string) float64 {
@@ -190,16 +190,16 @@ func normalizeCVSSVector(kind, raw string) (string, string) {
 	}
 }
 
-func cvssScoreToBand(score float64) string {
+func cvssScoreToBand(score float64) sdk.SeverityLevel {
 	switch {
 	case score >= 9.0:
-		return "critical"
+		return sdk.SeverityCritical
 	case score >= 7.0:
-		return "high"
+		return sdk.SeverityHigh
 	case score >= 4.0:
-		return "medium"
+		return sdk.SeverityMedium
 	default:
-		return "low"
+		return sdk.SeverityLow
 	}
 }
 
@@ -230,7 +230,7 @@ func buildCVSS(severities []Severity) []sdk.CVSSScore {
 		scores = append(scores, sdk.CVSSScore{
 			Vector:  strings.TrimSpace(severity.Score),
 			Score:   score,
-			Version: strings.TrimSpace(severity.Type),
+			Version: sdk.SeverityType(strings.TrimSpace(severity.Type)),
 			Source:  "osv",
 		})
 	}

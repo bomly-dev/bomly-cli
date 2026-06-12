@@ -130,9 +130,9 @@ func diffVulnerabilityTable(title, status string, changes []output.DiffVulnerabi
 	for _, change := range sortVulnerabilityChanges(changes) {
 		vuln := change.Vulnerability
 		row := []string{
-			findingIcon(status, vuln.Severity, ""),
+			findingIcon(status, string(vuln.Severity), ""),
 			status,
-			strings.ToUpper(valueOrDash(vuln.Severity)),
+			strings.ToUpper(valueOrDash(string(vuln.Severity))),
 			vuln.ID,
 			DiffPackageDisplayName(change.Package),
 		}
@@ -235,11 +235,11 @@ func diffAuditFindingTable(title, status string, findings []output.AuditFinding,
 	rows := make([][]string, 0, len(findings))
 	for _, finding := range sortDiffAuditFindings(findings) {
 		row := []string{
-			findingIcon(status, finding.Severity, finding.Disposition),
+			findingIcon(status, string(finding.Severity), string(finding.Disposition)),
 			status,
 			valueOrDash(finding.Auditor),
-			strings.ToUpper(valueOrDash(finding.Severity)),
-			findingDisposition(finding.Disposition),
+			strings.ToUpper(valueOrDash(string(finding.Severity))),
+			findingDisposition(string(finding.Disposition)),
 			valueOrDash(finding.ID),
 			DiffPackageDisplayName(finding.Package),
 		}
@@ -312,8 +312,8 @@ func sortChangedPackages(changes []output.DiffChangedPackage) []output.DiffChang
 func sortVulnerabilityChanges(changes []output.DiffVulnerabilityChange) []output.DiffVulnerabilityChange {
 	sorted := append([]output.DiffVulnerabilityChange(nil), changes...)
 	sort.Slice(sorted, func(i, j int) bool {
-		if severityRankTable(sorted[i].Vulnerability.Severity) != severityRankTable(sorted[j].Vulnerability.Severity) {
-			return severityRankTable(sorted[i].Vulnerability.Severity) < severityRankTable(sorted[j].Vulnerability.Severity)
+		if severityRankTable(string(sorted[i].Vulnerability.Severity)) != severityRankTable(string(sorted[j].Vulnerability.Severity)) {
+			return severityRankTable(string(sorted[i].Vulnerability.Severity)) < severityRankTable(string(sorted[j].Vulnerability.Severity))
 		}
 		if sorted[i].Vulnerability.ID != sorted[j].Vulnerability.ID {
 			return sorted[i].Vulnerability.ID < sorted[j].Vulnerability.ID

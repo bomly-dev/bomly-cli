@@ -57,7 +57,7 @@ func (d *detector) Detect(ctx context.Context, req *sdk.DetectRequest) (*sdk.Det
 		return nil, err
 	}
 	pkg := sdk.NewDependency(sdk.Dependency{
-		Ecosystem: string(sdk.EcosystemGo),
+		Ecosystem: sdk.EcosystemGo,
 		Name:      moduleName,
 		Version:   "v0.0.0",
 		PURL:      "pkg:golang/" + moduleName + "@v0.0.0",

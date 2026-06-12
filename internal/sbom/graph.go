@@ -21,31 +21,32 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 			skipped[component.ID] = struct{}{}
 			continue
 		}
-		ecosystem := strings.TrimSpace(component.Ecosystem)
-		if ecosystem == "" {
+		ecosystem := sdk.Ecosystem(strings.TrimSpace(component.Ecosystem))
+		if ecosystem == sdk.EcosystemUnknown {
 			if purl := parsePURL(component.PURL); purl != nil {
-				ecosystem = string(ecosystemFromPURLType(purl.Type))
+				ecosystem = ecosystemFromPURLType(purl.Type)
 			}
 		}
-		buildSystem := strings.TrimSpace(component.PackageManager)
-		if buildSystem == "" {
-			if manager := packageManagerForPURL(component.PURL, ecosystem, component.PackageManager); manager != sdk.PackageManagerUnknown {
-				buildSystem = manager.Name()
-			}
+		packageManager := sdk.PackageManagerUnknown
+		if manager, err := sdk.ParsePackageManager(component.PackageManager); err == nil {
+			packageManager = manager
+		}
+		if packageManager == sdk.PackageManagerUnknown {
+			packageManager = packageManagerForPURL(component.PURL, string(ecosystem), component.PackageManager)
 		}
 		packageID := strings.TrimSpace(component.ID)
 		if purl := strings.TrimSpace(component.PURL); purl != "" {
 			packageID = purl
 		}
 		pkg := sdk.NewDependencyWithID(packageID, sdk.Dependency{
-			Name:        component.Name,
-			Version:     component.Version,
-			Scopes:      sdk.ScopesOf(sdk.Scope(component.Scope)),
-			Ecosystem:   ecosystem,
-			BuildSystem: buildSystem,
-			Type:        component.Type,
-			PURL:        strings.TrimSpace(component.PURL),
-			Copyright:   component.Copyright,
+			Name:           component.Name,
+			Version:        component.Version,
+			Scopes:         sdk.ScopesOf(sdk.Scope(component.Scope)),
+			Ecosystem:      ecosystem,
+			PackageManager: packageManager,
+			Type:           sdk.ParsePackageType(component.Type),
+			PURL:           strings.TrimSpace(component.PURL),
+			Copyright:      component.Copyright,
 		})
 		sdk.SetDetectionLicenses(pkg, graphLicenses(component.Licenses))
 
@@ -108,7 +109,7 @@ func graphLicenses(licenses []License) []sdk.PackageLicense {
 		out = append(out, sdk.PackageLicense{
 			Value:          license.Value,
 			SPDXExpression: license.SPDXExpression,
-			Type:           license.Type,
+			Type:           sdk.LicenseType(license.Type),
 		})
 	}
 	return out

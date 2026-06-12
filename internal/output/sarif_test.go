@@ -18,7 +18,7 @@ func TestWriteSARIF_ValidDocument(t *testing.T) {
 			Kind:       sdk.FindingKindVulnerability,
 			PackageRef: sarifTestPURL,
 			Title:      "Prototype pollution in lodash",
-			Severity:   "high",
+			Severity:   sdk.SeverityHigh,
 			Reasons:    []string{"Fix available: upgrade to 4.17.21"},
 			Source:     "osv",
 		},
@@ -27,7 +27,7 @@ func TestWriteSARIF_ValidDocument(t *testing.T) {
 			Kind:       sdk.FindingKindVulnerability,
 			PackageRef: sarifTestPURL,
 			Title:      "Prototype pollution",
-			Severity:   "critical",
+			Severity:   sdk.SeverityCritical,
 			Source:     "osv",
 		},
 	}
@@ -75,8 +75,8 @@ func TestWriteSARIF_ValidDocument(t *testing.T) {
 
 func TestWriteSARIF_RuleDeduplication(t *testing.T) {
 	findings := []sdk.Finding{
-		{ID: "CVE-2021-23337", PackageRef: sarifTestPURL, Title: "Pollution", Severity: "high", Source: "osv"},
-		{ID: "CVE-2021-23337", PackageRef: sarifTestPURL, Title: "Pollution", Severity: "high", Source: "osv"},
+		{ID: "CVE-2021-23337", PackageRef: sarifTestPURL, Title: "Pollution", Severity: sdk.SeverityHigh, Source: "osv"},
+		{ID: "CVE-2021-23337", PackageRef: sarifTestPURL, Title: "Pollution", Severity: sdk.SeverityHigh, Source: "osv"},
 	}
 
 	var buf bytes.Buffer
@@ -155,7 +155,7 @@ func TestSeverityToSARIFLevel(t *testing.T) {
 
 func TestWriteSARIF_OSVHelpURI(t *testing.T) {
 	findings := []sdk.Finding{
-		{ID: "CVE-2021-23337", PackageRef: sarifTestPURL, Title: "Vuln", Severity: "high", Source: "osv"},
+		{ID: "CVE-2021-23337", PackageRef: sarifTestPURL, Title: "Vuln", Severity: sdk.SeverityHigh, Source: "osv"},
 	}
 	var buf bytes.Buffer
 	if err := WriteSARIF(&buf, findings, nil, "bomly", "0.1.0"); err != nil {
@@ -171,7 +171,7 @@ func TestWriteSARIF_OSVHelpURI(t *testing.T) {
 // available. Package identity stays in the SARIF properties bag.
 func TestWriteSARIF_LocationsFallBackToRepoFile(t *testing.T) {
 	findings := []sdk.Finding{
-		{ID: "CVE-2021-23337", Kind: sdk.FindingKindVulnerability, PackageRef: sarifTestPURL, Title: "Vuln", Severity: "high"},
+		{ID: "CVE-2021-23337", Kind: sdk.FindingKindVulnerability, PackageRef: sarifTestPURL, Title: "Vuln", Severity: sdk.SeverityHigh},
 	}
 	var buf bytes.Buffer
 	if err := WriteSARIF(&buf, findings, nil, "bomly", "0.1.0"); err != nil {
@@ -224,7 +224,7 @@ func TestWriteSARIF_UsesDependencyLocationsFromGraph(t *testing.T) {
 			PackageRef:     sarifTestPURL,
 			DependencyRefs: []string{dep.ID},
 			Title:          "Vuln",
-			Severity:       "high",
+			Severity:       sdk.SeverityHigh,
 		},
 	}
 
@@ -266,7 +266,7 @@ func TestWriteSARIF_RewritesNonFileLocationSchemes(t *testing.T) {
 			PackageRef:     "actions:checkout@v5",
 			DependencyRefs: []string{dep.ID},
 			Title:          "Denied action",
-			Severity:       "high",
+			Severity:       sdk.SeverityHigh,
 		},
 	}
 

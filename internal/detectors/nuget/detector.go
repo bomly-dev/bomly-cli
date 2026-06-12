@@ -485,24 +485,24 @@ func firstNonEmpty(values ...string) string {
 
 func rootNode() *sdk.Dependency {
 	return sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   string(sdk.EcosystemDotNet),
-		Name:        "root",
-		BuildSystem: sdk.PackageManagerNuGet.Name(),
-		Type:        "application",
-		Language:    "dotnet",
+		Ecosystem:      sdk.EcosystemDotNet,
+		Name:           "root",
+		PackageManager: sdk.PackageManagerNuGet,
+		Type:           sdk.PackageTypeApplication,
+		Language:       "dotnet",
 	})
 
 }
 
 func packageNode(name, version string, pkg lockPackage) *sdk.Dependency {
 	node := sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   string(sdk.EcosystemDotNet),
-		Name:        name,
-		Version:     version,
-		BuildSystem: sdk.PackageManagerNuGet.Name(),
-		Type:        "package",
-		Language:    "dotnet",
-		PURL:        sdk.BuildPackageURL("nuget", "", name, version),
+		Ecosystem:      sdk.EcosystemDotNet,
+		Name:           name,
+		Version:        version,
+		PackageManager: sdk.PackageManagerNuGet,
+		Type:           sdk.PackageTypePackage,
+		Language:       "dotnet",
+		PURL:           sdk.BuildPackageURL("nuget", "", name, version),
 	})
 
 	if pkg.ContentHash != "" {

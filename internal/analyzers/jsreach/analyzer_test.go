@@ -49,12 +49,12 @@ func newNPMProjectDir(t *testing.T) string {
 func addNPMDep(t *testing.T, g *model.Graph, reg *model.PackageRegistry, projectDir, org, name, version string, vulns ...model.Vulnerability) *model.Dependency {
 	t.Helper()
 	dep := model.NewDependency(model.Dependency{
-		Name:        name,
-		Org:         org,
-		Version:     version,
-		Ecosystem:   "npm",
-		BuildSystem: "npm",
-		Locations:   []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}},
+		Name:           name,
+		Org:            org,
+		Version:        version,
+		Ecosystem:      "npm",
+		PackageManager: "npm",
+		Locations:      []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}},
 	})
 	purl := model.CanonicalPackageURLFromDependency(dep)
 	dep.PackageRef = purl

@@ -8,7 +8,7 @@ import (
 
 func TestBuildPackageRegistry_DeduplicatesByPURLAndLinksDependencies(t *testing.T) {
 	g := sdk.New()
-	app := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "app", Version: "1.0.0", Type: "application"})
+	app := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication})
 	libA := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "lib", Version: "1.2.3"})
 	for _, node := range []*sdk.Dependency{app, libA} {
 		if err := g.AddNode(node); err != nil {

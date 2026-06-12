@@ -30,7 +30,7 @@ func TestBuildScanResponseIncludesAuditData(t *testing.T) {
 	findings := []sdk.Finding{{
 		ID:         "OSV-1",
 		Kind:       sdk.FindingKindVulnerability,
-		Severity:   "high",
+		Severity:   sdk.SeverityHigh,
 		PackageRef: "pkg:npm/react@18.2.0",
 		Title:      "Prototype pollution",
 		Source:     "osv",
@@ -144,7 +144,7 @@ func TestBuildScanResponseDeduplicatesManifestAndPrefersNative(t *testing.T) {
 	if err := syftGraph.AddNode(sdk.NewDependencyWithID("123", sdk.Dependency{
 		Name:      "demo-app",
 		Version:   "1.0.0",
-		Ecosystem: "npm",
+		Ecosystem: sdk.EcosystemNPM,
 		PURL:      "pkg:npm/demo-app@1.0.0",
 	})); err != nil {
 		t.Fatalf("add syft package: %v", err)
@@ -211,7 +211,7 @@ func TestBuildScanResponseDeduplicatesSameManifestWhenMetadataDiffers(t *testing
 	if err := syftGraph.AddNode(sdk.NewDependencyWithID("123", sdk.Dependency{
 		Name:      "demo-app",
 		Version:   "1.0.0",
-		Ecosystem: "npm",
+		Ecosystem: sdk.EcosystemNPM,
 		PURL:      "pkg:npm/demo-app@1.0.0",
 	})); err != nil {
 		t.Fatalf("add syft package: %v", err)
@@ -305,7 +305,7 @@ func TestBuildExplainResponseGatesReachability(t *testing.T) {
 		}}}},
 		Findings: []output.AuditFinding{{
 			ID:           "OSV-REACH",
-			Kind:         "vulnerability",
+			Kind:         sdk.FindingKindVulnerability,
 			Package:      output.PackageRef{Name: "react"},
 			Reachability: &sdk.Reachability{Status: sdk.ReachabilityReachable, Tier: sdk.TierPackage},
 		}},
@@ -378,12 +378,12 @@ func TestBuildDiffResponseAggregatesManifestChanges(t *testing.T) {
 func TestBuildDiffResponseEnrichesPackageDeltasFromRegistries(t *testing.T) {
 	baseGraph := sdk.New()
 	headGraph := sdk.New()
-	baseApp := sdk.NewDependencyWithID("pkg:npm/app@1.0.0", sdk.Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "app", Version: "1.0.0", PURL: "pkg:npm/app@1.0.0"})
-	baseLodash := sdk.NewDependencyWithID("pkg:npm/lodash@4.17.14", sdk.Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "lodash", Version: "4.17.14", PURL: "pkg:npm/lodash@4.17.14"})
-	baseRemoved := sdk.NewDependencyWithID("pkg:npm/removed@1.0.0", sdk.Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "removed", Version: "1.0.0", PURL: "pkg:npm/removed@1.0.0"})
-	headApp := sdk.NewDependencyWithID("pkg:npm/app@1.0.0", sdk.Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "app", Version: "1.0.0", PURL: "pkg:npm/app@1.0.0"})
-	headLodash := sdk.NewDependencyWithID("pkg:npm/lodash@4.17.15", sdk.Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "lodash", Version: "4.17.15", PURL: "pkg:npm/lodash@4.17.15"})
-	headAdded := sdk.NewDependencyWithID("pkg:npm/added@1.0.0", sdk.Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "added", Version: "1.0.0", PURL: "pkg:npm/added@1.0.0"})
+	baseApp := sdk.NewDependencyWithID("pkg:npm/app@1.0.0", sdk.Dependency{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "app", Version: "1.0.0", PURL: "pkg:npm/app@1.0.0"})
+	baseLodash := sdk.NewDependencyWithID("pkg:npm/lodash@4.17.14", sdk.Dependency{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "lodash", Version: "4.17.14", PURL: "pkg:npm/lodash@4.17.14"})
+	baseRemoved := sdk.NewDependencyWithID("pkg:npm/removed@1.0.0", sdk.Dependency{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "removed", Version: "1.0.0", PURL: "pkg:npm/removed@1.0.0"})
+	headApp := sdk.NewDependencyWithID("pkg:npm/app@1.0.0", sdk.Dependency{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "app", Version: "1.0.0", PURL: "pkg:npm/app@1.0.0"})
+	headLodash := sdk.NewDependencyWithID("pkg:npm/lodash@4.17.15", sdk.Dependency{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "lodash", Version: "4.17.15", PURL: "pkg:npm/lodash@4.17.15"})
+	headAdded := sdk.NewDependencyWithID("pkg:npm/added@1.0.0", sdk.Dependency{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "added", Version: "1.0.0", PURL: "pkg:npm/added@1.0.0"})
 	for _, pkg := range []*sdk.Dependency{baseApp, baseLodash, baseRemoved} {
 		if err := baseGraph.AddNode(pkg); err != nil {
 			t.Fatalf("base AddNode(%q): %v", pkg.ID, err)
@@ -416,11 +416,11 @@ func TestBuildDiffResponseEnrichesPackageDeltasFromRegistries(t *testing.T) {
 		t.Fatalf("ConsolidateGraphs(head) error = %v", err)
 	}
 	baseRegistry := sdk.NewPackageRegistry()
-	baseRegistry.Ensure(baseLodash.PURL).Vulnerabilities = []sdk.Vulnerability{{ID: "GHSA-base", Source: "osv", ParsedSeverity: "high"}}
+	baseRegistry.Ensure(baseLodash.PURL).Vulnerabilities = []sdk.Vulnerability{{ID: "GHSA-base", Source: "osv", ParsedSeverity: sdk.SeverityHigh}}
 	baseRegistry.Ensure(baseRemoved.PURL).Licenses = []sdk.PackageLicense{{SPDXExpression: "BSD-2-Clause"}}
 	headRegistry := sdk.NewPackageRegistry()
 	headRegistry.Ensure(headLodash.PURL).Licenses = []sdk.PackageLicense{{SPDXExpression: "MIT"}}
-	headRegistry.Ensure(headLodash.PURL).Vulnerabilities = []sdk.Vulnerability{{ID: "GHSA-head", Source: "osv", ParsedSeverity: "medium"}}
+	headRegistry.Ensure(headLodash.PURL).Vulnerabilities = []sdk.Vulnerability{{ID: "GHSA-head", Source: "osv", ParsedSeverity: sdk.SeverityMedium}}
 	headRegistry.Ensure(headAdded.PURL).Licenses = []sdk.PackageLicense{{SPDXExpression: "Apache-2.0"}}
 
 	response := output.BuildDiffResponse("/tmp/demo", "base", "head", baseConsolidated, headConsolidated, nil, time.Now().Add(-time.Second), output.ReportOptions{
@@ -493,7 +493,7 @@ func TestBuildDiffResponseGatesReachability(t *testing.T) {
 	audit := &output.DiffAudit{
 		Introduced: []output.AuditFinding{{
 			ID:           "OSV-REACH",
-			Kind:         "vulnerability",
+			Kind:         sdk.FindingKindVulnerability,
 			Package:      output.PackageFromGraphPackage(pkg),
 			Reachability: reachable,
 		}},
@@ -624,18 +624,18 @@ func TestBuildDiffResponseTreatsSBOMFilesAsSameManifestWhenOnlyEvidencePathDiffe
 func TestBuildDiffResponsePrunesSBOMPseudoRootPackages(t *testing.T) {
 	baseGraph := sdk.New()
 	githubRoot := sdk.NewDependencyWithID("pkg:github/bomly-dev/example@main", sdk.Dependency{
-		Ecosystem:   "github-actions",
-		BuildSystem: "sbom",
-		Name:        "com.github.bomly-dev/example",
-		Version:     "main",
-		PURL:        "pkg:github/bomly-dev/example@main",
+		Ecosystem:      sdk.EcosystemGitHub,
+		PackageManager: sdk.PackageManagerSBOM,
+		Name:           "com.github.bomly-dev/example",
+		Version:        "main",
+		PURL:           "pkg:github/bomly-dev/example@main",
 	})
 	shared := sdk.NewDependencyWithID("pkg:npm/react@18.2.0", sdk.Dependency{
-		Ecosystem:   "npm",
-		BuildSystem: "npm",
-		Name:        "react",
-		Version:     "18.2.0",
-		PURL:        "pkg:npm/react@18.2.0",
+		Ecosystem:      sdk.EcosystemNPM,
+		PackageManager: sdk.PackageManagerNPM,
+		Name:           "react",
+		Version:        "18.2.0",
+		PURL:           "pkg:npm/react@18.2.0",
 	})
 	for _, pkg := range []*sdk.Dependency{githubRoot, shared} {
 		if err := baseGraph.AddNode(pkg); err != nil {
@@ -650,11 +650,11 @@ func TestBuildDiffResponsePrunesSBOMPseudoRootPackages(t *testing.T) {
 	root := sdk.NewDependencyWithID("pkg:generic/root", sdk.Dependency{Name: "root", PURL: "pkg:generic/root"})
 	lockfile := sdk.NewDependencyWithID("pkg:generic/package-lock.json", sdk.Dependency{Name: "package-lock.json", PURL: "pkg:generic/package-lock.json"})
 	added := sdk.NewDependencyWithID("pkg:npm/zod@3.23.0", sdk.Dependency{
-		Ecosystem:   "npm",
-		BuildSystem: "npm",
-		Name:        "zod",
-		Version:     "3.23.0",
-		PURL:        "pkg:npm/zod@3.23.0",
+		Ecosystem:      sdk.EcosystemNPM,
+		PackageManager: sdk.PackageManagerNPM,
+		Name:           "zod",
+		Version:        "3.23.0",
+		PURL:           "pkg:npm/zod@3.23.0",
 	})
 	for _, pkg := range []*sdk.Dependency{root, lockfile, shared, added} {
 		if err := headGraph.AddNode(pkg); err != nil {
@@ -697,21 +697,21 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 	projectRoot := "/tmp/demo"
 	nativeGraph := sdk.New()
 	nativeApp := sdk.NewDependencyWithID("pkg:npm/app@1.0.0", sdk.Dependency{
-		Ecosystem:   "npm",
-		BuildSystem: "npm",
-		Name:        "app",
-		Version:     "1.0.0",
-		PURL:        "pkg:npm/app@1.0.0",
+		Ecosystem:      sdk.EcosystemNPM,
+		PackageManager: sdk.PackageManagerNPM,
+		Name:           "app",
+		Version:        "1.0.0",
+		PURL:           "pkg:npm/app@1.0.0",
 	})
 	if err := nativeGraph.AddNode(nativeApp); err != nil {
 		t.Fatalf("add native app: %v", err)
 	}
 	nativeReact := sdk.NewDependencyWithID("pkg:npm/react@18.2.0", sdk.Dependency{
-		Ecosystem:   "npm",
-		BuildSystem: "npm",
-		Name:        "react",
-		Version:     "18.2.0",
-		PURL:        "pkg:npm/react@18.2.0",
+		Ecosystem:      sdk.EcosystemNPM,
+		PackageManager: sdk.PackageManagerNPM,
+		Name:           "react",
+		Version:        "18.2.0",
+		PURL:           "pkg:npm/react@18.2.0",
 	})
 	if err := nativeGraph.AddNode(nativeReact); err != nil {
 		t.Fatalf("add native react: %v", err)
@@ -722,20 +722,20 @@ func TestBuildScanResponsePreservesPropagatedLicensesAcrossDuplicateManifests(t 
 
 	sbomGraph := sdk.New()
 	if err := sbomGraph.AddNode(sdk.NewDependencyWithID("SPDXRef-app", sdk.Dependency{
-		Ecosystem:   "npm",
-		BuildSystem: "npm",
-		Name:        "app",
-		Version:     "1.0.0",
-		PURL:        "pkg:npm/app@1.0.0",
+		Ecosystem:      sdk.EcosystemNPM,
+		PackageManager: sdk.PackageManagerNPM,
+		Name:           "app",
+		Version:        "1.0.0",
+		PURL:           "pkg:npm/app@1.0.0",
 	})); err != nil {
 		t.Fatalf("add sbom app: %v", err)
 	}
 	if err := sbomGraph.AddNode(sdk.NewDependencyWithID("SPDXRef-react", sdk.Dependency{
-		Ecosystem:   "npm",
-		BuildSystem: "npm",
-		Name:        "react",
-		Version:     "18.2.0",
-		PURL:        "pkg:npm/react@18.2.0",
+		Ecosystem:      sdk.EcosystemNPM,
+		PackageManager: sdk.PackageManagerNPM,
+		Name:           "react",
+		Version:        "18.2.0",
+		PURL:           "pkg:npm/react@18.2.0",
 	})); err != nil {
 		t.Fatalf("add sbom react: %v", err)
 	}
@@ -865,10 +865,10 @@ func TestBuildDiffResponseFuzzyReconcilesRenamedPackage(t *testing.T) {
 	baseGraph := sdk.New()
 	headGraph := sdk.New()
 
-	baseApp := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "app", Version: "1.0.0"})
-	baseDep := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "left-pad", Version: "1.0.0"})
-	headApp := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "app", Version: "1.0.0"})
-	headDep := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", BuildSystem: "npm", Name: "leftpad", Version: "1.1.0"})
+	baseApp := sdk.NewDependency(sdk.Dependency{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "app", Version: "1.0.0"})
+	baseDep := sdk.NewDependency(sdk.Dependency{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "left-pad", Version: "1.0.0"})
+	headApp := sdk.NewDependency(sdk.Dependency{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "app", Version: "1.0.0"})
+	headDep := sdk.NewDependency(sdk.Dependency{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM, Name: "leftpad", Version: "1.1.0"})
 
 	for _, pkg := range []*sdk.Dependency{baseApp, baseDep} {
 		if err := baseGraph.AddNode(pkg); err != nil {

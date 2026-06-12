@@ -255,7 +255,7 @@ func TestConsolidateGraphs_SynthesizesManifestRootWhenEntryHasMultipleRoots(t *t
 
 func TestConsolidateGraphs_PrefersApplicationRootWhenEntryHasMultipleRoots(t *testing.T) {
 	npmGraph := sdk.New()
-	app := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0", Type: "application"})
+	app := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0", Type: sdk.PackageTypeApplication})
 	react := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "react", Version: "18.2.0"})
 	orphan := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "string-width", Version: "2.1.1"})
 	for _, pkg := range []*sdk.Dependency{app, react, orphan} {

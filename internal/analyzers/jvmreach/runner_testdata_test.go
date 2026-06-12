@@ -68,7 +68,7 @@ func TestJVMStandaloneApplyRunnerResult(t *testing.T) {
 	pkg := model.NewDependency(model.Dependency{
 		Name:      "jackson-databind",
 		Org:       "com.fasterxml.jackson.core",
-		Ecosystem: string(model.EcosystemMaven),
+		Ecosystem: model.EcosystemMaven,
 		PURL:      purl,
 	})
 	if err := g.AddNode(pkg); err != nil {

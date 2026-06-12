@@ -152,12 +152,12 @@ func positionToSDK(p *position) model.SourcePosition {
 	return model.SourcePosition{File: p.Filename, Line: p.Line, Column: p.Column}
 }
 
-func symbolKind(t traceEntry) string {
+func symbolKind(t traceEntry) model.SymbolKind {
 	if t.Receiver != "" {
-		return "method"
+		return model.SymbolKindMethod
 	}
 	if t.Function != "" {
-		return "function"
+		return model.SymbolKindFunction
 	}
 	return ""
 }

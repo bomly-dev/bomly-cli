@@ -52,11 +52,11 @@ func newSeed() (*model.Graph, *model.PackageRegistry) {
 func addPyDep(t *testing.T, g *model.Graph, reg *model.PackageRegistry, projectDir, name, version string, vulns ...model.Vulnerability) *model.Dependency {
 	t.Helper()
 	dep := model.NewDependency(model.Dependency{
-		Name:        name,
-		Version:     version,
-		Ecosystem:   string(model.EcosystemPython),
-		BuildSystem: "pip",
-		Locations:   []model.PackageLocation{{RealPath: filepath.Join(projectDir, "requirements.txt")}},
+		Name:           name,
+		Version:        version,
+		Ecosystem:      model.EcosystemPython,
+		PackageManager: "pip",
+		Locations:      []model.PackageLocation{{RealPath: filepath.Join(projectDir, "requirements.txt")}},
 	})
 	purl := model.CanonicalPackageURLFromDependency(dep)
 	dep.PackageRef = purl
@@ -271,8 +271,8 @@ func TestAnalyzerDoesNotExpandThroughUnimportedRoots(t *testing.T) {
 
 func TestComputeReachablePackageHopsHandlesCycles(t *testing.T) {
 	g := model.New()
-	a := model.NewDependency(model.Dependency{Name: "a", Version: "1.0.0", Ecosystem: string(model.EcosystemPython)})
-	b := model.NewDependency(model.Dependency{Name: "b", Version: "1.0.0", Ecosystem: string(model.EcosystemPython)})
+	a := model.NewDependency(model.Dependency{Name: "a", Version: "1.0.0", Ecosystem: model.EcosystemPython})
+	b := model.NewDependency(model.Dependency{Name: "b", Version: "1.0.0", Ecosystem: model.EcosystemPython})
 	if err := g.AddNode(a); err != nil {
 		t.Fatal(err)
 	}

@@ -268,10 +268,10 @@ func TestGraphFromSyftSBOM(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected dependency package %q", dependency.ID())
 	}
-	if mapped.Ecosystem != "maven" || mapped.Org != "com.example" || mapped.Type != string(syftpkg.JavaPkg) {
+	if mapped.Ecosystem != sdk.EcosystemMaven || mapped.Org != "com.example" || mapped.Type != sdk.ParsePackageType(string(syftpkg.JavaPkg)) {
 		t.Fatalf("unexpected mapped package identity: %#v", mapped)
 	}
-	if mapped.PURL != dependency.PURL || mapped.Language != dependency.Language.String() || mapped.FoundBy != dependency.FoundBy {
+	if mapped.PURL != dependency.PURL || mapped.Language != sdk.ParseLanguage(dependency.Language.String()) || mapped.FoundBy != dependency.FoundBy {
 		t.Fatalf("unexpected mapped package metadata: %#v", mapped)
 	}
 	if lics := sdk.DetectionLicenses(mapped); len(lics) != 1 || lics[0].Value != "Apache-2.0" {

@@ -121,14 +121,14 @@ func vulnerabilityTextSections(results output.DiffVulnerabilityResults, includeR
 		lines = append(lines, fmt.Sprintf("Added (%d)", len(results.Added)))
 		for _, change := range results.Added {
 			details := diffVulnerabilityDetails(change.Vulnerability, includeReachability)
-			lines = append(lines, Wrap(fmt.Sprintf("  + [%s] %s  %s%s", strings.ToUpper(ValueOrDash(change.Vulnerability.Severity)), change.Vulnerability.ID, DiffPackageDisplayName(change.Package), details), Red))
+			lines = append(lines, Wrap(fmt.Sprintf("  + [%s] %s  %s%s", strings.ToUpper(ValueOrDash(string(change.Vulnerability.Severity))), change.Vulnerability.ID, DiffPackageDisplayName(change.Package), details), Red))
 		}
 	}
 	if len(results.Removed) > 0 {
 		lines = append(lines, fmt.Sprintf("Removed (%d)", len(results.Removed)))
 		for _, change := range results.Removed {
 			details := diffVulnerabilityDetails(change.Vulnerability, includeReachability)
-			lines = append(lines, Wrap(fmt.Sprintf("  - [%s] %s  %s%s", strings.ToUpper(ValueOrDash(change.Vulnerability.Severity)), change.Vulnerability.ID, DiffPackageDisplayName(change.Package), details), Green))
+			lines = append(lines, Wrap(fmt.Sprintf("  - [%s] %s  %s%s", strings.ToUpper(ValueOrDash(string(change.Vulnerability.Severity))), change.Vulnerability.ID, DiffPackageDisplayName(change.Package), details), Green))
 		}
 	}
 	return append(lines, "")
@@ -146,8 +146,8 @@ func policyTextSections(audit output.DiffAudit, includeReachability bool) []stri
 		}
 		lines = append(lines, title)
 		for _, finding := range sortDiffAuditFindings(findings) {
-			disposition := strings.ToUpper(ValueOrDash(finding.Disposition))
-			line := fmt.Sprintf("  - [%s/%s] %s", strings.ToUpper(ValueOrDash(finding.Severity)), disposition, ValueOrDash(finding.ID))
+			disposition := strings.ToUpper(ValueOrDash(string(finding.Disposition)))
+			line := fmt.Sprintf("  - [%s/%s] %s", strings.ToUpper(ValueOrDash(string(finding.Severity))), disposition, ValueOrDash(finding.ID))
 			if pkgLabel := DiffPackageDisplayName(finding.Package); pkgLabel != "" {
 				line += " " + pkgLabel
 			}
@@ -253,8 +253,8 @@ func diffAuditFindingsSummary(summary *output.AuditSummary) string {
 func sortDiffAuditFindings(findings []output.AuditFinding) []output.AuditFinding {
 	sorted := append([]output.AuditFinding(nil), findings...)
 	sort.Slice(sorted, func(i, j int) bool {
-		si := severityRankTable(sorted[i].Severity)
-		sj := severityRankTable(sorted[j].Severity)
+		si := severityRankTable(string(sorted[i].Severity))
+		sj := severityRankTable(string(sorted[j].Severity))
 		if si != sj {
 			return si < sj
 		}
@@ -289,9 +289,9 @@ func DiffPackageDisplayName(pkg output.PackageRef) string {
 func DiffManifestDisplayLabel(manifest output.DiffManifestResult) string {
 	label := manifest.Path
 	if strings.TrimSpace(label) == "" {
-		label = manifest.Kind
+		label = string(manifest.Kind)
 	}
-	if strings.TrimSpace(manifest.PackageManager) != "" {
+	if strings.TrimSpace(manifest.PackageManager.Name()) != "" {
 		return fmt.Sprintf("%s (%s)", label, manifest.PackageManager)
 	}
 	return label

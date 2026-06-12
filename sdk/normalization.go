@@ -33,17 +33,17 @@ func NormalizeDependencyIdentity(pkg *Dependency) {
 	}
 
 	switch normEffectiveEcosystem(pkg) {
-	case string(EcosystemNPM):
+	case EcosystemNPM:
 		applied = append(applied, normNPM(pkg)...)
-	case string(EcosystemPython):
+	case EcosystemPython:
 		applied = append(applied, normPython(pkg)...)
-	case string(EcosystemRust):
+	case EcosystemRust:
 		applied = append(applied, normRust(pkg)...)
-	case string(EcosystemMaven):
+	case EcosystemMaven:
 		applied = append(applied, normMaven(pkg)...)
-	case string(EcosystemGo):
+	case EcosystemGo:
 		applied = append(applied, normGo(pkg)...)
-	case string(EcosystemPHP):
+	case EcosystemPHP:
 		applied = append(applied, normComposer(pkg)...)
 	}
 
@@ -125,41 +125,41 @@ func normComposer(pkg *Dependency) []string {
 	return nil
 }
 
-func normEffectiveEcosystem(pkg *Dependency) string {
+func normEffectiveEcosystem(pkg *Dependency) Ecosystem {
 	if pkg == nil {
-		return ""
+		return EcosystemUnknown
 	}
-	for _, candidate := range []string{pkg.Ecosystem, pkg.BuildSystem, pkg.Type} {
+	for _, candidate := range []string{string(pkg.Ecosystem), pkg.PackageManager.Name(), string(pkg.Type)} {
 		switch strings.ToLower(strings.TrimSpace(candidate)) {
 		case string(EcosystemNPM), "pnpm", "yarn":
-			return string(EcosystemNPM)
+			return EcosystemNPM
 		case string(EcosystemPython), "pip", "pipenv", "poetry", "uv", "setup.py", "pypi":
-			return string(EcosystemPython)
+			return EcosystemPython
 		case string(EcosystemRust), "cargo":
-			return string(EcosystemRust)
+			return EcosystemRust
 		case string(EcosystemGo), "gomod", "golang":
-			return string(EcosystemGo)
+			return EcosystemGo
 		case string(EcosystemMaven), "gradle":
-			return string(EcosystemMaven)
+			return EcosystemMaven
 		case string(EcosystemDotNet), "nuget":
-			return string(EcosystemDotNet)
+			return EcosystemDotNet
 		case string(EcosystemDart), "pub":
-			return string(EcosystemDart)
+			return EcosystemDart
 		case string(EcosystemSwift), "cocoapods", "swiftpm":
-			return string(EcosystemSwift)
+			return EcosystemSwift
 		case string(EcosystemCPP), "conan":
-			return string(EcosystemCPP)
+			return EcosystemCPP
 		case string(EcosystemElixir), "mix", "hex":
-			return string(EcosystemElixir)
+			return EcosystemElixir
 		case string(EcosystemScala), "sbt":
-			return string(EcosystemScala)
+			return EcosystemScala
 		case string(EcosystemPHP), "composer":
-			return string(EcosystemPHP)
+			return EcosystemPHP
 		case string(EcosystemRuby), "gem", "bundler", "rubygems":
-			return string(EcosystemRuby)
+			return EcosystemRuby
 		}
 	}
-	return ""
+	return EcosystemUnknown
 }
 
 func normSplitScopedNPMName(name string) (string, string, bool) {

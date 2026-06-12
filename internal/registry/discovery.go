@@ -184,6 +184,8 @@ func pyprojectBelongsToManager(path string, manager sdk.PackageManager) bool {
 		return pyprojectHasTable(path, "tool.poetry")
 	case sdk.PackageManagerUV:
 		return pyprojectHasTable(path, "tool.uv")
+	case sdk.PackageManagerPDM:
+		return !pyprojectHasTable(path, "tool.poetry") && !pyprojectHasTable(path, "tool.uv")
 	default:
 		return true
 	}

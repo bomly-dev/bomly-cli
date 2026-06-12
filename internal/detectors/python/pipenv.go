@@ -143,10 +143,10 @@ func depGraphFromPipfileLock(path string) (*sdk.Graph, error) {
 	}
 	depsGraph := sdk.New()
 	root := sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   string(sdk.EcosystemPython),
-		BuildSystem: sdk.PackageManagerPipenv.Name(),
-		Name:        "root",
-		Type:        "project",
+		Ecosystem:      sdk.EcosystemPython,
+		PackageManager: sdk.PackageManagerPipenv,
+		Name:           "root",
+		Type:           sdk.PackageTypeProject,
 	})
 
 	if err := depsGraph.AddNode(root); err != nil {
@@ -165,11 +165,11 @@ func addPipfileLockPackages(depsGraph *sdk.Graph, root *sdk.Dependency, packages
 	for name, pkg := range packages {
 		normalizedName := normalizePythonName(name)
 		node := sdk.NewDependency(sdk.Dependency{
-			Ecosystem:   string(sdk.EcosystemPython),
-			BuildSystem: sdk.PackageManagerPipenv.Name(),
-			Name:        normalizedName,
-			Version:     strings.TrimPrefix(pkg.Version, "=="),
-			Scopes:      sdk.ScopesOf(scope),
+			Ecosystem:      sdk.EcosystemPython,
+			PackageManager: sdk.PackageManagerPipenv,
+			Name:           normalizedName,
+			Version:        strings.TrimPrefix(pkg.Version, "=="),
+			Scopes:         sdk.ScopesOf(scope),
 		})
 
 		if _, exists := depsGraph.Node(node.ID); !exists {

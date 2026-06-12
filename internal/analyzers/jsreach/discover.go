@@ -327,15 +327,15 @@ func isNPMPackage(pkg *model.Dependency) bool {
 	if pkg == nil {
 		return false
 	}
-	if strings.EqualFold(pkg.Ecosystem, string(model.EcosystemNPM)) {
+	if pkg.Ecosystem == model.EcosystemNPM {
 		return true
 	}
-	switch strings.ToLower(strings.TrimSpace(pkg.BuildSystem)) {
-	case "npm", "pnpm", "yarn":
+	switch pkg.PackageManager {
+	case model.PackageManagerNPM, model.PackageManagerPNPM, model.PackageManagerYarn:
 		return true
 	}
-	switch strings.ToLower(strings.TrimSpace(pkg.Language)) {
-	case "javascript", "typescript":
+	switch pkg.Language {
+	case model.LanguageJavaScript, model.LanguageTypeScript:
 		return true
 	}
 	return false

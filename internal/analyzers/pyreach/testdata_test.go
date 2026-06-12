@@ -25,7 +25,7 @@ func TestDiscoverProjectRootsFromTestdata(t *testing.T) {
 	g := model.New()
 	pkg := model.NewDependency(model.Dependency{
 		Name:      "requests",
-		Ecosystem: string(model.EcosystemPython),
+		Ecosystem: model.EcosystemPython,
 		Locations: []model.PackageLocation{{RealPath: filepath.Join(root, "pkg", "helpers.py")}},
 	})
 	if err := g.AddNode(pkg); err != nil {

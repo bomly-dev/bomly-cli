@@ -331,8 +331,8 @@ func maxVulnerabilitySeverityByPkgID(graphValue *sdk.Graph, registry *sdk.Packag
 		}
 		for _, vulnerability := range vulnsForDependency(registry, pkg) {
 			current := result[pkg.ID]
-			if severityRank(vulnerability.ParsedSeverity) < severityRank(current) {
-				result[pkg.ID] = vulnerability.ParsedSeverity
+			if severityRank(string(vulnerability.ParsedSeverity)) < severityRank(current) {
+				result[pkg.ID] = string(vulnerability.ParsedSeverity)
 			}
 		}
 	}

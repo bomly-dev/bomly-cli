@@ -86,7 +86,7 @@ func explainImpactMarkdown(payload output.ExplainResponse) []string {
 			rows := make([][]string, 0, len(target.Dependency.Vulnerabilities))
 			for _, vulnerability := range target.Dependency.Vulnerabilities {
 				row := []string{
-					strings.ToUpper(ValueOrDash(vulnerability.Severity)),
+					strings.ToUpper(ValueOrDash(string(vulnerability.Severity))),
 					valueOrDash(vulnerability.ID),
 				}
 				if payload.Metadata.ReachabilityEnabled {
@@ -119,7 +119,7 @@ func explainImpactMarkdown(payload output.ExplainResponse) []string {
 				}
 				lines = append(lines, fmt.Sprintf(
 					"- [%s] `%s`: %s%s",
-					markdownInline(ValueOrDash(finding.Severity)),
+					markdownInline(ValueOrDash(string(finding.Severity))),
 					markdownInline(ValueOrDash(finding.ID)),
 					markdownText(title),
 					suffix,

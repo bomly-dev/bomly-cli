@@ -348,7 +348,7 @@ func (d *detector) Detect(ctx context.Context, req *schemav1.DetectRequest) (*sc
 		name = "example.com/" + string(req.ScopeFilter)
 	}
 	packageNode := schemav1.NewDependencyWithID(name + "@v1.0.0", schemav1.Dependency{
-		Ecosystem: string(schemav1.EcosystemGo),
+		Ecosystem: schemav1.EcosystemGo,
 		Name:      name,
 		Version:   "v1.0.0",
 		PURL:      "pkg:golang/" + name + "@v1.0.0",

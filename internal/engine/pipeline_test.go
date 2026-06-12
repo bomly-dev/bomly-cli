@@ -443,7 +443,7 @@ func TestPipeline_ThreadsScopeFilterIntoInstallFirstDetector(t *testing.T) {
 func scopedTestGraph(t *testing.T) *sdk.Graph {
 	t.Helper()
 	graph := sdk.New()
-	app := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "app", Version: "1.0.0", Type: "application"})
+	app := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication})
 	runtimeDep := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "react", Version: "18.2.0", PURL: "pkg:npm/react@18.2.0", Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
 	devDep := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "vitest", Version: "2.0.0", PURL: "pkg:npm/vitest@2.0.0", Scopes: sdk.ScopesOf(sdk.ScopeDevelopment)})
 	for _, dep := range []*sdk.Dependency{app, runtimeDep, devDep} {
@@ -698,21 +698,21 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 
 	nativeGraph := sdk.New()
 	nativeApp := sdk.NewDependencyWithID("pkg:npm/app@1.0.0", sdk.Dependency{
-		Ecosystem:   "npm",
-		BuildSystem: "npm",
-		Name:        "app",
-		Version:     "1.0.0",
-		PURL:        "pkg:npm/app@1.0.0",
+		Ecosystem:      "npm",
+		PackageManager: "npm",
+		Name:           "app",
+		Version:        "1.0.0",
+		PURL:           "pkg:npm/app@1.0.0",
 	})
 	if err := nativeGraph.AddNode(nativeApp); err != nil {
 		t.Fatalf("add native app: %v", err)
 	}
 	nativeReact := sdk.NewDependencyWithID("pkg:npm/react@18.2.0", sdk.Dependency{
-		Ecosystem:   "npm",
-		BuildSystem: "npm",
-		Name:        "react",
-		Version:     "18.2.0",
-		PURL:        "pkg:npm/react@18.2.0",
+		Ecosystem:      "npm",
+		PackageManager: "npm",
+		Name:           "react",
+		Version:        "18.2.0",
+		PURL:           "pkg:npm/react@18.2.0",
 	})
 	if err := nativeGraph.AddNode(nativeReact); err != nil {
 		t.Fatalf("add native react: %v", err)
@@ -723,20 +723,20 @@ func TestPipeline_Run_PropagatesMatcherEnrichmentToRegistry(t *testing.T) {
 
 	sbomGraph := sdk.New()
 	if err := sbomGraph.AddNode(sdk.NewDependencyWithID("SPDXRef-app", sdk.Dependency{
-		Ecosystem:   "npm",
-		BuildSystem: "npm",
-		Name:        "app",
-		Version:     "1.0.0",
-		PURL:        "pkg:npm/app@1.0.0",
+		Ecosystem:      "npm",
+		PackageManager: "npm",
+		Name:           "app",
+		Version:        "1.0.0",
+		PURL:           "pkg:npm/app@1.0.0",
 	})); err != nil {
 		t.Fatalf("add sbom app: %v", err)
 	}
 	if err := sbomGraph.AddNode(sdk.NewDependencyWithID("SPDXRef-react", sdk.Dependency{
-		Ecosystem:   "npm",
-		BuildSystem: "npm",
-		Name:        "react",
-		Version:     "18.2.0",
-		PURL:        "pkg:npm/react@18.2.0",
+		Ecosystem:      "npm",
+		PackageManager: "npm",
+		Name:           "react",
+		Version:        "18.2.0",
+		PURL:           "pkg:npm/react@18.2.0",
 	})); err != nil {
 		t.Fatalf("add sbom react: %v", err)
 	}

@@ -6,57 +6,57 @@ import (
 )
 
 // PackageManager identifies the concrete package manager or manifest family for a target.
-type PackageManager int
+type PackageManager string
 
 const (
-	PackageManagerUnknown PackageManager = iota
-	PackageManagerNPM
-	PackageManagerPNPM
-	PackageManagerYarn
-	PackageManagerGradle
-	PackageManagerMaven
-	PackageManagerGoMod
-	PackageManagerPip
-	PackageManagerPipenv
-	PackageManagerPoetry
-	PackageManagerUV
-	PackageManagerALPM
-	PackageManagerAPK
-	PackageManagerConan
-	PackageManagerConda
-	PackageManagerPub
-	PackageManagerDPKG
-	PackageManagerMix
-	PackageManagerRebar
-	PackageManagerOTP
-	PackageManagerGitHubActions
-	PackageManagerCabal
-	PackageManagerStack
-	PackageManagerHomebrew
-	PackageManagerLuaRocks
-	PackageManagerNuGet
-	PackageManagerNix
-	PackageManagerOpam
-	PackageManagerComposer
-	PackageManagerPear
-	PackageManagerPDM
-	PackageManagerPortage
-	PackageManagerSWIPLPack
-	PackageManagerRPackage
-	PackageManagerRPM
-	PackageManagerBundler
-	PackageManagerGemspec
-	PackageManagerCargo
-	PackageManagerSBOM
-	PackageManagerSnap
-	PackageManagerCocoaPods
-	PackageManagerSwiftPM
-	PackageManagerTerraform
-	PackageManagerWordPress
-	PackageManagerSetupPy
-	PackageManagerOther
-	PackageManagerSBT
-	PackageManagerCount
+	PackageManagerUnknown       PackageManager = ""
+	PackageManagerNPM           PackageManager = "npm"
+	PackageManagerPNPM          PackageManager = "pnpm"
+	PackageManagerYarn          PackageManager = "yarn"
+	PackageManagerGradle        PackageManager = "gradle"
+	PackageManagerMaven         PackageManager = "maven"
+	PackageManagerGoMod         PackageManager = "gomod"
+	PackageManagerPip           PackageManager = "pip"
+	PackageManagerPipenv        PackageManager = "pipenv"
+	PackageManagerPoetry        PackageManager = "poetry"
+	PackageManagerUV            PackageManager = "uv"
+	PackageManagerALPM          PackageManager = "alpm"
+	PackageManagerAPK           PackageManager = "apk"
+	PackageManagerConan         PackageManager = "conan"
+	PackageManagerConda         PackageManager = "conda"
+	PackageManagerPub           PackageManager = "pub"
+	PackageManagerDPKG          PackageManager = "dpkg"
+	PackageManagerMix           PackageManager = "mix"
+	PackageManagerRebar         PackageManager = "rebar"
+	PackageManagerOTP           PackageManager = "otp"
+	PackageManagerGitHubActions PackageManager = "github-actions"
+	PackageManagerCabal         PackageManager = "cabal"
+	PackageManagerStack         PackageManager = "stack"
+	PackageManagerHomebrew      PackageManager = "homebrew"
+	PackageManagerLuaRocks      PackageManager = "luarocks"
+	PackageManagerNuGet         PackageManager = "nuget"
+	PackageManagerNix           PackageManager = "nix"
+	PackageManagerOpam          PackageManager = "opam"
+	PackageManagerComposer      PackageManager = "composer"
+	PackageManagerPear          PackageManager = "pear"
+	PackageManagerPDM           PackageManager = "pdm"
+	PackageManagerPortage       PackageManager = "portage"
+	PackageManagerSWIPLPack     PackageManager = "swipl-pack"
+	PackageManagerRPackage      PackageManager = "r-package"
+	PackageManagerRPM           PackageManager = "rpm"
+	PackageManagerBundler       PackageManager = "bundler"
+	PackageManagerGemspec       PackageManager = "gemspec"
+	PackageManagerCargo         PackageManager = "cargo"
+	PackageManagerSBOM          PackageManager = "sbom"
+	PackageManagerSnap          PackageManager = "snap"
+	PackageManagerCocoaPods     PackageManager = "cocoapods"
+	PackageManagerSwiftPM       PackageManager = "swiftpm"
+	PackageManagerTerraform     PackageManager = "terraform"
+	PackageManagerWordPress     PackageManager = "wordpress"
+	PackageManagerSetupPy       PackageManager = "setuppy"
+	PackageManagerOther         PackageManager = "other"
+	PackageManagerSBT           PackageManager = "sbt"
+	PackageManagerMultiple      PackageManager = "multiple"
 )
 
 type packageManagerInfo struct {
@@ -69,7 +69,7 @@ type packageManagerInfo struct {
 	Languages []Language
 }
 
-var packageManagerInfoByID = [...]packageManagerInfo{
+var packageManagerInfoByID = map[PackageManager]packageManagerInfo{
 	PackageManagerUnknown:       {},
 	PackageManagerNPM:           {Name: "npm", Ecosystem: EcosystemNPM, Languages: []Language{LanguageJavaScript, LanguageTypeScript}},
 	PackageManagerPNPM:          {Name: "pnpm", Ecosystem: EcosystemNPM, Languages: []Language{LanguageJavaScript, LanguageTypeScript}},
@@ -117,6 +117,7 @@ var packageManagerInfoByID = [...]packageManagerInfo{
 	PackageManagerSetupPy:       {Name: "setuppy", Ecosystem: EcosystemPython, Languages: []Language{LanguagePython}},
 	PackageManagerOther:         {Name: "other", Ecosystem: EcosystemOther},
 	PackageManagerSBT:           {Name: "sbt", Ecosystem: EcosystemScala, Languages: []Language{LanguageScala, LanguageJava}},
+	PackageManagerMultiple:      {Name: "multiple"},
 }
 
 var allPackageManagers = []PackageManager{
@@ -171,7 +172,7 @@ var allPackageManagers = []PackageManager{
 var packageManagerByName = map[string]PackageManager{}
 
 func init() {
-	for _, manager := range allPackageManagers {
+	for _, manager := range append(append([]PackageManager(nil), allPackageManagers...), PackageManagerMultiple) {
 		info := packageManagerInfoByID[manager]
 		packageManagerByName[info.Name] = manager
 		for _, alias := range info.Aliases {
@@ -181,7 +182,8 @@ func init() {
 }
 
 func (p PackageManager) valid() bool {
-	return p > PackageManagerUnknown && p < PackageManagerCount
+	_, ok := packageManagerInfoByID[p]
+	return ok && p != PackageManagerUnknown
 }
 
 // String returns the canonical package-manager name.
@@ -192,7 +194,7 @@ func (p PackageManager) String() string {
 // Name returns the canonical package-manager name.
 func (p PackageManager) Name() string {
 	if !p.valid() {
-		return ""
+		return string(p)
 	}
 	return packageManagerInfoByID[p].Name
 }

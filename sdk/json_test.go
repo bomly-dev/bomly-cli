@@ -46,7 +46,7 @@ func TestPackageRegistryJSONRoundTrip(t *testing.T) {
 	pkg.Name = "react"
 	pkg.Version = "18.2.0"
 	pkg.Licenses = []PackageLicense{{SPDXExpression: "MIT"}}
-	pkg.Vulnerabilities = []Vulnerability{{ID: "GHSA-1", Source: "osv", ParsedSeverity: "high"}}
+	pkg.Vulnerabilities = []Vulnerability{{ID: "GHSA-1", Source: "osv", ParsedSeverity: SeverityHigh}}
 
 	data, err := json.Marshal(registry)
 	if err != nil {

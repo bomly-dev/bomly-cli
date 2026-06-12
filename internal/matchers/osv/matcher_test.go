@@ -293,18 +293,18 @@ func TestMarkKEVVulnerabilities_AppendsReason(t *testing.T) {
 func TestCvssScoreToBand(t *testing.T) {
 	tests := []struct {
 		score float64
-		want  string
+		want  sdk.SeverityLevel
 	}{
 		{9.0, "critical"},
 		{9.5, "critical"},
-		{10.0, "critical"},
-		{7.0, "high"},
-		{8.9, "high"},
-		{4.0, "medium"},
-		{6.9, "medium"},
-		{0.1, "low"},
-		{3.9, "low"},
-		{0.0, "low"},
+		{10.0, sdk.SeverityCritical},
+		{7.0, sdk.SeverityHigh},
+		{8.9, sdk.SeverityHigh},
+		{4.0, sdk.SeverityMedium},
+		{6.9, sdk.SeverityMedium},
+		{0.1, sdk.SeverityLow},
+		{3.9, sdk.SeverityLow},
+		{0.0, sdk.SeverityLow},
 	}
 	for _, tt := range tests {
 		got := cvssScoreToBand(tt.score)

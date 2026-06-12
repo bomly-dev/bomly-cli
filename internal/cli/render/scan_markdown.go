@@ -57,7 +57,7 @@ func scanManifestMarkdown(payload output.ScanResponse) []string {
 		rows = append(rows, []string{
 			subproject,
 			ValueOrDash(manifest.Path),
-			ValueOrDash(manifest.PackageManager),
+			ValueOrDash(manifest.PackageManager.Name()),
 			fmt.Sprintf("%d", len(manifest.Dependencies)),
 		})
 	}
@@ -107,7 +107,7 @@ func scanFindingsMarkdown(payload output.ScanResponse) []string {
 			title = finding.ID
 		}
 		row := []string{
-			strings.ToUpper(ValueOrDash(finding.Severity)),
+			strings.ToUpper(ValueOrDash(string(finding.Severity))),
 			valueOrDash(finding.ID),
 			pkg,
 		}

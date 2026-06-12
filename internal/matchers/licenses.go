@@ -39,7 +39,7 @@ func NormalizeLicenseSet(values []string, sourceType string) []sdk.PackageLicens
 		out = append(out, sdk.PackageLicense{
 			Value:          normalized,
 			SPDXExpression: normalized,
-			Type:           sourceType,
+			Type:           sdk.LicenseType(sourceType),
 		})
 	}
 	return out

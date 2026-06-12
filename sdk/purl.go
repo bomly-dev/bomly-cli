@@ -82,9 +82,9 @@ func buildPackageURLFallback(purlType, namespace, name, version string) string {
 }
 
 // PackageURLTypeForValues maps ecosystem/build-system values to a package-url type.
-func PackageURLTypeForValues(values ...string) string {
+func PackageURLTypeForValues(values ...any) string {
 	for _, value := range values {
-		normalized := strings.ToLower(strings.TrimSpace(value))
+		normalized := strings.ToLower(strings.TrimSpace(packageURLTypeValue(value)))
 		switch normalized {
 		case "nuget":
 			return "nuget"
@@ -113,7 +113,7 @@ func PackageURLTypeForValues(values ...string) string {
 		}
 	}
 	for _, value := range values {
-		normalized := strings.ToLower(strings.TrimSpace(value))
+		normalized := strings.ToLower(strings.TrimSpace(packageURLTypeValue(value)))
 		if normalized == "" {
 			continue
 		}
@@ -127,13 +127,30 @@ func PackageURLTypeForValues(values ...string) string {
 	return "generic"
 }
 
+func packageURLTypeValue(value any) string {
+	switch v := value.(type) {
+	case string:
+		return v
+	case Ecosystem:
+		return string(v)
+	case PackageManager:
+		return v.Name()
+	case PackageType:
+		return string(v)
+	case Language:
+		return string(v)
+	default:
+		return ""
+	}
+}
+
 // CanonicalPackageURLFromParts returns the canonical package URL derived from
 // raw identity fields. existingPURL takes precedence when it canonicalizes.
-func CanonicalPackageURLFromParts(existingPURL, ecosystem, buildSystem, typ, org, name, version string) string {
+func CanonicalPackageURLFromParts(existingPURL string, ecosystem Ecosystem, packageManager PackageManager, typ PackageType, org, name, version string) string {
 	if canonical := CanonicalizePackageURL(existingPURL); canonical != "" {
 		return canonical
 	}
-	if strings.EqualFold(strings.TrimSpace(typ), "manifest") {
+	if typ == PackageTypeManifest {
 		return ""
 	}
 
@@ -142,7 +159,7 @@ func CanonicalPackageURLFromParts(existingPURL, ecosystem, buildSystem, typ, org
 		return ""
 	}
 
-	purlType := PackageURLTypeForValues(ecosystem, buildSystem, typ)
+	purlType := PackageURLTypeForValues(ecosystem, packageManager, typ)
 	namespace := strings.TrimSpace(org)
 	if purlType == "golang" && namespace == "" {
 		parts := strings.Split(strings.ReplaceAll(name, "\\", "/"), "/")
@@ -160,7 +177,7 @@ func CanonicalPackageURLFromDependency(dep *Dependency) string {
 	if dep == nil {
 		return ""
 	}
-	return CanonicalPackageURLFromParts(dep.PURL, dep.Ecosystem, dep.BuildSystem, dep.Type, dep.Org, dep.Name, dep.Version)
+	return CanonicalPackageURLFromParts(dep.PURL, dep.Ecosystem, dep.PackageManager, dep.Type, dep.Org, dep.Name, dep.Version)
 }
 
 // PackageURLBase strips version and qualifiers from a package URL.

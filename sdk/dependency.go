@@ -83,23 +83,23 @@ func ScopesOf(scopes ...Scope) []Scope {
 // matching artifact (Package) by PURL. Matching enrichment (licenses,
 // vulnerabilities, scorecard) lives on the referenced Package, not here.
 type Dependency struct {
-	ID          string            `json:"id"`
-	Name        string            `json:"name,omitempty"`
-	Version     string            `json:"version,omitempty"`
-	PURL        string            `json:"purl,omitempty"`
-	Ecosystem   string            `json:"ecosystem,omitempty"`
-	Type        string            `json:"type,omitempty"`
-	Org         string            `json:"org,omitempty"`
-	BuildSystem string            `json:"build_system,omitempty"`
-	Language    string            `json:"language,omitempty"`
-	Scopes      []Scope           `json:"scopes,omitempty"`
-	Locations   []PackageLocation `json:"locations,omitempty"`
-	CPEs        []string          `json:"cpes,omitempty"`
-	Digests     []Digest          `json:"digests,omitempty"`
-	Copyright   string            `json:"copyright,omitempty"`
-	FoundBy     string            `json:"found_by,omitempty"`
-	ResolvedURL string            `json:"resolved_url,omitempty"`
-	Metadata    map[string]any    `json:"metadata,omitempty"`
+	ID             string            `json:"id"`
+	Name           string            `json:"name,omitempty"`
+	Version        string            `json:"version,omitempty"`
+	PURL           string            `json:"purl,omitempty"`
+	Ecosystem      Ecosystem         `json:"ecosystem,omitempty"`
+	Type           PackageType       `json:"type,omitempty"`
+	Org            string            `json:"org,omitempty"`
+	PackageManager PackageManager    `json:"package_manager,omitempty"`
+	Language       Language          `json:"language,omitempty"`
+	Scopes         []Scope           `json:"scopes,omitempty"`
+	Locations      []PackageLocation `json:"locations,omitempty"`
+	CPEs           []string          `json:"cpes,omitempty"`
+	Digests        []Digest          `json:"digests,omitempty"`
+	Copyright      string            `json:"copyright,omitempty"`
+	FoundBy        string            `json:"found_by,omitempty"`
+	ResolvedURL    string            `json:"resolved_url,omitempty"`
+	Metadata       map[string]any    `json:"metadata,omitempty"`
 
 	// Matched is true when the referenced package was enriched by a matcher.
 	Matched bool `json:"matched,omitempty"`
@@ -146,7 +146,7 @@ func (d *Dependency) IdentityKey() string {
 	if d == nil {
 		return ""
 	}
-	return strings.Join([]string{d.Ecosystem, d.BuildSystem, d.Type, d.Org, d.Name}, "\x00")
+	return strings.Join([]string{string(d.Ecosystem), d.PackageManager.Name(), string(d.Type), d.Org, d.Name}, "\x00")
 }
 
 // PrimaryScope returns the merged precedence scope across all recorded scopes.

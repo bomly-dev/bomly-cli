@@ -62,7 +62,7 @@ func Explain(w io.Writer, target output.ExplainTargetResponse, includeReachabili
 			return err
 		}
 		for _, vulnerability := range target.Dependency.Vulnerabilities {
-			if _, err := fmt.Fprintf(w, "- %s %s (%s)\n", explainSeverityLabel(vulnerability.Severity), vulnerability.ID, ValueOrDash(vulnerability.Source)); err != nil {
+			if _, err := fmt.Fprintf(w, "- %s %s (%s)\n", explainSeverityLabel(string(vulnerability.Severity)), vulnerability.ID, ValueOrDash(vulnerability.Source)); err != nil {
 				return err
 			}
 			if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Title:   ", Dim), ValueOrDash(vulnerability.Title)); err != nil {
@@ -101,7 +101,7 @@ func Explain(w io.Writer, target output.ExplainTargetResponse, includeReachabili
 			return err
 		}
 		for _, finding := range target.Findings {
-			if _, err := fmt.Fprintf(w, "- %s %s\n", explainSeverityLabel(finding.Severity), finding.ID); err != nil {
+			if _, err := fmt.Fprintf(w, "- %s %s\n", explainSeverityLabel(string(finding.Severity)), finding.ID); err != nil {
 				return err
 			}
 			if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Title:   ", Dim), ValueOrDash(finding.Title)); err != nil {
@@ -173,7 +173,7 @@ func Explain(w io.Writer, target output.ExplainTargetResponse, includeReachabili
 		for idx, license := range target.Dependency.Licenses {
 			label := license.Identifier()
 			if license.Type != "" {
-				label += " [" + license.Type + "]"
+				label += " [" + string(license.Type) + "]"
 			}
 			if _, err := fmt.Fprintf(w, "- License %d: %s\n", idx+1, ValueOrDash(label)); err != nil {
 				return err

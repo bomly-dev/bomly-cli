@@ -18,7 +18,7 @@ type grypeAdvisory struct {
 	CVSS                 []sdk.CVSSScore
 	FixedVersions        []string
 	FixedIn              string
-	FixState             string
+	FixState             sdk.FixState
 	FixAvailable         []sdk.FixAvailable
 	AffectedVersionRange string
 	References           []sdk.Reference
@@ -35,10 +35,7 @@ func mapGrypeAdvisory(advisory grypeAdvisory) sdk.Vulnerability {
 	if fixedIn == "" && len(advisory.FixedVersions) > 0 {
 		fixedIn = strings.TrimSpace(advisory.FixedVersions[0])
 	}
-	severity := strings.ToLower(strings.TrimSpace(advisory.Severity))
-	if severity == "" {
-		severity = "unknown"
-	}
+	severity := sdk.ParseSeverityLevel(advisory.Severity)
 	description := strings.TrimSpace(advisory.Description)
 	title := strings.TrimSpace(advisory.ID)
 	if description != "" {
@@ -46,10 +43,10 @@ func mapGrypeAdvisory(advisory grypeAdvisory) sdk.Vulnerability {
 	}
 	refs := append([]sdk.Reference(nil), advisory.References...)
 	if advisory.DataSource != "" {
-		refs = appendUniqueReference(refs, sdk.Reference{URL: advisory.DataSource, Type: "data_source"})
+		refs = appendUniqueReference(refs, sdk.Reference{URL: advisory.DataSource, Type: sdk.ReferenceTypeDataSource})
 	}
 	for _, url := range advisory.URLs {
-		refs = appendUniqueReference(refs, sdk.Reference{URL: url, Type: "advisory"})
+		refs = appendUniqueReference(refs, sdk.Reference{URL: url, Type: sdk.ReferenceTypeAdvisory})
 	}
 
 	return sdk.Vulnerability{
@@ -85,7 +82,7 @@ func grypeReasons(advisory grypeAdvisory, fixedIn string) []string {
 		reasons = append(reasons, fmt.Sprintf("Fix available: upgrade to %s", fixedIn))
 	}
 	if advisory.FixState != "" {
-		reasons = append(reasons, "Fix state: "+advisory.FixState)
+		reasons = append(reasons, "Fix state: "+string(advisory.FixState))
 	}
 	if len(advisory.Aliases) > 0 {
 		reasons = append(reasons, "Also known as: "+strings.Join(dedupeStrings(advisory.Aliases), ", "))
@@ -98,11 +95,11 @@ func grypeReasons(advisory grypeAdvisory, fixedIn string) []string {
 
 func mergePackageVulnerability(base, incoming sdk.Vulnerability) sdk.Vulnerability {
 	base.Title = firstNonEmpty(base.Title, incoming.Title)
-	base.ParsedSeverity = firstNonEmpty(base.ParsedSeverity, incoming.ParsedSeverity)
+	base.ParsedSeverity = sdk.ParseSeverityLevel(firstNonEmpty(string(base.ParsedSeverity), string(incoming.ParsedSeverity)))
 	base.SeveritySource = firstNonEmpty(base.SeveritySource, incoming.SeveritySource)
 	base.Details = firstNonEmpty(base.Details, incoming.Details)
 	base.FixedIn = firstNonEmpty(base.FixedIn, incoming.FixedIn)
-	base.FixState = firstNonEmpty(base.FixState, incoming.FixState)
+	base.FixState = sdk.FixState(firstNonEmpty(string(base.FixState), string(incoming.FixState)))
 	base.AffectedVersionRange = firstNonEmpty(base.AffectedVersionRange, incoming.AffectedVersionRange)
 	base.DataSource = firstNonEmpty(base.DataSource, incoming.DataSource)
 	base.Namespace = firstNonEmpty(base.Namespace, incoming.Namespace)
@@ -172,7 +169,7 @@ func appendUniqueReferences(existing []sdk.Reference, values ...sdk.Reference) [
 	seen := make(map[string]struct{}, len(existing)+len(values))
 	out := make([]sdk.Reference, 0, len(existing)+len(values))
 	for _, ref := range existing {
-		key := ref.URL + "\x00" + ref.Type
+		key := ref.URL + "\x00" + string(ref.Type)
 		if strings.TrimSpace(ref.URL) == "" || key == "\x00" {
 			continue
 		}
@@ -183,7 +180,7 @@ func appendUniqueReferences(existing []sdk.Reference, values ...sdk.Reference) [
 		out = append(out, ref)
 	}
 	for _, ref := range values {
-		key := ref.URL + "\x00" + ref.Type
+		key := ref.URL + "\x00" + string(ref.Type)
 		if strings.TrimSpace(ref.URL) == "" || key == "\x00" {
 			continue
 		}
@@ -200,7 +197,7 @@ func appendUniqueCVSS(existing []sdk.CVSSScore, values ...sdk.CVSSScore) []sdk.C
 	seen := make(map[string]struct{}, len(existing)+len(values))
 	out := make([]sdk.CVSSScore, 0, len(existing)+len(values))
 	for _, score := range append(existing, values...) {
-		key := score.Source + "\x00" + score.Version + "\x00" + score.Vector
+		key := score.Source + "\x00" + string(score.Version) + "\x00" + score.Vector
 		if key == "\x00\x00" {
 			continue
 		}
@@ -217,7 +214,7 @@ func appendUniqueFixAvailable(existing []sdk.FixAvailable, values ...sdk.FixAvai
 	seen := make(map[string]struct{}, len(existing)+len(values))
 	out := make([]sdk.FixAvailable, 0, len(existing)+len(values))
 	for _, fix := range append(existing, values...) {
-		key := fix.Version + "\x00" + fix.Date + "\x00" + fix.Kind
+		key := fix.Version + "\x00" + fix.Date + "\x00" + string(fix.Kind)
 		if key == "\x00\x00" {
 			continue
 		}

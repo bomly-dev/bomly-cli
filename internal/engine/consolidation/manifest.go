@@ -173,15 +173,15 @@ func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error
 	}
 	manifestLabel = strings.ReplaceAll(manifestLabel, "\\", "/")
 
-	kind := strings.TrimSpace(manifest.Kind)
+	kind := strings.TrimSpace(string(manifest.Kind))
 	if kind == "" {
 		kind = "manifest"
 	}
 
 	virtualRoot := sdk.NewDependencyWithID(rootID, sdk.Dependency{
-		Name:        manifestLabel,
-		Type:        "manifest",
-		BuildSystem: kind,
+		Name:           manifestLabel,
+		Type:           sdk.PackageTypeManifest,
+		PackageManager: packageManagerFromManifestKind(kind),
 	})
 	if err := addNodeIfMissing(g, virtualRoot); err != nil {
 		return err
@@ -211,11 +211,19 @@ func selectApplicationRoot(roots []*sdk.Dependency) *sdk.Dependency {
 		if root == nil {
 			continue
 		}
-		if strings.EqualFold(strings.TrimSpace(root.Type), "application") {
+		if root.Type == sdk.PackageTypeApplication {
 			return root
 		}
 	}
 	return nil
+}
+
+func packageManagerFromManifestKind(kind string) sdk.PackageManager {
+	manager, err := sdk.ParsePackageManager(kind)
+	if err != nil {
+		return sdk.PackageManagerUnknown
+	}
+	return manager
 }
 
 func hasSingleRoot(g *sdk.Graph) bool {

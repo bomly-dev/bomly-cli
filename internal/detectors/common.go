@@ -17,7 +17,7 @@ func InferManifestMetadata(req sdk.DetectionRequest, evidencePatterns []string) 
 	}
 	return sdk.ManifestMetadata{
 		Path: path,
-		Kind: kind,
+		Kind: sdk.ManifestKind(kind),
 	}
 }
 

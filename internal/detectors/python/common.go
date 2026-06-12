@@ -184,7 +184,7 @@ func depGraphFromPipInspect(raw []byte) (*sdk.Graph, error) {
 
 	depsGraph := sdk.New()
 	rootNode := sdk.NewDependency(sdk.Dependency{
-		Ecosystem: string(sdk.EcosystemPython),
+		Ecosystem: sdk.EcosystemPython,
 		Name:      "root",
 	})
 
@@ -198,7 +198,7 @@ func depGraphFromPipInspect(raw []byte) (*sdk.Graph, error) {
 			continue
 		}
 		node := sdk.NewDependency(sdk.Dependency{
-			Ecosystem: string(sdk.EcosystemPython),
+			Ecosystem: sdk.EcosystemPython,
 			Name:      normalizePythonName(pkg.Metadata.Name),
 			Version:   pkg.Metadata.Version,
 		})

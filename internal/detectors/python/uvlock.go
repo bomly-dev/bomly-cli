@@ -63,7 +63,7 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 			continue
 		}
 		node := sdk.NewDependency(sdk.Dependency{
-			Ecosystem: string(sdk.EcosystemPython),
+			Ecosystem: sdk.EcosystemPython,
 			Name:      normalizePythonName(pkg.Name),
 			Version:   pkg.Version,
 		})

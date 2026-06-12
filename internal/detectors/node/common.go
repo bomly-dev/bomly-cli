@@ -143,10 +143,10 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 		rootName = "root"
 	}
 	rootNode := sdk.NewDependency(sdk.Dependency{
-		Ecosystem: string(sdk.EcosystemNPM),
+		Ecosystem: sdk.EcosystemNPM,
 		Name:      rootName,
 		Version:   root.Version,
-		Type:      "application",
+		Type:      sdk.PackageTypeApplication,
 	})
 
 	if err := depsGraph.AddNode(rootNode); err != nil {
@@ -171,7 +171,7 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 				name = depName
 			}
 			node := sdk.NewDependency(sdk.Dependency{
-				Ecosystem: string(sdk.EcosystemNPM),
+				Ecosystem: sdk.EcosystemNPM,
 				Name:      name,
 				Version:   depNode.Version,
 			})
@@ -204,10 +204,10 @@ func DepGraphFromPNPMJSON(raw []byte) (*sdk.Graph, error) {
 	depsGraph := sdk.New()
 	for _, root := range roots {
 		rootNode := sdk.NewDependency(sdk.Dependency{
-			Ecosystem: string(sdk.EcosystemNPM),
+			Ecosystem: sdk.EcosystemNPM,
 			Name:      root.Name,
 			Version:   root.Version,
-			Type:      "application",
+			Type:      sdk.PackageTypeApplication,
 		})
 
 		if err := AddNodeIfMissing(depsGraph, rootNode); err != nil {
@@ -230,7 +230,7 @@ func addPNPMDependencies(depsGraph *sdk.Graph, parentID string, deps map[string]
 			name = depName
 		}
 		node := sdk.NewDependency(sdk.Dependency{
-			Ecosystem: string(sdk.EcosystemNPM),
+			Ecosystem: sdk.EcosystemNPM,
 			Name:      name,
 			Version:   depNode.Version,
 		})
@@ -275,9 +275,9 @@ func DepGraphFromYarnJSON(raw []byte) (*sdk.Graph, error) {
 
 	depsGraph := sdk.New()
 	rootNode := sdk.NewDependency(sdk.Dependency{
-		Ecosystem: string(sdk.EcosystemNPM),
+		Ecosystem: sdk.EcosystemNPM,
 		Name:      "root",
-		Type:      "application",
+		Type:      sdk.PackageTypeApplication,
 	})
 
 	if err := depsGraph.AddNode(rootNode); err != nil {
@@ -297,7 +297,7 @@ func addYarnTree(depsGraph *sdk.Graph, parentID string, tree yarnTreeNode) error
 		return err
 	}
 	node := sdk.NewDependency(sdk.Dependency{
-		Ecosystem: string(sdk.EcosystemNPM),
+		Ecosystem: sdk.EcosystemNPM,
 		Name:      name,
 		Version:   version,
 	})

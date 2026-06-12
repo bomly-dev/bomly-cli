@@ -187,12 +187,12 @@ func TestMarshalDepGraphJSON_SPDX23PreservesPackageType(t *testing.T) {
 func TestMarshalDepGraphJSON_SPDX23PreservesPURLAndCopyright(t *testing.T) {
 	g := sdk.New()
 	pkg := sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   "npm",
-		BuildSystem: "npm",
-		Name:        "accept",
-		Version:     "1.1.0",
-		PURL:        "pkg:npm/accept@1.1.0",
-		Copyright:   "Copyright (c) 2014, Walmart and other contributors.",
+		Ecosystem:      "npm",
+		PackageManager: "npm",
+		Name:           "accept",
+		Version:        "1.1.0",
+		PURL:           "pkg:npm/accept@1.1.0",
+		Copyright:      "Copyright (c) 2014, Walmart and other contributors.",
 	})
 	sdk.SetDetectionLicenses(pkg, []sdk.PackageLicense{{SPDXExpression: "BSD-3-Clause"}})
 
@@ -336,11 +336,11 @@ func TestUnmarshalJSON_RoundTripTargets(t *testing.T) {
 func TestUnmarshalJSON_SPDX23RestoresPackageIdentityFromPURL(t *testing.T) {
 	g := sdk.New()
 	if err := g.AddNode(sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   "npm",
-		BuildSystem: "npm",
-		Name:        "accept",
-		Version:     "1.1.0",
-		PURL:        "pkg:npm/accept@1.1.0",
+		Ecosystem:      "npm",
+		PackageManager: "npm",
+		Name:           "accept",
+		Version:        "1.1.0",
+		PURL:           "pkg:npm/accept@1.1.0",
 	})); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
@@ -384,19 +384,19 @@ func TestUnmarshalJSON_SPDX23RestoresPackageIdentityFromPURL(t *testing.T) {
 	if pkg.PURL != "pkg:npm/accept@1.1.0" {
 		t.Fatalf("expected graph package purl, got %q", pkg.PURL)
 	}
-	if pkg.Ecosystem != "npm" || pkg.BuildSystem != "npm" {
-		t.Fatalf("expected graph package identity restored, got ecosystem=%q buildSystem=%q", pkg.Ecosystem, pkg.BuildSystem)
+	if pkg.Ecosystem != "npm" || pkg.PackageManager != "npm" {
+		t.Fatalf("expected graph package identity restored, got ecosystem=%q packageManager=%q", pkg.Ecosystem, pkg.PackageManager)
 	}
 }
 
 func TestUnmarshalJSON_CycloneDXPreservesPURL(t *testing.T) {
 	g := sdk.New()
 	if err := g.AddNode(sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   "npm",
-		BuildSystem: "npm",
-		Name:        "accept",
-		Version:     "1.1.0",
-		PURL:        "pkg:npm/accept@1.1.0",
+		Ecosystem:      "npm",
+		PackageManager: "npm",
+		Name:           "accept",
+		Version:        "1.1.0",
+		PURL:           "pkg:npm/accept@1.1.0",
 	})); err != nil {
 		t.Fatalf("add package: %v", err)
 	}

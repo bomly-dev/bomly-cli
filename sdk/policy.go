@@ -37,15 +37,6 @@ func (c FailOnConstraint) String() string {
 	return string(c.Kind) + ":" + c.Value
 }
 
-// Severity values accepted by the severity constraint kind.
-const (
-	SeverityAny      = "any"
-	SeverityLow      = "low"
-	SeverityMedium   = "medium"
-	SeverityHigh     = "high"
-	SeverityCritical = "critical"
-)
-
 // ReachabilityValueReachable constraint values currently supported.
 const (
 	ReachabilityValueReachable = "reachable"
@@ -56,7 +47,7 @@ const (
 	ExploitabilityValueExploitable = "exploitable"
 )
 
-var validSeverityValues = map[string]struct{}{
+var validSeverityValues = map[SeverityLevel]struct{}{
 	SeverityAny:      {},
 	SeverityLow:      {},
 	SeverityMedium:   {},
@@ -78,18 +69,19 @@ var validExploitabilityValues = map[string]struct{}{
 // ExploitabilityConstraint. Empty input returns the zero value with no error
 // so callers can treat empty repeats as no-ops.
 func ParseFailOn(raw string) (FailOnConstraint, error) {
-	normalized := strings.ToLower(strings.TrimSpace(raw))
-	if normalized == "" {
+	normalized := ParseSeverityLevel(raw)
+	if normalized == SeverityUnknown && strings.TrimSpace(raw) == "" {
 		return FailOnConstraint{}, nil
 	}
 	if _, ok := validSeverityValues[normalized]; ok {
-		return FailOnConstraint{Kind: SeverityConstraint, Value: normalized}, nil
+		return FailOnConstraint{Kind: SeverityConstraint, Value: string(normalized)}, nil
 	}
-	if _, ok := validReachabilityValues[normalized]; ok {
-		return FailOnConstraint{Kind: ReachabilityConstraint, Value: normalized}, nil
+	rawNormalized := strings.ToLower(strings.TrimSpace(raw))
+	if _, ok := validReachabilityValues[rawNormalized]; ok {
+		return FailOnConstraint{Kind: ReachabilityConstraint, Value: rawNormalized}, nil
 	}
-	if _, ok := validExploitabilityValues[normalized]; ok {
-		return FailOnConstraint{Kind: ExploitabilityConstraint, Value: normalized}, nil
+	if _, ok := validExploitabilityValues[rawNormalized]; ok {
+		return FailOnConstraint{Kind: ExploitabilityConstraint, Value: rawNormalized}, nil
 	}
 	return FailOnConstraint{}, fmt.Errorf("unsupported --fail-on value %q (accepted: any, low, medium, high, critical, reachable, exploitable)", raw)
 }
@@ -118,15 +110,15 @@ func ParseFailOnList(raws []string) ([]FailOnConstraint, error) {
 
 // SeverityRank returns a comparable rank for a severity string.
 // Unknown / empty values rank below "low".
-func SeverityRank(severity string) int {
-	switch strings.ToLower(strings.TrimSpace(severity)) {
-	case "critical":
+func SeverityRank(severity SeverityLevel) int {
+	switch ParseSeverityLevel(string(severity)) {
+	case SeverityCritical:
 		return 4
-	case "high":
+	case SeverityHigh:
 		return 3
-	case "medium":
+	case SeverityMedium:
 		return 2
-	case "low":
+	case SeverityLow:
 		return 1
 	default:
 		return 0
@@ -135,9 +127,9 @@ func SeverityRank(severity string) int {
 
 // SeverityMeets reports whether candidate's severity is at or above
 // threshold. Threshold "any" matches every candidate, including unknown.
-func SeverityMeets(candidate, threshold string) bool {
-	t := strings.ToLower(strings.TrimSpace(threshold))
-	if t == SeverityAny || t == "" {
+func SeverityMeets(candidate SeverityLevel, threshold string) bool {
+	t := ParseSeverityLevel(threshold)
+	if t == SeverityAny || strings.TrimSpace(threshold) == "" {
 		return true
 	}
 	return SeverityRank(candidate) >= SeverityRank(t)

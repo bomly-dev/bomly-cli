@@ -400,11 +400,11 @@ func httpClientConfigFromResolved(current config.Resolved) sdk.HTTPClientConfig 
 // ProjectDescriptor returns a descriptor for the main project being analyzed,
 // summarizing its name, path, ecosystem, and package manager.
 func (o *Options) ProjectDescriptor() output.ProjectDescriptor {
-	ecosystem := "multiple"
-	packageManager := "multiple"
+	ecosystem := sdk.EcosystemOther
+	packageManager := sdk.PackageManagerMultiple
 	if len(o.subprojects) == 1 {
-		ecosystem = string(o.subprojects[0].Ecosystem)
-		packageManager = o.subprojects[0].PrimaryPackageManager().Name()
+		ecosystem = o.subprojects[0].Ecosystem
+		packageManager = o.subprojects[0].PrimaryPackageManager()
 	}
 	location := displayTargetLocation(o.executionTarget)
 	return output.ProjectDescriptor{
@@ -430,8 +430,8 @@ func (o *Options) ProjectDescriptorForSubproject(subproject sdk.Subproject) outp
 		Path:           displayTargetLocation(subproject.ExecutionTarget),
 		TargetType:     displayTargetType(subproject.ExecutionTarget),
 		TargetRef:      subproject.ExecutionTarget.Ref,
-		Ecosystem:      string(subproject.Ecosystem),
-		PackageManager: subproject.PrimaryPackageManager().Name(),
+		Ecosystem:      subproject.Ecosystem,
+		PackageManager: subproject.PrimaryPackageManager(),
 	}
 }
 

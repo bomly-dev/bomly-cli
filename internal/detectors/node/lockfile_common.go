@@ -20,7 +20,7 @@ func ParseIntegrityDigests(integrity string) []sdk.Digest {
 	digests := make([]sdk.Digest, 0, len(tokens))
 	for _, token := range tokens {
 		if idx := strings.Index(token, "-"); idx > 0 {
-			digests = append(digests, sdk.Digest{Algorithm: token[:idx], Value: token[idx+1:]})
+			digests = append(digests, sdk.Digest{Algorithm: sdk.DigestAlgorithm(token[:idx]), Value: token[idx+1:]})
 		}
 	}
 	return digests

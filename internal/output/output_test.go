@@ -23,7 +23,7 @@ func TestPackageFromGraphPackageIncludesStructuredLicenses(t *testing.T) {
 	sdk.SetDetectionLicenses(dep, []sdk.PackageLicense{{
 		Value:          "MIT License",
 		SPDXExpression: "MIT",
-		Type:           "external-depsdev",
+		Type:           sdk.LicenseType("external-depsdev"),
 	}})
 	ref := PackageFromGraphPackage(dep)
 

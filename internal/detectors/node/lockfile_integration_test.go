@@ -61,7 +61,7 @@ func requireResolvedURL(t *testing.T, g *sdk.Graph, name, version string) {
 }
 
 // requireDigest asserts that at least one digest with the given algorithm exists.
-func requireDigest(t *testing.T, g *sdk.Graph, name, version, algorithm string) {
+func requireDigest(t *testing.T, g *sdk.Graph, name, version string, algorithm sdk.DigestAlgorithm) {
 	t.Helper()
 	pkg := requirePackage(t, g, name, version)
 	for _, d := range pkg.Digests {

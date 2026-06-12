@@ -40,7 +40,7 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 	}
 
 	depsGraph := sdk.New()
-	rootNode := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemNPM), Name: rootName, Version: manifest.Version, Type: "application"})
+	rootNode := sdk.NewDependency(sdk.Dependency{Ecosystem: sdk.EcosystemNPM, Name: rootName, Version: manifest.Version, Type: sdk.PackageTypeApplication})
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add yarn root node: %w", err)
 	}
@@ -57,7 +57,7 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 		}
 		entry := entries[idx]
 		pkg := sdk.Dependency{
-			Ecosystem:   string(sdk.EcosystemNPM),
+			Ecosystem:   sdk.EcosystemNPM,
 			Name:        entry.Name,
 			Version:     entry.Version,
 			ResolvedURL: entry.Resolved,
@@ -115,7 +115,7 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 				queue = append(queue, entryIdx)
 				continue
 			}
-			synthetic := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemNPM), Name: dependencyName, Version: node.NormalizeVersionToken(requested)})
+			synthetic := sdk.NewDependency(sdk.Dependency{Ecosystem: sdk.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(requested)})
 			if err := node.AddNodeIfMissing(depsGraph, synthetic); err != nil {
 				return nil, err
 			}

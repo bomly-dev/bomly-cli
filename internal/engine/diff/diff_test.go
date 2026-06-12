@@ -168,7 +168,7 @@ func diffTestRequest() engine.PipelineRequest {
 func npmPackage(name, version string) *sdk.Dependency {
 	purl := "pkg:npm/" + name + "@" + version
 	return sdk.NewDependencyWithID(purl, sdk.Dependency{
-		Ecosystem: string(sdk.EcosystemNPM),
+		Ecosystem: sdk.EcosystemNPM,
 		Name:      name,
 		Version:   version,
 		PURL:      purl,

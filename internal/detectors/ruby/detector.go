@@ -172,11 +172,11 @@ func depGraphFromLock(raw []byte, directScopes map[string]sdk.Scope) (*sdk.Graph
 
 	depsGraph := sdk.New()
 	rootNode := sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   string(sdk.EcosystemRuby),
-		Name:        "root",
-		BuildSystem: sdk.PackageManagerBundler.Name(),
-		Type:        "application",
-		Language:    "ruby",
+		Ecosystem:      sdk.EcosystemRuby,
+		Name:           "root",
+		PackageManager: sdk.PackageManagerBundler,
+		Type:           sdk.PackageTypeApplication,
+		Language:       "ruby",
 	})
 
 	if err := depsGraph.AddNode(rootNode); err != nil {
@@ -446,12 +446,12 @@ func scopeForGroupLabels(labels []string) sdk.Scope {
 
 func gemNode(name, version string) *sdk.Dependency {
 	return sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   string(sdk.EcosystemRuby),
-		Name:        strings.TrimSpace(name),
-		Version:     strings.TrimSpace(version),
-		BuildSystem: sdk.PackageManagerBundler.Name(),
-		Type:        "gem",
-		Language:    "ruby",
+		Ecosystem:      sdk.EcosystemRuby,
+		Name:           strings.TrimSpace(name),
+		Version:        strings.TrimSpace(version),
+		PackageManager: sdk.PackageManagerBundler,
+		Type:           "gem",
+		Language:       "ruby",
 	})
 
 }

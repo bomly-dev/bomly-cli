@@ -193,7 +193,7 @@ func (m *DiffModel) CycleEcosystemFilter() {
 	ecos := map[string]struct{}{}
 	for _, mf := range m.payload.Results.Manifests {
 		if mf.Ecosystem != "" {
-			ecos[mf.Ecosystem] = struct{}{}
+			ecos[string(mf.Ecosystem)] = struct{}{}
 		}
 	}
 	options := []string{""}
@@ -645,7 +645,7 @@ func (m *DiffModel) computeOverviewStats() diffOverviewStats {
 	}
 
 	for _, mf := range m.payload.Results.Manifests {
-		eco := strings.TrimSpace(mf.Ecosystem)
+		eco := strings.TrimSpace(string(mf.Ecosystem))
 		if eco == "" {
 			eco = "unknown"
 		}
@@ -696,7 +696,7 @@ func (m *DiffModel) computeOverviewStats() diffOverviewStats {
 				out.findingsByKind[kind]++
 				switch kind {
 				case "vulnerability":
-					sev := strings.ToLower(strings.TrimSpace(f.Severity))
+					sev := strings.ToLower(strings.TrimSpace(string(f.Severity)))
 					if _, ok := out.vulnByStatus[sev]; !ok {
 						sev = "unknown"
 					}
@@ -760,7 +760,7 @@ func auditStatusTitle(status string) string {
 // classification done by isVulnerabilityFinding so this function and that
 // predicate never disagree.
 func findingKindOf(f output.AuditFinding) string {
-	if k := strings.ToLower(strings.TrimSpace(f.Kind)); k != "" {
+	if k := strings.ToLower(strings.TrimSpace(string(f.Kind))); k != "" {
 		switch k {
 		case "vuln", "advisory", "cve":
 			return "vulnerability"
@@ -1350,7 +1350,7 @@ func (m *DiffModel) collectComponentChanges() []flatComponentChange {
 	for _, mf := range m.payload.Results.Manifests {
 		mfKey := diffManifestKey(mf)
 		mfName := render.DiffManifestDisplayLabel(mf)
-		eco := valueOrDefault(mf.Ecosystem, "unknown")
+		eco := valueOrDefault(string(mf.Ecosystem), "unknown")
 		for _, change := range mf.Added {
 			out = append(out, flatComponentChange{
 				manifest: mf, manifestKey: mfKey, manifestName: mfName, ecosystem: eco,
@@ -1385,7 +1385,7 @@ func maxSeverity(vulns []output.VulnerabilityRef) string {
 	best := ""
 	bestRank := severityRank("zzz")
 	for _, v := range vulns {
-		sev := strings.ToLower(strings.TrimSpace(v.Severity))
+		sev := strings.ToLower(strings.TrimSpace(string(v.Severity)))
 		if sev == "" {
 			sev = "unknown"
 		}
@@ -1573,10 +1573,10 @@ func (m *DiffModel) componentsGroupDetails(key string, group componentsGroup, it
 			"",
 			render.Style("Manifest", render.Bold, render.Magenta),
 			render.Style("  Path: ", render.Dim)+valueOrDash(mf.Path),
-			render.Style("  Kind: ", render.Dim)+valueOrDash(mf.Kind),
+			render.Style("  Kind: ", render.Dim)+valueOrDash(string(mf.Kind)),
 			render.Style("  Subproject: ", render.Dim)+valueOrDash(mf.Subproject),
-			render.Style("  Ecosystem: ", render.Dim)+valueOrDash(mf.Ecosystem),
-			render.Style("  Package manager: ", render.Dim)+valueOrDash(mf.PackageManager),
+			render.Style("  Ecosystem: ", render.Dim)+valueOrDash(string(mf.Ecosystem)),
+			render.Style("  Package manager: ", render.Dim)+valueOrDash(mf.PackageManager.Name()),
 			render.Style("  Detector: ", render.Dim)+valueOrDash(m.detectorForManifest(mf)),
 			render.Style("  Status: ", render.Dim)+statusText(mf.Status),
 		)
@@ -1662,9 +1662,9 @@ func componentChangeDetails(c flatComponentChange) []string {
 		"",
 		render.Style("Manifest", render.Bold, render.Magenta),
 		render.Style("  Path: ", render.Dim) + valueOrDash(c.manifest.Path),
-		render.Style("  Kind: ", render.Dim) + valueOrDash(c.manifest.Kind),
+		render.Style("  Kind: ", render.Dim) + valueOrDash(string(c.manifest.Kind)),
 		render.Style("  Subproject: ", render.Dim) + valueOrDash(c.manifest.Subproject),
-		render.Style("  Package manager: ", render.Dim) + valueOrDash(c.manifest.PackageManager),
+		render.Style("  Package manager: ", render.Dim) + valueOrDash(c.manifest.PackageManager.Name()),
 		render.Style("  Manifest status: ", render.Dim) + statusText(c.manifest.Status),
 	}
 
@@ -1706,7 +1706,7 @@ func renderLicenseList(licenses []output.LicenseRef) []string {
 		}
 		line := render.Style("  - ", render.Dim) + id
 		if lic.Type != "" {
-			line += render.Style("  ["+lic.Type+"]", render.Dim)
+			line += render.Style("  ["+string(lic.Type)+"]", render.Dim)
 		}
 		out = append(out, line)
 	}
@@ -1754,12 +1754,12 @@ func renderVulnList(vulns []output.VulnerabilityRef) []string {
 		return out
 	}
 	for _, v := range vulns {
-		out = append(out, render.Style("  - ", render.Dim)+severityText(v.Severity)+" "+valueOrDash(v.ID))
+		out = append(out, render.Style("  - ", render.Dim)+severityText(string(v.Severity))+" "+valueOrDash(v.ID))
 		if v.FixedIn != "" {
 			out = append(out, render.Style("      fixed in: ", render.Dim)+v.FixedIn)
 		}
 		if v.FixState != "" {
-			out = append(out, render.Style("      fix state: ", render.Dim)+v.FixState)
+			out = append(out, render.Style("      fix state: ", render.Dim)+string(v.FixState))
 		}
 		if exploitability := exploitabilityLine(v.KEVExploited, v.KnownExploited, v.RiskScore); exploitability != "" {
 			out = append(out, render.Style("      exploitability: ", render.Dim)+exploitability)
@@ -1778,14 +1778,14 @@ func renderVulnDelta(before, after []output.VulnerabilityRef) []string {
 	for id, v := range afterSet {
 		switch {
 		case beforeSet[id] != nil:
-			out = append(out, render.Style("  = ", render.Dim)+severityText(v.Severity)+" "+id+render.Style("  (old)", render.Dim))
+			out = append(out, render.Style("  = ", render.Dim)+severityText(string(v.Severity))+" "+id+render.Style("  (old)", render.Dim))
 		default:
-			out = append(out, render.Style("  + ", render.Red, render.Bold)+severityText(v.Severity)+" "+id+render.Style("  (new)", render.Dim))
+			out = append(out, render.Style("  + ", render.Red, render.Bold)+severityText(string(v.Severity))+" "+id+render.Style("  (new)", render.Dim))
 		}
 	}
 	for id, v := range beforeSet {
 		if afterSet[id] == nil {
-			out = append(out, render.Style("  - ", render.Green, render.Bold)+severityText(v.Severity)+" "+id+render.Style("  (fixed)", render.Dim))
+			out = append(out, render.Style("  - ", render.Green, render.Bold)+severityText(string(v.Severity))+" "+id+render.Style("  (fixed)", render.Dim))
 		}
 	}
 	return out
@@ -1804,7 +1804,7 @@ func vulnIDSet(vulns []output.VulnerabilityRef) map[string]*output.Vulnerability
 }
 
 func diffManifestKey(mf output.DiffManifestResult) string {
-	return mf.Path + "|" + mf.Subproject + "|" + mf.PackageManager
+	return mf.Path + "|" + mf.Subproject + "|" + mf.PackageManager.Name()
 }
 
 // --- Vulnerabilities / Findings tab ---------------------------------------
@@ -1829,7 +1829,7 @@ func (m *DiffModel) auditDeltas(keep func(output.AuditFinding) bool) []auditDelt
 			if keep != nil && !keep(f) {
 				continue
 			}
-			out = append(out, auditDelta{status: status, finding: f, severity: f.Severity})
+			out = append(out, auditDelta{status: status, finding: f, severity: string(f.Severity)})
 		}
 	}
 	collect("introduced", m.payload.Audit.Introduced)
@@ -1847,7 +1847,7 @@ func isVulnerabilityFinding(f output.AuditFinding) bool {
 	case "license", "package":
 		return false
 	}
-	kind := strings.ToLower(strings.TrimSpace(f.Kind))
+	kind := strings.ToLower(strings.TrimSpace(string(f.Kind)))
 	if kind == "" {
 		// Fallback: presence of a CVE/GHSA-shaped ID or a Source like
 		// "osv"/"grype" implies a vulnerability finding.
@@ -1989,14 +1989,14 @@ func (m *DiffModel) auditVerdict() auditVerdict {
 	// stays consistent with the rows it's actually showing.
 	for _, f := range m.payload.Audit.Introduced {
 		switch f.Disposition {
-		case "", string(sdk.FindingDispositionFail):
+		case "", sdk.FindingDispositionFail:
 			v.FailingIntroduced++
 			if isVulnerabilityFinding(f) {
 				v.FailingIntroducedVuln++
 			} else {
 				v.FailingIntroducedNonVuln++
 			}
-		case string(sdk.FindingDispositionWarn):
+		case sdk.FindingDispositionWarn:
 			v.WarnIntroduced++
 		}
 	}
@@ -2179,7 +2179,7 @@ func (m *DiffModel) vulnsOutcomePanels() []listPanel {
 			if !isVulnerabilityFinding(f) {
 				continue
 			}
-			sev := strings.ToLower(strings.TrimSpace(f.Severity))
+			sev := strings.ToLower(strings.TrimSpace(string(f.Severity)))
 			if sev == "" {
 				sev = "unknown"
 			}
@@ -2442,11 +2442,11 @@ func auditDeltaDetails(d auditDelta) []string {
 		"",
 		render.Style("Status", render.Bold, render.Cyan),
 		render.Style("  Delta status: ", render.Dim)+statusText(auditStatusLabel(d.status)),
-		render.Style("  Disposition: ", render.Dim)+valueOrDash(f.Disposition),
-		render.Style("  Severity: ", render.Dim)+severityText(f.Severity),
+		render.Style("  Disposition: ", render.Dim)+valueOrDash(string(f.Disposition)),
+		render.Style("  Severity: ", render.Dim)+severityText(string(f.Severity)),
 		"",
 		render.Style("Classification", render.Bold, render.Magenta),
-		render.Style("  Kind: ", render.Dim)+valueOrDash(f.Kind),
+		render.Style("  Kind: ", render.Dim)+valueOrDash(string(f.Kind)),
 		render.Style("  Auditor: ", render.Dim)+valueOrDash(f.Auditor),
 		render.Style("  Source: ", render.Dim)+valueOrDash(f.Source),
 		"",

@@ -52,14 +52,14 @@ func fixtureDiffPayload() output.DiffResponse {
 		}},
 		Audit: &output.DiffAudit{
 			Introduced: []output.AuditFinding{
-				{ID: "CVE-2024-0001", Kind: "vulnerability", Severity: "high", Source: "osv", Package: output.PackageRef{Name: "react", Version: "19.0.0"}},
-				{ID: "license:unknown-license:zod@3.23.0", Kind: string(sdk.FindingKindLicense), Severity: "n/a", Auditor: "license", Source: "license", Package: output.PackageRef{Name: "zod", Version: "3.23.0"}},
+				{ID: "CVE-2024-0001", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityHigh, Source: "osv", Package: output.PackageRef{Name: "react", Version: "19.0.0"}},
+				{ID: "license:unknown-license:zod@3.23.0", Kind: sdk.FindingKindLicense, Severity: "n/a", Auditor: "license", Source: "license", Package: output.PackageRef{Name: "zod", Version: "3.23.0"}},
 			},
 			Persisted: []output.AuditFinding{
-				{ID: "CVE-2023-9999", Kind: "vulnerability", Severity: "medium", Source: "osv", Package: output.PackageRef{Name: "lodash", Version: "4.17.20"}},
+				{ID: "CVE-2023-9999", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityMedium, Source: "osv", Package: output.PackageRef{Name: "lodash", Version: "4.17.20"}},
 			},
 			Resolved: []output.AuditFinding{
-				{ID: "CVE-2022-1111", Kind: "vulnerability", Severity: "low", Source: "osv", Package: output.PackageRef{Name: "dropped", Version: "0.1.0"}},
+				{ID: "CVE-2022-1111", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityLow, Source: "osv", Package: output.PackageRef{Name: "dropped", Version: "0.1.0"}},
 			},
 			// AuditSummary.Total now reflects Introduced + Persisted only
 			// (scan_output.go no longer appends Resolved). For this fixture
@@ -356,21 +356,21 @@ func TestComputeOverviewStats_LicenseAndPackageByStatus(t *testing.T) {
 	// when the rule keyword isn't one we know about.
 	payload := output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{
-			{ID: "license:unknown-license:pkg@1", Kind: "license", Auditor: "license"},
-			{ID: "license:invalid-license:pkg@2", Kind: "license", Auditor: "license"},
-			{ID: "license:denied-license:pkg@3", Kind: "license", Auditor: "license"},
-			{ID: "package:denied-package:pkg@4", Kind: "package", Auditor: "package"},
-			{ID: "package:denied-group:pkg@5", Kind: "package", Auditor: "package"},
-			{ID: "package:suspicious-package:pkg@6", Kind: "package", Auditor: "package"},
+			{ID: "license:unknown-license:pkg@1", Kind: sdk.FindingKindLicense, Auditor: "license"},
+			{ID: "license:invalid-license:pkg@2", Kind: sdk.FindingKindLicense, Auditor: "license"},
+			{ID: "license:denied-license:pkg@3", Kind: sdk.FindingKindLicense, Auditor: "license"},
+			{ID: "package:denied-package:pkg@4", Kind: sdk.FindingKindPackage, Auditor: "package"},
+			{ID: "package:denied-group:pkg@5", Kind: sdk.FindingKindPackage, Auditor: "package"},
+			{ID: "package:suspicious-package:pkg@6", Kind: sdk.FindingKindPackage, Auditor: "package"},
 		},
 		Persisted: []output.AuditFinding{
-			{ID: "license:unknown-license:pkg@7", Kind: "license", Auditor: "license"},
+			{ID: "license:unknown-license:pkg@7", Kind: sdk.FindingKindLicense, Auditor: "license"},
 			// External plugin emitting a kind we don't know — must land
 			// in the "other" row.
-			{ID: "ext:weird-rule:pkg@8", Kind: "package", Auditor: "external"},
+			{ID: "ext:weird-rule:pkg@8", Kind: sdk.FindingKindPackage, Auditor: "external"},
 		},
 		Resolved: []output.AuditFinding{
-			{ID: "license:denied-license:pkg@9", Kind: "license", Auditor: "license"},
+			{ID: "license:denied-license:pkg@9", Kind: sdk.FindingKindLicense, Auditor: "license"},
 		},
 	}}
 	m := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
@@ -412,9 +412,9 @@ func TestFindingKindOf_ClassifiesBuiltinAuditors(t *testing.T) {
 		f    output.AuditFinding
 		want string
 	}{
-		{output.AuditFinding{Kind: "vulnerability"}, "vulnerability"},
-		{output.AuditFinding{Kind: "license"}, "license"},
-		{output.AuditFinding{Kind: "package"}, "package"},
+		{output.AuditFinding{Kind: sdk.FindingKindVulnerability}, "vulnerability"},
+		{output.AuditFinding{Kind: sdk.FindingKindLicense}, "license"},
+		{output.AuditFinding{Kind: sdk.FindingKindPackage}, "package"},
 		{output.AuditFinding{Kind: "vuln"}, "vulnerability"},     // alias
 		{output.AuditFinding{Kind: "advisory"}, "vulnerability"}, // alias
 		{output.AuditFinding{Kind: "cve"}, "vulnerability"},      // alias
@@ -504,7 +504,7 @@ func TestAuditVerdict_PassWhenNoIntroduced(t *testing.T) {
 // A diff that resolves findings — even high-severity ones — must NOT FAIL.
 func TestAuditVerdict_ResolvedOnlyIsPass(t *testing.T) {
 	m := NewDiff(output.DiffResponse{Audit: &output.DiffAudit{
-		Resolved:     []output.AuditFinding{{ID: "CVE-2022-X", Kind: "vulnerability", Severity: "high", Source: "osv"}},
+		Resolved:     []output.AuditFinding{{ID: "CVE-2022-X", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityHigh, Source: "osv"}},
 		AuditSummary: &output.AuditSummary{},
 	}}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
 	v := m.auditVerdict()
@@ -523,7 +523,7 @@ func TestAuditVerdict_ResolvedOnlyIsPass(t *testing.T) {
 // runs on Introduced only.
 func TestAuditVerdict_PersistedOnlyIsPass(t *testing.T) {
 	m := NewDiff(output.DiffResponse{Audit: &output.DiffAudit{
-		Persisted:    []output.AuditFinding{{ID: "CVE-2023-X", Kind: "vulnerability", Severity: "critical", Source: "osv"}},
+		Persisted:    []output.AuditFinding{{ID: "CVE-2023-X", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityCritical, Source: "osv"}},
 		AuditSummary: &output.AuditSummary{Critical: 1, Total: 1},
 	}}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
 	if got := m.auditVerdict().Verdict(); got != "PASS" {
@@ -537,19 +537,19 @@ func TestAuditVerdict_PersistedOnlyIsPass(t *testing.T) {
 func TestAuditVerdict_DispositionGate(t *testing.T) {
 	cases := []struct {
 		name        string
-		disposition string
+		disposition sdk.FindingDisposition
 		wantFail    bool
 	}{
 		{"empty disposition (legacy default = fail)", "", true},
-		{"explicit fail", string(sdk.FindingDispositionFail), true},
-		{"warn does not gate exit code", string(sdk.FindingDispositionWarn), false},
-		{"unknown disposition treated as non-failing", "informational", false},
+		{"explicit fail", sdk.FindingDispositionFail, true},
+		{"warn does not gate exit code", sdk.FindingDispositionWarn, false},
+		{"unknown disposition treated as non-failing", sdk.FindingDisposition("informational"), false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			m := NewDiff(output.DiffResponse{Audit: &output.DiffAudit{
 				Introduced: []output.AuditFinding{{
-					ID: "X-1", Kind: "vulnerability", Severity: "high", Source: "osv",
+					ID: "X-1", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityHigh, Source: "osv",
 					Disposition: tc.disposition,
 				}},
 				AuditSummary: &output.AuditSummary{High: 1, Total: 1},
@@ -570,8 +570,8 @@ func TestAuditVerdict_DispositionGate(t *testing.T) {
 func TestAuditVerdict_WarnOnlyIntroducedYieldsPassWithCount(t *testing.T) {
 	m := NewDiff(output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{
-			{ID: "W-1", Disposition: string(sdk.FindingDispositionWarn)},
-			{ID: "W-2", Disposition: string(sdk.FindingDispositionWarn)},
+			{ID: "W-1", Disposition: sdk.FindingDispositionWarn},
+			{ID: "W-2", Disposition: sdk.FindingDispositionWarn},
 		},
 		AuditSummary: &output.AuditSummary{Total: 2},
 	}}, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
@@ -680,13 +680,13 @@ func TestIsVulnerabilityFinding_KindFirstThenFallback(t *testing.T) {
 		f    output.AuditFinding
 		want bool
 	}{
-		{"Kind=vulnerability", output.AuditFinding{Kind: "vulnerability"}, true},
+		{"Kind=vulnerability", output.AuditFinding{Kind: sdk.FindingKindVulnerability}, true},
 		{"Kind=vuln", output.AuditFinding{Kind: "vuln"}, true},
 		{"Kind=advisory", output.AuditFinding{Kind: "advisory"}, true},
 		{"Kind=cve", output.AuditFinding{Kind: "cve"}, true},
 		{"Kind=policy", output.AuditFinding{Kind: "policy"}, false},
 		{"Kind=risk", output.AuditFinding{Kind: "risk"}, false},
-		{"Kind=license", output.AuditFinding{Kind: "license"}, false},
+		{"Kind=license", output.AuditFinding{Kind: sdk.FindingKindLicense}, false},
 		// Fallback path when Kind is empty:
 		{"empty Kind, CVE id", output.AuditFinding{ID: "CVE-2024-0001"}, true},
 		{"empty Kind, GHSA id", output.AuditFinding{ID: "GHSA-abcd"}, true},
@@ -812,9 +812,9 @@ func TestCollectComponentChanges_MaxSeverityFromInlineVulns(t *testing.T) {
 		Added: []output.DiffPackageChange{{Package: output.PackageRef{
 			Name: "vulny", Version: "1",
 			Vulnerabilities: []output.VulnerabilityRef{
-				{ID: "X-1", Severity: "low"},
-				{ID: "X-2", Severity: "critical"},
-				{ID: "X-3", Severity: "high"},
+				{ID: "X-1", Severity: sdk.SeverityLow},
+				{ID: "X-2", Severity: sdk.SeverityCritical},
+				{ID: "X-3", Severity: sdk.SeverityHigh},
 			},
 		}}},
 	}}}}
@@ -876,7 +876,7 @@ func TestFindingsTableLines_PackageOtherRowAbsorbsUnknownRules(t *testing.T) {
 	// row so the pre-seeded table stays exhaustive.
 	payload := output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{
-			{ID: "ext:mystery:pkg@1", Kind: "package", Auditor: "external"},
+			{ID: "ext:mystery:pkg@1", Kind: sdk.FindingKindPackage, Auditor: "external"},
 		},
 	}}
 	m := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
@@ -926,7 +926,7 @@ func TestOverviewHeadline_PassWhenNoIntroduced(t *testing.T) {
 // regression for diff_cmd.go's new gate (Introduced only).
 func TestOverviewHeadline_ResolvedOnlyIsPass(t *testing.T) {
 	p := output.DiffResponse{Audit: &output.DiffAudit{
-		Resolved:     []output.AuditFinding{{ID: "CVE-2022-X", Kind: "vulnerability", Severity: "high"}},
+		Resolved:     []output.AuditFinding{{ID: "CVE-2022-X", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityHigh}},
 		AuditSummary: &output.AuditSummary{},
 	}}
 	m := NewDiff(p, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
@@ -944,8 +944,8 @@ func TestOverviewHeadline_ResolvedOnlyIsPass(t *testing.T) {
 func TestOverviewHeadline_WarnOnlyIntroducedIsPassWithCount(t *testing.T) {
 	p := output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{
-			{ID: "W-1", Disposition: string(sdk.FindingDispositionWarn)},
-			{ID: "W-2", Disposition: string(sdk.FindingDispositionWarn)},
+			{ID: "W-1", Disposition: sdk.FindingDispositionWarn},
+			{ID: "W-2", Disposition: sdk.FindingDispositionWarn},
 		},
 		AuditSummary: &output.AuditSummary{Total: 2},
 	}}
@@ -1000,7 +1000,7 @@ func TestAuditStatusLabel(t *testing.T) {
 func TestComponentChangeBadges_NoDuplicateStatus(t *testing.T) {
 	c := flatComponentChange{
 		status:       "changed",
-		maxSeverity:  "high",
+		maxSeverity:  string(sdk.SeverityHigh),
 		relationship: "direct",
 	}
 	for _, b := range componentChangeBadges(c) {
@@ -1139,17 +1139,17 @@ func TestFindingsOutcomePanels_SpansAllKinds(t *testing.T) {
 	for i := 0; i < 6; i++ {
 		intro = append(intro, output.AuditFinding{
 			ID:       "CVE-X-" + string(rune('A'+i)),
-			Kind:     "vulnerability",
+			Kind:     sdk.FindingKindVulnerability,
 			Auditor:  "vulnerability",
 			Source:   "osv",
-			Severity: "high",
+			Severity: sdk.SeverityHigh,
 		})
 	}
 	var persisted []output.AuditFinding
 	for i := 0; i < 6; i++ {
 		persisted = append(persisted, output.AuditFinding{
 			ID:       "license:unknown-license:pkg-" + string(rune('A'+i)),
-			Kind:     string(sdk.FindingKindLicense),
+			Kind:     sdk.FindingKindLicense,
 			Auditor:  "license",
 			Source:   "license",
 			Severity: "n/a",
@@ -1193,10 +1193,10 @@ func TestFindingsOutcomePanels_SpansAllKinds(t *testing.T) {
 func TestFindingsOutcomePanels_PassWhenNoIntroduced(t *testing.T) {
 	payload := output.DiffResponse{Audit: &output.DiffAudit{
 		Persisted: []output.AuditFinding{
-			{ID: "CVE-1", Kind: "vulnerability", Auditor: "vulnerability"},
+			{ID: "CVE-1", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability"},
 		},
 		Resolved: []output.AuditFinding{
-			{ID: "license:denied-license:pkg@1", Kind: "license", Auditor: "license"},
+			{ID: "license:denied-license:pkg@1", Kind: sdk.FindingKindLicense, Auditor: "license"},
 		},
 	}}
 	m := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
@@ -1215,11 +1215,11 @@ func TestFindingsOutcomePanels_PassWhenNoIntroduced(t *testing.T) {
 func TestVulnsOutcomePanels_ScopedToVulns(t *testing.T) {
 	payload := output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{
-			{ID: "CVE-1", Kind: "vulnerability", Auditor: "vulnerability", Source: "osv", Severity: "critical"},
-			{ID: "license:unknown-license:pkg@1", Kind: string(sdk.FindingKindLicense), Auditor: "license", Source: "license", Severity: "n/a"},
+			{ID: "CVE-1", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability", Source: "osv", Severity: sdk.SeverityCritical},
+			{ID: "license:unknown-license:pkg@1", Kind: sdk.FindingKindLicense, Auditor: "license", Source: "license", Severity: "n/a"},
 		},
 		Persisted: []output.AuditFinding{
-			{ID: "CVE-2", Kind: "vulnerability", Auditor: "vulnerability", Source: "osv", Severity: "medium"},
+			{ID: "CVE-2", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability", Source: "osv", Severity: sdk.SeverityMedium},
 		},
 		AuditSummary: &output.AuditSummary{Critical: 1, Medium: 1, Total: 3},
 	}}
@@ -1274,14 +1274,14 @@ func TestAuditVerdict_FailingSplitByKind(t *testing.T) {
 	payload := output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{
 			// 2 failing vulns (empty Disposition = fail).
-			{ID: "CVE-1", Kind: "vulnerability", Auditor: "vulnerability"},
-			{ID: "CVE-2", Kind: "vulnerability", Auditor: "vulnerability", Disposition: string(sdk.FindingDispositionFail)},
+			{ID: "CVE-1", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability"},
+			{ID: "CVE-2", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability", Disposition: sdk.FindingDispositionFail},
 			// 1 warn vuln — counted in WarnIntroduced, not FailingIntroduced*.
-			{ID: "CVE-3", Kind: "vulnerability", Auditor: "vulnerability", Disposition: string(sdk.FindingDispositionWarn)},
+			{ID: "CVE-3", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability", Disposition: sdk.FindingDispositionWarn},
 			// 1 failing license-kind finding.
-			{ID: "license:denied-license:pkg@1", Kind: string(sdk.FindingKindLicense), Auditor: "license"},
+			{ID: "license:denied-license:pkg@1", Kind: sdk.FindingKindLicense, Auditor: "license"},
 			// 1 warn license-kind finding.
-			{ID: "license:unknown-license:pkg@2", Kind: string(sdk.FindingKindLicense), Auditor: "license", Disposition: string(sdk.FindingDispositionWarn)},
+			{ID: "license:unknown-license:pkg@2", Kind: sdk.FindingKindLicense, Auditor: "license", Disposition: sdk.FindingDispositionWarn},
 		},
 	}}
 	m := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
@@ -1306,10 +1306,10 @@ func TestFindingsOutcomePanels_ByKindReadsFindingKind(t *testing.T) {
 	// every kind so we can see all three rows.
 	payload := output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{
-			{ID: "CVE-1", Kind: "vulnerability", Auditor: "vulnerability", Source: "osv"},
-			{ID: "license:unknown-license:pkg@1", Kind: "license", Auditor: "license", Source: "license"},
-			{ID: "license:invalid-license:pkg@2", Kind: "license", Auditor: "license", Source: "license"},
-			{ID: "package:denied-package:pkg@3", Kind: "package", Auditor: "package", Source: "package"},
+			{ID: "CVE-1", Kind: sdk.FindingKindVulnerability, Auditor: "vulnerability", Source: "osv"},
+			{ID: "license:unknown-license:pkg@1", Kind: sdk.FindingKindLicense, Auditor: "license", Source: "license"},
+			{ID: "license:invalid-license:pkg@2", Kind: sdk.FindingKindLicense, Auditor: "license", Source: "license"},
+			{ID: "package:denied-package:pkg@3", Kind: sdk.FindingKindPackage, Auditor: "package", Source: "package"},
 		},
 		AuditSummary: &output.AuditSummary{Total: 4},
 	}}
@@ -1447,12 +1447,12 @@ func TestComponentChangeDetails_ChangedShowsLicenseAndVulnDelta(t *testing.T) {
 		beforePkg: output.PackageRef{
 			Name: "react", Version: "18.2.0",
 			Licenses:        []output.LicenseRef{{SPDXExpression: "MIT"}, {SPDXExpression: "BSD-2-Clause"}},
-			Vulnerabilities: []output.VulnerabilityRef{{ID: "CVE-OLD", Severity: "high"}},
+			Vulnerabilities: []output.VulnerabilityRef{{ID: "CVE-OLD", Severity: sdk.SeverityHigh}},
 		},
 		pkgRef: output.PackageRef{
 			Name: "react", Version: "19.0.0",
 			Licenses:        []output.LicenseRef{{SPDXExpression: "MIT"}, {SPDXExpression: "Apache-2.0"}},
-			Vulnerabilities: []output.VulnerabilityRef{{ID: "CVE-NEW", Severity: "critical"}},
+			Vulnerabilities: []output.VulnerabilityRef{{ID: "CVE-NEW", Severity: sdk.SeverityCritical}},
 		},
 	}
 	plain := render.StripANSI(strings.Join(componentChangeDetails(c), "\n"))
@@ -1498,7 +1498,7 @@ func TestComponentChangeDetails_AddedRemovedShowsPlainLists(t *testing.T) {
 		pkgRef: output.PackageRef{
 			Name: "new-thing", Version: "1",
 			Licenses:        []output.LicenseRef{{SPDXExpression: "ISC"}},
-			Vulnerabilities: []output.VulnerabilityRef{{ID: "CVE-X", Severity: "low"}},
+			Vulnerabilities: []output.VulnerabilityRef{{ID: "CVE-X", Severity: sdk.SeverityLow}},
 		},
 	}
 	plain := render.StripANSI(strings.Join(componentChangeDetails(added), "\n"))

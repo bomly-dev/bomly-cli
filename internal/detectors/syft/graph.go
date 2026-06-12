@@ -135,17 +135,17 @@ func graphFromSyftPackage(pkg syftpkg.Package) *sdk.Dependency {
 	parsedPURL := parsePackageURL(pkg.PURL)
 
 	node := sdk.NewDependencyWithID(string(pkg.ID()), sdk.Dependency{
-		Ecosystem:   syftEcosystem(pkg, parsedPURL),
-		Name:        pkg.Name,
-		Version:     pkg.Version,
-		Org:         syftOrg(pkg, parsedPURL),
-		BuildSystem: string(pkg.Type),
-		Type:        string(pkg.Type),
-		Language:    pkg.Language.String(),
-		PURL:        pkg.PURL,
-		FoundBy:     pkg.FoundBy,
-		Locations:   graphLocations(locations),
-		CPEs:        graphCPEs(pkg.CPEs),
+		Ecosystem:      sdk.Ecosystem(syftEcosystem(pkg, parsedPURL)),
+		Name:           pkg.Name,
+		Version:        pkg.Version,
+		Org:            syftOrg(pkg, parsedPURL),
+		PackageManager: sdk.PackageManager(strings.ToLower(string(pkg.Type))),
+		Type:           sdk.ParsePackageType(string(pkg.Type)),
+		Language:       sdk.ParseLanguage(pkg.Language.String()),
+		PURL:           pkg.PURL,
+		FoundBy:        pkg.FoundBy,
+		Locations:      graphLocations(locations),
+		CPEs:           graphCPEs(pkg.CPEs),
 	})
 
 	if node.ID == "" {
@@ -178,7 +178,7 @@ func graphLicenses(licenses []syftpkg.License) []sdk.PackageLicense {
 		out = append(out, sdk.PackageLicense{
 			Value:          license.Value,
 			SPDXExpression: license.SPDXExpression,
-			Type:           string(license.Type),
+			Type:           sdk.LicenseType(license.Type),
 		})
 	}
 	sort.Slice(out, func(i, j int) bool {
@@ -276,7 +276,7 @@ func manifestGroupKey(manifest sdk.ManifestMetadata, fallbackID string) string {
 		return manifest.Path
 	}
 	if manifest.Kind != "" {
-		return manifest.Kind + "::" + fallbackID
+		return string(manifest.Kind) + "::" + fallbackID
 	}
 	return fallbackID
 }
@@ -309,15 +309,15 @@ func manifestMetadataFromPackage(pkg *sdk.Dependency, manager sdk.PackageManager
 		}
 		return sdk.ManifestMetadata{
 			Path: normalizeGraphPath(candidate),
-			Kind: pkg.Type,
+			Kind: sdk.ManifestKind(pkg.Type),
 		}
 	}
 
 	kind := manager.Name()
 	if kind == "" {
-		kind = pkg.BuildSystem
+		kind = pkg.PackageManager.Name()
 	}
-	return sdk.ManifestMetadata{Kind: kind}
+	return sdk.ManifestMetadata{Kind: sdk.ManifestKind(kind)}
 }
 
 func normalizeGraphPath(value string) string {

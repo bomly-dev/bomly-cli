@@ -339,16 +339,16 @@ func isJVMPackage(pkg *model.Dependency) bool {
 	if pkg == nil {
 		return false
 	}
-	switch strings.ToLower(pkg.Ecosystem) {
-	case string(model.EcosystemMaven), string(model.EcosystemScala):
+	switch pkg.Ecosystem {
+	case model.EcosystemMaven, model.EcosystemScala:
 		return true
 	}
-	switch strings.ToLower(strings.TrimSpace(pkg.BuildSystem)) {
-	case "maven", "gradle", "sbt":
+	switch pkg.PackageManager {
+	case model.PackageManagerMaven, model.PackageManagerGradle, model.PackageManagerSBT:
 		return true
 	}
-	switch strings.ToLower(strings.TrimSpace(pkg.Language)) {
-	case string(model.LanguageJava), string(model.LanguageKotlin), string(model.LanguageScala), string(model.LanguageGroovy):
+	switch pkg.Language {
+	case model.LanguageJava, model.LanguageKotlin, model.LanguageScala, model.LanguageGroovy:
 		return true
 	}
 	return false

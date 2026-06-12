@@ -168,7 +168,7 @@ testRuntimeClasspath - Test runtime classpath of source set 'test'.
 		t.Fatalf("expected transitive dependency package")
 	}
 	guava, _ := g.Node("com.google.guava:guava@33.0.0-jre")
-	if guava.Ecosystem != "maven" || guava.Org != "com.google.guava" || guava.Name != "guava" || guava.BuildSystem != "gradle" {
+	if guava.Ecosystem != "maven" || guava.Org != "com.google.guava" || guava.Name != "guava" || guava.PackageManager != "gradle" {
 		t.Fatalf("unexpected gradle coordinates: %#v", guava)
 	}
 	if string(guava.PrimaryScope()) != string(sdk.ScopeRuntime) {

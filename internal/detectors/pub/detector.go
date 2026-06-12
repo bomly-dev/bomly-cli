@@ -166,25 +166,25 @@ func rootNode(manifest pubspec) *sdk.Dependency {
 		name = "root"
 	}
 	return sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   string(sdk.EcosystemDart),
-		Name:        name,
-		Version:     strings.TrimSpace(manifest.Version),
-		BuildSystem: sdk.PackageManagerPub.Name(),
-		Type:        "application",
-		Language:    "dart",
+		Ecosystem:      sdk.EcosystemDart,
+		Name:           name,
+		Version:        strings.TrimSpace(manifest.Version),
+		PackageManager: sdk.PackageManagerPub,
+		Type:           sdk.PackageTypeApplication,
+		Language:       "dart",
 	})
 
 }
 
 func packageNode(name string, pkg pubLockPackage) *sdk.Dependency {
 	node := sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   string(sdk.EcosystemDart),
-		Name:        name,
-		Version:     strings.TrimSpace(pkg.Version),
-		BuildSystem: sdk.PackageManagerPub.Name(),
-		Type:        "package",
-		Language:    "dart",
-		PURL:        sdk.BuildPackageURL("pub", "", name, pkg.Version),
+		Ecosystem:      sdk.EcosystemDart,
+		Name:           name,
+		Version:        strings.TrimSpace(pkg.Version),
+		PackageManager: sdk.PackageManagerPub,
+		Type:           sdk.PackageTypePackage,
+		Language:       "dart",
+		PURL:           sdk.BuildPackageURL("pub", "", name, pkg.Version),
 		Metadata: map[string]any{
 			"source": strings.TrimSpace(pkg.Source),
 		},

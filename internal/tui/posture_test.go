@@ -110,6 +110,35 @@ func TestPostureTab_ScanEmptyStateHints(t *testing.T) {
 	}
 }
 
+func TestTopAffectedLines_FitBoxBudget(t *testing.T) {
+	pkg := sdk.NewDependency(sdk.Dependency{
+		Name:    "org.springframework:spring-web",
+		Version: "6.0.0",
+		Scopes:  sdk.ScopesOf(sdk.ScopeRuntime),
+	})
+	rows := make([]packageVulnerabilityRow, 0, 12)
+	for i := 0; i < 12; i++ {
+		rows = append(rows, packageVulnerabilityRow{
+			pkg:           pkg,
+			vulnerability: sdk.Vulnerability{ID: "CVE-2026-" + string(rune('A'+i))},
+		})
+	}
+
+	for _, width := range []int{58, 90, 132, 140} {
+		lines := topAffectedLines(rows, 5, width)
+		if len(lines) != 1 {
+			t.Fatalf("topAffectedLines(width=%d) produced %d lines, want 1", width, len(lines))
+		}
+		plain := render.StripANSI(lines[0])
+		if visible := len([]rune(plain)); visible > width-2 {
+			t.Errorf("top affected line at width=%d has %d visible cols, want <= %d.\nLine: %q", width, visible, width-2, plain)
+		}
+		if !strings.HasSuffix(plain, " 12") {
+			t.Errorf("top affected line at width=%d lost count suffix:\n%s", width, plain)
+		}
+	}
+}
+
 func TestPostureRowsFromGraph_DedupesAndSortsWorstFirst(t *testing.T) {
 	g := sdk.New()
 	registry := sdk.NewPackageRegistry()
@@ -154,6 +183,35 @@ func TestPostureRowsFromGraph_DedupesAndSortsWorstFirst(t *testing.T) {
 	}
 	if len(mono.packages) != 2 {
 		t.Errorf("expected monorepo row to dedupe 2 packages; got %d", len(mono.packages))
+	}
+}
+
+func TestPostureTopFailingLines_FitBoxBudget(t *testing.T) {
+	rows := make([]postureRow, 0, 196)
+	for i := 0; i < 196; i++ {
+		rows = append(rows, postureRow{
+			repository: "github.com/example/repo",
+			card: newTestScorecardTUI("github.com/example/repo", 4.8,
+				sdk.PackageScorecardCheck{Name: "CI-Best-Practices", Score: 1},
+				sdk.PackageScorecardCheck{Name: "Security-Policy", Score: 2},
+			),
+		})
+	}
+
+	for _, width := range []int{58, 90, 132, 140} {
+		lines := postureTopFailingLines(rows, width)
+		if len(lines) == 0 {
+			t.Fatalf("postureTopFailingLines(width=%d) produced no lines", width)
+		}
+		for _, line := range lines {
+			plain := render.StripANSI(line)
+			if visible := len([]rune(plain)); visible > width-2 {
+				t.Errorf("posture failing line at width=%d has %d visible cols, want <= %d.\nLine: %q", width, visible, width-2, plain)
+			}
+			if !strings.HasSuffix(plain, " 196/196") {
+				t.Errorf("posture failing line at width=%d lost failure suffix:\n%s", width, plain)
+			}
+		}
 	}
 }
 

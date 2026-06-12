@@ -137,10 +137,11 @@ type listModel struct {
 }
 
 type listPanel struct {
-	title  string
-	lines  []string
-	color  string
-	weight int
+	title      string
+	lines      []string
+	buildLines func(width int) []string
+	color      string
+	weight     int
 }
 
 const interactiveCommonNavigationHelp = "Up/Down or j/k move; Enter focus details (Up/Down scroll, Esc back); Home/End jump; q quits"
@@ -815,7 +816,11 @@ func renderListPanels(panels []listPanel, width int) []string {
 		if color == "" {
 			color = render.Cyan
 		}
-		rendered = append(rendered, boxView(panel.title, panel.lines, panelWidth, panelHeight, color))
+		lines := panel.lines
+		if panel.buildLines != nil {
+			lines = panel.buildLines(panelWidth - 2)
+		}
+		rendered = append(rendered, boxView(panel.title, lines, panelWidth, panelHeight, color))
 	}
 	out := make([]string, 0, panelHeight)
 	for row := 0; row < panelHeight; row++ {

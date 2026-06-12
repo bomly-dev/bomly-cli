@@ -1047,7 +1047,9 @@ func (m *ScanModel) buildVulnsListModel() *listModel {
 		detailTitle: "Vulnerability Details",
 		topPanels: []listPanel{
 			{title: "Severity Summary", lines: vulnerabilitySummaryLines(all), color: render.Red, weight: 1},
-			{title: "Top Affected", lines: topAffectedLines(all, 5, 140), color: render.Green, weight: 2},
+			{title: "Top Affected", lines: topAffectedLines(all, 5, 140), buildLines: func(width int) []string {
+				return topAffectedLines(all, 5, width)
+			}, color: render.Green, weight: 2},
 		},
 		navigationHelp: interactiveCommonNavigationHelp,
 		filterHelp:     "Use / to search; Enter focuses details; Esc clears search; v cycles severity filter; g groups vulnerabilities; 1-7 switch tabs",
@@ -1213,6 +1215,9 @@ func topAffectedLines(vulnerabilities []packageVulnerabilityRow, limit, width in
 	maxVal := maxCount(counts)
 	lines := make([]string, 0, len(keys))
 	for idx, key := range keys {
+		if width < 32 {
+			width = 32
+		}
 		labelWidth := width / 3
 		if labelWidth < 18 {
 			labelWidth = 18
@@ -1220,11 +1225,20 @@ func topAffectedLines(vulnerabilities []packageVulnerabilityRow, limit, width in
 		if labelWidth > 34 {
 			labelWidth = 34
 		}
-		barWidth := width - labelWidth - 3
+		suffix := fmt.Sprintf(" %d", counts[key])
+		barWidth := width - labelWidth - 1 - len(suffix) - 2
 		if barWidth < 10 {
 			barWidth = 10
+			labelWidth = width - barWidth - 1 - len(suffix) - 2
+			if labelWidth < 8 {
+				labelWidth = 8
+				barWidth = width - labelWidth - 1 - len(suffix) - 2
+				if barWidth < 1 {
+					barWidth = 1
+				}
+			}
 		}
-		lines = append(lines, padRight(truncateToWidth(key, labelWidth), labelWidth)+render.Style(" ", render.Dim)+coloredBarLine(counts[key], maxVal, barWidth, paletteColor(idx))+" "+fmt.Sprintf("%d", counts[key]))
+		lines = append(lines, padRight(truncateToWidth(key, labelWidth), labelWidth)+render.Style(" ", render.Dim)+coloredBarLine(counts[key], maxVal, barWidth, paletteColor(idx))+suffix)
 	}
 	return lines
 }
@@ -1564,7 +1578,9 @@ func (m *ScanModel) buildPostureListModel() *listModel {
 		detailTitle: "Repository Posture",
 		topPanels: []listPanel{
 			{title: "Posture Summary", lines: postureSummaryLines(rows), color: render.Yellow, weight: 1},
-			{title: "Top Failing Checks", lines: postureTopFailingLines(rows, 140), color: render.Red, weight: 2},
+			{title: "Top Failing Checks", lines: postureTopFailingLines(rows, 140), buildLines: func(width int) []string {
+				return postureTopFailingLines(rows, width)
+			}, color: render.Red, weight: 2},
 		},
 		navigationHelp: interactiveCommonNavigationHelp,
 		filterHelp:     "Use / to search; g cycles group (repository/check); Enter focuses details; 1-7 switch tabs",

@@ -1,0 +1,160 @@
+{
+  "groups": [
+    {
+      "id": "start",
+      "label": "Getting started",
+      "description": "Install Bomly and run your first scan."
+    },
+    {
+      "id": "concepts",
+      "label": "How it works",
+      "description": "What Bomly does, and why each piece exists."
+    },
+    {
+      "id": "reference",
+      "label": "Reference",
+      "description": "Generated specifications and supported matrices."
+    },
+    {
+      "id": "operations",
+      "label": "Operations",
+      "description": "Running Bomly in CI and extending it with plugins."
+    },
+    {
+      "id": "experimental",
+      "label": "Experimental",
+      "description": "Features that are still maturing."
+    }
+  ],
+  "docs": [
+    {
+      "slug": "getting-started",
+      "title": "Getting started",
+      "description": "First scan, enrich, audit, diff — all in five minutes.",
+      "group": "start"
+    },
+    {
+      "slug": "installation",
+      "title": "Installation",
+      "description": "Install methods, `bomly` vs `bomly-lite`, checksum verification, upgrade, uninstall.",
+      "group": "start"
+    },
+    {
+      "slug": "use-cases",
+      "title": "Use cases",
+      "description": "Recipes for PR gates, SBOMs, triage, and license and offline scans.",
+      "group": "start"
+    },
+    {
+      "slug": "scan-targets",
+      "title": "Scan targets",
+      "description": "Local directories, Git repositories, container images, and existing SBOMs.",
+      "group": "start"
+    },
+    {
+      "slug": "output-formats",
+      "title": "Output formats",
+      "description": "Text, JSON, SARIF, and SBOM artifacts — when to use each and how to combine them.",
+      "group": "start"
+    },
+    {
+      "slug": "sbom",
+      "title": "SBOM formats",
+      "description": "SPDX 2.3 vs. CycloneDX 1.6, when to pick which, ingest and conversion recipes.",
+      "group": "start"
+    },
+    {
+      "slug": "architecture",
+      "title": "Architecture",
+      "description": "How the scan pipeline is structured: targets, detectors, matchers, auditors.",
+      "group": "concepts"
+    },
+    {
+      "slug": "detectors",
+      "title": "Detectors",
+      "description": "How Bomly discovers projects and turns evidence into a dependency graph.",
+      "group": "concepts",
+      "hasChildren": true
+    },
+    {
+      "slug": "matchers",
+      "title": "Matchers",
+      "description": "How Bomly enriches packages with vulnerability, license, and lifecycle data.",
+      "group": "concepts",
+      "hasChildren": true
+    },
+    {
+      "slug": "auditors",
+      "title": "Auditors",
+      "description": "How Bomly turns vulnerability data into actionable findings.",
+      "group": "concepts"
+    },
+    {
+      "slug": "glossary",
+      "title": "Glossary",
+      "description": "Every Bomly term, one sentence each.",
+      "group": "concepts"
+    },
+    {
+      "slug": "support-matrix",
+      "title": "Support matrix",
+      "description": "Every ecosystem and package manager Bomly can identify today.",
+      "group": "reference"
+    },
+    {
+      "slug": "config-reference",
+      "title": "Config reference",
+      "description": "All config keys, environment variables, and defaults.",
+      "group": "reference"
+    },
+    {
+      "slug": "exit-codes",
+      "title": "Exit codes",
+      "description": "Process exit values and what each one means for scripts and CI.",
+      "group": "reference"
+    },
+    {
+      "slug": "tui",
+      "title": "Interactive TUI",
+      "description": "Keybindings, tabs, and filters for the --interactive terminal UI.",
+      "group": "reference"
+    },
+    {
+      "slug": "models",
+      "title": "Domain models",
+      "description": "The SDK types behind detection, matching, and audit, and how they connect.",
+      "group": "reference"
+    },
+    {
+      "slug": "ci-integration",
+      "title": "CI integration",
+      "description": "Drop-in recipes for GitHub Actions, GitLab, Jenkins, Azure DevOps, and CircleCI.",
+      "group": "operations"
+    },
+    {
+      "slug": "bomly-guard",
+      "title": "Bomly Guard",
+      "description": "The turnkey GitHub Action that gates pull requests on dependency changes via `bomly diff`.",
+      "group": "operations"
+    },
+    {
+      "slug": "troubleshooting",
+      "title": "Troubleshooting",
+      "description": "Common errors and how to fix them, organized by exit code and symptom.",
+      "group": "operations"
+    },
+    {
+      "slug": "plugins",
+      "title": "Plugins",
+      "description": "Install, enable, verify, and build external detectors, matchers, and auditors.",
+      "group": "operations"
+    },
+    {
+      "slug": "reachability",
+      "title": "Reachability",
+      "description": "Confirm whether a vulnerability is actually reachable from your code. Experimental.",
+      "group": "experimental",
+      "experimental": true
+    }
+  ]
+}

@@ -17,9 +17,9 @@ on:
 permissions:
   actions: read            # required for SARIF upload on private repos
   contents: read
-  pull-requests: write     # required to post the summary comment
+  pull-requests: write     # required to post the summary comment (when opted in)
   security-events: write   # required for SARIF upload
-  issues: write
+  issues: write            # PR summary comments post via the issue-comments API
 
 jobs:
   dependency-review:
@@ -115,7 +115,7 @@ The action always writes a job summary to the workflow run. PR comments are cont
 - `always` — comment on every PR run.
 - `on-failure` — comment only when a finding fails the review.
 
-Posting comments requires `pull-requests: write`. The action updates its existing comment in place rather than stacking a new one on every run.
+Comments default to `never`, so the action only posts when you opt in. Posting goes through the issue-comments API, so grant both `pull-requests: write` and `issues: write`. The action updates its existing comment in place rather than stacking a new one on every run.
 
 ## SARIF upload
 

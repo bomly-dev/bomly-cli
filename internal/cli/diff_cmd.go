@@ -177,7 +177,7 @@ func newDiffCmd() *cobra.Command {
 				Text:     textRenderer,
 			}
 			sarifRenderer := func(w io.Writer) error {
-				return output.WriteSARIF(w, diffResult.Findings, diffResult.Head.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: current.Analyze})
+				return output.WriteSARIF(w, diffResult.Findings, diffResult.Head.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: current.Analyze, LocationGraphs: []*sdk.Graph{diffResult.Head.Graph, diffResult.Base.Graph}})
 			}
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
@@ -193,7 +193,7 @@ func newDiffCmd() *cobra.Command {
 			}
 			if outputFormat == output.FormatSARIF {
 				prog.Success("Resolved Graph")
-				return output.WriteSARIF(streams.reportWriter(), diffResult.Findings, diffResult.Head.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: current.Analyze})
+				return sarifRenderer(streams.reportWriter())
 			}
 			if current.Interactive {
 				prog.Stop()

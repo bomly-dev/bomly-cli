@@ -122,7 +122,7 @@ func newScanCmd() *cobra.Command {
 				Text:     textRenderer,
 			}
 			sarifRenderer := func(w io.Writer) error {
-				return output.WriteSARIF(w, findings, pipeResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: commandCtx.ResolvedConfig.Analyze})
+				return output.WriteSARIF(w, findings, pipeResult.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: commandCtx.ResolvedConfig.Analyze, LocationGraphs: []*sdk.Graph{pipeResult.Graph}})
 			}
 
 			if len(outputSpecs) > 0 {

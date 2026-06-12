@@ -166,12 +166,10 @@ func TestWriteSARIF_OSVHelpURI(t *testing.T) {
 	}
 }
 
-// TestWriteSARIF_LocationsFallBackToPURL verifies the writer synthesizes a
-// SARIF location keyed on the PackageRef PURL when nothing richer is
-// available. Per-dependency file/line locations are a detection-time concern
-// on *sdk.Dependency; the registry Package carries the PURL identity, which
-// the writer uses as the synthetic SARIF URI.
-func TestWriteSARIF_LocationsFallBackToPURL(t *testing.T) {
+// TestWriteSARIF_LocationsFallBackToRepoFile verifies the writer uses a
+// GitHub-compatible repository file when no richer dependency location is
+// available. Package identity stays in the SARIF properties bag.
+func TestWriteSARIF_LocationsFallBackToRepoFile(t *testing.T) {
 	findings := []sdk.Finding{
 		{ID: "CVE-2021-23337", Kind: sdk.FindingKindVulnerability, PackageRef: sarifTestPURL, Title: "Vuln", Severity: "high"},
 	}
@@ -181,11 +179,111 @@ func TestWriteSARIF_LocationsFallBackToPURL(t *testing.T) {
 	}
 	var doc map[string]any
 	_ = json.Unmarshal(buf.Bytes(), &doc)
-	pl := doc["runs"].([]any)[0].(map[string]any)["results"].([]any)[0].(map[string]any)["locations"].([]any)[0].(map[string]any)["physicalLocation"].(map[string]any)
-	if pl["artifactLocation"].(map[string]any)["uri"] != sarifTestPURL {
-		t.Errorf("fallback uri = %v, want %s", pl["artifactLocation"], sarifTestPURL)
+	result := doc["runs"].([]any)[0].(map[string]any)["results"].([]any)[0].(map[string]any)
+	pl := result["locations"].([]any)[0].(map[string]any)["physicalLocation"].(map[string]any)
+	if pl["artifactLocation"].(map[string]any)["uri"] != "README.md" {
+		t.Errorf("fallback uri = %v, want README.md", pl["artifactLocation"])
 	}
 	if _, hasRegion := pl["region"]; hasRegion {
 		t.Errorf("fallback location should have no region")
+	}
+	props := result["properties"].(map[string]any)
+	if props["package_ref"] != sarifTestPURL {
+		t.Errorf("package_ref property = %v, want %s", props["package_ref"], sarifTestPURL)
+	}
+	locationURIs := props["location_uris"].([]any)
+	if len(locationURIs) != 1 || locationURIs[0] != sarifTestPURL {
+		t.Errorf("location_uris = %#v, want [%s]", locationURIs, sarifTestPURL)
+	}
+}
+
+func TestWriteSARIF_UsesDependencyLocationsFromGraph(t *testing.T) {
+	graph := sdk.New()
+	dep := sdk.NewDependencyWithID("lodash@4.17.15", sdk.Dependency{
+		Name:       "lodash",
+		PackageRef: sarifTestPURL,
+		Locations: []sdk.PackageLocation{
+			{
+				RealPath: "package-lock.json",
+				Position: &sdk.SourcePosition{
+					File:    "package-lock.json",
+					Line:    42,
+					Column:  5,
+					EndLine: 42,
+				},
+			},
+		},
+	})
+	if err := graph.AddNode(dep); err != nil {
+		t.Fatalf("AddNode: %v", err)
+	}
+	findings := []sdk.Finding{
+		{
+			ID:             "CVE-2021-23337",
+			Kind:           sdk.FindingKindVulnerability,
+			PackageRef:     sarifTestPURL,
+			DependencyRefs: []string{dep.ID},
+			Title:          "Vuln",
+			Severity:       "high",
+		},
+	}
+
+	var buf bytes.Buffer
+	if err := WriteSARIF(&buf, findings, nil, "bomly", "0.1.0", SARIFOptions{LocationGraphs: []*sdk.Graph{graph}}); err != nil {
+		t.Fatalf("WriteSARIF: %v", err)
+	}
+	var doc map[string]any
+	_ = json.Unmarshal(buf.Bytes(), &doc)
+	result := doc["runs"].([]any)[0].(map[string]any)["results"].([]any)[0].(map[string]any)
+	pl := result["locations"].([]any)[0].(map[string]any)["physicalLocation"].(map[string]any)
+	if pl["artifactLocation"].(map[string]any)["uri"] != "package-lock.json" {
+		t.Errorf("location uri = %v, want package-lock.json", pl["artifactLocation"])
+	}
+	region := pl["region"].(map[string]any)
+	if region["startLine"] != float64(42) || region["startColumn"] != float64(5) {
+		t.Errorf("region = %#v, want line 42 column 5", region)
+	}
+	props := result["properties"].(map[string]any)
+	if refs := props["dependency_refs"].([]any); len(refs) != 1 || refs[0] != dep.ID {
+		t.Errorf("dependency_refs = %#v, want [%s]", refs, dep.ID)
+	}
+}
+
+func TestWriteSARIF_RewritesNonFileLocationSchemes(t *testing.T) {
+	graph := sdk.New()
+	dep := sdk.NewDependencyWithID("actions:checkout@v5", sdk.Dependency{
+		Name:       "actions/checkout",
+		PackageRef: "actions:checkout@v5",
+		Locations:  []sdk.PackageLocation{{RealPath: "actions:checkout@v5"}},
+	})
+	if err := graph.AddNode(dep); err != nil {
+		t.Fatalf("AddNode: %v", err)
+	}
+	findings := []sdk.Finding{
+		{
+			ID:             "policy:actions",
+			Kind:           sdk.FindingKindPackage,
+			PackageRef:     "actions:checkout@v5",
+			DependencyRefs: []string{dep.ID},
+			Title:          "Denied action",
+			Severity:       "high",
+		},
+	}
+
+	var buf bytes.Buffer
+	if err := WriteSARIF(&buf, findings, nil, "bomly", "0.1.0", SARIFOptions{LocationGraphs: []*sdk.Graph{graph}}); err != nil {
+		t.Fatalf("WriteSARIF: %v", err)
+	}
+	var doc map[string]any
+	_ = json.Unmarshal(buf.Bytes(), &doc)
+	result := doc["runs"].([]any)[0].(map[string]any)["results"].([]any)[0].(map[string]any)
+	pl := result["locations"].([]any)[0].(map[string]any)["physicalLocation"].(map[string]any)
+	if pl["artifactLocation"].(map[string]any)["uri"] != "README.md" {
+		t.Errorf("non-file scheme uri = %v, want README.md", pl["artifactLocation"])
+	}
+	props := result["properties"].(map[string]any)
+	locationURIs := props["location_uris"].([]any)
+	if len(locationURIs) != 1 || locationURIs[0] != "actions:checkout@v5" {
+		t.Errorf("location_uris = %#v, want [actions:checkout@v5]", locationURIs)
 	}
 }

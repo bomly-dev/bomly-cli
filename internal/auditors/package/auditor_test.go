@@ -222,6 +222,11 @@ func TestAudit(t *testing.T) {
 			if got := len(result.Findings); got != tc.wantFindingCount {
 				t.Errorf("finding count = %d, want %d; findings: %v", got, tc.wantFindingCount, findingIDs(result.Findings))
 			}
+			for _, finding := range result.Findings {
+				if finding.Severity != packageSeverityNA {
+					t.Errorf("finding %q severity = %q, want %q", finding.ID, finding.Severity, packageSeverityNA)
+				}
+			}
 			for _, wantID := range tc.wantFindingIDs {
 				found := false
 				for _, f := range result.Findings {

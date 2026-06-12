@@ -53,7 +53,7 @@ func fixtureDiffPayload() output.DiffResponse {
 		Audit: &output.DiffAudit{
 			Introduced: []output.AuditFinding{
 				{ID: "CVE-2024-0001", Kind: "vulnerability", Severity: "high", Source: "osv", Package: output.PackageRef{Name: "react", Version: "19.0.0"}},
-				{ID: "license:unknown-license:zod@3.23.0", Kind: string(sdk.FindingKindLicense), Severity: "unknown", Auditor: "license", Source: "license", Package: output.PackageRef{Name: "zod", Version: "3.23.0"}},
+				{ID: "license:unknown-license:zod@3.23.0", Kind: string(sdk.FindingKindLicense), Severity: "n/a", Auditor: "license", Source: "license", Package: output.PackageRef{Name: "zod", Version: "3.23.0"}},
 			},
 			Persisted: []output.AuditFinding{
 				{ID: "CVE-2023-9999", Kind: "vulnerability", Severity: "medium", Source: "osv", Package: output.PackageRef{Name: "lodash", Version: "4.17.20"}},
@@ -1152,7 +1152,7 @@ func TestFindingsOutcomePanels_SpansAllKinds(t *testing.T) {
 			Kind:     string(sdk.FindingKindLicense),
 			Auditor:  "license",
 			Source:   "license",
-			Severity: "unknown",
+			Severity: "n/a",
 		})
 	}
 	payload := output.DiffResponse{Audit: &output.DiffAudit{
@@ -1216,7 +1216,7 @@ func TestVulnsOutcomePanels_ScopedToVulns(t *testing.T) {
 	payload := output.DiffResponse{Audit: &output.DiffAudit{
 		Introduced: []output.AuditFinding{
 			{ID: "CVE-1", Kind: "vulnerability", Auditor: "vulnerability", Source: "osv", Severity: "critical"},
-			{ID: "license:unknown-license:pkg@1", Kind: string(sdk.FindingKindLicense), Auditor: "license", Source: "license", Severity: "unknown"},
+			{ID: "license:unknown-license:pkg@1", Kind: string(sdk.FindingKindLicense), Auditor: "license", Source: "license", Severity: "n/a"},
 		},
 		Persisted: []output.AuditFinding{
 			{ID: "CVE-2", Kind: "vulnerability", Auditor: "vulnerability", Source: "osv", Severity: "medium"},
@@ -1330,8 +1330,8 @@ func TestFindingsOutcomePanels_ByKindReadsFindingKind(t *testing.T) {
 
 func TestNextFindingGroup_CyclesStatusKindPackage(t *testing.T) {
 	// Severity is intentionally excluded from the Findings axis — license
-	// and package auditors emit Severity="unknown" for everything, so
-	// "severity" grouping is degenerate. Lock that exclusion in.
+	// and package auditors use non-vulnerability severity labels, so "severity"
+	// grouping is degenerate. Lock that exclusion in.
 	cases := []struct{ in, want string }{
 		{"status", "kind"},
 		{"kind", "package"},

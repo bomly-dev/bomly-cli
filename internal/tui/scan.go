@@ -1544,8 +1544,8 @@ func (m *ScanModel) buildPostureListModel() *listModel {
 			}
 		}
 		repoWidth = maxRepo
-		if repoWidth > 56 {
-			repoWidth = 56
+		if repoWidth > 32 {
+			repoWidth = 32
 		}
 		if repoWidth < 24 {
 			repoWidth = 24
@@ -1557,7 +1557,11 @@ func (m *ScanModel) buildPostureListModel() *listModel {
 	var listTitle, listHeader string
 	switch group {
 	case "check":
-		items, listTitle, listHeader = m.postureItemsByCheck(rows, repoWidth)
+		checkRepoWidth := repoWidth
+		if checkRepoWidth > 24 {
+			checkRepoWidth = 24
+		}
+		items, listTitle, listHeader = m.postureItemsByCheck(rows, checkRepoWidth)
 	default:
 		items = m.postureItemsByRepository(rows, repoWidth)
 		listTitle = fmt.Sprintf("Repositories (%d)", len(rows))

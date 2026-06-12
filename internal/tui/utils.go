@@ -139,42 +139,42 @@ func statusBadge(status string) string {
 	label := " " + strings.ToUpper(valueOrDash(status)) + " "
 	switch strings.ToLower(strings.TrimSpace(status)) {
 	case "manifest":
-		return render.Style(label, render.BgBlue, render.Yellow, render.Bold)
+		return terminalSafeBadge(label, render.BgYellow, render.Black)
 	case "self":
-		return render.Style(label, render.BgGreen, render.White, render.Bold)
+		return terminalSafeBadge(label, render.BgBlue, render.White)
 	case "parent":
-		return render.Style(label, render.BgCyan, render.White, render.Bold)
+		return terminalSafeBadge(label, render.BgBlue, render.White)
 	case "ancestor":
-		return render.Style(label, render.BgMagenta, render.White, render.Bold)
+		return terminalSafeBadge(label, render.BgBlue, render.White)
 	case "root":
-		return render.Style(label, render.BgBlue, render.White, render.Bold)
+		return terminalSafeBadge(label, render.BgBlue, render.White)
 	case "direct":
-		return render.Style(label, render.BgCyan, render.White, render.Bold)
+		return terminalSafeBadge(label, render.BgBlue, render.White)
 	case "transitive":
-		return render.Style(label, render.BgMagenta, render.White, render.Bold)
+		return terminalSafeBadge(label, render.BgBlue, render.White)
 	case "added":
-		return render.Style(label, render.BgGreen, render.White, render.Bold)
+		return terminalSafeBadge(label, render.BgGreen, render.Black)
 	case "removed":
-		return render.Style(label, render.BgRed, render.White, render.Bold)
+		return terminalSafeBadge(label, render.BgRed, render.White)
 	case "changed":
-		return render.Style(label, render.BgYellow, render.Bold)
+		return terminalSafeBadge(label, render.BgYellow, render.Black)
 	case "unchanged":
-		return render.Style(label, render.BgBlue, render.White)
+		return terminalSafeBadge(label, render.BgBlue, render.White)
 	case "new": // audit-delta "introduced" (display-side label)
-		return render.Style(label, render.BgRed, render.White, render.Bold)
+		return terminalSafeBadge(label, render.BgRed, render.White)
 	case "old": // audit-delta "persisted"
-		return render.Style(label, render.BgYellow, render.Bold)
+		return terminalSafeBadge(label, render.BgYellow, render.Black)
 	case "fixed": // audit-delta "resolved"
-		return render.Style(label, render.BgGreen, render.White, render.Bold)
+		return terminalSafeBadge(label, render.BgGreen, render.Black)
 	case "retired": // license-delta "retired"
-		return render.Style(label, render.BgRed, render.White, render.Bold)
+		return terminalSafeBadge(label, render.BgRed, render.White)
 	case "introduced", "persisted", "resolved":
 		// Internal data may still feed the long words through (older code
 		// paths, tests). Translate to the short equivalent here and recurse
 		// into the colored branches above for the same coloring.
 		return statusBadge(auditStatusLabel(status))
 	default:
-		return render.Style(label, render.BgCyan, render.Blue, render.Bold)
+		return terminalSafeBadge(label, render.BgBlue, render.White)
 	}
 }
 
@@ -182,26 +182,30 @@ func badgeView(badge badge) string {
 	label := " " + strings.ToUpper(valueOrDash(badge.label)) + " "
 	switch badge.kind {
 	case "scope-runtime":
-		return render.Style(label, render.BgGreen, render.White, render.Bold)
+		return terminalSafeBadge(label, render.BgGreen, render.Black)
 	case "scope-development":
-		return render.Style(label, render.BgYellow, render.Bold)
+		return terminalSafeBadge(label, render.BgYellow, render.Black)
 	case "severity-critical":
-		return render.Style(label, render.BgRed, render.White, render.Bold)
+		return terminalSafeBadge(label, render.BgRed, render.White)
 	case "severity-high":
-		return render.Style(label, render.BgRed, render.White)
+		return terminalSafeBadge(label, render.BgRed, render.White)
 	case "severity-medium":
-		return render.Style(label, render.BgYellow, render.Bold)
+		return terminalSafeBadge(label, render.BgYellow, render.Black)
 	case "severity-low":
-		return render.Style(label, render.BgCyan, render.Blue, render.Bold)
+		return terminalSafeBadge(label, render.BgBlue, render.White)
 	case "reachability-reachable":
-		return render.Style(label, render.BgRed, render.White, render.Bold)
+		return terminalSafeBadge(label, render.BgRed, render.White)
 	case "reachability-unreachable":
-		return render.Style(label, render.BgBlue, render.White, render.Bold)
+		return terminalSafeBadge(label, render.BgBlue, render.White)
 	case "repeated":
-		return render.Style(label, render.BgBlue, render.White)
+		return terminalSafeBadge(label, render.BgBlue, render.White)
 	default:
-		return render.Style(label, render.BgCyan, render.Blue, render.Bold)
+		return terminalSafeBadge(label, render.BgBlue, render.White)
 	}
+}
+
+func terminalSafeBadge(label, background, foreground string) string {
+	return render.Style(label, background, foreground, render.Bold)
 }
 
 func severityRank(s string) int {

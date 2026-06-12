@@ -2,7 +2,6 @@ package diff
 
 import (
 	"context"
-	"strings"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/auditors/license"
@@ -120,8 +119,8 @@ func TestRun_UnknownLicenseFindingIsEmittedForFocusedPackage(t *testing.T) {
 		t.Fatalf("expected 1 introduced unknown-license finding, got %#v", result.Audit.Introduced)
 	}
 	finding := result.Audit.Introduced[0]
-	if !strings.Contains(finding.ID, "unknown-license") {
-		t.Fatalf("expected unknown-license finding, got %#v", finding)
+	if finding.ID != "BOMLY-LIC-UNKNOWN" {
+		t.Fatalf("expected compact unknown-license finding ID, got %#v", finding)
 	}
 	if finding.PackageRef != react.PURL {
 		t.Fatalf("expected finding package ref %q, got %q", react.PURL, finding.PackageRef)

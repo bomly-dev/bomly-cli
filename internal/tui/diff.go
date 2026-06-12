@@ -779,7 +779,7 @@ func findingKindOf(f output.AuditFinding) string {
 	return "other"
 }
 
-// findingRule pulls the rule keyword from an AuditFinding.ID. Built-in
+// findingRule pulls the rule keyword from an AuditFinding.ID. Most built-in
 // auditors format IDs as "<auditor>:<rule>:<package-id>" (see
 // internal/auditors/{license,package}/auditor.go). The rule chunk is the
 // 2nd colon-separated field; we additionally strip a trailing "-license"
@@ -789,6 +789,10 @@ func findingRule(f output.AuditFinding, fallback string) string {
 	id := strings.TrimSpace(f.ID)
 	if id == "" {
 		return fallback
+	}
+	switch strings.ToUpper(id) {
+	case "BOMLY-LIC-UNKNOWN":
+		return "unknown"
 	}
 	parts := strings.SplitN(id, ":", 3)
 	if len(parts) < 2 {
@@ -813,7 +817,7 @@ func severityRowKeys() []string {
 
 func licenseRuleRowKeys() []string {
 	// Mirrors the rule IDs in internal/auditors/license/auditor.go:
-	//   unknown-license / invalid-license / denied-license
+	//   BOMLY-LIC-UNKNOWN / invalid-license / denied-license
 	// Plus an "other" row so external license auditors land somewhere.
 	return []string{"unknown", "invalid", "denied", "other"}
 }

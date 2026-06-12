@@ -790,8 +790,7 @@ func findingRule(f output.AuditFinding, fallback string) string {
 	if id == "" {
 		return fallback
 	}
-	switch strings.ToUpper(id) {
-	case "BOMLY-LIC-UNKNOWN":
+	if strings.HasPrefix(strings.ToUpper(id), "UNKNOWN-") {
 		return "unknown"
 	}
 	parts := strings.SplitN(id, ":", 3)
@@ -817,7 +816,7 @@ func severityRowKeys() []string {
 
 func licenseRuleRowKeys() []string {
 	// Mirrors the rule IDs in internal/auditors/license/auditor.go:
-	//   BOMLY-LIC-UNKNOWN / invalid-license / denied-license
+	//   UNKNOWN-xxxx-xxxx-xxxx / invalid-license / denied-license
 	// Plus an "other" row so external license auditors land somewhere.
 	return []string{"unknown", "invalid", "denied", "other"}
 }

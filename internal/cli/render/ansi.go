@@ -25,6 +25,8 @@ const (
 
 	BgBlue    = "\x1b[44m"
 	BgCyan    = "\x1b[44m"
+	BgBrand   = "\x1b[48;2;232;155;92m"
+	BgNeutral = "\x1b[100m"
 	BgGreen   = "\x1b[42m"
 	BgRed     = "\x1b[41m"
 	BgYellow  = "\x1b[43m"

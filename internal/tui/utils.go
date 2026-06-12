@@ -141,17 +141,17 @@ func statusBadge(status string) string {
 	case "manifest":
 		return terminalSafeBadge(label, render.BgYellow, render.Black)
 	case "self":
-		return terminalSafeBadge(label, render.BgBlue, render.White)
+		return terminalSafeBadge(label, render.BgBrand, render.White)
 	case "parent":
-		return terminalSafeBadge(label, render.BgBlue, render.White)
+		return terminalSafeBadge(label, render.BgBrand, render.White)
 	case "ancestor":
-		return terminalSafeBadge(label, render.BgBlue, render.White)
+		return terminalSafeBadge(label, render.BgBrand, render.White)
 	case "root":
-		return terminalSafeBadge(label, render.BgBlue, render.White)
+		return terminalSafeBadge(label, render.BgBrand, render.White)
 	case "direct":
-		return terminalSafeBadge(label, render.BgBlue, render.White)
+		return terminalSafeBadge(label, render.BgBrand, render.White)
 	case "transitive":
-		return terminalSafeBadge(label, render.BgBlue, render.White)
+		return terminalSafeBadge(label, render.BgBrand, render.White)
 	case "added":
 		return terminalSafeBadge(label, render.BgGreen, render.Black)
 	case "removed":
@@ -159,7 +159,7 @@ func statusBadge(status string) string {
 	case "changed":
 		return terminalSafeBadge(label, render.BgYellow, render.Black)
 	case "unchanged":
-		return terminalSafeBadge(label, render.BgBlue, render.White)
+		return terminalSafeBadge(label, render.BgNeutral, render.White)
 	case "new": // audit-delta "introduced" (display-side label)
 		return terminalSafeBadge(label, render.BgRed, render.White)
 	case "old": // audit-delta "persisted"
@@ -174,7 +174,7 @@ func statusBadge(status string) string {
 		// into the colored branches above for the same coloring.
 		return statusBadge(auditStatusLabel(status))
 	default:
-		return terminalSafeBadge(label, render.BgBlue, render.White)
+		return terminalSafeBadge(label, render.BgNeutral, render.White)
 	}
 }
 
@@ -192,15 +192,15 @@ func badgeView(badge badge) string {
 	case "severity-medium":
 		return terminalSafeBadge(label, render.BgYellow, render.Black)
 	case "severity-low":
-		return terminalSafeBadge(label, render.BgBlue, render.White)
+		return terminalSafeBadge(label, render.BgNeutral, render.White)
 	case "reachability-reachable":
 		return terminalSafeBadge(label, render.BgRed, render.White)
 	case "reachability-unreachable":
-		return terminalSafeBadge(label, render.BgBlue, render.White)
+		return terminalSafeBadge(label, render.BgNeutral, render.White)
 	case "repeated":
-		return terminalSafeBadge(label, render.BgBlue, render.White)
+		return terminalSafeBadge(label, render.BgNeutral, render.White)
 	default:
-		return terminalSafeBadge(label, render.BgBlue, render.White)
+		return terminalSafeBadge(label, render.BgNeutral, render.White)
 	}
 }
 

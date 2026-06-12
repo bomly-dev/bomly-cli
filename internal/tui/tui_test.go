@@ -1455,13 +1455,34 @@ func TestInteractiveStatusBadge_UsesDistinctReadableColors(t *testing.T) {
 	if direct == runtime {
 		t.Fatal("expected direct relationship badge to differ from runtime scope badge")
 	}
-	if !strings.Contains(direct, render.BgCyan) || !strings.Contains(direct, render.White) {
+	if !strings.Contains(direct, render.BgBlue) || !strings.Contains(direct, render.White) {
 		t.Fatalf("expected direct badge to use the interactive relationship palette, got %q", direct)
 	}
 
 	manifest := statusBadge("manifest")
-	if !strings.Contains(manifest, render.BgBlue) || !strings.Contains(manifest, render.Yellow) {
+	if !strings.Contains(manifest, render.BgYellow) || !strings.Contains(manifest, render.Black) {
 		t.Fatalf("expected manifest badge to use a neutral high-contrast style, got %q", manifest)
+	}
+}
+
+func TestInteractiveBadges_UseTerminalSafeForegrounds(t *testing.T) {
+	samples := []string{
+		statusBadge("manifest"),
+		statusBadge("direct"),
+		statusBadge("changed"),
+		statusBadge("unknown"),
+		badgeView(badge{label: "runtime", kind: "scope-runtime"}),
+		badgeView(badge{label: "medium", kind: "severity-medium"}),
+		badgeView(badge{label: "low", kind: "severity-low"}),
+		badgeView(badge{label: "unknown", kind: "unknown"}),
+	}
+	for _, sample := range samples {
+		if strings.Contains(sample, render.Blue) || strings.Contains(sample, render.Yellow+render.Bold) {
+			t.Fatalf("badge uses a risky colored foreground: %q", sample)
+		}
+		if !strings.Contains(sample, render.White) && !strings.Contains(sample, render.Black) {
+			t.Fatalf("badge must use white or black text for terminal contrast: %q", sample)
+		}
 	}
 }
 

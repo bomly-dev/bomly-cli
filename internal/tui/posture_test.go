@@ -110,6 +110,48 @@ func TestPostureTab_ScanEmptyStateHints(t *testing.T) {
 	}
 }
 
+func TestPostureTab_CheckNotesFitSplitPane(t *testing.T) {
+	g := sdk.New()
+	registry := sdk.NewPackageRegistry()
+	const purl = "pkg:golang/github.com/anchore/go-struct-converter@1.0.0"
+	dep := sdk.NewDependency(sdk.Dependency{Name: "go-struct-converter", Version: "1.0.0", PURL: purl})
+	regPkg := registry.Ensure(purl)
+	regPkg.Name = "go-struct-converter"
+	regPkg.Version = "1.0.0"
+	regPkg.Scorecard = newTestScorecardTUI("github.com/anchore/go-struct-converter", 2.0,
+		sdk.PackageScorecardCheck{Name: "CI-Best-Practices", Score: 0, Reason: "agg note should stay visible"},
+	)
+	if err := g.AddNode(dep); err != nil {
+		t.Fatalf("add package: %v", err)
+	}
+
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo"},
+			RelativePath:    ".",
+			PrimaryDetector: "go-detector",
+			Ecosystem:       sdk.EcosystemGo,
+		},
+		DetectorName: "go-detector",
+		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "go.mod"}),
+	}})
+	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph: %v", err)
+	}
+
+	model := NewScan(output.ProjectDescriptor{Name: "demo", Path: "/tmp/demo"}, consolidated, graphValue, nil).WithRegistry(registry).WithEnrichEnabled(true)
+	model.SelectView(6)
+
+	plain := render.StripANSI(model.View(140, 34))
+	if !strings.Contains(plain, "agg 2.0/10") {
+		t.Fatalf("expected posture check notes to fit the split pane; got:\n%s", plain)
+	}
+	if strings.Contains(plain, "agg 2...") {
+		t.Fatalf("posture check notes were truncated:\n%s", plain)
+	}
+}
+
 func TestTopAffectedLines_FitBoxBudget(t *testing.T) {
 	pkg := sdk.NewDependency(sdk.Dependency{
 		Name:    "org.springframework:spring-web",

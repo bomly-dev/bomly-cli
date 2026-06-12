@@ -1,0 +1,29 @@
+name: Notify landing page (docs yank)
+
+# When a GitHub Release is deleted or unpublished (a yank), tell
+# bomly-landing-page to remove that version's docs and drop it from the
+# version selector. The landing workflow opens a PR with the removal.
+
+on:
+  release:
+    types: [deleted, unpublished]
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger docs removal on landing page
+        env:
+          GH_TOKEN: ${{ secrets.LANDING_DISPATCH_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          gh api repos/bomly-dev/bomly-landing-page/dispatches \
+            --method POST \
+            --input - <<EOF
+          {"event_type":"bomly-release-yanked","client_payload":{"version":"${TAG}"}}
+          EOF

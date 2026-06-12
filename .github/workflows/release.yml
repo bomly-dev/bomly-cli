@@ -191,3 +191,22 @@ jobs:
           gh release download "${TAG}" --dir dist --pattern '*.tar.gz' --pattern '*.zip'
           find dist -maxdepth 1 -type f | sort | xargs sha256sum > dist/SHA256SUMS
           gh release upload "${TAG}" dist/SHA256SUMS --clobber
+
+  notify-landing:
+    # Ask bomly-landing-page to sync this version's docs. The landing workflow
+    # checks this repo out at TAG, runs its sync script, and opens a PR.
+    needs: create-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger docs sync on landing page
+        env:
+          GH_TOKEN: ${{ secrets.LANDING_DISPATCH_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          gh api repos/bomly-dev/bomly-landing-page/dispatches \
+            --method POST \
+            --input - <<EOF
+          {"event_type":"bomly-release","client_payload":{"version":"${TAG}"}}
+          EOF

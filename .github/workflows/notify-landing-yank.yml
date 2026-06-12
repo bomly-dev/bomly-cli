@@ -16,9 +16,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Mint landing-page token
+        # Bomly Release app, scoped to bomly-landing-page. repository_dispatch
+        # needs contents:write on the target.
+        uses: actions/create-github-app-token@v3
+        id: landing-token
+        with:
+          client-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          owner: bomly-dev
+          repositories: bomly-landing-page
+          permission-contents: write
+
       - name: Trigger docs removal on landing page
         env:
-          GH_TOKEN: ${{ secrets.LANDING_DISPATCH_TOKEN }}
+          GH_TOKEN: ${{ steps.landing-token.outputs.token }}
           TAG: ${{ github.event.release.tag_name }}
         run: |
           set -euo pipefail

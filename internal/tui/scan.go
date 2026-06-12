@@ -1695,7 +1695,7 @@ func (m *ScanModel) findingItems(findings []sdk.Finding) []listItem {
 func (m *ScanModel) findingGroupKey(finding sdk.Finding, group string) string {
 	switch group {
 	case "severity":
-		return titleCase(valueOrDefault(finding.Severity, "unknown"))
+		return titleCase(valueOrDefault(finding.Severity, "n/a"))
 	case "component":
 		return valueOrDefault(m.findingPackageName(finding), "unknown component")
 	case "ecosystem":

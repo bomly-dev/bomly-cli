@@ -99,6 +99,37 @@ func TestLicenseAuditorUnknownLicenseUsesCompactFindingID(t *testing.T) {
 	if finding.PackageRef != purl {
 		t.Fatalf("finding package ref = %q, want %q", finding.PackageRef, purl)
 	}
+	if finding.Severity != licenseSeverityNA {
+		t.Fatalf("finding severity = %q, want %q", finding.Severity, licenseSeverityNA)
+	}
+}
+
+func TestLicenseAuditorDeniedLicensesUseNASeverity(t *testing.T) {
+	g := sdk.New()
+	root := sdk.NewDependencyRefWithID("app@1.0.0", "app", "1.0.0")
+	_ = g.AddNode(root)
+	dep := sdk.NewDependency(sdk.Dependency{Name: "lib", Version: "1.0.0", Ecosystem: "npm", BuildSystem: "npm"})
+	purl := sdk.CanonicalPackageURLFromDependency(dep)
+	dep.PackageRef = purl
+	_ = g.AddNode(dep)
+	_ = g.AddEdge(root.ID, dep.ID)
+
+	registry := sdk.NewPackageRegistry()
+	registry.Ensure(purl).Licenses = []sdk.PackageLicense{{SPDXExpression: "GPL-3.0-only"}}
+
+	result, err := Auditor{AllowLicenses: []string{"MIT"}}.Audit(context.Background(), sdk.AuditRequest{
+		Graph:    g,
+		Registry: registry,
+	})
+	if err != nil {
+		t.Fatalf("Audit() error = %v", err)
+	}
+	if len(result.Findings) != 1 {
+		t.Fatalf("expected 1 finding, got %#v", result.Findings)
+	}
+	if got := result.Findings[0].Severity; got != licenseSeverityNA {
+		t.Fatalf("finding severity = %q, want %q", got, licenseSeverityNA)
+	}
 }
 
 func TestLicenseAuditorUnknownLicenseIDsDifferByPackage(t *testing.T) {

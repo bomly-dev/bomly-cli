@@ -9,7 +9,10 @@ import (
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
-const auditorName = "package"
+const (
+	auditorName       = "package"
+	packageSeverityNA = "n/a"
+)
 
 // Auditor protects against denied packages and suspiciously similar package names.
 type Auditor struct {
@@ -101,7 +104,7 @@ func finding(pkg *sdk.Dependency, id, title string, disposition sdk.FindingDispo
 		ID:             fmt.Sprintf("%s:%s:%s", auditorName, id, pkg.ID),
 		Kind:           sdk.FindingKindPackage,
 		Title:          title,
-		Severity:       "unknown",
+		Severity:       packageSeverityNA,
 		Source:         auditorName,
 		Auditor:        auditorName,
 		Disposition:    disposition,

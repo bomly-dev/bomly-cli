@@ -14,6 +14,7 @@ import (
 const (
 	auditorName             = "license"
 	unknownLicenseFindingID = "UNKNOWN"
+	licenseSeverityNA       = "n/a"
 )
 
 // Auditor evaluates package licenses against allow/deny SPDX policy.
@@ -144,7 +145,7 @@ func finding(purl, depID, id, title string, disposition sdk.FindingDisposition) 
 		ID:          findingID,
 		Kind:        sdk.FindingKindLicense,
 		Title:       title,
-		Severity:    "unknown",
+		Severity:    licenseSeverityNA,
 		Source:      auditorName,
 		Auditor:     auditorName,
 		Disposition: disposition,

@@ -153,8 +153,8 @@ func TestStepCompletionPromotion(t *testing.T) {
 	if active != 1 {
 		t.Fatalf("expected 1 active step after promotion, got %d", active)
 	}
-	if gotDrawn != 1 {
-		t.Fatalf("expected lastDrawnLines=1 after promotion, got %d", gotDrawn)
+	if gotDrawn != 3 {
+		t.Fatalf("expected lastDrawnLines=3 after promoted block plus active step, got %d", gotDrawn)
 	}
 }
 
@@ -268,7 +268,7 @@ func TestStageDoneLabelLookup_PromotesViaCompleteStep(t *testing.T) {
 	}
 }
 
-func TestCompleteStageWaitsForLaterSummaryChildren(t *testing.T) {
+func TestCompleteStagePromotesThenAcceptsLaterSummaryChildren(t *testing.T) {
 	var buf safeBuffer
 	p := New(&buf, true, "")
 	t.Cleanup(p.Stop)
@@ -290,12 +290,13 @@ func TestCompleteStageWaitsForLaterSummaryChildren(t *testing.T) {
 	p.mu.Lock()
 	active := len(p.active)
 	promoted := len(p.promoted)
+	completed := len(p.completed)
 	p.mu.Unlock()
-	if active != 2 {
-		t.Fatalf("expected completed stage to wait for summary children, got %d active steps", active)
+	if active != 1 {
+		t.Fatalf("expected completed stage to leave the live region, got %d active steps", active)
 	}
-	if promoted != 0 {
-		t.Fatalf("expected no promoted stages before CompleteStep, got %d", promoted)
+	if promoted == 0 || completed != 1 {
+		t.Fatalf("expected completed stage to be promoted before summary, promoted=%d completed=%d", promoted, completed)
 	}
 
 	p.CompleteStep("Detected Dependencies", []Child{{Icon: CheckMark, Label: "Maven", Detail: "[12 packages]"}})
@@ -304,12 +305,13 @@ func TestCompleteStageWaitsForLaterSummaryChildren(t *testing.T) {
 	p.mu.Lock()
 	active = len(p.active)
 	promoted = len(p.promoted)
+	completed = len(p.completed)
 	p.mu.Unlock()
 	if active != 1 {
 		t.Fatalf("expected only next stage to remain active after summary, got %d active steps", active)
 	}
-	if promoted == 0 {
-		t.Fatal("expected summarized stage to be promoted")
+	if promoted == 0 || completed != 1 {
+		t.Fatalf("expected summarized stage to remain promoted, promoted=%d completed=%d", promoted, completed)
 	}
 
 	out = buf.String()

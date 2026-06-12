@@ -232,12 +232,6 @@ func (p *Pipeline) runAudit(ctx context.Context, result *PipelineResult, req Pip
 	if req.Progress != nil {
 		req.Progress.StartStage("Evaluating policy", 1)
 	}
-	if !RegistryHasVulnerabilityData(result.Registry) {
-		result.AuditWarnings = append(result.AuditWarnings, PipelineWarning{
-			Source:  "vulnerability",
-			Message: "no vulnerability enrichment input was available; policy evaluation may produce no findings",
-		})
-	}
 	auditResult, auditWarnings := p.audit(ctx, result.Graph, result.Registry, req)
 	result.Findings = DeduplicateFindings(auditResult.Findings)
 	if req.WarnOnly {

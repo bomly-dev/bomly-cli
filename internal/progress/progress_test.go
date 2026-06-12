@@ -268,7 +268,7 @@ func TestStageDoneLabelLookup_PromotesViaCompleteStep(t *testing.T) {
 	}
 }
 
-func TestCompleteStagePromotesBeforeLaterSummary(t *testing.T) {
+func TestCompleteStageWaitsForLaterSummaryChildren(t *testing.T) {
 	var buf safeBuffer
 	p := New(&buf, true, "")
 	t.Cleanup(p.Stop)
@@ -280,8 +280,8 @@ func TestCompleteStagePromotesBeforeLaterSummary(t *testing.T) {
 	drainAfter()
 
 	out := buf.String()
-	if !strings.Contains(out, "Detected Dependencies") {
-		t.Fatalf("expected completed detection to be promoted independently, got %q", out)
+	if strings.Contains(out, "Maven") {
+		t.Fatalf("stage should not render children before CompleteStep supplies them, got %q", out)
 	}
 	if !strings.Contains(out, "Enriching packages") {
 		t.Fatalf("expected next stage to remain live, got %q", out)
@@ -291,15 +291,37 @@ func TestCompleteStagePromotesBeforeLaterSummary(t *testing.T) {
 	active := len(p.active)
 	promoted := len(p.promoted)
 	p.mu.Unlock()
+	if active != 2 {
+		t.Fatalf("expected completed stage to wait for summary children, got %d active steps", active)
+	}
+	if promoted != 0 {
+		t.Fatalf("expected no promoted stages before CompleteStep, got %d", promoted)
+	}
+
+	p.CompleteStep("Detected Dependencies", []Child{{Icon: CheckMark, Label: "Maven", Detail: "[12 packages]"}})
+	drainAfter()
+
+	p.mu.Lock()
+	active = len(p.active)
+	promoted = len(p.promoted)
+	p.mu.Unlock()
 	if active != 1 {
-		t.Fatalf("expected only next stage to remain active, got %d", active)
+		t.Fatalf("expected only next stage to remain active after summary, got %d active steps", active)
 	}
 	if promoted == 0 {
-		t.Fatalf("expected completed stage to be tracked as promoted")
+		t.Fatal("expected summarized stage to be promoted")
+	}
+
+	out = buf.String()
+	if !strings.Contains(out, "Maven") {
+		t.Fatalf("expected child label after CompleteStep, got %q", out)
+	}
+	if !strings.Contains(out, "[12 packages]") {
+		t.Fatalf("expected child detail after CompleteStep, got %q", out)
 	}
 }
 
-func TestCompleteStepIgnoresAlreadyPromotedStage(t *testing.T) {
+func TestCompleteStepIgnoresAlreadySummarizedPromotedStage(t *testing.T) {
 	var buf safeBuffer
 	p := New(&buf, true, "")
 	t.Cleanup(p.Stop)
@@ -312,6 +334,8 @@ func TestCompleteStepIgnoresAlreadyPromotedStage(t *testing.T) {
 
 	p.CompleteStep("Detected Dependencies", []Child{{Icon: CheckMark, Label: "Maven", Detail: "[12 packages]"}})
 	drainAfter()
+	p.CompleteStep("Detected Dependencies", []Child{{Icon: CheckMark, Label: "Gradle", Detail: "[7 packages]"}})
+	drainAfter()
 
 	p.mu.Lock()
 	active := len(p.active)
@@ -320,7 +344,10 @@ func TestCompleteStepIgnoresAlreadyPromotedStage(t *testing.T) {
 		t.Fatalf("late summary should not synthesize a duplicate active step, got %d active steps", active)
 	}
 	out := buf.String()
-	if strings.Contains(out, "Maven") {
+	if !strings.Contains(out, "Maven") {
+		t.Fatalf("expected original summary child, got %q", out)
+	}
+	if strings.Contains(out, "Gradle") {
 		t.Fatalf("late summary for promoted stage should not render duplicate children, got %q", out)
 	}
 }

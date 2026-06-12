@@ -1,4 +1,4 @@
-name: Bomly Review
+name: Bomly Guard
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ permissions:
   security-events: write
 
 jobs:
-  review:
+  guard:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -19,8 +19,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Review dependency changes
-        uses: bomly-dev/bomly-review-action@v1
+      - name: Run Bomly Guard
+        uses: bomly-dev/bomly-guard@v1
         with:
-          fail-on-severity: high
+          fail-on: high
           comment-summary-in-pr: always

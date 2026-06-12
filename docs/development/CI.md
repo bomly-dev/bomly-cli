@@ -10,7 +10,7 @@ Bomly uses GitHub Actions for validation, security analysis, smoke coverage, and
 | `CodeQL`               | Pull requests, pushes to `main`, weekly        | Static security/quality analysis for Go; results surface in the Security tab                                           |
 | `Scorecard`            | Pushes to `main`, weekly, manual dispatch      | OpenSSF Scorecard supply-chain checks; publishes results and uploads SARIF                                             |
 | `Dependency review`    | Pull requests                                  | GitHub dependency-review of added/changed dependencies; fails on high-severity introductions                          |
-| `Bomly Review`         | Pull requests                                  | Dogfoods the Bomly review action to diff and audit dependency changes on each PR                                       |
+| `Bomly Guard`          | Pull requests                                  | Dogfoods the Bomly Guard action to diff and audit dependency changes on each PR                                        |
 | `Smoke`                | Merge queue, nightly schedule, manual dispatch | Slow end-to-end coverage against real repositories, SBOMs, and containers before merge, plus scheduled drift detection |
 | `Update Smoke Goldens` | Manual dispatch                                | Regenerate golden files on a chosen ref and open a PR when the changes are intentional                                 |
 | `Auto Version`         | Manual dispatch                                | Bump `cmd/bomly/main.go`, create a semver tag, and start the release workflow                                          |

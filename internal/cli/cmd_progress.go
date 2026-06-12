@@ -251,6 +251,41 @@ func auditProgressChildren(auditorRuns []string, auditorFindings map[string]int,
 	return children
 }
 
+// analyzerProgressChildren returns ✔ children for each successful reachability
+// analyzer run and ⚠ children for each warning.
+func analyzerProgressChildren(analyzerRuns []string, analyzerStats map[string]sdk.ReachabilityStats, warnings []engine.PipelineWarning) []progress.Child {
+	children := make([]progress.Child, 0, len(analyzerRuns)+len(warnings))
+	for _, name := range analyzerRuns {
+		children = append(children, progress.Child{
+			Icon:   progress.CheckMark,
+			Label:  humanizeAnalyzerSource(name),
+			Detail: analyzerProgressDetail(analyzerStats[name]),
+		})
+	}
+	children = append(children, warningProgressChildren(warnings)...)
+	return children
+}
+
+func analyzerProgressDetail(stats sdk.ReachabilityStats) string {
+	parts := make([]string, 0, 4)
+	if stats.Reachable > 0 {
+		parts = append(parts, fmt.Sprintf("%d reachable", stats.Reachable))
+	}
+	if stats.Unreachable > 0 {
+		parts = append(parts, fmt.Sprintf("%d unreachable", stats.Unreachable))
+	}
+	if stats.Unknown > 0 {
+		parts = append(parts, fmt.Sprintf("%d unknown", stats.Unknown))
+	}
+	if stats.NotApplicable > 0 {
+		parts = append(parts, fmt.Sprintf("%d not applicable", stats.NotApplicable))
+	}
+	if len(parts) == 0 {
+		return ""
+	}
+	return "[" + strings.Join(parts, ", ") + "]"
+}
+
 // diffPolicyOutcomeProgressChild summarizes introduced diff findings using
 // the same introduced-only failure semantics as `bomly diff --audit`.
 func diffPolicyOutcomeProgressChild(audit *diffengine.Audit) progress.Child {
@@ -337,6 +372,10 @@ func humanizeDetectorName(name string) string {
 		}
 	}
 	return strings.Join(parts, " ") + " Detector"
+}
+
+func humanizeAnalyzerSource(name string) string {
+	return titleWords(strings.ReplaceAll(strings.TrimSpace(name), "-", " "))
 }
 
 // humanizeAuditorSource converts an auditor source name to a display name.

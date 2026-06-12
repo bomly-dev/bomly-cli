@@ -268,6 +268,63 @@ func TestStageDoneLabelLookup_PromotesViaCompleteStep(t *testing.T) {
 	}
 }
 
+func TestCompleteStagePromotesBeforeLaterSummary(t *testing.T) {
+	var buf safeBuffer
+	p := New(&buf, true, "")
+	t.Cleanup(p.Stop)
+
+	p.StartStage("Detecting dependencies", 1)
+	p.AdvanceStage("Detecting dependencies", 1, 1)
+	p.CompleteStage("Detecting dependencies", 1)
+	p.StartStage("Enriching packages", 1)
+	drainAfter()
+
+	out := buf.String()
+	if !strings.Contains(out, "Detected Dependencies") {
+		t.Fatalf("expected completed detection to be promoted independently, got %q", out)
+	}
+	if !strings.Contains(out, "Enriching packages") {
+		t.Fatalf("expected next stage to remain live, got %q", out)
+	}
+
+	p.mu.Lock()
+	active := len(p.active)
+	promoted := len(p.promoted)
+	p.mu.Unlock()
+	if active != 1 {
+		t.Fatalf("expected only next stage to remain active, got %d", active)
+	}
+	if promoted == 0 {
+		t.Fatalf("expected completed stage to be tracked as promoted")
+	}
+}
+
+func TestCompleteStepIgnoresAlreadyPromotedStage(t *testing.T) {
+	var buf safeBuffer
+	p := New(&buf, true, "")
+	t.Cleanup(p.Stop)
+
+	p.StartStage("Detecting dependencies", 1)
+	p.AdvanceStage("Detecting dependencies", 1, 1)
+	p.CompleteStage("Detecting dependencies", 1)
+	p.StartStage("Enriching packages", 1)
+	drainAfter()
+
+	p.CompleteStep("Detected Dependencies", []Child{{Icon: CheckMark, Label: "Maven", Detail: "[12 packages]"}})
+	drainAfter()
+
+	p.mu.Lock()
+	active := len(p.active)
+	p.mu.Unlock()
+	if active != 1 {
+		t.Fatalf("late summary should not synthesize a duplicate active step, got %d active steps", active)
+	}
+	out := buf.String()
+	if strings.Contains(out, "Maven") {
+		t.Fatalf("late summary for promoted stage should not render duplicate children, got %q", out)
+	}
+}
+
 func TestMinStepDuration_CompleteBlocksForMinDuration(t *testing.T) {
 	t.Setenv(minStepEnvVar, "300")
 
@@ -291,17 +348,12 @@ func TestMinStepDuration_CompleteBlocksForMinDuration(t *testing.T) {
 	}
 }
 
-func TestMinStepDuration_CompleteStepBlocksForMinDuration(t *testing.T) {
+func TestMinStepDuration_CompleteStepBlocksForSyntheticStep(t *testing.T) {
 	t.Setenv(minStepEnvVar, "300")
 
 	var buf safeBuffer
 	p := New(&buf, true, "")
 	t.Cleanup(p.Stop)
-
-	// Engine-style: StartStage opens the step, CompleteStep finalises it.
-	p.StartStage("Detecting dependencies", 1)
-	p.AdvanceStage("Detecting dependencies", 1, 1)
-	p.CompleteStage("Detecting dependencies", 1)
 
 	start := time.Now()
 	p.CompleteStep("Detected Dependencies", nil)
@@ -312,6 +364,28 @@ func TestMinStepDuration_CompleteStepBlocksForMinDuration(t *testing.T) {
 	}
 	if elapsed > 1500*time.Millisecond {
 		t.Fatalf("CompleteStep blocked too long; took %s", elapsed)
+	}
+}
+
+func TestMinStepDuration_CompleteStageBlocksForMinDuration(t *testing.T) {
+	t.Setenv(minStepEnvVar, "300")
+
+	var buf safeBuffer
+	p := New(&buf, true, "")
+	t.Cleanup(p.Stop)
+
+	p.StartStage("Detecting dependencies", 1)
+	p.AdvanceStage("Detecting dependencies", 1, 1)
+
+	start := time.Now()
+	p.CompleteStage("Detecting dependencies", 1)
+	elapsed := time.Since(start)
+
+	if elapsed < 250*time.Millisecond {
+		t.Fatalf("CompleteStage should block ~300ms; took %s", elapsed)
+	}
+	if elapsed > 1500*time.Millisecond {
+		t.Fatalf("CompleteStage blocked too long; took %s", elapsed)
 	}
 }
 

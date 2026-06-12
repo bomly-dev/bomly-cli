@@ -12,7 +12,7 @@ bomly diff --base main --head HEAD --enrich --audit --fail-on high
 
 `diff` classifies findings as introduced / resolved / persisted and only `--fail-on` matches against the introduced set, so a clean PR passes even on a repo with known debt. Exit code `2` means a new high finding; see [Exit codes](EXIT_CODES.md).
 
-→ Turnkey version for GitHub PRs: the [Bomly review action](https://github.com/bomly-dev/bomly-review-action) ([setup](CI_INTEGRATION.md#turnkey-pr-reviews-with-the-bomly-review-action)).
+→ Turnkey version for GitHub PRs: the [Bomly Guard action](https://github.com/bomly-dev/bomly-guard) ([setup](CI_INTEGRATION.md#turnkey-pr-reviews-with-the-bomly-guard-action)).
 
 ## Generate and publish an SBOM
 

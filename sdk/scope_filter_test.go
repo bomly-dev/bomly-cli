@@ -4,10 +4,10 @@ import "testing"
 
 func TestFilterGraphByScope(t *testing.T) {
 	depsGraph := New()
-	root := NewDependency(Dependency{Name: "app", Version: "1.0.0"})
-	runtimeDep := NewDependency(Dependency{Name: "react", Version: "18.2.0", Scopes: ScopesOf(ScopeRuntime)})
-	devDep := NewDependency(Dependency{Name: "vitest", Version: "2.0.0", Scopes: ScopesOf(ScopeDevelopment)})
-	sharedDep := NewDependency(Dependency{Name: "shared", Version: "1.0.0", Scopes: ScopesOf(ScopeDevelopment, ScopeRuntime)})
+	root := NewDependency(Dependency{Coordinates: Coordinates{Name: "app", Version: "1.0.0"}})
+	runtimeDep := NewDependency(Dependency{Coordinates: Coordinates{Name: "react", Version: "18.2.0"}, Scopes: ScopesOf(ScopeRuntime)})
+	devDep := NewDependency(Dependency{Coordinates: Coordinates{Name: "vitest", Version: "2.0.0"}, Scopes: ScopesOf(ScopeDevelopment)})
+	sharedDep := NewDependency(Dependency{Coordinates: Coordinates{Name: "shared", Version: "1.0.0"}, Scopes: ScopesOf(ScopeDevelopment, ScopeRuntime)})
 	for _, pkg := range []*Dependency{root, runtimeDep, devDep, sharedDep} {
 		if err := depsGraph.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.ID, err)
@@ -57,9 +57,9 @@ func TestFilterGraphByScope(t *testing.T) {
 
 func TestFilterDetectionResultByScope_FiltersEntryPackages(t *testing.T) {
 	depsGraph := New()
-	root := NewDependency(Dependency{Name: "app", Version: "1.0.0"})
-	runtimeDep := NewDependency(Dependency{Ecosystem: "npm", Name: "react", Version: "18.2.0", Scopes: ScopesOf(ScopeRuntime)})
-	devDep := NewDependency(Dependency{Ecosystem: "npm", Name: "vitest", Version: "2.0.0", Scopes: ScopesOf(ScopeDevelopment)})
+	root := NewDependency(Dependency{Coordinates: Coordinates{Name: "app", Version: "1.0.0"}})
+	runtimeDep := NewDependency(Dependency{Coordinates: Coordinates{Ecosystem: EcosystemNPM, Name: "react", Version: "18.2.0"}, Scopes: ScopesOf(ScopeRuntime)})
+	devDep := NewDependency(Dependency{Coordinates: Coordinates{Ecosystem: EcosystemNPM, Name: "vitest", Version: "2.0.0"}, Scopes: ScopesOf(ScopeDevelopment)})
 	for _, pkg := range []*Dependency{root, runtimeDep, devDep} {
 		if err := depsGraph.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.ID, err)
@@ -77,8 +77,8 @@ func TestFilterDetectionResultByScope_FiltersEntryPackages(t *testing.T) {
 			Graph:    depsGraph,
 			Manifest: ManifestMetadata{Path: "package-lock.json"},
 			Packages: []*Package{
-				{PURL: BuildPackageURL("npm", "", "react", "18.2.0")},
-				{PURL: BuildPackageURL("npm", "", "vitest", "2.0.0")},
+				{Coordinates: Coordinates{PURL: BuildPackageURL("npm", "", "react", "18.2.0")}},
+				{Coordinates: Coordinates{PURL: BuildPackageURL("npm", "", "vitest", "2.0.0")}},
 			},
 		}}},
 	}
@@ -115,7 +115,7 @@ func TestFilterDetectionResultByScope_RepresentativeParserOutputs(t *testing.T) 
 		t.Run(tt.name, func(t *testing.T) {
 			result := DetectionResult{
 				Graphs: &GraphContainer{Entries: []GraphEntry{{
-					Graph:    representativeScopedGraph(t, tt.ecosystem),
+					Graph:    representativeScopedGraph(t, Ecosystem(tt.ecosystem)),
 					Manifest: ManifestMetadata{Path: tt.manifest},
 				}}},
 			}
@@ -134,12 +134,12 @@ func TestFilterDetectionResultByScope_RepresentativeParserOutputs(t *testing.T) 
 	}
 }
 
-func representativeScopedGraph(t *testing.T, ecosystem string) *Graph {
+func representativeScopedGraph(t *testing.T, ecosystem Ecosystem) *Graph {
 	t.Helper()
 	graph := New()
-	root := NewDependency(Dependency{Ecosystem: ecosystem, Name: ecosystem + "-app", Version: "1.0.0"})
-	runtimeDep := NewDependency(Dependency{Ecosystem: ecosystem, Name: ecosystem + "-runtime", Version: "1.0.0", Scopes: ScopesOf(ScopeRuntime)})
-	devDep := NewDependency(Dependency{Ecosystem: ecosystem, Name: ecosystem + "-dev", Version: "1.0.0", Scopes: ScopesOf(ScopeDevelopment)})
+	root := NewDependency(Dependency{Coordinates: Coordinates{Ecosystem: ecosystem, Name: string(ecosystem) + "-app", Version: "1.0.0"}})
+	runtimeDep := NewDependency(Dependency{Coordinates: Coordinates{Ecosystem: ecosystem, Name: string(ecosystem) + "-runtime", Version: "1.0.0"}, Scopes: ScopesOf(ScopeRuntime)})
+	devDep := NewDependency(Dependency{Coordinates: Coordinates{Ecosystem: ecosystem, Name: string(ecosystem) + "-dev", Version: "1.0.0"}, Scopes: ScopesOf(ScopeDevelopment)})
 	for _, dep := range []*Dependency{root, runtimeDep, devDep} {
 		if err := graph.AddNode(dep); err != nil {
 			t.Fatalf("add %q: %v", dep.ID, err)

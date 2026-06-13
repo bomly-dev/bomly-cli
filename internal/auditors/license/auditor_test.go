@@ -18,7 +18,7 @@ func TestLicenseAuditorAllowDeny(t *testing.T) {
 		g := sdk.New()
 		root := sdk.NewDependencyRefWithID("app@1.0.0", "app", "1.0.0")
 		_ = g.AddNode(root)
-		dep := sdk.NewDependency(sdk.Dependency{Name: "lib", Version: "1.0.0", Ecosystem: "npm", BuildSystem: "npm"})
+		dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM}})
 		purl := sdk.CanonicalPackageURLFromDependency(dep)
 		dep.PackageRef = purl
 		_ = g.AddNode(dep)
@@ -65,11 +65,10 @@ func TestLicenseAuditorUnknownLicenseUsesCompactFindingID(t *testing.T) {
 	g := sdk.New()
 	root := sdk.NewDependencyRefWithID("app@1.0.0", "app", "1.0.0")
 	_ = g.AddNode(root)
-	dep := sdk.NewDependency(sdk.Dependency{
-		Name:        "very-long-package-name-with-output-hostile-length",
-		Version:     "1.2.3",
-		Ecosystem:   "npm",
-		BuildSystem: "npm",
+	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "very-long-package-name-with-output-hostile-length",
+		Version:        "1.2.3",
+		Ecosystem:      sdk.EcosystemNPM,
+		PackageManager: sdk.PackageManagerNPM},
 	})
 	purl := sdk.CanonicalPackageURLFromDependency(dep)
 	dep.PackageRef = purl
@@ -108,7 +107,7 @@ func TestLicenseAuditorDeniedLicensesUseNASeverity(t *testing.T) {
 	g := sdk.New()
 	root := sdk.NewDependencyRefWithID("app@1.0.0", "app", "1.0.0")
 	_ = g.AddNode(root)
-	dep := sdk.NewDependency(sdk.Dependency{Name: "lib", Version: "1.0.0", Ecosystem: "npm", BuildSystem: "npm"})
+	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM}})
 	purl := sdk.CanonicalPackageURLFromDependency(dep)
 	dep.PackageRef = purl
 	_ = g.AddNode(dep)
@@ -137,7 +136,7 @@ func TestLicenseAuditorUnknownLicenseIDsDifferByPackage(t *testing.T) {
 	root := sdk.NewDependencyRefWithID("app@1.0.0", "app", "1.0.0")
 	_ = g.AddNode(root)
 	for _, name := range []string{"left-pad", "is-odd"} {
-		dep := sdk.NewDependency(sdk.Dependency{Name: name, Version: "1.0.0", Ecosystem: "npm", BuildSystem: "npm"})
+		dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: name, Version: "1.0.0", Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM}})
 		dep.PackageRef = sdk.CanonicalPackageURLFromDependency(dep)
 		_ = g.AddNode(dep)
 		_ = g.AddEdge(root.ID, dep.ID)

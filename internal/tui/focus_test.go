@@ -16,7 +16,7 @@ func newScanModelWithPosture(t *testing.T, repo string, score float64) *ScanMode
 	g := sdk.New()
 	root := sdk.NewDependencyRef("demo-app", "1.0.0")
 	const libPURL = "pkg:npm/lib@1.0.0"
-	dep := sdk.NewDependency(sdk.Dependency{Name: "lib", Version: "1.0.0", PURL: libPURL})
+	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", PURL: libPURL}})
 	registry := sdk.NewPackageRegistry()
 	regLib := registry.Ensure(libPURL)
 	regLib.Name = "lib"
@@ -153,8 +153,8 @@ func TestPostureGrouping_ByCheckRendersFailingFirst(t *testing.T) {
 	rootA := sdk.NewDependencyRef("app", "1.0.0")
 	const aPURL = "pkg:npm/a@1"
 	const bPURL = "pkg:npm/b@1"
-	a := sdk.NewDependency(sdk.Dependency{Name: "a", Version: "1", PURL: aPURL})
-	b := sdk.NewDependency(sdk.Dependency{Name: "b", Version: "1", PURL: bPURL})
+	a := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "a", Version: "1", PURL: aPURL}})
+	b := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "b", Version: "1", PURL: bPURL}})
 	registry := sdk.NewPackageRegistry()
 	regA := registry.Ensure(aPURL)
 	regA.Name = "a"

@@ -30,9 +30,9 @@ func FromDepGraph(g *sdk.Graph, opts BuildOptions) (*Document, error) {
 			Version:        pkg.Version,
 			Scope:          string(pkg.PrimaryScope()),
 			PURL:           pkg.PURL,
-			Ecosystem:      pkg.Ecosystem,
-			PackageManager: pkg.BuildSystem,
-			Type:           pkg.Type,
+			Ecosystem:      string(pkg.Ecosystem),
+			PackageManager: pkg.PackageManager.Name(),
+			Type:           string(pkg.Type),
 			Copyright:      pkg.Copyright,
 			Licenses:       componentLicenses(sdk.DetectionLicenses(pkg)),
 		}
@@ -148,7 +148,7 @@ func enrichComponentFromRegistry(component *Component, registry *sdk.PackageRegi
 			if d.Value == "" {
 				continue
 			}
-			digests = append(digests, Digest{Algorithm: d.Algorithm, Value: d.Value})
+			digests = append(digests, Digest{Algorithm: string(d.Algorithm), Value: d.Value})
 		}
 		component.Digests = digests
 	}
@@ -174,7 +174,7 @@ func vulnerabilitiesFromPackage(vulns []sdk.Vulnerability) []Vulnerability {
 		vuln := Vulnerability{
 			ID:            v.ID,
 			Source:        v.Source,
-			Severity:      v.ParsedSeverity,
+			Severity:      string(v.ParsedSeverity),
 			FixedVersions: append([]string(nil), v.FixedVersions...),
 			Description:   v.Details,
 		}
@@ -184,7 +184,7 @@ func vulnerabilitiesFromPackage(vulns []sdk.Vulnerability) []Vulnerability {
 		if len(v.CVSS) > 0 {
 			vuln.Score = new(v.CVSS[0].Score)
 			vuln.Vector = v.CVSS[0].Vector
-			vuln.Method = cvssMethodForVersion(v.CVSS[0].Version)
+			vuln.Method = cvssMethodForVersion(string(v.CVSS[0].Version))
 		}
 		for _, cwe := range v.CWEs {
 			if id := cweNumber(cwe.ID); id > 0 {
@@ -243,7 +243,7 @@ func componentLicenses(licenses []sdk.PackageLicense) []License {
 		out = append(out, License{
 			Value:          license.Value,
 			SPDXExpression: license.SPDXExpression,
-			Type:           license.Type,
+			Type:           string(license.Type),
 		})
 	}
 	return out

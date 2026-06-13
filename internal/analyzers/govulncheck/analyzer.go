@@ -391,13 +391,13 @@ func isGoPackage(pkg *model.Dependency) bool {
 	if pkg == nil {
 		return false
 	}
-	if strings.EqualFold(pkg.Ecosystem, string(model.EcosystemGo)) {
+	if pkg.Ecosystem == model.EcosystemGo {
 		return true
 	}
-	if strings.EqualFold(pkg.BuildSystem, "gomod") || strings.EqualFold(pkg.BuildSystem, "go") {
+	if pkg.PackageManager == model.PackageManagerGoMod {
 		return true
 	}
-	if strings.EqualFold(pkg.Language, string(model.LanguageGo)) {
+	if pkg.Language == model.LanguageGo {
 		return true
 	}
 	return false

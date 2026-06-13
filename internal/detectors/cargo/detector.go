@@ -246,12 +246,11 @@ func depGraphFromMetadataWithScope(raw []byte, scopeFilter sdk.Scope) (*sdk.Grap
 }
 
 func rootNode() *sdk.Dependency {
-	return sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   string(sdk.EcosystemRust),
-		Name:        "root",
-		BuildSystem: sdk.PackageManagerCargo.Name(),
-		Type:        "application",
-		Language:    "rust",
+	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
+		Name:           "root",
+		PackageManager: sdk.PackageManagerCargo,
+		Type:           sdk.PackageTypeApplication,
+		Language:       "rust"},
 	})
 
 }
@@ -261,15 +260,13 @@ func packageNode(pkg metadataPackage, id string, workspace map[string]struct{}) 
 	if _, ok := workspace[id]; ok {
 		pkgType = "application"
 	}
-	return sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   string(sdk.EcosystemRust),
-		Name:        pkg.Name,
-		Version:     pkg.Version,
-		BuildSystem: sdk.PackageManagerCargo.Name(),
-		Type:        pkgType,
-		Language:    "rust",
-		PURL:        sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version),
-		ResolvedURL: pkg.Source,
+	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
+		Name:           pkg.Name,
+		Version:        pkg.Version,
+		PackageManager: sdk.PackageManagerCargo,
+		Type:           sdk.ParsePackageType(pkgType),
+		Language:       "rust",
+		PURL:           sdk.BuildPackageURL("cargo", "", pkg.Name, pkg.Version)}, ResolvedURL: pkg.Source,
 	})
 
 }
@@ -329,14 +326,13 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 		return nil, fmt.Errorf("cargo.toml does not contain a package name")
 	}
 	g := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   string(sdk.EcosystemRust),
-		Name:        manifest.Name,
-		Version:     manifest.Version,
-		BuildSystem: sdk.PackageManagerCargo.Name(),
-		Type:        "application",
-		Language:    "rust",
-		PURL:        sdk.BuildPackageURL("cargo", "", manifest.Name, manifest.Version),
+	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemRust,
+		Name:           manifest.Name,
+		Version:        manifest.Version,
+		PackageManager: sdk.PackageManagerCargo,
+		Type:           sdk.PackageTypeApplication,
+		Language:       "rust",
+		PURL:           sdk.BuildPackageURL("cargo", "", manifest.Name, manifest.Version)},
 	})
 
 	if err := g.AddNode(root); err != nil {

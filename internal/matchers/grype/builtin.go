@@ -110,8 +110,8 @@ func graphPkgToGrypePkg(p *sdk.Package) grypepkg.Package {
 		Name:     p.Name,
 		Version:  p.Version,
 		PURL:     p.PURL,
-		Type:     ecosystemToSyftType(p.Ecosystem),
-		Language: ecosystemToSyftLanguage(p.Ecosystem),
+		Type:     ecosystemToSyftType(string(p.Ecosystem)),
+		Language: ecosystemToSyftLanguage(string(p.Ecosystem)),
 	}
 }
 
@@ -241,7 +241,7 @@ func mapBuiltinMatch(m grypematch.Match) sdk.Vulnerability {
 		ID:                   vuln.ID,
 		Namespace:            vuln.Namespace,
 		FixedVersions:        append([]string(nil), vuln.Fix.Versions...),
-		FixState:             string(vuln.Fix.State),
+		FixState:             sdk.FixState(vuln.Fix.State),
 		AffectedVersionRange: constraintString(vuln.Constraint),
 		CPEs:                 cpeStrings(vuln.CPEs),
 	}
@@ -262,11 +262,11 @@ func mapBuiltinMatch(m grypematch.Match) sdk.Vulnerability {
 		advisory.FixAvailable = append(advisory.FixAvailable, sdk.FixAvailable{
 			Version: fix.Version,
 			Date:    dateString(fix.Date),
-			Kind:    fix.Kind,
+			Kind:    sdk.FixAvailableKind(fix.Kind),
 		})
 	}
 	for _, advisoryRef := range vuln.Advisories {
-		advisory.References = append(advisory.References, sdk.Reference{URL: advisoryRef.Link, Type: firstNonEmpty(advisoryRef.ID, "advisory")})
+		advisory.References = append(advisory.References, sdk.Reference{URL: advisoryRef.Link, Type: sdk.ReferenceTypeAdvisory})
 	}
 	for _, related := range vuln.RelatedVulnerabilities {
 		if related.ID != "" {
@@ -295,7 +295,7 @@ func builtinCVSS(scores []grypevuln.Cvss) []sdk.CVSSScore {
 		out = append(out, sdk.CVSSScore{
 			Vector:  score.Vector,
 			Score:   score.Metrics.BaseScore,
-			Version: score.Version,
+			Version: sdk.SeverityType(score.Version),
 			Source:  score.Source,
 		})
 	}

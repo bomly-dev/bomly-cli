@@ -172,8 +172,8 @@ func BuildManifestFixTargets(
 
 				targets = append(targets, ManifestFixTarget{
 					ManifestPath:       manifest.Path,
-					ManifestKind:       manifest.Kind,
-					PackageManager:     manifest.PackageManager,
+					ManifestKind:       string(manifest.Kind),
+					PackageManager:     manifest.PackageManager.Name(),
 					TargetPackage:      targetInManifest.Name,
 					CurrentVersion:     targetInManifest.Version,
 					RecommendedVersion: recommendedVersion,

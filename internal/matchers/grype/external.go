@@ -222,7 +222,7 @@ func mapGrypeJSONMatch(m grypeJSONMatch) sdk.Vulnerability {
 		CVSS:                 jsonCVSS(m.Vulnerability.CVSS),
 		FixedVersions:        append([]string(nil), m.Vulnerability.Fix.Versions...),
 		FixedIn:              suggestedFixedVersion(m.MatchDetails),
-		FixState:             m.Vulnerability.Fix.State,
+		FixState:             sdk.FixState(m.Vulnerability.Fix.State),
 		FixAvailable:         jsonFixAvailable(m.Vulnerability.Fix.Available),
 		AffectedVersionRange: foundConstraint(m.MatchDetails),
 		References:           jsonReferences(m.Vulnerability.Advisories),
@@ -266,7 +266,7 @@ func jsonCVSS(values []grypeJSONCVSS) []sdk.CVSSScore {
 		out = append(out, sdk.CVSSScore{
 			Vector:  value.Vector,
 			Score:   value.Metrics.BaseScore,
-			Version: value.Version,
+			Version: sdk.SeverityType(value.Version),
 			Source:  value.Source,
 		})
 	}
@@ -276,7 +276,7 @@ func jsonCVSS(values []grypeJSONCVSS) []sdk.CVSSScore {
 func jsonFixAvailable(values []grypeJSONFixAvailable) []sdk.FixAvailable {
 	out := make([]sdk.FixAvailable, 0, len(values))
 	for _, value := range values {
-		out = append(out, sdk.FixAvailable{Version: value.Version, Date: value.Date, Kind: value.Kind})
+		out = append(out, sdk.FixAvailable{Version: value.Version, Date: value.Date, Kind: sdk.FixAvailableKind(value.Kind)})
 	}
 	return out
 }
@@ -284,7 +284,7 @@ func jsonFixAvailable(values []grypeJSONFixAvailable) []sdk.FixAvailable {
 func jsonReferences(values []grypeJSONAdvisory) []sdk.Reference {
 	out := make([]sdk.Reference, 0, len(values))
 	for _, value := range values {
-		out = append(out, sdk.Reference{URL: value.Link, Type: firstNonEmpty(value.ID, "advisory")})
+		out = append(out, sdk.Reference{URL: value.Link, Type: sdk.ReferenceType(firstNonEmpty(value.ID, string(sdk.ReferenceTypeAdvisory)))})
 	}
 	return out
 }

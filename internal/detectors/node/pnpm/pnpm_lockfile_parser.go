@@ -78,7 +78,7 @@ func depGraphFromPNPMLockfile(projectPath string) (*sdk.Graph, error) {
 	if rootName == "" {
 		rootName = "root"
 	}
-	rootNode := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemNPM), Name: rootName, Version: manifest.Version, Type: "application"})
+	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: rootName, Version: manifest.Version, Type: sdk.PackageTypeApplication}})
 	depsGraph := sdk.New()
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add pnpm root node: %w", err)
@@ -98,15 +98,13 @@ func depGraphFromPNPMLockfile(projectPath string) (*sdk.Graph, error) {
 		if name == "" {
 			continue
 		}
-		pkg := sdk.Dependency{
-			Ecosystem:   string(sdk.EcosystemNPM),
-			Name:        name,
-			Version:     version,
-			ResolvedURL: entry.Resolution.Tarball,
-			Digests:     node.ParseIntegrityDigests(entry.Resolution.Integrity),
+		pkg := sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+			Name:    name,
+			Version: version}, ResolvedURL: entry.Resolution.Tarball,
+			Digests: node.ParseIntegrityDigests(entry.Resolution.Integrity),
 		}
 		if entry.Resolution.Integrity == "" && entry.Resolution.Hash != "" {
-			pkg.Digests = []sdk.Digest{{Algorithm: "sha1", Value: entry.Resolution.Hash}}
+			pkg.Digests = []sdk.Digest{{Algorithm: sdk.DigestAlgorithmSHA1, Value: entry.Resolution.Hash}}
 		}
 		if len(entry.Engines) > 0 {
 			pkg.Metadata = map[string]any{sdk.MetadataKeyNPM: &sdk.NPMPackageMetadata{Engines: entry.Engines}}
@@ -150,7 +148,7 @@ func depGraphFromPNPMLockfile(projectPath string) (*sdk.Graph, error) {
 		for dependencyName, dependencyVersion := range node.MergeStringMaps(entry.Dependencies, entry.OptionalDependencies) {
 			resolved, ok := resolvePNPMDependency(byName, dependencyName, dependencyVersion)
 			if !ok {
-				synthetic := sdk.NewDependency(sdk.Dependency{Ecosystem: string(sdk.EcosystemNPM), Name: dependencyName, Version: node.NormalizeVersionToken(dependencyVersion)})
+				synthetic := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(dependencyVersion)}})
 				if err := node.AddNodeIfMissing(depsGraph, synthetic); err != nil {
 					return nil, err
 				}

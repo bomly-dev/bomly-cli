@@ -5,6 +5,48 @@ import (
 	"strings"
 )
 
+// PackageType describes the broad role or artifact kind of a package node.
+type PackageType string
+
+const (
+	PackageTypeUnknown     PackageType = ""
+	PackageTypeApplication PackageType = "application"
+	PackageTypePackage     PackageType = "package"
+	PackageTypeManifest    PackageType = "manifest"
+	PackageTypeWorkflow    PackageType = "workflow"
+	PackageTypeAction      PackageType = "action"
+	PackageTypeTransitive  PackageType = "transitive"
+	PackageTypeProject     PackageType = "project"
+	PackageTypeFile        PackageType = "file"
+)
+
+// ParsePackageType normalizes a package role string.
+func ParsePackageType(value string) PackageType {
+	normalized := strings.ToLower(strings.TrimSpace(value))
+	if normalized == "" {
+		return PackageTypeUnknown
+	}
+	return PackageType(normalized)
+}
+
+// String returns the package type value.
+func (t PackageType) String() string { return string(t) }
+
+// LicenseType identifies license provenance.
+type LicenseType string
+
+const (
+	LicenseTypeDeclared LicenseType = "declared"
+)
+
+// DigestAlgorithm identifies an artifact digest algorithm.
+type DigestAlgorithm string
+
+const (
+	DigestAlgorithmSHA1   DigestAlgorithm = "sha1"
+	DigestAlgorithmSHA256 DigestAlgorithm = "sha256"
+)
+
 // PackageLocation captures where a package was discovered.
 type PackageLocation struct {
 	RealPath   string `json:"real_path,omitempty"`
@@ -16,15 +58,15 @@ type PackageLocation struct {
 
 // PackageLicense captures normalized license details for a package.
 type PackageLicense struct {
-	Value          string `json:"value,omitempty"`
-	SPDXExpression string `json:"spdx_expression,omitempty"`
-	Type           string `json:"type,omitempty"`
+	Value          string      `json:"value,omitempty"`
+	SPDXExpression string      `json:"spdx_expression,omitempty"`
+	Type           LicenseType `json:"type,omitempty"`
 }
 
 // Digest captures integrity information for a package artifact.
 type Digest struct {
-	Algorithm string `json:"algorithm,omitempty"`
-	Value     string `json:"value,omitempty"`
+	Algorithm DigestAlgorithm `json:"algorithm,omitempty"`
+	Value     string          `json:"value,omitempty"`
 }
 
 // PackageEOL captures end-of-life enrichment attached by the EOL matcher.
@@ -52,15 +94,10 @@ func (e *PackageEOL) Clone() *PackageEOL {
 // matching-stage enrichment; detection-time identity and relationships live on
 // Dependency.
 type Package struct {
-	// PURL is the canonical package URL and the registry primary key.
-	PURL        string `json:"purl"`
-	Ecosystem   string `json:"ecosystem,omitempty"`
-	Name        string `json:"name,omitempty"`
-	Version     string `json:"version,omitempty"`
-	Org         string `json:"org,omitempty"`
-	Type        string `json:"type,omitempty"`
-	BuildSystem string `json:"build_system,omitempty"`
-	Language    string `json:"language,omitempty"`
+	Coordinates
+	// ID is the package registry identifier. It may be a database ID, PURL, or
+	// another stable key chosen by the package registry.
+	ID          string `json:"id,omitempty"`
 	Copyright   string `json:"copyright,omitempty"`
 	ResolvedURL string `json:"resolved_url,omitempty"`
 
@@ -101,11 +138,17 @@ type NPMPackageMetadata struct {
 
 // QualifiedName returns the package name prefixed with its organization when present.
 func (p *Package) QualifiedName() string {
-	return qualifiedName(p.Org, p.Name)
+	if p == nil {
+		return ""
+	}
+	return p.Coordinates.QualifiedName()
 }
 
 // DisplayName returns the most human-friendly identifier available.
 func (p *Package) DisplayName() string {
+	if p == nil {
+		return ""
+	}
 	if name := p.QualifiedName(); name != "" {
 		return name
 	}
@@ -117,7 +160,7 @@ func (p *Package) IdentityKey() string {
 	if p == nil {
 		return ""
 	}
-	return strings.Join([]string{p.Ecosystem, p.BuildSystem, p.Type, p.Org, p.Name}, "\x00")
+	return p.Coordinates.IdentityKey()
 }
 
 // LicenseValues returns normalized package license labels in stable order.
@@ -174,6 +217,9 @@ func (p *Package) MergeFrom(src *Package) {
 	if p == nil || src == nil {
 		return
 	}
+	if p.ID == "" {
+		p.ID = src.ID
+	}
 	if p.Ecosystem == "" {
 		p.Ecosystem = src.Ecosystem
 	}
@@ -186,13 +232,13 @@ func (p *Package) MergeFrom(src *Package) {
 	if p.Org == "" {
 		p.Org = src.Org
 	}
-	if p.Type == "" {
+	if p.Type == PackageTypeUnknown {
 		p.Type = src.Type
 	}
-	if p.BuildSystem == "" {
-		p.BuildSystem = src.BuildSystem
+	if p.PackageManager == PackageManagerUnknown {
+		p.PackageManager = src.PackageManager
 	}
-	if p.Language == "" {
+	if p.Language == LanguageUnknown {
 		p.Language = src.Language
 	}
 	if strings.TrimSpace(p.Copyright) == "" {
@@ -292,14 +338,17 @@ func PackageFromDependency(dep *Dependency) *Package {
 	}
 	purl := CanonicalPackageURLFromDependency(dep)
 	return &Package{
-		PURL:        purl,
-		Ecosystem:   dep.Ecosystem,
-		Name:        dep.Name,
-		Version:     dep.Version,
-		Org:         dep.Org,
-		Type:        dep.Type,
-		BuildSystem: dep.BuildSystem,
-		Language:    dep.Language,
+		Coordinates: Coordinates{
+			PURL:           purl,
+			Ecosystem:      dep.Ecosystem,
+			Name:           dep.Name,
+			Version:        dep.Version,
+			Org:            dep.Org,
+			Type:           dep.Type,
+			PackageManager: dep.PackageManager,
+			Language:       dep.Language,
+		},
+		ID:          purl,
 		ResolvedURL: dep.ResolvedURL,
 	}
 }

@@ -59,20 +59,18 @@ func TestDetectorResolveGraph_NormalizesImportedComponentIDs(t *testing.T) {
 
 func TestDetectorResolveGraph_PrefersImportedPURLIdentity(t *testing.T) {
 	g := sdk.New()
-	app := sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   "npm",
-		BuildSystem: "npm",
-		Name:        "demo-app",
-		Version:     "1.0.0",
-		PURL:        "pkg:npm/demo-app@1.0.0",
+	app := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+		PackageManager: "npm",
+		Name:           "demo-app",
+		Version:        "1.0.0",
+		PURL:           "pkg:npm/demo-app@1.0.0"},
 	})
 
-	react := sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   "npm",
-		BuildSystem: "npm",
-		Name:        "react",
-		Version:     "18.2.0",
-		PURL:        "pkg:npm/react@18.2.0",
+	react := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+		PackageManager: "npm",
+		Name:           "react",
+		Version:        "18.2.0",
+		PURL:           "pkg:npm/react@18.2.0"},
 	})
 
 	for _, pkg := range []*sdk.Dependency{app, react} {
@@ -108,8 +106,8 @@ func TestDetectorResolveGraph_PrefersImportedPURLIdentity(t *testing.T) {
 	if reactPkg.PURL != "pkg:npm/react@18.2.0" {
 		t.Fatalf("expected react purl to be preserved, got %q", reactPkg.PURL)
 	}
-	if reactPkg.Ecosystem != "npm" || reactPkg.BuildSystem != "npm" {
-		t.Fatalf("expected react identity to be restored from SBOM, got ecosystem=%q buildSystem=%q", reactPkg.Ecosystem, reactPkg.BuildSystem)
+	if reactPkg.Ecosystem != "npm" || reactPkg.PackageManager != "npm" {
+		t.Fatalf("expected react identity to be restored from SBOM, got ecosystem=%q packageManager=%q", reactPkg.Ecosystem, reactPkg.PackageManager)
 	}
 }
 

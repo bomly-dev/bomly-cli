@@ -371,12 +371,11 @@ func parseMixManifest(raw string) map[string]mixPackage {
 }
 
 func rootNode() *sdk.Dependency {
-	return sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   string(sdk.EcosystemElixir),
-		Name:        "root",
-		BuildSystem: sdk.PackageManagerMix.Name(),
-		Type:        "application",
-		Language:    "elixir",
+	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemElixir,
+		Name:           "root",
+		PackageManager: sdk.PackageManagerMix,
+		Type:           sdk.PackageTypeApplication,
+		Language:       "elixir"},
 	})
 
 }
@@ -387,17 +386,15 @@ func packageNode(pkg mixPackage) *sdk.Dependency {
 	if source == "" {
 		source = "hex"
 	}
-	return sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   string(sdk.EcosystemElixir),
-		Name:        strings.TrimSpace(pkg.Name),
-		Version:     version,
-		BuildSystem: sdk.PackageManagerMix.Name(),
-		Type:        "package",
-		Language:    "elixir",
-		PURL:        sdk.BuildPackageURL("hex", "", pkg.Name, version),
-		Metadata: map[string]any{
-			"source": source,
-		},
+	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemElixir,
+		Name:           strings.TrimSpace(pkg.Name),
+		Version:        version,
+		PackageManager: sdk.PackageManagerMix,
+		Type:           sdk.PackageTypePackage,
+		Language:       "elixir",
+		PURL:           sdk.BuildPackageURL("hex", "", pkg.Name, version)}, Metadata: map[string]any{
+		"source": source,
+	},
 	})
 
 }

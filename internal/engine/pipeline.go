@@ -152,7 +152,7 @@ func (p *Pipeline) logUnexpectedMultiRootGraph(stage, detector, subproject strin
 			continue
 		}
 		rootIDs = append(rootIDs, root.ID)
-		if strings.EqualFold(strings.TrimSpace(root.Type), "application") {
+		if root.Type == sdk.PackageTypeApplication {
 			hasApplicationRoot = true
 		}
 	}

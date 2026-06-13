@@ -74,8 +74,8 @@ func Scan(manifests []output.ScanManifest, g *sdk.Graph, registry *sdk.PackageRe
 		sorted := make([]sdk.Finding, len(findings))
 		copy(sorted, findings)
 		sort.Slice(sorted, func(i, j int) bool {
-			si := severityRankTable(sorted[i].Severity)
-			sj := severityRankTable(sorted[j].Severity)
+			si := severityRankTable(string(sorted[i].Severity))
+			sj := severityRankTable(string(sorted[j].Severity))
 			if si != sj {
 				return si < sj
 			}
@@ -252,7 +252,7 @@ func renderUniqueLicensesTable(g *sdk.Graph, registry *sdk.PackageRegistry) stri
 				row.value = strings.TrimSpace(license.Value)
 			}
 			if row.sourceType == "" {
-				row.sourceType = strings.TrimSpace(license.Type)
+				row.sourceType = strings.TrimSpace(string(license.Type))
 			}
 			row.packages[pkg.ID] = struct{}{}
 		}

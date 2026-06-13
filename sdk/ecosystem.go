@@ -8,6 +8,9 @@ import (
 // Ecosystem groups package managers under a registry-specific dependency model.
 type Ecosystem string
 
+// String returns the ecosystem value.
+func (e Ecosystem) String() string { return string(e) }
+
 // Keep this list aligned with the Syft-backed support matrix in docs/SUPPORT_MATRIX.md
 // and the Syft manifest mappings in internal/detectors/syft/detector.go.
 const (

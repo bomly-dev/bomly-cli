@@ -311,25 +311,23 @@ func rootDependencies(values []string) []string {
 }
 
 func rootNode() *sdk.Dependency {
-	return sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   string(sdk.EcosystemSwift),
-		Name:        "root",
-		BuildSystem: sdk.PackageManagerCocoaPods.Name(),
-		Type:        "application",
-		Language:    "swift",
+	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemSwift,
+		Name:           "root",
+		PackageManager: sdk.PackageManagerCocoaPods,
+		Type:           sdk.PackageTypeApplication,
+		Language:       "swift"},
 	})
 
 }
 
 func packageNode(name, version, checksum string) *sdk.Dependency { //nolint:unparam
-	node := sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   string(sdk.EcosystemSwift),
-		Name:        name,
-		Version:     strings.TrimSpace(version),
-		BuildSystem: sdk.PackageManagerCocoaPods.Name(),
-		Type:        "pod",
-		Language:    "swift",
-		PURL:        sdk.BuildPackageURL("cocoapods", "", name, version),
+	node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemSwift,
+		Name:           name,
+		Version:        strings.TrimSpace(version),
+		PackageManager: sdk.PackageManagerCocoaPods,
+		Type:           "pod",
+		Language:       "swift",
+		PURL:           sdk.BuildPackageURL("cocoapods", "", name, version)},
 	})
 
 	if strings.TrimSpace(checksum) != "" {

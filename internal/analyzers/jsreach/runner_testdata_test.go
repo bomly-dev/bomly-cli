@@ -75,7 +75,7 @@ func TestJSDescriptorAndRunnerResult(t *testing.T) {
 func TestJSStandaloneApplyRunnerResult(t *testing.T) {
 	const purl = "pkg:npm/lodash"
 	g := model.New()
-	pkg := model.NewDependency(model.Dependency{Name: "lodash", Ecosystem: "npm", PURL: purl})
+	pkg := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "lodash", Ecosystem: model.EcosystemNPM, PURL: purl}})
 	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
 	}

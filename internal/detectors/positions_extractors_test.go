@@ -31,7 +31,7 @@ func writeFile(t *testing.T, dir, name, body string) {
 
 func mustPkg(t *testing.T, g *sdk.Graph, name, version string, extra ...func(*sdk.Dependency)) *sdk.Dependency {
 	t.Helper()
-	d := sdk.Dependency{Name: name, Version: version, Ecosystem: "test"}
+	d := sdk.Dependency{Coordinates: sdk.Coordinates{Name: name, Version: version, Ecosystem: "test"}}
 	for _, f := range extra {
 		f(&d)
 	}

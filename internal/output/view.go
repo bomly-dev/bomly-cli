@@ -28,13 +28,13 @@ type ScanResponse struct {
 
 // ScanManifest is one manifest-scoped dependency inventory in the scan payload.
 type ScanManifest struct {
-	Path           string           `json:"path,omitempty"`
-	Kind           string           `json:"kind,omitempty"`
-	Subproject     string           `json:"subproject,omitempty"`
-	Ecosystem      string           `json:"ecosystem,omitempty"`
-	PackageManager string           `json:"package_manager,omitempty"`
-	Detector       string           `json:"detector,omitempty"`
-	Dependencies   []ScanDependency `json:"dependencies"`
+	Path           string             `json:"path,omitempty"`
+	Kind           sdk.ManifestKind   `json:"kind,omitempty"`
+	Subproject     string             `json:"subproject,omitempty"`
+	Ecosystem      sdk.Ecosystem      `json:"ecosystem,omitempty"`
+	PackageManager sdk.PackageManager `json:"package_manager,omitempty"`
+	Detector       string             `json:"detector,omitempty"`
+	Dependencies   []ScanDependency   `json:"dependencies"`
 }
 
 // DiffResponse is the structured payload for the diff command.
@@ -125,10 +125,10 @@ type DiffChangedPackage struct {
 type DiffManifestResult struct {
 	Status         string               `json:"status"`
 	Path           string               `json:"path,omitempty"`
-	Kind           string               `json:"kind,omitempty"`
+	Kind           sdk.ManifestKind     `json:"kind,omitempty"`
 	Subproject     string               `json:"subproject,omitempty"`
-	Ecosystem      string               `json:"ecosystem,omitempty"`
-	PackageManager string               `json:"package_manager,omitempty"`
+	Ecosystem      sdk.Ecosystem        `json:"ecosystem,omitempty"`
+	PackageManager sdk.PackageManager   `json:"package_manager,omitempty"`
 	Added          []DiffPackageChange  `json:"added,omitempty"`
 	Removed        []DiffPackageChange  `json:"removed,omitempty"`
 	Changed        []DiffChangedPackage `json:"changed,omitempty"`
@@ -251,16 +251,16 @@ func ScanManifestsFromConsolidated(consolidated sdk.ConsolidatedGraph, registry 
 }
 
 func scanManifestFromConsolidated(manifest sdk.ConsolidatedManifest, idx int, registry *sdk.PackageRegistry) ScanManifest {
-	kind := strings.TrimSpace(manifest.Entry.Manifest.Kind)
+	kind := strings.TrimSpace(string(manifest.Entry.Manifest.Kind))
 	if kind == "" {
 		kind = "entry-" + strconv.Itoa(idx+1)
 	}
 	return ScanManifest{
 		Path:           normalizeScanManifestPath(manifest.Subproject, diffManifestPath(manifest.Subproject, manifest.Entry.Manifest), manifest.Entry.Manifest.Path),
-		Kind:           kind,
+		Kind:           sdk.ManifestKind(kind),
 		Subproject:     manifest.Subproject.RelativePath,
-		Ecosystem:      string(manifest.Subproject.Ecosystem),
-		PackageManager: manifest.Subproject.PrimaryPackageManager().Name(),
+		Ecosystem:      manifest.Subproject.Ecosystem,
+		PackageManager: manifest.Subproject.PrimaryPackageManager(),
 		Detector:       manifest.DetectorName,
 		Dependencies:   DependenciesFromGraph(manifest.Entry.Graph, registry),
 	}
@@ -326,8 +326,8 @@ func BuildDiffResponse(projectPath, baseRef, headRef string, baseConsolidated, h
 			Name:           filepathBase(projectPath),
 			Path:           projectPath,
 			TargetType:     "dependency diff",
-			Ecosystem:      "multiple",
-			PackageManager: "multiple",
+			Ecosystem:      sdk.EcosystemOther,
+			PackageManager: sdk.PackageManagerMultiple,
 		},
 		Comparison: DiffComparison{Base: baseRef, Head: headRef},
 		Results:    results,
@@ -522,10 +522,10 @@ type diffManifestSnapshot struct {
 
 type diffManifestRef struct {
 	Path           string
-	Kind           string
+	Kind           sdk.ManifestKind
 	Subproject     string
-	Ecosystem      string
-	PackageManager string
+	Ecosystem      sdk.Ecosystem
+	PackageManager sdk.PackageManager
 }
 
 func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.ConsolidatedGraph, baseRegistry, headRegistry *sdk.PackageRegistry) (DiffResults, DiffSummary) {
@@ -800,16 +800,16 @@ func manifestSnapshotsByConsolidated(consolidated sdk.ConsolidatedGraph) map[str
 
 func diffManifestRefFromConsolidated(manifest sdk.ConsolidatedManifest, idx int) diffManifestRef {
 	pathValue := normalizeScanManifestPath(manifest.Subproject, diffManifestPath(manifest.Subproject, manifest.Entry.Manifest), manifest.Entry.Manifest.Path)
-	kind := strings.TrimSpace(manifest.Entry.Manifest.Kind)
+	kind := strings.TrimSpace(string(manifest.Entry.Manifest.Kind))
 	if kind == "" {
 		kind = "entry-" + strconv.Itoa(idx+1)
 	}
 	return diffManifestRef{
 		Path:           pathValue,
-		Kind:           kind,
+		Kind:           sdk.ManifestKind(kind),
 		Subproject:     manifest.Subproject.RelativePath,
-		Ecosystem:      string(manifest.Subproject.Ecosystem),
-		PackageManager: manifest.Subproject.PrimaryPackageManager().Name(),
+		Ecosystem:      manifest.Subproject.Ecosystem,
+		PackageManager: manifest.Subproject.PrimaryPackageManager(),
 	}
 }
 
@@ -867,9 +867,9 @@ func diffManifestKey(manifest diffManifestRef, idx int) string {
 		subproject = "."
 	}
 	if strings.TrimSpace(manifest.Path) == "" {
-		return strings.Join([]string{subproject, manifest.PackageManager, manifest.Kind, pathValue}, "::")
+		return strings.Join([]string{subproject, manifest.PackageManager.Name(), string(manifest.Kind), pathValue}, "::")
 	}
-	return strings.Join([]string{subproject, manifest.PackageManager, pathValue}, "::")
+	return strings.Join([]string{subproject, manifest.PackageManager.Name(), pathValue}, "::")
 }
 
 func diffManifestKeyForConsolidated(manifest sdk.ConsolidatedManifest, ref diffManifestRef, idx int) string {
@@ -931,7 +931,7 @@ func isSBOMManifest(subproject sdk.Subproject) bool {
 }
 
 func isSBOMDiffManifest(base, head diffManifestSnapshot) bool {
-	return base.Manifest.PackageManager == sdk.PackageManagerSBOM.Name() || head.Manifest.PackageManager == sdk.PackageManagerSBOM.Name()
+	return base.Manifest.PackageManager == sdk.PackageManagerSBOM || head.Manifest.PackageManager == sdk.PackageManagerSBOM
 }
 
 func filterSBOMPseudoPackageDiff(diff *sdk.Diff, baseGraph, headGraph *sdk.Graph) {
@@ -1142,8 +1142,8 @@ func fuzzyReconcileScore(before, after *sdk.Dependency) (float64, string) {
 }
 
 func sameEcosystemForFuzzy(before, after *sdk.Dependency) bool {
-	b := strings.ToLower(strings.TrimSpace(before.Ecosystem))
-	a := strings.ToLower(strings.TrimSpace(after.Ecosystem))
+	b := strings.ToLower(strings.TrimSpace(string(before.Ecosystem)))
+	a := strings.ToLower(strings.TrimSpace(string(after.Ecosystem)))
 	if b == "" || a == "" {
 		return true
 	}

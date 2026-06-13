@@ -135,12 +135,12 @@ func isPythonPackage(pkg *model.Dependency) bool {
 	if pkg == nil {
 		return false
 	}
-	if strings.EqualFold(pkg.Ecosystem, string(model.EcosystemPython)) {
+	if pkg.Ecosystem == model.EcosystemPython {
 		return true
 	}
-	switch strings.ToLower(strings.TrimSpace(pkg.BuildSystem)) {
-	case "pip", "pipenv", "poetry", "uv", "pdm", "setuppy", "setup.py":
+	switch pkg.PackageManager {
+	case model.PackageManagerPip, model.PackageManagerPipenv, model.PackageManagerPoetry, model.PackageManagerUV, model.PackageManagerPDM, model.PackageManagerSetupPy:
 		return true
 	}
-	return strings.EqualFold(pkg.Language, string(model.LanguagePython))
+	return pkg.Language == model.LanguagePython
 }

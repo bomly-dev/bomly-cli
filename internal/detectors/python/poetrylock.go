@@ -72,14 +72,13 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 		if pkg.Name == "" {
 			continue
 		}
-		node := sdk.NewDependency(sdk.Dependency{
-			Ecosystem:   string(sdk.EcosystemPython),
-			Name:        normalizePythonName(pkg.Name),
-			Version:     pkg.Version,
-			BuildSystem: sdk.PackageManagerPoetry.Name(),
-			Language:    "python",
-			Type:        "package",
-			PURL:        sdk.BuildPackageURL("pypi", "", pkg.Name, pkg.Version),
+		node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+			Name:           normalizePythonName(pkg.Name),
+			Version:        pkg.Version,
+			PackageManager: sdk.PackageManagerPoetry,
+			Language:       "python",
+			Type:           sdk.PackageTypePackage,
+			PURL:           sdk.BuildPackageURL("pypi", "", pkg.Name, pkg.Version)},
 		})
 
 		for _, group := range pkg.Groups {
@@ -95,13 +94,12 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 	// Build the graph.
 	g := sdk.New()
 
-	root := sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   string(sdk.EcosystemPython),
-		Name:        rootName,
-		Version:     rootVersion,
-		BuildSystem: sdk.PackageManagerPoetry.Name(),
-		Language:    "python",
-		Type:        "application",
+	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+		Name:           rootName,
+		Version:        rootVersion,
+		PackageManager: sdk.PackageManagerPoetry,
+		Language:       "python",
+		Type:           sdk.PackageTypeApplication},
 	})
 
 	if err := g.AddNode(root); err != nil {

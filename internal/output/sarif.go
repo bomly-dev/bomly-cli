@@ -114,7 +114,7 @@ type sarifProperties struct {
 	LocationURIs           []string             `json:"location_uris,omitempty"`
 	FixedIn                string               `json:"fixed_in,omitempty"`
 	FixedVersions          []string             `json:"fixed_versions,omitempty"`
-	FixState               string               `json:"fix_state,omitempty"`
+	FixState               sdk.FixState         `json:"fix_state,omitempty"`
 	FixAvailable           []sdk.FixAvailable   `json:"fix_available,omitempty"`
 	SeveritySource         string               `json:"severity_source,omitempty"`
 	CVSS                   []sdk.CVSSScore      `json:"cvss,omitempty"`
@@ -171,7 +171,7 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, registry *sdk.PackageRegist
 			ID:               f.ID,
 			ShortDescription: sarifMessage{Text: f.Title},
 			FullDescription:  sarifMessage{Text: joinReasons(f.Reasons)},
-			DefaultConfig:    sarifRuleConfig{Level: severityToSARIFLevel(f.Severity)},
+			DefaultConfig:    sarifRuleConfig{Level: severityToSARIFLevel(string(f.Severity))},
 			HelpURI:          helpURI,
 		})
 	}
@@ -187,7 +187,7 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, registry *sdk.PackageRegist
 		locations, locationURIs := sarifLocationsForFinding(f, includeReachability, options)
 		result := sarifResult{
 			RuleID:    f.ID,
-			Level:     severityToSARIFLevel(f.Severity),
+			Level:     severityToSARIFLevel(string(f.Severity)),
 			Message:   sarifMessage{Text: msgText},
 			Locations: locations,
 		}

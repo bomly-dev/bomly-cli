@@ -183,9 +183,8 @@ func depGraphFromPipInspect(raw []byte) (*sdk.Graph, error) {
 	}
 
 	depsGraph := sdk.New()
-	rootNode := sdk.NewDependency(sdk.Dependency{
-		Ecosystem: string(sdk.EcosystemPython),
-		Name:      "root",
+	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+		Name: "root"},
 	})
 
 	if err := depsGraph.AddNode(rootNode); err != nil {
@@ -197,10 +196,9 @@ func depGraphFromPipInspect(raw []byte) (*sdk.Graph, error) {
 		if pkg.Metadata.Name == "" {
 			continue
 		}
-		node := sdk.NewDependency(sdk.Dependency{
-			Ecosystem: string(sdk.EcosystemPython),
-			Name:      normalizePythonName(pkg.Metadata.Name),
-			Version:   pkg.Metadata.Version,
+		node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+			Name:    normalizePythonName(pkg.Metadata.Name),
+			Version: pkg.Metadata.Version},
 		})
 
 		if _, exists := nodesByName[node.Name]; !exists {

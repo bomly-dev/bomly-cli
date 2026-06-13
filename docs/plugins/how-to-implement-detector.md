@@ -48,11 +48,13 @@ func (d *detector) Applicable(context.Context, *sdk.DetectRequest) (*sdk.Applica
 func (d *detector) Detect(ctx context.Context, req *sdk.DetectRequest) (*sdk.DetectResponse, error) {
     graph := sdk.New()
     dep := sdk.NewDependency(sdk.Dependency{
-        Ecosystem: string(sdk.EcosystemNPM),
-        Name:      "is-odd",
-        Version:   "3.0.1",
-        PURL:      "pkg:npm/is-odd@3.0.1",
-        FoundBy:   pluginID,
+        Coordinates: sdk.Coordinates{
+            Ecosystem: sdk.EcosystemNPM,
+            Name:      "is-odd",
+            Version:   "3.0.1",
+            PURL:      "pkg:npm/is-odd@3.0.1",
+        },
+        FoundBy: pluginID,
     })
     if err := graph.AddNode(dep); err != nil {
         return nil, err
@@ -97,8 +99,12 @@ Use `Install` only for install-first detectors that prepare dependencies before 
 Use SDK graph helpers instead of constructing graph internals by hand:
 
 ```go
-parent := sdk.NewDependency(sdk.Dependency{Name: "app", Version: "0.0.0", PURL: "pkg:generic/app@0.0.0"})
-child := sdk.NewDependency(sdk.Dependency{Name: "lodash", Version: "4.17.21", PURL: "pkg:npm/lodash@4.17.21"})
+parent := sdk.NewDependency(sdk.Dependency{
+    Coordinates: sdk.Coordinates{Name: "app", Version: "0.0.0", PURL: "pkg:generic/app@0.0.0"},
+})
+child := sdk.NewDependency(sdk.Dependency{
+    Coordinates: sdk.Coordinates{Name: "lodash", Version: "4.17.21", PURL: "pkg:npm/lodash@4.17.21"},
+})
 
 graph := sdk.New()
 if err := graph.AddNode(parent); err != nil {

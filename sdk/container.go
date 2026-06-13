@@ -3,7 +3,38 @@ package sdk
 import "errors"
 
 // ManifestKind identifies the manifest family represented by one graph entry.
-type ManifestKind = string
+type ManifestKind string
+
+const (
+	// ManifestKindPackageLockJSON identifies npm package-lock.json manifests.
+	ManifestKindPackageLockJSON ManifestKind = "package-lock.json"
+	// ManifestKindNPMLockfile identifies generic npm lockfile manifests.
+	ManifestKindNPMLockfile ManifestKind = "npm-lockfile"
+	// ManifestKindPackageJSON identifies npm package.json manifests.
+	ManifestKindPackageJSON ManifestKind = "package.json"
+	// ManifestKindGoMod identifies Go module manifests.
+	ManifestKindGoMod ManifestKind = "go.mod"
+	// ManifestKindGoModule identifies normalized Go module manifests.
+	ManifestKindGoModule ManifestKind = "go-module"
+	// ManifestKindPomXML identifies Maven POM manifests.
+	ManifestKindPomXML ManifestKind = "pom.xml"
+	// ManifestKindRequirementsTXT identifies Python requirements manifests.
+	ManifestKindRequirementsTXT ManifestKind = "requirements.txt"
+	// ManifestKindSPDX identifies SPDX SBOM manifests.
+	ManifestKindSPDX ManifestKind = "spdx"
+	// ManifestKindSBOM identifies generic SBOM manifests.
+	ManifestKindSBOM ManifestKind = "sbom"
+	// ManifestKindGitHubSPDX identifies GitHub-produced SPDX SBOM manifests.
+	ManifestKindGitHubSPDX ManifestKind = "github.spdx"
+	// ManifestKindBomlySPDX identifies Bomly-produced SPDX SBOM manifests.
+	ManifestKindBomlySPDX ManifestKind = "bomly.spdx"
+	// ManifestKindGitHubActions identifies GitHub Actions manifests.
+	ManifestKindGitHubActions ManifestKind = "github-actions"
+	// ManifestKindGitHubActionsWorkflow identifies GitHub Actions workflow files.
+	ManifestKindGitHubActionsWorkflow ManifestKind = "github-actions-workflow"
+	// ManifestKindGitHubActionsAction identifies GitHub Actions action metadata files.
+	ManifestKindGitHubActionsAction ManifestKind = "github-actions-action"
+)
 
 // ManifestMetadata describes the manifest or evidence file associated with one graph.
 type ManifestMetadata struct {

@@ -17,13 +17,11 @@ func TestAttachPositionsNilSafe(t *testing.T) {
 
 func TestAttachPositionsDoesNotDuplicate(t *testing.T) {
 	g := sdk.New()
-	pkg := sdk.NewDependency(sdk.Dependency{
-		Name:      "foo",
+	pkg := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "foo",
 		Version:   "1.0.0",
-		Ecosystem: "test",
-		Locations: []sdk.PackageLocation{
-			{RealPath: "lock.txt", Position: &sdk.SourcePosition{File: "lock.txt", Line: 1}},
-		},
+		Ecosystem: "test"}, Locations: []sdk.PackageLocation{
+		{RealPath: "lock.txt", Position: &sdk.SourcePosition{File: "lock.txt", Line: 1}},
+	},
 	})
 	_ = g.AddNode(pkg)
 
@@ -43,7 +41,7 @@ func TestAttachPositionsDoesNotDuplicate(t *testing.T) {
 
 func TestAttachPositionsHonorsNameKey(t *testing.T) {
 	g := sdk.New()
-	pkg := sdk.NewDependency(sdk.Dependency{Name: "Foo", Version: "1", Ecosystem: "test"})
+	pkg := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "Foo", Version: "1", Ecosystem: "test"}})
 	_ = g.AddNode(pkg)
 
 	// Map keyed by lowercase name; nameKey lowercases the node.

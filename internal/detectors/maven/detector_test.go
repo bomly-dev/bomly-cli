@@ -105,7 +105,7 @@ func TestNodeFromMavenCoords_WithClassifier(t *testing.T) {
 	if node.Name != "demo-artifact:sources" {
 		t.Fatalf("expected classifier in package name, got %q", node.Name)
 	}
-	if node.Org != "com.example" || node.Ecosystem != "maven" || node.BuildSystem != "maven" {
+	if node.Org != "com.example" || node.Ecosystem != "maven" || node.PackageManager != "maven" {
 		t.Fatalf("unexpected maven package: %#v", node)
 	}
 	if node.QualifiedName() != "com.example:demo-artifact:sources" {

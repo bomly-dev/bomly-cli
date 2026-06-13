@@ -130,10 +130,10 @@ func normalizeSubprojectManifest(subproject sdk.Subproject, manifest sdk.Manifes
 	if isCoreDetector(origin) {
 		manifest.Path = normalizeNativeManifestPath(subproject, manifest.Path)
 	}
-	if strings.TrimSpace(manifest.Kind) == "" {
-		manifest.Kind = subproject.PrimaryPackageManager().Name()
+	if strings.TrimSpace(string(manifest.Kind)) == "" {
+		manifest.Kind = sdk.ManifestKind(subproject.PrimaryPackageManager().Name())
 	}
-	manifest.Kind = strings.TrimSpace(manifest.Kind)
+	manifest.Kind = sdk.ManifestKind(strings.TrimSpace(string(manifest.Kind)))
 	return manifest
 }
 

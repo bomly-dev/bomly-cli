@@ -30,19 +30,19 @@ type ReportOptions struct {
 
 // ProjectDescriptor describes the project being analyzed.
 type ProjectDescriptor struct {
-	Name           string `json:"name,omitempty"`
-	Path           string `json:"path"`
-	TargetType     string `json:"target_type,omitempty"`
-	TargetRef      string `json:"target_ref,omitempty"`
-	Ecosystem      string `json:"ecosystem"`
-	PackageManager string `json:"package_manager,omitempty"`
+	Name           string             `json:"name,omitempty"`
+	Path           string             `json:"path"`
+	TargetType     string             `json:"target_type,omitempty"`
+	TargetRef      string             `json:"target_ref,omitempty"`
+	Ecosystem      sdk.Ecosystem      `json:"ecosystem"`
+	PackageManager sdk.PackageManager `json:"package_manager,omitempty"`
 }
 
 // LicenseRef identifies one package license in command outputs.
 type LicenseRef struct {
-	Value          string `json:"value,omitempty"`
-	SPDXExpression string `json:"spdxExpression,omitempty"`
-	Type           string `json:"type,omitempty"`
+	Value          string          `json:"value,omitempty"`
+	SPDXExpression string          `json:"spdxExpression,omitempty"`
+	Type           sdk.LicenseType `json:"type,omitempty"`
 }
 
 // Identifier returns the most useful license identifier for display.
@@ -62,7 +62,7 @@ type VulnerabilityRef struct {
 	ID                   string               `json:"id"`
 	Source               string               `json:"source"`
 	Title                string               `json:"title,omitempty"`
-	Severity             string               `json:"severity,omitempty"`
+	Severity             sdk.SeverityLevel    `json:"severity,omitempty"`
 	SeveritySource       string               `json:"severity_source,omitempty"`
 	Aliases              []string             `json:"aliases,omitempty"`
 	Description          string               `json:"description,omitempty"`
@@ -70,7 +70,7 @@ type VulnerabilityRef struct {
 	CVSS                 []sdk.CVSSScore      `json:"cvss,omitempty"`
 	FixedIn              string               `json:"fixed_in,omitempty"`
 	FixedVersions        []string             `json:"fixed_versions,omitempty"`
-	FixState             string               `json:"fix_state,omitempty"`
+	FixState             sdk.FixState         `json:"fix_state,omitempty"`
 	FixAvailable         []sdk.FixAvailable   `json:"fix_available,omitempty"`
 	AffectedVersionRange string               `json:"affected_version_range,omitempty"`
 	References           []sdk.Reference      `json:"references,omitempty"`
@@ -321,34 +321,34 @@ func VulnerabilityRefsFromPackageVulnerabilities(vulnerabilities []sdk.Vulnerabi
 
 // AuditFinding is the serialized form of one normalized scan finding.
 type AuditFinding struct {
-	ID                   string               `json:"id"`
-	Kind                 string               `json:"kind"`
-	Severity             string               `json:"severity"`
-	Package              PackageRef           `json:"package"`
-	Title                string               `json:"title"`
-	Reasons              []string             `json:"reasons,omitempty"`
-	Source               string               `json:"source"`
-	Auditor              string               `json:"auditor,omitempty"`
-	Disposition          string               `json:"disposition,omitempty"`
-	FixedIn              string               `json:"fixed_in,omitempty"`
-	FixedVersions        []string             `json:"fixed_versions,omitempty"`
-	FixState             string               `json:"fix_state,omitempty"`
-	FixAvailable         []sdk.FixAvailable   `json:"fix_available,omitempty"`
-	Aliases              []string             `json:"aliases,omitempty"`
-	Description          string               `json:"description,omitempty"`
-	SeveritySource       string               `json:"severity_source,omitempty"`
-	CVSS                 []sdk.CVSSScore      `json:"cvss,omitempty"`
-	AffectedVersionRange string               `json:"affected_version_range,omitempty"`
-	References           []sdk.Reference      `json:"references,omitempty"`
-	KEVExploited         bool                 `json:"kev_exploited,omitempty"`
-	KnownExploited       []sdk.KnownExploited `json:"known_exploited,omitempty"`
-	EPSS                 []sdk.EPSSScore      `json:"epss,omitempty"`
-	CWEs                 []sdk.CWE            `json:"cwes,omitempty"`
-	RiskScore            float64              `json:"risk_score,omitempty"`
-	DataSource           string               `json:"data_source,omitempty"`
-	Namespace            string               `json:"namespace,omitempty"`
-	CPEs                 []string             `json:"cpes,omitempty"`
-	Reachability         *sdk.Reachability    `json:"reachability,omitempty"`
+	ID                   string                 `json:"id"`
+	Kind                 sdk.FindingKind        `json:"kind"`
+	Severity             sdk.SeverityLevel      `json:"severity"`
+	Package              PackageRef             `json:"package"`
+	Title                string                 `json:"title"`
+	Reasons              []string               `json:"reasons,omitempty"`
+	Source               string                 `json:"source"`
+	Auditor              string                 `json:"auditor,omitempty"`
+	Disposition          sdk.FindingDisposition `json:"disposition,omitempty"`
+	FixedIn              string                 `json:"fixed_in,omitempty"`
+	FixedVersions        []string               `json:"fixed_versions,omitempty"`
+	FixState             sdk.FixState           `json:"fix_state,omitempty"`
+	FixAvailable         []sdk.FixAvailable     `json:"fix_available,omitempty"`
+	Aliases              []string               `json:"aliases,omitempty"`
+	Description          string                 `json:"description,omitempty"`
+	SeveritySource       string                 `json:"severity_source,omitempty"`
+	CVSS                 []sdk.CVSSScore        `json:"cvss,omitempty"`
+	AffectedVersionRange string                 `json:"affected_version_range,omitempty"`
+	References           []sdk.Reference        `json:"references,omitempty"`
+	KEVExploited         bool                   `json:"kev_exploited,omitempty"`
+	KnownExploited       []sdk.KnownExploited   `json:"known_exploited,omitempty"`
+	EPSS                 []sdk.EPSSScore        `json:"epss,omitempty"`
+	CWEs                 []sdk.CWE              `json:"cwes,omitempty"`
+	RiskScore            float64                `json:"risk_score,omitempty"`
+	DataSource           string                 `json:"data_source,omitempty"`
+	Namespace            string                 `json:"namespace,omitempty"`
+	CPEs                 []string               `json:"cpes,omitempty"`
+	Reachability         *sdk.Reachability      `json:"reachability,omitempty"`
 }
 
 // AuditSummary aggregates finding counts by severity.
@@ -372,14 +372,14 @@ func FindingsFromScan(findings []sdk.Finding, registry *sdk.PackageRegistry) []A
 		pkg := lookupRegistryPackage(registry, f.PackageRef)
 		af := AuditFinding{
 			ID:          f.ID,
-			Kind:        string(f.Kind),
+			Kind:        f.Kind,
 			Severity:    f.Severity,
 			Package:     packageRefFromRegistryPackage(f.PackageRef, pkg),
 			Title:       f.Title,
 			Reasons:     f.Reasons,
 			Source:      f.Source,
 			Auditor:     f.Auditor,
-			Disposition: string(f.Disposition),
+			Disposition: f.Disposition,
 		}
 		if vuln := lookupVulnerability(pkg, f.VulnerabilityID, f.ID); vuln != nil {
 			af.Aliases = append([]string(nil), vuln.Aliases...)
@@ -631,7 +631,7 @@ func PackagesFromRegistry(registry *sdk.PackageRegistry) []ScanPackageEntry {
 			Purl:            pkg.PURL,
 			Name:            pkg.Name,
 			Version:         pkg.Version,
-			Ecosystem:       pkg.Ecosystem,
+			Ecosystem:       string(pkg.Ecosystem),
 			Matched:         pkg.Matched,
 			Licenses:        LicenseRefsFromGraphLicenses(pkg.Licenses),
 			Vulnerabilities: VulnerabilityRefsFromPackageVulnerabilities(pkg.Vulnerabilities),

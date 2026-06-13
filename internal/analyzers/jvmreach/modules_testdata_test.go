@@ -128,11 +128,9 @@ func TestGradleIncludedProjectPaths(t *testing.T) {
 func TestDiscoverProjectRootsDeduplicatesGraphAndTargetSources(t *testing.T) {
 	root := moduleFixture("maven-reactor")
 	g := model.New()
-	pkg := model.NewDependency(model.Dependency{
-		Name:      "jackson-databind",
+	pkg := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "jackson-databind",
 		Org:       "com.fasterxml.jackson.core",
-		Ecosystem: "maven",
-		Locations: []model.PackageLocation{{RealPath: filepath.Join(root, "app", "pom.xml")}},
+		Ecosystem: "maven"}, Locations: []model.PackageLocation{{RealPath: filepath.Join(root, "app", "pom.xml")}},
 	})
 	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
@@ -233,8 +231,8 @@ func TestAnalyzerBuiltInRunnerTraversesMavenReactorTestdata(t *testing.T) {
 	reg := model.NewPackageRegistry()
 	jacksonPURL := "pkg:maven/com.fasterxml.jackson.core/jackson-databind@1"
 	log4jPURL := "pkg:maven/org.apache.logging.log4j/log4j-core@1"
-	jackson := model.NewDependency(model.Dependency{Name: "jackson-databind", Org: "com.fasterxml.jackson.core", Version: "1", Ecosystem: "maven", PURL: jacksonPURL})
-	log4j := model.NewDependency(model.Dependency{Name: "log4j-core", Org: "org.apache.logging.log4j", Version: "1", Ecosystem: "maven", PURL: log4jPURL})
+	jackson := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "jackson-databind", Org: "com.fasterxml.jackson.core", Version: "1", Ecosystem: "maven", PURL: jacksonPURL}})
+	log4j := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "log4j-core", Org: "org.apache.logging.log4j", Version: "1", Ecosystem: "maven", PURL: log4jPURL}})
 	reg.Ensure(jacksonPURL).Vulnerabilities = []model.Vulnerability{{ID: "jackson"}}
 	reg.Ensure(log4jPURL).Vulnerabilities = []model.Vulnerability{{ID: "log4j"}}
 	if err := g.AddNode(jackson); err != nil {

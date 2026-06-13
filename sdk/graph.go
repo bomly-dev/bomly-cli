@@ -451,8 +451,8 @@ func NodeIsDiffable(node *Dependency) bool {
 	if node == nil || strings.HasPrefix(node.ID, "subproject:") || strings.HasPrefix(node.ID, "manifest:") {
 		return false
 	}
-	switch strings.ToLower(strings.TrimSpace(node.Type)) {
-	case "manifest", "application":
+	switch node.Type {
+	case PackageTypeManifest, PackageTypeApplication:
 		return false
 	}
 	name := strings.ToLower(strings.TrimSpace(node.Name))

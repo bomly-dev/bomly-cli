@@ -465,7 +465,7 @@ func buildQuery(dep *sdk.Dependency, purl string) (cache.Key, BatchQuery, bool) 
 	}
 
 	// Fall back to name + ecosystem + version
-	ecosystem := ecosystemToOSV(dep.Ecosystem)
+	ecosystem := ecosystemToOSV(string(dep.Ecosystem))
 	if ecosystem == "" {
 		return cache.Key{}, BatchQuery{}, false
 	}

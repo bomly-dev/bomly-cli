@@ -48,13 +48,11 @@ func newNPMProjectDir(t *testing.T) string {
 // Returns the dependency node.
 func addNPMDep(t *testing.T, g *model.Graph, reg *model.PackageRegistry, projectDir, org, name, version string, vulns ...model.Vulnerability) *model.Dependency {
 	t.Helper()
-	dep := model.NewDependency(model.Dependency{
-		Name:        name,
-		Org:         org,
-		Version:     version,
-		Ecosystem:   "npm",
-		BuildSystem: "npm",
-		Locations:   []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}},
+	dep := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: name,
+		Org:            org,
+		Version:        version,
+		Ecosystem:      model.EcosystemNPM,
+		PackageManager: model.PackageManagerNPM}, Locations: []model.PackageLocation{{RealPath: filepath.Join(projectDir, "package-lock.json")}},
 	})
 	purl := model.CanonicalPackageURLFromDependency(dep)
 	dep.PackageRef = purl
@@ -178,7 +176,7 @@ func TestAnalyzerApplicableRequiresNPMVulns(t *testing.T) {
 
 	// go package with vuln → not applicable
 	g, reg := newSeed()
-	goDep := model.NewDependency(model.Dependency{Name: "lib", Ecosystem: "go"})
+	goDep := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "lib", Ecosystem: model.EcosystemGo}})
 	goDep.PackageRef = model.CanonicalPackageURLFromDependency(goDep)
 	_ = g.AddNode(goDep)
 	reg.Ensure(goDep.PackageRef).Vulnerabilities = []model.Vulnerability{{ID: "x"}}
@@ -264,8 +262,8 @@ func TestAnalyzerDoesNotExpandThroughUnimportedRoots(t *testing.T) {
 
 func TestComputeReachablePackageHopsHandlesCycles(t *testing.T) {
 	g := model.New()
-	a := model.NewDependency(model.Dependency{Name: "a", Version: "1.0.0", Ecosystem: "npm"})
-	b := model.NewDependency(model.Dependency{Name: "b", Version: "1.0.0", Ecosystem: "npm"})
+	a := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "a", Version: "1.0.0", Ecosystem: model.EcosystemNPM}})
+	b := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "b", Version: "1.0.0", Ecosystem: model.EcosystemNPM}})
 	if err := g.AddNode(a); err != nil {
 		t.Fatal(err)
 	}

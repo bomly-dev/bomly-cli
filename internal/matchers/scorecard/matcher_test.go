@@ -76,7 +76,7 @@ func TestMatch_AttachesScorecardToPackages(t *testing.T) {
 	})
 
 	matcher := newMatcher(t, base)
-	dep := sdk.NewDependency(sdk.Dependency{Name: "scorecard", Version: "v5.0.0", PURL: "pkg:github/ossf/scorecard@v5.0.0"})
+	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "scorecard", Version: "v5.0.0", PURL: "pkg:github/ossf/scorecard@v5.0.0"}})
 	g := newGraph(t, dep)
 	registry := sdk.NewPackageRegistry()
 
@@ -116,7 +116,7 @@ func TestMatch_CacheHitSkipsAPI(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
-	dep1 := sdk.NewDependency(sdk.Dependency{PURL: "pkg:github/ossf/scorecard@v5.0.0", Version: "v5.0.0"})
+	dep1 := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{PURL: "pkg:github/ossf/scorecard@v5.0.0", Version: "v5.0.0"}})
 	reg1 := sdk.NewPackageRegistry()
 	if _, err := matcher1.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep1), Registry: reg1}); err != nil {
 		t.Fatalf("first Match: %v", err)
@@ -127,7 +127,7 @@ func TestMatch_CacheHitSkipsAPI(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New2: %v", err)
 	}
-	dep2 := sdk.NewDependency(sdk.Dependency{PURL: "pkg:github/ossf/scorecard@v5.0.0", Version: "v5.0.0"})
+	dep2 := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{PURL: "pkg:github/ossf/scorecard@v5.0.0", Version: "v5.0.0"}})
 	reg2 := sdk.NewPackageRegistry()
 	if _, err := matcher2.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep2), Registry: reg2}); err != nil {
 		t.Fatalf("second Match: %v", err)
@@ -146,7 +146,7 @@ func TestMatch_NotFoundCachedAsSentinel(t *testing.T) {
 	})
 
 	dir := t.TempDir()
-	dep1 := sdk.NewDependency(sdk.Dependency{PURL: "pkg:github/unscored/repo@1.0.0", Version: "1.0.0"})
+	dep1 := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{PURL: "pkg:github/unscored/repo@1.0.0", Version: "1.0.0"}})
 	reg1 := sdk.NewPackageRegistry()
 	matcher, err := New(Config{APIBase: base, CacheDir: dir})
 	if err != nil {
@@ -160,7 +160,7 @@ func TestMatch_NotFoundCachedAsSentinel(t *testing.T) {
 	}
 
 	// Second invocation should hit the sentinel cache (no extra API call).
-	dep2 := sdk.NewDependency(sdk.Dependency{PURL: "pkg:github/unscored/repo@1.0.0", Version: "1.0.0"})
+	dep2 := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{PURL: "pkg:github/unscored/repo@1.0.0", Version: "1.0.0"}})
 	reg2 := sdk.NewPackageRegistry()
 	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep2), Registry: reg2}); err != nil {
 		t.Fatalf("second Match: %v", err)
@@ -176,7 +176,7 @@ func TestMatch_ServerErrorIsNonFatal(t *testing.T) {
 	})
 
 	matcher := newMatcher(t, base)
-	dep := sdk.NewDependency(sdk.Dependency{PURL: "pkg:github/example/repo@1.0.0", Version: "1.0.0"})
+	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{PURL: "pkg:github/example/repo@1.0.0", Version: "1.0.0"}})
 	reg := sdk.NewPackageRegistry()
 	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep), Registry: reg}); err != nil {
 		t.Fatalf("Match must not return an error on transport failure; got %v", err)
@@ -194,7 +194,7 @@ func TestMatch_SkipsPackagesWithoutResolvableRepo(t *testing.T) {
 	t.Cleanup(srv.Close)
 
 	matcher := newMatcher(t, srv.URL)
-	dep := sdk.NewDependency(sdk.Dependency{PURL: "pkg:npm/internal-only@1.0.0", Version: "1.0.0"})
+	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{PURL: "pkg:npm/internal-only@1.0.0", Version: "1.0.0"}})
 	reg := sdk.NewPackageRegistry()
 	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: newGraph(t, dep), Registry: reg}); err != nil {
 		t.Fatalf("Match: %v", err)
@@ -214,8 +214,8 @@ func TestMatch_ComponentModeOnlyEnrichesTarget(t *testing.T) {
 	})
 
 	matcher := newMatcher(t, base)
-	target := sdk.NewDependency(sdk.Dependency{PURL: "pkg:github/ossf/scorecard@v5.0.0", Version: "v5.0.0"})
-	other := sdk.NewDependency(sdk.Dependency{PURL: "pkg:golang/github.com/sirupsen/logrus@v1.9.0", Version: "v1.9.0"})
+	target := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{PURL: "pkg:github/ossf/scorecard@v5.0.0", Version: "v5.0.0"}})
+	other := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{PURL: "pkg:golang/github.com/sirupsen/logrus@v1.9.0", Version: "v1.9.0"}})
 	g := newGraph(t, target, other)
 	reg := sdk.NewPackageRegistry()
 

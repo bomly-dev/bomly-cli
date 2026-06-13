@@ -20,52 +20,37 @@ func TestResolveRepo(t *testing.T) {
 		},
 		{
 			name: "golang PURL with github.com module",
-			pkg: &sdk.Package{
-				PURL: "pkg:golang/github.com/sirupsen/logrus@v1.9.0",
-			},
+			pkg:  &sdk.Package{Coordinates: sdk.Coordinates{PURL: "pkg:golang/github.com/sirupsen/logrus@v1.9.0"}},
 			want: "github.com/sirupsen/logrus",
 		},
 		{
 			name: "golang PURL with github.com module and subpath",
-			pkg: &sdk.Package{
-				PURL: "pkg:golang/github.com/google/go-containerregistry/pkg/v1@v0.14.0",
-			},
+			pkg:  &sdk.Package{Coordinates: sdk.Coordinates{PURL: "pkg:golang/github.com/google/go-containerregistry/pkg/v1@v0.14.0"}},
 			want: "github.com/google/go-containerregistry",
 		},
 		{
 			name: "golang PURL with non-github module",
-			pkg: &sdk.Package{
-				PURL: "pkg:golang/golang.org/x/sys@v0.10.0",
-			},
+			pkg:  &sdk.Package{Coordinates: sdk.Coordinates{PURL: "pkg:golang/golang.org/x/sys@v0.10.0"}},
 			want: "",
 		},
 		{
 			name: "github PURL type",
-			pkg: &sdk.Package{
-				PURL: "pkg:github/ossf/scorecard@v5.0.0",
-			},
+			pkg:  &sdk.Package{Coordinates: sdk.Coordinates{PURL: "pkg:github/ossf/scorecard@v5.0.0"}},
 			want: "github.com/ossf/scorecard",
 		},
 		{
 			name: "repository_url qualifier",
-			pkg: &sdk.Package{
-				PURL: "pkg:npm/lodash@4.17.15?repository_url=https://github.com/lodash/lodash.git",
-			},
+			pkg:  &sdk.Package{Coordinates: sdk.Coordinates{PURL: "pkg:npm/lodash@4.17.15?repository_url=https://github.com/lodash/lodash.git"}},
 			want: "github.com/lodash/lodash",
 		},
 		{
 			name: "vcs_url qualifier with .git suffix",
-			pkg: &sdk.Package{
-				PURL: "pkg:npm/foo@1.0.0?vcs_url=https://github.com/example/foo.git",
-			},
+			pkg:  &sdk.Package{Coordinates: sdk.Coordinates{PURL: "pkg:npm/foo@1.0.0?vcs_url=https://github.com/example/foo.git"}},
 			want: "github.com/example/foo",
 		},
 		{
 			name: "ResolvedURL https tarball",
-			pkg: &sdk.Package{
-				PURL:        "pkg:npm/bar@1.0.0",
-				ResolvedURL: "https://github.com/example/bar/archive/refs/tags/v1.0.0.tar.gz",
-			},
+			pkg:  &sdk.Package{Coordinates: sdk.Coordinates{PURL: "pkg:npm/bar@1.0.0"}, ResolvedURL: "https://github.com/example/bar/archive/refs/tags/v1.0.0.tar.gz"},
 			want: "github.com/example/bar",
 		},
 		{
@@ -77,17 +62,12 @@ func TestResolveRepo(t *testing.T) {
 		},
 		{
 			name: "no github reference anywhere",
-			pkg: &sdk.Package{
-				PURL:        "pkg:npm/qux@1.0.0",
-				ResolvedURL: "https://registry.npmjs.org/qux/-/qux-1.0.0.tgz",
-			},
+			pkg:  &sdk.Package{Coordinates: sdk.Coordinates{PURL: "pkg:npm/qux@1.0.0"}, ResolvedURL: "https://registry.npmjs.org/qux/-/qux-1.0.0.tgz"},
 			want: "",
 		},
 		{
 			name: "qualifier on non-github host",
-			pkg: &sdk.Package{
-				PURL: "pkg:npm/foo@1.0.0?repository_url=https://gitlab.com/example/foo.git",
-			},
+			pkg:  &sdk.Package{Coordinates: sdk.Coordinates{PURL: "pkg:npm/foo@1.0.0?repository_url=https://gitlab.com/example/foo.git"}},
 			want: "",
 		},
 	}

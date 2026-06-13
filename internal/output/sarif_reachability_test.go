@@ -46,7 +46,7 @@ func TestWriteSARIFEmitsCodeFlowsAndPropertiesForReachableFinding(t *testing.T) 
 			VulnerabilityID: "GHSA-test",
 			Kind:            model.FindingKindVulnerability,
 			PackageRef:      purl,
-			Severity:        "high",
+			Severity:        model.SeverityHigh,
 			Title:           "vuln",
 			Source:          "osv",
 		},
@@ -93,7 +93,7 @@ func TestWriteSARIFOmitsReachabilityWhenDisabled(t *testing.T) {
 			VulnerabilityID: "GHSA-test",
 			Kind:            model.FindingKindVulnerability,
 			PackageRef:      purl,
-			Severity:        "high",
+			Severity:        model.SeverityHigh,
 			Title:           "vuln",
 			Source:          "osv",
 		},
@@ -118,7 +118,7 @@ func TestWriteSARIFOmitsCodeFlowsWhenNoReachability(t *testing.T) {
 	const purl = "pkg:go/lib@1.0.0"
 	reg := fixtureRegistryWithVuln(purl, model.Vulnerability{ID: "X"})
 	findings := []model.Finding{
-		{ID: "X", VulnerabilityID: "X", Kind: model.FindingKindVulnerability, PackageRef: purl, Severity: "high", Title: "x", Source: "osv"},
+		{ID: "X", VulnerabilityID: "X", Kind: model.FindingKindVulnerability, PackageRef: purl, Severity: model.SeverityHigh, Title: "x", Source: "osv"},
 	}
 	var buf bytes.Buffer
 	if err := WriteSARIF(&buf, findings, reg, "bomly", "test"); err != nil {

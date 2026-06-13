@@ -236,12 +236,11 @@ func readOptional(path string) ([]byte, error) {
 }
 
 func rootNode() *sdk.Dependency {
-	return sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   string(sdk.EcosystemSwift),
-		Name:        "root",
-		BuildSystem: sdk.PackageManagerSwiftPM.Name(),
-		Type:        "application",
-		Language:    "swift",
+	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemSwift,
+		Name:           "root",
+		PackageManager: sdk.PackageManagerSwiftPM,
+		Type:           sdk.PackageTypeApplication,
+		Language:       "swift"},
 	})
 
 }
@@ -258,17 +257,15 @@ func packageNode(pkg swiftPackage) *sdk.Dependency {
 		metadata["requirement"] = pkg.Requirement
 	}
 	namespace, name := packageIdentity(pkg.Repository, pkg.Name)
-	node := sdk.NewDependency(sdk.Dependency{
-		Ecosystem:   string(sdk.EcosystemSwift),
-		Org:         namespace,
-		Name:        name,
-		Version:     strings.TrimSpace(pkg.Version),
-		BuildSystem: sdk.PackageManagerSwiftPM.Name(),
-		Type:        "package",
-		Language:    "swift",
-		PURL:        sdk.BuildPackageURL("swift", namespace, name, pkg.Version),
-		ResolvedURL: strings.TrimSpace(pkg.Repository),
-		Metadata:    metadata,
+	node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemSwift,
+		Org:            namespace,
+		Name:           name,
+		Version:        strings.TrimSpace(pkg.Version),
+		PackageManager: sdk.PackageManagerSwiftPM,
+		Type:           sdk.PackageTypePackage,
+		Language:       "swift",
+		PURL:           sdk.BuildPackageURL("swift", namespace, name, pkg.Version)}, ResolvedURL: strings.TrimSpace(pkg.Repository),
+		Metadata: metadata,
 	})
 
 	// SwiftPM does not distinguish dev scope; all packages are runtime.

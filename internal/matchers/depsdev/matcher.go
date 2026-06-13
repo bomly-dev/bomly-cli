@@ -315,7 +315,7 @@ func versionRequestFromPackage(pkg *sdk.Package) (versionRequest, cache.Key, boo
 		}
 	}
 	if versionKey, ok := versionKeyFromPackage(pkg); ok {
-		return versionRequest{VersionKey: versionKey}, cache.NewKey("", pkg.Name, pkg.Ecosystem, pkg.Version), true
+		return versionRequest{VersionKey: versionKey}, cache.NewKey("", pkg.Name, string(pkg.Ecosystem), pkg.Version), true
 	}
 	return versionRequest{}, cache.Key{}, false
 }
@@ -324,7 +324,7 @@ func versionKeyFromPackage(pkg *sdk.Package) (versionKey, bool) {
 	if pkg == nil {
 		return versionKey{}, false
 	}
-	system, ok := depsDevSystem(pkg.Ecosystem)
+	system, ok := depsDevSystem(string(pkg.Ecosystem))
 	if !ok {
 		return versionKey{}, false
 	}
@@ -370,7 +370,7 @@ func depsDevName(pkg *sdk.Package) (string, bool) {
 	}
 	name := strings.TrimSpace(pkg.Name)
 	org := strings.TrimSpace(pkg.Org)
-	switch strings.ToLower(strings.TrimSpace(pkg.Ecosystem)) {
+	switch strings.ToLower(strings.TrimSpace(string(pkg.Ecosystem))) {
 	case "npm":
 		if strings.HasPrefix(name, "@") {
 			return name, true

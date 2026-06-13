@@ -109,8 +109,8 @@ func TestAnalyzerTraversesConsumedWorkspaceMembers(t *testing.T) {
 	reg := model.NewPackageRegistry()
 	lodashPURL := "pkg:npm/lodash@1"
 	leftPadPURL := "pkg:npm/left-pad@1"
-	lodash := model.NewDependency(model.Dependency{Name: "lodash", Version: "1", Ecosystem: "npm", PURL: lodashPURL})
-	leftPad := model.NewDependency(model.Dependency{Name: "left-pad", Version: "1", Ecosystem: "npm", PURL: leftPadPURL})
+	lodash := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "lodash", Version: "1", Ecosystem: model.EcosystemNPM, PURL: lodashPURL}})
+	leftPad := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "left-pad", Version: "1", Ecosystem: model.EcosystemNPM, PURL: leftPadPURL}})
 	reg.Ensure(lodashPURL).Vulnerabilities = []model.Vulnerability{{ID: "lodash"}}
 	reg.Ensure(leftPadPURL).Vulnerabilities = []model.Vulnerability{{ID: "left-pad"}}
 	_ = g.AddNode(lodash)
@@ -157,7 +157,7 @@ func newNPMGraph(t *testing.T, name, version string, vulns ...model.Vulnerabilit
 	t.Helper()
 	purl := "pkg:npm/" + name + "@" + version
 	g := model.New()
-	dep := model.NewDependency(model.Dependency{Name: name, Version: version, Ecosystem: "npm", PURL: purl})
+	dep := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: name, Version: version, Ecosystem: model.EcosystemNPM, PURL: purl}})
 	if err := g.AddNode(dep); err != nil {
 		t.Fatalf("add node: %v", err)
 	}

@@ -361,7 +361,7 @@ func (m *ScanModel) componentEcosystemValues() []string {
 		if pkg == nil {
 			continue
 		}
-		values[valueOrDefault(pkg.Ecosystem, "unknown")] = struct{}{}
+		values[valueOrDefault(string(pkg.Ecosystem), "unknown")] = struct{}{}
 	}
 	out := make([]string, 0, len(values))
 	for value := range values {
@@ -798,7 +798,7 @@ func vulnerabilityMatchesSeverityFilter(vulnerability sdk.Vulnerability, filter 
 	case "none":
 		return false
 	default:
-		return strings.EqualFold(vulnerability.ParsedSeverity, filter)
+		return strings.EqualFold(string(vulnerability.ParsedSeverity), filter)
 	}
 }
 
@@ -847,7 +847,7 @@ func manifestEcosystem(graphValue *sdk.Graph, row listPackageRow) string {
 	if !ok || pkg == nil {
 		return "unknown"
 	}
-	return valueOrDefault(pkg.Ecosystem, "unknown")
+	return valueOrDefault(string(pkg.Ecosystem), "unknown")
 }
 
 func (m *ScanModel) buildOverviewListModel() *listModel {
@@ -861,8 +861,8 @@ func (m *ScanModel) buildOverviewListModel() *listModel {
 				render.Style("Target", render.Bold, render.Cyan),
 				render.Style("  Name: ", render.Dim) + valueOrDash(m.project.Name),
 				render.Style("  Path: ", render.Dim) + valueOrDash(m.project.Path),
-				render.Style("  Ecosystem: ", render.Dim) + valueOrDash(m.project.Ecosystem),
-				render.Style("  Package manager: ", render.Dim) + valueOrDash(m.project.PackageManager),
+				render.Style("  Ecosystem: ", render.Dim) + valueOrDash(string(m.project.Ecosystem)),
+				render.Style("  Package manager: ", render.Dim) + valueOrDash(m.project.PackageManager.Name()),
 				render.Style("  Manifests: ", render.Dim) + fmt.Sprintf("%d", len(m.manifests)),
 			},
 		},
@@ -955,8 +955,8 @@ func (m *ScanModel) overviewDashboardView(width, height int) string {
 			render.Style("Type: ", render.Dim) + targetKindLabel(m.project),
 			render.Style("Ref: ", render.Dim) + valueOrDash(m.project.TargetRef),
 			render.Style("Path: ", render.Dim) + valueOrDash(m.project.Path),
-			render.Style("Ecosystem: ", render.Dim) + valueOrDash(m.project.Ecosystem),
-			render.Style("Package manager: ", render.Dim) + valueOrDash(m.project.PackageManager),
+			render.Style("Ecosystem: ", render.Dim) + valueOrDash(string(m.project.Ecosystem)),
+			render.Style("Package manager: ", render.Dim) + valueOrDash(m.project.PackageManager.Name()),
 			render.Style("Manifests: ", render.Dim) + fmt.Sprintf("%d", len(m.manifests)),
 		}, targetWidth, cardHeight, render.Green),
 	}
@@ -1021,7 +1021,7 @@ func (m *ScanModel) buildVulnsListModel() *listModel {
 	}
 
 	sort.Slice(filtered, func(i, j int) bool {
-		ri, rj := severityRank(filtered[i].vulnerability.ParsedSeverity), severityRank(filtered[j].vulnerability.ParsedSeverity)
+		ri, rj := severityRank(string(filtered[i].vulnerability.ParsedSeverity)), severityRank(string(filtered[j].vulnerability.ParsedSeverity))
 		if ri != rj {
 			return ri < rj
 		}
@@ -1094,7 +1094,7 @@ func (m *ScanModel) vulnerabilityItems(vulnerabilities []packageVulnerabilityRow
 			}
 			var badges []badge
 			if group != "severity" {
-				badges = append(badges, badge{label: vulnerability.vulnerability.ParsedSeverity, kind: "severity-" + strings.ToLower(vulnerability.vulnerability.ParsedSeverity)})
+				badges = append(badges, badge{label: string(vulnerability.vulnerability.ParsedSeverity), kind: "severity-" + strings.ToLower(string(vulnerability.vulnerability.ParsedSeverity))})
 			}
 			if m.reachabilityEnabled {
 				if reachabilityBadge, ok := vulnerabilityReachabilityBadge(vulnerability.vulnerability); ok {
@@ -1144,10 +1144,10 @@ func sortedFindingGroupKeys(groups map[string][]sdk.Finding) []string {
 func vulnerabilityGroupKey(row packageVulnerabilityRow, group string) string {
 	switch group {
 	case "severity":
-		return titleCase(valueOrDefault(row.vulnerability.ParsedSeverity, "unknown"))
+		return titleCase(valueOrDefault(string(row.vulnerability.ParsedSeverity), "unknown"))
 	case "ecosystem":
 		if row.pkg != nil {
-			return valueOrDefault(row.pkg.Ecosystem, "unknown")
+			return valueOrDefault(string(row.pkg.Ecosystem), "unknown")
 		}
 		return "unknown"
 	default:
@@ -1265,14 +1265,14 @@ func vulnerabilityDetails(row packageVulnerabilityRow) []string {
 	if row.pkg != nil {
 		packageID = row.pkg.ID
 		packageVersion = row.pkg.Version
-		packageEcosystem = row.pkg.Ecosystem
+		packageEcosystem = string(row.pkg.Ecosystem)
 		packagePURL = row.pkg.PURL
 	}
 	lines := []string{
 		render.Style("Vulnerability", render.Bold, render.Cyan),
 		"",
 		render.Style("  ID: ", render.Dim) + valueOrDash(vulnerability.ID),
-		render.Style("  Severity: ", render.Dim) + severityText(vulnerability.ParsedSeverity),
+		render.Style("  Severity: ", render.Dim) + severityText(string(vulnerability.ParsedSeverity)),
 		render.Style("  Severity source: ", render.Dim) + valueOrDash(vulnerability.SeveritySource),
 		render.Style("  Source: ", render.Dim) + valueOrDash(vulnerability.Source),
 		render.Style("  Namespace: ", render.Dim) + valueOrDash(vulnerability.Namespace),
@@ -1295,7 +1295,7 @@ func vulnerabilityDetails(row packageVulnerabilityRow) []string {
 		"",
 		render.Style("  Affected: ", render.Dim) + valueOrDash(vulnerability.AffectedVersionRange),
 		render.Style("  Fixed in: ", render.Dim) + valueOrDash(vulnerability.FixedIn),
-		render.Style("  Fix state: ", render.Dim) + valueOrDash(vulnerability.FixState),
+		render.Style("  Fix state: ", render.Dim) + valueOrDash(string(vulnerability.FixState)),
 		render.Style("  Fixed versions: ", render.Dim) + valueOrDash(strings.Join(vulnerability.FixedVersions, ", ")),
 		"",
 	}
@@ -1370,7 +1370,7 @@ func vulnerabilityDetails(row packageVulnerabilityRow) []string {
 		lines = append(lines, render.Style("  (none)", render.Dim))
 	} else {
 		for _, ref := range vulnerability.References {
-			lines = append(lines, render.Style("  - ", render.Dim)+strings.Join(nonEmptyStrings([]string{ref.Type, ref.URL}), " | "))
+			lines = append(lines, render.Style("  - ", render.Dim)+strings.Join(nonEmptyStrings([]string{string(ref.Type), ref.URL}), " | "))
 		}
 	}
 	lines = append(lines, "", render.Style(fmt.Sprintf("Fix Availability (%d)", len(vulnerability.FixAvailable)), render.Bold, render.Magenta))
@@ -1378,7 +1378,7 @@ func vulnerabilityDetails(row packageVulnerabilityRow) []string {
 		lines = append(lines, render.Style("  (none)", render.Dim))
 	} else {
 		for _, fix := range vulnerability.FixAvailable {
-			lines = append(lines, render.Style("  - ", render.Dim)+strings.Join(nonEmptyStrings([]string{fix.Version, fix.Date, fix.Kind}), " "))
+			lines = append(lines, render.Style("  - ", render.Dim)+strings.Join(nonEmptyStrings([]string{fix.Version, fix.Date, string(fix.Kind)}), " "))
 		}
 	}
 
@@ -1387,7 +1387,7 @@ func vulnerabilityDetails(row packageVulnerabilityRow) []string {
 		lines = append(lines, render.Style("  (none)", render.Dim))
 	} else {
 		for _, symbol := range vulnerability.AffectedSymbols {
-			lines = append(lines, render.Style("  - ", render.Dim)+strings.Join(nonEmptyStrings([]string{symbol.Symbol, symbol.Kind, symbol.Package, symbol.Module}), " | "))
+			lines = append(lines, render.Style("  - ", render.Dim)+strings.Join(nonEmptyStrings([]string{symbol.Symbol, string(symbol.Kind), symbol.Package, symbol.Module}), " | "))
 		}
 	}
 	lines = append(lines, "")
@@ -1682,7 +1682,7 @@ func (m *ScanModel) findingItems(findings []sdk.Finding) []listItem {
 			items = append(items, listItem{
 				title:    finding.ID,
 				subtitle: string(finding.Kind),
-				badges:   []badge{{label: finding.Severity, kind: "severity-" + strings.ToLower(finding.Severity)}},
+				badges:   []badge{{label: string(finding.Severity), kind: "severity-" + strings.ToLower(string(finding.Severity))}},
 				details:  m.findingDetails(finding),
 				tree:     treePrefix(nil, idx == len(groupFindings)-1, 1),
 				depth:    1,
@@ -1695,13 +1695,13 @@ func (m *ScanModel) findingItems(findings []sdk.Finding) []listItem {
 func (m *ScanModel) findingGroupKey(finding sdk.Finding, group string) string {
 	switch group {
 	case "severity":
-		return titleCase(valueOrDefault(finding.Severity, "n/a"))
+		return titleCase(valueOrDefault(string(finding.Severity), "n/a"))
 	case "component":
 		return valueOrDefault(m.findingPackageName(finding), "unknown component")
 	case "ecosystem":
 		if m != nil && m.registry != nil && finding.PackageRef != "" {
 			if pkg, ok := m.registry.Get(finding.PackageRef); ok && pkg != nil && pkg.Ecosystem != "" {
-				return pkg.Ecosystem
+				return string(pkg.Ecosystem)
 			}
 		}
 		return "unknown"
@@ -1739,7 +1739,7 @@ func (m *ScanModel) findingDetails(finding sdk.Finding) []string {
 		"",
 		render.Style("  ID: ", render.Dim) + valueOrDash(finding.ID),
 		render.Style("  Kind: ", render.Dim) + valueOrDash(string(finding.Kind)),
-		render.Style("  Severity: ", render.Dim) + severityText(finding.Severity),
+		render.Style("  Severity: ", render.Dim) + severityText(string(finding.Severity)),
 		render.Style("  Package: ", render.Dim) + valueOrDash(pkgDisplay),
 		render.Style("  Title: ", render.Dim) + valueOrDash(finding.Title),
 		render.Style("  Source: ", render.Dim) + valueOrDash(finding.Source),
@@ -1768,7 +1768,7 @@ func (m *ScanModel) findingDetails(finding sdk.Finding) []string {
 					details = append(details, render.Style("  Fixed in: ", render.Dim)+v.FixedIn)
 				}
 				if v.FixState != "" {
-					details = append(details, render.Style("  Fix state: ", render.Dim)+v.FixState)
+					details = append(details, render.Style("  Fix state: ", render.Dim)+string(v.FixState))
 				}
 				if v.KEVExploited {
 					details = append(details, render.Style("  KEV: ", render.Dim)+"yes")
@@ -1868,8 +1868,8 @@ func (m *ScanModel) sourceSectionChildren(section, prefix string) []listItem {
 			fmt.Sprintf("name: %q", valueOrDash(m.project.Name)),
 			fmt.Sprintf("path: %q", valueOrDash(m.project.Path)),
 			fmt.Sprintf("type: %q", targetKindLabel(m.project)),
-			fmt.Sprintf("ecosystem: %q", valueOrDash(m.project.Ecosystem)),
-			fmt.Sprintf("packageManager: %q", valueOrDash(m.project.PackageManager)),
+			fmt.Sprintf("ecosystem: %q", valueOrDash(string(m.project.Ecosystem))),
+			fmt.Sprintf("packageManager: %q", valueOrDash(m.project.PackageManager.Name())),
 		}
 		return sourceLeafItems(lines, prefix)
 	case "manifests":
@@ -1928,9 +1928,9 @@ func packageRawLines(pkg *sdk.Dependency, registry *sdk.PackageRegistry) []strin
 	lines := []string{
 		fmt.Sprintf("name: %q", valueOrDash(pkg.Name)),
 		fmt.Sprintf("version: %q", valueOrDash(pkg.Version)),
-		fmt.Sprintf("ecosystem: %q", valueOrDash(pkg.Ecosystem)),
+		fmt.Sprintf("ecosystem: %q", valueOrDash(string(pkg.Ecosystem))),
 		fmt.Sprintf("scope: %q", valueOrDash(string(pkg.PrimaryScope()))),
-		fmt.Sprintf("type: %q", valueOrDash(pkg.Type)),
+		fmt.Sprintf("type: %q", valueOrDash(string(pkg.Type))),
 		fmt.Sprintf("purl: %q", valueOrDash(pkg.PURL)),
 		fmt.Sprintf("licenses: %q", strings.Join(licenseValues, ", ")),
 		fmt.Sprintf("vulnerabilities: %d", len(vulnsForDependency(registry, pkg))),
@@ -2392,7 +2392,7 @@ func packageRowFromGraph(pkg *sdk.Dependency, relationship string) listPackageRo
 		displayName:  displayName,
 		version:      pkg.Version,
 		scope:        string(pkg.PrimaryScope()),
-		ecosystem:    pkg.Ecosystem,
+		ecosystem:    string(pkg.Ecosystem),
 		relationship: relationship,
 		purl:         pkg.PURL,
 	}
@@ -2573,17 +2573,17 @@ func componentDetails(graphValue *sdk.Graph, registry *sdk.PackageRegistry, row 
 	} else {
 		for _, vulnerability := range vulnerabilities {
 			var severityLabel string
-			switch strings.ToLower(vulnerability.ParsedSeverity) {
+			switch strings.ToLower(string(vulnerability.ParsedSeverity)) {
 			case "critical":
-				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(vulnerability.ParsedSeverity))+" ", render.BgRed, render.White, render.Bold)
+				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(string(vulnerability.ParsedSeverity)))+" ", render.BgRed, render.White, render.Bold)
 			case "high":
-				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(vulnerability.ParsedSeverity))+" ", render.BgRed, render.White)
+				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(string(vulnerability.ParsedSeverity)))+" ", render.BgRed, render.White)
 			case "medium":
-				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(vulnerability.ParsedSeverity))+" ", render.BgYellow, render.Bold)
+				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(string(vulnerability.ParsedSeverity)))+" ", render.BgYellow, render.Bold)
 			case "low":
-				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(vulnerability.ParsedSeverity))+" ", render.BgCyan, render.Blue, render.Bold)
+				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(string(vulnerability.ParsedSeverity)))+" ", render.BgCyan, render.Blue, render.Bold)
 			default:
-				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(vulnerability.ParsedSeverity))+" ", render.Dim)
+				severityLabel = render.Style(" "+strings.ToUpper(valueOrDash(string(vulnerability.ParsedSeverity)))+" ", render.Dim)
 			}
 			title := valueOrDash(vulnerability.Title)
 			if title == "-" {
@@ -2608,7 +2608,7 @@ func componentDetails(graphValue *sdk.Graph, registry *sdk.PackageRegistry, row 
 				expr = lic.Value
 			}
 			if lic.Type != "" {
-				expr += " [" + lic.Type + "]"
+				expr += " [" + string(lic.Type) + "]"
 			}
 			lines = append(lines, render.Style("  - ", render.Dim)+valueOrDash(expr))
 		}
@@ -2656,7 +2656,7 @@ func scanStats(graphValue *sdk.Graph, registry *sdk.PackageRegistry) scanOvervie
 				continue
 			}
 			if pkg.Ecosystem != "" {
-				stats.ecosystems[pkg.Ecosystem]++
+				stats.ecosystems[string(pkg.Ecosystem)]++
 			} else {
 				stats.ecosystems["unknown"]++
 			}
@@ -2679,7 +2679,7 @@ func scanStats(graphValue *sdk.Graph, registry *sdk.PackageRegistry) scanOvervie
 func severityDistribution(vulnerabilities []packageVulnerabilityRow) map[string]int {
 	counts := map[string]int{"critical": 0, "high": 0, "medium": 0, "low": 0, "unknown": 0}
 	for _, row := range vulnerabilities {
-		sev := strings.ToLower(strings.TrimSpace(row.vulnerability.ParsedSeverity))
+		sev := strings.ToLower(strings.TrimSpace(string(row.vulnerability.ParsedSeverity)))
 		if _, ok := counts[sev]; !ok {
 			sev = "unknown"
 		}
@@ -2694,7 +2694,7 @@ func reachableSeverityDistribution(vulnerabilities []packageVulnerabilityRow) ma
 		if row.vulnerability.Reachability == nil || row.vulnerability.Reachability.Status != sdk.ReachabilityReachable {
 			continue
 		}
-		severity := strings.ToLower(strings.TrimSpace(row.vulnerability.ParsedSeverity))
+		severity := strings.ToLower(strings.TrimSpace(string(row.vulnerability.ParsedSeverity)))
 		if _, ok := counts[severity]; !ok {
 			severity = "unknown"
 		}
@@ -3009,8 +3009,8 @@ func packageVulnerabilityStats(graphValue *sdk.Graph, registry *sdk.PackageRegis
 			name := packageDisplayName(pkg)
 			counts[name] += len(vulns)
 			for _, vuln := range vulns {
-				if severityRank(vuln.ParsedSeverity) < severityRank(severities[name]) {
-					severities[name] = vuln.ParsedSeverity
+				if severityRank(string(vuln.ParsedSeverity)) < severityRank(severities[name]) {
+					severities[name] = string(vuln.ParsedSeverity)
 				}
 			}
 		}
@@ -3284,9 +3284,9 @@ func targetKindLabel(project output.ProjectDescriptor) string {
 	case strings.TrimSpace(project.TargetType) != "":
 		return project.TargetType
 	case project.PackageManager != "":
-		return project.PackageManager
+		return project.PackageManager.Name()
 	case project.Ecosystem != "":
-		return project.Ecosystem
+		return string(project.Ecosystem)
 	default:
 		return "dependency graph"
 	}

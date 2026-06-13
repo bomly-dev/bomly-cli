@@ -72,7 +72,7 @@ func TestSeverityMeets(t *testing.T) {
 		{"unknown", "low", false},
 	}
 	for _, tc := range cases {
-		if got := SeverityMeets(tc.candidate, tc.threshold); got != tc.want {
+		if got := SeverityMeets(ParseSeverityLevel(tc.candidate), tc.threshold); got != tc.want {
 			t.Errorf("SeverityMeets(%q, %q) = %v, want %v", tc.candidate, tc.threshold, got, tc.want)
 		}
 	}
@@ -80,20 +80,20 @@ func TestSeverityMeets(t *testing.T) {
 
 func TestMatchesConstraints(t *testing.T) {
 	highReachable := Vulnerability{
-		ParsedSeverity: "high",
+		ParsedSeverity: SeverityHigh,
 		Reachability:   &Reachability{Status: ReachabilityReachable},
 	}
 	highUnreachable := Vulnerability{
-		ParsedSeverity: "high",
+		ParsedSeverity: SeverityHigh,
 		Reachability:   &Reachability{Status: ReachabilityUnreachable},
 	}
-	highNoReach := Vulnerability{ParsedSeverity: "high"}
+	highNoReach := Vulnerability{ParsedSeverity: SeverityHigh}
 	lowReachable := Vulnerability{
-		ParsedSeverity: "low",
+		ParsedSeverity: SeverityLow,
 		Reachability:   &Reachability{Status: ReachabilityReachable},
 	}
 	highExploitable := Vulnerability{
-		ParsedSeverity: "high",
+		ParsedSeverity: SeverityHigh,
 		KnownExploited: []KnownExploited{{CVE: "CVE-2024-1234"}},
 	}
 

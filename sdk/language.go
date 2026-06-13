@@ -98,18 +98,16 @@ func ParseLanguage(value string) Language {
 
 // LanguageFromPackage returns the most specific language for a package. It
 // prefers the package's own Language field, then falls back to the primary
-// language declared by the package's BuildSystem (if recognizable), and
+// language declared by the package's PackageManager (if recognizable), and
 // finally returns LanguageUnknown.
 func LanguageFromPackage(p Package) Language {
-	if l := ParseLanguage(p.Language); l != LanguageUnknown {
-		return l
+	if p.Language != LanguageUnknown {
+		return p.Language
 	}
-	if p.BuildSystem != "" {
-		if pm, err := ParsePackageManager(p.BuildSystem); err == nil {
-			langs := pm.Languages()
-			if len(langs) > 0 {
-				return langs[0]
-			}
+	if p.PackageManager != PackageManagerUnknown {
+		langs := p.PackageManager.Languages()
+		if len(langs) > 0 {
+			return langs[0]
 		}
 	}
 	return LanguageUnknown

@@ -29,11 +29,11 @@ func TestAnnotateScopesFromPackageJSON(t *testing.T) {
 	}
 
 	depsGraph := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0"})
-	react := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "react", Version: "18.2.0"})
-	scheduler := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "scheduler", Version: "0.23.0"})
-	vitest := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "vitest", Version: "2.0.0"})
-	chai := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "chai", Version: "5.1.0"})
+	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0"}})
+	react := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0"}})
+	scheduler := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "scheduler", Version: "0.23.0"}})
+	vitest := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "vitest", Version: "2.0.0"}})
+	chai := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "chai", Version: "5.1.0"}})
 	for _, pkg := range []*sdk.Dependency{root, react, scheduler, vitest, chai} {
 		if err := depsGraph.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.ID, err)
@@ -78,10 +78,10 @@ func TestAnnotateScopesFromPackageJSON_DevelopmentFilterExcludesRuntime(t *testi
 	}
 
 	depsGraph := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0"})
-	react := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "react", Version: "18.2.0"})
-	vitest := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "vitest", Version: "2.0.0"})
-	shared := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "shared", Version: "1.0.0"})
+	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "demo-app", Version: "1.0.0"}})
+	react := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0"}})
+	vitest := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "vitest", Version: "2.0.0"}})
+	shared := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "shared", Version: "1.0.0"}})
 	for _, pkg := range []*sdk.Dependency{root, react, vitest, shared} {
 		if err := depsGraph.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.ID, err)

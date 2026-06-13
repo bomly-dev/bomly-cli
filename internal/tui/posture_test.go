@@ -27,7 +27,7 @@ func TestPostureTab_ScanRendersList(t *testing.T) {
 	g := sdk.New()
 	root := sdk.NewDependencyRef("demo-app", "1.0.0")
 	const libPURL = "pkg:npm/lib@1.0.0"
-	dep := sdk.NewDependency(sdk.Dependency{Name: "lib", Version: "1.0.0", Scopes: sdk.ScopesOf(sdk.ScopeRuntime), PURL: libPURL})
+	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lib", Version: "1.0.0", PURL: libPURL}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
 	registry := sdk.NewPackageRegistry()
 	regLib := registry.Ensure(libPURL)
 	regLib.Name = "lib"
@@ -114,7 +114,7 @@ func TestPostureTab_CheckNotesFitSplitPane(t *testing.T) {
 	g := sdk.New()
 	registry := sdk.NewPackageRegistry()
 	const purl = "pkg:golang/github.com/anchore/go-struct-converter@1.0.0"
-	dep := sdk.NewDependency(sdk.Dependency{Name: "go-struct-converter", Version: "1.0.0", PURL: purl})
+	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "go-struct-converter", Version: "1.0.0", PURL: purl}})
 	regPkg := registry.Ensure(purl)
 	regPkg.Name = "go-struct-converter"
 	regPkg.Version = "1.0.0"
@@ -153,10 +153,8 @@ func TestPostureTab_CheckNotesFitSplitPane(t *testing.T) {
 }
 
 func TestTopAffectedLines_FitBoxBudget(t *testing.T) {
-	pkg := sdk.NewDependency(sdk.Dependency{
-		Name:    "org.springframework:spring-web",
-		Version: "6.0.0",
-		Scopes:  sdk.ScopesOf(sdk.ScopeRuntime),
+	pkg := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "org.springframework:spring-web",
+		Version: "6.0.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime),
 	})
 	rows := make([]packageVulnerabilityRow, 0, 12)
 	for i := 0; i < 12; i++ {
@@ -185,7 +183,7 @@ func TestPostureRowsFromGraph_DedupesAndSortsWorstFirst(t *testing.T) {
 	g := sdk.New()
 	registry := sdk.NewPackageRegistry()
 	add := func(name, purl, repo string, score float64) *sdk.Dependency {
-		dep := sdk.NewDependencyWithID(purl, sdk.Dependency{Name: name, Version: "1", PURL: purl})
+		dep := sdk.NewDependencyWithID(purl, sdk.Dependency{Coordinates: sdk.Coordinates{Name: name, Version: "1", PURL: purl}})
 		regPkg := registry.Ensure(purl)
 		regPkg.Name = name
 		regPkg.Version = "1"

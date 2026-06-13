@@ -15,12 +15,11 @@ func TestNewNode_BuildsIDFromNameAndVersion(t *testing.T) {
 }
 
 func TestNewDependencyNode_StoresCoordinatesAndBuildsID(t *testing.T) {
-	n := NewDependency(Dependency{
-		Ecosystem:      EcosystemMaven,
+	n := NewDependency(Dependency{Coordinates: Coordinates{Ecosystem: EcosystemMaven,
 		Name:           "demo-artifact:sources",
 		Version:        "1.0.0",
 		Org:            "com.example",
-		PackageManager: PackageManagerMaven,
+		PackageManager: PackageManagerMaven},
 	})
 
 	if n.ID != "com.example:demo-artifact:sources@1.0.0" {
@@ -435,13 +434,13 @@ func TestCompare_ClassifiesAddedRemovedAndUpdated(t *testing.T) {
 	head := New()
 
 	baseApp := NewDependencyRef("app", "1.0.0")
-	baseKeep := NewDependency(Dependency{Ecosystem: EcosystemNPM, Name: "keep", Version: "1.0.0"})
-	baseRemove := NewDependency(Dependency{Ecosystem: EcosystemNPM, Name: "remove", Version: "1.0.0"})
-	baseUpdate := NewDependency(Dependency{Ecosystem: EcosystemNPM, Name: "update", Version: "1.0.0"})
+	baseKeep := NewDependency(Dependency{Coordinates: Coordinates{Ecosystem: EcosystemNPM, Name: "keep", Version: "1.0.0"}})
+	baseRemove := NewDependency(Dependency{Coordinates: Coordinates{Ecosystem: EcosystemNPM, Name: "remove", Version: "1.0.0"}})
+	baseUpdate := NewDependency(Dependency{Coordinates: Coordinates{Ecosystem: EcosystemNPM, Name: "update", Version: "1.0.0"}})
 	headApp := NewDependencyRef("app", "1.0.0")
-	headKeep := NewDependency(Dependency{Ecosystem: EcosystemNPM, Name: "keep", Version: "1.0.0"})
-	headAdd := NewDependency(Dependency{Ecosystem: EcosystemNPM, Name: "add", Version: "2.0.0"})
-	headUpdate := NewDependency(Dependency{Ecosystem: EcosystemNPM, Name: "update", Version: "2.0.0"})
+	headKeep := NewDependency(Dependency{Coordinates: Coordinates{Ecosystem: EcosystemNPM, Name: "keep", Version: "1.0.0"}})
+	headAdd := NewDependency(Dependency{Coordinates: Coordinates{Ecosystem: EcosystemNPM, Name: "add", Version: "2.0.0"}})
+	headUpdate := NewDependency(Dependency{Coordinates: Coordinates{Ecosystem: EcosystemNPM, Name: "update", Version: "2.0.0"}})
 
 	for _, node := range []*Dependency{baseApp, baseKeep, baseRemove, baseUpdate} {
 		if err := base.AddNode(node); err != nil {
@@ -475,7 +474,7 @@ func TestCompare_IgnoresSyntheticSubprojectRoots(t *testing.T) {
 	for _, g := range []*Graph{base, head} {
 		for _, node := range []*Dependency{
 			NewDependencyRefWithID("subproject:npm:root", "root", ""),
-			NewDependency(Dependency{Ecosystem: EcosystemNPM, Name: "shared", Version: "1.0.0"}),
+			NewDependency(Dependency{Coordinates: Coordinates{Ecosystem: EcosystemNPM, Name: "shared", Version: "1.0.0"}}),
 		} {
 			if err := g.AddNode(node); err != nil {
 				t.Fatalf("AddNode(%q): %v", node.ID, err)
@@ -493,15 +492,15 @@ func TestCompareIgnoresManifestAndRootNodes(t *testing.T) {
 	base := New()
 	head := New()
 	for _, node := range []*Dependency{
-		NewDependencyWithID("pkg:generic/root", Dependency{Name: "root", PURL: "pkg:generic/root"}),
-		NewDependencyWithID("pkg:generic/requirements.txt", Dependency{Name: "requirements.txt", PURL: "pkg:generic/requirements.txt"}),
-		NewDependencyWithID("pkg:npm/react@18.2.0", Dependency{Ecosystem: EcosystemNPM, PackageManager: PackageManagerNPM, Name: "react", Version: "18.2.0", PURL: "pkg:npm/react@18.2.0"}),
+		NewDependencyWithID("pkg:generic/root", Dependency{Coordinates: Coordinates{Name: "root", PURL: "pkg:generic/root"}}),
+		NewDependencyWithID("pkg:generic/requirements.txt", Dependency{Coordinates: Coordinates{Name: "requirements.txt", PURL: "pkg:generic/requirements.txt"}}),
+		NewDependencyWithID("pkg:npm/react@18.2.0", Dependency{Coordinates: Coordinates{Ecosystem: EcosystemNPM, PackageManager: PackageManagerNPM, Name: "react", Version: "18.2.0", PURL: "pkg:npm/react@18.2.0"}}),
 	} {
 		if err := head.AddNode(node); err != nil {
 			t.Fatalf("head add node %q: %v", node.ID, err)
 		}
 	}
-	if err := base.AddNode(NewDependencyWithID("pkg:npm/react@18.2.0", Dependency{Ecosystem: EcosystemNPM, PackageManager: PackageManagerNPM, Name: "react", Version: "18.2.0", PURL: "pkg:npm/react@18.2.0"})); err != nil {
+	if err := base.AddNode(NewDependencyWithID("pkg:npm/react@18.2.0", Dependency{Coordinates: Coordinates{Ecosystem: EcosystemNPM, PackageManager: PackageManagerNPM, Name: "react", Version: "18.2.0", PURL: "pkg:npm/react@18.2.0"}})); err != nil {
 		t.Fatalf("base add node: %v", err)
 	}
 
@@ -514,7 +513,7 @@ func TestCompareIgnoresManifestAndRootNodes(t *testing.T) {
 func TestCompareIgnoresApplicationNodes(t *testing.T) {
 	base := New()
 	head := New()
-	if err := head.AddNode(NewDependencyWithID("pkg:npm/demo@1.0.0", Dependency{Ecosystem: EcosystemNPM, PackageManager: PackageManagerNPM, Name: "demo", Version: "1.0.0", Type: PackageTypeApplication, PURL: "pkg:npm/demo@1.0.0"})); err != nil {
+	if err := head.AddNode(NewDependencyWithID("pkg:npm/demo@1.0.0", Dependency{Coordinates: Coordinates{Ecosystem: EcosystemNPM, PackageManager: PackageManagerNPM, Name: "demo", Version: "1.0.0", Type: PackageTypeApplication, PURL: "pkg:npm/demo@1.0.0"}})); err != nil {
 		t.Fatalf("head add application: %v", err)
 	}
 
@@ -525,16 +524,14 @@ func TestCompareIgnoresApplicationNodes(t *testing.T) {
 }
 
 func TestPackageHelpers(t *testing.T) {
-	pkg := &Package{
-		PURL:    "pkg:generic/acme/demo@1.0.0",
+	pkg := &Package{Coordinates: Coordinates{PURL: "pkg:generic/acme/demo@1.0.0",
 		Org:     "acme",
 		Name:    "demo",
-		Version: "1.0.0",
-		Licenses: []PackageLicense{
-			{Value: "MIT"},
-			{SPDXExpression: "Apache-2.0"},
-			{},
-		},
+		Version: "1.0.0"}, Licenses: []PackageLicense{
+		{Value: "MIT"},
+		{SPDXExpression: "Apache-2.0"},
+		{},
+	},
 	}
 
 	if got := pkg.DisplayName(); got != "acme:demo" {

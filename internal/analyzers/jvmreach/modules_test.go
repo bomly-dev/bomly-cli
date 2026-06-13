@@ -96,8 +96,8 @@ func TestAnalyzerTraversesConsumedMavenModules(t *testing.T) {
 	reg := model.NewPackageRegistry()
 	jacksonPURL := "pkg:maven/com.fasterxml.jackson.core/jackson-databind@1"
 	log4jPURL := "pkg:maven/org.apache.logging.log4j/log4j-core@1"
-	jackson := model.NewDependency(model.Dependency{Name: "jackson-databind", Org: "com.fasterxml.jackson.core", Version: "1", Ecosystem: "maven", PURL: jacksonPURL})
-	log4j := model.NewDependency(model.Dependency{Name: "log4j-core", Org: "org.apache.logging.log4j", Version: "1", Ecosystem: "maven", PURL: log4jPURL})
+	jackson := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "jackson-databind", Org: "com.fasterxml.jackson.core", Version: "1", Ecosystem: "maven", PURL: jacksonPURL}})
+	log4j := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "log4j-core", Org: "org.apache.logging.log4j", Version: "1", Ecosystem: "maven", PURL: log4jPURL}})
 	reg.Ensure(jacksonPURL).Vulnerabilities = []model.Vulnerability{{ID: "jackson"}}
 	reg.Ensure(log4jPURL).Vulnerabilities = []model.Vulnerability{{ID: "log4j"}}
 	_ = g.AddNode(jackson)

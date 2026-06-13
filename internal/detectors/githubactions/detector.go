@@ -358,15 +358,14 @@ func resolveReference(ref, callerRelPath string, workflowNodes map[string]*sdk.D
 	if strings.Contains(name, ".github/workflows/") {
 		typeName = "workflow"
 	}
-	return sdk.NewDependency(sdk.Dependency{
-			Ecosystem:      sdk.EcosystemGitHub,
-			Org:            org,
-			Name:           packageName,
-			Version:        version,
-			Scopes:         sdk.ScopesOf(sdk.ScopeRuntime),
+	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGitHub,
+			Org:     org,
+			Name:    packageName,
+			Version: version,
+
 			PackageManager: sdk.PackageManagerGitHubActions,
 			Type:           sdk.ParsePackageType(typeName),
-			Language:       "yaml",
+			Language:       "yaml"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime),
 		}),
 
 		nil
@@ -397,28 +396,26 @@ func splitExternalActionName(value string) (string, string) {
 
 func localWorkflowNode(relPath string) *sdk.Dependency {
 	cleanPath := filepath.ToSlash(filepath.Clean(relPath))
-	return sdk.NewDependencyWithID("workflow:"+cleanPath, sdk.Dependency{
-		Ecosystem:      sdk.EcosystemGitHub,
-		Name:           cleanPath,
-		Version:        "local",
-		Scopes:         sdk.ScopesOf(sdk.ScopeRuntime),
+	return sdk.NewDependencyWithID("workflow:"+cleanPath, sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGitHub,
+		Name:    cleanPath,
+		Version: "local",
+
 		PackageManager: sdk.PackageManagerGitHubActions,
 		Type:           sdk.PackageTypeWorkflow,
-		Language:       "yaml",
+		Language:       "yaml"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime),
 	})
 
 }
 
 func localActionNode(relPath string) *sdk.Dependency {
 	cleanPath := filepath.ToSlash(filepath.Clean(relPath))
-	return sdk.NewDependencyWithID("action:"+cleanPath, sdk.Dependency{
-		Ecosystem:      sdk.EcosystemGitHub,
-		Name:           cleanPath,
-		Version:        "local",
-		Scopes:         sdk.ScopesOf(sdk.ScopeRuntime),
+	return sdk.NewDependencyWithID("action:"+cleanPath, sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGitHub,
+		Name:    cleanPath,
+		Version: "local",
+
 		PackageManager: sdk.PackageManagerGitHubActions,
 		Type:           sdk.PackageTypeAction,
-		Language:       "yaml",
+		Language:       "yaml"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime),
 	})
 
 }

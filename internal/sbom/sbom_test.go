@@ -100,8 +100,8 @@ func TestMarshalDepGraphJSON_SPDX23ToolCreators(t *testing.T) {
 func TestMarshalDepGraphJSON_SPDX23Scope(t *testing.T) {
 	g := sdk.New()
 	app := sdk.NewDependencyRef("app", "1.0.0")
-	react := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Scopes: sdk.ScopesOf("runtime")})
-	vitest := sdk.NewDependency(sdk.Dependency{Name: "vitest", Version: "2.0.0", Scopes: sdk.ScopesOf("development")})
+	react := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf("runtime")})
+	vitest := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "vitest", Version: "2.0.0"}, Scopes: sdk.ScopesOf("development")})
 	for _, n := range []*sdk.Dependency{app, react, vitest} {
 		if err := g.AddNode(n); err != nil {
 			t.Fatalf("add package %s: %v", n.ID, err)
@@ -146,12 +146,11 @@ func TestMarshalDepGraphJSON_SPDX23Scope(t *testing.T) {
 
 func TestMarshalDepGraphJSON_SPDX23PreservesPackageType(t *testing.T) {
 	g := sdk.New()
-	app := sdk.NewDependency(sdk.Dependency{
-		Ecosystem: "npm",
-		Name:      "demo",
-		Version:   "1.0.0",
-		Type:      "application",
-		PURL:      "pkg:npm/demo@1.0.0",
+	app := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+		Name:    "demo",
+		Version: "1.0.0",
+		Type:    "application",
+		PURL:    "pkg:npm/demo@1.0.0"},
 	})
 
 	if err := g.AddNode(app); err != nil {
@@ -186,13 +185,11 @@ func TestMarshalDepGraphJSON_SPDX23PreservesPackageType(t *testing.T) {
 
 func TestMarshalDepGraphJSON_SPDX23PreservesPURLAndCopyright(t *testing.T) {
 	g := sdk.New()
-	pkg := sdk.NewDependency(sdk.Dependency{
-		Ecosystem:      "npm",
+	pkg := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "accept",
 		Version:        "1.1.0",
-		PURL:           "pkg:npm/accept@1.1.0",
-		Copyright:      "Copyright (c) 2014, Walmart and other contributors.",
+		PURL:           "pkg:npm/accept@1.1.0"}, Copyright: "Copyright (c) 2014, Walmart and other contributors.",
 	})
 	sdk.SetDetectionLicenses(pkg, []sdk.PackageLicense{{SPDXExpression: "BSD-3-Clause"}})
 
@@ -267,8 +264,8 @@ func TestMarshalDepGraphJSON_CycloneDXVersions(t *testing.T) {
 func TestMarshalDepGraphJSON_CycloneDXScope(t *testing.T) {
 	g := sdk.New()
 	app := sdk.NewDependencyRef("app", "1.0.0")
-	runtimeDep := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Scopes: sdk.ScopesOf("runtime")})
-	devDep := sdk.NewDependency(sdk.Dependency{Name: "vitest", Version: "2.0.0", Scopes: sdk.ScopesOf("development")})
+	runtimeDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf("runtime")})
+	devDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "vitest", Version: "2.0.0"}, Scopes: sdk.ScopesOf("development")})
 	for _, n := range []*sdk.Dependency{app, runtimeDep, devDep} {
 		if err := g.AddNode(n); err != nil {
 			t.Fatalf("add package %s: %v", n.ID, err)
@@ -335,12 +332,11 @@ func TestUnmarshalJSON_RoundTripTargets(t *testing.T) {
 
 func TestUnmarshalJSON_SPDX23RestoresPackageIdentityFromPURL(t *testing.T) {
 	g := sdk.New()
-	if err := g.AddNode(sdk.NewDependency(sdk.Dependency{
-		Ecosystem:      "npm",
+	if err := g.AddNode(sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "accept",
 		Version:        "1.1.0",
-		PURL:           "pkg:npm/accept@1.1.0",
+		PURL:           "pkg:npm/accept@1.1.0"},
 	})); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
@@ -391,12 +387,11 @@ func TestUnmarshalJSON_SPDX23RestoresPackageIdentityFromPURL(t *testing.T) {
 
 func TestUnmarshalJSON_CycloneDXPreservesPURL(t *testing.T) {
 	g := sdk.New()
-	if err := g.AddNode(sdk.NewDependency(sdk.Dependency{
-		Ecosystem:      "npm",
+	if err := g.AddNode(sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "accept",
 		Version:        "1.1.0",
-		PURL:           "pkg:npm/accept@1.1.0",
+		PURL:           "pkg:npm/accept@1.1.0"},
 	})); err != nil {
 		t.Fatalf("add package: %v", err)
 	}

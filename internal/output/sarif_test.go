@@ -199,9 +199,7 @@ func TestWriteSARIF_LocationsFallBackToRepoFile(t *testing.T) {
 
 func TestWriteSARIF_UsesDependencyLocationsFromGraph(t *testing.T) {
 	graph := sdk.New()
-	dep := sdk.NewDependencyWithID("lodash@4.17.15", sdk.Dependency{
-		Name:       "lodash",
-		PackageRef: sarifTestPURL,
+	dep := sdk.NewDependencyWithID("lodash@4.17.15", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lodash"}, PackageRef: sarifTestPURL,
 		Locations: []sdk.PackageLocation{
 			{
 				RealPath: "package-lock.json",
@@ -251,10 +249,8 @@ func TestWriteSARIF_UsesDependencyLocationsFromGraph(t *testing.T) {
 
 func TestWriteSARIF_RewritesNonFileLocationSchemes(t *testing.T) {
 	graph := sdk.New()
-	dep := sdk.NewDependencyWithID("actions:checkout@v5", sdk.Dependency{
-		Name:       "actions/checkout",
-		PackageRef: "actions:checkout@v5",
-		Locations:  []sdk.PackageLocation{{RealPath: "actions:checkout@v5"}},
+	dep := sdk.NewDependencyWithID("actions:checkout@v5", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "actions/checkout"}, PackageRef: "actions:checkout@v5",
+		Locations: []sdk.PackageLocation{{RealPath: "actions:checkout@v5"}},
 	})
 	if err := graph.AddNode(dep); err != nil {
 		t.Fatalf("AddNode: %v", err)

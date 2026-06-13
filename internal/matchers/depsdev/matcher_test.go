@@ -15,11 +15,10 @@ import (
 
 func TestVersionRequestFromPackage(t *testing.T) {
 	t.Run("npm scoped package", func(t *testing.T) {
-		req, _, ok := versionRequestFromPackage(&sdk.Package{
-			Ecosystem: "npm",
-			Org:       "@types",
-			Name:      "node",
-			Version:   "20.12.0",
+		req, _, ok := versionRequestFromPackage(&sdk.Package{Coordinates: sdk.Coordinates{Ecosystem: "npm",
+			Org:     "@types",
+			Name:    "node",
+			Version: "20.12.0"},
 		})
 		if !ok {
 			t.Fatal("expected npm package to map to deps.dev request")
@@ -30,9 +29,8 @@ func TestVersionRequestFromPackage(t *testing.T) {
 	})
 
 	t.Run("maven from purl", func(t *testing.T) {
-		req, _, ok := versionRequestFromPackage(&sdk.Package{
-			PURL:    "pkg:maven/org.slf4j/slf4j-api@2.0.13",
-			Version: "2.0.13",
+		req, _, ok := versionRequestFromPackage(&sdk.Package{Coordinates: sdk.Coordinates{PURL: "pkg:maven/org.slf4j/slf4j-api@2.0.13",
+			Version: "2.0.13"},
 		})
 		if !ok {
 			t.Fatal("expected maven purl to map to deps.dev request")
@@ -43,10 +41,9 @@ func TestVersionRequestFromPackage(t *testing.T) {
 	})
 
 	t.Run("unsupported ecosystem", func(t *testing.T) {
-		if _, _, ok := versionRequestFromPackage(&sdk.Package{
-			Ecosystem: "conan",
-			Name:      "openssl",
-			Version:   "1.1.1s",
+		if _, _, ok := versionRequestFromPackage(&sdk.Package{Coordinates: sdk.Coordinates{Ecosystem: "conan",
+			Name:    "openssl",
+			Version: "1.1.1s"},
 		}); ok {
 			t.Fatal("expected unsupported ecosystem to be rejected")
 		}
@@ -85,8 +82,8 @@ func TestCheckerMatch_EnrichesMissingOnly(t *testing.T) {
 	}
 
 	g := sdk.New()
-	missing := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "react", Version: "18.2.0"})
-	existing := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "zod", Version: "3.23.0"})
+	missing := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "react", Version: "18.2.0"}})
+	existing := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "zod", Version: "3.23.0"}})
 	if err := g.AddNode(missing); err != nil {
 		t.Fatalf("add missing dependency: %v", err)
 	}

@@ -295,25 +295,23 @@ func parseConanRef(value string) (conanRef, bool) {
 }
 
 func rootNode() *sdk.Dependency {
-	return sdk.NewDependency(sdk.Dependency{
-		Ecosystem:      sdk.EcosystemCPP,
+	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemCPP,
 		Name:           "root",
 		PackageManager: sdk.PackageManagerConan,
 		Type:           sdk.PackageTypeApplication,
-		Language:       "cpp",
+		Language:       "cpp"},
 	})
 
 }
 
 func packageNode(ref conanRef) *sdk.Dependency {
-	pkg := sdk.NewDependency(sdk.Dependency{
-		Ecosystem:      sdk.EcosystemCPP,
+	pkg := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemCPP,
 		Name:           strings.TrimSpace(ref.Name),
 		Version:        strings.TrimSpace(ref.Version),
 		PackageManager: sdk.PackageManagerConan,
 		Type:           sdk.PackageTypePackage,
 		Language:       "cpp",
-		PURL:           sdk.BuildPackageURL("conan", "", ref.Name, ref.Version),
+		PURL:           sdk.BuildPackageURL("conan", "", ref.Name, ref.Version)},
 	})
 
 	if strings.EqualFold(strings.TrimSpace(ref.Context), "build") {

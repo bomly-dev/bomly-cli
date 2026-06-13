@@ -23,13 +23,16 @@ findings (reference-style) ─(PackageRef + VulnerabilityID)─┘
 
 ```go
 type Dependency struct {
-    // Identity
-    ID, Name, Version, PURL, Ecosystem, Type, Org, PackageManager, Language string
+    Coordinates
+    ID string
 
     // Detection metadata
     Scopes      []Scope             // runtime / development / unknown; supports multiple
     Locations   []PackageLocation   // manifest paths + line/column
-    FoundBy     []string            // detector names
+    CPEs        []string
+    Digests     []Digest
+    Copyright   string
+    FoundBy     string              // detector name
     ResolvedURL string
     Metadata    map[string]any      // including detection-time licenses under MetadataKeyDetectionLicenses
 
@@ -52,17 +55,18 @@ Dependencies **do not** carry `Licenses`, `Vulnerabilities`, or `Scorecard` fiel
 
 ```go
 type Package struct {
-    // Identity (PURL is the primary key in PackageRegistry)
-    PURL, Ecosystem, Name, Version string
-    CPEs                           []string
-    Digests                        []PackageDigest
+    Coordinates
+    ID string                       // registry/database identifier; defaults to PURL in PackageRegistry
 
     // Enrichment
+    CPEs            []string
+    Digests         []Digest
     Licenses        []PackageLicense
     Vulnerabilities []Vulnerability       // OSV-aligned
     Scorecard       *PackageScorecard
     EOL             *PackageEOL
     Copyright       string
+    ResolvedURL     string
     Metadata        map[string]any
     Matched         bool                  // set by any matcher that touched this package
 }

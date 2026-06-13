@@ -80,10 +80,8 @@ func TestDiscoverWorkspaceHierarchiesFromTestdata(t *testing.T) {
 func TestDiscoverProjectRootsDeduplicatesGraphAndTargetSources(t *testing.T) {
 	root := workspaceFixture("npm-array")
 	g := model.New()
-	pkg := model.NewDependency(model.Dependency{
-		Name:      "lodash",
-		Ecosystem: "npm",
-		Locations: []model.PackageLocation{{RealPath: filepath.Join(root, "package-lock.json")}},
+	pkg := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "lodash",
+		Ecosystem: model.EcosystemNPM}, Locations: []model.PackageLocation{{RealPath: filepath.Join(root, "package-lock.json")}},
 	})
 	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
@@ -198,8 +196,8 @@ func TestAnalyzerBuiltInRunnerTraversesWorkspaceTestdata(t *testing.T) {
 	reg := model.NewPackageRegistry()
 	lodashPURL := "pkg:npm/lodash@1"
 	leftPadPURL := "pkg:npm/left-pad@1"
-	lodash := model.NewDependency(model.Dependency{Name: "lodash", Version: "1", Ecosystem: "npm", PURL: lodashPURL})
-	leftPad := model.NewDependency(model.Dependency{Name: "left-pad", Version: "1", Ecosystem: "npm", PURL: leftPadPURL})
+	lodash := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "lodash", Version: "1", Ecosystem: model.EcosystemNPM, PURL: lodashPURL}})
+	leftPad := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "left-pad", Version: "1", Ecosystem: model.EcosystemNPM, PURL: leftPadPURL}})
 	reg.Ensure(lodashPURL).Vulnerabilities = []model.Vulnerability{{ID: "lodash"}}
 	reg.Ensure(leftPadPURL).Vulnerabilities = []model.Vulnerability{{ID: "left-pad"}}
 	if err := g.AddNode(lodash); err != nil {

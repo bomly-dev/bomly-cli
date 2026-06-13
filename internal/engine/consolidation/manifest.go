@@ -178,10 +178,9 @@ func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error
 		kind = "manifest"
 	}
 
-	virtualRoot := sdk.NewDependencyWithID(rootID, sdk.Dependency{
-		Name:           manifestLabel,
+	virtualRoot := sdk.NewDependencyWithID(rootID, sdk.Dependency{Coordinates: sdk.Coordinates{Name: manifestLabel,
 		Type:           sdk.PackageTypeManifest,
-		PackageManager: packageManagerFromManifestKind(kind),
+		PackageManager: packageManagerFromManifestKind(kind)},
 	})
 	if err := addNodeIfMissing(g, virtualRoot); err != nil {
 		return err

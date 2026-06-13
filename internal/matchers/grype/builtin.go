@@ -266,7 +266,7 @@ func mapBuiltinMatch(m grypematch.Match) sdk.Vulnerability {
 		})
 	}
 	for _, advisoryRef := range vuln.Advisories {
-		advisory.References = append(advisory.References, sdk.Reference{URL: advisoryRef.Link, Type: sdk.ReferenceType(firstNonEmpty(advisoryRef.ID, string(sdk.ReferenceTypeAdvisory)))})
+		advisory.References = append(advisory.References, sdk.Reference{URL: advisoryRef.Link, Type: sdk.ReferenceTypeAdvisory})
 	}
 	for _, related := range vuln.RelatedVulnerabilities {
 		if related.ID != "" {

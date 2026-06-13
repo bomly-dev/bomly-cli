@@ -212,9 +212,8 @@ func depGraphFromGoListWithScope(raw []byte, rootModule string, directRequires [
 	}
 
 	depsGraph := sdk.New()
-	rootNode := sdk.NewDependency(sdk.Dependency{
-		Ecosystem: sdk.EcosystemGo,
-		Name:      rootModule,
+	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGo,
+		Name: rootModule},
 	})
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
@@ -352,10 +351,9 @@ func enqueueImportedPackages(depsGraph *sdk.Graph, rootID string, from moduleNod
 }
 
 func packageFromModuleNode(node moduleNode, scope sdk.Scope, directLines map[string]int) *sdk.Dependency {
-	dep := sdk.Dependency{
-		Ecosystem: sdk.EcosystemGo,
-		Name:      node.Path,
-		Version:   node.Version,
+	dep := sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGo,
+		Name:    node.Path,
+		Version: node.Version},
 	}
 	if scope != sdk.ScopeUnknown {
 		dep.Scopes = []sdk.Scope{scope}
@@ -373,10 +371,9 @@ func packageFromModuleNode(node moduleNode, scope sdk.Scope, directLines map[str
 }
 
 func moduleNodeID(node moduleNode) string {
-	return sdk.NewDependency(sdk.Dependency{
-		Ecosystem: sdk.EcosystemGo,
-		Name:      node.Path,
-		Version:   node.Version,
+	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGo,
+		Name:    node.Path,
+		Version: node.Version},
 	}).ID
 }
 

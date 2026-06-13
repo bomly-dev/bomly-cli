@@ -57,13 +57,11 @@ func newSeed() (*model.Graph, *model.PackageRegistry) {
 // package keyed by the dependency PURL carrying those vulnerabilities.
 func addJVMDep(t *testing.T, g *model.Graph, reg *model.PackageRegistry, projectDir, group, artifact, version string, vulns ...model.Vulnerability) *model.Dependency {
 	t.Helper()
-	dep := model.NewDependency(model.Dependency{
-		Name:           artifact,
+	dep := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: artifact,
 		Org:            group,
 		Version:        version,
 		Ecosystem:      model.EcosystemMaven,
-		PackageManager: "maven",
-		Locations:      []model.PackageLocation{{RealPath: filepath.Join(projectDir, "pom.xml")}},
+		PackageManager: "maven"}, Locations: []model.PackageLocation{{RealPath: filepath.Join(projectDir, "pom.xml")}},
 	})
 	purl := model.CanonicalPackageURLFromDependency(dep)
 	dep.PackageRef = purl
@@ -194,8 +192,8 @@ func TestAnalyzerMarksTransitiveDepReachable(t *testing.T) {
 
 func TestComputeReachablePackageHopsHandlesCycles(t *testing.T) {
 	g := model.New()
-	a := model.NewDependency(model.Dependency{Name: "a", Org: "g", Version: "1", Ecosystem: model.EcosystemMaven})
-	b := model.NewDependency(model.Dependency{Name: "b", Org: "g", Version: "1", Ecosystem: model.EcosystemMaven})
+	a := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "a", Org: "g", Version: "1", Ecosystem: model.EcosystemMaven}})
+	b := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "b", Org: "g", Version: "1", Ecosystem: model.EcosystemMaven}})
 	if err := g.AddNode(a); err != nil {
 		t.Fatal(err)
 	}
@@ -221,7 +219,7 @@ func TestAnalyzerApplicableRequiresJVMVulns(t *testing.T) {
 	a := Analyzer{}
 
 	g, reg := newSeed()
-	pyDep := model.NewDependency(model.Dependency{Name: "requests", Ecosystem: model.EcosystemPython})
+	pyDep := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "requests", Ecosystem: model.EcosystemPython}})
 	pyDep.PackageRef = model.CanonicalPackageURLFromDependency(pyDep)
 	_ = g.AddNode(pyDep)
 	reg.Ensure(pyDep.PackageRef).Vulnerabilities = []model.Vulnerability{{ID: "x"}}

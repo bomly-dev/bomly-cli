@@ -147,20 +147,33 @@ func packageURLTypeValue(value any) string {
 // CanonicalPackageURLFromParts returns the canonical package URL derived from
 // raw identity fields. existingPURL takes precedence when it canonicalizes.
 func CanonicalPackageURLFromParts(existingPURL string, ecosystem Ecosystem, packageManager PackageManager, typ PackageType, org, name, version string) string {
-	if canonical := CanonicalizePackageURL(existingPURL); canonical != "" {
+	return (Coordinates{
+		PURL:           existingPURL,
+		Ecosystem:      ecosystem,
+		PackageManager: packageManager,
+		Type:           typ,
+		Org:            org,
+		Name:           name,
+		Version:        version,
+	}).CanonicalPURL()
+}
+
+// CanonicalPURL returns the canonical package URL for the identity.
+func (i Coordinates) CanonicalPURL() string {
+	if canonical := CanonicalizePackageURL(i.PURL); canonical != "" {
 		return canonical
 	}
-	if typ == PackageTypeManifest {
+	if i.Type == PackageTypeManifest {
 		return ""
 	}
 
-	name = strings.TrimSpace(name)
+	name := strings.TrimSpace(i.Name)
 	if name == "" {
 		return ""
 	}
 
-	purlType := PackageURLTypeForValues(ecosystem, packageManager, typ)
-	namespace := strings.TrimSpace(org)
+	purlType := PackageURLTypeForValues(i.Ecosystem, i.PackageManager, i.Type)
+	namespace := strings.TrimSpace(i.Org)
 	if purlType == "golang" && namespace == "" {
 		parts := strings.Split(strings.ReplaceAll(name, "\\", "/"), "/")
 		if len(parts) > 1 {
@@ -169,7 +182,7 @@ func CanonicalPackageURLFromParts(existingPURL string, ecosystem Ecosystem, pack
 		}
 	}
 
-	return BuildPackageURL(purlType, namespace, name, version)
+	return BuildPackageURL(purlType, namespace, name, i.Version)
 }
 
 // CanonicalPackageURLFromDependency returns the canonical package URL for dep.
@@ -177,7 +190,7 @@ func CanonicalPackageURLFromDependency(dep *Dependency) string {
 	if dep == nil {
 		return ""
 	}
-	return CanonicalPackageURLFromParts(dep.PURL, dep.Ecosystem, dep.PackageManager, dep.Type, dep.Org, dep.Name, dep.Version)
+	return dep.CanonicalPURL()
 }
 
 // PackageURLBase strips version and qualifiers from a package URL.

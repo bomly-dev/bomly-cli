@@ -133,19 +133,18 @@ func graphFromSyftPackage(pkg syftpkg.Package) *sdk.Dependency {
 	licenses := pkg.Licenses.ToSlice()
 	locations := pkg.Locations.ToSlice()
 	parsedPURL := parsePackageURL(pkg.PURL)
+	packageManager := sdk.PackageManager(strings.ToLower(string(pkg.Type)))
 
-	node := sdk.NewDependencyWithID(string(pkg.ID()), sdk.Dependency{
-		Ecosystem:      sdk.Ecosystem(syftEcosystem(pkg, parsedPURL)),
+	node := sdk.NewDependencyWithID(string(pkg.ID()), sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.Ecosystem(syftEcosystem(pkg, parsedPURL)),
 		Name:           pkg.Name,
 		Version:        pkg.Version,
 		Org:            syftOrg(pkg, parsedPURL),
-		PackageManager: sdk.PackageManager(strings.ToLower(string(pkg.Type))),
+		PackageManager: packageManager,
 		Type:           sdk.ParsePackageType(string(pkg.Type)),
 		Language:       sdk.ParseLanguage(pkg.Language.String()),
-		PURL:           pkg.PURL,
-		FoundBy:        pkg.FoundBy,
-		Locations:      graphLocations(locations),
-		CPEs:           graphCPEs(pkg.CPEs),
+		PURL:           pkg.PURL}, FoundBy: pkg.FoundBy,
+		Locations: graphLocations(locations),
+		CPEs:      graphCPEs(pkg.CPEs),
 	})
 
 	if node.ID == "" {
@@ -301,6 +300,13 @@ func manifestMetadataFromPackage(pkg *sdk.Dependency, manager sdk.PackageManager
 	if pkg == nil {
 		return sdk.ManifestMetadata{}
 	}
+	kind := manager.Name()
+	if kind == "" {
+		kind = pkg.PackageManager.Name()
+	}
+	if kind == "" {
+		kind = string(pkg.PackageManager)
+	}
 
 	for _, location := range pkg.Locations {
 		candidate := firstNonEmpty(location.RealPath, location.AccessPath)
@@ -309,14 +315,10 @@ func manifestMetadataFromPackage(pkg *sdk.Dependency, manager sdk.PackageManager
 		}
 		return sdk.ManifestMetadata{
 			Path: normalizeGraphPath(candidate),
-			Kind: sdk.ManifestKind(pkg.Type),
+			Kind: sdk.ManifestKind(kind),
 		}
 	}
 
-	kind := manager.Name()
-	if kind == "" {
-		kind = pkg.PackageManager.Name()
-	}
 	return sdk.ManifestMetadata{Kind: sdk.ManifestKind(kind)}
 }
 

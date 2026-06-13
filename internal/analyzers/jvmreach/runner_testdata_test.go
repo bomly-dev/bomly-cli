@@ -65,11 +65,10 @@ func TestJVMDescriptorAndRunnerResult(t *testing.T) {
 func TestJVMStandaloneApplyRunnerResult(t *testing.T) {
 	const purl = "pkg:maven/com.fasterxml.jackson.core/jackson-databind"
 	g := model.New()
-	pkg := model.NewDependency(model.Dependency{
-		Name:      "jackson-databind",
+	pkg := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "jackson-databind",
 		Org:       "com.fasterxml.jackson.core",
 		Ecosystem: model.EcosystemMaven,
-		PURL:      purl,
+		PURL:      purl},
 	})
 	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)

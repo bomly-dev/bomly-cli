@@ -23,10 +23,8 @@ func goFixture(parts ...string) string {
 func TestDiscoverModuleRootsFromTestdata(t *testing.T) {
 	root := goFixture("module")
 	g := model.New()
-	pkg := model.NewDependency(model.Dependency{
-		Name:      "example.com/lib",
-		Ecosystem: model.EcosystemGo,
-		Locations: []model.PackageLocation{{RealPath: filepath.Join(root, "nested", "file.go")}},
+	pkg := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "example.com/lib",
+		Ecosystem: model.EcosystemGo}, Locations: []model.PackageLocation{{RealPath: filepath.Join(root, "nested", "file.go")}},
 	})
 	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
@@ -120,10 +118,9 @@ func TestGovulncheckFailureReasons(t *testing.T) {
 func TestGovulncheckAnalyzerMarksUnknownWithoutModuleRoot(t *testing.T) {
 	const purl = "pkg:golang/example.com/lib"
 	g := model.New()
-	pkg := model.NewDependency(model.Dependency{
-		Name:      "example.com/lib",
+	pkg := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "example.com/lib",
 		Ecosystem: model.EcosystemGo,
-		PURL:      purl,
+		PURL:      purl},
 	})
 	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
@@ -154,7 +151,7 @@ func TestGovulncheckLookupFindingAndImportedModuleAliases(t *testing.T) {
 			t.Fatalf("lookupFinding(%+v) missed", vuln)
 		}
 	}
-	pkg := model.NewDependency(model.Dependency{Name: "example.com/lib"})
+	pkg := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "example.com/lib"}})
 	if !packageImportedByModule(pkg, map[string]struct{}{"example.com/lib": {}}) {
 		t.Fatal("package name was not matched against imported module set")
 	}

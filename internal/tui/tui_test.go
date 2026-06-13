@@ -59,7 +59,7 @@ func TestInteractiveManifestRows_OnlyIncludesManifests(t *testing.T) {
 func TestInteractiveListModel_ViewIncludesDetails(t *testing.T) {
 	g := sdk.New()
 	root := sdk.NewDependencyRef("demo-app", "1.0.0")
-	dep := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
 	if err := g.AddNode(root); err != nil {
 		t.Fatalf("add root: %v", err)
 	}
@@ -158,7 +158,7 @@ func TestNewDiffInteractiveModel_ViewIncludesManifestChanges(t *testing.T) {
 func TestNewScanInteractiveModel_ViewIncludesGraphSummary(t *testing.T) {
 	g := sdk.New()
 	root := sdk.NewDependencyRef("demo-app", "1.0.0")
-	dep := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
 	if err := g.AddNode(root); err != nil {
 		t.Fatalf("add root: %v", err)
 	}
@@ -206,7 +206,7 @@ func TestNewScanInteractiveModel_ViewIncludesGraphSummary(t *testing.T) {
 }
 
 func TestInteractivePackageDisplayName_IncludesScope(t *testing.T) {
-	pkg := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	pkg := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
 	if got := packageDisplayName(pkg); got != "react@18.2.0 [runtime]" {
 		t.Fatalf("expected scoped display name, got %q", got)
 	}
@@ -624,8 +624,8 @@ func TestInteractiveListModel_HelpWrapsAcrossMultipleLines(t *testing.T) {
 func TestScanInteractiveModel_FiltersAndScopeBadges(t *testing.T) {
 	g := sdk.New()
 	root := sdk.NewDependencyRef("demo-app", "1.0.0")
-	runtimeDep := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
-	devDep := sdk.NewDependency(sdk.Dependency{Name: "vitest", Version: "2.0.0", Scopes: sdk.ScopesOf(sdk.ScopeDevelopment)})
+	runtimeDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	devDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "vitest", Version: "2.0.0"}, Scopes: sdk.ScopesOf(sdk.ScopeDevelopment)})
 	for _, pkg := range []*sdk.Dependency{root, runtimeDep, devDep} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
@@ -681,9 +681,9 @@ func TestScanInteractiveModel_FiltersAndScopeBadges(t *testing.T) {
 
 func TestScanInteractiveModel_EcosystemFilterUpdatesComponents(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"})
-	npmDep := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Ecosystem: "npm"})
-	goDep := sdk.NewDependency(sdk.Dependency{Name: "cobra", Version: "1.8.0", Ecosystem: "go"})
+	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
+	npmDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0", Ecosystem: "npm"}})
+	goDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "cobra", Version: "1.8.0", Ecosystem: "go"}})
 	for _, pkg := range []*sdk.Dependency{root, npmDep, goDep} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
@@ -727,7 +727,7 @@ func TestScanInteractiveModel_EcosystemFilterUpdatesComponents(t *testing.T) {
 
 func TestScanInteractiveModel_ManifestDetailsIncludeDetectorMetadata(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"})
+	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
 	if err := g.AddNode(root); err != nil {
 		t.Fatalf("add package: %v", err)
 	}
@@ -783,9 +783,9 @@ func TestScanInteractiveModel_FindingsCanGroupByEcosystem(t *testing.T) {
 
 func TestScanInteractiveModel_UsesEnrichedVulnerabilitiesWithoutFindings(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"})
+	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
 	const reactPURL = "pkg:npm/react@18.2.0"
-	dep := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Ecosystem: "npm", PURL: reactPURL})
+	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0", Ecosystem: "npm", PURL: reactPURL}})
 	registry := sdk.NewPackageRegistry()
 	regPkg := registry.Ensure(reactPURL)
 	regPkg.Name = "react"
@@ -855,11 +855,11 @@ func TestScanInteractiveModel_UsesEnrichedVulnerabilitiesWithoutFindings(t *test
 
 func TestScanInteractiveModel_VulnerabilityFilterKeepsGlobalSummaries(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"})
+	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
 	const reactPURL = "pkg:npm/react@18.2.0"
 	const lodashPURL = "pkg:npm/lodash@4.17.20"
-	react := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Ecosystem: "npm", PURL: reactPURL})
-	lodash := sdk.NewDependency(sdk.Dependency{Name: "lodash", Version: "4.17.20", Ecosystem: "npm", PURL: lodashPURL})
+	react := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0", Ecosystem: "npm", PURL: reactPURL}})
+	lodash := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lodash", Version: "4.17.20", Ecosystem: "npm", PURL: lodashPURL}})
 	registry := sdk.NewPackageRegistry()
 	rp := registry.Ensure(reactPURL)
 	rp.Name, rp.Version, rp.Ecosystem = "react", "18.2.0", "npm"
@@ -918,9 +918,9 @@ func TestScanInteractiveModel_VulnerabilityFilterKeepsGlobalSummaries(t *testing
 
 func TestScanInteractiveModel_VulnerabilityFilterEmptyStateDistinguishesNoMatchesFromNoEnrich(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"})
+	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
 	const reactPURL = "pkg:npm/react@18.2.0"
-	dep := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Ecosystem: "npm", PURL: reactPURL})
+	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0", Ecosystem: "npm", PURL: reactPURL}})
 	registry := sdk.NewPackageRegistry()
 	rp := registry.Ensure(reactPURL)
 	rp.Name, rp.Version, rp.Ecosystem = "react", "18.2.0", "npm"
@@ -1113,14 +1113,14 @@ func newScanReachabilityFilterModel(t *testing.T, enabled bool) *ScanModel {
 	}
 	registry := sdk.NewPackageRegistry()
 	mkDep := func(name, purl string, vulns ...sdk.Vulnerability) *sdk.Dependency {
-		dep := sdk.NewDependency(sdk.Dependency{Name: name, Version: "1.0.0", Ecosystem: "npm", PURL: purl})
+		dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: name, Version: "1.0.0", Ecosystem: "npm", PURL: purl}})
 		regPkg := registry.Ensure(purl)
 		regPkg.Name = name
 		regPkg.Version = "1.0.0"
 		regPkg.Vulnerabilities = vulns
 		return dep
 	}
-	root := sdk.NewDependency(sdk.Dependency{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"})
+	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
 	reachable := mkDep("reachable-lib", "pkg:npm/reachable-lib@1.0.0",
 		vulnerability("CVE-REACHABLE", &sdk.Reachability{Status: sdk.ReachabilityReachable}))
 	unreachable := mkDep("unreachable-lib", "pkg:npm/unreachable-lib@1.0.0",
@@ -1272,8 +1272,8 @@ func TestTopDependedOnComponentStats_UsesTransitiveDependents(t *testing.T) {
 func TestScanInteractiveModel_ComponentTreeExpandsSelectedNode(t *testing.T) {
 	g := sdk.New()
 	root := sdk.NewDependencyRef("demo-app", "1.0.0")
-	direct := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
-	transitive := sdk.NewDependency(sdk.Dependency{Name: "loose-envify", Version: "1.4.0", Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	direct := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	transitive := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "loose-envify", Version: "1.4.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
 	for _, pkg := range []*sdk.Dependency{root, direct, transitive} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
@@ -1326,8 +1326,8 @@ func TestScanInteractiveModel_ComponentTreeExpandsSelectedNode(t *testing.T) {
 func TestScanInteractiveModel_ComponentExpandCollapseAllProgressesByLayer(t *testing.T) {
 	g := sdk.New()
 	root := sdk.NewDependencyRef("demo-app", "1.0.0")
-	direct := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0"})
-	transitive := sdk.NewDependency(sdk.Dependency{Name: "loose-envify", Version: "1.4.0"})
+	direct := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}})
+	transitive := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "loose-envify", Version: "1.4.0"}})
 	for _, pkg := range []*sdk.Dependency{root, direct, transitive} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package: %v", err)
@@ -1395,8 +1395,8 @@ func assertViewContains(t *testing.T, model *ScanModel, contains, excludes []str
 
 func TestScanInteractiveModel_OverviewDashboardUsesBordersAndBars(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"})
-	dep := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Ecosystem: "npm"})
+	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "demo-app", Version: "1.0.0", Ecosystem: "npm"}})
+	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0", Ecosystem: "npm"}})
 	sdk.SetDetectionLicenses(dep, []sdk.PackageLicense{{Value: "MIT"}})
 	for _, pkg := range []*sdk.Dependency{root, dep} {
 		if err := g.AddNode(pkg); err != nil {
@@ -1568,9 +1568,9 @@ func TestInteractiveListModel_SearchIgnoresDependencyDetailText(t *testing.T) {
 func TestBuildLicensesListModel_GroupsByUniqueLicense(t *testing.T) {
 	g := sdk.New()
 	app := sdk.NewDependencyRef("demo-app", "1.0.0")
-	react := sdk.NewDependency(sdk.Dependency{Name: "react", Version: "18.2.0", Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	react := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "react", Version: "18.2.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
 	sdk.SetDetectionLicenses(react, []sdk.PackageLicense{{Value: "MIT"}})
-	vite := sdk.NewDependency(sdk.Dependency{Name: "vite", Version: "5.4.0", Scopes: sdk.ScopesOf(sdk.ScopeDevelopment)})
+	vite := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "vite", Version: "5.4.0"}, Scopes: sdk.ScopesOf(sdk.ScopeDevelopment)})
 	sdk.SetDetectionLicenses(vite, []sdk.PackageLicense{{Value: "MIT"}, {Value: "Apache-2.0"}})
 	for _, pkg := range []*sdk.Dependency{app, react, vite} {
 		if err := g.AddNode(pkg); err != nil {

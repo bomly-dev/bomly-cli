@@ -304,10 +304,12 @@ func (d *detector) Applicable(context.Context, *schemav1.DetectRequest) (*schema
 
 func (d *detector) Detect(ctx context.Context, req *schemav1.DetectRequest) (*schemav1.DetectResponse, error) {
 	packageNode := schemav1.NewDependencyWithID("example.com/demo@v1.0.0", schemav1.Dependency{
-		Ecosystem: schemav1.EcosystemGo,
-		Name:      "example.com/demo",
-		Version:   "v1.0.0",
-		PURL:      "pkg:golang/example.com/demo@v1.0.0",
+		Coordinates: schemav1.Coordinates{
+			Ecosystem: schemav1.EcosystemGo,
+			Name:      "example.com/demo",
+			Version:   "v1.0.0",
+			PURL:      "pkg:golang/example.com/demo@v1.0.0",
+		},
 	})
 	graph := schemav1.New()
 	if err := graph.AddNode(packageNode); err != nil {

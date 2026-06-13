@@ -148,12 +148,11 @@ func depGraphFromLock(raw []byte, manifest composerManifest) (*sdk.Graph, error)
 	}
 
 	depsGraph := sdk.New()
-	rootNode := sdk.NewDependency(sdk.Dependency{
-		Ecosystem:      sdk.EcosystemPHP,
+	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPHP,
 		Name:           "root",
 		PackageManager: sdk.PackageManagerComposer,
 		Type:           sdk.PackageTypeApplication,
-		Language:       "php",
+		Language:       "php"},
 	})
 
 	if err := depsGraph.AddNode(rootNode); err != nil {
@@ -265,15 +264,14 @@ func depGraphFromLock(raw []byte, manifest composerManifest) (*sdk.Graph, error)
 
 func packageNode(name, version string) *sdk.Dependency {
 	org, packageName := splitPackageName(name)
-	return sdk.NewDependency(sdk.Dependency{
-		Ecosystem:      sdk.EcosystemPHP,
+	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPHP,
 		Org:            org,
 		Name:           packageName,
 		Version:        version,
 		PURL:           sdk.BuildPackageURL("composer", org, packageName, version),
 		PackageManager: sdk.PackageManagerComposer,
 		Type:           sdk.PackageTypePackage,
-		Language:       "php",
+		Language:       "php"},
 	})
 
 }

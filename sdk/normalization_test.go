@@ -6,7 +6,7 @@ import (
 )
 
 func TestNormalizePackageIdentityPython(t *testing.T) {
-	pkg := &Dependency{Ecosystem: EcosystemPython, Name: " Requests_Toolbelt ", Version: "1.0.0RC1"}
+	pkg := &Dependency{Coordinates: Coordinates{Ecosystem: EcosystemPython, Name: " Requests_Toolbelt ", Version: "1.0.0RC1"}}
 
 	NormalizeDependencyIdentity(pkg)
 
@@ -20,7 +20,7 @@ func TestNormalizePackageIdentityPython(t *testing.T) {
 }
 
 func TestNormalizePackageIdentityRust(t *testing.T) {
-	pkg := &Dependency{PackageManager: PackageManagerCargo, Name: "Serde_JSON", Version: "1.0.0-RC1"}
+	pkg := &Dependency{Coordinates: Coordinates{PackageManager: PackageManagerCargo, Name: "Serde_JSON", Version: "1.0.0-RC1"}}
 
 	NormalizeDependencyIdentity(pkg)
 
@@ -34,7 +34,7 @@ func TestNormalizePackageIdentityRust(t *testing.T) {
 }
 
 func TestNormalizePackageIdentityNPMScopedName(t *testing.T) {
-	pkg := &Dependency{Ecosystem: EcosystemNPM, Name: "@Types/Node", Version: "20.11.30"}
+	pkg := &Dependency{Coordinates: Coordinates{Ecosystem: EcosystemNPM, Name: "@Types/Node", Version: "20.11.30"}}
 
 	NormalizeDependencyIdentity(pkg)
 
@@ -48,7 +48,7 @@ func TestNormalizePackageIdentityNPMScopedName(t *testing.T) {
 }
 
 func TestNormalizePackageIdentityGoPath(t *testing.T) {
-	pkg := &Dependency{Ecosystem: EcosystemGo, Name: "github.com\\Example\\lib//v2", Version: "V2.1.0-RC1"}
+	pkg := &Dependency{Coordinates: Coordinates{Ecosystem: EcosystemGo, Name: "github.com\\Example\\lib//v2", Version: "V2.1.0-RC1"}}
 
 	NormalizeDependencyIdentity(pkg)
 

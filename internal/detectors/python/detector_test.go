@@ -79,9 +79,9 @@ func TestDepGraphFromPipfileLock(t *testing.T) {
 
 func TestFilterPythonToolPackagesRemovesUndeclaredTools(t *testing.T) {
 	g := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Ecosystem: sdk.EcosystemPython, Name: "root"})
-	requests := sdk.NewDependency(sdk.Dependency{Ecosystem: sdk.EcosystemPython, Name: "requests", Version: "2.32.0"})
-	pip := sdk.NewDependency(sdk.Dependency{Ecosystem: sdk.EcosystemPython, Name: "pip", Version: "25.0"})
+	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "root"}})
+	requests := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "requests", Version: "2.32.0"}})
+	pip := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "pip", Version: "25.0"}})
 	for _, pkg := range []*sdk.Dependency{root, requests, pip} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.ID, err)
@@ -112,9 +112,9 @@ func TestFilterPythonToolPackagesKeepsDeclaredTools(t *testing.T) {
 		t.Fatalf("write requirements: %v", err)
 	}
 	g := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Ecosystem: sdk.EcosystemPython, Name: "root"})
-	pip := sdk.NewDependency(sdk.Dependency{Ecosystem: sdk.EcosystemPython, Name: "pip", Version: "25.0"})
-	wheel := sdk.NewDependency(sdk.Dependency{Ecosystem: sdk.EcosystemPython, Name: "wheel", Version: "0.45.0"})
+	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "root"}})
+	pip := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "pip", Version: "25.0"}})
+	wheel := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "wheel", Version: "0.45.0"}})
 	for _, pkg := range []*sdk.Dependency{root, pip, wheel} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.ID, err)
@@ -203,10 +203,10 @@ func TestAnnotateGraphScopes_DevelopmentFilterExcludesRuntime(t *testing.T) {
 	}
 
 	g := sdk.New()
-	root := sdk.NewDependency(sdk.Dependency{Ecosystem: sdk.EcosystemPython, Name: "demo-app", Version: "1.0.0"})
-	requests := sdk.NewDependency(sdk.Dependency{Ecosystem: sdk.EcosystemPython, Name: "requests", Version: "2.32.0"})
-	pytest := sdk.NewDependency(sdk.Dependency{Ecosystem: sdk.EcosystemPython, Name: "pytest", Version: "8.0.0"})
-	shared := sdk.NewDependency(sdk.Dependency{Ecosystem: sdk.EcosystemPython, Name: "pluggy", Version: "1.5.0"})
+	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "demo-app", Version: "1.0.0"}})
+	requests := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "requests", Version: "2.32.0"}})
+	pytest := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "pytest", Version: "8.0.0"}})
+	shared := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython, Name: "pluggy", Version: "1.5.0"}})
 	for _, pkg := range []*sdk.Dependency{root, requests, pytest, shared} {
 		if err := g.AddNode(pkg); err != nil {
 			t.Fatalf("add package %q: %v", pkg.ID, err)
@@ -253,10 +253,9 @@ func TestAttachDeclaredPositions(t *testing.T) {
 
 	g := sdk.New()
 	for _, name := range []string{"requests", "flask", "numpy", "urllib3"} {
-		pkg := sdk.NewDependency(sdk.Dependency{
-			Ecosystem: sdk.EcosystemPython,
-			Name:      name,
-			Version:   "0.0.0",
+		pkg := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+			Name:    name,
+			Version: "0.0.0"},
 		})
 
 		_ = g.AddNode(pkg)

@@ -62,10 +62,9 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 		if pkg.Name == "" {
 			continue
 		}
-		node := sdk.NewDependency(sdk.Dependency{
-			Ecosystem: sdk.EcosystemPython,
-			Name:      normalizePythonName(pkg.Name),
-			Version:   pkg.Version,
+		node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
+			Name:    normalizePythonName(pkg.Name),
+			Version: pkg.Version},
 		})
 
 		nodesByName[normalizePythonName(pkg.Name)] = node

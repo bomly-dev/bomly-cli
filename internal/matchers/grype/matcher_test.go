@@ -66,7 +66,7 @@ func TestMatch_DBNotPresent_AttemptsDownloadAndReturnsEmpty(t *testing.T) {
 		DistConfigOverride: &badDist,
 	}
 
-	dep := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "lodash", Version: "4.17.15", PURL: "pkg:npm/lodash@4.17.15"})
+	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lodash", Version: "4.17.15", PURL: "pkg:npm/lodash@4.17.15"}})
 	g := sdk.New()
 	if err := g.AddNode(dep); err != nil {
 		t.Fatalf("AddNode: %v", err)
@@ -99,11 +99,10 @@ func TestDBDir_DefaultUsesOSCacheDir(t *testing.T) {
 }
 
 func TestGraphPkgToGrypePkg_FieldMapping(t *testing.T) {
-	p := &sdk.Package{
-		Name:      "lodash",
+	p := &sdk.Package{Coordinates: sdk.Coordinates{Name: "lodash",
 		Version:   "4.17.15",
 		PURL:      "pkg:npm/lodash@4.17.15",
-		Ecosystem: "npm",
+		Ecosystem: "npm"},
 	}
 	gp := graphPkgToGrypePkg(p)
 	if gp.Name != "lodash" {

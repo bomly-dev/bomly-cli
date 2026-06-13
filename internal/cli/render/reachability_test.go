@@ -12,7 +12,7 @@ import (
 func TestScanRendersReachabilityColumnWhenEnabled(t *testing.T) {
 	g := model.New()
 	const libPURL = "pkg:go/lib@1.0.0"
-	pkg := model.NewDependency(model.Dependency{Name: "lib", Version: "1.0.0", Ecosystem: "go", PURL: libPURL})
+	pkg := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: model.EcosystemGo, PURL: libPURL}})
 	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
 	}
@@ -204,7 +204,7 @@ func TestExplainTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 
 func TestScanOmitsReachabilityColumnWhenDisabled(t *testing.T) {
 	g := model.New()
-	pkg := model.NewDependency(model.Dependency{Name: "lib", Version: "1.0.0", Ecosystem: "go"})
+	pkg := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "lib", Version: "1.0.0", Ecosystem: model.EcosystemGo}})
 	if err := g.AddNode(pkg); err != nil {
 		t.Fatal(err)
 	}

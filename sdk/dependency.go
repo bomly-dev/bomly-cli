@@ -83,23 +83,16 @@ func ScopesOf(scopes ...Scope) []Scope {
 // matching artifact (Package) by PURL. Matching enrichment (licenses,
 // vulnerabilities, scorecard) lives on the referenced Package, not here.
 type Dependency struct {
-	ID             string            `json:"id"`
-	Name           string            `json:"name,omitempty"`
-	Version        string            `json:"version,omitempty"`
-	PURL           string            `json:"purl,omitempty"`
-	Ecosystem      Ecosystem         `json:"ecosystem,omitempty"`
-	Type           PackageType       `json:"type,omitempty"`
-	Org            string            `json:"org,omitempty"`
-	PackageManager PackageManager    `json:"package_manager,omitempty"`
-	Language       Language          `json:"language,omitempty"`
-	Scopes         []Scope           `json:"scopes,omitempty"`
-	Locations      []PackageLocation `json:"locations,omitempty"`
-	CPEs           []string          `json:"cpes,omitempty"`
-	Digests        []Digest          `json:"digests,omitempty"`
-	Copyright      string            `json:"copyright,omitempty"`
-	FoundBy        string            `json:"found_by,omitempty"`
-	ResolvedURL    string            `json:"resolved_url,omitempty"`
-	Metadata       map[string]any    `json:"metadata,omitempty"`
+	Coordinates
+	ID          string            `json:"id"`
+	Scopes      []Scope           `json:"scopes,omitempty"`
+	Locations   []PackageLocation `json:"locations,omitempty"`
+	CPEs        []string          `json:"cpes,omitempty"`
+	Digests     []Digest          `json:"digests,omitempty"`
+	Copyright   string            `json:"copyright,omitempty"`
+	FoundBy     string            `json:"found_by,omitempty"`
+	ResolvedURL string            `json:"resolved_url,omitempty"`
+	Metadata    map[string]any    `json:"metadata,omitempty"`
 
 	// Matched is true when the referenced package was enriched by a matcher.
 	Matched bool `json:"matched,omitempty"`
@@ -112,7 +105,7 @@ func (d *Dependency) QualifiedName() string {
 	if d == nil {
 		return ""
 	}
-	return qualifiedName(d.Org, d.Name)
+	return d.Coordinates.QualifiedName()
 }
 
 // DisplayName returns the most human-friendly identifier available.
@@ -131,14 +124,7 @@ func (d *Dependency) StableID() string {
 	if d == nil {
 		return ""
 	}
-	base := d.QualifiedName()
-	if d.Version == "" {
-		return base
-	}
-	if base == "" {
-		return d.Version
-	}
-	return fmt.Sprintf("%s@%s", base, d.Version)
+	return d.Coordinates.StableID()
 }
 
 // IdentityKey returns a stable identity without version information.
@@ -146,7 +132,7 @@ func (d *Dependency) IdentityKey() string {
 	if d == nil {
 		return ""
 	}
-	return strings.Join([]string{string(d.Ecosystem), d.PackageManager.Name(), string(d.Type), d.Org, d.Name}, "\x00")
+	return d.Coordinates.IdentityKey()
 }
 
 // PrimaryScope returns the merged precedence scope across all recorded scopes.
@@ -234,10 +220,10 @@ func NewDependencyWithID(id string, dep Dependency) *Dependency {
 // NewDependencyRef constructs a dependency from a name and version. If version
 // is set, ID is "name@version"; otherwise ID is "name".
 func NewDependencyRef(name, version string) *Dependency {
-	return NewDependency(Dependency{Name: name, Version: version})
+	return NewDependency(Dependency{Coordinates: Coordinates{Name: name, Version: version}})
 }
 
 // NewDependencyRefWithID constructs a dependency with a custom ID.
 func NewDependencyRefWithID(id, name, version string) *Dependency {
-	return NewDependencyWithID(id, Dependency{Name: name, Version: version})
+	return NewDependencyWithID(id, Dependency{Coordinates: Coordinates{Name: name, Version: version}})
 }

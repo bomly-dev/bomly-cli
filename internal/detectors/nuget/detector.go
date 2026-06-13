@@ -484,25 +484,23 @@ func firstNonEmpty(values ...string) string {
 }
 
 func rootNode() *sdk.Dependency {
-	return sdk.NewDependency(sdk.Dependency{
-		Ecosystem:      sdk.EcosystemDotNet,
+	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemDotNet,
 		Name:           "root",
 		PackageManager: sdk.PackageManagerNuGet,
 		Type:           sdk.PackageTypeApplication,
-		Language:       "dotnet",
+		Language:       "dotnet"},
 	})
 
 }
 
 func packageNode(name, version string, pkg lockPackage) *sdk.Dependency {
-	node := sdk.NewDependency(sdk.Dependency{
-		Ecosystem:      sdk.EcosystemDotNet,
+	node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemDotNet,
 		Name:           name,
 		Version:        version,
 		PackageManager: sdk.PackageManagerNuGet,
 		Type:           sdk.PackageTypePackage,
 		Language:       "dotnet",
-		PURL:           sdk.BuildPackageURL("nuget", "", name, version),
+		PURL:           sdk.BuildPackageURL("nuget", "", name, version)},
 	})
 
 	if pkg.ContentHash != "" {

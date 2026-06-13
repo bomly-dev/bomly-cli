@@ -86,11 +86,9 @@ func newScanTestGraph(t *testing.T) (*sdk.Graph, *sdk.PackageRegistry) {
 		{id: "zod@3.23.0", name: "zod", version: "3.23.0", purl: "pkg:npm/zod@3.23.0", scope: sdk.ScopeDevelopment, license: "Apache-2.0"},
 		{id: "loose-envify@1.4.0", name: "loose-envify", version: "1.4.0", purl: "pkg:npm/loose-envify@1.4.0", scope: sdk.ScopeRuntime},
 	} {
-		dep := sdk.NewDependencyWithID(f.id, sdk.Dependency{
-			Name:    f.name,
+		dep := sdk.NewDependencyWithID(f.id, sdk.Dependency{Coordinates: sdk.Coordinates{Name: f.name,
 			Version: f.version,
-			PURL:    f.purl,
-			Scopes:  sdk.ScopesOf(f.scope),
+			PURL:    f.purl}, Scopes: sdk.ScopesOf(f.scope),
 		})
 		if f.license != "" {
 			sdk.SetDetectionLicenses(dep, []sdk.PackageLicense{{SPDXExpression: f.license}})

@@ -18,11 +18,10 @@ import (
 // --- buildQuery ---
 
 func TestBuildQuery_PURLBased(t *testing.T) {
-	dep := &sdk.Dependency{
-		Name:      "lodash",
+	dep := &sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lodash",
 		Version:   "4.17.15",
 		PURL:      "pkg:npm/lodash@4.17.15",
-		Ecosystem: "npm",
+		Ecosystem: "npm"},
 	}
 	purl := sdk.CanonicalPackageURLFromDependency(dep)
 	key, query, ok := buildQuery(dep, purl)
@@ -45,10 +44,9 @@ func TestBuildQuery_PURLBased(t *testing.T) {
 }
 
 func TestBuildQuery_NameEcosystemVersion(t *testing.T) {
-	dep := &sdk.Dependency{
-		Name:      "requests",
+	dep := &sdk.Dependency{Coordinates: sdk.Coordinates{Name: "requests",
 		Version:   "2.28.0",
-		Ecosystem: "python",
+		Ecosystem: "python"},
 	}
 	// Force the name+ecosystem fallback by passing an empty PURL.
 	key, query, ok := buildQuery(dep, "")
@@ -74,7 +72,7 @@ func TestBuildQuery_NameEcosystemVersion(t *testing.T) {
 }
 
 func TestBuildQuery_SkipsNoVersion(t *testing.T) {
-	dep := &sdk.Dependency{Name: "lodash", Ecosystem: "npm"}
+	dep := &sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lodash", Ecosystem: "npm"}}
 	_, _, ok := buildQuery(dep, "")
 	if ok {
 		t.Error("expected package without version to be skipped (no query built)")
@@ -82,7 +80,7 @@ func TestBuildQuery_SkipsNoVersion(t *testing.T) {
 }
 
 func TestBuildQuery_SkipsUnknownEcosystem(t *testing.T) {
-	dep := &sdk.Dependency{Name: "my-pkg", Version: "1.0.0", Ecosystem: "unknown-eco"}
+	dep := &sdk.Dependency{Coordinates: sdk.Coordinates{Name: "my-pkg", Version: "1.0.0", Ecosystem: "unknown-eco"}}
 	_, _, ok := buildQuery(dep, "")
 	if ok {
 		t.Error("expected package with unknown ecosystem and no PURL to be skipped")
@@ -161,11 +159,10 @@ func TestAudit_CacheHit_NoHTTPCall(t *testing.T) {
 		t.Fatalf("New: %v", err)
 	}
 
-	dep := sdk.NewDependency(sdk.Dependency{
-		Name:      "lodash",
+	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lodash",
 		Version:   "4.17.15",
 		PURL:      "pkg:npm/lodash@4.17.15",
-		Ecosystem: "npm",
+		Ecosystem: "npm"},
 	})
 	purl := sdk.CanonicalPackageURLFromDependency(dep)
 
@@ -234,11 +231,10 @@ func TestAudit_OSVFailure_NonFatal(t *testing.T) {
 		t.Fatalf("New: %v", err)
 	}
 
-	dep := sdk.NewDependency(sdk.Dependency{
-		Name:      "lodash",
+	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lodash",
 		Version:   "4.17.15",
 		PURL:      "pkg:npm/lodash@4.17.15",
-		Ecosystem: "npm",
+		Ecosystem: "npm"},
 	})
 	g := sdk.New()
 	if err := g.AddNode(dep); err != nil {

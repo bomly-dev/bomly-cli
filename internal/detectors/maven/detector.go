@@ -363,13 +363,12 @@ func nodeFromMavenCoords(coords string) (*sdk.Dependency, error) {
 		}
 	}
 
-	return sdk.NewDependency(sdk.Dependency{
-		Ecosystem:      sdk.EcosystemMaven,
-		Name:           name,
-		Version:        parts[versionIndex],
-		Scopes:         sdk.ScopesOf(scope),
+	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemMaven,
+		Name:    name,
+		Version: parts[versionIndex],
+
 		Org:            groupID,
-		PackageManager: sdk.PackageManagerMaven,
+		PackageManager: sdk.PackageManagerMaven}, Scopes: sdk.ScopesOf(scope),
 	}), nil
 }
 

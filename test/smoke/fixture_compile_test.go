@@ -57,11 +57,13 @@ func (d *detector) Detect(ctx context.Context, req *sdk.DetectRequest) (*sdk.Det
 		return nil, err
 	}
 	pkg := sdk.NewDependency(sdk.Dependency{
-		Ecosystem: sdk.EcosystemGo,
-		Name:      moduleName,
-		Version:   "v0.0.0",
-		PURL:      "pkg:golang/" + moduleName + "@v0.0.0",
-		FoundBy:   pluginID,
+		Coordinates: sdk.Coordinates{
+			Ecosystem: sdk.EcosystemGo,
+			Name:      moduleName,
+			Version:   "v0.0.0",
+			PURL:      "pkg:golang/" + moduleName + "@v0.0.0",
+		},
+		FoundBy: pluginID,
 	})
 	graph := sdk.New()
 	if err := graph.AddNode(pkg); err != nil {

@@ -8,8 +8,8 @@ import (
 
 func TestBuildPackageRegistry_DeduplicatesByPURLAndLinksDependencies(t *testing.T) {
 	g := sdk.New()
-	app := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication})
-	libA := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "lib", Version: "1.2.3"})
+	app := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "app", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	libA := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.2.3"}})
 	for _, node := range []*sdk.Dependency{app, libA} {
 		if err := g.AddNode(node); err != nil {
 			t.Fatalf("AddNode(%q): %v", node.ID, err)
@@ -38,7 +38,7 @@ func TestBuildPackageRegistry_DeduplicatesByPURLAndLinksDependencies(t *testing.
 
 func TestBuildPackageRegistry_LiftsDetectionLicenses(t *testing.T) {
 	g := sdk.New()
-	lib := sdk.NewDependency(sdk.Dependency{Ecosystem: "npm", Name: "lib", Version: "1.2.3"})
+	lib := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.2.3"}})
 	sdk.SetDetectionLicenses(lib, []sdk.PackageLicense{{Value: "MIT", Type: "declared"}})
 	if err := g.AddNode(lib); err != nil {
 		t.Fatalf("AddNode: %v", err)

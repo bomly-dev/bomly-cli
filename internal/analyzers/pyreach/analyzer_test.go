@@ -51,12 +51,10 @@ func newSeed() (*model.Graph, *model.PackageRegistry) {
 // registry package keyed by the dependency PURL carrying them.
 func addPyDep(t *testing.T, g *model.Graph, reg *model.PackageRegistry, projectDir, name, version string, vulns ...model.Vulnerability) *model.Dependency {
 	t.Helper()
-	dep := model.NewDependency(model.Dependency{
-		Name:           name,
+	dep := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: name,
 		Version:        version,
 		Ecosystem:      model.EcosystemPython,
-		PackageManager: "pip",
-		Locations:      []model.PackageLocation{{RealPath: filepath.Join(projectDir, "requirements.txt")}},
+		PackageManager: "pip"}, Locations: []model.PackageLocation{{RealPath: filepath.Join(projectDir, "requirements.txt")}},
 	})
 	purl := model.CanonicalPackageURLFromDependency(dep)
 	dep.PackageRef = purl
@@ -183,7 +181,7 @@ func TestAnalyzerApplicableRequiresPythonVulns(t *testing.T) {
 	a := Analyzer{}
 
 	g, reg := newSeed()
-	goDep := model.NewDependency(model.Dependency{Name: "lib", Ecosystem: "go"})
+	goDep := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "lib", Ecosystem: "go"}})
 	goDep.PackageRef = model.CanonicalPackageURLFromDependency(goDep)
 	_ = g.AddNode(goDep)
 	reg.Ensure(goDep.PackageRef).Vulnerabilities = []model.Vulnerability{{ID: "x"}}
@@ -271,8 +269,8 @@ func TestAnalyzerDoesNotExpandThroughUnimportedRoots(t *testing.T) {
 
 func TestComputeReachablePackageHopsHandlesCycles(t *testing.T) {
 	g := model.New()
-	a := model.NewDependency(model.Dependency{Name: "a", Version: "1.0.0", Ecosystem: model.EcosystemPython})
-	b := model.NewDependency(model.Dependency{Name: "b", Version: "1.0.0", Ecosystem: model.EcosystemPython})
+	a := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "a", Version: "1.0.0", Ecosystem: model.EcosystemPython}})
+	b := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "b", Version: "1.0.0", Ecosystem: model.EcosystemPython}})
 	if err := g.AddNode(a); err != nil {
 		t.Fatal(err)
 	}

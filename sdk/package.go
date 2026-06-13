@@ -94,17 +94,12 @@ func (e *PackageEOL) Clone() *PackageEOL {
 // matching-stage enrichment; detection-time identity and relationships live on
 // Dependency.
 type Package struct {
-	// PURL is the canonical package URL and the registry primary key.
-	PURL           string         `json:"purl"`
-	Ecosystem      Ecosystem      `json:"ecosystem,omitempty"`
-	Name           string         `json:"name,omitempty"`
-	Version        string         `json:"version,omitempty"`
-	Org            string         `json:"org,omitempty"`
-	Type           PackageType    `json:"type,omitempty"`
-	PackageManager PackageManager `json:"package_manager,omitempty"`
-	Language       Language       `json:"language,omitempty"`
-	Copyright      string         `json:"copyright,omitempty"`
-	ResolvedURL    string         `json:"resolved_url,omitempty"`
+	Coordinates
+	// ID is the package registry identifier. It may be a database ID, PURL, or
+	// another stable key chosen by the package registry.
+	ID          string `json:"id,omitempty"`
+	Copyright   string `json:"copyright,omitempty"`
+	ResolvedURL string `json:"resolved_url,omitempty"`
 
 	CPEs            []string          `json:"cpes,omitempty"`
 	Digests         []Digest          `json:"digests,omitempty"`
@@ -143,11 +138,17 @@ type NPMPackageMetadata struct {
 
 // QualifiedName returns the package name prefixed with its organization when present.
 func (p *Package) QualifiedName() string {
-	return qualifiedName(p.Org, p.Name)
+	if p == nil {
+		return ""
+	}
+	return p.Coordinates.QualifiedName()
 }
 
 // DisplayName returns the most human-friendly identifier available.
 func (p *Package) DisplayName() string {
+	if p == nil {
+		return ""
+	}
 	if name := p.QualifiedName(); name != "" {
 		return name
 	}
@@ -159,7 +160,7 @@ func (p *Package) IdentityKey() string {
 	if p == nil {
 		return ""
 	}
-	return strings.Join([]string{string(p.Ecosystem), p.PackageManager.Name(), string(p.Type), p.Org, p.Name}, "\x00")
+	return p.Coordinates.IdentityKey()
 }
 
 // LicenseValues returns normalized package license labels in stable order.
@@ -215,6 +216,9 @@ func (p *Package) Clone() *Package {
 func (p *Package) MergeFrom(src *Package) {
 	if p == nil || src == nil {
 		return
+	}
+	if p.ID == "" {
+		p.ID = src.ID
 	}
 	if p.Ecosystem == "" {
 		p.Ecosystem = src.Ecosystem
@@ -334,15 +338,18 @@ func PackageFromDependency(dep *Dependency) *Package {
 	}
 	purl := CanonicalPackageURLFromDependency(dep)
 	return &Package{
-		PURL:           purl,
-		Ecosystem:      dep.Ecosystem,
-		Name:           dep.Name,
-		Version:        dep.Version,
-		Org:            dep.Org,
-		Type:           dep.Type,
-		PackageManager: dep.PackageManager,
-		Language:       dep.Language,
-		ResolvedURL:    dep.ResolvedURL,
+		Coordinates: Coordinates{
+			PURL:           purl,
+			Ecosystem:      dep.Ecosystem,
+			Name:           dep.Name,
+			Version:        dep.Version,
+			Org:            dep.Org,
+			Type:           dep.Type,
+			PackageManager: dep.PackageManager,
+			Language:       dep.Language,
+		},
+		ID:          purl,
+		ResolvedURL: dep.ResolvedURL,
 	}
 }
 

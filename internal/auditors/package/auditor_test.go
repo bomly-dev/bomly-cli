@@ -9,12 +9,13 @@ import (
 
 // pkg is a convenience constructor for tests.
 func pkg(id, name, version, scope string) *sdk.Dependency {
-	return &sdk.Dependency{
-		ID:         id,
-		Name:       name,
-		Version:    version,
-		Scopes:     sdk.ScopesOf(sdk.Scope(scope)),
-		PURL:       id,
+	return &sdk.Dependency{Coordinates: sdk.Coordinates{Name: name,
+		Version: version,
+
+		PURL: id}, ID: id,
+
+		Scopes: sdk.ScopesOf(sdk.Scope(scope)),
+
 		PackageRef: id,
 	}
 }

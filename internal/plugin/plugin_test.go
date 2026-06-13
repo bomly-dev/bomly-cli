@@ -348,10 +348,12 @@ func (d *detector) Detect(ctx context.Context, req *schemav1.DetectRequest) (*sc
 		name = "example.com/" + string(req.ScopeFilter)
 	}
 	packageNode := schemav1.NewDependencyWithID(name + "@v1.0.0", schemav1.Dependency{
-		Ecosystem: schemav1.EcosystemGo,
-		Name:      name,
-		Version:   "v1.0.0",
-		PURL:      "pkg:golang/" + name + "@v1.0.0",
+		Coordinates: schemav1.Coordinates{
+			Ecosystem: schemav1.EcosystemGo,
+			Name:      name,
+			Version:   "v1.0.0",
+			PURL:      "pkg:golang/" + name + "@v1.0.0",
+		},
 	})
 	graph := schemav1.New()
 	if err := graph.AddNode(packageNode); err != nil {

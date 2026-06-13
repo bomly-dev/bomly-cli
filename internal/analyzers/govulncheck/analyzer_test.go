@@ -39,12 +39,10 @@ func newGoModuleDir(t *testing.T) string {
 // (keyed by the dependency's PURL) carries the supplied vulnerabilities.
 func newGoGraph(moduleDir string, vulns ...model.Vulnerability) (*model.Graph, *model.PackageRegistry) {
 	g := model.New()
-	dep := model.NewDependency(model.Dependency{
-		Name:           "example.com/lib",
+	dep := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: "example.com/lib",
 		Version:        "v1.0.0",
 		Ecosystem:      "go",
-		PackageManager: "gomod",
-		Locations:      []model.PackageLocation{{RealPath: filepath.Join(moduleDir, "go.sum")}},
+		PackageManager: "gomod"}, Locations: []model.PackageLocation{{RealPath: filepath.Join(moduleDir, "go.sum")}},
 	})
 	purl := model.CanonicalPackageURLFromDependency(dep)
 	dep.PackageRef = purl
@@ -215,7 +213,7 @@ func TestAnalyzerApplicableRequiresGoVulns(t *testing.T) {
 	// build a graph+registry where dep's package carries the given vulns.
 	build := func(name, ecosystem string, vulns ...model.Vulnerability) (*model.Graph, *model.PackageRegistry) {
 		g := model.New()
-		dep := model.NewDependency(model.Dependency{Name: name, Ecosystem: model.Ecosystem(ecosystem)})
+		dep := model.NewDependency(model.Dependency{Coordinates: model.Coordinates{Name: name, Ecosystem: model.Ecosystem(ecosystem)}})
 		purl := model.CanonicalPackageURLFromDependency(dep)
 		dep.PackageRef = purl
 		_ = g.AddNode(dep)

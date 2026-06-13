@@ -148,13 +148,12 @@ func depGraphFromPubDepsJSON(raw []byte) (*sdk.Graph, error) {
 
 	var rootPkg *sdk.Dependency
 	if rootEntry != nil {
-		rootPkg = sdk.NewDependency(sdk.Dependency{
-			Ecosystem:      sdk.EcosystemDart,
+		rootPkg = sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemDart,
 			Name:           rootEntry.Name,
 			Version:        rootEntry.Version,
 			PackageManager: sdk.PackageManagerPub,
 			Type:           sdk.PackageTypeApplication,
-			Language:       "dart",
+			Language:       "dart"},
 		})
 
 	} else {

@@ -59,20 +59,18 @@ func TestDetectorResolveGraph_NormalizesImportedComponentIDs(t *testing.T) {
 
 func TestDetectorResolveGraph_PrefersImportedPURLIdentity(t *testing.T) {
 	g := sdk.New()
-	app := sdk.NewDependency(sdk.Dependency{
-		Ecosystem:      "npm",
+	app := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "demo-app",
 		Version:        "1.0.0",
-		PURL:           "pkg:npm/demo-app@1.0.0",
+		PURL:           "pkg:npm/demo-app@1.0.0"},
 	})
 
-	react := sdk.NewDependency(sdk.Dependency{
-		Ecosystem:      "npm",
+	react := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm",
 		PackageManager: "npm",
 		Name:           "react",
 		Version:        "18.2.0",
-		PURL:           "pkg:npm/react@18.2.0",
+		PURL:           "pkg:npm/react@18.2.0"},
 	})
 
 	for _, pkg := range []*sdk.Dependency{app, react} {

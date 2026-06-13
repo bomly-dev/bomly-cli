@@ -118,7 +118,7 @@ func depGraphFromNPMLockfile(projectPath string) (*sdk.Graph, error) {
 	if rootName == "" {
 		rootName = "root"
 	}
-	rootNode := sdk.NewDependency(sdk.Dependency{Ecosystem: sdk.EcosystemNPM, Name: rootName, Version: lockfile.Version, Type: sdk.PackageTypeApplication})
+	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: rootName, Version: lockfile.Version, Type: sdk.PackageTypeApplication}})
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add npm root node: %w", err)
 	}
@@ -142,11 +142,9 @@ func depGraphFromNPMLockfile(projectPath string) (*sdk.Graph, error) {
 		if name == "" {
 			continue
 		}
-		pkg := sdk.Dependency{
-			Ecosystem:   sdk.EcosystemNPM,
-			Name:        name,
-			Version:     entry.Version,
-			Scopes:      sdk.ScopesOf(scopeFromNPMLockPackage(entry)),
+		pkg := sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+			Name:    name,
+			Version: entry.Version}, Scopes: sdk.ScopesOf(scopeFromNPMLockPackage(entry)),
 			ResolvedURL: entry.Resolved,
 			Digests:     node.ParseIntegrityDigests(entry.Integrity),
 		}
@@ -176,7 +174,7 @@ func depGraphFromNPMLockfile(projectPath string) (*sdk.Graph, error) {
 		for dependencyName, dependencyVersion := range packageDependencyVersions(packagePath, entry) {
 			targetID, ok := resolveNPMLockDependencyID(packagePath, dependencyName, dependencyVersion, lockfile, pathToID)
 			if !ok {
-				synthetic := sdk.NewDependency(sdk.Dependency{Ecosystem: sdk.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(dependencyVersion)})
+				synthetic := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(dependencyVersion)}})
 				if err := node.AddNodeIfMissing(depsGraph, synthetic); err != nil {
 					return nil, err
 				}

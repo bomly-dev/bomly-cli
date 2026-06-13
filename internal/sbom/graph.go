@@ -38,15 +38,15 @@ func ToGraph(doc *Document) (*sdk.Graph, error) {
 		if purl := strings.TrimSpace(component.PURL); purl != "" {
 			packageID = purl
 		}
-		pkg := sdk.NewDependencyWithID(packageID, sdk.Dependency{
-			Name:           component.Name,
-			Version:        component.Version,
-			Scopes:         sdk.ScopesOf(sdk.Scope(component.Scope)),
+		pkg := sdk.NewDependencyWithID(packageID, sdk.Dependency{Coordinates: sdk.Coordinates{Name: component.Name,
+			Version: component.Version,
+
 			Ecosystem:      ecosystem,
 			PackageManager: packageManager,
 			Type:           sdk.ParsePackageType(component.Type),
-			PURL:           strings.TrimSpace(component.PURL),
-			Copyright:      component.Copyright,
+			PURL:           strings.TrimSpace(component.PURL)}, Scopes: sdk.ScopesOf(sdk.Scope(component.Scope)),
+
+			Copyright: component.Copyright,
 		})
 		sdk.SetDetectionLicenses(pkg, graphLicenses(component.Licenses))
 

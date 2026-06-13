@@ -142,11 +142,10 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 	if rootName == "" {
 		rootName = "root"
 	}
-	rootNode := sdk.NewDependency(sdk.Dependency{
-		Ecosystem: sdk.EcosystemNPM,
-		Name:      rootName,
-		Version:   root.Version,
-		Type:      sdk.PackageTypeApplication,
+	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+		Name:    rootName,
+		Version: root.Version,
+		Type:    sdk.PackageTypeApplication},
 	})
 
 	if err := depsGraph.AddNode(rootNode); err != nil {
@@ -170,10 +169,9 @@ func DepGraphFromNPMNode(root *NPMListNode) (*sdk.Graph, error) {
 			if name == "" {
 				name = depName
 			}
-			node := sdk.NewDependency(sdk.Dependency{
-				Ecosystem: sdk.EcosystemNPM,
-				Name:      name,
-				Version:   depNode.Version,
+			node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+				Name:    name,
+				Version: depNode.Version},
 			})
 
 			if err := AddNodeIfMissing(depsGraph, node); err != nil {
@@ -203,11 +201,10 @@ func DepGraphFromPNPMJSON(raw []byte) (*sdk.Graph, error) {
 
 	depsGraph := sdk.New()
 	for _, root := range roots {
-		rootNode := sdk.NewDependency(sdk.Dependency{
-			Ecosystem: sdk.EcosystemNPM,
-			Name:      root.Name,
-			Version:   root.Version,
-			Type:      sdk.PackageTypeApplication,
+		rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+			Name:    root.Name,
+			Version: root.Version,
+			Type:    sdk.PackageTypeApplication},
 		})
 
 		if err := AddNodeIfMissing(depsGraph, rootNode); err != nil {
@@ -229,10 +226,9 @@ func addPNPMDependencies(depsGraph *sdk.Graph, parentID string, deps map[string]
 		if name == "" {
 			name = depName
 		}
-		node := sdk.NewDependency(sdk.Dependency{
-			Ecosystem: sdk.EcosystemNPM,
-			Name:      name,
-			Version:   depNode.Version,
+		node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+			Name:    name,
+			Version: depNode.Version},
 		})
 
 		if err := AddNodeIfMissing(depsGraph, node); err != nil {
@@ -274,10 +270,9 @@ func DepGraphFromYarnJSON(raw []byte) (*sdk.Graph, error) {
 	}
 
 	depsGraph := sdk.New()
-	rootNode := sdk.NewDependency(sdk.Dependency{
-		Ecosystem: sdk.EcosystemNPM,
-		Name:      "root",
-		Type:      sdk.PackageTypeApplication,
+	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+		Name: "root",
+		Type: sdk.PackageTypeApplication},
 	})
 
 	if err := depsGraph.AddNode(rootNode); err != nil {
@@ -296,10 +291,9 @@ func addYarnTree(depsGraph *sdk.Graph, parentID string, tree yarnTreeNode) error
 	if err != nil {
 		return err
 	}
-	node := sdk.NewDependency(sdk.Dependency{
-		Ecosystem: sdk.EcosystemNPM,
-		Name:      name,
-		Version:   version,
+	node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
+		Name:    name,
+		Version: version},
 	})
 
 	if err := AddNodeIfMissing(depsGraph, node); err != nil {

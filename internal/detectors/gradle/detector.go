@@ -259,10 +259,9 @@ func depGraphFromGradleOutput(raw []byte, rootName string) (*sdk.Graph, error) {
 	}
 
 	depsGraph := sdk.New()
-	rootNode := sdk.NewDependency(sdk.Dependency{
-		Ecosystem:      sdk.EcosystemMaven,
+	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemMaven,
 		Name:           rootName,
-		PackageManager: sdk.PackageManagerGradle,
+		PackageManager: sdk.PackageManagerGradle},
 	})
 
 	if err := depsGraph.AddNode(rootNode); err != nil {
@@ -378,11 +377,10 @@ func gradleNodeFromToken(token string, scope sdk.Scope) (*sdk.Dependency, bool) 
 		if name == "" {
 			return nil, false
 		}
-		return sdk.NewDependency(sdk.Dependency{
-				Ecosystem:      sdk.EcosystemMaven,
-				Name:           name,
-				Scopes:         sdk.ScopesOf(scope),
-				PackageManager: sdk.PackageManagerGradle,
+		return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemMaven,
+				Name: name,
+
+				PackageManager: sdk.PackageManagerGradle}, Scopes: sdk.ScopesOf(scope),
 			}),
 
 			true
@@ -395,13 +393,12 @@ func gradleNodeFromToken(token string, scope sdk.Scope) (*sdk.Dependency, bool) 
 
 	version := parts[len(parts)-1]
 	name := strings.Join(parts[1:len(parts)-1], ":")
-	return sdk.NewDependency(sdk.Dependency{
-			Ecosystem:      sdk.EcosystemMaven,
-			Name:           name,
-			Version:        version,
-			Scopes:         sdk.ScopesOf(scope),
+	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemMaven,
+			Name:    name,
+			Version: version,
+
 			Org:            parts[0],
-			PackageManager: sdk.PackageManagerGradle,
+			PackageManager: sdk.PackageManagerGradle}, Scopes: sdk.ScopesOf(scope),
 		}),
 
 		true

@@ -165,29 +165,26 @@ func rootNode(manifest pubspec) *sdk.Dependency {
 	if name == "" {
 		name = "root"
 	}
-	return sdk.NewDependency(sdk.Dependency{
-		Ecosystem:      sdk.EcosystemDart,
+	return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemDart,
 		Name:           name,
 		Version:        strings.TrimSpace(manifest.Version),
 		PackageManager: sdk.PackageManagerPub,
 		Type:           sdk.PackageTypeApplication,
-		Language:       "dart",
+		Language:       "dart"},
 	})
 
 }
 
 func packageNode(name string, pkg pubLockPackage) *sdk.Dependency {
-	node := sdk.NewDependency(sdk.Dependency{
-		Ecosystem:      sdk.EcosystemDart,
+	node := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemDart,
 		Name:           name,
 		Version:        strings.TrimSpace(pkg.Version),
 		PackageManager: sdk.PackageManagerPub,
 		Type:           sdk.PackageTypePackage,
 		Language:       "dart",
-		PURL:           sdk.BuildPackageURL("pub", "", name, pkg.Version),
-		Metadata: map[string]any{
-			"source": strings.TrimSpace(pkg.Source),
-		},
+		PURL:           sdk.BuildPackageURL("pub", "", name, pkg.Version)}, Metadata: map[string]any{
+		"source": strings.TrimSpace(pkg.Source),
+	},
 	})
 
 	if resolved := resolvedURL(pkg.Description); resolved != "" {

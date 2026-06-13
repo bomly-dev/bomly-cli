@@ -63,17 +63,17 @@ func TestLanguageFromPackage(t *testing.T) {
 	}{
 		{
 			name: "explicit Language wins",
-			pkg:  Package{Language: LanguageKotlin, PackageManager: PackageManagerMaven},
+			pkg:  Package{Coordinates: Coordinates{Language: LanguageKotlin, PackageManager: PackageManagerMaven}},
 			want: LanguageKotlin,
 		},
 		{
 			name: "fallback to PackageManager primary",
-			pkg:  Package{PackageManager: PackageManagerMaven},
+			pkg:  Package{Coordinates: Coordinates{PackageManager: PackageManagerMaven}},
 			want: LanguageJava,
 		},
 		{
 			name: "fallback for npm",
-			pkg:  Package{PackageManager: PackageManagerNPM},
+			pkg:  Package{Coordinates: Coordinates{PackageManager: PackageManagerNPM}},
 			want: LanguageJavaScript,
 		},
 		{
@@ -83,7 +83,7 @@ func TestLanguageFromPackage(t *testing.T) {
 		},
 		{
 			name: "OS-level pm has no language",
-			pkg:  Package{PackageManager: PackageManagerAPK},
+			pkg:  Package{Coordinates: Coordinates{PackageManager: PackageManagerAPK}},
 			want: LanguageUnknown,
 		},
 	}
@@ -173,12 +173,10 @@ func TestVulnerabilityCloneCarriesNewFields(t *testing.T) {
 
 func TestDependencyCloneCarriesLocationPosition(t *testing.T) {
 	pos := SourcePosition{File: "package.json", Line: 12, Column: 5}
-	dep := Dependency{
-		Name:    "lodash",
-		Version: "4.17.21",
-		Locations: []PackageLocation{
-			{RealPath: "/abs/package.json", Position: &pos},
-		},
+	dep := Dependency{Coordinates: Coordinates{Name: "lodash",
+		Version: "4.17.21"}, Locations: []PackageLocation{
+		{RealPath: "/abs/package.json", Position: &pos},
+	},
 	}
 	clone := dep.Clone()
 	if clone.Locations[0].Position == dep.Locations[0].Position {

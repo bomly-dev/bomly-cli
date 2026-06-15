@@ -56,8 +56,8 @@ func reportOptionsFromPipelineResults(enabled bool, results ...engine.PipelineRe
 	}
 }
 
-func explainPackageRef(pkg *sdk.Dependency) output.PackageRef {
-	ref := output.PackageFromGraphPackage(pkg)
+func explainPackageRef(pkg *sdk.Dependency, registry *sdk.PackageRegistry) output.PackageRef {
+	ref := output.PackageFromDependencyAndRegistry(pkg, registry)
 	if pkg == nil {
 		return ref
 	}

@@ -29,131 +29,292 @@ func ScanGraphDisplayName(g *sdk.Graph, fallback string) string {
 	return fallback
 }
 
-// Scan returns the human-readable text report for a scan command.
-// registry, when non-nil, supplies matching-stage enrichment (vulnerabilities,
-// scorecards, licenses learned during matching) which is folded into the
-// rendered summaries and tables. Pass nil for a detection-only render.
-func Scan(manifests []output.ScanManifest, g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, enrichEnabled, auditEnabled, reachabilityEnabled bool) string {
+// Scan returns the compact human-readable text report for a scan command.
+// failOn is the active fail-on constraint list from config; N/A-severity
+// findings (e.g. unknown-license) are suppressed unless "any" is present.
+// subprojectSummary is an optional pre-computed line like "Discovered 2
+// subprojects: web (npm), api (go)" shown before the package count.
+func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, matcherStats []sdk.MatcherStats, enrichEnabled, auditEnabled, reachabilityEnabled bool, failOn []string, subprojectSummary string) string {
 	var b strings.Builder
 
 	if g == nil {
 		return "(empty graph)"
 	}
 
-	summary := output.SummaryFromFindings(findings)
+	if subprojectSummary != "" {
+		fmt.Fprintf(&b, "%s\n", Style(subprojectSummary, Dim))
+	}
+
 	roots, direct, transitive := scanRelationshipCounts(g)
-	runtimeCount, developmentCount, unknownScopeCount := scanScopeCounts(g)
-	_, _ = fmt.Fprintf(&b, "Executive Summary\n")
-	_, _ = fmt.Fprintf(&b, "  Packages: %d total\n", g.Size())
-	_, _ = fmt.Fprintf(&b, "  Relationships: %d root, %d direct, %d transitive\n", roots, direct, transitive)
-	_, _ = fmt.Fprintf(&b, "  Scopes: %d runtime, %d development, %d unspecified\n", runtimeCount, developmentCount, unknownScopeCount)
-	_, _ = fmt.Fprintf(&b, "  Vulnerability enrichment: %s\n", formatEnrichmentSummary(registry, enrichEnabled))
-	_, _ = fmt.Fprintf(&b, "  Policy findings: %s\n", formatAuditSummary(summary, auditEnabled))
-	if reachabilityEnabled {
-		_, _ = fmt.Fprintf(&b, "  Reachability: %s\n", formatReachabilitySummary(registry))
+	runtimeCount, developmentCount, _ := scanScopeCounts(g)
+
+	// Package count line: ✓ N packages in M manifests  (D direct, T transitive)
+	checkmark := Style("✓", Green)
+	countPart := Style(fmt.Sprintf("%d", g.Size()), Cyan, Bold)
+	manifestWord := "manifest"
+	if roots != 1 {
+		manifestWord = "manifests"
 	}
-	_, _ = fmt.Fprintf(&b, "  Unique licenses: %d\n", scanUniqueLicenseCount(g, registry))
-	if scoredCount, totalRepos := scorecardCounts(registry); totalRepos > 0 {
-		_, _ = fmt.Fprintf(&b, "  Project posture: %d Scorecard run(s) across %d package(s)\n", totalRepos, scoredCount)
-	}
+	manifestPart := Style(fmt.Sprintf("in %d %s", roots, manifestWord), Dim)
+	detailPart := Style(fmt.Sprintf("(%d direct, %d transitive)", direct, transitive), Dim)
+	fmt.Fprintf(&b, "%s %s packages %s   %s\n", checkmark, countPart, manifestPart, detailPart)
 
-	b.WriteString("\nManifests\n")
-	b.WriteString(renderScanManifestTable(manifests))
+	// Scopes line
+	fmt.Fprintf(&b, "  %s\n", Style(fmt.Sprintf("scopes: runtime %d · dev %d", runtimeCount, developmentCount), Dim))
 
-	b.WriteString("\nDependency Inventory\n")
-	b.WriteString(renderScanGraphTable(g, registry))
-
-	b.WriteString("\n\nPolicy Findings\n")
-	if len(findings) == 0 {
-		if auditEnabled {
-			b.WriteString("No policy findings.\n")
-		} else {
-			b.WriteString("Policy evaluation not enabled. Run with --audit to create findings.\n")
+	// Enrichment line
+	if enrichEnabled && len(matcherStats) > 0 {
+		sources := make([]string, 0, len(matcherStats))
+		seen := make(map[string]struct{})
+		for _, stat := range matcherStats {
+			label := strings.TrimSpace(stat.DisplayName)
+			if label == "" {
+				label = strings.TrimSpace(stat.Name)
+			}
+			if label != "" {
+				if _, ok := seen[label]; !ok {
+					seen[label] = struct{}{}
+					sources = append(sources, label)
+				}
+			}
 		}
-	} else {
-		sorted := make([]sdk.Finding, len(findings))
-		copy(sorted, findings)
-		sort.Slice(sorted, func(i, j int) bool {
-			si := severityRankTable(string(sorted[i].Severity))
-			sj := severityRankTable(string(sorted[j].Severity))
-			if si != sj {
-				return si < sj
+		if len(sources) > 0 {
+			fmt.Fprintf(&b, "%s %s\n", checkmark, Style("Enriched via "+strings.Join(sources, ", "), Green))
+		}
+	}
+
+	// Top-level dependencies (direct only) — blank line before the section.
+	if table := renderDirectDepsTable(g, registry); table != "" {
+		b.WriteString("\n")
+		b.WriteString(table)
+	}
+
+	// Findings section — blank line before it; N/A-severity findings (e.g.
+	// unknown-license policy results) are hidden unless fail-on is "any",
+	// matching the principle that display follows enforcement policy.
+	if len(findings) > 0 {
+		if section := renderCompactFindings(findings, registry, reachabilityEnabled, failOnIncludesAny(failOn)); section != "" {
+			b.WriteString("\n")
+			b.WriteString(section)
+		}
+	}
+
+	return b.String()
+}
+
+// BuildSubprojectSummary returns a human-readable line like
+// "Discovered 2 subprojects: web (npm), api (go)" from the scan manifests.
+// Returns "" when no named subprojects are present (e.g. single-root repos).
+func BuildSubprojectSummary(manifests []output.ScanManifest) string {
+	type entry struct {
+		name string
+		pm   string
+	}
+	seen := make(map[string]struct{})
+	var entries []entry
+	for _, m := range manifests {
+		name := strings.TrimSpace(m.Subproject)
+		if name == "" {
+			continue
+		}
+		if _, ok := seen[name]; ok {
+			continue
+		}
+		seen[name] = struct{}{}
+		pm := strings.TrimSpace(m.PackageManager.Name())
+		entries = append(entries, entry{name: name, pm: pm})
+	}
+	if len(entries) == 0 {
+		return ""
+	}
+	word := "subproject"
+	if len(entries) > 1 {
+		word = "subprojects"
+	}
+	labels := make([]string, 0, len(entries))
+	for _, e := range entries {
+		label := e.name
+		if e.pm != "" {
+			label += " (" + e.pm + ")"
+		}
+		labels = append(labels, label)
+	}
+	return fmt.Sprintf("Discovered %d %s: %s", len(entries), word, strings.Join(labels, ", "))
+}
+
+// renderDirectDepsTable renders the "Top-level dependencies" section showing
+// only packages that are direct dependents of a root node.
+func renderDirectDepsTable(g *sdk.Graph, registry *sdk.PackageRegistry) string {
+	if g == nil || g.Size() == 0 {
+		return ""
+	}
+
+	rootIDs := make(map[string]struct{})
+	for _, root := range g.Roots() {
+		if root != nil {
+			rootIDs[root.ID] = struct{}{}
+		}
+	}
+
+	type row struct {
+		name    string
+		version string
+		license string
+		scope   string
+		vulns   string
+	}
+	var rows []row
+	for _, pkg := range g.Nodes() {
+		if pkg == nil {
+			continue
+		}
+		if _, isRoot := rootIDs[pkg.ID]; isRoot {
+			continue
+		}
+		dependents, err := g.Dependents(pkg.ID)
+		if err != nil {
+			continue
+		}
+		isDirect := false
+		for _, dep := range dependents {
+			if dep != nil {
+				if _, isRoot := rootIDs[dep.ID]; isRoot {
+					isDirect = true
+					break
+				}
 			}
-			if sorted[i].ID != sorted[j].ID {
-				return sorted[i].ID < sorted[j].ID
+		}
+		if !isDirect {
+			continue
+		}
+
+		licenseIdents := make([]string, 0, 2)
+		for _, lic := range licensesForDependency(pkg, registry) {
+			if id := graphLicenseIdentifier(lic); id != "" {
+				licenseIdents = append(licenseIdents, id)
+				break // show only the primary license
 			}
-			// Sort by PackageRef (PURL) when severity and ID match — keeps
-			// ordering stable across runs without an extra registry lookup.
-			return sorted[i].PackageRef < sorted[j].PackageRef
+		}
+		license := "-"
+		if len(licenseIdents) > 0 {
+			license = licenseIdents[0]
+		}
+
+		scope := string(pkg.PrimaryScope())
+		if scope == "" {
+			scope = "-"
+		}
+		version := pkg.Version
+		if version == "" {
+			version = "-"
+		}
+		rows = append(rows, row{
+			name:    pkg.DisplayName(),
+			version: version,
+			license: license,
+			scope:   scope,
+			vulns:   formatDepVulnCounts(pkg, registry),
 		})
-		tw := tabwriter.NewWriter(&b, 0, 0, 2, ' ', 0)
-		if reachabilityEnabled {
-			_, _ = fmt.Fprintln(tw, "SEVERITY\tID\tPACKAGE\tREACHABILITY\tFIXED IN\tEXPLOITABILITY\tTITLE\tSOURCE")
-		} else {
-			_, _ = fmt.Fprintln(tw, "SEVERITY\tID\tPACKAGE\tFIXED IN\tEXPLOITABILITY\tTITLE\tSOURCE")
+	}
+
+	if len(rows) == 0 {
+		return ""
+	}
+
+	sort.Slice(rows, func(i, j int) bool {
+		return rows[i].name < rows[j].name
+	})
+
+	const maxRows = 20
+	overflow := 0
+	if len(rows) > maxRows {
+		overflow = len(rows) - maxRows
+		rows = rows[:maxRows]
+	}
+
+	var b strings.Builder
+	fmt.Fprintf(&b, "%s\n", Style("Top-level dependencies", Bold))
+	tw := tabwriter.NewWriter(&b, 0, 0, 3, ' ', 0)
+	// Headers are written without ANSI codes so tabwriter measures visible
+	// widths correctly; the column values in data rows are also plain text
+	// except for the VULNS column which uses colour only on the counts.
+	fmt.Fprintf(tw, "  NAME\tVERSION\tLICENSE\tSCOPE\tVULNS\n")
+	for _, r := range rows {
+		fmt.Fprintf(tw, "  %s\t%s\t%s\t%s\t%s\n", r.name, r.version, r.license, r.scope, r.vulns)
+	}
+	_ = tw.Flush()
+	if overflow > 0 {
+		fmt.Fprintf(&b, "  %s\n", Style(fmt.Sprintf("… and %d more (use --json for full list)", overflow), Dim))
+	}
+	return b.String()
+}
+
+// failOnIncludesAny reports whether the fail-on constraint list contains "any",
+// which means every severity level (including N/A) should be enforced.
+func failOnIncludesAny(failOn []string) bool {
+	for _, v := range failOn {
+		if strings.ToLower(strings.TrimSpace(v)) == "any" {
+			return true
 		}
-		for _, f := range sorted {
-			pkg, vuln := lookupFindingPkgAndVuln(registry, f)
-			pkgName := f.PackageRef
-			if pkg != nil && pkg.Name != "" {
-				if pkg.Version != "" {
-					pkgName = pkg.Name + "@" + pkg.Version
-				} else {
-					pkgName = pkg.Name
-				}
-			}
-			if pkgName == "" {
-				pkgName = "-"
-			}
-			title := f.Title
-			if title == "" && vuln != nil {
-				title = vuln.Title
-			}
-			if title == "" {
-				title = f.ID
-			}
-			if len(title) > 60 {
-				title = title[:57] + "..."
-			}
-			fixedIn := "-"
-			exploitability := "-"
-			reachCell := "-"
-			if vuln != nil {
-				if vuln.FixedIn != "" {
-					fixedIn = vuln.FixedIn
-				} else if len(vuln.FixedVersions) > 0 {
-					fixedIn = vuln.FixedVersions[0]
-				}
-				if vuln.KEVExploited {
-					exploitability = "KEV"
-				} else if len(vuln.EPSS) > 0 {
-					exploitability = fmt.Sprintf("EPSS %.2f", vuln.EPSS[0].EPSS)
-				}
-				if reachabilityEnabled {
-					reachCell = formatReachabilityCell(vuln.Reachability)
-				}
-			}
-			if reachabilityEnabled {
-				_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
-					f.Severity, f.ID, pkgName, reachCell, fixedIn, exploitability, title, f.Source)
+	}
+	return false
+}
+
+// renderCompactFindings renders the "Findings" section with aligned columns.
+// When showNASeverity is false, findings with N/A or empty severity are omitted.
+func renderCompactFindings(findings []sdk.Finding, registry *sdk.PackageRegistry, reachabilityEnabled bool, showNASeverity bool) string {
+	type findingRow struct {
+		severity string
+		id       string
+		pkg      string
+	}
+
+	rows := make([]findingRow, 0, len(findings))
+	maxIDWidth := 0
+	for _, f := range findings {
+		sev := strings.ToLower(strings.TrimSpace(string(f.Severity)))
+		if !showNASeverity && (sev == "n/a" || sev == "") {
+			continue
+		}
+		regPkg, _ := lookupFindingPkgAndVuln(registry, f)
+		pkgName := f.PackageRef
+		if regPkg != nil && regPkg.Name != "" {
+			if regPkg.Version != "" {
+				pkgName = regPkg.Name + "@" + regPkg.Version
 			} else {
-				_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
-					f.Severity, f.ID, pkgName, fixedIn, exploitability, title, f.Source)
+				pkgName = regPkg.Name
 			}
 		}
-		_ = tw.Flush()
+		if pkgName == "" {
+			pkgName = "-"
+		}
+		rows = append(rows, findingRow{severity: string(f.Severity), id: f.ID, pkg: pkgName})
+		if l := len(f.ID); l > maxIDWidth {
+			maxIDWidth = l
+		}
+	}
+	if len(rows) == 0 {
+		return ""
 	}
 
-	b.WriteString("\nLicense Overview\n")
-	b.WriteString(renderUniqueLicensesTable(g, registry))
+	sort.Slice(rows, func(i, j int) bool {
+		si := severityRankTable(rows[i].severity)
+		sj := severityRankTable(rows[j].severity)
+		if si != sj {
+			return si < sj
+		}
+		if rows[i].id != rows[j].id {
+			return rows[i].id < rows[j].id
+		}
+		return rows[i].pkg < rows[j].pkg
+	})
 
-	if posture := renderScorecardTable(registry); posture != "" {
-		b.WriteString("\n\nProject Posture\n")
-		b.WriteString(posture)
+	var b strings.Builder
+	fmt.Fprintf(&b, "%s\n", Style("Findings", Bold))
+	for _, r := range rows {
+		fmt.Fprintf(&b, "  %s  %-*s  %s\n", severityLabelFixed(r.severity), maxIDWidth, r.id, r.pkg)
 	}
-
-	report := strings.TrimRight(b.String(), "\n")
-	return report
+	return b.String()
 }
 
 func severityRankTable(s string) int {
@@ -215,83 +376,6 @@ func licensesForDependency(dep *sdk.Dependency, registry *sdk.PackageRegistry) [
 	return sdk.DetectionLicenses(dep)
 }
 
-func renderUniqueLicensesTable(g *sdk.Graph, registry *sdk.PackageRegistry) string {
-	if g == nil || g.Size() == 0 {
-		return "(no packages)\n"
-	}
-
-	type licenseSummaryRow struct {
-		identifier string
-		spdx       string
-		value      string
-		sourceType string
-		packages   map[string]struct{}
-	}
-	rowsByIdentifier := make(map[string]*licenseSummaryRow)
-	for _, pkg := range g.Nodes() {
-		if pkg == nil {
-			continue
-		}
-		for _, license := range licensesForDependency(pkg, registry) {
-			identifier := graphLicenseIdentifier(license)
-			if identifier == "" {
-				continue
-			}
-			row, ok := rowsByIdentifier[identifier]
-			if !ok {
-				row = &licenseSummaryRow{
-					identifier: identifier,
-					packages:   make(map[string]struct{}),
-				}
-				rowsByIdentifier[identifier] = row
-			}
-			if row.spdx == "" {
-				row.spdx = strings.TrimSpace(license.SPDXExpression)
-			}
-			if row.value == "" {
-				row.value = strings.TrimSpace(license.Value)
-			}
-			if row.sourceType == "" {
-				row.sourceType = strings.TrimSpace(string(license.Type))
-			}
-			row.packages[pkg.ID] = struct{}{}
-		}
-	}
-	if len(rowsByIdentifier) == 0 {
-		return "(no license information available)\n"
-	}
-
-	rows := make([]licenseSummaryRow, 0, len(rowsByIdentifier))
-	for _, row := range rowsByIdentifier {
-		rows = append(rows, *row)
-	}
-	sort.Slice(rows, func(i, j int) bool {
-		if rows[i].identifier != rows[j].identifier {
-			return rows[i].identifier < rows[j].identifier
-		}
-		if len(rows[i].packages) != len(rows[j].packages) {
-			return len(rows[i].packages) > len(rows[j].packages)
-		}
-		return rows[i].sourceType < rows[j].sourceType
-	})
-	var b strings.Builder
-	tw := tabwriter.NewWriter(&b, 0, 0, 2, ' ', 0)
-	_, _ = fmt.Fprintln(tw, "IDENTIFIER\tSPDX\tVALUE\tSOURCE\tPACKAGES")
-	for _, row := range rows {
-		_, _ = fmt.Fprintf(
-			tw,
-			"%s\t%s\t%s\t%s\t%d\n",
-			ValueOrDash(row.identifier),
-			ValueOrDash(row.spdx),
-			ValueOrDash(row.value),
-			ValueOrDash(row.sourceType),
-			len(row.packages),
-		)
-	}
-	_ = tw.Flush()
-	return strings.TrimRight(b.String(), "\n") + "\n"
-}
-
 func formatAuditSummary(summary *output.AuditSummary, auditEnabled bool) string {
 	if summary == nil || summary.Total == 0 {
 		if auditEnabled {
@@ -329,89 +413,6 @@ func formatReachabilityCell(r *sdk.Reachability) string {
 		return string(r.Status)
 	}
 	return fmt.Sprintf("%s (%s)", r.Status, r.Tier)
-}
-
-// formatReachabilitySummary tallies reachability outcomes across the
-// registry's vulnerabilities for the executive summary.
-func formatReachabilitySummary(registry *sdk.PackageRegistry) string {
-	if registry == nil || registry.Len() == 0 {
-		return "no vulnerabilities analyzed"
-	}
-	var reachable, unreachable, unknown int
-	for _, pkg := range registry.All() {
-		if pkg == nil {
-			continue
-		}
-		for _, v := range pkg.Vulnerabilities {
-			if v.Reachability == nil {
-				continue
-			}
-			switch v.Reachability.Status {
-			case sdk.ReachabilityReachable:
-				reachable++
-			case sdk.ReachabilityUnreachable:
-				unreachable++
-			default:
-				unknown++
-			}
-		}
-	}
-	total := reachable + unreachable + unknown
-	if total == 0 {
-		return "no vulnerabilities analyzed"
-	}
-	return fmt.Sprintf("%d reachable, %d unreachable, %d unknown", reachable, unreachable, unknown)
-}
-
-func formatEnrichmentSummary(registry *sdk.PackageRegistry, enrichEnabled bool) string {
-	if !enrichEnabled {
-		return "disabled"
-	}
-	if registry == nil {
-		return "enabled (no enrichment data available)"
-	}
-	var packages, vulns int
-	for _, pkg := range registry.All() {
-		if pkg == nil {
-			continue
-		}
-		if len(pkg.Vulnerabilities) > 0 || pkg.Matched {
-			packages++
-		}
-		vulns += len(pkg.Vulnerabilities)
-	}
-	return fmt.Sprintf("enabled (%d packages enriched, %d vulnerabilities)", packages, vulns)
-}
-
-func renderScanManifestTable(manifests []output.ScanManifest) string {
-	if len(manifests) == 0 {
-		return "(no manifests)\n"
-	}
-
-	var b strings.Builder
-	tw := tabwriter.NewWriter(&b, 0, 0, 2, ' ', 0)
-	_, _ = fmt.Fprintln(tw, "SUBPROJECT\tMANIFEST\tKIND\tMANAGER\tPACKAGES")
-	for _, manifest := range manifests {
-		subproject := manifest.Subproject
-		if subproject == "" {
-			subproject = "."
-		}
-		pathValue := manifest.Path
-		if pathValue == "" {
-			pathValue = "-"
-		}
-		kind := manifest.Kind
-		if kind == "" {
-			kind = "-"
-		}
-		manager := manifest.PackageManager
-		if manager == "" {
-			manager = "-"
-		}
-		_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%d\n", subproject, pathValue, kind, manager, len(manifest.Dependencies))
-	}
-	_ = tw.Flush()
-	return strings.TrimRight(b.String(), "\n") + "\n"
 }
 
 func scanRelationshipCounts(g *sdk.Graph) (roots, direct, transitive int) {
@@ -492,170 +493,46 @@ func scanUniqueLicenseCount(g *sdk.Graph, registry *sdk.PackageRegistry) int {
 	return len(licenseSet)
 }
 
-func renderScanGraphTable(g *sdk.Graph, registry *sdk.PackageRegistry) string {
-	if g == nil || g.Size() == 0 {
-		return "(empty graph)"
+// formatDepVulnCounts returns a compact coloured vuln-count string like "1C 2H" for a
+// direct dependency. Returns "-" when the registry has no vulnerability data.
+func formatDepVulnCounts(dep *sdk.Dependency, registry *sdk.PackageRegistry) string {
+	if registry == nil || dep == nil || dep.PURL == "" {
+		return "-"
 	}
-
-	rootIDs := make(map[string]struct{})
-	for _, root := range g.Roots() {
-		rootIDs[root.ID] = struct{}{}
+	regPkg, ok := registry.Get(dep.PURL)
+	if !ok || regPkg == nil || len(regPkg.Vulnerabilities) == 0 {
+		return "-"
 	}
-
-	type row struct {
-		name         string
-		version      string
-		scope        string
-		relationship string
-		licenses     string
-		id           string
-	}
-
-	rows := make([]row, 0, g.Size())
-	for _, pkg := range g.Nodes() {
-		relationship := "transitive"
-		if _, isRoot := rootIDs[pkg.ID]; isRoot {
-			relationship = "root"
-		} else if dependents, err := g.Dependents(pkg.ID); err == nil {
-			for _, dependent := range dependents {
-				if _, isRoot := rootIDs[dependent.ID]; isRoot {
-					relationship = "direct"
-					break
-				}
-			}
-		}
-
-		licenseIdents := make([]string, 0, 4)
-		for _, lic := range licensesForDependency(pkg, registry) {
-			if id := graphLicenseIdentifier(lic); id != "" {
-				licenseIdents = append(licenseIdents, id)
-			}
-		}
-		rows = append(rows, row{
-			name:         pkg.DisplayName(),
-			version:      pkg.Version,
-			scope:        string(pkg.PrimaryScope()),
-			relationship: relationship,
-			licenses:     strings.Join(licenseIdents, ", "),
-			id:           pkg.ID,
-		})
-	}
-
-	if len(rows) == 0 {
-		return "(no dependencies)"
-	}
-
-	sort.Slice(rows, func(i, j int) bool {
-		if rows[i].relationship != rows[j].relationship {
-			return RelationshipOrder(rows[i].relationship) < RelationshipOrder(rows[j].relationship)
-		}
-		return rows[i].id < rows[j].id
-	})
-
-	var b strings.Builder
-	tw := tabwriter.NewWriter(&b, 0, 0, 2, ' ', 0)
-	_, _ = fmt.Fprintln(tw, "PACKAGE\tVERSION\tSCOPE\tRELATIONSHIP\tLICENSES")
-	for _, row := range rows {
-		version := row.version
-		if version == "" {
-			version = "-"
-		}
-		scope := row.scope
-		if scope == "" {
-			scope = "-"
-		}
-		_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n", row.name, version, scope, row.relationship, ValueOrDash(row.licenses))
-	}
-	_ = tw.Flush()
-	return strings.TrimRight(b.String(), "\n")
-}
-
-// scorecardCounts returns (packagesEnriched, uniqueRepos) over the registry.
-func scorecardCounts(registry *sdk.PackageRegistry) (int, int) {
-	if registry == nil {
-		return 0, 0
-	}
-	packages := 0
-	repos := make(map[string]struct{})
-	for _, pkg := range registry.All() {
-		if pkg == nil || pkg.Scorecard == nil {
-			continue
-		}
-		packages++
-		if pkg.Scorecard.Repository != "" {
-			repos[pkg.Scorecard.Repository] = struct{}{}
+	var critical, high, medium, low int
+	for _, v := range regPkg.Vulnerabilities {
+		switch strings.ToLower(string(v.ParsedSeverity)) {
+		case "critical":
+			critical++
+		case "high":
+			high++
+		case "medium":
+			medium++
+		case "low":
+			low++
 		}
 	}
-	return packages, len(repos)
-}
-
-// renderScorecardTable renders one row per unique source repo enriched by the
-// scorecard matcher. Returns the empty string when no packages carry a
-// Scorecard run, so callers can skip the section header entirely.
-func renderScorecardTable(registry *sdk.PackageRegistry) string {
-	if registry == nil || registry.Len() == 0 {
-		return ""
+	var parts []string
+	if critical > 0 {
+		parts = append(parts, Style(fmt.Sprintf("%dC", critical), Red, Bold))
 	}
-	type row struct {
-		repo     string
-		score    float64
-		runDate  string
-		version  string
-		packages int
+	if high > 0 {
+		parts = append(parts, Style(fmt.Sprintf("%dH", high), Red))
 	}
-	byRepo := make(map[string]*row)
-	for _, pkg := range registry.All() {
-		if pkg == nil || pkg.Scorecard == nil {
-			continue
-		}
-		sc := pkg.Scorecard
-		key := sc.Repository
-		if key == "" {
-			key = pkg.PURL
-		}
-		r, ok := byRepo[key]
-		if !ok {
-			r = &row{repo: key, score: -1}
-			byRepo[key] = r
-		}
-		r.packages++
-		if sc.AggregateScore > r.score {
-			r.score = sc.AggregateScore
-		}
-		if !sc.RunDate.IsZero() && r.runDate == "" {
-			r.runDate = sc.RunDate.Format("2006-01-02")
-		}
-		if sc.ScorecardVersion != "" && r.version == "" {
-			r.version = sc.ScorecardVersion
-		}
+	if medium > 0 {
+		parts = append(parts, Style(fmt.Sprintf("%dM", medium), Yellow, Bold))
 	}
-	if len(byRepo) == 0 {
-		return ""
+	if low > 0 {
+		parts = append(parts, Style(fmt.Sprintf("%dL", low), Cyan))
 	}
-	rows := make([]*row, 0, len(byRepo))
-	for _, r := range byRepo {
-		rows = append(rows, r)
+	if len(parts) == 0 {
+		return "-"
 	}
-	sort.Slice(rows, func(i, j int) bool {
-		if rows[i].score != rows[j].score {
-			return rows[i].score < rows[j].score
-		}
-		return rows[i].repo < rows[j].repo
-	})
-
-	var b strings.Builder
-	tw := tabwriter.NewWriter(&b, 0, 0, 2, ' ', 0)
-	_, _ = fmt.Fprintln(tw, "REPOSITORY\tSCORE\tRUN DATE\tVERSION\tPACKAGES")
-	for _, r := range rows {
-		score := "n/a"
-		if r.score >= 0 {
-			score = fmt.Sprintf("%.1f/10", r.score)
-		}
-		_, _ = fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%d\n",
-			r.repo, score, ValueOrDash(r.runDate), ValueOrDash(r.version), r.packages)
-	}
-	_ = tw.Flush()
-	return strings.TrimRight(b.String(), "\n")
+	return strings.Join(parts, " ")
 }
 
 func graphLicenseIdentifier(license sdk.PackageLicense) string {

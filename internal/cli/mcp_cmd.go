@@ -9,6 +9,7 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
+	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
 	"github.com/bomly-dev/bomly-cli/internal/engine/explain"
@@ -53,9 +54,44 @@ func newMcpServeCmd() *cobra.Command {
 				Adapter: adapter,
 				Version: cmd.Root().Version,
 			})
+			printMCPBanner(cmd.ErrOrStderr())
 			return mcpserver.ServeStdio(s)
 		},
 	}
+}
+
+// printMCPBanner writes a brief startup notice to w (stderr) before the MCP
+// stdio protocol begins. Output goes to stderr so it doesn't interfere with
+// the JSON-RPC stream on stdout.
+func printMCPBanner(w io.Writer) {
+	type tool struct {
+		name string
+		desc string
+	}
+	tools := []tool{
+		{"bomly_scan", "Scan a path, image, Git URL, or SBOM."},
+		{"bomly_explain", "Show the dependency path for a package."},
+		{"bomly_diff", "Compare dependency state across refs or SBOMs."},
+		{"bomly_vuln_fix_context", "Get fix context for a vulnerability."},
+		{"bomly_plugins", "List registered Bomly plugins."},
+	}
+
+	nameWidth := 0
+	for _, t := range tools {
+		if len(t.name) > nameWidth {
+			nameWidth = len(t.name)
+		}
+	}
+
+	fmt.Fprintf(w, "%s\n", render.Style("Starting Bomly MCP server (stdio) ...", render.Dim))
+	fmt.Fprintf(w, "%s\n", render.Style("Registered tools:", render.Bold))
+	for _, t := range tools {
+		fmt.Fprintf(w, "  %s  %s\n",
+			render.Style(fmt.Sprintf("%-*s", nameWidth, t.name), render.Cyan),
+			render.Style(t.desc, render.Dim),
+		)
+	}
+	fmt.Fprintf(w, "%s\n", render.Style("Awaiting client on stdio ...", render.Dim))
 }
 
 // mcpOptionsAdapter implements bomcp.OptionsAdapter.
@@ -257,12 +293,13 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 	targets := make([]output.ExplainTargetResponse, 0, len(explainResult.Targets))
 	for _, target := range explainResult.Targets {
 		targets = append(targets, output.ExplainTargetResponse{
-			Project:      cmdCtx.ProjectDescriptorForSubproject(target.Manifest.Subproject),
-			Detector:     target.Manifest.DetectorName,
-			Dependency:   explainPackageRef(target.Dependency),
-			Paths:        explainPathsWithStableIDs(target.Paths),
-			Findings:     output.FindingsFromScan(target.Findings, explainResult.Registry),
-			AuditSummary: output.SummaryFromFindings(target.Findings),
+			Project:        cmdCtx.ProjectDescriptorForSubproject(target.Manifest.Subproject),
+			Detector:       target.Manifest.DetectorName,
+			PackageManager: target.Manifest.Subproject.PrimaryPackageManager(),
+			Dependency:     explainPackageRef(target.Dependency, explainResult.Registry),
+			Paths:          explainPathsWithStableIDs(target.Paths),
+			Findings:       output.FindingsFromScan(target.Findings, explainResult.Registry),
+			AuditSummary:   output.SummaryFromFindings(target.Findings),
 		})
 	}
 	return output.BuildExplainResponse(

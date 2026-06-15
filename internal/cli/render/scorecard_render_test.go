@@ -22,8 +22,10 @@ func newTestScorecard(repo string, score float64, checks ...sdk.PackageScorecard
 	}
 }
 
-func TestExplain_RendersScorecardBlock(t *testing.T) {
+func TestExplain_OmitsScorecardFromCompactText(t *testing.T) {
 	t.Parallel()
+	// The compact text format does not include scorecard blocks; that detail
+	// is available in JSON and Markdown output formats.
 	target := output.ExplainTargetResponse{
 		Dependency: output.PackageRef{
 			Name:    "logrus",
@@ -31,7 +33,6 @@ func TestExplain_RendersScorecardBlock(t *testing.T) {
 			Scorecard: newTestScorecard("github.com/sirupsen/logrus", 8.2,
 				sdk.PackageScorecardCheck{Name: "Branch-Protection", Score: 9, Reason: "branch protection enabled"},
 				sdk.PackageScorecardCheck{Name: "Code-Review", Score: 2, Reason: "missing reviews"},
-				sdk.PackageScorecardCheck{Name: "Fuzzing", Score: -1, Reason: "no fuzzing detected"},
 			),
 		},
 	}
@@ -40,17 +41,12 @@ func TestExplain_RendersScorecardBlock(t *testing.T) {
 		t.Fatalf("Explain: %v", err)
 	}
 	out := StripANSI(buf.String())
-	want := []string{
-		"Project posture:",
-		"8.2/10",
-		"github.com/sirupsen/logrus",
-		"updated 2026-05-18",
-		"Code-Review", // lowest-scoring check should appear in top-N
+	if strings.Contains(out, "Project posture:") {
+		t.Errorf("compact explain text should not include scorecard block; got:\n%s", out)
 	}
-	for _, sub := range want {
-		if !strings.Contains(out, sub) {
-			t.Errorf("explain output missing %q\n---\n%s", sub, out)
-		}
+	// Package metadata (name/version) still appears.
+	if !strings.Contains(out, "logrus@v1.9.0") {
+		t.Errorf("expected package name in explain output; got:\n%s", out)
 	}
 }
 
@@ -117,8 +113,10 @@ func TestBuildPostureDelta_DedupesByRepo(t *testing.T) {
 	}
 }
 
-func TestDiff_RendersPostureSection(t *testing.T) {
+func TestDiff_OmitsPostureSectionFromCompactText(t *testing.T) {
 	t.Parallel()
+	// The compact text format does not include a Project Posture section; that
+	// detail is available in the Markdown output format.
 	payload := output.DiffResponse{
 		Comparison: output.DiffComparison{Base: "main", Head: "HEAD"},
 		Results: output.DiffResults{
@@ -138,15 +136,12 @@ func TestDiff_RendersPostureSection(t *testing.T) {
 		t.Fatalf("Diff: %v", err)
 	}
 	out := StripANSI(buf.String())
-	for _, sub := range []string{
-		"Project Posture",
-		"github.com/new/repo",
-		"github.com/shared/repo",
-		"5.0/10 -> 8.0/10",
-	} {
-		if !strings.Contains(out, sub) {
-			t.Errorf("diff output missing %q\n---\n%s", sub, out)
-		}
+	if strings.Contains(out, "Project Posture") {
+		t.Errorf("compact diff text should not include Project Posture section; got:\n%s", out)
+	}
+	// Dep changes still appear.
+	if !strings.Contains(out, "Added") && !strings.Contains(out, "Changed") {
+		t.Errorf("expected dep change sections in compact diff; got:\n%s", out)
 	}
 }
 

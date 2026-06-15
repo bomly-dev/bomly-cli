@@ -107,18 +107,12 @@ func newScanCmd() *cobra.Command {
 			markdownRenderer := func(w io.Writer) error {
 				return render.ScanMarkdown(w, payload)
 			}
+			subprojectSummary := render.BuildSubprojectSummary(output.ScanManifestsFromConsolidated(consolidated, pipeResult.Registry))
 			textRenderer := func(w io.Writer) error {
-				if len(resolved) == 1 {
-					if _, err := fmt.Fprintf(w, "Dependency report for %s\n\n", render.ScanGraphDisplayName(selectedGraph, payload.Project.Name)); err != nil {
-						return err
-					}
-				} else {
-					if _, err := fmt.Fprintf(w, "Dependency report for %d subprojects\n\n", len(resolved)); err != nil {
-						return err
-					}
+				if _, err := io.WriteString(w, render.Scan(selectedGraph, pipeResult.Registry, findings, pipeResult.MatcherStats, commandCtx.ResolvedConfig.Enrich, commandCtx.ResolvedConfig.Audit, commandCtx.ResolvedConfig.Analyze, commandCtx.ResolvedConfig.FailOn, subprojectSummary)); err != nil {
+					return fmt.Errorf("write scan text output: %w", err)
 				}
-				_, err := io.WriteString(w, render.Scan(payload.Manifests, selectedGraph, pipeResult.Registry, findings, commandCtx.ResolvedConfig.Enrich, commandCtx.ResolvedConfig.Audit, commandCtx.ResolvedConfig.Analyze))
-				return err
+				return nil
 			}
 			reportRenderers := output.Renderers{
 				Markdown: markdownRenderer,

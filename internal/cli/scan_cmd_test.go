@@ -5,11 +5,10 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
-	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
-func TestRenderScanReportIncludesProfessionalSections(t *testing.T) {
+func TestRenderScanReportShowsPackageCountAndDirectDeps(t *testing.T) {
 	g, registry := newScanTestGraph(t)
 	findings := []sdk.Finding{{
 		ID:         "OSV-123",
@@ -19,51 +18,48 @@ func TestRenderScanReportIncludesProfessionalSections(t *testing.T) {
 		Title:      "Prototype pollution in react",
 		Source:     "osv",
 	}}
-	manifests := []output.ScanManifest{{
-		Path:           "package-lock.json",
-		Kind:           "package-lock.json",
-		Subproject:     ".",
-		PackageManager: "npm",
-		Dependencies:   output.DependenciesFromGraph(g, registry),
-	}}
 
-	report := render.Scan(manifests, g, registry, findings, true, true, false)
+	report := render.Scan(g, registry, findings, nil, true, true, false, nil, "")
+
 	for _, want := range []string{
-		"Executive Summary",
-		"Manifests",
-		"package-lock.json",
-		"Dependency Inventory",
-		"Policy Findings",
-		"License Overview",
-		"LICENSES",
-		"IDENTIFIER",
+		"packages",
+		"direct",
+		"transitive",
+		"scopes:",
+		"Top-level dependencies",
 		"react",
-		"loose-envify",
-		"1 total (1 high)",
+		"Findings",
+		"OSV-123",
+		"HIGH",
 	} {
-		if !strings.Contains(report, want) {
+		if !strings.Contains(render.StripANSI(report), want) {
 			t.Fatalf("expected report to contain %q, got:\n%s", want, report)
 		}
 	}
-	if strings.Contains(report, "-> [") {
-		t.Fatalf("expected report output instead of tree output, got:\n%s", report)
+}
+
+func TestRenderScanReportWithEnrichmentShowsEnrichmentLine(t *testing.T) {
+	g, registry := newScanTestGraph(t)
+	stats := []sdk.MatcherStats{
+		{Name: "osv", DisplayName: "OSV"},
+		{Name: "deps.dev", DisplayName: "deps.dev"},
+	}
+	report := render.Scan(g, registry, nil, stats, true, false, false, nil, "")
+	stripped := render.StripANSI(report)
+	if !strings.Contains(stripped, "Enriched via OSV") {
+		t.Fatalf("expected enrichment line, got:\n%s", report)
 	}
 }
 
-func TestRenderScanReportWithoutFindingsUsesCleanMessage(t *testing.T) {
+func TestRenderScanReportWithoutEnrichmentSkipsEnrichmentLine(t *testing.T) {
 	g, registry := newScanTestGraph(t)
-	report := render.Scan([]output.ScanManifest{{
-		Path:           "package-lock.json",
-		Kind:           "package-lock.json",
-		Subproject:     ".",
-		PackageManager: "npm",
-		Dependencies:   output.DependenciesFromGraph(g, registry),
-	}}, g, registry, nil, false, false, false)
-	if !strings.Contains(report, "Policy evaluation not enabled") {
-		t.Fatalf("expected not-audited message, got:\n%s", report)
+	report := render.Scan(g, registry, nil, nil, false, false, false, nil, "")
+	stripped := render.StripANSI(report)
+	if strings.Contains(stripped, "Enriched via") {
+		t.Fatalf("unexpected enrichment line when not enriched, got:\n%s", report)
 	}
-	if strings.Contains(report, "\u00c3\u00a2\u20ac\u201d") || strings.Contains(report, "\u00c3\u201a\u00c3\u00a2\u20ac\u009d") {
-		t.Fatalf("expected mojibake to be removed, got:\n%s", report)
+	if strings.Contains(stripped, "Findings") {
+		t.Fatalf("unexpected findings section when no findings, got:\n%s", report)
 	}
 }
 

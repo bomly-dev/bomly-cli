@@ -50,9 +50,9 @@ func appendWhyTreeLines(lines []string, node *whyTreeNode, prefix string, isLast
 	if root {
 		lines = append(lines, line)
 	} else {
-		connector := "|- "
+		connector := "├─ "
 		if isLast {
-			connector = "\\- "
+			connector = "└─ "
 		}
 		lines = append(lines, prefix+connector+line)
 	}
@@ -62,7 +62,7 @@ func appendWhyTreeLines(lines []string, node *whyTreeNode, prefix string, isLast
 		if isLast {
 			childPrefix += "   "
 		} else {
-			childPrefix += "|  "
+			childPrefix += "│  "
 		}
 	}
 	for i, key := range node.childOrder {

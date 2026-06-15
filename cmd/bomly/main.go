@@ -12,7 +12,7 @@ var version = "0.13.0"
 
 func main() {
 	if err := cli.Execute(version); err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "\n\n%s: %v", exit.ErrorPrefix(err), err)
+		_, _ = fmt.Fprintf(os.Stderr, "\n\n%s: %v\n", exit.ErrorPrefix(err), err)
 		os.Exit(exit.Code(err))
 	}
 }

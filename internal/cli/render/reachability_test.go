@@ -9,7 +9,6 @@ import (
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
 
-
 func TestScanRendersReachabilityColumnWhenEnabled(t *testing.T) {
 	g := model.New()
 	const libPURL = "pkg:go/lib@1.0.0"

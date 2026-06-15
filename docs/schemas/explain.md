@@ -138,6 +138,7 @@ Complete reference for the `bomly explain` JSON output.
 |-------|------|-------------|
 | `project` | [`ProjectDescriptor`](#projectdescriptor) | |
 | `detector` | `string` | |
+| `package_manager` | `string` | |
 | `dependency` | [`PackageRef`](#packageref) | |
 | `paths` | Array<[`DependencyPath`](#dependencypath)> | |
 | `findings` | Array<[`AuditFinding`](#auditfinding)> | |

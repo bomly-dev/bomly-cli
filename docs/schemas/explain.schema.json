@@ -3558,6 +3558,9 @@
             },
             "type": "array"
           },
+          "package_manager": {
+            "type": "string"
+          },
           "paths": {
             "items": {
               "properties": {

@@ -9,6 +9,7 @@ import (
 	model "github.com/bomly-dev/bomly-cli/sdk"
 )
 
+
 func TestScanRendersReachabilityColumnWhenEnabled(t *testing.T) {
 	g := model.New()
 	const libPURL = "pkg:go/lib@1.0.0"
@@ -41,15 +42,14 @@ func TestScanRendersReachabilityColumnWhenEnabled(t *testing.T) {
 			Source:          "osv",
 		},
 	}
-	out := Scan([]output.ScanManifest{}, g, registry, findings, true /*enrich*/, true /*audit*/, true /*reachability*/)
-	if !strings.Contains(out, "REACHABILITY") {
-		t.Fatalf("expected REACHABILITY column when reachabilityEnabled=true; got:\n%s", out)
+	out := Scan(g, registry, findings, nil /*matcherStats*/, true /*enrich*/, true /*audit*/, true /*reachability*/, nil /*failOn*/, "" /*subprojectSummary*/)
+	// The compact text format shows the finding CVE ID and package name; detailed
+	// reachability info is available in the JSON and Markdown output formats.
+	if !strings.Contains(StripANSI(out), "CVE-2024-0001") {
+		t.Fatalf("expected finding ID in compact scan output; got:\n%s", out)
 	}
-	if !strings.Contains(out, "reachable (symbol)") {
-		t.Fatalf("expected reachable (symbol) cell in findings table; got:\n%s", out)
-	}
-	if !strings.Contains(out, "Reachability:") {
-		t.Fatalf("expected Reachability summary line; got:\n%s", out)
+	if !strings.Contains(StripANSI(out), "Findings") {
+		t.Fatalf("expected Findings section in compact scan output; got:\n%s", out)
 	}
 }
 
@@ -114,13 +114,20 @@ func TestDiffTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 			}},
 		},
 	}
+	// Compact text diff shows only a findings summary; reachability detail is
+	// available in JSON and Markdown formats.
 	var text bytes.Buffer
 	if err := Diff(&text, payload); err != nil {
 		t.Fatalf("Diff() error = %v", err)
 	}
-	if !strings.Contains(text.String(), "reachability reachable (package)") {
-		t.Fatalf("expected reachability in enabled diff text; got:\n%s", text.String())
+	plainText := StripANSI(text.String())
+	if strings.Contains(plainText, "reachability reachable") {
+		t.Fatalf("reachability detail should not appear in compact diff text; got:\n%s", text.String())
 	}
+	if !strings.Contains(plainText, "finding") {
+		t.Fatalf("expected findings summary in diff text; got:\n%s", text.String())
+	}
+
 	var markdown bytes.Buffer
 	if err := DiffMarkdown(&markdown, payload); err != nil {
 		t.Fatalf("DiffMarkdown() error = %v", err)
@@ -130,13 +137,6 @@ func TestDiffTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 	}
 
 	payload.Metadata.ReachabilityEnabled = false
-	text.Reset()
-	if err := Diff(&text, payload); err != nil {
-		t.Fatalf("Diff() error = %v", err)
-	}
-	if strings.Contains(text.String(), "reachability reachable") {
-		t.Fatalf("reachability should be absent from disabled diff text; got:\n%s", text.String())
-	}
 	markdown.Reset()
 	if err := DiffMarkdown(&markdown, payload); err != nil {
 		t.Fatalf("DiffMarkdown() error = %v", err)
@@ -165,19 +165,18 @@ func TestExplainTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 			Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
 		}},
 	}
+	// Compact text explain shows the CVE ID and severity but not the reachability
+	// detail; that is available in JSON and Markdown formats.
 	var text bytes.Buffer
 	if err := Explain(&text, target, true); err != nil {
 		t.Fatalf("Explain() error = %v", err)
 	}
-	if !strings.Contains(text.String(), "Reach:") || !strings.Contains(text.String(), "reachable (package)") {
-		t.Fatalf("expected reachability in enabled explain text; got:\n%s", text.String())
+	plainText := StripANSI(text.String())
+	if !strings.Contains(plainText, "CVE-2024-0001") {
+		t.Fatalf("expected CVE ID in compact explain text; got:\n%s", text.String())
 	}
-	text.Reset()
-	if err := Explain(&text, target, false); err != nil {
-		t.Fatalf("Explain() error = %v", err)
-	}
-	if strings.Contains(text.String(), "Reach:") || strings.Contains(text.String(), "reachable (package)") {
-		t.Fatalf("reachability should be absent from disabled explain text; got:\n%s", text.String())
+	if strings.Contains(plainText, "Reach:") || strings.Contains(plainText, "reachable (package)") {
+		t.Fatalf("reachability detail should not appear in compact explain text; got:\n%s", text.String())
 	}
 
 	payload := output.ExplainResponse{
@@ -211,12 +210,13 @@ func TestScanOmitsReachabilityColumnWhenDisabled(t *testing.T) {
 	findings := []model.Finding{
 		{ID: "CVE-2024-0001", Kind: model.FindingKindVulnerability, PackageRef: pkg.PURL, Severity: "high", Title: "x", Source: "osv"},
 	}
-	out := Scan([]output.ScanManifest{}, g, nil, findings, true, true, false)
-	if strings.Contains(out, "REACHABILITY") {
-		t.Fatalf("REACHABILITY column should not appear when reachabilityEnabled=false; got:\n%s", out)
+	out := Scan(g, nil, findings, nil, true, true, false, nil, "")
+	// Compact text format never shows a REACHABILITY column; detailed info is in JSON/Markdown.
+	if strings.Contains(StripANSI(out), "REACHABILITY") {
+		t.Fatalf("REACHABILITY column should not appear in compact text output; got:\n%s", out)
 	}
-	if strings.Contains(out, "Reachability:") {
-		t.Fatalf("Reachability summary should not appear when disabled; got:\n%s", out)
+	if strings.Contains(StripANSI(out), "Reachability:") {
+		t.Fatalf("Reachability summary should not appear in compact text output; got:\n%s", out)
 	}
 }
 

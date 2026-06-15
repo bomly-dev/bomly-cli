@@ -13,7 +13,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/output"
 )
 
-func TestRenderDiffTextIncludesAuditOutcomeWithoutChanges(t *testing.T) {
+func TestRenderDiffTextShowsFindingsSummaryLine(t *testing.T) {
 	payload := output.DiffResponse{
 		Comparison: output.DiffComparison{Base: "main", Head: "feature"},
 		Summary: output.DiffSummary{
@@ -30,17 +30,39 @@ func TestRenderDiffTextIncludesAuditOutcomeWithoutChanges(t *testing.T) {
 		t.Fatalf("renderDiffText() error = %v", err)
 	}
 
-	report := out.String()
-	for _, want := range []string{
-		"Dependency diff main -> feature",
+	report := render.StripANSI(out.String())
+	if !strings.Contains(report, "No new findings introduced.") {
+		t.Fatalf("expected findings summary line, got:\n%s", report)
+	}
+	// Removed sections should not appear
+	for _, absent := range []string{
+		"Dependency diff",
 		"Policy Evaluation",
-		"Current findings: 1 total (1 high).",
-		"Change summary: 0 introduced, 0 persisted, and 0 resolved findings.",
-		"No policy differences were identified between the base and head dependency sets.",
+		"Current findings:",
+		"Change summary:",
 	} {
-		if !strings.Contains(report, want) {
-			t.Fatalf("expected diff report to contain %q, got:\n%s", want, report)
+		if strings.Contains(report, absent) {
+			t.Fatalf("expected %q to be absent from compact diff output, got:\n%s", absent, report)
 		}
+	}
+}
+
+func TestRenderDiffTextShowsHighFindingsWhenIntroduced(t *testing.T) {
+	payload := output.DiffResponse{
+		Audit: &output.DiffAudit{
+			Introduced: []output.AuditFinding{
+				{ID: "CVE-2024-1234", Severity: "high"},
+				{ID: "CVE-2024-5678", Severity: "critical"},
+			},
+		},
+	}
+	var out bytes.Buffer
+	if err := render.Diff(&out, payload); err != nil {
+		t.Fatalf("render.Diff() error = %v", err)
+	}
+	report := render.StripANSI(out.String())
+	if !strings.Contains(report, "2 new finding(s) introduced.") {
+		t.Fatalf("expected high-severity count line, got:\n%s", report)
 	}
 }
 
@@ -176,34 +198,16 @@ func TestWriteRenderedOutputCreatesParentDirectory(t *testing.T) {
 	}
 }
 
-func TestRenderDiffTextIncludesAuditSections(t *testing.T) {
+func TestRenderDiffTextShowsHighFindingCountWhenIntroducedFindings(t *testing.T) {
 	payload := output.DiffResponse{
 		Comparison: output.DiffComparison{Base: "base.spdx", Head: "head.spdx"},
-		Summary: output.DiffSummary{
-			ChangedManifestCount: 1,
-			AddedPackageCount:    1,
-			RemovedPackageCount:  1,
-		},
 		Audit: &output.DiffAudit{
-			Introduced: []output.AuditFinding{{
-				ID:       "OSV-123",
-				Severity: "high",
-				Package:  output.PackageRef{Name: "react", Version: "18.2.0"},
-				Title:    "Prototype pollution in react",
-				Source:   "osv",
-			}},
-			Persisted: []output.AuditFinding{{
-				ID:       "OSV-234",
-				Severity: "medium",
-				Package:  output.PackageRef{Name: "lodash", Version: "4.17.20"},
-				Source:   "osv",
-			}},
-			Resolved: []output.AuditFinding{{
-				ID:       "OSV-345",
-				Severity: "low",
-				Package:  output.PackageRef{Name: "minimist", Version: "1.2.5"},
-				Source:   "osv",
-			}},
+			Introduced: []output.AuditFinding{
+				{ID: "OSV-123", Severity: "high", Package: output.PackageRef{Name: "react", Version: "18.2.0"}, Title: "Prototype pollution in react"},
+			},
+			Resolved: []output.AuditFinding{
+				{ID: "OSV-345", Severity: "low", Package: output.PackageRef{Name: "minimist", Version: "1.2.5"}},
+			},
 			AuditSummary: &output.AuditSummary{High: 1, Medium: 1, Total: 2},
 		},
 	}
@@ -213,24 +217,14 @@ func TestRenderDiffTextIncludesAuditSections(t *testing.T) {
 		t.Fatalf("renderDiffText() error = %v", err)
 	}
 
-	report := out.String()
-	for _, want := range []string{
-		"Policy Evaluation",
-		"Current findings: 2 total (1 high, 1 medium).",
-		"Change summary: 1 introduced, 1 persisted, and 1 resolved findings.",
-		"Introduced Findings",
-		"Resolved Findings",
-		"OSV-123 react@18.2.0: Prototype pollution in react",
-		"OSV-345 minimist@1.2.5",
-	} {
-		if !strings.Contains(report, want) {
-			t.Fatalf("expected diff report to contain %q, got:\n%s", want, report)
+	report := render.StripANSI(out.String())
+	if !strings.Contains(report, "1 new finding(s) introduced.") {
+		t.Fatalf("expected high-severity summary line, got:\n%s", report)
+	}
+	// Verbose policy sections are not shown in the compact text format.
+	for _, absent := range []string{"Policy Evaluation", "Introduced Findings", "Resolved Findings", "Change summary:"} {
+		if strings.Contains(report, absent) {
+			t.Fatalf("expected %q absent from compact diff output, got:\n%s", absent, report)
 		}
-	}
-	if strings.Contains(report, "Persisted Findings") {
-		t.Fatalf("did not expect persisted findings subsection, got:\n%s", report)
-	}
-	if !strings.Contains(report, "Prototype pollution in react\x1b[0m\n\nResolved Findings") {
-		t.Fatalf("expected a blank line after introduced findings, got:\n%s", report)
 	}
 }

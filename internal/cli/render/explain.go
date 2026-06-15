@@ -8,186 +8,119 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/output"
 )
 
-// Explain writes the human-readable explain report for one target dependency.
+// Explain writes the compact human-readable explain report for one target dependency.
 func Explain(w io.Writer, target output.ExplainTargetResponse, includeReachabilityValue ...bool) error {
 	includeReachability := len(includeReachabilityValue) > 0 && includeReachabilityValue[0]
-	divider := Style(strings.Repeat("=", 72), Dim)
-	section := Style(strings.Repeat("-", 72), Dim)
+	_ = includeReachability
 
-	if _, err := fmt.Fprintln(w, divider); err != nil {
-		return err
-	}
-	if _, err := fmt.Fprintln(w, Style("Dependency Explanation", Bold, Cyan)); err != nil {
-		return err
-	}
-	if _, err := fmt.Fprintln(w, section); err != nil {
-		return err
-	}
-	if _, err := fmt.Fprintf(w, "%s %s\n", Style("Component:", Dim), explainPackageDisplayName(target.Dependency)); err != nil {
-		return err
-	}
-	if _, err := fmt.Fprintf(w, "%s %s\n", Style("Project:  ", Dim), ValueOrDash(target.Project.Name)); err != nil {
-		return err
-	}
-	if _, err := fmt.Fprintf(w, "%s %s\n", Style("Detector: ", Dim), ValueOrDash(target.Detector)); err != nil {
-		return err
-	}
-	if _, err := fmt.Fprintf(w, "%s %d\n", Style("Path count:", Dim), len(target.Paths)); err != nil {
-		return err
+	// Key-value header block
+	ecosystem := ecosystemFromPURL(target.Dependency.Purl)
+	pkgLabel := explainPackageDisplayName(target.Dependency)
+	scope := ValueOrDash(target.Dependency.Scope)
+	directLabel := "no"
+	for _, path := range target.Paths {
+		if len(path.Packages) == 2 {
+			directLabel = "yes"
+			break
+		}
 	}
 
-	if _, err := fmt.Fprintln(w); err != nil {
+	// Bold keys: pad the key text to a fixed visible width BEFORE styling so
+	// ANSI bytes don't affect the value column alignment.
+	const kvKeyWidth = 10
+	boldKey := func(k string) string {
+		return Style(fmt.Sprintf("%-*s", kvKeyWidth, k), Bold)
+	}
+	if _, err := fmt.Fprintf(w, "%s %s\n", boldKey("ecosystem"), ecosystem); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintln(w, Style("Dependency Paths", Bold)); err != nil {
-		return err
-	}
-	for _, line := range whyTreeLinesForTarget(target.Paths, target.Dependency.ID) {
-		if _, err := fmt.Fprintln(w, line); err != nil {
+	if pm := strings.TrimSpace(target.PackageManager.Name()); pm != "" {
+		if _, err := fmt.Fprintf(w, "%s %s\n", boldKey("manager"), pm); err != nil {
 			return err
 		}
 	}
-
-	if len(target.Findings) > 0 || len(target.Dependency.Licenses) > 0 || len(target.Dependency.Vulnerabilities) > 0 || target.Dependency.Scorecard != nil {
-		if _, err := fmt.Fprintln(w); err != nil {
-			return err
-		}
-		if _, err := fmt.Fprintln(w, Style("Impact Assessment", Bold)); err != nil {
-			return err
-		}
+	if _, err := fmt.Fprintf(w, "%s %s\n", boldKey("package"), pkgLabel); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(w, "%s %s\n", boldKey("scope"), scope); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(w, "%s %s\n", boldKey("direct"), directLabel); err != nil {
+		return err
 	}
 
-	if len(target.Dependency.Vulnerabilities) > 0 {
-		if _, err := fmt.Fprintf(w, "%s %d matched\n", Style("Vulnerability enrichment:", Dim), len(target.Dependency.Vulnerabilities)); err != nil {
-			return err
-		}
-		for _, vulnerability := range target.Dependency.Vulnerabilities {
-			if _, err := fmt.Fprintf(w, "- %s %s (%s)\n", explainSeverityLabel(string(vulnerability.Severity)), vulnerability.ID, ValueOrDash(vulnerability.Source)); err != nil {
-				return err
-			}
-			if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Title:   ", Dim), ValueOrDash(vulnerability.Title)); err != nil {
-				return err
-			}
-			if fixed := fixedVersionSummary(vulnerability.FixedIn, vulnerability.FixedVersions); fixed != "" {
-				if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Fixed in:", Dim), fixed); err != nil {
-					return err
-				}
-			}
-			if exploitability := exploitabilitySummary(vulnerability.KEVExploited, vulnerability.KnownExploited, vulnerability.RiskScore); exploitability != "" {
-				if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Exploit: ", Dim), exploitability); err != nil {
-					return err
-				}
-			}
-			if epss := epssSummary(vulnerability.EPSS); epss != "" {
-				if _, err := fmt.Fprintf(w, "  %s %s\n", Style("EPSS:    ", Dim), epss); err != nil {
-					return err
-				}
-			}
-			if includeReachability {
-				if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Reach:   ", Dim), formatReachabilityCell(vulnerability.Reachability)); err != nil {
-					return err
-				}
-			}
-		}
-	}
-
-	if len(target.Findings) > 0 {
-		if len(target.Dependency.Vulnerabilities) > 0 {
-			if _, err := fmt.Fprintln(w); err != nil {
-				return err
-			}
-		}
-		if _, err := fmt.Fprintf(w, "%s %s\n", Style("Policy findings:", Dim), formatExplainAuditSummary(target.AuditSummary)); err != nil {
-			return err
-		}
-		for _, finding := range target.Findings {
-			if _, err := fmt.Fprintf(w, "- %s %s\n", explainSeverityLabel(string(finding.Severity)), finding.ID); err != nil {
-				return err
-			}
-			if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Title:   ", Dim), ValueOrDash(finding.Title)); err != nil {
-				return err
-			}
-			if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Source:  ", Dim), ValueOrDash(finding.Source)); err != nil {
-				return err
-			}
-			if fixed := fixedVersionSummary(finding.FixedIn, finding.FixedVersions); fixed != "" {
-				if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Fixed in:", Dim), fixed); err != nil {
-					return err
-				}
-			}
-			if exploitability := exploitabilitySummary(finding.KEVExploited, finding.KnownExploited, finding.RiskScore); exploitability != "" {
-				if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Exploit: ", Dim), exploitability); err != nil {
-					return err
-				}
-			}
-			if includeReachability {
-				if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Reach:   ", Dim), formatReachabilityCell(finding.Reachability)); err != nil {
-					return err
-				}
-			}
-			if _, err := fmt.Fprintf(w, "  %s %s\n", Style("Package: ", Dim), explainPackageDisplayName(finding.Package)); err != nil {
-				return err
-			}
-			if len(finding.Reasons) > 0 {
-				if _, err := fmt.Fprintln(w, "  "+Style("Details: ", Dim)+finding.Reasons[0]); err != nil {
-					return err
-				}
-				for _, reason := range finding.Reasons[1:] {
-					if _, err := fmt.Fprintln(w, "           "+reason); err != nil {
-						return err
-					}
-				}
-			}
-		}
-	}
-
-	if scorecard := target.Dependency.Scorecard; scorecard != nil {
-		if len(target.Dependency.Vulnerabilities) > 0 || len(target.Findings) > 0 {
-			if _, err := fmt.Fprintln(w); err != nil {
-				return err
-			}
-		}
-		if _, err := fmt.Fprintf(w, "%s %s\n", Style("Project posture:", Dim), explainScorecardHeadline(scorecard)); err != nil {
-			return err
-		}
-		for _, check := range topScorecardChecks(scorecard.Checks, 5) {
-			if _, err := fmt.Fprintf(w, "  %s %s/%d  %s\n",
-				Style(scorecardCheckBadge(check.Score), Dim),
-				explainScorecardCheckScore(check.Score),
-				10,
-				explainScorecardCheckLine(check)); err != nil {
-				return err
-			}
-		}
-	}
-
+	// Licenses section — shown before the tree so the reader has context before
+	// following the dependency chain.
 	if len(target.Dependency.Licenses) > 0 {
-		if len(target.Findings) > 0 || target.Dependency.Scorecard != nil {
-			if _, err := fmt.Fprintln(w); err != nil {
-				return err
-			}
-		}
-		if _, err := fmt.Fprintf(w, "%s %d detected\n", Style("Licenses:", Dim), len(target.Dependency.Licenses)); err != nil {
+		if _, err := fmt.Fprintln(w, Style("licenses", Bold)); err != nil {
 			return err
 		}
-		for idx, license := range target.Dependency.Licenses {
+		for _, license := range target.Dependency.Licenses {
 			label := license.Identifier()
+			if label == "" {
+				continue
+			}
 			if license.Type != "" {
 				label += " [" + string(license.Type) + "]"
 			}
-			if _, err := fmt.Fprintf(w, "- License %d: %s\n", idx+1, ValueOrDash(label)); err != nil {
-				return err
-			}
-			if _, err := fmt.Fprintf(w, "  %s applicable to %s\n", Style("Scope:   ", Dim), explainPackageDisplayName(target.Dependency)); err != nil {
+			if _, err := fmt.Fprintln(w, "  "+label); err != nil {
 				return err
 			}
 		}
 	}
 
-	if _, err := fmt.Fprintln(w, divider); err != nil {
-		return err
+	// Dependency tree
+	if len(target.Paths) > 0 {
+		if _, err := fmt.Fprintln(w, Style("introduced by:", Bold)); err != nil {
+			return err
+		}
+		for _, line := range whyTreeLinesForTarget(target.Paths, target.Dependency.ID) {
+			if _, err := fmt.Fprintln(w, "  "+line); err != nil {
+				return err
+			}
+		}
 	}
+
+	// Vulnerabilities section — shown after the tree so the reader sees the dep
+	// chain before the security findings.
+	if len(target.Dependency.Vulnerabilities) > 0 {
+		if _, err := fmt.Fprintln(w, Style("vulnerabilities", Bold)); err != nil {
+			return err
+		}
+		maxIDWidth := 0
+		for _, vuln := range target.Dependency.Vulnerabilities {
+			if l := len(vuln.ID); l > maxIDWidth {
+				maxIDWidth = l
+			}
+		}
+		for _, vuln := range target.Dependency.Vulnerabilities {
+			title := strings.TrimSpace(vuln.Title)
+			if len(title) > 50 {
+				title = title[:47] + "..."
+			}
+			line := fmt.Sprintf("  %-*s  %s  %s", maxIDWidth, vuln.ID, severityLabelFixed(string(vuln.Severity)), title)
+			if _, err := fmt.Fprintln(w, strings.TrimRight(line, " ")); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
+}
+
+// ecosystemFromPURL extracts the package type (e.g. "npm", "go") from a PURL
+// of the form "pkg:TYPE/...". Returns "-" when the PURL is absent or malformed.
+func ecosystemFromPURL(purl string) string {
+	const prefix = "pkg:"
+	if !strings.HasPrefix(purl, prefix) {
+		return "-"
+	}
+	rest := strings.TrimPrefix(purl, prefix)
+	parts := strings.SplitN(rest, "/", 2)
+	if len(parts) == 0 || parts[0] == "" {
+		return "-"
+	}
+	return parts[0]
 }
 
 func formatExplainAuditSummary(summary *output.AuditSummary) string {
@@ -226,5 +159,27 @@ func explainSeverityLabel(severity string) string {
 		return Style("["+label+"]", Cyan)
 	default:
 		return Style("["+label+"]", Dim)
+	}
+}
+
+// severityLabelFixed is like explainSeverityLabel but pads the visible text to
+// a fixed width (that of "[CRITICAL]") before applying ANSI styling. This keeps
+// tabular findings rows aligned even when ANSI escape sequences vary in length
+// across severity levels — the invisible bytes are added after the padding, so
+// all cells occupy the same number of visible terminal columns.
+func severityLabelFixed(severity string) string {
+	const width = 10 // len("[CRITICAL]")
+	label := fmt.Sprintf("%-*s", width, "["+strings.ToUpper(ValueOrDash(severity))+"]")
+	switch strings.ToLower(strings.TrimSpace(severity)) {
+	case "critical":
+		return Style(label, Red, Bold)
+	case "high":
+		return Style(label, Red)
+	case "medium":
+		return Style(label, Yellow, Bold)
+	case "low":
+		return Style(label, Cyan)
+	default:
+		return Style(label, Dim)
 	}
 }

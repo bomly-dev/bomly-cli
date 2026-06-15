@@ -7,29 +7,14 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
-// Diff writes the human-readable diff report for the diff command.
+// Diff writes the compact human-readable diff report for the diff command.
 func Diff(w io.Writer, payload output.DiffResponse) error {
-	lines := []string{
-		fmt.Sprintf("Dependency diff %s -> %s", payload.Comparison.Base, payload.Comparison.Head),
-		fmt.Sprintf(
-			"Matches: %d exact, %d fuzzy, %d unmatched",
-			payload.Summary.ExactMatchCount,
-			payload.Summary.FuzzyMatchCount,
-			payload.Summary.UnmatchedPackageCount,
-		),
-		"",
-	}
+	var lines []string
 	lines = append(lines, dependencyTextSections(payload.Results.Dependencies)...)
-	lines = append(lines, licenseTextSections(payload.Results.Licenses)...)
-	lines = append(lines, vulnerabilityTextSections(payload.Results.Vulnerabilities, payload.Metadata.ReachabilityEnabled)...)
-	if section := postureTextSections(payload.Results.Dependencies); len(section) > 0 {
-		lines = append(lines, section...)
-	}
-	if payload.Audit != nil {
-		lines = append(lines, policyTextSections(*payload.Audit, payload.Metadata.ReachabilityEnabled)...)
-	}
+	lines = append(lines, findingsSummaryLine(payload.Audit)...)
 	for _, line := range lines {
 		if _, err := fmt.Fprintln(w, line); err != nil {
 			return err
@@ -39,16 +24,17 @@ func Diff(w io.Writer, payload output.DiffResponse) error {
 }
 
 func dependencyTextSections(results output.DiffDependencyResults) []string {
-	lines := []string{"Dependencies"}
+	var lines []string
 	nameWidth := dependencyNameWidth(results)
 	appendAdded := func() {
 		if len(results.Added) == 0 {
 			return
 		}
-		lines = append(lines, fmt.Sprintf("Added (%d)", len(results.Added)))
+		lines = append(lines, Style(fmt.Sprintf("Added (%d)", len(results.Added)), Bold))
 		for _, change := range results.Added {
 			pkg := change.Package
-			line := fmt.Sprintf("  + %-*s  %-8s %s", nameWidth, DiffPackageDisplayName(pkg), primaryLicense(pkg), displayScope(pkg.Scope))
+			vulns := vulnCountsForPackageRef(pkg)
+			line := fmt.Sprintf("  + %-*s  %-8s %s%s", nameWidth, DiffPackageDisplayName(pkg), primaryLicense(pkg), displayScope(pkg.Scope), vulns)
 			lines = append(lines, Wrap(strings.TrimRight(line, " "), Green))
 		}
 	}
@@ -56,7 +42,7 @@ func dependencyTextSections(results output.DiffDependencyResults) []string {
 		if len(results.Removed) == 0 {
 			return
 		}
-		lines = append(lines, fmt.Sprintf("Removed (%d)", len(results.Removed)))
+		lines = append(lines, Style(fmt.Sprintf("Removed (%d)", len(results.Removed)), Bold))
 		for _, change := range results.Removed {
 			line := fmt.Sprintf("  - %s", DiffPackageDisplayName(change.Package))
 			lines = append(lines, Wrap(line, Red))
@@ -66,127 +52,105 @@ func dependencyTextSections(results output.DiffDependencyResults) []string {
 		if len(results.Changed) == 0 {
 			return
 		}
-		lines = append(lines, fmt.Sprintf("Changed (%d)", len(results.Changed)))
+		lines = append(lines, Style(fmt.Sprintf("Changed (%d)", len(results.Changed)), Bold))
 		for _, change := range results.Changed {
 			name := change.After.Name
 			if strings.TrimSpace(name) == "" {
 				name = change.After.ID
 			}
-			line := fmt.Sprintf("  ~ %-*s  %s -> %s", changedNameWidth(results), name, change.Before.Version, change.After.Version)
+			line := fmt.Sprintf("  ~ %-*s  %s → %s", changedNameWidth(results), name, change.Before.Version, change.After.Version)
 			lines = append(lines, Wrap(line, Yellow))
 		}
 	}
 	appendAdded()
 	appendRemoved()
 	appendChanged()
-	if len(lines) == 1 {
-		lines = append(lines, "  No dependency changes.")
-	}
-	lines = append(lines, "")
-	return lines
-}
-
-func licenseTextSections(results output.DiffLicenseResults) []string {
-	lines := []string{"Licenses"}
-	if len(results.Added) == 0 && len(results.Removed) == 0 && len(results.Changed) == 0 {
-		return append(lines, "  No license changes.", "")
-	}
-	if len(results.Added) > 0 {
-		lines = append(lines, fmt.Sprintf("Added (%d)", len(results.Added)))
-		for _, change := range results.Added {
-			lines = append(lines, Wrap(fmt.Sprintf("  + %s  %s", DiffPackageDisplayName(change.Package), licenseList(change.Licenses)), Green))
-		}
-	}
-	if len(results.Removed) > 0 {
-		lines = append(lines, fmt.Sprintf("Removed (%d)", len(results.Removed)))
-		for _, change := range results.Removed {
-			lines = append(lines, Wrap(fmt.Sprintf("  - %s  %s", DiffPackageDisplayName(change.Package), licenseList(change.Licenses)), Red))
-		}
-	}
-	if len(results.Changed) > 0 {
-		lines = append(lines, fmt.Sprintf("Changed (%d)", len(results.Changed)))
-		for _, change := range results.Changed {
-			lines = append(lines, Wrap(fmt.Sprintf("  ~ %s  %s -> %s", DiffPackageDisplayName(change.Package), licenseList(change.Before), licenseList(change.After)), Yellow))
-		}
-	}
-	return append(lines, "")
-}
-
-func vulnerabilityTextSections(results output.DiffVulnerabilityResults, includeReachability bool) []string {
-	lines := []string{"Vulnerabilities"}
-	if len(results.Added) == 0 && len(results.Removed) == 0 {
-		return append(lines, "  No vulnerability changes.", "")
-	}
-	if len(results.Added) > 0 {
-		lines = append(lines, fmt.Sprintf("Added (%d)", len(results.Added)))
-		for _, change := range results.Added {
-			details := diffVulnerabilityDetails(change.Vulnerability, includeReachability)
-			lines = append(lines, Wrap(fmt.Sprintf("  + [%s] %s  %s%s", strings.ToUpper(ValueOrDash(string(change.Vulnerability.Severity))), change.Vulnerability.ID, DiffPackageDisplayName(change.Package), details), Red))
-		}
-	}
-	if len(results.Removed) > 0 {
-		lines = append(lines, fmt.Sprintf("Removed (%d)", len(results.Removed)))
-		for _, change := range results.Removed {
-			details := diffVulnerabilityDetails(change.Vulnerability, includeReachability)
-			lines = append(lines, Wrap(fmt.Sprintf("  - [%s] %s  %s%s", strings.ToUpper(ValueOrDash(string(change.Vulnerability.Severity))), change.Vulnerability.ID, DiffPackageDisplayName(change.Package), details), Green))
-		}
-	}
-	return append(lines, "")
-}
-
-func policyTextSections(audit output.DiffAudit, includeReachability bool) []string {
-	lines := []string{
-		"Policy Evaluation",
-		fmt.Sprintf("  Current findings: %s.", diffAuditFindingsSummary(audit.AuditSummary)),
-		fmt.Sprintf("  Change summary: %d introduced, %d persisted, and %d resolved findings.", len(audit.Introduced), len(audit.Persisted), len(audit.Resolved)),
-	}
-	appendSection := func(title string, findings []output.AuditFinding, color string) {
-		if len(findings) == 0 {
-			return
-		}
-		lines = append(lines, title)
-		for _, finding := range sortDiffAuditFindings(findings) {
-			disposition := strings.ToUpper(ValueOrDash(string(finding.Disposition)))
-			line := fmt.Sprintf("  - [%s/%s] %s", strings.ToUpper(ValueOrDash(string(finding.Severity))), disposition, ValueOrDash(finding.ID))
-			if pkgLabel := DiffPackageDisplayName(finding.Package); pkgLabel != "" {
-				line += " " + pkgLabel
-			}
-			if strings.TrimSpace(finding.Title) != "" && finding.Title != finding.ID {
-				line += ": " + finding.Title
-			}
-			var details []string
-			if fixed := fixedVersionSummary(finding.FixedIn, finding.FixedVersions); fixed != "" {
-				details = append(details, "fixed in "+fixed)
-			}
-			if exploitability := exploitabilitySummary(finding.KEVExploited, finding.KnownExploited, finding.RiskScore); exploitability != "" {
-				details = append(details, exploitability)
-			}
-			if includeReachability {
-				details = append(details, "reachability "+formatReachabilityCell(finding.Reachability))
-			}
-			if len(details) > 0 {
-				line += " [" + strings.Join(details, "; ") + "]"
-			}
-			if color != "" {
-				line = Wrap(line, color)
-			}
-			lines = append(lines, line)
-		}
-		lines = append(lines, "")
-	}
-	appendSection("Introduced Findings", audit.Introduced, Red)
-	appendSection("Resolved Findings", audit.Resolved, Green)
-	if len(audit.Introduced) == 0 && len(audit.Persisted) == 0 && len(audit.Resolved) == 0 {
-		lines = append(lines, "  No policy differences were identified between the base and head dependency sets.")
+	if len(lines) == 0 {
+		lines = append(lines, Style("No dependency changes.", Dim))
 	}
 	return lines
 }
 
-func diffVulnerabilityDetails(vulnerability output.VulnerabilityRef, includeReachability bool) string {
-	if !includeReachability {
+// findingsSummaryLine produces a summary line plus a list of each introduced
+// finding when audit data is present. N/A-severity findings (e.g. unknown
+// license) are omitted — they belong in the policy section, not the compact
+// summary. The summary intentionally omits a severity qualifier so it stays
+// accurate when only low/medium findings are introduced.
+func findingsSummaryLine(audit *output.DiffAudit) []string {
+	if audit == nil {
+		return nil
+	}
+	var introduced []output.AuditFinding
+	for _, f := range audit.Introduced {
+		sev := strings.ToLower(strings.TrimSpace(string(f.Severity)))
+		if sev == "n/a" || sev == "" {
+			continue
+		}
+		introduced = append(introduced, f)
+	}
+	if len(introduced) == 0 {
+		return []string{"", Style("No new findings introduced.", Gray)}
+	}
+	sort.Slice(introduced, func(i, j int) bool {
+		si := severityRankTable(string(introduced[i].Severity))
+		sj := severityRankTable(string(introduced[j].Severity))
+		if si != sj {
+			return si < sj
+		}
+		return introduced[i].ID < introduced[j].ID
+	})
+
+	maxIDWidth := 0
+	for _, f := range introduced {
+		if l := len(f.ID); l > maxIDWidth {
+			maxIDWidth = l
+		}
+	}
+
+	lines := []string{"", Style(fmt.Sprintf("%d new finding(s) introduced.", len(introduced)), Red)}
+	for _, f := range introduced {
+		pkg := DiffPackageDisplayName(f.Package)
+		if pkg == "" {
+			pkg = "-"
+		}
+		lines = append(lines, fmt.Sprintf("  %s  %-*s  %s", severityLabelFixed(string(f.Severity)), maxIDWidth, f.ID, pkg))
+	}
+	return lines
+}
+
+// vulnCountsForPackageRef returns a compact coloured vuln-count string like " 1H 2M"
+// from an output.PackageRef's pre-populated Vulnerabilities slice. Returns "" when empty.
+func vulnCountsForPackageRef(pkg output.PackageRef) string {
+	var critical, high, medium, low int
+	for _, v := range pkg.Vulnerabilities {
+		switch strings.ToLower(string(v.Severity)) {
+		case "critical":
+			critical++
+		case "high":
+			high++
+		case "medium":
+			medium++
+		case "low":
+			low++
+		}
+	}
+	var parts []string
+	if critical > 0 {
+		parts = append(parts, Style(fmt.Sprintf("%dC", critical), Red, Bold))
+	}
+	if high > 0 {
+		parts = append(parts, Style(fmt.Sprintf("%dH", high), Red))
+	}
+	if medium > 0 {
+		parts = append(parts, Style(fmt.Sprintf("%dM", medium), Yellow, Bold))
+	}
+	if low > 0 {
+		parts = append(parts, Style(fmt.Sprintf("%dL", low), Cyan))
+	}
+	if len(parts) == 0 {
 		return ""
 	}
-	return " [" + "reachability " + formatReachabilityCell(vulnerability.Reachability) + "]"
+	return "  " + strings.Join(parts, " ")
 }
 
 func dependencyNameWidth(results output.DiffDependencyResults) int {
@@ -296,3 +260,15 @@ func DiffManifestDisplayLabel(manifest output.DiffManifestResult) string {
 	}
 	return label
 }
+
+// fixedVersionSummary and exploitabilitySummary are retained for markdown
+// renderers that still use them.
+func diffVulnerabilityDetails(vulnerability output.VulnerabilityRef, includeReachability bool) string {
+	if !includeReachability {
+		return ""
+	}
+	return " [" + "reachability " + formatReachabilityCell(vulnerability.Reachability) + "]"
+}
+
+// Ensure sdk import is used (formatReachabilityCell references sdk.Reachability).
+var _ = sdk.Reachability{}

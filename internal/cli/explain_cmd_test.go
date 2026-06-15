@@ -32,10 +32,10 @@ func TestWhyTreeLines_RendersBranchingPaths(t *testing.T) {
 	got := strings.Join(render.WhyTreeLines(paths), "\n")
 	want := strings.Join([]string{
 		"app",
-		"|- react",
-		"|  \\- loose-envify (transitive)",
-		"\\- zod",
-		"   \\- loose-envify (transitive)",
+		"├─ react",
+		"│  └─ loose-envify (transitive)",
+		"└─ zod",
+		"   └─ loose-envify (transitive)",
 	}, "\n")
 	if got != want {
 		t.Fatalf("whyTreeLines() mismatch\nwant:\n%s\n\ngot:\n%s", want, got)
@@ -67,9 +67,9 @@ func TestWhyTreeLines_PreservesLeafAnnotationsOnSharedPrefix(t *testing.T) {
 	got := strings.Join(render.WhyTreeLines(paths), "\n")
 	want := strings.Join([]string{
 		"app",
-		"\\- b (direct)",
-		"   \\- c",
-		"      \\- b (transitive, cycle to b)",
+		"└─ b (direct)",
+		"   └─ c",
+		"      └─ b (transitive, cycle to b)",
 	}, "\n")
 	if got != want {
 		t.Fatalf("whyTreeLines() mismatch\nwant:\n%s\n\ngot:\n%s", want, got)

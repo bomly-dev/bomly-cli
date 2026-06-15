@@ -102,12 +102,13 @@ func newExplainCmd() *cobra.Command {
 			targets := make([]output.ExplainTargetResponse, 0, len(explainResult.Targets))
 			for _, target := range explainResult.Targets {
 				targets = append(targets, output.ExplainTargetResponse{
-					Project:      context.ProjectDescriptorForSubproject(target.Manifest.Subproject),
-					Detector:     target.Manifest.DetectorName,
-					Dependency:   explainPackageRef(target.Dependency),
-					Paths:        explainPathsWithStableIDs(target.Paths),
-					Findings:     output.FindingsFromScan(target.Findings, explainResult.Registry),
-					AuditSummary: output.SummaryFromFindings(target.Findings),
+					Project:        context.ProjectDescriptorForSubproject(target.Manifest.Subproject),
+					Detector:       target.Manifest.DetectorName,
+					PackageManager: target.Manifest.Subproject.PrimaryPackageManager(),
+					Dependency:     explainPackageRef(target.Dependency, explainResult.Registry),
+					Paths:          explainPathsWithStableIDs(target.Paths),
+					Findings:       output.FindingsFromScan(target.Findings, explainResult.Registry),
+					AuditSummary:   output.SummaryFromFindings(target.Findings),
 				})
 			}
 			if context.ResolvedConfig.Audit {

@@ -657,7 +657,9 @@ func TestRoot_DiffCommand_TextOutputWithJSONOutputFile(t *testing.T) {
 	if err := root.Execute(); err != nil {
 		t.Fatalf("root.Execute() error = %v; stderr=%s", err, stderr.String())
 	}
-	if !strings.Contains(stdout.String(), "Dependency diff") {
+	// Compact diff output shows Added/Removed/Changed sections.
+	plainOut := render.StripANSI(stdout.String())
+	if !strings.Contains(plainOut, "Added") && !strings.Contains(plainOut, "Changed") && !strings.Contains(plainOut, "Removed") && !strings.Contains(plainOut, "No dependency changes.") {
 		t.Fatalf("expected primary text diff output, got:\n%s", stdout.String())
 	}
 
@@ -851,7 +853,9 @@ func TestRoot_ScanCommand_MarkdownOutputWithJSONAndTextOutputFiles(t *testing.T)
 	if err != nil {
 		t.Fatalf("read text report: %v", err)
 	}
-	if !strings.Contains(string(textData), "Dependency report for demo-app") || !strings.Contains(string(textData), "react") {
+	// Compact text report shows package count and top-level deps.
+	plainText := render.StripANSI(string(textData))
+	if !strings.Contains(plainText, "packages") || !strings.Contains(plainText, "react") {
 		t.Fatalf("unexpected text report:\n%s", textData)
 	}
 }
@@ -1502,17 +1506,14 @@ func TestRoot_WhyCommand_DefaultTextOutputUsesTree(t *testing.T) {
 
 	out := stdout.String()
 	plainOut := render.StripANSI(out)
-	projectName := filepath.Base(projectDir)
 	for _, want := range []string{
-		"Dependency Explanation",
-		"Component:",
+		"ecosystem",
+		"package",
 		"loose-envify@1.4.0",
-		"Project:",
-		projectName,
-		"Path count:",
+		"introduced by:",
 		"demo-app@1.0.0",
-		"\\- react@18.2.0",
-		"   \\- loose-envify@1.4.0 [analyzed] (transitive)",
+		"└─ react@18.2.0",
+		"└─ loose-envify@1.4.0",
 	} {
 		if !strings.Contains(plainOut, want) {
 			t.Fatalf("expected text output to contain %q, got:\n%s", want, out)
@@ -2281,43 +2282,35 @@ func TestRoot_ScanCommand_TextReportOutput(t *testing.T) {
 	}
 
 	out := stdout.String()
-	if !strings.Contains(out, "Dependency report for demo-app") {
-		t.Fatalf("expected scan header, got: %s", out)
-	}
+	plain := render.StripANSI(out)
+	// Compact text output shows package count + top-level deps (direct only).
 	for _, want := range []string{
-		"Executive Summary",
-		"Manifests",
-		"package.json",
-		"Dependency Inventory",
-		"License Overview",
-		"PACKAGE",
-		"VERSION",
-		"SCOPE",
-		"RELATIONSHIP",
-		"demo-app",
-		"1.0.0",
-		"root",
+		"packages",
+		"direct",
+		"transitive",
+		"scopes:",
+		"Top-level dependencies",
 		"react",
 		"18.2.0",
-		"direct",
 		"zod",
 		"3.23.0",
-		"loose-envify",
-		"1.4.0",
-		"transitive",
 	} {
-		if !strings.Contains(out, want) {
-			t.Fatalf("expected text report output to contain %q, got: %s", want, out)
+		if !strings.Contains(plain, want) {
+			t.Fatalf("expected compact text report to contain %q, got: %s", want, out)
 		}
 	}
-	rootIdx := strings.Index(out, "demo-app")
-	directIdx := strings.Index(out, "react")
-	transitiveIdx := strings.Index(out, "loose-envify")
-	if rootIdx == -1 || directIdx == -1 || transitiveIdx == -1 {
-		t.Fatalf("expected root, direct, and transitive rows in output, got: %s", out)
+	// Direct deps appear before transitive in the Top-level section.
+	reactIdx := strings.Index(plain, "react")
+	envifyIdx := strings.Index(plain, "loose-envify")
+	if reactIdx == -1 {
+		t.Fatalf("expected react in output, got: %s", out)
 	}
-	if rootIdx >= directIdx || directIdx >= transitiveIdx {
-		t.Fatalf("expected root/direct/transitive order, got: %s", out)
+	// loose-envify is transitive and should NOT appear in Top-level dependencies.
+	if envifyIdx != -1 && strings.Contains(plain, "Top-level dependencies") {
+		topIdx := strings.Index(plain, "Top-level dependencies")
+		if envifyIdx > topIdx {
+			t.Fatalf("transitive package loose-envify should not appear in Top-level dependencies section, got: %s", out)
+		}
 	}
 }
 

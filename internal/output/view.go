@@ -169,12 +169,13 @@ type ExplainQuery struct {
 
 // ExplainTargetResponse represents explain output for one resolved target.
 type ExplainTargetResponse struct {
-	Project      ProjectDescriptor `json:"project"`
-	Detector     string            `json:"detector,omitempty"`
-	Dependency   PackageRef        `json:"dependency"`
-	Paths        []DependencyPath  `json:"paths"`
-	Findings     []AuditFinding    `json:"findings,omitempty"`
-	AuditSummary *AuditSummary     `json:"audit_summary,omitempty"`
+	Project        ProjectDescriptor  `json:"project"`
+	Detector       string             `json:"detector,omitempty"`
+	PackageManager sdk.PackageManager `json:"package_manager,omitempty"`
+	Dependency     PackageRef         `json:"dependency"`
+	Paths          []DependencyPath   `json:"paths"`
+	Findings       []AuditFinding     `json:"findings,omitempty"`
+	AuditSummary   *AuditSummary      `json:"audit_summary,omitempty"`
 }
 
 // BuildScanResponse constructs the structured scan payload from consolidated

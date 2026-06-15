@@ -15,293 +15,192 @@
   <a href="https://goreportcard.com/report/github.com/bomly-dev/bomly-cli"><img src="https://goreportcard.com/badge/github.com/bomly-dev/bomly-cli" alt="Go Report Card"></a>
 </p>
 
-Bomly scans source trees, SBOMs, Git refs, and container images, generates SPDX and CycloneDX SBOMs, enriches packages with vulnerability and license data, evaluates policy, and diffs dependency state across refs.
+Bomly is a free, open-source CLI for dependency intelligence. It scans source trees, SBOMs, Git refs, and container images; explains why dependencies are present; enriches packages with vulnerability and license data when you ask for it; evaluates policy; and writes automation-friendly output for CI.
 
-One binary. Native detectors for the ecosystems developers use every day. Offline-safe unless you opt in. Built for CI as much as for local use.
+One binary. No service to host. No telemetry. No outbound matcher calls unless you opt in with `--enrich`.
 
-## Why Bomly
-
-- **One CLI, full pipeline.** Detect, enrich, audit, explain, diff, and write SBOMs from the same binary.
-- **Native detectors first.** Real dependency graphs (with edges) for Go, npm, pnpm, yarn, Maven, Gradle, Python, Composer, Bundler, GitHub Actions, and SBOM ingest. Syft fills the long tail for containers and rarer ecosystems.
-- **Offline-safe by default.** A scan without `--enrich` makes zero outbound HTTP calls. Built-in enrichment uses OSV, KEV, deps.dev, and OpenSSF Scorecard.
-- **Reachability that respects your time** (experimental). `--analyze` tells you whether your app actually calls a vulnerable symbol — Tier-1 (`govulncheck`) for Go; Tier-3 import-graph closure for npm, Python, and JVM languages. See [REACHABILITY.md](docs/REACHABILITY.md) for limitations.
-- **Stable exit codes for CI.** `0` clean, `2` policy violation, plus 1, 3, 4 for other failure classes. See [Exit codes](docs/EXIT_CODES.md).
-
-## Highlights
-
-- Scan local trees, SBOMs (SPDX 2.3, CycloneDX 1.6), Git repositories, container images.
-- Write SBOMs in either format as the primary output or alongside any report: `--format spdx`, `-o cyclonedx=…`.
-- Enrich with OSV, KEV, deps.dev, and OpenSSF Scorecard via `--enrich`; lifecycle enrichment can be added with an external matcher plugin.
-- Audit with `--audit --fail-on <severity>`; SARIF emitted with `--format sarif`.
-- Explain transitive paths with `bomly explain <package>`.
-- Diff dependency state across Git refs or SBOM files with `bomly diff`.
-- Filter by ecosystem, detector, matcher, auditor, scope.
-
-## Quick Start
+## Install Bomly
 
 ```bash
-# Scan the current project
-bomly scan
-
-# Write SBOMs in two formats
-bomly scan -o spdx=sbom.spdx.json -o cyclonedx=sbom.cdx.json
-
-# Write one SBOM to stdout
-bomly scan --format spdx
-
-# Enrich packages with external vulnerability and license data
-bomly scan --enrich
-
-# Emit structured JSON for automation
-bomly scan --json
-
-# Evaluate policy using existing package vulnerability data
-bomly scan --audit --fail-on high
-
-# Enrich first, then audit and emit SARIF
-bomly scan --enrich --audit --fail-on high --format sarif
-
-# Explain why a dependency exists
-bomly explain lodash
-
-# Compare dependency state across Git refs
-bomly diff --base main --head feature/my-change
-```
-
-Walkthrough: [Getting Started](docs/GETTING_STARTED.md).
-
-## Installation
-
-```bash
-# Go toolchain — Go 1.21 or later on PATH
+# Go toolchain on PATH
 go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest
 ```
 
-Or grab a prebuilt archive from [GitHub Releases](https://github.com/bomly-dev/bomly-cli/releases). Each release publishes `bomly` (full binary with builtin Syft and Grype) and `bomly-lite` (smaller binary that shells out to external `syft` and `grype`) archives for Linux, macOS, and Windows.
+Prebuilt archives are available from [GitHub Releases](https://github.com/bomly-dev/bomly-cli/releases) for Linux, macOS, and Windows. Releases include `bomly` (full binary with builtin Syft and Grype) and `bomly-lite` (smaller binary that shells out to external `syft` and `grype`).
 
-Verify:
+Verify the install:
 
 ```bash
 bomly version
 ```
 
-Full install matrix — `bomly` vs `bomly-lite`, checksum verification, PowerShell instructions, uninstall, CI install — lives in [docs/INSTALLATION.md](docs/INSTALLATION.md).
+For checksums, PowerShell examples, CI install snippets, upgrades, and uninstall instructions, see [Installation](docs/INSTALLATION.md).
 
-## What It Scans
-
-Native detectors:
-
-- Go modules
-- npm, pnpm, Yarn
-- Maven, Gradle
-- Python (pip, Pipenv, Poetry, uv)
-- Composer (PHP)
-- Bundler (Ruby)
-- GitHub Actions
-- SPDX 2.3 and CycloneDX 1.6 SBOM ingest
-
-Syft-backed for many more, including container images. See [docs/SUPPORT_MATRIX.md](docs/SUPPORT_MATRIX.md) for the full matrix.
-
-Component guides:
-
-- [Detectors](docs/DETECTORS.md), [Matchers](docs/MATCHERS.md), [Auditors](docs/AUDITORS.md), [Reachability](docs/REACHABILITY.md)
-- Per-ecosystem [detector guides](docs/detectors/ecosystems/) and per-matcher [reference](docs/matchers/)
-
-## Core Commands
-
-### `bomly scan`
-
-Use `scan` to resolve dependencies from a local path, a remote Git repository, a container image, or an SBOM file.
+## Start With a Scan
 
 ```bash
-# Scan a directory
-bomly scan --path .
+# Scan the current project
+bomly scan
+
+# Scan a specific directory
+bomly scan --path ./services/api
 
 # Scan a container image
 bomly scan --container ghcr.io/example/app:latest
 
-# Treat a file as an SBOM input
-bomly scan --sbom --path ./existing-sbom.json
+# Scan a remote Git ref
+bomly scan --url https://github.com/owner/repo --ref v1.2.3
 
-# Filter to runtime dependencies only
-bomly scan --scope runtime
+# Read an existing SPDX or CycloneDX SBOM
+bomly scan --sbom --path ./sbom.cdx.json
+```
 
-# Explore the result in the interactive terminal UI
+Bomly reads manifests, lockfiles, package-manager output, container layers, or existing SBOMs and turns them into one dependency graph. Native detectors cover Go, npm, pnpm, Yarn, Maven, Gradle, Python, Composer, Bundler, GitHub Actions, SBOM ingest, and more. Syft fills the long tail, including container images. See the [Support Matrix](docs/SUPPORT_MATRIX.md) and [Scan Targets](docs/SCAN_TARGETS.md).
+
+<p align="center">
+  <img src="assets/readme/scan-progress.png" alt="Bomly scan progress showing indexed subprojects, detected dependencies, enriched packages, and resolved graph" width="900">
+</p>
+
+## What Bomly Can Answer
+
+| Question | Command |
+| --- | --- |
+| What do we depend on? | `bomly scan` |
+| What changed in this PR or branch? | `bomly diff --base main --head HEAD` |
+| Why is this package here? | `bomly explain lodash` |
+| Which findings matter to policy? | `bomly scan --enrich --audit --fail-on high` |
+| Can CI fail on high-severity findings? | `bomly scan --enrich --audit --fail-on high --format sarif` |
+| Can I triage reachable findings first? | `bomly scan --enrich --audit --analyze --fail-on high --fail-on reachable` |
+
+For more recipes, see [Getting Started](docs/GETTING_STARTED.md) and [Use Cases](docs/USE_CASES.md).
+
+## Explore Interactively
+
+Open the terminal UI when you want to inspect a graph by hand:
+
+```bash
 bomly scan --interactive
 ```
 
-**Matchers are offline-safe by default** — without `--enrich`, Bomly makes zero outbound HTTP calls. Note that some **detectors** are build-tool primaries (Go's `go list`, Maven's `mvn dependency:tree`, Gradle's `gradle dependencies`, sbt's `sbt dependencyTree`) and may download packages from package registries during normal graph resolution. That's a property of those build tools, not a Bomly choice; lockfile-parser detectors (npm, pnpm, yarn, Composer, Bundler, NuGet, GitHub Actions, …) and SBOM ingest are fully offline. See [Detectors → Network behavior](docs/DETECTORS.md#network-behavior).
+Use it to fuzzy-find packages, inspect versions and scopes, pivot through findings, and see how a dependency entered the graph without writing a report to disk. See [Interactive TUI](docs/TUI.md).
 
-Use `--enrich` when you want Bomly to call external vulnerability, license, or lifecycle services. Use `--audit` when you want Bomly to evaluate vulnerability data that already exists on packages. Use both together when you want fetched vulnerability data evaluated in one run.
+<p align="center">
+  <img src="assets/readme/tui-overview.png" alt="Bomly interactive TUI overview with component, vulnerability, license, target, and distribution panels" width="900">
+</p>
 
-### `bomly explain`
+## Enrich and Audit
 
-Use `explain` to show the dependency path that introduced a package.
+By default, Bomly does not call vulnerability, license, lifecycle, or scorecard services. Add `--enrich` when you want external package intelligence:
+
+```bash
+# Fetch vulnerability and license data
+bomly scan --enrich
+
+# Evaluate policy against enriched package data
+bomly scan --enrich --audit --fail-on high
+
+# Add experimental reachability analysis
+bomly scan --enrich --audit --analyze --fail-on high --fail-on reachable
+```
+
+Built-in enrichment uses public services such as OSV, CISA KEV, deps.dev, and OpenSSF Scorecard. `--audit` evaluates the vulnerability and license data already present on packages; use `--enrich --audit` when you want to fetch and evaluate in one run.
+
+Reachability is experimental. It is useful for triage, but "unreachable" is not a guarantee of safety. Read [Reachability](docs/REACHABILITY.md) before using `--fail-on reachable` as a CI gate.
+
+## Explain and Diff
+
+Use `explain` when a transitive package shows up and you need the path:
 
 ```bash
 bomly explain requests
+bomly explain lodash --path ./web
 ```
 
-### `bomly diff`
-
-Use `diff` to compare dependency state between two Git refs or two SBOM files.
+Use `diff` when you need to review dependency changes across Git refs or SBOMs:
 
 ```bash
-# Git refs
+# Compare Git refs
 bomly diff --base main --head HEAD
 
-# SBOM files
+# Compare two SBOM files
 bomly diff --sbom --base ./old.spdx.json --head ./new.spdx.json
 ```
 
-## Output Modes
+See [Getting Started](docs/GETTING_STARTED.md) for the first-run walkthrough and [Use Cases](docs/USE_CASES.md) for PR review, upgrade review, and incident triage recipes.
 
-| Output | Command |
-| --- | --- |
-| Human-readable report | `bomly scan` |
-| Structured JSON | `bomly scan --json` |
-| SARIF 2.1.0 | `bomly scan --audit --format sarif` |
-| SPDX 2.3 JSON | `bomly scan --format spdx` or `bomly scan -o spdx=sbom.spdx.json` |
-| CycloneDX JSON | `bomly scan --format cyclonedx` or `bomly scan -o cyclonedx=sbom.cdx.json` |
+## Generate Output for CI
 
-Full details: [Output formats](docs/OUTPUT_FORMATS.md), [SBOM formats](docs/SBOM.md), [Exit codes](docs/EXIT_CODES.md).
+Bomly can write human-readable text, JSON, SARIF, SPDX 2.3, and CycloneDX 1.6:
 
-## Configuration
+```bash
+# Structured JSON for automation
+bomly scan --json
 
-Bomly loads configuration in this order, with later sources taking precedence:
+# SARIF for security tabs and code-scanning integrations
+bomly scan --enrich --audit --fail-on high --format sarif
+
+# Write SBOMs while still showing the normal report
+bomly scan -o spdx=sbom.spdx.json -o cyclonedx=sbom.cdx.json
+
+# Emit one SBOM to stdout
+bomly scan --format cyclonedx
+```
+
+Exit codes are stable for scripts: `0` for clean results, `2` for policy violations, and separate values for usage, runtime, and no-supported-project failures. See [Output Formats](docs/OUTPUT_FORMATS.md), [SBOM Formats](docs/SBOM.md), and [Exit Codes](docs/EXIT_CODES.md).
+
+To gate pull requests, use the [Bomly Guard action](https://github.com/bomly-dev/bomly-guard) or call the CLI directly from your workflow. See [Bomly Guard](docs/BOMLY_GUARD.md) and [CI Integration](docs/CI_INTEGRATION.md).
+
+<p align="center">
+  <img src="assets/readme/guard-check.png" alt="GitHub pull request checks showing Bomly Guard failing a required dependency check" width="900">
+</p>
+
+## Use Bomly With AI Agents
+
+Bomly can run as an MCP server so AI agents can call the same `scan`, `explain`, and `diff` capabilities you use on the command line:
+
+```bash
+bomly mcp serve
+```
+
+Add Bomly to an MCP-aware agent such as Claude Code, Cursor, VS Code, or a custom tool, and the agent receives structured JSON it can summarize or reason over. See [Getting Started](docs/GETTING_STARTED.md) for setup recipes.
+
+## Configure and Extend
+
+Bomly reads configuration from global config, project config, `BOMLY_*` environment variables, and CLI flags, with later sources taking precedence:
 
 1. `~/.bomly/config.yaml`
 2. `<project>/.bomly/config.yaml`
 3. `BOMLY_*` environment variables
 4. CLI flags
 
-Use `--config <path>` to add an explicit config file to the load list.
+Use `--config <path>` to add an explicit config file. See the generated [Config Reference](docs/CONFIG_REFERENCE.md).
 
-See [docs/CONFIG_REFERENCE.md](docs/CONFIG_REFERENCE.md) for the generated reference.
-
-## Plugins
-
-Bomly supports managed external plugins for detectors, matchers, and auditors.
-
-Install, enable, and verify external plugins before they can participate in scans:
+Managed plugins let you add detectors, matchers, and auditors without forking Bomly:
 
 ```bash
-# Install a published plugin from GitHub Releases
 bomly plugin install github:bomly-dev/bomly-plugin-bun-lock-detector@v0.1.0
 bomly plugin enable bomly.examples.detector.bun-lock
-
-# Verify it
 bomly plugin verify bomly.examples.detector.bun-lock
-
-# Run it explicitly during a scan
-bomly scan --path ./my-bun-project --detectors bomly.examples.detector.bun-lock --json
 ```
 
-Detector plugins declare package-manager support and evidence patterns through their detector contract. Bomly uses those patterns during runtime preparation so external detectors can participate in subproject discovery alongside built-ins.
+See [Plugins](docs/PLUGINS.md) for install, trust, and authoring guidance.
 
-The plugin hub lives in [docs/PLUGINS.md](docs/PLUGINS.md). Implementation guides are available for [detectors](docs/plugins/how-to-implement-detector.md), [matchers](docs/plugins/how-to-implement-matcher.md), and [auditors](docs/plugins/how-to-implement-auditor.md). Example plugin repos are [Bun Lock Detector](https://github.com/bomly-dev/bomly-plugin-bun-lock-detector), [ClearlyDefined License Matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-matcher), [EOL Lifecycle Matcher](https://github.com/bomly-dev/bomly-plugin-eol-matcher), and [Meme Dependency Auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor).
+## Documentation
 
-## Architecture
+- [Getting Started](docs/GETTING_STARTED.md) - install Bomly and run your first scan
+- [Installation](docs/INSTALLATION.md) - install methods, checksums, upgrades, uninstall
+- [Use Cases](docs/USE_CASES.md) - practical recipes for PR gates, SBOMs, triage, and offline scans
+- [Scan Targets](docs/SCAN_TARGETS.md) - directories, Git repos, containers, and SBOMs
+- [Output Formats](docs/OUTPUT_FORMATS.md) - text, JSON, SARIF, SPDX, CycloneDX
+- [SBOM Formats](docs/SBOM.md) - SPDX 2.3 and CycloneDX 1.6, ingest, and conversion recipes
+- [CI Integration](docs/CI_INTEGRATION.md) - GitHub Actions, GitLab, Jenkins, Azure, CircleCI
+- [Bomly Guard](docs/BOMLY_GUARD.md) - turnkey GitHub Action for PR dependency review
+- [Reachability](docs/REACHABILITY.md) - experimental reachable-vulnerability triage
+- [Plugins](docs/PLUGINS.md) - managed external detectors, matchers, and auditors
+- [All Documentation](docs/README.md) - full docs index
 
-Bomly keeps the CLI thin and pushes orchestration into the scan runtime.
-
-```mermaid
-flowchart LR
-    A[CLI command] --> B[Resolve execution target]
-    B --> C[Prepare runtime]
-    C --> D[Discover subprojects]
-    D --> E[Run detector chains]
-    E --> F[Consolidate graph]
-    F --> G[Optional package enrichment]
-    G --> H[Optional policy evaluation]
-    H --> I[Render text, JSON, SARIF, or SBOM]
-```
-
-### Extensible by design
-
-The pipeline is built around typed extension points. Every built-in is just an
-implementation of the same contract an external plugin uses, so you can add an
-ecosystem, or a vulnerability or license source, or a policy check without forking
-Bomly. Three of these are pluggable today — **detectors, matchers, and auditors**;
-external **analyzer** plugins are planned (the built-in reachability analyzers are
-not yet an extension point).
-
-```mermaid
-flowchart LR
-    R[Configure runtime] --> X[Index subprojects] --> D[Detect: resolve + consolidate] --> M[Match] --> An[Analyze] --> Au[Audit] --> O[Output]
-
-    PD([Detector plugins]) -.-> D
-    PM([Matcher plugins]) -.-> M
-    PAu([Auditor plugins]) -.-> Au
-    PAn([Analyzer plugins: planned]) -. planned .-> An
-```
-
-| Extension point | Status | Contract | Add support for |
-| --- | --- | --- | --- |
-| Detector | Available | turns evidence into a dependency graph | a new ecosystem or lockfile format |
-| Matcher | Available | enriches packages | a new vulnerability, license, or lifecycle source |
-| Auditor | Available | evaluates policy, emits findings | a custom org policy or gate |
-| Analyzer | Planned | annotates reachability | a new language's call-graph analysis |
-
-Plugins ship as signed, versioned gRPC binaries (`v1` protocol), are disabled until
-you explicitly enable them, and participate in the exact same planning flow as
-built-ins. See [docs/PLUGINS.md](docs/PLUGINS.md) and the implementation guides for
-[detectors](docs/plugins/how-to-implement-detector.md),
-[matchers](docs/plugins/how-to-implement-matcher.md), and
-[auditors](docs/plugins/how-to-implement-auditor.md).
-
-More detail lives in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-
-## Repository Layout
-
-```text
-cmd/bomly/                 CLI entry point
-internal/cli/              Commands, config loading, progress, help
-internal/engine/           Runtime preparation, orchestration, consolidation
-internal/engine/diff/      Diff orchestration and audit deltas
-internal/engine/explain/   Dependency path explanation
-internal/engine/scan/      Scan command pipeline API
-internal/detectors/        Ecosystem-specific dependency resolution
-internal/matchers/         External enrichment matchers and shared matcher cache
-internal/analyzers/        Reachability analyzers (govulncheck, jsreach, pyreach, jvmreach)
-internal/auditors/         Policy evaluation and finding creation
-internal/output/           Text, JSON, SARIF rendering and structured response payloads
-internal/sbom/             SPDX and CycloneDX encoding and decoding
-internal/registry/         Canonical support and discovery registry
-internal/plugin/           Managed external plugins (install, verify, run)
-docs/                      Public reference documentation
-```
-
-## Development
-
-```bash
-make build
-make build-lite
-make test
-make run ARGS="scan"
-```
-
-If you change config, schema, or support-matrix inputs, run `make generate` as well.
-
-## CI and Releases
-
-Bomly uses GitHub Actions for:
-
-- fast PR validation
-- integrated `go vet` checks in PR validation
-- merge-queue smoke coverage before merge
-- nightly smoke coverage for upstream drift detection
-- automatic semantic version tagging on `main`
-- draft prerelease packaging to GitHub Releases
-
-See [docs/development/CI.md](docs/development/CI.md) for workflow triggers, required checks, release packaging, checksum handling, and the planned future attestation step.
-
-To gate your **own** repository's pull requests, drop in the [Bomly Guard action](https://github.com/bomly-dev/bomly-guard) — it diffs and audits dependency changes on each PR and posts a summary comment. See [docs/CI_INTEGRATION.md](docs/CI_INTEGRATION.md) for that and direct-CLI recipes across GitHub Actions, GitLab, Jenkins, Azure, and CircleCI.
-
-Contributor guidance lives in [CONTRIBUTING.md](CONTRIBUTING.md).
+Contributor setup lives in [CONTRIBUTING.md](CONTRIBUTING.md). Architecture details live in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## License
 
 Bomly CLI is licensed under the [Apache License 2.0](LICENSE).
-
-The core CLI — scanning, SBOM generation, and vulnerability matching against public data sources — is open source and free to use. Premium data enrichment and the SBOM management platform are separate commercial offerings.

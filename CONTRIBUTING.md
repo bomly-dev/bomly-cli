@@ -6,7 +6,7 @@ By participating in this project you agree to abide by our [Code of Conduct](COD
 
 ### Prerequisites
 
-- Go 1.25.8 (pinned in `go.mod`; use that exact toolchain to match CI formatting and build behavior)
+- Go toolchain matching the version declared in `go.mod`
 - `make`
 - Optional: `syft` and `grype` binaries on `PATH` for external-mode testing
 
@@ -27,6 +27,26 @@ make run ARGS="scan"
 | `bomly_external_grype` | Use the external `grype` CLI instead of the builtin Grype library |
 
 Without these tags, Bomly builds the default full CLI with builtin Syft and Grype support. `make build-lite` uses the external-mode tags for the smaller alternate binary.
+
+### Repository Layout
+
+```text
+cmd/bomly/                  CLI entry point
+internal/cli/               Commands, config loading, progress, help
+internal/engine/            Runtime preparation, orchestration, consolidation
+internal/engine/diff/       Diff orchestration and audit deltas
+internal/engine/explain/    Dependency path explanation
+internal/engine/scan/       Scan command pipeline API
+internal/detectors/         Ecosystem-specific dependency resolution
+internal/matchers/          External enrichment matchers and shared matcher cache
+internal/analyzers/         Reachability analyzers (govulncheck, jsreach, pyreach, jvmreach)
+internal/auditors/          Policy evaluation and finding creation
+internal/output/            Text, JSON, SARIF rendering and structured response payloads
+internal/sbom/              SPDX and CycloneDX encoding and decoding
+internal/registry/          Canonical support and discovery registry
+internal/plugin/            Managed external plugins (install, verify, run)
+docs/                       Public reference documentation
+```
 
 ## Code Conventions
 

@@ -5,7 +5,7 @@ Bomly ships as a single binary. Pick the install method that fits your environme
 ## Quick install
 
 ```bash
-# Go toolchain — Go 1.21 or later on PATH
+# Go toolchain on PATH
 go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest
 ```
 
@@ -29,7 +29,7 @@ go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest
 
 `go install` builds the **full** Bomly binary with builtin Syft and Grype support — no extra binaries required. The command package path follows Go conventions; the installed executable is named `bomly`.
 
-**Requirements**: Go 1.21 or later. Bomly does not bundle a Go toolchain.
+**Requirements**: A Go toolchain compatible with the version declared in `go.mod`. Bomly does not bundle a Go toolchain.
 
 ### GitHub Releases
 

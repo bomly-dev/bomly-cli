@@ -40,7 +40,7 @@ This is a Go-toolchain behavior, not a Bomly choice. The same network calls happ
 
 ## Prerequisites
 
-- Go **1.21 or later** on `PATH`. Bomly does not bundle a Go toolchain.
+- A Go toolchain on `PATH`. Bomly does not bundle a Go toolchain.
 - A `go.mod` at the root of every module you want resolved. Bomly walks down from the scan target and treats every directory containing `go.mod` as a separate subproject.
 - `GOPROXY` reachable if your `go.sum` is incomplete or the module cache is cold.
 - Set `BOMLY_GO_TAGS=integration,e2e` to evaluate the graph with build tags applied. Without the env var, the default tag set is used.

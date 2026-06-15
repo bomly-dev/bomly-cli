@@ -24,7 +24,7 @@ make generate            # Regenerate config reference, JSON schemas, support ma
 
 **Always run `make test` after changes.** If you change `internal/config/config.go`, `internal/output/*`, `sdk/catalog.go`, `sdk/support_matrix.go`, or `internal/registry/support.go`, also run `make generate`.
 
-**Go version**: 1.25.8 (pinned — use exactly this to match CI formatting and build behavior).
+**Go version**: use the version declared in `go.mod` to match CI formatting and build behavior.
 
 **Build tags**: `bomly_external_syft` and `bomly_external_grype` switch from builtin libraries to external CLI tools. `make build-lite` uses both tags.
 

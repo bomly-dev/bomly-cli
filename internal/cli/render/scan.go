@@ -226,10 +226,10 @@ func renderDirectDepsTable(g *sdk.Graph, registry *sdk.PackageRegistry) string {
 	})
 
 	const maxRows = 20
-	truncated := false
+	overflow := 0
 	if len(rows) > maxRows {
+		overflow = len(rows) - maxRows
 		rows = rows[:maxRows]
-		truncated = true
 	}
 
 	var b strings.Builder
@@ -243,8 +243,8 @@ func renderDirectDepsTable(g *sdk.Graph, registry *sdk.PackageRegistry) string {
 		fmt.Fprintf(tw, "  %s\t%s\t%s\t%s\t%s\n", r.name, r.version, r.license, r.scope, r.vulns)
 	}
 	_ = tw.Flush()
-	if truncated {
-		fmt.Fprintf(&b, "  %s\n", Style(fmt.Sprintf("… and %d more (use --json for full list)", len(rows)), Dim))
+	if overflow > 0 {
+		fmt.Fprintf(&b, "  %s\n", Style(fmt.Sprintf("… and %d more (use --json for full list)", overflow), Dim))
 	}
 	return b.String()
 }

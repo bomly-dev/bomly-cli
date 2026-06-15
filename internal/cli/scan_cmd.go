@@ -109,8 +109,10 @@ func newScanCmd() *cobra.Command {
 			}
 			subprojectSummary := render.BuildSubprojectSummary(output.ScanManifestsFromConsolidated(consolidated, pipeResult.Registry))
 			textRenderer := func(w io.Writer) error {
-				_, err := io.WriteString(w, render.Scan(selectedGraph, pipeResult.Registry, findings, pipeResult.MatcherStats, commandCtx.ResolvedConfig.Enrich, commandCtx.ResolvedConfig.Audit, commandCtx.ResolvedConfig.Analyze, commandCtx.ResolvedConfig.FailOn, subprojectSummary))
-				return err
+				if _, err := io.WriteString(w, render.Scan(selectedGraph, pipeResult.Registry, findings, pipeResult.MatcherStats, commandCtx.ResolvedConfig.Enrich, commandCtx.ResolvedConfig.Audit, commandCtx.ResolvedConfig.Analyze, commandCtx.ResolvedConfig.FailOn, subprojectSummary)); err != nil {
+					return fmt.Errorf("write scan text output: %w", err)
+				}
+				return nil
 			}
 			reportRenderers := output.Renderers{
 				Markdown: markdownRenderer,

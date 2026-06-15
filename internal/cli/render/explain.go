@@ -32,28 +32,28 @@ func Explain(w io.Writer, target output.ExplainTargetResponse, includeReachabili
 		return Style(fmt.Sprintf("%-*s", kvKeyWidth, k), Bold)
 	}
 	if _, err := fmt.Fprintf(w, "%s %s\n", boldKey("ecosystem"), ecosystem); err != nil {
-		return err
+		return fmt.Errorf("write explain ecosystem: %w", err)
 	}
 	if pm := strings.TrimSpace(target.PackageManager.Name()); pm != "" {
 		if _, err := fmt.Fprintf(w, "%s %s\n", boldKey("manager"), pm); err != nil {
-			return err
+			return fmt.Errorf("write explain manager: %w", err)
 		}
 	}
 	if _, err := fmt.Fprintf(w, "%s %s\n", boldKey("package"), pkgLabel); err != nil {
-		return err
+		return fmt.Errorf("write explain package: %w", err)
 	}
 	if _, err := fmt.Fprintf(w, "%s %s\n", boldKey("scope"), scope); err != nil {
-		return err
+		return fmt.Errorf("write explain scope: %w", err)
 	}
 	if _, err := fmt.Fprintf(w, "%s %s\n", boldKey("direct"), directLabel); err != nil {
-		return err
+		return fmt.Errorf("write explain direct: %w", err)
 	}
 
 	// Licenses section — shown before the tree so the reader has context before
 	// following the dependency chain.
 	if len(target.Dependency.Licenses) > 0 {
 		if _, err := fmt.Fprintln(w, Style("licenses", Bold)); err != nil {
-			return err
+			return fmt.Errorf("write explain licenses header: %w", err)
 		}
 		for _, license := range target.Dependency.Licenses {
 			label := license.Identifier()
@@ -64,7 +64,7 @@ func Explain(w io.Writer, target output.ExplainTargetResponse, includeReachabili
 				label += " [" + string(license.Type) + "]"
 			}
 			if _, err := fmt.Fprintln(w, "  "+label); err != nil {
-				return err
+				return fmt.Errorf("write explain license entry: %w", err)
 			}
 		}
 	}
@@ -72,11 +72,11 @@ func Explain(w io.Writer, target output.ExplainTargetResponse, includeReachabili
 	// Dependency tree
 	if len(target.Paths) > 0 {
 		if _, err := fmt.Fprintln(w, Style("introduced by:", Bold)); err != nil {
-			return err
+			return fmt.Errorf("write explain introduced-by header: %w", err)
 		}
 		for _, line := range whyTreeLinesForTarget(target.Paths, target.Dependency.ID) {
 			if _, err := fmt.Fprintln(w, "  "+line); err != nil {
-				return err
+				return fmt.Errorf("write explain tree line: %w", err)
 			}
 		}
 	}
@@ -85,7 +85,7 @@ func Explain(w io.Writer, target output.ExplainTargetResponse, includeReachabili
 	// chain before the security findings.
 	if len(target.Dependency.Vulnerabilities) > 0 {
 		if _, err := fmt.Fprintln(w, Style("vulnerabilities", Bold)); err != nil {
-			return err
+			return fmt.Errorf("write explain vulnerabilities header: %w", err)
 		}
 		maxIDWidth := 0
 		for _, vuln := range target.Dependency.Vulnerabilities {
@@ -100,7 +100,7 @@ func Explain(w io.Writer, target output.ExplainTargetResponse, includeReachabili
 			}
 			line := fmt.Sprintf("  %-*s  %s  %s", maxIDWidth, vuln.ID, severityLabelFixed(string(vuln.Severity)), title)
 			if _, err := fmt.Fprintln(w, strings.TrimRight(line, " ")); err != nil {
-				return err
+				return fmt.Errorf("write explain vulnerability entry: %w", err)
 			}
 		}
 	}

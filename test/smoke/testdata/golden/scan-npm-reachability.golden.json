@@ -18913,6 +18913,7 @@
               "real_path": "package-lock.json"
             }
           ],
+          "matched": true,
           "name": "shell-quote",
           "package_ref": "pkg:npm/shell-quote@1.6.1",
           "purl": "pkg:npm/shell-quote@1.6.1",
@@ -24026,7 +24027,7 @@
     "analyzer_stats": {
       "jsreach": {
         "reachable": 140,
-        "unreachable": 136
+        "unreachable": 137
       }
     },
     "duration_ms": 0,
@@ -24368,9 +24369,9 @@
           "epss": [
             {
               "cve": "CVE-2017-16137",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00102,
-              "percentile": 0.27431
+              "percentile": 0.2768
             }
           ],
           "fix_available": [
@@ -24644,9 +24645,9 @@
           "epss": [
             {
               "cve": "CVE-2025-64718",
-              "date": "2026-06-08",
-              "epss": 0.00034,
-              "percentile": 0.10379
+              "date": "2026-06-14",
+              "epss": 0.00025,
+              "percentile": 0.07522
             }
           ],
           "fix_available": [
@@ -24706,7 +24707,7 @@
               "url": "https://github.com/nodeca/js-yaml/issues/730#issuecomment-3549635876"
             }
           ],
-          "risk_score": 0.01751,
+          "risk_score": 0.012875000000000001,
           "severity": "medium",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -24810,9 +24811,9 @@
           "epss": [
             {
               "cve": "CVE-2022-25883",
-              "date": "2026-06-08",
-              "epss": 0.00598,
-              "percentile": 0.69801
+              "date": "2026-06-14",
+              "epss": 0.00581,
+              "percentile": 0.69508
             }
           ],
           "fix_available": [
@@ -24922,7 +24923,7 @@
               "url": "https://security.netapp.com/advisory/ntap-20241025-0004"
             }
           ],
-          "risk_score": 0.4485,
+          "risk_score": 0.43575,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -24975,9 +24976,9 @@
           "epss": [
             {
               "cve": "CVE-2023-0842",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00291,
-              "percentile": 0.52783
+              "percentile": 0.53005
             }
           ],
           "fix_available": [
@@ -25230,9 +25231,9 @@
           "epss": [
             {
               "cve": "CVE-2018-1002204",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.17577,
-              "percentile": 0.95227
+              "percentile": 0.95262
             }
           ],
           "fix_available": [
@@ -25401,9 +25402,9 @@
           "epss": [
             {
               "cve": "CVE-2025-69873",
-              "date": "2026-06-08",
-              "epss": 0.00015,
-              "percentile": 0.03073
+              "date": "2026-06-14",
+              "epss": 0.00017,
+              "percentile": 0.04549
             }
           ],
           "fix_available": [
@@ -25483,7 +25484,7 @@
               "url": "https://github.com/github/advisory-database/pull/6991"
             }
           ],
-          "risk_score": 0.007874999999999998,
+          "risk_score": 0.008925,
           "severity": "medium",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -25514,9 +25515,9 @@
           "epss": [
             {
               "cve": "CVE-2020-15366",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00331,
-              "percentile": 0.5633
+              "percentile": 0.56546
             }
           ],
           "fix_available": [
@@ -25719,9 +25720,9 @@
           "epss": [
             {
               "cve": "CVE-2021-3807",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00215,
-              "percentile": 0.44074
+              "percentile": 0.44305
             }
           ],
           "fix_available": [
@@ -25869,9 +25870,9 @@
           "epss": [
             {
               "cve": "CVE-2021-3807",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00215,
-              "percentile": 0.44074
+              "percentile": 0.44305
             }
           ],
           "fix_available": [
@@ -26020,9 +26021,9 @@
           "epss": [
             {
               "cve": "CVE-2021-3807",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00215,
-              "percentile": 0.44074
+              "percentile": 0.44305
             }
           ],
           "fix_available": [
@@ -26584,9 +26585,9 @@
           "epss": [
             {
               "cve": "CVE-2021-43138",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00657,
-              "percentile": 0.7144
+              "percentile": 0.71614
             }
           ],
           "fix_available": [
@@ -26867,9 +26868,9 @@
           "epss": [
             {
               "cve": "CVE-2023-45133",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00093,
-              "percentile": 0.25984
+              "percentile": 0.26225
             }
           ],
           "fix_state": "not-fixed",
@@ -27134,9 +27135,9 @@
           "epss": [
             {
               "cve": "CVE-2020-8244",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.0114,
-              "percentile": 0.78762
+              "percentile": 0.78905
             }
           ],
           "fix_available": [
@@ -27254,9 +27255,9 @@
           "epss": [
             {
               "cve": "CVE-2020-8244",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.0114,
-              "percentile": 0.78762
+              "percentile": 0.78905
             }
           ],
           "fix_available": [
@@ -27403,9 +27404,9 @@
           "epss": [
             {
               "cve": "CVE-2026-2739",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00022,
-              "percentile": 0.06509
+              "percentile": 0.06534
             }
           ],
           "fix_available": [
@@ -27537,9 +27538,9 @@
           "epss": [
             {
               "cve": "CVE-2024-45590",
-              "date": "2026-06-08",
-              "epss": 0.01387,
-              "percentile": 0.80689
+              "date": "2026-06-14",
+              "epss": 0.01535,
+              "percentile": 0.81801
             }
           ],
           "fix_available": [
@@ -27590,7 +27591,7 @@
               "url": "https://nvd.nist.gov/vuln/detail/CVE-2024-45590"
             }
           ],
-          "risk_score": 1.08186,
+          "risk_score": 1.1973,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -27667,9 +27668,9 @@
           "epss": [
             {
               "cve": "CVE-2026-33750",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00028,
-              "percentile": 0.08265
+              "percentile": 0.08361
             }
           ],
           "fix_available": [
@@ -27802,9 +27803,9 @@
           "epss": [
             {
               "cve": "CVE-2025-5889",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00092,
-              "percentile": 0.25774
+              "percentile": 0.26014
             }
           ],
           "fix_available": [
@@ -27942,9 +27943,9 @@
           "epss": [
             {
               "cve": "CVE-2024-4068",
-              "date": "2026-06-08",
-              "epss": 0.00275,
-              "percentile": 0.5115
+              "date": "2026-06-14",
+              "epss": 0.00305,
+              "percentile": 0.54261
             }
           ],
           "fix_available": [
@@ -28014,7 +28015,7 @@
               "url": "https://github.com/micromatch/braces/commit/415d660c3002d1ab7e63dbf490c9851da80596ff"
             }
           ],
-          "risk_score": 0.20625000000000002,
+          "risk_score": 0.22875,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -28067,9 +28068,9 @@
           "epss": [
             {
               "cve": "CVE-2024-4068",
-              "date": "2026-06-08",
-              "epss": 0.00275,
-              "percentile": 0.5115
+              "date": "2026-06-14",
+              "epss": 0.00305,
+              "percentile": 0.54261
             }
           ],
           "fix_available": [
@@ -28139,7 +28140,7 @@
               "url": "https://github.com/micromatch/braces/commit/415d660c3002d1ab7e63dbf490c9851da80596ff"
             }
           ],
-          "risk_score": 0.20625000000000002,
+          "risk_score": 0.22875,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -28297,9 +28298,9 @@
           "epss": [
             {
               "cve": "CVE-2023-46234",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00433,
-              "percentile": 0.63096
+              "percentile": 0.63287
             }
           ],
           "fix_available": [
@@ -28452,9 +28453,9 @@
           "epss": [
             {
               "cve": "CVE-2019-2391",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00379,
-              "percentile": 0.59741
+              "percentile": 0.59937
             }
           ],
           "fix_available": [
@@ -28531,9 +28532,9 @@
           "epss": [
             {
               "cve": "CVE-2020-7610",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00541,
-              "percentile": 0.68043
+              "percentile": 0.68216
             }
           ],
           "fix_available": [
@@ -28773,9 +28774,9 @@
           "epss": [
             {
               "cve": "CVE-2021-23518",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00648,
-              "percentile": 0.71184
+              "percentile": 0.71367
             }
           ],
           "fix_available": [
@@ -29029,9 +29030,9 @@
           "epss": [
             {
               "cve": "CVE-2025-9287",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00142,
-              "percentile": 0.34095
+              "percentile": 0.34335
             }
           ],
           "fix_available": [
@@ -29496,9 +29497,9 @@
           "epss": [
             {
               "cve": "CVE-2024-47764",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00205,
-              "percentile": 0.42629
+              "percentile": 0.42873
             }
           ],
           "fix_available": [
@@ -29583,9 +29584,9 @@
           "epss": [
             {
               "cve": "CVE-2024-47764",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00205,
-              "percentile": 0.42629
+              "percentile": 0.42873
             }
           ],
           "fix_available": [
@@ -29778,9 +29779,9 @@
           "epss": [
             {
               "cve": "CVE-2024-21538",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00067,
-              "percentile": 0.20853
+              "percentile": 0.21094
             }
           ],
           "fix_available": [
@@ -29912,9 +29913,9 @@
           "epss": [
             {
               "cve": "CVE-2024-21538",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00067,
-              "percentile": 0.20853
+              "percentile": 0.21094
             }
           ],
           "fix_available": [
@@ -30041,9 +30042,9 @@
           "epss": [
             {
               "cve": "CVE-2024-21538",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00067,
-              "percentile": 0.20853
+              "percentile": 0.21094
             }
           ],
           "fix_available": [
@@ -30234,9 +30235,9 @@
           "epss": [
             {
               "cve": "CVE-2017-20165",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01578,
-              "percentile": 0.81932
+              "percentile": 0.82046
             }
           ],
           "fix_available": [
@@ -30349,9 +30350,9 @@
           "epss": [
             {
               "cve": "CVE-2017-16137",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00102,
-              "percentile": 0.27431
+              "percentile": 0.2768
             }
           ],
           "fix_available": [
@@ -30500,9 +30501,9 @@
           "epss": [
             {
               "cve": "CVE-2017-16137",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00102,
-              "percentile": 0.27431
+              "percentile": 0.2768
             }
           ],
           "fix_available": [
@@ -30642,9 +30643,9 @@
           "epss": [
             {
               "cve": "CVE-2017-16137",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00102,
-              "percentile": 0.27431
+              "percentile": 0.2768
             }
           ],
           "fix_available": [
@@ -30790,9 +30791,9 @@
           "epss": [
             {
               "cve": "CVE-2022-38900",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00429,
-              "percentile": 0.62866
+              "percentile": 0.63055
             }
           ],
           "fix_available": [
@@ -31002,9 +31003,9 @@
           "epss": [
             {
               "cve": "CVE-2021-23406",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00999,
-              "percentile": 0.77341
+              "percentile": 0.77481
             }
           ],
           "fix_available": [
@@ -31187,9 +31188,9 @@
           "epss": [
             {
               "cve": "CVE-2022-24434",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01989,
-              "percentile": 0.83932
+              "percentile": 0.84037
             }
           ],
           "fix_state": "not-fixed",
@@ -31290,9 +31291,9 @@
           "epss": [
             {
               "cve": "CVE-2026-24001",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00023,
-              "percentile": 0.06681
+              "percentile": 0.06707
             }
           ],
           "fix_available": [
@@ -31464,9 +31465,9 @@
           "epss": [
             {
               "cve": "CVE-2026-24001",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00023,
-              "percentile": 0.06681
+              "percentile": 0.06707
             }
           ],
           "fix_available": [
@@ -31597,9 +31598,9 @@
           "epss": [
             {
               "cve": "CVE-2020-8116",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00764,
-              "percentile": 0.73804
+              "percentile": 0.7397
             }
           ],
           "fix_available": [
@@ -31753,9 +31754,9 @@
           "epss": [
             {
               "cve": "CVE-2021-4264",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00697,
-              "percentile": 0.72329
+              "percentile": 0.72496
             }
           ],
           "fix_available": [
@@ -31907,9 +31908,9 @@
           "epss": [
             {
               "cve": "CVE-2017-1000228",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.0718,
-              "percentile": 0.91736
+              "percentile": 0.91805
             }
           ],
           "fix_available": [
@@ -31991,9 +31992,9 @@
           "epss": [
             {
               "cve": "CVE-2017-1000189",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00913,
-              "percentile": 0.76258
+              "percentile": 0.76405
             }
           ],
           "fix_available": [
@@ -32080,9 +32081,9 @@
           "epss": [
             {
               "cve": "CVE-2024-33883",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01499,
-              "percentile": 0.8148
+              "percentile": 0.81593
             }
           ],
           "fix_available": [
@@ -32169,9 +32170,9 @@
           "epss": [
             {
               "cve": "CVE-2017-1000188",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00234,
-              "percentile": 0.46389
+              "percentile": 0.46598
             }
           ],
           "fix_available": [
@@ -32253,9 +32254,9 @@
           "epss": [
             {
               "cve": "CVE-2022-29078",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.93462,
-              "percentile": 0.9983
+              "percentile": 0.99831
             }
           ],
           "fix_available": [
@@ -32357,9 +32358,9 @@
           "epss": [
             {
               "cve": "CVE-2017-1000228",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.0718,
-              "percentile": 0.91736
+              "percentile": 0.91805
             }
           ],
           "fix_available": [
@@ -32440,9 +32441,9 @@
           "epss": [
             {
               "cve": "CVE-2017-1000189",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00913,
-              "percentile": 0.76258
+              "percentile": 0.76405
             }
           ],
           "fix_available": [
@@ -32528,9 +32529,9 @@
           "epss": [
             {
               "cve": "CVE-2024-33883",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01499,
-              "percentile": 0.8148
+              "percentile": 0.81593
             }
           ],
           "fix_available": [
@@ -32616,9 +32617,9 @@
           "epss": [
             {
               "cve": "CVE-2017-1000188",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00234,
-              "percentile": 0.46389
+              "percentile": 0.46598
             }
           ],
           "fix_available": [
@@ -32699,9 +32700,9 @@
           "epss": [
             {
               "cve": "CVE-2022-29078",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.93462,
-              "percentile": 0.9983
+              "percentile": 0.99831
             }
           ],
           "fix_available": [
@@ -32813,9 +32814,9 @@
           "epss": [
             {
               "cve": "CVE-2024-48949",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00292,
-              "percentile": 0.52876
+              "percentile": 0.53099
             }
           ],
           "fix_available": [
@@ -32917,9 +32918,9 @@
           "epss": [
             {
               "cve": "CVE-2024-42461",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.02898,
-              "percentile": 0.8661
+              "percentile": 0.86704
             }
           ],
           "fix_available": [
@@ -33010,9 +33011,9 @@
           "epss": [
             {
               "cve": "CVE-2025-14505",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00009,
-              "percentile": 0.01057
+              "percentile": 0.01063
             }
           ],
           "fix_state": "not-fixed",
@@ -33086,9 +33087,9 @@
           "epss": [
             {
               "cve": "CVE-2024-42460",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00241,
-              "percentile": 0.4755
+              "percentile": 0.47763
             }
           ],
           "fix_available": [
@@ -33184,9 +33185,9 @@
           "epss": [
             {
               "cve": "CVE-2024-42459",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00131,
-              "percentile": 0.32148
+              "percentile": 0.32391
             }
           ],
           "fix_available": [
@@ -33282,9 +33283,9 @@
           "epss": [
             {
               "cve": "CVE-2024-48948",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00162,
-              "percentile": 0.36847
+              "percentile": 0.37099
             }
           ],
           "fix_available": [
@@ -33380,9 +33381,9 @@
           "epss": [
             {
               "cve": "CVE-2020-28498",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.03935,
-              "percentile": 0.88559
+              "percentile": 0.88643
             }
           ],
           "fix_available": [
@@ -33483,9 +33484,9 @@
           "epss": [
             {
               "cve": "CVE-2020-13822",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00411,
-              "percentile": 0.61738
+              "percentile": 0.61923
             }
           ],
           "fix_available": [
@@ -33868,9 +33869,9 @@
           "epss": [
             {
               "cve": "CVE-2020-7699",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.02269,
-              "percentile": 0.84954
+              "percentile": 0.85053
             }
           ],
           "fix_available": [
@@ -34013,9 +34014,9 @@
           "epss": [
             {
               "cve": "CVE-2022-27261",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00377,
-              "percentile": 0.59573
+              "percentile": 0.59769
             }
           ],
           "fix_state": "not-fixed",
@@ -34118,9 +34119,9 @@
           "epss": [
             {
               "cve": "CVE-2024-43796",
-              "date": "2026-06-08",
-              "epss": 0.00123,
-              "percentile": 0.30933
+              "date": "2026-06-14",
+              "epss": 0.0012,
+              "percentile": 0.30687
             }
           ],
           "fix_available": [
@@ -34171,7 +34172,7 @@
               "url": "https://github.com/expressjs/express/commit/54271f69b511fea198471e6ff3400ab805d6b553"
             }
           ],
-          "risk_score": 0.0408975,
+          "risk_score": 0.0399,
           "severity": "low",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -34208,9 +34209,9 @@
           "epss": [
             {
               "cve": "CVE-2024-29041",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00154,
-              "percentile": 0.35871
+              "percentile": 0.36128
             }
           ],
           "fix_available": [
@@ -34581,9 +34582,9 @@
           "epss": [
             {
               "cve": "CVE-2025-7783",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01319,
-              "percentile": 0.80228
+              "percentile": 0.80357
             }
           ],
           "fix_available": [
@@ -34711,9 +34712,9 @@
           "epss": [
             {
               "cve": "CVE-2017-16119",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00328,
-              "percentile": 0.56001
+              "percentile": 0.56221
             }
           ],
           "fix_available": [
@@ -35020,9 +35021,9 @@
           "epss": [
             {
               "cve": "CVE-2022-33987",
-              "date": "2026-06-08",
-              "epss": 0.0078,
-              "percentile": 0.74055
+              "date": "2026-06-14",
+              "epss": 0.00847,
+              "percentile": 0.75361
             }
           ],
           "fix_available": [
@@ -35087,7 +35088,7 @@
               "url": "https://github.com/sindresorhus/got/releases/tag/v12.1.0"
             }
           ],
-          "risk_score": 0.40169999999999995,
+          "risk_score": 0.436205,
           "severity": "medium",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -35120,9 +35121,9 @@
           "epss": [
             {
               "cve": "CVE-2022-33987",
-              "date": "2026-06-08",
-              "epss": 0.0078,
-              "percentile": 0.74055
+              "date": "2026-06-14",
+              "epss": 0.00847,
+              "percentile": 0.75361
             }
           ],
           "fix_available": [
@@ -35187,7 +35188,7 @@
               "url": "https://github.com/sindresorhus/got/releases/tag/v12.1.0"
             }
           ],
-          "risk_score": 0.40169999999999995,
+          "risk_score": 0.436205,
           "severity": "medium",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -35328,9 +35329,9 @@
           "epss": [
             {
               "cve": "CVE-2026-33916",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00072,
-              "percentile": 0.21986
+              "percentile": 0.22205
             }
           ],
           "fix_available": [
@@ -35432,9 +35433,9 @@
           "epss": [
             {
               "cve": "CVE-2026-33937",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.0024,
-              "percentile": 0.47465
+              "percentile": 0.47678
             }
           ],
           "fix_available": [
@@ -35520,9 +35521,9 @@
           "epss": [
             {
               "cve": "CVE-2019-20920",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00343,
-              "percentile": 0.57176
+              "percentile": 0.57393
             }
           ],
           "fix_available": [
@@ -35629,9 +35630,9 @@
           "epss": [
             {
               "cve": "CVE-2026-33938",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00048,
-              "percentile": 0.15106
+              "percentile": 0.15324
             }
           ],
           "fix_available": [
@@ -35779,9 +35780,9 @@
           "epss": [
             {
               "cve": "CVE-2019-20922",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00291,
-              "percentile": 0.52762
+              "percentile": 0.52984
             }
           ],
           "fix_available": [
@@ -35872,9 +35873,9 @@
           "epss": [
             {
               "cve": "CVE-2021-23383",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.05666,
-              "percentile": 0.90552
+              "percentile": 0.90622
             }
           ],
           "fix_available": [
@@ -35985,9 +35986,9 @@
           "epss": [
             {
               "cve": "CVE-2026-33939",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00076,
-              "percentile": 0.22863
+              "percentile": 0.23091
             }
           ],
           "fix_available": [
@@ -36065,9 +36066,9 @@
           "epss": [
             {
               "cve": "CVE-2021-23369",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.03582,
-              "percentile": 0.87979
+              "percentile": 0.88061
             }
           ],
           "fix_available": [
@@ -36390,9 +36391,9 @@
           "epss": [
             {
               "cve": "CVE-2019-19919",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.24752,
-              "percentile": 0.96256
+              "percentile": 0.96284
             }
           ],
           "fix_available": [
@@ -36514,9 +36515,9 @@
           "epss": [
             {
               "cve": "CVE-2026-33940",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00032,
-              "percentile": 0.09752
+              "percentile": 0.09903
             }
           ],
           "fix_available": [
@@ -36614,9 +36615,9 @@
           "epss": [
             {
               "cve": "CVE-2026-33941",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00009,
-              "percentile": 0.00932
+              "percentile": 0.00937
             }
           ],
           "fix_available": [
@@ -36771,9 +36772,9 @@
           "epss": [
             {
               "cve": "CVE-2026-33916",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00072,
-              "percentile": 0.21986
+              "percentile": 0.22205
             }
           ],
           "fix_available": [
@@ -36876,9 +36877,9 @@
           "epss": [
             {
               "cve": "CVE-2026-33937",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.0024,
-              "percentile": 0.47465
+              "percentile": 0.47678
             }
           ],
           "fix_available": [
@@ -36965,9 +36966,9 @@
           "epss": [
             {
               "cve": "CVE-2019-20920",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00343,
-              "percentile": 0.57176
+              "percentile": 0.57393
             }
           ],
           "fix_available": [
@@ -37075,9 +37076,9 @@
           "epss": [
             {
               "cve": "CVE-2026-33938",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00048,
-              "percentile": 0.15106
+              "percentile": 0.15324
             }
           ],
           "fix_available": [
@@ -37227,9 +37228,9 @@
           "epss": [
             {
               "cve": "CVE-2019-20922",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00291,
-              "percentile": 0.52762
+              "percentile": 0.52984
             }
           ],
           "fix_available": [
@@ -37321,9 +37322,9 @@
           "epss": [
             {
               "cve": "CVE-2021-23383",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.05666,
-              "percentile": 0.90552
+              "percentile": 0.90622
             }
           ],
           "fix_available": [
@@ -37435,9 +37436,9 @@
           "epss": [
             {
               "cve": "CVE-2026-33939",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00076,
-              "percentile": 0.22863
+              "percentile": 0.23091
             }
           ],
           "fix_available": [
@@ -37516,9 +37517,9 @@
           "epss": [
             {
               "cve": "CVE-2021-23369",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.03582,
-              "percentile": 0.87979
+              "percentile": 0.88061
             }
           ],
           "fix_available": [
@@ -37763,9 +37764,9 @@
           "epss": [
             {
               "cve": "CVE-2019-19919",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.24752,
-              "percentile": 0.96256
+              "percentile": 0.96284
             }
           ],
           "fix_available": [
@@ -37888,9 +37889,9 @@
           "epss": [
             {
               "cve": "CVE-2026-33940",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00032,
-              "percentile": 0.09752
+              "percentile": 0.09903
             }
           ],
           "fix_available": [
@@ -37989,9 +37990,9 @@
           "epss": [
             {
               "cve": "CVE-2026-33941",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00009,
-              "percentile": 0.00932
+              "percentile": 0.00937
             }
           ],
           "fix_available": [
@@ -38231,9 +38232,9 @@
           "epss": [
             {
               "cve": "CVE-2021-32822",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00299,
-              "percentile": 0.53569
+              "percentile": 0.53786
             }
           ],
           "fix_state": "not-fixed",
@@ -38369,9 +38370,9 @@
           "epss": [
             {
               "cve": "CVE-2020-26237",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00602,
-              "percentile": 0.6992
+              "percentile": 0.70104
             }
           ],
           "fix_available": [
@@ -38504,9 +38505,9 @@
           "epss": [
             {
               "cve": "CVE-2021-23362",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00554,
-              "percentile": 0.68468
+              "percentile": 0.68641
             }
           ],
           "fix_available": [
@@ -38627,9 +38628,9 @@
           "epss": [
             {
               "cve": "CVE-2021-23362",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00554,
-              "percentile": 0.68468
+              "percentile": 0.68641
             }
           ],
           "fix_available": [
@@ -38770,9 +38771,9 @@
           "epss": [
             {
               "cve": "CVE-2022-25881",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00175,
-              "percentile": 0.38734
+              "percentile": 0.38981
             }
           ],
           "fix_available": [
@@ -39030,9 +39031,9 @@
           "epss": [
             {
               "cve": "CVE-2020-7788",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00291,
-              "percentile": 0.52763
+              "percentile": 0.52985
             }
           ],
           "fix_available": [
@@ -39133,9 +39134,9 @@
           "epss": [
             {
               "cve": "CVE-2020-7788",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00291,
-              "percentile": 0.52763
+              "percentile": 0.52985
             }
           ],
           "fix_available": [
@@ -39295,9 +39296,9 @@
           "epss": [
             {
               "cve": "CVE-2024-29415",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.8434,
-              "percentile": 0.99336
+              "percentile": 0.9934
             }
           ],
           "fix_state": "not-fixed",
@@ -39375,9 +39376,9 @@
           "epss": [
             {
               "cve": "CVE-2023-42282",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00652,
-              "percentile": 0.71294
+              "percentile": 0.71474
             }
           ],
           "fix_available": [
@@ -40054,9 +40055,9 @@
           "epss": [
             {
               "cve": "CVE-2019-11358",
-              "date": "2026-06-08",
-              "epss": 0.01532,
-              "percentile": 0.81672
+              "date": "2026-06-14",
+              "epss": 0.01319,
+              "percentile": 0.80358
             }
           ],
           "fix_available": [
@@ -40636,7 +40637,7 @@
               "url": "https://github.com/maximebf/php-debugbar/commit/847216e60544258c881f2733d699bbcfeefac0fc"
             }
           ],
-          "risk_score": 0.8502599999999999,
+          "risk_score": 0.732045,
           "severity": "medium",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -40673,9 +40674,9 @@
           "epss": [
             {
               "cve": "CVE-2020-11022",
-              "date": "2026-06-08",
-              "epss": 0.02456,
-              "percentile": 0.85507
+              "date": "2026-06-14",
+              "epss": 0.02391,
+              "percentile": 0.85414
             }
           ],
           "fix_available": [
@@ -40950,7 +40951,7 @@
               "url": "http://security.netapp.com/advisory/ntap-20200511-0006"
             }
           ],
-          "risk_score": 1.4613199999999997,
+          "risk_score": 1.422645,
           "severity": "medium",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -40987,9 +40988,9 @@
           "epss": [
             {
               "cve": "CVE-2020-11023",
-              "date": "2026-06-08",
-              "epss": 0.3466,
-              "percentile": 0.97103
+              "date": "2026-06-14",
+              "epss": 0.3063,
+              "percentile": 0.96846
             }
           ],
           "fix_available": [
@@ -41675,9 +41676,9 @@
           "epss": [
             {
               "cve": "CVE-2015-9251",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.18007,
-              "percentile": 0.95296
+              "percentile": 0.95331
             }
           ],
           "fix_available": [
@@ -41996,9 +41997,9 @@
           "epss": [
             {
               "cve": "CVE-2025-64718",
-              "date": "2026-06-08",
-              "epss": 0.00034,
-              "percentile": 0.10379
+              "date": "2026-06-14",
+              "epss": 0.00025,
+              "percentile": 0.07522
             }
           ],
           "fix_available": [
@@ -42059,7 +42060,7 @@
               "url": "https://github.com/nodeca/js-yaml/issues/730#issuecomment-3549635876"
             }
           ],
-          "risk_score": 0.01751,
+          "risk_score": 0.012875000000000001,
           "severity": "medium",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -42143,9 +42144,9 @@
           "epss": [
             {
               "cve": "CVE-2021-3918",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01262,
-              "percentile": 0.79784
+              "percentile": 0.7992
             }
           ],
           "fix_available": [
@@ -42323,9 +42324,9 @@
           "epss": [
             {
               "cve": "CVE-2022-48285",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01266,
-              "percentile": 0.79809
+              "percentile": 0.79943
             }
           ],
           "fix_available": [
@@ -42413,9 +42414,9 @@
           "epss": [
             {
               "cve": "CVE-2021-23413",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01214,
-              "percentile": 0.79348
+              "percentile": 0.79485
             }
           ],
           "fix_available": [
@@ -42534,9 +42535,9 @@
           "epss": [
             {
               "cve": "CVE-2020-13110",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00068,
-              "percentile": 0.21129
+              "percentile": 0.21353
             }
           ],
           "fix_available": [
@@ -42693,9 +42694,9 @@
           "epss": [
             {
               "cve": "CVE-2019-20149",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00214,
-              "percentile": 0.43967
+              "percentile": 0.44196
             }
           ],
           "fix_available": [
@@ -42982,9 +42983,9 @@
           "epss": [
             {
               "cve": "CVE-2020-8203",
-              "date": "2026-06-08",
-              "epss": 0.02546,
-              "percentile": 0.85756
+              "date": "2026-06-14",
+              "epss": 0.02615,
+              "percentile": 0.86036
             }
           ],
           "fix_state": "not-fixed",
@@ -43062,7 +43063,7 @@
               "url": "https://github.com/rubysec/ruby-advisory-db/blob/master/gems/lodash-rails/CVE-2020-8203.yml"
             }
           ],
-          "risk_score": 1.89677,
+          "risk_score": 1.948175,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -43108,9 +43109,9 @@
           "epss": [
             {
               "cve": "CVE-2020-28500",
-              "date": "2026-06-08",
-              "epss": 0.00245,
-              "percentile": 0.47946
+              "date": "2026-06-14",
+              "epss": 0.0018,
+              "percentile": 0.39612
             }
           ],
           "fix_available": [
@@ -43241,7 +43242,7 @@
               "url": "https://github.com/github/advisory-database/pull/6139"
             }
           ],
-          "risk_score": 0.126175,
+          "risk_score": 0.0927,
           "severity": "medium",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -43272,9 +43273,9 @@
           "epss": [
             {
               "cve": "CVE-2021-23337",
-              "date": "2026-06-08",
-              "epss": 0.04314,
-              "percentile": 0.89098
+              "date": "2026-06-14",
+              "epss": 0.02399,
+              "percentile": 0.85446
             }
           ],
           "fix_available": [
@@ -43390,7 +43391,7 @@
               "url": "https://github.com/rubysec/ruby-advisory-db/blob/master/gems/lodash-rails/CVE-2021-23337.yml"
             }
           ],
-          "risk_score": 3.1707899999999998,
+          "risk_score": 1.763265,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -43414,9 +43415,9 @@
           "epss": [
             {
               "cve": "CVE-2018-16487",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00468,
-              "percentile": 0.64859
+              "percentile": 0.6504
             }
           ],
           "fix_available": [
@@ -43508,9 +43509,9 @@
           "epss": [
             {
               "cve": "CVE-2026-2950",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00026,
-              "percentile": 0.07885
+              "percentile": 0.07972
             }
           ],
           "fix_available": [
@@ -43592,9 +43593,9 @@
           "epss": [
             {
               "cve": "CVE-2019-10744",
-              "date": "2026-06-08",
-              "epss": 0.18518,
-              "percentile": 0.95384
+              "date": "2026-06-14",
+              "epss": 0.14515,
+              "percentile": 0.94634
             }
           ],
           "fix_available": [
@@ -43680,7 +43681,7 @@
               "url": "https://github.com/rubysec/ruby-advisory-db/blob/master/gems/lodash-rails/CVE-2019-10744.yml"
             }
           ],
-          "risk_score": 16.75879,
+          "risk_score": 13.136075,
           "severity": "critical",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -43717,9 +43718,9 @@
           "epss": [
             {
               "cve": "CVE-2020-8203",
-              "date": "2026-06-08",
-              "epss": 0.02546,
-              "percentile": 0.85756
+              "date": "2026-06-14",
+              "epss": 0.02615,
+              "percentile": 0.86036
             }
           ],
           "fix_available": [
@@ -43810,7 +43811,7 @@
               "url": "https://github.com/rubysec/ruby-advisory-db/blob/master/gems/lodash-rails/CVE-2020-8203.yml"
             }
           ],
-          "risk_score": 1.89677,
+          "risk_score": 1.948175,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -43841,9 +43842,9 @@
           "epss": [
             {
               "cve": "CVE-2026-4800",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00046,
-              "percentile": 0.14649
+              "percentile": 0.1486
             }
           ],
           "fix_available": [
@@ -43941,9 +43942,9 @@
           "epss": [
             {
               "cve": "CVE-2019-1010266",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00207,
-              "percentile": 0.43118
+              "percentile": 0.43362
             }
           ],
           "fix_available": [
@@ -44055,9 +44056,9 @@
           "epss": [
             {
               "cve": "CVE-2025-13465",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00028,
-              "percentile": 0.08267
+              "percentile": 0.08363
             }
           ],
           "fix_available": [
@@ -44086,6 +44087,7 @@
             "Also known as: CVE-2025-13465",
             "Fix available: upgrade to 4.17.23",
             "Fix state: fixed",
+            "https://cert-portal.siemens.com/productcert/html/ssa-253495.html",
             "https://github.com/lodash/lodash/commit/edadd452146f7e4bad4ea684e955708931d84d81",
             "https://github.com/lodash/lodash/security/advisories/GHSA-xxjr-mmjv-4gpg",
             "https://nvd.nist.gov/vuln/detail/CVE-2025-13465"
@@ -44106,6 +44108,10 @@
             {
               "type": "advisory",
               "url": "https://github.com/lodash/lodash/commit/edadd452146f7e4bad4ea684e955708931d84d81"
+            },
+            {
+              "type": "advisory",
+              "url": "https://cert-portal.siemens.com/productcert/html/ssa-253495.html"
             }
           ],
           "risk_score": 0.01638,
@@ -44149,9 +44155,9 @@
           "epss": [
             {
               "cve": "CVE-2020-28500",
-              "date": "2026-06-08",
-              "epss": 0.00245,
-              "percentile": 0.47946
+              "date": "2026-06-14",
+              "epss": 0.0018,
+              "percentile": 0.39612
             }
           ],
           "fix_available": [
@@ -44282,7 +44288,7 @@
               "url": "https://github.com/github/advisory-database/pull/6139"
             }
           ],
-          "risk_score": 0.126175,
+          "risk_score": 0.0927,
           "severity": "medium",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -44313,9 +44319,9 @@
           "epss": [
             {
               "cve": "CVE-2021-23337",
-              "date": "2026-06-08",
-              "epss": 0.04314,
-              "percentile": 0.89098
+              "date": "2026-06-14",
+              "epss": 0.02399,
+              "percentile": 0.85446
             }
           ],
           "fix_available": [
@@ -44431,7 +44437,7 @@
               "url": "https://github.com/rubysec/ruby-advisory-db/blob/master/gems/lodash-rails/CVE-2021-23337.yml"
             }
           ],
-          "risk_score": 3.1707899999999998,
+          "risk_score": 1.763265,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -44462,9 +44468,9 @@
           "epss": [
             {
               "cve": "CVE-2026-2950",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00026,
-              "percentile": 0.07885
+              "percentile": 0.07972
             }
           ],
           "fix_available": [
@@ -44552,9 +44558,9 @@
           "epss": [
             {
               "cve": "CVE-2020-8203",
-              "date": "2026-06-08",
-              "epss": 0.02546,
-              "percentile": 0.85756
+              "date": "2026-06-14",
+              "epss": 0.02615,
+              "percentile": 0.86036
             }
           ],
           "fix_available": [
@@ -44645,7 +44651,7 @@
               "url": "https://github.com/rubysec/ruby-advisory-db/blob/master/gems/lodash-rails/CVE-2020-8203.yml"
             }
           ],
-          "risk_score": 1.89677,
+          "risk_score": 1.948175,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -44676,9 +44682,9 @@
           "epss": [
             {
               "cve": "CVE-2026-4800",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00046,
-              "percentile": 0.14649
+              "percentile": 0.1486
             }
           ],
           "fix_available": [
@@ -44775,9 +44781,9 @@
           "epss": [
             {
               "cve": "CVE-2025-13465",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00028,
-              "percentile": 0.08267
+              "percentile": 0.08363
             }
           ],
           "fix_available": [
@@ -44806,6 +44812,7 @@
             "Also known as: CVE-2025-13465",
             "Fix available: upgrade to 4.17.23",
             "Fix state: fixed",
+            "https://cert-portal.siemens.com/productcert/html/ssa-253495.html",
             "https://github.com/lodash/lodash/commit/edadd452146f7e4bad4ea684e955708931d84d81",
             "https://github.com/lodash/lodash/security/advisories/GHSA-xxjr-mmjv-4gpg",
             "https://nvd.nist.gov/vuln/detail/CVE-2025-13465"
@@ -44826,6 +44833,10 @@
             {
               "type": "advisory",
               "url": "https://github.com/lodash/lodash/commit/edadd452146f7e4bad4ea684e955708931d84d81"
+            },
+            {
+              "type": "advisory",
+              "url": "https://cert-portal.siemens.com/productcert/html/ssa-253495.html"
             }
           ],
           "risk_score": 0.01638,
@@ -44869,9 +44880,9 @@
           "epss": [
             {
               "cve": "CVE-2026-2950",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00026,
-              "percentile": 0.07885
+              "percentile": 0.07972
             }
           ],
           "fix_available": [
@@ -44953,9 +44964,9 @@
           "epss": [
             {
               "cve": "CVE-2026-4800",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00046,
-              "percentile": 0.14649
+              "percentile": 0.1486
             }
           ],
           "fix_available": [
@@ -45052,9 +45063,9 @@
           "epss": [
             {
               "cve": "CVE-2025-13465",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00028,
-              "percentile": 0.08267
+              "percentile": 0.08363
             }
           ],
           "fix_available": [
@@ -45083,6 +45094,7 @@
             "Also known as: CVE-2025-13465",
             "Fix available: upgrade to 4.17.23",
             "Fix state: fixed",
+            "https://cert-portal.siemens.com/productcert/html/ssa-253495.html",
             "https://github.com/lodash/lodash/commit/edadd452146f7e4bad4ea684e955708931d84d81",
             "https://github.com/lodash/lodash/security/advisories/GHSA-xxjr-mmjv-4gpg",
             "https://nvd.nist.gov/vuln/detail/CVE-2025-13465"
@@ -45103,6 +45115,10 @@
             {
               "type": "advisory",
               "url": "https://github.com/lodash/lodash/commit/edadd452146f7e4bad4ea684e955708931d84d81"
+            },
+            {
+              "type": "advisory",
+              "url": "https://cert-portal.siemens.com/productcert/html/ssa-253495.html"
             }
           ],
           "risk_score": 0.01638,
@@ -45146,9 +45162,9 @@
           "epss": [
             {
               "cve": "CVE-2020-28500",
-              "date": "2026-06-08",
-              "epss": 0.00245,
-              "percentile": 0.47946
+              "date": "2026-06-14",
+              "epss": 0.0018,
+              "percentile": 0.39612
             }
           ],
           "fix_available": [
@@ -45279,7 +45295,7 @@
               "url": "https://github.com/github/advisory-database/pull/6139"
             }
           ],
-          "risk_score": 0.126175,
+          "risk_score": 0.0927,
           "severity": "medium",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -45310,9 +45326,9 @@
           "epss": [
             {
               "cve": "CVE-2021-23337",
-              "date": "2026-06-08",
-              "epss": 0.04314,
-              "percentile": 0.89098
+              "date": "2026-06-14",
+              "epss": 0.02399,
+              "percentile": 0.85446
             }
           ],
           "fix_available": [
@@ -45428,7 +45444,7 @@
               "url": "https://github.com/rubysec/ruby-advisory-db/blob/master/gems/lodash-rails/CVE-2021-23337.yml"
             }
           ],
-          "risk_score": 3.1707899999999998,
+          "risk_score": 1.763265,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -45452,9 +45468,9 @@
           "epss": [
             {
               "cve": "CVE-2018-16487",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00468,
-              "percentile": 0.64859
+              "percentile": 0.6504
             }
           ],
           "fix_available": [
@@ -45546,9 +45562,9 @@
           "epss": [
             {
               "cve": "CVE-2026-2950",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00026,
-              "percentile": 0.07885
+              "percentile": 0.07972
             }
           ],
           "fix_available": [
@@ -45636,9 +45652,9 @@
           "epss": [
             {
               "cve": "CVE-2018-3721",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00249,
-              "percentile": 0.48337
+              "percentile": 0.48553
             }
           ],
           "fix_available": [
@@ -45730,9 +45746,9 @@
           "epss": [
             {
               "cve": "CVE-2019-10744",
-              "date": "2026-06-08",
-              "epss": 0.18518,
-              "percentile": 0.95384
+              "date": "2026-06-14",
+              "epss": 0.14515,
+              "percentile": 0.94634
             }
           ],
           "fix_available": [
@@ -45818,7 +45834,7 @@
               "url": "https://github.com/rubysec/ruby-advisory-db/blob/master/gems/lodash-rails/CVE-2019-10744.yml"
             }
           ],
-          "risk_score": 16.75879,
+          "risk_score": 13.136075,
           "severity": "critical",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -45855,9 +45871,9 @@
           "epss": [
             {
               "cve": "CVE-2020-8203",
-              "date": "2026-06-08",
-              "epss": 0.02546,
-              "percentile": 0.85756
+              "date": "2026-06-14",
+              "epss": 0.02615,
+              "percentile": 0.86036
             }
           ],
           "fix_available": [
@@ -45948,7 +45964,7 @@
               "url": "https://github.com/rubysec/ruby-advisory-db/blob/master/gems/lodash-rails/CVE-2020-8203.yml"
             }
           ],
-          "risk_score": 1.89677,
+          "risk_score": 1.948175,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -45979,9 +45995,9 @@
           "epss": [
             {
               "cve": "CVE-2026-4800",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00046,
-              "percentile": 0.14649
+              "percentile": 0.1486
             }
           ],
           "fix_available": [
@@ -46079,9 +46095,9 @@
           "epss": [
             {
               "cve": "CVE-2019-1010266",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00207,
-              "percentile": 0.43118
+              "percentile": 0.43362
             }
           ],
           "fix_available": [
@@ -46193,9 +46209,9 @@
           "epss": [
             {
               "cve": "CVE-2025-13465",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00028,
-              "percentile": 0.08267
+              "percentile": 0.08363
             }
           ],
           "fix_available": [
@@ -46224,6 +46240,7 @@
             "Also known as: CVE-2025-13465",
             "Fix available: upgrade to 4.17.23",
             "Fix state: fixed",
+            "https://cert-portal.siemens.com/productcert/html/ssa-253495.html",
             "https://github.com/lodash/lodash/commit/edadd452146f7e4bad4ea684e955708931d84d81",
             "https://github.com/lodash/lodash/security/advisories/GHSA-xxjr-mmjv-4gpg",
             "https://nvd.nist.gov/vuln/detail/CVE-2025-13465"
@@ -46244,6 +46261,10 @@
             {
               "type": "advisory",
               "url": "https://github.com/lodash/lodash/commit/edadd452146f7e4bad4ea684e955708931d84d81"
+            },
+            {
+              "type": "advisory",
+              "url": "https://cert-portal.siemens.com/productcert/html/ssa-253495.html"
             }
           ],
           "risk_score": 0.01638,
@@ -46436,9 +46457,9 @@
           "epss": [
             {
               "cve": "CVE-2022-21681",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00695,
-              "percentile": 0.723
+              "percentile": 0.72465
             }
           ],
           "fix_available": [
@@ -46530,9 +46551,9 @@
           "epss": [
             {
               "cve": "CVE-2017-1000427",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00388,
-              "percentile": 0.60225
+              "percentile": 0.60423
             }
           ],
           "fix_available": [
@@ -46619,9 +46640,9 @@
           "epss": [
             {
               "cve": "CVE-2018-25110",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00774,
-              "percentile": 0.73965
+              "percentile": 0.74127
             }
           ],
           "fix_available": [
@@ -46725,9 +46746,9 @@
           "epss": [
             {
               "cve": "CVE-2022-21680",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00708,
-              "percentile": 0.72578
+              "percentile": 0.72741
             }
           ],
           "fix_available": [
@@ -46825,9 +46846,9 @@
           "epss": [
             {
               "cve": "CVE-2016-10531",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00289,
-              "percentile": 0.52648
+              "percentile": 0.5287
             }
           ],
           "fix_available": [
@@ -46920,9 +46941,9 @@
           "epss": [
             {
               "cve": "CVE-2017-16114",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00403,
-              "percentile": 0.61198
+              "percentile": 0.61395
             }
           ],
           "fix_available": [
@@ -47183,9 +47204,9 @@
           "epss": [
             {
               "cve": "CVE-2024-4067",
-              "date": "2026-06-08",
-              "epss": 0.00176,
-              "percentile": 0.38835
+              "date": "2026-06-14",
+              "epss": 0.00171,
+              "percentile": 0.3836
             }
           ],
           "fix_available": [
@@ -47270,7 +47291,7 @@
               "url": "https://github.com/micromatch/micromatch/releases/tag/4.0.8"
             }
           ],
-          "risk_score": 0.09064,
+          "risk_score": 0.08806499999999999,
           "severity": "medium",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -47373,9 +47394,9 @@
           "epss": [
             {
               "cve": "CVE-2017-16138",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00433,
-              "percentile": 0.63089
+              "percentile": 0.6328
             }
           ],
           "fix_available": [
@@ -47478,9 +47499,9 @@
           "epss": [
             {
               "cve": "CVE-2017-16138",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00433,
-              "percentile": 0.63089
+              "percentile": 0.6328
             }
           ],
           "fix_available": [
@@ -47609,9 +47630,9 @@
           "epss": [
             {
               "cve": "CVE-2026-27904",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00026,
-              "percentile": 0.0771
+              "percentile": 0.07795
             }
           ],
           "fix_available": [
@@ -47693,9 +47714,9 @@
           "epss": [
             {
               "cve": "CVE-2026-26996",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00026,
-              "percentile": 0.07678
+              "percentile": 0.07764
             }
           ],
           "fix_available": [
@@ -47777,9 +47798,9 @@
           "epss": [
             {
               "cve": "CVE-2026-27903",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00036,
-              "percentile": 0.10861
+              "percentile": 0.10985
             }
           ],
           "fix_available": [
@@ -47867,9 +47888,9 @@
           "epss": [
             {
               "cve": "CVE-2022-3517",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00476,
-              "percentile": 0.65264
+              "percentile": 0.65449
             }
           ],
           "fix_available": [
@@ -47981,9 +48002,9 @@
           "epss": [
             {
               "cve": "CVE-2020-7598",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00189,
-              "percentile": 0.40573
+              "percentile": 0.40821
             }
           ],
           "fix_available": [
@@ -48090,9 +48111,9 @@
           "epss": [
             {
               "cve": "CVE-2021-44906",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00789,
-              "percentile": 0.74225
+              "percentile": 0.74384
             }
           ],
           "fix_available": [
@@ -48244,9 +48265,9 @@
           "epss": [
             {
               "cve": "CVE-2020-7598",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00189,
-              "percentile": 0.40573
+              "percentile": 0.40821
             }
           ],
           "fix_available": [
@@ -48353,9 +48374,9 @@
           "epss": [
             {
               "cve": "CVE-2021-44906",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00789,
-              "percentile": 0.74225
+              "percentile": 0.74384
             }
           ],
           "fix_available": [
@@ -48502,9 +48523,9 @@
           "epss": [
             {
               "cve": "CVE-2020-7598",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00189,
-              "percentile": 0.40573
+              "percentile": 0.40821
             }
           ],
           "fix_available": [
@@ -48610,9 +48631,9 @@
           "epss": [
             {
               "cve": "CVE-2021-44906",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00789,
-              "percentile": 0.74225
+              "percentile": 0.74384
             }
           ],
           "fix_available": [
@@ -48758,9 +48779,9 @@
           "epss": [
             {
               "cve": "CVE-2021-44906",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00789,
-              "percentile": 0.74225
+              "percentile": 0.74384
             }
           ],
           "fix_available": [
@@ -48920,9 +48941,9 @@
           "epss": [
             {
               "cve": "CVE-2019-10746",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00734,
-              "percentile": 0.7314
+              "percentile": 0.73306
             }
           ],
           "fix_available": [
@@ -49083,9 +49104,9 @@
           "epss": [
             {
               "cve": "CVE-2017-18214",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.0023,
-              "percentile": 0.45936
+              "percentile": 0.46143
             }
           ],
           "fix_available": [
@@ -49194,9 +49215,9 @@
           "epss": [
             {
               "cve": "CVE-2022-24785",
-              "date": "2026-06-08",
-              "epss": 0.02021,
-              "percentile": 0.84091
+              "date": "2026-06-14",
+              "epss": 0.01673,
+              "percentile": 0.82615
             }
           ],
           "fix_available": [
@@ -49287,7 +49308,7 @@
               "url": "https://security.netapp.com/advisory/ntap-20241108-0002"
             }
           ],
-          "risk_score": 1.51575,
+          "risk_score": 1.25475,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -49392,9 +49413,9 @@
           "epss": [
             {
               "cve": "CVE-2019-17426",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00237,
-              "percentile": 0.46964
+              "percentile": 0.47173
             }
           ],
           "fix_available": [
@@ -49491,9 +49512,9 @@
           "epss": [
             {
               "cve": "CVE-2023-3696",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00465,
-              "percentile": 0.64757
+              "percentile": 0.64939
             }
           ],
           "fix_available": [
@@ -49596,9 +49617,9 @@
           "epss": [
             {
               "cve": "CVE-2022-2564",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.02927,
-              "percentile": 0.86682
+              "percentile": 0.86774
             }
           ],
           "fix_available": [
@@ -49787,9 +49808,9 @@
           "epss": [
             {
               "cve": "CVE-2024-53900",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.64154,
-              "percentile": 0.98456
+              "percentile": 0.98464
             }
           ],
           "fix_available": [
@@ -49984,9 +50005,9 @@
           "epss": [
             {
               "cve": "CVE-2025-23061",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.71855,
-              "percentile": 0.98757
+              "percentile": 0.98767
             }
           ],
           "fix_available": [
@@ -50108,9 +50129,9 @@
           "epss": [
             {
               "cve": "CVE-2026-42334",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00047,
-              "percentile": 0.14799
+              "percentile": 0.15006
             }
           ],
           "fix_available": [
@@ -50221,9 +50242,9 @@
           "epss": [
             {
               "cve": "CVE-2018-16490",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00186,
-              "percentile": 0.40167
+              "percentile": 0.40414
             }
           ],
           "fix_available": [
@@ -50305,9 +50326,9 @@
           "epss": [
             {
               "cve": "CVE-2021-23438",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00518,
-              "percentile": 0.6711
+              "percentile": 0.67281
             }
           ],
           "fix_available": [
@@ -50409,9 +50430,9 @@
           "epss": [
             {
               "cve": "CVE-2020-35149",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00259,
-              "percentile": 0.49476
+              "percentile": 0.49696
             }
           ],
           "fix_available": [
@@ -50504,9 +50525,9 @@
           "epss": [
             {
               "cve": "CVE-2015-8315",
-              "date": "2026-06-08",
-              "epss": 0.00779,
-              "percentile": 0.74033
+              "date": "2026-06-14",
+              "epss": 0.0086,
+              "percentile": 0.75554
             }
           ],
           "fix_available": [
@@ -50577,7 +50598,7 @@
               "url": "http://www.securityfocus.com/bid/96389"
             }
           ],
-          "risk_score": 0.58425,
+          "risk_score": 0.645,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -50614,9 +50635,9 @@
           "epss": [
             {
               "cve": "CVE-2017-20162",
-              "date": "2026-06-08",
-              "epss": 0.00312,
-              "percentile": 0.54687
+              "date": "2026-06-14",
+              "epss": 0.00353,
+              "percentile": 0.58183
             }
           ],
           "fix_available": [
@@ -50687,7 +50708,7 @@
               "url": "https://security.netapp.com/advisory/ntap-20241108-0002"
             }
           ],
-          "risk_score": 0.16068,
+          "risk_score": 0.181795,
           "severity": "medium",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -50734,9 +50755,9 @@
           "epss": [
             {
               "cve": "CVE-2017-20162",
-              "date": "2026-06-08",
-              "epss": 0.00312,
-              "percentile": 0.54687
+              "date": "2026-06-14",
+              "epss": 0.00353,
+              "percentile": 0.58183
             }
           ],
           "fix_available": [
@@ -50807,7 +50828,7 @@
               "url": "https://security.netapp.com/advisory/ntap-20241108-0002"
             }
           ],
-          "risk_score": 0.16068,
+          "risk_score": 0.181795,
           "severity": "medium",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -50854,9 +50875,9 @@
           "epss": [
             {
               "cve": "CVE-2017-20162",
-              "date": "2026-06-08",
-              "epss": 0.00312,
-              "percentile": 0.54687
+              "date": "2026-06-14",
+              "epss": 0.00353,
+              "percentile": 0.58183
             }
           ],
           "fix_available": [
@@ -50927,7 +50948,7 @@
               "url": "https://security.netapp.com/advisory/ntap-20241108-0002"
             }
           ],
-          "risk_score": 0.16068,
+          "risk_score": 0.181795,
           "severity": "medium",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -51053,9 +51074,9 @@
           "epss": [
             {
               "cve": "CVE-2022-21803",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00636,
-              "percentile": 0.70823
+              "percentile": 0.71007
             }
           ],
           "fix_available": [
@@ -51166,9 +51187,9 @@
           "epss": [
             {
               "cve": "CVE-2016-10539",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00328,
-              "percentile": 0.56001
+              "percentile": 0.56221
             }
           ],
           "fix_available": [
@@ -51254,9 +51275,9 @@
           "epss": [
             {
               "cve": "CVE-2016-10539",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00328,
-              "percentile": 0.56001
+              "percentile": 0.56221
             }
           ],
           "fix_available": [
@@ -51342,9 +51363,9 @@
           "epss": [
             {
               "cve": "CVE-2016-10539",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00328,
-              "percentile": 0.56001
+              "percentile": 0.56221
             }
           ],
           "fix_available": [
@@ -51431,9 +51452,9 @@
           "epss": [
             {
               "cve": "CVE-2021-28918",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.85896,
-              "percentile": 0.99403
+              "percentile": 0.99409
             }
           ],
           "fix_available": [
@@ -51539,9 +51560,9 @@
           "epss": [
             {
               "cve": "CVE-2021-29418",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00023,
-              "percentile": 0.06601
+              "percentile": 0.06623
             }
           ],
           "fix_available": [
@@ -51897,9 +51918,9 @@
           "epss": [
             {
               "cve": "CVE-2025-7339",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00036,
-              "percentile": 0.11157
+              "percentile": 0.11278
             }
           ],
           "fix_available": [
@@ -52262,9 +52283,9 @@
           "epss": [
             {
               "cve": "CVE-2021-23406",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00999,
-              "percentile": 0.77341
+              "percentile": 0.77481
             }
           ],
           "fix_available": [
@@ -52439,9 +52460,9 @@
           "epss": [
             {
               "cve": "CVE-2022-0624",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00159,
-              "percentile": 0.3656
+              "percentile": 0.36813
             }
           ],
           "fix_available": [
@@ -52532,9 +52553,9 @@
           "epss": [
             {
               "cve": "CVE-2022-0722",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00301,
-              "percentile": 0.53749
+              "percentile": 0.53968
             }
           ],
           "fix_available": [
@@ -52615,9 +52636,9 @@
           "epss": [
             {
               "cve": "CVE-2022-2216",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00318,
-              "percentile": 0.5522
+              "percentile": 0.55437
             }
           ],
           "fix_available": [
@@ -52704,9 +52725,9 @@
           "epss": [
             {
               "cve": "CVE-2022-2900",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00432,
-              "percentile": 0.62999
+              "percentile": 0.63191
             }
           ],
           "fix_available": [
@@ -52787,9 +52808,9 @@
           "epss": [
             {
               "cve": "CVE-2022-2218",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00322,
-              "percentile": 0.55553
+              "percentile": 0.55768
             }
           ],
           "fix_available": [
@@ -52870,9 +52891,9 @@
           "epss": [
             {
               "cve": "CVE-2022-3224",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00342,
-              "percentile": 0.57132
+              "percentile": 0.5735
             }
           ],
           "fix_available": [
@@ -52953,9 +52974,9 @@
           "epss": [
             {
               "cve": "CVE-2022-2217",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00294,
-              "percentile": 0.53016
+              "percentile": 0.53242
             }
           ],
           "fix_available": [
@@ -53156,9 +53177,9 @@
           "epss": [
             {
               "cve": "CVE-2021-23343",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00349,
-              "percentile": 0.57733
+              "percentile": 0.57945
             }
           ],
           "fix_available": [
@@ -53261,9 +53282,9 @@
           "epss": [
             {
               "cve": "CVE-2021-23343",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00349,
-              "percentile": 0.57733
+              "percentile": 0.57945
             }
           ],
           "fix_available": [
@@ -53382,9 +53403,9 @@
           "epss": [
             {
               "cve": "CVE-2026-4867",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00018,
-              "percentile": 0.04965
+              "percentile": 0.05025
             }
           ],
           "fix_available": [
@@ -53486,9 +53507,9 @@
           "epss": [
             {
               "cve": "CVE-2024-45296",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00064,
-              "percentile": 0.20049
+              "percentile": 0.20309
             }
           ],
           "fix_available": [
@@ -53605,9 +53626,9 @@
           "epss": [
             {
               "cve": "CVE-2024-52798",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00293,
-              "percentile": 0.52946
+              "percentile": 0.5317
             }
           ],
           "fix_available": [
@@ -53722,9 +53743,9 @@
           "epss": [
             {
               "cve": "CVE-2025-6545",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00416,
-              "percentile": 0.62052
+              "percentile": 0.62245
             }
           ],
           "fix_available": [
@@ -53810,9 +53831,9 @@
           "epss": [
             {
               "cve": "CVE-2025-6547",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00091,
-              "percentile": 0.25644
+              "percentile": 0.25883
             }
           ],
           "fix_available": [
@@ -53911,9 +53932,9 @@
           "epss": [
             {
               "cve": "CVE-2026-33672",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00059,
-              "percentile": 0.18709
+              "percentile": 0.18968
             }
           ],
           "fix_available": [
@@ -53994,9 +54015,9 @@
           "epss": [
             {
               "cve": "CVE-2026-33671",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.0002,
-              "percentile": 0.05758
+              "percentile": 0.05839
             }
           ],
           "fix_available": [
@@ -54346,9 +54367,9 @@
           "epss": [
             {
               "cve": "CVE-2025-15284",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00035,
-              "percentile": 0.10777
+              "percentile": 0.10897
             }
           ],
           "fix_available": [
@@ -54430,9 +54451,9 @@
           "epss": [
             {
               "cve": "CVE-2017-1000048",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00808,
-              "percentile": 0.74558
+              "percentile": 0.74715
             }
           ],
           "fix_available": [
@@ -54535,9 +54556,9 @@
           "epss": [
             {
               "cve": "CVE-2022-24999",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01543,
-              "percentile": 0.81732
+              "percentile": 0.81846
             }
           ],
           "fix_available": [
@@ -54694,9 +54715,9 @@
           "epss": [
             {
               "cve": "CVE-2025-15284",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00035,
-              "percentile": 0.10777
+              "percentile": 0.10897
             }
           ],
           "fix_available": [
@@ -54778,9 +54799,9 @@
           "epss": [
             {
               "cve": "CVE-2017-1000048",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00808,
-              "percentile": 0.74558
+              "percentile": 0.74715
             }
           ],
           "fix_available": [
@@ -54883,9 +54904,9 @@
           "epss": [
             {
               "cve": "CVE-2022-24999",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01543,
-              "percentile": 0.81732
+              "percentile": 0.81846
             }
           ],
           "fix_available": [
@@ -55042,9 +55063,9 @@
           "epss": [
             {
               "cve": "CVE-2025-15284",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00035,
-              "percentile": 0.10777
+              "percentile": 0.10897
             }
           ],
           "fix_available": [
@@ -55131,9 +55152,9 @@
           "epss": [
             {
               "cve": "CVE-2022-24999",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01543,
-              "percentile": 0.81732
+              "percentile": 0.81846
             }
           ],
           "fix_available": [
@@ -55559,9 +55580,9 @@
           "epss": [
             {
               "cve": "CVE-2023-28155",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00557,
-              "percentile": 0.68559
+              "percentile": 0.68733
             }
           ],
           "fix_state": "not-fixed",
@@ -55936,9 +55957,9 @@
           "epss": [
             {
               "cve": "CVE-2015-8855",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01092,
-              "percentile": 0.78308
+              "percentile": 0.78442
             }
           ],
           "fix_available": [
@@ -56071,9 +56092,9 @@
           "epss": [
             {
               "cve": "CVE-2022-25883",
-              "date": "2026-06-08",
-              "epss": 0.00598,
-              "percentile": 0.69801
+              "date": "2026-06-14",
+              "epss": 0.00581,
+              "percentile": 0.69508
             }
           ],
           "fix_available": [
@@ -56183,7 +56204,7 @@
               "url": "https://security.netapp.com/advisory/ntap-20241025-0004"
             }
           ],
-          "risk_score": 0.4485,
+          "risk_score": 0.43575,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -56236,9 +56257,9 @@
           "epss": [
             {
               "cve": "CVE-2022-25883",
-              "date": "2026-06-08",
-              "epss": 0.00598,
-              "percentile": 0.69801
+              "date": "2026-06-14",
+              "epss": 0.00581,
+              "percentile": 0.69508
             }
           ],
           "fix_available": [
@@ -56348,7 +56369,7 @@
               "url": "https://security.netapp.com/advisory/ntap-20241025-0004"
             }
           ],
-          "risk_score": 0.4485,
+          "risk_score": 0.43575,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -56401,9 +56422,9 @@
           "epss": [
             {
               "cve": "CVE-2022-25883",
-              "date": "2026-06-08",
-              "epss": 0.00598,
-              "percentile": 0.69801
+              "date": "2026-06-14",
+              "epss": 0.00581,
+              "percentile": 0.69508
             }
           ],
           "fix_available": [
@@ -56513,7 +56534,7 @@
               "url": "https://security.netapp.com/advisory/ntap-20241025-0004"
             }
           ],
-          "risk_score": 0.4485,
+          "risk_score": 0.43575,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -56566,9 +56587,9 @@
           "epss": [
             {
               "cve": "CVE-2022-25883",
-              "date": "2026-06-08",
-              "epss": 0.00598,
-              "percentile": 0.69801
+              "date": "2026-06-14",
+              "epss": 0.00581,
+              "percentile": 0.69508
             }
           ],
           "fix_available": [
@@ -56678,7 +56699,7 @@
               "url": "https://security.netapp.com/advisory/ntap-20241025-0004"
             }
           ],
-          "risk_score": 0.4485,
+          "risk_score": 0.43575,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -56724,9 +56745,9 @@
           "epss": [
             {
               "cve": "CVE-2024-43799",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00175,
-              "percentile": 0.38721
+              "percentile": 0.38967
             }
           ],
           "fix_available": [
@@ -56828,9 +56849,9 @@
           "epss": [
             {
               "cve": "CVE-2024-43800",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00919,
-              "percentile": 0.76348
+              "percentile": 0.76494
             }
           ],
           "fix_available": [
@@ -56953,9 +56974,9 @@
           "epss": [
             {
               "cve": "CVE-2019-10747",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00493,
-              "percentile": 0.66094
+              "percentile": 0.66264
             }
           ],
           "fix_available": [
@@ -57061,9 +57082,9 @@
           "epss": [
             {
               "cve": "CVE-2021-23440",
-              "date": "2026-06-08",
-              "epss": 0.00071,
-              "percentile": 0.21708
+              "date": "2026-06-14",
+              "epss": 0.00211,
+              "percentile": 0.43834
             }
           ],
           "fix_available": [
@@ -57148,7 +57169,7 @@
               "url": "https://github.com/jonschlinkert/set-value/commit/09c4b108fea3c0260008590053ff13da64913245"
             }
           ],
-          "risk_score": 0.052539999999999996,
+          "risk_score": 0.15614,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -57194,9 +57215,9 @@
           "epss": [
             {
               "cve": "CVE-2019-10747",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00493,
-              "percentile": 0.66094
+              "percentile": 0.66264
             }
           ],
           "fix_available": [
@@ -57302,9 +57323,9 @@
           "epss": [
             {
               "cve": "CVE-2021-23440",
-              "date": "2026-06-08",
-              "epss": 0.00071,
-              "percentile": 0.21708
+              "date": "2026-06-14",
+              "epss": 0.00211,
+              "percentile": 0.43834
             }
           ],
           "fix_available": [
@@ -57389,7 +57410,7 @@
               "url": "https://github.com/jonschlinkert/set-value/commit/09c4b108fea3c0260008590053ff13da64913245"
             }
           ],
-          "risk_score": 0.052539999999999996,
+          "risk_score": 0.15614,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -57443,9 +57464,9 @@
           "epss": [
             {
               "cve": "CVE-2025-9288",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.0006,
-              "percentile": 0.18951
+              "percentile": 0.19217
             }
           ],
           "fix_available": [
@@ -57564,10 +57585,121 @@
     {
       "ecosystem": "npm",
       "licenses": [],
+      "matched": true,
       "name": "shell-quote",
       "purl": "pkg:npm/shell-quote@1.6.1",
       "version": "1.6.1",
-      "vulnerabilities": []
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003e=1.1.0,\u003c=1.8.3 (semantic)",
+          "aliases": [
+            "CVE-2026-9277"
+          ],
+          "cvss": [
+            {
+              "score": 8.1,
+              "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+              "version": "3.1"
+            },
+            {
+              "score": 9.2,
+              "vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N",
+              "version": "4.0"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "CVE-2026-9277",
+              "id": "CWE-77",
+              "source": "7ffcee3d-2c14-4c3e-b844-86c6a321a158",
+              "type": "Secondary"
+            },
+            {
+              "cve": "CVE-2026-9277",
+              "id": "CWE-78",
+              "source": "7ffcee3d-2c14-4c3e-b844-86c6a321a158",
+              "type": "Secondary"
+            }
+          ],
+          "data_source": "https://github.com/advisories/GHSA-w7jw-789q-3m8p",
+          "description": "shell-quote quote() does not escape newlines in object .op values",
+          "epss": [
+            {
+              "cve": "CVE-2026-9277",
+              "date": "2026-06-14",
+              "epss": 0.00068,
+              "percentile": 0.21207
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "2026-06-09",
+              "kind": "first-observed",
+              "version": "1.8.4"
+            }
+          ],
+          "fix_state": "fixed",
+          "fixed_in": "1.8.4",
+          "fixed_versions": [
+            "1.8.4"
+          ],
+          "id": "GHSA-w7jw-789q-3m8p",
+          "namespace": "github:language:javascript",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jsreach",
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "Also known as: CVE-2026-9277",
+            "Fix available: upgrade to 1.8.4",
+            "Fix state: fixed",
+            "http://www.openwall.com/lists/oss-security/2026/05/23/2",
+            "https://github.com/ljharb/shell-quote",
+            "https://github.com/ljharb/shell-quote/commit/1518179",
+            "https://github.com/ljharb/shell-quote/security/advisories/GHSA-w7jw-789q-3m8p",
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-9277",
+            "https://www.npmjs.com/package/shell-quote"
+          ],
+          "references": [
+            {
+              "type": "data_source",
+              "url": "https://github.com/advisories/GHSA-w7jw-789q-3m8p"
+            },
+            {
+              "type": "advisory",
+              "url": "https://github.com/ljharb/shell-quote/security/advisories/GHSA-w7jw-789q-3m8p"
+            },
+            {
+              "type": "advisory",
+              "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-9277"
+            },
+            {
+              "type": "advisory",
+              "url": "https://github.com/ljharb/shell-quote/commit/1518179"
+            },
+            {
+              "type": "advisory",
+              "url": "https://github.com/ljharb/shell-quote"
+            },
+            {
+              "type": "advisory",
+              "url": "https://www.npmjs.com/package/shell-quote"
+            },
+            {
+              "type": "advisory",
+              "url": "http://www.openwall.com/lists/oss-security/2026/05/23/2"
+            }
+          ],
+          "risk_score": 0.06001,
+          "severity": "critical",
+          "severity_source": "github:language:javascript",
+          "source": "grype",
+          "title": "shell-quote quote() does not escape newlines in object .op values"
+        }
+      ]
     },
     {
       "ecosystem": "npm",
@@ -57705,9 +57837,9 @@
           "epss": [
             {
               "cve": "CVE-2022-22984",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.04668,
-              "percentile": 0.89524
+              "percentile": 0.896
             }
           ],
           "fix_available": [
@@ -57881,9 +58013,9 @@
           "epss": [
             {
               "cve": "CVE-2022-40764",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01429,
-              "percentile": 0.81007
+              "percentile": 0.81125
             }
           ],
           "fix_available": [
@@ -57990,9 +58122,9 @@
           "epss": [
             {
               "cve": "CVE-2022-22984",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.04668,
-              "percentile": 0.89524
+              "percentile": 0.896
             }
           ],
           "fix_available": [
@@ -58159,9 +58291,9 @@
           "epss": [
             {
               "cve": "CVE-2024-48964",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00137,
-              "percentile": 0.33388
+              "percentile": 0.33624
             }
           ],
           "fix_available": [
@@ -58261,9 +58393,9 @@
           "epss": [
             {
               "cve": "CVE-2022-22984",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.04668,
-              "percentile": 0.89524
+              "percentile": 0.896
             }
           ],
           "fix_available": [
@@ -58464,9 +58596,9 @@
           "epss": [
             {
               "cve": "CVE-2024-48963",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00137,
-              "percentile": 0.33388
+              "percentile": 0.33624
             }
           ],
           "fix_available": [
@@ -58571,9 +58703,9 @@
           "epss": [
             {
               "cve": "CVE-2022-22984",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.04668,
-              "percentile": 0.89524
+              "percentile": 0.896
             }
           ],
           "fix_available": [
@@ -58761,9 +58893,9 @@
           "epss": [
             {
               "cve": "CVE-2022-22984",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.04668,
-              "percentile": 0.89524
+              "percentile": 0.896
             }
           ],
           "fix_available": [
@@ -58951,9 +59083,9 @@
           "epss": [
             {
               "cve": "CVE-2022-24441",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.02656,
-              "percentile": 0.86068
+              "percentile": 0.86166
             }
           ],
           "fix_available": [
@@ -59065,9 +59197,9 @@
           "epss": [
             {
               "cve": "CVE-2022-22984",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.04668,
-              "percentile": 0.89524
+              "percentile": 0.896
             }
           ],
           "fix_available": [
@@ -59234,9 +59366,9 @@
           "epss": [
             {
               "cve": "CVE-2025-6624",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00115,
-              "percentile": 0.29735
+              "percentile": 0.29976
             }
           ],
           "fix_available": [
@@ -59332,9 +59464,9 @@
           "epss": [
             {
               "cve": "CVE-2022-40764",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01429,
-              "percentile": 0.81007
+              "percentile": 0.81125
             }
           ],
           "fix_available": [
@@ -59629,9 +59761,9 @@
           "epss": [
             {
               "cve": "CVE-2014-3744",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.7817,
-              "percentile": 0.99039
+              "percentile": 0.99046
             }
           ],
           "fix_available": [
@@ -59739,9 +59871,9 @@
           "epss": [
             {
               "cve": "CVE-2017-16224",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00215,
-              "percentile": 0.44064
+              "percentile": 0.44295
             }
           ],
           "fix_available": [
@@ -60281,9 +60413,9 @@
           "epss": [
             {
               "cve": "CVE-2025-54798",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00469,
-              "percentile": 0.64916
+              "percentile": 0.65098
             }
           ],
           "fix_available": [
@@ -60361,8 +60493,24 @@
               "version": "4.0"
             }
           ],
+          "cwes": [
+            {
+              "cve": "CVE-2026-44705",
+              "id": "CWE-22",
+              "source": "security-advisories@github.com",
+              "type": "Secondary"
+            }
+          ],
           "data_source": "https://github.com/advisories/GHSA-ph9p-34f9-6g65",
           "description": "tmp has Path Traversal via unsanitized prefix/postfix that enables directory escape",
+          "epss": [
+            {
+              "cve": "CVE-2026-44705",
+              "date": "2026-06-14",
+              "epss": 0.00063,
+              "percentile": 0.19897
+            }
+          ],
           "fix_available": [
             {
               "date": "2026-05-27",
@@ -60389,7 +60537,8 @@
             "Fix available: upgrade to 0.2.6",
             "Fix state: fixed",
             "https://github.com/raszi/node-tmp/commit/efa4a06f24374797ae32ab2b6ae39b7a611ae429",
-            "https://github.com/raszi/node-tmp/security/advisories/GHSA-ph9p-34f9-6g65"
+            "https://github.com/raszi/node-tmp/security/advisories/GHSA-ph9p-34f9-6g65",
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-44705"
           ],
           "references": [
             {
@@ -60403,8 +60552,13 @@
             {
               "type": "advisory",
               "url": "https://github.com/raszi/node-tmp/commit/efa4a06f24374797ae32ab2b6ae39b7a611ae429"
+            },
+            {
+              "type": "advisory",
+              "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-44705"
             }
           ],
+          "risk_score": 0.047880000000000006,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -60445,9 +60599,9 @@
           "epss": [
             {
               "cve": "CVE-2025-54798",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00469,
-              "percentile": 0.64916
+              "percentile": 0.65098
             }
           ],
           "fix_available": [
@@ -60525,8 +60679,24 @@
               "version": "4.0"
             }
           ],
+          "cwes": [
+            {
+              "cve": "CVE-2026-44705",
+              "id": "CWE-22",
+              "source": "security-advisories@github.com",
+              "type": "Secondary"
+            }
+          ],
           "data_source": "https://github.com/advisories/GHSA-ph9p-34f9-6g65",
           "description": "tmp has Path Traversal via unsanitized prefix/postfix that enables directory escape",
+          "epss": [
+            {
+              "cve": "CVE-2026-44705",
+              "date": "2026-06-14",
+              "epss": 0.00063,
+              "percentile": 0.19897
+            }
+          ],
           "fix_available": [
             {
               "date": "2026-05-27",
@@ -60553,7 +60723,8 @@
             "Fix available: upgrade to 0.2.6",
             "Fix state: fixed",
             "https://github.com/raszi/node-tmp/commit/efa4a06f24374797ae32ab2b6ae39b7a611ae429",
-            "https://github.com/raszi/node-tmp/security/advisories/GHSA-ph9p-34f9-6g65"
+            "https://github.com/raszi/node-tmp/security/advisories/GHSA-ph9p-34f9-6g65",
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-44705"
           ],
           "references": [
             {
@@ -60567,8 +60738,13 @@
             {
               "type": "advisory",
               "url": "https://github.com/raszi/node-tmp/commit/efa4a06f24374797ae32ab2b6ae39b7a611ae429"
+            },
+            {
+              "type": "advisory",
+              "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-44705"
             }
           ],
+          "risk_score": 0.047880000000000006,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -60715,9 +60891,9 @@
           "epss": [
             {
               "cve": "CVE-2023-26136",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.06248,
-              "percentile": 0.91071
+              "percentile": 0.91143
             }
           ],
           "fix_available": [
@@ -60963,9 +61139,9 @@
           "epss": [
             {
               "cve": "CVE-2022-33171",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.05298,
-              "percentile": 0.90203
+              "percentile": 0.90274
             }
           ],
           "fix_available": [
@@ -61063,9 +61239,9 @@
           "epss": [
             {
               "cve": "CVE-2020-8158",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00284,
-              "percentile": 0.52011
+              "percentile": 0.5222
             }
           ],
           "fix_available": [
@@ -61147,9 +61323,9 @@
           "epss": [
             {
               "cve": "CVE-2025-60542",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00042,
-              "percentile": 0.13068
+              "percentile": 0.13265
             }
           ],
           "fix_available": [
@@ -61342,9 +61518,9 @@
           "epss": [
             {
               "cve": "CVE-2021-23358",
-              "date": "2026-06-08",
-              "epss": 0.01452,
-              "percentile": 0.81163
+              "date": "2026-06-14",
+              "epss": 0.01413,
+              "percentile": 0.81021
             }
           ],
           "fix_available": [
@@ -61530,7 +61706,7 @@
               "url": "http://seclists.org/fulldisclosure/2025/Apr/14"
             }
           ],
-          "risk_score": 1.36488,
+          "risk_score": 1.3282200000000002,
           "severity": "critical",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -61566,9 +61742,9 @@
           "epss": [
             {
               "cve": "CVE-2026-27601",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00022,
-              "percentile": 0.06358
+              "percentile": 0.06382
             }
           ],
           "fix_available": [
@@ -61868,9 +62044,9 @@
           "epss": [
             {
               "cve": "CVE-2026-41907",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00019,
-              "percentile": 0.05295
+              "percentile": 0.05398
             }
           ],
           "fix_available": [
@@ -62009,9 +62185,9 @@
           "epss": [
             {
               "cve": "CVE-2025-56200",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00054,
-              "percentile": 0.17079
+              "percentile": 0.17334
             }
           ],
           "fix_available": [
@@ -62129,9 +62305,9 @@
           "epss": [
             {
               "cve": "CVE-2021-3765",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00058,
-              "percentile": 0.18462
+              "percentile": 0.1872
             }
           ],
           "fix_available": [
@@ -62224,9 +62400,9 @@
           "epss": [
             {
               "cve": "CVE-2025-12758",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00112,
-              "percentile": 0.29279
+              "percentile": 0.2953
             }
           ],
           "fix_available": [
@@ -62534,9 +62710,9 @@
           "epss": [
             {
               "cve": "CVE-2023-26115",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00028,
-              "percentile": 0.0852
+              "percentile": 0.08635
             }
           ],
           "fix_available": [
@@ -62766,9 +62942,9 @@
           "epss": [
             {
               "cve": "CVE-2023-0842",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00291,
-              "percentile": 0.52783
+              "percentile": 0.53005
             }
           ],
           "fix_available": [
@@ -62880,9 +63056,9 @@
           "epss": [
             {
               "cve": "CVE-2023-0842",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00291,
-              "percentile": 0.52783
+              "percentile": 0.53005
             }
           ],
           "fix_available": [
@@ -63026,9 +63202,9 @@
           "epss": [
             {
               "cve": "CVE-2020-7774",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00469,
-              "percentile": 0.64923
+              "percentile": 0.65105
             }
           ],
           "fix_available": [
@@ -63149,9 +63325,9 @@
           "epss": [
             {
               "cve": "CVE-2020-7774",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00469,
-              "percentile": 0.64923
+              "percentile": 0.65105
             }
           ],
           "fix_available": [
@@ -63331,9 +63507,9 @@
           "epss": [
             {
               "cve": "CVE-2020-7608",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00126,
-              "percentile": 0.31416
+              "percentile": 0.31676
             }
           ],
           "fix_available": [
@@ -63439,9 +63615,9 @@
           "epss": [
             {
               "cve": "CVE-2020-7608",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00126,
-              "percentile": 0.31416
+              "percentile": 0.31676
             }
           ],
           "fix_available": [
@@ -63561,7 +63737,7 @@
     }
   ],
   "project": {
-    "ecosystem": "multiple",
+    "ecosystem": "other",
     "name": "\u003cnormalized\u003e",
     "package_manager": "multiple",
     "path": "\u003cnormalized\u003e",

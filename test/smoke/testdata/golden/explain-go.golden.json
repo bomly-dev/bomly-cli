@@ -106,6 +106,7 @@
         "vulnerabilities": []
       },
       "detector": "go-detector",
+      "package_manager": "gomod",
       "paths": [
         {
           "introduced_via": "pkg:golang/github.com/bomly/example-go-modules",

@@ -313,7 +313,7 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:swift/github.com/apple/swift-system@1.6.5",
+          "id": "pkg:swift/github.com/apple/swift-system@1.7.2",
           "licenses": [],
           "locations": [
             {
@@ -326,12 +326,12 @@
             }
           ],
           "name": "github.com/apple:swift-system",
-          "package_ref": "pkg:swift/github.com/apple/swift-system@1.6.5",
-          "purl": "pkg:swift/github.com/apple/swift-system@1.6.5",
+          "package_ref": "pkg:swift/github.com/apple/swift-system@1.7.2",
+          "purl": "pkg:swift/github.com/apple/swift-system@1.7.2",
           "scopes": [
             "runtime"
           ],
-          "version": "1.6.5"
+          "version": "1.7.2"
         },
         {
           "depends_on": [],
@@ -503,7 +503,7 @@
             "pkg:swift/github.com/apple/swift-nio-transport-services@1.23.1",
             "pkg:swift/github.com/apple/swift-nio@2.65.0",
             "pkg:swift/github.com/apple/swift-numerics@1.1.1",
-            "pkg:swift/github.com/apple/swift-system@1.6.5",
+            "pkg:swift/github.com/apple/swift-system@1.7.2",
             "pkg:swift/github.com/swift-server/async-http-client@1.22.0",
             "pkg:swift/github.com/vapor/async-kit@1.20.0",
             "pkg:swift/github.com/vapor/console-kit@4.14.2",
@@ -647,8 +647,8 @@
       "ecosystem": "swift",
       "licenses": [],
       "name": "swift-system",
-      "purl": "pkg:swift/github.com/apple/swift-system@1.6.5",
-      "version": "1.6.5",
+      "purl": "pkg:swift/github.com/apple/swift-system@1.7.2",
+      "version": "1.7.2",
       "vulnerabilities": []
     },
     {

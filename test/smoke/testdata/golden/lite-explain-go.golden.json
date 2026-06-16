@@ -34,7 +34,7 @@
     }
   ],
   "project": {
-    "ecosystem": "multiple",
+    "ecosystem": "other",
     "name": "\u003cnormalized\u003e",
     "package_manager": "multiple",
     "path": "\u003cnormalized\u003e",
@@ -63,6 +63,7 @@
         "vulnerabilities": []
       },
       "detector": "go-detector",
+      "package_manager": "gomod",
       "paths": [
         {
           "introduced_via": "pkg:golang/github.com/google/uuid",

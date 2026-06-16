@@ -34,7 +34,7 @@ func workflowPositions(projectDir string) map[string]*sdk.SourcePosition {
 			rel = filepath.ToSlash(rel)
 			_ = detectors.ScanLines(file, func(line int, text string) {
 				matches := usesLine.FindStringSubmatchIndex(text)
-				if matches == nil || len(matches) < 4 {
+				if len(matches) < 4 {
 					return
 				}
 				coord := strings.TrimSpace(text[matches[2]:matches[3]])

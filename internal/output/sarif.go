@@ -52,12 +52,14 @@ type sarifRuleConfig struct {
 }
 
 type sarifResult struct {
-	RuleID     string           `json:"ruleId"`
-	Level      string           `json:"level"`
-	Message    sarifMessage     `json:"message"`
-	Locations  []sarifLocation  `json:"locations"`
-	CodeFlows  []sarifCodeFlow  `json:"codeFlows,omitempty"`
-	Properties *sarifProperties `json:"properties,omitempty"`
+	RuleID              string            `json:"ruleId"`
+	Level               string            `json:"level"`
+	Message             sarifMessage      `json:"message"`
+	Locations           []sarifLocation   `json:"locations"`
+	BaselineState       string            `json:"baselineState,omitempty"`
+	PartialFingerprints map[string]string `json:"partialFingerprints,omitempty"`
+	CodeFlows           []sarifCodeFlow   `json:"codeFlows,omitempty"`
+	Properties          *sarifProperties  `json:"properties,omitempty"`
 }
 
 type sarifLocation struct {
@@ -142,6 +144,7 @@ type sarifProperties struct {
 type SARIFOptions struct {
 	IncludeReachability bool
 	LocationGraphs      []*sdk.Graph
+	BaselineState       string
 }
 
 // WriteSARIF writes findings as a SARIF 2.1.0 document to w.
@@ -186,10 +189,12 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, registry *sdk.PackageRegist
 		}
 		locations, locationURIs := sarifLocationsForFinding(f, includeReachability, options)
 		result := sarifResult{
-			RuleID:    f.ID,
-			Level:     severityToSARIFLevel(string(f.Severity)),
-			Message:   sarifMessage{Text: msgText},
-			Locations: locations,
+			RuleID:              f.ID,
+			Level:               severityToSARIFLevel(string(f.Severity)),
+			Message:             sarifMessage{Text: msgText},
+			Locations:           locations,
+			BaselineState:       sarifBaselineState(options),
+			PartialFingerprints: sarifPartialFingerprints(f, locationURIs, locations),
 		}
 		props := sarifPropertiesFromFinding(f, locationURIs)
 		if vuln != nil {
@@ -255,6 +260,42 @@ func sarifPropertiesEmpty(props sarifProperties) bool {
 		props.ReachabilityConfidence == "" &&
 		props.ReachabilityHops == nil &&
 		!props.DynamicImportsDetected
+}
+
+func sarifBaselineState(options []SARIFOptions) string {
+	if len(options) == 0 {
+		return ""
+	}
+	switch options[0].BaselineState {
+	case "new", "unchanged", "updated", "absent":
+		return options[0].BaselineState
+	default:
+		return ""
+	}
+}
+
+func sarifPartialFingerprints(f sdk.Finding, locationURIs []string, locations []sarifLocation) map[string]string {
+	parts := []string{
+		strings.TrimSpace(f.ID),
+		strings.TrimSpace(string(f.Kind)),
+		strings.TrimSpace(f.Source),
+		strings.TrimSpace(f.PackageRef),
+	}
+	if f.VulnerabilityID != "" {
+		parts = append(parts, strings.TrimSpace(f.VulnerabilityID))
+	}
+	if len(locationURIs) > 0 {
+		parts = append(parts, strings.TrimSpace(locationURIs[0]))
+	}
+	if len(locations) > 0 {
+		loc := locations[0].PhysicalLocation
+		parts = append(parts,
+			strings.TrimSpace(loc.ArtifactLocation.URI),
+			fmt.Sprintf("%d", regionStartLine(loc.Region)),
+			fmt.Sprintf("%d", regionStartColumn(loc.Region)),
+		)
+	}
+	return map[string]string{"bomlyStableId/v1": strings.Join(parts, "|")}
 }
 
 // buildSARIFCodeFlows converts reachability call paths into SARIF

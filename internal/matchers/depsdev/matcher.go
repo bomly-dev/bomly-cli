@@ -78,11 +78,13 @@ type checkStats struct {
 	requested          int
 	unsupported        int
 	cacheHits          int
+	cacheEmpty         int
 	cacheMisses        int
 	cacheApplied       int
 	cacheLicenses      int
 	apiRequests        int
 	apiEnriched        int
+	apiEmpty           int
 	apiLicenses        int
 	cacheWriteFailures int
 	responseMisses     int
@@ -167,6 +169,11 @@ func (c *Checker) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchRes
 		}
 		if cached, hit := cache.Get[[]string](c.cache, cacheKey); hit {
 			stats.cacheHits++
+			if len(cached) == 0 {
+				stats.cacheEmpty++
+				pendingItems = append(pendingItems, pending{pkg: pkg, key: cacheKey, req: versionReq})
+				continue
+			}
 			if count := applyLicenses(pkg, cached); count > 0 {
 				stats.cacheApplied++
 				stats.cacheLicenses += count
@@ -191,11 +198,13 @@ func (c *Checker) Match(ctx context.Context, req sdk.MatchRequest) (sdk.MatchRes
 		"deps.dev: license matcher summary",
 		zap.Int("requested", stats.requested),
 		zap.Int("cache_hits", stats.cacheHits),
+		zap.Int("cache_empty", stats.cacheEmpty),
 		zap.Int("cache_misses", stats.cacheMisses),
 		zap.Int("cache_applied", stats.cacheApplied),
 		zap.Int("cache_licenses", stats.cacheLicenses),
 		zap.Int("api_requests", stats.apiRequests),
 		zap.Int("api_enriched", stats.apiEnriched),
+		zap.Int("api_empty", stats.apiEmpty),
 		zap.Int("api_licenses", stats.apiLicenses),
 		zap.Int("response_misses", stats.responseMisses),
 		zap.Int("cache_write_failures", stats.cacheWriteFailures),
@@ -270,11 +279,17 @@ func (c *Checker) fetchBatch(ctx context.Context, items []pending, stats *checkS
 			break
 		}
 		values := licenseValuesFromResponse(result.Version)
-		if err := cache.Set(c.cache, items[idx].key, values); err != nil {
+		if len(values) == 0 {
 			if stats != nil {
-				stats.cacheWriteFailures++
+				stats.apiEmpty++
 			}
-			c.logger.Warn("deps.dev: cache write failed", zap.Error(err))
+		} else {
+			if err := cache.Set(c.cache, items[idx].key, values); err != nil {
+				if stats != nil {
+					stats.cacheWriteFailures++
+				}
+				c.logger.Warn("deps.dev: cache write failed", zap.Error(err))
+			}
 		}
 		if count := applyLicenses(items[idx].pkg, values); count > 0 {
 			enriched++

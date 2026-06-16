@@ -1,6 +1,10 @@
 # Contributing to Bomly
 
-By participating in this project you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md). To report a security vulnerability, follow the [Security Policy](SECURITY.md) rather than opening a public issue.
+By participating in this project you agree to abide by the Bomly
+[Code of Conduct](https://github.com/bomly-dev/.github/blob/main/CODE_OF_CONDUCT.md).
+To report a security vulnerability, follow the
+[Security Policy](https://github.com/bomly-dev/.github/blob/main/SECURITY.md)
+rather than opening a public issue.
 
 ## Development Setup
 

@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/logging"
+	"github.com/bomly-dev/bomly-cli/internal/matchers/cache"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -40,6 +41,30 @@ func TestVersionRequestFromPackage(t *testing.T) {
 		}
 	})
 
+	t.Run("go purl esbuild", func(t *testing.T) {
+		req, _, ok := versionRequestFromPackage(&sdk.Package{Coordinates: sdk.Coordinates{PURL: "pkg:golang/github.com/evanw/esbuild@v0.28.0",
+			Version: "v0.28.0"},
+		})
+		if !ok {
+			t.Fatal("expected go purl to map to deps.dev request")
+		}
+		if req.VersionKey.System != "GO" || req.VersionKey.Name != "github.com/evanw/esbuild" || req.VersionKey.Version != "v0.28.0" {
+			t.Fatalf("unexpected request: %#v", req)
+		}
+	})
+
+	t.Run("go purl golang x module", func(t *testing.T) {
+		req, _, ok := versionRequestFromPackage(&sdk.Package{Coordinates: sdk.Coordinates{PURL: "pkg:golang/golang.org/x/net@v0.55.0",
+			Version: "v0.55.0"},
+		})
+		if !ok {
+			t.Fatal("expected golang.org/x purl to map to deps.dev request")
+		}
+		if req.VersionKey.System != "GO" || req.VersionKey.Name != "golang.org/x/net" || req.VersionKey.Version != "v0.55.0" {
+			t.Fatalf("unexpected request: %#v", req)
+		}
+	})
+
 	t.Run("unsupported ecosystem", func(t *testing.T) {
 		if _, _, ok := versionRequestFromPackage(&sdk.Package{Coordinates: sdk.Coordinates{Ecosystem: "conan",
 			Name:    "openssl",
@@ -48,6 +73,113 @@ func TestVersionRequestFromPackage(t *testing.T) {
 			t.Fatal("expected unsupported ecosystem to be rejected")
 		}
 	})
+}
+
+func TestCheckerMatch_RefetchesCachedEmptyLicenseSet(t *testing.T) {
+	var hits int
+	var stderr bytes.Buffer
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hits++
+		if r.Method != http.MethodPost || r.URL.Path != "/versionbatch" {
+			t.Fatalf("unexpected request %s %s", r.Method, r.URL.Path)
+		}
+		response := versionBatchResponse{
+			Responses: []versionBatchResult{{
+				Version: depsDevVersion{
+					LicenseDetails: []depsDevLicenseRef{{SPDX: "BSD-3-Clause", License: "BSD-3-Clause"}},
+				},
+			}},
+		}
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			t.Fatalf("encode response: %v", err)
+		}
+	}))
+	defer server.Close()
+
+	cacheDir := t.TempDir()
+	fileCache, err := cache.NewFileCache(cacheDir, defaultCacheTTL)
+	if err != nil {
+		t.Fatalf("NewFileCache() error = %v", err)
+	}
+	pkg := &sdk.Package{Coordinates: sdk.Coordinates{PURL: "pkg:golang/golang.org/x/net@v0.55.0", Version: "v0.55.0"}}
+	_, cacheKey, ok := versionRequestFromPackage(pkg)
+	if !ok {
+		t.Fatal("expected package to produce cache key")
+	}
+	if err := cache.Set(fileCache, cacheKey, []string{}); err != nil {
+		t.Fatalf("seed empty cache entry: %v", err)
+	}
+
+	checker, err := New(Config{
+		APIBase:  server.URL,
+		CacheDir: cacheDir,
+		Client:   server.Client(),
+		Logger:   logging.NewConsole(&stderr, 2, false),
+	})
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
+
+	g := sdk.New()
+	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGo, Name: "golang.org/x/net", Version: "v0.55.0"}})
+	if err := g.AddNode(dep); err != nil {
+		t.Fatalf("add dependency: %v", err)
+	}
+	registry := sdk.NewPackageRegistry()
+
+	result, err := checker.Match(context.Background(), sdk.MatchRequest{Graph: g, Registry: registry})
+	if err != nil {
+		t.Fatalf("Match() error = %v", err)
+	}
+	gotPkg, _ := result.Registry.Get("pkg:golang/golang.org/x/net@v0.55.0")
+	if gotPkg == nil || len(gotPkg.LicenseValues()) != 1 || gotPkg.LicenseValues()[0] != "BSD-3-Clause" {
+		t.Fatalf("expected API license after empty cache refetch, got %#v", gotPkg)
+	}
+	if hits != 1 {
+		t.Fatalf("expected one API hit after cached empty value, got %d", hits)
+	}
+	logOutput := stderr.String()
+	for _, want := range []string{`"cache_hits": 1`, `"cache_empty": 1`, `"api_enriched": 1`} {
+		if !strings.Contains(logOutput, want) {
+			t.Fatalf("expected log output to contain %q, got:\n%s", want, logOutput)
+		}
+	}
+}
+
+func TestCheckerMatch_DoesNotCacheEmptyAPIResponse(t *testing.T) {
+	var hits int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hits++
+		if err := json.NewEncoder(w).Encode(versionBatchResponse{
+			Responses: []versionBatchResult{{Version: depsDevVersion{}}},
+		}); err != nil {
+			t.Fatalf("encode response: %v", err)
+		}
+	}))
+	defer server.Close()
+
+	checker, err := New(Config{
+		APIBase:  server.URL,
+		CacheDir: t.TempDir(),
+		Client:   server.Client(),
+	})
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
+
+	for i := 0; i < 2; i++ {
+		g := sdk.New()
+		dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGo, Name: "golang.org/x/net", Version: "v0.55.0"}})
+		if err := g.AddNode(dep); err != nil {
+			t.Fatalf("add dependency: %v", err)
+		}
+		if _, err := checker.Match(context.Background(), sdk.MatchRequest{Graph: g, Registry: sdk.NewPackageRegistry()}); err != nil {
+			t.Fatalf("Match() run %d error = %v", i+1, err)
+		}
+	}
+	if hits != 2 {
+		t.Fatalf("expected empty API response not to be cached; hits = %d, want 2", hits)
+	}
 }
 
 func TestCheckerMatch_EnrichesMissingOnly(t *testing.T) {

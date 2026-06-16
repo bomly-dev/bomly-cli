@@ -95,3 +95,52 @@ func TestDepGraphFromRepository(t *testing.T) {
 		t.Fatalf("expected 3 workflow dependencies, got %d", len(workflowDeps))
 	}
 }
+
+func TestDetectorResolveGraphAttachesUsesLineLocations(t *testing.T) {
+	projectDir := t.TempDir()
+	workflowDir := filepath.Join(projectDir, ".github", "workflows")
+	if err := os.MkdirAll(workflowDir, 0o755); err != nil {
+		t.Fatalf("create workflow dir: %v", err)
+	}
+	workflow := []byte("name: CI\njobs:\n  build:\n    steps:\n      - name: Review dependencies\n        uses: actions/dependency-review-action@v5\n      - uses: github/codeql-action/upload-sarif@v4\n")
+	if err := os.WriteFile(filepath.Join(workflowDir, "guard.yml"), workflow, 0o644); err != nil {
+		t.Fatalf("write workflow: %v", err)
+	}
+
+	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{
+		ProjectPath:     projectDir,
+		PackageManager:  sdk.PackageManagerGitHubActions,
+		Ecosystem:       sdk.EcosystemGitHub,
+		ExecutionTarget: sdk.ExecutionTarget{Location: projectDir},
+	})
+	if err != nil {
+		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+	g, err := result.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+
+	dependencyReview, ok := g.Node("actions:dependency-review-action@v5")
+	if !ok {
+		t.Fatal("expected actions/dependency-review-action package")
+	}
+	if len(dependencyReview.Locations) != 1 {
+		t.Fatalf("dependency-review-action locations = %#v, want one location", dependencyReview.Locations)
+	}
+	loc := dependencyReview.Locations[0]
+	if loc.RealPath != ".github/workflows/guard.yml" || loc.AccessPath != ".github/workflows/guard.yml" {
+		t.Fatalf("location path = %#v, want workflow manifest path", loc)
+	}
+	if loc.Position == nil || loc.Position.File != ".github/workflows/guard.yml" || loc.Position.Line != 6 || loc.Position.Column == 0 {
+		t.Fatalf("location position = %#v, want workflow uses line with column", loc.Position)
+	}
+
+	codeql, ok := g.Node("github:codeql-action/upload-sarif@v4")
+	if !ok {
+		t.Fatal("expected github/codeql-action/upload-sarif package")
+	}
+	if len(codeql.Locations) != 1 || codeql.Locations[0].Position == nil || codeql.Locations[0].Position.Line != 7 {
+		t.Fatalf("codeql action locations = %#v, want line 7", codeql.Locations)
+	}
+}

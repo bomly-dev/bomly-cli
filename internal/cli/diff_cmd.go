@@ -182,7 +182,7 @@ func newDiffCmd() *cobra.Command {
 				Text:     textRenderer,
 			}
 			sarifRenderer := func(w io.Writer) error {
-				return output.WriteSARIF(w, diffResult.Findings, diffResult.Head.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: current.Analyze, LocationGraphs: []*sdk.Graph{diffResult.Head.Graph, diffResult.Base.Graph}})
+				return output.WriteSARIF(w, diffSARIFFindings(diffResult.Audit), diffResult.Head.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: current.Analyze, LocationGraphs: []*sdk.Graph{diffResult.Head.Graph}, BaselineState: "new"})
 			}
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
@@ -224,6 +224,13 @@ func newDiffCmd() *cobra.Command {
 	cmd.Flags().StringVar(&baseRef, "base", "", "Base git reference to compare (or SBOM file path when --sbom is set)")
 	cmd.Flags().StringVar(&headRef, "head", "", "Head git reference to compare (or SBOM file path when --sbom is set)")
 	return cmd
+}
+
+func diffSARIFFindings(audit *diffengine.Audit) []sdk.Finding {
+	if audit == nil || len(audit.Introduced) == 0 {
+		return nil
+	}
+	return append([]sdk.Finding(nil), audit.Introduced...)
 }
 
 func diffPolicyExit(auditEnabled bool, audit *diffengine.Audit) error {

@@ -10,7 +10,9 @@ import (
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
+	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
 	"github.com/bomly-dev/bomly-cli/internal/output"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 func TestRenderDiffTextShowsFindingsSummaryLine(t *testing.T) {
@@ -44,6 +46,25 @@ func TestRenderDiffTextShowsFindingsSummaryLine(t *testing.T) {
 		if strings.Contains(report, absent) {
 			t.Fatalf("expected %q to be absent from compact diff output, got:\n%s", absent, report)
 		}
+	}
+}
+
+func TestDiffSARIFFindingsOnlyIncludesIntroduced(t *testing.T) {
+	introduced := sdk.Finding{ID: "new", PackageRef: "pkg:npm/new@1.0.0"}
+	resolved := sdk.Finding{ID: "old", PackageRef: "pkg:npm/old@1.0.0"}
+	persisted := sdk.Finding{ID: "kept", PackageRef: "pkg:npm/kept@1.0.0"}
+
+	got := diffSARIFFindings(&diffengine.Audit{
+		Introduced: []sdk.Finding{introduced},
+		Resolved:   []sdk.Finding{resolved},
+		Persisted:  []sdk.Finding{persisted},
+	})
+	if len(got) != 1 || got[0].ID != introduced.ID {
+		t.Fatalf("diffSARIFFindings() = %#v, want only introduced finding", got)
+	}
+
+	if got := diffSARIFFindings(&diffengine.Audit{Resolved: []sdk.Finding{resolved}}); len(got) != 0 {
+		t.Fatalf("resolved-only SARIF findings = %#v, want none", got)
 	}
 }
 

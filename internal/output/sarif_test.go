@@ -166,6 +166,28 @@ func TestWriteSARIF_OSVHelpURI(t *testing.T) {
 	}
 }
 
+func TestWriteSARIF_EmitsBaselineStateAndStableFingerprint(t *testing.T) {
+	findings := []sdk.Finding{
+		{ID: "BOMLY-LIC-UNKNOWN", Kind: sdk.FindingKindLicense, PackageRef: sarifTestPURL, Title: "Package license is unknown", Severity: sdk.SeverityLow, Source: "license"},
+	}
+	var buf bytes.Buffer
+	if err := WriteSARIF(&buf, findings, nil, "bomly", "0.1.0", SARIFOptions{BaselineState: "new"}); err != nil {
+		t.Fatalf("WriteSARIF: %v", err)
+	}
+	var doc map[string]any
+	if err := json.Unmarshal(buf.Bytes(), &doc); err != nil {
+		t.Fatalf("invalid JSON: %v", err)
+	}
+	result := doc["runs"].([]any)[0].(map[string]any)["results"].([]any)[0].(map[string]any)
+	if got := result["baselineState"]; got != "new" {
+		t.Fatalf("baselineState = %v, want new", got)
+	}
+	fingerprints := result["partialFingerprints"].(map[string]any)
+	if got := fingerprints["bomlyStableId/v1"]; got == "" {
+		t.Fatalf("expected stable fingerprint, got %#v", fingerprints)
+	}
+}
+
 // TestWriteSARIF_LocationsFallBackToRepoFile verifies the writer uses a
 // GitHub-compatible repository file when no richer dependency location is
 // available. Package identity stays in the SARIF properties bag.

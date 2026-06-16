@@ -22,11 +22,17 @@ One binary. No service to host. No telemetry. No outbound matcher calls unless y
 ## Install Bomly
 
 ```bash
-# Go toolchain on PATH
-go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest
+# macOS / Linuxbrew
+brew install --cask bomly-dev/tap/bomly
+
+# Linux / macOS install script
+curl -fsSL https://bomly.dev/install.sh | sh
+
+# Windows
+winget install Bomly.BomlyCLI
 ```
 
-Prebuilt archives are available from [GitHub Releases](https://github.com/bomly-dev/bomly-cli/releases) for Linux, macOS, and Windows. Releases include `bomly` (full binary with builtin Syft and Grype) and `bomly-lite` (smaller binary that shells out to external `syft` and `grype`).
+Prebuilt archives, Linux packages, and container images are published from [GitHub Releases](https://github.com/bomly-dev/bomly-cli/releases). Images are available at `ghcr.io/bomly-dev/bomly-cli` and `bomly/bomly-cli`. Releases include `bomly` (full binary with builtin Syft and Grype) and `bomly-lite` (smaller binary that shells out to external `syft` and `grype`).
 
 Verify the install:
 
@@ -34,7 +40,7 @@ Verify the install:
 bomly version
 ```
 
-For checksums, PowerShell examples, CI install snippets, upgrades, and uninstall instructions, see [Installation](docs/INSTALLATION.md).
+For Docker, Linux packages, Scoop, Go install, checksums, pinned versions, upgrades, and uninstall instructions, see [Installation](docs/INSTALLATION.md).
 
 ## Start With a Scan
 

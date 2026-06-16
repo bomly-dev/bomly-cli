@@ -14,7 +14,7 @@ Bomly uses GitHub Actions for validation, security analysis, smoke coverage, and
 | `Smoke`                | Merge queue, nightly schedule, manual dispatch | Slow end-to-end coverage against real repositories, SBOMs, and containers before merge, plus scheduled drift detection |
 | `Update Smoke Goldens` | Manual dispatch                                | Regenerate golden files on a chosen ref and open a PR when the changes are intentional                                 |
 | `Auto Version`         | Manual dispatch                                | Bump `cmd/bomly/main.go`, create a semver tag, and start the release workflow                                          |
-| `Release`              | Semver tags like `v1.2.3`, manual dispatch     | Cross-platform packaging, checksum generation, and draft GitHub prerelease publication                                 |
+| `Release`              | Semver tags like `v1.2.3`, manual dispatch     | GoReleaser packaging, checksums, Linux packages, container images, package-manager manifests, and draft GitHub release publication |
 
 ## Required Checks
 
@@ -144,7 +144,7 @@ Bomly ships in two modes:
 | `bomly`      | Yes      | Full builtin binary with embedded Syft and Grype support         |
 | `bomly-lite` | No       | Alternate binary that shells out to `syft` and `grype` on `PATH` |
 
-The source tree now treats builtin mode as the default build. That means:
+The source tree treats builtin mode as the default build. That means:
 
 ```bash
 go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest
@@ -152,27 +152,39 @@ go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest
 
 installs the full Bomly experience without extra tags.
 
-The lite build remains available for advanced users and releases packaging with:
+The lite build remains available for advanced users and release packaging with:
 
 ```bash
 go build -tags "bomly_external_syft,bomly_external_grype" -o bin/bomly-lite ./cmd/bomly
 ```
+
+Release packaging is driven by `.goreleaser.yaml`. The release workflow uses GoReleaser to create:
+
+- GitHub Release archives for `bomly` and `bomly-lite`.
+- `SHA256SUMS`.
+- Linux `.deb`, `.rpm`, `.apk`, and Arch Linux package artifacts for the full `bomly` binary.
+- Multi-arch container images pushed to GHCR and Docker Hub.
+- Homebrew cask, Scoop, and WinGet manifest pull requests.
+
+GHCR (`ghcr.io/bomly-dev/bomly-cli`) is the canonical container registry. Docker Hub (`bomly/bomly-cli`) is a convenience mirror and may be subject to Docker Hub public pull-rate limits.
 
 ## Release Process
 
 1. Merge to `main`.
 2. When ready to publish, a maintainer runs the `Auto Version` workflow from `main` and chooses a `patch`, `minor`, or `major` bump.
 3. The `Auto Version` workflow updates `cmd/bomly/main.go`, commits the bump, creates a tag such as `v0.2.0`, and starts the `Release` workflow.
-4. The `Release` workflow reruns validation and then cross-compiles `bomly` and `bomly-lite`.
-5. The workflow packages archives for:
+4. The `Release` workflow reruns validation, sets up Docker Buildx, logs in to GHCR and Docker Hub, and runs GoReleaser.
+5. GoReleaser cross-compiles `bomly` and `bomly-lite`, packages archives for:
    - `linux/amd64`
    - `linux/arm64`
    - `darwin/amd64`
    - `darwin/arm64`
    - `windows/amd64`
    - `windows/arm64`
-6. The workflow generates `SHA256SUMS`.
-7. The workflow creates a **draft prerelease** in GitHub Releases and uploads all archives plus checksums.
+6. GoReleaser generates `SHA256SUMS`, Linux packages, and multi-arch container images.
+7. GoReleaser creates a **draft release** in GitHub Releases and uploads archives, packages, and checksums.
+8. GoReleaser opens or updates package-manager manifest PRs for Homebrew, Scoop, and WinGet.
+9. The workflow notifies the landing page repo to sync docs for the new tag.
 
 Version bump rules are chosen explicitly when running `Auto Version`:
 
@@ -190,9 +202,21 @@ Archive naming follows this pattern:
 - `bomly-lite_<version>_<os>_<arch>.tar.gz`
 - Windows uses `.zip` instead of `.tar.gz`
 
+Linux package artifacts follow the same `bomly_<version>_<os>_<arch>` prefix with package-manager-specific extensions.
+
+Release publishing requires these secrets:
+
+- `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` for Docker Hub.
+- `TAP_GITHUB_TOKEN` for `bomly-dev/homebrew-tap`.
+- `SCOOP_GITHUB_TOKEN` for `bomly-dev/scoop-bucket`.
+- `WINGET_GITHUB_TOKEN` for the `bomly-dev/winget-pkgs` fork and PR into `microsoft/winget-pkgs`.
+- `RELEASE_BOT_CLIENT_ID` and `RELEASE_BOT_PRIVATE_KEY` for landing-page docs sync.
+
+See [Release Checklist](RELEASE_CHECKLIST.md) before publishing a draft release.
+
 ## Verification and Integrity
 
-Every release includes `SHA256SUMS` so consumers can verify downloaded assets locally.
+Every release includes `SHA256SUMS` so consumers can verify downloaded assets locally. Container images are tagged as `vX.Y.Z`, `vX.Y`, `vX`, `latest` for stable releases, and the short commit SHA.
 
 Examples:
 
@@ -204,4 +228,4 @@ sha256sum --check SHA256SUMS
 Get-FileHash .\bomly_v0.2.0_windows_amd64.zip -Algorithm SHA256
 ```
 
-GitHub-native artifact attestations are planned. The release workflow is structured so provenance attestation steps can be added after packaging and before release publication.
+GitHub-native artifact attestations and image signing are planned. The release workflow is structured so provenance attestation and cosign steps can be added after packaging and before release publication.

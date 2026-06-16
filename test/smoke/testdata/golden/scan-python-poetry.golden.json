@@ -117,7 +117,7 @@
       ],
       "detector": "syft-detector",
       "ecosystem": "python",
-      "kind": "python",
+      "kind": "poetry",
       "package_manager": "poetry",
       "path": "poetry.lock",
       "subproject": "."

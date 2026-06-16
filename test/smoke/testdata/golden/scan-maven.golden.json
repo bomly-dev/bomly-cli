@@ -198,7 +198,7 @@
       ],
       "detector": "syft-detector",
       "ecosystem": "maven",
-      "kind": "java-archive",
+      "kind": "maven",
       "package_manager": "maven",
       "path": "pom.xml",
       "subproject": "."

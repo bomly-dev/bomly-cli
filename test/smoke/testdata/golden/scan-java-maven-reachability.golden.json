@@ -1137,9 +1137,9 @@
           "epss": [
             {
               "cve": "CVE-2022-23221",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.26568,
-              "percentile": 0.96441
+              "percentile": 0.96468
             }
           ],
           "fix_available": [
@@ -1267,9 +1267,9 @@
           "epss": [
             {
               "cve": "CVE-2021-42392",
-              "date": "2026-06-08",
-              "epss": 0.90592,
-              "percentile": 0.99632
+              "date": "2026-06-14",
+              "epss": 0.89418,
+              "percentile": 0.99568
             }
           ],
           "fix_available": [
@@ -1350,7 +1350,7 @@
               "url": "https://www.secpod.com/blog/log4shell-critical-remote-code-execution-vulnerability-in-h2database-console/"
             }
           ],
-          "risk_score": 85.15648,
+          "risk_score": 84.05292,
           "severity": "critical",
           "severity_source": "github:language:java",
           "source": "grype",
@@ -1412,9 +1412,9 @@
           "epss": [
             {
               "cve": "CVE-2017-11467",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.76315,
-              "percentile": 0.98952
+              "percentile": 0.98959
             }
           ],
           "fix_available": [
@@ -1558,9 +1558,9 @@
           "epss": [
             {
               "cve": "CVE-2015-6420",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.212,
-              "percentile": 0.95785
+              "percentile": 0.95814
             }
           ],
           "fix_available": [
@@ -1682,9 +1682,9 @@
           "epss": [
             {
               "cve": "CVE-2015-7501",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.71461,
-              "percentile": 0.98743
+              "percentile": 0.98753
             }
           ],
           "fix_available": [
@@ -1822,9 +1822,9 @@
           "epss": [
             {
               "cve": "CVE-2023-24998",
-              "date": "2026-06-08",
-              "epss": 0.339,
-              "percentile": 0.97058
+              "date": "2026-06-14",
+              "epss": 0.37165,
+              "percentile": 0.97277
             }
           ],
           "fix_available": [
@@ -1961,7 +1961,7 @@
               "url": "https://security.netapp.com/advisory/ntap-20241108-0002"
             }
           ],
-          "risk_score": 25.425000000000004,
+          "risk_score": 27.873749999999998,
           "severity": "high",
           "severity_source": "github:language:java",
           "source": "grype",
@@ -1992,9 +1992,9 @@
           "epss": [
             {
               "cve": "CVE-2025-48976",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01278,
-              "percentile": 0.79915
+              "percentile": 0.80049
             }
           ],
           "fix_available": [
@@ -2123,9 +2123,9 @@
           "epss": [
             {
               "cve": "CVE-2024-47554",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00127,
-              "percentile": 0.31541
+              "percentile": 0.31798
             }
           ],
           "fix_available": [
@@ -2218,9 +2218,9 @@
           "epss": [
             {
               "cve": "CVE-2021-29425",
-              "date": "2026-06-08",
-              "epss": 0.00485,
-              "percentile": 0.65746
+              "date": "2026-06-14",
+              "epss": 0.00606,
+              "percentile": 0.70247
             }
           ],
           "fix_available": [
@@ -2506,7 +2506,7 @@
               "url": "https://security.netapp.com/advisory/ntap-20220210-0004"
             }
           ],
-          "risk_score": 0.23765000000000003,
+          "risk_score": 0.29694,
           "severity": "medium",
           "severity_source": "github:language:java",
           "source": "grype",
@@ -2574,9 +2574,9 @@
           "epss": [
             {
               "cve": "CVE-2021-21290",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00024,
-              "percentile": 0.07126
+              "percentile": 0.07232
             }
           ],
           "fix_state": "not-fixed",
@@ -2824,9 +2824,9 @@
           "epss": [
             {
               "cve": "CVE-2014-0193",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.04075,
-              "percentile": 0.88765
+              "percentile": 0.88847
             }
           ],
           "fix_available": [
@@ -2984,9 +2984,9 @@
           "epss": [
             {
               "cve": "CVE-2021-37137",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.02383,
-              "percentile": 0.85296
+              "percentile": 0.85391
             }
           ],
           "fix_state": "not-fixed",
@@ -3131,9 +3131,9 @@
           "epss": [
             {
               "cve": "CVE-2019-20444",
-              "date": "2026-06-08",
-              "epss": 0.1832,
-              "percentile": 0.95352
+              "date": "2026-06-14",
+              "epss": 0.17932,
+              "percentile": 0.95319
             }
           ],
           "fix_state": "not-fixed",
@@ -3752,7 +3752,7 @@
               "url": "https://lists.apache.org/thread.html/r34912a9b1a5c269a77b8be94ef6fb6d1e9b3c69129719dc00f01cf0b%40%3Cdev.zookeeper.apache.org%3E"
             }
           ],
-          "risk_score": 16.5796,
+          "risk_score": 16.22846,
           "severity": "critical",
           "severity_source": "github:language:java",
           "source": "grype",
@@ -3789,9 +3789,9 @@
           "epss": [
             {
               "cve": "CVE-2021-21409",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.0316,
-              "percentile": 0.87167
+              "percentile": 0.8725
             }
           ],
           "fix_state": "not-fixed",
@@ -4152,9 +4152,9 @@
           "epss": [
             {
               "cve": "CVE-2021-37136",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01187,
-              "percentile": 0.79155
+              "percentile": 0.79289
             }
           ],
           "fix_state": "not-fixed",
@@ -4292,9 +4292,9 @@
           "epss": [
             {
               "cve": "CVE-2019-20445",
-              "date": "2026-06-08",
-              "epss": 0.03657,
-              "percentile": 0.88106
+              "date": "2026-06-14",
+              "epss": 0.03562,
+              "percentile": 0.88025
             }
           ],
           "fix_state": "not-fixed",
@@ -4598,7 +4598,7 @@
               "url": "https://lists.apache.org/thread.html/r2f2989b7815d809ff3fda8ce330f553e5f133505afd04ffbc135f35f@%3Cissues.spark.apache.org%3E"
             }
           ],
-          "risk_score": 1.8285,
+          "risk_score": 1.781,
           "severity": "medium",
           "severity_source": "github:language:java",
           "source": "grype",
@@ -4635,9 +4635,9 @@
           "epss": [
             {
               "cve": "CVE-2021-21295",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.0061,
-              "percentile": 0.70158
+              "percentile": 0.70341
             }
           ],
           "fix_state": "not-fixed",
@@ -5158,9 +5158,9 @@
           "epss": [
             {
               "cve": "CVE-2021-43797",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00381,
-              "percentile": 0.59879
+              "percentile": 0.60076
             }
           ],
           "fix_state": "not-fixed",
@@ -5260,9 +5260,9 @@
           "epss": [
             {
               "cve": "CVE-2015-2156",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.03271,
-              "percentile": 0.87414
+              "percentile": 0.87496
             }
           ],
           "fix_available": [
@@ -5496,9 +5496,9 @@
           "epss": [
             {
               "cve": "CVE-2020-15250",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00056,
-              "percentile": 0.17671
+              "percentile": 0.17925
             }
           ],
           "fix_available": [
@@ -5794,9 +5794,9 @@
           "epss": [
             {
               "cve": "CVE-2019-17571",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.28502,
-              "percentile": 0.96621
+              "percentile": 0.9665
             }
           ],
           "fix_state": "not-fixed",
@@ -5814,113 +5814,215 @@
             "Also known as: CVE-2019-17571",
             "Fix state: not-fixed",
             "http://lists.opensuse.org/opensuse-security-announce/2020-01/msg00022.html",
+            "https://lists.apache.org/thread.html/277b4b5c2b0e06a825ccec565fa65bd671f35a4d58e3e2ec5d0618e1%40%3Cdev.tika.apache.org%3E",
             "https://lists.apache.org/thread.html/277b4b5c2b0e06a825ccec565fa65bd671f35a4d58e3e2ec5d0618e1@%3Cdev.tika.apache.org%3E",
+            "https://lists.apache.org/thread.html/44491fb9cc19acc901f7cff34acb7376619f15638439416e3e14761c%40%3Cdev.tika.apache.org%3E",
             "https://lists.apache.org/thread.html/44491fb9cc19acc901f7cff34acb7376619f15638439416e3e14761c@%3Cdev.tika.apache.org%3E",
+            "https://lists.apache.org/thread.html/479471e6debd608c837b9815b76eab24676657d4444fcfd5ef96d6e6%40%3Cdev.tika.apache.org%3E",
             "https://lists.apache.org/thread.html/479471e6debd608c837b9815b76eab24676657d4444fcfd5ef96d6e6@%3Cdev.tika.apache.org%3E",
+            "https://lists.apache.org/thread.html/564f03b4e9511fcba29c68fc0299372dadbdb002718fa8edcc4325e4%40%3Cjira.kafka.apache.org%3E",
             "https://lists.apache.org/thread.html/564f03b4e9511fcba29c68fc0299372dadbdb002718fa8edcc4325e4@%3Cjira.kafka.apache.org%3E",
+            "https://lists.apache.org/thread.html/6114ce566200d76e3cc45c521a62c2c5a4eac15738248f58a99f622c%40%3Cissues.activemq.apache.org%3E",
             "https://lists.apache.org/thread.html/6114ce566200d76e3cc45c521a62c2c5a4eac15738248f58a99f622c@%3Cissues.activemq.apache.org%3E",
+            "https://lists.apache.org/thread.html/752ec92cd1e334a639e79bfbd689a4ec2c6579ec5bb41b53ffdf358d%40%3Cdev.kafka.apache.org%3E",
             "https://lists.apache.org/thread.html/752ec92cd1e334a639e79bfbd689a4ec2c6579ec5bb41b53ffdf358d@%3Cdev.kafka.apache.org%3E",
+            "https://lists.apache.org/thread.html/8ab32b4c9f1826f20add7c40be08909de9f58a89dc1de9c09953f5ac%40%3Cissues.activemq.apache.org%3E",
             "https://lists.apache.org/thread.html/8ab32b4c9f1826f20add7c40be08909de9f58a89dc1de9c09953f5ac@%3Cissues.activemq.apache.org%3E",
             "https://lists.apache.org/thread.html/eea03d504b36e8f870e8321d908e1def1addda16adda04327fe7c125%40%3Cdev.logging.apache.org%3E",
+            "https://lists.apache.org/thread.html/r05755112a8c164abc1004bb44f198b1e3d8ca3d546a8f13ebd3aa05f%40%3Cissues.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/r05755112a8c164abc1004bb44f198b1e3d8ca3d546a8f13ebd3aa05f@%3Cissues.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/r107c8737db39ec9ec4f4e7147b249e29be79170b9ef4b80528105a2d%40%3Cdev.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/r107c8737db39ec9ec4f4e7147b249e29be79170b9ef4b80528105a2d@%3Cdev.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/r13d4b5c60ff63f3c4fab51d6ff266655be503b8a1884e2f2fab67c3a%40%3Ccommon-issues.hadoop.apache.org%3E",
             "https://lists.apache.org/thread.html/r13d4b5c60ff63f3c4fab51d6ff266655be503b8a1884e2f2fab67c3a@%3Ccommon-issues.hadoop.apache.org%3E",
+            "https://lists.apache.org/thread.html/r189aaeaad897f7d6b96f7c43a8ef2dfb9f6e9f8c1cc9ad182ce9b9ae%40%3Cjira.kafka.apache.org%3E",
             "https://lists.apache.org/thread.html/r189aaeaad897f7d6b96f7c43a8ef2dfb9f6e9f8c1cc9ad182ce9b9ae@%3Cjira.kafka.apache.org%3E",
+            "https://lists.apache.org/thread.html/r18f1c010b554a3a2d761e8ffffd8674fd4747bcbcf16c643d708318c%40%3Cissues.activemq.apache.org%3E",
             "https://lists.apache.org/thread.html/r18f1c010b554a3a2d761e8ffffd8674fd4747bcbcf16c643d708318c@%3Cissues.activemq.apache.org%3E",
+            "https://lists.apache.org/thread.html/r1b103833cb5bc8466e24ff0ecc5e75b45a705334ab6a444e64e840a0%40%3Cissues.bookkeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/r1b103833cb5bc8466e24ff0ecc5e75b45a705334ab6a444e64e840a0@%3Cissues.bookkeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/r1b7734dfdfd938640f2f5fb6f4231a267145c71ed60cc7faa1cbac07%40%3Ccommon-issues.hadoop.apache.org%3E",
             "https://lists.apache.org/thread.html/r1b7734dfdfd938640f2f5fb6f4231a267145c71ed60cc7faa1cbac07@%3Ccommon-issues.hadoop.apache.org%3E",
+            "https://lists.apache.org/thread.html/r26244f9f7d9a8a27a092eb0b2a0ca9395e88fcde8b5edaeca7ce569c%40%3Ccommon-issues.hadoop.apache.org%3E",
             "https://lists.apache.org/thread.html/r26244f9f7d9a8a27a092eb0b2a0ca9395e88fcde8b5edaeca7ce569c@%3Ccommon-issues.hadoop.apache.org%3E",
+            "https://lists.apache.org/thread.html/r2721aba31a8562639c4b937150897e24f78f747cdbda8641c0f659fe%40%3Cusers.kafka.apache.org%3E",
             "https://lists.apache.org/thread.html/r2721aba31a8562639c4b937150897e24f78f747cdbda8641c0f659fe@%3Cusers.kafka.apache.org%3E",
+            "https://lists.apache.org/thread.html/r2756fd570b6709d55a61831ca028405bcb3e312175a60bc5d911c81f%40%3Cjira.kafka.apache.org%3E",
             "https://lists.apache.org/thread.html/r2756fd570b6709d55a61831ca028405bcb3e312175a60bc5d911c81f@%3Cjira.kafka.apache.org%3E",
+            "https://lists.apache.org/thread.html/r2ce8d26154bea939536e6cf27ed02d3192bf5c5d04df885a80fe89b3%40%3Cissues.activemq.apache.org%3E",
             "https://lists.apache.org/thread.html/r2ce8d26154bea939536e6cf27ed02d3192bf5c5d04df885a80fe89b3@%3Cissues.activemq.apache.org%3E",
+            "https://lists.apache.org/thread.html/r2ff63f210842a3c5e42f03a35d8f3a345134d073c80a04077341c211%40%3Cissues.activemq.apache.org%3E",
             "https://lists.apache.org/thread.html/r2ff63f210842a3c5e42f03a35d8f3a345134d073c80a04077341c211@%3Cissues.activemq.apache.org%3E",
+            "https://lists.apache.org/thread.html/r3543ead2317dcd3306f69ee37b07dd383dbba6e2f47ff11eb55879ad%40%3Cusers.activemq.apache.org%3E",
             "https://lists.apache.org/thread.html/r3543ead2317dcd3306f69ee37b07dd383dbba6e2f47ff11eb55879ad@%3Cusers.activemq.apache.org%3E",
+            "https://lists.apache.org/thread.html/r356d57d6225f91fdc30f8b0a2bed229d1ece55e16e552878c5fa809a%40%3Cissues.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/r356d57d6225f91fdc30f8b0a2bed229d1ece55e16e552878c5fa809a@%3Cissues.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/r3784834e80df2f284577a5596340fb84346c91a2dea6a073e65e3397%40%3Cissues.activemq.apache.org%3E",
             "https://lists.apache.org/thread.html/r3784834e80df2f284577a5596340fb84346c91a2dea6a073e65e3397@%3Cissues.activemq.apache.org%3E",
+            "https://lists.apache.org/thread.html/r3a85514a518f3080ab1fc2652cfe122c2ccf67cfb32356acb1b08fe8%40%3Cdev.tika.apache.org%3E",
             "https://lists.apache.org/thread.html/r3a85514a518f3080ab1fc2652cfe122c2ccf67cfb32356acb1b08fe8@%3Cdev.tika.apache.org%3E",
+            "https://lists.apache.org/thread.html/r3bf7b982dfa0779f8a71f843d2aa6b4184a53e6be7f149ee079387fd%40%3Cdev.kafka.apache.org%3E",
             "https://lists.apache.org/thread.html/r3bf7b982dfa0779f8a71f843d2aa6b4184a53e6be7f149ee079387fd@%3Cdev.kafka.apache.org%3E",
+            "https://lists.apache.org/thread.html/r3c575cabc7386e646fb12cb82b0b38ae5a6ade8a800f827107824495%40%3Cjira.kafka.apache.org%3E",
             "https://lists.apache.org/thread.html/r3c575cabc7386e646fb12cb82b0b38ae5a6ade8a800f827107824495@%3Cjira.kafka.apache.org%3E",
+            "https://lists.apache.org/thread.html/r3cf50d05ce8cec8c09392624b7bae750e7643dae60ef2438641ee015%40%3Cissues.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/r3cf50d05ce8cec8c09392624b7bae750e7643dae60ef2438641ee015@%3Cissues.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/r3d666e4e8905157f3c046d31398b04f2bfd4519e31f266de108c6919%40%3Cissues.activemq.apache.org%3E",
             "https://lists.apache.org/thread.html/r3d666e4e8905157f3c046d31398b04f2bfd4519e31f266de108c6919@%3Cissues.activemq.apache.org%3E",
+            "https://lists.apache.org/thread.html/r48d5019bd42e0770f7e5351e420a63a41ff1f16924942442c6aff6a8%40%3Ccommits.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/r48d5019bd42e0770f7e5351e420a63a41ff1f16924942442c6aff6a8@%3Ccommits.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/r48efc7cb5aeb4e1f67aaa06fb4b5479a5635d12f07d0b93fc2d08809%40%3Ccommits.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/r48efc7cb5aeb4e1f67aaa06fb4b5479a5635d12f07d0b93fc2d08809@%3Ccommits.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/r4ac89cbecd9e298ae9fafb5afda6fa77ac75c78d1ac957837e066c4e%40%3Cuser.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/r4ac89cbecd9e298ae9fafb5afda6fa77ac75c78d1ac957837e066c4e@%3Cuser.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/r4b25538be50126194cc646836c718b1a4d8f71bd9c912af5b59134ad%40%3Cdev.tika.apache.org%3E",
             "https://lists.apache.org/thread.html/r4b25538be50126194cc646836c718b1a4d8f71bd9c912af5b59134ad@%3Cdev.tika.apache.org%3E",
+            "https://lists.apache.org/thread.html/r52a5129df402352adc34d052bab9234c8ef63596306506a89fdc7328%40%3Cusers.activemq.apache.org%3E",
             "https://lists.apache.org/thread.html/r52a5129df402352adc34d052bab9234c8ef63596306506a89fdc7328@%3Cusers.activemq.apache.org%3E",
+            "https://lists.apache.org/thread.html/r594411f4bddebaf48a4c70266d0b7849e0d82bb72826f61b3a35bba7%40%3Cissues.bookkeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/r594411f4bddebaf48a4c70266d0b7849e0d82bb72826f61b3a35bba7@%3Cissues.bookkeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/r5c084578b3e3b40bd903c9d9e525097421bcd88178e672f612102eb2%40%3Cjira.kafka.apache.org%3E",
             "https://lists.apache.org/thread.html/r5c084578b3e3b40bd903c9d9e525097421bcd88178e672f612102eb2@%3Cjira.kafka.apache.org%3E",
+            "https://lists.apache.org/thread.html/r61590890edcc64140e0c606954b29a063c3d08a2b41d447256d51a78%40%3Cissues.activemq.apache.org%3E",
             "https://lists.apache.org/thread.html/r61590890edcc64140e0c606954b29a063c3d08a2b41d447256d51a78@%3Cissues.activemq.apache.org%3E",
+            "https://lists.apache.org/thread.html/r61db8e7dcb56dc000a5387a88f7a473bacec5ee01b9ff3f55308aacc%40%3Cdev.kafka.apache.org%3E",
+            "https://lists.apache.org/thread.html/r61db8e7dcb56dc000a5387a88f7a473bacec5ee01b9ff3f55308aacc%40%3Cusers.kafka.apache.org%3E",
             "https://lists.apache.org/thread.html/r61db8e7dcb56dc000a5387a88f7a473bacec5ee01b9ff3f55308aacc@%3Cdev.kafka.apache.org%3E",
             "https://lists.apache.org/thread.html/r61db8e7dcb56dc000a5387a88f7a473bacec5ee01b9ff3f55308aacc@%3Cusers.kafka.apache.org%3E",
+            "https://lists.apache.org/thread.html/r6236b5f8646d48af8b66d5050f288304016840788e508c883356fe0e%40%3Clog4j-user.logging.apache.org%3E",
             "https://lists.apache.org/thread.html/r6236b5f8646d48af8b66d5050f288304016840788e508c883356fe0e@%3Clog4j-user.logging.apache.org%3E",
+            "https://lists.apache.org/thread.html/r681b4432d0605f327b68b9f8a42662993e699d04614de4851c35ffd1%40%3Cdev.tika.apache.org%3E",
             "https://lists.apache.org/thread.html/r681b4432d0605f327b68b9f8a42662993e699d04614de4851c35ffd1@%3Cdev.tika.apache.org%3E",
+            "https://lists.apache.org/thread.html/r696507338dd5f44efc23d98cafe30f217cf3ba78e77ed1324c7a5179%40%3Cjira.kafka.apache.org%3E",
             "https://lists.apache.org/thread.html/r696507338dd5f44efc23d98cafe30f217cf3ba78e77ed1324c7a5179@%3Cjira.kafka.apache.org%3E",
+            "https://lists.apache.org/thread.html/r6aec6b8f70167fa325fb98b3b5c9ce0ffaed026e697b69b85ac24628%40%3Cissues.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/r6aec6b8f70167fa325fb98b3b5c9ce0ffaed026e697b69b85ac24628@%3Cissues.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/r6b45a2fcc8e98ac93a179183dbb7f340027bdb8e3ab393418076b153%40%3Ccommon-issues.hadoop.apache.org%3E",
             "https://lists.apache.org/thread.html/r6b45a2fcc8e98ac93a179183dbb7f340027bdb8e3ab393418076b153@%3Ccommon-issues.hadoop.apache.org%3E",
+            "https://lists.apache.org/thread.html/r6d34da5a0ca17ab08179a30c971446c7421af0e96f6d60867eabfc52%40%3Cissues.bookkeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/r6d34da5a0ca17ab08179a30c971446c7421af0e96f6d60867eabfc52@%3Cissues.bookkeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/r71e26f9c2d5826c6f95ad60f7d052d75e1e70b0d2dd853db6fc26d5f%40%3Cjira.kafka.apache.org%3E",
             "https://lists.apache.org/thread.html/r71e26f9c2d5826c6f95ad60f7d052d75e1e70b0d2dd853db6fc26d5f@%3Cjira.kafka.apache.org%3E",
+            "https://lists.apache.org/thread.html/r746fbc3fc13aee292ae6851f7a5080f592fa3a67b983c6887cdb1fc5%40%3Cdev.tika.apache.org%3E",
             "https://lists.apache.org/thread.html/r746fbc3fc13aee292ae6851f7a5080f592fa3a67b983c6887cdb1fc5@%3Cdev.tika.apache.org%3E",
+            "https://lists.apache.org/thread.html/r7a1acc95373105169bd44df710c2f462cad31fb805364d2958a5ee03%40%3Cjira.kafka.apache.org%3E",
             "https://lists.apache.org/thread.html/r7a1acc95373105169bd44df710c2f462cad31fb805364d2958a5ee03@%3Cjira.kafka.apache.org%3E",
+            "https://lists.apache.org/thread.html/r7bcdc710857725c311b856c0b82cee6207178af5dcde1bd43d289826%40%3Cissues.activemq.apache.org%3E",
             "https://lists.apache.org/thread.html/r7bcdc710857725c311b856c0b82cee6207178af5dcde1bd43d289826@%3Cissues.activemq.apache.org%3E",
+            "https://lists.apache.org/thread.html/r7f462c69d5ded4c0223e014d95a3496690423c5f6f05c09e2f2a407a%40%3Cjira.kafka.apache.org%3E",
             "https://lists.apache.org/thread.html/r7f462c69d5ded4c0223e014d95a3496690423c5f6f05c09e2f2a407a@%3Cjira.kafka.apache.org%3E",
+            "https://lists.apache.org/thread.html/r8244fd0831db894d5e89911ded9c72196d395a90ae655414d23ed0dd%40%3Cusers.activemq.apache.org%3E",
             "https://lists.apache.org/thread.html/r8244fd0831db894d5e89911ded9c72196d395a90ae655414d23ed0dd@%3Cusers.activemq.apache.org%3E",
+            "https://lists.apache.org/thread.html/r8418a0dff1729f19cf1024937e23a2db4c0f94f2794a423f5c10e8e7%40%3Cissues.bookkeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/r8418a0dff1729f19cf1024937e23a2db4c0f94f2794a423f5c10e8e7@%3Cissues.bookkeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/r8890b8f18f1de821595792b58b968a89692a255bc20d86d395270740%40%3Ccommits.druid.apache.org%3E",
             "https://lists.apache.org/thread.html/r8890b8f18f1de821595792b58b968a89692a255bc20d86d395270740@%3Ccommits.druid.apache.org%3E",
+            "https://lists.apache.org/thread.html/r8a1cfd4705258c106e488091fcec85f194c82f2bbde6bd151e201870%40%3Cjira.kafka.apache.org%3E",
             "https://lists.apache.org/thread.html/r8a1cfd4705258c106e488091fcec85f194c82f2bbde6bd151e201870@%3Cjira.kafka.apache.org%3E",
+            "https://lists.apache.org/thread.html/r8c392ca48bb7e50754e4bc05865e9731b23d568d18a520fe3d8c1f75%40%3Ccommon-issues.hadoop.apache.org%3E",
             "https://lists.apache.org/thread.html/r8c392ca48bb7e50754e4bc05865e9731b23d568d18a520fe3d8c1f75@%3Ccommon-issues.hadoop.apache.org%3E",
+            "https://lists.apache.org/thread.html/r8c6300245c0bcef095e9f07b48157e2c6471df0816db3408fcf1d748%40%3Ccommon-issues.hadoop.apache.org%3E",
             "https://lists.apache.org/thread.html/r8c6300245c0bcef095e9f07b48157e2c6471df0816db3408fcf1d748@%3Ccommon-issues.hadoop.apache.org%3E",
+            "https://lists.apache.org/thread.html/r8d78a0fbb56d505461e29868d1026e98c402e6a568c13a6da67896a2%40%3Cdev.jena.apache.org%3E",
             "https://lists.apache.org/thread.html/r8d78a0fbb56d505461e29868d1026e98c402e6a568c13a6da67896a2@%3Cdev.jena.apache.org%3E",
+            "https://lists.apache.org/thread.html/r8e3f7da12bf5750b0a02e69a78a61073a2ac950eed7451ce70a65177%40%3Ccommits.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/r8e3f7da12bf5750b0a02e69a78a61073a2ac950eed7451ce70a65177@%3Ccommits.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/r909b8e3a36913944d3b7bafe9635d4ca84f8f0e2cd146a1784f667c2%40%3Cissues.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/r909b8e3a36913944d3b7bafe9635d4ca84f8f0e2cd146a1784f667c2@%3Cissues.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/r90c23eb8c82835fa82df85ae5e88c81fd9241e20a22971b0fb8f2c34%40%3Cissues.bookkeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/r90c23eb8c82835fa82df85ae5e88c81fd9241e20a22971b0fb8f2c34@%3Cissues.bookkeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/r944183c871594fe9a555b8519a7c945bbcf6714d72461aa6c929028f%40%3Cissues.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/r944183c871594fe9a555b8519a7c945bbcf6714d72461aa6c929028f@%3Cissues.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/r9a9e3b42cd5d1c4536a14ef04f75048dec8e2740ac6a138ea912177f%40%3Cpluto-dev.portals.apache.org%3E",
             "https://lists.apache.org/thread.html/r9a9e3b42cd5d1c4536a14ef04f75048dec8e2740ac6a138ea912177f@%3Cpluto-dev.portals.apache.org%3E",
+            "https://lists.apache.org/thread.html/r9d0d03f2e7d9e13c68b530f81d02b0fec33133edcf27330d8089fcfb%40%3Cissues.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/r9d0d03f2e7d9e13c68b530f81d02b0fec33133edcf27330d8089fcfb@%3Cissues.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/r9d2e28e71f91ba0b6f4114c8ecd96e2b1f7e0d06bdf8eb768c183aa9%40%3Ccommon-issues.hadoop.apache.org%3E",
             "https://lists.apache.org/thread.html/r9d2e28e71f91ba0b6f4114c8ecd96e2b1f7e0d06bdf8eb768c183aa9@%3Ccommon-issues.hadoop.apache.org%3E",
+            "https://lists.apache.org/thread.html/r9dc2505651788ac668299774d9e7af4dc616be2f56fdc684d1170882%40%3Cusers.activemq.apache.org%3E",
             "https://lists.apache.org/thread.html/r9dc2505651788ac668299774d9e7af4dc616be2f56fdc684d1170882@%3Cusers.activemq.apache.org%3E",
+            "https://lists.apache.org/thread.html/r9fb3238cfc3222f2392ca6517353aadae18f76866157318ac562e706%40%3Ccommon-issues.hadoop.apache.org%3E",
             "https://lists.apache.org/thread.html/r9fb3238cfc3222f2392ca6517353aadae18f76866157318ac562e706@%3Ccommon-issues.hadoop.apache.org%3E",
+            "https://lists.apache.org/thread.html/ra18a903f785aed9403aea38bc6f36844a056283c00dcfc6936b6318c%40%3Cissues.bookkeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/ra18a903f785aed9403aea38bc6f36844a056283c00dcfc6936b6318c@%3Cissues.bookkeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/ra38785cfc0e7f17f8e24bebf775dd032c033fadcaea29e5bc9fffc60%40%3Cdev.tika.apache.org%3E",
             "https://lists.apache.org/thread.html/ra38785cfc0e7f17f8e24bebf775dd032c033fadcaea29e5bc9fffc60@%3Cdev.tika.apache.org%3E",
+            "https://lists.apache.org/thread.html/ra54fa49be3e773d99ccc9c2a422311cf77e3ecd3b8594ee93043a6b1%40%3Cdev.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/ra54fa49be3e773d99ccc9c2a422311cf77e3ecd3b8594ee93043a6b1@%3Cdev.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/ra9611a8431cb62369bce8909d7645597e1dd45c24b448836b1e54940%40%3Cissues.bookkeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/ra9611a8431cb62369bce8909d7645597e1dd45c24b448836b1e54940@%3Cissues.bookkeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/raedd12dc24412b3780432bf202a2618a21a727788543e5337a458ead%40%3Cissues.activemq.apache.org%3E",
             "https://lists.apache.org/thread.html/raedd12dc24412b3780432bf202a2618a21a727788543e5337a458ead@%3Cissues.activemq.apache.org%3E",
+            "https://lists.apache.org/thread.html/rb1b29aee737e1c37fe1d48528cb0febac4f5deed51f5412e6fdfe2bf%40%3Cissues.activemq.apache.org%3E",
             "https://lists.apache.org/thread.html/rb1b29aee737e1c37fe1d48528cb0febac4f5deed51f5412e6fdfe2bf@%3Cissues.activemq.apache.org%3E",
+            "https://lists.apache.org/thread.html/rb3c94619728c8f8c176d8e175e0a1086ca737ecdfcd5a2214bb768bc%40%3Ccommits.bookkeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/rb3c94619728c8f8c176d8e175e0a1086ca737ecdfcd5a2214bb768bc@%3Ccommits.bookkeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/rbc45eb0f53fd6242af3e666c2189464f848a851d408289840cecc6e3%40%3Ccommits.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/rbc45eb0f53fd6242af3e666c2189464f848a851d408289840cecc6e3@%3Ccommits.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/rbd19de368abf0764e4383ec44d527bc9870176f488a494f09a40500d%40%3Ccommon-dev.hadoop.apache.org%3E",
             "https://lists.apache.org/thread.html/rbd19de368abf0764e4383ec44d527bc9870176f488a494f09a40500d@%3Ccommon-dev.hadoop.apache.org%3E",
+            "https://lists.apache.org/thread.html/rbdf18e39428b5c80fc35113470198b1fe53b287a76a46b0f8780b5fd%40%3Cdev.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/rbdf18e39428b5c80fc35113470198b1fe53b287a76a46b0f8780b5fd@%3Cdev.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/rbf4ce74b0d1fa9810dec50ba3ace0caeea677af7c27a97111c06ccb7%40%3Cdev.kafka.apache.org%3E",
+            "https://lists.apache.org/thread.html/rbf4ce74b0d1fa9810dec50ba3ace0caeea677af7c27a97111c06ccb7%40%3Cusers.kafka.apache.org%3E",
             "https://lists.apache.org/thread.html/rbf4ce74b0d1fa9810dec50ba3ace0caeea677af7c27a97111c06ccb7@%3Cdev.kafka.apache.org%3E",
             "https://lists.apache.org/thread.html/rbf4ce74b0d1fa9810dec50ba3ace0caeea677af7c27a97111c06ccb7@%3Cusers.kafka.apache.org%3E",
+            "https://lists.apache.org/thread.html/rc17d8491beee51607693019857e41e769795366b85be00aa2f4b3159%40%3Cnotifications.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/rc17d8491beee51607693019857e41e769795366b85be00aa2f4b3159@%3Cnotifications.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/rc1eaed7f7d774d5d02f66e49baced31e04827a1293d61a70bd003ca7%40%3Cdev.tika.apache.org%3E",
             "https://lists.apache.org/thread.html/rc1eaed7f7d774d5d02f66e49baced31e04827a1293d61a70bd003ca7@%3Cdev.tika.apache.org%3E",
+            "https://lists.apache.org/thread.html/rc628307962ae1b8cc2d21b8e4b7dd6d7755b2dd52fa56a151a27e4fd%40%3Cissues.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/rc628307962ae1b8cc2d21b8e4b7dd6d7755b2dd52fa56a151a27e4fd@%3Cissues.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/rca24a281000fb681d7e26e5c031a21eb4b0593a7735f781b53dae4e2%40%3Cdev.tika.apache.org%3E",
             "https://lists.apache.org/thread.html/rca24a281000fb681d7e26e5c031a21eb4b0593a7735f781b53dae4e2@%3Cdev.tika.apache.org%3E",
+            "https://lists.apache.org/thread.html/rcd71280585425dad7e232f239c5709e425efdd0d3de4a92f808a4767%40%3Cissues.bookkeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/rcd71280585425dad7e232f239c5709e425efdd0d3de4a92f808a4767@%3Cissues.bookkeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/rd0e44e8ef71eeaaa3cf3d1b8b41eb25894372e2995ec908ce7624d26%40%3Ccommits.pulsar.apache.org%3E",
             "https://lists.apache.org/thread.html/rd0e44e8ef71eeaaa3cf3d1b8b41eb25894372e2995ec908ce7624d26@%3Ccommits.pulsar.apache.org%3E",
+            "https://lists.apache.org/thread.html/rd3a9511eebab60e23f224841390a3f8cd5358cff605c5f7042171e47%40%3Cdev.tinkerpop.apache.org%3E",
             "https://lists.apache.org/thread.html/rd3a9511eebab60e23f224841390a3f8cd5358cff605c5f7042171e47@%3Cdev.tinkerpop.apache.org%3E",
+            "https://lists.apache.org/thread.html/rd5dbeee4808c0f2b9b51479b50de3cc6adb1072c332a200d9107f13e%40%3Cissues.activemq.apache.org%3E",
             "https://lists.apache.org/thread.html/rd5dbeee4808c0f2b9b51479b50de3cc6adb1072c332a200d9107f13e@%3Cissues.activemq.apache.org%3E",
+            "https://lists.apache.org/thread.html/rd6254837403e8cbfc7018baa9be29705f3f06bd007c83708f9a97679%40%3Cissues.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/rd6254837403e8cbfc7018baa9be29705f3f06bd007c83708f9a97679@%3Cissues.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/rd7805c1bf9388968508c6c8f84588773216e560055ddcc813d19f347%40%3Ccommon-issues.hadoop.apache.org%3E",
             "https://lists.apache.org/thread.html/rd7805c1bf9388968508c6c8f84588773216e560055ddcc813d19f347@%3Ccommon-issues.hadoop.apache.org%3E",
+            "https://lists.apache.org/thread.html/rd882ab6b642fe59cbbe94dc02bd197342058208f482e57b537940a4b%40%3Cpluto-dev.portals.apache.org%3E",
             "https://lists.apache.org/thread.html/rd882ab6b642fe59cbbe94dc02bd197342058208f482e57b537940a4b@%3Cpluto-dev.portals.apache.org%3E",
+            "https://lists.apache.org/thread.html/rda4849c6823dd3e83c7a356eb883180811d5c28359fe46865fd151c3%40%3Cusers.kafka.apache.org%3E",
             "https://lists.apache.org/thread.html/rda4849c6823dd3e83c7a356eb883180811d5c28359fe46865fd151c3@%3Cusers.kafka.apache.org%3E",
+            "https://lists.apache.org/thread.html/rdb7ddf28807e27c7801f6e56a0dfb31092d34c61bdd4fa2de9182119%40%3Cissues.bookkeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/rdb7ddf28807e27c7801f6e56a0dfb31092d34c61bdd4fa2de9182119@%3Cissues.bookkeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/rdec0d8ac1f03e6905b0de2df1d5fcdb98b94556e4f6cccf7519fdb26%40%3Cdev.tika.apache.org%3E",
             "https://lists.apache.org/thread.html/rdec0d8ac1f03e6905b0de2df1d5fcdb98b94556e4f6cccf7519fdb26@%3Cdev.tika.apache.org%3E",
+            "https://lists.apache.org/thread.html/rdf2a0d94c3b5b523aeff7741ae71347415276062811b687f30ea6573%40%3Ccommits.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/rdf2a0d94c3b5b523aeff7741ae71347415276062811b687f30ea6573@%3Ccommits.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/re36da78e4f3955ba6c1c373a2ab85a4deb215ca74b85fcd66142fea1%40%3Cissues.bookkeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/re36da78e4f3955ba6c1c373a2ab85a4deb215ca74b85fcd66142fea1@%3Cissues.bookkeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/re8c21ed9dd218c217d242ffa90778428e446b082b5e1c29f567e8374%40%3Cissues.activemq.apache.org%3E",
             "https://lists.apache.org/thread.html/re8c21ed9dd218c217d242ffa90778428e446b082b5e1c29f567e8374@%3Cissues.activemq.apache.org%3E",
+            "https://lists.apache.org/thread.html/reaf6b996f74f12b4557bc221abe88f58270ac583942fa41293c61f94%40%3Cpluto-scm.portals.apache.org%3E",
             "https://lists.apache.org/thread.html/reaf6b996f74f12b4557bc221abe88f58270ac583942fa41293c61f94@%3Cpluto-scm.portals.apache.org%3E",
+            "https://lists.apache.org/thread.html/rec34b1cccf907898e7cb36051ffac3ccf1ea89d0b261a2a3b3fb267f%40%3Ccommits.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/rec34b1cccf907898e7cb36051ffac3ccf1ea89d0b261a2a3b3fb267f@%3Ccommits.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/rf1b434e11834a4449cd7addb69ed0aef0923112b5938182b363a968c%40%3Cnotifications.zookeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/rf1b434e11834a4449cd7addb69ed0aef0923112b5938182b363a968c@%3Cnotifications.zookeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/rf2567488cfc9212b42e34c6393cfa1c14e30e4838b98dda84d71041f%40%3Cdev.tika.apache.org%3E",
             "https://lists.apache.org/thread.html/rf2567488cfc9212b42e34c6393cfa1c14e30e4838b98dda84d71041f@%3Cdev.tika.apache.org%3E",
+            "https://lists.apache.org/thread.html/rf53eeefb7e7e524deaacb9f8671cbf01b8a253e865fb94e7656722c0%40%3Cissues.bookkeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/rf53eeefb7e7e524deaacb9f8671cbf01b8a253e865fb94e7656722c0@%3Cissues.bookkeeper.apache.org%3E",
+            "https://lists.apache.org/thread.html/rf77f79699c8d7e430c14cf480f12ed1297e6e8cf2ed379a425941e80%40%3Cpluto-dev.portals.apache.org%3E",
             "https://lists.apache.org/thread.html/rf77f79699c8d7e430c14cf480f12ed1297e6e8cf2ed379a425941e80@%3Cpluto-dev.portals.apache.org%3E",
+            "https://lists.apache.org/thread.html/rf9c19bcc2f7a98a880fa3e3456c003d331812b55836b34ef648063c9%40%3Cjira.kafka.apache.org%3E",
             "https://lists.apache.org/thread.html/rf9c19bcc2f7a98a880fa3e3456c003d331812b55836b34ef648063c9@%3Cjira.kafka.apache.org%3E",
+            "https://lists.apache.org/thread.html/rf9fa47ab66495c78bb4120b0754dd9531ca2ff0430f6685ac9b07772%40%3Cdev.mina.apache.org%3E",
             "https://lists.apache.org/thread.html/rf9fa47ab66495c78bb4120b0754dd9531ca2ff0430f6685ac9b07772@%3Cdev.mina.apache.org%3E",
+            "https://lists.apache.org/thread.html/rfdf65fa675c64a64459817344e0e6c44d51ee264beea6e5851fb60dc%40%3Cissues.bookkeeper.apache.org%3E",
             "https://lists.apache.org/thread.html/rfdf65fa675c64a64459817344e0e6c44d51ee264beea6e5851fb60dc@%3Cissues.bookkeeper.apache.org%3E",
             "https://lists.debian.org/debian-lts-announce/2020/01/msg00008.html",
             "https://nvd.nist.gov/vuln/detail/CVE-2019-17571",
-            "https://security.netapp.com/advisory/ntap-20200110-0001/",
-            "https://usn.ubuntu.com/4495-1/",
+            "https://security.netapp.com/advisory/ntap-20200110-0001",
+            "https://usn.ubuntu.com/4495-1",
             "https://www.debian.org/security/2020/dsa-4686",
             "https://www.oracle.com/security-alerts/cpuApr2021.html",
             "https://www.oracle.com/security-alerts/cpuapr2020.html",
@@ -6044,10 +6146,6 @@
             {
               "type": "advisory",
               "url": "https://lists.debian.org/debian-lts-announce/2020/01/msg00008.html"
-            },
-            {
-              "type": "advisory",
-              "url": "https://security.netapp.com/advisory/ntap-20200110-0001/"
             },
             {
               "type": "advisory",
@@ -6251,10 +6349,6 @@
             },
             {
               "type": "advisory",
-              "url": "https://usn.ubuntu.com/4495-1/"
-            },
-            {
-              "type": "advisory",
               "url": "https://lists.apache.org/thread.html/r5c084578b3e3b40bd903c9d9e525097421bcd88178e672f612102eb2@%3Cjira.kafka.apache.org%3E"
             },
             {
@@ -6388,6 +6482,422 @@
             {
               "type": "advisory",
               "url": "https://www.oracle.com/security-alerts/cpujul2022.html"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/ra9611a8431cb62369bce8909d7645597e1dd45c24b448836b1e54940%40%3Cissues.bookkeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/raedd12dc24412b3780432bf202a2618a21a727788543e5337a458ead%40%3Cissues.activemq.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rb1b29aee737e1c37fe1d48528cb0febac4f5deed51f5412e6fdfe2bf%40%3Cissues.activemq.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rb3c94619728c8f8c176d8e175e0a1086ca737ecdfcd5a2214bb768bc%40%3Ccommits.bookkeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rbc45eb0f53fd6242af3e666c2189464f848a851d408289840cecc6e3%40%3Ccommits.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rbd19de368abf0764e4383ec44d527bc9870176f488a494f09a40500d%40%3Ccommon-dev.hadoop.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rbdf18e39428b5c80fc35113470198b1fe53b287a76a46b0f8780b5fd%40%3Cdev.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rbf4ce74b0d1fa9810dec50ba3ace0caeea677af7c27a97111c06ccb7%40%3Cdev.kafka.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rbf4ce74b0d1fa9810dec50ba3ace0caeea677af7c27a97111c06ccb7%40%3Cusers.kafka.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rc17d8491beee51607693019857e41e769795366b85be00aa2f4b3159%40%3Cnotifications.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rc1eaed7f7d774d5d02f66e49baced31e04827a1293d61a70bd003ca7%40%3Cdev.tika.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rc628307962ae1b8cc2d21b8e4b7dd6d7755b2dd52fa56a151a27e4fd%40%3Cissues.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rca24a281000fb681d7e26e5c031a21eb4b0593a7735f781b53dae4e2%40%3Cdev.tika.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/reaf6b996f74f12b4557bc221abe88f58270ac583942fa41293c61f94%40%3Cpluto-scm.portals.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r1b7734dfdfd938640f2f5fb6f4231a267145c71ed60cc7faa1cbac07%40%3Ccommon-issues.hadoop.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r8d78a0fbb56d505461e29868d1026e98c402e6a568c13a6da67896a2%40%3Cdev.jena.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r8e3f7da12bf5750b0a02e69a78a61073a2ac950eed7451ce70a65177%40%3Ccommits.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r909b8e3a36913944d3b7bafe9635d4ca84f8f0e2cd146a1784f667c2%40%3Cissues.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r90c23eb8c82835fa82df85ae5e88c81fd9241e20a22971b0fb8f2c34%40%3Cissues.bookkeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r944183c871594fe9a555b8519a7c945bbcf6714d72461aa6c929028f%40%3Cissues.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r9a9e3b42cd5d1c4536a14ef04f75048dec8e2740ac6a138ea912177f%40%3Cpluto-dev.portals.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r9d0d03f2e7d9e13c68b530f81d02b0fec33133edcf27330d8089fcfb%40%3Cissues.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r9d2e28e71f91ba0b6f4114c8ecd96e2b1f7e0d06bdf8eb768c183aa9%40%3Ccommon-issues.hadoop.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r9dc2505651788ac668299774d9e7af4dc616be2f56fdc684d1170882%40%3Cusers.activemq.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r9fb3238cfc3222f2392ca6517353aadae18f76866157318ac562e706%40%3Ccommon-issues.hadoop.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/ra18a903f785aed9403aea38bc6f36844a056283c00dcfc6936b6318c%40%3Cissues.bookkeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/ra38785cfc0e7f17f8e24bebf775dd032c033fadcaea29e5bc9fffc60%40%3Cdev.tika.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/ra54fa49be3e773d99ccc9c2a422311cf77e3ecd3b8594ee93043a6b1%40%3Cdev.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rec34b1cccf907898e7cb36051ffac3ccf1ea89d0b261a2a3b3fb267f%40%3Ccommits.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rf1b434e11834a4449cd7addb69ed0aef0923112b5938182b363a968c%40%3Cnotifications.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rf2567488cfc9212b42e34c6393cfa1c14e30e4838b98dda84d71041f%40%3Cdev.tika.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rf53eeefb7e7e524deaacb9f8671cbf01b8a253e865fb94e7656722c0%40%3Cissues.bookkeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rf77f79699c8d7e430c14cf480f12ed1297e6e8cf2ed379a425941e80%40%3Cpluto-dev.portals.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rf9c19bcc2f7a98a880fa3e3456c003d331812b55836b34ef648063c9%40%3Cjira.kafka.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rf9fa47ab66495c78bb4120b0754dd9531ca2ff0430f6685ac9b07772%40%3Cdev.mina.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rfdf65fa675c64a64459817344e0e6c44d51ee264beea6e5851fb60dc%40%3Cissues.bookkeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://security.netapp.com/advisory/ntap-20200110-0001"
+            },
+            {
+              "type": "advisory",
+              "url": "https://usn.ubuntu.com/4495-1"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rcd71280585425dad7e232f239c5709e425efdd0d3de4a92f808a4767%40%3Cissues.bookkeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rd0e44e8ef71eeaaa3cf3d1b8b41eb25894372e2995ec908ce7624d26%40%3Ccommits.pulsar.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rd3a9511eebab60e23f224841390a3f8cd5358cff605c5f7042171e47%40%3Cdev.tinkerpop.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rd5dbeee4808c0f2b9b51479b50de3cc6adb1072c332a200d9107f13e%40%3Cissues.activemq.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rd6254837403e8cbfc7018baa9be29705f3f06bd007c83708f9a97679%40%3Cissues.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rd7805c1bf9388968508c6c8f84588773216e560055ddcc813d19f347%40%3Ccommon-issues.hadoop.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rd882ab6b642fe59cbbe94dc02bd197342058208f482e57b537940a4b%40%3Cpluto-dev.portals.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rda4849c6823dd3e83c7a356eb883180811d5c28359fe46865fd151c3%40%3Cusers.kafka.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rdb7ddf28807e27c7801f6e56a0dfb31092d34c61bdd4fa2de9182119%40%3Cissues.bookkeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rdec0d8ac1f03e6905b0de2df1d5fcdb98b94556e4f6cccf7519fdb26%40%3Cdev.tika.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/rdf2a0d94c3b5b523aeff7741ae71347415276062811b687f30ea6573%40%3Ccommits.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/re36da78e4f3955ba6c1c373a2ab85a4deb215ca74b85fcd66142fea1%40%3Cissues.bookkeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/re8c21ed9dd218c217d242ffa90778428e446b082b5e1c29f567e8374%40%3Cissues.activemq.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r26244f9f7d9a8a27a092eb0b2a0ca9395e88fcde8b5edaeca7ce569c%40%3Ccommon-issues.hadoop.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r2721aba31a8562639c4b937150897e24f78f747cdbda8641c0f659fe%40%3Cusers.kafka.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r2756fd570b6709d55a61831ca028405bcb3e312175a60bc5d911c81f%40%3Cjira.kafka.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r2ce8d26154bea939536e6cf27ed02d3192bf5c5d04df885a80fe89b3%40%3Cissues.activemq.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r2ff63f210842a3c5e42f03a35d8f3a345134d073c80a04077341c211%40%3Cissues.activemq.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r3543ead2317dcd3306f69ee37b07dd383dbba6e2f47ff11eb55879ad%40%3Cusers.activemq.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r356d57d6225f91fdc30f8b0a2bed229d1ece55e16e552878c5fa809a%40%3Cissues.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r3784834e80df2f284577a5596340fb84346c91a2dea6a073e65e3397%40%3Cissues.activemq.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r3a85514a518f3080ab1fc2652cfe122c2ccf67cfb32356acb1b08fe8%40%3Cdev.tika.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r3bf7b982dfa0779f8a71f843d2aa6b4184a53e6be7f149ee079387fd%40%3Cdev.kafka.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r3c575cabc7386e646fb12cb82b0b38ae5a6ade8a800f827107824495%40%3Cjira.kafka.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r3cf50d05ce8cec8c09392624b7bae750e7643dae60ef2438641ee015%40%3Cissues.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r3d666e4e8905157f3c046d31398b04f2bfd4519e31f266de108c6919%40%3Cissues.activemq.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/277b4b5c2b0e06a825ccec565fa65bd671f35a4d58e3e2ec5d0618e1%40%3Cdev.tika.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/44491fb9cc19acc901f7cff34acb7376619f15638439416e3e14761c%40%3Cdev.tika.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/479471e6debd608c837b9815b76eab24676657d4444fcfd5ef96d6e6%40%3Cdev.tika.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/564f03b4e9511fcba29c68fc0299372dadbdb002718fa8edcc4325e4%40%3Cjira.kafka.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/6114ce566200d76e3cc45c521a62c2c5a4eac15738248f58a99f622c%40%3Cissues.activemq.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/752ec92cd1e334a639e79bfbd689a4ec2c6579ec5bb41b53ffdf358d%40%3Cdev.kafka.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/8ab32b4c9f1826f20add7c40be08909de9f58a89dc1de9c09953f5ac%40%3Cissues.activemq.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r05755112a8c164abc1004bb44f198b1e3d8ca3d546a8f13ebd3aa05f%40%3Cissues.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r107c8737db39ec9ec4f4e7147b249e29be79170b9ef4b80528105a2d%40%3Cdev.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r13d4b5c60ff63f3c4fab51d6ff266655be503b8a1884e2f2fab67c3a%40%3Ccommon-issues.hadoop.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r189aaeaad897f7d6b96f7c43a8ef2dfb9f6e9f8c1cc9ad182ce9b9ae%40%3Cjira.kafka.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r18f1c010b554a3a2d761e8ffffd8674fd4747bcbcf16c643d708318c%40%3Cissues.activemq.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r1b103833cb5bc8466e24ff0ecc5e75b45a705334ab6a444e64e840a0%40%3Cissues.bookkeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r6aec6b8f70167fa325fb98b3b5c9ce0ffaed026e697b69b85ac24628%40%3Cissues.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r6b45a2fcc8e98ac93a179183dbb7f340027bdb8e3ab393418076b153%40%3Ccommon-issues.hadoop.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r6d34da5a0ca17ab08179a30c971446c7421af0e96f6d60867eabfc52%40%3Cissues.bookkeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r71e26f9c2d5826c6f95ad60f7d052d75e1e70b0d2dd853db6fc26d5f%40%3Cjira.kafka.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r746fbc3fc13aee292ae6851f7a5080f592fa3a67b983c6887cdb1fc5%40%3Cdev.tika.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r7a1acc95373105169bd44df710c2f462cad31fb805364d2958a5ee03%40%3Cjira.kafka.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r7bcdc710857725c311b856c0b82cee6207178af5dcde1bd43d289826%40%3Cissues.activemq.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r7f462c69d5ded4c0223e014d95a3496690423c5f6f05c09e2f2a407a%40%3Cjira.kafka.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r8244fd0831db894d5e89911ded9c72196d395a90ae655414d23ed0dd%40%3Cusers.activemq.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r8418a0dff1729f19cf1024937e23a2db4c0f94f2794a423f5c10e8e7%40%3Cissues.bookkeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r8890b8f18f1de821595792b58b968a89692a255bc20d86d395270740%40%3Ccommits.druid.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r8a1cfd4705258c106e488091fcec85f194c82f2bbde6bd151e201870%40%3Cjira.kafka.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r8c392ca48bb7e50754e4bc05865e9731b23d568d18a520fe3d8c1f75%40%3Ccommon-issues.hadoop.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r8c6300245c0bcef095e9f07b48157e2c6471df0816db3408fcf1d748%40%3Ccommon-issues.hadoop.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r48d5019bd42e0770f7e5351e420a63a41ff1f16924942442c6aff6a8%40%3Ccommits.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r48efc7cb5aeb4e1f67aaa06fb4b5479a5635d12f07d0b93fc2d08809%40%3Ccommits.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r4ac89cbecd9e298ae9fafb5afda6fa77ac75c78d1ac957837e066c4e%40%3Cuser.zookeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r4b25538be50126194cc646836c718b1a4d8f71bd9c912af5b59134ad%40%3Cdev.tika.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r52a5129df402352adc34d052bab9234c8ef63596306506a89fdc7328%40%3Cusers.activemq.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r594411f4bddebaf48a4c70266d0b7849e0d82bb72826f61b3a35bba7%40%3Cissues.bookkeeper.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r5c084578b3e3b40bd903c9d9e525097421bcd88178e672f612102eb2%40%3Cjira.kafka.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r61590890edcc64140e0c606954b29a063c3d08a2b41d447256d51a78%40%3Cissues.activemq.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r61db8e7dcb56dc000a5387a88f7a473bacec5ee01b9ff3f55308aacc%40%3Cdev.kafka.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r61db8e7dcb56dc000a5387a88f7a473bacec5ee01b9ff3f55308aacc%40%3Cusers.kafka.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r6236b5f8646d48af8b66d5050f288304016840788e508c883356fe0e%40%3Clog4j-user.logging.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r681b4432d0605f327b68b9f8a42662993e699d04614de4851c35ffd1%40%3Cdev.tika.apache.org%3E"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.apache.org/thread.html/r696507338dd5f44efc23d98cafe30f217cf3ba78e77ed1324c7a5179%40%3Cjira.kafka.apache.org%3E"
             }
           ],
           "risk_score": 26.791880000000003,
@@ -6427,9 +6937,9 @@
           "epss": [
             {
               "cve": "CVE-2022-23305",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.09452,
-              "percentile": 0.92966
+              "percentile": 0.93017
             }
           ],
           "fix_state": "not-fixed",
@@ -6525,9 +7035,9 @@
           "epss": [
             {
               "cve": "CVE-2022-23307",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.02603,
-              "percentile": 0.85904
+              "percentile": 0.85998
             }
           ],
           "fix_state": "not-fixed",
@@ -6613,9 +7123,9 @@
           "epss": [
             {
               "cve": "CVE-2021-4104",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.72202,
-              "percentile": 0.98773
+              "percentile": 0.98783
             }
           ],
           "fix_state": "not-fixed",
@@ -6751,9 +7261,9 @@
           "epss": [
             {
               "cve": "CVE-2023-26464",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00125,
-              "percentile": 0.31243
+              "percentile": 0.31507
             }
           ],
           "fix_available": [
@@ -6841,9 +7351,9 @@
           "epss": [
             {
               "cve": "CVE-2022-23302",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00785,
-              "percentile": 0.74148
+              "percentile": 0.74308
             }
           ],
           "fix_state": "not-fixed",
@@ -6959,9 +7469,9 @@
           "epss": [
             {
               "cve": "CVE-2018-15531",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.22432,
-              "percentile": 0.95947
+              "percentile": 0.95978
             }
           ],
           "fix_available": [
@@ -7042,6 +7552,14 @@
           ],
           "data_source": "https://github.com/advisories/GHSA-cqhr-jqvc-qw9p",
           "description": "Java Melody vulnerable to cross-site scripting",
+          "epss": [
+            {
+              "cve": "CVE-2016-1000273",
+              "date": "2026-06-14",
+              "epss": 0.0227,
+              "percentile": 0.85057
+            }
+          ],
           "fix_available": [
             {
               "date": "2022-07-21",
@@ -7085,6 +7603,7 @@
               "url": "https://github.com/javamelody/javamelody/wiki/ReleaseNotes#1620"
             }
           ],
+          "risk_score": 2.1565000000000003,
           "severity": "critical",
           "severity_source": "github:language:java",
           "source": "grype",
@@ -7115,9 +7634,9 @@
           "epss": [
             {
               "cve": "CVE-2018-12432",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.0024,
-              "percentile": 0.47451
+              "percentile": 0.47664
             }
           ],
           "fix_available": [
@@ -7255,9 +7774,9 @@
           "epss": [
             {
               "cve": "CVE-2025-66566",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00066,
-              "percentile": 0.20586
+              "percentile": 0.20832
             }
           ],
           "fix_state": "not-fixed",
@@ -7327,9 +7846,9 @@
           "epss": [
             {
               "cve": "CVE-2025-12183",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00103,
-              "percentile": 0.27752
+              "percentile": 0.28003
             }
           ],
           "fix_state": "not-fixed",
@@ -7455,9 +7974,9 @@
           "epss": [
             {
               "cve": "CVE-2025-48924",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00099,
-              "percentile": 0.27053
+              "percentile": 0.27301
             }
           ],
           "fix_available": [
@@ -7610,9 +8129,9 @@
           "epss": [
             {
               "cve": "CVE-2025-58782",
-              "date": "2026-06-08",
-              "epss": 0.00579,
-              "percentile": 0.69265
+              "date": "2026-06-14",
+              "epss": 0.00426,
+              "percentile": 0.62828
             }
           ],
           "fix_available": [
@@ -7673,7 +8192,7 @@
               "url": "http://www.openwall.com/lists/oss-security/2025/09/06/3"
             }
           ],
-          "risk_score": 0.33292499999999997,
+          "risk_score": 0.24494999999999997,
           "severity": "medium",
           "severity_source": "github:language:java",
           "source": "grype",
@@ -7735,9 +8254,9 @@
           "epss": [
             {
               "cve": "CVE-2025-27819",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00897,
-              "percentile": 0.76006
+              "percentile": 0.76154
             }
           ],
           "fix_state": "not-fixed",
@@ -7831,9 +8350,9 @@
           "epss": [
             {
               "cve": "CVE-2013-4517",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.08392,
-              "percentile": 0.92465
+              "percentile": 0.92531
             }
           ],
           "fix_available": [
@@ -7986,9 +8505,9 @@
           "epss": [
             {
               "cve": "CVE-2013-5823",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.05761,
-              "percentile": 0.90635
+              "percentile": 0.90705
             }
           ],
           "fix_available": [
@@ -8117,9 +8636,9 @@
           "epss": [
             {
               "cve": "CVE-2021-40690",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00413,
-              "percentile": 0.61871
+              "percentile": 0.6206
             }
           ],
           "fix_available": [
@@ -8255,9 +8774,9 @@
           "epss": [
             {
               "cve": "CVE-2013-2172",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.03643,
-              "percentile": 0.88085
+              "percentile": 0.88164
             }
           ],
           "fix_available": [
@@ -8460,9 +8979,9 @@
           "epss": [
             {
               "cve": "CVE-2023-44483",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00173,
-              "percentile": 0.38513
+              "percentile": 0.38758
             }
           ],
           "fix_available": [
@@ -8579,9 +9098,9 @@
           "epss": [
             {
               "cve": "CVE-2013-2254",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00992,
-              "percentile": 0.77272
+              "percentile": 0.77411
             }
           ],
           "fix_available": [
@@ -8674,9 +9193,9 @@
           "epss": [
             {
               "cve": "CVE-2022-32549",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.02862,
-              "percentile": 0.8653
+              "percentile": 0.86625
             }
           ],
           "fix_state": "not-fixed",
@@ -8734,9 +9253,9 @@
           "epss": [
             {
               "cve": "CVE-2015-2944",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.02866,
-              "percentile": 0.86535
+              "percentile": 0.86631
             }
           ],
           "fix_available": [
@@ -8889,9 +9408,9 @@
           "epss": [
             {
               "cve": "CVE-2022-45064",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.05094,
-              "percentile": 0.89998
+              "percentile": 0.9007
             }
           ],
           "fix_available": [
@@ -9019,9 +9538,9 @@
           "epss": [
             {
               "cve": "CVE-2023-50164",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.93657,
-              "percentile": 0.99851
+              "percentile": 0.99853
             }
           ],
           "fix_available": [
@@ -9138,9 +9657,9 @@
           "epss": [
             {
               "cve": "CVE-2024-53677",
-              "date": "2026-06-08",
-              "epss": 0.93188,
-              "percentile": 0.99808
+              "date": "2026-06-14",
+              "epss": 0.93161,
+              "percentile": 0.99807
             }
           ],
           "fix_available": [
@@ -9216,7 +9735,7 @@
               "url": "https://www.dynatrace.com/news/blog/the-anatomy-of-broken-apache-struts-2-a-technical-deep-dive-into-cve-2024-53677"
             }
           ],
-          "risk_score": 86.89781,
+          "risk_score": 86.87263250000001,
           "severity": "critical",
           "severity_source": "github:language:java",
           "source": "grype",
@@ -9247,9 +9766,9 @@
           "epss": [
             {
               "cve": "CVE-2023-34396",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00123,
-              "percentile": 0.30897
+              "percentile": 0.31154
             }
           ],
           "fix_available": [
@@ -9357,9 +9876,9 @@
           "epss": [
             {
               "cve": "CVE-2023-41835",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00224,
-              "percentile": 0.45164
+              "percentile": 0.45382
             }
           ],
           "fix_available": [
@@ -9466,9 +9985,9 @@
           "epss": [
             {
               "cve": "CVE-2016-8738",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01107,
-              "percentile": 0.78466
+              "percentile": 0.78603
             }
           ],
           "fix_available": [
@@ -9555,9 +10074,9 @@
           "epss": [
             {
               "cve": "CVE-2023-34149",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00066,
-              "percentile": 0.20711
+              "percentile": 0.20953
             }
           ],
           "fix_available": [
@@ -9659,9 +10178,9 @@
           "epss": [
             {
               "cve": "CVE-2012-1592",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00588,
-              "percentile": 0.69538
+              "percentile": 0.69717
             }
           ],
           "fix_available": [
@@ -9803,9 +10322,9 @@
           "epss": [
             {
               "cve": "CVE-2019-0233",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.0778,
-              "percentile": 0.92115
+              "percentile": 0.92182
             }
           ],
           "fix_available": [
@@ -9894,9 +10413,9 @@
           "epss": [
             {
               "cve": "CVE-2018-11776",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.94431,
-              "percentile": 0.99987
+              "percentile": 0.99986
             }
           ],
           "fix_available": [
@@ -10117,7 +10636,7 @@
           "epss": [
             {
               "cve": "CVE-2020-17530",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.94373,
               "percentile": 0.99967
             }
@@ -10275,9 +10794,9 @@
           "epss": [
             {
               "cve": "CVE-2025-68493",
-              "date": "2026-06-08",
-              "epss": 0.00033,
-              "percentile": 0.10109
+              "date": "2026-06-14",
+              "epss": 0.00026,
+              "percentile": 0.07826
             }
           ],
           "fix_state": "not-fixed",
@@ -10316,7 +10835,7 @@
               "url": "http://www.openwall.com/lists/oss-security/2026/01/11/2"
             }
           ],
-          "risk_score": 0.025740000000000002,
+          "risk_score": 0.02028,
           "severity": "high",
           "severity_source": "github:language:java",
           "source": "grype",
@@ -10347,9 +10866,9 @@
           "epss": [
             {
               "cve": "CVE-2025-66675",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00201,
-              "percentile": 0.42113
+              "percentile": 0.42357
             }
           ],
           "fix_available": [
@@ -10442,9 +10961,9 @@
           "epss": [
             {
               "cve": "CVE-2021-31805",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.93788,
-              "percentile": 0.99865
+              "percentile": 0.99866
             }
           ],
           "fix_available": [
@@ -10536,9 +11055,9 @@
           "epss": [
             {
               "cve": "CVE-2019-0230",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.93849,
-              "percentile": 0.99876
+              "percentile": 0.99877
             }
           ],
           "fix_available": [
@@ -10655,9 +11174,9 @@
           "epss": [
             {
               "cve": "CVE-2017-9804",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.04618,
-              "percentile": 0.89467
+              "percentile": 0.89544
             }
           ],
           "fix_available": [
@@ -10769,9 +11288,9 @@
           "epss": [
             {
               "cve": "CVE-2016-4465",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.10357,
-              "percentile": 0.9334
+              "percentile": 0.93391
             }
           ],
           "fix_available": [
@@ -10878,9 +11397,9 @@
           "epss": [
             {
               "cve": "CVE-2025-64775",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00171,
-              "percentile": 0.38064
+              "percentile": 0.38311
             }
           ],
           "fix_state": "not-fixed",
@@ -10960,9 +11479,9 @@
           "epss": [
             {
               "cve": "CVE-2019-0201",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00212,
-              "percentile": 0.43742
+              "percentile": 0.43972
             }
           ],
           "fix_available": [
@@ -11134,9 +11653,9 @@
           "epss": [
             {
               "cve": "CVE-2023-44981",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00025,
-              "percentile": 0.07252
+              "percentile": 0.0734
             }
           ],
           "fix_available": [
@@ -11239,9 +11758,9 @@
           "epss": [
             {
               "cve": "CVE-2017-5637",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.17446,
-              "percentile": 0.95206
+              "percentile": 0.95241
             }
           ],
           "fix_available": [
@@ -11373,9 +11892,9 @@
           "epss": [
             {
               "cve": "CVE-2018-8012",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00582,
-              "percentile": 0.69361
+              "percentile": 0.69541
             }
           ],
           "fix_available": [
@@ -11576,9 +12095,9 @@
           "epss": [
             {
               "cve": "CVE-2021-3827",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00208,
-              "percentile": 0.43241
+              "percentile": 0.43483
             }
           ],
           "fix_available": [
@@ -11670,9 +12189,9 @@
           "epss": [
             {
               "cve": "CVE-2026-7307",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00059,
-              "percentile": 0.18614
+              "percentile": 0.18876
             }
           ],
           "fix_available": [
@@ -11789,9 +12308,9 @@
           "epss": [
             {
               "cve": "CVE-2026-2092",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00105,
-              "percentile": 0.28085
+              "percentile": 0.28328
             }
           ],
           "fix_available": [
@@ -11898,9 +12417,9 @@
           "epss": [
             {
               "cve": "CVE-2024-8698",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.82215,
-              "percentile": 0.99238
+              "percentile": 0.99242
             }
           ],
           "fix_available": [
@@ -12052,9 +12571,9 @@
           "epss": [
             {
               "cve": "CVE-2026-2575",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.0003,
-              "percentile": 0.091
+              "percentile": 0.09255
             }
           ],
           "fix_available": [
@@ -12165,9 +12684,9 @@
           "epss": [
             {
               "cve": "CVE-2015-0886",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.02478,
-              "percentile": 0.85568
+              "percentile": 0.85662
             }
           ],
           "fix_available": [
@@ -12412,9 +12931,9 @@
           "epss": [
             {
               "cve": "CVE-2022-22965",
-              "date": "2026-06-08",
-              "epss": 0.94428,
-              "percentile": 0.99985
+              "date": "2026-06-14",
+              "epss": 0.94439,
+              "percentile": 0.9999
             }
           ],
           "fix_available": [
@@ -12591,9 +13110,9 @@
           "epss": [
             {
               "cve": "CVE-2022-22970",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00164,
-              "percentile": 0.37071
+              "percentile": 0.37322
             }
           ],
           "fix_available": [
@@ -12701,9 +13220,9 @@
           "epss": [
             {
               "cve": "CVE-2024-38820",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01473,
-              "percentile": 0.81307
+              "percentile": 0.81422
             }
           ],
           "fix_state": "not-fixed",
@@ -12784,9 +13303,9 @@
           "epss": [
             {
               "cve": "CVE-2025-22233",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00083,
-              "percentile": 0.24193
+              "percentile": 0.24412
             }
           ],
           "fix_state": "not-fixed",
@@ -12867,9 +13386,9 @@
           "epss": [
             {
               "cve": "CVE-2022-22968",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.2051,
-              "percentile": 0.95681
+              "percentile": 0.9571
             }
           ],
           "fix_available": [
@@ -12969,9 +13488,9 @@
           "epss": [
             {
               "cve": "CVE-2018-1272",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.02166,
-              "percentile": 0.8463
+              "percentile": 0.84729
             }
           ],
           "fix_available": [
@@ -13104,9 +13623,9 @@
           "epss": [
             {
               "cve": "CVE-2016-5007",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00155,
-              "percentile": 0.35923
+              "percentile": 0.36181
             }
           ],
           "fix_available": [
@@ -13220,9 +13739,9 @@
           "epss": [
             {
               "cve": "CVE-2018-1271",
-              "date": "2026-06-08",
-              "epss": 0.90996,
-              "percentile": 0.99652
+              "date": "2026-06-14",
+              "epss": 0.90599,
+              "percentile": 0.99635
             }
           ],
           "fix_available": [
@@ -13359,7 +13878,7 @@
               "url": "https://github.com/spring-projects/spring-framework/commit/f59ea610dfcf55cd0b42f6dd76a9b3dab0218aaa"
             }
           ],
-          "risk_score": 49.59282,
+          "risk_score": 49.376455,
           "severity": "medium",
           "severity_source": "github:language:java",
           "source": "grype",
@@ -13390,9 +13909,9 @@
           "epss": [
             {
               "cve": "CVE-2015-5211",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01877,
-              "percentile": 0.83495
+              "percentile": 0.8361
             }
           ],
           "fix_available": [
@@ -13487,9 +14006,9 @@
           "epss": [
             {
               "cve": "CVE-2018-1257",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01176,
-              "percentile": 0.79076
+              "percentile": 0.79211
             }
           ],
           "fix_available": [
@@ -13620,9 +14139,9 @@
           "epss": [
             {
               "cve": "CVE-2014-3578",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.04358,
-              "percentile": 0.89147
+              "percentile": 0.89232
             }
           ],
           "fix_available": [
@@ -13771,9 +14290,9 @@
           "epss": [
             {
               "cve": "CVE-2022-22950",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.02461,
-              "percentile": 0.8553
+              "percentile": 0.85623
             }
           ],
           "fix_available": [
@@ -13876,9 +14395,9 @@
           "epss": [
             {
               "cve": "CVE-2023-20861",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00542,
-              "percentile": 0.68077
+              "percentile": 0.68249
             }
           ],
           "fix_available": [
@@ -13981,9 +14500,9 @@
           "epss": [
             {
               "cve": "CVE-2024-38808",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00809,
-              "percentile": 0.74579
+              "percentile": 0.74734
             }
           ],
           "fix_available": [
@@ -14088,9 +14607,9 @@
           "epss": [
             {
               "cve": "CVE-2023-20863",
-              "date": "2026-06-08",
-              "epss": 0.01066,
-              "percentile": 0.78047
+              "date": "2026-06-14",
+              "epss": 0.00926,
+              "percentile": 0.76572
             }
           ],
           "fix_available": [
@@ -14157,7 +14676,7 @@
               "url": "https://security.netapp.com/advisory/ntap-20240524-0015"
             }
           ],
-          "risk_score": 0.7994999999999999,
+          "risk_score": 0.6945,
           "severity": "high",
           "severity_source": "github:language:java",
           "source": "grype",
@@ -14198,9 +14717,9 @@
           "epss": [
             {
               "cve": "CVE-2024-38809",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.0014,
-              "percentile": 0.33847
+              "percentile": 0.3409
             }
           ],
           "fix_available": [
@@ -14304,9 +14823,9 @@
           "epss": [
             {
               "cve": "CVE-2024-22262",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.12634,
-              "percentile": 0.94108
+              "percentile": 0.94155
             }
           ],
           "fix_available": [
@@ -14394,9 +14913,9 @@
           "epss": [
             {
               "cve": "CVE-2024-38820",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01473,
-              "percentile": 0.81307
+              "percentile": 0.81422
             }
           ],
           "fix_state": "not-fixed",
@@ -14477,9 +14996,9 @@
           "epss": [
             {
               "cve": "CVE-2016-1000027",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.60417,
-              "percentile": 0.98315
+              "percentile": 0.98322
             }
           ],
           "fix_available": [
@@ -14627,9 +15146,9 @@
           "epss": [
             {
               "cve": "CVE-2015-3192",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01378,
-              "percentile": 0.80617
+              "percentile": 0.80736
             }
           ],
           "fix_available": [
@@ -14812,9 +15331,9 @@
           "epss": [
             {
               "cve": "CVE-2024-22243",
-              "date": "2026-06-08",
-              "epss": 0.60124,
-              "percentile": 0.98305
+              "date": "2026-06-14",
+              "epss": 0.59593,
+              "percentile": 0.98296
             }
           ],
           "fix_state": "not-fixed",
@@ -14864,7 +15383,7 @@
               "url": "http://seclists.org/fulldisclosure/2024/Sep/24"
             }
           ],
-          "risk_score": 46.89672,
+          "risk_score": 46.48254,
           "severity": "high",
           "severity_source": "github:language:java",
           "source": "grype",
@@ -14894,9 +15413,9 @@
           "epss": [
             {
               "cve": "CVE-2013-6429",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.38725,
-              "percentile": 0.97344
+              "percentile": 0.97363
             }
           ],
           "fix_available": [
@@ -15004,9 +15523,9 @@
           "epss": [
             {
               "cve": "CVE-2024-22259",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.56395,
-              "percentile": 0.98155
+              "percentile": 0.98164
             }
           ],
           "fix_available": [
@@ -15104,9 +15623,9 @@
           "epss": [
             {
               "cve": "CVE-2013-6430",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00315,
-              "percentile": 0.54927
+              "percentile": 0.55146
             }
           ],
           "fix_available": [
@@ -15225,9 +15744,9 @@
           "epss": [
             {
               "cve": "CVE-2023-43642",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00247,
-              "percentile": 0.48135
+              "percentile": 0.48348
             }
           ],
           "fix_available": [
@@ -15314,9 +15833,9 @@
           "epss": [
             {
               "cve": "CVE-2023-34454",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00667,
-              "percentile": 0.71668
+              "percentile": 0.71842
             }
           ],
           "fix_available": [
@@ -15413,9 +15932,9 @@
           "epss": [
             {
               "cve": "CVE-2023-34453",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.01503,
-              "percentile": 0.8151
+              "percentile": 0.81622
             }
           ],
           "fix_available": [
@@ -15513,9 +16032,9 @@
           "epss": [
             {
               "cve": "CVE-2023-34455",
-              "date": "2026-06-08",
+              "date": "2026-06-14",
               "epss": 0.00611,
-              "percentile": 0.70189
+              "percentile": 0.70371
             }
           ],
           "fix_available": [

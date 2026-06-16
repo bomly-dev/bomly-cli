@@ -63,7 +63,7 @@
             "pkg:deb/debian/libapt-pkg6.0@2.6.1?arch=amd64\u0026distro=debian-12\u0026upstream=apt",
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc",
             "pkg:deb/debian/libgcc-s1@12.2.0-14%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=gcc-12",
-            "pkg:deb/debian/libgnutls30@3.7.9-2%2Bdeb12u6?arch=amd64\u0026distro=debian-12\u0026upstream=gnutls28",
+            "pkg:deb/debian/libgnutls30@3.7.9-2%2Bdeb12u7?arch=amd64\u0026distro=debian-12\u0026upstream=gnutls28",
             "pkg:deb/debian/libseccomp2@2.5.4-1%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=libseccomp",
             "pkg:deb/debian/libstdc%2B%2B6@12.2.0-14%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=gcc-12",
             "pkg:deb/debian/libsystemd0@252.39-1~deb12u2?arch=amd64\u0026distro=debian-12\u0026upstream=systemd"
@@ -274,7 +274,7 @@
           "depends_on": [
             "pkg:deb/debian/libbz2-1.0@1.0.8-5%2Bb1?arch=amd64\u0026distro=debian-12\u0026upstream=bzip2%401.0.8-5",
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc",
-            "pkg:deb/debian/libgcrypt20@1.10.1-3?arch=amd64\u0026distro=debian-12",
+            "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1?arch=amd64\u0026distro=debian-12",
             "pkg:deb/debian/libgpg-error0@1.46-1?arch=amd64\u0026distro=debian-12\u0026upstream=libgpg-error",
             "pkg:deb/debian/zlib1g@1%3A1.2.13.dfsg-1?arch=amd64\u0026distro=debian-12\u0026upstream=zlib"
           ],
@@ -365,7 +365,7 @@
             "pkg:deb/debian/libbz2-1.0@1.0.8-5%2Bb1?arch=amd64\u0026distro=debian-12\u0026upstream=bzip2%401.0.8-5",
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc",
             "pkg:deb/debian/libgcc-s1@12.2.0-14%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=gcc-12",
-            "pkg:deb/debian/libgcrypt20@1.10.1-3?arch=amd64\u0026distro=debian-12",
+            "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1?arch=amd64\u0026distro=debian-12",
             "pkg:deb/debian/liblz4-1@1.9.4-1?arch=amd64\u0026distro=debian-12\u0026upstream=lz4",
             "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
             "pkg:deb/debian/libstdc%2B%2B6@12.2.0-14%2Bdeb12u1?arch=amd64\u0026distro=debian-12\u0026upstream=gcc-12",
@@ -867,7 +867,7 @@
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc",
             "pkg:deb/debian/libgpg-error0@1.46-1?arch=amd64\u0026distro=debian-12\u0026upstream=libgpg-error"
           ],
-          "id": "pkg:deb/debian/libgcrypt20@1.10.1-3?arch=amd64\u0026distro=debian-12",
+          "id": "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1?arch=amd64\u0026distro=debian-12",
           "licenses": [
             {
               "type": "concluded",
@@ -889,9 +889,9 @@
             }
           ],
           "name": "debian:libgcrypt20",
-          "package_ref": "pkg:deb/debian/libgcrypt20@1.10.1-3?arch=amd64\u0026distro=debian-12",
-          "purl": "pkg:deb/debian/libgcrypt20@1.10.1-3?arch=amd64\u0026distro=debian-12",
-          "version": "1.10.1-3"
+          "package_ref": "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1?arch=amd64\u0026distro=debian-12",
+          "purl": "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1?arch=amd64\u0026distro=debian-12",
+          "version": "1.10.1-3+deb12u1"
         },
         {
           "depends_on": [
@@ -960,7 +960,7 @@
             "pkg:deb/debian/libtasn1-6@4.19.0-2%2Bdeb12u1?arch=amd64\u0026distro=debian-12",
             "pkg:deb/debian/libunistring2@1.0-2?arch=amd64\u0026distro=debian-12\u0026upstream=libunistring"
           ],
-          "id": "pkg:deb/debian/libgnutls30@3.7.9-2%2Bdeb12u6?arch=amd64\u0026distro=debian-12\u0026upstream=gnutls28",
+          "id": "pkg:deb/debian/libgnutls30@3.7.9-2%2Bdeb12u7?arch=amd64\u0026distro=debian-12\u0026upstream=gnutls28",
           "licenses": [
             {
               "type": "concluded",
@@ -982,9 +982,9 @@
             }
           ],
           "name": "debian:libgnutls30",
-          "package_ref": "pkg:deb/debian/libgnutls30@3.7.9-2%2Bdeb12u6?arch=amd64\u0026distro=debian-12\u0026upstream=gnutls28",
-          "purl": "pkg:deb/debian/libgnutls30@3.7.9-2%2Bdeb12u6?arch=amd64\u0026distro=debian-12\u0026upstream=gnutls28",
-          "version": "3.7.9-2+deb12u6"
+          "package_ref": "pkg:deb/debian/libgnutls30@3.7.9-2%2Bdeb12u7?arch=amd64\u0026distro=debian-12\u0026upstream=gnutls28",
+          "purl": "pkg:deb/debian/libgnutls30@3.7.9-2%2Bdeb12u7?arch=amd64\u0026distro=debian-12\u0026upstream=gnutls28",
+          "version": "3.7.9-2+deb12u7"
         },
         {
           "depends_on": [
@@ -1973,7 +1973,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc",
             "pkg:deb/debian/libcap2@1%3A2.66-4%2Bdeb12u3%2Bb1?arch=amd64\u0026distro=debian-12\u0026upstream=libcap2%401%3A2.66-4%2Bdeb12u3",
-            "pkg:deb/debian/libgcrypt20@1.10.1-3?arch=amd64\u0026distro=debian-12",
+            "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1?arch=amd64\u0026distro=debian-12",
             "pkg:deb/debian/liblz4-1@1.9.4-1?arch=amd64\u0026distro=debian-12\u0026upstream=lz4",
             "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
             "pkg:deb/debian/libzstd1@1.5.4%2Bdfsg2-5?arch=amd64\u0026distro=debian-12\u0026upstream=libzstd"
@@ -3325,7 +3325,7 @@
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc",
             "pkg:deb/debian/libgpg-error0@1.46-1?arch=amd64\u0026distro=debian-12\u0026upstream=libgpg-error"
           ],
-          "id": "pkg:deb/debian/libgcrypt20@1.10.1-3?arch=amd64\u0026distro=debian-12",
+          "id": "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1?arch=amd64\u0026distro=debian-12",
           "licenses": [
             {
               "type": "concluded",
@@ -3347,9 +3347,9 @@
             }
           ],
           "name": "debian:libgcrypt20",
-          "package_ref": "pkg:deb/debian/libgcrypt20@1.10.1-3?arch=amd64\u0026distro=debian-12",
-          "purl": "pkg:deb/debian/libgcrypt20@1.10.1-3?arch=amd64\u0026distro=debian-12",
-          "version": "1.10.1-3"
+          "package_ref": "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1?arch=amd64\u0026distro=debian-12",
+          "purl": "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1?arch=amd64\u0026distro=debian-12",
+          "version": "1.10.1-3+deb12u1"
         },
         {
           "depends_on": [
@@ -3539,7 +3539,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc",
             "pkg:deb/debian/libcap2@1%3A2.66-4%2Bdeb12u3%2Bb1?arch=amd64\u0026distro=debian-12\u0026upstream=libcap2%401%3A2.66-4%2Bdeb12u3",
-            "pkg:deb/debian/libgcrypt20@1.10.1-3?arch=amd64\u0026distro=debian-12",
+            "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1?arch=amd64\u0026distro=debian-12",
             "pkg:deb/debian/liblz4-1@1.9.4-1?arch=amd64\u0026distro=debian-12\u0026upstream=lz4",
             "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
             "pkg:deb/debian/libzstd1@1.5.4%2Bdfsg2-5?arch=amd64\u0026distro=debian-12\u0026upstream=libzstd"
@@ -11424,7 +11424,7 @@
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc",
             "pkg:deb/debian/libgpg-error0@1.46-1?arch=amd64\u0026distro=debian-12\u0026upstream=libgpg-error"
           ],
-          "id": "pkg:deb/debian/libgcrypt20@1.10.1-3?arch=amd64\u0026distro=debian-12",
+          "id": "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1?arch=amd64\u0026distro=debian-12",
           "licenses": [
             {
               "type": "concluded",
@@ -11446,9 +11446,9 @@
             }
           ],
           "name": "debian:libgcrypt20",
-          "package_ref": "pkg:deb/debian/libgcrypt20@1.10.1-3?arch=amd64\u0026distro=debian-12",
-          "purl": "pkg:deb/debian/libgcrypt20@1.10.1-3?arch=amd64\u0026distro=debian-12",
-          "version": "1.10.1-3"
+          "package_ref": "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1?arch=amd64\u0026distro=debian-12",
+          "purl": "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1?arch=amd64\u0026distro=debian-12",
+          "version": "1.10.1-3+deb12u1"
         },
         {
           "depends_on": [
@@ -12006,7 +12006,7 @@
           "depends_on": [
             "pkg:deb/debian/libc6@2.36-9%2Bdeb12u14?arch=amd64\u0026distro=debian-12\u0026upstream=glibc",
             "pkg:deb/debian/libcap2@1%3A2.66-4%2Bdeb12u3%2Bb1?arch=amd64\u0026distro=debian-12\u0026upstream=libcap2%401%3A2.66-4%2Bdeb12u3",
-            "pkg:deb/debian/libgcrypt20@1.10.1-3?arch=amd64\u0026distro=debian-12",
+            "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1?arch=amd64\u0026distro=debian-12",
             "pkg:deb/debian/liblz4-1@1.9.4-1?arch=amd64\u0026distro=debian-12\u0026upstream=lz4",
             "pkg:deb/debian/liblzma5@5.4.1-1?arch=amd64\u0026distro=debian-12\u0026upstream=xz-utils",
             "pkg:deb/debian/libzstd1@1.5.4%2Bdfsg2-5?arch=amd64\u0026distro=debian-12\u0026upstream=libzstd"
@@ -14009,8 +14009,8 @@
         }
       ],
       "name": "libgcrypt20",
-      "purl": "pkg:deb/debian/libgcrypt20@1.10.1-3?arch=amd64\u0026distro=debian-12",
-      "version": "1.10.1-3",
+      "purl": "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1?arch=amd64\u0026distro=debian-12",
+      "version": "1.10.1-3+deb12u1",
       "vulnerabilities": []
     },
     {
@@ -14061,8 +14061,8 @@
         }
       ],
       "name": "libgnutls30",
-      "purl": "pkg:deb/debian/libgnutls30@3.7.9-2%2Bdeb12u6?arch=amd64\u0026distro=debian-12\u0026upstream=gnutls28",
-      "version": "3.7.9-2+deb12u6",
+      "purl": "pkg:deb/debian/libgnutls30@3.7.9-2%2Bdeb12u7?arch=amd64\u0026distro=debian-12\u0026upstream=gnutls28",
+      "version": "3.7.9-2+deb12u7",
       "vulnerabilities": []
     },
     {

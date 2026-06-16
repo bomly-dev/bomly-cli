@@ -28,9 +28,12 @@ const (
 	// matcherName labels this matcher in MatchResult.MatcherStats.
 	matcherName = "depsdev-license-matcher"
 
-	defaultAPIBase   = "https://api.deps.dev/v3alpha"
-	defaultCacheTTL  = 24 * time.Hour
-	maxBatchRequests = 5000
+	defaultAPIBase  = "https://api.deps.dev/v3alpha"
+	defaultCacheTTL = 24 * time.Hour
+
+	// deps.dev versionbatch currently returns at most 100 responses. Keeping
+	// request chunks at that size avoids silently dropping later package lookups.
+	maxBatchRequests = 100
 )
 
 // Config configures the deps.dev license matcher.

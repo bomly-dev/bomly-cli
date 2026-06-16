@@ -18,7 +18,7 @@
     "duration_ms": 0
   },
   "project": {
-    "ecosystem": "multiple",
+    "ecosystem": "other",
     "name": "\u003cnormalized\u003e",
     "package_manager": "multiple",
     "path": "\u003cnormalized\u003e",

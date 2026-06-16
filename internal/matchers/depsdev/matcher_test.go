@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -179,6 +180,69 @@ func TestCheckerMatch_DoesNotCacheEmptyAPIResponse(t *testing.T) {
 	}
 	if hits != 2 {
 		t.Fatalf("expected empty API response not to be cached; hits = %d, want 2", hits)
+	}
+}
+
+func TestCheckerMatch_ChunksVersionBatchRequests(t *testing.T) {
+	var batchSizes []int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request versionBatchRequest
+		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+			t.Fatalf("decode request: %v", err)
+		}
+		if len(request.Requests) > maxBatchRequests {
+			t.Fatalf("batch size = %d, want at most %d", len(request.Requests), maxBatchRequests)
+		}
+		batchSizes = append(batchSizes, len(request.Requests))
+
+		response := versionBatchResponse{Responses: make([]versionBatchResult, 0, len(request.Requests))}
+		for range request.Requests {
+			response.Responses = append(response.Responses, versionBatchResult{
+				Version: depsDevVersion{
+					LicenseDetails: []depsDevLicenseRef{{SPDX: "BSD-3-Clause", License: "BSD-3-Clause"}},
+				},
+			})
+		}
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			t.Fatalf("encode response: %v", err)
+		}
+	}))
+	defer server.Close()
+
+	checker, err := New(Config{
+		APIBase:  server.URL,
+		CacheDir: t.TempDir(),
+		Client:   server.Client(),
+	})
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
+
+	g := sdk.New()
+	for i := 0; i < maxBatchRequests+1; i++ {
+		name := "example.com/mod" + strconv.Itoa(i)
+		dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGo, Name: name, Version: "v1.0.0"}})
+		if err := g.AddNode(dep); err != nil {
+			t.Fatalf("add dependency %d: %v", i, err)
+		}
+	}
+
+	result, err := checker.Match(context.Background(), sdk.MatchRequest{Graph: g, Registry: sdk.NewPackageRegistry()})
+	if err != nil {
+		t.Fatalf("Match() error = %v", err)
+	}
+	if len(batchSizes) != 2 || batchSizes[0] != maxBatchRequests || batchSizes[1] != 1 {
+		t.Fatalf("batch sizes = %#v, want [%d 1]", batchSizes, maxBatchRequests)
+	}
+	if result.MatcherStats.MatchedPackages != maxBatchRequests+1 {
+		t.Fatalf("matched packages = %d, want %d", result.MatcherStats.MatchedPackages, maxBatchRequests+1)
+	}
+	for i := 0; i < maxBatchRequests+1; i++ {
+		purl := "pkg:golang/example.com/mod" + strconv.Itoa(i) + "@v1.0.0"
+		pkg, ok := result.Registry.Get(purl)
+		if !ok || len(pkg.LicenseValues()) != 1 || pkg.LicenseValues()[0] != "BSD-3-Clause" {
+			t.Fatalf("package %s was not enriched: %#v", purl, pkg)
+		}
 	}
 }
 

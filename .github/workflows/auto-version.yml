@@ -22,6 +22,7 @@ concurrency:
 jobs:
   bump-tag-and-release:
     runs-on: ubuntu-latest
+    environment: release
 
     steps:
       - name: Create release bot token

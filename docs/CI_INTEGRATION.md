@@ -2,7 +2,15 @@
 
 Drop-in recipes for running Bomly in CI. For Bomly's own CI configuration see [docs/development/CI.md](development/CI.md).
 
-The pattern is the same everywhere: install Bomly, run `bomly scan` with `--audit --fail-on <severity>`, upload the SBOM and SARIF artifacts. Exit code 2 fails the build on policy violation; see [Exit codes](EXIT_CODES.md).
+The pattern is the same everywhere: install Bomly, run `bomly scan` with `--audit --fail-on <severity>`, upload SBOM and SARIF artifacts, and let exit code 2 fail the build on policy violations. See [Exit codes](EXIT_CODES.md).
+
+## Install strategy
+
+Prefer package-manager installs where the runner image supports them. Otherwise use the verified install script or a pinned GitHub Release archive. Pin versions in CI rather than relying on `latest`.
+
+```bash
+curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
+```
 
 ## GitHub Actions
 
@@ -18,15 +26,14 @@ jobs:
   bomly:
     runs-on: ubuntu-latest
     permissions:
-      security-events: write   # for SARIF upload
+      security-events: write
       contents: read
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Bomly
         run: |
-          curl -sSfL https://github.com/bomly-dev/bomly-cli/releases/latest/download/bomly_linux_amd64.tar.gz \
-            | tar -xz -C /usr/local/bin bomly
+          curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
 
       - name: Scan
         run: |
@@ -64,9 +71,9 @@ jobs:
             --json > bomly-diff.json
 ```
 
-This fails only when the PR **introduces** a new high finding, ignoring pre-existing ones.
+This fails only when the PR introduces a new high finding, ignoring pre-existing ones.
 
-### Cache the matcher database
+### Cache matcher data
 
 ```yaml
       - name: Cache Bomly matcher data
@@ -77,11 +84,11 @@ This fails only when the PR **introduces** a new high finding, ignoring pre-exis
           restore-keys: bomly-${{ runner.os }}-
 ```
 
-Cuts cold-start enrichment time from minutes to seconds. Cache TTLs are listed in [Matchers](MATCHERS.md#cache); a 24h TTL means cache hits stay fresh for a day even if the cache key changes.
+Cuts cold-start enrichment time from minutes to seconds. Cache TTLs are listed in [Matchers](MATCHERS.md#cache).
 
-### Turnkey PR reviews with the Bomly Guard action
+### Turnkey PR reviews with Bomly Guard
 
-The recipes above call the CLI directly. For GitHub pull requests, the [**Bomly Guard action**](https://github.com/bomly-dev/bomly-guard) wraps the same `bomly diff --enrich --audit` flow into a single step: it installs the CLI, diffs the PR against its base, writes a Markdown job summary (and can post it as a PR comment when you opt in via `comment-summary-in-pr`), and uploads SARIF to the Security tab.
+The recipes above call the CLI directly. For GitHub pull requests, the [Bomly Guard action](https://github.com/bomly-dev/bomly-guard) wraps the same `bomly diff --enrich --audit` flow into a single step.
 
 ```yaml
 name: Bomly Guard
@@ -100,15 +107,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # full history so the base and head refs resolve
+          fetch-depth: 0
       - uses: bomly-dev/bomly-guard@v1
         with:
           fail-on: high
           deny-licenses: GPL-3.0-only
-          comment-summary-in-pr: on-failure   # opt in: comment only when the review fails
+          comment-summary-in-pr: on-failure
 ```
 
-The action's inputs map onto the CLI policy flags (`fail-on` → `--fail-on`, `deny-licenses` → `--deny-license`, `protected-packages` → `--protected-package`, and so on), so the policy you enforce locally is the policy it enforces on PRs. See [Bomly Guard](BOMLY_GUARD.md) for the full input and output reference. Bomly dogfoods this action — see the `Bomly Guard` workflow in [docs/development/CI.md](development/CI.md).
+The action's inputs map onto the CLI policy flags. See [Bomly Guard](BOMLY_GUARD.md) for the full input and output reference.
 
 ## GitLab CI
 
@@ -118,10 +125,11 @@ bomly:
   stage: test
   before_script:
     - apt-get update && apt-get install -y curl ca-certificates
-    - curl -sSfL https://github.com/bomly-dev/bomly-cli/releases/latest/download/bomly_linux_amd64.tar.gz | tar -xz -C /usr/local/bin bomly
+    - curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
   script:
-    - bomly scan --enrich --audit --fail-on high
-        -o spdx=sbom.spdx.json
+    - |
+      bomly scan --enrich --audit --fail-on high \
+        -o spdx=sbom.spdx.json \
         -o cyclonedx=sbom.cdx.json
   artifacts:
     when: always
@@ -140,9 +148,9 @@ bomly:
       - .cache/bomly
 ```
 
-GitLab natively renders CycloneDX SBOMs in the dependency-scanning panel via the `reports:cyclonedx` key. To point Bomly's cache at the GitLab cache, export `XDG_CACHE_HOME` or configure matcher-specific keys such as `matchers.osv.cache_dir` in `~/.bomly/config.yaml`.
+GitLab natively renders CycloneDX SBOMs through `reports:cyclonedx`. To point Bomly's cache at the GitLab cache, export `XDG_CACHE_HOME` or configure matcher-specific cache directories in `~/.bomly/config.yaml`.
 
-## Jenkins (declarative)
+## Jenkins
 
 ```groovy
 pipeline {
@@ -151,8 +159,8 @@ pipeline {
     stage('Bomly') {
       steps {
         sh '''
-          curl -sSfL https://github.com/bomly-dev/bomly-cli/releases/latest/download/bomly_linux_amd64.tar.gz | tar -xz bomly
-          ./bomly scan --enrich --audit --fail-on high \
+          curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
+          bomly scan --enrich --audit --fail-on high \
             --format sarif \
             -o spdx=sbom.spdx.json \
             -o cyclonedx=sbom.cdx.json \
@@ -170,14 +178,14 @@ pipeline {
 }
 ```
 
-`recordIssues` (Warnings Next Generation plugin) ingests SARIF and surfaces findings on the build page.
+`recordIssues` from the Warnings Next Generation plugin ingests SARIF and surfaces findings on the build page.
 
 ## Azure DevOps
 
 ```yaml
 steps:
 - script: |
-    curl -sSfL https://github.com/bomly-dev/bomly-cli/releases/latest/download/bomly_linux_amd64.tar.gz | tar -xz -C /usr/local/bin bomly
+    curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
     bomly scan --enrich --audit --fail-on high --format sarif > bomly.sarif
   displayName: 'Bomly scan'
 
@@ -188,7 +196,7 @@ steps:
     artifactName: bomly-sarif
 ```
 
-The free **SARIF SAST Scans Tab** extension renders results on the build page.
+The free SARIF SAST Scans Tab extension renders results on the build page.
 
 ## CircleCI
 
@@ -207,8 +215,8 @@ jobs:
       - run:
           name: Install and scan
           command: |
-            curl -sSfL https://github.com/bomly-dev/bomly-cli/releases/latest/download/bomly_linux_amd64.tar.gz | tar -xz -C /tmp bomly
-            /tmp/bomly scan --enrich --audit --fail-on high \
+            curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
+            bomly scan --enrich --audit --fail-on high \
               -o spdx=sbom.spdx.json \
               -o cyclonedx=sbom.cdx.json
       - save_cache:
@@ -241,15 +249,15 @@ Tune `--fail-on` to taste. `pre-push` keeps commits fast and only runs on push.
 
 ## Recommendations
 
-- **Pin the Bomly version** in CI. Use a tagged release URL, not `latest`.
-- **Cache `~/.bomly/cache`** across runs. Matcher TTLs make this safe.
-- **Always upload the SBOM** even when the scan fails. The SBOM is a release artifact in its own right.
-- **Use `bomly diff` on PRs** to avoid penalizing PRs for pre-existing findings.
-- **Pre-warm enrichment on `main`** with a scheduled nightly run so PR jobs start with a warm cache.
+- Pin the Bomly version in CI. Use a tagged release URL or package-manager version, not `latest`.
+- Cache `~/.bomly/cache` across runs. Matcher TTLs make this safe.
+- Always upload the SBOM even when the scan fails. The SBOM is a release artifact in its own right.
+- Use `bomly diff` on PRs to avoid penalizing PRs for pre-existing findings.
+- Pre-warm enrichment on `main` with a scheduled nightly run so PR jobs start with a warm cache.
 
 ## See also
 
-- [Exit codes](EXIT_CODES.md) — what each CI exit means
-- [Output formats](OUTPUT_FORMATS.md) — SARIF, JSON, SBOM details
-- [Auditors](AUDITORS.md) — `--fail-on`
-- [docs/development/CI.md](development/CI.md) — Bomly's own internal CI configuration (not for end users)
+- [Exit codes](EXIT_CODES.md) - what each CI exit means
+- [Output formats](OUTPUT_FORMATS.md) - SARIF, JSON, SBOM details
+- [Auditors](AUDITORS.md) - `--fail-on`
+- [docs/development/CI.md](development/CI.md) - Bomly's own internal CI configuration

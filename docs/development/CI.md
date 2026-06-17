@@ -14,7 +14,7 @@ Bomly uses GitHub Actions for validation, security analysis, smoke coverage, and
 | `Smoke`                | Merge queue, nightly schedule, manual dispatch | Slow end-to-end coverage against real repositories, SBOMs, and containers before merge, plus scheduled drift detection |
 | `Update Smoke Goldens` | Manual dispatch                                | Regenerate golden files on a chosen ref and open a PR when the changes are intentional                                 |
 | `Auto Version`         | Manual dispatch                                | Bump `cmd/bomly/main.go`, create a semver tag, and start the release workflow                                          |
-| `Release`              | Semver tags like `v1.2.3`, manual dispatch     | Cross-platform packaging, checksum generation, and draft GitHub prerelease publication                                 |
+| `Release`              | Semver tags like `v1.2.3`, manual dispatch     | GoReleaser packaging, checksums, Linux packages, package-manager manifests, and draft GitHub release publication |
 
 ## Required Checks
 
@@ -144,7 +144,7 @@ Bomly ships in two modes:
 | `bomly`      | Yes      | Full builtin binary with embedded Syft and Grype support         |
 | `bomly-lite` | No       | Alternate binary that shells out to `syft` and `grype` on `PATH` |
 
-The source tree now treats builtin mode as the default build. That means:
+The source tree treats builtin mode as the default build. That means:
 
 ```bash
 go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest
@@ -152,27 +152,36 @@ go install github.com/bomly-dev/bomly-cli/cmd/bomly@latest
 
 installs the full Bomly experience without extra tags.
 
-The lite build remains available for advanced users and releases packaging with:
+The lite build remains available for advanced users and release packaging with:
 
 ```bash
 go build -tags "bomly_external_syft,bomly_external_grype" -o bin/bomly-lite ./cmd/bomly
 ```
+
+Release packaging is driven by `.goreleaser.yaml`. The release workflow uses GoReleaser to create:
+
+- GitHub Release archives for `bomly` and `bomly-lite`.
+- `SHA256SUMS`.
+- Linux `.deb`, `.rpm`, `.apk`, and Arch Linux package artifacts for the full `bomly` binary.
+- Homebrew cask, Scoop, and WinGet manifest pull requests.
 
 ## Release Process
 
 1. Merge to `main`.
 2. When ready to publish, a maintainer runs the `Auto Version` workflow from `main` and chooses a `patch`, `minor`, or `major` bump.
 3. The `Auto Version` workflow updates `cmd/bomly/main.go`, commits the bump, creates a tag such as `v0.2.0`, and starts the `Release` workflow.
-4. The `Release` workflow reruns validation and then cross-compiles `bomly` and `bomly-lite`.
-5. The workflow packages archives for:
+4. The `Release` workflow reruns validation and runs GoReleaser.
+5. GoReleaser cross-compiles `bomly` and `bomly-lite`, packages archives for:
    - `linux/amd64`
    - `linux/arm64`
    - `darwin/amd64`
    - `darwin/arm64`
    - `windows/amd64`
    - `windows/arm64`
-6. The workflow generates `SHA256SUMS`.
-7. The workflow creates a **draft prerelease** in GitHub Releases and uploads all archives plus checksums.
+6. GoReleaser generates `SHA256SUMS` and Linux packages.
+7. GoReleaser creates a **draft release** in GitHub Releases and uploads archives, packages, and checksums.
+8. GoReleaser opens or updates package-manager manifest PRs for Homebrew, Scoop, and WinGet.
+9. After the draft release is published, the `Notify landing page (release lifecycle)` workflow dispatches the landing-page docs and changelog sync with the published timestamp.
 
 Version bump rules are chosen explicitly when running `Auto Version`:
 
@@ -190,6 +199,19 @@ Archive naming follows this pattern:
 - `bomly-lite_<version>_<os>_<arch>.tar.gz`
 - Windows uses `.zip` instead of `.tar.gz`
 
+Linux package artifacts follow the same `bomly_<version>_<os>_<arch>` prefix with package-manager-specific extensions.
+
+See [Release Checklist](RELEASE_CHECKLIST.md) before publishing a draft release.
+
+## Install Script Hosting
+
+The canonical install scripts live in this repository under `scripts/` so changes are reviewed with the CLI release workflow. The public URLs documented for users are:
+
+- `https://bomly.dev/install.sh`
+- `https://bomly.dev/install.ps1`
+
+The landing page should serve those files as static assets at the root paths above. Extend the existing release-lifecycle sync in `bomly-landing-page` to copy `scripts/install.sh` and `scripts/install.ps1` from this repo at the published tag. That keeps script content tied to reviewed CLI tags while giving users short, stable install URLs.
+
 ## Verification and Integrity
 
 Every release includes `SHA256SUMS` so consumers can verify downloaded assets locally.
@@ -204,4 +226,4 @@ sha256sum --check SHA256SUMS
 Get-FileHash .\bomly_v0.2.0_windows_amd64.zip -Algorithm SHA256
 ```
 
-GitHub-native artifact attestations are planned. The release workflow is structured so provenance attestation steps can be added after packaging and before release publication.
+GitHub-native artifact attestations and image signing are planned. The release workflow is structured so provenance attestation and cosign steps can be added after packaging and before release publication.

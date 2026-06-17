@@ -48,4 +48,5 @@ Generated from code. Treat as authoritative.
 For contributors and release engineers.
 
 - [CI](development/CI.md) — Bomly's own internal CI configuration
+- [Release Checklist](development/RELEASE_CHECKLIST.md) — maintainer checklist for publishing tagged releases
 - [Contributing](../CONTRIBUTING.md) — build setup, code conventions, release process

@@ -1,0 +1,219 @@
+version: 2
+
+project_name: bomly
+
+metadata:
+  mod_timestamp: "{{ .CommitTimestamp }}"
+
+before:
+  hooks:
+    - go mod download
+    - make licenses
+
+builds:
+  - id: bomly
+    main: ./cmd/bomly
+    binary: bomly
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+    mod_timestamp: "{{ .CommitTimestamp }}"
+
+  - id: bomly-lite
+    main: ./cmd/bomly
+    binary: bomly-lite
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -trimpath
+    tags:
+      - bomly_external_syft
+      - bomly_external_grype
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+    mod_timestamp: "{{ .CommitTimestamp }}"
+
+archives:
+  - id: bomly
+    ids:
+      - bomly
+    name_template: "bomly_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    files:
+      - LICENSE
+      - NOTICE
+      - src: licenses/**/*
+        dst: licenses
+
+  - id: bomly-lite
+    ids:
+      - bomly-lite
+    name_template: "bomly-lite_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    files:
+      - LICENSE
+      - NOTICE
+      - src: licenses/**/*
+        dst: licenses
+
+checksum:
+  name_template: "SHA256SUMS"
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+release:
+  github:
+    owner: bomly-dev
+    name: bomly-cli
+  draft: true
+  prerelease: auto
+  replace_existing_draft: true
+  header: |
+    Bomly release {{ .Tag }}
+
+    Assets in this draft release include full `bomly` archives, `bomly-lite` archives, Linux packages, package-manager manifests, and `SHA256SUMS`.
+
+    Each archive includes `LICENSE`, `NOTICE`, and a `licenses/` directory with third-party license texts.
+
+nfpms:
+  - id: bomly-linux-packages
+    ids:
+      - bomly
+    package_name: bomly
+    file_name_template: "bomly_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    vendor: Bomly
+    homepage: https://github.com/bomly-dev/bomly-cli
+    maintainer: Bomly Maintainers <maintainers@bomly.dev>
+    description: Free, open-source CLI for dependency intelligence.
+    license: Apache-2.0
+    bindir: /usr/bin
+    section: utils
+    priority: optional
+    formats:
+      - deb
+      - rpm
+      - apk
+      - archlinux
+    contents:
+      - src: LICENSE
+        dst: /usr/share/doc/bomly/LICENSE
+      - src: NOTICE
+        dst: /usr/share/doc/bomly/NOTICE
+
+homebrew_casks:
+  - name: bomly
+    ids:
+      - bomly
+    binaries:
+      - bomly
+    homepage: https://github.com/bomly-dev/bomly-cli
+    description: Free, open-source CLI for dependency intelligence.
+    license: Apache-2.0
+    directory: Casks
+    commit_msg_template: "Update Bomly CLI to {{ .Tag }}"
+    caveats: |
+      Bomly is installed as the `bomly` command.
+    repository:
+      owner: bomly-dev
+      name: homebrew-tap
+      branch: "bomly-{{ .Version }}"
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+      pull_request:
+        enabled: true
+        draft: false
+        base:
+          owner: bomly-dev
+          name: homebrew-tap
+          branch: main
+
+scoops:
+  - name: bomly
+    ids:
+      - bomly
+    homepage: https://github.com/bomly-dev/bomly-cli
+    description: Free, open-source CLI for dependency intelligence.
+    license: Apache-2.0
+    commit_msg_template: "Update Bomly CLI to {{ .Tag }}"
+    repository:
+      owner: bomly-dev
+      name: scoop-bucket
+      branch: "bomly-{{ .Version }}"
+      token: "{{ .Env.SCOOP_GITHUB_TOKEN }}"
+      pull_request:
+        enabled: true
+        draft: false
+        base:
+          owner: bomly-dev
+          name: scoop-bucket
+          branch: main
+
+winget:
+  - name: bomly
+    ids:
+      - bomly
+    publisher: Bomly
+    package_identifier: Bomly.BomlyCLI
+    package_name: Bomly CLI
+    short_description: Free, open-source CLI for dependency intelligence.
+    description: Bomly scans source trees, SBOMs, Git refs, and container images for dependency intelligence, vulnerability enrichment, policy evaluation, and automation-friendly reports.
+    license: Apache-2.0
+    homepage: https://github.com/bomly-dev/bomly-cli
+    publisher_url: https://github.com/bomly-dev
+    publisher_support_url: https://github.com/bomly-dev/bomly-cli/issues
+    license_url: https://github.com/bomly-dev/bomly-cli/blob/main/LICENSE
+    copyright: Copyright Bomly contributors
+    tags:
+      - cli
+      - security
+      - dependencies
+      - sbom
+      - vulnerability
+    commit_msg_template: "Update Bomly CLI to {{ .Tag }}"
+    repository:
+      owner: bomly-dev
+      name: winget-pkgs
+      branch: "bomly-{{ .Version }}"
+      token: "{{ .Env.WINGET_GITHUB_TOKEN }}"
+      pull_request:
+        enabled: true
+        draft: false
+        base:
+          owner: microsoft
+          name: winget-pkgs
+          branch: master

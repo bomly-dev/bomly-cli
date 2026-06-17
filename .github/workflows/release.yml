@@ -35,12 +35,13 @@ jobs:
       - name: Run go vet
         run: go vet ./...
 
-  create-release:
+  release:
     needs: validate
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 45
     permissions:
       contents: write
+      packages: write
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
@@ -53,7 +54,7 @@ jobs:
           cat > RELEASE_NOTES.md <<'EOF'
           Bomly release ${{ github.ref_name }}
 
-          Assets in this draft prerelease include:
+          Assets in this draft release include:
           - Full builtin `bomly` archives for Linux, macOS, and Windows
           - Alternate `bomly-lite` archives for users who prefer external Syft/Grype binaries
           - `SHA256SUMS` for release verification
@@ -63,34 +64,6 @@ jobs:
           GitHub-native artifact attestations are planned and will be added in a future release.
           EOF
 
-      - name: Create draft prerelease
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
-        run: |
-          if ! gh release view "${TAG}" >/dev/null 2>&1; then
-            gh release create "${TAG}" \
-              --title "Bomly ${TAG}" \
-              --notes-file RELEASE_NOTES.md \
-              --draft \
-              --prerelease
-          fi
-
-  build:
-    needs: create-release
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    permissions:
-      contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        goos: [linux, darwin, windows]
-        goarch: [amd64, arm64]
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v5
-
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
@@ -99,96 +72,27 @@ jobs:
           cache-dependency-path: |
             go.sum
 
-      - name: Generate third-party license notices
-        run: make licenses
+      - name: Mint package-manager token
+        uses: actions/create-github-app-token@v3
+        id: package-token
+        with:
+          client-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          owner: bomly-dev
+          repositories: |
+            homebrew-tap
+            scoop-bucket
+          permission-contents: write
+          permission-pull-requests: write
 
-      - name: Build archives
-        shell: bash
-        env:
-          VERSION: ${{ github.ref_name }}
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
-        run: |
-          set -euo pipefail
-
-          repo_root="${PWD}"
-          binary_version="${VERSION#v}"
-          mkdir -p dist
-
-          ext=""
-          archive_ext="tar.gz"
-          if [[ "${GOOS}" == "windows" ]]; then
-            ext=".exe"
-            archive_ext="zip"
-          fi
-
-          build_archive() {
-            local archive_base="$1"
-            local binary_name="$2"
-            local build_tags="$3"
-            local stage_dir
-            stage_dir="$(mktemp -d)"
-
-            if [[ -n "${build_tags}" ]]; then
-              GOOS="${GOOS}" GOARCH="${GOARCH}" CGO_ENABLED=0 go build \
-                -trimpath \
-                -tags "${build_tags}" \
-                -ldflags "-s -w -X main.version=${binary_version}" \
-                -o "${stage_dir}/${binary_name}${ext}" \
-                ./cmd/bomly
-            else
-              GOOS="${GOOS}" GOARCH="${GOARCH}" CGO_ENABLED=0 go build \
-                -trimpath \
-                -ldflags "-s -w -X main.version=${binary_version}" \
-                -o "${stage_dir}/${binary_name}${ext}" \
-                ./cmd/bomly
-            fi
-
-            cp -r "${repo_root}/licenses" "${stage_dir}/licenses"
-            cp "${repo_root}/LICENSE" "${stage_dir}/LICENSE"
-            cp "${repo_root}/NOTICE" "${stage_dir}/NOTICE"
-
-            local archive_path="dist/${archive_base}_${VERSION}_${GOOS}_${GOARCH}.${archive_ext}"
-            if [[ "${archive_ext}" == "zip" ]]; then
-              (
-                cd "${stage_dir}"
-                zip -qr "${repo_root}/${archive_path}" "${binary_name}${ext}" licenses/ LICENSE NOTICE
-              )
-            else
-              tar -C "${stage_dir}" -czf "${archive_path}" "${binary_name}${ext}" licenses/ LICENSE NOTICE
-            fi
-
-            rm -rf "${stage_dir}"
-          }
-
-          build_archive "bomly" "bomly" ""
-          build_archive "bomly-lite" "bomly-lite" "bomly_external_syft,bomly_external_grype"
-
-      - name: Upload archives to release
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          distribution: goreleaser
+          version: v2.16.0
+          args: release --clean --release-notes=RELEASE_NOTES.md
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
-        run: gh release upload "${TAG}" dist/* --clobber
-
-  checksums:
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: write
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v5
-
-      - name: Generate and upload checksums
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p dist
-          gh release download "${TAG}" --dir dist --pattern '*.tar.gz' --pattern '*.zip'
-          find dist -maxdepth 1 -type f | sort | xargs sha256sum > dist/SHA256SUMS
-          gh release upload "${TAG}" dist/SHA256SUMS --clobber
-
+          TAP_GITHUB_TOKEN: ${{ steps.package-token.outputs.token }}
+          SCOOP_GITHUB_TOKEN: ${{ steps.package-token.outputs.token }}
+          WINGET_GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}

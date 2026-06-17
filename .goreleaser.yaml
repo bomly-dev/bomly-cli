@@ -125,9 +125,9 @@ nfpms:
     package_name: bomly
     file_name_template: "bomly_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     vendor: Bomly
-    homepage: https://github.com/bomly-dev/bomly-cli
-    maintainer: Bomly Maintainers <maintainers@bomly.dev>
-    description: Free, open-source CLI for dependency intelligence.
+    homepage: https://bomly.dev/cli
+    maintainer: Bomly Maintainers <contact@bomly.dev>
+    description: Free, open-source CLI for dependency intelligence and SBOM analysis.
     license: Apache-2.0
     bindir: /usr/bin
     section: utils
@@ -149,8 +149,8 @@ homebrew_casks:
       - bomly
     binaries:
       - bomly
-    homepage: https://github.com/bomly-dev/bomly-cli
-    description: Free, open-source CLI for dependency intelligence.
+    homepage: https://bomly.dev/cli
+    description: Free, open-source CLI for dependency intelligence and SBOM analysis.
     license: Apache-2.0
     directory: Casks
     commit_msg_template: "Update Bomly CLI to {{ .Tag }}"
@@ -169,8 +169,8 @@ scoops:
   - name: bomly
     ids:
       - bomly
-    homepage: https://github.com/bomly-dev/bomly-cli
-    description: Free, open-source CLI for dependency intelligence.
+    homepage: https://bomly.dev/cli
+    description: Free, open-source CLI for dependency intelligence and SBOM analysis.
     license: Apache-2.0
     commit_msg_template: "Update Bomly CLI to {{ .Tag }}"
     repository:
@@ -189,10 +189,10 @@ winget:
     publisher: Bomly
     package_identifier: Bomly.BomlyCLI
     package_name: Bomly CLI
-    short_description: Free, open-source CLI for dependency intelligence.
-    description: Bomly scans source trees, SBOMs, Git refs, and container images for dependency intelligence, vulnerability enrichment, policy evaluation, and automation-friendly reports.
+    short_description: Free, open-source CLI for dependency intelligence and SBOM analysis.
+    description: Bomly is a free, open-source CLI that scans your projects, SBOMs, and container images, explains where each dependency came from, and surfaces vulnerability and license data when you ask for it.
     license: Apache-2.0
-    homepage: https://github.com/bomly-dev/bomly-cli
+    homepage: https://bomly.dev/cli
     publisher_url: https://github.com/bomly-dev
     publisher_support_url: https://github.com/bomly-dev/bomly-cli/issues
     license_url: https://github.com/bomly-dev/bomly-cli/blob/main/LICENSE

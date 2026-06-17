@@ -157,10 +157,6 @@ homebrew_casks:
       pull_request:
         enabled: true
         draft: false
-        base:
-          owner: bomly-dev
-          name: homebrew-tap
-          branch: main
 
 scoops:
   - name: bomly
@@ -178,10 +174,6 @@ scoops:
       pull_request:
         enabled: true
         draft: false
-        base:
-          owner: bomly-dev
-          name: scoop-bucket
-          branch: main
 
 winget:
   - name: bomly

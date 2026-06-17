@@ -30,7 +30,7 @@ Use this checklist when publishing a tagged Bomly CLI release.
 
 ## Verification
 
-Run the checks against the draft release tag before publishing:
+Run the checks against the draft release tag before publishing. Replace `VERSION` in the examples below with the actual release tag, such as `v0.2.0`.
 
 ```bash
 gh release download VERSION --pattern SHA256SUMS --pattern 'bomly_VERSION_linux_amd64.tar.gz'
@@ -44,7 +44,7 @@ docker run --rm ghcr.io/bomly-dev/bomly-cli:VERSION version
 docker run --rm bomly/bomly-cli:VERSION version
 ```
 
-If practical, verify package-manager installs in clean runners or VMs:
+If practical, verify package-manager installs in clean runners or VMs. The `bomly-dev/tap` Homebrew reference is managed by GoReleaser through `bomly-dev/homebrew-tap`; no manual tap registration is required during release.
 
 ```bash
 brew install --cask bomly-dev/tap/bomly

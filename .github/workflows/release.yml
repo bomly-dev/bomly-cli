@@ -51,7 +51,7 @@ jobs:
       - name: Write release notes
         shell: bash
         run: |
-          cat > RELEASE_NOTES.md <<'EOF'
+          cat > "$RUNNER_TEMP/RELEASE_NOTES.md" <<'EOF'
           Bomly release ${{ github.ref_name }}
 
           Assets in this draft release include:
@@ -90,7 +90,7 @@ jobs:
         with:
           distribution: goreleaser
           version: v2.16.0
-          args: release --clean --release-notes=RELEASE_NOTES.md
+          args: release --clean --release-notes=${{ runner.temp }}/RELEASE_NOTES.md
         env:
           GITHUB_TOKEN: ${{ github.token }}
           TAP_GITHUB_TOKEN: ${{ steps.package-token.outputs.token }}

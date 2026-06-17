@@ -1,12 +1,13 @@
-name: Notify landing page (docs yank)
+name: Notify landing page (release lifecycle)
 
-# When a GitHub Release is deleted or unpublished (a yank), tell
-# bomly-landing-page to remove that version's docs and drop it from the
-# version selector. The landing workflow opens a PR with the removal.
+# Dispatches to bomly-landing-page whenever a release is published (so docs and
+# changelog sync), or deleted/unpublished (so the version is yanked from the
+# version selector and changelog). Docs are synced at publish time rather than
+# at draft creation so the changelog script can find the release via the API.
 
 on:
   release:
-    types: [deleted, unpublished]
+    types: [published, deleted, unpublished]
 
 permissions:
   contents: read
@@ -28,7 +29,22 @@ jobs:
           repositories: bomly-landing-page
           permission-contents: write
 
-      - name: Trigger docs removal on landing page
+      - name: Trigger docs sync on landing page (published)
+        if: github.event.action == 'published'
+        env:
+          GH_TOKEN: ${{ steps.landing-token.outputs.token }}
+          TAG: ${{ github.event.release.tag_name }}
+          PUBLISHED_AT: ${{ github.event.release.published_at }}
+        run: |
+          set -euo pipefail
+          gh api repos/bomly-dev/bomly-landing-page/dispatches \
+            --method POST \
+            --input - <<EOF
+          {"event_type":"bomly-release","client_payload":{"version":"${TAG}","publishedAt":"${PUBLISHED_AT}"}}
+          EOF
+
+      - name: Trigger docs removal on landing page (yanked)
+        if: github.event.action == 'deleted' || github.event.action == 'unpublished'
         env:
           GH_TOKEN: ${{ steps.landing-token.outputs.token }}
           TAG: ${{ github.event.release.tag_name }}

@@ -184,7 +184,7 @@ GHCR (`ghcr.io/bomly-dev/bomly-cli`) is the canonical container registry. Docker
 6. GoReleaser generates `SHA256SUMS`, Linux packages, and multi-arch container images.
 7. GoReleaser creates a **draft release** in GitHub Releases and uploads archives, packages, and checksums.
 8. GoReleaser opens or updates package-manager manifest PRs for Homebrew, Scoop, and WinGet.
-9. The workflow notifies the landing page repo to sync docs for the new tag.
+9. After the draft release is published, the `Notify landing page (release lifecycle)` workflow dispatches the landing-page docs and changelog sync with the published timestamp.
 
 Version bump rules are chosen explicitly when running `Auto Version`:
 
@@ -210,7 +210,7 @@ Release publishing requires these secrets:
 - `TAP_GITHUB_TOKEN` for `bomly-dev/homebrew-tap`.
 - `SCOOP_GITHUB_TOKEN` for `bomly-dev/scoop-bucket`.
 - `WINGET_GITHUB_TOKEN` for the `bomly-dev/winget-pkgs` fork and PR into `microsoft/winget-pkgs`.
-- `RELEASE_BOT_CLIENT_ID` and `RELEASE_BOT_PRIVATE_KEY` for landing-page docs sync.
+- `RELEASE_BOT_CLIENT_ID` and `RELEASE_BOT_PRIVATE_KEY` for landing-page docs sync on release publish/delete/unpublish events.
 
 See [Release Checklist](RELEASE_CHECKLIST.md) before publishing a draft release.
 

@@ -72,6 +72,19 @@ jobs:
           cache-dependency-path: |
             go.sum
 
+      - name: Mint package-manager token
+        uses: actions/create-github-app-token@v3
+        id: package-token
+        with:
+          client-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          owner: bomly-dev
+          repositories: |
+            homebrew-tap
+            scoop-bucket
+          permission-contents: write
+          permission-pull-requests: write
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v7
         with:
@@ -80,6 +93,6 @@ jobs:
           args: release --clean --release-notes=RELEASE_NOTES.md
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
-          SCOOP_GITHUB_TOKEN: ${{ secrets.SCOOP_GITHUB_TOKEN }}
+          TAP_GITHUB_TOKEN: ${{ steps.package-token.outputs.token }}
+          SCOOP_GITHUB_TOKEN: ${{ steps.package-token.outputs.token }}
           WINGET_GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}

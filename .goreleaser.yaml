@@ -107,7 +107,7 @@ release:
   header: |
     Bomly release {{ .Tag }}
 
-    Assets in this draft release include full `bomly` archives, `bomly-lite` archives, Linux packages, container images, and `SHA256SUMS`.
+    Assets in this draft release include full `bomly` archives, `bomly-lite` archives, Linux packages, package-manager manifests, and `SHA256SUMS`.
 
     Each archive includes `LICENSE`, `NOTICE`, and a `licenses/` directory with third-party license texts.
 
@@ -135,41 +135,6 @@ nfpms:
         dst: /usr/share/doc/bomly/LICENSE
       - src: NOTICE
         dst: /usr/share/doc/bomly/NOTICE
-
-dockers_v2:
-  - id: bomly
-    ids:
-      - bomly
-    dockerfile: Dockerfile
-    images:
-      - ghcr.io/bomly-dev/bomly-cli
-      - docker.io/bomly/bomly-cli
-    tags:
-      - "{{ .Tag }}"
-      - "v{{ .Major }}"
-      - "v{{ .Major }}.{{ .Minor }}"
-      - "{{ .ShortCommit }}"
-      - "{{ if not .Prerelease }}latest{{ end }}"
-    platforms:
-      - linux/amd64
-      - linux/arm64
-    labels:
-      org.opencontainers.image.title: Bomly CLI
-      org.opencontainers.image.description: Free, open-source CLI for dependency intelligence.
-      org.opencontainers.image.source: https://github.com/bomly-dev/bomly-cli
-      org.opencontainers.image.url: https://github.com/bomly-dev/bomly-cli
-      org.opencontainers.image.licenses: Apache-2.0
-      org.opencontainers.image.version: "{{ .Version }}"
-      org.opencontainers.image.revision: "{{ .FullCommit }}"
-    annotations:
-      org.opencontainers.image.title: Bomly CLI
-      org.opencontainers.image.description: Free, open-source CLI for dependency intelligence.
-      org.opencontainers.image.source: https://github.com/bomly-dev/bomly-cli
-      org.opencontainers.image.url: https://github.com/bomly-dev/bomly-cli
-      org.opencontainers.image.licenses: Apache-2.0
-      org.opencontainers.image.version: "{{ .Version }}"
-      org.opencontainers.image.revision: "{{ .FullCommit }}"
-    sbom: true
 
 homebrew_casks:
   - name: bomly

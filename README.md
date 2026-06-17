@@ -32,7 +32,7 @@ curl -fsSL https://bomly.dev/install.sh | sh
 winget install Bomly.BomlyCLI
 ```
 
-Prebuilt archives, Linux packages, and container images are published from [GitHub Releases](https://github.com/bomly-dev/bomly-cli/releases). Images are available at `ghcr.io/bomly-dev/bomly-cli` and `bomly/bomly-cli`. Releases include `bomly` (full binary with builtin Syft and Grype) and `bomly-lite` (smaller binary that shells out to external `syft` and `grype`).
+Prebuilt archives and Linux packages are published from [GitHub Releases](https://github.com/bomly-dev/bomly-cli/releases). Releases include `bomly` (full binary with builtin Syft and Grype) and `bomly-lite` (smaller binary that shells out to external `syft` and `grype`).
 
 Verify the install:
 
@@ -40,7 +40,7 @@ Verify the install:
 bomly version
 ```
 
-For Docker, Linux packages, Scoop, Go install, checksums, pinned versions, upgrades, and uninstall instructions, see [Installation](docs/INSTALLATION.md).
+For Linux packages, Scoop, Go install, checksums, pinned versions, upgrades, and uninstall instructions, see [Installation](docs/INSTALLATION.md).
 
 ## Start With a Scan
 

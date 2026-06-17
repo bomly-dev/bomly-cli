@@ -2,21 +2,17 @@
 
 Drop-in recipes for running Bomly in CI. For Bomly's own CI configuration see [docs/development/CI.md](development/CI.md).
 
-The pattern is the same everywhere: install Bomly or run the container image, run `bomly scan` with `--audit --fail-on <severity>`, upload SBOM and SARIF artifacts, and let exit code 2 fail the build on policy violations. See [Exit codes](EXIT_CODES.md).
+The pattern is the same everywhere: install Bomly, run `bomly scan` with `--audit --fail-on <severity>`, upload SBOM and SARIF artifacts, and let exit code 2 fail the build on policy violations. See [Exit codes](EXIT_CODES.md).
 
-## Image or binary?
+## Install strategy
 
-Use the container image when your CI runner already has Docker available:
+Prefer package-manager installs where the runner image supports them. Otherwise use the verified install script or a pinned GitHub Release archive. Pin versions in CI rather than relying on `latest`.
 
 ```bash
-docker run --rm -v "$PWD:/work" -w /work ghcr.io/bomly-dev/bomly-cli:v0.14.2 scan --enrich --audit --fail-on high
+curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
 ```
 
-Use a package-manager or release archive install when the job should run Bomly directly on the runner. Pin versions in CI. GHCR is the canonical image registry; Docker Hub mirrors the same image as `bomly/bomly-cli` for convenience.
-
 ## GitHub Actions
-
-### Direct CLI install
 
 ```yaml
 name: Bomly
@@ -59,22 +55,6 @@ jobs:
         with:
           name: sbom
           path: sbom.*.json
-```
-
-### Container image
-
-```yaml
-      - name: Scan with Bomly container
-        run: |
-          docker run --rm \
-            -v "$PWD:/work" \
-            -w /work \
-            ghcr.io/bomly-dev/bomly-cli:v0.14.2 \
-            scan --enrich --audit --fail-on high \
-              --format sarif \
-              -o spdx=sbom.spdx.json \
-              -o cyclonedx=sbom.cdx.json \
-              > bomly.sarif
 ```
 
 `if: success() || failure()` ensures SARIF and SBOM uploads run even when the scan exits 2 on policy violation.
@@ -139,12 +119,13 @@ The action's inputs map onto the CLI policy flags. See [Bomly Guard](BOMLY_GUARD
 
 ## GitLab CI
 
-### Container image
-
 ```yaml
 bomly:
-  image: ghcr.io/bomly-dev/bomly-cli:v0.14.2
+  image: ubuntu:24.04
   stage: test
+  before_script:
+    - apt-get update && apt-get install -y curl ca-certificates
+    - curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
   script:
     - |
       bomly scan --enrich --audit --fail-on high \
@@ -167,40 +148,18 @@ bomly:
       - .cache/bomly
 ```
 
-### Direct CLI install
-
-```yaml
-bomly:
-  image: ubuntu:24.04
-  stage: test
-  before_script:
-    - apt-get update && apt-get install -y curl ca-certificates
-    - curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
-  script:
-    - |
-      bomly scan --enrich --audit --fail-on high \
-        -o spdx=sbom.spdx.json \
-        -o cyclonedx=sbom.cdx.json
-```
-
 GitLab natively renders CycloneDX SBOMs through `reports:cyclonedx`. To point Bomly's cache at the GitLab cache, export `XDG_CACHE_HOME` or configure matcher-specific cache directories in `~/.bomly/config.yaml`.
 
 ## Jenkins
 
-### Container image
-
 ```groovy
 pipeline {
-  agent {
-    docker {
-      image 'ghcr.io/bomly-dev/bomly-cli:v0.14.2'
-      args '-u root:root'
-    }
-  }
+  agent any
   stages {
     stage('Bomly') {
       steps {
         sh '''
+          curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
           bomly scan --enrich --audit --fail-on high \
             --format sarif \
             -o spdx=sbom.spdx.json \
@@ -219,39 +178,14 @@ pipeline {
 }
 ```
 
-### Direct CLI install
-
-```groovy
-pipeline {
-  agent any
-  stages {
-    stage('Bomly') {
-      steps {
-        sh '''
-          curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
-          bomly scan --enrich --audit --fail-on high \
-            --format sarif \
-            -o spdx=sbom.spdx.json \
-            -o cyclonedx=sbom.cdx.json \
-            > bomly.sarif
-        '''
-      }
-    }
-  }
-}
-```
-
 `recordIssues` from the Warnings Next Generation plugin ingests SARIF and surfaces findings on the build page.
 
 ## Azure DevOps
 
-### Container image
-
 ```yaml
-container: ghcr.io/bomly-dev/bomly-cli:v0.14.2
-
 steps:
 - script: |
+    curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
     bomly scan --enrich --audit --fail-on high --format sarif > bomly.sarif
   displayName: 'Bomly scan'
 
@@ -262,43 +196,9 @@ steps:
     artifactName: bomly-sarif
 ```
 
-### Direct CLI install
-
-```yaml
-steps:
-- script: |
-    curl -fsSL https://bomly.dev/install.sh | BOMLY_VERSION=v0.14.2 sh
-    bomly scan --enrich --audit --fail-on high --format sarif > bomly.sarif
-  displayName: 'Bomly scan'
-```
-
 The free SARIF SAST Scans Tab extension renders results on the build page.
 
 ## CircleCI
-
-### Container image
-
-```yaml
-version: 2.1
-jobs:
-  bomly:
-    docker:
-      - image: ghcr.io/bomly-dev/bomly-cli:v0.14.2
-    steps:
-      - checkout
-      - run:
-          name: Scan
-          command: |
-            bomly scan --enrich --audit --fail-on high \
-              -o spdx=sbom.spdx.json \
-              -o cyclonedx=sbom.cdx.json
-      - store_artifacts:
-          path: sbom.spdx.json
-      - store_artifacts:
-          path: sbom.cdx.json
-```
-
-### Direct CLI install
 
 ```yaml
 version: 2.1
@@ -349,8 +249,7 @@ Tune `--fail-on` to taste. `pre-push` keeps commits fast and only runs on push.
 
 ## Recommendations
 
-- Pin the Bomly version in CI. Use a tagged release URL or image tag, not `latest`.
-- Prefer `ghcr.io/bomly-dev/bomly-cli` for CI images. Docker Hub mirrors `bomly/bomly-cli`, but public pulls can be rate-limited.
+- Pin the Bomly version in CI. Use a tagged release URL or package-manager version, not `latest`.
 - Cache `~/.bomly/cache` across runs. Matcher TTLs make this safe.
 - Always upload the SBOM even when the scan fails. The SBOM is a release artifact in its own right.
 - Use `bomly diff` on PRs to avoid penalizing PRs for pre-existing findings.

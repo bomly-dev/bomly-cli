@@ -1,6 +1,6 @@
 # Installation
 
-Bomly ships as a release binary, package-manager entry, Linux package, and container image. Pick the method that matches how you normally manage developer tools.
+Bomly ships as a release binary, package-manager entry, and Linux package. Pick the method that matches how you normally manage developer tools.
 
 ## Quick install
 
@@ -125,23 +125,6 @@ sudo pacman -U bomly_VERSION_linux_amd64.pkg.tar.zst
 
 Use your package manager's normal remove command to uninstall, for example `sudo apt remove bomly` or `sudo rpm -e bomly`.
 
-### Containers
-
-Bomly publishes the same multi-arch image to GHCR and Docker Hub:
-
-```bash
-docker run --rm ghcr.io/bomly-dev/bomly-cli:latest version
-docker run --rm bomly/bomly-cli:latest version
-```
-
-Use GHCR as the canonical registry in CI:
-
-```bash
-docker run --rm -v "$PWD:/work" -w /work ghcr.io/bomly-dev/bomly-cli:v0.14.2 scan --enrich --audit
-```
-
-Docker Hub is mirrored for convenience and discoverability, but public pulls can be rate-limited by Docker Hub.
-
 ### GitHub Releases
 
 GitHub Releases remain the canonical distribution point for all release artifacts. Each release publishes:
@@ -226,7 +209,7 @@ Get-FileHash .\bomly_v0.14.2_windows_amd64.zip -Algorithm SHA256
 
 ## CI installation
 
-For pinned CI recipes, see [CI integration](CI_INTEGRATION.md). Prefer a package-manager or container image when your CI environment supports it. If you download archives directly, pin a specific tag rather than `latest`.
+For pinned CI recipes, see [CI integration](CI_INTEGRATION.md). Prefer a package-manager install when your CI environment supports it. If you download archives directly, pin a specific tag rather than `latest`.
 
 ## Upgrading
 

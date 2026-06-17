@@ -14,7 +14,7 @@ Bomly uses GitHub Actions for validation, security analysis, smoke coverage, and
 | `Smoke`                | Merge queue, nightly schedule, manual dispatch | Slow end-to-end coverage against real repositories, SBOMs, and containers before merge, plus scheduled drift detection |
 | `Update Smoke Goldens` | Manual dispatch                                | Regenerate golden files on a chosen ref and open a PR when the changes are intentional                                 |
 | `Auto Version`         | Manual dispatch                                | Bump `cmd/bomly/main.go`, create a semver tag, and start the release workflow                                          |
-| `Release`              | Semver tags like `v1.2.3`, manual dispatch     | GoReleaser packaging, checksums, Linux packages, container images, package-manager manifests, and draft GitHub release publication |
+| `Release`              | Semver tags like `v1.2.3`, manual dispatch     | GoReleaser packaging, checksums, Linux packages, package-manager manifests, and draft GitHub release publication |
 
 ## Required Checks
 
@@ -163,17 +163,14 @@ Release packaging is driven by `.goreleaser.yaml`. The release workflow uses GoR
 - GitHub Release archives for `bomly` and `bomly-lite`.
 - `SHA256SUMS`.
 - Linux `.deb`, `.rpm`, `.apk`, and Arch Linux package artifacts for the full `bomly` binary.
-- Multi-arch container images pushed to GHCR and Docker Hub.
 - Homebrew cask, Scoop, and WinGet manifest pull requests.
-
-GHCR (`ghcr.io/bomly-dev/bomly-cli`) is the canonical container registry. Docker Hub (`bomly/bomly-cli`) is a convenience mirror and may be subject to Docker Hub public pull-rate limits.
 
 ## Release Process
 
 1. Merge to `main`.
 2. When ready to publish, a maintainer runs the `Auto Version` workflow from `main` and chooses a `patch`, `minor`, or `major` bump.
 3. The `Auto Version` workflow updates `cmd/bomly/main.go`, commits the bump, creates a tag such as `v0.2.0`, and starts the `Release` workflow.
-4. The `Release` workflow reruns validation, sets up Docker Buildx, logs in to GHCR and Docker Hub, and runs GoReleaser.
+4. The `Release` workflow reruns validation and runs GoReleaser.
 5. GoReleaser cross-compiles `bomly` and `bomly-lite`, packages archives for:
    - `linux/amd64`
    - `linux/arm64`
@@ -181,7 +178,7 @@ GHCR (`ghcr.io/bomly-dev/bomly-cli`) is the canonical container registry. Docker
    - `darwin/arm64`
    - `windows/amd64`
    - `windows/arm64`
-6. GoReleaser generates `SHA256SUMS`, Linux packages, and multi-arch container images.
+6. GoReleaser generates `SHA256SUMS` and Linux packages.
 7. GoReleaser creates a **draft release** in GitHub Releases and uploads archives, packages, and checksums.
 8. GoReleaser opens or updates package-manager manifest PRs for Homebrew, Scoop, and WinGet.
 9. After the draft release is published, the `Notify landing page (release lifecycle)` workflow dispatches the landing-page docs and changelog sync with the published timestamp.
@@ -204,19 +201,20 @@ Archive naming follows this pattern:
 
 Linux package artifacts follow the same `bomly_<version>_<os>_<arch>` prefix with package-manager-specific extensions.
 
-Release publishing requires these secrets:
-
-- `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` for Docker Hub.
-- `TAP_GITHUB_TOKEN` for `bomly-dev/homebrew-tap`.
-- `SCOOP_GITHUB_TOKEN` for `bomly-dev/scoop-bucket`.
-- `WINGET_GITHUB_TOKEN` for the `bomly-dev/winget-pkgs` fork and PR into `microsoft/winget-pkgs`.
-- `RELEASE_BOT_CLIENT_ID` and `RELEASE_BOT_PRIVATE_KEY` for landing-page docs sync on release publish/delete/unpublish events.
-
 See [Release Checklist](RELEASE_CHECKLIST.md) before publishing a draft release.
+
+## Install Script Hosting
+
+The canonical install scripts live in this repository under `scripts/` so changes are reviewed with the CLI release workflow. The public URLs documented for users are:
+
+- `https://bomly.dev/install.sh`
+- `https://bomly.dev/install.ps1`
+
+The landing page should serve those files as static assets at the root paths above. Extend the existing release-lifecycle sync in `bomly-landing-page` to copy `scripts/install.sh` and `scripts/install.ps1` from this repo at the published tag. That keeps script content tied to reviewed CLI tags while giving users short, stable install URLs.
 
 ## Verification and Integrity
 
-Every release includes `SHA256SUMS` so consumers can verify downloaded assets locally. Container images are tagged as `vX.Y.Z`, `vX.Y`, `vX`, `latest` for stable releases, and the short commit SHA.
+Every release includes `SHA256SUMS` so consumers can verify downloaded assets locally.
 
 Examples:
 

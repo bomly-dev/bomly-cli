@@ -126,7 +126,7 @@ nfpms:
     file_name_template: "bomly_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     vendor: Bomly
     homepage: https://bomly.dev/cli
-    maintainer: Bomly Maintainers <contact@bomly.dev>
+    maintainer: Ahmed ElMallah <ahmed@bomly.dev>
     description: Free, open-source CLI for dependency intelligence and SBOM analysis.
     license: Apache-2.0
     bindir: /usr/bin

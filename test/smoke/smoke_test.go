@@ -141,7 +141,7 @@ func TestScan(t *testing.T) {
 			// line numbers, file paths, analyzed_at) via
 			// normalizeReachability.
 			name:  "scan-go-reachability",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-go-gomod", "--ref", "97f0e49268e11fda722e41e28176ce10f66bc491", "--enrich", "--analyze", "--format", "json"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-go-gomod", "--ref", "v1.0.0", "--enrich", "--analyze", "--format", "json"},
 			tools: []string{"go"},
 		},
 		{
@@ -154,7 +154,7 @@ func TestScan(t *testing.T) {
 			// of the analyzer. package-lock.json pins the graph. Goldens
 			// scrub timestamps via normalizeReachability.
 			name:  "scan-npm-reachability",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm", "--ref", "559a762aeef68b0e5c818f62dfba67abc369912f", "--enrich", "--analyze", "--format", "json"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm", "--ref", "v1.0.0", "--enrich", "--analyze", "--format", "json"},
 			tools: []string{"npm"},
 		},
 		{
@@ -186,7 +186,7 @@ func TestScan(t *testing.T) {
 			// unreachable branches plus the package-prefix map. Goldens
 			// scrub timestamps via normalizeReachability.
 			name:  "scan-java-maven-reachability",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-java-maven", "--ref", "93bb3aae614e2f2c6cb65f5ea2315846f5234150", "--enrich", "--analyze", "--format", "json"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-java-maven", "--ref", "v1.0.0", "--enrich", "--analyze", "--format", "json"},
 			tools: []string{"mvn"},
 		},
 		{
@@ -195,7 +195,7 @@ func TestScan(t *testing.T) {
 			// golden proves runtime-only filtering. package-lock.json pins
 			// the graph.
 			name:  "scan-npm-scope-runtime",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm", "--ref", "559a762aeef68b0e5c818f62dfba67abc369912f", "--format", "json", "--scope", "runtime"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm", "--ref", "v1.0.0", "--format", "json", "--scope", "runtime"},
 			tools: []string{"npm"},
 		},
 		{

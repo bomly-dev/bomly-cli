@@ -76,7 +76,7 @@ func TestLiteScan(t *testing.T) {
 	}{
 		{
 			name:  "lite-scan-go",
-			args:  []string{"scan", "--url", "https://github.com/google/uuid", "--ref", "v1.6.0", "--format", "json"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-go-gomod", "--ref", "v1.0.0", "--format", "json"},
 			tools: []string{"go"},
 		},
 		{
@@ -122,7 +122,7 @@ func TestLiteDiff(t *testing.T) {
 	}{
 		{
 			name:  "lite-diff-go",
-			args:  []string{"diff", "--url", "https://github.com/google/uuid", "--base", "v1.5.0", "--head", "v1.6.0", "--format", "json"},
+			args:  []string{"diff", "--url", "https://github.com/bomly-dev/example-go-gomod", "--base", "v0.9.0", "--head", "v1.0.0", "--format", "json"},
 			tools: []string{"go"},
 		},
 	}
@@ -160,7 +160,7 @@ func TestLiteExplain(t *testing.T) {
 	}{
 		{
 			name:  "lite-explain-go",
-			args:  []string{"explain", "github.com/google/uuid", "--url", "https://github.com/google/uuid", "--ref", "v1.6.0", "--format", "json"},
+			args:  []string{"explain", "golang.org/x/text", "--url", "https://github.com/bomly-dev/example-go-gomod", "--ref", "v1.0.0", "--format", "json"},
 			tools: []string{"go"},
 		},
 	}

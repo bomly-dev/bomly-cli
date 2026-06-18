@@ -1,0 +1,43 @@
+{
+    "_meta": {
+        "hash": {
+            "sha256": "fixturedoesnotvalidatehash"
+        },
+        "pipfile-spec": 6,
+        "requires": {
+            "python_version": "3.11"
+        },
+        "sources": [
+            {
+                "name": "pypi",
+                "url": "https://pypi.org/simple",
+                "verify_ssl": true
+            }
+        ]
+    },
+    "default": {
+        "certifi": {
+            "version": "==2024.8.30"
+        },
+        "charset-normalizer": {
+            "version": "==3.4.0"
+        },
+        "idna": {
+            "version": "==3.10"
+        },
+        "requests": {
+            "version": "==2.32.3"
+        },
+        "urllib3": {
+            "version": "==2.2.3"
+        }
+    },
+    "develop": {
+        "pluggy": {
+            "version": "==1.5.0"
+        },
+        "pytest": {
+            "version": "==8.3.3"
+        }
+    }
+}

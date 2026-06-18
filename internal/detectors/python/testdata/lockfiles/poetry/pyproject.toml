@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "demo-app"
+version = "1.0.0"
+description = "Lock-fixture project for the poetry detector"
+authors = ["Bomly <dev@bomly.dev>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+requests = "^2.32"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

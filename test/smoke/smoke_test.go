@@ -158,18 +158,20 @@ func TestScan(t *testing.T) {
 			tools: []string{"npm"},
 		},
 		{
-			// pyreach smoke pinned to veracode/example-python3-pip,
-			// a deliberately-vulnerable demo. main.py imports
-			// jwt / django / rsa / requests directly; requirements.txt
-			// pins ten more deps that are either unimported (feedparser,
-			// sgmllib3k) or reachable only transitively (urllib3, idna,
-			// chardet, certifi, pyasn1, pytz). Exercises the
-			// directly-imported, transitively-reachable, and
-			// unreachable branches plus the module-to-distribution
-			// override (jwt → pyjwt). Goldens scrub timestamps via
-			// normalizeReachability.
+			// pyreach smoke pinned to bomly-dev/example-python-pip, a
+			// deliberately-vulnerable demo. main.py imports
+			// jwt / django / rsa / requests directly; the committed
+			// requirements.lock pins the full transitive closure so the
+			// detector resolves a stable graph via the requirements.lock
+			// fast-path instead of inspecting the ambient environment.
+			// Exercises the directly-imported, transitively-reachable
+			// (urllib3, idna, chardet, certifi via requests; pyasn1 via
+			// rsa; pytz via django), and unimported (feedparser, sgmllib3k,
+			// jinja2, pyyaml, sqlalchemy) branches plus the
+			// module-to-distribution override (jwt → pyjwt). Goldens scrub
+			// timestamps via normalizeReachability.
 			name:  "scan-python-pip-reachability",
-			args:  []string{"scan", "--url", "https://github.com/veracode/example-python3-pip", "--ref", "e19d10938caf3e06730c23047ae118cd59638e41", "--enrich", "--analyze", "--format", "json"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-python-pip", "--ref", "fe04c758134b95dab102e1fce10275f7d18c0cf2", "--enrich", "--analyze", "--format", "json"},
 			tools: []string{"pip"},
 		},
 		{

@@ -53,4 +53,6 @@ scoop install bomly
 
 - Merge package-manager PRs after their generated manifests pass review.
 - Confirm the landing-page docs sync PR opened.
-- If a release must be pulled, mark the GitHub release as a prerelease or delete it, close package-manager PRs that reference the bad tag, and tag a replacement patch release when appropriate.
+- If a release must be pulled, delete or unpublish the GitHub Release to trigger the automatic yanking workflow.
+- Close Homebrew and Scoop package-manager PRs that reference the bad tag, then tag a replacement patch release when appropriate.
+- For WinGet, confirm the release lifecycle workflow either skipped cleanup because no version manifest existed or opened a removal PR against `microsoft/winget-pkgs`.

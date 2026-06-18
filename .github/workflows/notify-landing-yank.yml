@@ -1,9 +1,11 @@
-name: Notify landing page (release lifecycle)
+name: Release lifecycle sync
 
 # Dispatches to bomly-landing-page whenever a release is published (so docs and
 # changelog sync), or deleted/unpublished (so the version is yanked from the
-# version selector and changelog). Docs are synced at publish time rather than
-# at draft creation so the changelog script can find the release via the API.
+# version selector and changelog). Yanked releases also attempt to remove the
+# corresponding WinGet version manifest when it exists. Docs are synced at
+# publish time rather than at draft creation so the changelog script can find
+# the release via the API.
 
 on:
   release:
@@ -13,7 +15,7 @@ permissions:
   contents: read
 
 jobs:
-  notify:
+  landing-page:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -55,3 +57,86 @@ jobs:
             --input - <<EOF
           {"event_type":"bomly-release-yanked","client_payload":{"version":"${TAG}"}}
           EOF
+
+  winget-yank:
+    if: github.event.action == 'deleted' || github.event.action == 'unpublished'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out WinGet package manifests
+        uses: actions/checkout@v5
+        with:
+          repository: microsoft/winget-pkgs
+          ref: master
+          path: winget-pkgs
+          sparse-checkout: manifests/b/Bomly/BomlyCLI
+          sparse-checkout-cone-mode: false
+          fetch-depth: 1
+
+      - name: Remove yanked WinGet version manifest
+        id: winget-yank
+        working-directory: winget-pkgs
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+
+          VERSION="${TAG#v}"
+          MANIFEST_DIR="manifests/b/Bomly/BomlyCLI/${VERSION}"
+          BRANCH_VERSION="${VERSION//[^0-9A-Za-z._-]/-}"
+          BRANCH="yank-bomly-${BRANCH_VERSION}"
+
+          {
+            echo "version=${VERSION}"
+            echo "manifest_dir=${MANIFEST_DIR}"
+            echo "branch=${BRANCH}"
+          } >> "${GITHUB_OUTPUT}"
+
+          if [[ ! -d "${MANIFEST_DIR}" ]]; then
+            echo "No WinGet manifest exists for Bomly.BomlyCLI ${VERSION}; skipping removal."
+            echo "removed=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          git config user.name "bomly-release-bot"
+          git config user.email "release-bot@bomly.dev"
+          git checkout -b "${BRANCH}"
+          rm -rf "${MANIFEST_DIR}"
+          git add "manifests/b/Bomly/BomlyCLI"
+          git commit -m "Remove Bomly CLI ${VERSION}"
+
+          echo "removed=true" >> "${GITHUB_OUTPUT}"
+
+      - name: Push WinGet removal branch
+        if: steps.winget-yank.outputs.removed == 'true'
+        working-directory: winget-pkgs
+        env:
+          WINGET_GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
+          BRANCH: ${{ steps.winget-yank.outputs.branch }}
+        run: |
+          set -euo pipefail
+          git remote add bomly "https://x-access-token:${WINGET_GITHUB_TOKEN}@github.com/bomly-dev/winget-pkgs.git"
+          git fetch bomly "${BRANCH}:refs/remotes/bomly/${BRANCH}" || true
+          git push --force-with-lease bomly "HEAD:${BRANCH}"
+
+      - name: Open WinGet removal PR
+        if: steps.winget-yank.outputs.removed == 'true'
+        working-directory: winget-pkgs
+        env:
+          GH_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
+          VERSION: ${{ steps.winget-yank.outputs.version }}
+          BRANCH: ${{ steps.winget-yank.outputs.branch }}
+        run: |
+          set -euo pipefail
+
+          if gh pr view --repo microsoft/winget-pkgs --head "bomly-dev:${BRANCH}" >/dev/null 2>&1; then
+            echo "WinGet removal PR already exists for Bomly.BomlyCLI ${VERSION}."
+            exit 0
+          fi
+
+          gh pr create \
+            --repo microsoft/winget-pkgs \
+            --base master \
+            --head "bomly-dev:${BRANCH}" \
+            --title "Remove Bomly.BomlyCLI version ${VERSION}" \
+            --body "Remove the Bomly.BomlyCLI WinGet manifest for yanked release ${VERSION}."

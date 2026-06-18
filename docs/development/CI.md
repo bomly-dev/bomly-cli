@@ -181,9 +181,17 @@ Release packaging is driven by `.goreleaser.yaml`. The release workflow uses GoR
 6. GoReleaser generates `SHA256SUMS` and Linux packages.
 7. GoReleaser publishes the GitHub Release, using the configured GoReleaser header plus GitHub-native generated release notes, and uploads archives, packages, and checksums.
 8. GoReleaser opens or updates package-manager manifest PRs for Homebrew, Scoop, and WinGet.
-9. After the release is published, the `Notify landing page (release lifecycle)` workflow dispatches the landing-page docs and changelog sync with the published timestamp.
+9. After the release is published, the `Release lifecycle sync` workflow dispatches the landing-page docs and changelog sync with the published timestamp.
 
 The manual approval point for a release is the `Auto Version` workflow that creates the release tag. The GitHub Release is intentionally published automatically after validation so package-manager manifest PRs can reference public release assets and checksums.
+
+## Yanking Releases
+
+Deleting or unpublishing a GitHub Release automatically starts the yanking path in the `Release lifecycle sync` workflow. The workflow dispatches a landing-page removal event so the yanked version is removed from the version selector and changelog.
+
+Package-manager cleanup depends on where the manifest lives. Homebrew and Scoop are maintained as current manifests in `bomly-dev/homebrew-tap` and `bomly-dev/scoop-bucket`, so closing stale package-manager PRs and publishing a replacement release is normally sufficient. WinGet stores versioned manifests in `microsoft/winget-pkgs`, so the workflow also checks for `Bomly.BomlyCLI` under `manifests/b/Bomly/BomlyCLI/<version>`. When that version directory exists, it pushes a deletion branch to `bomly-dev/winget-pkgs` and opens a PR against `microsoft/winget-pkgs:master`.
+
+GoReleaser continues to own normal package-manager publication for new releases. WinGet yanking is handled by the release lifecycle workflow because it is a deletion PR, not a release publication step.
 
 Version bump rules are chosen explicitly when running `Auto Version`:
 

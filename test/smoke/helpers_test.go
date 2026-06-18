@@ -160,6 +160,12 @@ func normalizeJSON(t *testing.T, raw []byte) []byte {
 	// source) so the same golden file is stable across runs.
 	normalizeReachability(obj)
 
+	// Scrub volatile EPSS fields. FIRST.org recomputes EPSS scores daily, so
+	// the model date, score, and percentile drift every day independent of any
+	// code change; left untouched they break enrich/reachability goldens on a
+	// daily cadence.
+	normalizeEPSS(obj)
+
 	// Normalize synthetic project IDs (e.g. pkg:maven/bomly-git-NNNNNN) that
 	// are derived from a non-deterministic hash of the temp clone directory.
 	normalizeSyntheticIDs(obj)
@@ -282,6 +288,48 @@ func normalizeReachabilityFile(value string) string {
 		return strings.Join(parts[len(parts)-2:], "/")
 	}
 	return filepath.Base(value)
+}
+
+// normalizeEPSS walks the JSON tree and scrubs the volatile fields of every
+// "epss" array. EPSS scores are recomputed daily by FIRST.org, so the date,
+// score, and percentile change every day regardless of the code under test.
+// The CVE id is left intact so the golden still proves the EPSS payload was
+// attached to the right advisory.
+func normalizeEPSS(node any) {
+	switch v := node.(type) {
+	case map[string]any:
+		for key, val := range v {
+			if key == "epss" {
+				if entries, ok := val.([]any); ok {
+					for _, e := range entries {
+						if entry, ok := e.(map[string]any); ok {
+							scrubEPSSEntry(entry)
+						}
+					}
+					continue
+				}
+			}
+			normalizeEPSS(val)
+		}
+	case []any:
+		for _, child := range v {
+			normalizeEPSS(child)
+		}
+	}
+}
+
+// scrubEPSSEntry replaces the volatile fields of a single EPSS entry with
+// stable placeholders, preserving the entry's shape and CVE id.
+func scrubEPSSEntry(entry map[string]any) {
+	if _, ok := entry["date"]; ok {
+		entry["date"] = "<normalized>"
+	}
+	if _, ok := entry["epss"]; ok {
+		entry["epss"] = float64(0)
+	}
+	if _, ok := entry["percentile"]; ok {
+		entry["percentile"] = float64(0)
+	}
 }
 
 // normalizeComparisonPath normalizes a comparison path field when it refers to

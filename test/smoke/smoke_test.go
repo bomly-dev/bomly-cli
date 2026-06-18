@@ -132,29 +132,29 @@ func TestScan(t *testing.T) {
 		tools []string // required tools - skip if any missing
 	}{
 		{
-			// Reachability smoke pinned to veracode/example-go-modules
-			// at the "Adding a known vulnerable method" commit. The
+			// Reachability smoke pinned to bomly-dev/example-go-gomod. The
 			// repo deliberately calls into golang.org/x/text v0.3.5's
-			// language.Parse (GHSA-69ch-w2m2-3vjp / CVE-2022-32149),
-			// which the analyzer reports as reachable at the symbol
-			// tier with a non-empty call_paths slice. Goldens scrub
-			// volatile fields (call frame line numbers, file paths,
-			// analyzed_at) via normalizeReachability.
+			// language.Parse (GHSA-69ch-w2m2-3vjp / CVE-2022-32149) via
+			// main → sub3.Baz, which the analyzer reports as reachable at
+			// the symbol tier with a non-empty call_paths slice. go.sum
+			// pins the graph. Goldens scrub volatile fields (call frame
+			// line numbers, file paths, analyzed_at) via
+			// normalizeReachability.
 			name:  "scan-go-reachability",
-			args:  []string{"scan", "--url", "https://github.com/veracode/example-go-modules", "--ref", "555ebe70813318ce80f46e3c4fc6623012e0317d", "--enrich", "--analyze", "--format", "json"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-go-gomod", "--ref", "97f0e49268e11fda722e41e28176ce10f66bc491", "--enrich", "--analyze", "--format", "json"},
 			tools: []string{"go"},
 		},
 		{
-			// jsreach smoke pinned to snyk-labs/nodejs-goof, a real
-			// vulnerable demo Node.js todo app. The project's app.js
-			// imports a meaningful subset of its npm dependencies
-			// directly (mongoose, lodash, express-fileupload, etc.)
-			// while many transitive ones are unreachable from app
-			// code, so the smoke exercises both "reachable (package)"
-			// and "unreachable (package)" branches of the analyzer.
-			// Goldens scrub timestamps via normalizeReachability.
+			// jsreach smoke pinned to bomly-dev/example-javascript-npm, a
+			// deliberately-vulnerable demo Node.js app. server.js calls
+			// js-yaml.load directly (RCE) and transitively through the
+			// `to` lib, and imports lodash/marked, while other deps are
+			// unreachable from app code — so the smoke exercises both
+			// "reachable (package)" and "unreachable (package)" branches
+			// of the analyzer. package-lock.json pins the graph. Goldens
+			// scrub timestamps via normalizeReachability.
 			name:  "scan-npm-reachability",
-			args:  []string{"scan", "--url", "https://github.com/snyk-labs/nodejs-goof", "--ref", "add14ba59e98240d9e00a235dd7d42cd61ae9912", "--enrich", "--analyze", "--format", "json"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm", "--ref", "559a762aeef68b0e5c818f62dfba67abc369912f", "--enrich", "--analyze", "--format", "json"},
 			tools: []string{"npm"},
 		},
 		{
@@ -175,23 +175,27 @@ func TestScan(t *testing.T) {
 			tools: []string{"pip"},
 		},
 		{
-			// jvmreach smoke pinned to veracode/example-java-maven, a
+			// jvmreach smoke pinned to bomly-dev/example-java-maven, a
 			// deliberately-vulnerable Maven demo. Main.java imports
 			// Apache Commons FileUpload, Apache XMLSec, jBCrypt, and
-			// Spring Web. requirements include Struts2, Keycloak,
+			// Spring Web. Dependencies include Struts2, Keycloak,
 			// H2, Kafka, OrientDB, JavaMelody, Sling — most of which
 			// are unimported from app source but reachable through
-			// dep edges. Exercises directly-imported, transitively-
-			// reachable, and unreachable branches plus the
-			// package-prefix map. Goldens scrub timestamps via
-			// normalizeReachability.
+			// dep edges. Maven resolves the pinned pom deterministically.
+			// Exercises directly-imported, transitively-reachable, and
+			// unreachable branches plus the package-prefix map. Goldens
+			// scrub timestamps via normalizeReachability.
 			name:  "scan-java-maven-reachability",
-			args:  []string{"scan", "--url", "https://github.com/veracode/example-java-maven", "--ref", "509948ba5a02ffab48e7260031d4a1e78d010891", "--enrich", "--analyze", "--format", "json"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-java-maven", "--ref", "93bb3aae614e2f2c6cb65f5ea2315846f5234150", "--enrich", "--analyze", "--format", "json"},
 			tools: []string{"mvn"},
 		},
 		{
+			// Scope smoke pinned to bomly-dev/example-javascript-npm. With
+			// --scope runtime the dev dependency (mocha) is excluded, so the
+			// golden proves runtime-only filtering. package-lock.json pins
+			// the graph.
 			name:  "scan-npm-scope-runtime",
-			args:  []string{"scan", "--url", "https://github.com/ljharb/qs", "--ref", "v6.13.0", "--format", "json", "--scope", "runtime"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm", "--ref", "559a762aeef68b0e5c818f62dfba67abc369912f", "--format", "json", "--scope", "runtime"},
 			tools: []string{"npm"},
 		},
 		{

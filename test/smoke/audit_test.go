@@ -101,7 +101,7 @@ func TestAuditScan(t *testing.T) {
 		},
 		{
 			name:  "scan-npm-audit",
-			args:  []string{"scan", "--url", "https://github.com/ljharb/qs", "--ref", "v6.13.0", "--format", "json", "--enrich", "--audit", "--matchers", "osv", "--auditors", "vulnerability"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm", "--ref", "559a762aeef68b0e5c818f62dfba67abc369912f", "--format", "json", "--enrich", "--audit", "--matchers", "osv", "--auditors", "vulnerability"},
 			tools: []string{"npm"},
 		},
 	}

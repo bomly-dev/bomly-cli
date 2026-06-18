@@ -1,0 +1,7 @@
+{"ImportPath":"example.com/demo","Module":{"Path":"example.com/demo","Main":true},"Imports":["example.com/demo/internal/app","github.com/google/uuid"],"TestImports":["github.com/stretchr/testify/require"]}
+{"ImportPath":"example.com/demo/internal/app","Module":{"Path":"example.com/demo","Main":true},"Imports":["golang.org/x/text/language","fmt"]}
+{"ImportPath":"github.com/google/uuid","Module":{"Path":"github.com/google/uuid","Version":"v1.6.0"},"Imports":["crypto/rand"]}
+{"ImportPath":"golang.org/x/text/language","Module":{"Path":"golang.org/x/text","Version":"v0.14.0"}}
+{"ImportPath":"github.com/stretchr/testify/require","Module":{"Path":"github.com/stretchr/testify","Version":"v1.9.0"},"Imports":["github.com/stretchr/testify/assert"]}
+{"ImportPath":"github.com/stretchr/testify/assert","Module":{"Path":"github.com/stretchr/testify","Version":"v1.9.0"},"Imports":["github.com/davecgh/go-spew/spew"]}
+{"ImportPath":"github.com/davecgh/go-spew/spew","Module":{"Path":"github.com/davecgh/go-spew","Version":"v1.1.1"}}

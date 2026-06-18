@@ -13,7 +13,7 @@ Use this checklist when publishing a tagged Bomly CLI release.
 
 - Run `Auto Version` from `main`, choosing `patch`, `minor`, or `major`.
 - Wait for `Release` to finish.
-- Review the draft GitHub release:
+- Review the published GitHub release:
   - `bomly` archives exist for Linux, macOS, and Windows on `amd64` and `arm64`.
   - `bomly-lite` archives exist for the same platforms.
   - `SHA256SUMS` exists.
@@ -23,7 +23,7 @@ Use this checklist when publishing a tagged Bomly CLI release.
 
 ## Verification
 
-Run the checks against the draft release tag before publishing. Replace `VERSION` in the examples below with the actual release tag, such as `v0.2.0`.
+Run the checks against the published release tag. Replace `VERSION` in the examples below with the actual release tag, such as `v0.2.0`.
 
 ```bash
 gh release download VERSION --pattern SHA256SUMS --pattern 'bomly_VERSION_linux_amd64.tar.gz'
@@ -51,7 +51,6 @@ scoop install bomly
 
 ## Publish and rollback
 
-- Publish the GitHub draft release after verification.
 - Merge package-manager PRs after their generated manifests pass review.
 - Confirm the landing-page docs sync PR opened.
-- If a release must be pulled, mark the GitHub release as draft again and close package-manager PRs that reference the bad tag.
+- If a release must be pulled, mark the GitHub release as a prerelease or delete it, close package-manager PRs that reference the bad tag, and tag a replacement patch release when appropriate.

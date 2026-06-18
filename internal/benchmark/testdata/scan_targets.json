@@ -139,7 +139,6 @@
     "url": "https://github.com/bomly-dev/example-python-poetry",
     "ref": "v1.0.0",
     "ecosystem": "python",
-    "args": ["--install-first"],
     "tools": ["poetry"],
     "benchmark_enabled": true
   },

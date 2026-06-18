@@ -173,6 +173,15 @@ Some native detector chains intentionally prefer a build-tool command over a com
 
 `bomly benchmark` is a hidden maintainer command backed by `internal/benchmark`. It scans public GitHub repositories with native detectors, compares the filtered dependency graph against GitHub Dependency Graph and external Syft SBOMs, and writes deterministic artifacts under `.benchmark-runs/latest`. Bomly scan and SBOM diff execution run in-process through the engine and output model; only the external `git` and `syft` tools remain subprocesses. The in-process adapter builds a native-only registry directly so local configuration and managed-plugin discovery cannot distort benchmark results. Package and relationship scores are comparative engineering signals, not pass/fail gates and not claims that a baseline is ground truth. The benchmark is intentionally local-only so exploratory scoring does not become a release or merge gate before it is calibrated.
 
+### Decision: Python install-first isolates into a venv; pip prefers a committed lock
+
+The pip detector resolves graphs from `pip inspect --local`, which reads whatever lives in the active interpreter's site-packages. Running `--install-first` as a plain `pip install` into the ambient interpreter therefore captured unrelated tooling (the runner's `poetry`, `build`, `keyring`, `virtualenv`, and date-versioned helpers), making output non-deterministic. Two changes address this:
+
+1. **Isolated install (`internal/detectors/python/venv.go`).** `--install-first` for pip now (re)creates a clean, project-scoped virtualenv under the temp dir — keyed by a hash of the absolute working dir so the install and inspect phases agree — and both `pip install` and `pip inspect` run against that venv. The ambient site-packages no longer leak into resolution. The venv is recreated per run so stale state cannot persist.
+2. **Lock fast-path (`internal/detectors/python/piplock.go`).** When a committed, fully-pinned `requirements.lock` (pip-compile style, with `# via` edge annotations) is present, the detector builds the graph directly from it — no install, no inspect — mirroring the existing `poetry.lock` fast-path. Direct dependencies are those whose `# via` references an input file (`-r foo.in`); a file matching `dev` marks development scope, and runtime wins over development during BFS propagation.
+
+The smoke/benchmark Python targets rely on the fast-paths for determinism: `scan-python-poetry` drops `--install-first` so the committed `poetry.lock` fast-path runs, and `scan-python-pip` commits a `requirements.lock`. The venv isolation remains the correctness backstop for real-world pip projects scanned with `--install-first` and no committed lock.
+
 ## Build Modes
 
 Syft and Grype each support two build modes:

@@ -207,6 +207,12 @@ See [Plugins](docs/PLUGINS.md) for install, trust, and authoring guidance.
 
 Contributor setup lives in [CONTRIBUTING.md](CONTRIBUTING.md). Architecture details live in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+## Support
+
+Bomly is an open-source project. If you find it useful, you can support the project by starring the repository, sharing feedback, opening issues, contributing improvements, or sponsoring ongoing maintenance.
+
+See [Support Bomly](https://bomly.dev/support).
+
 ## License
 
 Bomly CLI is licensed under the [Apache License 2.0](LICENSE).

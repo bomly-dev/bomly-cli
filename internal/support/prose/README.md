@@ -22,7 +22,7 @@ prose/
 
 ## Template
 
-Each page is structured like a Veracode "Find vulnerabilities in X" page:
+Each page is structured like a "Find vulnerabilities in X" landing page:
 brief intro, prerequisites, examples, limitations. Default H2 spine:
 
 ```markdown

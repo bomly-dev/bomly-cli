@@ -26,9 +26,8 @@
   {
     "name": "scan-python-pip",
     "url": "https://github.com/bomly-dev/example-python-pip",
-    "ref": "v1.0.0",
+    "ref": "fe04c758134b95dab102e1fce10275f7d18c0cf2",
     "ecosystem": "python",
-    "args": ["--install-first"],
     "tools": ["pip"],
     "benchmark_enabled": true
   },
@@ -139,7 +138,6 @@
     "url": "https://github.com/bomly-dev/example-python-poetry",
     "ref": "v1.0.0",
     "ecosystem": "python",
-    "args": ["--install-first"],
     "tools": ["poetry"],
     "benchmark_enabled": true
   },

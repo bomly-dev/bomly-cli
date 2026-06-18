@@ -86,22 +86,22 @@ func TestAuditScan(t *testing.T) {
 	}{
 		{
 			name:  "scan-go-enrich",
-			args:  []string{"scan", "--url", "https://github.com/google/uuid", "--ref", "v1.6.0", "--format", "json", "--enrich", "--matchers", "osv"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-go-gomod", "--ref", "v1.0.0", "--format", "json", "--enrich", "--matchers", "osv"},
 			tools: []string{"go"},
 		},
 		{
 			name:  "scan-go-audit",
-			args:  []string{"scan", "--url", "https://github.com/google/uuid", "--ref", "v1.6.0", "--format", "json", "--enrich", "--audit", "--matchers", "osv", "--auditors", "vulnerability"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-go-gomod", "--ref", "v1.0.0", "--format", "json", "--enrich", "--audit", "--matchers", "osv", "--auditors", "vulnerability"},
 			tools: []string{"go"},
 		},
 		{
 			name:  "scan-go-audit-high",
-			args:  []string{"scan", "--url", "https://github.com/google/uuid", "--ref", "v1.6.0", "--format", "json", "--enrich", "--audit", "--fail-on", "high", "--matchers", "osv", "--auditors", "vulnerability"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-go-gomod", "--ref", "v1.0.0", "--format", "json", "--enrich", "--audit", "--fail-on", "high", "--matchers", "osv", "--auditors", "vulnerability"},
 			tools: []string{"go"},
 		},
 		{
 			name:  "scan-npm-audit",
-			args:  []string{"scan", "--url", "https://github.com/ljharb/qs", "--ref", "v6.13.0", "--format", "json", "--enrich", "--audit", "--matchers", "osv", "--auditors", "vulnerability"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm", "--ref", "v1.0.0", "--format", "json", "--enrich", "--audit", "--matchers", "osv", "--auditors", "vulnerability"},
 			tools: []string{"npm"},
 		},
 	}
@@ -175,12 +175,12 @@ func TestAuditDiffAndExplain(t *testing.T) {
 	}{
 		{
 			name:  "diff-go-audit",
-			args:  []string{"diff", "--url", "https://github.com/google/uuid", "--base", "v1.5.0", "--head", "v1.6.0", "--format", "json", "--enrich", "--audit", "--matchers", "osv", "--auditors", "vulnerability"},
+			args:  []string{"diff", "--url", "https://github.com/bomly-dev/example-go-gomod", "--base", "v0.9.0", "--head", "v1.0.0", "--format", "json", "--enrich", "--audit", "--matchers", "osv", "--auditors", "vulnerability"},
 			tools: []string{"go"},
 		},
 		{
 			name:  "explain-go-enrich",
-			args:  []string{"explain", "github.com/google/uuid", "--url", "https://github.com/google/uuid", "--ref", "v1.6.0", "--format", "json", "--enrich", "--matchers", "osv"},
+			args:  []string{"explain", "golang.org/x/text", "--url", "https://github.com/bomly-dev/example-go-gomod", "--ref", "v1.0.0", "--format", "json", "--enrich", "--matchers", "osv"},
 			tools: []string{"go"},
 		},
 	}

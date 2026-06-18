@@ -49,7 +49,20 @@ func (d PipDetector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a Python dependency graph with pip inspect.
 func (d PipDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	command, err := pipInspectCommand()
+	workingDir := d.base().workingDir(req.ProjectPath)
+
+	// Fast-path: a committed requirements.lock carries the full transitive tree
+	// and pinned versions, so we can build the graph without installing into
+	// (and inspecting) the ambient Python environment.
+	if lockPath := pipLockFilePath(workingDir); lockPath != "" {
+		if depsGraph, err := depGraphFromRequirementsLock(lockPath, workingDir); err == nil {
+			return sdk.DetectionResult{
+				Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, pipEvidencePatterns)),
+			}, nil
+		}
+	}
+
+	command, err := pipInspectCommandForProject(workingDir)
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
@@ -81,29 +94,28 @@ func (d PipDetector) base() baseDetector {
 	}
 }
 
-// Install prepares pip dependencies before graph resolution.
+// Install prepares pip dependencies before graph resolution. It installs into a
+// clean, project-scoped virtualenv so the subsequent `pip inspect` sees only
+// the declared dependencies, not whatever tooling lives in the ambient
+// site-packages.
 func (d PipDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 	workingDir := d.base().workingDir(req.ProjectPath)
 	requirementsFile, err := installRequirementsPath(workingDir)
 	if err != nil {
 		return err
 	}
-	command, err := pythonCommand()
+	venvPython, err := createPythonVenv(ctx, d.base(), req, "pip detector", pythonVenvDir(workingDir))
 	if err != nil {
 		return err
 	}
-	command = append(command, "-m", "pip", "install", "-r", requirementsFile)
+	command := []string{venvPython, "-m", "pip", "install", "-r", requirementsFile}
 	if err := d.base().install(ctx, req, "pip detector", command); err != nil {
 		return err
 	}
 	// Also install requirements-dev.txt when present alongside the primary file.
 	devReqPath := filepath.Join(workingDir, "requirements-dev.txt")
 	if exists, _ := system.FileExists(devReqPath); pipShouldInstallDevRequirements(req.ScopeFilter, requirementsFile, exists) {
-		devCommand, err := pythonCommand()
-		if err != nil {
-			return err
-		}
-		devCommand = append(devCommand, "-m", "pip", "install", "-r", "requirements-dev.txt")
+		devCommand := []string{venvPython, "-m", "pip", "install", "-r", "requirements-dev.txt"}
 		if err := d.base().install(ctx, req, "pip detector (dev)", devCommand); err != nil {
 			return err
 		}

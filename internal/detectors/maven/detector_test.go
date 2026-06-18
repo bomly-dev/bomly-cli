@@ -56,7 +56,7 @@ func TestDepGraphFromMavenTGF_WithMavenLogPrefixes(t *testing.T) {
 [INFO] Scanning for projects...
 [INFO]
 [INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ example-java-maven ---
-[INFO] 319144230 com.srcclr:example-java-maven:jar:1.0-SNAPSHOT
+[INFO] 319144230 com.bomly:example-java-maven:jar:1.0-SNAPSHOT
 [INFO] 1268237485 org.apache.struts:struts2-core:jar:2.5.12:compile
 [INFO] 1983948209 org.freemarker:freemarker:jar:2.3.23:compile
 [INFO] 1778257620 org.mindrot:jbcrypt:jar:0.3m:compile
@@ -77,7 +77,7 @@ func TestDepGraphFromMavenTGF_WithMavenLogPrefixes(t *testing.T) {
 		t.Fatalf("expected 4 packages, got %d", g.Size())
 	}
 
-	rootDeps, err := g.DirectDependencies("com.srcclr:example-java-maven@1.0-SNAPSHOT")
+	rootDeps, err := g.DirectDependencies("com.bomly:example-java-maven@1.0-SNAPSHOT")
 	if err != nil {
 		t.Fatalf("dependencies(root) error = %v", err)
 	}

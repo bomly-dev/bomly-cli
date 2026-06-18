@@ -14,7 +14,7 @@ Bomly uses GitHub Actions for validation, security analysis, smoke coverage, and
 | `Smoke`                | Merge queue, nightly schedule, manual dispatch | Slow end-to-end coverage against real repositories, SBOMs, and containers before merge, plus scheduled drift detection |
 | `Update Smoke Goldens` | Manual dispatch                                | Regenerate golden files on a chosen ref and open a PR when the changes are intentional                                 |
 | `Auto Version`         | Manual dispatch                                | Bump `cmd/bomly/main.go`, create a semver tag, and start the release workflow                                          |
-| `Release`              | Semver tags like `v1.2.3`, manual dispatch     | GoReleaser packaging, checksums, Linux packages, package-manager manifests, and draft GitHub release publication |
+| `Release`              | Semver tags like `v1.2.3`, manual dispatch     | GoReleaser packaging, checksums, Linux packages, package-manager manifests, and GitHub release publication |
 
 ## Required Checks
 
@@ -160,7 +160,7 @@ go build -tags "bomly_external_syft,bomly_external_grype" -o bin/bomly-lite ./cm
 
 Release packaging is driven by `.goreleaser.yaml`. The release workflow uses GoReleaser to create:
 
-- GitHub Release archives for `bomly` and `bomly-lite`.
+- A published GitHub Release with archives for `bomly` and `bomly-lite`.
 - `SHA256SUMS`.
 - Linux `.deb`, `.rpm`, `.apk`, and Arch Linux package artifacts for the full `bomly` binary.
 - Homebrew cask, Scoop, and WinGet manifest pull requests.
@@ -179,9 +179,11 @@ Release packaging is driven by `.goreleaser.yaml`. The release workflow uses GoR
    - `windows/amd64`
    - `windows/arm64`
 6. GoReleaser generates `SHA256SUMS` and Linux packages.
-7. GoReleaser creates a **draft release** in GitHub Releases and uploads archives, packages, and checksums.
+7. GoReleaser publishes the GitHub Release, using the configured GoReleaser header plus GitHub-native generated release notes, and uploads archives, packages, and checksums.
 8. GoReleaser opens or updates package-manager manifest PRs for Homebrew, Scoop, and WinGet.
-9. After the draft release is published, the `Notify landing page (release lifecycle)` workflow dispatches the landing-page docs and changelog sync with the published timestamp.
+9. After the release is published, the `Notify landing page (release lifecycle)` workflow dispatches the landing-page docs and changelog sync with the published timestamp.
+
+The manual approval point for a release is the `Auto Version` workflow that creates the release tag. The GitHub Release is intentionally published automatically after validation so package-manager manifest PRs can reference public release assets and checksums.
 
 Version bump rules are chosen explicitly when running `Auto Version`:
 
@@ -201,7 +203,7 @@ Archive naming follows this pattern:
 
 Linux package artifacts follow the same `bomly_<version>_<os>_<arch>` prefix with package-manager-specific extensions.
 
-See [Release Checklist](RELEASE_CHECKLIST.md) before publishing a draft release.
+See [Release Checklist](RELEASE_CHECKLIST.md) before running the release workflow.
 
 ## Install Script Hosting
 

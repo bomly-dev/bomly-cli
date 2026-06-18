@@ -5,109 +5,136 @@
       "dependencies": [
         {
           "depends_on": [
-            "pkg:githubactions/actions/checkout@v3",
-            "pkg:githubactions/actions/setup-go@v4"
+            "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
+            "pkg:golang/github.com/google/go-querystring@v1.1.0",
+            "pkg:golang/github.com/google/uuid@v1.6.0",
+            "pkg:golang/golang.org/x/text@v0.3.5"
           ],
-          "id": "pkg:githubactions/.github%2Fworkflows%2Fapidiff.yaml@local",
+          "id": "pkg:golang/github.com/bomly/example-go-modules",
           "licenses": [],
-          "name": ".github/workflows/apidiff.yaml",
-          "package_ref": "pkg:githubactions/.github%2Fworkflows%2Fapidiff.yaml@local",
-          "purl": "pkg:githubactions/.github%2Fworkflows%2Fapidiff.yaml@local",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "local"
+          "name": "github.com/bomly/example-go-modules",
+          "package_ref": "pkg:golang/github.com/bomly/example-go-modules",
+          "purl": "pkg:golang/github.com/bomly/example-go-modules"
         },
-        {
-          "depends_on": [],
-          "id": "pkg:githubactions/actions/checkout@v3",
-          "licenses": [],
-          "name": "actions:checkout",
-          "package_ref": "pkg:githubactions/actions/checkout@v3",
-          "purl": "pkg:githubactions/actions/checkout@v3",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "v3"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:githubactions/actions/setup-go@v4",
-          "licenses": [],
-          "name": "actions:setup-go",
-          "package_ref": "pkg:githubactions/actions/setup-go@v4",
-          "purl": "pkg:githubactions/actions/setup-go@v4",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "v4"
-        }
-      ],
-      "detector": "github-actions-detector",
-      "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
-      "package_manager": "github-actions",
-      "path": ".github/workflows/apidiff.yaml",
-      "subproject": "."
-    },
-    {
-      "dependencies": [
         {
           "depends_on": [
-            "pkg:githubactions/actions/checkout@v3",
-            "pkg:githubactions/actions/setup-go@v4"
+            "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543"
           ],
-          "id": "pkg:githubactions/.github%2Fworkflows%2Ftests.yaml@local",
+          "id": "pkg:golang/github.com/google/go-cmp@v0.5.2",
           "licenses": [],
-          "name": ".github/workflows/tests.yaml",
-          "package_ref": "pkg:githubactions/.github%2Fworkflows%2Ftests.yaml@local",
-          "purl": "pkg:githubactions/.github%2Fworkflows%2Ftests.yaml@local",
+          "name": "github.com/google/go-cmp",
+          "package_ref": "pkg:golang/github.com/google/go-cmp@v0.5.2",
+          "purl": "pkg:golang/github.com/google/go-cmp@v0.5.2",
+          "scopes": [
+            "development"
+          ],
+          "version": "v0.5.2"
+        },
+        {
+          "depends_on": [
+            "pkg:golang/github.com/google/go-querystring@v1.1.0"
+          ],
+          "id": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "go.mod",
+              "position": {
+                "file": "go.mod",
+                "line": 0
+              },
+              "real_path": "go.mod"
+            }
+          ],
+          "name": "github.com/google/go-github",
+          "package_ref": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
+          "purl": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "v17.0.0+incompatible"
+        },
+        {
+          "depends_on": [
+            "pkg:golang/github.com/google/go-cmp@v0.5.2"
+          ],
+          "id": "pkg:golang/github.com/google/go-querystring@v1.1.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "go.mod",
+              "position": {
+                "file": "go.mod",
+                "line": 0
+              },
+              "real_path": "go.mod"
+            }
+          ],
+          "name": "github.com/google/go-querystring",
+          "package_ref": "pkg:golang/github.com/google/go-querystring@v1.1.0",
+          "purl": "pkg:golang/github.com/google/go-querystring@v1.1.0",
           "scopes": [
             "runtime"
           ],
-          "version": "local"
+          "version": "v1.1.0"
         },
         {
           "depends_on": [],
-          "id": "pkg:githubactions/actions/checkout@v3",
+          "id": "pkg:golang/github.com/google/uuid@v1.6.0",
           "licenses": [],
-          "name": "actions:checkout",
-          "package_ref": "pkg:githubactions/actions/checkout@v3",
-          "purl": "pkg:githubactions/actions/checkout@v3",
-          "scopes": [
-            "runtime"
+          "locations": [
+            {
+              "access_path": "go.mod",
+              "position": {
+                "file": "go.mod",
+                "line": 0
+              },
+              "real_path": "go.mod"
+            }
           ],
-          "version": "v3"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:githubactions/actions/setup-go@v4",
-          "licenses": [],
-          "name": "actions:setup-go",
-          "package_ref": "pkg:githubactions/actions/setup-go@v4",
-          "purl": "pkg:githubactions/actions/setup-go@v4",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "v4"
-        }
-      ],
-      "detector": "github-actions-detector",
-      "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
-      "package_manager": "github-actions",
-      "path": ".github/workflows/tests.yaml",
-      "subproject": "."
-    },
-    {
-      "dependencies": [
-        {
-          "depends_on": [],
-          "id": "pkg:golang/github.com/google/uuid",
-          "licenses": [],
           "name": "github.com/google/uuid",
-          "package_ref": "pkg:golang/github.com/google/uuid",
-          "purl": "pkg:golang/github.com/google/uuid"
+          "package_ref": "pkg:golang/github.com/google/uuid@v1.6.0",
+          "purl": "pkg:golang/github.com/google/uuid@v1.6.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "v1.6.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:golang/golang.org/x/text@v0.3.5",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "go.mod",
+              "position": {
+                "file": "go.mod",
+                "line": 0
+              },
+              "real_path": "go.mod"
+            }
+          ],
+          "name": "golang.org/x/text",
+          "package_ref": "pkg:golang/golang.org/x/text@v0.3.5",
+          "purl": "pkg:golang/golang.org/x/text@v0.3.5",
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "v0.3.5"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
+          "licenses": [],
+          "name": "golang.org/x/xerrors",
+          "package_ref": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
+          "purl": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
+          "scopes": [
+            "development"
+          ],
+          "version": "v0.0.0-20191204190536-9bdfabe68543"
         }
       ],
       "detector": "go-detector",
@@ -123,51 +150,67 @@
   },
   "packages": [
     {
-      "ecosystem": "github-actions",
+      "ecosystem": "go",
       "licenses": [],
-      "name": ".github/workflows/apidiff.yaml",
-      "purl": "pkg:githubactions/.github%2Fworkflows%2Fapidiff.yaml@local",
-      "version": "local",
+      "name": "github.com/bomly/example-go-modules",
+      "purl": "pkg:golang/github.com/bomly/example-go-modules",
       "vulnerabilities": []
     },
     {
-      "ecosystem": "github-actions",
+      "ecosystem": "go",
       "licenses": [],
-      "name": ".github/workflows/tests.yaml",
-      "purl": "pkg:githubactions/.github%2Fworkflows%2Ftests.yaml@local",
-      "version": "local",
+      "name": "github.com/google/go-cmp",
+      "purl": "pkg:golang/github.com/google/go-cmp@v0.5.2",
+      "version": "v0.5.2",
       "vulnerabilities": []
     },
     {
-      "ecosystem": "github-actions",
+      "ecosystem": "go",
       "licenses": [],
-      "name": "checkout",
-      "purl": "pkg:githubactions/actions/checkout@v3",
-      "version": "v3",
+      "name": "github.com/google/go-github",
+      "purl": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
+      "version": "v17.0.0+incompatible",
       "vulnerabilities": []
     },
     {
-      "ecosystem": "github-actions",
+      "ecosystem": "go",
       "licenses": [],
-      "name": "setup-go",
-      "purl": "pkg:githubactions/actions/setup-go@v4",
-      "version": "v4",
+      "name": "github.com/google/go-querystring",
+      "purl": "pkg:golang/github.com/google/go-querystring@v1.1.0",
+      "version": "v1.1.0",
       "vulnerabilities": []
     },
     {
       "ecosystem": "go",
       "licenses": [],
       "name": "github.com/google/uuid",
-      "purl": "pkg:golang/github.com/google/uuid",
+      "purl": "pkg:golang/github.com/google/uuid@v1.6.0",
+      "version": "v1.6.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [],
+      "name": "golang.org/x/text",
+      "purl": "pkg:golang/golang.org/x/text@v0.3.5",
+      "version": "v0.3.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [],
+      "name": "golang.org/x/xerrors",
+      "purl": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
+      "version": "v0.0.0-20191204190536-9bdfabe68543",
       "vulnerabilities": []
     }
   ],
   "project": {
-    "ecosystem": "other",
+    "ecosystem": "go",
     "name": "\u003cnormalized\u003e",
-    "package_manager": "multiple",
+    "package_manager": "gomod",
     "path": "\u003cnormalized\u003e",
-    "target_ref": "v1.6.0",
+    "target_ref": "v1.0.0",
     "target_type": "git repository"
   },
   "schema_version": "1.0"

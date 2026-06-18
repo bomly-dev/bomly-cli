@@ -4,171 +4,22 @@
     {
       "dependencies": [
         {
-          "depends_on": [
-            "pkg:pypi/idna@2.8",
-            "pkg:pypi/typing-extensions@4.15.0"
-          ],
-          "id": "pkg:pypi/anyio@4.14.0",
-          "licenses": [],
-          "matched": true,
-          "name": "anyio",
-          "package_ref": "pkg:pypi/anyio@4.14.0",
-          "purl": "pkg:pypi/anyio@4.14.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "4.14.0"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/typing-extensions@4.15.0"
-          ],
-          "id": "pkg:pypi/astroid@3.1.0",
-          "licenses": [],
-          "matched": true,
-          "name": "astroid",
-          "package_ref": "pkg:pypi/astroid@3.1.0",
-          "purl": "pkg:pypi/astroid@3.1.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "3.1.0"
-        },
-        {
           "depends_on": [],
-          "id": "pkg:pypi/backports-zstd@1.6.0",
+          "id": "pkg:pypi/certifi@2026.6.17",
           "licenses": [],
-          "matched": true,
-          "name": "backports-zstd",
-          "package_ref": "pkg:pypi/backports-zstd@1.6.0",
-          "purl": "pkg:pypi/backports-zstd@1.6.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.6.0"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/gitpython@3.1.50",
-            "pkg:pypi/pyyaml@6.0.3",
-            "pkg:pypi/rich@15.0.0",
-            "pkg:pypi/stevedore@5.8.0"
-          ],
-          "id": "pkg:pypi/bandit@1.7.5",
-          "licenses": [],
-          "matched": true,
-          "name": "bandit",
-          "package_ref": "pkg:pypi/bandit@1.7.5",
-          "purl": "pkg:pypi/bandit@1.7.5",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.7.5"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/click@8.4.1",
-            "pkg:pypi/mypy-extensions@1.1.0",
-            "pkg:pypi/packaging@26.2",
-            "pkg:pypi/pathspec@1.1.1",
-            "pkg:pypi/platformdirs@4.10.0",
-            "pkg:pypi/typing-extensions@4.15.0"
-          ],
-          "id": "pkg:pypi/black@23.12.1",
-          "licenses": [],
-          "matched": true,
-          "name": "black",
-          "package_ref": "pkg:pypi/black@23.12.1",
-          "purl": "pkg:pypi/black@23.12.1",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "23.12.1"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/packaging@26.2",
-            "pkg:pypi/pyproject-hooks@1.2.0"
-          ],
-          "id": "pkg:pypi/build@1.5.0",
-          "licenses": [],
-          "matched": true,
-          "name": "build",
-          "package_ref": "pkg:pypi/build@1.5.0",
-          "purl": "pkg:pypi/build@1.5.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.5.0"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/msgpack@1.2.0",
-            "pkg:pypi/requests@2.21.0"
-          ],
-          "id": "pkg:pypi/cachecontrol@0.14.4",
-          "licenses": [],
-          "matched": true,
-          "name": "cachecontrol",
-          "package_ref": "pkg:pypi/cachecontrol@0.14.4",
-          "purl": "pkg:pypi/cachecontrol@0.14.4",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.14.4"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/certifi@2026.5.20",
-          "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "matched": true,
           "name": "certifi",
-          "package_ref": "pkg:pypi/certifi@2026.5.20",
-          "purl": "pkg:pypi/certifi@2026.5.20",
+          "package_ref": "pkg:pypi/certifi@2026.6.17",
+          "purl": "pkg:pypi/certifi@2026.6.17",
           "scopes": [
             "runtime"
           ],
-          "version": "2026.5.20"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/pycparser@3.0"
-          ],
-          "id": "pkg:pypi/cffi@2.0.0",
-          "licenses": [],
-          "matched": true,
-          "name": "cffi",
-          "package_ref": "pkg:pypi/cffi@2.0.0",
-          "purl": "pkg:pypi/cffi@2.0.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "2.0.0"
+          "version": "2026.6.17"
         },
         {
           "depends_on": [],
           "id": "pkg:pypi/chardet@3.0.4",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "matched": true,
           "name": "chardet",
           "package_ref": "pkg:pypi/chardet@3.0.4",
@@ -179,131 +30,11 @@
           "version": "3.0.4"
         },
         {
-          "depends_on": [],
-          "id": "pkg:pypi/charset-normalizer@3.4.7",
-          "licenses": [],
-          "matched": true,
-          "name": "charset-normalizer",
-          "package_ref": "pkg:pypi/charset-normalizer@3.4.7",
-          "purl": "pkg:pypi/charset-normalizer@3.4.7",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "3.4.7"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/crashtest@0.4.1",
-            "pkg:pypi/rapidfuzz@3.14.5"
-          ],
-          "id": "pkg:pypi/cleo@2.1.0",
-          "licenses": [],
-          "matched": true,
-          "name": "cleo",
-          "package_ref": "pkg:pypi/cleo@2.1.0",
-          "purl": "pkg:pypi/cleo@2.1.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "2.1.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/click@8.4.1",
-          "licenses": [],
-          "matched": true,
-          "name": "click",
-          "package_ref": "pkg:pypi/click@8.4.1",
-          "purl": "pkg:pypi/click@8.4.1",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "8.4.1"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/coverage@7.4.0",
-          "licenses": [],
-          "matched": true,
-          "name": "coverage",
-          "package_ref": "pkg:pypi/coverage@7.4.0",
-          "purl": "pkg:pypi/coverage@7.4.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "7.4.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/crashtest@0.4.1",
-          "licenses": [],
-          "matched": true,
-          "name": "crashtest",
-          "package_ref": "pkg:pypi/crashtest@0.4.1",
-          "purl": "pkg:pypi/crashtest@0.4.1",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.4.1"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/cffi@2.0.0",
-            "pkg:pypi/typing-extensions@4.15.0"
-          ],
-          "id": "pkg:pypi/cryptography@49.0.0",
-          "licenses": [],
-          "matched": true,
-          "name": "cryptography",
-          "package_ref": "pkg:pypi/cryptography@49.0.0",
-          "purl": "pkg:pypi/cryptography@49.0.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "49.0.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/dill@0.4.1",
-          "licenses": [],
-          "matched": true,
-          "name": "dill",
-          "package_ref": "pkg:pypi/dill@0.4.1",
-          "purl": "pkg:pypi/dill@0.4.1",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.4.1"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/distlib@0.4.3",
-          "licenses": [],
-          "matched": true,
-          "name": "distlib",
-          "package_ref": "pkg:pypi/distlib@0.4.3",
-          "purl": "pkg:pypi/distlib@0.4.3",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.4.3"
-        },
-        {
           "depends_on": [
             "pkg:pypi/pytz@2026.2"
           ],
           "id": "pkg:pypi/django@1.11.29",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "matched": true,
           "name": "django",
           "package_ref": "pkg:pypi/django@1.11.29",
@@ -315,49 +46,10 @@
         },
         {
           "depends_on": [
-            "pkg:pypi/typing-extensions@4.15.0",
-            "pkg:pypi/urllib3@1.24.1"
-          ],
-          "id": "pkg:pypi/dulwich@1.2.6",
-          "licenses": [],
-          "matched": true,
-          "name": "dulwich",
-          "package_ref": "pkg:pypi/dulwich@1.2.6",
-          "purl": "pkg:pypi/dulwich@1.2.6",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.2.6"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/fastjsonschema@2.21.2",
-          "licenses": [],
-          "matched": true,
-          "name": "fastjsonschema",
-          "package_ref": "pkg:pypi/fastjsonschema@2.21.2",
-          "purl": "pkg:pypi/fastjsonschema@2.21.2",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "2.21.2"
-        },
-        {
-          "depends_on": [
             "pkg:pypi/sgmllib3k@1.0.0"
           ],
           "id": "pkg:pypi/feedparser@6.0.8",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "matched": true,
           "name": "feedparser",
           "package_ref": "pkg:pypi/feedparser@6.0.8",
@@ -369,138 +61,8 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:pypi/filelock@3.29.4",
-          "licenses": [],
-          "matched": true,
-          "name": "filelock",
-          "package_ref": "pkg:pypi/filelock@3.29.4",
-          "purl": "pkg:pypi/filelock@3.29.4",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "3.29.4"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/packaging@26.2",
-            "pkg:pypi/platformdirs@4.10.0"
-          ],
-          "id": "pkg:pypi/findpython@0.8.0",
-          "licenses": [],
-          "matched": true,
-          "name": "findpython",
-          "package_ref": "pkg:pypi/findpython@0.8.0",
-          "purl": "pkg:pypi/findpython@0.8.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.8.0"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/smmap@5.0.3"
-          ],
-          "id": "pkg:pypi/gitdb@4.0.12",
-          "licenses": [],
-          "matched": true,
-          "name": "gitdb",
-          "package_ref": "pkg:pypi/gitdb@4.0.12",
-          "purl": "pkg:pypi/gitdb@4.0.12",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "4.0.12"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/gitdb@4.0.12",
-            "pkg:pypi/typing-extensions@4.15.0"
-          ],
-          "id": "pkg:pypi/gitpython@3.1.50",
-          "licenses": [],
-          "matched": true,
-          "name": "gitpython",
-          "package_ref": "pkg:pypi/gitpython@3.1.50",
-          "purl": "pkg:pypi/gitpython@3.1.50",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "3.1.50"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/greenlet@3.5.1",
-          "licenses": [],
-          "matched": true,
-          "name": "greenlet",
-          "package_ref": "pkg:pypi/greenlet@3.5.1",
-          "purl": "pkg:pypi/greenlet@3.5.1",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "3.5.1"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/h11@0.16.0",
-          "licenses": [],
-          "matched": true,
-          "name": "h11",
-          "package_ref": "pkg:pypi/h11@0.16.0",
-          "purl": "pkg:pypi/h11@0.16.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.16.0"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/certifi@2026.5.20",
-            "pkg:pypi/h11@0.16.0"
-          ],
-          "id": "pkg:pypi/httpcore@1.0.9",
-          "licenses": [],
-          "matched": true,
-          "name": "httpcore",
-          "package_ref": "pkg:pypi/httpcore@1.0.9",
-          "purl": "pkg:pypi/httpcore@1.0.9",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.0.9"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/anyio@4.14.0",
-            "pkg:pypi/certifi@2026.5.20",
-            "pkg:pypi/httpcore@1.0.9",
-            "pkg:pypi/idna@2.8"
-          ],
-          "id": "pkg:pypi/httpx@0.28.1",
-          "licenses": [],
-          "matched": true,
-          "name": "httpx",
-          "package_ref": "pkg:pypi/httpx@0.28.1",
-          "purl": "pkg:pypi/httpx@0.28.1",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.28.1"
-        },
-        {
-          "depends_on": [],
           "id": "pkg:pypi/idna@2.8",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "matched": true,
           "name": "idna",
           "package_ref": "pkg:pypi/idna@2.8",
@@ -509,101 +71,6 @@
             "runtime"
           ],
           "version": "2.8"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/iniconfig@2.3.0",
-          "licenses": [],
-          "matched": true,
-          "name": "iniconfig",
-          "package_ref": "pkg:pypi/iniconfig@2.3.0",
-          "purl": "pkg:pypi/iniconfig@2.3.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "2.3.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/installer@1.0.1",
-          "licenses": [],
-          "matched": true,
-          "name": "installer",
-          "package_ref": "pkg:pypi/installer@1.0.1",
-          "purl": "pkg:pypi/installer@1.0.1",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.0.1"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/isort@5.13.2",
-          "licenses": [],
-          "matched": true,
-          "name": "isort",
-          "package_ref": "pkg:pypi/isort@5.13.2",
-          "purl": "pkg:pypi/isort@5.13.2",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "5.13.2"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/more-itertools@11.1.0"
-          ],
-          "id": "pkg:pypi/jaraco-classes@3.4.0",
-          "licenses": [],
-          "matched": true,
-          "name": "jaraco-classes",
-          "package_ref": "pkg:pypi/jaraco-classes@3.4.0",
-          "purl": "pkg:pypi/jaraco-classes@3.4.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "3.4.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/jaraco-context@6.1.2",
-          "licenses": [],
-          "matched": true,
-          "name": "jaraco-context",
-          "package_ref": "pkg:pypi/jaraco-context@6.1.2",
-          "purl": "pkg:pypi/jaraco-context@6.1.2",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "6.1.2"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/more-itertools@11.1.0"
-          ],
-          "id": "pkg:pypi/jaraco-functools@4.5.0",
-          "licenses": [],
-          "matched": true,
-          "name": "jaraco-functools",
-          "package_ref": "pkg:pypi/jaraco-functools@4.5.0",
-          "purl": "pkg:pypi/jaraco-functools@4.5.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "4.5.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/jeepney@0.9.0",
-          "licenses": [],
-          "matched": true,
-          "name": "jeepney",
-          "package_ref": "pkg:pypi/jeepney@0.9.0",
-          "purl": "pkg:pypi/jeepney@0.9.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.9.0"
         },
         {
           "depends_on": [
@@ -621,40 +88,6 @@
           "version": "2.10.1"
         },
         {
-          "depends_on": [
-            "pkg:pypi/jaraco-classes@3.4.0",
-            "pkg:pypi/jaraco-context@6.1.2",
-            "pkg:pypi/jaraco-functools@4.5.0",
-            "pkg:pypi/jeepney@0.9.0",
-            "pkg:pypi/secretstorage@3.5.0"
-          ],
-          "id": "pkg:pypi/keyring@25.7.0",
-          "licenses": [],
-          "matched": true,
-          "name": "keyring",
-          "package_ref": "pkg:pypi/keyring@25.7.0",
-          "purl": "pkg:pypi/keyring@25.7.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "25.7.0"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/mdurl@0.1.2"
-          ],
-          "id": "pkg:pypi/markdown-it-py@4.2.0",
-          "licenses": [],
-          "matched": true,
-          "name": "markdown-it-py",
-          "package_ref": "pkg:pypi/markdown-it-py@4.2.0",
-          "purl": "pkg:pypi/markdown-it-py@4.2.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "4.2.0"
-        },
-        {
           "depends_on": [],
           "id": "pkg:pypi/markupsafe@3.0.3",
           "licenses": [],
@@ -669,174 +102,8 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:pypi/mccabe@0.7.0",
-          "licenses": [],
-          "matched": true,
-          "name": "mccabe",
-          "package_ref": "pkg:pypi/mccabe@0.7.0",
-          "purl": "pkg:pypi/mccabe@0.7.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.7.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/mdurl@0.1.2",
-          "licenses": [],
-          "matched": true,
-          "name": "mdurl",
-          "package_ref": "pkg:pypi/mdurl@0.1.2",
-          "purl": "pkg:pypi/mdurl@0.1.2",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.1.2"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/more-itertools@11.1.0",
-          "licenses": [],
-          "matched": true,
-          "name": "more-itertools",
-          "package_ref": "pkg:pypi/more-itertools@11.1.0",
-          "purl": "pkg:pypi/more-itertools@11.1.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "11.1.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/msgpack@1.2.0",
-          "licenses": [],
-          "matched": true,
-          "name": "msgpack",
-          "package_ref": "pkg:pypi/msgpack@1.2.0",
-          "purl": "pkg:pypi/msgpack@1.2.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.2.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/mypy-extensions@1.1.0",
-          "licenses": [],
-          "matched": true,
-          "name": "mypy-extensions",
-          "package_ref": "pkg:pypi/mypy-extensions@1.1.0",
-          "purl": "pkg:pypi/mypy-extensions@1.1.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.1.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/packaging@26.2",
-          "licenses": [],
-          "matched": true,
-          "name": "packaging",
-          "package_ref": "pkg:pypi/packaging@26.2",
-          "purl": "pkg:pypi/packaging@26.2",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "26.2"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/pathspec@1.1.1",
-          "licenses": [],
-          "matched": true,
-          "name": "pathspec",
-          "package_ref": "pkg:pypi/pathspec@1.1.1",
-          "purl": "pkg:pypi/pathspec@1.1.1",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.1.1"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/pbs-installer@2026.6.10",
-          "licenses": [],
-          "matched": true,
-          "name": "pbs-installer",
-          "package_ref": "pkg:pypi/pbs-installer@2026.6.10",
-          "purl": "pkg:pypi/pbs-installer@2026.6.10",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "2026.6.10"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/pkginfo@1.12.1.2",
-          "licenses": [],
-          "matched": true,
-          "name": "pkginfo",
-          "package_ref": "pkg:pypi/pkginfo@1.12.1.2",
-          "purl": "pkg:pypi/pkginfo@1.12.1.2",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.12.1.2"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/platformdirs@4.10.0",
-          "licenses": [],
-          "matched": true,
-          "name": "platformdirs",
-          "package_ref": "pkg:pypi/platformdirs@4.10.0",
-          "purl": "pkg:pypi/platformdirs@4.10.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "4.10.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/pluggy@1.6.0",
-          "licenses": [],
-          "matched": true,
-          "name": "pluggy",
-          "package_ref": "pkg:pypi/pluggy@1.6.0",
-          "purl": "pkg:pypi/pluggy@1.6.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.6.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/poetry-core@2.4.0",
-          "licenses": [],
-          "matched": true,
-          "name": "poetry-core",
-          "package_ref": "pkg:pypi/poetry-core@2.4.0",
-          "purl": "pkg:pypi/poetry-core@2.4.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "2.4.0"
-        },
-        {
-          "depends_on": [],
           "id": "pkg:pypi/pyasn1@0.6.3",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "matched": true,
           "name": "pyasn1",
           "package_ref": "pkg:pypi/pyasn1@0.6.3",
@@ -848,44 +115,8 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:pypi/pycparser@3.0",
-          "licenses": [],
-          "matched": true,
-          "name": "pycparser",
-          "package_ref": "pkg:pypi/pycparser@3.0",
-          "purl": "pkg:pypi/pycparser@3.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "3.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/pygments@2.20.0",
-          "licenses": [],
-          "matched": true,
-          "name": "pygments",
-          "package_ref": "pkg:pypi/pygments@2.20.0",
-          "purl": "pkg:pypi/pygments@2.20.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "2.20.0"
-        },
-        {
-          "depends_on": [],
           "id": "pkg:pypi/pyjwt@0.4.2",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "matched": true,
           "name": "pyjwt",
           "package_ref": "pkg:pypi/pyjwt@0.4.2",
@@ -896,102 +127,9 @@
           "version": "0.4.2"
         },
         {
-          "depends_on": [
-            "pkg:pypi/astroid@3.1.0",
-            "pkg:pypi/dill@0.4.1",
-            "pkg:pypi/isort@5.13.2",
-            "pkg:pypi/mccabe@0.7.0",
-            "pkg:pypi/platformdirs@4.10.0",
-            "pkg:pypi/tomlkit@0.15.0",
-            "pkg:pypi/typing-extensions@4.15.0"
-          ],
-          "id": "pkg:pypi/pylint@3.1.0",
-          "licenses": [],
-          "matched": true,
-          "name": "pylint",
-          "package_ref": "pkg:pypi/pylint@3.1.0",
-          "purl": "pkg:pypi/pylint@3.1.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "3.1.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/pyproject-hooks@1.2.0",
-          "licenses": [],
-          "matched": true,
-          "name": "pyproject-hooks",
-          "package_ref": "pkg:pypi/pyproject-hooks@1.2.0",
-          "purl": "pkg:pypi/pyproject-hooks@1.2.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.2.0"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/coverage@7.4.0",
-            "pkg:pypi/pytest@7.4.3"
-          ],
-          "id": "pkg:pypi/pytest-cov@4.1.0",
-          "licenses": [],
-          "matched": true,
-          "name": "pytest-cov",
-          "package_ref": "pkg:pypi/pytest-cov@4.1.0",
-          "purl": "pkg:pypi/pytest-cov@4.1.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "4.1.0"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/iniconfig@2.3.0",
-            "pkg:pypi/packaging@26.2",
-            "pkg:pypi/pluggy@1.6.0"
-          ],
-          "id": "pkg:pypi/pytest@7.4.3",
-          "licenses": [],
-          "matched": true,
-          "name": "pytest",
-          "package_ref": "pkg:pypi/pytest@7.4.3",
-          "purl": "pkg:pypi/pytest@7.4.3",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "7.4.3"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/filelock@3.29.4",
-            "pkg:pypi/platformdirs@4.10.0"
-          ],
-          "id": "pkg:pypi/python-discovery@1.4.2",
-          "licenses": [],
-          "matched": true,
-          "name": "python-discovery",
-          "package_ref": "pkg:pypi/python-discovery@1.4.2",
-          "purl": "pkg:pypi/python-discovery@1.4.2",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.4.2"
-        },
-        {
           "depends_on": [],
           "id": "pkg:pypi/pytz@2026.2",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "matched": true,
           "name": "pytz",
           "package_ref": "pkg:pypi/pytz@2026.2",
@@ -1003,64 +141,26 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:pypi/pyyaml@6.0.3",
+          "id": "pkg:pypi/pyyaml@5.3",
           "licenses": [],
           "matched": true,
           "name": "pyyaml",
-          "package_ref": "pkg:pypi/pyyaml@6.0.3",
-          "purl": "pkg:pypi/pyyaml@6.0.3",
+          "package_ref": "pkg:pypi/pyyaml@5.3",
+          "purl": "pkg:pypi/pyyaml@5.3",
           "scopes": [
             "runtime"
           ],
-          "version": "6.0.3"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/rapidfuzz@3.14.5",
-          "licenses": [],
-          "matched": true,
-          "name": "rapidfuzz",
-          "package_ref": "pkg:pypi/rapidfuzz@3.14.5",
-          "purl": "pkg:pypi/rapidfuzz@3.14.5",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "3.14.5"
+          "version": "5.3"
         },
         {
           "depends_on": [
-            "pkg:pypi/requests@2.21.0"
-          ],
-          "id": "pkg:pypi/requests-toolbelt@1.0.0",
-          "licenses": [],
-          "matched": true,
-          "name": "requests-toolbelt",
-          "package_ref": "pkg:pypi/requests-toolbelt@1.0.0",
-          "purl": "pkg:pypi/requests-toolbelt@1.0.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.0.0"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/certifi@2026.5.20",
+            "pkg:pypi/certifi@2026.6.17",
             "pkg:pypi/chardet@3.0.4",
             "pkg:pypi/idna@2.8",
             "pkg:pypi/urllib3@1.24.1"
           ],
           "id": "pkg:pypi/requests@2.21.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "matched": true,
           "name": "requests",
           "package_ref": "pkg:pypi/requests@2.21.0",
@@ -1072,103 +172,15 @@
         },
         {
           "depends_on": [
-            "pkg:pypi/markdown-it-py@4.2.0",
-            "pkg:pypi/pygments@2.20.0"
-          ],
-          "id": "pkg:pypi/rich@15.0.0",
-          "licenses": [],
-          "matched": true,
-          "name": "rich",
-          "package_ref": "pkg:pypi/rich@15.0.0",
-          "purl": "pkg:pypi/rich@15.0.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "15.0.0"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/anyio@4.14.0",
-            "pkg:pypi/astroid@3.1.0",
-            "pkg:pypi/backports-zstd@1.6.0",
-            "pkg:pypi/bandit@1.7.5",
-            "pkg:pypi/black@23.12.1",
-            "pkg:pypi/build@1.5.0",
-            "pkg:pypi/cachecontrol@0.14.4",
-            "pkg:pypi/certifi@2026.5.20",
-            "pkg:pypi/cffi@2.0.0",
-            "pkg:pypi/chardet@3.0.4",
-            "pkg:pypi/charset-normalizer@3.4.7",
-            "pkg:pypi/cleo@2.1.0",
-            "pkg:pypi/click@8.4.1",
-            "pkg:pypi/coverage@7.4.0",
-            "pkg:pypi/crashtest@0.4.1",
-            "pkg:pypi/cryptography@49.0.0",
-            "pkg:pypi/dill@0.4.1",
-            "pkg:pypi/distlib@0.4.3",
             "pkg:pypi/django@1.11.29",
-            "pkg:pypi/dulwich@1.2.6",
-            "pkg:pypi/fastjsonschema@2.21.2",
             "pkg:pypi/feedparser@6.0.8",
-            "pkg:pypi/filelock@3.29.4",
-            "pkg:pypi/findpython@0.8.0",
-            "pkg:pypi/gitdb@4.0.12",
-            "pkg:pypi/gitpython@3.1.50",
-            "pkg:pypi/greenlet@3.5.1",
-            "pkg:pypi/h11@0.16.0",
-            "pkg:pypi/httpcore@1.0.9",
-            "pkg:pypi/httpx@0.28.1",
-            "pkg:pypi/idna@2.8",
-            "pkg:pypi/iniconfig@2.3.0",
-            "pkg:pypi/installer@1.0.1",
-            "pkg:pypi/isort@5.13.2",
-            "pkg:pypi/jaraco-classes@3.4.0",
-            "pkg:pypi/jaraco-context@6.1.2",
-            "pkg:pypi/jaraco-functools@4.5.0",
-            "pkg:pypi/jeepney@0.9.0",
             "pkg:pypi/jinja2@2.10.1",
-            "pkg:pypi/keyring@25.7.0",
-            "pkg:pypi/markdown-it-py@4.2.0",
-            "pkg:pypi/markupsafe@3.0.3",
-            "pkg:pypi/mccabe@0.7.0",
-            "pkg:pypi/mdurl@0.1.2",
-            "pkg:pypi/more-itertools@11.1.0",
-            "pkg:pypi/msgpack@1.2.0",
-            "pkg:pypi/mypy-extensions@1.1.0",
-            "pkg:pypi/packaging@26.2",
-            "pkg:pypi/pathspec@1.1.1",
-            "pkg:pypi/pbs-installer@2026.6.10",
-            "pkg:pypi/pkginfo@1.12.1.2",
-            "pkg:pypi/platformdirs@4.10.0",
-            "pkg:pypi/pluggy@1.6.0",
-            "pkg:pypi/poetry-core@2.4.0",
-            "pkg:pypi/pyasn1@0.6.3",
-            "pkg:pypi/pycparser@3.0",
-            "pkg:pypi/pygments@2.20.0",
             "pkg:pypi/pyjwt@0.4.2",
-            "pkg:pypi/pylint@3.1.0",
-            "pkg:pypi/pyproject-hooks@1.2.0",
-            "pkg:pypi/pytest-cov@4.1.0",
-            "pkg:pypi/pytest@7.4.3",
-            "pkg:pypi/python-discovery@1.4.2",
-            "pkg:pypi/pytz@2026.2",
-            "pkg:pypi/pyyaml@6.0.3",
-            "pkg:pypi/rapidfuzz@3.14.5",
-            "pkg:pypi/requests-toolbelt@1.0.0",
+            "pkg:pypi/pyyaml@5.3",
             "pkg:pypi/requests@2.21.0",
-            "pkg:pypi/rich@15.0.0",
             "pkg:pypi/rsa@3.4",
-            "pkg:pypi/secretstorage@3.5.0",
-            "pkg:pypi/sgmllib3k@1.0.0",
-            "pkg:pypi/shellingham@1.5.4",
-            "pkg:pypi/smmap@5.0.3",
             "pkg:pypi/sqlalchemy@1.4.46",
-            "pkg:pypi/stevedore@5.8.0",
-            "pkg:pypi/tomlkit@0.15.0",
-            "pkg:pypi/trove-classifiers@2026.6.1.19",
-            "pkg:pypi/typing-extensions@4.15.0",
-            "pkg:pypi/urllib3@1.24.1",
-            "pkg:pypi/virtualenv@21.5.0"
+            "pkg:pypi/urllib3@1.24.1"
           ],
           "id": "pkg:pypi/root",
           "licenses": [],
@@ -1182,16 +194,6 @@
           ],
           "id": "pkg:pypi/rsa@3.4",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "matched": true,
           "name": "rsa",
           "package_ref": "pkg:pypi/rsa@3.4",
@@ -1202,35 +204,9 @@
           "version": "3.4"
         },
         {
-          "depends_on": [
-            "pkg:pypi/cryptography@49.0.0",
-            "pkg:pypi/jeepney@0.9.0"
-          ],
-          "id": "pkg:pypi/secretstorage@3.5.0",
-          "licenses": [],
-          "matched": true,
-          "name": "secretstorage",
-          "package_ref": "pkg:pypi/secretstorage@3.5.0",
-          "purl": "pkg:pypi/secretstorage@3.5.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "3.5.0"
-        },
-        {
           "depends_on": [],
           "id": "pkg:pypi/sgmllib3k@1.0.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "matched": true,
           "name": "sgmllib3k",
           "package_ref": "pkg:pypi/sgmllib3k@1.0.0",
@@ -1242,34 +218,6 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:pypi/shellingham@1.5.4",
-          "licenses": [],
-          "matched": true,
-          "name": "shellingham",
-          "package_ref": "pkg:pypi/shellingham@1.5.4",
-          "purl": "pkg:pypi/shellingham@1.5.4",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.5.4"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/smmap@5.0.3",
-          "licenses": [],
-          "matched": true,
-          "name": "smmap",
-          "package_ref": "pkg:pypi/smmap@5.0.3",
-          "purl": "pkg:pypi/smmap@5.0.3",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "5.0.3"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/greenlet@3.5.1"
-          ],
           "id": "pkg:pypi/sqlalchemy@1.4.46",
           "licenses": [],
           "matched": true,
@@ -1283,70 +231,8 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:pypi/stevedore@5.8.0",
-          "licenses": [],
-          "matched": true,
-          "name": "stevedore",
-          "package_ref": "pkg:pypi/stevedore@5.8.0",
-          "purl": "pkg:pypi/stevedore@5.8.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "5.8.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/tomlkit@0.15.0",
-          "licenses": [],
-          "matched": true,
-          "name": "tomlkit",
-          "package_ref": "pkg:pypi/tomlkit@0.15.0",
-          "purl": "pkg:pypi/tomlkit@0.15.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.15.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/trove-classifiers@2026.6.1.19",
-          "licenses": [],
-          "matched": true,
-          "name": "trove-classifiers",
-          "package_ref": "pkg:pypi/trove-classifiers@2026.6.1.19",
-          "purl": "pkg:pypi/trove-classifiers@2026.6.1.19",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "2026.6.1.19"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/typing-extensions@4.15.0",
-          "licenses": [],
-          "matched": true,
-          "name": "typing-extensions",
-          "package_ref": "pkg:pypi/typing-extensions@4.15.0",
-          "purl": "pkg:pypi/typing-extensions@4.15.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "4.15.0"
-        },
-        {
-          "depends_on": [],
           "id": "pkg:pypi/urllib3@1.24.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "matched": true,
           "name": "urllib3",
           "package_ref": "pkg:pypi/urllib3@1.24.1",
@@ -1355,25 +241,6 @@
             "runtime"
           ],
           "version": "1.24.1"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/distlib@0.4.3",
-            "pkg:pypi/filelock@3.29.4",
-            "pkg:pypi/platformdirs@4.10.0",
-            "pkg:pypi/python-discovery@1.4.2",
-            "pkg:pypi/typing-extensions@4.15.0"
-          ],
-          "id": "pkg:pypi/virtualenv@21.5.0",
-          "licenses": [],
-          "matched": true,
-          "name": "virtualenv",
-          "package_ref": "pkg:pypi/virtualenv@21.5.0",
-          "purl": "pkg:pypi/virtualenv@21.5.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "21.5.0"
         }
       ],
       "detector": "pip-detector",
@@ -1390,312 +257,14 @@
     ],
     "analyzer_stats": {
       "pyreach": {
-        "reachable": 29,
-        "unreachable": 8
+        "reachable": 32,
+        "unreachable": 7
       }
     },
     "duration_ms": 0,
     "reachability_enabled": true
   },
   "packages": [
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "anyio",
-      "purl": "pkg:pypi/anyio@4.14.0",
-      "version": "4.14.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "LGPL-2.1-or-later",
-          "type": "external-depsdev",
-          "value": "LGPL-2.1-or-later"
-        }
-      ],
-      "matched": true,
-      "name": "astroid",
-      "purl": "pkg:pypi/astroid@3.1.0",
-      "version": "3.1.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "PSF-2.0",
-          "type": "external-depsdev",
-          "value": "PSF-2.0"
-        }
-      ],
-      "matched": true,
-      "name": "backports-zstd",
-      "purl": "pkg:pypi/backports-zstd@1.6.0",
-      "version": "1.6.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
-          "value": "Apache-2.0"
-        }
-      ],
-      "matched": true,
-      "name": "bandit",
-      "purl": "pkg:pypi/bandit@1.7.5",
-      "version": "1.7.5",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "black",
-      "purl": "pkg:pypi/black@23.12.1",
-      "version": "23.12.1",
-      "vulnerabilities": [
-        {
-          "affected_version_range": "\u003c26.3.1 (python)",
-          "aliases": [
-            "CVE-2026-32274"
-          ],
-          "cvss": [
-            {
-              "score": 8.7,
-              "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:H/VA:N/SC:N/SI:N/SA:N",
-              "version": "4.0"
-            }
-          ],
-          "cwes": [
-            {
-              "cve": "CVE-2026-32274",
-              "id": "CWE-22",
-              "source": "security-advisories@github.com",
-              "type": "Primary"
-            }
-          ],
-          "data_source": "https://github.com/advisories/GHSA-3936-cmfr-pm3m",
-          "description": "Black: Arbitrary file writes from unsanitized user input in cache file name",
-          "epss": [
-            {
-              "cve": "CVE-2026-32274",
-              "date": "2026-06-14",
-              "epss": 0.00023,
-              "percentile": 0.06856
-            }
-          ],
-          "fix_available": [
-            {
-              "date": "2026-03-13",
-              "kind": "first-observed",
-              "version": "26.3.1"
-            }
-          ],
-          "fix_state": "fixed",
-          "fixed_in": "26.3.1",
-          "fixed_versions": [
-            "26.3.1"
-          ],
-          "id": "GHSA-3936-cmfr-pm3m",
-          "namespace": "github:language:python",
-          "reachability": {
-            "analyzed_at": "\u003ctimestamp\u003e",
-            "analyzer": "pyreach",
-            "reason": "package-not-imported",
-            "status": "unreachable",
-            "tier": "package"
-          },
-          "reasons": [
-            "Also known as: CVE-2026-32274",
-            "Fix available: upgrade to 26.3.1",
-            "Fix state: fixed",
-            "https://github.com/psf/black/commit/4937fe6cf241139ddbfc16b0bdbb5b422798909d",
-            "https://github.com/psf/black/pull/5038",
-            "https://github.com/psf/black/releases/tag/26.3.1",
-            "https://github.com/psf/black/security/advisories/GHSA-3936-cmfr-pm3m",
-            "https://nvd.nist.gov/vuln/detail/CVE-2026-32274"
-          ],
-          "references": [
-            {
-              "type": "data_source",
-              "url": "https://github.com/advisories/GHSA-3936-cmfr-pm3m"
-            },
-            {
-              "type": "advisory",
-              "url": "https://github.com/psf/black/security/advisories/GHSA-3936-cmfr-pm3m"
-            },
-            {
-              "type": "advisory",
-              "url": "https://github.com/psf/black/pull/5038"
-            },
-            {
-              "type": "advisory",
-              "url": "https://github.com/psf/black/commit/4937fe6cf241139ddbfc16b0bdbb5b422798909d"
-            },
-            {
-              "type": "advisory",
-              "url": "https://github.com/psf/black/releases/tag/26.3.1"
-            },
-            {
-              "type": "advisory",
-              "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-32274"
-            }
-          ],
-          "risk_score": 0.01863,
-          "severity": "high",
-          "severity_source": "github:language:python",
-          "source": "grype",
-          "title": "Black: Arbitrary file writes from unsanitized user input in cache file name"
-        },
-        {
-          "affected_version_range": "\u003e=0,\u003c24.3.0 (python)",
-          "aliases": [
-            "CVE-2024-21503"
-          ],
-          "cvss": [
-            {
-              "score": 5.3,
-              "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
-              "version": "3.1"
-            }
-          ],
-          "cwes": [
-            {
-              "cve": "CVE-2024-21503",
-              "id": "CWE-1333",
-              "source": "report@snyk.io",
-              "type": "Secondary"
-            },
-            {
-              "cve": "CVE-2024-21503",
-              "id": "CWE-75",
-              "source": "134c704f-9b21-4f2e-91b3-4a467353bcc0",
-              "type": "Secondary"
-            }
-          ],
-          "data_source": "https://github.com/advisories/GHSA-fj7x-q9j7-g6q6",
-          "description": "Black vulnerable to Regular Expression Denial of Service (ReDoS)",
-          "epss": [
-            {
-              "cve": "CVE-2024-21503",
-              "date": "2026-06-14",
-              "epss": 0.00081,
-              "percentile": 0.24084
-            }
-          ],
-          "fix_available": [
-            {
-              "date": "2024-03-21",
-              "kind": "first-observed",
-              "version": "24.3.0"
-            }
-          ],
-          "fix_state": "fixed",
-          "fixed_in": "24.3.0",
-          "fixed_versions": [
-            "24.3.0"
-          ],
-          "id": "GHSA-fj7x-q9j7-g6q6",
-          "namespace": "github:language:python",
-          "reachability": {
-            "analyzed_at": "\u003ctimestamp\u003e",
-            "analyzer": "pyreach",
-            "reason": "package-not-imported",
-            "status": "unreachable",
-            "tier": "package"
-          },
-          "reasons": [
-            "Also known as: CVE-2024-21503",
-            "Fix available: upgrade to 24.3.0",
-            "Fix state: fixed",
-            "https://github.com/psf/black/commit/f00093672628d212b8965a8993cee8bedf5fe9b8",
-            "https://github.com/psf/black/releases/tag/24.3.0",
-            "https://github.com/pypa/advisory-database/tree/main/vulns/black/PYSEC-2024-48.yaml",
-            "https://nvd.nist.gov/vuln/detail/CVE-2024-21503",
-            "https://security.snyk.io/vuln/SNYK-PYTHON-BLACK-6256273"
-          ],
-          "references": [
-            {
-              "type": "data_source",
-              "url": "https://github.com/advisories/GHSA-fj7x-q9j7-g6q6"
-            },
-            {
-              "type": "advisory",
-              "url": "https://nvd.nist.gov/vuln/detail/CVE-2024-21503"
-            },
-            {
-              "type": "advisory",
-              "url": "https://github.com/psf/black/commit/f00093672628d212b8965a8993cee8bedf5fe9b8"
-            },
-            {
-              "type": "advisory",
-              "url": "https://github.com/psf/black/releases/tag/24.3.0"
-            },
-            {
-              "type": "advisory",
-              "url": "https://security.snyk.io/vuln/SNYK-PYTHON-BLACK-6256273"
-            },
-            {
-              "type": "advisory",
-              "url": "https://github.com/pypa/advisory-database/tree/main/vulns/black/PYSEC-2024-48.yaml"
-            }
-          ],
-          "risk_score": 0.041714999999999995,
-          "severity": "medium",
-          "severity_source": "github:language:python",
-          "source": "grype",
-          "title": "Black vulnerable to Regular Expression Denial of Service (ReDoS)"
-        }
-      ]
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "build",
-      "purl": "pkg:pypi/build@1.5.0",
-      "version": "1.5.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
-          "value": "Apache-2.0"
-        }
-      ],
-      "matched": true,
-      "name": "cachecontrol",
-      "purl": "pkg:pypi/cachecontrol@0.14.4",
-      "version": "0.14.4",
-      "vulnerabilities": []
-    },
     {
       "ecosystem": "python",
       "licenses": [
@@ -1707,23 +276,8 @@
       ],
       "matched": true,
       "name": "certifi",
-      "purl": "pkg:pypi/certifi@2026.5.20",
-      "version": "2026.5.20",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "cffi",
-      "purl": "pkg:pypi/cffi@2.0.0",
-      "version": "2.0.0",
+      "purl": "pkg:pypi/certifi@2026.6.17",
+      "version": "2026.6.17",
       "vulnerabilities": []
     },
     {
@@ -1739,126 +293,6 @@
       "name": "chardet",
       "purl": "pkg:pypi/chardet@3.0.4",
       "version": "3.0.4",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "charset-normalizer",
-      "purl": "pkg:pypi/charset-normalizer@3.4.7",
-      "version": "3.4.7",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "cleo",
-      "purl": "pkg:pypi/cleo@2.1.0",
-      "version": "2.1.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "BSD-3-Clause",
-          "type": "external-depsdev",
-          "value": "BSD-3-Clause"
-        }
-      ],
-      "matched": true,
-      "name": "click",
-      "purl": "pkg:pypi/click@8.4.1",
-      "version": "8.4.1",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
-          "value": "Apache-2.0"
-        }
-      ],
-      "matched": true,
-      "name": "coverage",
-      "purl": "pkg:pypi/coverage@7.4.0",
-      "version": "7.4.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "crashtest",
-      "purl": "pkg:pypi/crashtest@0.4.1",
-      "version": "0.4.1",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "Apache-2.0 OR BSD-3-Clause",
-          "type": "external-depsdev",
-          "value": "Apache-2.0 OR BSD-3-Clause"
-        }
-      ],
-      "matched": true,
-      "name": "cryptography",
-      "purl": "pkg:pypi/cryptography@49.0.0",
-      "version": "49.0.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "BSD-3-Clause",
-          "type": "external-depsdev",
-          "value": "BSD-3-Clause"
-        }
-      ],
-      "matched": true,
-      "name": "dill",
-      "purl": "pkg:pypi/dill@0.4.1",
-      "version": "0.4.1",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "PSF-2.0",
-          "type": "external-depsdev",
-          "value": "PSF-2.0"
-        }
-      ],
-      "matched": true,
-      "name": "distlib",
-      "purl": "pkg:pypi/distlib@0.4.3",
-      "version": "0.4.3",
       "vulnerabilities": []
     },
     {
@@ -1905,9 +339,9 @@
           "epss": [
             {
               "cve": "CVE-2021-33203",
-              "date": "2026-06-14",
-              "epss": 0.00143,
-              "percentile": 0.34408
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -1993,7 +427,7 @@
               "url": "https://www.djangoproject.com/weblog/2021/jun/02/security-releases"
             }
           ],
-          "risk_score": 0.077935,
+          "risk_score": 1.491665,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -2024,9 +458,9 @@
           "epss": [
             {
               "cve": "CVE-2025-57833",
-              "date": "2026-06-14",
-              "epss": 0.00074,
-              "percentile": 0.22641
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -2117,7 +551,7 @@
               "url": "https://github.com/pypa/advisory-database/tree/main/vulns/django/PYSEC-2025-105.yaml"
             }
           ],
-          "risk_score": 0.05402,
+          "risk_score": 11.389459999999998,
           "severity": "high",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -2148,9 +582,9 @@
           "epss": [
             {
               "cve": "CVE-2025-48432",
-              "date": "2026-06-14",
-              "epss": 0.00411,
-              "percentile": 0.6197
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -2236,7 +670,7 @@
               "url": "http://www.openwall.com/lists/oss-security/2025/06/10/4"
             }
           ],
-          "risk_score": 0.18495,
+          "risk_score": 0.27,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -2267,9 +701,9 @@
           "epss": [
             {
               "cve": "CVE-2022-36359",
-              "date": "2026-06-14",
-              "epss": 0.0113,
-              "percentile": 0.78811
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -2370,7 +804,7 @@
               "url": "https://www.djangoproject.com/weblog/2022/aug/03/security-releases"
             }
           ],
-          "risk_score": 0.92095,
+          "risk_score": 0.53301,
           "severity": "high",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -2401,9 +835,9 @@
           "epss": [
             {
               "cve": "CVE-2025-64459",
-              "date": "2026-06-14",
-              "epss": 0.00282,
-              "percentile": 0.52082
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -2494,7 +928,7 @@
               "url": "https://github.com/pypa/advisory-database/tree/main/vulns/django/PYSEC-2025-108.yaml"
             }
           ],
-          "risk_score": 0.25521000000000005,
+          "risk_score": 16.97056,
           "severity": "critical",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -2525,9 +959,9 @@
           "epss": [
             {
               "cve": "CVE-2025-64458",
-              "date": "2026-06-14",
-              "epss": 0.00025,
-              "percentile": 0.07348
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -2608,7 +1042,7 @@
               "url": "https://github.com/pypa/advisory-database/tree/main/vulns/django/PYSEC-2025-107.yaml"
             }
           ],
-          "risk_score": 0.01875,
+          "risk_score": 1.3965,
           "severity": "high",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -2644,9 +1078,9 @@
           "epss": [
             {
               "cve": "CVE-2024-45231",
-              "date": "2026-06-14",
-              "epss": 0.00235,
-              "percentile": 0.46717
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -2717,43 +1151,13 @@
               "url": "https://github.com/django/django/commit/bf4888d317ba4506d091eeac6e8b4f1fcc731199"
             }
           ],
-          "risk_score": 0.11750000000000001,
+          "risk_score": 0.40249999999999997,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
           "title": "Django allows enumeration of user e-mail addresses"
         }
       ]
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "Apache-2.0 OR GPL-2.0-or-later",
-          "type": "external-depsdev",
-          "value": "Apache-2.0 OR GPL-2.0-or-later"
-        }
-      ],
-      "matched": true,
-      "name": "dulwich",
-      "purl": "pkg:pypi/dulwich@1.2.6",
-      "version": "1.2.6",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
-          "value": "non-standard"
-        }
-      ],
-      "matched": true,
-      "name": "fastjsonschema",
-      "purl": "pkg:pypi/fastjsonschema@2.21.2",
-      "version": "2.21.2",
-      "vulnerabilities": []
     },
     {
       "ecosystem": "python",
@@ -2768,126 +1172,6 @@
       "name": "feedparser",
       "purl": "pkg:pypi/feedparser@6.0.8",
       "version": "6.0.8",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "filelock",
-      "purl": "pkg:pypi/filelock@3.29.4",
-      "version": "3.29.4",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "findpython",
-      "purl": "pkg:pypi/findpython@0.8.0",
-      "version": "0.8.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
-          "value": "non-standard"
-        }
-      ],
-      "matched": true,
-      "name": "gitdb",
-      "purl": "pkg:pypi/gitdb@4.0.12",
-      "version": "4.0.12",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "BSD-3-Clause",
-          "type": "external-depsdev",
-          "value": "BSD-3-Clause"
-        }
-      ],
-      "matched": true,
-      "name": "gitpython",
-      "purl": "pkg:pypi/gitpython@3.1.50",
-      "version": "3.1.50",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT AND PSF-2.0",
-          "type": "external-depsdev",
-          "value": "MIT AND PSF-2.0"
-        }
-      ],
-      "matched": true,
-      "name": "greenlet",
-      "purl": "pkg:pypi/greenlet@3.5.1",
-      "version": "3.5.1",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "h11",
-      "purl": "pkg:pypi/h11@0.16.0",
-      "version": "0.16.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "BSD-3-Clause",
-          "type": "external-depsdev",
-          "value": "BSD-3-Clause"
-        }
-      ],
-      "matched": true,
-      "name": "httpcore",
-      "purl": "pkg:pypi/httpcore@1.0.9",
-      "version": "1.0.9",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "BSD-3-Clause",
-          "type": "external-depsdev",
-          "value": "BSD-3-Clause"
-        }
-      ],
-      "matched": true,
-      "name": "httpx",
-      "purl": "pkg:pypi/httpx@0.28.1",
-      "version": "0.28.1",
       "vulnerabilities": []
     },
     {
@@ -2921,7 +1205,7 @@
               "cve": "CVE-2026-45409",
               "id": "CWE-1333",
               "source": "security-advisories@github.com",
-              "type": "Primary"
+              "type": "Secondary"
             }
           ],
           "data_source": "https://github.com/advisories/GHSA-65pc-fj4g-8rjx",
@@ -2929,9 +1213,9 @@
           "epss": [
             {
               "cve": "CVE-2026-45409",
-              "date": "2026-06-14",
-              "epss": 0.00018,
-              "percentile": 0.04829
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -2977,7 +1261,7 @@
               "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-45409"
             }
           ],
-          "risk_score": 0.01071,
+          "risk_score": 0.26655999999999996,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -3013,9 +1297,9 @@
           "epss": [
             {
               "cve": "CVE-2024-3651",
-              "date": "2026-06-14",
-              "epss": 0.00689,
-              "percentile": 0.72331
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -3101,118 +1385,13 @@
               "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/4YQUPYH3SVZ5GFF2CDQ55FCM575AZTF2"
             }
           ],
-          "risk_score": 0.3978975,
+          "risk_score": 0.617925,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
           "title": "Internationalized Domain Names in Applications (IDNA) vulnerable to denial of service from specially crafted inputs to idna.encode"
         }
       ]
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "iniconfig",
-      "purl": "pkg:pypi/iniconfig@2.3.0",
-      "version": "2.3.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "installer",
-      "purl": "pkg:pypi/installer@1.0.1",
-      "version": "1.0.1",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "isort",
-      "purl": "pkg:pypi/isort@5.13.2",
-      "version": "5.13.2",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "jaraco-classes",
-      "purl": "pkg:pypi/jaraco-classes@3.4.0",
-      "version": "3.4.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "jaraco-context",
-      "purl": "pkg:pypi/jaraco-context@6.1.2",
-      "version": "6.1.2",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "jaraco-functools",
-      "purl": "pkg:pypi/jaraco-functools@4.5.0",
-      "version": "4.5.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "jeepney",
-      "purl": "pkg:pypi/jeepney@0.9.0",
-      "version": "0.9.0",
-      "vulnerabilities": []
     },
     {
       "ecosystem": "python",
@@ -3253,9 +1432,9 @@
           "epss": [
             {
               "cve": "CVE-2025-27516",
-              "date": "2026-06-14",
-              "epss": 0.00121,
-              "percentile": 0.30919
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -3315,7 +1494,7 @@
               "url": "https://lists.debian.org/debian-lts-announce/2025/04/msg00022.html"
             }
           ],
-          "risk_score": 0.06292,
+          "risk_score": 0.24180000000000001,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -3351,9 +1530,9 @@
           "epss": [
             {
               "cve": "CVE-2020-28493",
-              "date": "2026-06-14",
-              "epss": 0.00207,
-              "percentile": 0.4324
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -3428,7 +1607,7 @@
               "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/PVAKCOO7VBVUBM3Q6CBBTPBFNP5NDXF4"
             }
           ],
-          "risk_score": 0.11488499999999996,
+          "risk_score": 1.9841249999999997,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -3465,9 +1644,9 @@
           "epss": [
             {
               "cve": "CVE-2024-22195",
-              "date": "2026-06-14",
-              "epss": 0.00151,
-              "percentile": 0.35654
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -3547,7 +1726,7 @@
               "url": "https://lists.debian.org/debian-lts-announce/2024/12/msg00009.html"
             }
           ],
-          "risk_score": 0.07852,
+          "risk_score": 0.4638400000000001,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -3578,9 +1757,9 @@
           "epss": [
             {
               "cve": "CVE-2024-34064",
-              "date": "2026-06-14",
-              "epss": 0.0123,
-              "percentile": 0.79649
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -3655,7 +1834,7 @@
               "url": "https://lists.debian.org/debian-lts-announce/2024/12/msg00009.html"
             }
           ],
-          "risk_score": 0.6396000000000001,
+          "risk_score": 0.5090800000000001,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -3697,9 +1876,9 @@
           "epss": [
             {
               "cve": "CVE-2024-56326",
-              "date": "2026-06-14",
-              "epss": 0.0057,
-              "percentile": 0.69168
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -3759,43 +1938,13 @@
               "url": "https://lists.debian.org/debian-lts-announce/2025/04/msg00022.html"
             }
           ],
-          "risk_score": 0.3306,
+          "risk_score": 0.28768,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
           "title": "Jinja has a sandbox breakout through indirect reference to format method"
         }
       ]
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "keyring",
-      "purl": "pkg:pypi/keyring@25.7.0",
-      "version": "25.7.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "markdown-it-py",
-      "purl": "pkg:pypi/markdown-it-py@4.2.0",
-      "version": "4.2.0",
-      "vulnerabilities": []
     },
     {
       "ecosystem": "python",
@@ -3816,186 +1965,6 @@
       "ecosystem": "python",
       "licenses": [
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
-          "value": "non-standard"
-        }
-      ],
-      "matched": true,
-      "name": "mccabe",
-      "purl": "pkg:pypi/mccabe@0.7.0",
-      "version": "0.7.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "mdurl",
-      "purl": "pkg:pypi/mdurl@0.1.2",
-      "version": "0.1.2",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "more-itertools",
-      "purl": "pkg:pypi/more-itertools@11.1.0",
-      "version": "11.1.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
-          "value": "Apache-2.0"
-        }
-      ],
-      "matched": true,
-      "name": "msgpack",
-      "purl": "pkg:pypi/msgpack@1.2.0",
-      "version": "1.2.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "mypy-extensions",
-      "purl": "pkg:pypi/mypy-extensions@1.1.0",
-      "version": "1.1.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "Apache-2.0 OR BSD-2-Clause",
-          "type": "external-depsdev",
-          "value": "Apache-2.0 OR BSD-2-Clause"
-        }
-      ],
-      "matched": true,
-      "name": "packaging",
-      "purl": "pkg:pypi/packaging@26.2",
-      "version": "26.2",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MPL-2.0",
-          "type": "external-depsdev",
-          "value": "MPL-2.0"
-        }
-      ],
-      "matched": true,
-      "name": "pathspec",
-      "purl": "pkg:pypi/pathspec@1.1.1",
-      "version": "1.1.1",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "pbs-installer",
-      "purl": "pkg:pypi/pbs-installer@2026.6.10",
-      "version": "2026.6.10",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "pkginfo",
-      "purl": "pkg:pypi/pkginfo@1.12.1.2",
-      "version": "1.12.1.2",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "platformdirs",
-      "purl": "pkg:pypi/platformdirs@4.10.0",
-      "version": "4.10.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "pluggy",
-      "purl": "pkg:pypi/pluggy@1.6.0",
-      "version": "1.6.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "poetry-core",
-      "purl": "pkg:pypi/poetry-core@2.4.0",
-      "version": "2.4.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
           "spdxExpression": "BSD-2-Clause",
           "type": "external-depsdev",
           "value": "BSD-2-Clause"
@@ -4005,36 +1974,6 @@
       "name": "pyasn1",
       "purl": "pkg:pypi/pyasn1@0.6.3",
       "version": "0.6.3",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "BSD-3-Clause",
-          "type": "external-depsdev",
-          "value": "BSD-3-Clause"
-        }
-      ],
-      "matched": true,
-      "name": "pycparser",
-      "purl": "pkg:pypi/pycparser@3.0",
-      "version": "3.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "BSD-2-Clause",
-          "type": "external-depsdev",
-          "value": "BSD-2-Clause"
-        }
-      ],
-      "matched": true,
-      "name": "pygments",
-      "purl": "pkg:pypi/pygments@2.20.0",
-      "version": "2.20.0",
       "vulnerabilities": []
     },
     {
@@ -4082,9 +2021,9 @@
           "epss": [
             {
               "cve": "CVE-2026-32597",
-              "date": "2026-06-14",
-              "epss": 0.00014,
-              "percentile": 0.02617
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -4140,11 +2079,191 @@
               "url": "https://github.com/pypa/advisory-database/tree/main/vulns/pyjwt/PYSEC-2026-120.yaml"
             }
           ],
-          "risk_score": 0.010499999999999999,
+          "risk_score": 0.1485,
           "severity": "high",
           "severity_source": "github:language:python",
           "source": "grype",
           "title": "PyJWT accepts unknown `crit` header extensions"
+        },
+        {
+          "affected_version_range": "\u003c=2.12.1 (python)",
+          "aliases": [
+            "CVE-2026-48522"
+          ],
+          "cvss": [
+            {
+              "score": 4.2,
+              "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:L/A:N",
+              "version": "3.1"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "CVE-2026-48522",
+              "id": "CWE-441",
+              "source": "security-advisories@github.com",
+              "type": "Secondary"
+            },
+            {
+              "cve": "CVE-2026-48522",
+              "id": "CWE-918",
+              "source": "security-advisories@github.com",
+              "type": "Secondary"
+            }
+          ],
+          "data_source": "https://github.com/advisories/GHSA-993g-76c3-p5m4",
+          "description": "PyJWKClient: missing scheme allowlist enables CVE-2024-21643-class SSRF + token forgery via file://, ftp://, data: schemes",
+          "epss": [
+            {
+              "cve": "CVE-2026-48522",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "2026-06-16",
+              "kind": "first-observed",
+              "version": "2.13.0"
+            }
+          ],
+          "fix_state": "fixed",
+          "fixed_in": "2.13.0",
+          "fixed_versions": [
+            "2.13.0"
+          ],
+          "id": "GHSA-993g-76c3-p5m4",
+          "namespace": "github:language:python",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "confidence": "high",
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "Also known as: CVE-2026-48522",
+            "Fix available: upgrade to 2.13.0",
+            "Fix state: fixed",
+            "https://github.com/jpadilla/pyjwt/security/advisories/GHSA-993g-76c3-p5m4",
+            "https://github.com/pypa/advisory-database/tree/main/vulns/pyjwt/PYSEC-2026-175.yaml",
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-48522"
+          ],
+          "references": [
+            {
+              "type": "data_source",
+              "url": "https://github.com/advisories/GHSA-993g-76c3-p5m4"
+            },
+            {
+              "type": "advisory",
+              "url": "https://github.com/jpadilla/pyjwt/security/advisories/GHSA-993g-76c3-p5m4"
+            },
+            {
+              "type": "advisory",
+              "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48522"
+            },
+            {
+              "type": "advisory",
+              "url": "https://github.com/pypa/advisory-database/tree/main/vulns/pyjwt/PYSEC-2026-175.yaml"
+            }
+          ],
+          "risk_score": 0.06808,
+          "severity": "medium",
+          "severity_source": "github:language:python",
+          "source": "grype",
+          "title": "PyJWKClient: missing scheme allowlist enables CVE-2024-21643-class SSRF + token forgery via file://, ftp://, data: schemes"
+        },
+        {
+          "affected_version_range": "\u003c=2.12.1 (python)",
+          "aliases": [
+            "CVE-2026-48524"
+          ],
+          "cvss": [
+            {
+              "score": 3.7,
+              "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:L",
+              "version": "3.1"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "CVE-2026-48524",
+              "id": "CWE-460",
+              "source": "security-advisories@github.com",
+              "type": "Secondary"
+            },
+            {
+              "cve": "CVE-2026-48524",
+              "id": "CWE-755",
+              "source": "security-advisories@github.com",
+              "type": "Secondary"
+            }
+          ],
+          "data_source": "https://github.com/advisories/GHSA-fhv5-28vv-h8m8",
+          "description": "PyJWKClient unbounded JWKS endpoint requests via attacker-controlled kid values (DoS)",
+          "epss": [
+            {
+              "cve": "CVE-2026-48524",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "2026-06-15",
+              "kind": "first-observed",
+              "version": "2.13.0"
+            }
+          ],
+          "fix_state": "fixed",
+          "fixed_in": "2.13.0",
+          "fixed_versions": [
+            "2.13.0"
+          ],
+          "id": "GHSA-fhv5-28vv-h8m8",
+          "namespace": "github:language:python",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "confidence": "high",
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "Also known as: CVE-2026-48524",
+            "Fix available: upgrade to 2.13.0",
+            "Fix state: fixed",
+            "https://github.com/jpadilla/pyjwt/security/advisories/GHSA-fhv5-28vv-h8m8",
+            "https://github.com/pypa/advisory-database/tree/main/vulns/pyjwt/PYSEC-2026-177.yaml",
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-48524"
+          ],
+          "references": [
+            {
+              "type": "data_source",
+              "url": "https://github.com/advisories/GHSA-fhv5-28vv-h8m8"
+            },
+            {
+              "type": "advisory",
+              "url": "https://github.com/jpadilla/pyjwt/security/advisories/GHSA-fhv5-28vv-h8m8"
+            },
+            {
+              "type": "advisory",
+              "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48524"
+            },
+            {
+              "type": "advisory",
+              "url": "https://github.com/pypa/advisory-database/tree/main/vulns/pyjwt/PYSEC-2026-177.yaml"
+            }
+          ],
+          "risk_score": 0.068675,
+          "severity": "low",
+          "severity_source": "github:language:python",
+          "source": "grype",
+          "title": "PyJWKClient unbounded JWKS endpoint requests via attacker-controlled kid values (DoS)"
         },
         {
           "affected_version_range": "\u003c1.5.1 (python)",
@@ -4163,9 +2282,9 @@
           "epss": [
             {
               "cve": "CVE-2017-11424",
-              "date": "2026-06-14",
-              "epss": 0.00193,
-              "percentile": 0.41256
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -4221,187 +2340,103 @@
               "url": "https://github.com/pypa/advisory-database/tree/main/vulns/pyjwt/PYSEC-2017-24.yaml"
             }
           ],
-          "risk_score": 0.14475,
+          "risk_score": 1.353,
           "severity": "high",
           "severity_source": "github:language:python",
           "source": "grype",
           "title": "PyJWT vulnerable to key confusion attacks"
-        }
-      ]
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
+        },
         {
-          "spdxExpression": "GPL-2.0-or-later",
-          "type": "external-depsdev",
-          "value": "GPL-2.0-or-later"
-        }
-      ],
-      "matched": true,
-      "name": "pylint",
-      "purl": "pkg:pypi/pylint@3.1.0",
-      "version": "3.1.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "pyproject-hooks",
-      "purl": "pkg:pypi/pyproject-hooks@1.2.0",
-      "version": "1.2.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "pytest-cov",
-      "purl": "pkg:pypi/pytest-cov@4.1.0",
-      "version": "4.1.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "pytest",
-      "purl": "pkg:pypi/pytest@7.4.3",
-      "version": "7.4.3",
-      "vulnerabilities": [
-        {
-          "affected_version_range": "\u003c9.0.3 (python)",
+          "affected_version_range": "\u003c2.13.0 (python)",
           "aliases": [
-            "CVE-2025-71176"
+            "CVE-2026-48526"
           ],
           "cvss": [
             {
-              "score": 6.8,
-              "vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:C/C:L/I:L/A:L",
+              "score": 7.4,
+              "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N",
               "version": "3.1"
             }
           ],
           "cwes": [
             {
-              "cve": "CVE-2025-71176",
-              "id": "CWE-379",
-              "source": "cve@mitre.org",
+              "cve": "CVE-2026-48526",
+              "id": "CWE-287",
+              "source": "security-advisories@github.com",
+              "type": "Secondary"
+            },
+            {
+              "cve": "CVE-2026-48526",
+              "id": "CWE-347",
+              "source": "security-advisories@github.com",
               "type": "Secondary"
             }
           ],
-          "data_source": "https://github.com/advisories/GHSA-6w46-j5rx-g56g",
-          "description": "pytest has vulnerable tmpdir handling",
+          "data_source": "https://github.com/advisories/GHSA-xgmm-8j9v-c9wx",
+          "description": "PyJWT: Public-key JWK accepted as HMAC secret enables forged HS256 tokens when mixed families are allowed",
           "epss": [
             {
-              "cve": "CVE-2025-71176",
-              "date": "2026-06-14",
-              "epss": 0.00009,
-              "percentile": 0.01019
+              "cve": "CVE-2026-48526",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
             {
-              "date": "2026-04-14",
+              "date": "2026-06-16",
               "kind": "first-observed",
-              "version": "9.0.3"
+              "version": "2.13.0"
             }
           ],
           "fix_state": "fixed",
-          "fixed_in": "9.0.3",
+          "fixed_in": "2.13.0",
           "fixed_versions": [
-            "9.0.3"
+            "2.13.0"
           ],
-          "id": "GHSA-6w46-j5rx-g56g",
+          "id": "GHSA-xgmm-8j9v-c9wx",
           "namespace": "github:language:python",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",
             "analyzer": "pyreach",
-            "reason": "package-not-imported",
-            "status": "unreachable",
+            "confidence": "high",
+            "hops": 0,
+            "status": "reachable",
             "tier": "package"
           },
           "reasons": [
-            "Also known as: CVE-2025-71176",
-            "Fix available: upgrade to 9.0.3",
+            "Also known as: CVE-2026-48526",
+            "Fix available: upgrade to 2.13.0",
             "Fix state: fixed",
-            "https://github.com/pytest-dev/pytest/commit/95d8423bd24992deea5b9df32555fa1741679e2c",
-            "https://github.com/pytest-dev/pytest/issues/13669",
-            "https://github.com/pytest-dev/pytest/pull/14343",
-            "https://github.com/pytest-dev/pytest/releases/tag/9.0.3",
-            "https://nvd.nist.gov/vuln/detail/CVE-2025-71176",
-            "https://www.openwall.com/lists/oss-security/2026/01/21/5"
+            "https://github.com/jpadilla/pyjwt/security/advisories/GHSA-xgmm-8j9v-c9wx",
+            "https://github.com/pypa/advisory-database/tree/main/vulns/pyjwt/PYSEC-2026-179.yaml",
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-48526"
           ],
           "references": [
             {
               "type": "data_source",
-              "url": "https://github.com/advisories/GHSA-6w46-j5rx-g56g"
+              "url": "https://github.com/advisories/GHSA-xgmm-8j9v-c9wx"
             },
             {
               "type": "advisory",
-              "url": "https://nvd.nist.gov/vuln/detail/CVE-2025-71176"
+              "url": "https://github.com/jpadilla/pyjwt/security/advisories/GHSA-xgmm-8j9v-c9wx"
             },
             {
               "type": "advisory",
-              "url": "https://github.com/pytest-dev/pytest/issues/13669"
+              "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48526"
             },
             {
               "type": "advisory",
-              "url": "https://www.openwall.com/lists/oss-security/2026/01/21/5"
-            },
-            {
-              "type": "advisory",
-              "url": "https://github.com/pytest-dev/pytest/pull/14343"
-            },
-            {
-              "type": "advisory",
-              "url": "https://github.com/pytest-dev/pytest/commit/95d8423bd24992deea5b9df32555fa1741679e2c"
-            },
-            {
-              "type": "advisory",
-              "url": "https://github.com/pytest-dev/pytest/releases/tag/9.0.3"
+              "url": "https://github.com/pypa/advisory-database/tree/main/vulns/pyjwt/PYSEC-2026-179.yaml"
             }
           ],
-          "risk_score": 0.0053100000000000005,
-          "severity": "medium",
+          "risk_score": 0.11026,
+          "severity": "high",
           "severity_source": "github:language:python",
           "source": "grype",
-          "title": "pytest has vulnerable tmpdir handling"
+          "title": "PyJWT: Public-key JWK accepted as HMAC secret enables forged HS256 tokens when mixed families are allowed"
         }
       ]
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
-          "value": "non-standard"
-        }
-      ],
-      "matched": true,
-      "name": "python-discovery",
-      "purl": "pkg:pypi/python-discovery@1.4.2",
-      "version": "1.4.2",
-      "vulnerabilities": []
     },
     {
       "ecosystem": "python",
@@ -4429,39 +2464,293 @@
       ],
       "matched": true,
       "name": "pyyaml",
-      "purl": "pkg:pypi/pyyaml@6.0.3",
-      "version": "6.0.3",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
+      "purl": "pkg:pypi/pyyaml@5.3",
+      "version": "5.3",
+      "vulnerabilities": [
         {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "rapidfuzz",
-      "purl": "pkg:pypi/rapidfuzz@3.14.5",
-      "version": "3.14.5",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
+          "affected_version_range": "\u003e=5.1b7,\u003c5.3.1 (python)",
+          "aliases": [
+            "CVE-2020-1747"
+          ],
+          "cvss": [
+            {
+              "score": 9.8,
+              "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+              "version": "3.1"
+            },
+            {
+              "score": 9.3,
+              "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N",
+              "version": "4.0"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "CVE-2020-1747",
+              "id": "CWE-20",
+              "source": "secalert@redhat.com",
+              "type": "Secondary"
+            },
+            {
+              "cve": "CVE-2020-1747",
+              "id": "CWE-20",
+              "source": "nvd@nist.gov",
+              "type": "Secondary"
+            }
+          ],
+          "data_source": "https://github.com/advisories/GHSA-6757-jp84-gxfx",
+          "description": "Improper Input Validation in PyYAML",
+          "epss": [
+            {
+              "cve": "CVE-2020-1747",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "2021-04-22",
+              "kind": "first-observed",
+              "version": "5.3.1"
+            }
+          ],
+          "fix_state": "fixed",
+          "fixed_in": "5.3.1",
+          "fixed_versions": [
+            "5.3.1"
+          ],
+          "id": "GHSA-6757-jp84-gxfx",
+          "namespace": "github:language:python",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "Also known as: CVE-2020-1747",
+            "Fix available: upgrade to 5.3.1",
+            "Fix state: fixed",
+            "http://lists.opensuse.org/opensuse-security-announce/2020-04/msg00017.html",
+            "http://lists.opensuse.org/opensuse-security-announce/2020-05/msg00017.html",
+            "https://bugzilla.redhat.com/show_bug.cgi?id=CVE-2020-1747",
+            "https://github.com/github/advisory-database/pull/4942",
+            "https://github.com/pypa/advisory-database/tree/main/vulns/pyyaml/PYSEC-2020-96.yaml",
+            "https://github.com/yaml/pyyaml/commit/0cedb2a0697b2bc49e4f3841b8d4590b6b15657e",
+            "https://github.com/yaml/pyyaml/commit/5080ba513377b6355a0502104846ee804656f1e0",
+            "https://github.com/yaml/pyyaml/pull/386",
+            "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/7PPAS6C4SZRDQLR7C22A5U3QOLXY33JX",
+            "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/K5HEPD7LEVDPCITY5IMDYWXUMX37VFMY",
+            "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/MMQXSZXNJT6ERABJZAAICI3DQSQLCP3D",
+            "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/WORRFHPQVAFKKXXWLSSW6XKUYLWM6CSH",
+            "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/ZBJA3SGNJKCAYPSHOHWY3KBCWNM5NYK2",
+            "https://nvd.nist.gov/vuln/detail/CVE-2020-1747",
+            "https://www.oracle.com/security-alerts/cpujul2022.html"
+          ],
+          "references": [
+            {
+              "type": "data_source",
+              "url": "https://github.com/advisories/GHSA-6757-jp84-gxfx"
+            },
+            {
+              "type": "advisory",
+              "url": "https://nvd.nist.gov/vuln/detail/CVE-2020-1747"
+            },
+            {
+              "type": "advisory",
+              "url": "https://github.com/yaml/pyyaml/pull/386"
+            },
+            {
+              "type": "advisory",
+              "url": "https://bugzilla.redhat.com/show_bug.cgi?id=CVE-2020-1747"
+            },
+            {
+              "type": "advisory",
+              "url": "http://lists.opensuse.org/opensuse-security-announce/2020-04/msg00017.html"
+            },
+            {
+              "type": "advisory",
+              "url": "http://lists.opensuse.org/opensuse-security-announce/2020-05/msg00017.html"
+            },
+            {
+              "type": "advisory",
+              "url": "https://www.oracle.com/security-alerts/cpujul2022.html"
+            },
+            {
+              "type": "advisory",
+              "url": "https://github.com/yaml/pyyaml/commit/5080ba513377b6355a0502104846ee804656f1e0"
+            },
+            {
+              "type": "advisory",
+              "url": "https://github.com/pypa/advisory-database/tree/main/vulns/pyyaml/PYSEC-2020-96.yaml"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/7PPAS6C4SZRDQLR7C22A5U3QOLXY33JX"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/K5HEPD7LEVDPCITY5IMDYWXUMX37VFMY"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/MMQXSZXNJT6ERABJZAAICI3DQSQLCP3D"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/WORRFHPQVAFKKXXWLSSW6XKUYLWM6CSH"
+            },
+            {
+              "type": "advisory",
+              "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/ZBJA3SGNJKCAYPSHOHWY3KBCWNM5NYK2"
+            },
+            {
+              "type": "advisory",
+              "url": "https://github.com/github/advisory-database/pull/4942"
+            },
+            {
+              "type": "advisory",
+              "url": "https://github.com/yaml/pyyaml/commit/0cedb2a0697b2bc49e4f3841b8d4590b6b15657e"
+            }
+          ],
+          "risk_score": 4.9148225000000005,
+          "severity": "critical",
+          "severity_source": "github:language:python",
+          "source": "grype",
+          "title": "Improper Input Validation in PyYAML"
+        },
         {
-          "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
-          "value": "Apache-2.0"
+          "affected_version_range": "\u003c5.4 (python)",
+          "aliases": [
+            "CVE-2020-14343"
+          ],
+          "cvss": [
+            {
+              "score": 9.8,
+              "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+              "version": "3.1"
+            },
+            {
+              "score": 9.3,
+              "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N",
+              "version": "4.0"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "CVE-2020-14343",
+              "id": "CWE-20",
+              "source": "secalert@redhat.com",
+              "type": "Secondary"
+            },
+            {
+              "cve": "CVE-2020-14343",
+              "id": "CWE-20",
+              "source": "nvd@nist.gov",
+              "type": "Primary"
+            }
+          ],
+          "data_source": "https://github.com/advisories/GHSA-8q59-q68h-6hv4",
+          "description": "Improper Input Validation in PyYAML",
+          "epss": [
+            {
+              "cve": "CVE-2020-14343",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "2021-03-26",
+              "kind": "first-observed",
+              "version": "5.4"
+            }
+          ],
+          "fix_state": "fixed",
+          "fixed_in": "5.4",
+          "fixed_versions": [
+            "5.4"
+          ],
+          "id": "GHSA-8q59-q68h-6hv4",
+          "namespace": "github:language:python",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "pyreach",
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "Also known as: CVE-2020-14343",
+            "Fix available: upgrade to 5.4",
+            "Fix state: fixed",
+            "https://bugzilla.redhat.com/show_bug.cgi?id=1860466",
+            "https://github.com/SeldonIO/seldon-core/issues/2252",
+            "https://github.com/pypa/advisory-database/tree/main/vulns/pyyaml/PYSEC-2021-142.yaml",
+            "https://github.com/yaml/pyyaml/commit/a001f2782501ad2d24986959f0239a354675f9dc",
+            "https://github.com/yaml/pyyaml/issues/420",
+            "https://github.com/yaml/pyyaml/issues/420#issuecomment-663673966",
+            "https://nvd.nist.gov/vuln/detail/CVE-2020-14343",
+            "https://pypi.org/project/PyYAML",
+            "https://www.oracle.com/security-alerts/cpuapr2022.html",
+            "https://www.oracle.com/security-alerts/cpujul2022.html"
+          ],
+          "references": [
+            {
+              "type": "data_source",
+              "url": "https://github.com/advisories/GHSA-8q59-q68h-6hv4"
+            },
+            {
+              "type": "advisory",
+              "url": "https://nvd.nist.gov/vuln/detail/CVE-2020-14343"
+            },
+            {
+              "type": "advisory",
+              "url": "https://github.com/yaml/pyyaml/commit/a001f2782501ad2d24986959f0239a354675f9dc"
+            },
+            {
+              "type": "advisory",
+              "url": "https://bugzilla.redhat.com/show_bug.cgi?id=1860466"
+            },
+            {
+              "type": "advisory",
+              "url": "https://github.com/yaml/pyyaml/issues/420#issuecomment-663673966"
+            },
+            {
+              "type": "advisory",
+              "url": "https://www.oracle.com/security-alerts/cpuapr2022.html"
+            },
+            {
+              "type": "advisory",
+              "url": "https://www.oracle.com/security-alerts/cpujul2022.html"
+            },
+            {
+              "type": "advisory",
+              "url": "https://github.com/SeldonIO/seldon-core/issues/2252"
+            },
+            {
+              "type": "advisory",
+              "url": "https://github.com/yaml/pyyaml/issues/420"
+            },
+            {
+              "type": "advisory",
+              "url": "https://github.com/pypa/advisory-database/tree/main/vulns/pyyaml/PYSEC-2021-142.yaml"
+            },
+            {
+              "type": "advisory",
+              "url": "https://pypi.org/project/PyYAML"
+            }
+          ],
+          "risk_score": 5.55016,
+          "severity": "critical",
+          "severity_source": "github:language:python",
+          "source": "grype",
+          "title": "Improper Input Validation in PyYAML"
         }
-      ],
-      "matched": true,
-      "name": "requests-toolbelt",
-      "purl": "pkg:pypi/requests-toolbelt@1.0.0",
-      "version": "1.0.0",
-      "vulnerabilities": []
+      ]
     },
     {
       "ecosystem": "python",
@@ -4502,9 +2791,9 @@
           "epss": [
             {
               "cve": "CVE-2024-47081",
-              "date": "2026-06-14",
-              "epss": 0.00208,
-              "percentile": 0.43468
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -4595,7 +2884,7 @@
               "url": "http://www.openwall.com/lists/oss-security/2025/06/04/6"
             }
           ],
-          "risk_score": 0.10712,
+          "risk_score": 0.43569,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -4626,9 +2915,9 @@
           "epss": [
             {
               "cve": "CVE-2024-35195",
-              "date": "2026-06-14",
-              "epss": 0.00074,
-              "percentile": 0.22593
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -4694,7 +2983,7 @@
               "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/N7WP6EYDSUOCOJYHDK5NX43PYZ4SNHGZ"
             }
           ],
-          "risk_score": 0.03922,
+          "risk_score": 0.1802,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -4725,9 +3014,9 @@
           "epss": [
             {
               "cve": "CVE-2026-25645",
-              "date": "2026-06-14",
-              "epss": 0.00005,
-              "percentile": 0.00247
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -4783,7 +3072,7 @@
               "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-25645"
             }
           ],
-          "risk_score": 0.00235,
+          "risk_score": 0.07379,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -4814,9 +3103,9 @@
           "epss": [
             {
               "cve": "CVE-2023-32681",
-              "date": "2026-06-14",
-              "epss": 0.06809,
-              "percentile": 0.91567
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -4897,28 +3186,13 @@
               "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/KOYASTZDGQG2BWLSNBPL3TQRL2G7QYNZ"
             }
           ],
-          "risk_score": 3.7789949999999997,
+          "risk_score": 1.5440099999999999,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
           "title": "Unintended leak of Proxy-Authorization header in requests"
         }
       ]
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "rich",
-      "purl": "pkg:pypi/rich@15.0.0",
-      "version": "15.0.0",
-      "vulnerabilities": []
     },
     {
       "ecosystem": "python",
@@ -4966,9 +3240,9 @@
           "epss": [
             {
               "cve": "CVE-2020-13757",
-              "date": "2026-06-14",
-              "epss": 0.00098,
-              "percentile": 0.27195
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -5039,7 +3313,7 @@
               "url": "https://usn.ubuntu.com/4478-1"
             }
           ],
-          "risk_score": 0.0735,
+          "risk_score": 1.01925,
           "severity": "high",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -5081,9 +3355,9 @@
           "epss": [
             {
               "cve": "CVE-2020-25658",
-              "date": "2026-06-14",
-              "epss": 0.00144,
-              "percentile": 0.34633
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -5199,28 +3473,13 @@
               "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/QY4PJWTYSOV7ZEYZVMYIF6XRU73CY6O7"
             }
           ],
-          "risk_score": 0.10476,
+          "risk_score": 1.1865525000000001,
           "severity": "high",
           "severity_source": "github:language:python",
           "source": "grype",
           "title": "Timing attacks in python-rsa"
         }
       ]
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "BSD-3-Clause",
-          "type": "external-depsdev",
-          "value": "BSD-3-Clause"
-        }
-      ],
-      "matched": true,
-      "name": "secretstorage",
-      "purl": "pkg:pypi/secretstorage@3.5.0",
-      "version": "3.5.0",
-      "vulnerabilities": []
     },
     {
       "ecosystem": "python",
@@ -5241,36 +3500,6 @@
       "ecosystem": "python",
       "licenses": [
         {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
-          "value": "non-standard"
-        }
-      ],
-      "matched": true,
-      "name": "shellingham",
-      "purl": "pkg:pypi/shellingham@1.5.4",
-      "version": "1.5.4",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "BSD-3-Clause",
-          "type": "external-depsdev",
-          "value": "BSD-3-Clause"
-        }
-      ],
-      "matched": true,
-      "name": "smmap",
-      "purl": "pkg:pypi/smmap@5.0.3",
-      "version": "5.0.3",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
           "spdxExpression": "MIT",
           "type": "external-depsdev",
           "value": "MIT"
@@ -5280,66 +3509,6 @@
       "name": "sqlalchemy",
       "purl": "pkg:pypi/sqlalchemy@1.4.46",
       "version": "1.4.46",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
-          "value": "Apache-2.0"
-        }
-      ],
-      "matched": true,
-      "name": "stevedore",
-      "purl": "pkg:pypi/stevedore@5.8.0",
-      "version": "5.8.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "tomlkit",
-      "purl": "pkg:pypi/tomlkit@0.15.0",
-      "version": "0.15.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "non-standard",
-          "type": "external-depsdev",
-          "value": "non-standard"
-        }
-      ],
-      "matched": true,
-      "name": "trove-classifiers",
-      "purl": "pkg:pypi/trove-classifiers@2026.6.1.19",
-      "version": "2026.6.1.19",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "PSF-2.0",
-          "type": "external-depsdev",
-          "value": "PSF-2.0"
-        }
-      ],
-      "matched": true,
-      "name": "typing-extensions",
-      "purl": "pkg:pypi/typing-extensions@4.15.0",
-      "version": "4.15.0",
       "vulnerabilities": []
     },
     {
@@ -5381,9 +3550,9 @@
           "epss": [
             {
               "cve": "CVE-2025-66471",
-              "date": "2026-06-14",
-              "epss": 0.00017,
-              "percentile": 0.04327
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -5434,7 +3603,7 @@
               "url": "https://nvd.nist.gov/vuln/detail/CVE-2025-66471"
             }
           ],
-          "risk_score": 0.013940000000000003,
+          "risk_score": 0.43705999999999995,
           "severity": "high",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -5465,9 +3634,9 @@
           "epss": [
             {
               "cve": "CVE-2024-37891",
-              "date": "2026-06-14",
-              "epss": 0.00216,
-              "percentile": 0.44402
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -5538,7 +3707,7 @@
               "url": "https://www.vicarius.io/vsociety/posts/proxy-authorization-header-handling-vulnerability-in-urllib3-cve-2024-37891"
             }
           ],
-          "risk_score": 0.10152000000000001,
+          "risk_score": 0.45355000000000006,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -5574,9 +3743,9 @@
           "epss": [
             {
               "cve": "CVE-2026-21441",
-              "date": "2026-06-14",
-              "epss": 0.00014,
-              "percentile": 0.02667
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -5632,7 +3801,7 @@
               "url": "https://lists.debian.org/debian-lts-announce/2026/01/msg00017.html"
             }
           ],
-          "risk_score": 0.010989999999999998,
+          "risk_score": 0.41134,
           "severity": "high",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -5668,9 +3837,9 @@
           "epss": [
             {
               "cve": "CVE-2023-45803",
-              "date": "2026-06-14",
-              "epss": 0.00056,
-              "percentile": 0.17965
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -5771,7 +3940,7 @@
               "url": "https://lists.debian.org/debian-lts-announce/2024/12/msg00020.html"
             }
           ],
-          "risk_score": 0.02786,
+          "risk_score": 0.27064000000000005,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -5802,9 +3971,9 @@
           "epss": [
             {
               "cve": "CVE-2025-66418",
-              "date": "2026-06-14",
-              "epss": 0.00025,
-              "percentile": 0.07399
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -5855,7 +4024,7 @@
               "url": "https://nvd.nist.gov/vuln/detail/CVE-2025-66418"
             }
           ],
-          "risk_score": 0.0205,
+          "risk_score": 0.43705999999999995,
           "severity": "high",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -5891,9 +4060,9 @@
           "epss": [
             {
               "cve": "CVE-2018-25091",
-              "date": "2026-06-14",
-              "epss": 0.00223,
-              "percentile": 0.45286
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -5954,7 +4123,7 @@
               "url": "https://github.com/pypa/advisory-database/tree/main/vulns/urllib3/PYSEC-2023-207.yaml"
             }
           ],
-          "risk_score": 0.119305,
+          "risk_score": 0.27392,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -5990,9 +4159,9 @@
           "epss": [
             {
               "cve": "CVE-2019-11324",
-              "date": "2026-06-14",
-              "epss": 0.01015,
-              "percentile": 0.77651
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -6103,7 +4272,7 @@
               "url": "https://usn.ubuntu.com/3990-1"
             }
           ],
-          "risk_score": 0.7917000000000001,
+          "risk_score": 2.19414,
           "severity": "high",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -6134,9 +4303,9 @@
           "epss": [
             {
               "cve": "CVE-2025-50181",
-              "date": "2026-06-14",
-              "epss": 0.00079,
-              "percentile": 0.23639
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -6192,7 +4361,7 @@
               "url": "https://github.com/urllib3/urllib3/releases/tag/2.5.0"
             }
           ],
-          "risk_score": 0.040685,
+          "risk_score": 0.175615,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -6220,7 +4389,7 @@
               "cve": "CVE-2026-44431",
               "id": "CWE-200",
               "source": "security-advisories@github.com",
-              "type": "Primary"
+              "type": "Secondary"
             }
           ],
           "data_source": "https://github.com/advisories/GHSA-qccp-gfcp-xxvc",
@@ -6228,9 +4397,9 @@
           "epss": [
             {
               "cve": "CVE-2026-44431",
-              "date": "2026-06-14",
-              "epss": 0.00014,
-              "percentile": 0.02742
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -6276,7 +4445,7 @@
               "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-44431"
             }
           ],
-          "risk_score": 0.009975,
+          "risk_score": 0.18525,
           "severity": "high",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -6312,9 +4481,9 @@
           "epss": [
             {
               "cve": "CVE-2019-11236",
-              "date": "2026-06-14",
-              "epss": 0.00609,
-              "percentile": 0.70323
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -6435,7 +4604,7 @@
               "url": "https://usn.ubuntu.com/3990-2"
             }
           ],
-          "risk_score": 0.32581499999999997,
+          "risk_score": 1.0999599999999998,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -6471,9 +4640,9 @@
           "epss": [
             {
               "cve": "CVE-2023-43804",
-              "date": "2026-06-14",
-              "epss": 0.0095,
-              "percentile": 0.76879
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -6569,7 +4738,7 @@
               "url": "https://lists.debian.org/debian-lts-announce/2024/12/msg00020.html"
             }
           ],
-          "risk_score": 0.672125,
+          "risk_score": 0.8539525000000001,
           "severity": "high",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -6605,9 +4774,9 @@
           "epss": [
             {
               "cve": "CVE-2020-26137",
-              "date": "2026-06-14",
-              "epss": 0.00177,
-              "percentile": 0.39231
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -6693,28 +4862,13 @@
               "url": "https://usn.ubuntu.com/4570-1"
             }
           ],
-          "risk_score": 0.103545,
+          "risk_score": 1.2864149999999999,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
           "title": "CRLF injection in urllib3"
         }
       ]
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "virtualenv",
-      "purl": "pkg:pypi/virtualenv@21.5.0",
-      "version": "21.5.0",
-      "vulnerabilities": []
     }
   ],
   "project": {
@@ -6722,7 +4876,7 @@
     "name": "\u003cnormalized\u003e",
     "package_manager": "pip",
     "path": "\u003cnormalized\u003e",
-    "target_ref": "e19d10938caf3e06730c23047ae118cd59638e41",
+    "target_ref": "fe04c758134b95dab102e1fce10275f7d18c0cf2",
     "target_type": "git repository"
   },
   "schema_version": "1.0"

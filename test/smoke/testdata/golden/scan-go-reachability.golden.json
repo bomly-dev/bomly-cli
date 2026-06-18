@@ -5,76 +5,35 @@
       "dependencies": [
         {
           "depends_on": [
-            "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869"
+            "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
+            "pkg:golang/github.com/google/go-querystring@v1.1.0",
+            "pkg:golang/github.com/google/uuid@v1.6.0",
+            "pkg:golang/golang.org/x/text@v0.3.5"
           ],
-          "id": "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
+          "id": "pkg:golang/github.com/bomly/example-go-modules",
           "licenses": [],
-          "matched": true,
-          "name": "github.com/bitly/go-simplejson",
-          "package_ref": "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
-          "purl": "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
-          "scopes": [
-            "development",
-            "runtime"
-          ],
-          "version": "v0.5.0"
+          "name": "github.com/bomly/example-go-modules",
+          "package_ref": "pkg:golang/github.com/bomly/example-go-modules",
+          "purl": "pkg:golang/github.com/bomly/example-go-modules"
         },
         {
           "depends_on": [
-            "pkg:golang/github.com/kr/pretty@v0.3.1"
+            "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543"
           ],
-          "id": "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869",
+          "id": "pkg:golang/github.com/google/go-cmp@v0.5.2",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "go.mod",
-              "position": {
-                "file": "go.mod",
-                "line": 0
-              },
-              "real_path": "go.mod"
-            }
-          ],
-          "name": "github.com/bmizerany/assert",
-          "package_ref": "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869",
-          "purl": "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869",
+          "matched": true,
+          "name": "github.com/google/go-cmp",
+          "package_ref": "pkg:golang/github.com/google/go-cmp@v0.5.2",
+          "purl": "pkg:golang/github.com/google/go-cmp@v0.5.2",
           "scopes": [
             "development"
           ],
-          "version": "v0.0.0-20160611221934-b7ed37b82869"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
-          "licenses": [],
-          "matched": true,
-          "name": "github.com/davecgh/go-spew",
-          "package_ref": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
-          "purl": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
-          "scopes": [
-            "development"
-          ],
-          "version": "v1.1.1"
+          "version": "v0.5.2"
         },
         {
           "depends_on": [
-            "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
-            "pkg:golang/github.com/mattn/go-isatty@v0.0.4"
-          ],
-          "id": "pkg:golang/github.com/fatih/color@v1.7.0",
-          "licenses": [],
-          "matched": true,
-          "name": "github.com/fatih/color",
-          "package_ref": "pkg:golang/github.com/fatih/color@v1.7.0",
-          "purl": "pkg:golang/github.com/fatih/color@v1.7.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "v1.7.0"
-        },
-        {
-          "depends_on": [
-            "pkg:golang/github.com/google/go-querystring@v1.0.0"
+            "pkg:golang/github.com/google/go-querystring@v1.1.0"
           ],
           "id": "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
           "licenses": [],
@@ -98,8 +57,10 @@
           "version": "v17.0.0+incompatible"
         },
         {
-          "depends_on": [],
-          "id": "pkg:golang/github.com/google/go-querystring@v1.0.0",
+          "depends_on": [
+            "pkg:golang/github.com/google/go-cmp@v0.5.2"
+          ],
+          "id": "pkg:golang/github.com/google/go-querystring@v1.1.0",
           "licenses": [],
           "locations": [
             {
@@ -113,19 +74,16 @@
           ],
           "matched": true,
           "name": "github.com/google/go-querystring",
-          "package_ref": "pkg:golang/github.com/google/go-querystring@v1.0.0",
-          "purl": "pkg:golang/github.com/google/go-querystring@v1.0.0",
+          "package_ref": "pkg:golang/github.com/google/go-querystring@v1.1.0",
+          "purl": "pkg:golang/github.com/google/go-querystring@v1.1.0",
           "scopes": [
             "runtime"
           ],
-          "version": "v1.0.0"
+          "version": "v1.1.0"
         },
         {
-          "depends_on": [
-            "pkg:golang/github.com/kr/text@v0.2.0",
-            "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0"
-          ],
-          "id": "pkg:golang/github.com/kr/pretty@v0.3.1",
+          "depends_on": [],
+          "id": "pkg:golang/github.com/google/uuid@v1.6.0",
           "licenses": [],
           "locations": [
             {
@@ -138,209 +96,13 @@
             }
           ],
           "matched": true,
-          "name": "github.com/kr/pretty",
-          "package_ref": "pkg:golang/github.com/kr/pretty@v0.3.1",
-          "purl": "pkg:golang/github.com/kr/pretty@v0.3.1",
-          "scopes": [
-            "development"
-          ],
-          "version": "v0.3.1"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:golang/github.com/kr/text@v0.2.0",
-          "licenses": [],
-          "matched": true,
-          "name": "github.com/kr/text",
-          "package_ref": "pkg:golang/github.com/kr/text@v0.2.0",
-          "purl": "pkg:golang/github.com/kr/text@v0.2.0",
-          "scopes": [
-            "development"
-          ],
-          "version": "v0.2.0"
-        },
-        {
-          "depends_on": [
-            "pkg:golang/github.com/mattn/go-isatty@v0.0.4"
-          ],
-          "id": "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
-          "licenses": [],
-          "matched": true,
-          "name": "github.com/mattn/go-colorable",
-          "package_ref": "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
-          "purl": "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
-          "scopes": [
-            "development",
-            "runtime"
-          ],
-          "version": "v0.0.9"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:golang/github.com/mattn/go-isatty@v0.0.4",
-          "licenses": [],
-          "matched": true,
-          "name": "github.com/mattn/go-isatty",
-          "package_ref": "pkg:golang/github.com/mattn/go-isatty@v0.0.4",
-          "purl": "pkg:golang/github.com/mattn/go-isatty@v0.0.4",
-          "scopes": [
-            "development",
-            "runtime"
-          ],
-          "version": "v0.0.4"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
-          "licenses": [],
-          "matched": true,
-          "name": "github.com/mattn/go-runewidth",
-          "package_ref": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
-          "purl": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
+          "name": "github.com/google/uuid",
+          "package_ref": "pkg:golang/github.com/google/uuid@v1.6.0",
+          "purl": "pkg:golang/github.com/google/uuid@v1.6.0",
           "scopes": [
             "runtime"
           ],
-          "version": "v0.0.4"
-        },
-        {
-          "depends_on": [
-            "pkg:golang/github.com/mattn/go-runewidth@v0.0.4"
-          ],
-          "id": "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
-          "licenses": [],
-          "matched": true,
-          "name": "github.com/nsf/termbox-go",
-          "package_ref": "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
-          "purl": "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "v0.0.0-20181027232701-60ab7e3d12ed"
-        },
-        {
-          "depends_on": [
-            "pkg:golang/github.com/fatih/color@v1.7.0"
-          ],
-          "id": "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
-          "licenses": [],
-          "matched": true,
-          "name": "github.com/nwidger/jsoncolor",
-          "package_ref": "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
-          "purl": "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "v0.0.0-20170215171346-75a6de4340e5"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:golang/github.com/pkg/errors@v0.8.0",
-          "licenses": [],
-          "matched": true,
-          "name": "github.com/pkg/errors",
-          "package_ref": "pkg:golang/github.com/pkg/errors@v0.8.0",
-          "purl": "pkg:golang/github.com/pkg/errors@v0.8.0",
-          "scopes": [
-            "development",
-            "runtime"
-          ],
-          "version": "v0.8.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
-          "licenses": [],
-          "matched": true,
-          "name": "github.com/pmezard/go-difflib",
-          "package_ref": "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
-          "purl": "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
-          "scopes": [
-            "development"
-          ],
-          "version": "v1.0.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
-          "licenses": [],
-          "matched": true,
-          "name": "github.com/rogpeppe/go-internal",
-          "package_ref": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
-          "purl": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
-          "scopes": [
-            "development"
-          ],
-          "version": "v1.9.0"
-        },
-        {
-          "depends_on": [
-            "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
-            "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
-            "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
-            "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
-            "pkg:golang/github.com/pkg/errors@v0.8.0",
-            "pkg:golang/github.com/stretchr/testify@v1.8.2"
-          ],
-          "id": "pkg:golang/github.com/simeji/jid@v0.7.6",
-          "licenses": [],
-          "locations": [
-            {
-              "access_path": "go.mod",
-              "position": {
-                "file": "go.mod",
-                "line": 0
-              },
-              "real_path": "go.mod"
-            }
-          ],
-          "matched": true,
-          "name": "github.com/simeji/jid",
-          "package_ref": "pkg:golang/github.com/simeji/jid@v0.7.6",
-          "purl": "pkg:golang/github.com/simeji/jid@v0.7.6",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "v0.7.6"
-        },
-        {
-          "depends_on": [
-            "pkg:golang/github.com/google/go-github@v17.0.0%2Bincompatible",
-            "pkg:golang/github.com/google/go-querystring@v1.0.0",
-            "pkg:golang/github.com/simeji/jid@v0.7.6",
-            "pkg:golang/golang.org/x/text@v0.3.5"
-          ],
-          "id": "pkg:golang/github.com/srcclr/example-go-modules",
-          "licenses": [],
-          "name": "github.com/srcclr/example-go-modules",
-          "package_ref": "pkg:golang/github.com/srcclr/example-go-modules",
-          "purl": "pkg:golang/github.com/srcclr/example-go-modules"
-        },
-        {
-          "depends_on": [
-            "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
-            "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
-            "pkg:golang/gopkg.in/yaml.v3@v3.0.1"
-          ],
-          "id": "pkg:golang/github.com/stretchr/testify@v1.8.2",
-          "licenses": [],
-          "locations": [
-            {
-              "access_path": "go.mod",
-              "position": {
-                "file": "go.mod",
-                "line": 0
-              },
-              "real_path": "go.mod"
-            }
-          ],
-          "matched": true,
-          "name": "github.com/stretchr/testify",
-          "package_ref": "pkg:golang/github.com/stretchr/testify@v1.8.2",
-          "purl": "pkg:golang/github.com/stretchr/testify@v1.8.2",
-          "scopes": [
-            "development"
-          ],
-          "version": "v1.8.2"
+          "version": "v1.6.0"
         },
         {
           "depends_on": [],
@@ -368,31 +130,16 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
+          "id": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
           "licenses": [],
           "matched": true,
-          "name": "gopkg.in/check.v1",
-          "package_ref": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
-          "purl": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
+          "name": "golang.org/x/xerrors",
+          "package_ref": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
+          "purl": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
           "scopes": [
             "development"
           ],
-          "version": "v0.0.0-20161208181325-20d25e280405"
-        },
-        {
-          "depends_on": [
-            "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405"
-          ],
-          "id": "pkg:golang/gopkg.in/yaml.v3@v3.0.1",
-          "licenses": [],
-          "matched": true,
-          "name": "gopkg.in/yaml.v3",
-          "package_ref": "pkg:golang/gopkg.in/yaml.v3@v3.0.1",
-          "purl": "pkg:golang/gopkg.in/yaml.v3@v3.0.1",
-          "scopes": [
-            "development"
-          ],
-          "version": "v3.0.1"
+          "version": "v0.0.0-20191204190536-9bdfabe68543"
         }
       ],
       "detector": "go-detector",
@@ -418,55 +165,24 @@
   "packages": [
     {
       "ecosystem": "go",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "github.com/bitly/go-simplejson",
-      "purl": "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
-      "version": "v0.5.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "go",
       "licenses": [],
-      "name": "github.com/bmizerany/assert",
-      "purl": "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869",
-      "version": "v0.0.0-20160611221934-b7ed37b82869",
+      "name": "github.com/bomly/example-go-modules",
+      "purl": "pkg:golang/github.com/bomly/example-go-modules",
       "vulnerabilities": []
     },
     {
       "ecosystem": "go",
       "licenses": [
         {
-          "spdxExpression": "ISC",
+          "spdxExpression": "BSD-3-Clause",
           "type": "external-depsdev",
-          "value": "ISC"
+          "value": "BSD-3-Clause"
         }
       ],
       "matched": true,
-      "name": "github.com/davecgh/go-spew",
-      "purl": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
-      "version": "v1.1.1",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "go",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "github.com/fatih/color",
-      "purl": "pkg:golang/github.com/fatih/color@v1.7.0",
-      "version": "v1.7.0",
+      "name": "github.com/google/go-cmp",
+      "purl": "pkg:golang/github.com/google/go-cmp@v0.5.2",
+      "version": "v0.5.2",
       "vulnerabilities": []
     },
     {
@@ -488,128 +204,8 @@
       ],
       "matched": true,
       "name": "github.com/google/go-querystring",
-      "purl": "pkg:golang/github.com/google/go-querystring@v1.0.0",
-      "version": "v1.0.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "go",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "github.com/kr/pretty",
-      "purl": "pkg:golang/github.com/kr/pretty@v0.3.1",
-      "version": "v0.3.1",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "go",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "github.com/kr/text",
-      "purl": "pkg:golang/github.com/kr/text@v0.2.0",
-      "version": "v0.2.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "go",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "github.com/mattn/go-colorable",
-      "purl": "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
-      "version": "v0.0.9",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "go",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "github.com/mattn/go-isatty",
-      "purl": "pkg:golang/github.com/mattn/go-isatty@v0.0.4",
-      "version": "v0.0.4",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "go",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "github.com/mattn/go-runewidth",
-      "purl": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
-      "version": "v0.0.4",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "go",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "github.com/nsf/termbox-go",
-      "purl": "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
-      "version": "v0.0.0-20181027232701-60ab7e3d12ed",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "go",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "github.com/nwidger/jsoncolor",
-      "purl": "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
-      "version": "v0.0.0-20170215171346-75a6de4340e5",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "go",
-      "licenses": [
-        {
-          "spdxExpression": "BSD-2-Clause",
-          "type": "external-depsdev",
-          "value": "BSD-2-Clause"
-        }
-      ],
-      "matched": true,
-      "name": "github.com/pkg/errors",
-      "purl": "pkg:golang/github.com/pkg/errors@v0.8.0",
-      "version": "v0.8.0",
+      "purl": "pkg:golang/github.com/google/go-querystring@v1.1.0",
+      "version": "v1.1.0",
       "vulnerabilities": []
     },
     {
@@ -622,61 +218,9 @@
         }
       ],
       "matched": true,
-      "name": "github.com/pmezard/go-difflib",
-      "purl": "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
-      "version": "v1.0.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "go",
-      "licenses": [
-        {
-          "spdxExpression": "BSD-3-Clause",
-          "type": "external-depsdev",
-          "value": "BSD-3-Clause"
-        }
-      ],
-      "matched": true,
-      "name": "github.com/rogpeppe/go-internal",
-      "purl": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
-      "version": "v1.9.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "go",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "github.com/simeji/jid",
-      "purl": "pkg:golang/github.com/simeji/jid@v0.7.6",
-      "version": "v0.7.6",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "go",
-      "licenses": [],
-      "name": "github.com/srcclr/example-go-modules",
-      "purl": "pkg:golang/github.com/srcclr/example-go-modules",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "go",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        }
-      ],
-      "matched": true,
-      "name": "github.com/stretchr/testify",
-      "purl": "pkg:golang/github.com/stretchr/testify@v1.8.2",
-      "version": "v1.8.2",
+      "name": "github.com/google/uuid",
+      "purl": "pkg:golang/github.com/google/uuid@v1.6.0",
+      "version": "v1.6.0",
       "vulnerabilities": []
     },
     {
@@ -718,9 +262,9 @@
           "epss": [
             {
               "cve": "CVE-2022-32149",
-              "date": "2026-06-14",
-              "epss": 0.00054,
-              "percentile": 0.17429
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -795,7 +339,7 @@
               "url": "https://security.netapp.com/advisory/ntap-20230203-0006"
             }
           ],
-          "risk_score": 0.040499999999999994,
+          "risk_score": 1.071,
           "severity": "high",
           "severity_source": "github:language:go",
           "source": "grype",
@@ -832,9 +376,9 @@
           "epss": [
             {
               "cve": "CVE-2021-38561",
-              "date": "2026-06-14",
-              "epss": 0.00053,
-              "percentile": 0.17071
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -904,7 +448,7 @@
               "url": "https://pkg.go.dev/vuln/GO-2021-0113"
             }
           ],
-          "risk_score": 0.039749999999999994,
+          "risk_score": 1.017,
           "severity": "high",
           "severity_source": "github:language:go",
           "source": "grype",
@@ -943,9 +487,9 @@
           "epss": [
             {
               "cve": "CVE-2021-38561",
-              "date": "2026-06-14",
-              "epss": 0.00053,
-              "percentile": 0.17071
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -985,7 +529,7 @@
               "url": "https://go.googlesource.com/text/+/383b2e75a7a4198c42f8f87833eefb772868a56f"
             }
           ],
-          "risk_score": 0.039749999999999994,
+          "risk_score": 1.017,
           "severity": "high",
           "severity_source": "govulndb:language:go",
           "source": "grype",
@@ -1018,9 +562,9 @@
           "epss": [
             {
               "cve": "CVE-2022-32149",
-              "date": "2026-06-14",
-              "epss": 0.00054,
-              "percentile": 0.17429
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
             }
           ],
           "fix_available": [
@@ -1065,7 +609,7 @@
               "url": "https://groups.google.com/g/golang-announce/c/-hjNw559_tE/m/KlGTfid5CAAJ"
             }
           ],
-          "risk_score": 0.040499999999999994,
+          "risk_score": 1.071,
           "severity": "high",
           "severity_source": "govulndb:language:go",
           "source": "grype",
@@ -1077,35 +621,15 @@
       "ecosystem": "go",
       "licenses": [
         {
-          "spdxExpression": "BSD-2-Clause",
+          "spdxExpression": "BSD-3-Clause",
           "type": "external-depsdev",
-          "value": "BSD-2-Clause"
+          "value": "BSD-3-Clause"
         }
       ],
       "matched": true,
-      "name": "gopkg.in/check.v1",
-      "purl": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
-      "version": "v0.0.0-20161208181325-20d25e280405",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "go",
-      "licenses": [
-        {
-          "spdxExpression": "MIT",
-          "type": "external-depsdev",
-          "value": "MIT"
-        },
-        {
-          "spdxExpression": "Apache-2.0",
-          "type": "external-depsdev",
-          "value": "Apache-2.0"
-        }
-      ],
-      "matched": true,
-      "name": "gopkg.in/yaml.v3",
-      "purl": "pkg:golang/gopkg.in/yaml.v3@v3.0.1",
-      "version": "v3.0.1",
+      "name": "golang.org/x/xerrors",
+      "purl": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
+      "version": "v0.0.0-20191204190536-9bdfabe68543",
       "vulnerabilities": []
     }
   ],
@@ -1114,7 +638,7 @@
     "name": "\u003cnormalized\u003e",
     "package_manager": "gomod",
     "path": "\u003cnormalized\u003e",
-    "target_ref": "555ebe70813318ce80f46e3c4fc6623012e0317d",
+    "target_ref": "v1.0.0",
     "target_type": "git repository"
   },
   "schema_version": "1.0"

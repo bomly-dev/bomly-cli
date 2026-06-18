@@ -56,6 +56,18 @@
           "depends_on": [],
           "id": "pkg:githubactions/actions/checkout@v1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": ".github/workflows/main.yml",
+              "position": {
+                "column": 0,
+                "end_line": 9,
+                "file": ".github/workflows/main.yml",
+                "line": 0
+              },
+              "real_path": ".github/workflows/main.yml"
+            }
+          ],
           "name": "actions:checkout",
           "package_ref": "pkg:githubactions/actions/checkout@v1",
           "purl": "pkg:githubactions/actions/checkout@v1",

@@ -38,6 +38,19 @@ jobs:
 
 Pin to a major tag (`@v1`) for automatic patch and minor updates, or to an exact release (`@v1.2.3`) for fully reproducible builds.
 
+## How it works
+
+On a `pull_request` event the action:
+
+1. Installs the Bomly CLI (`version` input, defaults to `latest`).
+2. Resolves the base and head refs. Pull requests default to the PR merge base for the base and the PR head SHA for the head, so review focuses only on what the PR changes — pre-existing findings on the target branch are ignored.
+3. Runs `bomly diff --format json` with the enrich/audit/analyze and policy flags mapped from the action inputs.
+4. Renders the Markdown summary and SARIF side outputs.
+5. Writes the job summary, optionally posts (or updates) a PR comment, and optionally uploads SARIF.
+6. Exits non-zero when policy fails the review, failing the job.
+
+Because the engine is the same `bomly diff` you run locally, the policy you enforce on your machine is the policy the action enforces on PRs.
+
 ## Package Manager Setup
 
 Bomly Guard installs the Bomly CLI. It does not install project package managers.
@@ -52,53 +65,20 @@ steps:
     with:
       fetch-depth: 0
 
-  # Node.js, npm, pnpm, and Yarn
   - uses: actions/setup-node@v6
     with:
       node-version: 22
       cache: npm
-  - run: corepack enable
-
-  # Java, Maven, Gradle, Scala, and SBT
-  - uses: actions/setup-java@v5
-    with:
-      distribution: temurin
-      java-version: 21
-
-  # Go modules
-  - uses: actions/setup-go@v6
-    with:
-      go-version: stable
-
-  # Python, pip, pipenv, poetry, and uv
-  - uses: actions/setup-python@v6
-    with:
-      python-version: "3.12"
-
-  # Dart pub
-  - uses: dart-lang/setup-dart@v1
 
   - uses: bomly-dev/bomly-guard@v1
     with:
       fail-on: high
+      install-first: true
 ```
 
 See the [Bomly Guard README](https://github.com/bomly-dev/bomly-guard) for the full per-ecosystem setup reference.
 
 The `install-first` input passes `--install-first` to `bomly diff`, telling CLI detectors that support it to install project dependencies before resolving graphs. It does not install the package-manager binary itself.
-
-## How it works
-
-On a `pull_request` event the action:
-
-1. Installs the Bomly CLI (`version` input, defaults to `latest`).
-2. Resolves the base and head refs. Pull requests default to the PR merge base for the base and the PR head SHA for the head, so review focuses only on what the PR changes — pre-existing findings on the target branch are ignored.
-3. Runs `bomly diff --format json` with the enrich/audit/analyze and policy flags mapped from the action inputs.
-4. Renders the Markdown summary and SARIF side outputs.
-5. Writes the job summary, optionally posts (or updates) a PR comment, and optionally uploads SARIF.
-6. Exits non-zero when policy fails the review, failing the job.
-
-Because the engine is the same `bomly diff` you run locally, the policy you enforce on your machine is the policy the action enforces on PRs.
 
 ## Inputs
 

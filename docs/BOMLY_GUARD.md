@@ -38,6 +38,55 @@ jobs:
 
 Pin to a major tag (`@v1`) for automatic patch and minor updates, or to an exact release (`@v1.2.3`) for fully reproducible builds.
 
+## Package Manager Setup
+
+Bomly Guard installs the Bomly CLI. It does not install project package managers.
+
+Package-manager tools such as npm, pnpm, Yarn, Dart pub, SwiftPM, SBT, Composer, Bundler, and Conan should be installed by earlier workflow steps when your project needs them. Many repositories can be reviewed from committed lockfiles alone. Build-tool-backed detectors — currently Dart pub, SwiftPM, and SBT — produce richer dependency graphs when their build tool is available; any detector may also need its package manager when lockfile parsing is not enough or when `install-first` is enabled.
+
+Use the normal ecosystem setup action before Bomly Guard:
+
+```yaml
+steps:
+  - uses: actions/checkout@v5
+    with:
+      fetch-depth: 0
+
+  # Node.js, npm, pnpm, and Yarn
+  - uses: actions/setup-node@v6
+    with:
+      node-version: 22
+      cache: npm
+  - run: corepack enable
+
+  # Java, Maven, Gradle, Scala, and SBT
+  - uses: actions/setup-java@v5
+    with:
+      distribution: temurin
+      java-version: 21
+
+  # Go modules
+  - uses: actions/setup-go@v6
+    with:
+      go-version: stable
+
+  # Python, pip, pipenv, poetry, and uv
+  - uses: actions/setup-python@v6
+    with:
+      python-version: "3.12"
+
+  # Dart pub
+  - uses: dart-lang/setup-dart@v1
+
+  - uses: bomly-dev/bomly-guard@v1
+    with:
+      fail-on: high
+```
+
+See the [Bomly Guard README](https://github.com/bomly-dev/bomly-guard) for the full per-ecosystem setup reference.
+
+The `install-first` input passes `--install-first` to `bomly diff`, telling CLI detectors that support it to install project dependencies before resolving graphs. It does not install the package-manager binary itself.
+
 ## How it works
 
 On a `pull_request` event the action:
@@ -84,7 +133,7 @@ Inputs map directly onto CLI flags. Comma-separated values become repeated flags
 | `matchers` | | `--matchers` selector. |
 | `auditors` | | `--auditors` selector. |
 | `analyzers` | | `--analyzers` selector. |
-| `install-first` | `false` | `--install-first` — run detector installs before resolving. |
+| `install-first` | `false` | `--install-first` — ask CLI detectors that support install-first behavior to install project dependencies before resolving graphs. Does not install package-manager binaries. |
 | `install-args` | | repeated `--install-arg`. |
 | `comment-summary-in-pr` | `never` | PR comment mode: `never`, `always`, `on-failure`. |
 | `upload-sarif` | `auto` | SARIF upload: `auto`, `true`, `false`. |

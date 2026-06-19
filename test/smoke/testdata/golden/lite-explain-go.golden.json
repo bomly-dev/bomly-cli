@@ -9,10 +9,22 @@
   },
   "command": "explain",
   "dependency": {
-    "id": "github.com/google/uuid",
+    "id": "golang.org/x/text@v0.3.5",
     "licenses": [],
-    "name": "github.com/google/uuid",
-    "purl": "pkg:golang/github.com/google/uuid",
+    "locations": [
+      {
+        "access_path": "go.mod",
+        "position": {
+          "file": "go.mod",
+          "line": 0
+        },
+        "real_path": "go.mod"
+      }
+    ],
+    "name": "golang.org/x/text",
+    "purl": "pkg:golang/golang.org/x/text@v0.3.5",
+    "scope": "runtime",
+    "version": "v0.3.5",
     "vulnerabilities": []
   },
   "metadata": {
@@ -20,13 +32,32 @@
   },
   "paths": [
     {
-      "introduced_via": "pkg:golang/github.com/google/uuid",
+      "introduced_via": "pkg:golang/github.com/bomly/example-go-modules",
       "packages": [
         {
-          "id": "pkg:golang/github.com/google/uuid",
+          "id": "pkg:golang/github.com/bomly/example-go-modules",
           "licenses": [],
-          "name": "github.com/google/uuid",
-          "purl": "pkg:golang/github.com/google/uuid",
+          "name": "github.com/bomly/example-go-modules",
+          "purl": "pkg:golang/github.com/bomly/example-go-modules",
+          "vulnerabilities": []
+        },
+        {
+          "id": "golang.org/x/text@v0.3.5",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "go.mod",
+              "position": {
+                "file": "go.mod",
+                "line": 0
+              },
+              "real_path": "go.mod"
+            }
+          ],
+          "name": "golang.org/x/text",
+          "purl": "pkg:golang/golang.org/x/text@v0.3.5",
+          "scope": "runtime",
+          "version": "v0.3.5",
           "vulnerabilities": []
         }
       ],
@@ -34,15 +65,15 @@
     }
   ],
   "project": {
-    "ecosystem": "other",
+    "ecosystem": "go",
     "name": "\u003cnormalized\u003e",
-    "package_manager": "multiple",
+    "package_manager": "gomod",
     "path": "\u003cnormalized\u003e",
-    "target_ref": "v1.6.0",
+    "target_ref": "v1.0.0",
     "target_type": "git repository"
   },
   "query": {
-    "name": "github.com/google/uuid"
+    "name": "golang.org/x/text"
   },
   "schema_version": "1.0",
   "targets": [
@@ -56,23 +87,54 @@
         "unknown": 0
       },
       "dependency": {
-        "id": "github.com/google/uuid",
+        "id": "golang.org/x/text@v0.3.5",
         "licenses": [],
-        "name": "github.com/google/uuid",
-        "purl": "pkg:golang/github.com/google/uuid",
+        "locations": [
+          {
+            "access_path": "go.mod",
+            "position": {
+              "file": "go.mod",
+              "line": 0
+            },
+            "real_path": "go.mod"
+          }
+        ],
+        "name": "golang.org/x/text",
+        "purl": "pkg:golang/golang.org/x/text@v0.3.5",
+        "scope": "runtime",
+        "version": "v0.3.5",
         "vulnerabilities": []
       },
       "detector": "go-detector",
       "package_manager": "gomod",
       "paths": [
         {
-          "introduced_via": "pkg:golang/github.com/google/uuid",
+          "introduced_via": "pkg:golang/github.com/bomly/example-go-modules",
           "packages": [
             {
-              "id": "pkg:golang/github.com/google/uuid",
+              "id": "pkg:golang/github.com/bomly/example-go-modules",
               "licenses": [],
-              "name": "github.com/google/uuid",
-              "purl": "pkg:golang/github.com/google/uuid",
+              "name": "github.com/bomly/example-go-modules",
+              "purl": "pkg:golang/github.com/bomly/example-go-modules",
+              "vulnerabilities": []
+            },
+            {
+              "id": "golang.org/x/text@v0.3.5",
+              "licenses": [],
+              "locations": [
+                {
+                  "access_path": "go.mod",
+                  "position": {
+                    "file": "go.mod",
+                    "line": 0
+                  },
+                  "real_path": "go.mod"
+                }
+              ],
+              "name": "golang.org/x/text",
+              "purl": "pkg:golang/golang.org/x/text@v0.3.5",
+              "scope": "runtime",
+              "version": "v0.3.5",
               "vulnerabilities": []
             }
           ],
@@ -84,7 +146,7 @@
         "name": "\u003cnormalized\u003e",
         "package_manager": "gomod",
         "path": "\u003cnormalized\u003e",
-        "target_ref": "v1.6.0",
+        "target_ref": "v1.0.0",
         "target_type": "filesystem"
       }
     }

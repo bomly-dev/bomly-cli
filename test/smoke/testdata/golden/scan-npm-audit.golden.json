@@ -4,194 +4,3268 @@
     {
       "dependencies": [
         {
-          "depends_on": [
-            "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main"
-          ],
-          "id": "pkg:githubactions/.github%2Fworkflows%2Fnode-aught.yml@local",
+          "depends_on": [],
+          "id": "pkg:npm/algo-httpserv@1.1.1",
           "licenses": [],
-          "name": ".github/workflows/node-aught.yml",
-          "package_ref": "pkg:githubactions/.github%2Fworkflows%2Fnode-aught.yml@local",
-          "purl": "pkg:githubactions/.github%2Fworkflows%2Fnode-aught.yml@local",
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "algo-httpserv",
+          "package_ref": "pkg:npm/algo-httpserv@1.1.1",
+          "purl": "pkg:npm/algo-httpserv@1.1.1",
           "scopes": [
             "runtime"
           ],
-          "version": "local"
+          "version": "1.1.1"
         },
         {
           "depends_on": [],
-          "id": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main",
+          "id": "pkg:npm/ansi-colors@3.2.3",
           "licenses": [],
-          "name": "ljharb:actions/.github/workflows/node.yml",
-          "package_ref": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main",
-          "purl": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main",
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "ansi-colors",
+          "package_ref": "pkg:npm/ansi-colors@3.2.3",
+          "purl": "pkg:npm/ansi-colors@3.2.3",
           "scopes": [
-            "runtime"
+            "development"
           ],
-          "version": "main"
-        }
-      ],
-      "detector": "github-actions-detector",
-      "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
-      "package_manager": "github-actions",
-      "path": ".github/workflows/node-aught.yml",
-      "subproject": "."
-    },
-    {
-      "dependencies": [
-        {
-          "depends_on": [
-            "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fpretest.yml@main"
-          ],
-          "id": "pkg:githubactions/.github%2Fworkflows%2Fnode-pretest.yml@local",
-          "licenses": [],
-          "name": ".github/workflows/node-pretest.yml",
-          "package_ref": "pkg:githubactions/.github%2Fworkflows%2Fnode-pretest.yml@local",
-          "purl": "pkg:githubactions/.github%2Fworkflows%2Fnode-pretest.yml@local",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "local"
+          "version": "3.2.3"
         },
         {
           "depends_on": [],
-          "id": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fpretest.yml@main",
+          "id": "pkg:npm/ansi-regex@3.0.0",
           "licenses": [],
-          "name": "ljharb:actions/.github/workflows/pretest.yml",
-          "package_ref": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fpretest.yml@main",
-          "purl": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fpretest.yml@main",
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "ansi-regex",
+          "package_ref": "pkg:npm/ansi-regex@3.0.0",
+          "purl": "pkg:npm/ansi-regex@3.0.0",
           "scopes": [
-            "runtime"
+            "development"
           ],
-          "version": "main"
-        }
-      ],
-      "detector": "github-actions-detector",
-      "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
-      "package_manager": "github-actions",
-      "path": ".github/workflows/node-pretest.yml",
-      "subproject": "."
-    },
-    {
-      "dependencies": [
-        {
-          "depends_on": [
-            "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main"
-          ],
-          "id": "pkg:githubactions/.github%2Fworkflows%2Fnode-tens.yml@local",
-          "licenses": [],
-          "name": ".github/workflows/node-tens.yml",
-          "package_ref": "pkg:githubactions/.github%2Fworkflows%2Fnode-tens.yml@local",
-          "purl": "pkg:githubactions/.github%2Fworkflows%2Fnode-tens.yml@local",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "local"
+          "version": "3.0.0"
         },
         {
           "depends_on": [],
-          "id": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main",
+          "id": "pkg:npm/ansi-regex@4.1.0",
           "licenses": [],
-          "name": "ljharb:actions/.github/workflows/node.yml",
-          "package_ref": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main",
-          "purl": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main",
-          "scopes": [
-            "runtime"
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
           ],
-          "version": "main"
-        }
-      ],
-      "detector": "github-actions-detector",
-      "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
-      "package_manager": "github-actions",
-      "path": ".github/workflows/node-tens.yml",
-      "subproject": "."
-    },
-    {
-      "dependencies": [
+          "name": "ansi-regex",
+          "package_ref": "pkg:npm/ansi-regex@4.1.0",
+          "purl": "pkg:npm/ansi-regex@4.1.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "4.1.0"
+        },
         {
           "depends_on": [
-            "pkg:githubactions/actions/checkout@v3",
-            "pkg:githubactions/ljharb/rebase@master"
+            "pkg:npm/color-convert@1.9.3"
           ],
-          "id": "pkg:githubactions/.github%2Fworkflows%2Frebase.yml@local",
+          "id": "pkg:npm/ansi-styles@3.2.1",
           "licenses": [],
-          "name": ".github/workflows/rebase.yml",
-          "package_ref": "pkg:githubactions/.github%2Fworkflows%2Frebase.yml@local",
-          "purl": "pkg:githubactions/.github%2Fworkflows%2Frebase.yml@local",
-          "scopes": [
-            "runtime"
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
           ],
-          "version": "local"
+          "name": "ansi-styles",
+          "package_ref": "pkg:npm/ansi-styles@3.2.1",
+          "purl": "pkg:npm/ansi-styles@3.2.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "3.2.1"
         },
-        {
-          "depends_on": [],
-          "id": "pkg:githubactions/actions/checkout@v3",
-          "licenses": [],
-          "name": "actions:checkout",
-          "package_ref": "pkg:githubactions/actions/checkout@v3",
-          "purl": "pkg:githubactions/actions/checkout@v3",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "v3"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:githubactions/ljharb/rebase@master",
-          "licenses": [],
-          "name": "ljharb:rebase",
-          "package_ref": "pkg:githubactions/ljharb/rebase@master",
-          "purl": "pkg:githubactions/ljharb/rebase@master",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "master"
-        }
-      ],
-      "detector": "github-actions-detector",
-      "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
-      "package_manager": "github-actions",
-      "path": ".github/workflows/rebase.yml",
-      "subproject": "."
-    },
-    {
-      "dependencies": [
         {
           "depends_on": [
-            "pkg:githubactions/ljharb/require-allow-edits@main"
+            "pkg:npm/normalize-path@3.0.0",
+            "pkg:npm/picomatch@2.2.2"
           ],
-          "id": "pkg:githubactions/.github%2Fworkflows%2Frequire-allow-edits.yml@local",
+          "id": "pkg:npm/anymatch@3.1.1",
           "licenses": [],
-          "name": ".github/workflows/require-allow-edits.yml",
-          "package_ref": "pkg:githubactions/.github%2Fworkflows%2Frequire-allow-edits.yml@local",
-          "purl": "pkg:githubactions/.github%2Fworkflows%2Frequire-allow-edits.yml@local",
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "anymatch",
+          "package_ref": "pkg:npm/anymatch@3.1.1",
+          "purl": "pkg:npm/anymatch@3.1.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "3.1.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/sprintf-js@1.0.3"
+          ],
+          "id": "pkg:npm/argparse@1.0.10",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "argparse",
+          "package_ref": "pkg:npm/argparse@1.0.10",
+          "purl": "pkg:npm/argparse@1.0.10",
           "scopes": [
             "runtime"
           ],
-          "version": "local"
+          "version": "1.0.10"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/lodash@4.17.15"
+          ],
+          "id": "pkg:npm/async@2.6.3",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "async",
+          "package_ref": "pkg:npm/async@2.6.3",
+          "purl": "pkg:npm/async@2.6.3",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.6.3"
         },
         {
           "depends_on": [],
-          "id": "pkg:githubactions/ljharb/require-allow-edits@main",
+          "id": "pkg:npm/balanced-match@1.0.0",
           "licenses": [],
-          "name": "ljharb:require-allow-edits",
-          "package_ref": "pkg:githubactions/ljharb/require-allow-edits@main",
-          "purl": "pkg:githubactions/ljharb/require-allow-edits@main",
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "balanced-match",
+          "package_ref": "pkg:npm/balanced-match@1.0.0",
+          "purl": "pkg:npm/balanced-match@1.0.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/binary-extensions@2.1.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "binary-extensions",
+          "package_ref": "pkg:npm/binary-extensions@2.1.0",
+          "purl": "pkg:npm/binary-extensions@2.1.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "2.1.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/balanced-match@1.0.0",
+            "pkg:npm/concat-map@0.0.1"
+          ],
+          "id": "pkg:npm/brace-expansion@1.1.11",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "brace-expansion",
+          "package_ref": "pkg:npm/brace-expansion@1.1.11",
+          "purl": "pkg:npm/brace-expansion@1.1.11",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.1.11"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/fill-range@7.0.1"
+          ],
+          "id": "pkg:npm/braces@3.0.2",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "braces",
+          "package_ref": "pkg:npm/braces@3.0.2",
+          "purl": "pkg:npm/braces@3.0.2",
+          "scopes": [
+            "development"
+          ],
+          "version": "3.0.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/browser-stdout@1.3.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "browser-stdout",
+          "package_ref": "pkg:npm/browser-stdout@1.3.1",
+          "purl": "pkg:npm/browser-stdout@1.3.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.3.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/dicer@0.2.5",
+            "pkg:npm/readable-stream@1.1.14"
+          ],
+          "id": "pkg:npm/busboy@0.2.14",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "busboy",
+          "package_ref": "pkg:npm/busboy@0.2.14",
+          "purl": "pkg:npm/busboy@0.2.14",
           "scopes": [
             "runtime"
           ],
-          "version": "main"
+          "version": "0.2.14"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/camelcase@5.3.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "camelcase",
+          "package_ref": "pkg:npm/camelcase@5.3.1",
+          "purl": "pkg:npm/camelcase@5.3.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "5.3.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/ansi-styles@3.2.1",
+            "pkg:npm/escape-string-regexp@1.0.5",
+            "pkg:npm/supports-color@5.5.0"
+          ],
+          "id": "pkg:npm/chalk@2.4.2",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "chalk",
+          "package_ref": "pkg:npm/chalk@2.4.2",
+          "purl": "pkg:npm/chalk@2.4.2",
+          "scopes": [
+            "development"
+          ],
+          "version": "2.4.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/anymatch@3.1.1",
+            "pkg:npm/braces@3.0.2",
+            "pkg:npm/fsevents@2.1.3",
+            "pkg:npm/glob-parent@5.1.1",
+            "pkg:npm/is-binary-path@2.1.0",
+            "pkg:npm/is-glob@4.0.1",
+            "pkg:npm/normalize-path@3.0.0",
+            "pkg:npm/readdirp@3.2.0"
+          ],
+          "id": "pkg:npm/chokidar@3.3.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "chokidar",
+          "package_ref": "pkg:npm/chokidar@3.3.0",
+          "purl": "pkg:npm/chokidar@3.3.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "3.3.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/string-width@3.1.0",
+            "pkg:npm/strip-ansi@5.2.0",
+            "pkg:npm/wrap-ansi@5.1.0"
+          ],
+          "id": "pkg:npm/cliui@5.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "cliui",
+          "package_ref": "pkg:npm/cliui@5.0.0",
+          "purl": "pkg:npm/cliui@5.0.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "5.0.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/color-name@1.1.3"
+          ],
+          "id": "pkg:npm/color-convert@1.9.3",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "color-convert",
+          "package_ref": "pkg:npm/color-convert@1.9.3",
+          "purl": "pkg:npm/color-convert@1.9.3",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.9.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/color-name@1.1.3",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "color-name",
+          "package_ref": "pkg:npm/color-name@1.1.3",
+          "purl": "pkg:npm/color-name@1.1.3",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.1.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/concat-map@0.0.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "concat-map",
+          "package_ref": "pkg:npm/concat-map@0.0.1",
+          "purl": "pkg:npm/concat-map@0.0.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "0.0.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/core-util-is@1.0.2",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "core-util-is",
+          "package_ref": "pkg:npm/core-util-is@1.0.2",
+          "purl": "pkg:npm/core-util-is@1.0.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/ms@2.1.1"
+          ],
+          "id": "pkg:npm/debug@3.2.6",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "debug",
+          "package_ref": "pkg:npm/debug@3.2.6",
+          "purl": "pkg:npm/debug@3.2.6",
+          "scopes": [
+            "development"
+          ],
+          "version": "3.2.6"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/decamelize@1.2.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "decamelize",
+          "package_ref": "pkg:npm/decamelize@1.2.0",
+          "purl": "pkg:npm/decamelize@1.2.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.2.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/object-keys@1.1.1"
+          ],
+          "id": "pkg:npm/define-properties@1.1.3",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "define-properties",
+          "package_ref": "pkg:npm/define-properties@1.1.3",
+          "purl": "pkg:npm/define-properties@1.1.3",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.1.3"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/readable-stream@1.1.14",
+            "pkg:npm/streamsearch@0.1.2"
+          ],
+          "id": "pkg:npm/dicer@0.2.5",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "dicer",
+          "package_ref": "pkg:npm/dicer@0.2.5",
+          "purl": "pkg:npm/dicer@0.2.5",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.2.5"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/diff@3.5.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "diff",
+          "package_ref": "pkg:npm/diff@3.5.0",
+          "purl": "pkg:npm/diff@3.5.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "3.5.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/emoji-regex@7.0.3",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "emoji-regex",
+          "package_ref": "pkg:npm/emoji-regex@7.0.3",
+          "purl": "pkg:npm/emoji-regex@7.0.3",
+          "scopes": [
+            "development"
+          ],
+          "version": "7.0.3"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/es-to-primitive@1.2.1",
+            "pkg:npm/function-bind@1.1.1",
+            "pkg:npm/has-symbols@1.0.1",
+            "pkg:npm/has@1.0.3",
+            "pkg:npm/is-callable@1.2.2",
+            "pkg:npm/is-regex@1.1.1",
+            "pkg:npm/object-inspect@1.8.0",
+            "pkg:npm/object-keys@1.1.1",
+            "pkg:npm/object.assign@4.1.0",
+            "pkg:npm/string.prototype.trimend@1.0.1",
+            "pkg:npm/string.prototype.trimstart@1.0.1"
+          ],
+          "id": "pkg:npm/es-abstract@1.17.6",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "es-abstract",
+          "package_ref": "pkg:npm/es-abstract@1.17.6",
+          "purl": "pkg:npm/es-abstract@1.17.6",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.17.6"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/is-callable@1.2.2",
+            "pkg:npm/is-date-object@1.0.2",
+            "pkg:npm/is-symbol@1.0.3"
+          ],
+          "id": "pkg:npm/es-to-primitive@1.2.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "es-to-primitive",
+          "package_ref": "pkg:npm/es-to-primitive@1.2.1",
+          "purl": "pkg:npm/es-to-primitive@1.2.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.2.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/escape-string-regexp@1.0.5",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "escape-string-regexp",
+          "package_ref": "pkg:npm/escape-string-regexp@1.0.5",
+          "purl": "pkg:npm/escape-string-regexp@1.0.5",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.0.5"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/esprima@4.0.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "esprima",
+          "package_ref": "pkg:npm/esprima@4.0.1",
+          "purl": "pkg:npm/esprima@4.0.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.0.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/algo-httpserv@1.1.1",
+            "pkg:npm/js-yaml@3.13.0",
+            "pkg:npm/larvitbase@3.1.3",
+            "pkg:npm/larvitfs@2.3.1",
+            "pkg:npm/larvitreqparser@0.2.1",
+            "pkg:npm/larvitrouter@3.0.2",
+            "pkg:npm/larvitutils@2.3.0",
+            "pkg:npm/lodash@4.17.15",
+            "pkg:npm/marked@0.3.19",
+            "pkg:npm/mocha@7.2.0",
+            "pkg:npm/node-yaml-config@0.0.5",
+            "pkg:npm/semver@5.7.1",
+            "pkg:npm/to@0.2.9",
+            "pkg:npm/url@0.11.0"
+          ],
+          "id": "pkg:npm/example-javascript-vulnerable-methods@0.0.1",
+          "licenses": [],
+          "name": "example-javascript-vulnerable-methods",
+          "package_ref": "pkg:npm/example-javascript-vulnerable-methods@0.0.1",
+          "purl": "pkg:npm/example-javascript-vulnerable-methods@0.0.1",
+          "version": "0.0.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/to-regex-range@5.0.1"
+          ],
+          "id": "pkg:npm/fill-range@7.0.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "fill-range",
+          "package_ref": "pkg:npm/fill-range@7.0.1",
+          "purl": "pkg:npm/fill-range@7.0.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "7.0.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/locate-path@3.0.0"
+          ],
+          "id": "pkg:npm/find-up@3.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "find-up",
+          "package_ref": "pkg:npm/find-up@3.0.0",
+          "purl": "pkg:npm/find-up@3.0.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "3.0.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/is-buffer@2.0.4"
+          ],
+          "id": "pkg:npm/flat@4.1.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "flat",
+          "package_ref": "pkg:npm/flat@4.1.0",
+          "purl": "pkg:npm/flat@4.1.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "4.1.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/graceful-fs@4.2.3",
+            "pkg:npm/jsonfile@4.0.0",
+            "pkg:npm/universalify@0.1.2"
+          ],
+          "id": "pkg:npm/fs-extra@7.0.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "fs-extra",
+          "package_ref": "pkg:npm/fs-extra@7.0.1",
+          "purl": "pkg:npm/fs-extra@7.0.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "7.0.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/fs.realpath@1.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "fs.realpath",
+          "package_ref": "pkg:npm/fs.realpath@1.0.0",
+          "purl": "pkg:npm/fs.realpath@1.0.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/fsevents@2.1.3",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "fsevents",
+          "package_ref": "pkg:npm/fsevents@2.1.3",
+          "purl": "pkg:npm/fsevents@2.1.3",
+          "scopes": [
+            "development"
+          ],
+          "version": "2.1.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/function-bind@1.1.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "function-bind",
+          "package_ref": "pkg:npm/function-bind@1.1.1",
+          "purl": "pkg:npm/function-bind@1.1.1",
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "1.1.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/get-caller-file@2.0.5",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "get-caller-file",
+          "package_ref": "pkg:npm/get-caller-file@2.0.5",
+          "purl": "pkg:npm/get-caller-file@2.0.5",
+          "scopes": [
+            "development"
+          ],
+          "version": "2.0.5"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/is-glob@4.0.1"
+          ],
+          "id": "pkg:npm/glob-parent@5.1.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "glob-parent",
+          "package_ref": "pkg:npm/glob-parent@5.1.1",
+          "purl": "pkg:npm/glob-parent@5.1.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "5.1.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/fs.realpath@1.0.0",
+            "pkg:npm/inflight@1.0.6",
+            "pkg:npm/inherits@2.0.4",
+            "pkg:npm/minimatch@3.0.4",
+            "pkg:npm/once@1.4.0",
+            "pkg:npm/path-is-absolute@1.0.1"
+          ],
+          "id": "pkg:npm/glob@7.1.3",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "glob",
+          "package_ref": "pkg:npm/glob@7.1.3",
+          "purl": "pkg:npm/glob@7.1.3",
+          "scopes": [
+            "development"
+          ],
+          "version": "7.1.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/graceful-fs@4.2.3",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "graceful-fs",
+          "package_ref": "pkg:npm/graceful-fs@4.2.3",
+          "purl": "pkg:npm/graceful-fs@4.2.3",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.2.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/growl@1.10.5",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "growl",
+          "package_ref": "pkg:npm/growl@1.10.5",
+          "purl": "pkg:npm/growl@1.10.5",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.10.5"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/handy@0.0.13",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "handy",
+          "package_ref": "pkg:npm/handy@0.0.13",
+          "purl": "pkg:npm/handy@0.0.13",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.0.13"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/has-flag@3.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "has-flag",
+          "package_ref": "pkg:npm/has-flag@3.0.0",
+          "purl": "pkg:npm/has-flag@3.0.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "3.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/has-symbols@1.0.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "has-symbols",
+          "package_ref": "pkg:npm/has-symbols@1.0.1",
+          "purl": "pkg:npm/has-symbols@1.0.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.0.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/function-bind@1.1.1"
+          ],
+          "id": "pkg:npm/has@1.0.3",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "has",
+          "package_ref": "pkg:npm/has@1.0.3",
+          "purl": "pkg:npm/has@1.0.3",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/he@1.2.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "he",
+          "package_ref": "pkg:npm/he@1.2.0",
+          "purl": "pkg:npm/he@1.2.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.2.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/htmlparser@1.7.7",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "htmlparser",
+          "package_ref": "pkg:npm/htmlparser@1.7.7",
+          "purl": "pkg:npm/htmlparser@1.7.7",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.7.7"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/once@1.4.0",
+            "pkg:npm/wrappy@1.0.2"
+          ],
+          "id": "pkg:npm/inflight@1.0.6",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "inflight",
+          "package_ref": "pkg:npm/inflight@1.0.6",
+          "purl": "pkg:npm/inflight@1.0.6",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.0.6"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/inherits@2.0.4",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "inherits",
+          "package_ref": "pkg:npm/inherits@2.0.4",
+          "purl": "pkg:npm/inherits@2.0.4",
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "2.0.4"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/binary-extensions@2.1.0"
+          ],
+          "id": "pkg:npm/is-binary-path@2.1.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "is-binary-path",
+          "package_ref": "pkg:npm/is-binary-path@2.1.0",
+          "purl": "pkg:npm/is-binary-path@2.1.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "2.1.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/is-buffer@2.0.4",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "is-buffer",
+          "package_ref": "pkg:npm/is-buffer@2.0.4",
+          "purl": "pkg:npm/is-buffer@2.0.4",
+          "scopes": [
+            "development"
+          ],
+          "version": "2.0.4"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/is-callable@1.2.2",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "is-callable",
+          "package_ref": "pkg:npm/is-callable@1.2.2",
+          "purl": "pkg:npm/is-callable@1.2.2",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.2.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/is-date-object@1.0.2",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "is-date-object",
+          "package_ref": "pkg:npm/is-date-object@1.0.2",
+          "purl": "pkg:npm/is-date-object@1.0.2",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.0.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/is-extglob@2.1.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "is-extglob",
+          "package_ref": "pkg:npm/is-extglob@2.1.1",
+          "purl": "pkg:npm/is-extglob@2.1.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "2.1.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/is-fullwidth-code-point@2.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "is-fullwidth-code-point",
+          "package_ref": "pkg:npm/is-fullwidth-code-point@2.0.0",
+          "purl": "pkg:npm/is-fullwidth-code-point@2.0.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "2.0.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/is-extglob@2.1.1"
+          ],
+          "id": "pkg:npm/is-glob@4.0.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "is-glob",
+          "package_ref": "pkg:npm/is-glob@4.0.1",
+          "purl": "pkg:npm/is-glob@4.0.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "4.0.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/is-number@7.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "is-number",
+          "package_ref": "pkg:npm/is-number@7.0.0",
+          "purl": "pkg:npm/is-number@7.0.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "7.0.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/has-symbols@1.0.1"
+          ],
+          "id": "pkg:npm/is-regex@1.1.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "is-regex",
+          "package_ref": "pkg:npm/is-regex@1.1.1",
+          "purl": "pkg:npm/is-regex@1.1.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.1.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/has-symbols@1.0.1"
+          ],
+          "id": "pkg:npm/is-symbol@1.0.3",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "is-symbol",
+          "package_ref": "pkg:npm/is-symbol@1.0.3",
+          "purl": "pkg:npm/is-symbol@1.0.3",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.0.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/is@3.3.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "is",
+          "package_ref": "pkg:npm/is@3.3.0",
+          "purl": "pkg:npm/is@3.3.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.3.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/isarray@0.0.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "isarray",
+          "package_ref": "pkg:npm/isarray@0.0.1",
+          "purl": "pkg:npm/isarray@0.0.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.0.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/isexe@2.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "isexe",
+          "package_ref": "pkg:npm/isexe@2.0.0",
+          "purl": "pkg:npm/isexe@2.0.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "2.0.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/argparse@1.0.10",
+            "pkg:npm/esprima@4.0.1"
+          ],
+          "id": "pkg:npm/js-yaml@3.13.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "js-yaml",
+          "package_ref": "pkg:npm/js-yaml@3.13.0",
+          "purl": "pkg:npm/js-yaml@3.13.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.13.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/argparse@1.0.10",
+            "pkg:npm/esprima@4.0.1"
+          ],
+          "id": "pkg:npm/js-yaml@3.13.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "js-yaml",
+          "package_ref": "pkg:npm/js-yaml@3.13.1",
+          "purl": "pkg:npm/js-yaml@3.13.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "3.13.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/graceful-fs@4.2.3"
+          ],
+          "id": "pkg:npm/jsonfile@4.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "jsonfile",
+          "package_ref": "pkg:npm/jsonfile@4.0.0",
+          "purl": "pkg:npm/jsonfile@4.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.0.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/larvitutils@2.3.0",
+            "pkg:npm/uuid@3.4.0"
+          ],
+          "id": "pkg:npm/larvitbase@3.1.3",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "larvitbase",
+          "package_ref": "pkg:npm/larvitbase@3.1.3",
+          "purl": "pkg:npm/larvitbase@3.1.3",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.1.3"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/larvitutils@2.3.0"
+          ],
+          "id": "pkg:npm/larvitfs@2.3.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "larvitfs",
+          "package_ref": "pkg:npm/larvitfs@2.3.1",
+          "purl": "pkg:npm/larvitfs@2.3.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.3.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/async@2.6.3",
+            "pkg:npm/busboy@0.2.14",
+            "pkg:npm/fs-extra@7.0.1",
+            "pkg:npm/larvitutils@2.3.0",
+            "pkg:npm/qs@6.9.1",
+            "pkg:npm/uuid@3.4.0"
+          ],
+          "id": "pkg:npm/larvitreqparser@0.2.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "larvitreqparser",
+          "package_ref": "pkg:npm/larvitreqparser@0.2.1",
+          "purl": "pkg:npm/larvitreqparser@0.2.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.2.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/larvitfs@2.3.1",
+            "pkg:npm/larvitutils@2.3.0"
+          ],
+          "id": "pkg:npm/larvitrouter@3.0.2",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "larvitrouter",
+          "package_ref": "pkg:npm/larvitrouter@3.0.2",
+          "purl": "pkg:npm/larvitrouter@3.0.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.0.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/larvitutils@2.3.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "larvitutils",
+          "package_ref": "pkg:npm/larvitutils@2.3.0",
+          "purl": "pkg:npm/larvitutils@2.3.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.3.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/p-locate@3.0.0",
+            "pkg:npm/path-exists@3.0.0"
+          ],
+          "id": "pkg:npm/locate-path@3.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "locate-path",
+          "package_ref": "pkg:npm/locate-path@3.0.0",
+          "purl": "pkg:npm/locate-path@3.0.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "3.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/lodash@4.17.15",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "lodash",
+          "package_ref": "pkg:npm/lodash@4.17.15",
+          "purl": "pkg:npm/lodash@4.17.15",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.17.15"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/chalk@2.4.2"
+          ],
+          "id": "pkg:npm/log-symbols@3.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "log-symbols",
+          "package_ref": "pkg:npm/log-symbols@3.0.0",
+          "purl": "pkg:npm/log-symbols@3.0.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "3.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/marked@0.3.19",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "marked",
+          "package_ref": "pkg:npm/marked@0.3.19",
+          "purl": "pkg:npm/marked@0.3.19",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.3.19"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/brace-expansion@1.1.11"
+          ],
+          "id": "pkg:npm/minimatch@3.0.4",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "minimatch",
+          "package_ref": "pkg:npm/minimatch@3.0.4",
+          "purl": "pkg:npm/minimatch@3.0.4",
+          "scopes": [
+            "development"
+          ],
+          "version": "3.0.4"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/minimist@0.0.10",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "minimist",
+          "package_ref": "pkg:npm/minimist@0.0.10",
+          "purl": "pkg:npm/minimist@0.0.10",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.0.10"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/minimist@1.2.5",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "minimist",
+          "package_ref": "pkg:npm/minimist@1.2.5",
+          "purl": "pkg:npm/minimist@1.2.5",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.2.5"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/minimist@1.2.5"
+          ],
+          "id": "pkg:npm/mkdirp@0.5.5",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "mkdirp",
+          "package_ref": "pkg:npm/mkdirp@0.5.5",
+          "purl": "pkg:npm/mkdirp@0.5.5",
+          "scopes": [
+            "development"
+          ],
+          "version": "0.5.5"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/ansi-colors@3.2.3",
+            "pkg:npm/browser-stdout@1.3.1",
+            "pkg:npm/chokidar@3.3.0",
+            "pkg:npm/debug@3.2.6",
+            "pkg:npm/diff@3.5.0",
+            "pkg:npm/escape-string-regexp@1.0.5",
+            "pkg:npm/find-up@3.0.0",
+            "pkg:npm/glob@7.1.3",
+            "pkg:npm/growl@1.10.5",
+            "pkg:npm/he@1.2.0",
+            "pkg:npm/js-yaml@3.13.1",
+            "pkg:npm/log-symbols@3.0.0",
+            "pkg:npm/minimatch@3.0.4",
+            "pkg:npm/mkdirp@0.5.5",
+            "pkg:npm/ms@2.1.1",
+            "pkg:npm/node-environment-flags@1.0.6",
+            "pkg:npm/object.assign@4.1.0",
+            "pkg:npm/strip-json-comments@2.0.1",
+            "pkg:npm/supports-color@6.0.0",
+            "pkg:npm/which@1.3.1",
+            "pkg:npm/wide-align@1.1.3",
+            "pkg:npm/yargs-parser@13.1.2",
+            "pkg:npm/yargs-unparser@1.6.0",
+            "pkg:npm/yargs@13.3.2"
+          ],
+          "id": "pkg:npm/mocha@7.2.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "mocha",
+          "package_ref": "pkg:npm/mocha@7.2.0",
+          "purl": "pkg:npm/mocha@7.2.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "7.2.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/ms@2.1.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "ms",
+          "package_ref": "pkg:npm/ms@2.1.1",
+          "purl": "pkg:npm/ms@2.1.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "2.1.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/object.getownpropertydescriptors@2.1.0",
+            "pkg:npm/semver@5.7.1"
+          ],
+          "id": "pkg:npm/node-environment-flags@1.0.6",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "node-environment-flags",
+          "package_ref": "pkg:npm/node-environment-flags@1.0.6",
+          "purl": "pkg:npm/node-environment-flags@1.0.6",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.0.6"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/js-yaml@3.13.0",
+            "pkg:npm/node.extend@2.0.2"
+          ],
+          "id": "pkg:npm/node-yaml-config@0.0.5",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "node-yaml-config",
+          "package_ref": "pkg:npm/node-yaml-config@0.0.5",
+          "purl": "pkg:npm/node-yaml-config@0.0.5",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.0.5"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/has@1.0.3",
+            "pkg:npm/is@3.3.0"
+          ],
+          "id": "pkg:npm/node.extend@2.0.2",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "node.extend",
+          "package_ref": "pkg:npm/node.extend@2.0.2",
+          "purl": "pkg:npm/node.extend@2.0.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.0.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/normalize-path@3.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "normalize-path",
+          "package_ref": "pkg:npm/normalize-path@3.0.0",
+          "purl": "pkg:npm/normalize-path@3.0.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "3.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/object-inspect@1.8.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "object-inspect",
+          "package_ref": "pkg:npm/object-inspect@1.8.0",
+          "purl": "pkg:npm/object-inspect@1.8.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.8.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/object-keys@1.1.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "object-keys",
+          "package_ref": "pkg:npm/object-keys@1.1.1",
+          "purl": "pkg:npm/object-keys@1.1.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.1.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/define-properties@1.1.3",
+            "pkg:npm/function-bind@1.1.1",
+            "pkg:npm/has-symbols@1.0.1",
+            "pkg:npm/object-keys@1.1.1"
+          ],
+          "id": "pkg:npm/object.assign@4.1.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "object.assign",
+          "package_ref": "pkg:npm/object.assign@4.1.0",
+          "purl": "pkg:npm/object.assign@4.1.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "4.1.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/define-properties@1.1.3",
+            "pkg:npm/es-abstract@1.17.6"
+          ],
+          "id": "pkg:npm/object.getownpropertydescriptors@2.1.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "object.getownpropertydescriptors",
+          "package_ref": "pkg:npm/object.getownpropertydescriptors@2.1.0",
+          "purl": "pkg:npm/object.getownpropertydescriptors@2.1.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "2.1.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/wrappy@1.0.2"
+          ],
+          "id": "pkg:npm/once@1.4.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "once",
+          "package_ref": "pkg:npm/once@1.4.0",
+          "purl": "pkg:npm/once@1.4.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.4.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/minimist@0.0.10",
+            "pkg:npm/wordwrap@0.0.3"
+          ],
+          "id": "pkg:npm/optimist@0.6.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "optimist",
+          "package_ref": "pkg:npm/optimist@0.6.1",
+          "purl": "pkg:npm/optimist@0.6.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.6.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/p-try@2.2.0"
+          ],
+          "id": "pkg:npm/p-limit@2.3.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "p-limit",
+          "package_ref": "pkg:npm/p-limit@2.3.0",
+          "purl": "pkg:npm/p-limit@2.3.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "2.3.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/p-limit@2.3.0"
+          ],
+          "id": "pkg:npm/p-locate@3.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "p-locate",
+          "package_ref": "pkg:npm/p-locate@3.0.0",
+          "purl": "pkg:npm/p-locate@3.0.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "3.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/p-try@2.2.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "p-try",
+          "package_ref": "pkg:npm/p-try@2.2.0",
+          "purl": "pkg:npm/p-try@2.2.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "2.2.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/path-exists@3.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "path-exists",
+          "package_ref": "pkg:npm/path-exists@3.0.0",
+          "purl": "pkg:npm/path-exists@3.0.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "3.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/path-is-absolute@1.0.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "path-is-absolute",
+          "package_ref": "pkg:npm/path-is-absolute@1.0.1",
+          "purl": "pkg:npm/path-is-absolute@1.0.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.0.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/picomatch@2.2.2",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "picomatch",
+          "package_ref": "pkg:npm/picomatch@2.2.2",
+          "purl": "pkg:npm/picomatch@2.2.2",
+          "scopes": [
+            "development"
+          ],
+          "version": "2.2.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/punycode@1.3.2",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "punycode",
+          "package_ref": "pkg:npm/punycode@1.3.2",
+          "purl": "pkg:npm/punycode@1.3.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.3.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/qs@6.9.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "qs",
+          "package_ref": "pkg:npm/qs@6.9.1",
+          "purl": "pkg:npm/qs@6.9.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "6.9.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/querystring@0.2.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "querystring",
+          "package_ref": "pkg:npm/querystring@0.2.0",
+          "purl": "pkg:npm/querystring@0.2.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.2.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/core-util-is@1.0.2",
+            "pkg:npm/inherits@2.0.4",
+            "pkg:npm/isarray@0.0.1",
+            "pkg:npm/string_decoder@0.10.31"
+          ],
+          "id": "pkg:npm/readable-stream@1.1.14",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "readable-stream",
+          "package_ref": "pkg:npm/readable-stream@1.1.14",
+          "purl": "pkg:npm/readable-stream@1.1.14",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.1.14"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/picomatch@2.2.2"
+          ],
+          "id": "pkg:npm/readdirp@3.2.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "readdirp",
+          "package_ref": "pkg:npm/readdirp@3.2.0",
+          "purl": "pkg:npm/readdirp@3.2.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "3.2.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/require-directory@2.1.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "require-directory",
+          "package_ref": "pkg:npm/require-directory@2.1.1",
+          "purl": "pkg:npm/require-directory@2.1.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "2.1.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/require-main-filename@2.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "require-main-filename",
+          "package_ref": "pkg:npm/require-main-filename@2.0.0",
+          "purl": "pkg:npm/require-main-filename@2.0.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "2.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/semver@5.7.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "semver",
+          "package_ref": "pkg:npm/semver@5.7.1",
+          "purl": "pkg:npm/semver@5.7.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "5.7.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/set-blocking@2.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "set-blocking",
+          "package_ref": "pkg:npm/set-blocking@2.0.0",
+          "purl": "pkg:npm/set-blocking@2.0.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "2.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/sprintf-js@1.0.3",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "sprintf-js",
+          "package_ref": "pkg:npm/sprintf-js@1.0.3",
+          "purl": "pkg:npm/sprintf-js@1.0.3",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/streamsearch@0.1.2",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "streamsearch",
+          "package_ref": "pkg:npm/streamsearch@0.1.2",
+          "purl": "pkg:npm/streamsearch@0.1.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.1.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/is-fullwidth-code-point@2.0.0",
+            "pkg:npm/strip-ansi@4.0.0"
+          ],
+          "id": "pkg:npm/string-width@2.1.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "string-width",
+          "package_ref": "pkg:npm/string-width@2.1.1",
+          "purl": "pkg:npm/string-width@2.1.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "2.1.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/emoji-regex@7.0.3",
+            "pkg:npm/is-fullwidth-code-point@2.0.0",
+            "pkg:npm/strip-ansi@5.2.0"
+          ],
+          "id": "pkg:npm/string-width@3.1.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "string-width",
+          "package_ref": "pkg:npm/string-width@3.1.0",
+          "purl": "pkg:npm/string-width@3.1.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "3.1.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/define-properties@1.1.3",
+            "pkg:npm/es-abstract@1.17.6"
+          ],
+          "id": "pkg:npm/string.prototype.trimend@1.0.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "string.prototype.trimend",
+          "package_ref": "pkg:npm/string.prototype.trimend@1.0.1",
+          "purl": "pkg:npm/string.prototype.trimend@1.0.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.0.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/define-properties@1.1.3",
+            "pkg:npm/es-abstract@1.17.6"
+          ],
+          "id": "pkg:npm/string.prototype.trimstart@1.0.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "string.prototype.trimstart",
+          "package_ref": "pkg:npm/string.prototype.trimstart@1.0.1",
+          "purl": "pkg:npm/string.prototype.trimstart@1.0.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.0.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/string_decoder@0.10.31",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "string_decoder",
+          "package_ref": "pkg:npm/string_decoder@0.10.31",
+          "purl": "pkg:npm/string_decoder@0.10.31",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.10.31"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/ansi-regex@3.0.0"
+          ],
+          "id": "pkg:npm/strip-ansi@4.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "strip-ansi",
+          "package_ref": "pkg:npm/strip-ansi@4.0.0",
+          "purl": "pkg:npm/strip-ansi@4.0.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "4.0.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/ansi-regex@4.1.0"
+          ],
+          "id": "pkg:npm/strip-ansi@5.2.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "strip-ansi",
+          "package_ref": "pkg:npm/strip-ansi@5.2.0",
+          "purl": "pkg:npm/strip-ansi@5.2.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "5.2.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/strip-json-comments@2.0.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "strip-json-comments",
+          "package_ref": "pkg:npm/strip-json-comments@2.0.1",
+          "purl": "pkg:npm/strip-json-comments@2.0.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "2.0.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/has-flag@3.0.0"
+          ],
+          "id": "pkg:npm/supports-color@5.5.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "supports-color",
+          "package_ref": "pkg:npm/supports-color@5.5.0",
+          "purl": "pkg:npm/supports-color@5.5.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "5.5.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/has-flag@3.0.0"
+          ],
+          "id": "pkg:npm/supports-color@6.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "supports-color",
+          "package_ref": "pkg:npm/supports-color@6.0.0",
+          "purl": "pkg:npm/supports-color@6.0.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "6.0.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/is-number@7.0.0"
+          ],
+          "id": "pkg:npm/to-regex-range@5.0.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "to-regex-range",
+          "package_ref": "pkg:npm/to-regex-range@5.0.1",
+          "purl": "pkg:npm/to-regex-range@5.0.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "5.0.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/handy@0.0.13",
+            "pkg:npm/htmlparser@1.7.7",
+            "pkg:npm/js-yaml@3.13.0",
+            "pkg:npm/optimist@0.6.1",
+            "pkg:npm/underscore@1.9.2"
+          ],
+          "id": "pkg:npm/to@0.2.9",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "to",
+          "package_ref": "pkg:npm/to@0.2.9",
+          "purl": "pkg:npm/to@0.2.9",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.2.9"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/underscore@1.9.2",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "underscore",
+          "package_ref": "pkg:npm/underscore@1.9.2",
+          "purl": "pkg:npm/underscore@1.9.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.9.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/universalify@0.1.2",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "universalify",
+          "package_ref": "pkg:npm/universalify@0.1.2",
+          "purl": "pkg:npm/universalify@0.1.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.1.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/punycode@1.3.2",
+            "pkg:npm/querystring@0.2.0"
+          ],
+          "id": "pkg:npm/url@0.11.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "url",
+          "package_ref": "pkg:npm/url@0.11.0",
+          "purl": "pkg:npm/url@0.11.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.11.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/uuid@3.4.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "uuid",
+          "package_ref": "pkg:npm/uuid@3.4.0",
+          "purl": "pkg:npm/uuid@3.4.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.4.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/which-module@2.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "which-module",
+          "package_ref": "pkg:npm/which-module@2.0.0",
+          "purl": "pkg:npm/which-module@2.0.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "2.0.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/isexe@2.0.0"
+          ],
+          "id": "pkg:npm/which@1.3.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "which",
+          "package_ref": "pkg:npm/which@1.3.1",
+          "purl": "pkg:npm/which@1.3.1",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.3.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/string-width@2.1.1"
+          ],
+          "id": "pkg:npm/wide-align@1.1.3",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "wide-align",
+          "package_ref": "pkg:npm/wide-align@1.1.3",
+          "purl": "pkg:npm/wide-align@1.1.3",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.1.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/wordwrap@0.0.3",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "wordwrap",
+          "package_ref": "pkg:npm/wordwrap@0.0.3",
+          "purl": "pkg:npm/wordwrap@0.0.3",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.0.3"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/ansi-styles@3.2.1",
+            "pkg:npm/string-width@3.1.0",
+            "pkg:npm/strip-ansi@5.2.0"
+          ],
+          "id": "pkg:npm/wrap-ansi@5.1.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "wrap-ansi",
+          "package_ref": "pkg:npm/wrap-ansi@5.1.0",
+          "purl": "pkg:npm/wrap-ansi@5.1.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "5.1.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/wrappy@1.0.2",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "wrappy",
+          "package_ref": "pkg:npm/wrappy@1.0.2",
+          "purl": "pkg:npm/wrappy@1.0.2",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.0.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/y18n@4.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "y18n",
+          "package_ref": "pkg:npm/y18n@4.0.0",
+          "purl": "pkg:npm/y18n@4.0.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "4.0.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/camelcase@5.3.1",
+            "pkg:npm/decamelize@1.2.0"
+          ],
+          "id": "pkg:npm/yargs-parser@13.1.2",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "yargs-parser",
+          "package_ref": "pkg:npm/yargs-parser@13.1.2",
+          "purl": "pkg:npm/yargs-parser@13.1.2",
+          "scopes": [
+            "development"
+          ],
+          "version": "13.1.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/flat@4.1.0",
+            "pkg:npm/lodash@4.17.15",
+            "pkg:npm/yargs@13.3.2"
+          ],
+          "id": "pkg:npm/yargs-unparser@1.6.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "yargs-unparser",
+          "package_ref": "pkg:npm/yargs-unparser@1.6.0",
+          "purl": "pkg:npm/yargs-unparser@1.6.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.6.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/cliui@5.0.0",
+            "pkg:npm/find-up@3.0.0",
+            "pkg:npm/get-caller-file@2.0.5",
+            "pkg:npm/require-directory@2.1.1",
+            "pkg:npm/require-main-filename@2.0.0",
+            "pkg:npm/set-blocking@2.0.0",
+            "pkg:npm/string-width@3.1.0",
+            "pkg:npm/which-module@2.0.0",
+            "pkg:npm/y18n@4.0.0",
+            "pkg:npm/yargs-parser@13.1.2"
+          ],
+          "id": "pkg:npm/yargs@13.3.2",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "yargs",
+          "package_ref": "pkg:npm/yargs@13.3.2",
+          "purl": "pkg:npm/yargs@13.3.2",
+          "scopes": [
+            "development"
+          ],
+          "version": "13.3.2"
         }
       ],
-      "detector": "github-actions-detector",
-      "ecosystem": "github-actions",
-      "kind": "github-actions-workflow",
-      "package_manager": "github-actions",
-      "path": ".github/workflows/require-allow-edits.yml",
+      "detector": "npm-detector",
+      "ecosystem": "npm",
+      "kind": "package-lock.json",
+      "package_manager": "npm",
+      "path": "package-lock.json",
       "subproject": "."
     }
   ],
@@ -200,92 +3274,1108 @@
   },
   "packages": [
     {
-      "ecosystem": "github-actions",
+      "ecosystem": "npm",
       "licenses": [],
-      "name": ".github/workflows/node-aught.yml",
-      "purl": "pkg:githubactions/.github%2Fworkflows%2Fnode-aught.yml@local",
-      "version": "local",
+      "name": "algo-httpserv",
+      "purl": "pkg:npm/algo-httpserv@1.1.1",
+      "version": "1.1.1",
       "vulnerabilities": []
     },
     {
-      "ecosystem": "github-actions",
+      "ecosystem": "npm",
       "licenses": [],
-      "name": ".github/workflows/node-pretest.yml",
-      "purl": "pkg:githubactions/.github%2Fworkflows%2Fnode-pretest.yml@local",
-      "version": "local",
+      "name": "ansi-colors",
+      "purl": "pkg:npm/ansi-colors@3.2.3",
+      "version": "3.2.3",
       "vulnerabilities": []
     },
     {
-      "ecosystem": "github-actions",
+      "ecosystem": "npm",
       "licenses": [],
-      "name": ".github/workflows/node-tens.yml",
-      "purl": "pkg:githubactions/.github%2Fworkflows%2Fnode-tens.yml@local",
-      "version": "local",
+      "name": "ansi-regex",
+      "purl": "pkg:npm/ansi-regex@3.0.0",
+      "version": "3.0.0",
       "vulnerabilities": []
     },
     {
-      "ecosystem": "github-actions",
+      "ecosystem": "npm",
       "licenses": [],
-      "name": ".github/workflows/rebase.yml",
-      "purl": "pkg:githubactions/.github%2Fworkflows%2Frebase.yml@local",
-      "version": "local",
+      "name": "ansi-regex",
+      "purl": "pkg:npm/ansi-regex@4.1.0",
+      "version": "4.1.0",
       "vulnerabilities": []
     },
     {
-      "ecosystem": "github-actions",
+      "ecosystem": "npm",
       "licenses": [],
-      "name": ".github/workflows/require-allow-edits.yml",
-      "purl": "pkg:githubactions/.github%2Fworkflows%2Frequire-allow-edits.yml@local",
-      "version": "local",
+      "name": "ansi-styles",
+      "purl": "pkg:npm/ansi-styles@3.2.1",
+      "version": "3.2.1",
       "vulnerabilities": []
     },
     {
-      "ecosystem": "github-actions",
+      "ecosystem": "npm",
       "licenses": [],
-      "name": "checkout",
-      "purl": "pkg:githubactions/actions/checkout@v3",
-      "version": "v3",
+      "name": "anymatch",
+      "purl": "pkg:npm/anymatch@3.1.1",
+      "version": "3.1.1",
       "vulnerabilities": []
     },
     {
-      "ecosystem": "github-actions",
+      "ecosystem": "npm",
       "licenses": [],
-      "name": "actions/.github/workflows/node.yml",
-      "purl": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fnode.yml@main",
-      "version": "main",
+      "name": "argparse",
+      "purl": "pkg:npm/argparse@1.0.10",
+      "version": "1.0.10",
       "vulnerabilities": []
     },
     {
-      "ecosystem": "github-actions",
+      "ecosystem": "npm",
       "licenses": [],
-      "name": "actions/.github/workflows/pretest.yml",
-      "purl": "pkg:githubactions/ljharb/actions%2F.github%2Fworkflows%2Fpretest.yml@main",
-      "version": "main",
+      "name": "async",
+      "purl": "pkg:npm/async@2.6.3",
+      "version": "2.6.3",
       "vulnerabilities": []
     },
     {
-      "ecosystem": "github-actions",
+      "ecosystem": "npm",
       "licenses": [],
-      "name": "rebase",
-      "purl": "pkg:githubactions/ljharb/rebase@master",
-      "version": "master",
+      "name": "balanced-match",
+      "purl": "pkg:npm/balanced-match@1.0.0",
+      "version": "1.0.0",
       "vulnerabilities": []
     },
     {
-      "ecosystem": "github-actions",
+      "ecosystem": "npm",
       "licenses": [],
-      "name": "require-allow-edits",
-      "purl": "pkg:githubactions/ljharb/require-allow-edits@main",
-      "version": "main",
+      "name": "binary-extensions",
+      "purl": "pkg:npm/binary-extensions@2.1.0",
+      "version": "2.1.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "brace-expansion",
+      "purl": "pkg:npm/brace-expansion@1.1.11",
+      "version": "1.1.11",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "braces",
+      "purl": "pkg:npm/braces@3.0.2",
+      "version": "3.0.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "browser-stdout",
+      "purl": "pkg:npm/browser-stdout@1.3.1",
+      "version": "1.3.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "busboy",
+      "purl": "pkg:npm/busboy@0.2.14",
+      "version": "0.2.14",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "camelcase",
+      "purl": "pkg:npm/camelcase@5.3.1",
+      "version": "5.3.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "chalk",
+      "purl": "pkg:npm/chalk@2.4.2",
+      "version": "2.4.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "chokidar",
+      "purl": "pkg:npm/chokidar@3.3.0",
+      "version": "3.3.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "cliui",
+      "purl": "pkg:npm/cliui@5.0.0",
+      "version": "5.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "color-convert",
+      "purl": "pkg:npm/color-convert@1.9.3",
+      "version": "1.9.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "color-name",
+      "purl": "pkg:npm/color-name@1.1.3",
+      "version": "1.1.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "concat-map",
+      "purl": "pkg:npm/concat-map@0.0.1",
+      "version": "0.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "core-util-is",
+      "purl": "pkg:npm/core-util-is@1.0.2",
+      "version": "1.0.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "debug",
+      "purl": "pkg:npm/debug@3.2.6",
+      "version": "3.2.6",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "decamelize",
+      "purl": "pkg:npm/decamelize@1.2.0",
+      "version": "1.2.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "define-properties",
+      "purl": "pkg:npm/define-properties@1.1.3",
+      "version": "1.1.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "dicer",
+      "purl": "pkg:npm/dicer@0.2.5",
+      "version": "0.2.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "diff",
+      "purl": "pkg:npm/diff@3.5.0",
+      "version": "3.5.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "emoji-regex",
+      "purl": "pkg:npm/emoji-regex@7.0.3",
+      "version": "7.0.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "es-abstract",
+      "purl": "pkg:npm/es-abstract@1.17.6",
+      "version": "1.17.6",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "es-to-primitive",
+      "purl": "pkg:npm/es-to-primitive@1.2.1",
+      "version": "1.2.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "escape-string-regexp",
+      "purl": "pkg:npm/escape-string-regexp@1.0.5",
+      "version": "1.0.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "esprima",
+      "purl": "pkg:npm/esprima@4.0.1",
+      "version": "4.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "example-javascript-vulnerable-methods",
+      "purl": "pkg:npm/example-javascript-vulnerable-methods@0.0.1",
+      "version": "0.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "fill-range",
+      "purl": "pkg:npm/fill-range@7.0.1",
+      "version": "7.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "find-up",
+      "purl": "pkg:npm/find-up@3.0.0",
+      "version": "3.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "flat",
+      "purl": "pkg:npm/flat@4.1.0",
+      "version": "4.1.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "fs-extra",
+      "purl": "pkg:npm/fs-extra@7.0.1",
+      "version": "7.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "fs.realpath",
+      "purl": "pkg:npm/fs.realpath@1.0.0",
+      "version": "1.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "fsevents",
+      "purl": "pkg:npm/fsevents@2.1.3",
+      "version": "2.1.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "function-bind",
+      "purl": "pkg:npm/function-bind@1.1.1",
+      "version": "1.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "get-caller-file",
+      "purl": "pkg:npm/get-caller-file@2.0.5",
+      "version": "2.0.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "glob-parent",
+      "purl": "pkg:npm/glob-parent@5.1.1",
+      "version": "5.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "glob",
+      "purl": "pkg:npm/glob@7.1.3",
+      "version": "7.1.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "graceful-fs",
+      "purl": "pkg:npm/graceful-fs@4.2.3",
+      "version": "4.2.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "growl",
+      "purl": "pkg:npm/growl@1.10.5",
+      "version": "1.10.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "handy",
+      "purl": "pkg:npm/handy@0.0.13",
+      "version": "0.0.13",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "has-flag",
+      "purl": "pkg:npm/has-flag@3.0.0",
+      "version": "3.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "has-symbols",
+      "purl": "pkg:npm/has-symbols@1.0.1",
+      "version": "1.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "has",
+      "purl": "pkg:npm/has@1.0.3",
+      "version": "1.0.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "he",
+      "purl": "pkg:npm/he@1.2.0",
+      "version": "1.2.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "htmlparser",
+      "purl": "pkg:npm/htmlparser@1.7.7",
+      "version": "1.7.7",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "inflight",
+      "purl": "pkg:npm/inflight@1.0.6",
+      "version": "1.0.6",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "inherits",
+      "purl": "pkg:npm/inherits@2.0.4",
+      "version": "2.0.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "is-binary-path",
+      "purl": "pkg:npm/is-binary-path@2.1.0",
+      "version": "2.1.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "is-buffer",
+      "purl": "pkg:npm/is-buffer@2.0.4",
+      "version": "2.0.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "is-callable",
+      "purl": "pkg:npm/is-callable@1.2.2",
+      "version": "1.2.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "is-date-object",
+      "purl": "pkg:npm/is-date-object@1.0.2",
+      "version": "1.0.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "is-extglob",
+      "purl": "pkg:npm/is-extglob@2.1.1",
+      "version": "2.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "is-fullwidth-code-point",
+      "purl": "pkg:npm/is-fullwidth-code-point@2.0.0",
+      "version": "2.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "is-glob",
+      "purl": "pkg:npm/is-glob@4.0.1",
+      "version": "4.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "is-number",
+      "purl": "pkg:npm/is-number@7.0.0",
+      "version": "7.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "is-regex",
+      "purl": "pkg:npm/is-regex@1.1.1",
+      "version": "1.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "is-symbol",
+      "purl": "pkg:npm/is-symbol@1.0.3",
+      "version": "1.0.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "is",
+      "purl": "pkg:npm/is@3.3.0",
+      "version": "3.3.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "isarray",
+      "purl": "pkg:npm/isarray@0.0.1",
+      "version": "0.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "isexe",
+      "purl": "pkg:npm/isexe@2.0.0",
+      "version": "2.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "js-yaml",
+      "purl": "pkg:npm/js-yaml@3.13.0",
+      "version": "3.13.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "js-yaml",
+      "purl": "pkg:npm/js-yaml@3.13.1",
+      "version": "3.13.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "jsonfile",
+      "purl": "pkg:npm/jsonfile@4.0.0",
+      "version": "4.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "larvitbase",
+      "purl": "pkg:npm/larvitbase@3.1.3",
+      "version": "3.1.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "larvitfs",
+      "purl": "pkg:npm/larvitfs@2.3.1",
+      "version": "2.3.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "larvitreqparser",
+      "purl": "pkg:npm/larvitreqparser@0.2.1",
+      "version": "0.2.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "larvitrouter",
+      "purl": "pkg:npm/larvitrouter@3.0.2",
+      "version": "3.0.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "larvitutils",
+      "purl": "pkg:npm/larvitutils@2.3.0",
+      "version": "2.3.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "locate-path",
+      "purl": "pkg:npm/locate-path@3.0.0",
+      "version": "3.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "lodash",
+      "purl": "pkg:npm/lodash@4.17.15",
+      "version": "4.17.15",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "log-symbols",
+      "purl": "pkg:npm/log-symbols@3.0.0",
+      "version": "3.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "marked",
+      "purl": "pkg:npm/marked@0.3.19",
+      "version": "0.3.19",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "minimatch",
+      "purl": "pkg:npm/minimatch@3.0.4",
+      "version": "3.0.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "minimist",
+      "purl": "pkg:npm/minimist@0.0.10",
+      "version": "0.0.10",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "minimist",
+      "purl": "pkg:npm/minimist@1.2.5",
+      "version": "1.2.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "mkdirp",
+      "purl": "pkg:npm/mkdirp@0.5.5",
+      "version": "0.5.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "mocha",
+      "purl": "pkg:npm/mocha@7.2.0",
+      "version": "7.2.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "ms",
+      "purl": "pkg:npm/ms@2.1.1",
+      "version": "2.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "node-environment-flags",
+      "purl": "pkg:npm/node-environment-flags@1.0.6",
+      "version": "1.0.6",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "node-yaml-config",
+      "purl": "pkg:npm/node-yaml-config@0.0.5",
+      "version": "0.0.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "node.extend",
+      "purl": "pkg:npm/node.extend@2.0.2",
+      "version": "2.0.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "normalize-path",
+      "purl": "pkg:npm/normalize-path@3.0.0",
+      "version": "3.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "object-inspect",
+      "purl": "pkg:npm/object-inspect@1.8.0",
+      "version": "1.8.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "object-keys",
+      "purl": "pkg:npm/object-keys@1.1.1",
+      "version": "1.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "object.assign",
+      "purl": "pkg:npm/object.assign@4.1.0",
+      "version": "4.1.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "object.getownpropertydescriptors",
+      "purl": "pkg:npm/object.getownpropertydescriptors@2.1.0",
+      "version": "2.1.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "once",
+      "purl": "pkg:npm/once@1.4.0",
+      "version": "1.4.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "optimist",
+      "purl": "pkg:npm/optimist@0.6.1",
+      "version": "0.6.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "p-limit",
+      "purl": "pkg:npm/p-limit@2.3.0",
+      "version": "2.3.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "p-locate",
+      "purl": "pkg:npm/p-locate@3.0.0",
+      "version": "3.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "p-try",
+      "purl": "pkg:npm/p-try@2.2.0",
+      "version": "2.2.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "path-exists",
+      "purl": "pkg:npm/path-exists@3.0.0",
+      "version": "3.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "path-is-absolute",
+      "purl": "pkg:npm/path-is-absolute@1.0.1",
+      "version": "1.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "picomatch",
+      "purl": "pkg:npm/picomatch@2.2.2",
+      "version": "2.2.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "punycode",
+      "purl": "pkg:npm/punycode@1.3.2",
+      "version": "1.3.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "qs",
+      "purl": "pkg:npm/qs@6.9.1",
+      "version": "6.9.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "querystring",
+      "purl": "pkg:npm/querystring@0.2.0",
+      "version": "0.2.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "readable-stream",
+      "purl": "pkg:npm/readable-stream@1.1.14",
+      "version": "1.1.14",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "readdirp",
+      "purl": "pkg:npm/readdirp@3.2.0",
+      "version": "3.2.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "require-directory",
+      "purl": "pkg:npm/require-directory@2.1.1",
+      "version": "2.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "require-main-filename",
+      "purl": "pkg:npm/require-main-filename@2.0.0",
+      "version": "2.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "semver",
+      "purl": "pkg:npm/semver@5.7.1",
+      "version": "5.7.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "set-blocking",
+      "purl": "pkg:npm/set-blocking@2.0.0",
+      "version": "2.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "sprintf-js",
+      "purl": "pkg:npm/sprintf-js@1.0.3",
+      "version": "1.0.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "streamsearch",
+      "purl": "pkg:npm/streamsearch@0.1.2",
+      "version": "0.1.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "string-width",
+      "purl": "pkg:npm/string-width@2.1.1",
+      "version": "2.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "string-width",
+      "purl": "pkg:npm/string-width@3.1.0",
+      "version": "3.1.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "string.prototype.trimend",
+      "purl": "pkg:npm/string.prototype.trimend@1.0.1",
+      "version": "1.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "string.prototype.trimstart",
+      "purl": "pkg:npm/string.prototype.trimstart@1.0.1",
+      "version": "1.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "string_decoder",
+      "purl": "pkg:npm/string_decoder@0.10.31",
+      "version": "0.10.31",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "strip-ansi",
+      "purl": "pkg:npm/strip-ansi@4.0.0",
+      "version": "4.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "strip-ansi",
+      "purl": "pkg:npm/strip-ansi@5.2.0",
+      "version": "5.2.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "strip-json-comments",
+      "purl": "pkg:npm/strip-json-comments@2.0.1",
+      "version": "2.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "supports-color",
+      "purl": "pkg:npm/supports-color@5.5.0",
+      "version": "5.5.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "supports-color",
+      "purl": "pkg:npm/supports-color@6.0.0",
+      "version": "6.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "to-regex-range",
+      "purl": "pkg:npm/to-regex-range@5.0.1",
+      "version": "5.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "to",
+      "purl": "pkg:npm/to@0.2.9",
+      "version": "0.2.9",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "underscore",
+      "purl": "pkg:npm/underscore@1.9.2",
+      "version": "1.9.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "universalify",
+      "purl": "pkg:npm/universalify@0.1.2",
+      "version": "0.1.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "url",
+      "purl": "pkg:npm/url@0.11.0",
+      "version": "0.11.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "uuid",
+      "purl": "pkg:npm/uuid@3.4.0",
+      "version": "3.4.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "which-module",
+      "purl": "pkg:npm/which-module@2.0.0",
+      "version": "2.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "which",
+      "purl": "pkg:npm/which@1.3.1",
+      "version": "1.3.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "wide-align",
+      "purl": "pkg:npm/wide-align@1.1.3",
+      "version": "1.1.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "wordwrap",
+      "purl": "pkg:npm/wordwrap@0.0.3",
+      "version": "0.0.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "wrap-ansi",
+      "purl": "pkg:npm/wrap-ansi@5.1.0",
+      "version": "5.1.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "wrappy",
+      "purl": "pkg:npm/wrappy@1.0.2",
+      "version": "1.0.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "y18n",
+      "purl": "pkg:npm/y18n@4.0.0",
+      "version": "4.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "yargs-parser",
+      "purl": "pkg:npm/yargs-parser@13.1.2",
+      "version": "13.1.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "yargs-unparser",
+      "purl": "pkg:npm/yargs-unparser@1.6.0",
+      "version": "1.6.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "yargs",
+      "purl": "pkg:npm/yargs@13.3.2",
+      "version": "13.3.2",
       "vulnerabilities": []
     }
   ],
   "project": {
-    "ecosystem": "other",
+    "ecosystem": "npm",
     "name": "\u003cnormalized\u003e",
-    "package_manager": "multiple",
+    "package_manager": "npm",
     "path": "\u003cnormalized\u003e",
-    "target_ref": "v6.13.0",
+    "target_ref": "v1.0.0",
     "target_type": "git repository"
   },
   "schema_version": "1.0"

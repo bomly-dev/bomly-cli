@@ -4,157 +4,16 @@
     {
       "dependencies": [
         {
-          "depends_on": [
-            "pkg:pypi/idna@2.8",
-            "pkg:pypi/typing-extensions@4.15.0"
-          ],
-          "id": "pkg:pypi/anyio@4.14.0",
-          "licenses": [],
-          "name": "anyio",
-          "package_ref": "pkg:pypi/anyio@4.14.0",
-          "purl": "pkg:pypi/anyio@4.14.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "4.14.0"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/typing-extensions@4.15.0"
-          ],
-          "id": "pkg:pypi/astroid@3.1.0",
-          "licenses": [],
-          "name": "astroid",
-          "package_ref": "pkg:pypi/astroid@3.1.0",
-          "purl": "pkg:pypi/astroid@3.1.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "3.1.0"
-        },
-        {
           "depends_on": [],
-          "id": "pkg:pypi/backports-zstd@1.6.0",
-          "licenses": [],
-          "name": "backports-zstd",
-          "package_ref": "pkg:pypi/backports-zstd@1.6.0",
-          "purl": "pkg:pypi/backports-zstd@1.6.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.6.0"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/gitpython@3.1.50",
-            "pkg:pypi/pyyaml@6.0.3",
-            "pkg:pypi/rich@15.0.0",
-            "pkg:pypi/stevedore@5.8.0"
-          ],
-          "id": "pkg:pypi/bandit@1.7.5",
-          "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements-dev.txt",
-              "position": {
-                "file": "requirements-dev.txt",
-                "line": 0
-              },
-              "real_path": "requirements-dev.txt"
-            }
-          ],
-          "name": "bandit",
-          "package_ref": "pkg:pypi/bandit@1.7.5",
-          "purl": "pkg:pypi/bandit@1.7.5",
-          "scopes": [
-            "development"
-          ],
-          "version": "1.7.5"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/click@8.4.1",
-            "pkg:pypi/mypy-extensions@1.1.0",
-            "pkg:pypi/packaging@26.2",
-            "pkg:pypi/pathspec@1.1.1",
-            "pkg:pypi/platformdirs@4.10.0",
-            "pkg:pypi/typing-extensions@4.15.0"
-          ],
-          "id": "pkg:pypi/black@23.12.1",
-          "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements-dev.txt",
-              "position": {
-                "file": "requirements-dev.txt",
-                "line": 0
-              },
-              "real_path": "requirements-dev.txt"
-            }
-          ],
-          "name": "black",
-          "package_ref": "pkg:pypi/black@23.12.1",
-          "purl": "pkg:pypi/black@23.12.1",
-          "scopes": [
-            "development"
-          ],
-          "version": "23.12.1"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/packaging@26.2",
-            "pkg:pypi/pyproject-hooks@1.2.0"
-          ],
-          "id": "pkg:pypi/build@1.5.0",
-          "licenses": [],
-          "name": "build",
-          "package_ref": "pkg:pypi/build@1.5.0",
-          "purl": "pkg:pypi/build@1.5.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.5.0"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/msgpack@1.2.0",
-            "pkg:pypi/requests@2.21.0"
-          ],
-          "id": "pkg:pypi/cachecontrol@0.14.4",
-          "licenses": [],
-          "name": "cachecontrol",
-          "package_ref": "pkg:pypi/cachecontrol@0.14.4",
-          "purl": "pkg:pypi/cachecontrol@0.14.4",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.14.4"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/certifi@2026.5.20",
+          "id": "pkg:pypi/certifi@2026.6.17",
           "licenses": [],
           "name": "certifi",
-          "package_ref": "pkg:pypi/certifi@2026.5.20",
-          "purl": "pkg:pypi/certifi@2026.5.20",
+          "package_ref": "pkg:pypi/certifi@2026.6.17",
+          "purl": "pkg:pypi/certifi@2026.6.17",
           "scopes": [
             "runtime"
           ],
-          "version": "2026.5.20"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/pycparser@3.0"
-          ],
-          "id": "pkg:pypi/cffi@2.0.0",
-          "licenses": [],
-          "name": "cffi",
-          "package_ref": "pkg:pypi/cffi@2.0.0",
-          "purl": "pkg:pypi/cffi@2.0.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "2.0.0"
+          "version": "2026.6.17"
         },
         {
           "depends_on": [],
@@ -169,133 +28,11 @@
           "version": "3.0.4"
         },
         {
-          "depends_on": [],
-          "id": "pkg:pypi/charset-normalizer@3.4.7",
-          "licenses": [],
-          "name": "charset-normalizer",
-          "package_ref": "pkg:pypi/charset-normalizer@3.4.7",
-          "purl": "pkg:pypi/charset-normalizer@3.4.7",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "3.4.7"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/crashtest@0.4.1",
-            "pkg:pypi/rapidfuzz@3.14.5"
-          ],
-          "id": "pkg:pypi/cleo@2.1.0",
-          "licenses": [],
-          "name": "cleo",
-          "package_ref": "pkg:pypi/cleo@2.1.0",
-          "purl": "pkg:pypi/cleo@2.1.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "2.1.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/click@8.4.1",
-          "licenses": [],
-          "name": "click",
-          "package_ref": "pkg:pypi/click@8.4.1",
-          "purl": "pkg:pypi/click@8.4.1",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "8.4.1"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/coverage@7.4.0",
-          "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements-dev.txt",
-              "position": {
-                "file": "requirements-dev.txt",
-                "line": 0
-              },
-              "real_path": "requirements-dev.txt"
-            }
-          ],
-          "name": "coverage",
-          "package_ref": "pkg:pypi/coverage@7.4.0",
-          "purl": "pkg:pypi/coverage@7.4.0",
-          "scopes": [
-            "development"
-          ],
-          "version": "7.4.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/crashtest@0.4.1",
-          "licenses": [],
-          "name": "crashtest",
-          "package_ref": "pkg:pypi/crashtest@0.4.1",
-          "purl": "pkg:pypi/crashtest@0.4.1",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.4.1"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/cffi@2.0.0",
-            "pkg:pypi/typing-extensions@4.15.0"
-          ],
-          "id": "pkg:pypi/cryptography@49.0.0",
-          "licenses": [],
-          "name": "cryptography",
-          "package_ref": "pkg:pypi/cryptography@49.0.0",
-          "purl": "pkg:pypi/cryptography@49.0.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "49.0.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/dill@0.4.1",
-          "licenses": [],
-          "name": "dill",
-          "package_ref": "pkg:pypi/dill@0.4.1",
-          "purl": "pkg:pypi/dill@0.4.1",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.4.1"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/distlib@0.4.3",
-          "licenses": [],
-          "name": "distlib",
-          "package_ref": "pkg:pypi/distlib@0.4.3",
-          "purl": "pkg:pypi/distlib@0.4.3",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.4.3"
-        },
-        {
           "depends_on": [
             "pkg:pypi/pytz@2026.2"
           ],
           "id": "pkg:pypi/django@1.11.29",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "name": "django",
           "package_ref": "pkg:pypi/django@1.11.29",
           "purl": "pkg:pypi/django@1.11.29",
@@ -306,47 +43,10 @@
         },
         {
           "depends_on": [
-            "pkg:pypi/typing-extensions@4.15.0",
-            "pkg:pypi/urllib3@1.24.1"
-          ],
-          "id": "pkg:pypi/dulwich@1.2.6",
-          "licenses": [],
-          "name": "dulwich",
-          "package_ref": "pkg:pypi/dulwich@1.2.6",
-          "purl": "pkg:pypi/dulwich@1.2.6",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.2.6"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/fastjsonschema@2.21.2",
-          "licenses": [],
-          "name": "fastjsonschema",
-          "package_ref": "pkg:pypi/fastjsonschema@2.21.2",
-          "purl": "pkg:pypi/fastjsonschema@2.21.2",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "2.21.2"
-        },
-        {
-          "depends_on": [
             "pkg:pypi/sgmllib3k@1.0.0"
           ],
           "id": "pkg:pypi/feedparser@6.0.8",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "name": "feedparser",
           "package_ref": "pkg:pypi/feedparser@6.0.8",
           "purl": "pkg:pypi/feedparser@6.0.8",
@@ -354,118 +54,6 @@
             "runtime"
           ],
           "version": "6.0.8"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/filelock@3.29.4",
-          "licenses": [],
-          "name": "filelock",
-          "package_ref": "pkg:pypi/filelock@3.29.4",
-          "purl": "pkg:pypi/filelock@3.29.4",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "3.29.4"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/packaging@26.2",
-            "pkg:pypi/platformdirs@4.10.0"
-          ],
-          "id": "pkg:pypi/findpython@0.8.0",
-          "licenses": [],
-          "name": "findpython",
-          "package_ref": "pkg:pypi/findpython@0.8.0",
-          "purl": "pkg:pypi/findpython@0.8.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.8.0"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/smmap@5.0.3"
-          ],
-          "id": "pkg:pypi/gitdb@4.0.12",
-          "licenses": [],
-          "name": "gitdb",
-          "package_ref": "pkg:pypi/gitdb@4.0.12",
-          "purl": "pkg:pypi/gitdb@4.0.12",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "4.0.12"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/gitdb@4.0.12",
-            "pkg:pypi/typing-extensions@4.15.0"
-          ],
-          "id": "pkg:pypi/gitpython@3.1.50",
-          "licenses": [],
-          "name": "gitpython",
-          "package_ref": "pkg:pypi/gitpython@3.1.50",
-          "purl": "pkg:pypi/gitpython@3.1.50",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "3.1.50"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/greenlet@3.5.1",
-          "licenses": [],
-          "name": "greenlet",
-          "package_ref": "pkg:pypi/greenlet@3.5.1",
-          "purl": "pkg:pypi/greenlet@3.5.1",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "3.5.1"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/h11@0.16.0",
-          "licenses": [],
-          "name": "h11",
-          "package_ref": "pkg:pypi/h11@0.16.0",
-          "purl": "pkg:pypi/h11@0.16.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.16.0"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/certifi@2026.5.20",
-            "pkg:pypi/h11@0.16.0"
-          ],
-          "id": "pkg:pypi/httpcore@1.0.9",
-          "licenses": [],
-          "name": "httpcore",
-          "package_ref": "pkg:pypi/httpcore@1.0.9",
-          "purl": "pkg:pypi/httpcore@1.0.9",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.0.9"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/anyio@4.14.0",
-            "pkg:pypi/certifi@2026.5.20",
-            "pkg:pypi/httpcore@1.0.9",
-            "pkg:pypi/idna@2.8"
-          ],
-          "id": "pkg:pypi/httpx@0.28.1",
-          "licenses": [],
-          "name": "httpx",
-          "package_ref": "pkg:pypi/httpx@0.28.1",
-          "purl": "pkg:pypi/httpx@0.28.1",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.28.1"
         },
         {
           "depends_on": [],
@@ -480,109 +68,11 @@
           "version": "2.8"
         },
         {
-          "depends_on": [],
-          "id": "pkg:pypi/iniconfig@2.3.0",
-          "licenses": [],
-          "name": "iniconfig",
-          "package_ref": "pkg:pypi/iniconfig@2.3.0",
-          "purl": "pkg:pypi/iniconfig@2.3.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "2.3.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/installer@1.0.1",
-          "licenses": [],
-          "name": "installer",
-          "package_ref": "pkg:pypi/installer@1.0.1",
-          "purl": "pkg:pypi/installer@1.0.1",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.0.1"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/isort@5.13.2",
-          "licenses": [],
-          "name": "isort",
-          "package_ref": "pkg:pypi/isort@5.13.2",
-          "purl": "pkg:pypi/isort@5.13.2",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "5.13.2"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/more-itertools@11.1.0"
-          ],
-          "id": "pkg:pypi/jaraco-classes@3.4.0",
-          "licenses": [],
-          "name": "jaraco-classes",
-          "package_ref": "pkg:pypi/jaraco-classes@3.4.0",
-          "purl": "pkg:pypi/jaraco-classes@3.4.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "3.4.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/jaraco-context@6.1.2",
-          "licenses": [],
-          "name": "jaraco-context",
-          "package_ref": "pkg:pypi/jaraco-context@6.1.2",
-          "purl": "pkg:pypi/jaraco-context@6.1.2",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "6.1.2"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/more-itertools@11.1.0"
-          ],
-          "id": "pkg:pypi/jaraco-functools@4.5.0",
-          "licenses": [],
-          "name": "jaraco-functools",
-          "package_ref": "pkg:pypi/jaraco-functools@4.5.0",
-          "purl": "pkg:pypi/jaraco-functools@4.5.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "4.5.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/jeepney@0.9.0",
-          "licenses": [],
-          "name": "jeepney",
-          "package_ref": "pkg:pypi/jeepney@0.9.0",
-          "purl": "pkg:pypi/jeepney@0.9.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.9.0"
-        },
-        {
           "depends_on": [
             "pkg:pypi/markupsafe@3.0.3"
           ],
           "id": "pkg:pypi/jinja2@2.10.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "name": "jinja2",
           "package_ref": "pkg:pypi/jinja2@2.10.1",
           "purl": "pkg:pypi/jinja2@2.10.1",
@@ -590,38 +80,6 @@
             "runtime"
           ],
           "version": "2.10.1"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/jaraco-classes@3.4.0",
-            "pkg:pypi/jaraco-context@6.1.2",
-            "pkg:pypi/jaraco-functools@4.5.0",
-            "pkg:pypi/jeepney@0.9.0",
-            "pkg:pypi/secretstorage@3.5.0"
-          ],
-          "id": "pkg:pypi/keyring@25.7.0",
-          "licenses": [],
-          "name": "keyring",
-          "package_ref": "pkg:pypi/keyring@25.7.0",
-          "purl": "pkg:pypi/keyring@25.7.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "25.7.0"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/mdurl@0.1.2"
-          ],
-          "id": "pkg:pypi/markdown-it-py@4.2.0",
-          "licenses": [],
-          "name": "markdown-it-py",
-          "package_ref": "pkg:pypi/markdown-it-py@4.2.0",
-          "purl": "pkg:pypi/markdown-it-py@4.2.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "4.2.0"
         },
         {
           "depends_on": [],
@@ -637,150 +95,6 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:pypi/mccabe@0.7.0",
-          "licenses": [],
-          "name": "mccabe",
-          "package_ref": "pkg:pypi/mccabe@0.7.0",
-          "purl": "pkg:pypi/mccabe@0.7.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.7.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/mdurl@0.1.2",
-          "licenses": [],
-          "name": "mdurl",
-          "package_ref": "pkg:pypi/mdurl@0.1.2",
-          "purl": "pkg:pypi/mdurl@0.1.2",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.1.2"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/more-itertools@11.1.0",
-          "licenses": [],
-          "name": "more-itertools",
-          "package_ref": "pkg:pypi/more-itertools@11.1.0",
-          "purl": "pkg:pypi/more-itertools@11.1.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "11.1.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/msgpack@1.2.0",
-          "licenses": [],
-          "name": "msgpack",
-          "package_ref": "pkg:pypi/msgpack@1.2.0",
-          "purl": "pkg:pypi/msgpack@1.2.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.2.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/mypy-extensions@1.1.0",
-          "licenses": [],
-          "name": "mypy-extensions",
-          "package_ref": "pkg:pypi/mypy-extensions@1.1.0",
-          "purl": "pkg:pypi/mypy-extensions@1.1.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.1.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/packaging@26.2",
-          "licenses": [],
-          "name": "packaging",
-          "package_ref": "pkg:pypi/packaging@26.2",
-          "purl": "pkg:pypi/packaging@26.2",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "26.2"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/pathspec@1.1.1",
-          "licenses": [],
-          "name": "pathspec",
-          "package_ref": "pkg:pypi/pathspec@1.1.1",
-          "purl": "pkg:pypi/pathspec@1.1.1",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.1.1"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/pbs-installer@2026.6.10",
-          "licenses": [],
-          "name": "pbs-installer",
-          "package_ref": "pkg:pypi/pbs-installer@2026.6.10",
-          "purl": "pkg:pypi/pbs-installer@2026.6.10",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "2026.6.10"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/pkginfo@1.12.1.2",
-          "licenses": [],
-          "name": "pkginfo",
-          "package_ref": "pkg:pypi/pkginfo@1.12.1.2",
-          "purl": "pkg:pypi/pkginfo@1.12.1.2",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.12.1.2"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/platformdirs@4.10.0",
-          "licenses": [],
-          "name": "platformdirs",
-          "package_ref": "pkg:pypi/platformdirs@4.10.0",
-          "purl": "pkg:pypi/platformdirs@4.10.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "4.10.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/pluggy@1.6.0",
-          "licenses": [],
-          "name": "pluggy",
-          "package_ref": "pkg:pypi/pluggy@1.6.0",
-          "purl": "pkg:pypi/pluggy@1.6.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.6.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/poetry-core@2.4.0",
-          "licenses": [],
-          "name": "poetry-core",
-          "package_ref": "pkg:pypi/poetry-core@2.4.0",
-          "purl": "pkg:pypi/poetry-core@2.4.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "2.4.0"
-        },
-        {
-          "depends_on": [],
           "id": "pkg:pypi/pyasn1@0.6.3",
           "licenses": [],
           "name": "pyasn1",
@@ -793,42 +107,8 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:pypi/pycparser@3.0",
-          "licenses": [],
-          "name": "pycparser",
-          "package_ref": "pkg:pypi/pycparser@3.0",
-          "purl": "pkg:pypi/pycparser@3.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "3.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/pygments@2.20.0",
-          "licenses": [],
-          "name": "pygments",
-          "package_ref": "pkg:pypi/pygments@2.20.0",
-          "purl": "pkg:pypi/pygments@2.20.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "2.20.0"
-        },
-        {
-          "depends_on": [],
           "id": "pkg:pypi/pyjwt@0.4.2",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "name": "pyjwt",
           "package_ref": "pkg:pypi/pyjwt@0.4.2",
           "purl": "pkg:pypi/pyjwt@0.4.2",
@@ -836,114 +116,6 @@
             "runtime"
           ],
           "version": "0.4.2"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/astroid@3.1.0",
-            "pkg:pypi/dill@0.4.1",
-            "pkg:pypi/isort@5.13.2",
-            "pkg:pypi/mccabe@0.7.0",
-            "pkg:pypi/platformdirs@4.10.0",
-            "pkg:pypi/tomlkit@0.15.0",
-            "pkg:pypi/typing-extensions@4.15.0"
-          ],
-          "id": "pkg:pypi/pylint@3.1.0",
-          "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements-dev.txt",
-              "position": {
-                "file": "requirements-dev.txt",
-                "line": 0
-              },
-              "real_path": "requirements-dev.txt"
-            }
-          ],
-          "name": "pylint",
-          "package_ref": "pkg:pypi/pylint@3.1.0",
-          "purl": "pkg:pypi/pylint@3.1.0",
-          "scopes": [
-            "development"
-          ],
-          "version": "3.1.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/pyproject-hooks@1.2.0",
-          "licenses": [],
-          "name": "pyproject-hooks",
-          "package_ref": "pkg:pypi/pyproject-hooks@1.2.0",
-          "purl": "pkg:pypi/pyproject-hooks@1.2.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.2.0"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/coverage@7.4.0",
-            "pkg:pypi/pytest@7.4.3"
-          ],
-          "id": "pkg:pypi/pytest-cov@4.1.0",
-          "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements-dev.txt",
-              "position": {
-                "file": "requirements-dev.txt",
-                "line": 0
-              },
-              "real_path": "requirements-dev.txt"
-            }
-          ],
-          "name": "pytest-cov",
-          "package_ref": "pkg:pypi/pytest-cov@4.1.0",
-          "purl": "pkg:pypi/pytest-cov@4.1.0",
-          "scopes": [
-            "development"
-          ],
-          "version": "4.1.0"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/iniconfig@2.3.0",
-            "pkg:pypi/packaging@26.2",
-            "pkg:pypi/pluggy@1.6.0"
-          ],
-          "id": "pkg:pypi/pytest@7.4.3",
-          "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements-dev.txt",
-              "position": {
-                "file": "requirements-dev.txt",
-                "line": 0
-              },
-              "real_path": "requirements-dev.txt"
-            }
-          ],
-          "name": "pytest",
-          "package_ref": "pkg:pypi/pytest@7.4.3",
-          "purl": "pkg:pypi/pytest@7.4.3",
-          "scopes": [
-            "development"
-          ],
-          "version": "7.4.3"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/filelock@3.29.4",
-            "pkg:pypi/platformdirs@4.10.0"
-          ],
-          "id": "pkg:pypi/python-discovery@1.4.2",
-          "licenses": [],
-          "name": "python-discovery",
-          "package_ref": "pkg:pypi/python-discovery@1.4.2",
-          "purl": "pkg:pypi/python-discovery@1.4.2",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.4.2"
         },
         {
           "depends_on": [],
@@ -959,71 +131,25 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:pypi/pyyaml@6.0.3",
+          "id": "pkg:pypi/pyyaml@5.3",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "name": "pyyaml",
-          "package_ref": "pkg:pypi/pyyaml@6.0.3",
-          "purl": "pkg:pypi/pyyaml@6.0.3",
+          "package_ref": "pkg:pypi/pyyaml@5.3",
+          "purl": "pkg:pypi/pyyaml@5.3",
           "scopes": [
             "runtime"
           ],
-          "version": "6.0.3"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/rapidfuzz@3.14.5",
-          "licenses": [],
-          "name": "rapidfuzz",
-          "package_ref": "pkg:pypi/rapidfuzz@3.14.5",
-          "purl": "pkg:pypi/rapidfuzz@3.14.5",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "3.14.5"
+          "version": "5.3"
         },
         {
           "depends_on": [
-            "pkg:pypi/requests@2.21.0"
-          ],
-          "id": "pkg:pypi/requests-toolbelt@1.0.0",
-          "licenses": [],
-          "name": "requests-toolbelt",
-          "package_ref": "pkg:pypi/requests-toolbelt@1.0.0",
-          "purl": "pkg:pypi/requests-toolbelt@1.0.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.0.0"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/certifi@2026.5.20",
+            "pkg:pypi/certifi@2026.6.17",
             "pkg:pypi/chardet@3.0.4",
             "pkg:pypi/idna@2.8",
             "pkg:pypi/urllib3@1.24.1"
           ],
           "id": "pkg:pypi/requests@2.21.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "name": "requests",
           "package_ref": "pkg:pypi/requests@2.21.0",
           "purl": "pkg:pypi/requests@2.21.0",
@@ -1034,102 +160,15 @@
         },
         {
           "depends_on": [
-            "pkg:pypi/markdown-it-py@4.2.0",
-            "pkg:pypi/pygments@2.20.0"
-          ],
-          "id": "pkg:pypi/rich@15.0.0",
-          "licenses": [],
-          "name": "rich",
-          "package_ref": "pkg:pypi/rich@15.0.0",
-          "purl": "pkg:pypi/rich@15.0.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "15.0.0"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/anyio@4.14.0",
-            "pkg:pypi/astroid@3.1.0",
-            "pkg:pypi/backports-zstd@1.6.0",
-            "pkg:pypi/bandit@1.7.5",
-            "pkg:pypi/black@23.12.1",
-            "pkg:pypi/build@1.5.0",
-            "pkg:pypi/cachecontrol@0.14.4",
-            "pkg:pypi/certifi@2026.5.20",
-            "pkg:pypi/cffi@2.0.0",
-            "pkg:pypi/chardet@3.0.4",
-            "pkg:pypi/charset-normalizer@3.4.7",
-            "pkg:pypi/cleo@2.1.0",
-            "pkg:pypi/click@8.4.1",
-            "pkg:pypi/coverage@7.4.0",
-            "pkg:pypi/crashtest@0.4.1",
-            "pkg:pypi/cryptography@49.0.0",
-            "pkg:pypi/dill@0.4.1",
-            "pkg:pypi/distlib@0.4.3",
             "pkg:pypi/django@1.11.29",
-            "pkg:pypi/dulwich@1.2.6",
-            "pkg:pypi/fastjsonschema@2.21.2",
             "pkg:pypi/feedparser@6.0.8",
-            "pkg:pypi/filelock@3.29.4",
-            "pkg:pypi/findpython@0.8.0",
-            "pkg:pypi/gitdb@4.0.12",
-            "pkg:pypi/gitpython@3.1.50",
-            "pkg:pypi/greenlet@3.5.1",
-            "pkg:pypi/h11@0.16.0",
-            "pkg:pypi/httpcore@1.0.9",
-            "pkg:pypi/httpx@0.28.1",
-            "pkg:pypi/idna@2.8",
-            "pkg:pypi/iniconfig@2.3.0",
-            "pkg:pypi/installer@1.0.1",
-            "pkg:pypi/isort@5.13.2",
-            "pkg:pypi/jaraco-classes@3.4.0",
-            "pkg:pypi/jaraco-context@6.1.2",
-            "pkg:pypi/jaraco-functools@4.5.0",
-            "pkg:pypi/jeepney@0.9.0",
             "pkg:pypi/jinja2@2.10.1",
-            "pkg:pypi/keyring@25.7.0",
-            "pkg:pypi/markdown-it-py@4.2.0",
-            "pkg:pypi/markupsafe@3.0.3",
-            "pkg:pypi/mccabe@0.7.0",
-            "pkg:pypi/mdurl@0.1.2",
-            "pkg:pypi/more-itertools@11.1.0",
-            "pkg:pypi/msgpack@1.2.0",
-            "pkg:pypi/mypy-extensions@1.1.0",
-            "pkg:pypi/packaging@26.2",
-            "pkg:pypi/pathspec@1.1.1",
-            "pkg:pypi/pbs-installer@2026.6.10",
-            "pkg:pypi/pkginfo@1.12.1.2",
-            "pkg:pypi/platformdirs@4.10.0",
-            "pkg:pypi/pluggy@1.6.0",
-            "pkg:pypi/poetry-core@2.4.0",
-            "pkg:pypi/pyasn1@0.6.3",
-            "pkg:pypi/pycparser@3.0",
-            "pkg:pypi/pygments@2.20.0",
             "pkg:pypi/pyjwt@0.4.2",
-            "pkg:pypi/pylint@3.1.0",
-            "pkg:pypi/pyproject-hooks@1.2.0",
-            "pkg:pypi/pytest-cov@4.1.0",
-            "pkg:pypi/pytest@7.4.3",
-            "pkg:pypi/python-discovery@1.4.2",
-            "pkg:pypi/pytz@2026.2",
-            "pkg:pypi/pyyaml@6.0.3",
-            "pkg:pypi/rapidfuzz@3.14.5",
-            "pkg:pypi/requests-toolbelt@1.0.0",
+            "pkg:pypi/pyyaml@5.3",
             "pkg:pypi/requests@2.21.0",
-            "pkg:pypi/rich@15.0.0",
             "pkg:pypi/rsa@3.4",
-            "pkg:pypi/secretstorage@3.5.0",
-            "pkg:pypi/sgmllib3k@1.0.0",
-            "pkg:pypi/shellingham@1.5.4",
-            "pkg:pypi/smmap@5.0.3",
             "pkg:pypi/sqlalchemy@1.4.46",
-            "pkg:pypi/stevedore@5.8.0",
-            "pkg:pypi/tomlkit@0.15.0",
-            "pkg:pypi/trove-classifiers@2026.6.1.19",
-            "pkg:pypi/typing-extensions@4.15.0",
-            "pkg:pypi/urllib3@1.24.1",
-            "pkg:pypi/virtualenv@21.5.0"
+            "pkg:pypi/urllib3@1.24.1"
           ],
           "id": "pkg:pypi/root",
           "licenses": [],
@@ -1143,16 +182,6 @@
           ],
           "id": "pkg:pypi/rsa@3.4",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "name": "rsa",
           "package_ref": "pkg:pypi/rsa@3.4",
           "purl": "pkg:pypi/rsa@3.4",
@@ -1160,21 +189,6 @@
             "runtime"
           ],
           "version": "3.4"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/cryptography@49.0.0",
-            "pkg:pypi/jeepney@0.9.0"
-          ],
-          "id": "pkg:pypi/secretstorage@3.5.0",
-          "licenses": [],
-          "name": "secretstorage",
-          "package_ref": "pkg:pypi/secretstorage@3.5.0",
-          "purl": "pkg:pypi/secretstorage@3.5.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "3.5.0"
         },
         {
           "depends_on": [],
@@ -1190,44 +204,8 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:pypi/shellingham@1.5.4",
-          "licenses": [],
-          "name": "shellingham",
-          "package_ref": "pkg:pypi/shellingham@1.5.4",
-          "purl": "pkg:pypi/shellingham@1.5.4",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "1.5.4"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/smmap@5.0.3",
-          "licenses": [],
-          "name": "smmap",
-          "package_ref": "pkg:pypi/smmap@5.0.3",
-          "purl": "pkg:pypi/smmap@5.0.3",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "5.0.3"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/greenlet@3.5.1"
-          ],
           "id": "pkg:pypi/sqlalchemy@1.4.46",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "name": "sqlalchemy",
           "package_ref": "pkg:pypi/sqlalchemy@1.4.46",
           "purl": "pkg:pypi/sqlalchemy@1.4.46",
@@ -1238,66 +216,8 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:pypi/stevedore@5.8.0",
-          "licenses": [],
-          "name": "stevedore",
-          "package_ref": "pkg:pypi/stevedore@5.8.0",
-          "purl": "pkg:pypi/stevedore@5.8.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "5.8.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/tomlkit@0.15.0",
-          "licenses": [],
-          "name": "tomlkit",
-          "package_ref": "pkg:pypi/tomlkit@0.15.0",
-          "purl": "pkg:pypi/tomlkit@0.15.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "0.15.0"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/trove-classifiers@2026.6.1.19",
-          "licenses": [],
-          "name": "trove-classifiers",
-          "package_ref": "pkg:pypi/trove-classifiers@2026.6.1.19",
-          "purl": "pkg:pypi/trove-classifiers@2026.6.1.19",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "2026.6.1.19"
-        },
-        {
-          "depends_on": [],
-          "id": "pkg:pypi/typing-extensions@4.15.0",
-          "licenses": [],
-          "name": "typing-extensions",
-          "package_ref": "pkg:pypi/typing-extensions@4.15.0",
-          "purl": "pkg:pypi/typing-extensions@4.15.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "4.15.0"
-        },
-        {
-          "depends_on": [],
           "id": "pkg:pypi/urllib3@1.24.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "requirements.txt",
-              "position": {
-                "file": "requirements.txt",
-                "line": 0
-              },
-              "real_path": "requirements.txt"
-            }
-          ],
           "name": "urllib3",
           "package_ref": "pkg:pypi/urllib3@1.24.1",
           "purl": "pkg:pypi/urllib3@1.24.1",
@@ -1305,24 +225,6 @@
             "runtime"
           ],
           "version": "1.24.1"
-        },
-        {
-          "depends_on": [
-            "pkg:pypi/distlib@0.4.3",
-            "pkg:pypi/filelock@3.29.4",
-            "pkg:pypi/platformdirs@4.10.0",
-            "pkg:pypi/python-discovery@1.4.2",
-            "pkg:pypi/typing-extensions@4.15.0"
-          ],
-          "id": "pkg:pypi/virtualenv@21.5.0",
-          "licenses": [],
-          "name": "virtualenv",
-          "package_ref": "pkg:pypi/virtualenv@21.5.0",
-          "purl": "pkg:pypi/virtualenv@21.5.0",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "21.5.0"
         }
       ],
       "detector": "pip-detector",
@@ -1340,73 +242,9 @@
     {
       "ecosystem": "python",
       "licenses": [],
-      "name": "anyio",
-      "purl": "pkg:pypi/anyio@4.14.0",
-      "version": "4.14.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "astroid",
-      "purl": "pkg:pypi/astroid@3.1.0",
-      "version": "3.1.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "backports-zstd",
-      "purl": "pkg:pypi/backports-zstd@1.6.0",
-      "version": "1.6.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "bandit",
-      "purl": "pkg:pypi/bandit@1.7.5",
-      "version": "1.7.5",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "black",
-      "purl": "pkg:pypi/black@23.12.1",
-      "version": "23.12.1",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "build",
-      "purl": "pkg:pypi/build@1.5.0",
-      "version": "1.5.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "cachecontrol",
-      "purl": "pkg:pypi/cachecontrol@0.14.4",
-      "version": "0.14.4",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
       "name": "certifi",
-      "purl": "pkg:pypi/certifi@2026.5.20",
-      "version": "2026.5.20",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "cffi",
-      "purl": "pkg:pypi/cffi@2.0.0",
-      "version": "2.0.0",
+      "purl": "pkg:pypi/certifi@2026.6.17",
+      "version": "2026.6.17",
       "vulnerabilities": []
     },
     {
@@ -1420,89 +258,9 @@
     {
       "ecosystem": "python",
       "licenses": [],
-      "name": "charset-normalizer",
-      "purl": "pkg:pypi/charset-normalizer@3.4.7",
-      "version": "3.4.7",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "cleo",
-      "purl": "pkg:pypi/cleo@2.1.0",
-      "version": "2.1.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "click",
-      "purl": "pkg:pypi/click@8.4.1",
-      "version": "8.4.1",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "coverage",
-      "purl": "pkg:pypi/coverage@7.4.0",
-      "version": "7.4.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "crashtest",
-      "purl": "pkg:pypi/crashtest@0.4.1",
-      "version": "0.4.1",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "cryptography",
-      "purl": "pkg:pypi/cryptography@49.0.0",
-      "version": "49.0.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "dill",
-      "purl": "pkg:pypi/dill@0.4.1",
-      "version": "0.4.1",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "distlib",
-      "purl": "pkg:pypi/distlib@0.4.3",
-      "version": "0.4.3",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
       "name": "django",
       "purl": "pkg:pypi/django@1.11.29",
       "version": "1.11.29",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "dulwich",
-      "purl": "pkg:pypi/dulwich@1.2.6",
-      "version": "1.2.6",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "fastjsonschema",
-      "purl": "pkg:pypi/fastjsonschema@2.21.2",
-      "version": "2.21.2",
       "vulnerabilities": []
     },
     {
@@ -1516,129 +274,9 @@
     {
       "ecosystem": "python",
       "licenses": [],
-      "name": "filelock",
-      "purl": "pkg:pypi/filelock@3.29.4",
-      "version": "3.29.4",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "findpython",
-      "purl": "pkg:pypi/findpython@0.8.0",
-      "version": "0.8.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "gitdb",
-      "purl": "pkg:pypi/gitdb@4.0.12",
-      "version": "4.0.12",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "gitpython",
-      "purl": "pkg:pypi/gitpython@3.1.50",
-      "version": "3.1.50",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "greenlet",
-      "purl": "pkg:pypi/greenlet@3.5.1",
-      "version": "3.5.1",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "h11",
-      "purl": "pkg:pypi/h11@0.16.0",
-      "version": "0.16.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "httpcore",
-      "purl": "pkg:pypi/httpcore@1.0.9",
-      "version": "1.0.9",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "httpx",
-      "purl": "pkg:pypi/httpx@0.28.1",
-      "version": "0.28.1",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
       "name": "idna",
       "purl": "pkg:pypi/idna@2.8",
       "version": "2.8",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "iniconfig",
-      "purl": "pkg:pypi/iniconfig@2.3.0",
-      "version": "2.3.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "installer",
-      "purl": "pkg:pypi/installer@1.0.1",
-      "version": "1.0.1",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "isort",
-      "purl": "pkg:pypi/isort@5.13.2",
-      "version": "5.13.2",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "jaraco-classes",
-      "purl": "pkg:pypi/jaraco-classes@3.4.0",
-      "version": "3.4.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "jaraco-context",
-      "purl": "pkg:pypi/jaraco-context@6.1.2",
-      "version": "6.1.2",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "jaraco-functools",
-      "purl": "pkg:pypi/jaraco-functools@4.5.0",
-      "version": "4.5.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "jeepney",
-      "purl": "pkg:pypi/jeepney@0.9.0",
-      "version": "0.9.0",
       "vulnerabilities": []
     },
     {
@@ -1652,121 +290,9 @@
     {
       "ecosystem": "python",
       "licenses": [],
-      "name": "keyring",
-      "purl": "pkg:pypi/keyring@25.7.0",
-      "version": "25.7.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "markdown-it-py",
-      "purl": "pkg:pypi/markdown-it-py@4.2.0",
-      "version": "4.2.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
       "name": "markupsafe",
       "purl": "pkg:pypi/markupsafe@3.0.3",
       "version": "3.0.3",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "mccabe",
-      "purl": "pkg:pypi/mccabe@0.7.0",
-      "version": "0.7.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "mdurl",
-      "purl": "pkg:pypi/mdurl@0.1.2",
-      "version": "0.1.2",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "more-itertools",
-      "purl": "pkg:pypi/more-itertools@11.1.0",
-      "version": "11.1.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "msgpack",
-      "purl": "pkg:pypi/msgpack@1.2.0",
-      "version": "1.2.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "mypy-extensions",
-      "purl": "pkg:pypi/mypy-extensions@1.1.0",
-      "version": "1.1.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "packaging",
-      "purl": "pkg:pypi/packaging@26.2",
-      "version": "26.2",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "pathspec",
-      "purl": "pkg:pypi/pathspec@1.1.1",
-      "version": "1.1.1",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "pbs-installer",
-      "purl": "pkg:pypi/pbs-installer@2026.6.10",
-      "version": "2026.6.10",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "pkginfo",
-      "purl": "pkg:pypi/pkginfo@1.12.1.2",
-      "version": "1.12.1.2",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "platformdirs",
-      "purl": "pkg:pypi/platformdirs@4.10.0",
-      "version": "4.10.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "pluggy",
-      "purl": "pkg:pypi/pluggy@1.6.0",
-      "version": "1.6.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "poetry-core",
-      "purl": "pkg:pypi/poetry-core@2.4.0",
-      "version": "2.4.0",
       "vulnerabilities": []
     },
     {
@@ -1780,65 +306,9 @@
     {
       "ecosystem": "python",
       "licenses": [],
-      "name": "pycparser",
-      "purl": "pkg:pypi/pycparser@3.0",
-      "version": "3.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "pygments",
-      "purl": "pkg:pypi/pygments@2.20.0",
-      "version": "2.20.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
       "name": "pyjwt",
       "purl": "pkg:pypi/pyjwt@0.4.2",
       "version": "0.4.2",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "pylint",
-      "purl": "pkg:pypi/pylint@3.1.0",
-      "version": "3.1.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "pyproject-hooks",
-      "purl": "pkg:pypi/pyproject-hooks@1.2.0",
-      "version": "1.2.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "pytest-cov",
-      "purl": "pkg:pypi/pytest-cov@4.1.0",
-      "version": "4.1.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "pytest",
-      "purl": "pkg:pypi/pytest@7.4.3",
-      "version": "7.4.3",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "python-discovery",
-      "purl": "pkg:pypi/python-discovery@1.4.2",
-      "version": "1.4.2",
       "vulnerabilities": []
     },
     {
@@ -1853,24 +323,8 @@
       "ecosystem": "python",
       "licenses": [],
       "name": "pyyaml",
-      "purl": "pkg:pypi/pyyaml@6.0.3",
-      "version": "6.0.3",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "rapidfuzz",
-      "purl": "pkg:pypi/rapidfuzz@3.14.5",
-      "version": "3.14.5",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "requests-toolbelt",
-      "purl": "pkg:pypi/requests-toolbelt@1.0.0",
-      "version": "1.0.0",
+      "purl": "pkg:pypi/pyyaml@5.3",
+      "version": "5.3",
       "vulnerabilities": []
     },
     {
@@ -1879,14 +333,6 @@
       "name": "requests",
       "purl": "pkg:pypi/requests@2.21.0",
       "version": "2.21.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "rich",
-      "purl": "pkg:pypi/rich@15.0.0",
-      "version": "15.0.0",
       "vulnerabilities": []
     },
     {
@@ -1907,33 +353,9 @@
     {
       "ecosystem": "python",
       "licenses": [],
-      "name": "secretstorage",
-      "purl": "pkg:pypi/secretstorage@3.5.0",
-      "version": "3.5.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
       "name": "sgmllib3k",
       "purl": "pkg:pypi/sgmllib3k@1.0.0",
       "version": "1.0.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "shellingham",
-      "purl": "pkg:pypi/shellingham@1.5.4",
-      "version": "1.5.4",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "smmap",
-      "purl": "pkg:pypi/smmap@5.0.3",
-      "version": "5.0.3",
       "vulnerabilities": []
     },
     {
@@ -1947,49 +369,9 @@
     {
       "ecosystem": "python",
       "licenses": [],
-      "name": "stevedore",
-      "purl": "pkg:pypi/stevedore@5.8.0",
-      "version": "5.8.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "tomlkit",
-      "purl": "pkg:pypi/tomlkit@0.15.0",
-      "version": "0.15.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "trove-classifiers",
-      "purl": "pkg:pypi/trove-classifiers@2026.6.1.19",
-      "version": "2026.6.1.19",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "typing-extensions",
-      "purl": "pkg:pypi/typing-extensions@4.15.0",
-      "version": "4.15.0",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
       "name": "urllib3",
       "purl": "pkg:pypi/urllib3@1.24.1",
       "version": "1.24.1",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "python",
-      "licenses": [],
-      "name": "virtualenv",
-      "purl": "pkg:pypi/virtualenv@21.5.0",
-      "version": "21.5.0",
       "vulnerabilities": []
     }
   ],
@@ -1998,7 +380,7 @@
     "name": "\u003cnormalized\u003e",
     "package_manager": "pip",
     "path": "\u003cnormalized\u003e",
-    "target_ref": "v1.0.0",
+    "target_ref": "fe04c758134b95dab102e1fce10275f7d18c0cf2",
     "target_type": "git repository"
   },
   "schema_version": "1.0"

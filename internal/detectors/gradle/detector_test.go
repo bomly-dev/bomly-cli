@@ -1,6 +1,7 @@
 package gradle
 
 import (
+	"bytes"
 	"context"
 	"os"
 	"path/filepath"
@@ -195,5 +196,54 @@ func TestDepGraphFromGradleOutput_UsesResolvedVersion(t *testing.T) {
 
 	if _, ok := g.Node("org.slf4j:slf4j-api@2.0.12"); !ok {
 		t.Fatalf("expected resolved version package to exist")
+	}
+}
+
+func TestGradleRootName_ReadsSettingsGradle(t *testing.T) {
+	projectDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(projectDir, "settings.gradle"), []byte("rootProject.name = 'example-java-gradle'\n"), 0o644); err != nil {
+		t.Fatalf("write settings.gradle: %v", err)
+	}
+
+	if got := gradleRootName(projectDir); got != "example-java-gradle" {
+		t.Fatalf("gradleRootName() = %q, want example-java-gradle", got)
+	}
+}
+
+func TestGradleRootName_ReadsSettingsGradleKts(t *testing.T) {
+	projectDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(projectDir, "settings.gradle.kts"), []byte("rootProject.name = \"example-kts\"\n"), 0o644); err != nil {
+		t.Fatalf("write settings.gradle.kts: %v", err)
+	}
+
+	if got := gradleRootName(projectDir); got != "example-kts" {
+		t.Fatalf("gradleRootName() = %q, want example-kts", got)
+	}
+}
+
+func TestRunDependencies_UsesSettingsGradleRootName(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("shell fixture is unix-only")
+	}
+
+	projectDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(projectDir, "settings.gradle"), []byte("rootProject.name = 'example-java-gradle'\n"), 0o644); err != nil {
+		t.Fatalf("write settings.gradle: %v", err)
+	}
+	gradlePath := filepath.Join(projectDir, "gradle-fixture")
+	script := "#!/bin/sh\ncat <<'OUT'\nruntimeClasspath - Runtime classpath of source set 'main'.\n\\--- org.springframework:spring-core:6.1.1\nOUT\n"
+	if err := os.WriteFile(gradlePath, []byte(script), 0o755); err != nil {
+		t.Fatalf("write gradle fixture: %v", err)
+	}
+
+	g, err := (Detector{}).runDependencies(&bytes.Buffer{}, projectDir, false, gradlePath, nil)
+	if err != nil {
+		t.Fatalf("runDependencies() error = %v", err)
+	}
+	if _, ok := g.Node("example-java-gradle"); !ok {
+		t.Fatalf("expected settings.gradle root node")
+	}
+	if _, ok := g.Node(filepath.Base(projectDir)); ok {
+		t.Fatalf("did not expect temp directory root node")
 	}
 }

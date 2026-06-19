@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -158,7 +159,7 @@ func (d Detector) runDependencies(stderr io.Writer, workingDir string, verbose b
 		return nil, fmt.Errorf("run gradle dependencies: %w", err)
 	}
 
-	depsGraph, err := depGraphFromGradleOutput(gradleOut.Bytes(), filepath.Base(workingDir))
+	depsGraph, err := depGraphFromGradleOutput(gradleOut.Bytes(), gradleRootName(workingDir))
 	if err != nil {
 		logger.Error(fmt.Sprintf("Failed to map Gradle output to a dependency graph: %v", err))
 		logger.Debug("gradle output mapping failed", zap.Error(err))
@@ -304,6 +305,24 @@ func depGraphFromGradleOutput(raw []byte, rootName string) (*sdk.Graph, error) {
 	}
 
 	return depsGraph, nil
+}
+
+var gradleRootProjectNamePattern = regexp.MustCompile(`(?m)\brootProject\.name\s*=\s*["']([^"']+)["']`)
+
+func gradleRootName(workingDir string) string {
+	for _, name := range []string{"settings.gradle", "settings.gradle.kts"} {
+		raw, err := os.ReadFile(filepath.Join(workingDir, name))
+		if err != nil {
+			continue
+		}
+		matches := gradleRootProjectNamePattern.FindSubmatch(raw)
+		if len(matches) == 2 {
+			if value := strings.TrimSpace(string(matches[1])); value != "" {
+				return value
+			}
+		}
+	}
+	return filepath.Base(workingDir)
 }
 
 func isGradleConfigurationHeader(line string) bool {

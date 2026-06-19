@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -37,7 +40,19 @@ func (d NativeDetector) Ready() bool {
 
 // Applicable reports whether sbt build files are present.
 func (d NativeDetector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
-	return (Detector{WorkingDir: d.workingDir(req.ProjectPath)}).Applicable(ctx, req)
+	workingDir := d.workingDir(req.ProjectPath)
+	applicable, err := (Detector{WorkingDir: workingDir}).Applicable(ctx, req)
+	if err != nil || !applicable {
+		return applicable, err
+	}
+	if requiresDependencyGraphPlugin(workingDir) && !hasDependencyGraphPlugin(workingDir) {
+		d.logger().Debug("sbt native detector skipped: dependencyTree task is unavailable for this sbt version",
+			zap.String("working_dir", workingDir),
+			zap.String("sbt_version", sbtVersion(workingDir)),
+		)
+		return false, nil
+	}
+	return true, nil
 }
 
 // Descriptor describes the sbt native detector.
@@ -97,6 +112,68 @@ func (d NativeDetector) logger() *zap.Logger {
 		return d.Logger
 	}
 	return zap.NewNop()
+}
+
+func requiresDependencyGraphPlugin(workingDir string) bool {
+	version := sbtVersion(workingDir)
+	if version == "" {
+		return false
+	}
+	major, minor, ok := parseSBTMajorMinor(version)
+	if !ok {
+		return false
+	}
+	return major == 0 || (major == 1 && minor < 4)
+}
+
+func sbtVersion(workingDir string) string {
+	raw, err := os.ReadFile(filepath.Join(workingDir, "project", "build.properties"))
+	if err != nil {
+		return ""
+	}
+	for _, line := range strings.Split(string(raw), "\n") {
+		key, value, ok := strings.Cut(line, "=")
+		if !ok {
+			continue
+		}
+		if strings.TrimSpace(key) == "sbt.version" {
+			return strings.TrimSpace(value)
+		}
+	}
+	return ""
+}
+
+func parseSBTMajorMinor(version string) (int, int, bool) {
+	parts := strings.Split(strings.TrimSpace(version), ".")
+	if len(parts) < 2 {
+		return 0, 0, false
+	}
+	major, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return 0, 0, false
+	}
+	minor, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return 0, 0, false
+	}
+	return major, minor, true
+}
+
+func hasDependencyGraphPlugin(workingDir string) bool {
+	for _, name := range []string{
+		filepath.Join("project", "plugins.sbt"),
+		filepath.Join("project", "build.sbt"),
+		"build.sbt",
+	} {
+		raw, err := os.ReadFile(filepath.Join(workingDir, name))
+		if err != nil {
+			continue
+		}
+		if strings.Contains(string(raw), "sbt-dependency-graph") {
+			return true
+		}
+	}
+	return false
 }
 
 // sbtDepTreeLinePattern matches a dependency line from sbt dependencyTree.

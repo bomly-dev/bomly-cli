@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -182,7 +183,28 @@ func wrapCommand(path string) (string, []string, error) {
 	if runtime.GOOS == "windows" && (ext == ".cmd" || ext == ".bat") {
 		return "cmd", []string{"/c", path}, nil
 	}
+	if err := ensureExecutableMavenWrapper(path); err != nil {
+		return "", nil, err
+	}
 	return path, nil, nil
+}
+
+func ensureExecutableMavenWrapper(path string) error {
+	if runtime.GOOS == "windows" {
+		return nil
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("stat maven wrapper: %w", err)
+	}
+	mode := info.Mode()
+	if mode&0o111 != 0 {
+		return nil
+	}
+	if err := os.Chmod(path, mode|0o755); err != nil {
+		return fmt.Errorf("chmod maven wrapper executable: %w", err)
+	}
+	return nil
 }
 
 func findWrapper(workingDir string) (string, bool, error) {

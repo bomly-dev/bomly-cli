@@ -210,6 +210,36 @@ func TestMavenDetectorResolveRunner_PrefersWrapper(t *testing.T) {
 	}
 }
 
+func TestMavenDetectorResolveRunner_MakesUnixWrapperExecutable(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("unix-only executable-bit behavior")
+	}
+
+	projectDir := t.TempDir()
+	wrapperPath := filepath.Join(projectDir, "mvnw")
+	if err := os.WriteFile(wrapperPath, []byte("wrapper\n"), 0o644); err != nil {
+		t.Fatalf("write wrapper: %v", err)
+	}
+	t.Setenv("PATH", "")
+
+	detector := Detector{WorkingDir: projectDir}
+	executable, _, err := detector.resolveRunner()
+	if err != nil {
+		t.Fatalf("resolveRunner() error = %v", err)
+	}
+	if executable != wrapperPath {
+		t.Fatalf("expected wrapper executable %q, got %q", wrapperPath, executable)
+	}
+
+	info, err := os.Stat(wrapperPath)
+	if err != nil {
+		t.Fatalf("stat wrapper: %v", err)
+	}
+	if info.Mode()&0o111 == 0 {
+		t.Fatalf("expected wrapper to be executable, mode=%#o", info.Mode().Perm())
+	}
+}
+
 func TestMavenDetectorResolveRunner_FallsBackToInstalledMaven(t *testing.T) {
 	originalLookPath := execLookPath
 	t.Cleanup(func() { execLookPath = originalLookPath })

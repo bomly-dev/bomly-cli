@@ -117,6 +117,8 @@ jobs:
 
 The action's inputs map onto the CLI policy flags. See [Bomly Guard](BOMLY_GUARD.md) for the full input and output reference.
 
+The action installs the Bomly CLI — not project package managers. Add ecosystem setup steps (e.g. `actions/setup-node`, `actions/setup-java`) before Bomly Guard when your project uses build-tool-backed detectors or `install-first`. See [Package Manager Setup](BOMLY_GUARD.md#package-manager-setup).
+
 ## GitLab CI
 
 ```yaml

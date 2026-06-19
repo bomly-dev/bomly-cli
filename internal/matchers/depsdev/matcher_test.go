@@ -74,6 +74,24 @@ func TestVersionRequestFromPackage(t *testing.T) {
 			t.Fatal("expected unsupported ecosystem to be rejected")
 		}
 	})
+
+	t.Run("deps.dev unsupported systems are rejected", func(t *testing.T) {
+		cases := []sdk.Coordinates{
+			{Ecosystem: "php", Name: "guzzlehttp/guzzle", Version: "6.2.3"},
+			{Ecosystem: "elixir", Name: "plug", Version: "1.16.1"},
+			{Ecosystem: "dart", Name: "http", Version: "1.2.0"},
+			{Ecosystem: "swift", Name: "github.com/apple:swift-log", Version: "1.5.4"},
+			{PURL: "pkg:composer/guzzlehttp/guzzle@6.2.3", Version: "6.2.3"},
+			{PURL: "pkg:hex/plug@1.16.1", Version: "1.16.1"},
+			{PURL: "pkg:pub/http@1.2.0", Version: "1.2.0"},
+			{PURL: "pkg:cocoapods/Alamofire@5.8.1", Version: "5.8.1"},
+		}
+		for _, tc := range cases {
+			if req, _, ok := versionRequestFromPackage(&sdk.Package{Coordinates: tc}); ok {
+				t.Fatalf("expected unsupported package to be rejected, got %#v", req)
+			}
+		}
+	})
 }
 
 func TestCheckerMatch_RefetchesCachedEmptyLicenseSet(t *testing.T) {

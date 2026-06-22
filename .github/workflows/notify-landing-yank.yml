@@ -64,7 +64,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Check out WinGet package manifests
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: microsoft/winget-pkgs
           ref: master

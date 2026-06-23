@@ -1,12 +1,10 @@
-# Bomly Architecture
+# Architecture
 
-This document explains how Bomly is structured today and how the main command flows work.
+A tour of how Bomly turns a scan target into a report — the stages a scan runs through, the data it produces, and when (if ever) it touches the network. This is the user-facing overview; if you're contributing to Bomly itself, the deep design notes and package boundaries live in the repository's `dev-docs/ARCHITECTURE.md`.
 
-## Product Shape
+## Commands
 
-Bomly is a CLI-first dependency intelligence tool. The command-line interface is the public surface, while the analysis engine underneath is organized so the same runtime can support scanning, explanation, diffing, SBOM generation, and auditing without duplicating logic.
-
-Current public commands:
+Bomly is a CLI. Everything runs through one of four commands:
 
 | Command         | Purpose                                                |
 |-----------------|--------------------------------------------------------|
@@ -15,324 +13,72 @@ Current public commands:
 | `bomly diff`    | Compare dependency state across Git refs or SBOM files |
 | `bomly version` | Print version information                              |
 
-## Runtime Overview
+Each invocation works on exactly one target: a filesystem path, a container image, a remote Git repository, or an existing SBOM file. See [Scan targets](SCAN_TARGETS.md) for the details of each.
 
-Bomly prepares one runtime per command execution. That runtime holds the filtered registry, execution target metadata, planned subprojects, and detector, matcher, and auditor selections so discovery and execution stay aligned.
+## The scan pipeline
 
-```mermaid
-flowchart TD
-    A[CLI command] --> B[Resolve execution target]
-    B --> C[Build filtered registry]
-    C --> D[Prepare runtime]
-    D --> E[Discover and index subprojects]
-    E --> F[Run detector chains with requested scope]
-    F --> G[Consolidate graph]
-    G --> H[Optional package enrichment]
-    H --> I[Optional policy evaluation]
-    I --> J[Render report or SBOM]
-```
-
-## Execution Targets
-
-Each invocation operates on exactly one execution target:
-
-- Filesystem path
-- Container image
-- Remote Git repository
-- SBOM file
-
-The CLI resolves the raw user input, but runtime preparation owns discovery and planning. That keeps `scan`, `explain`, and `diff` consistent with one another.
-
-## Scan Pipeline
-
-The scan engine is responsible for orchestration, not the CLI command handlers. The command layer gathers inputs, while the runtime handles ordering, selection, and reuse.
+A scan flows through an ordered set of stages. Each stage hands its output to the next, so later stages always see a single, consolidated view of your dependencies.
 
 ```mermaid
 flowchart LR
-    A[Runtime preparation]
-    B[Subproject discovery]
-    C[Detection: detector chains + graph consolidation]
-    F[Matchers]
-    F2[Analyzers]
-    G[Auditors]
-    H[Output rendering]
+    A[Discover subprojects]
+    B[Detect: resolve + consolidate graph]
+    C[Match: enrich packages]
+    D[Analyze: reachability]
+    E[Audit: evaluate policy]
+    F[Render output]
 
-    A --> B --> C --> F --> F2 --> G --> H
+    A --> B --> C --> D --> E --> F
 ```
 
-Stage summary:
+1. **Discover** — Bomly walks the target and finds every supported package-manager root (a `go.mod`, a `package-lock.json`, a `pom.xml`, and so on), including nested subprojects in a monorepo.
+2. **Detect** — For each root, a [detector](DETECTORS.md) reads the lockfile, manifest, or SBOM and resolves a dependency graph. Per-subproject graphs are then *consolidated* into one graph and one deduplicated package set for the rest of the run. `--scope` narrows the graph to runtime or development dependencies here.
+3. **Match** — When you pass `--enrich`, [matchers](MATCHERS.md) add data to each package: known vulnerabilities, licenses, end-of-life status, and project health scores.
+4. **Analyze** — When you pass `--analyze`, [reachability](REACHABILITY.md) analysis runs on top of the matched data to flag whether a vulnerability is actually reachable from your code.
+5. **Audit** — When you pass `--audit`, [auditors](AUDITORS.md) evaluate policy (severity thresholds, license rules, denied packages) against the enriched data and produce findings. Combine `--enrich --audit` to gate on fresh external data in one run.
+6. **Render** — Bomly emits the result as text, JSON, SARIF, or an SBOM. See [Output formats](OUTPUT_FORMATS.md) and [SBOM formats](SBOM.md).
 
-1. Runtime preparation builds the filtered registry and execution plan.
-2. Subproject discovery finds supported package-manager roots for the target.
-3. Detection resolves a dependency graph per package manager and then consolidates the per-subproject graphs into the single graph and package registry the rest of the pipeline uses. When `--scope` is set, the requested scope is part of the detector request so build-tool detectors can narrow command execution where the package manager supports it; all detector results pass through the shared SDK scope filter, and consolidation is the tail of this stage rather than a separate step.
-4. Matchers enrich packages with additional metadata such as licenses, EOL status, and vulnerability records.
-5. Analyzers run when `--analyze` is set. They consume the matched graph and annotate `sdk.Vulnerability.Reachability` (on the PURL-keyed registry package) with status (reachable/unreachable/unknown), tier (symbol/module/package/none), and call paths. Failures degrade to `Status=unknown` rather than aborting the pipeline. See `docs/REACHABILITY.md` for ecosystem coverage and tier semantics.
-6. Auditors evaluate policy against the enriched graph + registry pair and create reference-style findings (`PackageRef` + `VulnerabilityID`) when `--audit` is enabled. The built-in `vulnerability`, `license`, and `package` auditors cover advisory thresholds, SPDX policy, and denied or suspicious packages respectively.
-7. Users combine `--enrich --audit` when they want external matcher data to feed policy evaluation in the same run.
-8. Output rendering emits text, JSON, SARIF, or SBOM documents.
+`bomly explain` reuses the detect and match stages, then traces the dependency paths that pull in a given package. `bomly diff` runs the pipeline against two states and reports what changed.
 
-`bomly explain` reuses the same detection (resolution + consolidation) and matching stages, then performs dependency path selection in its explain orchestration before optional component audit.
+## Domain model
+
+Bomly keeps three kinds of data separate, which is why the same fact never appears twice in the output:
+
+- **Dependencies** are detection-time graph nodes. Each is one instance of a dependency in a manifest, carrying its scope, where it was found, and its edges to other dependencies. A dependency points at a package by its PURL but does not itself hold license or vulnerability data.
+- **Packages** are deduplicated artifacts keyed by [PURL](GLOSSARY.md). There is one package per unique PURL across the whole scan, and it owns the enrichment: licenses, vulnerabilities, scorecard, and EOL. If 50 dependencies all reference `react@18.2.0`, they share one package — and one set of CVEs.
+- **Findings** are reference-style audit results. A finding names a policy outcome and points back at a package (and, for a vulnerability, at a specific advisory) rather than copying that data inline.
+
+```
+manifests ──> dependencies ──(reference by PURL)──> packages ──> vulnerabilities, licenses, …
+                                                       ▲
+findings (policy outcomes) ─(reference by PURL + advisory id)─┘
+```
+
+In the JSON output these surface as three top-level collections — `manifests` (with their `dependencies`), `packages`, and `findings` — and the same vocabulary carries through SARIF and SBOM output. See [Output formats](OUTPUT_FORMATS.md) and the [schema reference](SCHEMAS.md) for the exact shapes.
 
 ## Extensibility
 
-Extensibility is the core of Bomly's design. **Every built-in is an implementation of the same contract an external plugin implements** — there is no privileged internal path. Adding an ecosystem, an enrichment source, or a policy gate does not require forking the engine. Three extension points are pluggable today (detector, matcher, auditor); external **analyzer** plugins are planned — the built-in reachability analyzers are not yet loadable as plugins.
+Every built-in is an implementation of the same contract an external plugin implements — there is no privileged internal path. Three extension points are pluggable today, and a fourth is planned:
 
-The diagram shows where plugins hook into the run, after the runtime is configured and subprojects are indexed:
+| Extension point | Status    | Responsibility                                                   |
+|-----------------|-----------|------------------------------------------------------------------|
+| Detector        | Available | Turn evidence (lockfile, manifest, SBOM) into a dependency graph |
+| Matcher         | Available | Enrich packages with vulnerability, license, or lifecycle data   |
+| Auditor         | Available | Evaluate policy and emit findings                                |
+| Analyzer        | Planned   | Annotate reachability for a language                             |
 
-```mermaid
-flowchart LR
-    R[Configure runtime] --> X[Index subprojects] --> D[Detect: resolve + consolidate] --> M[Match] --> An[Analyze] --> Au[Audit] --> O[Output]
+External plugins run as sandboxed, versioned binaries and are disabled until you explicitly enable them. See [Plugins](PLUGINS.md) for the trust model, installation, and authoring guides.
 
-    PD([Detector plugins]) -.-> D
-    PM([Matcher plugins]) -.-> M
-    PAu([Auditor plugins]) -.-> Au
-    PAn([Analyzer plugins: planned]) -. planned .-> An
-```
+## Network behavior
 
-| Extension point | Status | Contract (`sdk`) | Responsibility |
-| --- | --- | --- | --- |
-| Detector | Available | `sdk.Detector` | Turn evidence (lockfile, manifest, SBOM) into a dependency graph |
-| Matcher | Available | `sdk.Matcher` | Enrich packages with vulnerability, license, or lifecycle data |
-| Auditor | Available | `sdk.Auditor` | Evaluate policy and emit reference-style findings |
-| Analyzer | Planned | `sdk.Analyzer` | Annotate `sdk.Vulnerability.Reachability` for a language |
+**Bomly is offline-safe by default.** A plain `bomly scan` reads files on disk and makes no network calls of its own.
 
-External plugins run as versioned (`v1`) gRPC binaries and participate in the same runtime planning as built-ins: detector plugins declare evidence patterns and join subproject discovery; matcher and auditor plugins are selected with the same `--matchers` / `--auditors` selector grammar. Plugins are disabled until explicitly enabled. See [PLUGINS.md](PLUGINS.md) for the trust model and authoring guides.
+- **Matchers** only run when you pass `--enrich`. `--audit` evaluates data that is already present and never triggers enrichment on its own.
+- **Detectors** vary: lockfile parsers (npm, pnpm, Yarn, Composer, Bundler, NuGet, GitHub Actions, SBOM ingest, …) are pure file readers and make no network calls. Build-tool–backed detectors (Go, Maven, Gradle, SBT) shell out to the build tool, which may fetch packages as part of its own normal resolution — that is the build tool's behavior, not Bomly's. Hybrid detectors prefer the lockfile and pass offline flags to any fallback.
+- `--install-first` is the explicit opt-in that lets supporting detectors run their install command (`npm install`, `pip install`, …) before resolving; this downloads packages by design.
 
-Analyzers exist as a contract (`sdk.Analyzer`) and ship four built-in implementations (govulncheck, jsreach, pyreach, jvmreach), but the plugin runtime does not yet accept an analyzer kind, so they cannot be supplied by an external plugin today. Making analyzers a first-class plugin extension point is planned.
+When enrichment is enabled, the **only** services Bomly's built-in matchers contact are OSV, CISA KEV, deps.dev, ClearlyDefined, endoflife.date, and OpenSSF Scorecard. No telemetry, no credentials sent. External plugin matchers may contact their own documented services once you install and enable them. See [Detectors → Network behavior](DETECTORS.md#network-behavior) and [Matchers](MATCHERS.md).
 
-### Decision: YAML configuration is nested at the file boundary
+## Build variants
 
-Bomly's YAML files use strict nested groups such as `target`, `analysis`, `policy`, `network.proxy`, and `matchers.osv`, while `config.Resolved` remains flat. Nesting keeps customer-authored files readable without spreading YAML organization through the CLI and engine. Each YAML leaf maps back to one flat runtime field, and layered files preserve explicit zero values, including empty lists. Unknown keys and the former flat YAML keys fail with migration guidance so typos cannot silently disable requested behavior.
-
-### Decision: Reachability annotates vulnerabilities, not findings
-
-Reachability data lives on `sdk.Vulnerability.Reachability` rather than on `Finding.Reachability` because `--analyze` must be useful without `--audit`. Matchers populate the OSV-aligned `Vulnerability` record on the PURL-keyed registry package; the analyzer enriches it in place; the output layer resolves the analyzer's annotation by `(Finding.PackageRef, Finding.VulnerabilityID)` when emitting SARIF and the JSON `Finding` projection. This keeps a single source of truth (the registry) and removes the per-manifest sync that the old graph-mutating model required.
-
-### Decision: Three-collection domain model — dependencies, packages, findings
-
-`sdk` separates three pipeline concerns that the original model conflated:
-
-1. **`sdk.Dependency`** (`sdk/dependency.go`) is a detection-time graph node. It carries identity (`ID`, `Name`, `Version`, `PURL`), detection metadata (`Scopes`, `Locations`, `FoundBy`), edges through the `Graph`, and a `PackageRef` (PURL) that links to a matching artifact. It does **not** carry licenses, vulnerabilities, or scorecard data.
-2. **`sdk.Package`** (`sdk/package.go`) is a matching artifact keyed by PURL on a `sdk.PackageRegistry`. It carries `Licenses`, `Vulnerabilities` (OSV-aligned `sdk.Vulnerability`), `Scorecard`, `EOL`, and similar enrichment. There is one entry per unique PURL across the whole pipeline, so 50 dependencies referencing the same package share one set of CVEs and one license decision.
-3. **`sdk.Finding`** (`sdk/vulnerability.go`) is a reference-style audit result. It carries policy fields (`Severity`, `Disposition`, `Reasons`, `Auditor`) plus the references `PackageRef` (PURL) and, for vulnerability findings, `VulnerabilityID`. It does **not** copy CVSS / EPSS / KEV / CWE — consumers resolve those by following the references back into the registry.
-
-`sdk.Vulnerability` is OSV-aligned (id, aliases, summary, details, severity, affected, references, database_specific) and extended with Bomly's matching-stage fields (CVSS, EPSS, KEV, CWE, FixedVersions, AffectedSymbols, `Reachability`). The OSV matcher maps `internal/matchers/osv/response.go` directly to this shape; grype / depsdev / eol / scorecard and enabled external matchers write the equivalent records.
-
-Pipeline plumbing: `engine.PipelineResult` exposes `Graph`, `Registry`, `Findings`, and `RiskScores`. The registry is built right after consolidation (`consolidation.BuildPackageRegistry`) and threaded through match/analyze/audit requests; output helpers (`BuildScanResponse`, `WriteSARIF`, `FindingsFromScan`, `PackagesFromGraph`) all accept `*sdk.PackageRegistry` and re-enrich their projections by resolving `PackageRef` and `VulnerabilityID`. See `docs/MODELS.md` for the full schema reference.
-
-### Decision: Reachability analyzers derive local hierarchy closures
-
-Tier-3 source analyzers discover local workspace and module hierarchies from declarative project files while the consolidated detector graph remains the source of truth for external package edges. `jsreach` follows package-name imports across npm, Yarn, and pnpm workspace members. `jvmreach` follows source namespace imports across Maven `<modules>` and standard Gradle `include` declarations. This keeps hierarchy traversal automatic, avoids package-manager installation or network activity during reachability analysis, and prevents unused sibling projects from widening the reachable set.
-
-### Decision: Scorecard matcher reads precomputed runs, not the library
-
-The OpenSSF Scorecard matcher (`internal/matchers/scorecard`) fetches precomputed per-repo scores from `api.scorecard.dev` instead of importing `github.com/ossf/scorecard/v5` and running checks in-process. Three reasons:
-
-1. **Dependency cost.** The Scorecard Go library pulls in k8s, buildkit, containerd, bigquery, go-containerregistry, and osv-scanner transitive deps — roughly 150–250 MB of additional code that would land in every Bomly build, violating the "standard library + existing deps only" non-negotiable.
-2. **Credentials.** Running Scorecard live makes 60+ GitHub API calls per repo and is unusable without a `GITHUB_AUTH_TOKEN`. A customer-facing CLI that quietly demands a token would surprise users and complicate CI integration.
-3. **Latency.** Live runs take 1–3 minutes per repo. The precomputed API answers in tens of milliseconds and the OSSF refresh cadence (weekly) is acceptable for project-posture data.
-
-The matcher attaches `sdk.PackageScorecard` to packages whose upstream source resolves to a `github.com/{owner}/{repo}` URL, dedupes by repo so a monorepo's many packages share one HTTP call, caches 200 responses for 24h, and caches 404s as a sentinel so unscored repos are not retried within the TTL. Packages whose source repo lives outside github.com (GitLab, internal Git) or only in registry metadata not yet wired into Bomly are skipped silently. A future revision can add a deps.dev project-endpoint fallback for the second case without breaking changes.
-
-## Detector and Auditor Model
-
-Bomly treats detectors, matchers, and auditors as explicit runtime roles.
-
-- Detectors resolve package graphs.
-- Matchers enrich Resolved packages.
-- Auditors evaluate policy and produce normalized findings.
-
-Within a package-manager chain, Bomly uses explicit ordering and superseding rules. Native detectors are preferred where available, and Syft-backed detection fills the coverage gaps for additional ecosystems.
-
-```mermaid
-flowchart LR
-    A[Package manager]
-    A --> B[Native detector]
-    A --> C[Lockfile parser detector]
-    A --> D[Third-party detector]
-    B --> E[Resolved graph]
-    C --> E
-    D --> E
-    E --> F[Matchers]
-    F --> G[Auditors]
-```
-
-Implementation priority:
-
-| Category        | Examples                                                                 | Priority |
-|-----------------|--------------------------------------------------------------------------|----------|
-| Native          | Go, Node, Maven, Gradle, Python, Composer, Bundler, GitHub Actions, SBOM | Highest  |
-| Lockfile parser | Package-manager-specific parsers where applicable                        | High     |
-| Third-party     | Syft detector, Grype matcher                                             | Lower    |
-
-Native detector coverage is quality-of-graph coverage, not just support-matrix labeling. A built-in detector should ship with deterministic package metadata, graph edges where the ecosystem source can provide them, direct/development/runtime classification when it can be inferred, package URLs, unit fixtures in the detector package, and smoke coverage when a stable root-level real repository is available. Syft remains the compatibility backstop for package managers or project shapes that Bomly cannot resolve directly.
-
-Some native detector chains intentionally prefer a build-tool command over a committed file parser because the command can expose transitive edges that the lockfile or manifest does not encode. Pub, SwiftPM, and SBT follow this pattern: `pub-native`, `swiftpm-native`, and `sbt-native` run first when `dart`, `swift`, or `sbt` is available, then fall back to the committed-file detector if the tool is missing or fails. When validating graph-shape changes for those ecosystems, run smoke tests and the local benchmark on a host with the relevant toolchain installed.
-
-### Decision: dependency graph benchmarking is hidden and local-only
-
-`bomly benchmark` is a hidden maintainer command backed by `internal/benchmark`. It scans public GitHub repositories with native detectors, compares the filtered dependency graph against GitHub Dependency Graph and external Syft SBOMs, and writes deterministic artifacts under `.benchmark-runs/latest`. Bomly scan and SBOM diff execution run in-process through the engine and output model; only the external `git` and `syft` tools remain subprocesses. The in-process adapter builds a native-only registry directly so local configuration and managed-plugin discovery cannot distort benchmark results. Package and relationship scores are comparative engineering signals, not pass/fail gates and not claims that a baseline is ground truth. The benchmark is intentionally local-only so exploratory scoring does not become a release or merge gate before it is calibrated.
-
-### Decision: Python install-first isolates into a venv; pip prefers a committed lock
-
-The pip detector resolves graphs from `pip inspect --local`, which reads whatever lives in the active interpreter's site-packages. Running `--install-first` as a plain `pip install` into the ambient interpreter therefore captured unrelated tooling (the runner's `poetry`, `build`, `keyring`, `virtualenv`, and date-versioned helpers), making output non-deterministic. Two changes address this:
-
-1. **Isolated install (`internal/detectors/python/venv.go`).** `--install-first` for pip now (re)creates a clean, project-scoped virtualenv under the temp dir — keyed by a hash of the absolute working dir so the install and inspect phases agree — and both `pip install` and `pip inspect` run against that venv. The ambient site-packages no longer leak into resolution. The venv is recreated per run so stale state cannot persist.
-2. **Lock fast-path (`internal/detectors/python/piplock.go`).** When a committed, fully-pinned `requirements.lock` (pip-compile style, with `# via` edge annotations) is present, the detector builds the graph directly from it — no install, no inspect — mirroring the existing `poetry.lock` fast-path. Direct dependencies are those whose `# via` references an input file (`-r foo.in`); a file matching `dev` marks development scope, and runtime wins over development during BFS propagation.
-
-The smoke/benchmark Python targets rely on the fast-paths for determinism: `scan-python-poetry` drops `--install-first` so the committed `poetry.lock` fast-path runs, and `scan-python-pip` commits a `requirements.lock`. The venv isolation remains the correctness backstop for real-world pip projects scanned with `--install-first` and no committed lock.
-
-## Build Modes
-
-Syft and Grype each support two build modes:
-
-| Mode     | Build tags                                  | Behavior                                                                                                                                            |
-|----------|---------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
-| Builtin  | default build                               | Link Syft and Grype libraries directly. No external binary required.                                                                                |
-| External | `bomly_external_syft`, `bomly_external_grype` | Shell out to `syft` and `grype` binaries on PATH. Used by `make build-lite` to produce a smaller binary.                                          |
-
-The reachability analyzers are not split: `govulncheck` always uses the vendored `golang.org/x/vuln/scan` library and `jsreach` always uses the vendored `github.com/evanw/esbuild/pkg/api` library. Both libraries are small enough that vendoring them outweighs the maintenance cost of a build-tag split.
-
-`make build` produces both release variants. `make build-full` produces the default builtin binary, and `make build-lite` produces the smaller external-tool build.
-
-## CI and Releases
-
-GitHub Actions handles validation, security analysis, smoke coverage, and release packaging:
-
-- Pull requests run fast validation only.
-- Pushes to `main` run deeper quality checks and scheduled smoke coverage.
-- Semver tags run GoReleaser to publish GitHub Releases with GitHub-native release notes, cross-platform archives, `SHA256SUMS`, Linux packages, and package-manager manifests.
-- GoReleaser also opens package-manager manifest PRs for Homebrew, Scoop, and WinGet. Official distro repositories are intentionally out of scope until usage justifies the maintainer overhead.
-
-See [CI and Release Pipeline](development/CI.md) for workflow details and release mechanics.
-
-## Network Behavior
-
-**Matchers are offline-safe by default.** Network-backed matchers run only when the user explicitly enables `--enrich`. `--audit` evaluates existing package vulnerability data and does not trigger network enrichment.
-
-**Detector network behavior is per-implementation.** Lockfile-parser detectors (npm, pnpm, yarn, Composer, Bundler, NuGet, GitHub Actions, SBOM ingest, …) are pure file parsers and make no network calls. Build-tool primary detectors (`go-detector`, `maven-detector`, `gradle-detector`, `sbt-native-detector`) shell out to the build tool, which may download packages from registries during normal resolution — this is the build tool's behavior, not Bomly's. Hybrid detectors (`cargo`, `poetry`, `uv`) prefer the lockfile and use `--locked`/`--no-sync` flags on the build-tool fallback to stay offline. See [DETECTORS.md → Network behavior](DETECTORS.md#network-behavior).
-
-`--install-first` is the explicit opt-in: it tells supporting detectors to run their normal install command (`npm install`, `pip install`, `composer install`, etc.) before resolving the graph. This downloads packages by design.
-
-Permitted enrichment-time services:
-
-- OSV
-- CISA KEV
-- deps.dev
-- OpenSSF Scorecard
-
-Cache failures are non-fatal. The command should warn and continue rather than failing hard.
-
-## Package Map
-
-| Package               | Role                                                                                            |
-|-----------------------|-------------------------------------------------------------------------------------------------|
-| `cmd/bomly`           | CLI entry point                                                                                 |
-| `internal/cli`        | Commands, config loading, progress, and help output                                             |
-| `internal/engine`     | Runtime preparation, orchestration, and consolidation                                           |
-| `internal/registry`   | Support metadata, package-manager discovery, and built-in detector, matcher, and auditor wiring |
-| `internal/detectors`  | Detector contracts and ecosystem implementations                                                |
-| `internal/auditors`   | Policy evaluators and finding creation                                                          |
-| `internal/analyzers`  | Reachability analyzers (govulncheck for Go, jsreach for JS/TS, pyreach for Python, jvmreach for JVM languages) that annotate `sdk.Vulnerability.Reachability` on registry packages |
-| `internal/matchers`   | Matcher contracts plus shared enrichment helpers used by built-in matchers                      |
-| `internal/engine/diff` | Diff pipeline orchestration and audit delta classification                                    |
-| `internal/engine/explain` | Dependency path traversal                                                                   |
-| `internal/engine/scan` | Scan command pipeline API                                                                    |
-| `internal/output`     | Text, JSON, SARIF rendering, plus structured response payloads and schema generation            |
-| `internal/sbom`       | SPDX and CycloneDX codecs                                                                       |
-| `internal/benchmark`  | Hidden local dependency-graph benchmark, baseline comparison, scoring, and embedded presets      |
-| `sdk`      | Shared domain types                                                                             |
-| `internal/plugin`     | Managed plugin manifests, installation, verification, store state, adapters, and runtime glue  |
-| `internal/extensions` | Extension hooks and support code                                                                |
-| `internal/system`     | OS-level helpers used internally                                                                |
-| `internal/testutil`   | Test helpers                                                                                    |
-
-## Managed Plugins
-
-Bomly uses a hybrid plugin model:
-
-- Built-in detectors, matchers, and auditors stay in-process by default.
-- External managed plugins are installed into `~/.bomly/plugins`.
-- Runtime preparation loads enabled external plugins into the registry as adapters so the scan engine still owns orchestration. External plugins are disabled on install and become runnable only after `bomly plugin enable <id>`.
-
-Managed plugins currently expose the same three runtime roles as core components:
-
-- Detectors resolve graphs.
-- Matchers enrich packages.
-- Auditors produce findings and risk signals.
-
-## HashiCorp Runtime
-
-External plugins run through HashiCorp `go-plugin` in gRPC mode. Bomly uses a small public SDK under `sdk` and JSON-encoded v1 request and response schemas under `sdk`.
-
-The runtime layer is responsible for:
-
-- Handshake and plugin API version checks.
-- Subprocess launch and cleanup.
-- gRPC transport for metadata, detect, match, and audit calls.
-- Context-based cancellation and error propagation.
-
-## Plugin SDK
-
-Plugin authors import `sdk` instead of depending on `internal/` packages. The SDK exposes:
-
-- `ServeDetector`
-- `ServeMatcher`
-- `ServeAuditor`
-- Versioned request and response structs in `sdk`
-- Identity metadata plus role descriptors for component type, supported modes, matcher required-ness, detector fallback wiring, and install-first support
-- Optional runtime hooks for readiness, applicability, and detector install-first execution
-
-The SDK keeps HashiCorp plumbing out of plugin implementations while preserving a typed boundary. Built-ins now use the same SDK contract in-process and are adapted back into the scan engine through shared SDK-to-runtime adapters. That keeps built-ins and external plugins on one metadata and execution model while leaving installation and verification as external-plugin-only concerns.
-
-## Plugin Installation
-
-Managed plugin installation is owned by Bomly rather than by the runtime library. The install flow is:
-
-1. Resolve a local archive, local dev binary, or direct URL source.
-2. Validate checksums when required.
-3. Extract archives safely into a temp directory.
-4. Validate `bomly-plugin.json`.
-5. Start the plugin through the SDK/gRPC runtime, fetch the role descriptor named by the manifest kind, require `descriptor.name == manifest.id`, and store Bomly's internal descriptor snapshot.
-6. Move the plugin into `~/.bomly/plugins/store/<id>/<version>`.
-7. Update `installed.json` atomically.
-
-The installer rejects archive path traversal, absolute paths, unsupported entrypoints, incompatible manifests, and runtime descriptors that do not match the manifest identity.
-
-## Plugin Selection
-
-External plugins are not executed ad hoc from CLI handlers. Runtime preparation loads enabled installed plugins into the engine registry before filtering and subproject planning.
-
-Selection rules stay aligned with the normal scan pipeline:
-
-- Built-ins are registered first.
-- External plugins are added as `plugin` components with descriptor-derived support and discovery plans.
-- Detector plugins declare package-manager support and evidence patterns in the detector descriptor. Runtime preparation uses those patterns to augment package-manager discovery or create standalone plugin-driven subprojects when no built-in package-manager pattern applies.
-- Runtime preparation filters detectors, matchers, auditors, and ecosystems once and reuses that prepared registry for scan execution.
-
-## Built-In vs External Plugins
-
-Built-ins remain the default implementation for core and performance-sensitive logic. External managed plugins are intended for optional or isolatable behavior, especially ecosystem-specific or third-party-backed integrations.
-
-Built-ins and external plugins now share the same SDK-first contract. The difference is operational, not structural:
-
-- built-ins are compiled into the binary and run in-process
-- external plugins are installed, verified, and executed behind the managed plugin runtime
-
-## Migration of Existing Components
-
-Bomly no longer assumes that all plugin-capable behavior must stay historical or in-process forever. The registry and scan pipeline now accept either:
-
-- Native built-ins compiled into the main binary.
-- External managed plugins adapted into the same detector, matcher, and auditor interfaces.
-
-This keeps the scan engine recognizable while making it possible to migrate selected integrations into managed plugins over time without bypassing runtime preparation, and it prevents drift between built-in and external component metadata.
-
-## Design Boundaries
-
-- Detector packages must not import `internal/engine` or `internal/registry`.
-- `sdk` owns shared neutral identifiers and support types.
-- `internal/registry` owns discovery, support-matrix data, and built-in registry wiring.
-- `internal/engine` owns runtime planning, orchestration, and detector-chain reuse.
-- `internal/plugin` owns managed plugin installation, verification, store state, and external runtime adapters.
-- The CLI resolves user input but should not perform its own independent discovery pass.
+Bomly ships in two variants. The full binary (`bomly`) links the Syft and Grype libraries directly and needs no external tools. The lite binary (`bomly-lite`) shells out to `syft` and `grype` on your `PATH` for a smaller download. Both behave the same from the command line. See [Installation](INSTALLATION.md) for which to pick.

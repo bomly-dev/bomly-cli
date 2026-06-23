@@ -10,7 +10,7 @@ import (
 
 const (
 	summaryPath = ".benchmark-runs/latest/benchmark-summary.json"
-	promptPath  = "docs/prompts/bomly-benchmark-report.prompt.md"
+	promptPath  = "dev-docs/prompts/bomly-benchmark-report.prompt.md"
 	reportPath  = ".benchmark-runs/latest/benchmark-report.md"
 	reportTitle = "# Bomly Benchmark Report"
 )

@@ -241,7 +241,7 @@ SARIF projects the same registry-resolved findings; SBOM (SPDX/CycloneDX)
 projects the `packages` enrichment onto components (licenses, vulnerabilities,
 CPEs, checksums, EOL).
 
-`bomly diff` and `bomly explain` use the same vocabulary. SARIF and SBOM output are projected from the same registry-aware helpers; see `docs/OUTPUT_FORMATS.md` and `docs/SBOM.md` for format-specific details.
+`bomly diff` and `bomly explain` use the same vocabulary. SARIF and SBOM output are projected from the same registry-aware helpers; see [`../docs/OUTPUT_FORMATS.md`](../docs/OUTPUT_FORMATS.md) and [`../docs/SBOM.md`](../docs/SBOM.md) for format-specific details.
 
 ## Common patterns
 

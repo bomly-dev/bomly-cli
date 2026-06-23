@@ -2,7 +2,7 @@
 
 > ⚠️ **Experimental.** Reachability is opt-in (`--analyze`) and under active development. The output shape is stable, but ecosystem coverage is expanding and Tier-3 analyzers (`jsreach`, `pyreach`, `jvmreach`) report at package precision today — sufficient for triage, not a fix substitute. Do not use `--fail-on reachable` as the sole gate for security-critical decisions without understanding the limitations below.
 
-`--analyze` runs code analysis on top of vulnerability matching to confirm whether a finding is actually reachable from your application code. Reachability annotations are written onto the matching `sdk.Vulnerability` records inside the PURL-keyed `sdk.PackageRegistry`. The output layer resolves them at projection time via `(Finding.PackageRef, Finding.VulnerabilityID)`, so reachability surfaces consistently in JSON, SARIF, and the text/TUI views without needing a separate field on `Finding`. See `docs/MODELS.md` for the registry data model.
+`--analyze` runs code analysis on top of vulnerability matching to confirm whether a finding is actually reachable from your application code. Reachability annotations are written onto the matching `sdk.Vulnerability` records inside the PURL-keyed `sdk.PackageRegistry`. The output layer resolves them at projection time via `(Finding.PackageRef, Finding.VulnerabilityID)`, so reachability surfaces consistently in JSON, SARIF, and the text/TUI views without needing a separate field on `Finding`. See [Architecture → Domain model](ARCHITECTURE.md#domain-model) for the registry data model.
 
 The point: stop chasing high-severity CVEs in transitive packages your code never imports.
 

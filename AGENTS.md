@@ -28,13 +28,13 @@ Worktrees should be created inside `.github/worktrees/` (mirroring the `.claude/
 
 ## Architecture
 
-See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for full detail. Component map:
+See [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) for full detail (the public overview is [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)). Component map:
 
 | Package                | Role                                                                                              |
 |------------------------|---------------------------------------------------------------------------------------------------|
 | `cmd/bomly`            | Entry point — calls `internal/cli.Execute()`                                                      |
 | `internal/cli`         | Cobra root + all commands (`scan`, `explain`, `diff`, `plugin`, `version`)                        |
-| `sdk`       | Unified domain types: `Dependency` (detection graph nodes), `Package` (PURL-keyed matching artifacts in `PackageRegistry`), `Vulnerability` (OSV-aligned), reference-style `Finding`, plus neutral package/ecosystem/support identifiers. See `docs/MODELS.md`. |
+| `sdk`       | Unified domain types: `Dependency` (detection graph nodes), `Package` (PURL-keyed matching artifacts in `PackageRegistry`), `Vulnerability` (OSV-aligned), reference-style `Finding`, plus neutral package/ecosystem/support identifiers. See `dev-docs/MODELS.md`. |
 | `internal/detectors`   | Detector contracts, descriptors, requests/results, and detector-only helpers                      |
 | `internal/engine`      | Pipeline, engine, consolidation, auditors, matchers, and orchestration                            |
 | `internal/registry`    | Canonical support/discovery registry and built-in engine registry wiring                          |
@@ -73,7 +73,7 @@ Runtime preparation is owned by `internal/engine`: build the filtered registry o
 - **Plugin protocol is versioned `v1`.** External plugins use the SDK/HashiCorp gRPC `Metadata` and role descriptor contract.
 - **No secrets or credentials in logs.** Ever.
 - **Network calls only when explicitly triggered.** OSV (`https://api.osv.dev`), CISA KEV, ClearlyDefined (`https://api.clearlydefined.io`), deps.dev (`https://api.deps.dev`), endoflife.date (`https://endoflife.date`), and OpenSSF Scorecard (`https://api.scorecard.dev`) are permitted only during explicit enrichment (`--enrich`). `--audit` evaluates whatever vulnerability data is already present on packages and must not silently trigger external matcher calls.
-- **Record architecture decisions in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).**
+- **Record architecture decisions in [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md).** (`docs/ARCHITECTURE.md` is the public, user-facing overview.)
 - **Prefer `internal/`.** Add new packages inside `internal/` unless there is a clear public API need.
 - **Standard library + Cobra + existing deps only.** Do not add new dependencies without discussion.
 
@@ -219,16 +219,17 @@ If a new analyzer / matcher / detector produces deterministic output for a fixed
 
 - `make generate` regenerates `docs/CONFIG_REFERENCE.md`, `docs/schemas/*`, and `docs/SUPPORT_MATRIX.md` from struct tags. Run it whenever `internal/config/config.go`, `internal/output/*`, or `sdk/catalog.go` / `sdk/support_matrix.go` change.
 - Add or update a feature page under `docs/` (e.g. `docs/REACHABILITY.md`) with quick-start usage, semantics, ecosystem coverage, output shape, and limitations. Be explicit about safety caveats (e.g. "tier-3 unreachable does not mean safe").
-- `docs/ARCHITECTURE.md`: update the pipeline diagram if the stage list changed; add a decision-log entry for non-obvious design choices.
+- `dev-docs/ARCHITECTURE.md`: update the pipeline diagram if the stage list changed; add a decision-log entry for non-obvious design choices. Keep the public `docs/ARCHITECTURE.md` overview in sync when stages change.
 - `CLAUDE.md` and `AGENTS.md`: update the architecture tree and package-boundary list when introducing a new internal package.
 
 ## Reference Docs
 
 | Doc                                                    | Covers                                                                                  |
 |--------------------------------------------------------|-----------------------------------------------------------------------------------------|
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)         | Full architecture: pipeline, detectors, auditors, plugins, trust model, decision log    |
-| [`docs/MODELS.md`](docs/MODELS.md)                     | Domain model reference: Dependency, Package, Vulnerability, Finding, PackageRegistry    |
-| [`docs/development/CI.md`](docs/development/CI.md)     | CI setup and workflow (GitHub Actions)                                                  |
+| [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) | Full architecture: pipeline, detectors, auditors, plugins, trust model, decision log    |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)         | Public, user-facing architecture overview                                               |
+| [`dev-docs/MODELS.md`](dev-docs/MODELS.md)             | Domain model reference: Dependency, Package, Vulnerability, Finding, PackageRegistry    |
+| [`dev-docs/CI.md`](dev-docs/CI.md)                     | CI setup and workflow (GitHub Actions)                                                  |
 | [`docs/CONFIG_REFERENCE.md`](docs/CONFIG_REFERENCE.md) | Generated config reference (all keys, env vars, defaults)                               |
 | [`docs/SUPPORT_MATRIX.md`](docs/SUPPORT_MATRIX.md)     | Ecosystem detector coverage                                                             |
 | `docs/schemas/*.json`, `docs/schemas/*.md`             | Generated JSON schemas and human-readable output docs for `scan`, `diff`, and `explain` |

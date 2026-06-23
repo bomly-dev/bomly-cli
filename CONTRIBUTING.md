@@ -97,7 +97,7 @@ logger.Warn("cache miss", zap.Error(err))
 - Add integration tests for new commands and user-visible flows.
 - Run `make test` before considering work complete.
 - Run `make smoke` if you touched a detector chain, matcher, auditor, or analyzer.
-- If you change GitHub Actions workflows or release behavior, update [docs/development/CI.md](docs/development/CI.md) and any affected install guidance in [README.md](README.md).
+- If you change GitHub Actions workflows or release behavior, update [dev-docs/CI.md](dev-docs/CI.md) and any affected install guidance in [README.md](README.md).
 
 ### Helpers
 
@@ -138,7 +138,7 @@ If a PR is squash-merged, the squash commit title and body are the important inp
 
 ## Architecture
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the scan pipeline, runtime model, and package boundaries.
+See [dev-docs/ARCHITECTURE.md](dev-docs/ARCHITECTURE.md) for the scan pipeline, runtime model, and package boundaries. The user-facing overview lives at [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Non-Negotiables
 

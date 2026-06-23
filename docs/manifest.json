@@ -18,7 +18,7 @@
     {
       "id": "operations",
       "label": "Operations",
-      "description": "Running Bomly in CI and extending it with plugins."
+      "description": "Running Bomly in CI and keeping pipelines healthy."
     },
     {
       "id": "experimental",
@@ -87,13 +87,15 @@
       "slug": "auditors",
       "title": "Auditors",
       "description": "How Bomly turns vulnerability data into actionable findings.",
-      "group": "concepts"
+      "group": "concepts",
+      "hasChildren": true
     },
     {
-      "slug": "glossary",
-      "title": "Glossary",
-      "description": "Every Bomly term, one sentence each.",
-      "group": "concepts"
+      "slug": "plugins",
+      "title": "Plugins",
+      "description": "Install, enable, verify, and build external detectors, matchers, and auditors.",
+      "group": "concepts",
+      "hasChildren": true
     },
     {
       "slug": "support-matrix",
@@ -120,9 +122,16 @@
       "group": "reference"
     },
     {
-      "slug": "models",
-      "title": "Domain models",
-      "description": "The SDK types behind detection, matching, and audit, and how they connect.",
+      "slug": "schemas",
+      "title": "JSON schemas",
+      "description": "Per-command JSON output schema references for scan, explain, and diff.",
+      "group": "reference",
+      "hasChildren": true
+    },
+    {
+      "slug": "glossary",
+      "title": "Glossary",
+      "description": "Every Bomly term, one sentence each.",
       "group": "reference"
     },
     {
@@ -141,12 +150,6 @@
       "slug": "troubleshooting",
       "title": "Troubleshooting",
       "description": "Common errors and how to fix them, organized by exit code and symptom.",
-      "group": "operations"
-    },
-    {
-      "slug": "plugins",
-      "title": "Plugins",
-      "description": "Install, enable, verify, and build external detectors, matchers, and auditors.",
       "group": "operations"
     },
     {

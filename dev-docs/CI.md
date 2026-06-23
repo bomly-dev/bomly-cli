@@ -113,7 +113,7 @@ Generate an optional local Copilot report after a benchmark run:
 make benchmark-report
 ```
 
-This target requires `copilot`, reads `docs/prompts/bomly-benchmark-report.prompt.md`, and writes `.benchmark-runs/latest/benchmark-report.md`. It is not part of CI.
+This target requires `copilot`, reads `dev-docs/prompts/bomly-benchmark-report.prompt.md`, and writes `.benchmark-runs/latest/benchmark-report.md`. It is not part of CI.
 
 All workflows that build or test Go code use `actions/setup-go` with module and build cache enabled, keyed from `go.sum`, so runners do not need to download the full module set on every run.
 

@@ -21,7 +21,7 @@ Task-oriented walkthroughs.
 
 How Bomly thinks about your project.
 
-- [Architecture](ARCHITECTURE.md) — pipeline, runtime model, design boundaries
+- [Architecture](ARCHITECTURE.md) — the scan pipeline, domain model, and network behavior
 - [Detectors](DETECTORS.md) — turning project evidence into a dependency graph
 - [Matchers](MATCHERS.md) — enriching the graph with vulnerability, license, lifecycle data
 - [Auditors](AUDITORS.md) — evaluating the graph against policy
@@ -41,12 +41,14 @@ Generated from code. Treat as authoritative.
 - [Detector Ecosystem Guides](detectors/ecosystems/) — per-ecosystem detector chains
 - [Matcher Reference](matchers/) — per-matcher behavior, cache, output
 - [Auditor Reference](auditors/) — per-auditor options, examples, limitations
-- [JSON Schemas](schemas/scan.md) — scan, explain, diff output shapes
+- [JSON Schemas](SCHEMAS.md) — scan, explain, diff output shapes
 
 ## Project
 
-For contributors and release engineers.
+For contributors and release engineers. These live outside the published docs in [`dev-docs/`](../dev-docs/).
 
-- [CI](development/CI.md) — Bomly's own internal CI configuration
-- [Release Checklist](development/RELEASE_CHECKLIST.md) — maintainer checklist for publishing tagged releases
+- [Architecture (deep dive)](../dev-docs/ARCHITECTURE.md) — full pipeline, package boundaries, decision log
+- [Domain Models](../dev-docs/MODELS.md) — SDK types behind detection, matching, and audit
+- [CI](../dev-docs/CI.md) — Bomly's own internal CI configuration
+- [Release Checklist](../dev-docs/RELEASE_CHECKLIST.md) — maintainer checklist for publishing tagged releases
 - [Contributing](../CONTRIBUTING.md) — build setup, code conventions, release process

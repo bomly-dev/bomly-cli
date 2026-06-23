@@ -18,7 +18,7 @@
     {
       "id": "operations",
       "label": "Operations",
-      "description": "Running Bomly in CI and extending it with plugins."
+      "description": "Running Bomly in CI and keeping pipelines healthy."
     },
     {
       "id": "experimental",
@@ -91,10 +91,11 @@
       "hasChildren": true
     },
     {
-      "slug": "glossary",
-      "title": "Glossary",
-      "description": "Every Bomly term, one sentence each.",
-      "group": "concepts"
+      "slug": "plugins",
+      "title": "Plugins",
+      "description": "Install, enable, verify, and build external detectors, matchers, and auditors.",
+      "group": "concepts",
+      "hasChildren": true
     },
     {
       "slug": "support-matrix",
@@ -128,6 +129,12 @@
       "hasChildren": true
     },
     {
+      "slug": "glossary",
+      "title": "Glossary",
+      "description": "Every Bomly term, one sentence each.",
+      "group": "reference"
+    },
+    {
       "slug": "ci-integration",
       "title": "CI integration",
       "description": "Drop-in recipes for GitHub Actions, GitLab, Jenkins, Azure DevOps, and CircleCI.",
@@ -144,13 +151,6 @@
       "title": "Troubleshooting",
       "description": "Common errors and how to fix them, organized by exit code and symptom.",
       "group": "operations"
-    },
-    {
-      "slug": "plugins",
-      "title": "Plugins",
-      "description": "Install, enable, verify, and build external detectors, matchers, and auditors.",
-      "group": "operations",
-      "hasChildren": true
     },
     {
       "slug": "reachability",

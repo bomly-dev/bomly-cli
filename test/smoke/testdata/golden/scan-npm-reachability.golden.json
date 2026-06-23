@@ -4713,7 +4713,7 @@
               "url": "https://github.com/debug-js/debug/commit/f53962e944a87e6ca9bb622a2a12dffc22a9bb5a"
             }
           ],
-          "risk_score": 0.9296249999999999,
+          "risk_score": 0.9373299999999999,
           "severity": "low",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -5723,6 +5723,14 @@
               "version": "3.1"
             }
           ],
+          "cwes": [
+            {
+              "cve": "CVE-2026-53550",
+              "id": "CWE-407",
+              "source": "security-advisories@github.com",
+              "type": "Primary"
+            }
+          ],
           "data_source": "https://github.com/advisories/GHSA-h67p-54hq-rp68",
           "description": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
           "fix_available": [
@@ -5890,6 +5898,14 @@
               "score": 5.3,
               "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
               "version": "3.1"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "CVE-2026-53550",
+              "id": "CWE-407",
+              "source": "security-advisories@github.com",
+              "type": "Primary"
             }
           ],
           "data_source": "https://github.com/advisories/GHSA-h67p-54hq-rp68",
@@ -7692,7 +7708,7 @@
               "url": "https://github.com/minimistjs/minimist/commit/63e7ed05aa4b1889ec2f3b196426db4500cbda94"
             }
           ],
-          "risk_score": 0.99375,
+          "risk_score": 0.99852,
           "severity": "medium",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -9042,7 +9058,7 @@
               "url": "https://security.netapp.com/advisory/ntap-20241025-0004"
             }
           ],
-          "risk_score": 1.8562500000000002,
+          "risk_score": 2.07075,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -10000,7 +10016,7 @@
               "url": "https://github.com/yargs/y18n/commit/90401eea9062ad498f4f792e3fff8008c4c193a3"
             }
           ],
-          "risk_score": 50.73291999999999,
+          "risk_score": 51.105880000000006,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",

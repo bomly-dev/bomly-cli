@@ -69,6 +69,23 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
 
+      - name: Mint release token
+        # Used as GoReleaser's GITHUB_TOKEN to publish the release to this repo.
+        # The default GITHUB_TOKEN cannot be used here: GitHub does not start new
+        # workflow runs from events triggered by the default token, so a release
+        # published with it would never fire the `release: published` trigger on
+        # "Release lifecycle sync" (notify-landing-yank.yml) — and the
+        # landing-page docs sync (repository_dispatch) would silently never run.
+        # An app token is attributed to the app, so the publish event cascades.
+        uses: actions/create-github-app-token@v3
+        id: release-token
+        with:
+          client-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          owner: bomly-dev
+          repositories: bomly-cli
+          permission-contents: write
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v7
         with:
@@ -76,7 +93,7 @@ jobs:
           version: v2.16.0
           args: release --clean
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ steps.release-token.outputs.token }}
           TAP_GITHUB_TOKEN: ${{ steps.package-token.outputs.token }}
           SCOOP_GITHUB_TOKEN: ${{ steps.package-token.outputs.token }}
           WINGET_GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}

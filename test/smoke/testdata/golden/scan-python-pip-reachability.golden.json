@@ -1607,7 +1607,7 @@
               "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/PVAKCOO7VBVUBM3Q6CBBTPBFNP5NDXF4"
             }
           ],
-          "risk_score": 1.9841249999999997,
+          "risk_score": 1.9680299999999997,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",

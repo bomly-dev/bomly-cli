@@ -18,25 +18,6 @@
         },
         {
           "depends_on": [
-            "pkg:maven/com.h2database/h2@1.3.176",
-            "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
-            "pkg:maven/junit/junit@4.11",
-            "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0",
-            "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
-            "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
-            "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
-            "pkg:maven/org.mindrot/jbcrypt@0.3m",
-            "pkg:maven/org.neo4j/neo4j-jmx@1.3",
-            "pkg:maven/org.springframework/spring-web@3.1.1.release"
-          ],
-          "id": "pkg:maven/bomly-git-\u003cnormalized\u003e",
-          "licenses": [],
-          "name": "bomly-git-\u003cnormalized\u003e",
-          "package_ref": "pkg:maven/bomly-git-\u003cnormalized\u003e",
-          "purl": "pkg:maven/bomly-git-\u003cnormalized\u003e"
-        },
-        {
-          "depends_on": [
             "pkg:maven/log4j/log4j@1.2.17",
             "pkg:maven/org.apache.zookeeper/zookeeper@3.4.6",
             "pkg:maven/org.slf4j/slf4j-api@1.7.6",
@@ -231,6 +212,35 @@
             "runtime"
           ],
           "version": "1.1.1"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/com.h2database/h2@1.3.176",
+            "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
+            "pkg:maven/junit/junit@4.11",
+            "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0",
+            "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
+            "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
+            "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
+            "pkg:maven/org.mindrot/jbcrypt@0.3m",
+            "pkg:maven/org.neo4j/neo4j-jmx@1.3",
+            "pkg:maven/org.springframework/spring-web@3.1.1.release"
+          ],
+          "id": "pkg:maven/example-java-gradle",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "settings.gradle",
+              "position": {
+                "file": "settings.gradle",
+                "line": 0
+              },
+              "real_path": "settings.gradle"
+            }
+          ],
+          "name": "example-java-gradle",
+          "package_ref": "pkg:maven/example-java-gradle",
+          "purl": "pkg:maven/example-java-gradle"
         },
         {
           "depends_on": [],
@@ -1019,13 +1029,6 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "bomly-git-\u003cnormalized\u003e",
-      "purl": "pkg:maven/bomly-git-\u003cnormalized\u003e",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "maven",
-      "licenses": [],
       "name": "zkclient",
       "purl": "pkg:maven/com.101tec/zkclient@0.7",
       "version": "0.7",
@@ -1117,6 +1120,13 @@
       "name": "commons-logging",
       "purl": "pkg:maven/commons-logging/commons-logging@1.1.1",
       "version": "1.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "example-java-gradle",
+      "purl": "pkg:maven/example-java-gradle",
       "vulnerabilities": []
     },
     {

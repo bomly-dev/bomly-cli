@@ -45,7 +45,7 @@ internal/tui/                    Interactive Bubbletea terminal UI (Run, NewScan
 sdk/                             Neutral domain types (Dependency, Package, Vulnerability,
                                  Finding, PackageRegistry, Graph, Reachability),
                                  ecosystem/package-manager identifiers, support-matrix data.
-                                 See docs/MODELS.md for the three-collection model
+                                 See dev-docs/MODELS.md for the three-collection model
                                  (manifests→dependencies / packages by PURL / findings by ref).
 internal/config/                 Resolved + File: the canonical config schema + YAML shape that
                                  the configref / schemajson / schemadocs generators read
@@ -110,7 +110,7 @@ Detector chains are explicit in `internal/registry/support.go` and `internal/reg
 - Plugin protocol is versioned `v1` (gRPC). Do not break the `Metadata` / role descriptor contract.
 - No secrets or credentials in logs, ever.
 - Network calls (`--enrich`) permitted only to: `api.osv.dev`, CISA KEV, `api.clearlydefined.io`, `api.deps.dev`, `endoflife.date`, `api.scorecard.dev`. `--audit` evaluates existing data and must not trigger external matcher calls silently.
-- Record architecture decisions in `docs/ARCHITECTURE.md`.
+- Record architecture decisions in `dev-docs/ARCHITECTURE.md` (the contributor deep-dive). `docs/ARCHITECTURE.md` is the public, user-facing overview.
 - Standard library + Cobra + existing deps only — no new dependencies without discussion.
 
 ## Code Conventions
@@ -207,7 +207,7 @@ If a new analyzer / matcher / detector produces deterministic output for a fixed
 
 - [ ] `make generate` regenerates `docs/CONFIG_REFERENCE.md`, `docs/schemas/*`, and `docs/SUPPORT_MATRIX.md` from struct tags. Run it whenever `internal/config/config.go`, `internal/output/*`, or `sdk/catalog.go` / `sdk/support_matrix.go` change.
 - [ ] Add or update a feature page under `docs/` (e.g. `docs/REACHABILITY.md`) with quick-start usage, semantics, ecosystem coverage, output shape, and limitations. Be explicit about safety caveats (e.g. "tier-3 unreachable does not mean safe").
-- [ ] `docs/ARCHITECTURE.md`: update the pipeline diagram if the stage list changed; add a decision-log entry for non-obvious design choices.
+- [ ] `dev-docs/ARCHITECTURE.md`: update the pipeline diagram if the stage list changed; add a decision-log entry for non-obvious design choices. Keep the public `docs/ARCHITECTURE.md` overview in sync when stages change.
 - [ ] `CLAUDE.md` and `AGENTS.md`: update the architecture tree and package-boundary list when introducing a new internal package.
 
 ## Release
@@ -227,9 +227,10 @@ For squash-merges, the squash commit title/body determines the version bump.
 
 | Doc | Covers |
 | --- | --- |
-| `docs/ARCHITECTURE.md` | Full pipeline, detector model, decision log |
-| `docs/MODELS.md` | Domain model: Dependency / Package / Vulnerability / Finding / PackageRegistry |
-| `docs/development/CI.md` | GitHub Actions, release workflow |
+| `dev-docs/ARCHITECTURE.md` | Full pipeline, detector model, decision log (contributor deep-dive) |
+| `docs/ARCHITECTURE.md` | Public, user-facing architecture overview |
+| `dev-docs/MODELS.md` | Domain model: Dependency / Package / Vulnerability / Finding / PackageRegistry |
+| `dev-docs/CI.md` | GitHub Actions, release workflow |
 | `docs/CONFIG_REFERENCE.md` | All config keys, env vars, defaults (generated) |
 | `docs/SUPPORT_MATRIX.md` | Ecosystem detector coverage (generated) |
 | `docs/schemas/` | JSON schemas + human-readable output docs (generated) |

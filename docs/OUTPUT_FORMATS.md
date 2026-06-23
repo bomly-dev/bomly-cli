@@ -50,7 +50,7 @@ The shape every Bomly subcommand emits. Each command has its own schema:
 | `bomly explain` | [explain.md](schemas/explain.md) |
 | `bomly diff` | [diff.md](schemas/diff.md) |
 
-`bomly scan` surfaces the three-collection model (see [MODELS.md](MODELS.md)):
+`bomly scan` surfaces the three-collection model (see [Architecture → Domain model](ARCHITECTURE.md#domain-model)):
 `manifests[].dependencies` are lean detection-stage nodes (identity, `scopes`,
 `depends_on`, `package_ref`); `packages` is the deduplicated matching-stage
 registry (licenses, vulnerabilities, scorecard, EOL, CPEs, digests) keyed by

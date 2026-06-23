@@ -87,7 +87,8 @@
       "slug": "auditors",
       "title": "Auditors",
       "description": "How Bomly turns vulnerability data into actionable findings.",
-      "group": "concepts"
+      "group": "concepts",
+      "hasChildren": true
     },
     {
       "slug": "glossary",
@@ -120,10 +121,11 @@
       "group": "reference"
     },
     {
-      "slug": "models",
-      "title": "Domain models",
-      "description": "The SDK types behind detection, matching, and audit, and how they connect.",
-      "group": "reference"
+      "slug": "schemas",
+      "title": "JSON schemas",
+      "description": "Per-command JSON output schema references for scan, explain, and diff.",
+      "group": "reference",
+      "hasChildren": true
     },
     {
       "slug": "ci-integration",
@@ -147,7 +149,8 @@
       "slug": "plugins",
       "title": "Plugins",
       "description": "Install, enable, verify, and build external detectors, matchers, and auditors.",
-      "group": "operations"
+      "group": "operations",
+      "hasChildren": true
     },
     {
       "slug": "reachability",

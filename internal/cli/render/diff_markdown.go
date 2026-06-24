@@ -35,13 +35,18 @@ func diffOverviewMarkdown(payload output.DiffResponse) []string {
 		persisted = len(payload.Audit.Persisted)
 		resolved = len(payload.Audit.Resolved)
 	}
+	// A persisted finding is always tied to a package this diff actually
+	// changed (see auditBlockingFindings in internal/cli/diff_cmd.go), so it
+	// gates the run exactly like an introduced one.
 	status := "✅ Pass"
-	if payload.Audit != nil && outputAuditFailingCount(payload.Audit.Introduced) > 0 {
-		status = "❌ Failing findings introduced"
-	} else if payload.Audit != nil && introduced > 0 {
-		status = "⚠️ Warnings introduced"
-	} else if payload.Audit != nil && outputAuditFailingCount(payload.Audit.Persisted) > 0 {
-		status = "⚠️ Pre-existing findings unresolved"
+	if payload.Audit != nil {
+		failing := outputAuditFailingCount(payload.Audit.Introduced) + outputAuditFailingCount(payload.Audit.Persisted)
+		switch {
+		case failing > 0:
+			status = "❌ Failing findings"
+		case introduced > 0 || persisted > 0:
+			status = "⚠️ Warnings"
+		}
 	}
 	return markdownTable(
 		[]string{"Status", "Manifests", "Dependencies", "Findings", "Duration"},
@@ -169,7 +174,6 @@ func diffVulnerabilityTable(title, status string, changes []output.DiffVulnerabi
 	for _, change := range sortVulnerabilityChanges(changes) {
 		vuln := change.Vulnerability
 		row := []string{
-			findingIcon(status, string(vuln.Severity), ""),
 			status,
 			strings.ToUpper(valueOrDash(string(vuln.Severity))),
 			vuln.ID,
@@ -185,7 +189,7 @@ func diffVulnerabilityTable(title, status string, changes []output.DiffVulnerabi
 		)
 		rows = append(rows, row)
 	}
-	header := []string{"", "Change", "Severity", "ID", "Package"}
+	header := []string{"Change", "Severity", "ID", "Package"}
 	if includeReachability {
 		header = append(header, "Reachability")
 	}
@@ -307,7 +311,7 @@ func diffAuditFindingTable(title, status string, findings []output.AuditFinding,
 	rows := make([][]string, 0, len(findings))
 	for _, finding := range sortDiffAuditFindings(findings) {
 		row := []string{
-			findingIcon(status, string(finding.Severity), string(finding.Disposition)),
+			findingIcon(status, string(finding.Disposition)),
 			status,
 			valueOrDash(finding.Auditor),
 			strings.ToUpper(valueOrDash(string(finding.Severity))),
@@ -338,19 +342,18 @@ func findingIconLegend() []string {
 	return []string{"> **Legend:** ✅ resolved · ❌ failing · ⚠️ warning"}
 }
 
-func findingIcon(status, severity, disposition string) string {
+// findingIcon represents whether a Policy Findings row will fail the run
+// (❌), only warn (⚠️), or has been resolved (✅) — purely a function of
+// status/disposition, never of severity. A Low-severity failing finding still
+// gets ❌; a Critical-severity warning still gets ⚠️.
+func findingIcon(status, disposition string) string {
 	if status == "resolved" {
 		return "✅"
 	}
 	if strings.EqualFold(disposition, "warn") {
 		return "⚠️"
 	}
-	switch strings.ToLower(strings.TrimSpace(severity)) {
-	case "critical", "high":
-		return "❌"
-	default:
-		return "⚠️"
-	}
+	return "❌"
 }
 
 func outputAuditFailingCount(findings []output.AuditFinding) int {

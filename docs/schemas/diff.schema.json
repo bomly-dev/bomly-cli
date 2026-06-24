@@ -215,6 +215,9 @@
               },
               "package": {
                 "properties": {
+                  "direct": {
+                    "type": "boolean"
+                  },
                   "id": {
                     "type": "string"
                   },
@@ -1115,6 +1118,9 @@
               },
               "package": {
                 "properties": {
+                  "direct": {
+                    "type": "boolean"
+                  },
                   "id": {
                     "type": "string"
                   },
@@ -2015,6 +2021,9 @@
               },
               "package": {
                 "properties": {
+                  "direct": {
+                    "type": "boolean"
+                  },
                   "id": {
                     "type": "string"
                   },
@@ -2789,6 +2798,9 @@
         },
         "reachability_enabled": {
           "type": "boolean"
+        },
+        "scorecard_enabled": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -2832,6 +2844,9 @@
                 "properties": {
                   "package": {
                     "properties": {
+                      "direct": {
+                        "type": "boolean"
+                      },
                       "id": {
                         "type": "string"
                       },
@@ -3369,6 +3384,9 @@
                 "properties": {
                   "after": {
                     "properties": {
+                      "direct": {
+                        "type": "boolean"
+                      },
                       "id": {
                         "type": "string"
                       },
@@ -3895,6 +3913,9 @@
                   },
                   "before": {
                     "properties": {
+                      "direct": {
+                        "type": "boolean"
+                      },
                       "id": {
                         "type": "string"
                       },
@@ -4433,6 +4454,9 @@
                 "properties": {
                   "package": {
                     "properties": {
+                      "direct": {
+                        "type": "boolean"
+                      },
                       "id": {
                         "type": "string"
                       },
@@ -4992,6 +5016,9 @@
                   },
                   "package": {
                     "properties": {
+                      "direct": {
+                        "type": "boolean"
+                      },
                       "id": {
                         "type": "string"
                       },
@@ -5564,6 +5591,9 @@
                   },
                   "package": {
                     "properties": {
+                      "direct": {
+                        "type": "boolean"
+                      },
                       "id": {
                         "type": "string"
                       },
@@ -6120,6 +6150,9 @@
                   },
                   "package": {
                     "properties": {
+                      "direct": {
+                        "type": "boolean"
+                      },
                       "id": {
                         "type": "string"
                       },
@@ -6664,6 +6697,9 @@
                   "properties": {
                     "package": {
                       "properties": {
+                        "direct": {
+                          "type": "boolean"
+                        },
                         "id": {
                           "type": "string"
                         },
@@ -7201,6 +7237,9 @@
                   "properties": {
                     "after": {
                       "properties": {
+                        "direct": {
+                          "type": "boolean"
+                        },
                         "id": {
                           "type": "string"
                         },
@@ -7727,6 +7766,9 @@
                     },
                     "before": {
                       "properties": {
+                        "direct": {
+                          "type": "boolean"
+                        },
                         "id": {
                           "type": "string"
                         },
@@ -8277,6 +8319,9 @@
                   "properties": {
                     "package": {
                       "properties": {
+                        "direct": {
+                          "type": "boolean"
+                        },
                         "id": {
                           "type": "string"
                         },
@@ -8830,6 +8875,9 @@
                 "properties": {
                   "package": {
                     "properties": {
+                      "direct": {
+                        "type": "boolean"
+                      },
                       "id": {
                         "type": "string"
                       },
@@ -9763,6 +9811,9 @@
                 "properties": {
                   "package": {
                     "properties": {
+                      "direct": {
+                        "type": "boolean"
+                      },
                       "id": {
                         "type": "string"
                       },
@@ -10696,6 +10747,9 @@
                 "properties": {
                   "package": {
                     "properties": {
+                      "direct": {
+                        "type": "boolean"
+                      },
                       "id": {
                         "type": "string"
                       },

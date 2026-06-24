@@ -216,6 +216,9 @@
           },
           "package": {
             "properties": {
+              "direct": {
+                "type": "boolean"
+              },
               "id": {
                 "type": "string"
               },
@@ -1089,6 +1092,9 @@
           "type": "integer"
         },
         "reachability_enabled": {
+          "type": "boolean"
+        },
+        "scorecard_enabled": {
           "type": "boolean"
         }
       },

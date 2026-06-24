@@ -407,6 +407,7 @@ func firstReportOptions(options []ReportOptions) ReportOptions {
 }
 
 func metadataWithReportOptions(metadata Metadata, options ReportOptions) Metadata {
+	metadata.ScorecardEnabled = options.ScorecardEnabled
 	metadata.ReachabilityEnabled = false
 	metadata.AnalyzerRuns = nil
 	metadata.AnalyzerStats = nil
@@ -568,7 +569,7 @@ func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.Consolid
 				Subproject:     headManifest.Manifest.Subproject,
 				Ecosystem:      headManifest.Manifest.Ecosystem,
 				PackageManager: headManifest.Manifest.PackageManager,
-				Added:          diffPackageChangesFromPackages(headManifest.Graph.Nodes(), headRegistry),
+				Added:          diffPackageChangesFromPackages(headManifest.Graph.Nodes(), headRegistry, graphDirectMembership(headManifest.Graph)),
 			}
 			results.Manifests = append(results.Manifests, result)
 			summary.AddedManifestCount++
@@ -582,7 +583,7 @@ func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.Consolid
 				Subproject:     baseManifest.Manifest.Subproject,
 				Ecosystem:      baseManifest.Manifest.Ecosystem,
 				PackageManager: baseManifest.Manifest.PackageManager,
-				Removed:        diffPackageChangesFromPackages(baseManifest.Graph.Nodes(), baseRegistry),
+				Removed:        diffPackageChangesFromPackages(baseManifest.Graph.Nodes(), baseRegistry, graphDirectMembership(baseManifest.Graph)),
 			}
 			results.Manifests = append(results.Manifests, result)
 			summary.RemovedManifestCount++
@@ -598,6 +599,8 @@ func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.Consolid
 			summary.ExactMatchCount += exactMatches
 			summary.FuzzyMatchCount += len(manifestDiff.Updated) - exactMatches
 			summary.UnmatchedPackageCount += len(manifestDiff.Added) + len(manifestDiff.Removed)
+			baseDirect := graphDirectMembership(baseManifest.Graph)
+			headDirect := graphDirectMembership(headManifest.Graph)
 			result := DiffManifestResult{
 				Status:         "unchanged",
 				Path:           headManifest.Manifest.Path,
@@ -605,9 +608,9 @@ func diffResultsFromConsolidated(baseConsolidated, headConsolidated sdk.Consolid
 				Subproject:     headManifest.Manifest.Subproject,
 				Ecosystem:      headManifest.Manifest.Ecosystem,
 				PackageManager: headManifest.Manifest.PackageManager,
-				Added:          diffPackageChangesFromPackages(manifestDiff.Added, headRegistry),
-				Removed:        diffPackageChangesFromPackages(manifestDiff.Removed, baseRegistry),
-				Changed:        diffChangedPackagesFromDiff(manifestDiff.Updated, baseRegistry, headRegistry),
+				Added:          diffPackageChangesFromPackages(manifestDiff.Added, headRegistry, headDirect),
+				Removed:        diffPackageChangesFromPackages(manifestDiff.Removed, baseRegistry, baseDirect),
+				Changed:        diffChangedPackagesFromDiff(manifestDiff.Updated, baseRegistry, headRegistry, baseDirect, headDirect),
 			}
 			if len(result.Added) == 0 && len(result.Removed) == 0 && len(result.Changed) == 0 {
 				summary.UnchangedManifestCount++
@@ -994,25 +997,74 @@ func isSBOMPseudoPackage(pkg *sdk.Dependency, rootIDs map[string]struct{}) bool 
 	return false
 }
 
-func diffPackageChangesFromPackages(packages []*sdk.Dependency, registry *sdk.PackageRegistry) []DiffPackageChange {
+func diffPackageChangesFromPackages(packages []*sdk.Dependency, registry *sdk.PackageRegistry, direct directMembership) []DiffPackageChange {
 	changes := make([]DiffPackageChange, 0, len(packages))
 	for _, pkg := range packages {
-		changes = append(changes, DiffPackageChange{Package: PackageFromDependencyAndRegistry(pkg, registry)})
+		ref := PackageFromDependencyAndRegistry(pkg, registry)
+		direct.apply(&ref, pkg)
+		changes = append(changes, DiffPackageChange{Package: ref})
 	}
 	sort.Slice(changes, func(i, j int) bool { return changes[i].Package.ID < changes[j].Package.ID })
 	return changes
 }
 
-func diffChangedPackagesFromDiff(changes []sdk.VersionChange, baseRegistry, headRegistry *sdk.PackageRegistry) []DiffChangedPackage {
+func diffChangedPackagesFromDiff(changes []sdk.VersionChange, baseRegistry, headRegistry *sdk.PackageRegistry, baseDirect, headDirect directMembership) []DiffChangedPackage {
 	out := make([]DiffChangedPackage, 0, len(changes))
 	for _, change := range changes {
-		out = append(out, DiffChangedPackage{
-			After:  PackageFromDependencyAndRegistry(change.After, headRegistry),
-			Before: PackageFromDependencyAndRegistry(change.Before, baseRegistry),
-		})
+		after := PackageFromDependencyAndRegistry(change.After, headRegistry)
+		headDirect.apply(&after, change.After)
+		before := PackageFromDependencyAndRegistry(change.Before, baseRegistry)
+		baseDirect.apply(&before, change.Before)
+		out = append(out, DiffChangedPackage{After: after, Before: before})
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].After.ID < out[j].After.ID })
 	return out
+}
+
+// directMembership captures, for one graph, the set of direct-dependency node
+// IDs and whether the graph carries enough hierarchy to know directness at all.
+type directMembership struct {
+	ids   map[string]struct{}
+	known bool
+}
+
+// graphDirectMembership derives directness from a graph. Directness is
+// indeterminate when the graph has no roots, or when every node is a root
+// (a flat SBOM with no dependency edges), so callers leave PackageRef.Direct
+// nil in those cases rather than mislabeling transitive packages as direct.
+func graphDirectMembership(graph *sdk.Graph) directMembership {
+	m := directMembership{ids: map[string]struct{}{}}
+	if graph == nil {
+		return m
+	}
+	roots := graph.Roots()
+	if len(roots) == 0 || len(roots) >= graph.Size() {
+		return m
+	}
+	m.known = true
+	for _, root := range roots {
+		if root == nil {
+			continue
+		}
+		deps, err := graph.DirectDependencies(root.ID)
+		if err != nil {
+			continue
+		}
+		for _, dep := range deps {
+			if dep != nil {
+				m.ids[dep.ID] = struct{}{}
+			}
+		}
+	}
+	return m
+}
+
+func (m directMembership) apply(ref *PackageRef, dep *sdk.Dependency) {
+	if !m.known || dep == nil {
+		return
+	}
+	_, isDirect := m.ids[dep.ID]
+	ref.Direct = &isDirect
 }
 
 const (

@@ -272,6 +272,7 @@ Complete reference for the `bomly diff` JSON output.
 |-------|------|-------------|
 | `duration_ms` | `integer` | |
 | `reachability_enabled` | `boolean` | |
+| `scorecard_enabled` | `boolean` | |
 | `analyzer_runs` | Array<`string`> | |
 | `analyzer_stats` | `object` | |
 
@@ -289,6 +290,7 @@ Complete reference for the `bomly diff` JSON output.
 | `licenses` | Array<[`LicenseRef`](#licenseref)> | |
 | `vulnerabilities` | Array<[`VulnerabilityRef`](#vulnerabilityref)> | |
 | `scorecard` | [`PackageScorecard`](#packagescorecard) | |
+| `direct` | `boolean` | |
 
 ### `PackageScorecard`
 

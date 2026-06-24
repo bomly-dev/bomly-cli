@@ -199,7 +199,10 @@ func newDiffCmd() *cobra.Command {
 			}
 			if outputFormat == output.FormatSARIF {
 				prog.Success("Resolved Graph")
-				return sarifRenderer(streams.reportWriter())
+				if err := sarifRenderer(streams.reportWriter()); err != nil {
+					return err
+				}
+				return diffPolicyExit(current.Audit, diffResult.Audit)
 			}
 			if current.Interactive {
 				prog.Stop()

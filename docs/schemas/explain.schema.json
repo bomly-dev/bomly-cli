@@ -38,6 +38,9 @@
     },
     "dependency": {
       "properties": {
+        "direct": {
+          "type": "boolean"
+        },
         "id": {
           "type": "string"
         },
@@ -742,6 +745,9 @@
           },
           "package": {
             "properties": {
+              "direct": {
+                "type": "boolean"
+              },
               "id": {
                 "type": "string"
               },
@@ -1495,6 +1501,9 @@
         },
         "reachability_enabled": {
           "type": "boolean"
+        },
+        "scorecard_enabled": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -1517,6 +1526,9 @@
           "packages": {
             "items": {
               "properties": {
+                "direct": {
+                  "type": "boolean"
+                },
                 "id": {
                   "type": "string"
                 },
@@ -2131,6 +2143,9 @@
           },
           "dependency": {
             "properties": {
+              "direct": {
+                "type": "boolean"
+              },
               "id": {
                 "type": "string"
               },
@@ -2838,6 +2853,9 @@
                 },
                 "package": {
                   "properties": {
+                    "direct": {
+                      "type": "boolean"
+                    },
                     "id": {
                       "type": "string"
                     },
@@ -3576,6 +3594,9 @@
                 "packages": {
                   "items": {
                     "properties": {
+                      "direct": {
+                        "type": "boolean"
+                      },
                       "id": {
                         "type": "string"
                       },

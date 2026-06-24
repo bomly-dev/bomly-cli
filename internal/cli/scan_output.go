@@ -56,6 +56,19 @@ func reportOptionsFromPipelineResults(enabled bool, results ...engine.PipelineRe
 	}
 }
 
+// matcherRan reports whether a matcher with the given name produced stats in
+// any of the supplied pipeline runs (i.e. it was selected and executed).
+func matcherRan(name string, statSets ...[]sdk.MatcherStats) bool {
+	for _, stats := range statSets {
+		for _, stat := range stats {
+			if stat.Name == name {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func explainPackageRef(pkg *sdk.Dependency, registry *sdk.PackageRegistry) output.PackageRef {
 	ref := output.PackageFromDependencyAndRegistry(pkg, registry)
 	if pkg == nil {

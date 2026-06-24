@@ -170,6 +170,7 @@ func newDiffCmd() *cobra.Command {
 			reportOptions := reportOptionsFromPipelineResults(current.Analyze, diffResult.Base, diffResult.Head)
 			reportOptions.BaseRegistry = diffResult.Base.Registry
 			reportOptions.HeadRegistry = diffResult.Head.Registry
+			reportOptions.ScorecardEnabled = matcherRan("scorecard", diffResult.Base.MatcherStats, diffResult.Head.MatcherStats)
 			payload := output.BuildDiffResponse(projectIdentifier, compBase, compHead, diffResult.Base.Consolidated, diffResult.Head.Consolidated, auditPayload, started, reportOptions)
 			markdownRenderer := func(w io.Writer) error {
 				return render.DiffMarkdown(w, payload)

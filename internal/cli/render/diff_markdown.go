@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
+	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
 // DiffMarkdown writes a GitHub-flavored Markdown diff report.
@@ -39,6 +40,8 @@ func diffOverviewMarkdown(payload output.DiffResponse) []string {
 		status = "❌ Failing findings introduced"
 	} else if payload.Audit != nil && introduced > 0 {
 		status = "⚠️ Warnings introduced"
+	} else if payload.Audit != nil && outputAuditFailingCount(payload.Audit.Persisted) > 0 {
+		status = "⚠️ Pre-existing findings unresolved"
 	}
 	return markdownTable(
 		[]string{"Status", "Manifests", "Dependencies", "Findings", "Duration"},
@@ -47,9 +50,22 @@ func diffOverviewMarkdown(payload output.DiffResponse) []string {
 			fmt.Sprintf("+%d / ~%d / -%d", payload.Summary.AddedManifestCount, payload.Summary.ChangedManifestCount, payload.Summary.RemovedManifestCount),
 			fmt.Sprintf("+%d / ~%d / -%d", payload.Summary.AddedPackageCount, payload.Summary.ChangedPackageCount, payload.Summary.RemovedPackageCount),
 			fmt.Sprintf("%d introduced / %d persisted / %d resolved", introduced, persisted, resolved),
-			fmt.Sprintf("%dms", payload.Metadata.DurationMS),
+			humanizeDurationMS(payload.Metadata.DurationMS),
 		}},
 	)
+}
+
+// humanizeDurationMS renders a millisecond duration in the largest sensible
+// unit: milliseconds under a second, seconds under a minute, otherwise minutes
+// and seconds.
+func humanizeDurationMS(ms int64) string {
+	if ms < 1000 {
+		return fmt.Sprintf("%dms", ms)
+	}
+	if ms < 60000 {
+		return fmt.Sprintf("%.1fs", float64(ms)/1000)
+	}
+	return fmt.Sprintf("%dm %ds", ms/60000, (ms%60000)/1000)
 }
 
 func diffDependencyMarkdown(payload output.DiffResponse) []string {
@@ -78,12 +94,24 @@ func diffAddedRemovedDependencyTable(title, status string, changes []output.Diff
 			status,
 			DiffPackageDisplayName(pkg),
 			valueOrDash(pkg.Version),
+			directCell(pkg.Direct),
 			displayScope(pkg.Scope),
 			licenseList(pkg.Licenses),
-			valueOrDash(pkg.Purl),
 		})
 	}
-	return append([]string{"### " + title, ""}, append(markdownTable([]string{"Change", "Package", "Version", "Scope", "Licenses", "PURL"}, rows), "")...)
+	return append([]string{"### " + title, ""}, append(markdownTable([]string{"Change", "Package", "Version", "Direct?", "Scope", "Licenses"}, rows), "")...)
+}
+
+// directCell renders a package's directness for the dependency tables. nil
+// (directness unknown, e.g. a flat SBOM) renders as a dash.
+func directCell(direct *bool) string {
+	if direct == nil {
+		return "-"
+	}
+	if *direct {
+		return "Yes"
+	}
+	return "No"
 }
 
 func diffChangedDependencyTable(changes []output.DiffChangedPackage) []string {
@@ -100,26 +128,37 @@ func diffChangedDependencyTable(changes []output.DiffChangedPackage) []string {
 			"changed",
 			name,
 			fmt.Sprintf("%s → %s", valueOrDash(change.Before.Version), valueOrDash(change.After.Version)),
+			directCell(change.After.Direct),
 			displayScope(change.After.Scope),
 			licenseList(change.After.Licenses),
-			valueOrDash(change.After.Purl),
 		})
 	}
-	return append([]string{"### Changed Dependencies", ""}, append(markdownTable([]string{"Change", "Package", "Version", "Scope", "Licenses", "PURL"}, rows), "")...)
+	return append([]string{"### Changed Dependencies", ""}, append(markdownTable([]string{"Change", "Package", "Version", "Direct?", "Scope", "Licenses"}, rows), "")...)
 }
 
 func diffVulnerabilityMarkdown(payload output.DiffResponse) []string {
 	results := payload.Results.Vulnerabilities
-	lines := []string{
-		fmt.Sprintf("**Summary:** %d introduced, %d resolved.", len(results.Added), len(results.Removed)),
-		"",
-	}
-	lines = append(lines, diffVulnerabilityTable("Introduced Vulnerabilities", "introduced", results.Added, payload.Metadata.ReachabilityEnabled)...)
-	lines = append(lines, diffVulnerabilityTable("Resolved Vulnerabilities", "resolved", results.Removed, payload.Metadata.ReachabilityEnabled)...)
-	if len(results.Added) == 0 && len(results.Removed) == 0 {
+	if len(results.Added) == 0 && len(results.Removed) == 0 && len(results.Persisted) == 0 {
 		return []string{"✅ No vulnerability changes."}
 	}
+	lines := []string{
+		fmt.Sprintf("**Summary:** %d introduced, %d persisted, %d resolved.", len(results.Added), len(results.Persisted), len(results.Removed)),
+		"",
+	}
+	if len(results.Added) == 0 && len(results.Removed) == 0 && len(results.Persisted) > 0 {
+		lines = append(lines, fmt.Sprintf("⚠️ No new or resolved vulnerabilities, but %s — the updated version is still affected.", pluralizeVulnerabilities(len(results.Persisted)))+" This change does not remediate them.", "")
+	}
+	lines = append(lines, diffVulnerabilityTable("Introduced Vulnerabilities", "introduced", results.Added, payload.Metadata.ReachabilityEnabled)...)
+	lines = append(lines, diffVulnerabilityTable("Persisted Vulnerabilities", "persisted", results.Persisted, payload.Metadata.ReachabilityEnabled)...)
+	lines = append(lines, diffVulnerabilityTable("Resolved Vulnerabilities", "resolved", results.Removed, payload.Metadata.ReachabilityEnabled)...)
 	return trimTrailingMarkdownBlanks(lines)
+}
+
+func pluralizeVulnerabilities(n int) string {
+	if n == 1 {
+		return "1 vulnerability persists"
+	}
+	return fmt.Sprintf("%d vulnerabilities persist", n)
 }
 
 func diffVulnerabilityTable(title, status string, changes []output.DiffVulnerabilityChange, includeReachability bool) []string {
@@ -141,7 +180,6 @@ func diffVulnerabilityTable(title, status string, changes []output.DiffVulnerabi
 		}
 		row = append(row,
 			valueOrDash(fixedVersionSummary(vuln.FixedIn, vuln.FixedVersions)),
-			valueOrDash(exploitabilitySummary(vuln.KEVExploited, vuln.KnownExploited, vuln.RiskScore)),
 			valueOrDash(vuln.Source),
 			firstNonEmpty(vuln.Title, strings.Join(vuln.Reasons, "; ")),
 		)
@@ -151,23 +189,53 @@ func diffVulnerabilityTable(title, status string, changes []output.DiffVulnerabi
 	if includeReachability {
 		header = append(header, "Reachability")
 	}
-	header = append(header, "Fixed In", "Exploitability", "Source", "Title")
+	header = append(header, "Fixed In", "Source", "Title")
 	return append([]string{"### " + title, ""}, append(markdownTable(header, rows), "")...)
 }
 
 func diffLicenseMarkdown(payload output.DiffResponse) []string {
 	results := payload.Results.Licenses
+	persisted := persistedLicenseFindingCount(payload.Audit)
+	if len(results.Added) == 0 && len(results.Changed) == 0 && len(results.Removed) == 0 {
+		if persisted > 0 {
+			return []string{licensePersistedNote(persisted)}
+		}
+		return []string{"✅ No license changes."}
+	}
 	lines := []string{
 		fmt.Sprintf("**Summary:** %d added, %d changed, %d removed.", len(results.Added), len(results.Changed), len(results.Removed)),
 		"",
 	}
+	if persisted > 0 {
+		lines = append(lines, licensePersistedNote(persisted), "")
+	}
 	lines = append(lines, diffLicenseChangeTable("Added Licenses", "added", results.Added)...)
 	lines = append(lines, diffLicenseDeltaTable(results.Changed)...)
 	lines = append(lines, diffLicenseChangeTable("Removed Licenses", "removed", results.Removed)...)
-	if len(results.Added) == 0 && len(results.Changed) == 0 && len(results.Removed) == 0 {
-		return []string{"✅ No license changes."}
-	}
 	return trimTrailingMarkdownBlanks(lines)
+}
+
+// persistedLicenseFindingCount counts license findings that survived the diff
+// (present before and after) so the License section can flag that the change
+// did not resolve them, mirroring the persisted-vulnerability messaging.
+func persistedLicenseFindingCount(audit *output.DiffAudit) int {
+	if audit == nil {
+		return 0
+	}
+	count := 0
+	for _, finding := range audit.Persisted {
+		if finding.Kind == sdk.FindingKindLicense {
+			count++
+		}
+	}
+	return count
+}
+
+func licensePersistedNote(n int) string {
+	if n == 1 {
+		return "⚠️ 1 package still carries an unresolved license issue (see Policy Findings)."
+	}
+	return fmt.Sprintf("⚠️ %d packages still carry unresolved license issues (see Policy Findings).", n)
 }
 
 func diffLicenseChangeTable(title, status string, changes []output.DiffLicenseChange) []string {
@@ -216,6 +284,7 @@ func diffPolicyFindingsMarkdown(payload output.DiffResponse) []string {
 	if len(audit.Introduced) == 0 && len(audit.Persisted) == 0 && len(audit.Resolved) == 0 {
 		return []string{"✅ No policy differences were identified."}
 	}
+	lines = append(lines, findingIconLegend()...)
 	return trimTrailingMarkdownBlanks(lines)
 }
 
@@ -239,7 +308,6 @@ func diffAuditFindingTable(title, status string, findings []output.AuditFinding,
 			status,
 			valueOrDash(finding.Auditor),
 			strings.ToUpper(valueOrDash(string(finding.Severity))),
-			findingDisposition(string(finding.Disposition)),
 			valueOrDash(finding.ID),
 			DiffPackageDisplayName(finding.Package),
 		}
@@ -248,17 +316,23 @@ func diffAuditFindingTable(title, status string, findings []output.AuditFinding,
 		}
 		row = append(row,
 			valueOrDash(fixedVersionSummary(finding.FixedIn, finding.FixedVersions)),
-			valueOrDash(exploitabilitySummary(finding.KEVExploited, finding.KnownExploited, finding.RiskScore)),
 			firstNonEmpty(finding.Title, strings.Join(finding.Reasons, "; ")),
 		)
 		rows = append(rows, row)
 	}
-	header := []string{"", "Status", "Category", "Severity", "Disposition", "ID", "Package"}
+	header := []string{"", "Status", "Category", "Severity", "ID", "Package"}
 	if includeReachability {
 		header = append(header, "Reachability")
 	}
-	header = append(header, "Fixed In", "Exploitability", "Title")
+	header = append(header, "Fixed In", "Title")
 	return append([]string{"### " + title, ""}, append(markdownTable(header, rows), "")...)
+}
+
+// findingIconLegend explains the leading status icon used in the findings
+// tables. The icon encodes the finding's disposition (resolved / failing /
+// warning), which is why a dedicated column is no longer needed.
+func findingIconLegend() []string {
+	return []string{"> **Legend:** ✅ resolved · ❌ failing · ⚠️ warning"}
 }
 
 func findingIcon(status, severity, disposition string) string {
@@ -274,13 +348,6 @@ func findingIcon(status, severity, disposition string) string {
 	default:
 		return "⚠️"
 	}
-}
-
-func findingDisposition(value string) string {
-	if strings.TrimSpace(value) == "" {
-		return "fail"
-	}
-	return value
 }
 
 func outputAuditFailingCount(findings []output.AuditFinding) int {

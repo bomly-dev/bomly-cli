@@ -216,7 +216,10 @@ func nonZeroSign(score float64) int {
 func diffPostureMarkdown(payload output.DiffResponse) []string {
 	delta := buildPostureDelta(payload.Results.Dependencies)
 	if delta.isEmpty() {
-		return []string{"✅ No project posture changes (or `--matchers +scorecard` was not selected)."}
+		if payload.Metadata.ScorecardEnabled {
+			return []string{"ℹ️ Scorecard ran, but no project posture data was found for these dependencies (e.g. no source repository is known)."}
+		}
+		return []string{"✅ No project posture changes (`--matchers +scorecard` was not selected)."}
 	}
 	lines := []string{
 		fmt.Sprintf(

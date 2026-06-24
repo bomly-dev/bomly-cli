@@ -14,6 +14,7 @@ const SchemaVersion = "1.0"
 type Metadata struct {
 	DurationMS          int64                            `json:"duration_ms"`
 	ReachabilityEnabled bool                             `json:"reachability_enabled,omitempty"`
+	ScorecardEnabled    bool                             `json:"scorecard_enabled,omitempty"`
 	AnalyzerRuns        []string                         `json:"analyzer_runs,omitempty"`
 	AnalyzerStats       map[string]sdk.ReachabilityStats `json:"analyzer_stats,omitempty"`
 }
@@ -22,6 +23,7 @@ type Metadata struct {
 // outputs.
 type ReportOptions struct {
 	ReachabilityEnabled bool
+	ScorecardEnabled    bool
 	AnalyzerRuns        []string
 	AnalyzerStats       map[string]sdk.ReachabilityStats
 	BaseRegistry        *sdk.PackageRegistry
@@ -98,6 +100,10 @@ type PackageRef struct {
 	Licenses        []LicenseRef          `json:"licenses"`
 	Vulnerabilities []VulnerabilityRef    `json:"vulnerabilities"`
 	Scorecard       *sdk.PackageScorecard `json:"scorecard,omitempty"`
+	// Direct reports whether the package is a direct dependency of a project
+	// root. nil means directness could not be determined (e.g. a flat SBOM with
+	// no dependency edges); it is only populated where a graph is in scope.
+	Direct *bool `json:"direct,omitempty"`
 }
 
 // LocationRef points at where a package was declared in a lockfile

@@ -144,12 +144,85 @@ func TestSeverityToSARIFLevel(t *testing.T) {
 		{"low", "note"},
 		{"unknown", "note"},
 		{"", "note"},
+		{"error", "error"},
+		{"warning", "warning"},
+		{"note", "note"},
+		{"n/a", "note"},
 	}
 	for _, tt := range tests {
 		got := severityToSARIFLevel(tt.sev)
 		if got != tt.level {
 			t.Errorf("severityToSARIFLevel(%q) = %q, want %q", tt.sev, got, tt.level)
 		}
+	}
+}
+
+func TestWriteSARIF_SecuritySeverityAndFormattedHelp(t *testing.T) {
+	findings := []sdk.Finding{
+		{
+			ID:         "CVE-2025-48924",
+			Kind:       sdk.FindingKindVulnerability,
+			PackageRef: sarifTestPURL,
+			Title:      "Uncontrolled recursion in commons-lang",
+			Severity:   sdk.SeverityMedium,
+			Source:     "osv",
+			Reasons: []string{
+				"Fix available: upgrade to 3.18.0",
+				"Also known as: CVE-2025-48924",
+				"https://nvd.nist.gov/vuln/detail/CVE-2025-48924",
+			},
+		},
+		{
+			ID:         "INVALID-abcd-efgh-ijkl",
+			Kind:       sdk.FindingKindLicense,
+			PackageRef: sarifTestPURL,
+			Title:      "Package has invalid SPDX license: non-standard",
+			Severity:   sdk.SeverityWarning,
+			Source:     "license",
+		},
+	}
+
+	var buf bytes.Buffer
+	if err := WriteSARIF(&buf, findings, nil, "bomly", "0.1.0"); err != nil {
+		t.Fatalf("WriteSARIF: %v", err)
+	}
+
+	var doc sarifLog
+	if err := json.Unmarshal(buf.Bytes(), &doc); err != nil {
+		t.Fatalf("decode SARIF: %v\n%s", err, buf.String())
+	}
+	rules := doc.Runs[0].Tool.Driver.Rules
+	byID := map[string]sarifRule{}
+	for _, r := range rules {
+		byID[r.ID] = r
+	}
+
+	vuln, ok := byID["CVE-2025-48924"]
+	if !ok {
+		t.Fatal("missing vulnerability rule")
+	}
+	if vuln.Properties == nil || vuln.Properties.SecuritySeverity != "5.5" {
+		t.Fatalf("vuln security-severity = %+v, want 5.5 (medium midpoint)", vuln.Properties)
+	}
+	if vuln.Properties == nil || len(vuln.Properties.Tags) == 0 || vuln.Properties.Tags[0] != "security" {
+		t.Fatalf("vuln rule should carry the security tag, got %+v", vuln.Properties)
+	}
+	if !strings.Contains(vuln.FullDescription.Markdown, "- Fix available: upgrade to 3.18.0") {
+		t.Errorf("expected bulleted fact in markdown, got %q", vuln.FullDescription.Markdown)
+	}
+	if !strings.Contains(vuln.FullDescription.Markdown, "**References**") || !strings.Contains(vuln.FullDescription.Markdown, "nvd.nist.gov") {
+		t.Errorf("expected references section in markdown, got %q", vuln.FullDescription.Markdown)
+	}
+
+	lic, ok := byID["INVALID-abcd-efgh-ijkl"]
+	if !ok {
+		t.Fatal("missing license rule")
+	}
+	if lic.Properties != nil {
+		t.Errorf("license rule should not carry security-severity, got %+v", lic.Properties)
+	}
+	if lic.DefaultConfig.Level != "warning" {
+		t.Errorf("license rule level = %q, want warning", lic.DefaultConfig.Level)
 	}
 }
 

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
@@ -48,6 +49,38 @@ func TestDepGraphFromMavenTGF(t *testing.T) {
 	}
 	if logbackDeps[0].ID != "ch.qos.logback:logback-core@1.5.6" || logbackDeps[1].ID != "org.slf4j:slf4j-api@2.0.13" {
 		t.Fatalf("unexpected logback deps: %#v", logbackDeps)
+	}
+}
+
+func TestDepGraphFromMavenTGF_LongLineExceedsDefaultBuffer(t *testing.T) {
+	// Maven's transfer-progress output is carriage-return delimited, so when it
+	// is captured alongside stdout it can collapse into a single newline-delimited
+	// line far larger than bufio.Scanner's default 64KB token cap. The scanner
+	// must tolerate such a line (and skip it) rather than fail with
+	// "token too long".
+	hugeLine := strings.Repeat("Progress (1): demo-app-1.0.0.jar (1.2 MB) ", 4000)
+	if len(hugeLine) <= 64*1024 {
+		t.Fatalf("test setup: expected a line larger than 64KB, got %d bytes", len(hugeLine))
+	}
+	raw := []byte(hugeLine + "\n" + `1 com.example:demo-app:jar:1.0.0
+2 org.slf4j:slf4j-api:jar:2.0.13:compile
+#
+1 2 compile
+`)
+
+	g, err := depGraphFromMavenTGF(raw)
+	if err != nil {
+		t.Fatalf("depGraphFromMavenTGF() error = %v", err)
+	}
+	if g.Size() != 2 {
+		t.Fatalf("expected 2 packages, got %d", g.Size())
+	}
+	rootDeps, err := g.DirectDependencies("com.example:demo-app@1.0.0")
+	if err != nil {
+		t.Fatalf("dependencies(root) error = %v", err)
+	}
+	if len(rootDeps) != 1 || rootDeps[0].ID != "org.slf4j:slf4j-api@2.0.13" {
+		t.Fatalf("unexpected root deps: %#v", rootDeps)
 	}
 }
 

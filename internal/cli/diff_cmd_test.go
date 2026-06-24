@@ -49,7 +49,10 @@ func TestRenderDiffTextShowsFindingsSummaryLine(t *testing.T) {
 	}
 }
 
-func TestDiffSARIFFindingsOnlyIncludesIntroduced(t *testing.T) {
+func TestDiffSARIFFindingsIncludesIntroducedAndPersisted(t *testing.T) {
+	// Persisted findings are always tied to a package the diff changed, so
+	// they must stay in the SARIF output or GitHub closes their alert as if
+	// the issue had been resolved.
 	introduced := sdk.Finding{ID: "new", PackageRef: "pkg:npm/new@1.0.0"}
 	resolved := sdk.Finding{ID: "old", PackageRef: "pkg:npm/old@1.0.0"}
 	persisted := sdk.Finding{ID: "kept", PackageRef: "pkg:npm/kept@1.0.0"}
@@ -59,12 +62,46 @@ func TestDiffSARIFFindingsOnlyIncludesIntroduced(t *testing.T) {
 		Resolved:   []sdk.Finding{resolved},
 		Persisted:  []sdk.Finding{persisted},
 	})
-	if len(got) != 1 || got[0].ID != introduced.ID {
-		t.Fatalf("diffSARIFFindings() = %#v, want only introduced finding", got)
+	gotIDs := make(map[string]bool, len(got))
+	for _, f := range got {
+		gotIDs[f.ID] = true
+	}
+	if len(got) != 2 || !gotIDs[introduced.ID] || !gotIDs[persisted.ID] {
+		t.Fatalf("diffSARIFFindings() = %#v, want introduced + persisted, excluding resolved", got)
 	}
 
 	if got := diffSARIFFindings(&diffengine.Audit{Resolved: []sdk.Finding{resolved}}); len(got) != 0 {
 		t.Fatalf("resolved-only SARIF findings = %#v, want none", got)
+	}
+}
+
+func TestDiffPolicyExit_PersistedFailingFindingsAlsoFailTheJob(t *testing.T) {
+	// Regression: a version bump that doesn't remediate an advisory classifies
+	// as persisted (see PR fixing diff section agreement), and that must still
+	// fail --fail-on any, since the finding is tied to a package this diff
+	// actually changed.
+	err := diffPolicyExit(true, &diffengine.Audit{
+		Persisted: []sdk.Finding{{ID: "CVE-PERSISTS", Disposition: sdk.FindingDispositionFail}},
+	})
+	if err == nil {
+		t.Fatal("expected a policy violation error for a failing persisted finding")
+	}
+}
+
+func TestDiffPolicyExit_PersistedWarningsDoNotFailTheJob(t *testing.T) {
+	err := diffPolicyExit(true, &diffengine.Audit{
+		Persisted: []sdk.Finding{{ID: "license:warn", Disposition: sdk.FindingDispositionWarn}},
+	})
+	if err != nil {
+		t.Fatalf("expected no policy violation for a warning-only persisted finding, got %v", err)
+	}
+}
+
+func TestDiffPolicyExit_NoAuditNoExit(t *testing.T) {
+	if err := diffPolicyExit(false, &diffengine.Audit{
+		Persisted: []sdk.Finding{{ID: "x", Disposition: sdk.FindingDispositionFail}},
+	}); err != nil {
+		t.Fatalf("expected no exit error when audit is disabled, got %v", err)
 	}
 }
 
@@ -134,7 +171,7 @@ func TestRenderDiffMarkdownIncludesPatchedVersionsByDefault(t *testing.T) {
 		"| added | react@18.2.0 | 18.2.0 | - | unknown | - |",
 		"| changed | zod | 3.22.0 → 3.23.0 | - | unknown | - |",
 		"## Vulnerabilities",
-		"| ❌ | introduced | HIGH | OSV-123 | react@18.2.0 | 18.2.1 | osv | Prototype pollution in react |",
+		"| introduced | HIGH | OSV-123 | react@18.2.0 | 18.2.1 | osv | Prototype pollution in react |",
 		"## Policy Findings",
 		"| ❌ | introduced | vulnerability | HIGH | OSV-123 | react@18.2.0 | 18.2.1 | Prototype pollution in react |",
 	} {

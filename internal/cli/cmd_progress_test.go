@@ -92,7 +92,23 @@ func TestDiffPolicyOutcomeProgressChild_ReportsIntroducedOutcome(t *testing.T) {
 	if child.Icon != progress.CrossMark {
 		t.Fatalf("expected failing outcome icon, got %#v", child)
 	}
-	if child.Detail != "[1 introduced failing, 1 warnings]" {
+	if child.Detail != "[1 failing, 1 warnings]" {
+		t.Fatalf("unexpected policy outcome detail: %#v", child)
+	}
+}
+
+func TestDiffPolicyOutcomeProgressChild_PersistedFindingsAlsoFail(t *testing.T) {
+	// A persisted finding is tied to a package the diff actually changed, so
+	// it must gate the run exactly like an introduced one.
+	child := diffPolicyOutcomeProgressChild(&diffengine.Audit{
+		Persisted: []sdk.Finding{
+			{Disposition: sdk.FindingDispositionFail},
+		},
+	})
+	if child.Icon != progress.CrossMark {
+		t.Fatalf("expected failing outcome icon for a persisted failing finding, got %#v", child)
+	}
+	if child.Detail != "[1 failing, 0 warnings]" {
 		t.Fatalf("unexpected policy outcome detail: %#v", child)
 	}
 }

@@ -109,16 +109,17 @@ func ParseFailOnList(raws []string) ([]FailOnConstraint, error) {
 }
 
 // SeverityRank returns a comparable rank for a severity string.
-// Unknown / empty values rank below "low".
+// Unknown / empty values rank below "low". The GitHub-aligned levels share the
+// ladder with the CVSS bands: error ≡ high, warning ≡ medium, note ≡ low.
 func SeverityRank(severity SeverityLevel) int {
 	switch ParseSeverityLevel(string(severity)) {
 	case SeverityCritical:
 		return 4
-	case SeverityHigh:
+	case SeverityHigh, SeverityError:
 		return 3
-	case SeverityMedium:
+	case SeverityMedium, SeverityWarning:
 		return 2
-	case SeverityLow:
+	case SeverityLow, SeverityNote:
 		return 1
 	default:
 		return 0

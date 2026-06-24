@@ -12,9 +12,13 @@ import (
 )
 
 const (
-	auditorName             = "license"
+	auditorName = "license"
+	// Finding-ID prefixes. The remainder is a compact base32 SHA256 of the PURL
+	// so IDs stay stable, short, and free of package coordinates (which can leak
+	// internal paths and break SARIF rule-ID expectations).
 	unknownLicenseFindingID = "UNKNOWN"
-	licenseSeverityNA       = "n/a"
+	invalidLicenseFindingID = "INVALID"
+	deniedLicenseFindingID  = "DENIED"
 )
 
 // Auditor evaluates package licenses against allow/deny SPDX policy.
@@ -137,15 +141,12 @@ func registryLicenseValues(registry *sdk.PackageRegistry, purl string) []string 
 }
 
 func finding(purl, depID, id, title string, disposition sdk.FindingDisposition) sdk.Finding {
-	findingID := fmt.Sprintf("%s:%s:%s", auditorName, id, purl)
-	if id == "unknown-license" {
-		findingID = unknownLicenseID(purl)
-	}
+	prefix, severity := licenseFindingClass(id)
 	f := sdk.Finding{
-		ID:          findingID,
+		ID:          licenseFindingID(prefix, purl),
 		Kind:        sdk.FindingKindLicense,
 		Title:       title,
-		Severity:    licenseSeverityNA,
+		Severity:    severity,
 		Source:      auditorName,
 		Auditor:     auditorName,
 		Disposition: disposition,
@@ -157,16 +158,34 @@ func finding(purl, depID, id, title string, disposition sdk.FindingDisposition) 
 	return f
 }
 
-func unknownLicenseID(purl string) string {
+// licenseFindingClass maps a license check id to its finding-ID prefix and
+// GitHub-aligned severity. Invalid and unknown licenses are advisory (Warning);
+// a denylisted/not-allowlisted license is a policy failure (Error).
+func licenseFindingClass(id string) (prefix string, severity sdk.SeverityLevel) {
+	switch id {
+	case "unknown-license":
+		return unknownLicenseFindingID, sdk.SeverityWarning
+	case "invalid-license":
+		return invalidLicenseFindingID, sdk.SeverityWarning
+	case "denied-license":
+		return deniedLicenseFindingID, sdk.SeverityError
+	default:
+		return strings.ToUpper(id), sdk.SeverityWarning
+	}
+}
+
+// licenseFindingID builds a compact, stable finding ID of the form
+// "PREFIX-xxxx-xxxx-xxxx" from a base32 SHA256 of the PURL.
+func licenseFindingID(prefix, purl string) string {
 	sum := sha256.Sum256([]byte(strings.TrimSpace(purl)))
 	encoded := strings.ToLower(base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(sum[:]))
 	if len(encoded) > 12 {
 		encoded = encoded[:12]
 	}
 	if len(encoded) < 12 {
-		return unknownLicenseFindingID + "-" + encoded
+		return prefix + "-" + encoded
 	}
-	return fmt.Sprintf("%s-%s-%s-%s", unknownLicenseFindingID, encoded[:4], encoded[4:8], encoded[8:12])
+	return fmt.Sprintf("%s-%s-%s-%s", prefix, encoded[:4], encoded[4:8], encoded[8:12])
 }
 
 func packageExempt(dep *sdk.Dependency, exemptions []string) bool {

@@ -9,10 +9,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
-const (
-	auditorName       = "package"
-	packageSeverityNA = "n/a"
-)
+const auditorName = "package"
 
 // Auditor protects against denied packages and suspiciously similar package names.
 type Auditor struct {
@@ -104,13 +101,22 @@ func finding(pkg *sdk.Dependency, id, title string, disposition sdk.FindingDispo
 		ID:             fmt.Sprintf("%s:%s:%s", auditorName, id, pkg.ID),
 		Kind:           sdk.FindingKindPackage,
 		Title:          title,
-		Severity:       packageSeverityNA,
+		Severity:       packageFindingSeverity(disposition),
 		Source:         auditorName,
 		Auditor:        auditorName,
 		Disposition:    disposition,
 		PackageRef:     purl,
 		DependencyRefs: []string{pkg.ID},
 	}
+}
+
+// packageFindingSeverity maps a finding's disposition to a GitHub-aligned
+// severity: a policy failure is an Error, an advisory finding is a Warning.
+func packageFindingSeverity(disposition sdk.FindingDisposition) sdk.SeverityLevel {
+	if disposition == sdk.FindingDispositionWarn {
+		return sdk.SeverityWarning
+	}
+	return sdk.SeverityError
 }
 
 func packageIDs(graph *sdk.Graph) map[string]struct{} {

@@ -133,7 +133,10 @@ type Finding struct {
     // Identity + policy
     ID          string             // CVE / GHSA / policy ID
     Kind        FindingKind        // vulnerability | license | package | ...
-    Severity    string
+    Severity    string             // CVSS band (critical|high|medium|low) for
+                                   // vulnerabilities; GitHub-aligned level
+                                   // (error|warning|note) for findings without
+                                   // a CVSS score (license, package)
     Title       string
     Reasons     []string
     Source      string             // osv | grype | license | package | ...

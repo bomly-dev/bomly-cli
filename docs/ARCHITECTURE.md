@@ -20,7 +20,7 @@ Each invocation works on exactly one target: a filesystem path, a container imag
 A scan flows through an ordered set of stages. Each stage hands its output to the next, so later stages always see a single, consolidated view of your dependencies.
 
 ```mermaid
-flowchart LR
+flowchart TD
     A[Discover subprojects]
     B[Detect: resolve + consolidate graph]
     C[Match: enrich packages]
@@ -48,10 +48,18 @@ Bomly keeps three kinds of data separate, which is why the same fact never appea
 - **Packages** are deduplicated artifacts keyed by [PURL](GLOSSARY.md). There is one package per unique PURL across the whole scan, and it owns the enrichment: licenses, vulnerabilities, scorecard, and EOL. If 50 dependencies all reference `react@18.2.0`, they share one package — and one set of CVEs.
 - **Findings** are reference-style audit results. A finding names a policy outcome and points back at a package (and, for a vulnerability, at a specific advisory) rather than copying that data inline.
 
-```
-manifests ──> dependencies ──(reference by PURL)──> packages ──> vulnerabilities, licenses, …
-                                                       ▲
-findings (policy outcomes) ─(reference by PURL + advisory id)─┘
+```mermaid
+flowchart TD
+    M[Manifests]
+    D[Dependency instances]
+    P[Packages]
+    E[Vulnerabilities, licenses, scorecard, EOL]
+    F[Findings]
+
+    M -->|contain| D
+    D -->|reference by PURL| P
+    P -->|own enrichment| E
+    F -->|reference by PURL + advisory ID| P
 ```
 
 In the JSON output these surface as three top-level collections — `manifests` (with their `dependencies`), `packages`, and `findings` — and the same vocabulary carries through SARIF and SBOM output. See [Output formats](OUTPUT_FORMATS.md) and the [schema reference](SCHEMAS.md) for the exact shapes.

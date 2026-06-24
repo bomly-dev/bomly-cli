@@ -12,11 +12,18 @@ Bomly's domain model standardizes around three pipeline stages — detection, ma
 
 Vulnerabilities themselves are OSV-aligned `sdk.Vulnerability` records owned by the registry; analyzers annotate them in place with reachability.
 
-```
-manifests ──> dependencies ──(PackageRef = PURL)──> packages ──> vulnerabilities (OSV-aligned)
-                                                       ▲
-                                                       │
-findings (reference-style) ─(PackageRef + VulnerabilityID)─┘
+```mermaid
+flowchart TD
+    M[manifests]
+    D[sdk.Dependency instances]
+    P[sdk.Package registry entries]
+    V[sdk.Vulnerability records]
+    F[sdk.Finding records]
+
+    M -->|contain| D
+    D -->|PackageRef = PURL| P
+    P -->|own OSV-aligned| V
+    F -->|PackageRef + VulnerabilityID| P
 ```
 
 ## `sdk.Dependency` — detection node

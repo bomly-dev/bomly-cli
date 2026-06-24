@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
@@ -40,15 +41,27 @@ type sarifDriver struct {
 }
 
 type sarifRule struct {
-	ID               string          `json:"id"`
-	ShortDescription sarifMessage    `json:"shortDescription"`
-	FullDescription  sarifMessage    `json:"fullDescription"`
-	DefaultConfig    sarifRuleConfig `json:"defaultConfiguration"`
-	HelpURI          string          `json:"helpUri,omitempty"`
+	ID               string               `json:"id"`
+	ShortDescription sarifMessage         `json:"shortDescription"`
+	FullDescription  sarifMessage         `json:"fullDescription"`
+	Help             *sarifMessage        `json:"help,omitempty"`
+	DefaultConfig    sarifRuleConfig      `json:"defaultConfiguration"`
+	HelpURI          string               `json:"helpUri,omitempty"`
+	Properties       *sarifRuleProperties `json:"properties,omitempty"`
 }
 
 type sarifRuleConfig struct {
 	Level string `json:"level"`
+}
+
+// sarifRuleProperties carries the rule-level metadata GitHub code scanning
+// reads to categorize and rank an alert. "security-severity" is a numeric
+// string (0.0–10.0) that GitHub maps to Low/Medium/High/Critical; it is only
+// set for findings backed by a CVSS-style band (vulnerabilities). The
+// "security" tag opts the rule into GitHub's security-alert presentation.
+type sarifRuleProperties struct {
+	SecuritySeverity string   `json:"security-severity,omitempty"`
+	Tags             []string `json:"tags,omitempty"`
 }
 
 type sarifResult struct {
@@ -88,7 +101,8 @@ type sarifRegion struct {
 }
 
 type sarifMessage struct {
-	Text string `json:"text"`
+	Text     string `json:"text"`
+	Markdown string `json:"markdown,omitempty"`
 }
 
 // sarifCodeFlow carries Reachability call paths as SARIF 2.1.0 codeFlows.
@@ -170,13 +184,18 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, registry *sdk.PackageRegist
 		if f.Source == "osv" {
 			helpURI = osvHelpBase + f.ID
 		}
-		rules = append(rules, sarifRule{
+		rule := sarifRule{
 			ID:               f.ID,
 			ShortDescription: sarifMessage{Text: f.Title},
-			FullDescription:  sarifMessage{Text: joinReasons(f.Reasons)},
+			FullDescription:  sarifReasonsMessage(f.Reasons),
 			DefaultConfig:    sarifRuleConfig{Level: severityToSARIFLevel(string(f.Severity))},
 			HelpURI:          helpURI,
-		})
+		}
+		if help := sarifHelpMessage(f.Reasons, helpURI); help != nil {
+			rule.Help = help
+		}
+		rule.Properties = sarifRulePropertiesForFinding(f, registry)
+		rules = append(rules, rule)
 	}
 
 	results := make([]sarifResult, 0, len(findings))
@@ -605,17 +624,135 @@ func sarifPropertiesFromVulnerability(v *sdk.Vulnerability, includeReachability 
 	return props
 }
 
+// severityToSARIFLevel maps an SDK severity to a SARIF level. The CVSS bands
+// and the GitHub-aligned levels share one ladder: critical/high/error → error,
+// medium/warning → warning, low/note → note. Unknown/N-A degrade to note.
 func severityToSARIFLevel(severity string) string {
-	switch severity {
-	case "critical", "high":
+	switch sdk.ParseSeverityLevel(severity) {
+	case sdk.SeverityCritical, sdk.SeverityHigh, sdk.SeverityError:
 		return "error"
-	case "medium":
+	case sdk.SeverityMedium, sdk.SeverityWarning:
 		return "warning"
+	case sdk.SeverityLow, sdk.SeverityNote:
+		return "note"
 	default:
 		return "note"
 	}
 }
 
-func joinReasons(reasons []string) string {
-	return strings.Join(reasons, " ")
+// sarifReasonsMessage renders a finding's reasons as a SARIF message with a
+// plain-text fallback and a Markdown rendering. Facts become bullet points and
+// reference URLs are grouped under a heading so GitHub presents them as a list
+// rather than a single run-on string.
+func sarifReasonsMessage(reasons []string) sarifMessage {
+	facts, refs := splitReasons(reasons)
+	if len(facts) == 0 && len(refs) == 0 {
+		return sarifMessage{}
+	}
+	text := strings.Join(append(append([]string{}, facts...), refs...), "\n")
+
+	var md strings.Builder
+	for _, fact := range facts {
+		md.WriteString("- ")
+		md.WriteString(fact)
+		md.WriteByte('\n')
+	}
+	if len(refs) > 0 {
+		if len(facts) > 0 {
+			md.WriteByte('\n')
+		}
+		md.WriteString("**References**\n")
+		for _, ref := range refs {
+			md.WriteString("- ")
+			md.WriteString(ref)
+			md.WriteByte('\n')
+		}
+	}
+	return sarifMessage{Text: text, Markdown: strings.TrimRight(md.String(), "\n")}
+}
+
+// sarifHelpMessage builds the rule `help` block GitHub renders in the alert
+// detail view: the formatted reasons plus, when present, the advisory link.
+func sarifHelpMessage(reasons []string, helpURI string) *sarifMessage {
+	msg := sarifReasonsMessage(reasons)
+	if helpURI != "" {
+		if msg.Text != "" {
+			msg.Text += "\n"
+		}
+		msg.Text += helpURI
+		if msg.Markdown != "" {
+			msg.Markdown += "\n\n"
+		}
+		msg.Markdown += fmt.Sprintf("[%s](%s)", helpURI, helpURI)
+	}
+	if msg.Text == "" && msg.Markdown == "" {
+		return nil
+	}
+	return &msg
+}
+
+// splitReasons separates bare reference URLs from descriptive facts so each can
+// be rendered distinctly.
+func splitReasons(reasons []string) (facts, refs []string) {
+	for _, reason := range reasons {
+		trimmed := strings.TrimSpace(reason)
+		if trimmed == "" {
+			continue
+		}
+		if strings.HasPrefix(trimmed, "http://") || strings.HasPrefix(trimmed, "https://") {
+			refs = append(refs, trimmed)
+			continue
+		}
+		facts = append(facts, trimmed)
+	}
+	return facts, refs
+}
+
+// sarifRulePropertiesForFinding sets the rule-level metadata GitHub uses to
+// rank security alerts. Only vulnerabilities (CVSS-backed) receive a numeric
+// security-severity and the "security" tag; license/package findings rely on
+// their SARIF level (Error/Warning/Note) instead.
+func sarifRulePropertiesForFinding(f sdk.Finding, registry *sdk.PackageRegistry) *sarifRuleProperties {
+	if f.Kind != sdk.FindingKindVulnerability {
+		return nil
+	}
+	score := securitySeverityScore(f, registry)
+	if score == "" {
+		return nil
+	}
+	return &sarifRuleProperties{SecuritySeverity: score, Tags: []string{"security"}}
+}
+
+// securitySeverityScore returns the GitHub security-severity value for a
+// vulnerability finding: the real CVSS base score when available, otherwise a
+// representative midpoint for the severity band.
+func securitySeverityScore(f sdk.Finding, registry *sdk.PackageRegistry) string {
+	pkg := lookupRegistryPackage(registry, f.PackageRef)
+	if vuln := lookupVulnerability(pkg, f.VulnerabilityID, f.ID); vuln != nil {
+		if score := maxCVSSScore(vuln.CVSS); score > 0 {
+			return strconv.FormatFloat(score, 'f', 1, 64)
+		}
+	}
+	switch sdk.ParseSeverityLevel(string(f.Severity)) {
+	case sdk.SeverityCritical:
+		return "9.5"
+	case sdk.SeverityHigh:
+		return "8.0"
+	case sdk.SeverityMedium:
+		return "5.5"
+	case sdk.SeverityLow:
+		return "2.0"
+	default:
+		return ""
+	}
+}
+
+func maxCVSSScore(scores []sdk.CVSSScore) float64 {
+	max := 0.0
+	for _, s := range scores {
+		if s.Score > max {
+			max = s.Score
+		}
+	}
+	return max
 }

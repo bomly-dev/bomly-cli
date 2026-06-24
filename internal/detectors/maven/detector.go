@@ -22,6 +22,11 @@ import (
 
 var execLookPath = system.LookPath
 
+// maxTGFTokenSize caps the per-line buffer the TGF scanner will grow to. It is
+// far above any realistic single line of `mvn dependency:tree` TGF output while
+// still bounding memory use on pathological input.
+const maxTGFTokenSize = 10 << 20 // 10 MiB
+
 var mavenScopes = map[string]struct{}{
 	"compile":  {},
 	"provided": {},
@@ -230,6 +235,10 @@ func wrapperCandidates() []string {
 
 func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
 	scanner := bufio.NewScanner(strings.NewReader(string(raw)))
+	// bufio.Scanner defaults to a 64KB max token size. Large multi-module
+	// dependency trees (or single nodes with very long coordinate strings)
+	// routinely exceed that and fail with "token too long", so raise the cap.
+	scanner.Buffer(make([]byte, 0, 64*1024), maxTGFTokenSize)
 	inEdges := false
 
 	tgfPackages := make(map[string]*sdk.Dependency)

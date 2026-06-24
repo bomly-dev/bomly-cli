@@ -338,7 +338,7 @@ func TestExtractSeverity_CalculatesFromVector(t *testing.T) {
 	got := extractSeverity([]Severity{{
 		Type:  "CVSS_V3",
 		Score: "CVSS:3.1/AV:L/AC:H/PR:N/UI:R/S:U/C:N/I:N/A:L",
-	}})
+	}}, nil)
 
 	if got != "low" {
 		t.Fatalf("extractSeverity() = %q, want %q", got, "low")
@@ -349,9 +349,46 @@ func TestExtractSeverity_PrefersHigherVersion(t *testing.T) {
 	got := extractSeverity([]Severity{
 		{Type: "CVSS_V2", Score: "AV:N/AC:L/Au:N/C:P/I:P/A:P"},
 		{Type: "CVSS_V4", Score: "AV:L/AC:H/AT:N/PR:N/UI:P/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N"},
-	})
+	}, nil)
 
 	if got != "low" {
 		t.Fatalf("extractSeverity() = %q, want %q", got, "low")
+	}
+}
+
+func TestExtractSeverity_FallsBackToGHSATextWhenNoCVSSVector(t *testing.T) {
+	// Mirrors GHSA-sourced OSV entries (e.g. many Apache project CVEs) that
+	// publish database_specific.severity but no CVSS vector at all.
+	tests := []struct {
+		text string
+		want sdk.SeverityLevel
+	}{
+		{"CRITICAL", sdk.SeverityCritical},
+		{"HIGH", sdk.SeverityHigh},
+		{"MODERATE", sdk.SeverityMedium},
+		{"MEDIUM", sdk.SeverityMedium},
+		{"LOW", sdk.SeverityLow},
+		{"low", sdk.SeverityLow},
+		{"", sdk.SeverityUnknown},
+		{"UNKNOWN", sdk.SeverityUnknown},
+	}
+	for _, tt := range tests {
+		got := extractSeverity(nil, &DatabaseSpecific{Severity: tt.text})
+		if got != tt.want {
+			t.Errorf("extractSeverity(nil, {Severity: %q}) = %q, want %q", tt.text, got, tt.want)
+		}
+	}
+}
+
+func TestExtractSeverity_CVSSVectorTakesPrecedenceOverGHSAText(t *testing.T) {
+	// A real CVSS vector is more precise than the coarse GHSA text rating, so
+	// it must win when both are present.
+	got := extractSeverity([]Severity{{
+		Type:  "CVSS_V3",
+		Score: "CVSS:3.1/AV:L/AC:H/PR:N/UI:R/S:U/C:N/I:N/A:L", // low
+	}}, &DatabaseSpecific{Severity: "CRITICAL"})
+
+	if got != sdk.SeverityLow {
+		t.Fatalf("extractSeverity() = %q, want %q (CVSS should win)", got, sdk.SeverityLow)
 	}
 }

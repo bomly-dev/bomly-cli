@@ -224,8 +224,12 @@ func TestAudit(t *testing.T) {
 				t.Errorf("finding count = %d, want %d; findings: %v", got, tc.wantFindingCount, findingIDs(result.Findings))
 			}
 			for _, finding := range result.Findings {
-				if finding.Severity != packageSeverityNA {
-					t.Errorf("finding %q severity = %q, want %q", finding.ID, finding.Severity, packageSeverityNA)
+				wantSeverity := sdk.SeverityError
+				if finding.Disposition == sdk.FindingDispositionWarn {
+					wantSeverity = sdk.SeverityWarning
+				}
+				if finding.Severity != wantSeverity {
+					t.Errorf("finding %q severity = %q, want %q (disposition %q)", finding.ID, finding.Severity, wantSeverity, finding.Disposition)
 				}
 			}
 			for _, wantID := range tc.wantFindingIDs {

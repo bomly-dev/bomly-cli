@@ -70,10 +70,35 @@ func TestSeverityMeets(t *testing.T) {
 		{"", "any", true},
 		{"", "low", false},
 		{"unknown", "low", false},
+		// GitHub-aligned levels share the rank ladder: error≡high, warning≡medium, note≡low.
+		{"error", "high", true},
+		{"warning", "medium", true},
+		{"warning", "high", false},
+		{"note", "low", true},
+		{"note", "medium", false},
 	}
 	for _, tc := range cases {
 		if got := SeverityMeets(ParseSeverityLevel(tc.candidate), tc.threshold); got != tc.want {
 			t.Errorf("SeverityMeets(%q, %q) = %v, want %v", tc.candidate, tc.threshold, got, tc.want)
+		}
+	}
+}
+
+func TestSeverityRankGitHubLevels(t *testing.T) {
+	cases := []struct {
+		severity SeverityLevel
+		want     int
+	}{
+		{SeverityError, 3},
+		{SeverityWarning, 2},
+		{SeverityNote, 1},
+		{SeverityError, SeverityRank(SeverityHigh)},
+		{SeverityWarning, SeverityRank(SeverityMedium)},
+		{SeverityNote, SeverityRank(SeverityLow)},
+	}
+	for _, tc := range cases {
+		if got := SeverityRank(tc.severity); got != tc.want {
+			t.Errorf("SeverityRank(%q) = %d, want %d", tc.severity, got, tc.want)
 		}
 	}
 }

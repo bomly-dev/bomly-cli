@@ -98,12 +98,12 @@ func TestLicenseAuditorUnknownLicenseUsesCompactFindingID(t *testing.T) {
 	if finding.PackageRef != purl {
 		t.Fatalf("finding package ref = %q, want %q", finding.PackageRef, purl)
 	}
-	if finding.Severity != licenseSeverityNA {
-		t.Fatalf("finding severity = %q, want %q", finding.Severity, licenseSeverityNA)
+	if finding.Severity != sdk.SeverityWarning {
+		t.Fatalf("finding severity = %q, want %q", finding.Severity, sdk.SeverityWarning)
 	}
 }
 
-func TestLicenseAuditorDeniedLicensesUseNASeverity(t *testing.T) {
+func TestLicenseAuditorDeniedLicensesUseErrorSeverity(t *testing.T) {
 	g := sdk.New()
 	root := sdk.NewDependencyRefWithID("app@1.0.0", "app", "1.0.0")
 	_ = g.AddNode(root)
@@ -126,8 +126,11 @@ func TestLicenseAuditorDeniedLicensesUseNASeverity(t *testing.T) {
 	if len(result.Findings) != 1 {
 		t.Fatalf("expected 1 finding, got %#v", result.Findings)
 	}
-	if got := result.Findings[0].Severity; got != licenseSeverityNA {
-		t.Fatalf("finding severity = %q, want %q", got, licenseSeverityNA)
+	if got := result.Findings[0].Severity; got != sdk.SeverityError {
+		t.Fatalf("finding severity = %q, want %q", got, sdk.SeverityError)
+	}
+	if got := result.Findings[0].ID; !strings.HasPrefix(got, deniedLicenseFindingID+"-") {
+		t.Fatalf("finding ID = %q, want %q prefix", got, deniedLicenseFindingID+"-")
 	}
 }
 

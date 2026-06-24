@@ -98,10 +98,10 @@ release:
     name: bomly-cli
   draft: false
   prerelease: auto
-  header: |
-    Bomly release {{ .Tag }}
+  footer: |
+    ---
+    ### Release artifacts
 
-    Included artifacts:
     - Full builtin `bomly` archives for Linux, macOS, and Windows.
     - Alternate `bomly-lite` archives for users who prefer external Syft and Grype binaries.
     - Linux packages for Debian, RPM, Alpine, and Arch-compatible package managers.

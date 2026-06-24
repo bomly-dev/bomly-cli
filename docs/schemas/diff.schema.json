@@ -9758,6 +9758,939 @@
               },
               "type": "array"
             },
+            "persisted": {
+              "items": {
+                "properties": {
+                  "package": {
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "licenses": {
+                        "items": {
+                          "properties": {
+                            "spdxExpression": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "locations": {
+                        "items": {
+                          "properties": {
+                            "access_path": {
+                              "type": "string"
+                            },
+                            "position": {
+                              "properties": {
+                                "column": {
+                                  "type": "integer"
+                                },
+                                "end_line": {
+                                  "type": "integer"
+                                },
+                                "file": {
+                                  "type": "string"
+                                },
+                                "line": {
+                                  "type": "integer"
+                                }
+                              },
+                              "type": "object"
+                            },
+                            "real_path": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "metadata": {
+                        "additionalProperties": {},
+                        "type": "object"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "purl": {
+                        "type": "string"
+                      },
+                      "scope": {
+                        "type": "string"
+                      },
+                      "scorecard": {
+                        "properties": {
+                          "aggregateScore": {
+                            "type": "number"
+                          },
+                          "checks": {
+                            "items": {
+                              "properties": {
+                                "documentation": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "score": {
+                                  "type": "integer"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "score"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "commitSha": {
+                            "type": "string"
+                          },
+                          "repository": {
+                            "type": "string"
+                          },
+                          "runDate": {
+                            "properties": {},
+                            "type": "object"
+                          },
+                          "scorecardVersion": {
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "aggregateScore"
+                        ],
+                        "type": "object"
+                      },
+                      "version": {
+                        "type": "string"
+                      },
+                      "vulnerabilities": {
+                        "items": {
+                          "properties": {
+                            "affected_symbols": {
+                              "items": {
+                                "properties": {
+                                  "definition": {
+                                    "properties": {
+                                      "column": {
+                                        "type": "integer"
+                                      },
+                                      "end_line": {
+                                        "type": "integer"
+                                      },
+                                      "file": {
+                                        "type": "string"
+                                      },
+                                      "line": {
+                                        "type": "integer"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "module": {
+                                    "type": "string"
+                                  },
+                                  "package": {
+                                    "type": "string"
+                                  },
+                                  "symbol": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "affected_version_range": {
+                              "type": "string"
+                            },
+                            "aliases": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "cpes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "cvss": {
+                              "items": {
+                                "properties": {
+                                  "score": {
+                                    "type": "number"
+                                  },
+                                  "source": {
+                                    "type": "string"
+                                  },
+                                  "vector": {
+                                    "type": "string"
+                                  },
+                                  "version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "cwes": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "source": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "data_source": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "epss": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "date": {
+                                    "type": "string"
+                                  },
+                                  "epss": {
+                                    "type": "number"
+                                  },
+                                  "percentile": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "epss"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "fix_available": {
+                              "items": {
+                                "properties": {
+                                  "date": {
+                                    "type": "string"
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "version": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "fix_state": {
+                              "type": "string"
+                            },
+                            "fixed_in": {
+                              "type": "string"
+                            },
+                            "fixed_versions": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "kev_exploited": {
+                              "type": "boolean"
+                            },
+                            "known_exploited": {
+                              "items": {
+                                "properties": {
+                                  "cve": {
+                                    "type": "string"
+                                  },
+                                  "cwes": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "date_added": {
+                                    "type": "string"
+                                  },
+                                  "due_date": {
+                                    "type": "string"
+                                  },
+                                  "known_ransomware_campaign_use": {
+                                    "type": "string"
+                                  },
+                                  "notes": {
+                                    "type": "string"
+                                  },
+                                  "product": {
+                                    "type": "string"
+                                  },
+                                  "required_action": {
+                                    "type": "string"
+                                  },
+                                  "urls": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "vendor_project": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "namespace": {
+                              "type": "string"
+                            },
+                            "reachability": {
+                              "properties": {
+                                "analyzed_at": {
+                                  "type": "string"
+                                },
+                                "analyzer": {
+                                  "type": "string"
+                                },
+                                "call_paths": {
+                                  "items": {
+                                    "properties": {
+                                      "frames": {
+                                        "items": {
+                                          "properties": {
+                                            "function": {
+                                              "type": "string"
+                                            },
+                                            "package": {
+                                              "type": "string"
+                                            },
+                                            "position": {
+                                              "properties": {
+                                                "column": {
+                                                  "type": "integer"
+                                                },
+                                                "end_line": {
+                                                  "type": "integer"
+                                                },
+                                                "file": {
+                                                  "type": "string"
+                                                },
+                                                "line": {
+                                                  "type": "integer"
+                                                }
+                                              },
+                                              "type": "object"
+                                            },
+                                            "receiver": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "type": "object"
+                                        },
+                                        "type": "array"
+                                      },
+                                      "sink": {
+                                        "properties": {
+                                          "definition": {
+                                            "properties": {
+                                              "column": {
+                                                "type": "integer"
+                                              },
+                                              "end_line": {
+                                                "type": "integer"
+                                              },
+                                              "file": {
+                                                "type": "string"
+                                              },
+                                              "line": {
+                                                "type": "integer"
+                                              }
+                                            },
+                                            "type": "object"
+                                          },
+                                          "kind": {
+                                            "type": "string"
+                                          },
+                                          "module": {
+                                            "type": "string"
+                                          },
+                                          "package": {
+                                            "type": "string"
+                                          },
+                                          "symbol": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "type": "object"
+                                      }
+                                    },
+                                    "required": [
+                                      "sink"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "confidence": {
+                                  "type": "string"
+                                },
+                                "dynamic_imports_detected": {
+                                  "type": "boolean"
+                                },
+                                "hops": {
+                                  "type": "integer"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "status": {
+                                  "type": "string"
+                                },
+                                "symbols": {
+                                  "items": {
+                                    "properties": {
+                                      "definition": {
+                                        "properties": {
+                                          "column": {
+                                            "type": "integer"
+                                          },
+                                          "end_line": {
+                                            "type": "integer"
+                                          },
+                                          "file": {
+                                            "type": "string"
+                                          },
+                                          "line": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "type": "object"
+                                      },
+                                      "kind": {
+                                        "type": "string"
+                                      },
+                                      "module": {
+                                        "type": "string"
+                                      },
+                                      "package": {
+                                        "type": "string"
+                                      },
+                                      "symbol": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "tier": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "status"
+                              ],
+                              "type": "object"
+                            },
+                            "reasons": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "references": {
+                              "items": {
+                                "properties": {
+                                  "type": {
+                                    "type": "string"
+                                  },
+                                  "url": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "risk_score": {
+                              "type": "number"
+                            },
+                            "severity": {
+                              "type": "string"
+                            },
+                            "severity_source": {
+                              "type": "string"
+                            },
+                            "source": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "source"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "licenses",
+                      "vulnerabilities"
+                    ],
+                    "type": "object"
+                  },
+                  "vulnerability": {
+                    "properties": {
+                      "affected_symbols": {
+                        "items": {
+                          "properties": {
+                            "definition": {
+                              "properties": {
+                                "column": {
+                                  "type": "integer"
+                                },
+                                "end_line": {
+                                  "type": "integer"
+                                },
+                                "file": {
+                                  "type": "string"
+                                },
+                                "line": {
+                                  "type": "integer"
+                                }
+                              },
+                              "type": "object"
+                            },
+                            "kind": {
+                              "type": "string"
+                            },
+                            "module": {
+                              "type": "string"
+                            },
+                            "package": {
+                              "type": "string"
+                            },
+                            "symbol": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "affected_version_range": {
+                        "type": "string"
+                      },
+                      "aliases": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "cpes": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "cvss": {
+                        "items": {
+                          "properties": {
+                            "score": {
+                              "type": "number"
+                            },
+                            "source": {
+                              "type": "string"
+                            },
+                            "vector": {
+                              "type": "string"
+                            },
+                            "version": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "cwes": {
+                        "items": {
+                          "properties": {
+                            "cve": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "source": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "data_source": {
+                        "type": "string"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "epss": {
+                        "items": {
+                          "properties": {
+                            "cve": {
+                              "type": "string"
+                            },
+                            "date": {
+                              "type": "string"
+                            },
+                            "epss": {
+                              "type": "number"
+                            },
+                            "percentile": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "epss"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "fix_available": {
+                        "items": {
+                          "properties": {
+                            "date": {
+                              "type": "string"
+                            },
+                            "kind": {
+                              "type": "string"
+                            },
+                            "version": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "fix_state": {
+                        "type": "string"
+                      },
+                      "fixed_in": {
+                        "type": "string"
+                      },
+                      "fixed_versions": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "kev_exploited": {
+                        "type": "boolean"
+                      },
+                      "known_exploited": {
+                        "items": {
+                          "properties": {
+                            "cve": {
+                              "type": "string"
+                            },
+                            "cwes": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "date_added": {
+                              "type": "string"
+                            },
+                            "due_date": {
+                              "type": "string"
+                            },
+                            "known_ransomware_campaign_use": {
+                              "type": "string"
+                            },
+                            "notes": {
+                              "type": "string"
+                            },
+                            "product": {
+                              "type": "string"
+                            },
+                            "required_action": {
+                              "type": "string"
+                            },
+                            "urls": {
+                              "items": {
+                                "type": "string"
+                              },
+                              "type": "array"
+                            },
+                            "vendor_project": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "namespace": {
+                        "type": "string"
+                      },
+                      "reachability": {
+                        "properties": {
+                          "analyzed_at": {
+                            "type": "string"
+                          },
+                          "analyzer": {
+                            "type": "string"
+                          },
+                          "call_paths": {
+                            "items": {
+                              "properties": {
+                                "frames": {
+                                  "items": {
+                                    "properties": {
+                                      "function": {
+                                        "type": "string"
+                                      },
+                                      "package": {
+                                        "type": "string"
+                                      },
+                                      "position": {
+                                        "properties": {
+                                          "column": {
+                                            "type": "integer"
+                                          },
+                                          "end_line": {
+                                            "type": "integer"
+                                          },
+                                          "file": {
+                                            "type": "string"
+                                          },
+                                          "line": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "type": "object"
+                                      },
+                                      "receiver": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "sink": {
+                                  "properties": {
+                                    "definition": {
+                                      "properties": {
+                                        "column": {
+                                          "type": "integer"
+                                        },
+                                        "end_line": {
+                                          "type": "integer"
+                                        },
+                                        "file": {
+                                          "type": "string"
+                                        },
+                                        "line": {
+                                          "type": "integer"
+                                        }
+                                      },
+                                      "type": "object"
+                                    },
+                                    "kind": {
+                                      "type": "string"
+                                    },
+                                    "module": {
+                                      "type": "string"
+                                    },
+                                    "package": {
+                                      "type": "string"
+                                    },
+                                    "symbol": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "type": "object"
+                                }
+                              },
+                              "required": [
+                                "sink"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "confidence": {
+                            "type": "string"
+                          },
+                          "dynamic_imports_detected": {
+                            "type": "boolean"
+                          },
+                          "hops": {
+                            "type": "integer"
+                          },
+                          "reason": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "symbols": {
+                            "items": {
+                              "properties": {
+                                "definition": {
+                                  "properties": {
+                                    "column": {
+                                      "type": "integer"
+                                    },
+                                    "end_line": {
+                                      "type": "integer"
+                                    },
+                                    "file": {
+                                      "type": "string"
+                                    },
+                                    "line": {
+                                      "type": "integer"
+                                    }
+                                  },
+                                  "type": "object"
+                                },
+                                "kind": {
+                                  "type": "string"
+                                },
+                                "module": {
+                                  "type": "string"
+                                },
+                                "package": {
+                                  "type": "string"
+                                },
+                                "symbol": {
+                                  "type": "string"
+                                }
+                              },
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "tier": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "status"
+                        ],
+                        "type": "object"
+                      },
+                      "reasons": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "references": {
+                        "items": {
+                          "properties": {
+                            "type": {
+                              "type": "string"
+                            },
+                            "url": {
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      "risk_score": {
+                        "type": "number"
+                      },
+                      "severity": {
+                        "type": "string"
+                      },
+                      "severity_source": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "source"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "package",
+                  "vulnerability"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
             "removed": {
               "items": {
                 "properties": {

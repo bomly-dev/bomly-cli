@@ -96,6 +96,66 @@ func TestRun_AuditsOnlyVersionChangedPackages(t *testing.T) {
 	assertFindingIDs(t, result.Audit.Persisted)
 }
 
+func TestRun_SameVulnerabilityAcrossVersionBumpPersists(t *testing.T) {
+	// A version bump that does not remediate the advisory must classify as
+	// persisted, not as one introduced + one resolved, so the diff sections
+	// agree that the project is still subject to the same vulnerability.
+	oldLodash := npmPackage("lodash", "4.17.20")
+	newLodash := npmPackage("lodash", "4.17.21")
+	base := diffTestPipeline(t, graphFixture(t, oldLodash), map[string][]sdk.Finding{
+		oldLodash.ID: {{ID: "CVE-LODASH", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
+	})
+	head := diffTestPipeline(t, graphFixture(t, newLodash), map[string][]sdk.Finding{
+		newLodash.ID: {{ID: "CVE-LODASH", Kind: sdk.FindingKindVulnerability, Source: "osv"}},
+	})
+
+	result, err := Run(context.Background(), Request{
+		Base: Target{Pipeline: base, Request: diffTestRequest()},
+		Head: Target{Pipeline: head, Request: diffTestRequest()},
+	})
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	assertFindingIDs(t, result.Audit.Introduced)
+	assertFindingIDs(t, result.Audit.Resolved)
+	assertFindingIDs(t, result.Audit.Persisted, "CVE-LODASH")
+}
+
+func TestRun_SameLicenseIssueAcrossVersionBumpPersists(t *testing.T) {
+	// The license finding id hashes the full PURL, so it differs per version.
+	// Keying on the base PURL keeps a carried-over license issue persisted.
+	oldLib := npmPackage("lib", "1.0.0")
+	newLib := npmPackage("lib", "1.1.0")
+	licenseFinding := func(purl string) sdk.Finding {
+		return sdk.Finding{
+			ID:       "INVALID-from-" + purl,
+			Kind:     sdk.FindingKindLicense,
+			Source:   "license",
+			Severity: sdk.SeverityWarning,
+		}
+	}
+	base := diffTestPipeline(t, graphFixture(t, oldLib), map[string][]sdk.Finding{
+		oldLib.ID: {licenseFinding(oldLib.PURL)},
+	})
+	head := diffTestPipeline(t, graphFixture(t, newLib), map[string][]sdk.Finding{
+		newLib.ID: {licenseFinding(newLib.PURL)},
+	})
+
+	result, err := Run(context.Background(), Request{
+		Base: Target{Pipeline: base, Request: diffTestRequest()},
+		Head: Target{Pipeline: head, Request: diffTestRequest()},
+	})
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	if len(result.Audit.Introduced) != 0 || len(result.Audit.Resolved) != 0 {
+		t.Fatalf("license issue carried across the bump should not be introduced/resolved: %+v", result.Audit)
+	}
+	if len(result.Audit.Persisted) != 1 {
+		t.Fatalf("expected the license finding to persist, got %#v", result.Audit.Persisted)
+	}
+}
+
 func TestRun_UnknownLicenseFindingIsEmittedForFocusedPackage(t *testing.T) {
 	react := npmPackage("react", "18.2.0")
 	registry := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())

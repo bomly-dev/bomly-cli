@@ -182,11 +182,27 @@ func diffFindingSets(baseFindings, headFindings []sdk.Finding) ([]sdk.Finding, [
 	return introduced, resolved, persisted
 }
 
+// diffFindingKey identifies a finding independently of the package version, so
+// a finding that survives a version bump (e.g. a CVE the upgrade does not
+// remediate, or a license issue carried into the new version) classifies as
+// persisted rather than as one introduced + one resolved.
+//
+// Vulnerabilities key on their advisory id (CVE/GHSA), which is already
+// version-independent. License/package findings carry a per-version finding id
+// (the id hashes the full PURL), so they instead key on the base PURL plus
+// kind+source — each auditor emits at most one such finding per package, so
+// this uniquely identifies "this package's license/policy status".
 func diffFindingKey(finding sdk.Finding) string {
-	// Reference-style Finding: key on PackageRef + VulnerabilityID.
-	vulnID := finding.VulnerabilityID
-	if vulnID == "" {
-		vulnID = finding.ID
+	base := sdk.PackageURLBase(finding.PackageRef)
+	if base == "" {
+		base = finding.PackageRef
 	}
-	return fmt.Sprintf("%s|%s|%s|%s|%s", finding.ID, finding.Kind, finding.Source, finding.PackageRef, vulnID)
+	discriminator := ""
+	if finding.Kind == sdk.FindingKindVulnerability {
+		discriminator = finding.VulnerabilityID
+		if discriminator == "" {
+			discriminator = finding.ID
+		}
+	}
+	return fmt.Sprintf("%s|%s|%s|%s", finding.Kind, finding.Source, base, discriminator)
 }

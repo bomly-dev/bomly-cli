@@ -66,11 +66,54 @@ func TestDiffVulnerabilityMarkdownPersistedMessage(t *testing.T) {
 func TestDiffPostureMarkdownDistinguishesScorecardRun(t *testing.T) {
 	ran := output.DiffResponse{Metadata: output.Metadata{ScorecardEnabled: true}}
 	if got := strings.Join(diffPostureMarkdown(ran), "\n"); !strings.Contains(got, "Scorecard ran") {
-		t.Errorf("expected scorecard-ran message, got %q", got)
+		t.Errorf("expected scorecard-ran-no-data message, got %q", got)
 	}
 	notRun := output.DiffResponse{Metadata: output.Metadata{ScorecardEnabled: false}}
 	if got := strings.Join(diffPostureMarkdown(notRun), "\n"); !strings.Contains(got, "was not selected") {
 		t.Errorf("expected not-selected message, got %q", got)
+	}
+}
+
+func TestDiffPostureMarkdownDoesNotConflateNoDataWithNoChange(t *testing.T) {
+	// A package with identical Scorecard data on both sides of a version bump
+	// has posture data, but buildPostureDelta drops it (no meaningful score
+	// change), so delta.isEmpty() is true here for a different reason than
+	// "scorecard found nothing" — the message must reflect that distinction.
+	card := &sdk.PackageScorecard{Repository: "github.com/example/repo", AggregateScore: 7.5}
+	payload := output.DiffResponse{
+		Metadata: output.Metadata{ScorecardEnabled: true},
+		Results: output.DiffResults{
+			Dependencies: output.DiffDependencyResults{
+				Changed: []output.DiffChangedPackage{{
+					Before: output.PackageRef{Name: "lib", Version: "1.0.0", Scorecard: card},
+					After:  output.PackageRef{Name: "lib", Version: "1.0.1", Scorecard: card},
+				}},
+			},
+		},
+	}
+	got := strings.Join(diffPostureMarkdown(payload), "\n")
+	if !strings.Contains(got, "No project posture changes") {
+		t.Errorf("expected a plain no-changes message, got %q", got)
+	}
+	if strings.Contains(got, "no project posture data was found") {
+		t.Errorf("message should not claim no data was found when data exists, got %q", got)
+	}
+}
+
+func TestPersistedLicenseFindingCountDedupesByPackage(t *testing.T) {
+	// Two persisted license findings on the same package must count as one
+	// package, so the count matches the "N packages" wording in
+	// licensePersistedNote.
+	pkg := output.PackageRef{ID: "pkg:npm/lib@1.0.0"}
+	audit := &output.DiffAudit{
+		Persisted: []output.AuditFinding{
+			{Kind: sdk.FindingKindLicense, Package: pkg},
+			{Kind: sdk.FindingKindLicense, Package: pkg},
+			{Kind: sdk.FindingKindVulnerability, Package: pkg},
+		},
+	}
+	if got := persistedLicenseFindingCount(audit); got != 1 {
+		t.Errorf("persistedLicenseFindingCount() = %d, want 1 (deduplicated by package)", got)
 	}
 }
 

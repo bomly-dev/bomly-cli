@@ -184,6 +184,31 @@ func buildPostureDelta(results output.DiffDependencyResults) postureDelta {
 	return delta
 }
 
+// hasScorecardData reports whether any package in the diff carries a
+// Scorecard annotation, regardless of whether that produced a posture delta
+// row. Used to distinguish "scorecard ran but found nothing" from "scorecard
+// ran, found data on both sides, and it simply didn't change" — buildPostureDelta
+// drops the latter case entirely (see scoresDifferMeaningfully), so its
+// isEmpty() result alone can't tell the two apart.
+func hasScorecardData(results output.DiffDependencyResults) bool {
+	for _, change := range results.Added {
+		if change.Package.Scorecard != nil {
+			return true
+		}
+	}
+	for _, change := range results.Removed {
+		if change.Package.Scorecard != nil {
+			return true
+		}
+	}
+	for _, change := range results.Changed {
+		if change.Before.Scorecard != nil || change.After.Scorecard != nil {
+			return true
+		}
+	}
+	return false
+}
+
 // scoresDifferMeaningfully returns true when before / after differ by at
 // least 0.1 — enough to surface above noise but below the precision we
 // already render at (.1/10).
@@ -216,10 +241,16 @@ func nonZeroSign(score float64) int {
 func diffPostureMarkdown(payload output.DiffResponse) []string {
 	delta := buildPostureDelta(payload.Results.Dependencies)
 	if delta.isEmpty() {
-		if payload.Metadata.ScorecardEnabled {
+		switch {
+		case !payload.Metadata.ScorecardEnabled:
+			return []string{"✅ No project posture changes (`--matchers +scorecard` was not selected)."}
+		case hasScorecardData(payload.Results.Dependencies):
+			// Scorecard ran and found data, it just didn't move the needle —
+			// distinct from never having found posture data at all.
+			return []string{"✅ No project posture changes."}
+		default:
 			return []string{"ℹ️ Scorecard ran, but no project posture data was found for these dependencies (e.g. no source repository is known)."}
 		}
-		return []string{"✅ No project posture changes (`--matchers +scorecard` was not selected)."}
 	}
 	lines := []string{
 		fmt.Sprintf(

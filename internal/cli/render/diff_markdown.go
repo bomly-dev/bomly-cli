@@ -215,20 +215,23 @@ func diffLicenseMarkdown(payload output.DiffResponse) []string {
 	return trimTrailingMarkdownBlanks(lines)
 }
 
-// persistedLicenseFindingCount counts license findings that survived the diff
-// (present before and after) so the License section can flag that the change
-// did not resolve them, mirroring the persisted-vulnerability messaging.
+// persistedLicenseFindingCount counts distinct packages with a license finding
+// that survived the diff (present before and after) so the License section can
+// flag that the change did not resolve them, mirroring the persisted-
+// vulnerability messaging. Deduplicated by package so the count matches the
+// "N packages" wording in licensePersistedNote even if a package ever carries
+// more than one persisted license finding.
 func persistedLicenseFindingCount(audit *output.DiffAudit) int {
 	if audit == nil {
 		return 0
 	}
-	count := 0
+	packages := map[string]struct{}{}
 	for _, finding := range audit.Persisted {
 		if finding.Kind == sdk.FindingKindLicense {
-			count++
+			packages[finding.Package.ID] = struct{}{}
 		}
 	}
-	return count
+	return len(packages)
 }
 
 func licensePersistedNote(n int) string {

@@ -31,7 +31,7 @@ func MapVulnerability(v Vulnerability) sdk.Vulnerability {
 		// Bomly extensions
 		Source:         "osv",
 		Title:          firstNonEmpty(v.Summary, v.ID),
-		ParsedSeverity: extractSeverity(v.Severity),
+		ParsedSeverity: extractSeverity(v.Severity, v.DatabaseSpecific),
 		Reasons:        buildReasons(v),
 		CVSS:           buildCVSS(v.Severity),
 		CWEs:           mapCWEs(v),
@@ -74,10 +74,20 @@ func mapAffected(affected []Affected) []sdk.Affected {
 }
 
 func mapDatabaseSpecific(ds *DatabaseSpecific) map[string]any {
-	if ds == nil || len(ds.CweIDs) == 0 {
+	if ds == nil {
 		return nil
 	}
-	return map[string]any{"cwe_ids": append([]string(nil), ds.CweIDs...)}
+	out := map[string]any{}
+	if len(ds.CweIDs) > 0 {
+		out["cwe_ids"] = append([]string(nil), ds.CweIDs...)
+	}
+	if ds.Severity != "" {
+		out["severity"] = ds.Severity
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
 }
 
 func mapCWEs(v Vulnerability) []sdk.CWE {
@@ -101,7 +111,7 @@ func firstNonEmpty(a, b string) string {
 
 // extractSeverity derives a normalized severity band from OSV severity entries.
 // Prefers CVSS v4 > v3.1 > v3 > v2 > unknown.
-func extractSeverity(severities []Severity) sdk.SeverityLevel {
+func extractSeverity(severities []Severity, ds *DatabaseSpecific) sdk.SeverityLevel {
 	scores := map[string]float64{}
 	for _, s := range severities {
 		if score := parseCVSSScore(s.Type, s.Score); score > 0 {
@@ -113,7 +123,34 @@ func extractSeverity(severities []Severity) sdk.SeverityLevel {
 			return cvssScoreToBand(score)
 		}
 	}
+	// GHSA-sourced advisories (e.g. many Apache project CVEs) frequently
+	// publish no CVSS vector at all, only a textual database_specific.severity
+	// rating. Without this fallback those findings carry SeverityUnknown,
+	// which drops the SARIF security-severity property entirely and leaves
+	// GitHub showing a generic "Warning" badge instead of Low/Medium/High.
+	if ds != nil {
+		if band := severityFromGHSAText(ds.Severity); band != sdk.SeverityUnknown {
+			return band
+		}
+	}
 	return sdk.SeverityUnknown
+}
+
+// severityFromGHSAText maps GitHub Security Advisory's textual severity
+// rating to Bomly's CVSS band vocabulary.
+func severityFromGHSAText(raw string) sdk.SeverityLevel {
+	switch strings.ToUpper(strings.TrimSpace(raw)) {
+	case "CRITICAL":
+		return sdk.SeverityCritical
+	case "HIGH":
+		return sdk.SeverityHigh
+	case "MODERATE", "MEDIUM":
+		return sdk.SeverityMedium
+	case "LOW":
+		return sdk.SeverityLow
+	default:
+		return sdk.SeverityUnknown
+	}
 }
 
 func parseCVSSScore(kind, raw string) float64 {

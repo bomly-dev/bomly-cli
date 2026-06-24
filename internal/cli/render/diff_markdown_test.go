@@ -9,6 +9,35 @@ import (
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
+func TestDiffOverviewMarkdownPersistedFailingCountsAsFailing(t *testing.T) {
+	// A persisted finding is tied to a package the diff actually changed, so
+	// the Overview status must reflect it as a failure, not a softer warning.
+	payload := output.DiffResponse{
+		Audit: &output.DiffAudit{
+			Persisted: []output.AuditFinding{{ID: "CVE-PERSISTS", Disposition: sdk.FindingDispositionFail}},
+		},
+	}
+	got := strings.Join(diffOverviewMarkdown(payload), "\n")
+	if !strings.Contains(got, "❌ Failing findings") {
+		t.Errorf("expected failing status for a failing persisted finding, got %q", got)
+	}
+}
+
+func TestDiffOverviewMarkdownPersistedWarningsAreWarnings(t *testing.T) {
+	payload := output.DiffResponse{
+		Audit: &output.DiffAudit{
+			Persisted: []output.AuditFinding{{ID: "license:warn", Disposition: sdk.FindingDispositionWarn}},
+		},
+	}
+	got := strings.Join(diffOverviewMarkdown(payload), "\n")
+	if !strings.Contains(got, "⚠️ Warnings") {
+		t.Errorf("expected a warning status for a warn-only persisted finding, got %q", got)
+	}
+	if strings.Contains(got, "❌") {
+		t.Errorf("did not expect a failing status, got %q", got)
+	}
+}
+
 func TestHumanizeDurationMS(t *testing.T) {
 	cases := []struct {
 		ms   int64

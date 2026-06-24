@@ -199,7 +199,10 @@ func newDiffCmd() *cobra.Command {
 			}
 			if outputFormat == output.FormatSARIF {
 				prog.Success("Resolved Graph")
-				return sarifRenderer(streams.reportWriter())
+				if err := sarifRenderer(streams.reportWriter()); err != nil {
+					return err
+				}
+				return diffPolicyExit(current.Audit, diffResult.Audit)
 			}
 			if current.Interactive {
 				prog.Stop()
@@ -211,9 +214,9 @@ func newDiffCmd() *cobra.Command {
 				prog.SeparateReport()
 			}
 			err = output.Write(streams.reportWriter(), outputFormat, payload, reportRenderers)
-			if err == nil && current.Audit && diffResult.Audit != nil {
-				if failing := output.FailingFindingCount(diffResult.Audit.Introduced); failing > 0 {
-					return exit.PolicyViolationFindings(failing)
+			if err == nil {
+				if exitErr := diffPolicyExit(current.Audit, diffResult.Audit); exitErr != nil {
+					return exitErr
 				}
 			}
 			return err
@@ -227,16 +230,33 @@ func newDiffCmd() *cobra.Command {
 	return cmd
 }
 
-func diffSARIFFindings(audit *diffengine.Audit) []sdk.Finding {
-	if audit == nil || len(audit.Introduced) == 0 {
+// auditBlockingFindings returns the findings that must keep gating this diff
+// and remain open code-scanning alerts: newly introduced findings, plus
+// persisted ones.
+//
+// Every Persisted finding is, by construction, tied to a package the diff
+// actually changed: the focused audit graph built in engine/diff.Run only
+// ever audits added, removed, or version-changed packages (see
+// focusedAuditGraphs), so a finding can only be classified "persisted" when
+// the same finding key survives a real change to that package. In other
+// words, "persisted" never means unrelated pre-existing debt — it always
+// means "this exact version bump still ships a known issue" — so it must
+// fail the job under --fail-on just like an introduced finding, and must stay
+// in the uploaded SARIF so GitHub doesn't close its alert.
+func auditBlockingFindings(audit *diffengine.Audit) []sdk.Finding {
+	if audit == nil {
 		return nil
 	}
-	return append([]sdk.Finding(nil), audit.Introduced...)
+	return append(append([]sdk.Finding(nil), audit.Introduced...), audit.Persisted...)
+}
+
+func diffSARIFFindings(audit *diffengine.Audit) []sdk.Finding {
+	return auditBlockingFindings(audit)
 }
 
 func diffPolicyExit(auditEnabled bool, audit *diffengine.Audit) error {
 	if auditEnabled && audit != nil {
-		if failing := output.FailingFindingCount(audit.Introduced); failing > 0 {
+		if failing := output.FailingFindingCount(auditBlockingFindings(audit)); failing > 0 {
 			return exit.PolicyViolationFindings(failing)
 		}
 	}

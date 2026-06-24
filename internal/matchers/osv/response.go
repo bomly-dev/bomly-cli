@@ -84,4 +84,9 @@ type Event struct {
 // DatabaseSpecific holds ecosystem-specific metadata (e.g., CWE IDs from GitHub).
 type DatabaseSpecific struct {
 	CweIDs []string `json:"cwe_ids,omitempty"`
+	// Severity is GitHub Security Advisory's textual rating (LOW / MODERATE /
+	// HIGH / CRITICAL). GHSA-sourced OSV entries frequently omit a CVSS vector
+	// in the top-level `severity` array, so this is the only severity signal
+	// available for them.
+	Severity string `json:"severity,omitempty"`
 }

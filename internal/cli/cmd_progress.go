@@ -286,8 +286,9 @@ func analyzerProgressDetail(stats sdk.ReachabilityStats) string {
 	return "[" + strings.Join(parts, ", ") + "]"
 }
 
-// diffPolicyOutcomeProgressChild summarizes introduced diff findings using
-// the same introduced-only failure semantics as `bomly diff --audit`.
+// diffPolicyOutcomeProgressChild summarizes the diff findings that gate the
+// run, using the same blocking semantics as `bomly diff --audit` (introduced
+// plus persisted — see auditBlockingFindings).
 func diffPolicyOutcomeProgressChild(audit *diffengine.Audit) progress.Child {
 	if audit == nil {
 		return progress.Child{
@@ -296,8 +297,9 @@ func diffPolicyOutcomeProgressChild(audit *diffengine.Audit) progress.Child {
 			Detail: "[no audit delta]",
 		}
 	}
-	failing := output.FailingFindingCount(audit.Introduced)
-	warnings := len(audit.Introduced) - failing
+	blocking := auditBlockingFindings(audit)
+	failing := output.FailingFindingCount(blocking)
+	warnings := len(blocking) - failing
 	child := progress.Child{
 		Icon:  progress.CheckMark,
 		Label: "Policy Outcome",
@@ -305,12 +307,12 @@ func diffPolicyOutcomeProgressChild(audit *diffengine.Audit) progress.Child {
 	switch {
 	case failing > 0:
 		child.Icon = progress.CrossMark
-		child.Detail = fmt.Sprintf("[%d introduced failing, %d warnings]", failing, warnings)
+		child.Detail = fmt.Sprintf("[%d failing, %d warnings]", failing, warnings)
 	case warnings > 0:
 		child.Icon = progress.WarningMark
-		child.Detail = fmt.Sprintf("[passed, %d introduced warnings]", warnings)
+		child.Detail = fmt.Sprintf("[passed, %d warnings]", warnings)
 	default:
-		child.Detail = "[passed, no introduced findings]"
+		child.Detail = "[passed, no findings]"
 	}
 	return child
 }

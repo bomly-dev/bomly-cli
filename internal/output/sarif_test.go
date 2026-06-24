@@ -133,27 +133,48 @@ func TestWriteSARIF_EmptyFindingsEncodeArrayFields(t *testing.T) {
 	}
 }
 
-func TestSeverityToSARIFLevel(t *testing.T) {
+func TestDispositionToSARIFLevel(t *testing.T) {
 	tests := []struct {
-		sev   string
-		level string
+		disposition sdk.FindingDisposition
+		level       string
 	}{
-		{"critical", "error"},
-		{"high", "error"},
-		{"medium", "warning"},
-		{"low", "note"},
-		{"unknown", "note"},
-		{"", "note"},
-		{"error", "error"},
-		{"warning", "warning"},
-		{"note", "note"},
-		{"n/a", "note"},
+		{sdk.FindingDispositionFail, "error"},
+		{sdk.FindingDispositionWarn, "warning"},
+		{"", "error"}, // unset disposition is treated as failing, like FailingFindingCount
 	}
 	for _, tt := range tests {
-		got := severityToSARIFLevel(tt.sev)
+		got := dispositionToSARIFLevel(tt.disposition)
 		if got != tt.level {
-			t.Errorf("severityToSARIFLevel(%q) = %q, want %q", tt.sev, got, tt.level)
+			t.Errorf("dispositionToSARIFLevel(%q) = %q, want %q", tt.disposition, got, tt.level)
 		}
+	}
+}
+
+// TestSARIFLevelIgnoresSeverity locks in the point that job impact and
+// severity are orthogonal: a Low-severity finding that fails the build is
+// still "error", and a Critical one that's only a warning is still "warning".
+func TestSARIFLevelIgnoresSeverity(t *testing.T) {
+	findings := []sdk.Finding{
+		{ID: "fail-low", PackageRef: sarifTestPURL, Title: "x", Severity: sdk.SeverityLow, Disposition: sdk.FindingDispositionFail},
+		{ID: "warn-critical", PackageRef: sarifTestPURL, Title: "y", Severity: sdk.SeverityCritical, Disposition: sdk.FindingDispositionWarn},
+	}
+	var buf bytes.Buffer
+	if err := WriteSARIF(&buf, findings, nil, "bomly", "0.1.0"); err != nil {
+		t.Fatalf("WriteSARIF: %v", err)
+	}
+	var doc sarifLog
+	if err := json.Unmarshal(buf.Bytes(), &doc); err != nil {
+		t.Fatalf("decode SARIF: %v\n%s", err, buf.String())
+	}
+	byID := map[string]sarifRule{}
+	for _, r := range doc.Runs[0].Tool.Driver.Rules {
+		byID[r.ID] = r
+	}
+	if got := byID["fail-low"].DefaultConfig.Level; got != "error" {
+		t.Errorf("low-severity failing finding level = %q, want error", got)
+	}
+	if got := byID["warn-critical"].DefaultConfig.Level; got != "warning" {
+		t.Errorf("critical-severity warning finding level = %q, want warning", got)
 	}
 }
 
@@ -173,12 +194,13 @@ func TestWriteSARIF_SecuritySeverityAndFormattedHelp(t *testing.T) {
 			},
 		},
 		{
-			ID:         "INVALID-abcd-efgh-ijkl",
-			Kind:       sdk.FindingKindLicense,
-			PackageRef: sarifTestPURL,
-			Title:      "Package has invalid SPDX license: non-standard",
-			Severity:   sdk.SeverityWarning,
-			Source:     "license",
+			ID:          "INVALID-abcd-efgh-ijkl",
+			Kind:        sdk.FindingKindLicense,
+			PackageRef:  sarifTestPURL,
+			Title:       "Package has invalid SPDX license: non-standard",
+			Severity:    sdk.SeverityWarning,
+			Disposition: sdk.FindingDispositionWarn,
+			Source:      "license",
 		},
 	}
 

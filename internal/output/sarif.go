@@ -188,7 +188,7 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, registry *sdk.PackageRegist
 			ID:               f.ID,
 			ShortDescription: sarifMessage{Text: f.Title},
 			FullDescription:  sarifReasonsMessage(f.Reasons),
-			DefaultConfig:    sarifRuleConfig{Level: severityToSARIFLevel(string(f.Severity))},
+			DefaultConfig:    sarifRuleConfig{Level: dispositionToSARIFLevel(f.Disposition)},
 			HelpURI:          helpURI,
 		}
 		if help := sarifHelpMessage(f.Reasons, helpURI); help != nil {
@@ -209,7 +209,7 @@ func WriteSARIF(w io.Writer, findings []sdk.Finding, registry *sdk.PackageRegist
 		locations, locationURIs := sarifLocationsForFinding(f, includeReachability, options)
 		result := sarifResult{
 			RuleID:              f.ID,
-			Level:               severityToSARIFLevel(string(f.Severity)),
+			Level:               dispositionToSARIFLevel(f.Disposition),
 			Message:             sarifMessage{Text: msgText},
 			Locations:           locations,
 			BaselineState:       sarifBaselineState(options),
@@ -624,19 +624,22 @@ func sarifPropertiesFromVulnerability(v *sdk.Vulnerability, includeReachability 
 	return props
 }
 
-// severityToSARIFLevel maps an SDK severity to a SARIF level. The CVSS bands
-// and the GitHub-aligned levels share one ladder: critical/high/error → error,
-// medium/warning → warning, low/note → note. Unknown/N-A degrade to note.
-func severityToSARIFLevel(severity string) string {
-	switch sdk.ParseSeverityLevel(severity) {
-	case sdk.SeverityCritical, sdk.SeverityHigh, sdk.SeverityError:
-		return "error"
-	case sdk.SeverityMedium, sdk.SeverityWarning:
+// dispositionToSARIFLevel maps a finding's disposition to a SARIF level. The
+// level reflects whether the finding blocks the job — error for a failing
+// finding, warning for an advisory one — never the underlying severity band.
+// Severity is reported separately via security-severity for vulnerabilities
+// (see sarifRulePropertiesForFinding), so a Low-severity finding that fails
+// the build still surfaces as "error" here, and a Critical one that's merely
+// a warning still surfaces as "warning": job impact and severity are
+// orthogonal, and GitHub's level/badge should track the former.
+func dispositionToSARIFLevel(disposition sdk.FindingDisposition) string {
+	switch disposition {
+	case sdk.FindingDispositionWarn:
 		return "warning"
-	case sdk.SeverityLow, sdk.SeverityNote:
-		return "note"
 	default:
-		return "note"
+		// FindingDispositionFail, and "" (findings with no explicit
+		// disposition are treated as failing — see FailingFindingCount).
+		return "error"
 	}
 }
 

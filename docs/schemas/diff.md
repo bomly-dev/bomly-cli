@@ -216,6 +216,7 @@ Complete reference for the `bomly diff` JSON output.
 |-------|------|-------------|
 | `added` | Array<[`DiffVulnerabilityChange`](#diffvulnerabilitychange)> | |
 | `removed` | Array<[`DiffVulnerabilityChange`](#diffvulnerabilitychange)> | |
+| `persisted` | Array<[`DiffVulnerabilityChange`](#diffvulnerabilitychange)> | |
 
 ### `EPSSScore`
 

@@ -99,9 +99,12 @@ type DiffLicenseDelta struct {
 }
 
 // DiffVulnerabilityResults aggregates vulnerability changes across all manifests.
+// Persisted holds vulnerabilities that affect a version-changed package on both
+// sides of the diff — i.e. carried-over findings the upgrade did not remediate.
 type DiffVulnerabilityResults struct {
-	Added   []DiffVulnerabilityChange `json:"added,omitempty"`
-	Removed []DiffVulnerabilityChange `json:"removed,omitempty"`
+	Added     []DiffVulnerabilityChange `json:"added,omitempty"`
+	Removed   []DiffVulnerabilityChange `json:"removed,omitempty"`
+	Persisted []DiffVulnerabilityChange `json:"persisted,omitempty"`
 }
 
 // DiffVulnerabilityChange is one vulnerability introduced or removed for a package.
@@ -712,9 +715,12 @@ func aggregateVulnerabilityChanges(dependencies DiffDependencyResults) DiffVulne
 		before := indexVulnerabilities(change.Before.Vulnerabilities)
 		after := indexVulnerabilities(change.After.Vulnerabilities)
 		for id, vulnerability := range after {
-			if _, ok := before[id]; !ok {
-				out.Added = append(out.Added, DiffVulnerabilityChange{Package: change.After, Vulnerability: vulnerability})
+			if _, ok := before[id]; ok {
+				// Present on both versions: the upgrade did not remediate it.
+				out.Persisted = append(out.Persisted, DiffVulnerabilityChange{Package: change.After, Vulnerability: vulnerability})
+				continue
 			}
+			out.Added = append(out.Added, DiffVulnerabilityChange{Package: change.After, Vulnerability: vulnerability})
 		}
 		for id, vulnerability := range before {
 			if _, ok := after[id]; !ok {
@@ -722,19 +728,19 @@ func aggregateVulnerabilityChanges(dependencies DiffDependencyResults) DiffVulne
 			}
 		}
 	}
-	sort.Slice(out.Added, func(i, j int) bool {
-		if out.Added[i].Package.ID != out.Added[j].Package.ID {
-			return out.Added[i].Package.ID < out.Added[j].Package.ID
-		}
-		return out.Added[i].Vulnerability.ID < out.Added[j].Vulnerability.ID
-	})
-	sort.Slice(out.Removed, func(i, j int) bool {
-		if out.Removed[i].Package.ID != out.Removed[j].Package.ID {
-			return out.Removed[i].Package.ID < out.Removed[j].Package.ID
-		}
-		return out.Removed[i].Vulnerability.ID < out.Removed[j].Vulnerability.ID
-	})
+	sortVulnerabilityChanges(out.Added)
+	sortVulnerabilityChanges(out.Removed)
+	sortVulnerabilityChanges(out.Persisted)
 	return out
+}
+
+func sortVulnerabilityChanges(changes []DiffVulnerabilityChange) {
+	sort.Slice(changes, func(i, j int) bool {
+		if changes[i].Package.ID != changes[j].Package.ID {
+			return changes[i].Package.ID < changes[j].Package.ID
+		}
+		return changes[i].Vulnerability.ID < changes[j].Vulnerability.ID
+	})
 }
 
 func licenseRefsEqual(left, right []LicenseRef) bool {

@@ -72,4 +72,7 @@ type Matcher interface {
 }
 
 // MatchResponse is the matcher response payload exposed to plugins.
+//
+// It aliases MatchResult so plugin code can name payload types by role while
+// sharing the same transport shape Bomly core uses internally.
 type MatchResponse = MatchResult

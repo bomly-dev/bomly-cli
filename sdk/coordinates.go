@@ -2,10 +2,10 @@ package sdk
 
 import "strings"
 
-// Coordinates is the shared coordinates view for manifest dependencies and
-// matched registry packages. It intentionally excludes graph-only fields
-// (scopes, locations, package refs) and enrichment-only fields (licenses,
-// vulnerabilities, scorecard) so Dependency and Package remain distinct
+// Coordinates is the shared identity view embedded by Dependency and Package.
+// It intentionally excludes graph-only fields (scopes, locations, package refs)
+// and enrichment-only fields (licenses, vulnerabilities, scorecard) so
+// detection-time graph nodes and matching-stage package records remain distinct
 // domain models.
 type Coordinates struct {
 	PURL           string         `json:"purl,omitempty"`

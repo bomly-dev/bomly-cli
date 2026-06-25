@@ -5,7 +5,10 @@ import (
 	"strings"
 )
 
-// PackageManager identifies the concrete package manager or manifest family for a target.
+// PackageManager identifies the concrete package manager or manifest family for
+// a target. The type is string-backed so plugins can pass custom values while
+// Bomly grows first-class constants; use PackageManagerOther when no specific
+// manager value is appropriate.
 type PackageManager string
 
 const (

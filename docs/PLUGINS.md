@@ -18,6 +18,8 @@ Use the implementation guides when you are writing one:
 - [How To Implement A Matcher Plugin](plugins/how-to-implement-matcher.md)
 - [How To Implement An Auditor Plugin](plugins/how-to-implement-auditor.md)
 
+Use the [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-cli/sdk) for the Go types, runtime entrypoints, request/response payloads, graph model, package registry, and finding contract those guides use.
+
 Example plugin repositories live outside this repo so each plugin type can show a realistic package, release, and README:
 
 - [Bun Lock Detector](https://github.com/bomly-dev/bomly-plugin-bun-lock-detector) — detector example using `PackageManagerOther`

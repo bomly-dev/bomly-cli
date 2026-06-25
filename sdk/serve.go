@@ -17,7 +17,10 @@ import (
 
 const pluginName = "bomly"
 
-// ServedDetector is the detector interface exposed to external plugin authors.
+// ServedDetector is the detector interface implemented by external detector
+// plugins. A detector describes its identity and package-manager support,
+// reports readiness/applicability for a planned scan target, and returns one or
+// more manifest-scoped dependency graphs from Detect.
 type ServedDetector interface {
 	Descriptor(context.Context) (*DetectorDescriptor, error)
 	PackageManagerSupport(context.Context) ([]PackageManagerSupport, error)
@@ -26,12 +29,18 @@ type ServedDetector interface {
 	Detect(context.Context, *DetectRequest) (*DetectResponse, error)
 }
 
-// DetectorInstaller optionally performs install-first preparation before detection.
+// DetectorInstaller optionally performs install-first preparation before
+// detection. Implement this only for detectors that need to prepare project
+// dependencies before reading them; Bomly calls it only when install-first
+// execution is requested.
 type DetectorInstaller interface {
 	Install(context.Context, *DetectRequest) (*InstallResponse, error)
 }
 
-// ServedMatcher is the matcher interface exposed to external plugin authors.
+// ServedMatcher is the matcher interface implemented by external matcher
+// plugins. Matchers read the dependency graph and PURL-keyed package registry,
+// then return the registry with package enrichment such as licenses,
+// vulnerabilities, lifecycle data, or other metadata.
 type ServedMatcher interface {
 	Descriptor(context.Context) (*MatcherDescriptor, error)
 	Ready(context.Context, *MatchRequest) (*ReadyResponse, error)
@@ -39,7 +48,9 @@ type ServedMatcher interface {
 	Match(context.Context, *MatchRequest) (*MatchResponse, error)
 }
 
-// ServedAuditor is the auditor interface exposed to external plugin authors.
+// ServedAuditor is the auditor interface implemented by external auditor
+// plugins. Auditors read graph and registry data and return reference-style
+// findings, risk scores, and run metadata.
 type ServedAuditor interface {
 	Descriptor(context.Context) (*AuditorDescriptor, error)
 	Ready(context.Context, *AuditRequest) (*ReadyResponse, error)
@@ -81,17 +92,20 @@ func ClientPluginMap() map[string]hplugin.Plugin {
 	}
 }
 
-// ServeDetector serves a detector plugin over HashiCorp go-plugin gRPC transport.
+// ServeDetector serves one detector plugin over Bomly's managed HashiCorp
+// go-plugin gRPC transport. Call it from the plugin binary's main function.
 func ServeDetector(detector ServedDetector) {
 	serve(detector, nil, nil)
 }
 
-// ServeMatcher serves a matcher plugin over HashiCorp go-plugin gRPC transport.
+// ServeMatcher serves one matcher plugin over Bomly's managed HashiCorp
+// go-plugin gRPC transport. Call it from the plugin binary's main function.
 func ServeMatcher(matcher ServedMatcher) {
 	serve(nil, matcher, nil)
 }
 
-// ServeAuditor serves an auditor plugin over HashiCorp go-plugin gRPC transport.
+// ServeAuditor serves one auditor plugin over Bomly's managed HashiCorp
+// go-plugin gRPC transport. Call it from the plugin binary's main function.
 func ServeAuditor(auditor ServedAuditor) {
 	serve(nil, nil, auditor)
 }

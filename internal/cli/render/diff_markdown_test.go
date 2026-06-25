@@ -171,4 +171,43 @@ func TestDiffMarkdownFindingsTableHasLegendNoDisposition(t *testing.T) {
 	if strings.Contains(report, "Disposition") || strings.Contains(report, "Exploitability") {
 		t.Errorf("findings table should not have Disposition/Exploitability columns, got:\n%s", report)
 	}
+	if !strings.Contains(report, "Package has invalid SPDX license: **non-standard**") {
+		t.Errorf("expected the offending license to be bolded in the findings table, got:\n%s", report)
+	}
+}
+
+func TestEmphasizeFindingTitle(t *testing.T) {
+	tests := []struct {
+		name    string
+		finding output.AuditFinding
+		want    string
+	}{
+		{
+			name:    "invalid license bolds the offending expression",
+			finding: output.AuditFinding{Kind: sdk.FindingKindLicense, Title: "Package has invalid SPDX license: non-standard"},
+			want:    "Package has invalid SPDX license: **non-standard**",
+		},
+		{
+			name:    "invalid license with multiple expressions bolds all of them",
+			finding: output.AuditFinding{Kind: sdk.FindingKindLicense, Title: "Package has invalid SPDX license: foo, bar"},
+			want:    "Package has invalid SPDX license: **foo, bar**",
+		},
+		{
+			name:    "license title without a colon value is unchanged",
+			finding: output.AuditFinding{Kind: sdk.FindingKindLicense, Title: "Package license is unknown"},
+			want:    "Package license is unknown",
+		},
+		{
+			name:    "non-license finding is never emphasized",
+			finding: output.AuditFinding{Kind: sdk.FindingKindVulnerability, Title: "Prototype pollution: critical impact"},
+			want:    "Prototype pollution: critical impact",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := emphasizeFindingTitle(tt.finding); got != tt.want {
+				t.Errorf("emphasizeFindingTitle() = %q, want %q", got, tt.want)
+			}
+		})
+	}
 }

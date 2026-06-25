@@ -13,6 +13,7 @@ const (
 	exitCodePolicyViolation   = 2
 	exitCodeResolutionFailure = 3
 	exitCodeInvalidInput      = 4
+	exitCodeNothingToEvaluate = 5
 )
 
 type exitError struct {
@@ -44,6 +45,10 @@ func ErrorPrefix(err error) string {
 	switch Code(err) {
 	case exitCodePolicyViolation:
 		return "Policy violation"
+	case exitCodeNothingToEvaluate:
+		// Exit 5 is a benign "no resolvable targets" outcome, not a failure;
+		// print it as an informational notice rather than an error.
+		return "Nothing to evaluate"
 	default:
 		return "Error"
 	}
@@ -55,6 +60,16 @@ func InvalidInputError(format string, args ...any) error {
 
 func ResolutionFailureError(err error) error {
 	return &exitError{code: exitCodeResolutionFailure, err: err}
+}
+
+// NothingToEvaluateError marks the benign "no resolvable targets" outcome —
+// no subprojects/manifests were discovered for the target (with the applied
+// filters). It is deliberately distinct from ResolutionFailureError (exit 3,
+// a real error where a discovered subproject could not be turned into a
+// graph) so CI wrappers can treat "nothing to scan" as a neutral pass without
+// masking genuine resolution failures.
+func NothingToEvaluateError(err error) error {
+	return &exitError{code: exitCodeNothingToEvaluate, err: err}
 }
 
 // InteractiveResult wraps the error returned by tui.Run so that a missing

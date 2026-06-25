@@ -9,6 +9,7 @@ Bomly uses a small, stable set of exit codes so scripts and CI pipelines can bra
 | 2 | Policy violation | At least one finding matched `--fail-on` |
 | 3 | Resolution failure | A required detector could not produce a graph (e.g. missing lockfile, malformed manifest) |
 | 4 | Invalid input | A flag value, target, or config setting is invalid |
+| 5 | Nothing to evaluate | No subprojects/manifests were discovered for the target (often because an `--ecosystems`/`--detectors` filter matched nothing) |
 
 ## When each code is returned
 
@@ -56,6 +57,15 @@ A flag, target, or config value is malformed. Examples:
 
 Exit-4 errors describe the offending flag in the message and never produce partial output.
 
+### `5` — Nothing to evaluate
+
+No subprojects were discovered for the target, so there was nothing to scan, diff, or audit. This is distinct from `3`: exit `3` means Bomly *found* a subproject but a detector could not turn it into a graph (a real failure), whereas exit `5` means none were found in the first place. Typical causes:
+
+- An `--ecosystems` / `--detectors` filter that doesn't match anything in the target (e.g. `--ecosystems maven` against a pure-npm repo). The message lists the active filters.
+- A target (directory, ref, or image) that contains no supported manifests at all.
+
+No partial output is produced. CI wrappers that should pass when there is simply nothing applicable to evaluate can treat `5` as a neutral, non-failing outcome while still failing on `1`/`3`/`4`.
+
 ## Recipes
 
 ### GitHub Actions — fail on high vulnerabilities
@@ -80,6 +90,7 @@ code=$?
 case $code in
   0) echo "clean" ;;
   2) echo "policy violation"; exit 2 ;;
+  5) echo "nothing to evaluate"; exit 0 ;;  # no applicable manifests — treat as a pass
   *) echo "scan failed with $code"; exit 1 ;;
 esac
 ```

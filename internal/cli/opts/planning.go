@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	"github.com/bomly-dev/bomly-cli/internal/system"
@@ -572,10 +573,14 @@ func noSubprojectsError(req Request) error {
 		hints = append(hints, fmt.Sprintf("--ecosystems %s", strings.Join(names, ",")))
 	}
 
+	// Wrap as a "nothing to evaluate" exit (5), distinct from a resolution
+	// failure (3): no subprojects were discovered at all, which CI wrappers can
+	// treat as a neutral pass. ErrNoSubprojects stays the inner sentinel so
+	// errors.Is(err, ErrNoSubprojects) callers keep working.
 	if len(hints) > 0 {
-		return fmt.Errorf("%w (active filters: %s)", ErrNoSubprojects, strings.Join(hints, ", "))
+		return exit.NothingToEvaluateError(fmt.Errorf("%w (active filters: %s)", ErrNoSubprojects, strings.Join(hints, ", ")))
 	}
-	return ErrNoSubprojects
+	return exit.NothingToEvaluateError(ErrNoSubprojects)
 }
 
 func pathMatchesPatterns(candidatePath string, patterns []string) bool {

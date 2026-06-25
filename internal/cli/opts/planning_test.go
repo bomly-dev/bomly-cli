@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
@@ -43,6 +44,28 @@ func TestPlanSubprojectsReportsActiveFilters(t *testing.T) {
 	})
 	if !errors.Is(err, ErrNoSubprojects) {
 		t.Fatalf("expected ErrNoSubprojects, got %v", err)
+	}
+	// "Nothing to evaluate" (5), not a generic execution error (1) or a
+	// resolution failure (3): no subprojects were discovered at all.
+	if got := exit.Code(err); got != 5 {
+		t.Fatalf("expected exit code 5 for no subprojects, got %d", got)
+	}
+}
+
+func TestPlanSubprojectsNoFilterStillReportsNothingToEvaluate(t *testing.T) {
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
+	reg.Build()
+
+	// Empty directory, no filter: still "nothing to evaluate" (exit 5), per the
+	// with-or-without-filter scope.
+	_, err := PlanSubprojects(reg, Request{
+		ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: t.TempDir()},
+	})
+	if !errors.Is(err, ErrNoSubprojects) {
+		t.Fatalf("expected ErrNoSubprojects, got %v", err)
+	}
+	if got := exit.Code(err); got != 5 {
+		t.Fatalf("expected exit code 5 for an empty target, got %d", got)
 	}
 }
 

@@ -323,7 +323,7 @@ func diffAuditFindingTable(title, status string, findings []output.AuditFinding,
 		}
 		row = append(row,
 			valueOrDash(fixedVersionSummary(finding.FixedIn, finding.FixedVersions)),
-			firstNonEmpty(finding.Title, strings.Join(finding.Reasons, "; ")),
+			emphasizeFindingTitle(finding),
 		)
 		rows = append(rows, row)
 	}
@@ -333,6 +333,25 @@ func diffAuditFindingTable(title, status string, findings []output.AuditFinding,
 	}
 	header = append(header, "Fixed In", "Title")
 	return append([]string{"### " + title, ""}, append(markdownTable(header, rows), "")...)
+}
+
+// emphasizeFindingTitle bolds the salient trailing value of a license
+// finding's title — e.g. the offending expression in "Package has invalid
+// SPDX license: non-standard" → "...license: **non-standard**" — so it stands
+// out in the Policy Findings table. Non-license findings, and license titles
+// with no "<label>: <value>" shape (e.g. "Package license is unknown"), are
+// returned unchanged. Markdown-only: the underlying finding.Title (shared by
+// the text/JSON/SARIF outputs) is not modified.
+func emphasizeFindingTitle(finding output.AuditFinding) string {
+	title := firstNonEmpty(finding.Title, strings.Join(finding.Reasons, "; "))
+	if finding.Kind != sdk.FindingKindLicense {
+		return title
+	}
+	prefix, value, found := strings.Cut(title, ": ")
+	if !found || strings.TrimSpace(value) == "" {
+		return title
+	}
+	return prefix + ": **" + value + "**"
 }
 
 // findingIconLegend explains the leading status icon used in the findings

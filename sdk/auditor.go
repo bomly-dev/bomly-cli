@@ -65,4 +65,7 @@ type Auditor interface {
 }
 
 // AuditResponse is the auditor response payload exposed to plugins.
+//
+// It aliases AuditResult so plugin code can name payload types by role while
+// sharing the same transport shape Bomly core uses internally.
 type AuditResponse = AuditResult

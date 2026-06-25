@@ -71,7 +71,9 @@ type DetectorDescriptor struct {
 	SupportsInstallFirst  bool                    `json:"supportsInstallFirst,omitempty"`
 }
 
-// PackageManagerSupport records package-manager discovery metadata for a detector.
+// PackageManagerSupport records package-manager discovery metadata for a
+// detector. External detector plugins return this so Bomly can include them in
+// subproject discovery and scan planning before the detector runs.
 type PackageManagerSupport struct {
 	PackageManager   PackageManager `json:"packageManager"`
 	EvidencePatterns []string       `json:"evidencePatterns,omitempty"`
@@ -111,7 +113,13 @@ type InstallFirstDetector interface {
 }
 
 // DetectRequest is the detector request payload exposed to plugins.
+//
+// It aliases DetectionRequest so plugin code can name payload types by role
+// while sharing the same transport shape Bomly core uses internally.
 type DetectRequest = DetectionRequest
 
 // DetectResponse is the detector response payload exposed to plugins.
+//
+// It aliases DetectionResult so plugin code can name payload types by role
+// while sharing the same transport shape Bomly core uses internally.
 type DetectResponse = DetectionResult

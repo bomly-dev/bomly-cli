@@ -4,6 +4,8 @@ An auditor plugin evaluates the dependency graph and package registry after dete
 
 External auditor plugins are served with `sdk.ServeAuditor`.
 
+The [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-cli/sdk) documents the `sdk.ServeAuditor` entrypoint, `sdk.ServedAuditor` interface, `sdk.AuditRequest`, `sdk.AuditResult`, reference-style findings, and risk-score types used below.
+
 ## Minimum Shape
 
 Create a Go `main` package that imports the Bomly SDK:

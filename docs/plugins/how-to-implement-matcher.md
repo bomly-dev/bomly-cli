@@ -4,6 +4,8 @@ A matcher plugin enriches packages after detection. Use a matcher when you want 
 
 External matcher plugins are served with `sdk.ServeMatcher`.
 
+The [Bomly SDK API reference](https://pkg.go.dev/github.com/bomly-dev/bomly-cli/sdk) documents the `sdk.ServeMatcher` entrypoint, `sdk.ServedMatcher` interface, `sdk.MatchRequest`, `sdk.MatchResult`, PURL-keyed package registry, and enrichment types used below.
+
 ## Minimum Shape
 
 Create a Go `main` package that imports the Bomly SDK:

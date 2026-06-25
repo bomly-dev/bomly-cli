@@ -40,7 +40,9 @@ const (
 	EnvPluginID = "BOMLY_PLUGIN_ID"
 )
 
-// HTTPClientConfig configures Bomly's shared outbound HTTP client.
+// HTTPClientConfig configures Bomly's shared outbound HTTP client. External
+// plugins normally obtain this from HTTPClientConfigFromEnv instead of building
+// it by hand, so Bomly-managed proxy and CA settings are honored.
 type HTTPClientConfig struct {
 	ProxyURL      string
 	NoProxy       string
@@ -53,7 +55,9 @@ type HTTPClientConfig struct {
 	Timeout       time.Duration
 }
 
-// HTTPClientProvider owns reusable HTTP transport state for one Bomly execution.
+// HTTPClientProvider owns reusable HTTP transport state for one Bomly execution
+// or plugin process. Reuse one provider for repeated outbound calls so
+// connection pools, proxy settings, and TLS configuration stay consistent.
 type HTTPClientProvider struct {
 	transport      *http.Transport
 	defaultTimeout time.Duration
@@ -100,7 +104,8 @@ func NewHTTPClientProvider(config HTTPClientConfig) (*HTTPClientProvider, error)
 }
 
 // NewHTTPClientProviderFromEnv creates a provider from Bomly HTTP environment
-// variables, with standard proxy environment variables honored as fallback.
+// variables, with standard proxy environment variables honored as fallback. Use
+// this in external plugins that make outbound HTTP calls.
 func NewHTTPClientProviderFromEnv() (*HTTPClientProvider, error) {
 	return NewHTTPClientProvider(HTTPClientConfigFromEnv())
 }
@@ -278,7 +283,10 @@ func RawPluginConfigFromEnv() ([]byte, error) {
 	return data, nil
 }
 
-// DecodePluginConfigFromEnv decodes the per-plugin JSON config file into target.
+// DecodePluginConfigFromEnv decodes the current plugin's JSON config file into
+// target. Bomly writes this file from the enabled plugin's own
+// plugins.<plugin-id> config block and exposes its path through the plugin
+// environment.
 func DecodePluginConfigFromEnv(target any) error {
 	data, err := RawPluginConfigFromEnv()
 	if err != nil {

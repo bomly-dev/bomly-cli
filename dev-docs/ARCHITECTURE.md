@@ -122,7 +122,9 @@ Pipeline plumbing: `engine.PipelineResult` exposes `Graph`, `Registry`, `Finding
 
 ### Decision: Package locations are detector-relative today
 
-`PackageLocation.Position.File` is emitted by detectors in the coordinate space of the detector working directory. For single-root projects that is already repository-relative, which lets `bomly diff` compare SARIF locations with repo-relative changed-line ranges. In subproject and monorepo scans, detector positions such as `package-lock.json` may need to be rebased with the subproject `RelativePath` during consolidation before diff-aware SARIF can reliably match changed lines. Until that rebasing exists, location extraction remains best effort and the output layer only prefers changed lines when the detector path already matches the git diff path.
+`PackageLocation.Position.File` is emitted by detectors in the coordinate space of the detector working directory. For single-root projects that is already repository-relative, which lets `bomly diff` compare SARIF locations with repo-relative changed-line ranges.
+
+Subproject discovery does **not** recurse into subdirectories today (`planFilesystemSubprojects` only inspects the execution-target root), so every subproject currently resolves with `RelativePath` `"."` and detector positions are already repository-relative. To future-proof a recursive scan mode, consolidation rebases core-detector location paths onto the subproject root via `rebaseGraphLocations` (`internal/engine/consolidation/locations.go`): a subproject discovered at `apps/web` reporting `package-lock.json` is rewritten to `apps/web/package-lock.json`. This mirrors the existing manifest-path rebasing (`normalizeNativeManifestPath`) and is a deliberate no-op while `RelativePath` is `"."`. Absolute and already-prefixed paths are left untouched, so the rewrite is idempotent. Until a recursive mode actually produces non-root subprojects, location extraction remains best effort and the output layer only prefers changed lines when the detector path matches the git diff path.
 
 ### Decision: Reachability analyzers derive local hierarchy closures
 

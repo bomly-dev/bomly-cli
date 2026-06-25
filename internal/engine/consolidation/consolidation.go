@@ -79,6 +79,12 @@ func selectManifestEntries(results []sdk.DetectionResult) (sdk.ExecutionTarget, 
 			if err != nil {
 				return sdk.ExecutionTarget{}, nil, fmt.Errorf("normalize graph identity for %s entry %d: %w", result.SubprojectInfo.RelativePath, idx, err)
 			}
+			if isCoreDetector(result.Origin) {
+				// Rebase detector-relative location paths onto the subproject
+				// root so diff-aware SARIF sees repository-relative paths. A
+				// no-op for today's root-level subprojects (RelativePath ".").
+				rebaseGraphLocations(normalizedGraph, result.SubprojectInfo.RelativePath)
+			}
 			manifest := normalizeSubprojectManifest(result.SubprojectInfo, entry.Manifest, idx, result.Origin)
 			if err := ensureEntryRoot(normalizedGraph, manifest, idx); err != nil {
 				return sdk.ExecutionTarget{}, nil, fmt.Errorf("ensure entry root for %s entry %d: %w", result.SubprojectInfo.RelativePath, idx, err)

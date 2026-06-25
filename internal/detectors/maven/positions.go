@@ -56,24 +56,31 @@ func pomPositions(path, relPath string) map[string][]*sdk.SourcePosition {
 		}
 		if pomDependencyClose.MatchString(text) {
 			if pendingArtifactName != "" && pendingArtifactLine > 0 {
-				positionLine := pendingArtifactLine
+				versionLine := pendingVersionLine
 				version := pendingVersion
-				if pendingVersionLine > 0 {
-					positionLine = pendingVersionLine
-				}
 				if propertyVersion, propertyLine, ok := pomResolvedPropertyVersion(pendingVersion, properties); ok {
 					version = propertyVersion
-					positionLine = propertyLine
+					versionLine = propertyLine
 				}
-				pos := &sdk.SourcePosition{File: relPath, Line: positionLine}
-				detectors.AppendPosition(out, pendingArtifactName, pos)
-				if version != "" {
-					detectors.AppendPosition(out, pendingArtifactName+"@"+version, pos)
+				if version == "" {
+					if propertyVersion, propertyLine, ok := pomArtifactPropertyVersion(pendingArtifactName, properties); ok {
+						version = propertyVersion
+						versionLine = propertyLine
+					}
 				}
+				artifactPos := &sdk.SourcePosition{File: relPath, Line: pendingArtifactLine}
+				detectors.AppendPosition(out, pendingArtifactName, artifactPos)
 				if pendingGroup != "" {
-					detectors.AppendPosition(out, pendingGroup+":"+pendingArtifactName, pos)
-					if version != "" {
-						detectors.AppendPosition(out, pendingGroup+":"+pendingArtifactName+"@"+version, pos)
+					detectors.AppendPosition(out, pendingGroup+":"+pendingArtifactName, artifactPos)
+				}
+				if version != "" {
+					versionPos := artifactPos
+					if versionLine > 0 {
+						versionPos = &sdk.SourcePosition{File: relPath, Line: versionLine}
+					}
+					detectors.AppendPosition(out, pendingArtifactName+"@"+version, versionPos)
+					if pendingGroup != "" {
+						detectors.AppendPosition(out, pendingGroup+":"+pendingArtifactName+"@"+version, versionPos)
 					}
 				}
 			}
@@ -133,6 +140,18 @@ func pomResolvedPropertyVersion(version string, properties map[string]pomPropert
 		return "", 0, false
 	}
 	prop, ok := properties[matches[1]]
+	if !ok || prop.value == "" || prop.line == 0 {
+		return "", 0, false
+	}
+	return prop.value, prop.line, true
+}
+
+func pomArtifactPropertyVersion(artifact string, properties map[string]pomPropertyPosition) (string, int, bool) {
+	artifact = strings.TrimSpace(artifact)
+	if artifact == "" {
+		return "", 0, false
+	}
+	prop, ok := properties[artifact+".version"]
 	if !ok || prop.value == "" || prop.line == 0 {
 		return "", 0, false
 	}

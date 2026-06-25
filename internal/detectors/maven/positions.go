@@ -16,10 +16,19 @@ import (
 var (
 	pomDependencyOpen  = regexp.MustCompile(`<dependency>`)
 	pomDependencyClose = regexp.MustCompile(`</dependency>`)
+	pomPropertiesOpen  = regexp.MustCompile(`<properties>`)
+	pomPropertiesClose = regexp.MustCompile(`</properties>`)
 	pomGroupID         = regexp.MustCompile(`<groupId>([^<]+)</groupId>`)
 	pomArtifactID      = regexp.MustCompile(`<artifactId>([^<]+)</artifactId>`)
 	pomVersion         = regexp.MustCompile(`<version>([^<]+)</version>`)
+	pomProperty        = regexp.MustCompile(`^\s*<([A-Za-z0-9_.-]+)>\s*([^<]+)\s*</[A-Za-z0-9_.-]+>\s*$`)
+	pomPropertyRef     = regexp.MustCompile(`^\$\{([A-Za-z0-9_.-]+)\}$`)
 )
+
+type pomPropertyPosition struct {
+	value string
+	line  int
+}
 
 // pomPositions returns name -> position by scanning every
 // `<dependency>` block in pom.xml. The key is the bare artifactId
@@ -28,6 +37,7 @@ var (
 // best-effort attribution to the parent pom.
 func pomPositions(path, relPath string) map[string][]*sdk.SourcePosition {
 	out := make(map[string][]*sdk.SourcePosition)
+	properties := pomProperties(path)
 	insideDep := false
 	pendingGroup := ""
 	pendingArtifactLine := 0
@@ -47,18 +57,23 @@ func pomPositions(path, relPath string) map[string][]*sdk.SourcePosition {
 		if pomDependencyClose.MatchString(text) {
 			if pendingArtifactName != "" && pendingArtifactLine > 0 {
 				positionLine := pendingArtifactLine
+				version := pendingVersion
 				if pendingVersionLine > 0 {
 					positionLine = pendingVersionLine
 				}
+				if propertyVersion, propertyLine, ok := pomResolvedPropertyVersion(pendingVersion, properties); ok {
+					version = propertyVersion
+					positionLine = propertyLine
+				}
 				pos := &sdk.SourcePosition{File: relPath, Line: positionLine}
 				detectors.AppendPosition(out, pendingArtifactName, pos)
-				if pendingVersion != "" {
-					detectors.AppendPosition(out, pendingArtifactName+"@"+pendingVersion, pos)
+				if version != "" {
+					detectors.AppendPosition(out, pendingArtifactName+"@"+version, pos)
 				}
 				if pendingGroup != "" {
 					detectors.AppendPosition(out, pendingGroup+":"+pendingArtifactName, pos)
-					if pendingVersion != "" {
-						detectors.AppendPosition(out, pendingGroup+":"+pendingArtifactName+"@"+pendingVersion, pos)
+					if version != "" {
+						detectors.AppendPosition(out, pendingGroup+":"+pendingArtifactName+"@"+version, pos)
 					}
 				}
 			}
@@ -88,6 +103,40 @@ func pomPositions(path, relPath string) map[string][]*sdk.SourcePosition {
 		}
 	})
 	return out
+}
+
+func pomProperties(path string) map[string]pomPropertyPosition {
+	out := make(map[string]pomPropertyPosition)
+	insideProperties := false
+	_ = detectors.ScanLines(path, func(line int, text string) {
+		if pomPropertiesOpen.MatchString(text) {
+			insideProperties = true
+			return
+		}
+		if pomPropertiesClose.MatchString(text) {
+			insideProperties = false
+			return
+		}
+		if !insideProperties {
+			return
+		}
+		if m := pomProperty.FindStringSubmatch(text); m != nil {
+			out[strings.TrimSpace(m[1])] = pomPropertyPosition{value: strings.TrimSpace(m[2]), line: line}
+		}
+	})
+	return out
+}
+
+func pomResolvedPropertyVersion(version string, properties map[string]pomPropertyPosition) (string, int, bool) {
+	matches := pomPropertyRef.FindStringSubmatch(strings.TrimSpace(version))
+	if matches == nil {
+		return "", 0, false
+	}
+	prop, ok := properties[matches[1]]
+	if !ok || prop.value == "" || prop.line == 0 {
+		return "", 0, false
+	}
+	return prop.value, prop.line, true
 }
 
 // AttachPomPositions wires pom.xml line numbers into a maven graph.

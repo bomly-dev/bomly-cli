@@ -263,6 +263,9 @@ lodash@^4.0.0, lodash@^4.17.0:
 func TestMavenPomPositions(t *testing.T) {
 	dir := t.TempDir()
 	writeFile(t, dir, "pom.xml", `<project>
+  <properties>
+    <commons-lang3.version>3.17.0</commons-lang3.version>
+  </properties>
   <dependencies>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -274,20 +277,55 @@ func TestMavenPomPositions(t *testing.T) {
       <artifactId>junit</artifactId>
       <version>4.13.2</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>${commons-lang3.version}</version>
+    </dependency>
   </dependencies>
 </project>
 `)
 	g := sdk.New()
 	mustPkg(t, g, "jackson-databind", "2.17.0", func(p *sdk.Dependency) { p.Org = "com.fasterxml.jackson.core" })
 	mustPkg(t, g, "junit", "4.13.2", func(p *sdk.Dependency) { p.Org = "junit" })
+	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *sdk.Dependency) { p.Org = "org.apache.commons" })
 	maven.AttachPomPositions(g, dir)
 	jd, _ := g.Node("com.fasterxml.jackson.core:jackson-databind@2.17.0")
-	if jd == nil || len(jd.Locations) == 0 || jd.Locations[0].Position.Line != 6 {
+	if jd == nil || len(jd.Locations) == 0 || jd.Locations[0].Position.Line != 9 {
 		t.Errorf("jackson-databind location wrong: %+v", jd)
 	}
 	ju, _ := g.Node("junit:junit@4.13.2")
-	if ju == nil || len(ju.Locations) == 0 || ju.Locations[0].Position.Line != 11 {
+	if ju == nil || len(ju.Locations) == 0 || ju.Locations[0].Position.Line != 14 {
 		t.Errorf("junit location wrong: %+v", ju)
+	}
+	lang3, _ := g.Node("org.apache.commons:commons-lang3@3.17.0")
+	if lang3 == nil || len(lang3.Locations) == 0 || lang3.Locations[0].Position.Line != 3 {
+		t.Errorf("commons-lang3 location wrong: %+v", lang3)
+	}
+}
+
+func TestMavenPomPositionsResolvePropertiesAfterDependencies(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, dir, "pom.xml", `<project>
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>${commons-lang3.version}</version>
+    </dependency>
+  </dependencies>
+  <properties>
+    <commons-lang3.version>3.17.0</commons-lang3.version>
+  </properties>
+</project>
+`)
+	g := sdk.New()
+	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *sdk.Dependency) { p.Org = "org.apache.commons" })
+	maven.AttachPomPositions(g, dir)
+
+	lang3, _ := g.Node("org.apache.commons:commons-lang3@3.17.0")
+	if lang3 == nil || len(lang3.Locations) == 0 || lang3.Locations[0].Position.Line != 10 {
+		t.Fatalf("commons-lang3 location = %+v, want late property line 10", lang3)
 	}
 }
 

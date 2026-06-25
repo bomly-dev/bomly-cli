@@ -46,9 +46,9 @@ func pnpmLockPositions(path, relPath string) map[string][]*sdk.SourcePosition {
 		version := strings.TrimSpace(matches[2])
 		pos := &sdk.SourcePosition{File: relPath, Line: line}
 		if version != "" {
-			appendPosition(out, name+"@"+version, pos)
+			detectors.AppendPosition(out, name+"@"+version, pos)
 		}
-		appendPosition(out, name, pos)
+		detectors.AppendPosition(out, name, pos)
 	})
 	return out
 }
@@ -70,19 +70,28 @@ func AttachPnpmLockPositions(g *sdk.Graph, projectDir string) {
 		if name == "" {
 			return nil
 		}
-		return []string{name + "@" + strings.TrimSpace(pkg.Version), name}
+		return pnpmPositionKeys(name, strings.TrimSpace(pkg.Version))
 	})
 }
 
-func appendPosition(out map[string][]*sdk.SourcePosition, key string, pos *sdk.SourcePosition) {
-	key = strings.TrimSpace(key)
-	if key == "" || pos == nil {
-		return
+func pnpmPositionKeys(name, version string) []string {
+	names := []string{name}
+	if normalized := pnpmSlashScopeName(name); normalized != "" && normalized != name {
+		names = append([]string{normalized}, names...)
 	}
-	for _, existing := range out[key] {
-		if existing.File == pos.File && existing.Line == pos.Line && existing.Column == pos.Column {
-			return
+	keys := make([]string, 0, len(names)*2)
+	for _, candidate := range names {
+		if version != "" {
+			keys = append(keys, candidate+"@"+version)
 		}
+		keys = append(keys, candidate)
 	}
-	out[key] = append(out[key], pos)
+	return keys
+}
+
+func pnpmSlashScopeName(name string) string {
+	if strings.HasPrefix(name, "@") && strings.Contains(name, ":") {
+		return strings.Replace(name, ":", "/", 1)
+	}
+	return name
 }

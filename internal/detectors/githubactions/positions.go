@@ -38,10 +38,11 @@ func workflowPositions(projectDir string) map[string][]*sdk.SourcePosition {
 					return
 				}
 				coord := strings.TrimSpace(text[matches[2]:matches[3]])
-				if coord == "" {
+				key := workflowPositionKey(coord)
+				if key == "" {
 					return
 				}
-				appendPosition(out, coord, &sdk.SourcePosition{File: rel, Line: line, Column: matches[2] + 1, EndLine: line})
+				detectors.AppendPosition(out, key, &sdk.SourcePosition{File: rel, Line: line, Column: matches[2] + 1, EndLine: line})
 			})
 		}
 	}
@@ -65,21 +66,30 @@ func AttachWorkflowPositions(g *sdk.Graph, projectDir string) {
 		// External GitHub Actions packages store owner and repository
 		// separately, while workflow manifests spell them as owner/repo.
 		if strings.TrimSpace(pkg.Org) != "" && strings.TrimSpace(pkg.Name) != "" {
-			return []string{strings.Trim(strings.TrimSpace(pkg.Org), "/") + "/" + strings.Trim(strings.TrimSpace(pkg.Name), "/")}
+			name := strings.Trim(strings.TrimSpace(pkg.Name), "/")
+			keys := []string{strings.Trim(strings.TrimSpace(pkg.Org), "/") + "/" + workflowRepoName(name)}
+			if repo := workflowPositionKey(strings.Trim(strings.TrimSpace(pkg.Org), "/") + "/" + name); repo != "" && repo != keys[0] {
+				keys = append(keys, repo)
+			}
+			return keys
 		}
-		return []string{strings.TrimSpace(pkg.Name)}
+		return []string{workflowPositionKey(strings.TrimSpace(pkg.Name))}
 	})
 }
 
-func appendPosition(out map[string][]*sdk.SourcePosition, key string, pos *sdk.SourcePosition) {
-	key = strings.TrimSpace(key)
-	if key == "" || pos == nil {
-		return
+func workflowPositionKey(coord string) string {
+	coord = strings.Trim(strings.TrimSpace(coord), "/")
+	parts := strings.Split(coord, "/")
+	if len(parts) < 2 || parts[0] == "" || parts[1] == "" {
+		return coord
 	}
-	for _, existing := range out[key] {
-		if existing.File == pos.File && existing.Line == pos.Line && existing.Column == pos.Column {
-			return
-		}
+	return parts[0] + "/" + parts[1]
+}
+
+func workflowRepoName(name string) string {
+	name = strings.Trim(name, "/")
+	if i := strings.Index(name, "/"); i >= 0 {
+		return name[:i]
 	}
-	out[key] = append(out[key], pos)
+	return name
 }

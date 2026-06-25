@@ -19,13 +19,25 @@ func pubspecLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
 	insidePackages := false
 	pendingName := ""
 	pendingLine := 0
+	flush := func() {
+		if pendingName == "" || pendingLine == 0 {
+			return
+		}
+		if _, exists := out[pendingName]; !exists {
+			out[pendingName] = &sdk.SourcePosition{File: relPath, Line: pendingLine}
+		}
+		pendingName = ""
+		pendingLine = 0
+	}
 	_ = detectors.ScanLines(path, func(line int, text string) {
 		trimmed := strings.TrimSpace(text)
 		if trimmed == "packages:" {
+			flush()
 			insidePackages = true
 			return
 		}
 		if !strings.HasPrefix(text, " ") && strings.HasSuffix(trimmed, ":") {
+			flush()
 			insidePackages = trimmed == "packages:"
 			return
 		}
@@ -33,6 +45,7 @@ func pubspecLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
 			return
 		}
 		if matches := pubspecLockEntry.FindStringSubmatch(text); matches != nil {
+			flush()
 			pendingName = matches[1]
 			pendingLine = line
 			return
@@ -49,11 +62,7 @@ func pubspecLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
 		pendingName = ""
 		pendingLine = 0
 	})
-	if pendingName != "" {
-		if _, exists := out[pendingName]; !exists {
-			out[pendingName] = &sdk.SourcePosition{File: relPath, Line: pendingLine}
-		}
-	}
+	flush()
 	return out
 }
 

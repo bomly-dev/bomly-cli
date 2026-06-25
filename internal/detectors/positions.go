@@ -39,6 +39,21 @@ func AttachPositionCandidates(g *sdk.Graph, positions map[string][]*sdk.SourcePo
 	attachPositionCandidates(g, positions, keys, true)
 }
 
+// AppendPosition appends pos under key unless the same file/line/column
+// position was already recorded.
+func AppendPosition(out map[string][]*sdk.SourcePosition, key string, pos *sdk.SourcePosition) {
+	key = strings.TrimSpace(key)
+	if key == "" || pos == nil {
+		return
+	}
+	for _, existing := range out[key] {
+		if existing.File == pos.File && existing.Line == pos.Line && existing.Column == pos.Column {
+			return
+		}
+	}
+	out[key] = append(out[key], pos)
+}
+
 func attachPositionCandidates(g *sdk.Graph, positions map[string][]*sdk.SourcePosition, keys func(*sdk.Dependency) []string, exactDuplicate bool) {
 	if g == nil || len(positions) == 0 || keys == nil {
 		return
@@ -52,9 +67,13 @@ func attachPositionCandidates(g *sdk.Graph, positions map[string][]*sdk.SourcePo
 			if key == "" {
 				continue
 			}
-			addedForKey := false
+			matchedKey := false
 			for _, pos := range positions[key] {
-				if pos == nil || hasLocation(pkg.Locations, pos, exactDuplicate) {
+				if pos == nil {
+					continue
+				}
+				matchedKey = true
+				if hasLocation(pkg.Locations, pos, exactDuplicate) {
 					continue
 				}
 				pkg.Locations = append(pkg.Locations, sdk.PackageLocation{
@@ -62,9 +81,8 @@ func attachPositionCandidates(g *sdk.Graph, positions map[string][]*sdk.SourcePo
 					AccessPath: pos.File,
 					Position:   pos,
 				})
-				addedForKey = true
 			}
-			if addedForKey {
+			if matchedKey {
 				break
 			}
 		}
@@ -80,7 +98,7 @@ func hasLocation(locations []sdk.PackageLocation, pos *sdk.SourcePosition, exact
 			return true
 		}
 		if loc.Position == nil {
-			return true
+			continue
 		}
 		if loc.Position.Line == pos.Line && loc.Position.Column == pos.Column && loc.Position.EndLine == pos.EndLine {
 			return true

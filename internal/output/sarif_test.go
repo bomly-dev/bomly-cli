@@ -436,6 +436,65 @@ func TestWriteSARIF_PrefersChangedFileWhenLineDoesNotIntersect(t *testing.T) {
 	}
 }
 
+func TestWriteSARIF_SelectsChangedLocationsPerDependency(t *testing.T) {
+	graph := sdk.New()
+	touched := sdk.NewDependencyWithID("lodash@4.17.21", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lodash"}, PackageRef: "pkg:npm/lodash@4.17.21",
+		Locations: []sdk.PackageLocation{
+			{RealPath: "package-lock.json", Position: &sdk.SourcePosition{File: "package-lock.json", Line: 9}},
+			{RealPath: "package.json", Position: &sdk.SourcePosition{File: "package.json", Line: 22}},
+		},
+	})
+	unchanged := sdk.NewDependencyWithID("minimist@1.2.8", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "minimist"}, PackageRef: "pkg:npm/minimist@1.2.8",
+		Locations: []sdk.PackageLocation{
+			{RealPath: "yarn.lock", Position: &sdk.SourcePosition{File: "yarn.lock", Line: 33}},
+		},
+	})
+	if err := graph.AddNode(touched); err != nil {
+		t.Fatalf("AddNode touched: %v", err)
+	}
+	if err := graph.AddNode(unchanged); err != nil {
+		t.Fatalf("AddNode unchanged: %v", err)
+	}
+	finding := sdk.Finding{
+		ID:             "policy:multi",
+		PackageRef:     touched.PackageRef,
+		DependencyRefs: []string{touched.ID, unchanged.ID},
+		Title:          "Denied package set",
+	}
+
+	var buf bytes.Buffer
+	err := WriteSARIF(&buf, []sdk.Finding{finding}, nil, "bomly", "0.1.0", SARIFOptions{
+		LocationGraphs: []*sdk.Graph{graph},
+		ChangedLines: map[string][]SARIFLineRange{
+			"package.json": {{Start: 22, End: 22}},
+		},
+	})
+	if err != nil {
+		t.Fatalf("WriteSARIF: %v", err)
+	}
+	var doc sarifLog
+	if err := json.Unmarshal(buf.Bytes(), &doc); err != nil {
+		t.Fatalf("decode SARIF: %v\n%s", err, buf.String())
+	}
+	locations := doc.Runs[0].Results[0].Locations
+	if len(locations) != 2 {
+		t.Fatalf("locations = %d, want changed touched dep plus unchanged dep", len(locations))
+	}
+	got := map[string]int{}
+	for _, loc := range locations {
+		got[loc.PhysicalLocation.ArtifactLocation.URI] = loc.PhysicalLocation.Region.StartLine
+	}
+	if got["package.json"] != 22 {
+		t.Fatalf("locations = %#v, want package.json line 22", got)
+	}
+	if got["yarn.lock"] != 33 {
+		t.Fatalf("locations = %#v, want yarn.lock line 33", got)
+	}
+	if _, hasOld := got["package-lock.json"]; hasOld {
+		t.Fatalf("locations = %#v, did not expect non-changed candidate for touched dep", got)
+	}
+}
+
 func TestWriteSARIF_RewritesNonFileLocationSchemes(t *testing.T) {
 	graph := sdk.New()
 	dep := sdk.NewDependencyWithID("actions:checkout@v5", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "actions/checkout"}, PackageRef: "actions:checkout@v5",

@@ -12,19 +12,43 @@ import (
 // swiftPMIdentity matches an `"identity": "foo"` line in
 // Package.resolved (both v1 and v2 formats use this key).
 var swiftPMIdentity = regexp.MustCompile(`"identity"\s*:\s*"([^"]+)"`)
-var swiftPMVersion = regexp.MustCompile(`"(?:version|revision)"\s*:\s*"([^"]+)"`)
+var swiftPMRevision = regexp.MustCompile(`"revision"\s*:\s*"([^"]+)"`)
+var swiftPMVersion = regexp.MustCompile(`"version"\s*:\s*"([^"]+)"`)
 
 func packageResolvedPositions(path, relPath string) map[string]*sdk.SourcePosition {
 	out := make(map[string]*sdk.SourcePosition)
 	pendingName := ""
-	pendingLine := 0
+	identityLine := 0
+	revisionLine := 0
+	flush := func() {
+		if pendingName == "" {
+			return
+		}
+		positionLine := revisionLine
+		if positionLine == 0 {
+			positionLine = identityLine
+		}
+		if positionLine > 0 {
+			if _, exists := out[pendingName]; !exists {
+				out[pendingName] = &sdk.SourcePosition{File: relPath, Line: positionLine}
+			}
+		}
+		pendingName = ""
+		identityLine = 0
+		revisionLine = 0
+	}
 	_ = detectors.ScanLines(path, func(line int, text string) {
 		if matches := swiftPMIdentity.FindStringSubmatch(text); matches != nil {
+			flush()
 			pendingName = strings.ToLower(strings.TrimSpace(matches[1]))
-			pendingLine = line
+			identityLine = line
 			return
 		}
 		if pendingName == "" {
+			return
+		}
+		if swiftPMRevision.FindStringSubmatch(text) != nil {
+			revisionLine = line
 			return
 		}
 		if swiftPMVersion.FindStringSubmatch(text) == nil {
@@ -34,13 +58,10 @@ func packageResolvedPositions(path, relPath string) map[string]*sdk.SourcePositi
 			out[pendingName] = &sdk.SourcePosition{File: relPath, Line: line}
 		}
 		pendingName = ""
-		pendingLine = 0
+		identityLine = 0
+		revisionLine = 0
 	})
-	if pendingName != "" {
-		if _, exists := out[pendingName]; !exists {
-			out[pendingName] = &sdk.SourcePosition{File: relPath, Line: pendingLine}
-		}
-	}
+	flush()
 	return out
 }
 

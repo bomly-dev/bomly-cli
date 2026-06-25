@@ -387,17 +387,13 @@ func sarifFrameDescription(frame sdk.CallFrame) string {
 // and no region. This is honest: we know which file the dep lives
 // in but not exactly where.
 func sarifLocationsForFinding(f sdk.Finding, includeReachability bool, options []SARIFOptions) ([]sarifLocation, []string) {
-	type candidate struct {
-		location sarifLocation
-		uri      string
-		score    int
-	}
-	candidates := make([]candidate, 0)
+	locations := make([]sarifLocation, 0)
 	originalURIs := make([]string, 0)
 	seen := make(map[string]struct{})
 	changedLines := sarifChangedLines(options)
 
 	for _, dep := range dependenciesForFinding(f, options) {
+		candidates := make([]sarifLocationCandidate, 0, len(dep.Locations))
 		for _, loc := range dep.Locations {
 			uri, region := sarifLocationURIAndRegion(loc)
 			uri = strings.TrimSpace(uri)
@@ -417,30 +413,15 @@ func sarifLocationsForFinding(f sdk.Finding, includeReachability bool, options [
 					Region:           region,
 				},
 			}
-			candidates = append(candidates, candidate{
+			candidates = append(candidates, sarifLocationCandidate{
 				location: location,
-				uri:      safeURI,
 				score:    sarifLocationDiffScore(safeURI, region, changedLines),
 			})
 		}
+		locations = append(locations, selectSARIFLocationCandidates(candidates, changedLines)...)
 	}
 
-	if len(candidates) > 0 {
-		bestScore := 2
-		if len(changedLines) > 0 {
-			for _, candidate := range candidates {
-				if candidate.score < bestScore {
-					bestScore = candidate.score
-				}
-			}
-		}
-		locations := make([]sarifLocation, 0, len(candidates))
-		for _, candidate := range candidates {
-			if len(changedLines) > 0 && candidate.score != bestScore {
-				continue
-			}
-			locations = append(locations, candidate.location)
-		}
+	if len(locations) > 0 {
 		return locations, originalURIs
 	}
 
@@ -458,6 +439,33 @@ func sarifLocationsForFinding(f sdk.Finding, includeReachability bool, options [
 			},
 		},
 	}, originalURIs
+}
+
+type sarifLocationCandidate struct {
+	location sarifLocation
+	score    int
+}
+
+func selectSARIFLocationCandidates(candidates []sarifLocationCandidate, changedLines map[string][]SARIFLineRange) []sarifLocation {
+	if len(candidates) == 0 {
+		return nil
+	}
+	bestScore := 2
+	if len(changedLines) > 0 {
+		for _, candidate := range candidates {
+			if candidate.score < bestScore {
+				bestScore = candidate.score
+			}
+		}
+	}
+	locations := make([]sarifLocation, 0, len(candidates))
+	for _, candidate := range candidates {
+		if len(changedLines) > 0 && candidate.score != bestScore {
+			continue
+		}
+		locations = append(locations, candidate.location)
+	}
+	return locations
 }
 
 func sarifChangedLines(options []SARIFOptions) map[string][]SARIFLineRange {

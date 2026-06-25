@@ -203,6 +203,27 @@ func TestDetectorResolveGraphAttachesPackagesConfigLocations(t *testing.T) {
 	}
 }
 
+func TestNuGetPositionsRecordSelfClosingReferenceWithoutVersion(t *testing.T) {
+	projectDir := t.TempDir()
+	raw := []byte(`<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Central.Package" />
+  </ItemGroup>
+</Project>`)
+	if err := os.WriteFile(filepath.Join(projectDir, "example.csproj"), raw, 0o644); err != nil {
+		t.Fatalf("write project file: %v", err)
+	}
+
+	positions := nugetPositions(projectDir)
+	got := positions["central.package"]
+	if len(got) != 1 || got[0].File != "example.csproj" || got[0].Line != 3 {
+		t.Fatalf("central.package positions = %#v, want example.csproj line 3", got)
+	}
+	if got := positions["central.package@"]; len(got) != 0 {
+		t.Fatalf("central.package@ positions = %#v, want none", got)
+	}
+}
+
 func TestDepGraphFromDepsFiles(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "example.deps.json")

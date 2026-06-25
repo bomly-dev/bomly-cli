@@ -51,14 +51,14 @@ func pomPositions(path, relPath string) map[string][]*sdk.SourcePosition {
 					positionLine = pendingVersionLine
 				}
 				pos := &sdk.SourcePosition{File: relPath, Line: positionLine}
-				appendPosition(out, pendingArtifactName, pos)
+				detectors.AppendPosition(out, pendingArtifactName, pos)
 				if pendingVersion != "" {
-					appendPosition(out, pendingArtifactName+"@"+pendingVersion, pos)
+					detectors.AppendPosition(out, pendingArtifactName+"@"+pendingVersion, pos)
 				}
 				if pendingGroup != "" {
-					appendPosition(out, pendingGroup+":"+pendingArtifactName, pos)
+					detectors.AppendPosition(out, pendingGroup+":"+pendingArtifactName, pos)
 					if pendingVersion != "" {
-						appendPosition(out, pendingGroup+":"+pendingArtifactName+"@"+pendingVersion, pos)
+						detectors.AppendPosition(out, pendingGroup+":"+pendingArtifactName+"@"+pendingVersion, pos)
 					}
 				}
 			}
@@ -113,17 +113,4 @@ func AttachPomPositions(g *sdk.Graph, projectDir string) {
 		org := strings.TrimSpace(pkg.Org)
 		return []string{org + ":" + name + "@" + version, name + "@" + version, org + ":" + name, name}
 	})
-}
-
-func appendPosition(out map[string][]*sdk.SourcePosition, key string, pos *sdk.SourcePosition) {
-	key = strings.TrimSpace(key)
-	if key == "" || pos == nil {
-		return
-	}
-	for _, existing := range out[key] {
-		if existing.File == pos.File && existing.Line == pos.Line && existing.Column == pos.Column {
-			return
-		}
-	}
-	out[key] = append(out[key], pos)
 }

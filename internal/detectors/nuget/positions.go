@@ -48,8 +48,8 @@ func nugetPositions(projectDir string) map[string][]*sdk.SourcePosition {
 		}
 		version := strings.TrimSpace(matches[1])
 		pos := &sdk.SourcePosition{File: "packages.lock.json", Line: line}
-		appendPosition(out, pendingName, &sdk.SourcePosition{File: "packages.lock.json", Line: pendingLine})
-		appendPosition(out, pendingName+"@"+version, pos)
+		detectors.AppendPosition(out, pendingName, &sdk.SourcePosition{File: "packages.lock.json", Line: pendingLine})
+		detectors.AppendPosition(out, pendingName+"@"+version, pos)
 		pendingName = ""
 		pendingLine = 0
 	})
@@ -62,8 +62,8 @@ func nugetPositions(projectDir string) map[string][]*sdk.SourcePosition {
 		name := strings.ToLower(strings.TrimSpace(matches[1]))
 		version := strings.TrimSpace(matches[2])
 		pos := &sdk.SourcePosition{File: "packages.config", Line: line}
-		appendPosition(out, name, pos)
-		appendPosition(out, name+"@"+version, pos)
+		detectors.AppendPosition(out, name, pos)
+		detectors.AppendPosition(out, name+"@"+version, pos)
 	})
 	// 3) Scan project files for PackageReference.
 	projectFiles, _ := nugetProjectFiles(projectDir)
@@ -80,11 +80,15 @@ func nugetPositions(projectDir string) map[string][]*sdk.SourcePosition {
 			if refMatches != nil {
 				pendingName = strings.ToLower(strings.TrimSpace(refMatches[1]))
 				pendingLine = line
+				detectors.AppendPosition(out, pendingName, &sdk.SourcePosition{File: rel, Line: pendingLine})
 				if versionMatches := nugetPackageReferenceVersionAttr.FindStringSubmatch(text); versionMatches != nil {
 					version := strings.TrimSpace(versionMatches[1])
 					pos := &sdk.SourcePosition{File: rel, Line: line}
-					appendPosition(out, pendingName, pos)
-					appendPosition(out, pendingName+"@"+version, pos)
+					detectors.AppendPosition(out, pendingName+"@"+version, pos)
+					pendingName = ""
+					pendingLine = 0
+				}
+				if strings.Contains(text, "/>") {
 					pendingName = ""
 					pendingLine = 0
 				}
@@ -96,14 +100,12 @@ func nugetPositions(projectDir string) map[string][]*sdk.SourcePosition {
 			if versionMatches := nugetVersionElement.FindStringSubmatch(text); versionMatches != nil {
 				version := strings.TrimSpace(versionMatches[1])
 				pos := &sdk.SourcePosition{File: rel, Line: line}
-				appendPosition(out, pendingName, &sdk.SourcePosition{File: rel, Line: pendingLine})
-				appendPosition(out, pendingName+"@"+version, pos)
+				detectors.AppendPosition(out, pendingName+"@"+version, pos)
 				pendingName = ""
 				pendingLine = 0
 				return
 			}
 			if nugetPackageReferenceClose.MatchString(text) {
-				appendPosition(out, pendingName, &sdk.SourcePosition{File: rel, Line: pendingLine})
 				pendingName = ""
 				pendingLine = 0
 			}
@@ -132,17 +134,4 @@ func AttachNugetPositions(g *sdk.Graph, projectDir string) {
 		}
 		return []string{name + "@" + strings.TrimSpace(pkg.Version), name}
 	})
-}
-
-func appendPosition(out map[string][]*sdk.SourcePosition, key string, pos *sdk.SourcePosition) {
-	key = strings.TrimSpace(key)
-	if key == "" || pos == nil {
-		return
-	}
-	for _, existing := range out[key] {
-		if existing.File == pos.File && existing.Line == pos.Line && existing.Column == pos.Column {
-			return
-		}
-	}
-	out[key] = append(out[key], pos)
 }

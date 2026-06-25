@@ -40,9 +40,9 @@ func packageLockPositions(path, relPath string) map[string][]*sdk.SourcePosition
 		version := strings.TrimSpace(matches[1])
 		pos := &sdk.SourcePosition{File: relPath, Line: line}
 		if version != "" {
-			appendPosition(out, currentName+"@"+version, pos)
+			detectors.AppendPosition(out, currentName+"@"+version, pos)
 		}
-		appendPosition(out, currentName, &sdk.SourcePosition{File: relPath, Line: currentLine})
+		detectors.AppendPosition(out, currentName, &sdk.SourcePosition{File: relPath, Line: currentLine})
 		currentName = ""
 		currentLine = 0
 	})
@@ -91,19 +91,28 @@ func AttachPackageLockPositions(g *sdk.Graph, projectDir string) {
 		if name == "" {
 			return nil
 		}
-		return []string{name + "@" + strings.TrimSpace(pkg.Version), name}
+		return npmPositionKeys(name, strings.TrimSpace(pkg.Version))
 	})
 }
 
-func appendPosition(out map[string][]*sdk.SourcePosition, key string, pos *sdk.SourcePosition) {
-	key = strings.TrimSpace(key)
-	if key == "" || pos == nil {
-		return
+func npmPositionKeys(name, version string) []string {
+	names := []string{name}
+	if normalized := npmSlashScopeName(name); normalized != "" && normalized != name {
+		names = append([]string{normalized}, names...)
 	}
-	for _, existing := range out[key] {
-		if existing.File == pos.File && existing.Line == pos.Line && existing.Column == pos.Column {
-			return
+	keys := make([]string, 0, len(names)*2)
+	for _, candidate := range names {
+		if version != "" {
+			keys = append(keys, candidate+"@"+version)
 		}
+		keys = append(keys, candidate)
 	}
-	out[key] = append(out[key], pos)
+	return keys
+}
+
+func npmSlashScopeName(name string) string {
+	if strings.HasPrefix(name, "@") && strings.Contains(name, ":") {
+		return strings.Replace(name, ":", "/", 1)
+	}
+	return name
 }

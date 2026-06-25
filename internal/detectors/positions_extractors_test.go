@@ -144,6 +144,28 @@ func TestNpmPackageLockPositionsMatchPackageVersion(t *testing.T) {
 	}
 }
 
+func TestNpmPackageLockPositionsMatchColonScopedGraphName(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, dir, "package-lock.json", `{
+  "packages": {
+    "node_modules/@scope/pkg": {
+      "version": "1.2.3"
+    }
+  }
+}
+`)
+	g := sdk.New()
+	mustPkg(t, g, "@scope:pkg", "1.2.3")
+	npm.AttachPackageLockPositions(g, dir)
+	scoped, _ := g.Node("@scope:pkg@1.2.3")
+	if scoped == nil {
+		t.Fatal("missing @scope:pkg")
+	}
+	if len(scoped.Locations) == 0 || scoped.Locations[0].Position.Line != 4 {
+		t.Fatalf("@scope:pkg locations = %+v, want package-lock version line 4", scoped.Locations)
+	}
+}
+
 func TestPnpmLockPositions(t *testing.T) {
 	dir := t.TempDir()
 	writeFile(t, dir, "pnpm-lock.yaml", `lockfileVersion: '6.0'
@@ -193,6 +215,24 @@ func TestPnpmLockPositionsMatchPackageVersion(t *testing.T) {
 	lodash, _ := g.Node("lodash@3.10.1")
 	if lodash == nil || len(lodash.Locations) == 0 || lodash.Locations[0].Position.Line != 4 {
 		t.Fatalf("lodash@3.10.1 locations = %+v, want lock entry line 4", lodash.Locations)
+	}
+}
+
+func TestPnpmLockPositionsMatchColonScopedGraphName(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, dir, "pnpm-lock.yaml", `packages:
+  /@scope/pkg@1.2.3:
+    resolution: {integrity: sha512-scoped}
+`)
+	g := sdk.New()
+	mustPkg(t, g, "@scope:pkg", "1.2.3")
+	pnpm.AttachPnpmLockPositions(g, dir)
+	scoped, _ := g.Node("@scope:pkg@1.2.3")
+	if scoped == nil {
+		t.Fatal("missing @scope:pkg")
+	}
+	if len(scoped.Locations) == 0 || scoped.Locations[0].Position.Line != 2 {
+		t.Fatalf("@scope:pkg locations = %+v, want pnpm lock entry line 2", scoped.Locations)
 	}
 }
 

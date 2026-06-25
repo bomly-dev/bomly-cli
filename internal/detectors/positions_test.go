@@ -62,6 +62,49 @@ func TestAttachPositionsHonorsNameKey(t *testing.T) {
 	}
 }
 
+func TestAttachPositionCandidatesExactKeyStopsFallback(t *testing.T) {
+	g := sdk.New()
+	pkg := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "foo", Version: "2.0.0", Ecosystem: "test"}})
+	_ = g.AddNode(pkg)
+
+	AttachPositionCandidates(g, map[string][]*sdk.SourcePosition{
+		"foo@2.0.0": {{File: "lock", Line: 20}},
+		"foo":       {{File: "lock", Line: 10}},
+	}, func(p *sdk.Dependency) []string {
+		return []string{p.Name + "@" + p.Version, p.Name}
+	})
+
+	got, _ := g.Node("foo@2.0.0")
+	if got == nil || len(got.Locations) != 1 {
+		t.Fatalf("Locations = %#v, want one exact-version location", got)
+	}
+	if got.Locations[0].Position == nil || got.Locations[0].Position.Line != 20 {
+		t.Fatalf("Position = %#v, want exact-version line 20", got.Locations[0].Position)
+	}
+}
+
+func TestAttachPositionCandidatesUpgradesFileOnlyLocation(t *testing.T) {
+	g := sdk.New()
+	pkg := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "foo", Version: "1.0.0", Ecosystem: "test"}, Locations: []sdk.PackageLocation{
+		{RealPath: "lock", AccessPath: "lock"},
+	}})
+	_ = g.AddNode(pkg)
+
+	AttachPositionCandidates(g, map[string][]*sdk.SourcePosition{
+		"foo@1.0.0": {{File: "lock", Line: 8}},
+	}, func(p *sdk.Dependency) []string {
+		return []string{p.Name + "@" + p.Version}
+	})
+
+	got, _ := g.Node("foo@1.0.0")
+	if got == nil || len(got.Locations) != 2 {
+		t.Fatalf("Locations = %#v, want file-only plus line-specific location", got)
+	}
+	if got.Locations[1].Position == nil || got.Locations[1].Position.Line != 8 {
+		t.Fatalf("upgraded Position = %#v, want line 8", got.Locations[1].Position)
+	}
+}
+
 func TestScanLinesReportsLineNumbers(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "f.txt")

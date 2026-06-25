@@ -120,6 +120,10 @@ Reachability data lives on `sdk.Vulnerability.Reachability` rather than on `Find
 
 Pipeline plumbing: `engine.PipelineResult` exposes `Graph`, `Registry`, `Findings`, and `RiskScores`. The registry is built right after consolidation (`consolidation.BuildPackageRegistry`) and threaded through match/analyze/audit requests; output helpers (`BuildScanResponse`, `WriteSARIF`, `FindingsFromScan`, `PackagesFromGraph`) all accept `*sdk.PackageRegistry` and re-enrich their projections by resolving `PackageRef` and `VulnerabilityID`. See [`MODELS.md`](MODELS.md) for the full schema reference.
 
+### Decision: Package locations are detector-relative today
+
+`PackageLocation.Position.File` is emitted by detectors in the coordinate space of the detector working directory. For single-root projects that is already repository-relative, which lets `bomly diff` compare SARIF locations with repo-relative changed-line ranges. In subproject and monorepo scans, detector positions such as `package-lock.json` may need to be rebased with the subproject `RelativePath` during consolidation before diff-aware SARIF can reliably match changed lines. Until that rebasing exists, location extraction remains best effort and the output layer only prefers changed lines when the detector path already matches the git diff path.
+
 ### Decision: Reachability analyzers derive local hierarchy closures
 
 Tier-3 source analyzers discover local workspace and module hierarchies from declarative project files while the consolidated detector graph remains the source of truth for external package edges. `jsreach` follows package-name imports across npm, Yarn, and pnpm workspace members. `jvmreach` follows source namespace imports across Maven `<modules>` and standard Gradle `include` declarations. This keeps hierarchy traversal automatic, avoids package-manager installation or network activity during reachability analysis, and prevents unused sibling projects from widening the reachable set.

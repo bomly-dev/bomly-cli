@@ -10,6 +10,7 @@ import (
 )
 
 var conanRefLine = regexp.MustCompile(`([a-zA-Z0-9_][a-zA-Z0-9._+-]*)\s*/\s*([^@'"\s,)]+)`)
+var conanPythonRequireLine = regexp.MustCompile(`(?:self\.)?(?:requires|build_requires|tool_requires|test_requires)\s*\(\s*["']([a-zA-Z0-9_][a-zA-Z0-9._+-]*)\s*/\s*([^@'"\s,)]+)`)
 
 var conanSectionHeader = regexp.MustCompile(`^\s*\[\s*(requires|build_requires|tool_requires|test_requires)\s*\]\s*$`)
 
@@ -33,6 +34,9 @@ func conanPositions(projectDir string) map[string][]*sdk.SourcePosition {
 				return
 			}
 			matches := conanRefLine.FindStringSubmatch(text)
+			if name == "conanfile.py" {
+				matches = conanPythonRequireLine.FindStringSubmatch(text)
+			}
 			if matches == nil {
 				return
 			}
@@ -42,9 +46,9 @@ func conanPositions(projectDir string) map[string][]*sdk.SourcePosition {
 			}
 			version := strings.TrimSpace(matches[2])
 			pos := &sdk.SourcePosition{File: name, Line: line}
-			appendPosition(out, pkgName, pos)
+			detectors.AppendPosition(out, pkgName, pos)
 			if version != "" {
-				appendPosition(out, pkgName+"@"+version, pos)
+				detectors.AppendPosition(out, pkgName+"@"+version, pos)
 			}
 		})
 	}
@@ -70,17 +74,4 @@ func AttachConanPositions(g *sdk.Graph, projectDir string) {
 		}
 		return []string{name + "@" + strings.TrimSpace(pkg.Version), name}
 	})
-}
-
-func appendPosition(out map[string][]*sdk.SourcePosition, key string, pos *sdk.SourcePosition) {
-	key = strings.TrimSpace(key)
-	if key == "" || pos == nil {
-		return
-	}
-	for _, existing := range out[key] {
-		if existing.File == pos.File && existing.Line == pos.Line && existing.Column == pos.Column {
-			return
-		}
-	}
-	out[key] = append(out[key], pos)
 }

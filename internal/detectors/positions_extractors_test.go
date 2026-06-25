@@ -304,6 +304,31 @@ func TestMavenPomPositions(t *testing.T) {
 	}
 }
 
+func TestMavenPomPositionsResolvePropertiesAfterDependencies(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, dir, "pom.xml", `<project>
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>${commons-lang3.version}</version>
+    </dependency>
+  </dependencies>
+  <properties>
+    <commons-lang3.version>3.17.0</commons-lang3.version>
+  </properties>
+</project>
+`)
+	g := sdk.New()
+	mustPkg(t, g, "commons-lang3", "3.17.0", func(p *sdk.Dependency) { p.Org = "org.apache.commons" })
+	maven.AttachPomPositions(g, dir)
+
+	lang3, _ := g.Node("org.apache.commons:commons-lang3@3.17.0")
+	if lang3 == nil || len(lang3.Locations) == 0 || lang3.Locations[0].Position.Line != 10 {
+		t.Fatalf("commons-lang3 location = %+v, want late property line 10", lang3)
+	}
+}
+
 func TestGradlePositions(t *testing.T) {
 	dir := t.TempDir()
 	writeFile(t, dir, "build.gradle", `dependencies {

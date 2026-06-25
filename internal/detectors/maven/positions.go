@@ -37,8 +37,7 @@ type pomPropertyPosition struct {
 // best-effort attribution to the parent pom.
 func pomPositions(path, relPath string) map[string][]*sdk.SourcePosition {
 	out := make(map[string][]*sdk.SourcePosition)
-	properties := make(map[string]pomPropertyPosition)
-	insideProperties := false
+	properties := pomProperties(path)
 	insideDep := false
 	pendingGroup := ""
 	pendingArtifactLine := 0
@@ -46,22 +45,6 @@ func pomPositions(path, relPath string) map[string][]*sdk.SourcePosition {
 	pendingVersion := ""
 	pendingVersionLine := 0
 	_ = detectors.ScanLines(path, func(line int, text string) {
-		if !insideDep {
-			if pomPropertiesOpen.MatchString(text) {
-				insideProperties = true
-				return
-			}
-			if pomPropertiesClose.MatchString(text) {
-				insideProperties = false
-				return
-			}
-			if insideProperties {
-				if m := pomProperty.FindStringSubmatch(text); m != nil {
-					properties[strings.TrimSpace(m[1])] = pomPropertyPosition{value: strings.TrimSpace(m[2]), line: line}
-				}
-				return
-			}
-		}
 		if pomDependencyOpen.MatchString(text) {
 			insideDep = true
 			pendingGroup = ""
@@ -117,6 +100,28 @@ func pomPositions(path, relPath string) map[string][]*sdk.SourcePosition {
 		if m := pomVersion.FindStringSubmatch(text); m != nil {
 			pendingVersion = strings.TrimSpace(m[1])
 			pendingVersionLine = line
+		}
+	})
+	return out
+}
+
+func pomProperties(path string) map[string]pomPropertyPosition {
+	out := make(map[string]pomPropertyPosition)
+	insideProperties := false
+	_ = detectors.ScanLines(path, func(line int, text string) {
+		if pomPropertiesOpen.MatchString(text) {
+			insideProperties = true
+			return
+		}
+		if pomPropertiesClose.MatchString(text) {
+			insideProperties = false
+			return
+		}
+		if !insideProperties {
+			return
+		}
+		if m := pomProperty.FindStringSubmatch(text); m != nil {
+			out[strings.TrimSpace(m[1])] = pomPropertyPosition{value: strings.TrimSpace(m[2]), line: line}
 		}
 	})
 	return out

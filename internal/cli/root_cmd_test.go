@@ -586,6 +586,44 @@ func TestRoot_DiffCommand_JSONOutput(t *testing.T) {
 	}
 }
 
+// TestRoot_DiffCommand_NoMatchingEcosystemExitsNothingToEvaluate verifies that
+// pointing diff at a repo with an ecosystem filter that matches nothing exits
+// with the dedicated "nothing to evaluate" code (5) and produces no partial
+// output, rather than the generic execution-error code (1).
+func TestRoot_DiffCommand_NoMatchingEcosystemExitsNothingToEvaluate(t *testing.T) {
+	requireGit(t)
+	tempHome := t.TempDir()
+	t.Setenv("HOME", tempHome)
+	if runtime.GOOS == "windows" {
+		t.Setenv("USERPROFILE", tempHome)
+	}
+
+	setDynamicFakeNPMOnPath(t)
+	repoDir, baseSHA, headSHA := createGitNPMRepoHistory(t)
+
+	root, err := newRootCmd("0.9.0-test")
+	if err != nil {
+		t.Fatalf("newRootCmd() error = %v", err)
+	}
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	root.SetOut(&stdout)
+	root.SetErr(&stderr)
+	root.SetArgs([]string{"diff", "--path", repoDir, "--ecosystems", "maven", "--base", baseSHA, "--head", headSHA, "--format", "json"})
+
+	err = root.Execute()
+	if err == nil {
+		t.Fatalf("expected an error when no manifests match the ecosystem filter; stdout=%s", stdout.String())
+	}
+	if got := exit.Code(err); got != 5 {
+		t.Fatalf("expected exit code 5 (nothing to evaluate), got %d (err=%v)", got, err)
+	}
+	if strings.TrimSpace(stdout.String()) != "" {
+		t.Fatalf("expected no partial output on the nothing-to-evaluate path, got:\n%s", stdout.String())
+	}
+}
+
 func TestRoot_DiffCommand_JSONOutputWithMarkdownOutputFile(t *testing.T) {
 	requireGit(t)
 	tempHome := t.TempDir()

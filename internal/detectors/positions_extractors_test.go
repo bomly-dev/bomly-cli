@@ -348,7 +348,7 @@ func TestMavenPomPositionsUseArtifactPropertyForManagedDependency(t *testing.T) 
 	maven.AttachPomPositions(g, dir)
 
 	lang3, _ := g.Node("org.apache.commons:commons-lang3@3.17.0")
-	if lang3 == nil || len(lang3.Locations) == 0 || lang3.Locations[0].Position.Line != 3 {
+	if lang3 == nil || len(lang3.Locations) != 1 || lang3.Locations[0].Position.Line != 3 {
 		t.Fatalf("commons-lang3 location = %+v, want artifact property line 3", lang3)
 	}
 }

@@ -14,10 +14,10 @@ import (
 var usesLine = regexp.MustCompile(`^\s*-?\s*uses\s*:\s*['"]?([A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*(?:/[^@'"\s]*)?)@[^'"\s]+['"]?\s*$`)
 
 // workflowPositions walks .github/workflows/*.yml + .github/actions/*/action.yml
-// and returns a map from owner/repo coordinate to the line where the
-// `uses:` entry first appears.
-func workflowPositions(projectDir string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+// and returns every line where a `uses:` entry appears for each owner/repo
+// coordinate.
+func workflowPositions(projectDir string) map[string][]*sdk.SourcePosition {
+	out := make(map[string][]*sdk.SourcePosition)
 	patterns := []string{
 		filepath.Join(projectDir, ".github", "workflows", "*.yml"),
 		filepath.Join(projectDir, ".github", "workflows", "*.yaml"),
@@ -41,10 +41,7 @@ func workflowPositions(projectDir string) map[string]*sdk.SourcePosition {
 				if coord == "" {
 					return
 				}
-				if _, exists := out[coord]; exists {
-					return
-				}
-				out[coord] = &sdk.SourcePosition{File: rel, Line: line, Column: matches[2] + 1, EndLine: line}
+				appendPosition(out, coord, &sdk.SourcePosition{File: rel, Line: line, Column: matches[2] + 1, EndLine: line})
 			})
 		}
 	}
@@ -61,15 +58,28 @@ func AttachWorkflowPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositions(g, positions, func(pkg *sdk.Dependency) string {
+	detectors.AttachPositionCandidates(g, positions, func(pkg *sdk.Dependency) []string {
 		if pkg == nil {
-			return ""
+			return nil
 		}
 		// External GitHub Actions packages store owner and repository
 		// separately, while workflow manifests spell them as owner/repo.
 		if strings.TrimSpace(pkg.Org) != "" && strings.TrimSpace(pkg.Name) != "" {
-			return strings.Trim(strings.TrimSpace(pkg.Org), "/") + "/" + strings.Trim(strings.TrimSpace(pkg.Name), "/")
+			return []string{strings.Trim(strings.TrimSpace(pkg.Org), "/") + "/" + strings.Trim(strings.TrimSpace(pkg.Name), "/")}
 		}
-		return strings.TrimSpace(pkg.Name)
+		return []string{strings.TrimSpace(pkg.Name)}
 	})
+}
+
+func appendPosition(out map[string][]*sdk.SourcePosition, key string, pos *sdk.SourcePosition) {
+	key = strings.TrimSpace(key)
+	if key == "" || pos == nil {
+		return
+	}
+	for _, existing := range out[key] {
+		if existing.File == pos.File && existing.Line == pos.Line && existing.Column == pos.Column {
+			return
+		}
+	}
+	out[key] = append(out[key], pos)
 }

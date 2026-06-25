@@ -18,6 +18,7 @@ var (
 	pomDependencyClose = regexp.MustCompile(`</dependency>`)
 	pomGroupID         = regexp.MustCompile(`<groupId>([^<]+)</groupId>`)
 	pomArtifactID      = regexp.MustCompile(`<artifactId>([^<]+)</artifactId>`)
+	pomVersion         = regexp.MustCompile(`<version>([^<]+)</version>`)
 )
 
 // pomPositions returns name -> position by scanning every
@@ -25,30 +26,55 @@ var (
 // (matching how the maven detector stores Name on graph packages).
 // In multi-module projects with a single root pom, this is a
 // best-effort attribution to the parent pom.
-func pomPositions(path, relPath string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+func pomPositions(path, relPath string) map[string][]*sdk.SourcePosition {
+	out := make(map[string][]*sdk.SourcePosition)
 	insideDep := false
+	pendingGroup := ""
 	pendingArtifactLine := 0
 	pendingArtifactName := ""
+	pendingVersion := ""
+	pendingVersionLine := 0
 	_ = detectors.ScanLines(path, func(line int, text string) {
 		if pomDependencyOpen.MatchString(text) {
 			insideDep = true
+			pendingGroup = ""
 			pendingArtifactLine = 0
 			pendingArtifactName = ""
+			pendingVersion = ""
+			pendingVersionLine = 0
 			return
 		}
 		if pomDependencyClose.MatchString(text) {
 			if pendingArtifactName != "" && pendingArtifactLine > 0 {
-				if _, exists := out[pendingArtifactName]; !exists {
-					out[pendingArtifactName] = &sdk.SourcePosition{File: relPath, Line: pendingArtifactLine}
+				positionLine := pendingArtifactLine
+				if pendingVersionLine > 0 {
+					positionLine = pendingVersionLine
+				}
+				pos := &sdk.SourcePosition{File: relPath, Line: positionLine}
+				appendPosition(out, pendingArtifactName, pos)
+				if pendingVersion != "" {
+					appendPosition(out, pendingArtifactName+"@"+pendingVersion, pos)
+				}
+				if pendingGroup != "" {
+					appendPosition(out, pendingGroup+":"+pendingArtifactName, pos)
+					if pendingVersion != "" {
+						appendPosition(out, pendingGroup+":"+pendingArtifactName+"@"+pendingVersion, pos)
+					}
 				}
 			}
 			insideDep = false
+			pendingGroup = ""
 			pendingArtifactName = ""
 			pendingArtifactLine = 0
+			pendingVersion = ""
+			pendingVersionLine = 0
 			return
 		}
 		if !insideDep {
+			return
+		}
+		if m := pomGroupID.FindStringSubmatch(text); m != nil {
+			pendingGroup = strings.TrimSpace(m[1])
 			return
 		}
 		if m := pomArtifactID.FindStringSubmatch(text); m != nil {
@@ -56,9 +82,10 @@ func pomPositions(path, relPath string) map[string]*sdk.SourcePosition {
 			pendingArtifactLine = line
 			return
 		}
-		// groupId could be useful for disambiguation but we key only on
-		// artifactId to match the graph's Name field.
-		_ = pomGroupID
+		if m := pomVersion.FindStringSubmatch(text); m != nil {
+			pendingVersion = strings.TrimSpace(m[1])
+			pendingVersionLine = line
+		}
 	})
 	return out
 }
@@ -72,16 +99,31 @@ func AttachPomPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositions(g, positions, func(pkg *sdk.Dependency) string {
+	detectors.AttachPositionCandidates(g, positions, func(pkg *sdk.Dependency) []string {
 		if pkg == nil {
-			return ""
+			return nil
 		}
 		// Maven detector stores Name as artifactId (optionally with
 		// :classifier suffix). Strip the suffix to match.
 		name := strings.TrimSpace(pkg.Name)
 		if i := strings.Index(name, ":"); i > 0 {
-			return name[:i]
+			name = name[:i]
 		}
-		return name
+		version := strings.TrimSpace(pkg.Version)
+		org := strings.TrimSpace(pkg.Org)
+		return []string{org + ":" + name + "@" + version, name + "@" + version, org + ":" + name, name}
 	})
+}
+
+func appendPosition(out map[string][]*sdk.SourcePosition, key string, pos *sdk.SourcePosition) {
+	key = strings.TrimSpace(key)
+	if key == "" || pos == nil {
+		return
+	}
+	for _, existing := range out[key] {
+		if existing.File == pos.File && existing.Line == pos.Line && existing.Column == pos.Column {
+			return
+		}
+	}
+	out[key] = append(out[key], pos)
 }

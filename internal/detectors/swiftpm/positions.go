@@ -12,23 +12,35 @@ import (
 // swiftPMIdentity matches an `"identity": "foo"` line in
 // Package.resolved (both v1 and v2 formats use this key).
 var swiftPMIdentity = regexp.MustCompile(`"identity"\s*:\s*"([^"]+)"`)
+var swiftPMVersion = regexp.MustCompile(`"(?:version|revision)"\s*:\s*"([^"]+)"`)
 
 func packageResolvedPositions(path, relPath string) map[string]*sdk.SourcePosition {
 	out := make(map[string]*sdk.SourcePosition)
+	pendingName := ""
+	pendingLine := 0
 	_ = detectors.ScanLines(path, func(line int, text string) {
-		matches := swiftPMIdentity.FindStringSubmatch(text)
-		if matches == nil {
+		if matches := swiftPMIdentity.FindStringSubmatch(text); matches != nil {
+			pendingName = strings.ToLower(strings.TrimSpace(matches[1]))
+			pendingLine = line
 			return
 		}
-		name := strings.ToLower(strings.TrimSpace(matches[1]))
-		if name == "" {
+		if pendingName == "" {
 			return
 		}
-		if _, exists := out[name]; exists {
+		if swiftPMVersion.FindStringSubmatch(text) == nil {
 			return
 		}
-		out[name] = &sdk.SourcePosition{File: relPath, Line: line}
+		if _, exists := out[pendingName]; !exists {
+			out[pendingName] = &sdk.SourcePosition{File: relPath, Line: line}
+		}
+		pendingName = ""
+		pendingLine = 0
 	})
+	if pendingName != "" {
+		if _, exists := out[pendingName]; !exists {
+			out[pendingName] = &sdk.SourcePosition{File: relPath, Line: pendingLine}
+		}
+	}
 	return out
 }
 

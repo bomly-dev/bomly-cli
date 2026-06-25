@@ -16,10 +16,10 @@ import (
 //	/foo/1.0.0:
 //	'/foo@1.0.0(transitivePeer@2.0.0)':
 //	'@scope/pkg@1.0.0':
-var pnpmLockKeyLine = regexp.MustCompile(`^\s*['"]?/?((?:@[^/'"@]+/)?[^/'"@\s]+)[@/][^:'"\s]+['"]?\s*:\s*$`)
+var pnpmLockKeyLine = regexp.MustCompile(`^\s*['"]?/?((?:@[^/'"@]+/)?[^/'"@\s]+)[@/]([^:'"\s(]+)`)
 
-func pnpmLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+func pnpmLockPositions(path, relPath string) map[string][]*sdk.SourcePosition {
+	out := make(map[string][]*sdk.SourcePosition)
 	insidePackages := false
 	_ = detectors.ScanLines(path, func(line int, text string) {
 		trimmed := strings.TrimSpace(text)
@@ -43,10 +43,12 @@ func pnpmLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
 		if name == "" {
 			return
 		}
-		if _, exists := out[name]; exists {
-			return
+		version := strings.TrimSpace(matches[2])
+		pos := &sdk.SourcePosition{File: relPath, Line: line}
+		if version != "" {
+			appendPosition(out, name+"@"+version, pos)
 		}
-		out[name] = &sdk.SourcePosition{File: relPath, Line: line}
+		appendPosition(out, name, pos)
 	})
 	return out
 }
@@ -60,10 +62,27 @@ func AttachPnpmLockPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositions(g, positions, func(pkg *sdk.Dependency) string {
+	detectors.AttachPositionCandidates(g, positions, func(pkg *sdk.Dependency) []string {
 		if pkg == nil {
-			return ""
+			return nil
 		}
-		return strings.TrimSpace(pkg.Name)
+		name := strings.TrimSpace(pkg.Name)
+		if name == "" {
+			return nil
+		}
+		return []string{name + "@" + strings.TrimSpace(pkg.Version), name}
 	})
+}
+
+func appendPosition(out map[string][]*sdk.SourcePosition, key string, pos *sdk.SourcePosition) {
+	key = strings.TrimSpace(key)
+	if key == "" || pos == nil {
+		return
+	}
+	for _, existing := range out[key] {
+		if existing.File == pos.File && existing.Line == pos.Line && existing.Column == pos.Column {
+			return
+		}
+	}
+	out[key] = append(out[key], pos)
 }

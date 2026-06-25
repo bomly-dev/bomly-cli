@@ -364,6 +364,78 @@ func TestWriteSARIF_UsesDependencyLocationsFromGraph(t *testing.T) {
 	}
 }
 
+func TestWriteSARIF_PrefersLocationIntersectingChangedLines(t *testing.T) {
+	graph := sdk.New()
+	dep := sdk.NewDependencyWithID("actions:checkout@v5", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "actions/checkout"}, PackageRef: "actions:checkout@v5",
+		Locations: []sdk.PackageLocation{
+			{RealPath: ".github/workflows/old.yml", Position: &sdk.SourcePosition{File: ".github/workflows/old.yml", Line: 4}},
+			{RealPath: ".github/workflows/guard.yml", Position: &sdk.SourcePosition{File: ".github/workflows/guard.yml", Line: 12}},
+		},
+	})
+	if err := graph.AddNode(dep); err != nil {
+		t.Fatalf("AddNode: %v", err)
+	}
+	finding := sdk.Finding{ID: "policy:actions", PackageRef: dep.PackageRef, DependencyRefs: []string{dep.ID}, Title: "Denied action"}
+
+	var buf bytes.Buffer
+	err := WriteSARIF(&buf, []sdk.Finding{finding}, nil, "bomly", "0.1.0", SARIFOptions{
+		LocationGraphs: []*sdk.Graph{graph},
+		ChangedLines: map[string][]SARIFLineRange{
+			".github/workflows/guard.yml": {{Start: 12, End: 12}},
+		},
+	})
+	if err != nil {
+		t.Fatalf("WriteSARIF: %v", err)
+	}
+	var doc sarifLog
+	if err := json.Unmarshal(buf.Bytes(), &doc); err != nil {
+		t.Fatalf("decode SARIF: %v\n%s", err, buf.String())
+	}
+	locations := doc.Runs[0].Results[0].Locations
+	if len(locations) != 1 {
+		t.Fatalf("locations = %d, want only changed-line location", len(locations))
+	}
+	if got := locations[0].PhysicalLocation.ArtifactLocation.URI; got != ".github/workflows/guard.yml" {
+		t.Fatalf("location uri = %q, want changed workflow", got)
+	}
+}
+
+func TestWriteSARIF_PrefersChangedFileWhenLineDoesNotIntersect(t *testing.T) {
+	graph := sdk.New()
+	dep := sdk.NewDependencyWithID("lodash@4.17.21", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "lodash"}, PackageRef: sarifTestPURL,
+		Locations: []sdk.PackageLocation{
+			{RealPath: "package-lock.json", Position: &sdk.SourcePosition{File: "package-lock.json", Line: 8}},
+			{RealPath: "package.json", Position: &sdk.SourcePosition{File: "package.json", Line: 22}},
+		},
+	})
+	if err := graph.AddNode(dep); err != nil {
+		t.Fatalf("AddNode: %v", err)
+	}
+	finding := sdk.Finding{ID: "CVE-2021-23337", PackageRef: dep.PackageRef, DependencyRefs: []string{dep.ID}, Title: "Vuln"}
+
+	var buf bytes.Buffer
+	err := WriteSARIF(&buf, []sdk.Finding{finding}, nil, "bomly", "0.1.0", SARIFOptions{
+		LocationGraphs: []*sdk.Graph{graph},
+		ChangedLines: map[string][]SARIFLineRange{
+			"package.json": {{Start: 30, End: 30}},
+		},
+	})
+	if err != nil {
+		t.Fatalf("WriteSARIF: %v", err)
+	}
+	var doc sarifLog
+	if err := json.Unmarshal(buf.Bytes(), &doc); err != nil {
+		t.Fatalf("decode SARIF: %v\n%s", err, buf.String())
+	}
+	locations := doc.Runs[0].Results[0].Locations
+	if len(locations) != 1 {
+		t.Fatalf("locations = %d, want only changed-file location", len(locations))
+	}
+	if got := locations[0].PhysicalLocation.ArtifactLocation.URI; got != "package.json" {
+		t.Fatalf("location uri = %q, want changed file", got)
+	}
+}
+
 func TestWriteSARIF_RewritesNonFileLocationSchemes(t *testing.T) {
 	graph := sdk.New()
 	dep := sdk.NewDependencyWithID("actions:checkout@v5", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "actions/checkout"}, PackageRef: "actions:checkout@v5",

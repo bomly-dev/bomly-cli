@@ -130,6 +130,79 @@ func TestDepGraphFromProjectFiles(t *testing.T) {
 	}
 }
 
+func TestDetectorResolveGraphAttachesProjectAndConfigLocations(t *testing.T) {
+	projectDir := t.TempDir()
+	nestedDir := filepath.Join(projectDir, "src", "app")
+	if err := os.MkdirAll(nestedDir, 0o755); err != nil {
+		t.Fatalf("create nested dir: %v", err)
+	}
+	projectPath := filepath.Join(nestedDir, "example.csproj")
+	raw := []byte(`<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="System.Runtime.Extensions" Version="4.3.0" />
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>13.0.3</Version>
+    </PackageReference>
+  </ItemGroup>
+</Project>`)
+	if err := os.WriteFile(projectPath, raw, 0o644); err != nil {
+		t.Fatalf("write project file: %v", err)
+	}
+
+	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{
+		ProjectPath:     projectDir,
+		PackageManager:  sdk.PackageManagerNuGet,
+		Ecosystem:       sdk.EcosystemDotNet,
+		ExecutionTarget: sdk.ExecutionTarget{Location: projectDir},
+	})
+	if err != nil {
+		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+	g, err := result.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	systemRuntime, ok := g.Node("System.Runtime.Extensions@4.3.0")
+	if !ok || len(systemRuntime.Locations) == 0 || systemRuntime.Locations[0].Position == nil || systemRuntime.Locations[0].Position.Line != 3 {
+		t.Fatalf("System.Runtime.Extensions locations = %#v, want inline PackageReference line 3", systemRuntime.Locations)
+	}
+	newtonsoft, ok := g.Node("Newtonsoft.Json@13.0.3")
+	if !ok || len(newtonsoft.Locations) == 0 || newtonsoft.Locations[0].Position == nil || newtonsoft.Locations[0].Position.Line != 5 {
+		t.Fatalf("Newtonsoft.Json locations = %#v, want Version element line 5", newtonsoft.Locations)
+	}
+	if newtonsoft.Locations[0].RealPath != "src/app/example.csproj" {
+		t.Fatalf("Newtonsoft.Json location path = %#v, want nested project path", newtonsoft.Locations[0])
+	}
+}
+
+func TestDetectorResolveGraphAttachesPackagesConfigLocations(t *testing.T) {
+	projectDir := t.TempDir()
+	raw := []byte(`<packages>
+  <package id="NUnit" version="4.2.2" targetFramework="net48" />
+</packages>`)
+	if err := os.WriteFile(filepath.Join(projectDir, "packages.config"), raw, 0o644); err != nil {
+		t.Fatalf("write packages.config: %v", err)
+	}
+
+	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{
+		ProjectPath:     projectDir,
+		PackageManager:  sdk.PackageManagerNuGet,
+		Ecosystem:       sdk.EcosystemDotNet,
+		ExecutionTarget: sdk.ExecutionTarget{Location: projectDir},
+	})
+	if err != nil {
+		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+	g, err := result.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	nunit, ok := g.Node("NUnit@4.2.2")
+	if !ok || len(nunit.Locations) == 0 || nunit.Locations[0].Position == nil || nunit.Locations[0].Position.Line != 2 {
+		t.Fatalf("NUnit locations = %#v, want packages.config line 2", nunit.Locations)
+	}
+}
+
 func TestDepGraphFromDepsFiles(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "example.deps.json")

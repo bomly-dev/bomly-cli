@@ -56,6 +56,8 @@ func (d PipDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (
 	// (and inspecting) the ambient Python environment.
 	if lockPath := pipLockFilePath(workingDir); lockPath != "" {
 		if depsGraph, err := depGraphFromRequirementsLock(lockPath, workingDir); err == nil {
+			attachDeclaredPositions(depsGraph, workingDir)
+			attachLoosePythonPositions(depsGraph, workingDir)
 			return sdk.DetectionResult{
 				Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, pipEvidencePatterns)),
 			}, nil

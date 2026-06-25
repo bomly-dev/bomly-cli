@@ -55,6 +55,8 @@ func (d PoetryDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 	// as requested=true (no transitive information).
 	if lockPath := poetryLockFilePath(workingDir); lockPath != "" {
 		if depsGraph, err := depGraphFromPoetryLock(lockPath, workingDir); err == nil {
+			attachDeclaredPositions(depsGraph, workingDir)
+			attachLoosePythonPositions(depsGraph, workingDir)
 			return sdk.DetectionResult{
 				Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, poetryEvidencePatterns)),
 			}, nil

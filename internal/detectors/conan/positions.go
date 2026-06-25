@@ -9,20 +9,17 @@ import (
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
-// conanRequireLine matches a Conan require line of the form
-// `name/version[@user/channel]` typically found in conanfile.txt's
-// [requires] / [build_requires] / [tool_requires] sections. The
-// captured value is the package name.
-var conanRequireLine = regexp.MustCompile(`^\s*([a-zA-Z0-9_][a-zA-Z0-9._+-]*)\s*/\s*[^@\s]+`)
+var conanRefLine = regexp.MustCompile(`([a-zA-Z0-9_][a-zA-Z0-9._+-]*)\s*/\s*([^@'"\s,)]+)`)
+var conanPythonRequireLine = regexp.MustCompile(`(?:self\.)?(?:requires|build_requires|tool_requires|test_requires)\s*\(\s*["']([a-zA-Z0-9_][a-zA-Z0-9._+-]*)\s*/\s*([^@'"\s,)]+)`)
 
 var conanSectionHeader = regexp.MustCompile(`^\s*\[\s*(requires|build_requires|tool_requires|test_requires)\s*\]\s*$`)
 
-func conanPositions(projectDir string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
-	candidates := []string{"conanfile.txt", "conan.lock", "conaninfo.txt"}
+func conanPositions(projectDir string) map[string][]*sdk.SourcePosition {
+	out := make(map[string][]*sdk.SourcePosition)
+	candidates := []string{"conanfile.txt", "conanfile.py", "conan.lock", "conaninfo.txt"}
 	for _, name := range candidates {
 		full := filepath.Join(projectDir, name)
-		insideRequires := name == "conan.lock" || name == "conaninfo.txt" // always scan lock/info bodies
+		insideRequires := name == "conan.lock" || name == "conaninfo.txt" || name == "conanfile.py" // always scan lock/info/python bodies
 		_ = detectors.ScanLines(full, func(line int, text string) {
 			trimmed := strings.TrimSpace(text)
 			if conanSectionHeader.MatchString(trimmed) {
@@ -36,7 +33,10 @@ func conanPositions(projectDir string) map[string]*sdk.SourcePosition {
 			if !insideRequires {
 				return
 			}
-			matches := conanRequireLine.FindStringSubmatch(text)
+			matches := conanRefLine.FindStringSubmatch(text)
+			if name == "conanfile.py" {
+				matches = conanPythonRequireLine.FindStringSubmatch(text)
+			}
 			if matches == nil {
 				return
 			}
@@ -44,10 +44,12 @@ func conanPositions(projectDir string) map[string]*sdk.SourcePosition {
 			if pkgName == "" {
 				return
 			}
-			if _, exists := out[pkgName]; exists {
-				return
+			version := strings.TrimSpace(matches[2])
+			pos := &sdk.SourcePosition{File: name, Line: line}
+			detectors.AppendPosition(out, pkgName, pos)
+			if version != "" {
+				detectors.AppendPosition(out, pkgName+"@"+version, pos)
 			}
-			out[pkgName] = &sdk.SourcePosition{File: name, Line: line}
 		})
 	}
 	return out
@@ -62,10 +64,14 @@ func AttachConanPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositions(g, positions, func(pkg *sdk.Dependency) string {
+	detectors.AttachPositionCandidates(g, positions, func(pkg *sdk.Dependency) []string {
 		if pkg == nil {
-			return ""
+			return nil
 		}
-		return strings.TrimSpace(pkg.Name)
+		name := strings.TrimSpace(pkg.Name)
+		if name == "" {
+			return nil
+		}
+		return []string{name + "@" + strings.TrimSpace(pkg.Version), name}
 	})
 }

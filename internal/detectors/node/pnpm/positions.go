@@ -16,10 +16,10 @@ import (
 //	/foo/1.0.0:
 //	'/foo@1.0.0(transitivePeer@2.0.0)':
 //	'@scope/pkg@1.0.0':
-var pnpmLockKeyLine = regexp.MustCompile(`^\s*['"]?/?((?:@[^/'"@]+/)?[^/'"@\s]+)[@/][^:'"\s]+['"]?\s*:\s*$`)
+var pnpmLockKeyLine = regexp.MustCompile(`^\s*['"]?/?((?:@[^/'"@]+/)?[^/'"@\s]+)[@/]([^:'"\s(]+)`)
 
-func pnpmLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+func pnpmLockPositions(path, relPath string) map[string][]*sdk.SourcePosition {
+	out := make(map[string][]*sdk.SourcePosition)
 	insidePackages := false
 	_ = detectors.ScanLines(path, func(line int, text string) {
 		trimmed := strings.TrimSpace(text)
@@ -43,10 +43,12 @@ func pnpmLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
 		if name == "" {
 			return
 		}
-		if _, exists := out[name]; exists {
-			return
+		version := strings.TrimSpace(matches[2])
+		pos := &sdk.SourcePosition{File: relPath, Line: line}
+		if version != "" {
+			detectors.AppendPosition(out, name+"@"+version, pos)
 		}
-		out[name] = &sdk.SourcePosition{File: relPath, Line: line}
+		detectors.AppendPosition(out, name, pos)
 	})
 	return out
 }
@@ -60,10 +62,36 @@ func AttachPnpmLockPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositions(g, positions, func(pkg *sdk.Dependency) string {
+	detectors.AttachPositionCandidates(g, positions, func(pkg *sdk.Dependency) []string {
 		if pkg == nil {
-			return ""
+			return nil
 		}
-		return strings.TrimSpace(pkg.Name)
+		name := strings.TrimSpace(pkg.Name)
+		if name == "" {
+			return nil
+		}
+		return pnpmPositionKeys(name, strings.TrimSpace(pkg.Version))
 	})
+}
+
+func pnpmPositionKeys(name, version string) []string {
+	names := []string{name}
+	if normalized := pnpmSlashScopeName(name); normalized != "" && normalized != name {
+		names = append([]string{normalized}, names...)
+	}
+	keys := make([]string, 0, len(names)*2)
+	for _, candidate := range names {
+		if version != "" {
+			keys = append(keys, candidate+"@"+version)
+		}
+		keys = append(keys, candidate)
+	}
+	return keys
+}
+
+func pnpmSlashScopeName(name string) string {
+	if strings.HasPrefix(name, "@") && strings.Contains(name, ":") {
+		return strings.Replace(name, ":", "/", 1)
+	}
+	return name
 }

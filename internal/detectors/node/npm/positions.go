@@ -14,26 +14,37 @@ import (
 // `    "node_modules/@scope/pkg": {`. Nested entries
 // (`node_modules/foo/node_modules/bar`) are matched too — we then
 // take the final segment as the package name.
-var npmLockKeyLine = regexp.MustCompile(`^\s*"((?:node_modules/)+(?:@[^/"]+/)?[^"/]+)"\s*:\s*\{?\s*$`)
+var npmLockKeyLine = regexp.MustCompile(`^\s*"((?:.*node_modules/)(?:@[^/"]+/)?[^"/]+)"\s*:\s*\{?\s*$`)
+var npmLockVersionLine = regexp.MustCompile(`^\s*"version"\s*:\s*"([^"]+)"`)
 
-// packageLockPositions returns name -> SourcePosition for every
-// node_modules/... key in package-lock.json. Multiple occurrences
-// (nested installs) keep the first match.
-func packageLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+// packageLockPositions returns lookup keys for every node_modules/... key in
+// package-lock.json. Exact name@version keys point at the version line, while
+// name-only fallback keys point at the package block key.
+func packageLockPositions(path, relPath string) map[string][]*sdk.SourcePosition {
+	out := make(map[string][]*sdk.SourcePosition)
+	var currentName string
+	var currentLine int
 	_ = detectors.ScanLines(path, func(line int, text string) {
-		matches := npmLockKeyLine.FindStringSubmatch(text)
+		if matches := npmLockKeyLine.FindStringSubmatch(text); matches != nil {
+			currentName = finalNPMPathSegment(matches[1])
+			currentLine = line
+			return
+		}
+		if currentName == "" {
+			return
+		}
+		matches := npmLockVersionLine.FindStringSubmatch(text)
 		if matches == nil {
 			return
 		}
-		name := finalNPMPathSegment(matches[1])
-		if name == "" {
-			return
+		version := strings.TrimSpace(matches[1])
+		pos := &sdk.SourcePosition{File: relPath, Line: line}
+		if version != "" {
+			detectors.AppendPosition(out, currentName+"@"+version, pos)
 		}
-		if _, exists := out[name]; exists {
-			return
-		}
-		out[name] = &sdk.SourcePosition{File: relPath, Line: line}
+		detectors.AppendPosition(out, currentName, &sdk.SourcePosition{File: relPath, Line: currentLine})
+		currentName = ""
+		currentLine = 0
 	})
 	return out
 }
@@ -70,12 +81,38 @@ func AttachPackageLockPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositions(g, positions, func(pkg *sdk.Dependency) string {
+	detectors.AttachPositionCandidates(g, positions, func(pkg *sdk.Dependency) []string {
 		if pkg == nil {
-			return ""
+			return nil
 		}
 		// Graph stores npm packages with their QualifiedName
 		// ("@scope:pkg") or bare name. Try both forms.
-		return strings.TrimSpace(pkg.Name)
+		name := strings.TrimSpace(pkg.Name)
+		if name == "" {
+			return nil
+		}
+		return npmPositionKeys(name, strings.TrimSpace(pkg.Version))
 	})
+}
+
+func npmPositionKeys(name, version string) []string {
+	names := []string{name}
+	if normalized := npmSlashScopeName(name); normalized != "" && normalized != name {
+		names = append([]string{normalized}, names...)
+	}
+	keys := make([]string, 0, len(names)*2)
+	for _, candidate := range names {
+		if version != "" {
+			keys = append(keys, candidate+"@"+version)
+		}
+		keys = append(keys, candidate)
+	}
+	return keys
+}
+
+func npmSlashScopeName(name string) string {
+	if strings.HasPrefix(name, "@") && strings.Contains(name, ":") {
+		return strings.Replace(name, ":", "/", 1)
+	}
+	return name
 }

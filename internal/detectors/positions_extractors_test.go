@@ -109,16 +109,60 @@ func TestNpmPackageLockPositions(t *testing.T) {
 	if lodash == nil || len(lodash.Locations) == 0 {
 		t.Fatal("lodash missing Location")
 	}
-	if lodash.Locations[0].Position.Line != 8 {
-		t.Errorf("lodash line = %d, want 8", lodash.Locations[0].Position.Line)
+	if lodash.Locations[0].Position.Line != 9 {
+		t.Errorf("lodash line = %d, want 9", lodash.Locations[0].Position.Line)
 	}
 
 	scoped, _ := g.Node("@scope/pkg@1.0.0")
 	if scoped == nil || len(scoped.Locations) == 0 {
 		t.Fatal("scoped pkg missing Location")
 	}
-	if scoped.Locations[0].Position.Line != 11 {
-		t.Errorf("scoped pkg line = %d, want 11", scoped.Locations[0].Position.Line)
+	if scoped.Locations[0].Position.Line != 12 {
+		t.Errorf("scoped pkg line = %d, want 12", scoped.Locations[0].Position.Line)
+	}
+}
+
+func TestNpmPackageLockPositionsMatchPackageVersion(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, dir, "package-lock.json", `{
+  "packages": {
+    "node_modules/lodash": {
+      "version": "4.17.21"
+    },
+    "node_modules/foo/node_modules/lodash": {
+      "version": "3.10.1"
+    }
+  }
+}
+`)
+	g := sdk.New()
+	mustPkg(t, g, "lodash", "3.10.1")
+	npm.AttachPackageLockPositions(g, dir)
+	lodash, _ := g.Node("lodash@3.10.1")
+	if lodash == nil || len(lodash.Locations) == 0 || lodash.Locations[0].Position.Line != 7 {
+		t.Fatalf("lodash@3.10.1 locations = %+v, want version line 7", lodash.Locations)
+	}
+}
+
+func TestNpmPackageLockPositionsMatchColonScopedGraphName(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, dir, "package-lock.json", `{
+  "packages": {
+    "node_modules/@scope/pkg": {
+      "version": "1.2.3"
+    }
+  }
+}
+`)
+	g := sdk.New()
+	mustPkg(t, g, "@scope:pkg", "1.2.3")
+	npm.AttachPackageLockPositions(g, dir)
+	scoped, _ := g.Node("@scope:pkg@1.2.3")
+	if scoped == nil {
+		t.Fatal("missing @scope:pkg")
+	}
+	if len(scoped.Locations) == 0 || scoped.Locations[0].Position.Line != 4 {
+		t.Fatalf("@scope:pkg locations = %+v, want package-lock version line 4", scoped.Locations)
 	}
 }
 
@@ -154,6 +198,41 @@ packages:
 		if p.Locations[0].Position.Line != c.line {
 			t.Errorf("%s line = %d, want %d", c.name, p.Locations[0].Position.Line, c.line)
 		}
+	}
+}
+
+func TestPnpmLockPositionsMatchPackageVersion(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, dir, "pnpm-lock.yaml", `packages:
+  /lodash@4.17.21:
+    resolution: {integrity: sha512-new}
+  /lodash@3.10.1:
+    resolution: {integrity: sha512-old}
+`)
+	g := sdk.New()
+	mustPkg(t, g, "lodash", "3.10.1")
+	pnpm.AttachPnpmLockPositions(g, dir)
+	lodash, _ := g.Node("lodash@3.10.1")
+	if lodash == nil || len(lodash.Locations) == 0 || lodash.Locations[0].Position.Line != 4 {
+		t.Fatalf("lodash@3.10.1 locations = %+v, want lock entry line 4", lodash.Locations)
+	}
+}
+
+func TestPnpmLockPositionsMatchColonScopedGraphName(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, dir, "pnpm-lock.yaml", `packages:
+  /@scope/pkg@1.2.3:
+    resolution: {integrity: sha512-scoped}
+`)
+	g := sdk.New()
+	mustPkg(t, g, "@scope:pkg", "1.2.3")
+	pnpm.AttachPnpmLockPositions(g, dir)
+	scoped, _ := g.Node("@scope:pkg@1.2.3")
+	if scoped == nil {
+		t.Fatal("missing @scope:pkg")
+	}
+	if len(scoped.Locations) == 0 || scoped.Locations[0].Position.Line != 2 {
+		t.Fatalf("@scope:pkg locations = %+v, want pnpm lock entry line 2", scoped.Locations)
 	}
 }
 
@@ -203,11 +282,11 @@ func TestMavenPomPositions(t *testing.T) {
 	mustPkg(t, g, "junit", "4.13.2", func(p *sdk.Dependency) { p.Org = "junit" })
 	maven.AttachPomPositions(g, dir)
 	jd, _ := g.Node("com.fasterxml.jackson.core:jackson-databind@2.17.0")
-	if jd == nil || len(jd.Locations) == 0 || jd.Locations[0].Position.Line != 5 {
+	if jd == nil || len(jd.Locations) == 0 || jd.Locations[0].Position.Line != 6 {
 		t.Errorf("jackson-databind location wrong: %+v", jd)
 	}
 	ju, _ := g.Node("junit:junit@4.13.2")
-	if ju == nil || len(ju.Locations) == 0 || ju.Locations[0].Position.Line != 10 {
+	if ju == nil || len(ju.Locations) == 0 || ju.Locations[0].Position.Line != 11 {
 		t.Errorf("junit location wrong: %+v", ju)
 	}
 }

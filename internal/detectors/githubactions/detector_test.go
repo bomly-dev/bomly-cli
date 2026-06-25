@@ -144,3 +144,47 @@ func TestDetectorResolveGraphAttachesUsesLineLocations(t *testing.T) {
 		t.Fatalf("codeql action locations = %#v, want line 7", codeql.Locations)
 	}
 }
+
+func TestDetectorResolveGraphPreservesDuplicateUsesLocations(t *testing.T) {
+	projectDir := t.TempDir()
+	workflowDir := filepath.Join(projectDir, ".github", "workflows")
+	if err := os.MkdirAll(workflowDir, 0o755); err != nil {
+		t.Fatalf("create workflow dir: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(workflowDir, "ci.yml"), []byte("jobs:\n  build:\n    steps:\n      - uses: actions/checkout@v5\n"), 0o644); err != nil {
+		t.Fatalf("write ci workflow: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(workflowDir, "guard.yml"), []byte("jobs:\n  guard:\n    steps:\n      - name: Checkout\n        uses: actions/checkout@v5\n"), 0o644); err != nil {
+		t.Fatalf("write guard workflow: %v", err)
+	}
+
+	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{
+		ProjectPath:     projectDir,
+		PackageManager:  sdk.PackageManagerGitHubActions,
+		Ecosystem:       sdk.EcosystemGitHub,
+		ExecutionTarget: sdk.ExecutionTarget{Location: projectDir},
+	})
+	if err != nil {
+		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+	g, err := result.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	checkout, ok := g.Node("actions:checkout@v5")
+	if !ok {
+		t.Fatal("expected actions/checkout package")
+	}
+	if len(checkout.Locations) != 2 {
+		t.Fatalf("checkout locations = %#v, want both workflow locations", checkout.Locations)
+	}
+	got := map[string]int{}
+	for _, loc := range checkout.Locations {
+		if loc.Position != nil {
+			got[loc.Position.File] = loc.Position.Line
+		}
+	}
+	if got[".github/workflows/ci.yml"] != 4 || got[".github/workflows/guard.yml"] != 5 {
+		t.Fatalf("checkout locations = %#v, want ci line 4 and guard line 5", checkout.Locations)
+	}
+}

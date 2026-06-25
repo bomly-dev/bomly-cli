@@ -14,10 +14,10 @@ import (
 var usesLine = regexp.MustCompile(`^\s*-?\s*uses\s*:\s*['"]?([A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*(?:/[^@'"\s]*)?)@[^'"\s]+['"]?\s*$`)
 
 // workflowPositions walks .github/workflows/*.yml + .github/actions/*/action.yml
-// and returns a map from owner/repo coordinate to the line where the
-// `uses:` entry first appears.
-func workflowPositions(projectDir string) map[string]*sdk.SourcePosition {
-	out := make(map[string]*sdk.SourcePosition)
+// and returns every line where a `uses:` entry appears for each owner/repo
+// coordinate.
+func workflowPositions(projectDir string) map[string][]*sdk.SourcePosition {
+	out := make(map[string][]*sdk.SourcePosition)
 	patterns := []string{
 		filepath.Join(projectDir, ".github", "workflows", "*.yml"),
 		filepath.Join(projectDir, ".github", "workflows", "*.yaml"),
@@ -38,13 +38,11 @@ func workflowPositions(projectDir string) map[string]*sdk.SourcePosition {
 					return
 				}
 				coord := strings.TrimSpace(text[matches[2]:matches[3]])
-				if coord == "" {
+				key := workflowPositionKey(coord)
+				if key == "" {
 					return
 				}
-				if _, exists := out[coord]; exists {
-					return
-				}
-				out[coord] = &sdk.SourcePosition{File: rel, Line: line, Column: matches[2] + 1, EndLine: line}
+				detectors.AppendPosition(out, key, &sdk.SourcePosition{File: rel, Line: line, Column: matches[2] + 1, EndLine: line})
 			})
 		}
 	}
@@ -61,15 +59,37 @@ func AttachWorkflowPositions(g *sdk.Graph, projectDir string) {
 	if len(positions) == 0 {
 		return
 	}
-	detectors.AttachPositions(g, positions, func(pkg *sdk.Dependency) string {
+	detectors.AttachPositionCandidates(g, positions, func(pkg *sdk.Dependency) []string {
 		if pkg == nil {
-			return ""
+			return nil
 		}
 		// External GitHub Actions packages store owner and repository
 		// separately, while workflow manifests spell them as owner/repo.
 		if strings.TrimSpace(pkg.Org) != "" && strings.TrimSpace(pkg.Name) != "" {
-			return strings.Trim(strings.TrimSpace(pkg.Org), "/") + "/" + strings.Trim(strings.TrimSpace(pkg.Name), "/")
+			name := strings.Trim(strings.TrimSpace(pkg.Name), "/")
+			keys := []string{strings.Trim(strings.TrimSpace(pkg.Org), "/") + "/" + workflowRepoName(name)}
+			if repo := workflowPositionKey(strings.Trim(strings.TrimSpace(pkg.Org), "/") + "/" + name); repo != "" && repo != keys[0] {
+				keys = append(keys, repo)
+			}
+			return keys
 		}
-		return strings.TrimSpace(pkg.Name)
+		return []string{workflowPositionKey(strings.TrimSpace(pkg.Name))}
 	})
+}
+
+func workflowPositionKey(coord string) string {
+	coord = strings.Trim(strings.TrimSpace(coord), "/")
+	parts := strings.Split(coord, "/")
+	if len(parts) < 2 || parts[0] == "" || parts[1] == "" {
+		return coord
+	}
+	return parts[0] + "/" + parts[1]
+}
+
+func workflowRepoName(name string) string {
+	name = strings.Trim(name, "/")
+	if i := strings.Index(name, "/"); i >= 0 {
+		return name[:i]
+	}
+	return name
 }

@@ -2,6 +2,8 @@ package pub
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
@@ -118,5 +120,42 @@ func TestDepGraphFromPubDepsJSONBuildsTransitiveScopes(t *testing.T) {
 	}
 	if string(testPkg.PrimaryScope()) != string(sdk.ScopeDevelopment) {
 		t.Fatalf("expected dev direct dependency, got %q", string(testPkg.PrimaryScope()))
+	}
+}
+
+func TestPubspecLockPositionsPreferVersionAndFlushFallbacks(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "pubspec.lock")
+	raw := []byte(`packages:
+  collection:
+    dependency: transitive
+    description:
+      name: collection
+    source: hosted
+    version: "1.18.0"
+  no_version:
+    dependency: transitive
+  path:
+    dependency: "direct main"
+    description:
+      name: path
+    source: hosted
+    version: "1.9.0"
+sdks:
+  dart: ">=3.0.0"
+`)
+	if err := os.WriteFile(path, raw, 0o644); err != nil {
+		t.Fatalf("write pubspec.lock: %v", err)
+	}
+
+	positions := pubspecLockPositions(path, "pubspec.lock")
+	if got := positions["collection"]; got == nil || got.Line != 7 {
+		t.Fatalf("collection position = %#v, want version line 7", got)
+	}
+	if got := positions["no_version"]; got == nil || got.Line != 8 {
+		t.Fatalf("no_version position = %#v, want package fallback line 8", got)
+	}
+	if got := positions["path"]; got == nil || got.Line != 15 {
+		t.Fatalf("path position = %#v, want version line 15", got)
 	}
 }

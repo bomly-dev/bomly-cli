@@ -16,6 +16,7 @@ var poetryLockPackageHeader = regexp.MustCompile(`^\[\[\s*package\s*\]\]\s*$`)
 // tomlNameLine matches `name = "foo"` within a TOML block. The
 // quotes can be single or double; we accept whitespace either side.
 var tomlNameLine = regexp.MustCompile(`^\s*name\s*=\s*["']([^"']+)["']\s*$`)
+var tomlVersionLine = regexp.MustCompile(`^\s*version\s*=\s*["']([^"']+)["']\s*$`)
 
 // poetryLockPositions returns name -> SourcePosition for every
 // `[[package]]` block in a poetry.lock file. The position points at
@@ -46,10 +47,14 @@ func pdmLockPositions(path, relPath string) map[string]*sdk.SourcePosition {
 // each block it records the line of the `name = "..."` field.
 func collectTOMLPackagePositions(path, relPath string, out map[string]*sdk.SourcePosition, header *regexp.Regexp) {
 	inBlock := false
+	pendingName := ""
+	pendingNameLine := 0
 	scanLinesQuiet(path, func(line int, text string) {
 		switch {
 		case header.MatchString(text):
 			inBlock = true
+			pendingName = ""
+			pendingNameLine = 0
 		case inBlock:
 			matches := tomlNameLine.FindStringSubmatch(text)
 			if matches != nil {
@@ -57,19 +62,37 @@ func collectTOMLPackagePositions(path, relPath string, out map[string]*sdk.Sourc
 				if name == "" {
 					return
 				}
-				if _, exists := out[name]; exists {
-					return
+				pendingName = name
+				pendingNameLine = line
+				return
+			}
+			if matches := tomlVersionLine.FindStringSubmatch(text); matches != nil && pendingName != "" {
+				if _, exists := out[pendingName]; !exists {
+					out[pendingName] = &sdk.SourcePosition{File: relPath, Line: line}
 				}
-				out[name] = &sdk.SourcePosition{File: relPath, Line: line}
 				inBlock = false
+				pendingName = ""
+				pendingNameLine = 0
 				return
 			}
 			// A new top-level table starts a fresh non-package block.
 			if strings.HasPrefix(strings.TrimSpace(text), "[") && !strings.HasPrefix(strings.TrimSpace(text), "[[package]]") {
+				if pendingName != "" {
+					if _, exists := out[pendingName]; !exists {
+						out[pendingName] = &sdk.SourcePosition{File: relPath, Line: pendingNameLine}
+					}
+				}
 				inBlock = false
+				pendingName = ""
+				pendingNameLine = 0
 			}
 		}
 	})
+	if pendingName != "" {
+		if _, exists := out[pendingName]; !exists {
+			out[pendingName] = &sdk.SourcePosition{File: relPath, Line: pendingNameLine}
+		}
+	}
 }
 
 // pipfileLockPositions returns positions for Pipfile.lock (JSON).

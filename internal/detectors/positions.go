@@ -3,6 +3,7 @@ package detectors
 import (
 	"bufio"
 	"os"
+	"strings"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
@@ -16,37 +17,94 @@ import (
 // typically derive it from dep.Name, dep.Org+":"+dep.Name, or a
 // language-specific normalization. Returning "" skips the node.
 func AttachPositions(g *sdk.Graph, positions map[string]*sdk.SourcePosition, nameKey func(*sdk.Dependency) string) {
-	if g == nil || len(positions) == 0 || nameKey == nil {
+	candidates := make(map[string][]*sdk.SourcePosition, len(positions))
+	for key, pos := range positions {
+		if pos == nil {
+			continue
+		}
+		candidates[key] = []*sdk.SourcePosition{pos}
+	}
+	attachPositionCandidates(g, candidates, func(dep *sdk.Dependency) []string {
+		if nameKey == nil {
+			return nil
+		}
+		return []string{nameKey(dep)}
+	}, false)
+}
+
+// AttachPositionCandidates populates PackageLocation.Position on graph nodes
+// using one or more lookup keys per dependency. It preserves multiple
+// declaration sites and skips exact duplicate file/line/column entries.
+func AttachPositionCandidates(g *sdk.Graph, positions map[string][]*sdk.SourcePosition, keys func(*sdk.Dependency) []string) {
+	attachPositionCandidates(g, positions, keys, true)
+}
+
+// AppendPosition appends pos under key unless the same file/line/column
+// position was already recorded.
+func AppendPosition(out map[string][]*sdk.SourcePosition, key string, pos *sdk.SourcePosition) {
+	key = strings.TrimSpace(key)
+	if key == "" || pos == nil {
+		return
+	}
+	for _, existing := range out[key] {
+		if existing.File == pos.File && existing.Line == pos.Line && existing.Column == pos.Column {
+			return
+		}
+	}
+	out[key] = append(out[key], pos)
+}
+
+func attachPositionCandidates(g *sdk.Graph, positions map[string][]*sdk.SourcePosition, keys func(*sdk.Dependency) []string, exactDuplicate bool) {
+	if g == nil || len(positions) == 0 || keys == nil {
 		return
 	}
 	for _, pkg := range g.Nodes() {
 		if pkg == nil {
 			continue
 		}
-		key := nameKey(pkg)
-		if key == "" {
-			continue
-		}
-		pos, ok := positions[key]
-		if !ok || pos == nil {
-			continue
-		}
-		duplicate := false
-		for _, loc := range pkg.Locations {
-			if loc.RealPath == pos.File {
-				duplicate = true
+		for _, key := range keys(pkg) {
+			key = strings.TrimSpace(key)
+			if key == "" {
+				continue
+			}
+			matchedKey := false
+			for _, pos := range positions[key] {
+				if pos == nil {
+					continue
+				}
+				matchedKey = true
+				if hasLocation(pkg.Locations, pos, exactDuplicate) {
+					continue
+				}
+				pkg.Locations = append(pkg.Locations, sdk.PackageLocation{
+					RealPath:   pos.File,
+					AccessPath: pos.File,
+					Position:   pos,
+				})
+			}
+			if matchedKey {
 				break
 			}
 		}
-		if duplicate {
+	}
+}
+
+func hasLocation(locations []sdk.PackageLocation, pos *sdk.SourcePosition, exactDuplicate bool) bool {
+	for _, loc := range locations {
+		if loc.RealPath != pos.File {
 			continue
 		}
-		pkg.Locations = append(pkg.Locations, sdk.PackageLocation{
-			RealPath:   pos.File,
-			AccessPath: pos.File,
-			Position:   pos,
-		})
+		if !exactDuplicate {
+			return true
+		}
+		if loc.Position == nil {
+			continue
+		}
+		if loc.Position.Line == pos.Line && loc.Position.Column == pos.Column && loc.Position.EndLine == pos.EndLine {
+			return true
+		}
 	}
+	return false
 }
 
 // ScanLines invokes fn for every line in the file at path. The

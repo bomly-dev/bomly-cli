@@ -5,11 +5,21 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/system"
 	"go.uber.org/zap"
 )
+
+// LineRange is an inclusive 1-based line range in a repository file.
+type LineRange struct {
+	Start int
+	End   int
+}
+
+var diffHunkHeader = regexp.MustCompile(`^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@`)
 
 // CloneTemp clones repoURL into a temporary directory and optionally checks out ref.
 // The caller owns cleanup of the returned directory.
@@ -57,6 +67,20 @@ func VerifyRef(repoPath, ref string) error {
 		return fmt.Errorf("verify git ref %q: %w", ref, err)
 	}
 	return nil
+}
+
+// ChangedLineRanges returns added/changed head-side line ranges from a git
+// diff. Deleted-only hunks are omitted because there is no head line for SARIF
+// to annotate.
+func ChangedLineRanges(repoPath, baseRef, headRef string) (map[string][]LineRange, error) {
+	if err := ensureGitAvailable(); err != nil {
+		return nil, err
+	}
+	out, err := runGit(repoPath, "diff", "--unified=0", "--no-ext-diff", "--no-color", baseRef, headRef)
+	if err != nil {
+		return nil, fmt.Errorf("git diff %q..%q: %w", baseRef, headRef, err)
+	}
+	return parseChangedLineRanges(out), nil
 }
 
 // CheckoutRef checks out ref in repoPath.
@@ -179,4 +203,48 @@ func runGit(workingDir string, args ...string) (string, error) {
 		return "", fmt.Errorf("%w: %s", err, message)
 	}
 	return stdout.String(), nil
+}
+
+func parseChangedLineRanges(diff string) map[string][]LineRange {
+	ranges := make(map[string][]LineRange)
+	currentFile := ""
+	for _, line := range strings.Split(diff, "\n") {
+		switch {
+		case strings.HasPrefix(line, "+++ "):
+			path := strings.TrimSpace(strings.TrimPrefix(line, "+++ "))
+			currentFile = normalizeDiffPath(path)
+		case strings.HasPrefix(line, "@@ "):
+			if currentFile == "" || currentFile == "/dev/null" {
+				continue
+			}
+			matches := diffHunkHeader.FindStringSubmatch(line)
+			if matches == nil {
+				continue
+			}
+			start, err := strconv.Atoi(matches[1])
+			if err != nil {
+				continue
+			}
+			count := 1
+			if matches[2] != "" {
+				parsed, err := strconv.Atoi(matches[2])
+				if err != nil {
+					continue
+				}
+				count = parsed
+			}
+			if count <= 0 {
+				continue
+			}
+			ranges[currentFile] = append(ranges[currentFile], LineRange{Start: start, End: start + count - 1})
+		}
+	}
+	return ranges
+}
+
+func normalizeDiffPath(path string) string {
+	path = strings.TrimSpace(path)
+	path = strings.TrimPrefix(path, "a/")
+	path = strings.TrimPrefix(path, "b/")
+	return filepath.ToSlash(path)
 }

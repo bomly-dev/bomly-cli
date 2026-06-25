@@ -10,6 +10,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
+	"github.com/bomly-dev/bomly-cli/internal/git"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	"github.com/bomly-dev/bomly-cli/internal/tui"
 	"github.com/bomly-dev/bomly-cli/sdk"
@@ -107,6 +108,7 @@ func newDiffCmd() *cobra.Command {
 			compBase := baseRef
 			compHead := headRef
 			var resolutionWarnings []engine.PipelineWarning
+			var changedLines map[string][]output.SARIFLineRange
 
 			switch {
 			case current.SBOM:
@@ -114,7 +116,9 @@ func newDiffCmd() *cobra.Command {
 			case current.Container != "":
 				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveContainerDiffGraphs(cmd.Context(), options, prog, logger, baseRef, headRef)
 			default:
-				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveGitDiffGraphs(cmd.Context(), options, prog, logger, baseRef, headRef)
+				var gitChangedLines map[string][]git.LineRange
+				baseTarget, headTarget, projectIdentifier, resolutionWarnings, gitChangedLines, err = resolveGitDiffGraphs(cmd.Context(), options, prog, logger, baseRef, headRef)
+				changedLines = sarifChangedLinesFromGit(gitChangedLines)
 			}
 			if err != nil {
 				return err
@@ -183,7 +187,7 @@ func newDiffCmd() *cobra.Command {
 				Text:     textRenderer,
 			}
 			sarifRenderer := func(w io.Writer) error {
-				return output.WriteSARIF(w, diffSARIFFindings(diffResult.Audit), diffResult.Head.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: current.Analyze, LocationGraphs: []*sdk.Graph{diffResult.Head.Graph}, BaselineState: "new"})
+				return output.WriteSARIF(w, diffSARIFFindings(diffResult.Audit), diffResult.Head.Registry, "bomly", cmd.Root().Version, output.SARIFOptions{IncludeReachability: current.Analyze, LocationGraphs: []*sdk.Graph{diffResult.Head.Graph}, BaselineState: "new", ChangedLines: changedLines})
 			}
 			if len(outputSpecs) > 0 {
 				prog.Advance("Writing additional output")
@@ -261,6 +265,19 @@ func diffPolicyExit(auditEnabled bool, audit *diffengine.Audit) error {
 		}
 	}
 	return nil
+}
+
+func sarifChangedLinesFromGit(ranges map[string][]git.LineRange) map[string][]output.SARIFLineRange {
+	if len(ranges) == 0 {
+		return nil
+	}
+	out := make(map[string][]output.SARIFLineRange, len(ranges))
+	for file, fileRanges := range ranges {
+		for _, r := range fileRanges {
+			out[file] = append(out[file], output.SARIFLineRange{Start: r.Start, End: r.End})
+		}
+	}
+	return out
 }
 
 func uniqueStrings(groups ...[]string) []string {

@@ -55,6 +55,8 @@ func (d UVDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (s
 	if lockPath := uvLockFilePath(workingDir); lockPath != "" {
 		depsGraph, err := depGraphFromUVLock(lockPath)
 		if err == nil {
+			attachDeclaredPositions(depsGraph, workingDir)
+			attachLoosePythonPositions(depsGraph, workingDir)
 			return sdk.DetectionResult{
 				Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, uvEvidencePatterns)),
 			}, nil

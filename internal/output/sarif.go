@@ -159,6 +159,14 @@ type SARIFOptions struct {
 	IncludeReachability bool
 	LocationGraphs      []*sdk.Graph
 	BaselineState       string
+	ChangedLines        map[string][]SARIFLineRange
+}
+
+// SARIFLineRange is an inclusive 1-based line range used to prefer
+// dependency locations that intersect a source diff.
+type SARIFLineRange struct {
+	Start int
+	End   int
 }
 
 // WriteSARIF writes findings as a SARIF 2.1.0 document to w.
@@ -382,8 +390,10 @@ func sarifLocationsForFinding(f sdk.Finding, includeReachability bool, options [
 	locations := make([]sarifLocation, 0)
 	originalURIs := make([]string, 0)
 	seen := make(map[string]struct{})
+	changedLines := sarifChangedLines(options)
 
 	for _, dep := range dependenciesForFinding(f, options) {
+		candidates := make([]sarifLocationCandidate, 0, len(dep.Locations))
 		for _, loc := range dep.Locations {
 			uri, region := sarifLocationURIAndRegion(loc)
 			uri = strings.TrimSpace(uri)
@@ -397,13 +407,18 @@ func sarifLocationsForFinding(f sdk.Finding, includeReachability bool, options [
 				continue
 			}
 			seen[key] = struct{}{}
-			locations = append(locations, sarifLocation{
+			location := sarifLocation{
 				PhysicalLocation: sarifPhysicalLocation{
 					ArtifactLocation: sarifArtifactLocation{URI: safeURI},
 					Region:           region,
 				},
+			}
+			candidates = append(candidates, sarifLocationCandidate{
+				location: location,
+				score:    sarifLocationDiffScore(safeURI, region, changedLines),
 			})
 		}
+		locations = append(locations, selectSARIFLocationCandidates(candidates, changedLines)...)
 	}
 
 	if len(locations) > 0 {
@@ -424,6 +439,67 @@ func sarifLocationsForFinding(f sdk.Finding, includeReachability bool, options [
 			},
 		},
 	}, originalURIs
+}
+
+type sarifLocationCandidate struct {
+	location sarifLocation
+	score    int
+}
+
+func selectSARIFLocationCandidates(candidates []sarifLocationCandidate, changedLines map[string][]SARIFLineRange) []sarifLocation {
+	if len(candidates) == 0 {
+		return nil
+	}
+	bestScore := 2
+	if len(changedLines) > 0 {
+		for _, candidate := range candidates {
+			if candidate.score < bestScore {
+				bestScore = candidate.score
+			}
+		}
+	}
+	locations := make([]sarifLocation, 0, len(candidates))
+	for _, candidate := range candidates {
+		if len(changedLines) > 0 && candidate.score != bestScore {
+			continue
+		}
+		locations = append(locations, candidate.location)
+	}
+	return locations
+}
+
+func sarifChangedLines(options []SARIFOptions) map[string][]SARIFLineRange {
+	if len(options) == 0 || len(options[0].ChangedLines) == 0 {
+		return nil
+	}
+	return options[0].ChangedLines
+}
+
+func sarifLocationDiffScore(uri string, region *sarifRegion, changedLines map[string][]SARIFLineRange) int {
+	if len(changedLines) == 0 {
+		return 2
+	}
+	uri = filepath.ToSlash(strings.TrimSpace(uri))
+	ranges := changedLines[uri]
+	if len(ranges) == 0 {
+		return 2
+	}
+	if region == nil || region.StartLine == 0 {
+		return 1
+	}
+	end := region.EndLine
+	if end == 0 {
+		end = region.StartLine
+	}
+	for _, r := range ranges {
+		if r.Start <= 0 || r.End <= 0 {
+			continue
+		}
+		if region.StartLine <= r.End && end >= r.Start {
+			return 0
+		}
+	}
+	return 1
 }
 
 func dependenciesForFinding(f sdk.Finding, options []SARIFOptions) []*sdk.Dependency {

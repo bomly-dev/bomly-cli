@@ -46,6 +46,7 @@ func TestDetectorResolveGraphFromConanfilePy(t *testing.T) {
 
 class Demo(ConanFile):
     def requirements(self):
+        # The docs mention "zlib/1.2.13"; comments should not become locations.
         self.requires("fmt/10.2.1")
 `)
 	if err := os.WriteFile(filepath.Join(projectDir, "conanfile.py"), raw, 0o644); err != nil {
@@ -61,7 +62,11 @@ class Demo(ConanFile):
 		t.Fatalf("ResolveGraph returned error: %v", err)
 	}
 	graph := result.Graphs.Entries[0].Graph
-	if _, ok := graph.Node("fmt@10.2.1"); !ok {
+	fmtPkg, ok := graph.Node("fmt@10.2.1")
+	if !ok {
 		t.Fatalf("expected fmt package, got %v", graph.Nodes())
+	}
+	if len(fmtPkg.Locations) != 1 || fmtPkg.Locations[0].Position == nil || fmtPkg.Locations[0].Position.Line != 6 {
+		t.Fatalf("fmt locations = %#v, want conanfile.py line 6", fmtPkg.Locations)
 	}
 }

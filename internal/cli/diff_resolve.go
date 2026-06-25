@@ -17,19 +17,23 @@ import (
 	"go.uber.org/zap"
 )
 
-func resolveGitDiffGraphs(ctx context.Context, options *opts.Options, prog *progress.Progress, logger *zap.Logger, baseRef, headRef string) (diffResolvedTarget, diffResolvedTarget, string, []engine.PipelineWarning, error) {
+func resolveGitDiffGraphs(ctx context.Context, options *opts.Options, prog *progress.Progress, logger *zap.Logger, baseRef, headRef string) (diffResolvedTarget, diffResolvedTarget, string, []engine.PipelineWarning, map[string][]git.LineRange, error) {
 	repoRoot, repoCleanup, projectIdentifier, err := resolveDiffRepo(options, prog, logger)
 	if err != nil {
-		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, err
+		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, nil, err
 	}
 	if repoCleanup != nil {
 		defer func() { _ = repoCleanup() }()
 	}
 	if err := git.VerifyRef(repoRoot, baseRef); err != nil {
-		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, exit.InvalidInputError("verify --base %q: %v", baseRef, err)
+		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, nil, exit.InvalidInputError("verify --base %q: %v", baseRef, err)
 	}
 	if err := git.VerifyRef(repoRoot, headRef); err != nil {
-		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, exit.InvalidInputError("verify --head %q: %v", headRef, err)
+		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, nil, exit.InvalidInputError("verify --head %q: %v", headRef, err)
+	}
+	changedLines, err := git.ChangedLineRanges(repoRoot, baseRef, headRef)
+	if err != nil && logger != nil {
+		logger.Warn("diff: changed line ranges unavailable", zap.Error(err))
 	}
 
 	// Single indexing step covering both refs' Prepare phases.
@@ -38,18 +42,18 @@ func resolveGitDiffGraphs(ctx context.Context, options *opts.Options, prog *prog
 	baseTarget, err := resolveDiffResultsForRef(ctx, options, logger, repoRoot, baseRef)
 	if err != nil {
 		indexStep.Fail("Indexing subprojects failed")
-		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, err
+		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, nil, err
 	}
 	headTarget, err := resolveDiffResultsForRef(ctx, options, logger, repoRoot, headRef)
 	if err != nil {
 		indexStep.Fail("Indexing subprojects failed")
 		_ = baseTarget.close()
-		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, err
+		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, nil, err
 	}
 
 	indexStep.Complete("Indexed subprojects", combinedSubprojectChildren(baseTarget.Context.Subprojects(), headTarget.Context.Subprojects()))
 
-	return baseTarget, headTarget, projectIdentifier, collectPipelineWarnings(baseTarget.Warnings, headTarget.Warnings), nil
+	return baseTarget, headTarget, projectIdentifier, collectPipelineWarnings(baseTarget.Warnings, headTarget.Warnings), changedLines, nil
 }
 
 // resolveDiffRepo finds (or clones) the git repository to diff. When --url is

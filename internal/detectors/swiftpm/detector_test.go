@@ -2,6 +2,7 @@ package swiftpm
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -77,5 +78,45 @@ func TestDepGraphFromSwiftShowDepsBuildsTransitiveGraph(t *testing.T) {
 	}
 	if len(children) != 1 || children[0].ID != "github.com/apple:swift-system@1.2.0" {
 		t.Fatalf("expected swift-system transitive dependency, got %#v", children)
+	}
+}
+
+func TestPackageResolvedPositionsPreferVersionAndFlushFallbacks(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "Package.resolved")
+	raw := []byte(`{
+  "pins": [
+    {
+      "identity": "swift-argument-parser",
+      "state": {
+        "revision": "abc",
+        "version": "1.3.0"
+      }
+    },
+    {
+      "identity": "swift-system",
+      "state": {
+        "revision": "def"
+      }
+    },
+    {
+      "identity": "swift-log"
+    }
+  ]
+}
+`)
+	if err := os.WriteFile(path, raw, 0o644); err != nil {
+		t.Fatalf("write Package.resolved: %v", err)
+	}
+
+	positions := packageResolvedPositions(path, "Package.resolved")
+	if got := positions["swift-argument-parser"]; got == nil || got.Line != 7 {
+		t.Fatalf("swift-argument-parser position = %#v, want version line 7", got)
+	}
+	if got := positions["swift-system"]; got == nil || got.Line != 13 {
+		t.Fatalf("swift-system position = %#v, want revision line 13", got)
+	}
+	if got := positions["swift-log"]; got == nil || got.Line != 17 {
+		t.Fatalf("swift-log position = %#v, want identity fallback line 17", got)
 	}
 }

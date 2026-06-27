@@ -23,7 +23,7 @@ One binary. No service to host. No telemetry. No outbound matcher calls unless y
 
 ```bash
 # macOS / Linuxbrew
-brew install --cask bomly-dev/tap/bomly
+brew install bomly-dev/tap/bomly
 
 # Linux / macOS install script
 curl -fsSL https://bomly.dev/install.sh | sh

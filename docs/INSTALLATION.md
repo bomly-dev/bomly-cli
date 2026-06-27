@@ -7,7 +7,7 @@ Bomly ships as a release binary, package-manager entry, and Linux package. Pick 
 ### macOS / Linuxbrew
 
 ```bash
-brew install --cask bomly-dev/tap/bomly
+brew install bomly-dev/tap/bomly
 bomly version
 ```
 
@@ -34,14 +34,14 @@ If you're ready to scan, jump to [Getting Started](GETTING_STARTED.md).
 Homebrew is the preferred macOS path and also works for Linuxbrew users:
 
 ```bash
-brew install --cask bomly-dev/tap/bomly
+brew install bomly-dev/tap/bomly
 ```
 
 Upgrade and uninstall:
 
 ```bash
-brew upgrade --cask bomly
-brew uninstall --cask bomly
+brew upgrade bomly
+brew uninstall bomly
 ```
 
 ### WinGet
@@ -215,7 +215,7 @@ For pinned CI recipes, see [CI integration](CI_INTEGRATION.md). Prefer a package
 
 Use the package manager that installed Bomly:
 
-- Homebrew: `brew upgrade --cask bomly`
+- Homebrew: `brew upgrade bomly`
 - WinGet: `winget upgrade Bomly.BomlyCLI`
 - Scoop: `scoop update bomly`
 - Linux packages: install the newer package artifact with your system package manager.

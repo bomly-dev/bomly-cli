@@ -175,15 +175,17 @@ func installRemoteArchive(ctx context.Context, tempDir, source string, opts Inst
 	if err != nil {
 		return Manifest{}, "", fmt.Errorf("create plugin download request: %w", err)
 	}
-	if opts.githubReleaseDownload {
-		req.Header.Set("Accept", "application/octet-stream")
-		applyGitHubAuthHeader(req)
-	}
 	client, err := httpClientFromLaunchContext(ctx, 0)
 	if err != nil {
 		return Manifest{}, "", err
 	}
-	resp, err := client.Do(req)
+	var resp *http.Response
+	if opts.githubReleaseDownload {
+		req.Header.Set("Accept", "application/octet-stream")
+		resp, err = githubDoWithAuthFallback(client, req)
+	} else {
+		resp, err = client.Do(req)
+	}
 	if err != nil {
 		return Manifest{}, "", fmt.Errorf("download plugin archive: %w", err)
 	}

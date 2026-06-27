@@ -198,7 +198,7 @@ func fetchChecksumLine(ctx context.Context, downloadURL, assetName string) (stri
 	}
 	resp, err := githubDoWithAuthFallback(client, req)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("fetch checksum asset: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
@@ -241,7 +241,7 @@ func githubDoWithAuthFallback(client *http.Client, req *http.Request) (*http.Res
 	applyGitHubAuthHeader(req)
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("send GitHub request: %w", err)
 	}
 	if resp.StatusCode != http.StatusUnauthorized || req.Header.Get("Authorization") == "" {
 		return resp, nil
@@ -249,7 +249,11 @@ func githubDoWithAuthFallback(client *http.Client, req *http.Request) (*http.Res
 	_ = resp.Body.Close()
 	retry := req.Clone(req.Context())
 	retry.Header.Del("Authorization")
-	return client.Do(retry)
+	retryResp, err := client.Do(retry)
+	if err != nil {
+		return nil, fmt.Errorf("retry GitHub request anonymously: %w", err)
+	}
+	return retryResp, nil
 }
 
 func applyGitHubAuthHeader(req *http.Request) {

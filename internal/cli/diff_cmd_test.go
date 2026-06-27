@@ -33,7 +33,7 @@ func TestRenderDiffTextShowsFindingsSummaryLine(t *testing.T) {
 	}
 
 	report := render.StripANSI(out.String())
-	if !strings.Contains(report, "No new findings introduced.") {
+	if !strings.Contains(report, "No findings introduced or persisted.") {
 		t.Fatalf("expected findings summary line, got:\n%s", report)
 	}
 	// Removed sections should not appear
@@ -121,6 +121,61 @@ func TestRenderDiffTextShowsHighFindingsWhenIntroduced(t *testing.T) {
 	report := render.StripANSI(out.String())
 	if !strings.Contains(report, "2 new finding(s) introduced.") {
 		t.Fatalf("expected high-severity count line, got:\n%s", report)
+	}
+}
+
+func TestRenderDiffTextShowsPersistedFindings(t *testing.T) {
+	payload := output.DiffResponse{
+		Audit: &output.DiffAudit{
+			Persisted: []output.AuditFinding{
+				{ID: "CVE-2024-1234", Severity: "high", Package: output.PackageRef{Name: "minimist", Version: "0.0.10"}},
+				{ID: "CVE-2024-5678", Severity: "medium", Package: output.PackageRef{Name: "minimist", Version: "1.2.8"}},
+			},
+		},
+	}
+	var out bytes.Buffer
+	if err := render.Diff(&out, payload); err != nil {
+		t.Fatalf("render.Diff() error = %v", err)
+	}
+	report := render.StripANSI(out.String())
+	for _, want := range []string{
+		"2 finding(s) persisted.",
+		"persisted  [HIGH]      CVE-2024-1234  minimist@0.0.10",
+		"persisted  [MEDIUM]    CVE-2024-5678  minimist@1.2.8",
+	} {
+		if !strings.Contains(report, want) {
+			t.Fatalf("expected text report to contain %q, got:\n%s", want, report)
+		}
+	}
+	if strings.Contains(report, "No new findings introduced.") {
+		t.Fatalf("did not expect stale no-new-findings message, got:\n%s", report)
+	}
+}
+
+func TestRenderDiffTextShowsIntroducedAndPersistedFindings(t *testing.T) {
+	payload := output.DiffResponse{
+		Audit: &output.DiffAudit{
+			Introduced: []output.AuditFinding{
+				{ID: "CVE-NEW", Severity: "critical", Package: output.PackageRef{Name: "react", Version: "19.0.0"}},
+			},
+			Persisted: []output.AuditFinding{
+				{ID: "CVE-KEPT", Severity: "high", Package: output.PackageRef{Name: "minimist", Version: "1.2.8"}},
+			},
+		},
+	}
+	var out bytes.Buffer
+	if err := render.Diff(&out, payload); err != nil {
+		t.Fatalf("render.Diff() error = %v", err)
+	}
+	report := render.StripANSI(out.String())
+	for _, want := range []string{
+		"1 new finding(s) introduced; 1 finding(s) persisted.",
+		"introduced  [CRITICAL]  CVE-NEW",
+		"persisted   [HIGH]      CVE-KEPT",
+	} {
+		if !strings.Contains(report, want) {
+			t.Fatalf("expected text report to contain %q, got:\n%s", want, report)
+		}
 	}
 }
 

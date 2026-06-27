@@ -135,19 +135,26 @@ nfpms:
       - src: NOTICE
         dst: /usr/share/doc/bomly/NOTICE
 
-homebrew_casks:
+# Published as a Homebrew formula (not a cask): casks get the
+# com.apple.quarantine attribute, which trips macOS Gatekeeper ("Apple could
+# not verify bomly") for our un-notarized binary. Formula downloads are never
+# quarantined, so the CLI runs without a prompt.
+# NOTE: `brews` is deprecated as of GoReleaser v2.10 but still functional. If it
+# is removed, replace this with a custom step that templates Formula/bomly.rb in
+# the tap from SHA256SUMS (see dev-docs/RELEASE_CHECKLIST.md).
+brews:
   - name: bomly
     ids:
       - bomly
-    binaries:
-      - bomly
     homepage: https://bomly.dev/cli
-    description: Free, open-source CLI for dependency intelligence and SBOM analysis.
+    description: Free, open-source CLI for dependency intelligence and SBOM analysis
     license: Apache-2.0
-    directory: Casks
+    directory: Formula
     commit_msg_template: "Update Bomly CLI to {{ .Tag }}"
-    caveats: |
-      Bomly is installed as the `bomly` command.
+    install: |
+      bin.install "bomly"
+    test: |
+      system "#{bin}/bomly", "version"
     repository:
       owner: bomly-dev
       name: homebrew-tap

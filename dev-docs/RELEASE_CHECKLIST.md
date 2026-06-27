@@ -35,7 +35,7 @@ tar -xzf bomly_VERSION_linux_amd64.tar.gz bomly
 If practical, verify package-manager installs in clean runners or VMs. The `bomly-dev/tap` Homebrew reference is managed by GoReleaser through `bomly-dev/homebrew-tap`; no manual tap registration is required during release.
 
 ```bash
-brew install --cask bomly-dev/tap/bomly
+brew install bomly-dev/tap/bomly
 dpkg -i bomly_VERSION_linux_amd64.deb
 rpm -i bomly_VERSION_linux_amd64.rpm
 apk add --allow-untrusted bomly_VERSION_linux_amd64.apk

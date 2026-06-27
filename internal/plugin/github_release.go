@@ -81,12 +81,11 @@ func resolveGitHubRelease(ctx context.Context, source string) (githubReleaseReso
 		return githubReleaseResolution{}, fmt.Errorf("create GitHub release request: %w", err)
 	}
 	req.Header.Set("Accept", "application/vnd.github+json")
-	applyGitHubAuthHeader(req)
 	client, err := githubReleaseHTTPClient(ctx)
 	if err != nil {
 		return githubReleaseResolution{}, err
 	}
-	resp, err := client.Do(req)
+	resp, err := githubDoWithAuthFallback(client, req)
 	if err != nil {
 		return githubReleaseResolution{}, fmt.Errorf("fetch GitHub release metadata: %w", err)
 	}
@@ -193,12 +192,11 @@ func fetchChecksumLine(ctx context.Context, downloadURL, assetName string) (stri
 		return "", err
 	}
 	req.Header.Set("Accept", "application/octet-stream")
-	applyGitHubAuthHeader(req)
 	client, err := githubReleaseHTTPClient(ctx)
 	if err != nil {
 		return "", err
 	}
-	resp, err := client.Do(req)
+	resp, err := githubDoWithAuthFallback(client, req)
 	if err != nil {
 		return "", err
 	}
@@ -230,6 +228,28 @@ func githubReleaseHTTPClient(ctx context.Context) (*http.Client, error) {
 		return pluginHTTPClient, nil
 	}
 	return httpClientFromLaunchContext(ctx, 0)
+}
+
+// githubDoWithAuthFallback issues req against the GitHub API, attaching the
+// configured token when one is present. GitHub rejects an invalid or expired
+// token with 401 ("Bad credentials") even for public resources that need no
+// auth at all, so a stale token in the environment (a common situation with
+// gh, CI helpers, and old dotfiles) would otherwise break installs from public
+// repos. When an authenticated request comes back 401 we retry once
+// anonymously; token auth still works for private and rate-limited repos.
+func githubDoWithAuthFallback(client *http.Client, req *http.Request) (*http.Response, error) {
+	applyGitHubAuthHeader(req)
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusUnauthorized || req.Header.Get("Authorization") == "" {
+		return resp, nil
+	}
+	_ = resp.Body.Close()
+	retry := req.Clone(req.Context())
+	retry.Header.Del("Authorization")
+	return client.Do(retry)
 }
 
 func applyGitHubAuthHeader(req *http.Request) {

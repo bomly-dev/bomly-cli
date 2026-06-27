@@ -138,6 +138,53 @@ func TestResolveGitHubReleaseRedactsTokenFromErrors(t *testing.T) {
 	}
 }
 
+func TestResolveGitHubReleaseRetriesAnonymouslyOnStaleToken(t *testing.T) {
+	// A stale/invalid token in the environment must not break installs from a
+	// public repo: GitHub answers an invalid token with 401 even when the
+	// resource needs no auth, so we retry once without the Authorization header.
+	t.Setenv("BOMLY_GITHUB_TOKEN", "ghp_stale_and_invalid")
+
+	var authedAttempts, anonAttempts int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "" {
+			authedAttempts++
+			http.Error(w, `{"message":"Bad credentials"}`, http.StatusUnauthorized)
+			return
+		}
+		anonAttempts++
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"tag_name": "v1.0.0",
+			"assets":   []map[string]any{},
+		})
+	}))
+	defer server.Close()
+
+	origBase := githubReleaseAPIBase
+	origClient := pluginHTTPClient
+	githubReleaseAPIBase = server.URL
+	pluginHTTPClient = server.Client()
+	defer func() {
+		githubReleaseAPIBase = origBase
+		pluginHTTPClient = origClient
+	}()
+
+	// No matching asset, so resolution still errors, but it must get past the
+	// 401 to the asset-selection stage rather than failing on credentials.
+	_, err := resolveGitHubRelease(context.Background(), "github:acme/release-detector@v1.0.0")
+	if err == nil {
+		t.Fatal("expected resolveGitHubRelease to fail on missing asset")
+	}
+	if strings.Contains(err.Error(), "Bad credentials") || strings.Contains(err.Error(), "401") {
+		t.Fatalf("expected anonymous retry to bypass the 401, got %v", err)
+	}
+	if authedAttempts != 1 {
+		t.Fatalf("expected exactly one authenticated attempt, got %d", authedAttempts)
+	}
+	if anonAttempts != 1 {
+		t.Fatalf("expected exactly one anonymous retry, got %d", anonAttempts)
+	}
+}
+
 func TestFetchChecksumLineMatchesAssetBasenameVariants(t *testing.T) {
 	const assetName = "bomly-plugin-demo_linux_amd64.tar.gz"
 	const digest = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"

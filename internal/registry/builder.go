@@ -130,6 +130,14 @@ func (d detectorWithDescriptor) Descriptor() sdk.DetectorDescriptor {
 	return d.descriptor
 }
 
+func (d detectorWithDescriptor) ReadyReason() string {
+	reasoner, ok := d.Detector.(interface{ ReadyReason() string })
+	if !ok {
+		return ""
+	}
+	return reasoner.ReadyReason()
+}
+
 type fallbackDetectorWithDescriptor struct {
 	detectorWithDescriptor
 }
@@ -142,12 +150,28 @@ func (d fallbackDetectorWithDescriptor) FallbackDetector() sdk.Detector {
 	return detectorWithDecoratedDescriptor(fallback, decorateDetectorDescriptor(fallback.Descriptor()))
 }
 
+func (d fallbackDetectorWithDescriptor) WithWorkingDir(workingDir string) sdk.Detector {
+	binder, ok := d.Detector.(interface{ WithWorkingDir(string) sdk.Detector })
+	if !ok {
+		return d
+	}
+	return detectorWithDecoratedDescriptor(binder.WithWorkingDir(workingDir), d.descriptor)
+}
+
 type installFirstDetectorWithDescriptor struct {
 	detectorWithDescriptor
 }
 
 func (d installFirstDetectorWithDescriptor) Install(ctx context.Context, req sdk.DetectionRequest) error {
 	return d.Detector.(sdk.InstallFirstDetector).Install(ctx, req)
+}
+
+func (d installFirstDetectorWithDescriptor) WithWorkingDir(workingDir string) sdk.Detector {
+	binder, ok := d.Detector.(interface{ WithWorkingDir(string) sdk.Detector })
+	if !ok {
+		return d
+	}
+	return detectorWithDecoratedDescriptor(binder.WithWorkingDir(workingDir), d.descriptor)
 }
 
 type fallbackInstallFirstDetectorWithDescriptor struct {
@@ -164,6 +188,14 @@ func (d fallbackInstallFirstDetectorWithDescriptor) FallbackDetector() sdk.Detec
 
 func (d fallbackInstallFirstDetectorWithDescriptor) Install(ctx context.Context, req sdk.DetectionRequest) error {
 	return d.Detector.(sdk.InstallFirstDetector).Install(ctx, req)
+}
+
+func (d fallbackInstallFirstDetectorWithDescriptor) WithWorkingDir(workingDir string) sdk.Detector {
+	binder, ok := d.Detector.(interface{ WithWorkingDir(string) sdk.Detector })
+	if !ok {
+		return d
+	}
+	return detectorWithDecoratedDescriptor(binder.WithWorkingDir(workingDir), d.descriptor)
 }
 
 type auditorWithDescriptor struct {

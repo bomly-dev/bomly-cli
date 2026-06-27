@@ -9,13 +9,14 @@ import (
 )
 
 type fakeDetector struct {
-	descriptor DetectorDescriptor
-	result     ResolveGraphResult
-	err        error
-	ready      *bool
-	applicable *bool
-	applyErr   error
-	onResolve  func(ResolveGraphRequest)
+	descriptor  DetectorDescriptor
+	result      ResolveGraphResult
+	err         error
+	ready       *bool
+	readyReason string
+	applicable  *bool
+	applyErr    error
+	onResolve   func(ResolveGraphRequest)
 }
 
 func (f fakeDetector) Descriptor() DetectorDescriptor { return f.descriptor }
@@ -40,6 +41,10 @@ func (f fakeDetector) Ready() bool {
 		return true
 	}
 	return *f.ready
+}
+
+func (f fakeDetector) ReadyReason() string {
+	return f.readyReason
 }
 
 func (f fakeDetector) Applicable(_ context.Context, _ ResolveGraphRequest) (bool, error) {

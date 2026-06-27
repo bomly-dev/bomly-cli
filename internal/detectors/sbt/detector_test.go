@@ -4,6 +4,8 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
@@ -85,6 +87,78 @@ func TestNativeDetectorApplicable_SkipsOldSBTWithoutDependencyGraphPlugin(t *tes
 	if applicable {
 		t.Fatalf("expected old sbt project without dependency graph plugin to skip native detector")
 	}
+}
+
+func TestNativeDetectorReadyRequiresJava(t *testing.T) {
+	binDir := t.TempDir()
+	writeExecutable(t, binDir, "sbt", successScript())
+	writeExecutable(t, binDir, "java", failingJavaScript())
+	t.Setenv("PATH", binDir)
+
+	detector := NativeDetector{}
+	if detector.Ready() {
+		t.Fatal("expected detector to be not ready without a usable Java runtime")
+	}
+	if reason := detector.ReadyReason(); !strings.Contains(reason, "Unable to locate a Java Runtime") {
+		t.Fatalf("expected Java runtime reason, got %q", reason)
+	}
+}
+
+func TestNativeDetectorReadyRequiresSBT(t *testing.T) {
+	binDir := t.TempDir()
+	writeExecutable(t, binDir, "java", successScript())
+	t.Setenv("PATH", binDir)
+
+	detector := NativeDetector{}
+	if detector.Ready() {
+		t.Fatal("expected detector to be not ready without sbt")
+	}
+	if reason := detector.ReadyReason(); !strings.Contains(reason, "sbt executable not found") {
+		t.Fatalf("expected missing sbt reason, got %q", reason)
+	}
+}
+
+func TestNativeDetectorReadyWithSBTAndJava(t *testing.T) {
+	binDir := t.TempDir()
+	writeExecutable(t, binDir, "sbt", successScript())
+	writeExecutable(t, binDir, "java", successScript())
+	t.Setenv("PATH", binDir)
+
+	detector := NativeDetector{}
+	if !detector.Ready() {
+		t.Fatalf("expected detector to be ready, reason=%q", detector.ReadyReason())
+	}
+}
+
+func writeExecutable(t *testing.T, dir, name, body string) string {
+	t.Helper()
+	path := filepath.Join(dir, name)
+	if runtime.GOOS == "windows" {
+		path += ".cmd"
+	}
+	if err := os.WriteFile(path, []byte(body), 0o755); err != nil {
+		t.Fatalf("write executable %s: %v", name, err)
+	}
+	if runtime.GOOS != "windows" {
+		if err := os.Chmod(path, 0o755); err != nil {
+			t.Fatalf("chmod executable %s: %v", name, err)
+		}
+	}
+	return path
+}
+
+func successScript() string {
+	if runtime.GOOS == "windows" {
+		return "@echo off\r\necho ok 1>&2\r\n"
+	}
+	return "#!/bin/sh\necho ok >&2\n"
+}
+
+func failingJavaScript() string {
+	if runtime.GOOS == "windows" {
+		return "@echo off\r\necho The operation couldn't be completed. Unable to locate a Java Runtime. 1>&2\r\nexit /b 1\r\n"
+	}
+	return "#!/bin/sh\necho \"The operation couldn't be completed. Unable to locate a Java Runtime.\" >&2\nexit 1\n"
 }
 
 func TestNativeDetectorApplicable_AllowsOldSBTWithDependencyGraphPlugin(t *testing.T) {

@@ -1,6 +1,7 @@
 package system
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -17,6 +18,11 @@ func Abs(path string) (string, error) {
 // Command constructs an external process command.
 func Command(name string, args ...string) *exec.Cmd {
 	return exec.Command(name, args...)
+}
+
+// CommandContext constructs an external process command bound to ctx.
+func CommandContext(ctx context.Context, name string, args ...string) *exec.Cmd {
+	return exec.CommandContext(ctx, name, args...)
 }
 
 // FileExists reports whether path exists and is a file.

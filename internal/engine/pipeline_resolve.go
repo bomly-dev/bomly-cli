@@ -179,6 +179,7 @@ func (p *Pipeline) resolveDetectors(ctx context.Context, req sdk.DetectionReques
 }
 
 func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest, detector sdk.Detector, progress ProgressReporter) ([]sdk.DetectionResult, error) {
+	detector = detectorForRequest(detector, req)
 	descriptor := detector.Descriptor()
 	support := detector.PackageManagerSupport()
 	reportProgressDetail(progress, "Detecting dependencies", detectorProgressDetail(req.Subproject, descriptor.Label()))
@@ -193,11 +194,13 @@ func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest
 	)
 
 	if !detector.Ready() {
+		notReadyErr := detectorNotReadyError(descriptor.Name, detector)
 		p.Logger.Debug("pipeline: detector not ready",
 			zap.String("detector", descriptor.Name),
 			zap.String("subproject", req.Subproject.RelativePath),
+			zap.Error(notReadyErr),
 		)
-		return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: not ready", descriptor.Name), progress)
+		return p.resolveFallback(ctx, req, detector, notReadyErr, progress)
 	}
 
 	applicable, err := detector.Applicable(ctx, req)
@@ -261,6 +264,32 @@ func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest
 		zap.Int("edges", edges),
 	)
 	return []sdk.DetectionResult{result}, nil
+}
+
+func detectorForRequest(detector sdk.Detector, req sdk.DetectionRequest) sdk.Detector {
+	binder, ok := detector.(interface{ WithWorkingDir(string) sdk.Detector })
+	if !ok {
+		return detector
+	}
+	workingDir := strings.TrimSpace(req.ProjectPath)
+	if workingDir == "" {
+		workingDir = strings.TrimSpace(req.Subproject.ExecutionTarget.Location)
+	}
+	if workingDir == "" {
+		return detector
+	}
+	return binder.WithWorkingDir(workingDir)
+}
+
+func detectorNotReadyError(name string, detector sdk.Detector) error {
+	reason := ""
+	if reasoner, ok := detector.(interface{ ReadyReason() string }); ok {
+		reason = strings.TrimSpace(reasoner.ReadyReason())
+	}
+	if reason == "" {
+		return fmt.Errorf("detector %s: not ready", name)
+	}
+	return fmt.Errorf("detector %s: not ready: %s", name, reason)
 }
 
 func (p *Pipeline) resolveFallback(ctx context.Context, req sdk.DetectionRequest, detector sdk.Detector, primaryErr error, progress ProgressReporter) ([]sdk.DetectionResult, error) {

@@ -107,6 +107,86 @@ func TestResolveGitHubReleaseAndInstall(t *testing.T) {
 	}
 }
 
+func TestInstallStaleTokenFallbackEndToEnd(t *testing.T) {
+	// Exercises all three githubDoWithAuthFallback call sites (release metadata,
+	// checksum fetch, archive download) in one flow: a stale token is present,
+	// every endpoint rejects authenticated requests with 401, and the install
+	// must still succeed by retrying each request anonymously.
+	t.Setenv("BOMLY_GITHUB_TOKEN", "ghp_stale_and_invalid")
+
+	root := t.TempDir()
+	binaryName := "bomly-plugin-release"
+	if runtime.GOOS == "windows" {
+		binaryName += ".exe"
+	}
+	binaryPath := filepath.Join(t.TempDir(), binaryName)
+	if err := testutil.BuildGoBinary(t, binaryPath, fakeDetectorPluginSource("acme.detector.release")); err != nil {
+		t.Fatalf("build fake plugin: %v", err)
+	}
+
+	manifest := withCanonicalManifestDefaults(Manifest{
+		ID:      "acme.detector.release",
+		Name:    "Acme Release Detector",
+		Version: "1.0.0",
+		Kind:    plugschema.PluginKindDetector,
+		Entrypoint: map[string]string{
+			platformKey(): filepath.ToSlash(filepath.Join("bin", filepath.Base(binaryPath))),
+		},
+	}, "github:acme/release-detector@v1.0.0")
+
+	archiveName := "bomly-plugin-release_" + runtime.GOOS + "_" + runtime.GOARCH + archiveSuffix()
+	archiveBytes := buildPluginArchive(t, manifest, binaryPath)
+	checksum := checksumForBytes(archiveBytes)
+
+	var server *httptest.Server
+	archiveAssetPath := "/repos/acme/release-detector/releases/assets/101"
+	checksumAssetPath := "/repos/acme/release-detector/releases/assets/102"
+	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Reject any request that still carries the stale token.
+		if r.Header.Get("Authorization") != "" {
+			http.Error(w, `{"message":"Bad credentials"}`, http.StatusUnauthorized)
+			return
+		}
+		switch r.URL.Path {
+		case "/repos/acme/release-detector/releases/tags/v1.0.0":
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"tag_name": "v1.0.0",
+				"assets": []map[string]any{
+					{"id": 101, "name": archiveName, "url": server.URL + archiveAssetPath, "browser_download_url": server.URL + "/download/" + archiveName},
+					{"id": 102, "name": "SHA256SUMS", "url": server.URL + checksumAssetPath, "browser_download_url": server.URL + "/download/SHA256SUMS"},
+				},
+			})
+		case archiveAssetPath:
+			_, _ = w.Write(archiveBytes)
+		case checksumAssetPath:
+			_, _ = w.Write([]byte(checksum[len("sha256:"):] + "  dist/" + archiveName + "\n"))
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	origBase := githubReleaseAPIBase
+	origClient := pluginHTTPClient
+	githubReleaseAPIBase = server.URL
+	pluginHTTPClient = server.Client()
+	defer func() {
+		githubReleaseAPIBase = origBase
+		pluginHTTPClient = origClient
+	}()
+
+	result, err := Install(context.Background(), root, "github:acme/release-detector@v1.0.0", InstallOptions{})
+	if err != nil {
+		t.Fatalf("Install() error = %v", err)
+	}
+	if result.Manifest.ID != "acme.detector.release" {
+		t.Fatalf("expected release plugin id, got %q", result.Manifest.ID)
+	}
+	if !result.ChecksumVerified {
+		t.Fatalf("expected GitHub release checksum verification to succeed via anonymous retry")
+	}
+}
+
 func TestResolveGitHubReleaseRedactsTokenFromErrors(t *testing.T) {
 	const token = "ghp_secret_error_token"
 	t.Setenv("BOMLY_GITHUB_TOKEN", token)
@@ -135,6 +215,88 @@ func TestResolveGitHubReleaseRedactsTokenFromErrors(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "[redacted]") {
 		t.Fatalf("expected redacted marker in error, got %q", err.Error())
+	}
+}
+
+func TestResolveGitHubReleaseRetriesAnonymouslyOnStaleToken(t *testing.T) {
+	// A stale/invalid token in the environment must not break installs from a
+	// public repo: GitHub answers an invalid token with 401 even when the
+	// resource needs no auth, so we retry once without the Authorization header.
+	t.Setenv("BOMLY_GITHUB_TOKEN", "ghp_stale_and_invalid")
+
+	var authedAttempts, anonAttempts int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "" {
+			authedAttempts++
+			http.Error(w, `{"message":"Bad credentials"}`, http.StatusUnauthorized)
+			return
+		}
+		anonAttempts++
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"tag_name": "v1.0.0",
+			"assets":   []map[string]any{},
+		})
+	}))
+	defer server.Close()
+
+	origBase := githubReleaseAPIBase
+	origClient := pluginHTTPClient
+	githubReleaseAPIBase = server.URL
+	pluginHTTPClient = server.Client()
+	defer func() {
+		githubReleaseAPIBase = origBase
+		pluginHTTPClient = origClient
+	}()
+
+	// No matching asset, so resolution still errors, but it must get past the
+	// 401 to the asset-selection stage rather than failing on credentials.
+	_, err := resolveGitHubRelease(context.Background(), "github:acme/release-detector@v1.0.0")
+	if err == nil {
+		t.Fatal("expected resolveGitHubRelease to fail on missing asset")
+	}
+	if strings.Contains(err.Error(), "Bad credentials") || strings.Contains(err.Error(), "401") {
+		t.Fatalf("expected anonymous retry to bypass the 401, got %v", err)
+	}
+	if authedAttempts != 1 {
+		t.Fatalf("expected exactly one authenticated attempt, got %d", authedAttempts)
+	}
+	if anonAttempts != 1 {
+		t.Fatalf("expected exactly one anonymous retry, got %d", anonAttempts)
+	}
+}
+
+func TestFetchChecksumLineRetriesAnonymouslyOnStaleToken(t *testing.T) {
+	// The checksum fetch path also routes through githubDoWithAuthFallback, so a
+	// stale token must not break checksum verification on a public release.
+	const assetName = "bomly-plugin-demo_linux_amd64.tar.gz"
+	const digest = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+	t.Setenv("BOMLY_GITHUB_TOKEN", "ghp_stale_and_invalid")
+
+	var authedAttempts, anonAttempts int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "" {
+			authedAttempts++
+			http.Error(w, `{"message":"Bad credentials"}`, http.StatusUnauthorized)
+			return
+		}
+		anonAttempts++
+		_, _ = w.Write([]byte(digest + "  " + assetName + "\n"))
+	}))
+	defer server.Close()
+
+	origClient := pluginHTTPClient
+	pluginHTTPClient = server.Client()
+	defer func() { pluginHTTPClient = origClient }()
+
+	got, err := fetchChecksumLine(context.Background(), server.URL, assetName)
+	if err != nil {
+		t.Fatalf("fetchChecksumLine() error = %v", err)
+	}
+	if want := "sha256:" + digest; got != want {
+		t.Fatalf("fetchChecksumLine() = %q, want %q", got, want)
+	}
+	if authedAttempts != 1 || anonAttempts != 1 {
+		t.Fatalf("expected one authed + one anonymous attempt, got authed=%d anon=%d", authedAttempts, anonAttempts)
 	}
 }
 

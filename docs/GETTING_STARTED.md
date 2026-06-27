@@ -46,10 +46,10 @@ Need structured output for automation? `--json` is the shortcut for `--format js
 bomly scan --json
 ```
 
-Pass `--container` to scan a container image:
+Pass `--image` to scan a container image:
 
 ```bash
-bomly scan --container ghcr.io/example/app:latest
+bomly scan --image ghcr.io/example/app:latest
 ```
 
 Pass `--url` (with optional `--ref`) to scan a Git repository without cloning by hand:

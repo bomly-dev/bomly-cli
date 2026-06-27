@@ -524,7 +524,7 @@ func (o *Options) configLoadPaths() ([]string, error) {
 }
 
 func (o *Options) projectConfigPathForLoading() (string, error) {
-	if strings.TrimSpace(o.ResolvedConfig.URL) != "" || strings.TrimSpace(o.ResolvedConfig.Container) != "" {
+	if strings.TrimSpace(o.ResolvedConfig.URL) != "" || strings.TrimSpace(o.ResolvedConfig.Image) != "" {
 		return "", nil
 	}
 
@@ -551,8 +551,8 @@ func (o *Options) projectConfigPathForLoading() (string, error) {
 func (o *Options) resolveExecutionTarget(logger *zap.Logger) (sdk.ExecutionTarget, string, func() error, error) {
 	resolved := o.ResolvedConfig
 	if resolved.SBOM {
-		if resolved.Container != "" || resolved.URL != "" || resolved.Ref != "" {
-			return sdk.ExecutionTarget{}, "", nil, exit.InvalidInputError("--sbom cannot be combined with --container, --url, or --ref")
+		if resolved.Image != "" || resolved.URL != "" || resolved.Ref != "" {
+			return sdk.ExecutionTarget{}, "", nil, exit.InvalidInputError("--sbom cannot be combined with --image, --url, or --ref")
 		}
 		sbomPath, err := system.ResolveExistingFile(resolved.Path)
 		if err != nil {
@@ -567,11 +567,11 @@ func (o *Options) resolveExecutionTarget(logger *zap.Logger) (sdk.ExecutionTarge
 	if resolved.URL != "" {
 		targetCount++
 	}
-	if resolved.Container != "" {
+	if resolved.Image != "" {
 		targetCount++
 	}
 	if targetCount > 1 {
-		return sdk.ExecutionTarget{}, "", nil, exit.InvalidInputError("--path, --url, and --container cannot be used together")
+		return sdk.ExecutionTarget{}, "", nil, exit.InvalidInputError("--path, --url, and --image cannot be used together")
 	}
 	if resolved.URL != "" {
 		projectPath, err := git.CloneTemp(logger, resolved.URL, resolved.Ref)
@@ -588,14 +588,14 @@ func (o *Options) resolveExecutionTarget(logger *zap.Logger) (sdk.ExecutionTarge
 			Ref:           resolved.Ref,
 		}, projectPath, cleanup, nil
 	}
-	if resolved.Container != "" {
+	if resolved.Image != "" {
 		if resolved.Ref != "" {
 			return sdk.ExecutionTarget{}, "", nil, exit.InvalidInputError("--ref can only be used with --url")
 		}
 		return sdk.ExecutionTarget{
 			Kind:     sdk.ExecutionTargetContainerImage,
-			Location: strings.TrimSpace(resolved.Container),
-		}, resolved.Container, nil, nil
+			Location: strings.TrimSpace(resolved.Image),
+		}, resolved.Image, nil, nil
 	}
 	projectPath, err := o.ResolveProjectPath()
 	if err != nil {

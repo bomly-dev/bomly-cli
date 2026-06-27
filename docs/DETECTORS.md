@@ -163,7 +163,7 @@ This is fast and offline. See [SBOM formats](SBOM.md) for the format comparison.
 Bomly resolves container references via the host's registry credentials. Native detectors that work on lockfile contents inside layers still run; everything else falls through to Syft:
 
 ```bash
-bomly scan --container ghcr.io/example/app:latest
+bomly scan --image ghcr.io/example/app:latest
 ```
 
 ## See also

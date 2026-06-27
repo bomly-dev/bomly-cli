@@ -422,7 +422,7 @@ func TestRootHelp_CommandExamplesRender(t *testing.T) {
 				"bomly scan --enrich --audit",
 				"bomly scan -o spdx=bomly.spdx.json",
 				"bomly scan --url https://github.com/bomly-dev/bomly-cli --ref main --json",
-				"bomly scan --container alpine:3.20",
+				"bomly scan --image alpine:3.20",
 				"Explore available detectors, matchers, and auditors with `bomly plugins list`.",
 			},
 			notInText: []string{"Exit Codes:"},

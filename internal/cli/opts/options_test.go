@@ -27,21 +27,21 @@ func TestCommandContextRoundTripsThroughContext(t *testing.T) {
 	}
 }
 
-func TestCommandContextResolveExecutionTarget_Container(t *testing.T) {
-	options := Options{ResolvedConfig: config.Resolved{Container: "alpine:3.20"}}
+func TestCommandContextResolveExecutionTarget_Image(t *testing.T) {
+	options := Options{ResolvedConfig: config.Resolved{Image: "alpine:3.20"}}
 
 	target, location, cleanup, err := options.resolveExecutionTarget(nil)
 	if err != nil {
 		t.Fatalf("resolveExecutionTarget() error = %v", err)
 	}
 	if cleanup != nil {
-		t.Fatal("expected no cleanup for container target")
+		t.Fatal("expected no cleanup for image target")
 	}
 	if target.Kind != sdk.ExecutionTargetContainerImage {
 		t.Fatalf("expected container execution target, got %#v", target)
 	}
 	if target.Location != "alpine:3.20" || location != "alpine:3.20" {
-		t.Fatalf("unexpected container target values: %#v %q", target, location)
+		t.Fatalf("unexpected image target values: %#v %q", target, location)
 	}
 }
 
@@ -60,13 +60,13 @@ func TestProjectDescriptor_UsesUserFacingTargetLabels(t *testing.T) {
 }
 
 func TestCommandContextResolveExecutionTarget_RejectsMultipleTargets(t *testing.T) {
-	options := Options{ResolvedConfig: config.Resolved{Path: ".", Container: "alpine:3.20"}}
+	options := Options{ResolvedConfig: config.Resolved{Path: ".", Image: "alpine:3.20"}}
 
 	_, _, _, err := options.resolveExecutionTarget(nil)
 	if err == nil {
 		t.Fatal("expected multiple target error")
 	}
-	if !strings.Contains(err.Error(), "--path, --url, and --container cannot be used together") {
+	if !strings.Contains(err.Error(), "--path, --url, and --image cannot be used together") {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

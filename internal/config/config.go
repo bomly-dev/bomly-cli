@@ -21,7 +21,7 @@ package config
 // the YAML config file, then env vars, then explicit flags.
 type Resolved struct {
 	Path                  string   `doc:"Filesystem path to scan" env:"BOMLY_PATH"`
-	Container             string   `doc:"Container image to scan (e.g. alpine:latest)" env:"BOMLY_CONTAINER"`
+	Image                 string   `doc:"Container image to scan (e.g. alpine:latest)" env:"BOMLY_IMAGE" envalias:"BOMLY_CONTAINER"`
 	URL                   string   `doc:"Remote Git URL to clone and scan" env:"BOMLY_URL"`
 	Ref                   string   `doc:"Git ref to checkout when scanning a URL" env:"BOMLY_REF"`
 	SBOM                  bool     `doc:"Treat the selected filesystem target as an SBOM file" env:"BOMLY_SBOM"`
@@ -98,7 +98,8 @@ type File struct {
 // TargetFile configures the execution target selected for a scan.
 type TargetFile struct {
 	Path      *string `yaml:"path,omitempty" resolved:"Path" legacy:"path"`
-	Container *string `yaml:"container,omitempty" resolved:"Container" legacy:"container"`
+	Container *string `yaml:"container,omitempty" resolved:"Image" legacy:"container"` // deprecated alias for image
+	Image     *string `yaml:"image,omitempty" resolved:"Image" legacy:"image"`
 	URL       *string `yaml:"url,omitempty" resolved:"URL" legacy:"url"`
 	Ref       *string `yaml:"ref,omitempty" resolved:"Ref" legacy:"ref"`
 	SBOM      *bool   `yaml:"sbom,omitempty" resolved:"SBOM" legacy:"sbom"`

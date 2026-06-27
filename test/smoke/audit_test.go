@@ -143,7 +143,7 @@ func TestContainerAuditScan(t *testing.T) {
 	}{
 		{
 			name: "container-scan-alpine-audit",
-			args: []string{"scan", "--container", alpineImage, "--format", "json", "--enrich", "--audit", "--matchers", "osv", "--auditors", "vulnerability"},
+			args: []string{"scan", "--image", alpineImage, "--format", "json", "--enrich", "--audit", "--matchers", "osv", "--auditors", "vulnerability"},
 		},
 	}
 

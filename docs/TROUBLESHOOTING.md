@@ -86,7 +86,7 @@ Bomly uses your host's registry credentials. Confirm with:
 docker pull <image-ref>
 ```
 
-If `docker pull` works and `bomly scan --container <image-ref>` doesn't, file a bug with the credential helper you use (`docker-credential-*`).
+If `docker pull` works and `bomly scan --image <image-ref>` doesn't, file a bug with the credential helper you use (`docker-credential-*`).
 
 ## `bomly-lite` says "syft: command not found"
 

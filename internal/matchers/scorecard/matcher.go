@@ -134,8 +134,8 @@ func (m *Matcher) Descriptor() sdk.MatcherDescriptor {
 
 // Ready reports whether this matcher can run. The Scorecard matcher only
 // needs HTTP egress; no local binary or auth is required.
-func (m *Matcher) Ready() bool {
-	return true
+func (m *Matcher) Ready(context.Context, sdk.MatchRequest) error {
+	return nil
 }
 
 // Applicable reports whether this matcher applies to the given request.

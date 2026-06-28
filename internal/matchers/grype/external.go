@@ -19,9 +19,11 @@ import (
 )
 
 // Ready reports whether the external grype binary is available.
-func (a Matcher) Ready() bool {
-	_, err := exec.LookPath("grype")
-	return err == nil
+func (a Matcher) Ready(context.Context, sdk.MatchRequest) error {
+	if _, err := exec.LookPath("grype"); err != nil {
+		return fmt.Errorf("grype executable not found on PATH: %w", err)
+	}
+	return nil
 }
 
 // Match attaches Grype vulnerability matches by shelling out to the grype CLI binary.

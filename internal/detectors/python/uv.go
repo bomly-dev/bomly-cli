@@ -24,9 +24,9 @@ func (d UVDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 }
 
 // Ready reports whether uv is available.
-func (d UVDetector) Ready() bool {
+func (d UVDetector) Ready(context.Context, sdk.DetectionRequest) error {
 	_, err := system.LookPath("uv")
-	return err == nil
+	return detectors.CommandNotReadyError("uv", err)
 }
 
 // Applicable reports whether uv manifests are present.

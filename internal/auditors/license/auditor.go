@@ -34,8 +34,8 @@ func (a Auditor) Descriptor() sdk.AuditorDescriptor {
 	}
 }
 
-func (a Auditor) Ready() bool {
-	return true
+func (a Auditor) Ready(context.Context, sdk.AuditRequest) error {
+	return nil
 }
 
 func (a Auditor) Applicable(_ context.Context, req sdk.AuditRequest) (bool, error) {

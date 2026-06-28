@@ -63,8 +63,8 @@ func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
 }
 
 // Ready reports whether committed Conan files can be parsed.
-func (d Detector) Ready() bool {
-	return true
+func (d Detector) Ready(context.Context, sdk.DetectionRequest) error {
+	return nil
 }
 
 // Applicable reports whether Conan files are present.

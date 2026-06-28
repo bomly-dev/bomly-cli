@@ -243,7 +243,7 @@ func TestDescriptor_OptIn(t *testing.T) {
 	if d.Name != "scorecard" {
 		t.Errorf("Name = %q", d.Name)
 	}
-	if !matcher.Ready() {
-		t.Error("Ready should be true; no runtime dependency")
+	if err := matcher.Ready(context.Background(), sdk.MatchRequest{}); err != nil {
+		t.Errorf("Ready should succeed; no runtime dependency: %v", err)
 	}
 }

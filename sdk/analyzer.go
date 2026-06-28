@@ -72,7 +72,11 @@ type AnalyzeResult struct {
 // abort the pipeline on failure.
 type Analyzer interface {
 	Descriptor() AnalyzerDescriptor
-	Ready() bool
+	// Ready reports whether the analyzer can run for the given request. It
+	// returns nil when ready and a non-nil error describing the reason
+	// otherwise. Implementations may perform lightweight, cancellable I/O and
+	// should honor ctx.
+	Ready(context.Context, AnalyzeRequest) error
 	Applicable(context.Context, AnalyzeRequest) (bool, error)
 	Analyze(context.Context, AnalyzeRequest) (AnalyzeResult, error)
 }

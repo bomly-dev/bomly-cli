@@ -96,11 +96,12 @@ func TestNativeDetectorReadyRequiresJava(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := NativeDetector{}
-	if detector.Ready() {
+	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	if err == nil {
 		t.Fatal("expected detector to be not ready without a usable Java runtime")
 	}
-	if reason := detector.ReadyReason(); !strings.Contains(reason, "Unable to locate a Java Runtime") {
-		t.Fatalf("expected Java runtime reason, got %q", reason)
+	if !strings.Contains(err.Error(), "Unable to locate a Java Runtime") {
+		t.Fatalf("expected Java runtime reason, got %q", err)
 	}
 }
 
@@ -110,11 +111,12 @@ func TestNativeDetectorReadyRequiresSBT(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := NativeDetector{}
-	if detector.Ready() {
+	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	if err == nil {
 		t.Fatal("expected detector to be not ready without sbt")
 	}
-	if reason := detector.ReadyReason(); !strings.Contains(reason, "sbt executable not found") {
-		t.Fatalf("expected missing sbt reason, got %q", reason)
+	if !strings.Contains(err.Error(), "sbt executable not found") {
+		t.Fatalf("expected missing sbt reason, got %q", err)
 	}
 }
 
@@ -125,8 +127,8 @@ func TestNativeDetectorReadyWithSBTAndJava(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := NativeDetector{}
-	if !detector.Ready() {
-		t.Fatalf("expected detector to be ready, reason=%q", detector.ReadyReason())
+	if err := detector.Ready(context.Background(), sdk.DetectionRequest{}); err != nil {
+		t.Fatalf("expected detector to be ready, got %v", err)
 	}
 }
 

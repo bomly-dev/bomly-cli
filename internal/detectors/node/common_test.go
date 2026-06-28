@@ -320,8 +320,8 @@ func TestLockfileDetectorsDoNotRequirePackageManagerBinaries(t *testing.T) {
 		"pnpm": pnpm.LockfileDetector{},
 		"yarn": yarn.LockfileDetector{},
 	} {
-		if !detector.Ready() {
-			t.Fatalf("expected %s lockfile detector to be ready without package manager on PATH", name)
+		if err := detector.Ready(context.Background(), sdk.DetectionRequest{}); err != nil {
+			t.Fatalf("expected %s lockfile detector to be ready without package manager on PATH: %v", name, err)
 		}
 	}
 
@@ -395,8 +395,8 @@ func (d *installRecorderDetector) PackageManagerSupport() []sdk.PackageManagerSu
 	return nil
 }
 
-func (d *installRecorderDetector) Ready() bool {
-	return true
+func (d *installRecorderDetector) Ready(context.Context, sdk.DetectionRequest) error {
+	return nil
 }
 
 func (d *installRecorderDetector) Applicable(context.Context, sdk.DetectionRequest) (bool, error) {

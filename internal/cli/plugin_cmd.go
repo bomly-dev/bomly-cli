@@ -519,8 +519,8 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 		info := detectorPluginInfo(&d, coreVersion, reg.DefaultEnabledDetectorNames(), string(reg.DetectorOrigin(d.Name)))
 		if det, ok := detectorInstances[d.Name]; ok {
 			det := det
-			info.ReadyFn = func(_ context.Context) (bool, string, error) {
-				return det.Ready(), "detector-ready", nil
+			info.ReadyFn = func(ctx context.Context) (bool, string, error) {
+				return det.Ready(ctx, plugschema.DetectionRequest{}) == nil, "detector-ready", nil
 			}
 		}
 		infos = append(infos, info)
@@ -544,8 +544,8 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 		info := detectorPluginInfo(&d, coreVersion, reg.DefaultEnabledDetectorNames(), string(reg.DetectorOrigin(d.Name)))
 		if det, ok := detectorInstances[d.Name]; ok {
 			det := det
-			info.ReadyFn = func(_ context.Context) (bool, string, error) {
-				return det.Ready(), "detector-ready", nil
+			info.ReadyFn = func(ctx context.Context) (bool, string, error) {
+				return det.Ready(ctx, plugschema.DetectionRequest{}) == nil, "detector-ready", nil
 			}
 		}
 		infos = append(infos, info)
@@ -556,8 +556,8 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 		info := matcherPluginInfo(&d, coreVersion, reg.DefaultEnabledMatcherNames())
 		if m, ok := matcherInstances[d.Name]; ok {
 			m := m
-			info.ReadyFn = func(_ context.Context) (bool, string, error) {
-				return m.Ready(), "matcher-ready", nil
+			info.ReadyFn = func(ctx context.Context) (bool, string, error) {
+				return m.Ready(ctx, plugschema.MatchRequest{}) == nil, "matcher-ready", nil
 			}
 		}
 		infos = append(infos, info)
@@ -567,8 +567,8 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 		info := auditorPluginInfo(&d, coreVersion, reg.DefaultEnabledAuditorNames())
 		if a, ok := auditorInstances[d.Name]; ok {
 			a := a
-			info.ReadyFn = func(_ context.Context) (bool, string, error) {
-				return a.Ready(), "auditor-ready", nil
+			info.ReadyFn = func(ctx context.Context) (bool, string, error) {
+				return a.Ready(ctx, plugschema.AuditRequest{}) == nil, "auditor-ready", nil
 			}
 		}
 		infos = append(infos, info)
@@ -578,8 +578,8 @@ func builtInPluginInfos(current config.Resolved, coreVersion string) []managedpl
 		info := analyzerPluginInfo(&d, coreVersion, reg.DefaultEnabledAnalyzerNames())
 		if a, ok := analyzerInstances[d.Name]; ok {
 			a := a
-			info.ReadyFn = func(_ context.Context) (bool, string, error) {
-				return a.Ready(), "analyzer-ready", nil
+			info.ReadyFn = func(ctx context.Context) (bool, string, error) {
+				return a.Ready(ctx, plugschema.AnalyzeRequest{}) == nil, "analyzer-ready", nil
 			}
 		}
 		infos = append(infos, info)

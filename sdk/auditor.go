@@ -59,7 +59,11 @@ type AuditorDescriptor struct {
 // Auditor analyzes graphs or components and returns findings.
 type Auditor interface {
 	Descriptor() AuditorDescriptor
-	Ready() bool
+	// Ready reports whether the auditor can run for the given request. It
+	// returns nil when ready and a non-nil error describing the reason
+	// otherwise. Implementations may perform lightweight, cancellable I/O and
+	// should honor ctx.
+	Ready(context.Context, AuditRequest) error
 	Applicable(context.Context, AuditRequest) (bool, error)
 	Audit(context.Context, AuditRequest) (AuditResult, error)
 }

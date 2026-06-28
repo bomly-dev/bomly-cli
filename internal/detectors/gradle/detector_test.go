@@ -93,11 +93,12 @@ func TestDetectorReadyRequiresJava(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := Detector{}
-	if detector.Ready() {
+	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	if err == nil {
 		t.Fatal("expected detector to be not ready without a usable Java runtime")
 	}
-	if reason := detector.ReadyReason(); !strings.Contains(reason, "Unable to locate a Java Runtime") {
-		t.Fatalf("expected Java runtime reason, got %q", reason)
+	if !strings.Contains(err.Error(), "Unable to locate a Java Runtime") {
+		t.Fatalf("expected Java runtime reason, got %q", err)
 	}
 }
 
@@ -107,11 +108,12 @@ func TestDetectorReadyRequiresGradleRunner(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := Detector{}
-	if detector.Ready() {
+	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	if err == nil {
 		t.Fatal("expected detector to be not ready without gradle")
 	}
-	if reason := detector.ReadyReason(); !strings.Contains(reason, "gradle executable not found") {
-		t.Fatalf("expected missing gradle reason, got %q", reason)
+	if !strings.Contains(err.Error(), "gradle executable not found") {
+		t.Fatalf("expected missing gradle reason, got %q", err)
 	}
 }
 
@@ -122,9 +124,9 @@ func TestDetectorReadyWithWrapperAndJava(t *testing.T) {
 	writeExecutable(t, binDir, "java", successScript())
 	t.Setenv("PATH", binDir)
 
-	detector := Detector{WorkingDir: projectDir}
-	if !detector.Ready() {
-		t.Fatalf("expected detector to be ready, reason=%q", detector.ReadyReason())
+	detector := Detector{}
+	if err := detector.Ready(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir}); err != nil {
+		t.Fatalf("expected detector to be ready, got %v", err)
 	}
 }
 

@@ -66,7 +66,11 @@ type MatcherStats struct {
 // Matcher enriches registry packages with license and vulnerability data.
 type Matcher interface {
 	Descriptor() MatcherDescriptor
-	Ready() bool
+	// Ready reports whether the matcher can run for the given request. It
+	// returns nil when ready and a non-nil error describing the reason
+	// otherwise. Implementations may perform lightweight, cancellable I/O and
+	// should honor ctx.
+	Ready(context.Context, MatchRequest) error
 	Applicable(context.Context, MatchRequest) (bool, error)
 	Match(context.Context, MatchRequest) (MatchResult, error)
 }

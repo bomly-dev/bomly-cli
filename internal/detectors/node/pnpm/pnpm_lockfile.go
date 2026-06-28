@@ -28,8 +28,8 @@ func (d LockfileDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 }
 
 // Ready reports whether pnpm is available.
-func (d LockfileDetector) Ready() bool {
-	return true
+func (d LockfileDetector) Ready(context.Context, sdk.DetectionRequest) error {
+	return nil
 }
 
 // Applicable reports whether a pnpm lockfile is present.

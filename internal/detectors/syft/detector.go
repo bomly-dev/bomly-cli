@@ -78,8 +78,8 @@ func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
 }
 
 // Ready reports whether the detector is ready to run.
-func (d Detector) Ready() bool {
-	return true
+func (d Detector) Ready(context.Context, sdk.DetectionRequest) error {
+	return nil
 }
 
 // Applicable reports whether Syft should run for the requested project.

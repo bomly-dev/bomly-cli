@@ -32,26 +32,12 @@ func (d NativeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerSBT, evidencePatterns...)}
 }
 
-// WithWorkingDir returns a copy of the detector scoped to workingDir.
-func (d NativeDetector) WithWorkingDir(workingDir string) sdk.Detector {
-	d.WorkingDir = workingDir
-	return d
-}
-
-// Ready reports whether the sbt binary is available.
-func (d NativeDetector) Ready() bool {
-	return d.ReadyReason() == ""
-}
-
-// ReadyReason returns the reason the sbt native detector is not ready.
-func (d NativeDetector) ReadyReason() string {
+// Ready reports whether the sbt binary and a usable Java runtime are available.
+func (d NativeDetector) Ready(ctx context.Context, _ sdk.DetectionRequest) error {
 	if _, err := system.LookPath("sbt"); err != nil {
-		return detectors.CommandReadyReason("sbt", err)
+		return detectors.CommandNotReadyError("sbt", err)
 	}
-	if ok, reason := detectors.JavaReady(); !ok {
-		return reason
-	}
-	return ""
+	return detectors.JavaReady(ctx)
 }
 
 // Applicable reports whether sbt build files are present.

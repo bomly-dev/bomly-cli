@@ -29,9 +29,9 @@ func (d PipenvDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 }
 
 // Ready reports whether Pipenv is available.
-func (d PipenvDetector) Ready() bool {
+func (d PipenvDetector) Ready(context.Context, sdk.DetectionRequest) error {
 	_, err := system.LookPath("pipenv")
-	return err == nil
+	return detectors.CommandNotReadyError("pipenv", err)
 }
 
 // Applicable reports whether Pipenv manifests are present.

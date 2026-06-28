@@ -50,26 +50,13 @@ func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
 	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerMaven, evidencePatterns...)}
 }
 
-// WithWorkingDir returns a copy of the detector scoped to workingDir.
-func (d Detector) WithWorkingDir(workingDir string) sdk.Detector {
-	d.WorkingDir = workingDir
-	return d
-}
-
-// Ready reports whether a Maven wrapper is present or Maven is installed.
-func (d Detector) Ready() bool {
-	return d.ReadyReason() == ""
-}
-
-// ReadyReason returns the reason the Maven detector is not ready.
-func (d Detector) ReadyReason() string {
-	if _, _, err := d.resolveRunner(); err != nil {
-		return detectors.CommandReadyReason("mvn", err)
+// Ready reports whether a Maven wrapper is present or Maven is installed and a
+// usable Java runtime is available for the request's working directory.
+func (d Detector) Ready(ctx context.Context, req sdk.DetectionRequest) error {
+	if _, _, err := d.resolveRunner(detectors.RequestWorkingDir(req)); err != nil {
+		return detectors.CommandNotReadyError("mvn", err)
 	}
-	if ok, reason := detectors.JavaReady(); !ok {
-		return reason
-	}
-	return ""
+	return detectors.JavaReady(ctx)
 }
 
 // Applicable reports whether the project looks like a Maven project.

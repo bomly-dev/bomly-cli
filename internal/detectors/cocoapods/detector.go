@@ -45,8 +45,8 @@ func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
 }
 
 // Ready reports whether committed Podfile.lock files can be parsed.
-func (d Detector) Ready() bool {
-	return true
+func (d Detector) Ready(context.Context, sdk.DetectionRequest) error {
+	return nil
 }
 
 // Applicable reports whether Podfile.lock is present.

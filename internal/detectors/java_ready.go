@@ -14,39 +14,43 @@ import (
 
 const javaReadyTimeout = 5 * time.Second
 
-// JavaReady verifies that a Java runtime is available for JVM build tools.
-func JavaReady() (bool, string) {
+// JavaReady verifies that a Java runtime is available for JVM build tools. It
+// returns nil when a runtime is usable and a non-nil error describing the
+// reason otherwise. The probe is bound to ctx and additionally guarded by an
+// internal timeout so a hung `java` cannot stall a scan.
+func JavaReady(ctx context.Context) error {
 	if _, err := system.LookPath("java"); err != nil {
-		return false, "java executable not found on PATH"
+		return errors.New("java executable not found on PATH")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), javaReadyTimeout)
+	probeCtx, cancel := context.WithTimeout(ctx, javaReadyTimeout)
 	defer cancel()
 
-	cmd := system.CommandContext(ctx, "java", "-version")
+	cmd := system.CommandContext(probeCtx, "java", "-version")
 	var output bytes.Buffer
 	cmd.Stdout = &output
 	cmd.Stderr = &output
 	if err := cmd.Run(); err != nil {
-		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-			return false, fmt.Sprintf("java readiness check timed out after %s", javaReadyTimeout)
+		if errors.Is(probeCtx.Err(), context.DeadlineExceeded) {
+			return fmt.Errorf("java readiness check timed out after %s", javaReadyTimeout)
 		}
 		message := strings.TrimSpace(output.String())
 		if message == "" {
 			message = err.Error()
 		}
-		return false, "java runtime is unavailable: " + message
+		return fmt.Errorf("java runtime is unavailable: %s", message)
 	}
-	return true, ""
+	return nil
 }
 
-// CommandReadyReason returns a compact readiness message for missing tools.
-func CommandReadyReason(name string, err error) string {
+// CommandNotReadyError returns a compact readiness error for a missing tool, or
+// nil when err is nil.
+func CommandNotReadyError(name string, err error) error {
 	if err == nil {
-		return ""
+		return nil
 	}
 	if errors.Is(err, exec.ErrNotFound) {
-		return fmt.Sprintf("%s executable not found on PATH", name)
+		return fmt.Errorf("%s executable not found on PATH", name)
 	}
-	return fmt.Sprintf("resolve %s executable: %v", name, err)
+	return fmt.Errorf("resolve %s executable: %w", name, err)
 }

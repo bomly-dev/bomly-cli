@@ -48,8 +48,8 @@ func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
 }
 
 // Ready reports whether committed pub lockfiles can be parsed.
-func (d Detector) Ready() bool {
-	return true
+func (d Detector) Ready(context.Context, sdk.DetectionRequest) error {
+	return nil
 }
 
 // Applicable reports whether pub manifests are present.

@@ -193,8 +193,8 @@ func (a *Matcher) Descriptor() sdk.MatcherDescriptor {
 }
 
 // Ready reports whether this matcher can run. OSV requires no local binary.
-func (a *Matcher) Ready() bool {
-	return true
+func (a *Matcher) Ready(context.Context, sdk.MatchRequest) error {
+	return nil
 }
 
 // Applicable reports whether this matcher applies to the given request.

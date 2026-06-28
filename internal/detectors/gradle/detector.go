@@ -35,32 +35,22 @@ func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
 	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerGradle, evidencePatterns...)}
 }
 
-// WithWorkingDir returns a copy of the detector scoped to workingDir.
-func (d Detector) WithWorkingDir(workingDir string) sdk.Detector {
-	d.WorkingDir = workingDir
-	return d
-}
-
-// Ready returns true if a Gradle wrapper is present for the project or gradle is on PATH.
-func (d Detector) Ready() bool {
-	return d.ReadyReason() == ""
-}
-
-// ReadyReason returns the reason the Gradle detector is not ready.
-func (d Detector) ReadyReason() string {
+// Ready returns nil when a Gradle wrapper is present for the request's working
+// directory (or gradle is on PATH) and a usable Java runtime is available.
+func (d Detector) Ready(ctx context.Context, req sdk.DetectionRequest) error {
+	const executableName = "gradle"
 	workingDir := d.WorkingDir
-	executableName := "gradle"
+	if workingDir == "" {
+		workingDir = detectors.RequestWorkingDir(req)
+	}
 	if workingDir == "" {
 		if _, err := system.LookPath(executableName); err != nil {
-			return detectors.CommandReadyReason(executableName, err)
+			return detectors.CommandNotReadyError(executableName, err)
 		}
 	} else if _, _, err := d.commandSpec(workingDir); err != nil {
-		return detectors.CommandReadyReason(executableName, err)
+		return detectors.CommandNotReadyError(executableName, err)
 	}
-	if ok, reason := detectors.JavaReady(); !ok {
-		return reason
-	}
-	return ""
+	return detectors.JavaReady(ctx)
 }
 
 // Applicable returns true when the project looks like a Gradle build.

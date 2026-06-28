@@ -175,11 +175,12 @@ func TestMavenDetectorReadyRequiresJava(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := Detector{}
-	if detector.Ready() {
+	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	if err == nil {
 		t.Fatal("expected detector to be not ready without a usable Java runtime")
 	}
-	if reason := detector.ReadyReason(); !strings.Contains(reason, "Unable to locate a Java Runtime") {
-		t.Fatalf("expected Java runtime reason, got %q", reason)
+	if !strings.Contains(err.Error(), "Unable to locate a Java Runtime") {
+		t.Fatalf("expected Java runtime reason, got %q", err)
 	}
 }
 
@@ -189,11 +190,12 @@ func TestMavenDetectorReadyRequiresMavenRunner(t *testing.T) {
 	t.Setenv("PATH", binDir)
 
 	detector := Detector{}
-	if detector.Ready() {
+	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	if err == nil {
 		t.Fatal("expected detector to be not ready without mvn")
 	}
-	if reason := detector.ReadyReason(); !strings.Contains(reason, "mvn executable not found") {
-		t.Fatalf("expected missing mvn reason, got %q", reason)
+	if !strings.Contains(err.Error(), "mvn executable not found") {
+		t.Fatalf("expected missing mvn reason, got %q", err)
 	}
 }
 
@@ -204,9 +206,9 @@ func TestMavenDetectorReadyWithWrapperAndJava(t *testing.T) {
 	writeExecutable(t, binDir, "java", successScript())
 	t.Setenv("PATH", binDir)
 
-	detector := Detector{WorkingDir: projectDir}
-	if !detector.Ready() {
-		t.Fatalf("expected detector to be ready, reason=%q", detector.ReadyReason())
+	detector := Detector{}
+	if err := detector.Ready(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir}); err != nil {
+		t.Fatalf("expected detector to be ready, got %v", err)
 	}
 }
 

@@ -65,7 +65,7 @@ func (a Analyzer) Descriptor() model.AnalyzerDescriptor {
 // Ready reports whether the analyzer is callable. Always true; the
 // runner surfaces missing-source / parse errors at Run time as
 // Status=Unknown rather than blocking applicability.
-func (a Analyzer) Ready() bool { return true }
+func (a Analyzer) Ready(context.Context, model.AnalyzeRequest) error { return nil }
 
 // Applicable reports whether the request graph contains at least one
 // Python package with attached vulnerabilities.

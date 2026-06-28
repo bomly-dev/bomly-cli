@@ -211,8 +211,8 @@ func (f fakeMatcher) Descriptor() sdk.MatcherDescriptor {
 	return f.descriptor
 }
 
-func (f fakeMatcher) Ready() bool {
-	return true
+func (f fakeMatcher) Ready(context.Context, sdk.MatchRequest) error {
+	return nil
 }
 
 func (f fakeMatcher) Applicable(context.Context, sdk.MatchRequest) (bool, error) {
@@ -235,8 +235,8 @@ func (f fakeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 	return nil
 }
 
-func (f fakeDetector) Ready() bool {
-	return true
+func (f fakeDetector) Ready(context.Context, sdk.DetectionRequest) error {
+	return nil
 }
 
 func (f fakeDetector) Applicable(context.Context, sdk.DetectionRequest) (bool, error) {
@@ -255,8 +255,8 @@ func (f fakeAuditor) Descriptor() sdk.AuditorDescriptor {
 	return f.descriptor
 }
 
-func (f fakeAuditor) Ready() bool {
-	return true
+func (f fakeAuditor) Ready(context.Context, sdk.AuditRequest) error {
+	return nil
 }
 
 func (f fakeAuditor) Applicable(context.Context, sdk.AuditRequest) (bool, error) {
@@ -275,8 +275,8 @@ func (f fakeAnalyzer) Descriptor() sdk.AnalyzerDescriptor {
 	return f.descriptor
 }
 
-func (f fakeAnalyzer) Ready() bool {
-	return true
+func (f fakeAnalyzer) Ready(context.Context, sdk.AnalyzeRequest) error {
+	return nil
 }
 
 func (f fakeAnalyzer) Applicable(context.Context, sdk.AnalyzeRequest) (bool, error) {

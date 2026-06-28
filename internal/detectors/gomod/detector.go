@@ -77,9 +77,9 @@ func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
 }
 
 // Ready reports whether the Go CLI is available.
-func (d Detector) Ready() bool {
+func (d Detector) Ready(context.Context, sdk.DetectionRequest) error {
 	_, err := goExecLookPath("go")
-	return err == nil
+	return detectors.CommandNotReadyError("go", err)
 }
 
 // Applicable reports whether the target project contains a go.mod file.

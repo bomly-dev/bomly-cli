@@ -81,12 +81,11 @@ func resolveGitHubRelease(ctx context.Context, source string) (githubReleaseReso
 		return githubReleaseResolution{}, fmt.Errorf("create GitHub release request: %w", err)
 	}
 	req.Header.Set("Accept", "application/vnd.github+json")
-	applyGitHubAuthHeader(req)
 	client, err := githubReleaseHTTPClient(ctx)
 	if err != nil {
 		return githubReleaseResolution{}, err
 	}
-	resp, err := client.Do(req)
+	resp, err := githubDoWithAuthFallback(client, req)
 	if err != nil {
 		return githubReleaseResolution{}, fmt.Errorf("fetch GitHub release metadata: %w", err)
 	}
@@ -193,14 +192,13 @@ func fetchChecksumLine(ctx context.Context, downloadURL, assetName string) (stri
 		return "", err
 	}
 	req.Header.Set("Accept", "application/octet-stream")
-	applyGitHubAuthHeader(req)
 	client, err := githubReleaseHTTPClient(ctx)
 	if err != nil {
 		return "", err
 	}
-	resp, err := client.Do(req)
+	resp, err := githubDoWithAuthFallback(client, req)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("fetch checksum asset: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
@@ -230,6 +228,32 @@ func githubReleaseHTTPClient(ctx context.Context) (*http.Client, error) {
 		return pluginHTTPClient, nil
 	}
 	return httpClientFromLaunchContext(ctx, 0)
+}
+
+// githubDoWithAuthFallback issues req against the GitHub API, attaching the
+// configured token when one is present. GitHub rejects an invalid or expired
+// token with 401 ("Bad credentials") even for public resources that need no
+// auth at all, so a stale token in the environment (a common situation with
+// gh, CI helpers, and old dotfiles) would otherwise break installs from public
+// repos. When an authenticated request comes back 401 we retry once
+// anonymously; token auth still works for private and rate-limited repos.
+func githubDoWithAuthFallback(client *http.Client, req *http.Request) (*http.Response, error) {
+	applyGitHubAuthHeader(req)
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("send GitHub request: %w", err)
+	}
+	if resp.StatusCode != http.StatusUnauthorized || req.Header.Get("Authorization") == "" {
+		return resp, nil
+	}
+	_ = resp.Body.Close()
+	retry := req.Clone(req.Context())
+	retry.Header.Del("Authorization")
+	retryResp, err := client.Do(retry)
+	if err != nil {
+		return nil, fmt.Errorf("retry GitHub request anonymously: %w", err)
+	}
+	return retryResp, nil
 }
 
 func applyGitHubAuthHeader(req *http.Request) {

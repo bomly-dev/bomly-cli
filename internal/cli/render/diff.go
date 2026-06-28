@@ -71,51 +71,97 @@ func dependencyTextSections(results output.DiffDependencyResults) []string {
 	return lines
 }
 
-// findingsSummaryLine produces a summary line plus a list of each introduced
-// finding when audit data is present. N/A-severity findings (e.g. unknown
+// findingsSummaryLine produces a summary line plus a list of each introduced or
+// persisted finding when audit data is present. N/A-severity findings (e.g. unknown
 // license) are omitted — they belong in the policy section, not the compact
 // summary. The summary intentionally omits a severity qualifier so it stays
-// accurate when only low/medium findings are introduced.
+// accurate when only low/medium findings are introduced or persisted.
 func findingsSummaryLine(audit *output.DiffAudit) []string {
 	if audit == nil {
 		return nil
 	}
-	var introduced []output.AuditFinding
-	for _, f := range audit.Introduced {
-		sev := strings.ToLower(strings.TrimSpace(string(f.Severity)))
-		if sev == "n/a" || sev == "" {
-			continue
+	findings := compactAuditFindings(audit)
+	introduced, persisted := auditStatusCounts(findings)
+	if len(findings) == 0 {
+		return []string{"", Style("No findings introduced or persisted.", Gray)}
+	}
+	sort.Slice(findings, func(i, j int) bool {
+		if findings[i].status != findings[j].status {
+			return findings[i].status < findings[j].status
 		}
-		introduced = append(introduced, f)
-	}
-	if len(introduced) == 0 {
-		return []string{"", Style("No new findings introduced.", Gray)}
-	}
-	sort.Slice(introduced, func(i, j int) bool {
-		si := severityRankTable(string(introduced[i].Severity))
-		sj := severityRankTable(string(introduced[j].Severity))
+		si := severityRankTable(string(findings[i].finding.Severity))
+		sj := severityRankTable(string(findings[j].finding.Severity))
 		if si != sj {
 			return si < sj
 		}
-		return introduced[i].ID < introduced[j].ID
+		return findings[i].finding.ID < findings[j].finding.ID
 	})
 
 	maxIDWidth := 0
-	for _, f := range introduced {
-		if l := len(f.ID); l > maxIDWidth {
+	maxStatusWidth := 0
+	for _, item := range findings {
+		if l := len(item.finding.ID); l > maxIDWidth {
 			maxIDWidth = l
+		}
+		if l := len(item.status); l > maxStatusWidth {
+			maxStatusWidth = l
 		}
 	}
 
-	lines := []string{"", Style(fmt.Sprintf("%d new finding(s) introduced.", len(introduced)), Red)}
-	for _, f := range introduced {
+	lines := []string{"", Style(compactAuditSummary(introduced, persisted), Red)}
+	for _, item := range findings {
+		f := item.finding
 		pkg := DiffPackageDisplayName(f.Package)
 		if pkg == "" {
 			pkg = "-"
 		}
-		lines = append(lines, fmt.Sprintf("  %s  %-*s  %s", severityLabelFixed(string(f.Severity)), maxIDWidth, f.ID, pkg))
+		lines = append(lines, fmt.Sprintf("  %-*s  %s  %-*s  %s", maxStatusWidth, item.status, severityLabelFixed(string(f.Severity)), maxIDWidth, f.ID, pkg))
 	}
 	return lines
+}
+
+type compactAuditFinding struct {
+	status  string
+	finding output.AuditFinding
+}
+
+func compactAuditFindings(audit *output.DiffAudit) []compactAuditFinding {
+	var findings []compactAuditFinding
+	appendFindings := func(status string, src []output.AuditFinding) {
+		for _, f := range src {
+			sev := strings.ToLower(strings.TrimSpace(string(f.Severity)))
+			if sev == "n/a" || sev == "" {
+				continue
+			}
+			findings = append(findings, compactAuditFinding{status: status, finding: f})
+		}
+	}
+	appendFindings("introduced", audit.Introduced)
+	appendFindings("persisted", audit.Persisted)
+	return findings
+}
+
+func auditStatusCounts(findings []compactAuditFinding) (introduced, persisted int) {
+	for _, item := range findings {
+		switch item.status {
+		case "introduced":
+			introduced++
+		case "persisted":
+			persisted++
+		}
+	}
+	return introduced, persisted
+}
+
+func compactAuditSummary(introduced, persisted int) string {
+	switch {
+	case introduced > 0 && persisted > 0:
+		return fmt.Sprintf("%d new finding(s) introduced; %d finding(s) persisted.", introduced, persisted)
+	case introduced > 0:
+		return fmt.Sprintf("%d new finding(s) introduced.", introduced)
+	default:
+		return fmt.Sprintf("%d finding(s) persisted.", persisted)
+	}
 }
 
 // vulnCountsForPackageRef returns a compact coloured vuln-count string like " 1H 2M"

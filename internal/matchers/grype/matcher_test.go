@@ -41,8 +41,8 @@ func TestMatch_NilGraph_ReturnsEmpty(t *testing.T) {
 
 func TestReady_TrueWhenDBDirAbsent(t *testing.T) {
 	a := Matcher{DBDir: filepath.Join(t.TempDir(), "nonexistent-db")}
-	if !a.Ready() {
-		t.Error("Ready() = false, want true because the bundled matcher can download the DB")
+	if err := a.Ready(context.Background(), sdk.MatchRequest{}); err != nil {
+		t.Errorf("Ready() = %v, want nil because the bundled matcher can download the DB", err)
 	}
 }
 

@@ -77,8 +77,8 @@ func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
 }
 
 // Ready reports whether Cargo is available.
-func (d Detector) Ready() bool {
-	return true
+func (d Detector) Ready(context.Context, sdk.DetectionRequest) error {
+	return nil
 }
 
 // Applicable reports whether Cargo manifests are present.

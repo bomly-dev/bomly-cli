@@ -30,8 +30,8 @@ var clioID = grypeclio.Identification{Name: "grype"}
 // Ready reports whether the bundled Grype matcher can run. The database may be
 // downloaded during Match on first use, so a missing cache does not make the
 // matcher unavailable.
-func (a Matcher) Ready() bool {
-	return true
+func (a Matcher) Ready(context.Context, sdk.MatchRequest) error {
+	return nil
 }
 
 // Match attaches Grype vulnerability matches to packages in the graph.

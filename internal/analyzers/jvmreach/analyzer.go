@@ -55,7 +55,7 @@ func (a Analyzer) Descriptor() model.AnalyzerDescriptor {
 	}
 }
 
-func (a Analyzer) Ready() bool { return true }
+func (a Analyzer) Ready(context.Context, model.AnalyzeRequest) error { return nil }
 
 func (a Analyzer) Applicable(_ context.Context, req model.AnalyzeRequest) (bool, error) {
 	if req.Graph == nil || req.Registry == nil {

@@ -24,9 +24,9 @@ func (d NativeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 }
 
 // Ready reports whether npm is available.
-func (d NativeDetector) Ready() bool {
+func (d NativeDetector) Ready(context.Context, sdk.DetectionRequest) error {
 	_, err := system.LookPath("npm")
-	return err == nil
+	return detectors.CommandNotReadyError("npm", err)
 }
 
 // Applicable reports whether npm manifests are present.

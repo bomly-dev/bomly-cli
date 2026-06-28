@@ -57,8 +57,8 @@ func newTestRegistry() *Registry {
 	return registry
 }
 
-func (f fakeMatcher) Ready() bool {
-	return true
+func (f fakeMatcher) Ready(context.Context, MatchRequest) error {
+	return nil
 }
 
 func (f fakeMatcher) Applicable(_ context.Context, _ MatchRequest) (bool, error) {

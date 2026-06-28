@@ -70,8 +70,8 @@ func TestParseGovulncheckJSONFromTestdataRecoversAfterMalformedRecord(t *testing
 
 func TestGovulncheckDescriptorAndRunnerHelpers(t *testing.T) {
 	a := Analyzer{}
-	if !a.Ready() || a.Descriptor().Name != Name {
-		t.Fatalf("descriptor = %+v ready=%v", a.Descriptor(), a.Ready())
+	if err := a.Ready(context.Background(), model.AnalyzeRequest{}); err != nil || a.Descriptor().Name != Name {
+		t.Fatalf("descriptor = %+v ready_err=%v", a.Descriptor(), a.Ready(context.Background(), model.AnalyzeRequest{}))
 	}
 	if !(Finding{OSV: "GO-1", ImportedBy: true}).hasResult() {
 		t.Fatal("imported finding should be actionable")

@@ -142,8 +142,8 @@ func (c *Checker) Descriptor() sdk.MatcherDescriptor {
 }
 
 // Ready reports whether the checker can run.
-func (c *Checker) Ready() bool {
-	return true
+func (c *Checker) Ready(context.Context, sdk.MatchRequest) error {
+	return nil
 }
 
 // Applicable reports whether the checker applies to the request.

@@ -192,12 +192,14 @@ func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest
 		zap.Bool("install_first_supported", descriptor.SupportsInstallFirst),
 	)
 
-	if !detector.Ready() {
+	if err := detector.Ready(ctx, req); err != nil {
+		notReadyErr := fmt.Errorf("detector %s: not ready: %w", descriptor.Name, err)
 		p.Logger.Debug("pipeline: detector not ready",
 			zap.String("detector", descriptor.Name),
 			zap.String("subproject", req.Subproject.RelativePath),
+			zap.Error(notReadyErr),
 		)
-		return p.resolveFallback(ctx, req, detector, fmt.Errorf("detector %s: not ready", descriptor.Name), progress)
+		return p.resolveFallback(ctx, req, detector, notReadyErr, progress)
 	}
 
 	applicable, err := detector.Applicable(ctx, req)

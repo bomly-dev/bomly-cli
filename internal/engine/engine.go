@@ -51,8 +51,8 @@ func (e *Engine) Audit(ctx context.Context, req sdk.AuditRequest) (sdk.AuditResu
 		descriptor := auditor.Descriptor()
 		name := descriptor.Name
 		label := descriptor.Label()
-		if !auditor.Ready() {
-			errs = append(errs, fmt.Errorf("auditor %s: not ready", name))
+		if err := auditor.Ready(ctx, req); err != nil {
+			errs = append(errs, fmt.Errorf("auditor %s: not ready: %w", name, err))
 			continue
 		}
 		applicable, err := auditor.Applicable(ctx, req)
@@ -100,8 +100,8 @@ func (e *Engine) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.Analy
 		descriptor := analyzer.Descriptor()
 		name := descriptor.Name
 		label := descriptor.Label()
-		if !analyzer.Ready() {
-			errs = append(errs, fmt.Errorf("analyzer %s: not ready", name))
+		if err := analyzer.Ready(ctx, req); err != nil {
+			errs = append(errs, fmt.Errorf("analyzer %s: not ready: %w", name, err))
 			continue
 		}
 		applicable, err := analyzer.Applicable(ctx, req)
@@ -147,8 +147,8 @@ func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (MatchResult, 
 	for _, matcher := range matcherList {
 		descriptor := matcher.Descriptor()
 		name := descriptor.Name
-		if !matcher.Ready() {
-			errs = append(errs, fmt.Errorf("matcher %s: not ready", name))
+		if err := matcher.Ready(ctx, req); err != nil {
+			errs = append(errs, fmt.Errorf("matcher %s: not ready: %w", name, err))
 			continue
 		}
 		applicable, err := matcher.Applicable(ctx, req)

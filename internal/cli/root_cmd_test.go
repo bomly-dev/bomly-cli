@@ -56,12 +56,35 @@ func buildSharedTestHelpers(dir string) error {
 	}
 	fakeGradleBinPath = gradlePath
 
+	javaPath := filepath.Join(dir, executableName("java"))
+	if err := buildHelperBinary(dir, javaPath, fakeJavaSource()); err != nil {
+		return err
+	}
+
 	goPath := filepath.Join(dir, executableName("go"))
 	if err := buildHelperBinary(dir, goPath, fakeGoSource()); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func fakeJavaSource() string {
+	return `package main
+
+import (
+	"fmt"
+	"os"
+)
+
+func main() {
+	if os.Getenv("BOMLY_FAKE_JAVA_FAIL") == "1" {
+		fmt.Fprintln(os.Stderr, "The operation couldn't be completed. Unable to locate a Java Runtime.")
+		os.Exit(1)
+	}
+	fmt.Fprintln(os.Stderr, "openjdk version \"21-test\"")
+}
+`
 }
 
 func executableName(base string) string {
@@ -2589,6 +2612,48 @@ func TestRoot_ScanCommand_MavenSBOMJSONOutput(t *testing.T) {
 	}
 }
 
+func TestRoot_ScanCommand_MavenMissingJavaReturnsResolutionFailure(t *testing.T) {
+	tempHome := t.TempDir()
+	t.Setenv("HOME", tempHome)
+	if runtime.GOOS == "windows" {
+		t.Setenv("USERPROFILE", tempHome)
+	}
+
+	projectDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(projectDir, "pom.xml"), []byte("<project/>\n"), 0o644); err != nil {
+		t.Fatalf("write pom.xml: %v", err)
+	}
+	binDir := t.TempDir()
+	writeFakeMavenScript(t, binDir, "mvn", "")
+	writeFakeJavaScript(t, binDir, true)
+	t.Setenv("PATH", binDir)
+
+	root, err := newRootCmd("0.9.0-test")
+	if err != nil {
+		t.Fatalf("newRootCmd() error = %v", err)
+	}
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	root.SetOut(&stdout)
+	root.SetErr(&stderr)
+	root.SetArgs([]string{"scan", "--path", projectDir, "--ecosystems", "maven", "--detectors", "maven-detector", "--format", "json"})
+
+	err = root.Execute()
+	if err == nil {
+		t.Fatal("expected scan to fail when Java is unavailable")
+	}
+	if got := exit.Code(err); got != 3 {
+		t.Fatalf("expected resolution failure exit code 3, got %d (err=%v)", got, err)
+	}
+	if !strings.Contains(err.Error(), "Unable to locate a Java Runtime") {
+		t.Fatalf("expected Java runtime message in error, got %v", err)
+	}
+	if stdout.Len() != 0 {
+		t.Fatalf("expected no stdout on resolution failure, got %q", stdout.String())
+	}
+}
+
 func TestRoot_WhyCommand_GoModules_JSONOutput(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
@@ -2722,6 +2787,7 @@ func setFakeMavenOnPath(t *testing.T, mavenTGF string) {
 	t.Helper()
 	binDir := t.TempDir()
 	writeFakeMavenScript(t, binDir, "mvn", mavenTGF)
+	writeFakeJavaScript(t, binDir, false)
 	separator := string(os.PathListSeparator)
 	pathEnv := binDir
 	if existing := os.Getenv("PATH"); existing != "" {
@@ -2733,10 +2799,13 @@ func setFakeMavenOnPath(t *testing.T, mavenTGF string) {
 func writeFakeMavenWrapper(t *testing.T, projectDir, mavenTGF string) {
 	t.Helper()
 	writeFakeMavenScript(t, projectDir, "mvnw", mavenTGF)
+	writeFakeJavaScript(t, projectDir, false)
+	prependPath(t, projectDir)
 }
 
 func setFakeGradleOnPath(t *testing.T, gradleOutput string) {
 	t.Helper()
+	t.Setenv("BOMLY_FAKE_JAVA_FAIL", "")
 	t.Setenv("BOMLY_FAKE_GRADLE_FAIL", "")
 	t.Setenv("BOMLY_FAKE_GRADLE_OUTPUT", gradleOutput)
 	t.Setenv("BOMLY_FAKE_GRADLE_OUTPUT_FILE", "")
@@ -2745,6 +2814,7 @@ func setFakeGradleOnPath(t *testing.T, gradleOutput string) {
 
 func setFailingFakeGradleOnPath(t *testing.T) {
 	t.Helper()
+	t.Setenv("BOMLY_FAKE_JAVA_FAIL", "")
 	t.Setenv("BOMLY_FAKE_GRADLE_FAIL", "1")
 	t.Setenv("BOMLY_FAKE_GRADLE_OUTPUT", "")
 	t.Setenv("BOMLY_FAKE_GRADLE_OUTPUT_FILE", "")
@@ -2753,6 +2823,9 @@ func setFailingFakeGradleOnPath(t *testing.T) {
 
 func writeFakeGradleWrapper(t *testing.T, projectDir, gradleOutput string) {
 	t.Helper()
+	writeFakeJavaScript(t, projectDir, false)
+	prependPath(t, projectDir)
+
 	outputFile := filepath.Join(projectDir, "gradle-dependencies.txt")
 	if err := os.WriteFile(outputFile, []byte(gradleOutput), 0o644); err != nil {
 		t.Fatalf("write fake gradle output: %v", err)
@@ -2801,6 +2874,34 @@ func writeFakeMavenScript(t *testing.T, dir, baseName, mavenTGF string) {
 	if runtime.GOOS != "windows" {
 		if err := os.Chmod(scriptPath, 0o755); err != nil {
 			t.Fatalf("chmod fake maven script: %v", err)
+		}
+	}
+}
+
+func writeFakeJavaScript(t *testing.T, dir string, fail bool) {
+	t.Helper()
+	scriptPath := filepath.Join(dir, "java")
+	if runtime.GOOS == "windows" {
+		scriptPath += ".cmd"
+	}
+	var script string
+	if runtime.GOOS == "windows" {
+		if fail {
+			script = "@echo off\r\necho The operation couldn't be completed. Unable to locate a Java Runtime. 1>&2\r\nexit /b 1\r\n"
+		} else {
+			script = "@echo off\r\necho openjdk version \"21-test\" 1>&2\r\n"
+		}
+	} else if fail {
+		script = "#!/bin/sh\necho \"The operation couldn't be completed. Unable to locate a Java Runtime.\" >&2\nexit 1\n"
+	} else {
+		script = "#!/bin/sh\necho 'openjdk version \"21-test\"' >&2\n"
+	}
+	if err := os.WriteFile(scriptPath, []byte(script), 0o755); err != nil {
+		t.Fatalf("write fake java script: %v", err)
+	}
+	if runtime.GOOS != "windows" {
+		if err := os.Chmod(scriptPath, 0o755); err != nil {
+			t.Fatalf("chmod fake java script: %v", err)
 		}
 	}
 }

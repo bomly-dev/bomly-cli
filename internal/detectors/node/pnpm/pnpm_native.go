@@ -24,9 +24,9 @@ func (d NativeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 }
 
 // Ready reports whether pnpm is available.
-func (d NativeDetector) Ready() bool {
+func (d NativeDetector) Ready(context.Context, sdk.DetectionRequest) error {
 	_, err := system.LookPath("pnpm")
-	return err == nil
+	return detectors.CommandNotReadyError("pnpm", err)
 }
 
 // Applicable reports whether pnpm manifests are present.

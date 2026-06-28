@@ -36,6 +36,9 @@ type PluginTargetType string
 // ReadyResponse reports whether a plugin is ready to run.
 type ReadyResponse struct {
 	Ready bool `json:"ready"`
+	// Reason explains why the plugin is not ready. It is ignored when Ready is
+	// true and surfaced to users (and resolution errors) when Ready is false.
+	Reason string `json:"reason,omitempty"`
 }
 
 // ApplicableResponse reports whether a plugin should run for the given request.

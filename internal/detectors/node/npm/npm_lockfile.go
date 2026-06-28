@@ -28,8 +28,8 @@ func (d LockfileDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 }
 
 // Ready reports whether npm is available.
-func (d LockfileDetector) Ready() bool {
-	return true
+func (d LockfileDetector) Ready(context.Context, sdk.DetectionRequest) error {
+	return nil
 }
 
 // Applicable reports whether an npm lockfile is present.

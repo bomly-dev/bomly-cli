@@ -3,6 +3,7 @@ package engine
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
@@ -163,6 +164,29 @@ func TestResolveDetectors_DoesNotRunExcludedFallback(t *testing.T) {
 	}
 	if len(results) != 0 {
 		t.Fatalf("expected no fallback results, got %#v", results)
+	}
+}
+
+func TestResolveDetectors_IncludesReadyReasonWhenDetectorNotReady(t *testing.T) {
+	registry := newTestRegistry()
+	notReady := false
+	registry.registerDetector(fakeDetector{
+		descriptor:  DetectorDescriptor{Name: "maven-detector", SupportedEcosystems: []Ecosystem{EcosystemMaven}, SupportedManagers: []PackageManager{PackageManagerMaven}},
+		ready:       &notReady,
+		readyReason: "java runtime is unavailable: Unable to locate a Java Runtime",
+	})
+
+	pipeline := NewPipeline(registry, zap.NewNop())
+	req := ResolveGraphRequest{
+		Ecosystem:      EcosystemMaven,
+		PackageManager: PackageManagerMaven,
+	}
+	_, err := pipeline.resolveDetectors(context.Background(), req, registry.Detectors(req), nil)
+	if err == nil {
+		t.Fatal("expected detector readiness error")
+	}
+	if !strings.Contains(err.Error(), "detector maven-detector: not ready: java runtime is unavailable") {
+		t.Fatalf("expected readiness reason in error, got %v", err)
 	}
 }
 

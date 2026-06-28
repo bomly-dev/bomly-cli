@@ -25,9 +25,9 @@ func (d PipDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 }
 
 // Ready reports whether a Python interpreter is available.
-func (d PipDetector) Ready() bool {
+func (d PipDetector) Ready(context.Context, sdk.DetectionRequest) error {
 	_, err := pythonCommand()
-	return err == nil
+	return detectors.CommandNotReadyError("python", err)
 }
 
 // Applicable reports whether pip-style manifests are present.

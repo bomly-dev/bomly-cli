@@ -29,9 +29,9 @@ func (d NativeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 }
 
 // Ready reports whether the dart binary is available.
-func (d NativeDetector) Ready() bool {
+func (d NativeDetector) Ready(context.Context, sdk.DetectionRequest) error {
 	_, err := system.LookPath("dart")
-	return err == nil
+	return detectors.CommandNotReadyError("dart", err)
 }
 
 // Applicable reports whether pub manifests are present.

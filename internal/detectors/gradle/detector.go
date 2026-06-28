@@ -35,13 +35,22 @@ func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
 	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerGradle, evidencePatterns...)}
 }
 
-// Ready returns true if a Gradle wrapper is present for the project or gradle is on PATH.
-func (d Detector) Ready() bool {
-	if d.WorkingDir == "" {
-		return true
+// Ready returns nil when a Gradle wrapper is present for the request's working
+// directory (or gradle is on PATH) and a usable Java runtime is available.
+func (d Detector) Ready(ctx context.Context, req sdk.DetectionRequest) error {
+	const executableName = "gradle"
+	workingDir := d.WorkingDir
+	if workingDir == "" {
+		workingDir = detectors.RequestWorkingDir(req)
 	}
-	_, _, err := d.commandSpec(d.WorkingDir)
-	return err == nil
+	if workingDir == "" {
+		if _, err := system.LookPath(executableName); err != nil {
+			return detectors.CommandNotReadyError(executableName, err)
+		}
+	} else if _, _, err := d.commandSpec(workingDir); err != nil {
+		return detectors.CommandNotReadyError(executableName, err)
+	}
+	return detectors.JavaReady(ctx)
 }
 
 // Applicable returns true when the project looks like a Gradle build.
@@ -79,8 +88,8 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 }
 
 // ResolveGraph resolves a Gradle dependency graph for the scan engine.
-func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	depsGraph, err := d.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, req.ScopeFilter)
+func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+	depsGraph, err := d.resolveGraph(ctx, req.Stderr, req.ProjectPath, req.Verbose, req.ScopeFilter)
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
@@ -101,7 +110,7 @@ func (d Detector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
-func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool, scopeFilter sdk.Scope) (*sdk.Graph, error) {
+func (d Detector) resolveGraph(ctx context.Context, stderr io.Writer, projectPath string, verbose bool, scopeFilter sdk.Scope) (*sdk.Graph, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -118,7 +127,7 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 	}
 
 	if scopedArgs := gradleScopedDependenciesArgs(args, scopeFilter); len(scopedArgs) > 0 {
-		depsGraph, err := d.runDependencies(stderr, workingDir, verbose, executable, scopedArgs)
+		depsGraph, err := d.runDependencies(ctx, stderr, workingDir, verbose, executable, scopedArgs)
 		if err == nil {
 			return depsGraph, nil
 		}
@@ -130,16 +139,16 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 		)
 	}
 
-	return d.runDependencies(stderr, workingDir, verbose, executable, args)
+	return d.runDependencies(ctx, stderr, workingDir, verbose, executable, args)
 }
 
-func (d Detector) runDependencies(stderr io.Writer, workingDir string, verbose bool, executable string, args []string) (*sdk.Graph, error) {
+func (d Detector) runDependencies(ctx context.Context, stderr io.Writer, workingDir string, verbose bool, executable string, args []string) (*sdk.Graph, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
 	}
 
-	cmd := system.Command(executable, args...)
+	cmd := system.CommandContext(ctx, executable, args...)
 	cmd.Dir = workingDir
 	commandStderr := logging.NewCommandStderr(stderr, verbose)
 	cmd.Stderr = commandStderr
@@ -441,7 +450,7 @@ func scopeFromGradleConfiguration(value string) sdk.Scope {
 }
 
 // Install prepares Gradle dependencies before graph resolution.
-func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
+func (d Detector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -455,7 +464,7 @@ func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
 		return fmt.Errorf("resolve gradle command: %w", err)
 	}
 	args = append(args, req.InstallArgs...)
-	cmd := system.Command(executable, args...)
+	cmd := system.CommandContext(ctx, executable, args...)
 	cmd.Dir = workingDir
 	commandStderr := logging.NewCommandStderr(req.Stderr, req.Verbose)
 	cmd.Stderr = commandStderr

@@ -168,6 +168,50 @@ func TestMavenDetectorApplicable(t *testing.T) {
 	}
 }
 
+func TestMavenDetectorReadyRequiresJava(t *testing.T) {
+	binDir := t.TempDir()
+	writeExecutable(t, binDir, "mvn", successScript())
+	writeExecutable(t, binDir, "java", failingJavaScript())
+	t.Setenv("PATH", binDir)
+
+	detector := Detector{}
+	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	if err == nil {
+		t.Fatal("expected detector to be not ready without a usable Java runtime")
+	}
+	if !strings.Contains(err.Error(), "Unable to locate a Java Runtime") {
+		t.Fatalf("expected Java runtime reason, got %q", err)
+	}
+}
+
+func TestMavenDetectorReadyRequiresMavenRunner(t *testing.T) {
+	binDir := t.TempDir()
+	writeExecutable(t, binDir, "java", successScript())
+	t.Setenv("PATH", binDir)
+
+	detector := Detector{}
+	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	if err == nil {
+		t.Fatal("expected detector to be not ready without mvn")
+	}
+	if !strings.Contains(err.Error(), "mvn executable not found") {
+		t.Fatalf("expected missing mvn reason, got %q", err)
+	}
+}
+
+func TestMavenDetectorReadyWithWrapperAndJava(t *testing.T) {
+	projectDir := t.TempDir()
+	binDir := t.TempDir()
+	writeExecutable(t, projectDir, "mvnw", successScript())
+	writeExecutable(t, binDir, "java", successScript())
+	t.Setenv("PATH", binDir)
+
+	detector := Detector{}
+	if err := detector.Ready(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir}); err != nil {
+		t.Fatalf("expected detector to be ready, got %v", err)
+	}
+}
+
 func TestMavenDependencyTreeArgsScopeFilter(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -241,6 +285,37 @@ func TestMavenDetectorResolveRunner_PrefersWrapper(t *testing.T) {
 	if len(prefixArgs) != 0 {
 		t.Fatalf("expected no prefix args for unix wrapper, got %#v", prefixArgs)
 	}
+}
+
+func writeExecutable(t *testing.T, dir, name, body string) string {
+	t.Helper()
+	path := filepath.Join(dir, name)
+	if runtime.GOOS == "windows" {
+		path += ".cmd"
+	}
+	if err := os.WriteFile(path, []byte(body), 0o755); err != nil {
+		t.Fatalf("write executable %s: %v", name, err)
+	}
+	if runtime.GOOS != "windows" {
+		if err := os.Chmod(path, 0o755); err != nil {
+			t.Fatalf("chmod executable %s: %v", name, err)
+		}
+	}
+	return path
+}
+
+func successScript() string {
+	if runtime.GOOS == "windows" {
+		return "@echo off\r\necho ok 1>&2\r\n"
+	}
+	return "#!/bin/sh\necho ok >&2\n"
+}
+
+func failingJavaScript() string {
+	if runtime.GOOS == "windows" {
+		return "@echo off\r\necho The operation couldn't be completed. Unable to locate a Java Runtime. 1>&2\r\nexit /b 1\r\n"
+	}
+	return "#!/bin/sh\necho \"The operation couldn't be completed. Unable to locate a Java Runtime.\" >&2\nexit 1\n"
 }
 
 func TestMavenDetectorResolveRunner_MakesUnixWrapperExecutable(t *testing.T) {

@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -9,6 +10,24 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
+
+// readyResponseError translates a plugin readiness response into the in-process
+// readiness contract: nil means ready, a non-nil error carries the reason.
+func readyResponseError(resp *sdk.ReadyResponse, err error) error {
+	if err != nil {
+		return err
+	}
+	if resp == nil {
+		return errors.New("plugin returned no readiness response")
+	}
+	if resp.Ready {
+		return nil
+	}
+	if reason := strings.TrimSpace(resp.Reason); reason != "" {
+		return errors.New(reason)
+	}
+	return errors.New("plugin reported not ready")
+}
 
 type registryWriter interface {
 	RegisterDetector(sdk.Detector)
@@ -66,18 +85,15 @@ func (d externalDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 	return clonePackageManagerSupport(d.info.DetectorDescriptor.PackageManagerSupport)
 }
 
-func (d externalDetector) Ready() bool {
-	ctx := launchContext(context.Background(), d.launchCtx)
+func (d externalDetector) Ready(ctx context.Context, req sdk.DetectionRequest) error {
+	ctx = launchContext(ctx, d.launchCtx)
 	client, err := startPlugin(ctx, d.info.Entrypoint, d.info.ID)
 	if err != nil {
-		return false
+		return err
 	}
 	defer client.Close()
-	resp, err := client.Raw().DetectorReady(ctx, &sdk.DetectRequest{})
-	if err != nil {
-		return false
-	}
-	return resp != nil && resp.Ready
+	resp, err := client.Raw().DetectorReady(ctx, &req)
+	return readyResponseError(resp, err)
 }
 
 func (d externalDetector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
@@ -141,15 +157,15 @@ func (m externalMatcher) Descriptor() sdk.MatcherDescriptor {
 	return *cloneMatcherDescriptor(m.info.MatcherDescriptor)
 }
 
-func (m externalMatcher) Ready() bool {
-	ctx := launchContext(context.Background(), m.launchCtx)
+func (m externalMatcher) Ready(ctx context.Context, req sdk.MatchRequest) error {
+	ctx = launchContext(ctx, m.launchCtx)
 	client, err := startPlugin(ctx, m.info.Entrypoint, m.info.ID)
 	if err != nil {
-		return false
+		return err
 	}
 	defer client.Close()
-	resp, err := client.Raw().MatcherReady(ctx, &sdk.MatchRequest{})
-	return err == nil && resp != nil && resp.Ready
+	resp, err := client.Raw().MatcherReady(ctx, &req)
+	return readyResponseError(resp, err)
 }
 
 func (m externalMatcher) Applicable(ctx context.Context, req sdk.MatchRequest) (bool, error) {
@@ -200,15 +216,15 @@ func (a externalAuditor) Descriptor() sdk.AuditorDescriptor {
 	return *cloneAuditorDescriptor(a.info.AuditorDescriptor)
 }
 
-func (a externalAuditor) Ready() bool {
-	ctx := launchContext(context.Background(), a.launchCtx)
+func (a externalAuditor) Ready(ctx context.Context, req sdk.AuditRequest) error {
+	ctx = launchContext(ctx, a.launchCtx)
 	client, err := startPlugin(ctx, a.info.Entrypoint, a.info.ID)
 	if err != nil {
-		return false
+		return err
 	}
 	defer client.Close()
-	resp, err := client.Raw().AuditorReady(ctx, &sdk.AuditRequest{})
-	return err == nil && resp != nil && resp.Ready
+	resp, err := client.Raw().AuditorReady(ctx, &req)
+	return readyResponseError(resp, err)
 }
 
 func (a externalAuditor) Applicable(ctx context.Context, req sdk.AuditRequest) (bool, error) {

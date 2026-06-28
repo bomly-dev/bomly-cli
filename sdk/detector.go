@@ -96,7 +96,12 @@ func Support(manager PackageManager, evidencePatterns ...string) PackageManagerS
 type Detector interface {
 	Descriptor() DetectorDescriptor
 	PackageManagerSupport() []PackageManagerSupport
-	Ready() bool
+	// Ready reports whether the detector can run for the given request. It
+	// returns nil when ready and a non-nil error describing the reason
+	// (e.g. a missing toolchain) otherwise. Implementations may perform
+	// lightweight, cancellable I/O (such as probing for a runtime) and should
+	// honor ctx.
+	Ready(context.Context, DetectionRequest) error
 	Applicable(context.Context, DetectionRequest) (bool, error)
 	ResolveGraph(context.Context, DetectionRequest) (DetectionResult, error)
 }

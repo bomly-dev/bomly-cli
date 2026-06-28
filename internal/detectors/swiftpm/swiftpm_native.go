@@ -29,9 +29,9 @@ func (d NativeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 }
 
 // Ready reports whether the swift binary is available.
-func (d NativeDetector) Ready() bool {
+func (d NativeDetector) Ready(context.Context, sdk.DetectionRequest) error {
 	_, err := system.LookPath("swift")
-	return err == nil
+	return detectors.CommandNotReadyError("swift", err)
 }
 
 // Applicable reports whether SwiftPM files are present.

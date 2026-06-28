@@ -20,11 +20,11 @@ type fakeAnalyzer struct {
 
 func (f *fakeAnalyzer) Descriptor() sdk.AnalyzerDescriptor { return f.descriptor }
 
-func (f *fakeAnalyzer) Ready() bool {
-	if f.ready == nil {
-		return true
+func (f *fakeAnalyzer) Ready(context.Context, sdk.AnalyzeRequest) error {
+	if f.ready != nil && !*f.ready {
+		return errors.New("not ready")
 	}
-	return *f.ready
+	return nil
 }
 
 func (f *fakeAnalyzer) Applicable(_ context.Context, _ sdk.AnalyzeRequest) (bool, error) {

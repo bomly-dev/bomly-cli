@@ -9,13 +9,14 @@ import (
 )
 
 type fakeDetector struct {
-	descriptor DetectorDescriptor
-	result     ResolveGraphResult
-	err        error
-	ready      *bool
-	applicable *bool
-	applyErr   error
-	onResolve  func(ResolveGraphRequest)
+	descriptor  DetectorDescriptor
+	result      ResolveGraphResult
+	err         error
+	ready       *bool
+	readyReason string
+	applicable  *bool
+	applyErr    error
+	onResolve   func(ResolveGraphRequest)
 }
 
 func (f fakeDetector) Descriptor() DetectorDescriptor { return f.descriptor }
@@ -35,11 +36,14 @@ func (f fakeDetector) ResolveGraph(_ context.Context, req ResolveGraphRequest) (
 	return f.result, f.err
 }
 
-func (f fakeDetector) Ready() bool {
-	if f.ready == nil {
-		return true
+func (f fakeDetector) Ready(context.Context, ResolveGraphRequest) error {
+	if f.ready != nil && !*f.ready {
+		if f.readyReason != "" {
+			return errors.New(f.readyReason)
+		}
+		return errors.New("not ready")
 	}
-	return *f.ready
+	return nil
 }
 
 func (f fakeDetector) Applicable(_ context.Context, _ ResolveGraphRequest) (bool, error) {
@@ -85,11 +89,11 @@ func (f fakeAuditor) Audit(_ context.Context, req AuditRequest) (AuditResult, er
 	return f.result, f.err
 }
 
-func (f fakeAuditor) Ready() bool {
-	if f.ready == nil {
-		return true
+func (f fakeAuditor) Ready(context.Context, AuditRequest) error {
+	if f.ready != nil && !*f.ready {
+		return errors.New("not ready")
 	}
-	return *f.ready
+	return nil
 }
 
 func (f fakeAuditor) Applicable(_ context.Context, _ AuditRequest) (bool, error) {

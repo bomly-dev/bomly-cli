@@ -32,10 +32,12 @@ func (d NativeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerSBT, evidencePatterns...)}
 }
 
-// Ready reports whether the sbt binary is available.
-func (d NativeDetector) Ready() bool {
-	_, err := system.LookPath("sbt")
-	return err == nil
+// Ready reports whether the sbt binary and a usable Java runtime are available.
+func (d NativeDetector) Ready(ctx context.Context, _ sdk.DetectionRequest) error {
+	if _, err := system.LookPath("sbt"); err != nil {
+		return detectors.CommandNotReadyError("sbt", err)
+	}
+	return detectors.JavaReady(ctx)
 }
 
 // Applicable reports whether sbt build files are present.
@@ -67,11 +69,11 @@ func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
 }
 
 // ResolveGraph resolves an sbt dependency graph via sbt dependencyTree.
-func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d NativeDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	logger := d.logger()
 	workingDir := d.workingDir(req.ProjectPath)
 
-	cmd := system.Command("sbt", "--no-colors", "--batch", "dependencyTree")
+	cmd := system.CommandContext(ctx, "sbt", "--no-colors", "--batch", "dependencyTree")
 	cmd.Dir = workingDir
 	var out bytes.Buffer
 	cmd.Stdout = &out

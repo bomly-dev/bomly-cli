@@ -54,8 +54,8 @@ func TestJVMDynamicImportDetectionFromTestdata(t *testing.T) {
 
 func TestJVMDescriptorAndRunnerResult(t *testing.T) {
 	a := Analyzer{}
-	if !a.Ready() || a.Descriptor().Name != Name {
-		t.Fatalf("descriptor = %+v ready=%v", a.Descriptor(), a.Ready())
+	if err := a.Ready(context.Background(), model.AnalyzeRequest{}); err != nil || a.Descriptor().Name != Name {
+		t.Fatalf("descriptor = %+v ready_err=%v", a.Descriptor(), a.Ready(context.Background(), model.AnalyzeRequest{}))
 	}
 	if !(RunnerResult{SourceFiles: 1}).hasResult() || (RunnerResult{}).hasResult() {
 		t.Fatal("runner result actionability mismatch")

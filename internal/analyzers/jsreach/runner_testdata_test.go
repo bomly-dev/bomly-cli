@@ -64,8 +64,8 @@ func TestJSDynamicImportDetectionFromTestdata(t *testing.T) {
 
 func TestJSDescriptorAndRunnerResult(t *testing.T) {
 	a := Analyzer{}
-	if !a.Ready() || a.Descriptor().Name != Name {
-		t.Fatalf("descriptor = %+v ready=%v", a.Descriptor(), a.Ready())
+	if err := a.Ready(context.Background(), model.AnalyzeRequest{}); err != nil || a.Descriptor().Name != Name {
+		t.Fatalf("descriptor = %+v ready_err=%v", a.Descriptor(), a.Ready(context.Background(), model.AnalyzeRequest{}))
 	}
 	if !(RunnerResult{EntryPoints: []string{"index.js"}}).hasResult() || (RunnerResult{}).hasResult() {
 		t.Fatal("runner result actionability mismatch")

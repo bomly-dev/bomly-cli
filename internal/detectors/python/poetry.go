@@ -24,9 +24,9 @@ func (d PoetryDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 }
 
 // Ready reports whether Poetry is available.
-func (d PoetryDetector) Ready() bool {
+func (d PoetryDetector) Ready(context.Context, sdk.DetectionRequest) error {
 	_, err := system.LookPath("poetry")
-	return err == nil
+	return detectors.CommandNotReadyError("poetry", err)
 }
 
 // Applicable reports whether Poetry manifests are present.

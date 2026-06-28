@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
@@ -82,6 +83,50 @@ func TestDetectorCommandSpec_MakesUnixWrapperExecutable(t *testing.T) {
 	}
 	if info.Mode()&0o111 == 0 {
 		t.Fatalf("expected wrapper to be executable, mode=%#o", info.Mode().Perm())
+	}
+}
+
+func TestDetectorReadyRequiresJava(t *testing.T) {
+	binDir := t.TempDir()
+	writeExecutable(t, binDir, "gradle", successScript())
+	writeExecutable(t, binDir, "java", failingJavaScript())
+	t.Setenv("PATH", binDir)
+
+	detector := Detector{}
+	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	if err == nil {
+		t.Fatal("expected detector to be not ready without a usable Java runtime")
+	}
+	if !strings.Contains(err.Error(), "Unable to locate a Java Runtime") {
+		t.Fatalf("expected Java runtime reason, got %q", err)
+	}
+}
+
+func TestDetectorReadyRequiresGradleRunner(t *testing.T) {
+	binDir := t.TempDir()
+	writeExecutable(t, binDir, "java", successScript())
+	t.Setenv("PATH", binDir)
+
+	detector := Detector{}
+	err := detector.Ready(context.Background(), sdk.DetectionRequest{})
+	if err == nil {
+		t.Fatal("expected detector to be not ready without gradle")
+	}
+	if !strings.Contains(err.Error(), "gradle executable not found") {
+		t.Fatalf("expected missing gradle reason, got %q", err)
+	}
+}
+
+func TestDetectorReadyWithWrapperAndJava(t *testing.T) {
+	projectDir := t.TempDir()
+	binDir := t.TempDir()
+	writeExecutable(t, projectDir, "gradlew", successScript())
+	writeExecutable(t, binDir, "java", successScript())
+	t.Setenv("PATH", binDir)
+
+	detector := Detector{}
+	if err := detector.Ready(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir}); err != nil {
+		t.Fatalf("expected detector to be ready, got %v", err)
 	}
 }
 
@@ -236,7 +281,7 @@ func TestRunDependencies_UsesSettingsGradleRootName(t *testing.T) {
 		t.Fatalf("write gradle fixture: %v", err)
 	}
 
-	g, err := (Detector{}).runDependencies(&bytes.Buffer{}, projectDir, false, gradlePath, nil)
+	g, err := (Detector{}).runDependencies(context.Background(), &bytes.Buffer{}, projectDir, false, gradlePath, nil)
 	if err != nil {
 		t.Fatalf("runDependencies() error = %v", err)
 	}
@@ -246,4 +291,35 @@ func TestRunDependencies_UsesSettingsGradleRootName(t *testing.T) {
 	if _, ok := g.Node(filepath.Base(projectDir)); ok {
 		t.Fatalf("did not expect temp directory root node")
 	}
+}
+
+func writeExecutable(t *testing.T, dir, name, body string) string {
+	t.Helper()
+	path := filepath.Join(dir, name)
+	if runtime.GOOS == "windows" {
+		path += ".cmd"
+	}
+	if err := os.WriteFile(path, []byte(body), 0o755); err != nil {
+		t.Fatalf("write executable %s: %v", name, err)
+	}
+	if runtime.GOOS != "windows" {
+		if err := os.Chmod(path, 0o755); err != nil {
+			t.Fatalf("chmod executable %s: %v", name, err)
+		}
+	}
+	return path
+}
+
+func successScript() string {
+	if runtime.GOOS == "windows" {
+		return "@echo off\r\necho ok 1>&2\r\n"
+	}
+	return "#!/bin/sh\necho ok >&2\n"
+}
+
+func failingJavaScript() string {
+	if runtime.GOOS == "windows" {
+		return "@echo off\r\necho The operation couldn't be completed. Unable to locate a Java Runtime. 1>&2\r\nexit /b 1\r\n"
+	}
+	return "#!/bin/sh\necho \"The operation couldn't be completed. Unable to locate a Java Runtime.\" >&2\nexit 1\n"
 }

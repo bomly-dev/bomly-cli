@@ -24,9 +24,9 @@ func (d NativeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
 }
 
 // Ready reports whether Yarn is available.
-func (d NativeDetector) Ready() bool {
+func (d NativeDetector) Ready(context.Context, sdk.DetectionRequest) error {
 	_, err := system.LookPath("yarn")
-	return err == nil
+	return detectors.CommandNotReadyError("yarn", err)
 }
 
 // Applicable reports whether Yarn manifests are present.

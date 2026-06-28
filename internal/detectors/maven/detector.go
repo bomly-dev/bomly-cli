@@ -50,13 +50,13 @@ func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
 	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerMaven, evidencePatterns...)}
 }
 
-// Ready reports whether a Maven wrapper is present or Maven is installed.
-func (d Detector) Ready() bool {
-	if d.WorkingDir == "" {
-		return true
+// Ready reports whether a Maven wrapper is present or Maven is installed and a
+// usable Java runtime is available for the request's working directory.
+func (d Detector) Ready(ctx context.Context, req sdk.DetectionRequest) error {
+	if _, _, err := d.resolveRunner(detectors.RequestWorkingDir(req)); err != nil {
+		return detectors.CommandNotReadyError("mvn", err)
 	}
-	_, _, err := d.resolveRunner()
-	return err == nil
+	return detectors.JavaReady(ctx)
 }
 
 // Applicable reports whether the project looks like a Maven project.
@@ -85,8 +85,8 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 }
 
 // ResolveGraph resolves a Maven dependency graph for the scan engine.
-func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
-	depsGraph, err := d.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, req.ScopeFilter)
+func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+	depsGraph, err := d.resolveGraph(ctx, req.Stderr, req.ProjectPath, req.Verbose, req.ScopeFilter)
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
@@ -107,7 +107,7 @@ func (d Detector) FallbackDetector() sdk.Detector {
 	return d.Fallback
 }
 
-func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose bool, scopeFilter sdk.Scope) (*sdk.Graph, error) {
+func (d Detector) resolveGraph(ctx context.Context, stderr io.Writer, projectPath string, verbose bool, scopeFilter sdk.Scope) (*sdk.Graph, error) {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -119,7 +119,7 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 	}
 
 	args := mavenDependencyTreeArgs(prefixArgs, scopeFilter)
-	cmd := system.Command(executable, args...)
+	cmd := system.CommandContext(ctx, executable, args...)
 	cmd.Dir = projectPath
 	if d.WorkingDir != "" {
 		cmd.Dir = d.WorkingDir
@@ -415,7 +415,7 @@ func scopeFromMavenScope(value string) sdk.Scope {
 }
 
 // Install prepares Maven dependencies before graph resolution.
-func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
+func (d Detector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()
@@ -426,7 +426,7 @@ func (d Detector) Install(_ context.Context, req sdk.DetectionRequest) error {
 	}
 	args := append(prefixArgs, "dependency:resolve")
 	args = append(args, req.InstallArgs...)
-	cmd := system.Command(executable, args...)
+	cmd := system.CommandContext(ctx, executable, args...)
 	cmd.Dir = req.ProjectPath
 	if d.WorkingDir != "" {
 		cmd.Dir = d.WorkingDir

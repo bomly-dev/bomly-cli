@@ -6,7 +6,7 @@ require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/CycloneDX/cyclonedx-go v0.11.0
 	github.com/Masterminds/semver/v3 v3.5.0
-	github.com/anchore/clio v0.1.0
+	github.com/anchore/clio v0.1.1
 	github.com/anchore/grype v0.114.0
 	github.com/anchore/packageurl-go v0.2.0
 	github.com/anchore/syft v1.45.1
@@ -58,10 +58,10 @@ require (
 	github.com/acobaugh/osrelease v0.1.0 // indirect
 	github.com/adrg/xdg v0.5.3 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
-	github.com/anchore/fangs v0.1.0 // indirect
+	github.com/anchore/fangs v0.1.1 // indirect
 	github.com/anchore/go-collections v0.1.0 // indirect
-	github.com/anchore/go-homedir v0.1.0 // indirect
-	github.com/anchore/go-logger v0.1.0 // indirect
+	github.com/anchore/go-homedir v0.1.1 // indirect
+	github.com/anchore/go-logger v0.1.1 // indirect
 	github.com/anchore/go-lzo v0.1.0 // indirect
 	github.com/anchore/go-macholibre v0.1.0 // indirect
 	github.com/anchore/go-rpmdb v0.1.0 // indirect

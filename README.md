@@ -207,6 +207,12 @@ See [Plugins](docs/PLUGINS.md) for install, trust, and authoring guidance.
 
 Contributor setup lives in [CONTRIBUTING.md](CONTRIBUTING.md). Architecture details live in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+## Questions
+
+For questions, ideas, and general support, please use [Bomly Discussions](https://github.com/orgs/bomly-dev/discussions).
+
+Use this repository's issues only for confirmed bugs, regressions, or actionable implementation work.
+
 ## Support
 
 Bomly is an open-source project. If you find it useful, you can support the project by starring the repository, sharing feedback, opening issues, contributing improvements, or sponsoring ongoing maintenance.

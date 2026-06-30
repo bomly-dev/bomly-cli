@@ -22,10 +22,11 @@ import (
 
 func newPluginCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "plugin",
-		Short: "Manage Bomly managed plugins",
-		Example: "  bomly plugin list --all\n" +
-			"  bomly plugin info osv",
+		Use:     "plugins",
+		Aliases: []string{"plugin"},
+		Short:   "Manage Bomly managed plugins",
+		Example: "  bomly plugins list --all\n" +
+			"  bomly plugins info osv",
 	}
 	cmd.AddCommand(
 		newPluginListCmd(),
@@ -55,7 +56,7 @@ func newPluginListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "list",
 		Short:   "List built-in and installed plugins",
-		Example: "  bomly plugin list --detectors\n  bomly plugin list --external --json",
+		Example: "  bomly plugins list --detectors\n  bomly plugins list --external --json",
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options, err := commandOptions(cmd)
@@ -176,7 +177,7 @@ func newPluginInfoCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "info <id>",
 		Short:   "Show plugin metadata",
-		Example: "  bomly plugin info osv\n  bomly plugin info npm-native --json",
+		Example: "  bomly plugins info osv\n  bomly plugins info npm-native --json",
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options, err := commandOptions(cmd)
@@ -910,7 +911,7 @@ func pluginInfoPackageManagers(info managedplugin.Info) []plugschema.PackageMana
 
 // pluginInfoLanguages returns the SupportedLanguages list for plugin
 // kinds that carry one. Today only Analyzer plugins do; other kinds
-// return nil so `bomly plugin info` cleanly omits the Languages line.
+// return nil so `bomly plugins info` cleanly omits the Languages line.
 func pluginInfoLanguages(info managedplugin.Info) []plugschema.Language {
 	if info.Kind == plugschema.PluginKindAnalyzer && info.AnalyzerDescriptor != nil {
 		return append([]plugschema.Language(nil), info.AnalyzerDescriptor.SupportedLanguages...)

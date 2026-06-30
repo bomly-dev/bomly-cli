@@ -365,7 +365,7 @@ func TestRootHelp_IncludesAvailableOptionValuesSection(t *testing.T) {
 			t.Fatalf("expected help output to contain %q, got:\n%s", expected, helpText)
 		}
 	}
-	if strings.Contains(helpText, "Explore available detectors, matchers, and auditors with `bomly plugin list`.") {
+	if strings.Contains(helpText, "Explore available detectors, matchers, and auditors with `bomly plugins list`.") {
 		t.Fatalf("expected root help output to omit selector guidance, got:\n%s", helpText)
 	}
 	for _, nonGlobal := range []string{"--enrich", "--audit", "--analyze", "--ecosystems", "--detectors"} {
@@ -423,7 +423,7 @@ func TestRootHelp_CommandExamplesRender(t *testing.T) {
 				"bomly scan -o spdx=bomly.spdx.json",
 				"bomly scan --url https://github.com/bomly-dev/bomly-cli --ref main --json",
 				"bomly scan --container alpine:3.20",
-				"Explore available detectors, matchers, and auditors with `bomly plugin list`.",
+				"Explore available detectors, matchers, and auditors with `bomly plugins list`.",
 			},
 			notInText: []string{"Exit Codes:"},
 		},
@@ -440,9 +440,15 @@ func TestRootHelp_CommandExamplesRender(t *testing.T) {
 			notInText: []string{"Exit Codes:"},
 		},
 		{
-			name:      "plugin",
+			name:      "plugins",
+			args:      []string{"plugins", "--help"},
+			examples:  []string{"Examples:", "bomly plugins list --all"},
+			notInText: []string{"Exit Codes:"},
+		},
+		{
+			name:      "plugin-alias",
 			args:      []string{"plugin", "--help"},
-			examples:  []string{"Examples:", "bomly plugin list --all"},
+			examples:  []string{"Examples:", "bomly plugins list --all"},
 			notInText: []string{"Exit Codes:"},
 		},
 	}

@@ -19,7 +19,7 @@ func TestOptionValuesHelpSection(t *testing.T) {
 
 	cmd.Flags().String("ecosystems", "", "")
 	got := optionValuesHelpSection(cmd)
-	if !strings.Contains(got, "bomly plugin list") {
+	if !strings.Contains(got, "bomly plugins list") {
 		t.Fatalf("expected plugin list hint, got %q", got)
 	}
 }

@@ -62,6 +62,6 @@ The vocabulary Bomly uses, with one-sentence definitions and pointers to the doc
 
 **Plugin** — An external binary that adds a detector, matcher, auditor, or analyzer over Bomly's v1 gRPC protocol. See [Plugins](PLUGINS.md).
 
-**Built-in** — Components compiled into the Bomly binary. Listed by `bomly plugin list`.
+**Built-in** — Components compiled into the Bomly binary. Listed by `bomly plugins list`.
 
 **`bomly` vs. `bomly-lite`** — `bomly` ships with Syft and Grype linked in; `bomly-lite` shells out to external `syft` and `grype` on `PATH`. Same flags, same outputs.

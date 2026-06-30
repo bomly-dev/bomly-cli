@@ -185,9 +185,9 @@ Use `--config <path>` to add an explicit config file. See the generated [Config 
 Managed plugins let you add detectors, matchers, and auditors without forking Bomly:
 
 ```bash
-bomly plugin install github:bomly-dev/bomly-plugin-bun-lock-detector@v0.1.0
-bomly plugin enable bomly.examples.detector.bun-lock
-bomly plugin verify bomly.examples.detector.bun-lock
+bomly plugins install github:bomly-dev/bomly-plugin-bun-lock-detector@v0.1.0
+bomly plugins enable bomly.examples.detector.bun-lock
+bomly plugins verify bomly.examples.detector.bun-lock
 ```
 
 See [Plugins](docs/PLUGINS.md) for install, trust, and authoring guidance.

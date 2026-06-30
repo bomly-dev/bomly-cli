@@ -259,7 +259,7 @@ Bomly uses a hybrid plugin model:
 
 - Built-in detectors, matchers, and auditors stay in-process by default.
 - External managed plugins are installed into `~/.bomly/plugins`.
-- Runtime preparation loads enabled external plugins into the registry as adapters so the scan engine still owns orchestration. External plugins are disabled on install and become runnable only after `bomly plugin enable <id>`.
+- Runtime preparation loads enabled external plugins into the registry as adapters so the scan engine still owns orchestration. External plugins are disabled on install and become runnable only after `bomly plugins enable <id>`.
 
 Managed plugins currently expose the same three runtime roles as core components:
 

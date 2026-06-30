@@ -321,6 +321,26 @@ func assertInOrder(t *testing.T, value string, parts []string) {
 	}
 }
 
+func TestPluginCommandAlias(t *testing.T) {
+	root := newPluginTestRoot(t)
+
+	plural, _, err := root.Find([]string{"plugins"})
+	if err != nil {
+		t.Fatalf("root.Find(plugins) error = %v", err)
+	}
+	if plural.Name() != "plugins" {
+		t.Fatalf("expected canonical command name %q, got %q", "plugins", plural.Name())
+	}
+
+	singular, _, err := root.Find([]string{"plugin"})
+	if err != nil {
+		t.Fatalf("root.Find(plugin) error = %v", err)
+	}
+	if singular != plural {
+		t.Fatal("expected the plugin alias to resolve to the plugins command")
+	}
+}
+
 func newPluginTestRoot(t *testing.T) *cobra.Command {
 	t.Helper()
 	t.Setenv("HOME", t.TempDir())

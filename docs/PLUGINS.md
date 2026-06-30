@@ -6,7 +6,7 @@ Bomly plugins let you extend scans without changing the Bomly binary. Today, man
 - **matchers** that enrich packages with vulnerabilities, licenses, lifecycle data, or other package metadata
 - **auditors** that turn graph and registry data into findings or risk scores
 
-External analyzer plugins are not supported yet. `bomly plugin list --analyzers` can show built-in reachability analyzers, but the external plugin runtime currently serves only detectors, matchers, and auditors through `sdk.ServeDetector`, `sdk.ServeMatcher`, and `sdk.ServeAuditor`.
+External analyzer plugins are not supported yet. `bomly plugins list --analyzers` can show built-in reachability analyzers, but the external plugin runtime currently serves only detectors, matchers, and auditors through `sdk.ServeDetector`, `sdk.ServeMatcher`, and `sdk.ServeAuditor`.
 
 ## Start Here
 
@@ -55,10 +55,10 @@ Plugins do not get install hooks, post-install scripts, or automatic execution f
 Installed external plugins are disabled by default. They do not participate in scans until you enable them:
 
 ```bash
-bomly plugin enable <plugin-id>
+bomly plugins enable <plugin-id>
 ```
 
-Treat `bomly plugin enable` as the trust decision. When enabled, a plugin runs with the same user-level privileges as the Bomly process. It can read and write files, make network connections, spawn child processes, and access environment variables available to that user.
+Treat `bomly plugins enable` as the trust decision. When enabled, a plugin runs with the same user-level privileges as the Bomly process. It can read and write files, make network connections, spawn child processes, and access environment variables available to that user.
 
 Repository-declared plugins are never executed automatically. The host must explicitly install and enable the plugin before it can run.
 
@@ -71,36 +71,36 @@ git clone git@github.com:bomly-dev/bomly-plugin-bun-lock-detector.git
 cd bomly-plugin-bun-lock-detector
 go test ./...
 go build -o ./bin/bomly-plugin-bun-lock-detector .
-bomly plugin install ./bin/bomly-plugin-bun-lock-detector --dev
-bomly plugin enable bomly.examples.detector.bun-lock
+bomly plugins install ./bin/bomly-plugin-bun-lock-detector --dev
+bomly plugins enable bomly.examples.detector.bun-lock
 bomly scan --path ./my-bun-project --detectors bomly.examples.detector.bun-lock
 ```
 
 The matcher and auditor examples use the same workflow:
 
 ```bash
-bomly plugin enable clearlydefined-license-matcher
+bomly plugins enable clearlydefined-license-matcher
 bomly scan --enrich --matchers +clearlydefined-license-matcher
 
-bomly plugin enable bomly.examples.auditor.meme-deps
+bomly plugins enable bomly.examples.auditor.meme-deps
 bomly scan --audit --auditors +bomly.examples.auditor.meme-deps
 ```
 
 Check that Bomly can see any installed plugin:
 
 ```bash
-bomly plugin list --external
-bomly plugin info <plugin-id>
-bomly plugin verify <plugin-id>
-bomly plugin test <plugin-id>
-bomly plugin doctor <plugin-id>
+bomly plugins list --external
+bomly plugins info <plugin-id>
+bomly plugins verify <plugin-id>
+bomly plugins test <plugin-id>
+bomly plugins doctor <plugin-id>
 ```
 
 Disable or uninstall it later:
 
 ```bash
-bomly plugin disable <plugin-id>
-bomly plugin uninstall <plugin-id>
+bomly plugins disable <plugin-id>
+bomly plugins uninstall <plugin-id>
 ```
 
 ## Common Commands
@@ -108,44 +108,44 @@ bomly plugin uninstall <plugin-id>
 List plugins:
 
 ```bash
-bomly plugin list
-bomly plugin list --external
-bomly plugin list --detectors
-bomly plugin list --matchers --json
-bomly plugin list --auditors
+bomly plugins list
+bomly plugins list --external
+bomly plugins list --detectors
+bomly plugins list --matchers --json
+bomly plugins list --auditors
 ```
 
 Show one plugin:
 
 ```bash
-bomly plugin info <plugin-id>
-bomly plugin info <plugin-id> --json
+bomly plugins info <plugin-id>
+bomly plugins info <plugin-id> --json
 ```
 
 Install a plugin:
 
 ```bash
-bomly plugin install ./dist/bomly-plugin-example.tar.gz
-bomly plugin install ./bin/bomly-plugin-example --dev
-bomly plugin install https://example.com/bomly-plugin-example.tar.gz --checksum sha256:...
-bomly plugin install https://example.com/bomly-plugin-example.tar.gz --insecure-skip-checksum
-bomly plugin install github:bomly-dev/bomly-plugin-bun-lock-detector@v0.1.0
+bomly plugins install ./dist/bomly-plugin-example.tar.gz
+bomly plugins install ./bin/bomly-plugin-example --dev
+bomly plugins install https://example.com/bomly-plugin-example.tar.gz --checksum sha256:...
+bomly plugins install https://example.com/bomly-plugin-example.tar.gz --insecure-skip-checksum
+bomly plugins install github:bomly-dev/bomly-plugin-bun-lock-detector@v0.1.0
 ```
 
 Check a plugin:
 
 ```bash
-bomly plugin verify <plugin-id> # manifest, checksum, binary, runtime descriptor
-bomly plugin test <plugin-id>   # runtime readiness
-bomly plugin doctor <plugin-id> # verify + test
+bomly plugins verify <plugin-id> # manifest, checksum, binary, runtime descriptor
+bomly plugins test <plugin-id>   # runtime readiness
+bomly plugins doctor <plugin-id> # verify + test
 ```
 
 Enable, disable, or remove a plugin:
 
 ```bash
-bomly plugin enable <plugin-id>
-bomly plugin disable <plugin-id>
-bomly plugin uninstall <plugin-id>
+bomly plugins enable <plugin-id>
+bomly plugins disable <plugin-id>
+bomly plugins uninstall <plugin-id>
 ```
 
 ## Select Plugins During A Scan
@@ -266,7 +266,7 @@ For private GitHub Releases, set one of these environment variables before insta
 ```bash
 export BOMLY_GITHUB_TOKEN=<token-with-release-access>
 # Also accepted: GITHUB_TOKEN, GH_TOKEN, GITHUB_AUTH_TOKEN
-bomly plugin install github:bomly-dev/bomly-plugin-bun-lock-detector@v0.1.0
+bomly plugins install github:bomly-dev/bomly-plugin-bun-lock-detector@v0.1.0
 ```
 
 Bomly attaches the token only to `github:owner/repo@tag` metadata, checksum, and asset downloads. Direct URL installs do not receive GitHub auth headers.
@@ -303,7 +303,7 @@ External plugins are native OS subprocesses. They are not sandboxed, not contain
 **Recommended practices:**
 
 - Always supply `--checksum` for direct URL installs.
-- Run `bomly plugin verify <id>` before enabling any plugin installed from an external source.
-- Treat `bomly plugin enable` as the explicit trust decision for granting execution privileges.
+- Run `bomly plugins verify <id>` before enabling any plugin installed from an external source.
+- Treat `bomly plugins enable` as the explicit trust decision for granting execution privileges.
 - Prefer `github:owner/repo@tag` installs when releases publish `SHA256SUMS`.
 - Do not enable plugins you did not build or obtain from a source you control.

@@ -143,8 +143,8 @@ For development, build and install the binary directly:
 
 ```bash
 go build -o ./bin/bomly-plugin-clearlydefined-matcher .
-bomly plugin install ./bin/bomly-plugin-clearlydefined-matcher --dev
-bomly plugin enable clearlydefined-license-matcher
+bomly plugins install ./bin/bomly-plugin-clearlydefined-matcher --dev
+bomly plugins enable clearlydefined-license-matcher
 ```
 
 For distribution, package a package-only `bomly-plugin.json` manifest with the binary:
@@ -163,9 +163,9 @@ The manifest contains package and install fields only. Bomly probes the binary a
 Check installation and runtime readiness:
 
 ```bash
-bomly plugin verify clearlydefined-license-matcher
-bomly plugin test clearlydefined-license-matcher
-bomly plugin doctor clearlydefined-license-matcher
+bomly plugins verify clearlydefined-license-matcher
+bomly plugins test clearlydefined-license-matcher
+bomly plugins doctor clearlydefined-license-matcher
 ```
 
 Run only this matcher during enrichment:

@@ -224,6 +224,7 @@ func installRemoteArchive(ctx context.Context, tempDir, source string, opts Inst
 }
 
 func safeDownloadArchiveName(name string) string {
+	// Remote archive names are only used to preserve a trusted extension for temp-file format detection.
 	name = strings.ReplaceAll(strings.TrimSpace(name), "\\", "/")
 	if name == "" {
 		return ""
@@ -421,6 +422,7 @@ func extractArchiveEntry(name, targetDir string, mode os.FileMode, write func(st
 	if err := os.MkdirAll(filepath.Dir(destination), 0o755); err != nil {
 		return fmt.Errorf("create plugin archive parent for %q: %w", name, err)
 	}
+	// Symlinks would make the lexical containment checks above vulnerable to writes outside targetDir.
 	if mode&os.ModeSymlink != 0 {
 		return fmt.Errorf("plugin archive entry %q uses unsupported symlink mode", name)
 	}

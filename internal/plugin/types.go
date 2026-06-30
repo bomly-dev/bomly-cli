@@ -460,6 +460,7 @@ func validateManifest(manifest Manifest) error {
 }
 
 func checksumFile(path string) (string, error) {
+	// Callers must constrain path to a trusted location before requesting a checksum.
 	cleanPath, err := filepath.Abs(path)
 	if err != nil {
 		return "", fmt.Errorf("resolve file for checksum: %w", err)

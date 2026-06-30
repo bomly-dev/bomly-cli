@@ -15,6 +15,14 @@
                 "line": 0
               },
               "real_path": "conanfile.txt"
+            },
+            {
+              "access_path": "conan.lock",
+              "position": {
+                "file": "conan.lock",
+                "line": 0
+              },
+              "real_path": "conan.lock"
             }
           ],
           "name": "cmake",
@@ -39,6 +47,14 @@
                 "line": 0
               },
               "real_path": "conanfile.txt"
+            },
+            {
+              "access_path": "conan.lock",
+              "position": {
+                "file": "conan.lock",
+                "line": 0
+              },
+              "real_path": "conan.lock"
             }
           ],
           "name": "openssl",
@@ -73,6 +89,14 @@
                 "line": 0
               },
               "real_path": "conanfile.txt"
+            },
+            {
+              "access_path": "conan.lock",
+              "position": {
+                "file": "conan.lock",
+                "line": 0
+              },
+              "real_path": "conan.lock"
             }
           ],
           "name": "zlib",

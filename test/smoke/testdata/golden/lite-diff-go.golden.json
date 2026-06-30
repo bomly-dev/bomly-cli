@@ -19,6 +19,7 @@
       "added": [
         {
           "package": {
+            "direct": false,
             "id": "pkg:golang/github.com/google/go-cmp@v0.5.2",
             "licenses": [],
             "name": "github.com/google/go-cmp",
@@ -30,6 +31,7 @@
         },
         {
           "package": {
+            "direct": true,
             "id": "pkg:golang/github.com/google/uuid@v1.6.0",
             "licenses": [],
             "locations": [
@@ -51,6 +53,7 @@
         },
         {
           "package": {
+            "direct": false,
             "id": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
             "licenses": [],
             "name": "golang.org/x/xerrors",
@@ -64,6 +67,7 @@
       "changed": [
         {
           "after": {
+            "direct": true,
             "id": "pkg:golang/github.com/google/go-querystring@v1.1.0",
             "licenses": [],
             "locations": [
@@ -83,6 +87,7 @@
             "vulnerabilities": []
           },
           "before": {
+            "direct": true,
             "id": "pkg:golang/github.com/google/go-querystring@v1.0.0",
             "licenses": [],
             "locations": [
@@ -106,6 +111,7 @@
       "removed": [
         {
           "package": {
+            "direct": false,
             "id": "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
             "licenses": [],
             "name": "github.com/bitly/go-simplejson",
@@ -117,6 +123,7 @@
         },
         {
           "package": {
+            "direct": false,
             "id": "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869",
             "licenses": [],
             "locations": [
@@ -138,6 +145,7 @@
         },
         {
           "package": {
+            "direct": false,
             "id": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
             "licenses": [],
             "name": "github.com/davecgh/go-spew",
@@ -149,6 +157,7 @@
         },
         {
           "package": {
+            "direct": false,
             "id": "pkg:golang/github.com/fatih/color@v1.7.0",
             "licenses": [],
             "name": "github.com/fatih/color",
@@ -160,6 +169,7 @@
         },
         {
           "package": {
+            "direct": false,
             "id": "pkg:golang/github.com/kr/pretty@v0.3.1",
             "licenses": [],
             "locations": [
@@ -181,6 +191,7 @@
         },
         {
           "package": {
+            "direct": false,
             "id": "pkg:golang/github.com/kr/text@v0.2.0",
             "licenses": [],
             "name": "github.com/kr/text",
@@ -192,6 +203,7 @@
         },
         {
           "package": {
+            "direct": false,
             "id": "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
             "licenses": [],
             "name": "github.com/mattn/go-colorable",
@@ -203,6 +215,7 @@
         },
         {
           "package": {
+            "direct": false,
             "id": "pkg:golang/github.com/mattn/go-isatty@v0.0.4",
             "licenses": [],
             "name": "github.com/mattn/go-isatty",
@@ -214,6 +227,7 @@
         },
         {
           "package": {
+            "direct": false,
             "id": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
             "licenses": [],
             "name": "github.com/mattn/go-runewidth",
@@ -225,6 +239,7 @@
         },
         {
           "package": {
+            "direct": false,
             "id": "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
             "licenses": [],
             "name": "github.com/nsf/termbox-go",
@@ -236,6 +251,7 @@
         },
         {
           "package": {
+            "direct": false,
             "id": "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
             "licenses": [],
             "name": "github.com/nwidger/jsoncolor",
@@ -247,6 +263,7 @@
         },
         {
           "package": {
+            "direct": false,
             "id": "pkg:golang/github.com/pkg/errors@v0.8.0",
             "licenses": [],
             "name": "github.com/pkg/errors",
@@ -258,6 +275,7 @@
         },
         {
           "package": {
+            "direct": false,
             "id": "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
             "licenses": [],
             "name": "github.com/pmezard/go-difflib",
@@ -269,6 +287,7 @@
         },
         {
           "package": {
+            "direct": false,
             "id": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
             "licenses": [],
             "name": "github.com/rogpeppe/go-internal",
@@ -280,6 +299,7 @@
         },
         {
           "package": {
+            "direct": true,
             "id": "pkg:golang/github.com/simeji/jid@v0.7.6",
             "licenses": [],
             "locations": [
@@ -301,6 +321,7 @@
         },
         {
           "package": {
+            "direct": false,
             "id": "pkg:golang/github.com/stretchr/testify@v1.8.2",
             "licenses": [],
             "locations": [
@@ -322,6 +343,7 @@
         },
         {
           "package": {
+            "direct": false,
             "id": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
             "licenses": [],
             "name": "gopkg.in/check.v1",
@@ -333,6 +355,7 @@
         },
         {
           "package": {
+            "direct": false,
             "id": "pkg:golang/gopkg.in/yaml.v3@v3.0.1",
             "licenses": [],
             "name": "gopkg.in/yaml.v3",
@@ -350,6 +373,7 @@
         "added": [
           {
             "package": {
+              "direct": false,
               "id": "pkg:golang/github.com/google/go-cmp@v0.5.2",
               "licenses": [],
               "name": "github.com/google/go-cmp",
@@ -361,6 +385,7 @@
           },
           {
             "package": {
+              "direct": true,
               "id": "pkg:golang/github.com/google/uuid@v1.6.0",
               "licenses": [],
               "locations": [
@@ -382,6 +407,7 @@
           },
           {
             "package": {
+              "direct": false,
               "id": "pkg:golang/golang.org/x/xerrors@v0.0.0-20191204190536-9bdfabe68543",
               "licenses": [],
               "name": "golang.org/x/xerrors",
@@ -395,6 +421,7 @@
         "changed": [
           {
             "after": {
+              "direct": true,
               "id": "pkg:golang/github.com/google/go-querystring@v1.1.0",
               "licenses": [],
               "locations": [
@@ -414,6 +441,7 @@
               "vulnerabilities": []
             },
             "before": {
+              "direct": true,
               "id": "pkg:golang/github.com/google/go-querystring@v1.0.0",
               "licenses": [],
               "locations": [
@@ -441,6 +469,7 @@
         "removed": [
           {
             "package": {
+              "direct": false,
               "id": "pkg:golang/github.com/bitly/go-simplejson@v0.5.0",
               "licenses": [],
               "name": "github.com/bitly/go-simplejson",
@@ -452,6 +481,7 @@
           },
           {
             "package": {
+              "direct": false,
               "id": "pkg:golang/github.com/bmizerany/assert@v0.0.0-20160611221934-b7ed37b82869",
               "licenses": [],
               "locations": [
@@ -473,6 +503,7 @@
           },
           {
             "package": {
+              "direct": false,
               "id": "pkg:golang/github.com/davecgh/go-spew@v1.1.1",
               "licenses": [],
               "name": "github.com/davecgh/go-spew",
@@ -484,6 +515,7 @@
           },
           {
             "package": {
+              "direct": false,
               "id": "pkg:golang/github.com/fatih/color@v1.7.0",
               "licenses": [],
               "name": "github.com/fatih/color",
@@ -495,6 +527,7 @@
           },
           {
             "package": {
+              "direct": false,
               "id": "pkg:golang/github.com/kr/pretty@v0.3.1",
               "licenses": [],
               "locations": [
@@ -516,6 +549,7 @@
           },
           {
             "package": {
+              "direct": false,
               "id": "pkg:golang/github.com/kr/text@v0.2.0",
               "licenses": [],
               "name": "github.com/kr/text",
@@ -527,6 +561,7 @@
           },
           {
             "package": {
+              "direct": false,
               "id": "pkg:golang/github.com/mattn/go-colorable@v0.0.9",
               "licenses": [],
               "name": "github.com/mattn/go-colorable",
@@ -538,6 +573,7 @@
           },
           {
             "package": {
+              "direct": false,
               "id": "pkg:golang/github.com/mattn/go-isatty@v0.0.4",
               "licenses": [],
               "name": "github.com/mattn/go-isatty",
@@ -549,6 +585,7 @@
           },
           {
             "package": {
+              "direct": false,
               "id": "pkg:golang/github.com/mattn/go-runewidth@v0.0.4",
               "licenses": [],
               "name": "github.com/mattn/go-runewidth",
@@ -560,6 +597,7 @@
           },
           {
             "package": {
+              "direct": false,
               "id": "pkg:golang/github.com/nsf/termbox-go@v0.0.0-20181027232701-60ab7e3d12ed",
               "licenses": [],
               "name": "github.com/nsf/termbox-go",
@@ -571,6 +609,7 @@
           },
           {
             "package": {
+              "direct": false,
               "id": "pkg:golang/github.com/nwidger/jsoncolor@v0.0.0-20170215171346-75a6de4340e5",
               "licenses": [],
               "name": "github.com/nwidger/jsoncolor",
@@ -582,6 +621,7 @@
           },
           {
             "package": {
+              "direct": false,
               "id": "pkg:golang/github.com/pkg/errors@v0.8.0",
               "licenses": [],
               "name": "github.com/pkg/errors",
@@ -593,6 +633,7 @@
           },
           {
             "package": {
+              "direct": false,
               "id": "pkg:golang/github.com/pmezard/go-difflib@v1.0.0",
               "licenses": [],
               "name": "github.com/pmezard/go-difflib",
@@ -604,6 +645,7 @@
           },
           {
             "package": {
+              "direct": false,
               "id": "pkg:golang/github.com/rogpeppe/go-internal@v1.9.0",
               "licenses": [],
               "name": "github.com/rogpeppe/go-internal",
@@ -615,6 +657,7 @@
           },
           {
             "package": {
+              "direct": true,
               "id": "pkg:golang/github.com/simeji/jid@v0.7.6",
               "licenses": [],
               "locations": [
@@ -636,6 +679,7 @@
           },
           {
             "package": {
+              "direct": false,
               "id": "pkg:golang/github.com/stretchr/testify@v1.8.2",
               "licenses": [],
               "locations": [
@@ -657,6 +701,7 @@
           },
           {
             "package": {
+              "direct": false,
               "id": "pkg:golang/gopkg.in/check.v1@v0.0.0-20161208181325-20d25e280405",
               "licenses": [],
               "name": "gopkg.in/check.v1",
@@ -668,6 +713,7 @@
           },
           {
             "package": {
+              "direct": false,
               "id": "pkg:golang/gopkg.in/yaml.v3@v3.0.1",
               "licenses": [],
               "name": "gopkg.in/yaml.v3",

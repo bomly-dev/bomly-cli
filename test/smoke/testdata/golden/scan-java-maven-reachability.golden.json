@@ -6998,7 +6998,7 @@
               "url": "https://security.netapp.com/advisory/ntap-20220217-0007"
             }
           ],
-          "risk_score": 63.41804000000001,
+          "risk_score": 62.54478000000001,
           "severity": "critical",
           "severity_source": "github:language:java",
           "source": "grype",
@@ -7888,7 +7888,7 @@
               "url": "http://www.openwall.com/lists/oss-security/2025/12/01/5"
             }
           ],
-          "risk_score": 0.5542,
+          "risk_score": 0.527305,
           "severity": "high",
           "severity_source": "github:language:java",
           "source": "grype",
@@ -11837,7 +11837,7 @@
               "url": "https://bugzilla.redhat.com/show_bug.cgi?id=2007512"
             }
           ],
-          "risk_score": 0.65754,
+          "risk_score": 0.68172,
           "severity": "high",
           "severity_source": "github:language:java",
           "source": "grype",
@@ -12219,7 +12219,7 @@
               "url": "https://access.redhat.com/errata/RHSA-2024:6878"
             }
           ],
-          "risk_score": 1.55268,
+          "risk_score": 1.5428,
           "severity": "high",
           "severity_source": "github:language:java",
           "source": "grype",
@@ -12915,7 +12915,7 @@
               "url": "https://spring.io/security/cve-2025-22233"
             }
           ],
-          "risk_score": 0.10187,
+          "risk_score": 0.107055,
           "severity": "low",
           "severity_source": "github:language:java",
           "source": "grype",
@@ -13152,7 +13152,7 @@
               "url": "https://github.com/spring-projects/spring-framework/commit/e02ff3a0da50744b0980d5d665fd242eedea767"
             }
           ],
-          "risk_score": 2.13225,
+          "risk_score": 2.1232499999999996,
           "severity": "high",
           "severity_source": "github:language:java",
           "source": "grype",
@@ -13262,7 +13262,7 @@
               "url": "https://github.com/spring-projects/spring-security/commit/e4c13e3c0ee7f06f59d3b43ca6734215ad7d8974"
             }
           ],
-          "risk_score": 1.8487499999999997,
+          "risk_score": 2.1105,
           "severity": "high",
           "severity_source": "github:language:java",
           "source": "grype",
@@ -14860,7 +14860,7 @@
               "url": "https://github.com/spring-projects/spring-framework/commit/d79ec68db40c381b8e205af52748ebd3163ee33b"
             }
           ],
-          "risk_score": 2.793,
+          "risk_score": 1.341375,
           "severity": "medium",
           "severity_source": "github:language:java",
           "source": "grype",

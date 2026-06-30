@@ -19,6 +19,7 @@
       "added": [
         {
           "package": {
+            "direct": true,
             "id": "pkg:npm/lodash@4.17.21",
             "licenses": [],
             "name": "lodash",
@@ -29,6 +30,7 @@
         },
         {
           "package": {
+            "direct": false,
             "id": "pkg:npm/my-js-app@2.0.0",
             "licenses": [],
             "name": "my-js-app",
@@ -39,6 +41,7 @@
         },
         {
           "package": {
+            "direct": true,
             "id": "pkg:npm/react@18.2.0",
             "licenses": [],
             "name": "react",
@@ -51,6 +54,7 @@
       "removed": [
         {
           "package": {
+            "direct": false,
             "id": "pkg:golang/example.com/app@1.0.0",
             "licenses": [],
             "name": "example.com/app",
@@ -61,6 +65,7 @@
         },
         {
           "package": {
+            "direct": true,
             "id": "pkg:golang/github.com/google/uuid@1.6.0",
             "licenses": [],
             "name": "github.com/google/uuid",
@@ -71,6 +76,7 @@
         },
         {
           "package": {
+            "direct": true,
             "id": "pkg:golang/github.com/pkg/errors@0.9.1",
             "licenses": [],
             "name": "github.com/pkg/errors",
@@ -87,6 +93,7 @@
         "added": [
           {
             "package": {
+              "direct": true,
               "id": "pkg:npm/lodash@4.17.21",
               "licenses": [],
               "name": "lodash",
@@ -97,6 +104,7 @@
           },
           {
             "package": {
+              "direct": false,
               "id": "pkg:npm/my-js-app@2.0.0",
               "licenses": [],
               "name": "my-js-app",
@@ -107,6 +115,7 @@
           },
           {
             "package": {
+              "direct": true,
               "id": "pkg:npm/react@18.2.0",
               "licenses": [],
               "name": "react",
@@ -123,6 +132,7 @@
         "removed": [
           {
             "package": {
+              "direct": false,
               "id": "pkg:golang/example.com/app@1.0.0",
               "licenses": [],
               "name": "example.com/app",
@@ -133,6 +143,7 @@
           },
           {
             "package": {
+              "direct": true,
               "id": "pkg:golang/github.com/google/uuid@1.6.0",
               "licenses": [],
               "name": "github.com/google/uuid",
@@ -143,6 +154,7 @@
           },
           {
             "package": {
+              "direct": true,
               "id": "pkg:golang/github.com/pkg/errors@0.9.1",
               "licenses": [],
               "name": "github.com/pkg/errors",

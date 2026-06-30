@@ -10,6 +10,7 @@
   <a href="https://github.com/bomly-dev/bomly-cli/actions/workflows/ci.yml"><img src="https://github.com/bomly-dev/bomly-cli/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://scorecard.dev/viewer/?uri=github.com/bomly-dev/bomly-cli"><img src="https://api.scorecard.dev/projects/github.com/bomly-dev/bomly-cli/badge" alt="OpenSSF Scorecard"></a>
   <a href="https://github.com/bomly-dev/bomly-cli/releases/latest"><img src="https://img.shields.io/github/v/release/bomly-dev/bomly-cli?sort=semver" alt="Latest release"></a>
+  <a href="https://github.com/bomly-dev/bomly-cli/releases"><img src="https://img.shields.io/github/downloads/bomly-dev/bomly-cli/total" alt="GitHub release downloads"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/bomly-dev/bomly-cli" alt="License: Apache-2.0"></a>
   <a href="https://pkg.go.dev/github.com/bomly-dev/bomly-cli"><img src="https://pkg.go.dev/badge/github.com/bomly-dev/bomly-cli.svg" alt="Go Reference"></a>
   <a href="https://goreportcard.com/report/github.com/bomly-dev/bomly-cli"><img src="https://goreportcard.com/badge/github.com/bomly-dev/bomly-cli" alt="Go Report Card"></a>

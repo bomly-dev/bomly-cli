@@ -57,6 +57,6 @@ bomly diff --sbom --base ./v1.0.cdx.json --head ./v1.1.cdx.json
 
 - **Relationship fidelity depends on the source SBOM.** If the SBOM was produced by a tool that emits a flat package list (no `DEPENDS_ON` / `dependencies` edges), Bomly's graph is also flat. `bomly explain` cannot show paths that aren't recorded.
 - **Vendor-specific extensions** (custom properties, non-standard package types) are passed through to the JSON output but are not used for policy decisions.
-- **SBOM ingest is exclusive** — combining `--sbom` with `--container` or `--url` is rejected with exit 4.
+- **SBOM ingest is exclusive** — combining `--sbom` with `--image` or `--url` is rejected with exit 4.
 - **Format versions other than SPDX 2.3 JSON and CycloneDX 1.6 JSON** are rejected. SPDX 3.0 and CycloneDX 1.5 ingest are tracked for follow-up.
 - **Tag-Value SPDX** and **XML CycloneDX** are not currently ingested.

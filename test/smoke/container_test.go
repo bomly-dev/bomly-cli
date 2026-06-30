@@ -24,9 +24,10 @@ func TestContainerScan(t *testing.T) {
 	}{
 		{
 			name: "container-scan-alpine",
-			args: []string{"scan", "--container", alpineImage, "--format", "json"},
+			args: []string{"scan", "--image", alpineImage, "--format", "json"},
 		},
 		{
+			// Exercises the deprecated --container alias for backwards compatibility.
 			name: "container-scan-debian",
 			args: []string{"scan", "--container", debianImage, "--format", "json"},
 		},
@@ -62,7 +63,7 @@ func TestContainerDiff(t *testing.T) {
 	}{
 		{
 			name: "container-diff-alpine",
-			args: []string{"diff", "--container", "alpine", "--base", "3.19", "--head", "3.20", "--format", "json"},
+			args: []string{"diff", "--image", "alpine", "--base", "3.19", "--head", "3.20", "--format", "json"},
 		},
 	}
 
@@ -96,7 +97,7 @@ func TestContainerExplain(t *testing.T) {
 	}{
 		{
 			name: "container-explain-alpine",
-			args: []string{"explain", "musl", "--container", alpineImage, "--format", "json"},
+			args: []string{"explain", "musl", "--image", alpineImage, "--format", "json"},
 		},
 	}
 

@@ -11,7 +11,8 @@ func registerScanTool(s *server.MCPServer, mcpCtx Context) {
 	tool := mcplib.NewTool("bomly_scan",
 		mcplib.WithDescription("Scan a project for dependencies, vulnerabilities, and policy findings. Returns structured JSON with all packages, manifests, and optional audit results."),
 		mcplib.WithString("path", mcplib.Description("Filesystem path to scan (defaults to cwd)")),
-		mcplib.WithString("container", mcplib.Description("Container image reference to scan (e.g. alpine:latest)")),
+		mcplib.WithString("image", mcplib.Description("Container image reference to scan (e.g. alpine:latest)")),
+		mcplib.WithString("container", mcplib.Description("Deprecated alias for image")),
 		mcplib.WithString("url", mcplib.Description("Git repository URL to clone and scan")),
 		mcplib.WithString("ref", mcplib.Description("Git ref to checkout when using url")),
 		mcplib.WithBoolean("enrich", mcplib.Description("Enrich packages with vulnerability and license data from external sources")),
@@ -24,7 +25,7 @@ func registerScanTool(s *server.MCPServer, mcpCtx Context) {
 	s.AddTool(tool, func(ctx context.Context, req mcplib.CallToolRequest) (*mcplib.CallToolResult, error) {
 		scanReq := ScanRequest{
 			Path:       req.GetString("path", ""),
-			Container:  req.GetString("container", ""),
+			Image:      firstNonEmpty(req.GetString("image", ""), req.GetString("container", "")),
 			URL:        req.GetString("url", ""),
 			Ref:        req.GetString("ref", ""),
 			Enrich:     req.GetBool("enrich", false),

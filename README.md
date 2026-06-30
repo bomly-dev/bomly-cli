@@ -53,7 +53,7 @@ bomly scan
 bomly scan --path ./services/api
 
 # Scan a container image
-bomly scan --container ghcr.io/example/app:latest
+bomly scan --image ghcr.io/example/app:latest
 
 # Scan a remote Git ref
 bomly scan --url https://github.com/owner/repo --ref v1.2.3

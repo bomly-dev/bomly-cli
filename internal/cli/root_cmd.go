@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/exit"
@@ -52,6 +53,7 @@ func newRootCmd(version string) (*cobra.Command, error) {
 			if cmd.Name() == "benchmark" {
 				return nil
 			}
+			warnDeprecatedContainerFlag(cmd)
 			options, err := commandOptions(cmd)
 			if err != nil {
 				return err
@@ -157,6 +159,20 @@ func rootHasCommandRequiredFlags(cmd *cobra.Command) bool {
 	return hasRequiredFlags
 }
 
+// warnDeprecatedContainerFlag emits a one-line deprecation notice to stderr
+// when the hidden --container alias is used, steering users toward --image.
+// The notice goes to ErrOrStderr (never stdout) so machine-readable output
+// from --json/--format remains uncorrupted for existing --container callers.
+func warnDeprecatedContainerFlag(cmd *cobra.Command) {
+	if cmd == nil || cmd.Flags().Lookup("container") == nil {
+		return
+	}
+	if !cmd.Flags().Changed("container") {
+		return
+	}
+	_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "Warning: --container is deprecated; use --image instead.")
+}
+
 func logResolvedOptions(cmd *cobra.Command) {
 	if cmd == nil {
 		return
@@ -169,7 +185,7 @@ func logResolvedOptions(cmd *cobra.Command) {
 	resolved := options.GetConfig()
 	logger.Debug("Resolved options",
 		zap.String("path", resolved.Path),
-		zap.String("container", resolved.Container),
+		zap.String("image", resolved.Image),
 		zap.String("url", resolved.URL),
 		zap.String("ref", resolved.Ref),
 		zap.Bool("sbom", resolved.SBOM),

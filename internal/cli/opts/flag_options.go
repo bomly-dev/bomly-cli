@@ -62,7 +62,12 @@ func BindCommandFlagGroups(cmd *cobra.Command, cfg *config.Resolved, groups ...F
 
 func bindTargetFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
 	flags.StringVar(&cfg.Path, "path", "", "Execution target path")
-	flags.StringVar(&cfg.Container, "container", "", "Container image reference to scan with Syft")
+	flags.StringVar(&cfg.Image, "image", "", "Container image reference to scan with Syft")
+	// --container is a backwards-compatible alias for --image. It binds to the
+	// same field and is hidden from help; a deprecation notice is emitted to
+	// stderr (not stdout) when used, so machine-readable output stays clean.
+	flags.StringVar(&cfg.Image, "container", "", "Deprecated alias for --image")
+	_ = flags.MarkHidden("container")
 	flags.StringVar(&cfg.URL, "url", "", "Git repository URL to clone and scan")
 	flags.StringVar(&cfg.Ref, "ref", "", "Git reference to scan when using --url")
 	flags.BoolVar(&cfg.SBOM, "sbom", false, "Treat the selected filesystem target as an SBOM file")
@@ -127,8 +132,8 @@ func applyFlagOverrides(dst *config.Resolved, flags config.Resolved, cmd *cobra.
 	if flagChanged(cmd, "path") {
 		dst.Path = flags.Path
 	}
-	if flagChanged(cmd, "container") {
-		dst.Container = flags.Container
+	if flagChanged(cmd, "image") || flagChanged(cmd, "container") {
+		dst.Image = flags.Image
 	}
 	if flagChanged(cmd, "url") {
 		dst.URL = flags.URL

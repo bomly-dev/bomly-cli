@@ -25,7 +25,7 @@ func newScanCmd() *cobra.Command {
 		Example: "  bomly scan --enrich --audit\n" +
 			"  bomly scan -o spdx=bomly.spdx.json\n" +
 			"  bomly scan --url https://github.com/bomly-dev/bomly-cli --ref main --json\n" +
-			"  bomly scan --container alpine:3.20",
+			"  bomly scan --image alpine:3.20",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			started := time.Now()

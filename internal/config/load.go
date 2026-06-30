@@ -247,6 +247,11 @@ func ApplyEnvOverrides(dst *Resolved) {
 		}
 		val, ok := os.LookupEnv(key)
 		if !ok {
+			if alias := t.Field(i).Tag.Get("envalias"); alias != "" {
+				val, ok = os.LookupEnv(alias)
+			}
+		}
+		if !ok {
 			continue
 		}
 		fv := v.Field(i)

@@ -14,7 +14,7 @@ import (
 // ScanRequest holds per-call overrides for the bomly_scan tool.
 type ScanRequest struct {
 	Path       string `json:"path"`
-	Container  string `json:"container"`
+	Image      string `json:"image"`
 	URL        string `json:"url"`
 	Ref        string `json:"ref"`
 	Enrich     bool   `json:"enrich"`
@@ -39,7 +39,7 @@ type DiffRequest struct {
 	Base                  string `json:"base"`
 	Head                  string `json:"head"`
 	Path                  string `json:"path"`
-	Container             string `json:"container"`
+	Image                 string `json:"image"`
 	Enrich                bool   `json:"enrich"`
 	Audit                 bool   `json:"audit"`
 	Analyze               bool   `json:"analyze"`
@@ -118,6 +118,17 @@ func NewServer(mcpCtx Context) *server.MCPServer {
 }
 
 // jsonResult marshals v to JSON and returns it as a text tool result.
+// firstNonEmpty returns the first non-empty string, used to prefer a primary
+// argument over a deprecated alias.
+func firstNonEmpty(values ...string) string {
+	for _, v := range values {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
 func jsonResult(v any) (*mcplib.CallToolResult, error) {
 	data, err := json.Marshal(v)
 	if err != nil {

@@ -107,7 +107,12 @@ release:
   github:
     owner: bomly-dev
     name: bomly-cli
-  draft: false
+  # Stays a draft until the `publish` job in release.yml finalizes it. GitHub's
+  # immutable releases feature forbids adding assets once a release is
+  # published, and the SLSA provenance file is attached by a later job — so
+  # publishing has to be the last step, after every asset (including
+  # provenance) is in place. See dev-docs/CI.md.
+  draft: true
   prerelease: auto
   footer: |
     ---

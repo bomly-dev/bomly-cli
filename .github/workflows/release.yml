@@ -73,13 +73,11 @@ jobs:
           permission-pull-requests: write
 
       - name: Mint release token
-        # Used as GoReleaser's GITHUB_TOKEN to publish the release to this repo.
-        # The default GITHUB_TOKEN cannot be used here: GitHub does not start new
-        # workflow runs from events triggered by the default token, so a release
-        # published with it would never fire the `release: published` trigger on
-        # "Release lifecycle sync" (notify-landing-yank.yml) — and the
-        # landing-page docs sync (repository_dispatch) would silently never run.
-        # An app token is attributed to the app, so the publish event cascades.
+        # Used as GoReleaser's GITHUB_TOKEN to create the draft release on this
+        # repo and upload its assets (archives, packages, checksums, signature).
+        # The release stays a draft here (see .goreleaser.yaml) — actual
+        # publishing happens in the `publish` job below, after the SLSA
+        # provenance file is also attached.
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: release-token
         with:
@@ -118,7 +116,45 @@ jobs:
     # shorter tag — slsa-verifier resolves the builder identity from this exact ref,
     # and SHA-pinning breaks that resolution. See .github/pinact.yaml, which excludes
     # this line from automated re-pinning.
+    #
+    # Uploads to the still-draft release created above — draft releases are
+    # exempt from GitHub's immutable-releases restriction, which otherwise
+    # rejects new assets on an already-published release.
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
     with:
       base64-subjects: ${{ needs.release.outputs.hashes }}
       upload-assets: ${{ startsWith(github.ref, 'refs/tags/') }}
+
+  publish:
+    needs: [release, provenance]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Mint release token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: release-token
+        with:
+          client-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          owner: bomly-dev
+          repositories: bomly-cli
+          permission-contents: write
+
+      - name: Publish release
+        # Finalizes the draft into a published release now that every asset —
+        # GoReleaser's archives/packages/checksums/signature, plus the SLSA
+        # provenance file from the `provenance` job — is attached. Must run
+        # last: immutable releases reject new assets once published.
+        #
+        # Uses the release-bot app token, not the default GITHUB_TOKEN: GitHub
+        # does not start new workflow runs from events triggered by the
+        # default token, so a release published with it would never fire the
+        # `release: published` trigger on "Release lifecycle sync"
+        # (notify-landing-yank.yml) — and the landing-page docs sync would
+        # silently never run. An app token is attributed to the app, so the
+        # publish event cascades.
+        env:
+          GH_TOKEN: ${{ steps.release-token.outputs.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: gh release edit "$RELEASE_TAG" --draft=false --repo bomly-dev/bomly-cli

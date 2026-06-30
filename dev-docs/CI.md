@@ -28,6 +28,21 @@ For protected branches, require at least:
 
 `Smoke` is intentionally not a per-PR check; it is the slower pre-merge gate for merge queue entries and a nightly health monitor for upstream drift.
 
+## Supply-Chain Hardening (OpenSSF Scorecard)
+
+Bomly dogfoods its own domain by tracking the project's [OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/bomly-dev/bomly-cli). The weekly `Scorecard` workflow republishes results to the Security tab. Most checks are satisfied in-repo and stay green automatically:
+
+- **Token-Permissions** — every workflow declares a top-level `permissions:` block scoped to `contents: read`. Any write scope (release publishing, the Guard PR comment, the smoke-goldens PR) is granted at the **job** level only, never at the top level.
+- **Pinned-Dependencies** — all GitHub Actions are pinned by full commit SHA with a trailing `# vX.Y.Z` comment (for example `actions/checkout@<sha> # v7.0.0`). Dependabot's `github-actions` updater understands this form and bumps both the SHA and the comment, so pinning does not freeze us on stale actions. When adding a new `uses:`, pin it the same way — `pinact run` (suzuki-shunsuke/pinact) rewrites the whole tree, or resolve a single tag with `gh api repos/<owner>/<repo>/commits/<tag> --jq .sha`.
+- **SAST** — CodeQL runs on every push, PR, and weekly.
+
+A few Scorecard checks require maintainer action **outside** the repository and are not code changes:
+
+- **Branch-Protection** — on `main`, require pull-request reviews (at least one approval), require the status checks listed under [Required Checks](#required-checks), and **enable "Do not allow bypassing the above settings" / include administrators**. Admin bypass is the specific gap Scorecard currently flags. Configure under Settings → Branches.
+- **CII / OpenSSF Best Practices badge** — register the project at <https://www.bestpractices.dev>, complete the passing-tier questionnaire, and add the earned badge to `README.md`. One-time, external.
+
+Time-based checks (Code-Review approvals, Contributors, Maintained) improve on their own as the project accrues history and reviewed merges; they need no configuration.
+
 ## Merge Queue Strategy
 
 Bomly uses a layered merge policy:

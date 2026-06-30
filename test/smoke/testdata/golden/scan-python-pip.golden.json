@@ -7,6 +7,16 @@
           "depends_on": [],
           "id": "pkg:pypi/certifi@2026.6.17",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.lock",
+              "position": {
+                "file": "requirements.lock",
+                "line": 0
+              },
+              "real_path": "requirements.lock"
+            }
+          ],
           "name": "certifi",
           "package_ref": "pkg:pypi/certifi@2026.6.17",
           "purl": "pkg:pypi/certifi@2026.6.17",
@@ -19,6 +29,16 @@
           "depends_on": [],
           "id": "pkg:pypi/chardet@3.0.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.lock",
+              "position": {
+                "file": "requirements.lock",
+                "line": 0
+              },
+              "real_path": "requirements.lock"
+            }
+          ],
           "name": "chardet",
           "package_ref": "pkg:pypi/chardet@3.0.4",
           "purl": "pkg:pypi/chardet@3.0.4",
@@ -33,6 +53,16 @@
           ],
           "id": "pkg:pypi/django@1.11.29",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.txt",
+              "position": {
+                "file": "requirements.txt",
+                "line": 0
+              },
+              "real_path": "requirements.txt"
+            }
+          ],
           "name": "django",
           "package_ref": "pkg:pypi/django@1.11.29",
           "purl": "pkg:pypi/django@1.11.29",
@@ -47,6 +77,16 @@
           ],
           "id": "pkg:pypi/feedparser@6.0.8",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.txt",
+              "position": {
+                "file": "requirements.txt",
+                "line": 0
+              },
+              "real_path": "requirements.txt"
+            }
+          ],
           "name": "feedparser",
           "package_ref": "pkg:pypi/feedparser@6.0.8",
           "purl": "pkg:pypi/feedparser@6.0.8",
@@ -59,6 +99,16 @@
           "depends_on": [],
           "id": "pkg:pypi/idna@2.8",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.lock",
+              "position": {
+                "file": "requirements.lock",
+                "line": 0
+              },
+              "real_path": "requirements.lock"
+            }
+          ],
           "name": "idna",
           "package_ref": "pkg:pypi/idna@2.8",
           "purl": "pkg:pypi/idna@2.8",
@@ -73,6 +123,16 @@
           ],
           "id": "pkg:pypi/jinja2@2.10.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.txt",
+              "position": {
+                "file": "requirements.txt",
+                "line": 0
+              },
+              "real_path": "requirements.txt"
+            }
+          ],
           "name": "jinja2",
           "package_ref": "pkg:pypi/jinja2@2.10.1",
           "purl": "pkg:pypi/jinja2@2.10.1",
@@ -85,6 +145,16 @@
           "depends_on": [],
           "id": "pkg:pypi/markupsafe@3.0.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.lock",
+              "position": {
+                "file": "requirements.lock",
+                "line": 0
+              },
+              "real_path": "requirements.lock"
+            }
+          ],
           "name": "markupsafe",
           "package_ref": "pkg:pypi/markupsafe@3.0.3",
           "purl": "pkg:pypi/markupsafe@3.0.3",
@@ -97,6 +167,16 @@
           "depends_on": [],
           "id": "pkg:pypi/pyasn1@0.6.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.lock",
+              "position": {
+                "file": "requirements.lock",
+                "line": 0
+              },
+              "real_path": "requirements.lock"
+            }
+          ],
           "name": "pyasn1",
           "package_ref": "pkg:pypi/pyasn1@0.6.3",
           "purl": "pkg:pypi/pyasn1@0.6.3",
@@ -109,6 +189,16 @@
           "depends_on": [],
           "id": "pkg:pypi/pyjwt@0.4.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.txt",
+              "position": {
+                "file": "requirements.txt",
+                "line": 0
+              },
+              "real_path": "requirements.txt"
+            }
+          ],
           "name": "pyjwt",
           "package_ref": "pkg:pypi/pyjwt@0.4.2",
           "purl": "pkg:pypi/pyjwt@0.4.2",
@@ -121,6 +211,16 @@
           "depends_on": [],
           "id": "pkg:pypi/pytz@2026.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.lock",
+              "position": {
+                "file": "requirements.lock",
+                "line": 0
+              },
+              "real_path": "requirements.lock"
+            }
+          ],
           "name": "pytz",
           "package_ref": "pkg:pypi/pytz@2026.2",
           "purl": "pkg:pypi/pytz@2026.2",
@@ -133,6 +233,16 @@
           "depends_on": [],
           "id": "pkg:pypi/pyyaml@5.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.txt",
+              "position": {
+                "file": "requirements.txt",
+                "line": 0
+              },
+              "real_path": "requirements.txt"
+            }
+          ],
           "name": "pyyaml",
           "package_ref": "pkg:pypi/pyyaml@5.3",
           "purl": "pkg:pypi/pyyaml@5.3",
@@ -150,6 +260,16 @@
           ],
           "id": "pkg:pypi/requests@2.21.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.txt",
+              "position": {
+                "file": "requirements.txt",
+                "line": 0
+              },
+              "real_path": "requirements.txt"
+            }
+          ],
           "name": "requests",
           "package_ref": "pkg:pypi/requests@2.21.0",
           "purl": "pkg:pypi/requests@2.21.0",
@@ -182,6 +302,16 @@
           ],
           "id": "pkg:pypi/rsa@3.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.txt",
+              "position": {
+                "file": "requirements.txt",
+                "line": 0
+              },
+              "real_path": "requirements.txt"
+            }
+          ],
           "name": "rsa",
           "package_ref": "pkg:pypi/rsa@3.4",
           "purl": "pkg:pypi/rsa@3.4",
@@ -194,6 +324,16 @@
           "depends_on": [],
           "id": "pkg:pypi/sgmllib3k@1.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.lock",
+              "position": {
+                "file": "requirements.lock",
+                "line": 0
+              },
+              "real_path": "requirements.lock"
+            }
+          ],
           "name": "sgmllib3k",
           "package_ref": "pkg:pypi/sgmllib3k@1.0.0",
           "purl": "pkg:pypi/sgmllib3k@1.0.0",
@@ -206,6 +346,16 @@
           "depends_on": [],
           "id": "pkg:pypi/sqlalchemy@1.4.46",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.txt",
+              "position": {
+                "file": "requirements.txt",
+                "line": 0
+              },
+              "real_path": "requirements.txt"
+            }
+          ],
           "name": "sqlalchemy",
           "package_ref": "pkg:pypi/sqlalchemy@1.4.46",
           "purl": "pkg:pypi/sqlalchemy@1.4.46",
@@ -218,6 +368,16 @@
           "depends_on": [],
           "id": "pkg:pypi/urllib3@1.24.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.txt",
+              "position": {
+                "file": "requirements.txt",
+                "line": 0
+              },
+              "real_path": "requirements.txt"
+            }
+          ],
           "name": "urllib3",
           "package_ref": "pkg:pypi/urllib3@1.24.1",
           "purl": "pkg:pypi/urllib3@1.24.1",

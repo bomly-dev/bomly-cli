@@ -81,6 +81,22 @@
                 "line": 0
               },
               "real_path": "package-lock.json"
+            },
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            },
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
             }
           ],
           "name": "ansi-regex",
@@ -2671,6 +2687,22 @@
                 "line": 0
               },
               "real_path": "package-lock.json"
+            },
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            },
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
             }
           ],
           "name": "string-width",
@@ -2784,6 +2816,22 @@
           "id": "pkg:npm/strip-ansi@5.2.0",
           "licenses": [],
           "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            },
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            },
             {
               "access_path": "package-lock.json",
               "position": {

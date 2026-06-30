@@ -19,6 +19,7 @@
       "changed": [
         {
           "after": {
+            "direct": true,
             "id": "pkg:npm/lodash@4.17.15",
             "licenses": [],
             "locations": [
@@ -38,6 +39,7 @@
             "vulnerabilities": []
           },
           "before": {
+            "direct": true,
             "id": "pkg:npm/lodash@4.17.14",
             "licenses": [],
             "locations": [
@@ -65,6 +67,7 @@
         "changed": [
           {
             "after": {
+              "direct": true,
               "id": "pkg:npm/lodash@4.17.15",
               "licenses": [],
               "locations": [
@@ -84,6 +87,7 @@
               "vulnerabilities": []
             },
             "before": {
+              "direct": true,
               "id": "pkg:npm/lodash@4.17.14",
               "licenses": [],
               "locations": [

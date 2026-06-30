@@ -7,6 +7,16 @@
           "depends_on": [],
           "id": "pkg:pypi/certifi@2026.6.17",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.lock",
+              "position": {
+                "file": "requirements.lock",
+                "line": 0
+              },
+              "real_path": "requirements.lock"
+            }
+          ],
           "matched": true,
           "name": "certifi",
           "package_ref": "pkg:pypi/certifi@2026.6.17",
@@ -20,6 +30,16 @@
           "depends_on": [],
           "id": "pkg:pypi/chardet@3.0.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.lock",
+              "position": {
+                "file": "requirements.lock",
+                "line": 0
+              },
+              "real_path": "requirements.lock"
+            }
+          ],
           "matched": true,
           "name": "chardet",
           "package_ref": "pkg:pypi/chardet@3.0.4",
@@ -35,6 +55,16 @@
           ],
           "id": "pkg:pypi/django@1.11.29",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.txt",
+              "position": {
+                "file": "requirements.txt",
+                "line": 0
+              },
+              "real_path": "requirements.txt"
+            }
+          ],
           "matched": true,
           "name": "django",
           "package_ref": "pkg:pypi/django@1.11.29",
@@ -50,6 +80,16 @@
           ],
           "id": "pkg:pypi/feedparser@6.0.8",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.txt",
+              "position": {
+                "file": "requirements.txt",
+                "line": 0
+              },
+              "real_path": "requirements.txt"
+            }
+          ],
           "matched": true,
           "name": "feedparser",
           "package_ref": "pkg:pypi/feedparser@6.0.8",
@@ -63,6 +103,16 @@
           "depends_on": [],
           "id": "pkg:pypi/idna@2.8",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.lock",
+              "position": {
+                "file": "requirements.lock",
+                "line": 0
+              },
+              "real_path": "requirements.lock"
+            }
+          ],
           "matched": true,
           "name": "idna",
           "package_ref": "pkg:pypi/idna@2.8",
@@ -78,6 +128,16 @@
           ],
           "id": "pkg:pypi/jinja2@2.10.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.txt",
+              "position": {
+                "file": "requirements.txt",
+                "line": 0
+              },
+              "real_path": "requirements.txt"
+            }
+          ],
           "matched": true,
           "name": "jinja2",
           "package_ref": "pkg:pypi/jinja2@2.10.1",
@@ -91,6 +151,16 @@
           "depends_on": [],
           "id": "pkg:pypi/markupsafe@3.0.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.lock",
+              "position": {
+                "file": "requirements.lock",
+                "line": 0
+              },
+              "real_path": "requirements.lock"
+            }
+          ],
           "matched": true,
           "name": "markupsafe",
           "package_ref": "pkg:pypi/markupsafe@3.0.3",
@@ -104,6 +174,16 @@
           "depends_on": [],
           "id": "pkg:pypi/pyasn1@0.6.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.lock",
+              "position": {
+                "file": "requirements.lock",
+                "line": 0
+              },
+              "real_path": "requirements.lock"
+            }
+          ],
           "matched": true,
           "name": "pyasn1",
           "package_ref": "pkg:pypi/pyasn1@0.6.3",
@@ -117,6 +197,16 @@
           "depends_on": [],
           "id": "pkg:pypi/pyjwt@0.4.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.txt",
+              "position": {
+                "file": "requirements.txt",
+                "line": 0
+              },
+              "real_path": "requirements.txt"
+            }
+          ],
           "matched": true,
           "name": "pyjwt",
           "package_ref": "pkg:pypi/pyjwt@0.4.2",
@@ -130,6 +220,16 @@
           "depends_on": [],
           "id": "pkg:pypi/pytz@2026.2",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.lock",
+              "position": {
+                "file": "requirements.lock",
+                "line": 0
+              },
+              "real_path": "requirements.lock"
+            }
+          ],
           "matched": true,
           "name": "pytz",
           "package_ref": "pkg:pypi/pytz@2026.2",
@@ -143,6 +243,16 @@
           "depends_on": [],
           "id": "pkg:pypi/pyyaml@5.3",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.txt",
+              "position": {
+                "file": "requirements.txt",
+                "line": 0
+              },
+              "real_path": "requirements.txt"
+            }
+          ],
           "matched": true,
           "name": "pyyaml",
           "package_ref": "pkg:pypi/pyyaml@5.3",
@@ -161,6 +271,16 @@
           ],
           "id": "pkg:pypi/requests@2.21.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.txt",
+              "position": {
+                "file": "requirements.txt",
+                "line": 0
+              },
+              "real_path": "requirements.txt"
+            }
+          ],
           "matched": true,
           "name": "requests",
           "package_ref": "pkg:pypi/requests@2.21.0",
@@ -194,6 +314,16 @@
           ],
           "id": "pkg:pypi/rsa@3.4",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.txt",
+              "position": {
+                "file": "requirements.txt",
+                "line": 0
+              },
+              "real_path": "requirements.txt"
+            }
+          ],
           "matched": true,
           "name": "rsa",
           "package_ref": "pkg:pypi/rsa@3.4",
@@ -207,6 +337,16 @@
           "depends_on": [],
           "id": "pkg:pypi/sgmllib3k@1.0.0",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.lock",
+              "position": {
+                "file": "requirements.lock",
+                "line": 0
+              },
+              "real_path": "requirements.lock"
+            }
+          ],
           "matched": true,
           "name": "sgmllib3k",
           "package_ref": "pkg:pypi/sgmllib3k@1.0.0",
@@ -220,6 +360,16 @@
           "depends_on": [],
           "id": "pkg:pypi/sqlalchemy@1.4.46",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.txt",
+              "position": {
+                "file": "requirements.txt",
+                "line": 0
+              },
+              "real_path": "requirements.txt"
+            }
+          ],
           "matched": true,
           "name": "sqlalchemy",
           "package_ref": "pkg:pypi/sqlalchemy@1.4.46",
@@ -233,6 +383,16 @@
           "depends_on": [],
           "id": "pkg:pypi/urllib3@1.24.1",
           "licenses": [],
+          "locations": [
+            {
+              "access_path": "requirements.txt",
+              "position": {
+                "file": "requirements.txt",
+                "line": 0
+              },
+              "real_path": "requirements.txt"
+            }
+          ],
           "matched": true,
           "name": "urllib3",
           "package_ref": "pkg:pypi/urllib3@1.24.1",
@@ -928,7 +1088,7 @@
               "url": "https://github.com/pypa/advisory-database/tree/main/vulns/django/PYSEC-2025-108.yaml"
             }
           ],
-          "risk_score": 16.97056,
+          "risk_score": 17.3217,
           "severity": "critical",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -1042,7 +1202,7 @@
               "url": "https://github.com/pypa/advisory-database/tree/main/vulns/django/PYSEC-2025-107.yaml"
             }
           ],
-          "risk_score": 1.3965,
+          "risk_score": 1.42725,
           "severity": "high",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -1261,7 +1421,7 @@
               "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-45409"
             }
           ],
-          "risk_score": 0.26655999999999996,
+          "risk_score": 0.24276000000000003,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -1385,7 +1545,7 @@
               "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/4YQUPYH3SVZ5GFF2CDQ55FCM575AZTF2"
             }
           ],
-          "risk_score": 0.617925,
+          "risk_score": 0.800415,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -1938,7 +2098,7 @@
               "url": "https://lists.debian.org/debian-lts-announce/2025/04/msg00022.html"
             }
           ],
-          "risk_score": 0.28768,
+          "risk_score": 0.29,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -2169,7 +2329,7 @@
               "url": "https://github.com/pypa/advisory-database/tree/main/vulns/pyjwt/PYSEC-2026-175.yaml"
             }
           ],
-          "risk_score": 0.06808,
+          "risk_score": 0.08326,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -2259,7 +2419,7 @@
               "url": "https://github.com/pypa/advisory-database/tree/main/vulns/pyjwt/PYSEC-2026-177.yaml"
             }
           ],
-          "risk_score": 0.068675,
+          "risk_score": 0.07437,
           "severity": "low",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -2430,7 +2590,7 @@
               "url": "https://github.com/pypa/advisory-database/tree/main/vulns/pyjwt/PYSEC-2026-179.yaml"
             }
           ],
-          "risk_score": 0.11026,
+          "risk_score": 0.17284,
           "severity": "high",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -3072,7 +3232,7 @@
               "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-25645"
             }
           ],
-          "risk_score": 0.07379,
+          "risk_score": 0.08554,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -3603,7 +3763,7 @@
               "url": "https://nvd.nist.gov/vuln/detail/CVE-2025-66471"
             }
           ],
-          "risk_score": 0.43705999999999995,
+          "risk_score": 0.51004,
           "severity": "high",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -3707,7 +3867,7 @@
               "url": "https://www.vicarius.io/vsociety/posts/proxy-authorization-header-handling-vulnerability-in-urllib3-cve-2024-37891"
             }
           ],
-          "risk_score": 0.45355000000000006,
+          "risk_score": 0.53627,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -3801,7 +3961,7 @@
               "url": "https://lists.debian.org/debian-lts-announce/2026/01/msg00017.html"
             }
           ],
-          "risk_score": 0.41134,
+          "risk_score": 0.5337999999999999,
           "severity": "high",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -4024,7 +4184,7 @@
               "url": "https://nvd.nist.gov/vuln/detail/CVE-2025-66418"
             }
           ],
-          "risk_score": 0.43705999999999995,
+          "risk_score": 0.51004,
           "severity": "high",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -4361,7 +4521,7 @@
               "url": "https://github.com/urllib3/urllib3/releases/tag/2.5.0"
             }
           ],
-          "risk_score": 0.175615,
+          "risk_score": 0.20600000000000002,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -4445,7 +4605,7 @@
               "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-44431"
             }
           ],
-          "risk_score": 0.18525,
+          "risk_score": 0.37548750000000003,
           "severity": "high",
           "severity_source": "github:language:python",
           "source": "grype",
@@ -4862,7 +5022,7 @@
               "url": "https://usn.ubuntu.com/4570-1"
             }
           ],
-          "risk_score": 1.2864149999999999,
+          "risk_score": 1.327365,
           "severity": "medium",
           "severity_source": "github:language:python",
           "source": "grype",

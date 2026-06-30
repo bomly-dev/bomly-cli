@@ -84,6 +84,22 @@
                 "line": 0
               },
               "real_path": "package-lock.json"
+            },
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            },
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
             }
           ],
           "matched": true,
@@ -2778,6 +2794,22 @@
                 "line": 0
               },
               "real_path": "package-lock.json"
+            },
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            },
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
             }
           ],
           "matched": true,
@@ -2896,6 +2928,22 @@
           "id": "pkg:npm/strip-ansi@5.2.0",
           "licenses": [],
           "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            },
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            },
             {
               "access_path": "package-lock.json",
               "position": {
@@ -4003,7 +4051,7 @@
               "url": "https://security.netapp.com/advisory/ntap-20240621-0006"
             }
           ],
-          "risk_score": 2.57958,
+          "risk_score": 2.55969,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -5728,11 +5776,19 @@
               "cve": "CVE-2026-53550",
               "id": "CWE-407",
               "source": "security-advisories@github.com",
-              "type": "Primary"
+              "type": "Secondary"
             }
           ],
           "data_source": "https://github.com/advisories/GHSA-h67p-54hq-rp68",
           "description": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+          "epss": [
+            {
+              "cve": "CVE-2026-53550",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
           "fix_available": [
             {
               "date": "2026-06-15",
@@ -5772,6 +5828,7 @@
               "url": "https://github.com/nodeca/js-yaml/security/advisories/GHSA-h67p-54hq-rp68"
             }
           ],
+          "risk_score": 0.133385,
           "severity": "medium",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -5905,11 +5962,19 @@
               "cve": "CVE-2026-53550",
               "id": "CWE-407",
               "source": "security-advisories@github.com",
-              "type": "Primary"
+              "type": "Secondary"
             }
           ],
           "data_source": "https://github.com/advisories/GHSA-h67p-54hq-rp68",
           "description": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+          "epss": [
+            {
+              "cve": "CVE-2026-53550",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
           "fix_available": [
             {
               "date": "2026-06-15",
@@ -5949,6 +6014,7 @@
               "url": "https://github.com/nodeca/js-yaml/security/advisories/GHSA-h67p-54hq-rp68"
             }
           ],
+          "risk_score": 0.133385,
           "severity": "medium",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -6564,7 +6630,7 @@
               "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-2950"
             }
           ],
-          "risk_score": 0.17077499999999998,
+          "risk_score": 0.182275,
           "severity": "medium",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -7304,7 +7370,7 @@
               "url": "https://github.com/isaacs/minimatch/commit/11d0df6165d15a955462316b26d52e5efae06fce"
             }
           ],
-          "risk_score": 0.34125,
+          "risk_score": 0.35400000000000004,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -7388,7 +7454,7 @@
               "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-26996"
             }
           ],
-          "risk_score": 0.40499999999999997,
+          "risk_score": 0.42039,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -7472,7 +7538,7 @@
               "url": "https://github.com/isaacs/minimatch/commit/0bf499aa45f5059b56809cc3b75ff3eafeb8d748"
             }
           ],
-          "risk_score": 0.37424999999999997,
+          "risk_score": 0.38775,
           "severity": "high",
           "severity_source": "github:language:javascript",
           "source": "grype",
@@ -9796,7 +9862,7 @@
               "url": "https://github.com/uuidjs/uuid/releases/tag/v13.0.1"
             }
           ],
-          "risk_score": 0.185045,
+          "risk_score": 0.20051499999999997,
           "severity": "medium",
           "severity_source": "github:language:javascript",
           "source": "grype",

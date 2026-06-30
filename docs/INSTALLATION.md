@@ -207,6 +207,34 @@ Get-FileHash .\bomly_v0.14.2_windows_amd64.zip -Algorithm SHA256
 # Compare the printed hash against the matching line in SHA256SUMS.
 ```
 
+### Verify the signature
+
+`SHA256SUMS` is itself signed keylessly with [cosign](https://docs.sigstore.dev/cosign/signing/overview/), tying the release to the exact GitHub Actions workflow run that built it:
+
+```bash
+curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.14.2/SHA256SUMS.sigstore.json
+cosign verify-blob \
+  --bundle SHA256SUMS.sigstore.json \
+  --certificate-identity-regexp "^https://github.com/bomly-dev/bomly-cli/.github/workflows/release.yml@.*$" \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  SHA256SUMS
+```
+
+### Verify SLSA provenance
+
+Each release also publishes a single `multiple.intoto.jsonl` SLSA Build Level 3 provenance file covering every release artifact, attesting which source commit and workflow produced them:
+
+```bash
+curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.14.2/bomly_v0.14.2_linux_amd64.tar.gz
+curl -L -O https://github.com/bomly-dev/bomly-cli/releases/download/v0.14.2/multiple.intoto.jsonl
+slsa-verifier verify-artifact bomly_v0.14.2_linux_amd64.tar.gz \
+  --provenance-path multiple.intoto.jsonl \
+  --source-uri github.com/bomly-dev/bomly-cli \
+  --source-tag v0.14.2
+```
+
+`slsa-verifier` is available from the [slsa-framework/slsa-verifier releases](https://github.com/slsa-framework/slsa-verifier/releases).
+
 ## CI installation
 
 For pinned CI recipes, see [CI integration](CI_INTEGRATION.md). Prefer a package-manager install when your CI environment supports it. If you download archives directly, pin a specific tag rather than `latest`.

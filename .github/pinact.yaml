@@ -1,0 +1,8 @@
+# pinact config: https://github.com/suzuki-shunsuke/pinact
+#
+# The SLSA generic generator reusable workflow must stay pinned by a vX.Y.Z tag —
+# SHA-pinning it breaks slsa-verifier's builder-identity resolution. Exclude it from
+# `pinact run` so the tag pin survives automated re-pinning passes.
+ignore_actions:
+  - name: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml
+    ref: "v\\d+\\.\\d+\\.\\d+"

@@ -236,7 +236,39 @@ func entrypointForManifest(manifest Manifest) (string, error) {
 	if entry == "" {
 		return "", fmt.Errorf("plugin %s@%s does not provide entrypoint for %s", manifest.ID, manifest.Version, platformKey())
 	}
-	return filepath.FromSlash(entry), nil
+	cleanEntry, err := cleanRelativePluginPath(entry)
+	if err != nil {
+		return "", fmt.Errorf("plugin entrypoint %q must stay within the plugin directory", entry)
+	}
+	return cleanEntry, nil
+}
+
+func cleanRelativePluginPath(value string) (string, error) {
+	slashPath := strings.ReplaceAll(strings.TrimSpace(value), "\\", "/")
+	if slashPath == "" || slashPath == "." || strings.Contains(slashPath, ":") {
+		return "", errors.New("invalid relative path")
+	}
+	cleanPath := filepath.Clean(filepath.FromSlash(slashPath))
+	if filepath.IsAbs(cleanPath) || cleanPath == ".." || strings.HasPrefix(cleanPath, ".."+string(os.PathSeparator)) {
+		return "", errors.New("path escapes base directory")
+	}
+	return cleanPath, nil
+}
+
+func pathInPluginDir(root, relativePath string) (string, error) {
+	cleanPath, err := cleanRelativePluginPath(relativePath)
+	if err != nil {
+		return "", err
+	}
+	destination := filepath.Join(root, cleanPath)
+	rel, err := filepath.Rel(root, destination)
+	if err != nil {
+		return "", err
+	}
+	if rel == ".." || strings.HasPrefix(rel, ".."+string(os.PathSeparator)) {
+		return "", errors.New("path escapes base directory")
+	}
+	return destination, nil
 }
 
 func loadInstalledDB(root string) (InstalledDB, error) {
@@ -421,15 +453,25 @@ func validateManifest(manifest Manifest) error {
 	if err != nil {
 		return err
 	}
-	cleanEntry := filepath.Clean(entry)
-	if filepath.IsAbs(cleanEntry) || strings.HasPrefix(cleanEntry, "..") {
+	if _, err := pathInPluginDir(".", entry); err != nil {
 		return fmt.Errorf("plugin entrypoint %q must stay within the plugin directory", entry)
 	}
 	return nil
 }
 
 func checksumFile(path string) (string, error) {
-	file, err := os.Open(path)
+	cleanPath, err := filepath.Abs(path)
+	if err != nil {
+		return "", fmt.Errorf("resolve file for checksum: %w", err)
+	}
+	info, err := os.Stat(cleanPath)
+	if err != nil {
+		return "", fmt.Errorf("stat file for checksum: %w", err)
+	}
+	if info.IsDir() {
+		return "", fmt.Errorf("checksum path %q is a directory", path)
+	}
+	file, err := os.Open(cleanPath)
 	if err != nil {
 		return "", fmt.Errorf("open file for checksum: %w", err)
 	}
@@ -675,6 +717,10 @@ func LoadInstalledPlugins(root string) ([]Info, error) {
 		if err != nil {
 			return nil, err
 		}
+		fullEntrypoint, err := pathInPluginDir(item.Path, entry)
+		if err != nil {
+			return nil, fmt.Errorf("plugin entrypoint %q must stay within the plugin directory", entry)
+		}
 		snapshot, err := readRuntimeSnapshot(item.Path)
 		if err != nil {
 			return nil, fmt.Errorf("read installed plugin %s: %w", item.ID, err)
@@ -686,7 +732,7 @@ func LoadInstalledPlugins(root string) ([]Info, error) {
 			AuditorDescriptor:  cloneAuditorDescriptor(snapshot.AuditorDescriptor),
 			Installed:          new(item),
 			Enabled:            item.Enabled,
-			Entrypoint:         filepath.Join(item.Path, entry),
+			Entrypoint:         fullEntrypoint,
 			SourceType:         "external",
 		})
 	}
@@ -733,6 +779,10 @@ func LoadRuntimePlugins(root string) ([]Info, error) {
 		if err != nil {
 			return nil, err
 		}
+		fullEntrypoint, err := pathInPluginDir(item.Path, entry)
+		if err != nil {
+			return nil, fmt.Errorf("plugin entrypoint %q must stay within the plugin directory", entry)
+		}
 		snapshot, err := readRuntimeSnapshot(item.Path)
 		if err != nil {
 			return nil, fmt.Errorf("read installed plugin %s: %w", item.ID, err)
@@ -744,7 +794,7 @@ func LoadRuntimePlugins(root string) ([]Info, error) {
 			AuditorDescriptor:  cloneAuditorDescriptor(snapshot.AuditorDescriptor),
 			Installed:          new(item),
 			Enabled:            item.Enabled,
-			Entrypoint:         filepath.Join(item.Path, entry),
+			Entrypoint:         fullEntrypoint,
 			SourceType:         "external",
 		})
 	}

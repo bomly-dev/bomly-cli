@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 )
 
 // Verify validates one installed managed plugin.
@@ -26,7 +25,10 @@ func Verify(ctx context.Context, root, id string) (*VerifyResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	fullEntrypoint := filepath.Join(record.Path, entry)
+	fullEntrypoint, err := pathInPluginDir(record.Path, entry)
+	if err != nil {
+		return nil, fmt.Errorf("plugin entrypoint %q must stay within the plugin directory", entry)
+	}
 	if _, err := os.Stat(fullEntrypoint); err != nil {
 		return nil, fmt.Errorf("verify plugin entrypoint: %w", err)
 	}

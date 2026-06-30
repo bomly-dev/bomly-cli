@@ -3,7 +3,6 @@ package plugin
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"strings"
 
 	plugschema "github.com/bomly-dev/bomly-cli/sdk"
@@ -62,7 +61,10 @@ func Test(ctx context.Context, root, id string, builtins []Info) (*TestResult, e
 	if err != nil {
 		return nil, err
 	}
-	fullEntrypoint := filepath.Join(record.Path, entry)
+	fullEntrypoint, err := pathInPluginDir(record.Path, entry)
+	if err != nil {
+		return nil, fmt.Errorf("plugin entrypoint %q must stay within the plugin directory", entry)
+	}
 
 	client, err := startPlugin(launchContext(ctx, nil), fullEntrypoint, manifest.ID)
 	if err != nil {

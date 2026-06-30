@@ -147,7 +147,10 @@ func installDevBinary(ctx context.Context, tempDir, source string) (Manifest, st
 		return Manifest{}, "", err
 	}
 	entry, _ := entrypointForManifest(manifest)
-	targetBinary := filepath.Join(tempDir, entry)
+	targetBinary, err := pathInPluginDir(tempDir, entry)
+	if err != nil {
+		return Manifest{}, "", fmt.Errorf("plugin entrypoint %q must stay within the plugin directory", entry)
+	}
 	if err := os.MkdirAll(filepath.Dir(targetBinary), 0o755); err != nil {
 		return Manifest{}, "", fmt.Errorf("create plugin binary dir: %w", err)
 	}
@@ -200,14 +203,16 @@ func installRemoteArchive(ctx context.Context, tempDir, source string, opts Inst
 	if downloadName == "" {
 		downloadName = filepath.Base(resp.Request.URL.Path)
 	}
-	if strings.TrimSpace(downloadName) == "" || downloadName == "." || downloadName == "/" {
+	downloadName = safeDownloadArchiveName(downloadName)
+	if downloadName == "" {
 		downloadName = "downloaded-plugin"
 	}
-	archivePath := filepath.Join(filepath.Dir(tempDir), downloadName)
-	file, err := os.Create(archivePath)
+	file, err := os.CreateTemp(filepath.Dir(tempDir), "bomly-plugin-archive-*"+archiveExtension(downloadName))
 	if err != nil {
 		return Manifest{}, "", fmt.Errorf("create downloaded plugin archive: %w", err)
 	}
+	archivePath := file.Name()
+	defer func() { _ = os.Remove(archivePath) }()
 	if _, err := io.Copy(file, resp.Body); err != nil {
 		_ = file.Close()
 		return Manifest{}, "", fmt.Errorf("write downloaded plugin archive: %w", err)
@@ -216,6 +221,33 @@ func installRemoteArchive(ctx context.Context, tempDir, source string, opts Inst
 		return Manifest{}, "", fmt.Errorf("close downloaded plugin archive: %w", err)
 	}
 	return installArchiveAtPath(ctx, tempDir, archivePath, source, opts.Checksum, opts.InsecureSkipChecksum)
+}
+
+func safeDownloadArchiveName(name string) string {
+	// Remote archive names are only used to preserve a trusted extension for temp-file format detection.
+	name = strings.ReplaceAll(strings.TrimSpace(name), "\\", "/")
+	if name == "" {
+		return ""
+	}
+	base := filepath.Base(filepath.FromSlash(name))
+	if base == "." || base == string(os.PathSeparator) || base == ".." || strings.Contains(base, ":") {
+		return ""
+	}
+	return base
+}
+
+func archiveExtension(name string) string {
+	lower := strings.ToLower(name)
+	switch {
+	case strings.HasSuffix(lower, ".tar.gz"):
+		return ".tar.gz"
+	case strings.HasSuffix(lower, ".tgz"):
+		return ".tgz"
+	case strings.HasSuffix(lower, ".zip"):
+		return ".zip"
+	default:
+		return ""
+	}
 }
 
 func filenameFromContentDisposition(value string) string {
@@ -227,7 +259,7 @@ func filenameFromContentDisposition(value string) string {
 		return ""
 	}
 	if name := strings.TrimSpace(params["filename"]); name != "" {
-		return filepath.Base(name)
+		return safeDownloadArchiveName(name)
 	}
 	return ""
 }
@@ -269,7 +301,10 @@ func installArchiveAtPath(ctx context.Context, tempDir, archivePath, source, exp
 	if err != nil {
 		return Manifest{}, "", err
 	}
-	fullEntrypoint := filepath.Join(tempDir, entry)
+	fullEntrypoint, err := pathInPluginDir(tempDir, entry)
+	if err != nil {
+		return Manifest{}, "", fmt.Errorf("plugin entrypoint %q must stay within the plugin directory", entry)
+	}
 	if _, err := os.Stat(fullEntrypoint); err != nil {
 		return Manifest{}, "", fmt.Errorf("plugin entrypoint %q is missing: %w", entry, err)
 	}
@@ -330,7 +365,11 @@ func extractZipArchive(archivePath, targetDir string) error {
 }
 
 func extractTarGzArchive(archivePath, targetDir string) error {
-	file, err := os.Open(archivePath)
+	cleanArchivePath, err := filepath.Abs(archivePath)
+	if err != nil {
+		return fmt.Errorf("resolve plugin tar.gz archive: %w", err)
+	}
+	file, err := os.Open(cleanArchivePath)
 	if err != nil {
 		return fmt.Errorf("open plugin tar.gz archive: %w", err)
 	}
@@ -366,24 +405,24 @@ func extractTarGzArchive(archivePath, targetDir string) error {
 }
 
 func extractArchiveEntry(name, targetDir string, mode os.FileMode, write func(string) error) error {
-	cleanName := filepath.Clean(filepath.FromSlash(strings.TrimSpace(name)))
-	if cleanName == "." || cleanName == "" {
+	if strings.TrimSpace(name) == "" || strings.TrimSpace(name) == "." {
 		return nil
 	}
-	if filepath.IsAbs(cleanName) || strings.HasPrefix(cleanName, "..") {
+	destination, err := pathInPluginDir(targetDir, name)
+	if err != nil {
 		return fmt.Errorf("plugin archive entry %q escapes the extraction directory", name)
 	}
-	destination := filepath.Join(targetDir, cleanName)
 	rel, err := filepath.Rel(targetDir, destination)
 	if err != nil {
 		return fmt.Errorf("resolve plugin archive entry %q: %w", name, err)
 	}
-	if strings.HasPrefix(rel, "..") {
+	if rel == ".." || strings.HasPrefix(rel, ".."+string(os.PathSeparator)) {
 		return fmt.Errorf("plugin archive entry %q escapes the extraction directory", name)
 	}
 	if err := os.MkdirAll(filepath.Dir(destination), 0o755); err != nil {
 		return fmt.Errorf("create plugin archive parent for %q: %w", name, err)
 	}
+	// Symlinks would make the lexical containment checks above vulnerable to writes outside targetDir.
 	if mode&os.ModeSymlink != 0 {
 		return fmt.Errorf("plugin archive entry %q uses unsupported symlink mode", name)
 	}

@@ -35,7 +35,7 @@ Bomly dogfoods its own domain by tracking the project's [OpenSSF Scorecard](http
 - **Token-Permissions** — every workflow declares a top-level `permissions:` block scoped to `contents: read`. Any write scope (release publishing, the Guard PR comment, the smoke-goldens PR) is granted at the **job** level only, never at the top level.
 - **Pinned-Dependencies** — all GitHub Actions are pinned by full commit SHA with a trailing `# vX.Y.Z` comment (for example `actions/checkout@<sha> # v7.0.0`). Dependabot's `github-actions` updater understands this form and bumps both the SHA and the comment, so pinning does not freeze us on stale actions. When adding a new `uses:`, pin it the same way — `pinact run` (suzuki-shunsuke/pinact) rewrites the whole tree, or resolve a single tag with `gh api repos/<owner>/<repo>/commits/<tag> --jq .sha`. The `Smoke` and `Update Smoke Goldens` workflows install `pip`/`pipenv`/`poetry` from `.github/requirements-ci-tools.txt`, a hash-locked, fully-resolved requirements file (`pip install --require-hashes`) instead of an unpinned inline `pip install`. Regenerate it after bumping `.github/requirements-ci-tools.in` with `pip-compile --allow-unsafe --generate-hashes --output-file=requirements-ci-tools.txt requirements-ci-tools.in` run from `.github/` under the same Python version the workflows use (3.12), so the resolved hash set covers the right wheel tags.
 - **SAST** — CodeQL runs on every push, PR, and weekly.
-- **Signed-Releases** — the `release` job signs `SHA256SUMS` keylessly with [cosign](https://docs.sigstore.dev/cosign/signing/overview/) (`SHA256SUMS.sigstore.json`, GitHub OIDC identity, no managed keys), and a separate `provenance` job calls the [slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator) generic builder to produce a single `multiple.intoto.jsonl` SLSA Build Level 3 provenance file over every release artifact's hash, uploaded to the same GitHub release. Verification commands for end users are in [docs/INSTALLATION.md](../docs/INSTALLATION.md#verify-release-checksums). The generator's `uses:` line is pinned to the `v2.1.0` tag, not a commit SHA — SHA-pinning it breaks `slsa-verifier`'s builder-identity check — and `.github/pinact.yaml` excludes that line from automated re-pinning so it doesn't regress.
+- **Signed-Releases** — the `release` job signs `SHA256SUMS` keylessly with [cosign](https://docs.sigstore.dev/cosign/signing/overview/) (`SHA256SUMS.sigstore.json`, GitHub OIDC identity, no managed keys), and a separate `provenance` job calls the [slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator) generic builder to produce a single `multiple.intoto.jsonl` SLSA Build Level 3 provenance file over every release artifact's hash, uploaded to the same GitHub release. Verification commands for end users are in [docs/INSTALLATION.md](../docs/INSTALLATION.md#verify-release-checksums). The generator's `uses:` line is pinned to the `v2.1.0` tag, not a commit SHA — SHA-pinning it breaks `slsa-verifier`'s builder-identity check — and `.github/pinact.yaml` excludes that line from automated re-pinning so it doesn't regress. Because the provenance file is attached by a job downstream of `release`, and GitHub's immutable releases feature blocks adding assets after a release is published, `.goreleaser.yaml` keeps the release as a draft and a final `publish` job flips it to published only after `provenance` succeeds — see [Release Process](#release-process).
 
 A few Scorecard checks require maintainer action **outside** the repository and are not code changes:
 
@@ -176,8 +176,8 @@ go build -tags "bomly_external_syft,bomly_external_grype" -o bin/bomly-lite ./cm
 
 Release packaging is driven by `.goreleaser.yaml`. The release workflow uses GoReleaser to create:
 
-- A published GitHub Release with archives for `bomly` and `bomly-lite`.
-- `SHA256SUMS`.
+- A GitHub Release with archives for `bomly` and `bomly-lite`.
+- `SHA256SUMS`, keylessly signed with cosign (`SHA256SUMS.sigstore.json`).
 - Linux `.deb`, `.rpm`, `.apk`, and Arch Linux package artifacts for the full `bomly` binary.
 - Homebrew cask, Scoop, and WinGet manifest pull requests.
 
@@ -186,7 +186,7 @@ Release packaging is driven by `.goreleaser.yaml`. The release workflow uses GoR
 1. Merge to `main`.
 2. When ready to publish, a maintainer runs the `Auto Version` workflow from `main` and chooses a `patch`, `minor`, or `major` bump.
 3. The `Auto Version` workflow updates `cmd/bomly/main.go`, commits the bump, creates a tag such as `v0.2.0`, and starts the `Release` workflow.
-4. The `Release` workflow reruns validation and runs GoReleaser.
+4. The `Release` workflow reruns validation, then the `release` job runs GoReleaser.
 5. GoReleaser cross-compiles `bomly` and `bomly-lite`, packages archives for:
    - `linux/amd64`
    - `linux/arm64`
@@ -194,12 +194,13 @@ Release packaging is driven by `.goreleaser.yaml`. The release workflow uses GoR
    - `darwin/arm64`
    - `windows/amd64`
    - `windows/arm64`
-6. GoReleaser generates `SHA256SUMS` and Linux packages.
-7. GoReleaser publishes the GitHub Release, using the configured GoReleaser header plus GitHub-native generated release notes, and uploads archives, packages, and checksums.
-8. GoReleaser opens or updates package-manager manifest PRs for Homebrew, Scoop, and WinGet.
-9. After the release is published, the `Release lifecycle sync` workflow dispatches the landing-page docs and changelog sync with the published timestamp.
+6. GoReleaser generates `SHA256SUMS`, Linux packages, and the cosign signature, then creates the GitHub Release **as a draft** and uploads everything to it.
+7. GoReleaser opens or updates package-manager manifest PRs for Homebrew, Scoop, and WinGet (these reference the release's download URLs, which aren't publicly fetchable until the release is published in step 9 — a brief window, typically under a minute).
+8. The `provenance` job calls `slsa-github-generator` to attach SLSA provenance (`multiple.intoto.jsonl`) to the same draft release.
+9. The `publish` job flips the release from draft to published, using the configured GoReleaser header plus GitHub-native generated release notes.
+10. After the release is published, the `Release lifecycle sync` workflow dispatches the landing-page docs and changelog sync with the published timestamp.
 
-The manual approval point for a release is the `Auto Version` workflow that creates the release tag. The GitHub Release is intentionally published automatically after validation so package-manager manifest PRs can reference public release assets and checksums.
+The manual approval point for a release is the `Auto Version` workflow that creates the release tag. The GitHub Release stays a draft until every asset — including SLSA provenance — is attached, then a final job publishes it. This is required by GitHub's [immutable releases](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases) feature: once a release is published, no further assets can be added by anyone, so the provenance file (generated by a separate downstream job, by design — see [Supply-Chain Hardening](#supply-chain-hardening-openssf-scorecard)) must land before publish, not after.
 
 ## Yanking Releases
 

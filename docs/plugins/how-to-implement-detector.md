@@ -128,8 +128,8 @@ For development, build and install the binary directly:
 
 ```bash
 go build -o ./bin/bomly-plugin-bun-lock-detector .
-bomly plugin install ./bin/bomly-plugin-bun-lock-detector --dev
-bomly plugin enable bomly.examples.detector.bun-lock
+bomly plugins install ./bin/bomly-plugin-bun-lock-detector --dev
+bomly plugins enable bomly.examples.detector.bun-lock
 ```
 
 For distribution, package a package-only `bomly-plugin.json` manifest with the binary:
@@ -148,9 +148,9 @@ The manifest contains package and install fields only: ID, kind, version, runtim
 Check installation and runtime readiness:
 
 ```bash
-bomly plugin verify bomly.examples.detector.bun-lock
-bomly plugin test bomly.examples.detector.bun-lock
-bomly plugin doctor bomly.examples.detector.bun-lock
+bomly plugins verify bomly.examples.detector.bun-lock
+bomly plugins test bomly.examples.detector.bun-lock
+bomly plugins doctor bomly.examples.detector.bun-lock
 ```
 
 Run only this detector:

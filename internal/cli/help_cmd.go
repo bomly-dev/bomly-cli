@@ -44,7 +44,7 @@ func optionValuesHelpSection(cmd *cobra.Command) string {
 		return ""
 	}
 
-	return "\n\nExplore available detectors, matchers, and auditors with `bomly plugin list`."
+	return "\n\nExplore available detectors, matchers, and auditors with `bomly plugins list`."
 }
 
 func exitCodesHelpSection(cmd *cobra.Command) string {

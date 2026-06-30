@@ -64,8 +64,8 @@ For example, the `+"`npm`"+` chain is `+"`npm-detector`"+` → `+"`syft-detector
 Per-ecosystem chains are listed in [`+"`detectors/ecosystems/`"+`](detectors/ecosystems/). The full live list lives in the CLI:
 
 `+"```bash"+`
-bomly plugin list --detectors
-bomly plugin list --detectors --json
+bomly plugins list --detectors
+bomly plugins list --detectors --json
 `+"```"+`
 
 ## Native vs. Syft
@@ -234,8 +234,8 @@ Bomly is **offline-safe by default**. Matchers that use the network only run whe
 The full live list lives in the CLI:
 
 `+"```bash"+`
-bomly plugin list --matchers
-bomly plugin list --matchers --json
+bomly plugins list --matchers
+bomly plugins list --matchers --json
 `+"```"+`
 
 ## Running matchers

@@ -137,8 +137,8 @@ For development, build and install the binary directly:
 
 ```bash
 go build -o ./bin/bomly-plugin-meme-auditor .
-bomly plugin install ./bin/bomly-plugin-meme-auditor --dev
-bomly plugin enable bomly.examples.auditor.meme-deps
+bomly plugins install ./bin/bomly-plugin-meme-auditor --dev
+bomly plugins enable bomly.examples.auditor.meme-deps
 ```
 
 For distribution, package a package-only `bomly-plugin.json` manifest with the binary:
@@ -157,9 +157,9 @@ The manifest contains package and install fields only. Bomly probes the binary a
 Check installation and runtime readiness:
 
 ```bash
-bomly plugin verify bomly.examples.auditor.meme-deps
-bomly plugin test bomly.examples.auditor.meme-deps
-bomly plugin doctor bomly.examples.auditor.meme-deps
+bomly plugins verify bomly.examples.auditor.meme-deps
+bomly plugins test bomly.examples.auditor.meme-deps
+bomly plugins doctor bomly.examples.auditor.meme-deps
 ```
 
 Run only this auditor:

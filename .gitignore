@@ -10,9 +10,6 @@
 # Ignore generated SBOM files
 /sboms
 
-# Ignore committed scanner fixtures during broad repository scans
-**/testdata/**
-
 # Ignore local dependency graph benchmark artifacts
 /.benchmark-runs
 

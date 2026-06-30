@@ -73,7 +73,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y maven
-          python -m pip install --upgrade pip pipenv poetry
+          python -m pip install --require-hashes -r .github/requirements-ci-tools.txt
 
       - name: Regenerate golden files
         run: make smoke ARGS="-update"

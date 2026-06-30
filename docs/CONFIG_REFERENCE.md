@@ -20,7 +20,7 @@ YAML files use the nested keys documented below. Unknown keys and the former fla
 | YAML Key | Environment Variable | Type | Default | Description |
 |----------|---------------------|------|---------|-------------|
 | `target.path` | `BOMLY_PATH` | `string` | - | Filesystem path to scan |
-| `target.container` | `BOMLY_CONTAINER` | `string` | - | Container image to scan (e.g. alpine:latest) |
+| `target.image` | `BOMLY_IMAGE` | `string` | - | Container image to scan (e.g. alpine:latest) |
 | `target.url` | `BOMLY_URL` | `string` | - | Remote Git URL to clone and scan |
 | `target.ref` | `BOMLY_REF` | `string` | - | Git ref to checkout when scanning a URL |
 | `target.sbom` | `BOMLY_SBOM` | `bool` | - | Treat the selected filesystem target as an SBOM file |
@@ -113,6 +113,7 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 | `http_proxy_port` | `network.proxy.port` |
 | `http_proxy_type` | `network.proxy.type` |
 | `http_proxy_username` | `network.proxy.username` |
+| `image` | `target.image` |
 | `install_args` | `pipeline.install_args` |
 | `install_first` | `pipeline.install_first` |
 | `interactive` | `output.interactive` |
@@ -147,7 +148,7 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 #   Filesystem path to scan
 #   path: ""
 #   Container image to scan (e.g. alpine:latest)
-#   container: ""
+#   image: ""
 #   Remote Git URL to clone and scan
 #   url: ""
 #   Git ref to checkout when scanning a URL

@@ -158,7 +158,7 @@ func inputResolutionLabels(cfg opts.Options) (string, string, bool) {
 		return "Reading SBOM", "Read SBOM", true
 	case resolved.URL != "":
 		return "Cloning repository", "Cloned repository", true
-	case resolved.Container != "":
+	case resolved.Image != "":
 		return "Resolving container reference", "Resolved container reference", true
 	default:
 		// Local filesystem — resolution is instant; skip the step.

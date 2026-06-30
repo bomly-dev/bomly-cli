@@ -35,7 +35,7 @@ func newDiffCmd() *cobra.Command {
 		Short: "Compare dependency states",
 		Long:  "Compare dependency states between two git refs, two SBOM files, or two container image tags/digests.",
 		Example: "  bomly diff --url https://github.com/bomly-dev/bomly-cli --base main --head feature\n" +
-			"  bomly diff --container alpine --base 3.19 --head 3.20 --enrich\n" +
+			"  bomly diff --image alpine --base 3.19 --head 3.20 --enrich\n" +
 			"  bomly diff --sbom --base ./before.cdx.json --head ./after.cdx.json --json",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -65,8 +65,8 @@ func newDiffCmd() *cobra.Command {
 				if headRef == "" {
 					return exit.InvalidInputError("--head is required when --sbom is set")
 				}
-				if current.Container != "" {
-					return exit.InvalidInputError("--sbom cannot be combined with --container")
+				if current.Image != "" {
+					return exit.InvalidInputError("--sbom cannot be combined with --image")
 				}
 			} else {
 				if baseRef == "" {
@@ -113,7 +113,7 @@ func newDiffCmd() *cobra.Command {
 			switch {
 			case current.SBOM:
 				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveSBOMDiffGraphs(cmd.Context(), options, prog, logger, baseRef, headRef)
-			case current.Container != "":
+			case current.Image != "":
 				baseTarget, headTarget, projectIdentifier, resolutionWarnings, err = resolveContainerDiffGraphs(cmd.Context(), options, prog, logger, baseRef, headRef)
 			default:
 				var gitChangedLines map[string][]git.LineRange

@@ -77,7 +77,7 @@ func TestLoadFileNestedConfig(t *testing.T) {
 	if err := os.WriteFile(path, []byte(`
 target:
   path: fixture
-  container: alpine:3.20
+  image: alpine:3.20
   url: https://example.com/acme/repo.git
   ref: main
   sbom: true
@@ -138,7 +138,7 @@ matchers:
 	if want := filepath.Join(filepath.Dir(path), "fixture"); resolved.Path != want {
 		t.Fatalf("Path = %q, want %q", resolved.Path, want)
 	}
-	if resolved.Container != "alpine:3.20" || resolved.URL == "" || resolved.Ref != "main" || !resolved.SBOM {
+	if resolved.Image != "alpine:3.20" || resolved.URL == "" || resolved.Ref != "main" || !resolved.SBOM {
 		t.Fatalf("target config = %#v", resolved)
 	}
 	if !resolved.Enrich || !resolved.Audit || !resolved.Analyze || !resolved.InstallFirst {
@@ -162,6 +162,75 @@ matchers:
 	if resolved.OsvAPIBase != "https://osv.example" || resolved.OsvCacheTTL != "1h" || resolved.KEVCacheTTL != "2h" || resolved.ScorecardAPIBase != "https://scorecard.example" || resolved.ScorecardCacheTTL != "4h" {
 		t.Fatalf("matcher config = %#v", resolved)
 	}
+}
+
+// TestLoadFileDeprecatedContainerKey verifies the deprecated target.container
+// YAML key still resolves to the canonical Image field, and that target.image
+// wins when both are set.
+func TestLoadFileDeprecatedContainerKey(t *testing.T) {
+	t.Run("alias resolves to Image", func(t *testing.T) {
+		path := filepath.Join(t.TempDir(), "config.yaml")
+		if err := os.WriteFile(path, []byte("target:\n  container: alpine:3.20\n"), 0o644); err != nil {
+			t.Fatalf("write config: %v", err)
+		}
+		fileCfg, err := LoadFile(path)
+		if err != nil {
+			t.Fatalf("LoadFile() error = %v", err)
+		}
+		var resolved Resolved
+		ApplyFileConfig(&resolved, *fileCfg)
+		if resolved.Image != "alpine:3.20" {
+			t.Fatalf("Image = %q, want alpine:3.20", resolved.Image)
+		}
+	})
+
+	t.Run("image wins over container", func(t *testing.T) {
+		path := filepath.Join(t.TempDir(), "config.yaml")
+		if err := os.WriteFile(path, []byte("target:\n  container: alpine:3.20\n  image: alpine:3.21\n"), 0o644); err != nil {
+			t.Fatalf("write config: %v", err)
+		}
+		fileCfg, err := LoadFile(path)
+		if err != nil {
+			t.Fatalf("LoadFile() error = %v", err)
+		}
+		var resolved Resolved
+		ApplyFileConfig(&resolved, *fileCfg)
+		if resolved.Image != "alpine:3.21" {
+			t.Fatalf("Image = %q, want alpine:3.21 (canonical key should win)", resolved.Image)
+		}
+	})
+}
+
+// TestApplyEnvOverridesImageAlias verifies BOMLY_IMAGE is the primary env var
+// and the deprecated BOMLY_CONTAINER still applies as a fallback.
+func TestApplyEnvOverridesImageAlias(t *testing.T) {
+	t.Run("primary BOMLY_IMAGE", func(t *testing.T) {
+		t.Setenv("BOMLY_IMAGE", "alpine:3.21")
+		var resolved Resolved
+		ApplyEnvOverrides(&resolved)
+		if resolved.Image != "alpine:3.21" {
+			t.Fatalf("Image = %q, want alpine:3.21", resolved.Image)
+		}
+	})
+
+	t.Run("deprecated BOMLY_CONTAINER fallback", func(t *testing.T) {
+		t.Setenv("BOMLY_CONTAINER", "alpine:3.20")
+		var resolved Resolved
+		ApplyEnvOverrides(&resolved)
+		if resolved.Image != "alpine:3.20" {
+			t.Fatalf("Image = %q, want alpine:3.20 (BOMLY_CONTAINER alias)", resolved.Image)
+		}
+	})
+
+	t.Run("BOMLY_IMAGE wins over BOMLY_CONTAINER", func(t *testing.T) {
+		t.Setenv("BOMLY_IMAGE", "alpine:3.21")
+		t.Setenv("BOMLY_CONTAINER", "alpine:3.20")
+		var resolved Resolved
+		ApplyEnvOverrides(&resolved)
+		if resolved.Image != "alpine:3.21" {
+			t.Fatalf("Image = %q, want alpine:3.21 (primary env should win)", resolved.Image)
+		}
+	})
 }
 
 func TestApplyFileConfigClearsInheritedLists(t *testing.T) {

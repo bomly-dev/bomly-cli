@@ -6,10 +6,12 @@ Bomly resolves dependencies from four kinds of input. Each subcommand (`scan`, `
 | --- | --- | --- |
 | Local directory | `--path <dir>` | Current working directory |
 | Git repository | `--url <repo>` (with optional `--ref`) | — |
-| Container image | `--container <ref>` | — |
+| Container image | `--image <ref>` | — |
 | Existing SBOM | `--sbom --path <file>` | — |
 
-Exactly one target type per run. Combining `--container` with `--url`, or passing `--ref` without `--url`, is rejected with exit 4.
+Exactly one target type per run. Combining `--image` with `--url`, or passing `--ref` without `--url`, is rejected with exit 4.
+
+> `--container` is a deprecated alias for `--image`. It still works but is hidden from `--help` and prints a deprecation notice; prefer `--image`.
 
 ## Local directory — `--path`
 
@@ -39,14 +41,14 @@ The clone goes to a temporary directory and is removed after the scan. Credentia
 
 `--ref` accepts any value `git checkout` accepts: branch, tag, commit SHA.
 
-## Container image — `--container`
+## Container image — `--image`
 
 Pulls and scans an image by reference. Native detectors that work on lockfile contents inside layers still run; everything else falls through to Syft.
 
 ```bash
-bomly scan --container ghcr.io/example/app:latest
-bomly scan --container alpine:3.20
-bomly scan --container <digest>
+bomly scan --image ghcr.io/example/app:latest
+bomly scan --image alpine:3.20
+bomly scan --image <digest>
 ```
 
 Registry credentials come from your host: `~/.docker/config.json`, the Docker credential helpers, and `DOCKER_CONFIG` are all honored.
@@ -74,12 +76,12 @@ See [SBOM formats](SBOM.md) for the format comparison.
 | --- | --- | --- |
 | `--path` alone | Yes | Default; scans the directory |
 | `--url` + `--ref` | Yes | Checks out `ref` after clone |
-| `--container` alone | Yes | Pulls and scans the image |
+| `--image` alone | Yes | Pulls and scans the image |
 | `--sbom` + `--path` | Yes | Ingests the SBOM file |
-| `--sbom` + `--container` | No | Exit 4 |
+| `--sbom` + `--image` | No | Exit 4 |
 | `--sbom` + `--url` | No | Exit 4 |
 | `--ref` without `--url` | No | Exit 4 |
-| `--container` + `--url` | No | Exit 4 |
+| `--image` + `--url` | No | Exit 4 |
 
 ## What runs after target resolution
 

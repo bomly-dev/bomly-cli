@@ -108,7 +108,7 @@ type mcpOptionsAdapter struct {
 // churn at every callsite.
 type mcpOverrides struct {
 	Path                  string
-	Container             string
+	Image                 string
 	URL                   string
 	Ref                   string
 	Enrich                bool
@@ -135,7 +135,7 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 
 	resolved := clone.GetConfig()
 	applyStringOverride(&clone.ResolvedConfig.Path, o.Path)
-	applyStringOverride(&clone.ResolvedConfig.Container, o.Container)
+	applyStringOverride(&clone.ResolvedConfig.Image, o.Image)
 	applyStringOverride(&clone.ResolvedConfig.URL, o.URL)
 	applyStringOverride(&clone.ResolvedConfig.Ref, o.Ref)
 	applyFailOnOverride(&clone.ResolvedConfig.FailOn, o.FailOn)
@@ -164,7 +164,7 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 	clone.ResolvedConfig.Interactive = false
 
 	applyStringOverride(&resolved.Path, o.Path)
-	applyStringOverride(&resolved.Container, o.Container)
+	applyStringOverride(&resolved.Image, o.Image)
 	applyStringOverride(&resolved.URL, o.URL)
 	applyStringOverride(&resolved.Ref, o.Ref)
 	applyFailOnOverride(&resolved.FailOn, o.FailOn)
@@ -229,7 +229,7 @@ func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (o
 	started := time.Now()
 	o := a.cloneWithOverrides(mcpOverrides{
 		Path:       req.Path,
-		Container:  req.Container,
+		Image:      req.Image,
 		URL:        req.URL,
 		Ref:        req.Ref,
 		Enrich:     req.Enrich,
@@ -315,7 +315,7 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (o
 	started := time.Now()
 	o := a.cloneWithOverrides(mcpOverrides{
 		Path:                  req.Path,
-		Container:             req.Container,
+		Image:                 req.Image,
 		Enrich:                req.Enrich,
 		Audit:                 req.Audit,
 		Analyze:               req.Analyze,

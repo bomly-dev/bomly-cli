@@ -107,12 +107,12 @@ func resolveDiffResultsForRef(ctx context.Context, options *opts.Options, logger
 func resolveContainerDiffGraphs(ctx context.Context, options *opts.Options, prog *progress.Progress, logger *zap.Logger, baseRef, headRef string) (diffResolvedTarget, diffResolvedTarget, string, []engine.PipelineWarning, error) {
 	current := options.GetConfig()
 	refStep := prog.StartWithDoneLabel("input", "Resolving container references", "Resolved container references")
-	baseTarget, err := resolveContainerDiffTarget(current.Container, baseRef)
+	baseTarget, err := resolveContainerDiffTarget(current.Image, baseRef)
 	if err != nil {
 		refStep.Fail("Resolving container references failed")
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, exit.InvalidInputError("resolve --base %q: %v", baseRef, err)
 	}
-	headTarget, err := resolveContainerDiffTarget(current.Container, headRef)
+	headTarget, err := resolveContainerDiffTarget(current.Image, headRef)
 	if err != nil {
 		refStep.Fail("Resolving container references failed")
 		return diffResolvedTarget{}, diffResolvedTarget{}, "", nil, exit.InvalidInputError("resolve --head %q: %v", headRef, err)
@@ -133,7 +133,7 @@ func resolveContainerDiffGraphs(ctx context.Context, options *opts.Options, prog
 	}
 	indexStep.Complete("Indexed subprojects", combinedSubprojectChildren(baseResolved.Context.Subprojects(), headResolved.Context.Subprojects()))
 
-	return baseResolved, headResolved, current.Container, collectPipelineWarnings(baseResolved.Warnings, headResolved.Warnings), nil
+	return baseResolved, headResolved, current.Image, collectPipelineWarnings(baseResolved.Warnings, headResolved.Warnings), nil
 }
 
 // executionTargetForResolved returns a filesystem target when the resolved location
@@ -179,7 +179,7 @@ func resolveContainerDiffTarget(container, selector string) (string, error) {
 	}
 	container = strings.TrimSpace(container)
 	if container == "" {
-		return "", fmt.Errorf("--container is empty")
+		return "", fmt.Errorf("--image is empty")
 	}
 	if strings.HasPrefix(selector, "sha256:") {
 		return container + "@" + selector, nil

@@ -156,4 +156,5 @@ jobs:
         # publish event cascades.
         env:
           GH_TOKEN: ${{ steps.release-token.outputs.token }}
-        run: gh release edit "${{ github.ref_name }}" --draft=false --repo bomly-dev/bomly-cli
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: gh release edit "$RELEASE_TAG" --draft=false --repo bomly-dev/bomly-cli

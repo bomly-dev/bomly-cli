@@ -60,6 +60,8 @@ func FuzzGraphJSON(f *testing.F) {
 		if err := json.Unmarshal(encoded, &roundTrip); err != nil {
 			t.Fatalf("round-trip graph JSON does not unmarshal: %v", err)
 		}
+		requireFuzzGraphValid(t, &roundTrip)
+		requireStableJSON(t, "graph", &graph, &roundTrip)
 	})
 }
 
@@ -80,14 +82,7 @@ func FuzzPackageRegistryJSON(f *testing.F) {
 		if err := json.Unmarshal(raw, &registry); err != nil {
 			return
 		}
-		for _, pkg := range registry.All() {
-			if pkg == nil {
-				t.Fatal("registry contains nil package after successful unmarshal")
-			}
-			if pkg.PURL == "" {
-				t.Fatalf("registry contains package with empty PURL: %+v", pkg)
-			}
-		}
+		requireFuzzRegistryValid(t, &registry)
 		encoded, err := json.Marshal(&registry)
 		if err != nil {
 			t.Fatalf("marshal registry after successful unmarshal: %v", err)
@@ -96,7 +91,36 @@ func FuzzPackageRegistryJSON(f *testing.F) {
 		if err := json.Unmarshal(encoded, &roundTrip); err != nil {
 			t.Fatalf("round-trip registry JSON does not unmarshal: %v", err)
 		}
+		requireFuzzRegistryValid(t, &roundTrip)
+		requireStableJSON(t, "package registry", &registry, &roundTrip)
 	})
+}
+
+func requireStableJSON(t *testing.T, label string, before any, after any) {
+	t.Helper()
+	beforeJSON, err := json.Marshal(before)
+	if err != nil {
+		t.Fatalf("marshal %s before comparison: %v", label, err)
+	}
+	afterJSON, err := json.Marshal(after)
+	if err != nil {
+		t.Fatalf("marshal %s after comparison: %v", label, err)
+	}
+	if string(afterJSON) != string(beforeJSON) {
+		t.Fatalf("%s changed after round trip:\nbefore: %s\nafter:  %s", label, beforeJSON, afterJSON)
+	}
+}
+
+func requireFuzzRegistryValid(t *testing.T, registry *PackageRegistry) {
+	t.Helper()
+	for _, pkg := range registry.All() {
+		if pkg == nil {
+			t.Fatal("registry contains nil package after successful unmarshal")
+		}
+		if pkg.PURL == "" {
+			t.Fatalf("registry contains package with empty PURL: %+v", pkg)
+		}
+	}
 }
 
 func requireFuzzGraphValid(t *testing.T, graph *Graph) {

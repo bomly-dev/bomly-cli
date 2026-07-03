@@ -5,10 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/sdk"
+	"github.com/bomly-dev/bomly-cli/internal/detectors/node/nodetest"
 )
-
-const maxFuzzInputSize = 1 << 20
 
 func FuzzDepGraphFromPNPMLockfile(f *testing.F) {
 	for _, seed := range []string{
@@ -20,7 +18,7 @@ func FuzzDepGraphFromPNPMLockfile(f *testing.F) {
 	}
 
 	f.Fuzz(func(t *testing.T, raw []byte) {
-		if len(raw) > maxFuzzInputSize {
+		if len(raw) > nodetest.MaxFuzzInputSize {
 			return
 		}
 		projectDir := t.TempDir()
@@ -35,31 +33,6 @@ func FuzzDepGraphFromPNPMLockfile(f *testing.F) {
 		if err != nil {
 			return
 		}
-		requireFuzzGraphValid(t, graph)
-	})
-}
-
-func requireFuzzGraphValid(t *testing.T, graph *sdk.Graph) {
-	t.Helper()
-	if graph == nil {
-		t.Fatal("successful parse returned nil graph")
-	}
-	graph.WalkNodes(func(node *sdk.Dependency) bool {
-		if node == nil {
-			t.Fatal("graph contains nil node")
-		}
-		if node.ID == "" {
-			t.Fatalf("graph contains node with empty ID: %+v", node)
-		}
-		return true
-	})
-	graph.WalkEdges(func(from, to *sdk.Dependency) bool {
-		if from == nil || to == nil {
-			t.Fatalf("graph contains nil edge endpoint: from=%+v to=%+v", from, to)
-		}
-		if from.ID == "" || to.ID == "" {
-			t.Fatalf("graph contains edge with empty endpoint ID: from=%+v to=%+v", from, to)
-		}
-		return true
+		nodetest.RequireFuzzGraphValid(t, graph)
 	})
 }

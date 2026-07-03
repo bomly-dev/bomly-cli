@@ -9,6 +9,7 @@ Bomly uses GitHub Actions for validation, security analysis, smoke coverage, and
 | `Build & Test`         | Pull requests, pushes to `main`                | Fast validation split into parallel jobs: `lint`, `test`, `build`, `format`, `modules` (go.mod drift), and `generated-docs` (generated-doc drift) |
 | `CodeQL`               | Pull requests, pushes to `main`, weekly        | Static security/quality analysis for Go; results surface in the Security tab                                           |
 | `Scorecard`            | Pushes to `main`, weekly, manual dispatch      | OpenSSF Scorecard supply-chain checks; publishes results and uploads SARIF                                             |
+| `Fuzz`                 | Nightly schedule, manual dispatch              | Native Go fuzzing over lockfile parsers, SBOM JSON, SDK transport JSON, and plugin path/archive sanitizers            |
 | `Dependency review`    | Pull requests                                  | GitHub dependency-review of added/changed dependencies; fails on high-severity introductions                          |
 | `Bomly Guard`          | Pull requests                                  | Dogfoods the Bomly Guard action to diff and audit dependency changes on each PR                                        |
 | `Smoke`                | Merge queue, nightly schedule, manual dispatch | Slow end-to-end coverage against real repositories, SBOMs, and containers before merge, plus scheduled drift detection |
@@ -101,6 +102,24 @@ The URL-backed scan cases are defined in the embedded `internal/benchmark/testda
 Smoke tests use the pinned `ref`. The local benchmark intentionally does not, because GitHub's SBOM API exports the repository's current default-branch state.
 
 The GitHub Actions `Smoke` workflow calls `make smoke`; it does not call package-specific scripts directly. Keep that pattern when adding smoke coverage so local and CI behavior stay aligned.
+
+## Native Go Fuzzing
+
+Bomly runs native Go fuzzing nightly and on demand through the `Fuzz` workflow. The target matrix is intentionally explicit so CI spends time on the highest-risk untrusted input boundaries:
+
+- Node lockfile parsers for npm, pnpm, and Yarn
+- SPDX/CycloneDX SBOM JSON detection and decoding
+- SDK package URL canonicalization and transport JSON
+- Managed plugin archive-name and relative-path sanitizers
+
+Run the same matrix locally with:
+
+```bash
+make fuzz
+make fuzz FUZZTIME=5s
+```
+
+`FUZZTIME` is passed to each `go test -fuzz` invocation and defaults to `60s`. When Go minimizes a failure into `testdata/fuzz/<FuzzName>/<hash>`, rerun the exact command printed by `go test`, then commit the reproducer only after confirming it is a useful regression seed.
 
 ## Local Dependency Graph Benchmark
 

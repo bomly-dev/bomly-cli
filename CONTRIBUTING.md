@@ -96,6 +96,7 @@ logger.Warn("cache miss", zap.Error(err))
 - Add unit tests for new logic.
 - Add integration tests for new commands and user-visible flows.
 - Run `make test` before considering work complete.
+- Run `make fuzz FUZZTIME=5s` after changing parsers, SBOM handling, plugin archive/path validation, or SDK transport JSON. Increase `FUZZTIME` for deeper local runs.
 - Run `make smoke` if you touched a detector chain, matcher, auditor, or analyzer.
 - If you change GitHub Actions workflows or release behavior, update [dev-docs/CI.md](dev-docs/CI.md) and any affected install guidance in [README.md](README.md).
 
@@ -109,6 +110,21 @@ logger.Warn("cache miss", zap.Error(err))
 ### Skip Policy
 
 Do not add skipped tests without a recorded reason.
+
+### Fuzzing
+
+Native Go fuzz targets cover Bomly's highest-risk untrusted input boundaries. Run the committed fuzz target matrix with:
+
+```bash
+make fuzz
+make fuzz FUZZTIME=5s
+```
+
+When Go reports a minimized failure, rerun it with the command printed by `go test`, for example:
+
+```bash
+go test ./internal/sbom -run=FuzzUnmarshalAutoJSON/<hash>
+```
 
 ## Documentation
 

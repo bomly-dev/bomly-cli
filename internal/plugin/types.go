@@ -252,6 +252,9 @@ func cleanRelativePluginPath(value string) (string, error) {
 	if filepath.IsAbs(cleanPath) || cleanPath == ".." || strings.HasPrefix(cleanPath, ".."+string(os.PathSeparator)) {
 		return "", errors.New("path escapes base directory")
 	}
+	if cleanPath == "." {
+		return "", errors.New("invalid relative path")
+	}
 	return cleanPath, nil
 }
 

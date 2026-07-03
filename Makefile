@@ -5,8 +5,9 @@ GO_LICENSES_VERSION=v1.6.0
 GOPATH_BIN=$(shell go env GOPATH)/bin
 EXE_SUFFIX=$(if $(filter Windows_NT,$(OS)),.exe,)
 GOLANGCI_LINT=$(GOPATH_BIN)/golangci-lint$(EXE_SUFFIX)
+FUZZTIME?=60s
 
-.PHONY: build build-full build-lite fmt fmt-check lint install-hooks test run generate docs-config docs-schema docs-schema-md docs-support-matrix docs-components smoke benchmark benchmark-report licenses
+.PHONY: build build-full build-lite fmt fmt-check lint install-hooks test fuzz run generate docs-config docs-schema docs-schema-md docs-support-matrix docs-components smoke benchmark benchmark-report licenses
 
 build: build-full build-lite
 
@@ -33,6 +34,9 @@ install-hooks:
 
 test:
 	go test ./...
+
+fuzz:
+	FUZZTIME="$(FUZZTIME)" scripts/run-fuzz.sh
 
 smoke:
 	go test -tags "smoke" ./test/smoke/ -v -count=1 -timeout 15m $(if $(ARGS),$(ARGS),)

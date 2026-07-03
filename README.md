@@ -13,7 +13,6 @@
   <a href="https://github.com/bomly-dev/bomly-cli/releases"><img src="https://img.shields.io/github/downloads/bomly-dev/bomly-cli/total" alt="GitHub release downloads"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/bomly-dev/bomly-cli" alt="License: Apache-2.0"></a>
   <a href="https://pkg.go.dev/github.com/bomly-dev/bomly-cli"><img src="https://pkg.go.dev/badge/github.com/bomly-dev/bomly-cli.svg" alt="Go Reference"></a>
-  <a href="https://goreportcard.com/report/github.com/bomly-dev/bomly-cli"><img src="https://goreportcard.com/badge/github.com/bomly-dev/bomly-cli" alt="Go Report Card"></a>
 </p>
 
 Bomly is a free, open-source CLI for dependency intelligence. It scans source trees, SBOMs, Git refs, and container images; explains why dependencies are present; enriches packages with vulnerability and license data when you ask for it; evaluates policy; and writes automation-friendly output for CI.

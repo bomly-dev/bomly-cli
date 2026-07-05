@@ -150,7 +150,7 @@
       "slug": "mcp",
       "title": "MCP server",
       "description": "Connect Bomly's dependency graph tools to Claude Code, Cursor, VS Code, or another MCP client.",
-      "group": "operations"
+      "group": "concepts"
     },
     {
       "slug": "troubleshooting",

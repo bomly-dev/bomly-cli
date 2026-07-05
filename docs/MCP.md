@@ -95,11 +95,13 @@ Bomly registers five MCP tools.
 
 | Tool | Use it for | Required arguments | Optional arguments | Enrichment behavior |
 | --- | --- | --- | --- | --- |
-| `bomly_scan` | Scan a path, Git URL, container image, or SBOM and return packages, manifests, and optional findings. | None | `path`, `image`, `container` (deprecated alias), `url`, `ref`, `enrich`, `audit`, `analyze`, `fail_on`, `ecosystems`, `scope` | Calls external matchers only when `enrich` is true. `audit` evaluates data already present on packages and usually pairs with `enrich`. |
+| `bomly_scan` | Scan a path, Git URL, container image, or SBOM and return packages, manifests, and optional findings. | None | `path`, `image`, `url`, `ref`, `enrich`, `audit`, `analyze`, `fail_on`, `ecosystems`, `scope` | Calls external matchers only when `enrich` is true. `audit` evaluates data already present on packages and usually pairs with `enrich`. |
 | `bomly_explain` | Explain why a package is present by returning dependency paths to it. | `package` | `path`, `enrich`, `audit`, `analyze` | Calls external matchers only when `enrich` is true. |
-| `bomly_diff` | Compare dependency state across two Git refs or container tags/digests. | `base`, `head` | `path`, `image`, `container` (deprecated alias), `enrich`, `audit`, `analyze`, `fail_on`, `allow_vulnerability_ids`, `allow_licenses`, `deny_licenses`, `license_exempt_packages`, `deny_packages`, `deny_groups`, `protected_packages`, `typosquat_threshold`, `typosquat_mode`, `warn_only` | Calls external matchers only when `enrich` is true. |
+| `bomly_diff` | Compare dependency state across two Git refs or container tags/digests. | `base`, `head` | `path`, `image`, `enrich`, `audit`, `analyze`, `fail_on`, `allow_vulnerability_ids`, `allow_licenses`, `deny_licenses`, `license_exempt_packages`, `deny_packages`, `deny_groups`, `protected_packages`, `typosquat_threshold`, `typosquat_mode`, `warn_only` | Calls external matchers only when `enrich` is true. |
 | `bomly_vuln_fix_context` | Return fix context for vulnerabilities on one package, including affected manifests and dependency paths. | `package` | `vuln_id`, `path` | Always enriches, because vulnerability data is required to compute fix context. |
 | `bomly_plugins` | List built-in and installed external plugins with their enabled state. | None | None | Does not enrich package data. |
+
+MCP coverage matches Bomly CLI coverage: `bomly_scan`, `bomly_explain`, and `bomly_diff` use the same detector, matcher, auditor, and analyzer registry as the CLI. See [Support Matrix](SUPPORT_MATRIX.md) for the current ecosystem and package-manager list.
 
 Tool responses are JSON text results. `bomly_scan`, `bomly_explain`, and `bomly_diff` use the same response shapes documented in [JSON Schemas](SCHEMAS.md). `bomly_vuln_fix_context` returns a smaller remediation-focused payload with the package, matched vulnerabilities, dependency paths, affected manifests, and recommendation text.
 

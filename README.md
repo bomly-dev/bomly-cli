@@ -17,7 +17,7 @@
 
 Bomly is a free, open-source CLI for dependency intelligence. It scans source trees, SBOMs, Git refs, and container images; explains why dependencies are present; enriches packages with vulnerability and license data when you ask for it; evaluates policy; and writes automation-friendly output for CI.
 
-One binary. No service to host. No telemetry. No outbound matcher calls unless you opt in with `--enrich`.
+Free and open source, no account, no login. One binary. No service to host. No telemetry. No outbound matcher calls unless you opt in with `--enrich`.
 
 ## Install Bomly
 
@@ -154,7 +154,19 @@ bomly scan --format cyclonedx
 
 Exit codes are stable for scripts: `0` for clean results, `2` for policy violations, and separate values for usage, runtime, and no-supported-project failures. See [Output Formats](docs/OUTPUT_FORMATS.md), [SBOM Formats](docs/SBOM.md), and [Exit Codes](docs/EXIT_CODES.md).
 
-To gate pull requests, use the [Bomly Guard action](https://github.com/bomly-dev/bomly-guard) or call the CLI directly from your workflow. See [Bomly Guard](docs/BOMLY_GUARD.md) and [CI Integration](docs/CI_INTEGRATION.md).
+To gate pull requests, use the [Bomly Guard action](https://github.com/bomly-dev/bomly-guard) or call the CLI directly from your workflow:
+
+```yaml
+# .github/workflows/bomly.yml
+- uses: actions/checkout@v5
+  with:
+    fetch-depth: 0
+- uses: bomly-dev/bomly-guard@v1
+  with:
+    fail-on: high
+```
+
+See [Bomly Guard](docs/BOMLY_GUARD.md) and [CI Integration](docs/CI_INTEGRATION.md).
 
 <p align="center">
   <img src="assets/readme/guard-check.png" alt="GitHub pull request checks showing Bomly Guard failing a required dependency check" width="900">

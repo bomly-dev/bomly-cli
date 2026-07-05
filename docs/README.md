@@ -26,8 +26,8 @@ How Bomly thinks about your project.
 - [Matchers](MATCHERS.md) — enriching the graph with vulnerability, license, lifecycle data
 - [Auditors](AUDITORS.md) — evaluating the graph against policy
 - [Reachability](REACHABILITY.md) — narrowing findings to code your app actually calls
-- [Plugins](PLUGINS.md) — install, trust, configure, and package external plugins
 - [MCP Server](MCP.md) — connect Bomly to Claude Code, Cursor, VS Code, or another MCP client
+- [Plugins](PLUGINS.md) — install, trust, configure, and package external plugins
 - Plugin implementation guides: [detector](plugins/how-to-implement-detector.md), [matcher](plugins/how-to-implement-matcher.md), [auditor](plugins/how-to-implement-auditor.md)
 - Example plugin repos: [Bun detector](https://github.com/bomly-dev/bomly-plugin-bun-lock-detector), [ClearlyDefined matcher](https://github.com/bomly-dev/bomly-plugin-clearlydefined-matcher), [EOL lifecycle matcher](https://github.com/bomly-dev/bomly-plugin-eol-matcher), [Meme auditor](https://github.com/bomly-dev/bomly-plugin-meme-auditor)
 - [Glossary](GLOSSARY.md) — every term, one sentence each

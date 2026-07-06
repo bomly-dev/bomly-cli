@@ -174,13 +174,13 @@ See [Bomly Guard](docs/BOMLY_GUARD.md) and [CI Integration](docs/CI_INTEGRATION.
 
 ## Use Bomly With AI Agents
 
-Bomly can run as an MCP server so AI agents can call the same `scan`, `explain`, and `diff` capabilities you use on the command line:
+Bomly can run as a local MCP server so AI agents can call the same dependency graph tools you use on the command line:
 
 ```bash
 bomly mcp serve
 ```
 
-Add Bomly to an MCP-aware agent such as Claude Code, Cursor, VS Code, or a custom tool, and the agent receives structured JSON it can summarize or reason over. See [Getting Started](docs/GETTING_STARTED.md) for setup recipes.
+Add Bomly to an MCP-aware agent such as Claude Code, Cursor, VS Code, or a custom tool, and the agent receives structured JSON it can summarize or reason over. See [MCP Server](docs/MCP.md) for setup recipes and the tool reference.
 
 ## Configure and Extend
 
@@ -213,6 +213,7 @@ See [Plugins](docs/PLUGINS.md) for install, trust, and authoring guidance.
 - [SBOM Formats](docs/SBOM.md) - SPDX 2.3 and CycloneDX 1.6, ingest, and conversion recipes
 - [CI Integration](docs/CI_INTEGRATION.md) - GitHub Actions, GitLab, Jenkins, Azure, CircleCI
 - [Bomly Guard](docs/BOMLY_GUARD.md) - turnkey GitHub Action for PR dependency review
+- [MCP Server](docs/MCP.md) - connect Bomly to Claude Code, Cursor, VS Code, or another MCP client
 - [Reachability](docs/REACHABILITY.md) - experimental reachable-vulnerability triage
 - [Plugins](docs/PLUGINS.md) - managed external detectors, matchers, and auditors
 - [All Documentation](docs/README.md) - full docs index

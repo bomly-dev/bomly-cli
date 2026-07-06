@@ -128,6 +128,16 @@ bomly diff --sbom --base ./old.spdx.json --head ./new.spdx.json --json
 
 Add `--audit --fail-on high` to fail PRs that introduce new high-severity findings without complaining about pre-existing ones.
 
+## Use Bomly with an AI agent
+
+Bomly can run as a local MCP server so an agent can call `scan`, `explain`, `diff`, vulnerability fix context, and plugin-list tools directly:
+
+```bash
+bomly mcp serve
+```
+
+See [MCP Server](MCP.md) for Claude Code, Cursor, VS Code, and tool-reference details.
+
 ## Inspect the interactive view
 
 ```bash
@@ -140,5 +150,6 @@ Opens a terminal UI with tabs for packages, vulnerabilities, licenses, findings,
 
 - [Output formats](OUTPUT_FORMATS.md) — text, JSON, SARIF, SBOM
 - [Configuration](CONFIG_REFERENCE.md) — every config key, env var, and flag
+- [MCP server](MCP.md) — connect Bomly to AI agents
 - [Troubleshooting](TROUBLESHOOTING.md) — common errors and fixes
 - [CI integration](CI_INTEGRATION.md) — GitHub Actions, GitLab, Jenkins recipes

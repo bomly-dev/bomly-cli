@@ -27,7 +27,7 @@ func ScanMarkdown(w io.Writer, payload output.ScanResponse) error {
 					lines = append(lines, "")
 				}
 				for _, notice := range notices {
-					lines = append(lines, "> **Warning:** "+notice)
+					lines = append(lines, "> **Warning:** "+markdownText(notice))
 				}
 			}
 			return lines

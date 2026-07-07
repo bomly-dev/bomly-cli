@@ -61,6 +61,15 @@ func (p *Pipeline) RunAuditGraph(ctx context.Context, graph *sdk.Graph, registry
 	if !req.AuditEnabled || graph == nil {
 		return sdk.AuditResult{}, nil
 	}
+	return p.runAuditStage(ctx, graph, registry, req)
+}
+
+// runAuditStage evaluates policy for graph, applying finding deduplication,
+// warn-only disposition rewriting, stage progress, and Info-level
+// start/completion logging. Shared by RunAuditGraph (explain's component
+// audit path) and runAudit (the full-scan audit stage) so the two callers
+// cannot drift out of sync.
+func (p *Pipeline) runAuditStage(ctx context.Context, graph *sdk.Graph, registry *sdk.PackageRegistry, req PipelineRequest) (sdk.AuditResult, []PipelineWarning) {
 	if req.Progress != nil {
 		req.Progress.StartStage("Evaluating policy", 1)
 	}
@@ -304,33 +313,12 @@ func (p *Pipeline) runAudit(ctx context.Context, result *PipelineResult, req Pip
 	if !req.AuditEnabled || result.Graph == nil {
 		return
 	}
-	if req.Progress != nil {
-		req.Progress.StartStage("Evaluating policy", 1)
-	}
-	started := time.Now()
-	p.Logger.Info("pipeline: policy evaluation started", zap.Int("packages", result.Graph.Size()))
-	auditResult, auditWarnings := p.audit(ctx, result.Graph, result.Registry, req)
-	result.Findings = DeduplicateFindings(auditResult.Findings)
-	if req.WarnOnly {
-		for idx := range result.Findings {
-			if result.Findings[idx].Disposition == "" || result.Findings[idx].Disposition == sdk.FindingDispositionFail {
-				result.Findings[idx].Disposition = sdk.FindingDispositionWarn
-			}
-		}
-	}
+	auditResult, auditWarnings := p.runAuditStage(ctx, result.Graph, result.Registry, req)
+	result.Findings = auditResult.Findings
 	result.RiskScores = auditResult.RiskScores
 	result.AuditorRuns = auditResult.AuditorRuns
 	result.AuditorFindings = auditResult.AuditorFindings
 	result.AuditWarnings = append(result.AuditWarnings, auditWarnings...)
-	p.Logger.Info("pipeline: policy evaluation completed",
-		zap.Strings("auditor_runs", result.AuditorRuns),
-		zap.Int("findings", len(result.Findings)),
-		zap.Int("warnings", len(result.AuditWarnings)),
-		zap.Duration("duration", time.Since(started)),
-	)
-	if req.Progress != nil {
-		req.Progress.CompleteStage("Evaluating policy", 1)
-	}
 }
 
 func (p *Pipeline) match(ctx context.Context, result *PipelineResult, req PipelineRequest) {

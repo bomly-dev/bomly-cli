@@ -39,6 +39,19 @@ func TestNewConsoleAndCommandStderr(t *testing.T) {
 	}
 }
 
+func TestNewConsoleRendersLoggerName(t *testing.T) {
+	var stderr bytes.Buffer
+	logger := NewConsole(&stderr, 1, false).Named("services/api")
+	logger.Info("Maven dependencies detector found 16 dependencies")
+	out := stderr.String()
+	if !strings.Contains(out, "services/api") {
+		t.Fatalf("expected subproject logger name in output, got %q", out)
+	}
+	if !strings.Contains(out, "Maven dependencies detector found 16 dependencies") {
+		t.Fatalf("expected message alongside logger name, got %q", out)
+	}
+}
+
 func TestCommandStderrNilAndHidden(t *testing.T) {
 	var writer *CommandStderr
 	if _, err := writer.Write([]byte("ignored")); err != nil {

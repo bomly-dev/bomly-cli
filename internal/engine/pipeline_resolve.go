@@ -202,6 +202,12 @@ func (p *Pipeline) resolveDetectors(ctx context.Context, req sdk.DetectionReques
 func (p *Pipeline) resolveDetector(ctx context.Context, req sdk.DetectionRequest, detector sdk.Detector, progress ProgressReporter) ([]sdk.DetectionResult, error) {
 	descriptor := detector.Descriptor()
 	support := detector.PackageManagerSupport()
+	// Bind a request-scoped logger so lines a detector emits while resolving
+	// this subproject are attributed to it, even though the detector instance
+	// is shared across the subprojects resolved concurrently by resolveAll.
+	// Re-derived from p.Logger (not from req.Logger) on every call so a
+	// fallback detector is labelled with its own name, not the primary's.
+	req.Logger = p.detectorLogger(req.Subproject, descriptor.Name)
 	reportProgressDetail(progress, "Detecting dependencies", detectorProgressDetail(req.Subproject, descriptor.Label()))
 	p.Logger.Debug("pipeline: detector starting",
 		zap.String("detector", descriptor.Name),
@@ -379,6 +385,31 @@ func detectorProgressDetail(sub sdk.Subproject, detectorName string) string {
 		return detail
 	}
 	return detectorName + " - " + detail
+}
+
+// detectorLogger returns a logger scoped to one subproject/detector pair. The
+// subproject becomes the logger name (rendered as a prefix in console output)
+// and the detector name a structured field, so lines emitted while
+// concurrently resolving multiple subprojects stay attributable to their
+// source. Derived from p.Logger rather than any existing request logger so a
+// fallback detector is not mislabelled with the primary detector's name.
+func (p *Pipeline) detectorLogger(sub sdk.Subproject, detectorName string) *zap.Logger {
+	logger := p.Logger
+	if scope := loggerScopeName(sub); scope != "" {
+		logger = logger.Named(scope)
+	}
+	return logger.With(zap.String("detector", detectorName))
+}
+
+// loggerScopeName returns a short, stable label for a subproject suitable for
+// use as a zap logger name: the relative path, or "root" for the top-level
+// project.
+func loggerScopeName(sub sdk.Subproject) string {
+	label := strings.TrimSpace(sub.RelativePath)
+	if label == "" || label == "." {
+		return "root"
+	}
+	return label
 }
 
 func evidencePatternsForSupport(support []sdk.PackageManagerSupport, manager sdk.PackageManager) []string {

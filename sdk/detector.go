@@ -3,6 +3,8 @@ package sdk
 import (
 	"context"
 	"io"
+
+	"go.uber.org/zap"
 )
 
 // DetectorFilter narrows detector selection for a request.
@@ -40,6 +42,28 @@ type DetectionRequest struct {
 	AllowStdErrLogging bool            `json:"allowStdErrLogging,omitempty"`
 	Stderr             io.Writer       `json:"-"`
 	Verbose            bool            `json:"-"`
+	// Logger is a request-scoped logger injected by the pipeline, already
+	// bound to the subproject and detector this request targets. It lets a
+	// detector instance that is shared across concurrently-resolved
+	// subprojects emit log lines that identify which subproject they belong
+	// to. It is process-local and never serialized. Use DetectorLogger to
+	// read it with a safe fallback.
+	Logger *zap.Logger `json:"-"`
+}
+
+// DetectorLogger returns the most specific non-nil logger for this request:
+// the request-scoped Logger injected by the pipeline (carrying subproject and
+// detector context) when present, otherwise the supplied fallback (typically
+// the detector's own instance logger), otherwise a no-op logger. It never
+// returns nil, so callers can drop the usual "if logger == nil" guard.
+func (r DetectionRequest) DetectorLogger(fallback *zap.Logger) *zap.Logger {
+	if r.Logger != nil {
+		return r.Logger
+	}
+	if fallback != nil {
+		return fallback
+	}
+	return zap.NewNop()
 }
 
 // DetectionResult contains one or more manifest-scoped graphs.

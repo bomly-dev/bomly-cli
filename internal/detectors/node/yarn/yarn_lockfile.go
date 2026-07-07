@@ -57,6 +57,9 @@ func (d LockfileDetector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a Yarn dependency graph from yarn.lock.
 func (d LockfileDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+	// Prefer the request-scoped logger (bound to this subproject) so
+	// concurrent per-subproject resolution stays attributable in logs.
+	d.Logger = req.DetectorLogger(d.Logger)
 	depsGraph, err := depGraphFromYarnLockfile(d.base().ProjectDir(req.ProjectPath))
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("yarn lockfile parser detector: %w", err)

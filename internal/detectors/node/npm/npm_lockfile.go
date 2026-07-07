@@ -57,6 +57,9 @@ func (d LockfileDetector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves an npm dependency graph from package-lock.json.
 func (d LockfileDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+	// Prefer the request-scoped logger (bound to this subproject) so
+	// concurrent per-subproject resolution stays attributable in logs.
+	d.Logger = req.DetectorLogger(d.Logger)
 	depsGraph, err := depGraphFromNPMLockfile(d.base().ProjectDir(req.ProjectPath))
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("npm lockfile parser detector: %w", err)

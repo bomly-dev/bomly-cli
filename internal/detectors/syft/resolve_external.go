@@ -18,6 +18,9 @@ import (
 
 // ResolveGraph resolves a dependency graph by shelling out to the syft CLI binary.
 func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+	// Prefer the request-scoped logger (bound to this subproject) so
+	// concurrent per-subproject resolution stays attributable in logs.
+	d.Logger = req.DetectorLogger(d.Logger)
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()

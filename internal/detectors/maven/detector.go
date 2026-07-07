@@ -155,7 +155,7 @@ func (d Detector) resolveGraph(ctx context.Context, stderr io.Writer, projectPat
 }
 
 func mavenDependencyTreeArgs(prefixArgs []string, scopeFilter sdk.Scope) []string {
-	args := append(append([]string(nil), prefixArgs...), "dependency:tree", "-DoutputType=tgf")
+	args := append(append([]string(nil), prefixArgs...), "-B", "dependency:tree", "-DoutputType=tgf")
 	switch scopeFilter {
 	case sdk.ScopeRuntime:
 		args = append(args, "-Dscope=runtime")
@@ -311,7 +311,7 @@ func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
 }
 
 func normalizeMavenTGFLine(line string) (string, bool) {
-	trimmed := strings.TrimSpace(line)
+	trimmed := strings.TrimSpace(stripMavenANSI(line))
 	if trimmed == "" {
 		return "", false
 	}
@@ -324,6 +324,27 @@ func normalizeMavenTGFLine(line string) (string, bool) {
 	}
 
 	return trimmed, true
+}
+
+func stripMavenANSI(value string) string {
+	var out strings.Builder
+	inEscape := false
+	for idx := 0; idx < len(value); idx++ {
+		ch := value[idx]
+		if inEscape {
+			if (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') {
+				inEscape = false
+			}
+			continue
+		}
+		if ch == 0x1b && idx+1 < len(value) && value[idx+1] == '[' {
+			inEscape = true
+			idx++
+			continue
+		}
+		out.WriteByte(ch)
+	}
+	return out.String()
 }
 
 func looksLikeTGFNodeLine(line string) bool {

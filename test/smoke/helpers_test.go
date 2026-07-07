@@ -166,6 +166,11 @@ func normalizeJSON(t *testing.T, raw []byte) []byte {
 	// daily cadence.
 	normalizeEPSS(obj)
 
+	// Scrub Grype advisory details that can drift as the external vulnerability
+	// database is refreshed. Keep stable identifiers and reachability details so
+	// smoke tests still prove matching and analysis behavior.
+	normalizeAdvisoryFeedFields(obj)
+
 	// Normalize synthetic project IDs (e.g. pkg:maven/bomly-git-NNNNNN) that
 	// are derived from a non-deterministic hash of the temp clone directory.
 	normalizeSyntheticIDs(obj)
@@ -329,6 +334,95 @@ func scrubEPSSEntry(entry map[string]any) {
 	}
 	if _, ok := entry["percentile"]; ok {
 		entry["percentile"] = float64(0)
+	}
+}
+
+// normalizeAdvisoryFeedFields walks the JSON tree and scrubs vulnerability
+// fields maintained by external feeds. Identifiers, package placement, and
+// reachability are left intact.
+func normalizeAdvisoryFeedFields(node any) {
+	switch v := node.(type) {
+	case map[string]any:
+		if isVulnerabilityMap(v) {
+			scrubAdvisoryFeedMap(v)
+		}
+		for _, val := range v {
+			normalizeAdvisoryFeedFields(val)
+		}
+	case []any:
+		for _, child := range v {
+			normalizeAdvisoryFeedFields(child)
+		}
+	}
+}
+
+func isVulnerabilityMap(m map[string]any) bool {
+	if _, ok := m["id"].(string); !ok {
+		return false
+	}
+	for _, key := range []string{"affected_version_range", "cvss", "epss", "fix_state", "risk_score"} {
+		if _, ok := m[key]; ok {
+			return true
+		}
+	}
+	return false
+}
+
+func scrubAdvisoryFeedMap(m map[string]any) {
+	for _, key := range []string{
+		"affected_version_range",
+		"data_source",
+		"description",
+		"fixed_in",
+		"fix_state",
+		"namespace",
+		"severity",
+		"severity_source",
+		"title",
+	} {
+		if _, ok := m[key]; ok {
+			m[key] = "<normalized>"
+		}
+	}
+	if _, ok := m["risk_score"]; ok {
+		m["risk_score"] = float64(0)
+	}
+	if aliases, ok := m["aliases"].([]any); ok && len(aliases) > 0 {
+		m["aliases"] = []any{"<normalized>"}
+	}
+	if fixedVersions, ok := m["fixed_versions"].([]any); ok && len(fixedVersions) > 0 {
+		m["fixed_versions"] = []any{"<normalized>"}
+	}
+	if fixAvailable, ok := m["fix_available"].([]any); ok && len(fixAvailable) > 0 {
+		m["fix_available"] = []any{map[string]any{
+			"date":    "<normalized>",
+			"kind":    "<normalized>",
+			"version": "<normalized>",
+		}}
+	}
+	if cvss, ok := m["cvss"].([]any); ok && len(cvss) > 0 {
+		m["cvss"] = []any{map[string]any{
+			"score":   float64(0),
+			"vector":  "<normalized>",
+			"version": "<normalized>",
+		}}
+	}
+	if cwes, ok := m["cwes"].([]any); ok && len(cwes) > 0 {
+		m["cwes"] = []any{map[string]any{
+			"cve":    "<normalized>",
+			"id":     "<normalized>",
+			"source": "<normalized>",
+			"type":   "<normalized>",
+		}}
+	}
+	if reasons, ok := m["reasons"].([]any); ok && len(reasons) > 0 {
+		m["reasons"] = []any{"<normalized>"}
+	}
+	if references, ok := m["references"].([]any); ok && len(references) > 0 {
+		m["references"] = []any{map[string]any{
+			"type": "<normalized>",
+			"url":  "<normalized>",
+		}}
 	}
 }
 

@@ -2,6 +2,7 @@ package python
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/system"
@@ -47,8 +48,9 @@ func (d PoetryDetector) Descriptor() sdk.DetectorDescriptor {
 }
 
 // ResolveGraph resolves a Python dependency graph through Poetry.
-func (d PoetryDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d PoetryDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	workingDir := d.base().workingDir(req.ProjectPath)
+	base := d.base()
 
 	// Fast-path: poetry.lock has full transitive tree and group-based scope.
 	// This avoids executing `poetry run pip inspect`, which marks every package
@@ -57,29 +59,44 @@ func (d PoetryDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 		if depsGraph, err := depGraphFromPoetryLock(lockPath, workingDir); err == nil {
 			attachDeclaredPositions(depsGraph, workingDir)
 			attachLoosePythonPositions(depsGraph, workingDir)
+			resolution := resolutionMetadata(sdk.ResolutionMethodLockfile, poetryReconstructedInstallCommand(req), workingDir, nil)
+			logResolution(base.Logger, "Poetry detector", workingDir, resolution)
 			return sdk.DetectionResult{
-				Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, poetryEvidencePatterns)),
+				Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, poetryEvidencePatterns, resolution)),
 			}, nil
 		}
+	} else {
+		return sdk.DetectionResult{}, fmt.Errorf("Poetry detector: poetry.lock not found; refusing to inspect an unprepared or ambient environment")
+	}
+
+	installCommand := poetryInstallCommand()
+	if err := base.install(ctx, req, "Poetry detector", installCommand); err != nil {
+		return sdk.DetectionResult{}, fmt.Errorf("Poetry detector: prepare locked project environment: %w", err)
 	}
 
 	command, err := pipInspectCommand("poetry", "run")
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
-	depsGraph, err := d.base().resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "Poetry detector", command)
+	depsGraph, err := base.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "Poetry detector", command)
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
-	depsGraph, err = filterPythonToolPackages(depsGraph, d.base().workingDir(req.ProjectPath))
+	depsGraph, err = filterPythonToolPackages(depsGraph, workingDir)
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
-	annotateGraphScopes(depsGraph, d.base().workingDir(req.ProjectPath))
-	attachDeclaredPositions(depsGraph, d.base().workingDir(req.ProjectPath))
-	attachLoosePythonPositions(depsGraph, d.base().workingDir(req.ProjectPath))
+	validation, err := requireValidResolvedGraph("Poetry detector", depsGraph, workingDir, req.ScopeFilter)
+	if err != nil {
+		return sdk.DetectionResult{}, err
+	}
+	annotateGraphScopes(depsGraph, workingDir)
+	attachDeclaredPositions(depsGraph, workingDir)
+	attachLoosePythonPositions(depsGraph, workingDir)
+	resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, append(installCommand, req.InstallArgs...), workingDir, validation)
+	logResolution(base.Logger, "Poetry detector", workingDir, resolution)
 	return sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, poetryEvidencePatterns)),
+		Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, poetryEvidencePatterns, resolution)),
 	}, nil
 }
 
@@ -97,5 +114,16 @@ func (d PoetryDetector) base() baseDetector {
 
 // Install prepares Poetry dependencies before graph resolution.
 func (d PoetryDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
-	return d.base().install(ctx, req, "Poetry detector", []string{"poetry", "install", "--no-root"})
+	return d.base().install(ctx, req, "Poetry detector", poetryInstallCommand())
+}
+
+func poetryInstallCommand() []string {
+	return []string{"poetry", "install", "--no-root", "--sync"}
+}
+
+func poetryReconstructedInstallCommand(req sdk.DetectionRequest) []string {
+	if !req.InstallFirst {
+		return nil
+	}
+	return append(poetryInstallCommand(), req.InstallArgs...)
 }

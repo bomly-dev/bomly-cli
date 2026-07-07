@@ -15,32 +15,33 @@ Bomly uses this chain when it finds `uv` evidence.
 
 ## How `uv` resolves
 
-`uv-detector` is **hybrid (lockfile-first)**: it parses `uv.lock` directly and only falls back to `uv run --no-sync pip inspect` if the lockfile cannot be read.
+`uv-detector` is **lockfile-first**. A readable `uv.lock` is the preferred source because it is deterministic and carries transitive dependency data. Bomly only falls back to uv environment inspection when a lockfile exists but cannot be parsed.
 
 | Path | Strategy | Command |
 | --- | --- | --- |
 | `uv.lock` present | Lockfile parser | None |
-| Lockfile missing or unreadable | Build tool | `uv run --no-sync python -m pip inspect` |
+| Lockfile unreadable | Frozen sync + inspect | `uv sync --frozen --no-install-project`, `uv pip install pip`, then `uv run --no-sync python -m pip inspect --local` |
+| Lockfile missing | Fail | None |
 
-The `--no-sync` flag is critical — it stops `uv` from fetching missing packages, keeping the inspection offline-safe.
+The `--frozen` flag prevents lockfile updates during environment preparation, and `--no-sync` prevents the inspect command from changing the environment. The inspected graph is accepted only when it contains the packages declared by the selected uv project.
 
 ## Network behavior
 
-✅ Both paths are **offline-safe**. The lockfile parser reads a committed file; `uv run --no-sync` reads from the local environment without syncing.
+✅ The `uv.lock` parser is offline and does not execute uv.
+
+⚠️ The frozen sync fallback can download packages from PyPI or configured indexes, but it must not update the lockfile or project manifest.
 
 ## Prerequisites
 
-- One of:
-  - A committed `uv.lock` (strongly recommended), **or**
-  - A uv-managed virtualenv (`uv sync` has been run).
+- A committed `uv.lock`.
 - `pyproject.toml` for evidence pattern matching.
 - For `--install-first`: `uv` on `PATH`.
 
 ## `--install-first`
 
-`uv` supports `--install-first`. When passed, Bomly runs `uv sync` before resolving the graph.
+`uv` supports `--install-first`. When passed, Bomly runs `uv sync --frozen --no-install-project`, then `uv pip install pip`, before resolving the graph.
 
-⚠️ **`--install-first` downloads packages from PyPI** and writes to the uv-managed virtualenv. Use it on a clean checkout.
+⚠️ **`--install-first` can download packages from PyPI** and writes to the uv-managed virtualenv without changing `uv.lock`.
 
 ```bash
 bomly scan --install-first
@@ -48,7 +49,7 @@ bomly scan --install-first
 
 ### Customizing the install command
 
-Append flags to `uv sync` with repeatable `--install-arg`. Requires `--detectors uv-detector`.
+Append flags to `uv sync --frozen --no-install-project` with repeatable `--install-arg`. Requires `--detectors uv-detector`. Bomly records the sanitized sync command in scan JSON under the manifest's resolution metadata.
 
 ```bash
 # Refuse to update the lockfile; sync exactly what's locked
@@ -94,3 +95,4 @@ For uv-managed packages, the analyzer is `pyreach` at **Tier-3 (package)**. See 
 
 - **uv lockfile format** is stable but still evolves; track upstream changes if you pin Bomly versions in CI.
 - **uv workspaces** are scanned per workspace member; each is its own subproject.
+- **No lockfile, no graph.** Bomly refuses to inspect an unprepared uv environment when `uv.lock` is missing because that can produce stale or unrelated dependencies.

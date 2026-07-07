@@ -38,8 +38,41 @@ const (
 
 // ManifestMetadata describes the manifest or evidence file associated with one graph.
 type ManifestMetadata struct {
-	Path string       `json:"path,omitempty"`
-	Kind ManifestKind `json:"kind,omitempty"`
+	Path       string              `json:"path,omitempty"`
+	Kind       ManifestKind        `json:"kind,omitempty"`
+	Resolution *ResolutionMetadata `json:"resolution,omitempty"`
+}
+
+// ResolutionMethod identifies how a detector produced a manifest graph.
+type ResolutionMethod string
+
+const (
+	// ResolutionMethodLockfile means the graph came from a deterministic lockfile parser.
+	ResolutionMethodLockfile ResolutionMethod = "lockfile"
+	// ResolutionMethodIsolatedInstall means Bomly installed dependencies into its own isolated environment.
+	ResolutionMethodIsolatedInstall ResolutionMethod = "isolated-install"
+	// ResolutionMethodProjectEnvironment means Bomly inspected an existing project-managed environment.
+	ResolutionMethodProjectEnvironment ResolutionMethod = "project-environment"
+	// ResolutionMethodManifestOnly means Bomly parsed a manifest without transitive install metadata.
+	ResolutionMethodManifestOnly ResolutionMethod = "manifest-only"
+)
+
+// ResolutionMetadata describes how a detector resolved a manifest graph.
+type ResolutionMetadata struct {
+	Method            ResolutionMethod      `json:"method,omitempty"`
+	InstallExecuted   bool                  `json:"install_executed"`
+	InstallCommand    []string              `json:"install_command,omitempty"`
+	InstallWorkingDir string                `json:"install_working_dir,omitempty"`
+	Validation        *ResolutionValidation `json:"validation,omitempty"`
+}
+
+// ResolutionValidation records detector checks that the graph matches the selected project.
+type ResolutionValidation struct {
+	Performed     bool     `json:"performed"`
+	Matched       bool     `json:"matched"`
+	DeclaredCount int      `json:"declared_count,omitempty"`
+	MatchedCount  int      `json:"matched_count,omitempty"`
+	Missing       []string `json:"missing,omitempty"`
 }
 
 // GraphEntry describes one manifest-scoped dependency graph. Detection-time

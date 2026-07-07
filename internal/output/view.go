@@ -28,13 +28,14 @@ type ScanResponse struct {
 
 // ScanManifest is one manifest-scoped dependency inventory in the scan payload.
 type ScanManifest struct {
-	Path           string             `json:"path,omitempty"`
-	Kind           sdk.ManifestKind   `json:"kind,omitempty"`
-	Subproject     string             `json:"subproject,omitempty"`
-	Ecosystem      sdk.Ecosystem      `json:"ecosystem,omitempty"`
-	PackageManager sdk.PackageManager `json:"package_manager,omitempty"`
-	Detector       string             `json:"detector,omitempty"`
-	Dependencies   []ScanDependency   `json:"dependencies"`
+	Path           string                  `json:"path,omitempty"`
+	Kind           sdk.ManifestKind        `json:"kind,omitempty"`
+	Subproject     string                  `json:"subproject,omitempty"`
+	Ecosystem      sdk.Ecosystem           `json:"ecosystem,omitempty"`
+	PackageManager sdk.PackageManager      `json:"package_manager,omitempty"`
+	Detector       string                  `json:"detector,omitempty"`
+	Resolution     *sdk.ResolutionMetadata `json:"resolution,omitempty"`
+	Dependencies   []ScanDependency        `json:"dependencies"`
 }
 
 // DiffResponse is the structured payload for the diff command.
@@ -266,6 +267,7 @@ func scanManifestFromConsolidated(manifest sdk.ConsolidatedManifest, idx int, re
 		Ecosystem:      manifest.Subproject.Ecosystem,
 		PackageManager: manifest.Subproject.PrimaryPackageManager(),
 		Detector:       manifest.DetectorName,
+		Resolution:     manifest.Entry.Manifest.Resolution,
 		Dependencies:   DependenciesFromGraph(manifest.Entry.Graph, registry),
 	}
 }

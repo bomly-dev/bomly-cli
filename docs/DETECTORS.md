@@ -140,7 +140,7 @@ bomly scan --install-first --detectors uv-detector \
   --install-arg --frozen
 ```
 
-Without `--install-first`, `--install-arg` has no effect — the args are only consumed during the install step, not during graph resolution itself.
+`--install-arg` is consumed whenever Bomly runs a detector install step. Most detectors only install when `--install-first` is set; `pip-detector` may also install automatically into its isolated temp virtualenv when no readable `requirements.lock` is present.
 
 ## Discovery and monorepos
 

@@ -15,41 +15,43 @@ Bomly uses this chain when it finds `pip` evidence.
 
 ## How `pip` resolves
 
-`pip-detector` does **not** parse `requirements.txt` directly. Instead it asks the active Python environment what is currently installed:
+`pip-detector` is **lockfile/isolated-env first**. It never accepts an unrelated ambient Python environment as the selected project's graph.
 
-| Step | Command | Working dir |
+| Path | Strategy | Command |
 | --- | --- | --- |
-| Resolve graph | `python -m pip inspect` | the project root |
+| `requirements.lock` present and readable | Lockfile parser | None |
+| No lockfile | Isolated install + inspect | `python -m venv <tmp>/bomly-pyvenv-*`, then `<venv>/python -m pip install -r <requirements-file>`, then `<venv>/python -m pip inspect --local` |
 
-`pip inspect` returns a JSON document describing every package installed in the Python environment Bomly invokes, along with its declared dependencies. Bomly builds the graph from that.
+The isolated virtualenv lives under the OS temp directory and is keyed by the project path. Bomly recreates it before installing so stale packages cannot leak into the scan. After inspection, Bomly validates that the inspected environment contains the packages declared by the project's requirements files. If validation fails, the detector fails with the missing package names instead of returning a graph for the wrong environment.
 
 ## Network behavior
 
-✅ The default `pip-detector` is **fully offline-safe**. `pip inspect` reads from the local Python environment and makes no network calls.
+✅ `requirements.lock` parsing is offline and does not execute Python.
 
-⚠️ **It only sees what is installed.** If you have not run `pip install -r requirements.txt` (or equivalent) in the current environment, the inspection returns an empty graph and the scan will produce no packages for the project.
+⚠️ Without `requirements.lock`, Bomly installs into its isolated temp virtualenv so the graph is accurate. That can download packages from PyPI or the indexes declared by your install args.
 
 ## Prerequisites
 
 - `python` on `PATH` with `pip` installed (`python -m pip --version` must work).
-- The project's dependencies must already be installed in the active Python environment. The detector inspects whatever virtualenv / system Python is reachable.
 - A `requirements.txt`, `requirements-dev.txt`, `requirements.in`, `requirements.lock`, or any `*requirements*.txt` file in the scan path acts as the evidence pattern that triggers `pip-detector`.
 
 ## `--install-first`
 
-`pip` supports `--install-first`. When passed, Bomly runs `python -m pip install -r <requirements-file>` before the inspection. It will additionally install `requirements-dev.txt` if that file is present alongside the primary requirements file.
+`pip` supports `--install-first`, but the detector also performs the same isolated install automatically when no readable `requirements.lock` exists. When install-first is used, Bomly runs the install step before graph resolution; otherwise the detector runs it as part of resolution.
 
-⚠️ **`--install-first` downloads packages from PyPI** and writes to the active Python environment. Use it in CI on a clean checkout where dependencies have not been installed yet.
+The install target is Bomly's temp virtualenv, not the worktree or the active system Python. Bomly installs the primary requirements file and additionally installs `requirements-dev.txt` when present unless `--scope runtime` is selected.
+
+⚠️ The install can download packages from PyPI and any configured indexes, but it should not modify project files.
 
 ```bash
 bomly scan --install-first
 ```
 
-The requirements file Bomly installs is chosen automatically from common names. If you have a non-standard layout, use a virtualenv that already has the dependencies installed and skip `--install-first`.
+The requirements file Bomly installs is chosen automatically from common names. Prefer committing `requirements.lock` when you need fully offline scans.
 
 ### Customizing the install command
 
-Append flags to `python -m pip install -r <requirements>` with repeatable `--install-arg`. Requires `--detectors pip-detector`.
+Append flags to `<venv>/python -m pip install -r <requirements>` with repeatable `--install-arg`. Requires `--detectors pip-detector`. Bomly records the sanitized install command in scan JSON under the manifest's resolution metadata.
 
 ```bash
 # Install from a private index in CI
@@ -71,7 +73,7 @@ Pin in `requirements.txt`:
 requests==2.32.4
 ```
 
-`pip install -r requirements.txt` then re-scan.
+Re-scan. Bomly will install the pinned requirements into its isolated temp virtualenv when no lockfile is present.
 
 ### Pin a transitive vulnerability
 
@@ -84,7 +86,6 @@ urllib3>=2.2.2
 
 ```bash
 pip-compile --constraint constraints.txt requirements.in
-pip install -r requirements.txt
 ```
 
 Re-scan.
@@ -97,6 +98,6 @@ For pip-managed packages, the analyzer is `pyreach` at **Tier-3 (package)**. It 
 
 ## Limitations
 
-- **No environment, no graph.** Unlike a lockfile parser, `pip-detector` needs the dependencies to already be installed. Use `--install-first` to install in CI, or pre-install in your virtualenv before scanning.
-- **Multiple Python environments** require pointing Bomly at the right `python`. The detector uses the first `python` on `PATH`; activate the virtualenv before running Bomly, or pass `PYTHON_BIN` if you set up that env var in your environment.
+- **Validation is strict.** If the inspected environment does not contain the packages declared by the selected project, Bomly fails instead of returning an unrelated graph.
+- **Multiple Python installations** only affect which interpreter creates the isolated virtualenv. The project graph comes from the temp venv, not from ambient site-packages.
 - **Editable installs** (`pip install -e ./local-pkg`) are reflected in the inspection; their internal dependencies come from the local package's metadata.

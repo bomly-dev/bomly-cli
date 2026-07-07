@@ -1049,6 +1049,56 @@
           "path": {
             "type": "string"
           },
+          "resolution": {
+            "properties": {
+              "install_command": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "install_executed": {
+                "type": "boolean"
+              },
+              "install_working_dir": {
+                "type": "string"
+              },
+              "method": {
+                "type": "string"
+              },
+              "validation": {
+                "properties": {
+                  "declared_count": {
+                    "type": "integer"
+                  },
+                  "matched": {
+                    "type": "boolean"
+                  },
+                  "matched_count": {
+                    "type": "integer"
+                  },
+                  "missing": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "performed": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "performed",
+                  "matched"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "install_executed"
+            ],
+            "type": "object"
+          },
           "subproject": {
             "type": "string"
           }

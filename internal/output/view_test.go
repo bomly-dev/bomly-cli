@@ -60,6 +60,56 @@ func TestBuildScanResponseIncludesAuditData(t *testing.T) {
 	}
 }
 
+func TestBuildScanResponseIncludesResolutionMetadata(t *testing.T) {
+	g := newViewTestGraph(t)
+	results := []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			RelativePath:            ".",
+			PrimaryDetector:         "pip-detector",
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerPip},
+			Ecosystem:               sdk.EcosystemPython,
+		},
+		DetectorName: "pip-detector",
+		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{{
+			Graph: g,
+			Manifest: sdk.ManifestMetadata{
+				Path: "requirements.txt",
+				Kind: sdk.ManifestKindRequirementsTXT,
+				Resolution: &sdk.ResolutionMetadata{
+					Method:            sdk.ResolutionMethodIsolatedInstall,
+					InstallExecuted:   true,
+					InstallCommand:    []string{"/tmp/bomly-pyvenv/bin/python", "-m", "pip", "install", "-r", "requirements.txt"},
+					InstallWorkingDir: "/repo",
+					Validation: &sdk.ResolutionValidation{
+						Performed:     true,
+						Matched:       true,
+						DeclaredCount: 2,
+						MatchedCount:  2,
+					},
+				},
+			},
+		}}},
+	}}
+	consolidated, err := consolidation.ConsolidateGraphs(results)
+	if err != nil {
+		t.Fatalf("ConsolidateGraphs() error = %v", err)
+	}
+	response := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo", Path: "/repo"}, consolidated, nil, nil, time.Now().Add(-time.Second))
+	if len(response.Manifests) != 1 {
+		t.Fatalf("expected one manifest, got %d", len(response.Manifests))
+	}
+	resolution := response.Manifests[0].Resolution
+	if resolution == nil {
+		t.Fatal("expected resolution metadata")
+	}
+	if resolution.Method != sdk.ResolutionMethodIsolatedInstall || !resolution.InstallExecuted {
+		t.Fatalf("unexpected resolution metadata: %#v", resolution)
+	}
+	if resolution.Validation == nil || !resolution.Validation.Matched || resolution.Validation.DeclaredCount != 2 {
+		t.Fatalf("unexpected validation metadata: %#v", resolution.Validation)
+	}
+}
+
 func TestBuildScanResponseGatesReachability(t *testing.T) {
 	g := newViewTestGraph(t)
 	pkg, ok := g.Node("react@18.2.0")

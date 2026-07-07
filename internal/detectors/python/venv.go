@@ -76,7 +76,8 @@ func createPythonVenv(ctx context.Context, base baseDetector, req sdk.DetectionR
 	cmd.Stderr = commandStderr
 	started := time.Now()
 	logger.Info(fmt.Sprintf("%s creating isolated virtualenv", detectorName))
-	logger.Debug("creating python virtualenv", zap.String("detector", detectorName), zap.String("working_dir", cmd.Dir), zap.String("venv", venvDir), zap.String("executable", command[0]), zap.Strings("args", command[1:]))
+	sanitizedCommand := sanitizeCommand(command)
+	logger.Debug("creating python virtualenv", zap.String("detector", detectorName), zap.String("working_dir", cmd.Dir), zap.String("venv", venvDir), zap.String("executable", sanitizedCommand[0]), zap.Strings("args", sanitizedCommand[1:]))
 	if err := cmd.Run(); err != nil {
 		fields := []zap.Field{zap.Error(err)}
 		if commandStderr.String() != "" {

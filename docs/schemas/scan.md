@@ -261,6 +261,26 @@ Complete reference for the `bomly scan` JSON output.
 | `url` | `string` | |
 | `type` | `string` | |
 
+### `ResolutionMetadata`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `method` | `string` | |
+| `install_executed` | `boolean` | |
+| `install_command` | Array<`string`> | |
+| `install_working_dir` | `string` | |
+| `validation` | [`ResolutionValidation`](#resolutionvalidation) | |
+
+### `ResolutionValidation`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `performed` | `boolean` | |
+| `matched` | `boolean` | |
+| `declared_count` | `integer` | |
+| `matched_count` | `integer` | |
+| `missing` | Array<`string`> | |
+
 ### `ScanDependency`
 
 | Field | Type | Description |
@@ -286,6 +306,7 @@ Complete reference for the `bomly scan` JSON output.
 | `ecosystem` | `string` | |
 | `package_manager` | `string` | |
 | `detector` | `string` | |
+| `resolution` | [`ResolutionMetadata`](#resolutionmetadata) | |
 | `dependencies` | Array<[`ScanDependency`](#scandependency)> | |
 
 ### `ScanPackageEntry`

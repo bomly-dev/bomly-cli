@@ -438,6 +438,10 @@
       "kind": "poetry.lock",
       "package_manager": "poetry",
       "path": "poetry.lock",
+      "resolution": {
+        "install_executed": false,
+        "method": "lockfile"
+      },
       "subproject": "."
     }
   ],

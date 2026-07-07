@@ -218,6 +218,13 @@
       "kind": "build.sbt",
       "package_manager": "sbt",
       "path": "build.sbt",
+      "resolution": {
+        "fallback": {
+          "from": "sbt-native-detector",
+          "reason": "not ready: sbt executable not found on PATH"
+        },
+        "install_executed": false
+      },
       "subproject": "."
     }
   ],

@@ -68,7 +68,7 @@ func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 		command, err := pipInspectCommand("pipenv", "run")
 		if err == nil {
 			if depsGraph, err := base.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "Pipenv detector", command); err == nil {
-				resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, pipenvReconstructedInstallCommand(req, workingDir), workingDir)
+				resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, false, nil, workingDir)
 				logResolution(base.Logger, "Pipenv detector", workingDir, resolution)
 				annotateGraphScopes(depsGraph, workingDir)
 				attachDeclaredPositions(depsGraph, workingDir)
@@ -88,7 +88,7 @@ func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 					annotateGraphScopes(depsGraph, workingDir)
 					attachDeclaredPositions(depsGraph, workingDir)
 					attachLoosePythonPositions(depsGraph, workingDir)
-					resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, append(installCommand, req.InstallArgs...), workingDir)
+					resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, true, append(installCommand, req.InstallArgs...), workingDir)
 					logResolution(base.Logger, "Pipenv detector", workingDir, resolution)
 					return sdk.DetectionResult{
 						Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipenvEvidencePatterns, resolution)),
@@ -105,7 +105,7 @@ func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 		annotateGraphScopes(depsGraph, workingDir)
 		attachDeclaredPositions(depsGraph, workingDir)
 		attachLoosePythonPositions(depsGraph, workingDir)
-		resolution := resolutionMetadata(sdk.ResolutionMethodManifestOnly, nil, workingDir)
+		resolution := resolutionMetadata(sdk.ResolutionMethodManifestOnly, false, nil, workingDir)
 		logResolution(base.Logger, "Pipenv detector", workingDir, resolution)
 		return sdk.DetectionResult{
 			Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipenvEvidencePatterns, resolution)),

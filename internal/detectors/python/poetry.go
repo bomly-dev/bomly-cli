@@ -59,37 +59,37 @@ func (d PoetryDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 		if depsGraph, err := depGraphFromPoetryLock(lockPath, workingDir); err == nil {
 			attachDeclaredPositions(depsGraph, workingDir)
 			attachLoosePythonPositions(depsGraph, workingDir)
-			resolution := resolutionMetadata(sdk.ResolutionMethodLockfile, poetryReconstructedInstallCommand(req), workingDir)
+			resolution := resolutionMetadata(sdk.ResolutionMethodLockfile, false, nil, workingDir)
 			logResolution(base.Logger, "Poetry detector", workingDir, resolution)
 			return sdk.DetectionResult{
 				Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, poetryEvidencePatterns, resolution)),
 			}, nil
 		}
 	} else {
-		return sdk.DetectionResult{}, fmt.Errorf("Poetry detector: poetry.lock not found; refusing to inspect an unprepared or ambient environment")
+		return sdk.DetectionResult{}, fmt.Errorf("poetry detector: poetry.lock not found; refusing to inspect an unprepared or ambient environment")
 	}
 
 	installCommand := poetryInstallCommand()
 	if err := base.install(ctx, req, "Poetry detector", installCommand); err != nil {
-		return sdk.DetectionResult{}, fmt.Errorf("Poetry detector: prepare locked project environment: %w", err)
+		return sdk.DetectionResult{}, fmt.Errorf("poetry detector: prepare locked project environment: %w", err)
 	}
 
 	command, err := pipInspectCommand("poetry", "run")
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return sdk.DetectionResult{}, fmt.Errorf("poetry detector: build pip inspect command: %w", err)
 	}
 	depsGraph, err := base.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "Poetry detector", command)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return sdk.DetectionResult{}, fmt.Errorf("poetry detector: resolve project environment graph: %w", err)
 	}
 	depsGraph, err = filterPythonToolPackages(depsGraph, workingDir)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return sdk.DetectionResult{}, fmt.Errorf("poetry detector: filter tool packages: %w", err)
 	}
 	annotateGraphScopes(depsGraph, workingDir)
 	attachDeclaredPositions(depsGraph, workingDir)
 	attachLoosePythonPositions(depsGraph, workingDir)
-	resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, append(installCommand, req.InstallArgs...), workingDir)
+	resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, true, append(installCommand, req.InstallArgs...), workingDir)
 	logResolution(base.Logger, "Poetry detector", workingDir, resolution)
 	return sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, poetryEvidencePatterns, resolution)),

@@ -25,12 +25,12 @@ func manifestWithResolution(req sdk.DetectionRequest, patterns []string, resolut
 	return manifest
 }
 
-func resolutionMetadata(method sdk.ResolutionMethod, installCommand []string, workingDir string) *sdk.ResolutionMetadata {
+func resolutionMetadata(method sdk.ResolutionMethod, installExecuted bool, installCommand []string, workingDir string) *sdk.ResolutionMetadata {
 	out := &sdk.ResolutionMetadata{
 		Method:          method,
-		InstallExecuted: len(installCommand) > 0,
+		InstallExecuted: installExecuted,
 	}
-	if len(installCommand) > 0 {
+	if installExecuted && len(installCommand) > 0 {
 		out.InstallCommand = sanitizeCommand(installCommand)
 		out.InstallWorkingDir = workingDir
 	}

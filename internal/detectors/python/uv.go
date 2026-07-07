@@ -59,7 +59,7 @@ func (d UVDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) 
 		if err == nil {
 			attachDeclaredPositions(depsGraph, workingDir)
 			attachLoosePythonPositions(depsGraph, workingDir)
-			resolution := resolutionMetadata(sdk.ResolutionMethodLockfile, uvReconstructedInstallCommand(req), workingDir)
+			resolution := resolutionMetadata(sdk.ResolutionMethodLockfile, false, nil, workingDir)
 			logResolution(base.Logger, "uv detector", workingDir, resolution)
 			return sdk.DetectionResult{
 				Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, uvEvidencePatterns, resolution)),
@@ -80,20 +80,20 @@ func (d UVDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) 
 
 	command, err := pipInspectCommand("uv", "run", "--no-sync")
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return sdk.DetectionResult{}, fmt.Errorf("uv detector: build pip inspect command: %w", err)
 	}
 	depsGraph, err := base.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "uv detector", command)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return sdk.DetectionResult{}, fmt.Errorf("uv detector: resolve project environment graph: %w", err)
 	}
 	depsGraph, err = filterPythonToolPackages(depsGraph, workingDir)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return sdk.DetectionResult{}, fmt.Errorf("uv detector: filter tool packages: %w", err)
 	}
 	annotateGraphScopes(depsGraph, workingDir)
 	attachDeclaredPositions(depsGraph, workingDir)
 	attachLoosePythonPositions(depsGraph, workingDir)
-	resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, append(installCommand, req.InstallArgs...), workingDir)
+	resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, true, append(installCommand, req.InstallArgs...), workingDir)
 	logResolution(base.Logger, "uv detector", workingDir, resolution)
 	return sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, uvEvidencePatterns, resolution)),
@@ -116,9 +116,12 @@ func (d UVDetector) base() baseDetector {
 func (d UVDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 	base := d.base()
 	if err := base.install(ctx, req, "uv detector", uvSyncCommand()); err != nil {
-		return err
+		return fmt.Errorf("uv detector: prepare frozen project environment: %w", err)
 	}
-	return base.install(ctx, req, "uv detector", uvPipInstallCommand())
+	if err := base.install(ctx, req, "uv detector", uvPipInstallCommand()); err != nil {
+		return fmt.Errorf("uv detector: ensure pip is available in project environment: %w", err)
+	}
+	return nil
 }
 
 func uvSyncCommand() []string {

@@ -146,6 +146,12 @@ func TestPythonLockfileResultsIncludeResolutionMetadata(t *testing.T) {
 			if resolution == nil || resolution.Method != tt.method {
 				t.Fatalf("resolution method = %#v, want %q", resolution, tt.method)
 			}
+			if resolution.InstallExecuted {
+				t.Fatalf("lockfile/manifest-only result reported an install execution: %#v", resolution)
+			}
+			if len(resolution.InstallCommand) > 0 || resolution.InstallWorkingDir != "" {
+				t.Fatalf("lockfile/manifest-only result included install details: %#v", resolution)
+			}
 		})
 	}
 }

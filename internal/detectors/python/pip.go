@@ -60,7 +60,7 @@ func (d PipDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest)
 		if depsGraph, err := depGraphFromRequirementsLock(lockPath, workingDir); err == nil {
 			attachDeclaredPositions(depsGraph, workingDir)
 			attachLoosePythonPositions(depsGraph, workingDir)
-			resolution := resolutionMetadata(sdk.ResolutionMethodLockfile, pipReconstructedInstallCommand(req, workingDir), workingDir)
+			resolution := resolutionMetadata(sdk.ResolutionMethodLockfile, false, nil, workingDir)
 			logResolution(base.Logger, "pip detector", workingDir, resolution)
 			return sdk.DetectionResult{
 				Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipEvidencePatterns, resolution)),
@@ -79,16 +79,16 @@ func (d PipDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest)
 	command := []string{venvPython, "-m", "pip", "inspect", "--local"}
 	depsGraph, err := base.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "pip detector", command)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return sdk.DetectionResult{}, fmt.Errorf("pip detector: resolve isolated environment graph: %w", err)
 	}
 	depsGraph, err = filterPythonToolPackages(depsGraph, workingDir)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return sdk.DetectionResult{}, fmt.Errorf("pip detector: filter tool packages: %w", err)
 	}
 	annotateGraphScopes(depsGraph, workingDir)
 	attachDeclaredPositions(depsGraph, workingDir)
 	attachLoosePythonPositions(depsGraph, workingDir)
-	resolution := resolutionMetadata(sdk.ResolutionMethodIsolatedInstall, installCommand, workingDir)
+	resolution := resolutionMetadata(sdk.ResolutionMethodIsolatedInstall, true, installCommand, workingDir)
 	logResolution(base.Logger, "pip detector", workingDir, resolution)
 	return sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipEvidencePatterns, resolution)),
@@ -113,7 +113,10 @@ func (d PipDetector) base() baseDetector {
 // site-packages.
 func (d PipDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 	_, err := d.installIsolatedPipEnvironment(ctx, req)
-	return err
+	if err != nil {
+		return fmt.Errorf("pip detector: prepare isolated Python environment: %w", err)
+	}
+	return nil
 }
 
 func (d PipDetector) ensureIsolatedPipEnvironment(ctx context.Context, req sdk.DetectionRequest) ([]string, error) {

@@ -75,7 +75,7 @@ func (d BaseDetector) ResolveGraph(stderr io.Writer, projectPath string, verbose
 	started := time.Now()
 	logger.Debug("running external dependency detector", zap.String("detector", detectorName), zap.String("working_dir", cmd.Dir), zap.String("executable", executable), zap.Strings("args", args))
 	if err := cmd.Run(); err != nil {
-		logger.Error(fmt.Sprintf("%s failed: %v", detectorName, err))
+		logger.Warn(fmt.Sprintf("%s failed: %v", detectorName, err))
 		fields := []zap.Field{zap.Error(err), zap.String("detector", detectorName)}
 		if commandStderr.String() != "" {
 			fields = append(fields, zap.String("stderr", commandStderr.String()))
@@ -86,7 +86,7 @@ func (d BaseDetector) ResolveGraph(stderr io.Writer, projectPath string, verbose
 
 	depsGraph, err := parse(out.Bytes())
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to map %s output to a dependency graph: %v", detectorName, err))
+		logger.Warn(fmt.Sprintf("Failed to map %s output to a dependency graph: %v", detectorName, err))
 		logger.Debug("dependency detector output mapping failed", zap.String("detector", detectorName), zap.Error(err))
 		return nil, err
 	}

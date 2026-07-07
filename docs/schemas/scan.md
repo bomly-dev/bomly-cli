@@ -261,6 +261,13 @@ Complete reference for the `bomly scan` JSON output.
 | `url` | `string` | |
 | `type` | `string` | |
 
+### `ResolutionFallback`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `from` | `string` | |
+| `reason` | `string` | |
+
 ### `ResolutionMetadata`
 
 | Field | Type | Description |
@@ -269,6 +276,7 @@ Complete reference for the `bomly scan` JSON output.
 | `install_executed` | `boolean` | |
 | `install_command` | Array<`string`> | |
 | `install_working_dir` | `string` | |
+| `fallback` | [`ResolutionFallback`](#resolutionfallback) | |
 
 ### `ScanDependency`
 

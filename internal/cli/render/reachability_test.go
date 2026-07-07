@@ -41,7 +41,7 @@ func TestScanRendersReachabilityColumnWhenEnabled(t *testing.T) {
 			Source:          "osv",
 		},
 	}
-	out := Scan(g, registry, findings, nil /*matcherStats*/, true /*enrich*/, true /*audit*/, true /*reachability*/, nil /*failOn*/, "" /*subprojectSummary*/)
+	out := Scan(g, registry, findings, nil /*matcherStats*/, true /*enrich*/, true /*audit*/, true /*reachability*/, nil /*failOn*/, "" /*subprojectSummary*/, nil /*fallbackNotices*/)
 	// The compact text format shows the finding CVE ID and package name; detailed
 	// reachability info is available in the JSON and Markdown output formats.
 	if !strings.Contains(StripANSI(out), "CVE-2024-0001") {
@@ -209,7 +209,7 @@ func TestScanOmitsReachabilityColumnWhenDisabled(t *testing.T) {
 	findings := []model.Finding{
 		{ID: "CVE-2024-0001", Kind: model.FindingKindVulnerability, PackageRef: pkg.PURL, Severity: "high", Title: "x", Source: "osv"},
 	}
-	out := Scan(g, nil, findings, nil, true, true, false, nil, "")
+	out := Scan(g, nil, findings, nil, true, true, false, nil, "", nil)
 	// Compact text format never shows a REACHABILITY column; detailed info is in JSON/Markdown.
 	if strings.Contains(StripANSI(out), "REACHABILITY") {
 		t.Fatalf("REACHABILITY column should not appear in compact text output; got:\n%s", out)

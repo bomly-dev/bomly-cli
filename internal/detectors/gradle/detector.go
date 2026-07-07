@@ -159,7 +159,7 @@ func (d Detector) runDependencies(ctx context.Context, stderr io.Writer, working
 	started := time.Now()
 	logger.Debug("running gradle dependencies detector", zap.String("working_dir", workingDir), zap.String("executable", executable), zap.Strings("args", args))
 	if err := cmd.Run(); err != nil {
-		logger.Error(fmt.Sprintf("Gradle dependencies detector failed: %v", err))
+		logger.Warn(fmt.Sprintf("Gradle dependencies detector failed: %v", err))
 		fields := []zap.Field{zap.Error(err)}
 		if commandStderr.String() != "" {
 			fields = append(fields, zap.String("stderr", commandStderr.String()))
@@ -170,7 +170,7 @@ func (d Detector) runDependencies(ctx context.Context, stderr io.Writer, working
 
 	depsGraph, err := depGraphFromGradleOutput(gradleOut.Bytes(), gradleRootName(workingDir))
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to map Gradle output to a dependency graph: %v", err))
+		logger.Warn(fmt.Sprintf("Failed to map Gradle output to a dependency graph: %v", err))
 		logger.Debug("gradle output mapping failed", zap.Error(err))
 		return nil, err
 	}

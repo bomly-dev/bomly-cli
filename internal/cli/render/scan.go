@@ -34,7 +34,8 @@ func ScanGraphDisplayName(g *sdk.Graph, fallback string) string {
 // findings (e.g. unknown-license) are suppressed unless "any" is present.
 // subprojectSummary is an optional pre-computed line like "Discovered 2
 // subprojects: web (npm), api (go)" shown before the package count.
-func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, matcherStats []sdk.MatcherStats, enrichEnabled, auditEnabled, reachabilityEnabled bool, failOn []string, subprojectSummary string) string {
+// fallbackNotices are pre-computed FallbackNotices lines shown after it.
+func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, matcherStats []sdk.MatcherStats, enrichEnabled, auditEnabled, reachabilityEnabled bool, failOn []string, subprojectSummary string, fallbackNotices []string) string {
 	var b strings.Builder
 
 	if g == nil {
@@ -43,6 +44,9 @@ func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, m
 
 	if subprojectSummary != "" {
 		fmt.Fprintf(&b, "%s\n", Style(subprojectSummary, Dim))
+	}
+	for _, notice := range fallbackNotices {
+		fmt.Fprintf(&b, "%s\n", Style("⚠ "+notice, Yellow))
 	}
 
 	roots, direct, transitive := scanRelationshipCounts(g)
@@ -100,6 +104,29 @@ func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, m
 	}
 
 	return b.String()
+}
+
+// FallbackNotices returns one human-readable line per manifest that was
+// resolved by a fallback detector after its planned primary detector failed,
+// e.g. "maven-detector unavailable (not ready: java executable not found on
+// PATH) — resolved pom.xml with syft-detector; transitive dependencies may be
+// missing". Returns nil when no manifest carries fallback provenance.
+func FallbackNotices(manifests []output.ScanManifest) []string {
+	var notices []string
+	for _, m := range manifests {
+		if m.Resolution == nil || m.Resolution.Fallback == nil {
+			continue
+		}
+		fallback := m.Resolution.Fallback
+		var b strings.Builder
+		fmt.Fprintf(&b, "%s unavailable", fallback.From)
+		if reason := strings.TrimSpace(fallback.Reason); reason != "" {
+			fmt.Fprintf(&b, " (%s)", reason)
+		}
+		fmt.Fprintf(&b, " — resolved %s with %s; transitive dependencies may be missing", m.Path, m.Detector)
+		notices = append(notices, b.String())
+	}
+	return notices
 }
 
 // BuildSubprojectSummary returns a human-readable line like

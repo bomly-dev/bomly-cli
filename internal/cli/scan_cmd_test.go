@@ -19,7 +19,7 @@ func TestRenderScanReportShowsPackageCountAndDirectDeps(t *testing.T) {
 		Source:     "osv",
 	}}
 
-	report := render.Scan(g, registry, findings, nil, true, true, false, nil, "")
+	report := render.Scan(g, registry, findings, nil, true, true, false, nil, "", nil)
 
 	for _, want := range []string{
 		"packages",
@@ -44,7 +44,7 @@ func TestRenderScanReportWithEnrichmentShowsEnrichmentLine(t *testing.T) {
 		{Name: "osv", DisplayName: "OSV"},
 		{Name: "deps.dev", DisplayName: "deps.dev"},
 	}
-	report := render.Scan(g, registry, nil, stats, true, false, false, nil, "")
+	report := render.Scan(g, registry, nil, stats, true, false, false, nil, "", nil)
 	stripped := render.StripANSI(report)
 	if !strings.Contains(stripped, "Enriched via OSV") {
 		t.Fatalf("expected enrichment line, got:\n%s", report)
@@ -53,7 +53,7 @@ func TestRenderScanReportWithEnrichmentShowsEnrichmentLine(t *testing.T) {
 
 func TestRenderScanReportWithoutEnrichmentSkipsEnrichmentLine(t *testing.T) {
 	g, registry := newScanTestGraph(t)
-	report := render.Scan(g, registry, nil, nil, false, false, false, nil, "")
+	report := render.Scan(g, registry, nil, nil, false, false, false, nil, "", nil)
 	stripped := render.StripANSI(report)
 	if strings.Contains(stripped, "Enriched via") {
 		t.Fatalf("unexpected enrichment line when not enriched, got:\n%s", report)

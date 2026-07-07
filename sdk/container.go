@@ -63,6 +63,16 @@ type ResolutionMetadata struct {
 	InstallExecuted   bool             `json:"install_executed"`
 	InstallCommand    []string         `json:"install_command,omitempty"`
 	InstallWorkingDir string           `json:"install_working_dir,omitempty"`
+	// Fallback records that a fallback detector produced this graph after the
+	// planned primary detector failed (not routine applicability hand-off).
+	Fallback *ResolutionFallback `json:"fallback,omitempty"`
+}
+
+// ResolutionFallback identifies the primary detector that failed before a
+// fallback detector produced the graph, and why it failed.
+type ResolutionFallback struct {
+	From   string `json:"from"`
+	Reason string `json:"reason,omitempty"`
 }
 
 // GraphEntry describes one manifest-scoped dependency graph. Detection-time

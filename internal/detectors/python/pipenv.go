@@ -68,18 +68,14 @@ func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 		command, err := pipInspectCommand("pipenv", "run")
 		if err == nil {
 			if depsGraph, err := base.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "Pipenv detector", command); err == nil {
-				validation, validationErr := requireValidResolvedGraph("Pipenv detector", depsGraph, workingDir, req.ScopeFilter)
-				if validationErr == nil {
-					resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, pipenvReconstructedInstallCommand(req, workingDir), workingDir, validation)
-					logResolution(base.Logger, "Pipenv detector", workingDir, resolution)
-					annotateGraphScopes(depsGraph, workingDir)
-					attachDeclaredPositions(depsGraph, workingDir)
-					attachLoosePythonPositions(depsGraph, workingDir)
-					return sdk.DetectionResult{
-						Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipenvEvidencePatterns, resolution)),
-					}, nil
-				}
-				logger.Warn("Pipenv detector rejected existing virtualenv because it does not match declared dependencies", zap.Error(validationErr))
+				resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, pipenvReconstructedInstallCommand(req, workingDir), workingDir)
+				logResolution(base.Logger, "Pipenv detector", workingDir, resolution)
+				annotateGraphScopes(depsGraph, workingDir)
+				attachDeclaredPositions(depsGraph, workingDir)
+				attachLoosePythonPositions(depsGraph, workingDir)
+				return sdk.DetectionResult{
+					Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipenvEvidencePatterns, resolution)),
+				}, nil
 			}
 		}
 	}
@@ -89,18 +85,14 @@ func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 		if err := base.install(ctx, req, "Pipenv detector", installCommand); err == nil && pipenvVenvExists(workingDir) {
 			if command, err := pipInspectCommand("pipenv", "run"); err == nil {
 				if depsGraph, err := base.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "Pipenv detector", command); err == nil {
-					validation, validationErr := requireValidResolvedGraph("Pipenv detector", depsGraph, workingDir, req.ScopeFilter)
-					if validationErr == nil {
-						annotateGraphScopes(depsGraph, workingDir)
-						attachDeclaredPositions(depsGraph, workingDir)
-						attachLoosePythonPositions(depsGraph, workingDir)
-						resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, append(installCommand, req.InstallArgs...), workingDir, validation)
-						logResolution(base.Logger, "Pipenv detector", workingDir, resolution)
-						return sdk.DetectionResult{
-							Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipenvEvidencePatterns, resolution)),
-						}, nil
-					}
-					logger.Warn("Pipenv detector rejected synced virtualenv because it does not match declared dependencies", zap.Error(validationErr))
+					annotateGraphScopes(depsGraph, workingDir)
+					attachDeclaredPositions(depsGraph, workingDir)
+					attachLoosePythonPositions(depsGraph, workingDir)
+					resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, append(installCommand, req.InstallArgs...), workingDir)
+					logResolution(base.Logger, "Pipenv detector", workingDir, resolution)
+					return sdk.DetectionResult{
+						Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipenvEvidencePatterns, resolution)),
+					}, nil
 				}
 			}
 		} else if err != nil {
@@ -113,7 +105,7 @@ func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 		annotateGraphScopes(depsGraph, workingDir)
 		attachDeclaredPositions(depsGraph, workingDir)
 		attachLoosePythonPositions(depsGraph, workingDir)
-		resolution := resolutionMetadata(sdk.ResolutionMethodManifestOnly, nil, workingDir, nil)
+		resolution := resolutionMetadata(sdk.ResolutionMethodManifestOnly, nil, workingDir)
 		logResolution(base.Logger, "Pipenv detector", workingDir, resolution)
 		return sdk.DetectionResult{
 			Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipenvEvidencePatterns, resolution)),

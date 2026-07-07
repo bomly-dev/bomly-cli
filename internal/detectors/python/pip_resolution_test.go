@@ -110,26 +110,6 @@ func TestPipDetectorDoesNotReturnAmbientPipAuditEnvironment(t *testing.T) {
 	if resolution == nil || resolution.Method != sdk.ResolutionMethodIsolatedInstall || !resolution.InstallExecuted {
 		t.Fatalf("unexpected resolution metadata: %#v", resolution)
 	}
-	if resolution.Validation == nil || !resolution.Validation.Matched || resolution.Validation.MatchedCount != 4 {
-		t.Fatalf("unexpected validation metadata: %#v", resolution.Validation)
-	}
-}
-
-func TestPipDetectorFailsWhenIsolatedInspectDoesNotMatchRequirements(t *testing.T) {
-	projectDir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(projectDir, "requirements.txt"), []byte("fastapi==0.139.0\nPyJWT==1.7.1\n"), 0o644); err != nil {
-		t.Fatalf("write requirements.txt: %v", err)
-	}
-	setupFakePython(t, ambientPipAuditInspect, `{"installed":[{"metadata":{"name":"fastapi","version":"0.139.0","requires_dist":[]},"requested":true}]}`)
-	t.Cleanup(func() { _ = os.RemoveAll(pythonVenvDir(projectDir)) })
-
-	_, err := (PipDetector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
-	if err == nil {
-		t.Fatal("expected validation error")
-	}
-	if !strings.Contains(err.Error(), "missing: pyjwt") {
-		t.Fatalf("expected missing dependency in error, got %v", err)
-	}
 }
 
 func TestSanitizeCommandRedactsCredentials(t *testing.T) {

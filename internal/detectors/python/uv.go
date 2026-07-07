@@ -59,7 +59,7 @@ func (d UVDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) 
 		if err == nil {
 			attachDeclaredPositions(depsGraph, workingDir)
 			attachLoosePythonPositions(depsGraph, workingDir)
-			resolution := resolutionMetadata(sdk.ResolutionMethodLockfile, uvReconstructedInstallCommand(req), workingDir, nil)
+			resolution := resolutionMetadata(sdk.ResolutionMethodLockfile, uvReconstructedInstallCommand(req), workingDir)
 			logResolution(base.Logger, "uv detector", workingDir, resolution)
 			return sdk.DetectionResult{
 				Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, uvEvidencePatterns, resolution)),
@@ -90,14 +90,10 @@ func (d UVDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) 
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
-	validation, err := requireValidResolvedGraph("uv detector", depsGraph, workingDir, req.ScopeFilter)
-	if err != nil {
-		return sdk.DetectionResult{}, err
-	}
 	annotateGraphScopes(depsGraph, workingDir)
 	attachDeclaredPositions(depsGraph, workingDir)
 	attachLoosePythonPositions(depsGraph, workingDir)
-	resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, append(installCommand, req.InstallArgs...), workingDir, validation)
+	resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, append(installCommand, req.InstallArgs...), workingDir)
 	logResolution(base.Logger, "uv detector", workingDir, resolution)
 	return sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, uvEvidencePatterns, resolution)),

@@ -80,12 +80,6 @@ func TestBuildScanResponseIncludesResolutionMetadata(t *testing.T) {
 					InstallExecuted:   true,
 					InstallCommand:    []string{"/tmp/bomly-pyvenv/bin/python", "-m", "pip", "install", "-r", "requirements.txt"},
 					InstallWorkingDir: "/repo",
-					Validation: &sdk.ResolutionValidation{
-						Performed:     true,
-						Matched:       true,
-						DeclaredCount: 2,
-						MatchedCount:  2,
-					},
 				},
 			},
 		}}},
@@ -104,9 +98,6 @@ func TestBuildScanResponseIncludesResolutionMetadata(t *testing.T) {
 	}
 	if resolution.Method != sdk.ResolutionMethodIsolatedInstall || !resolution.InstallExecuted {
 		t.Fatalf("unexpected resolution metadata: %#v", resolution)
-	}
-	if resolution.Validation == nil || !resolution.Validation.Matched || resolution.Validation.DeclaredCount != 2 {
-		t.Fatalf("unexpected validation metadata: %#v", resolution.Validation)
 	}
 }
 

@@ -60,7 +60,7 @@ func (d PipDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest)
 		if depsGraph, err := depGraphFromRequirementsLock(lockPath, workingDir); err == nil {
 			attachDeclaredPositions(depsGraph, workingDir)
 			attachLoosePythonPositions(depsGraph, workingDir)
-			resolution := resolutionMetadata(sdk.ResolutionMethodLockfile, pipReconstructedInstallCommand(req, workingDir), workingDir, nil)
+			resolution := resolutionMetadata(sdk.ResolutionMethodLockfile, pipReconstructedInstallCommand(req, workingDir), workingDir)
 			logResolution(base.Logger, "pip detector", workingDir, resolution)
 			return sdk.DetectionResult{
 				Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipEvidencePatterns, resolution)),
@@ -85,14 +85,10 @@ func (d PipDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest)
 	if err != nil {
 		return sdk.DetectionResult{}, err
 	}
-	validation, err := requireValidResolvedGraph("pip detector", depsGraph, workingDir, req.ScopeFilter)
-	if err != nil {
-		return sdk.DetectionResult{}, err
-	}
 	annotateGraphScopes(depsGraph, workingDir)
 	attachDeclaredPositions(depsGraph, workingDir)
 	attachLoosePythonPositions(depsGraph, workingDir)
-	resolution := resolutionMetadata(sdk.ResolutionMethodIsolatedInstall, installCommand, workingDir, validation)
+	resolution := resolutionMetadata(sdk.ResolutionMethodIsolatedInstall, installCommand, workingDir)
 	logResolution(base.Logger, "pip detector", workingDir, resolution)
 	return sdk.DetectionResult{
 		Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipEvidencePatterns, resolution)),

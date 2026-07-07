@@ -59,20 +59,10 @@ const (
 
 // ResolutionMetadata describes how a detector resolved a manifest graph.
 type ResolutionMetadata struct {
-	Method            ResolutionMethod      `json:"method,omitempty"`
-	InstallExecuted   bool                  `json:"install_executed"`
-	InstallCommand    []string              `json:"install_command,omitempty"`
-	InstallWorkingDir string                `json:"install_working_dir,omitempty"`
-	Validation        *ResolutionValidation `json:"validation,omitempty"`
-}
-
-// ResolutionValidation records detector checks that the graph matches the selected project.
-type ResolutionValidation struct {
-	Performed     bool     `json:"performed"`
-	Matched       bool     `json:"matched"`
-	DeclaredCount int      `json:"declared_count,omitempty"`
-	MatchedCount  int      `json:"matched_count,omitempty"`
-	Missing       []string `json:"missing,omitempty"`
+	Method            ResolutionMethod `json:"method,omitempty"`
+	InstallExecuted   bool             `json:"install_executed"`
+	InstallCommand    []string         `json:"install_command,omitempty"`
+	InstallWorkingDir string           `json:"install_working_dir,omitempty"`
 }
 
 // GraphEntry describes one manifest-scoped dependency graph. Detection-time

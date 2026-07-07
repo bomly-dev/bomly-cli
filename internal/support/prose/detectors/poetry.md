@@ -8,7 +8,7 @@
 | Lockfile unreadable | Locked install + inspect | `poetry install --no-root --sync`, then `poetry run python -m pip inspect --local` |
 | Lockfile missing | Fail | None |
 
-The inspected graph is accepted only when it contains the packages declared by the selected Poetry project. If the environment does not validate, Bomly fails with the missing package names instead of returning a stale or unrelated graph.
+The inspected graph comes from Poetry's project-managed virtualenv after a locked install attempt. Bomly does not inspect an arbitrary ambient Python environment.
 
 ## Network behavior
 

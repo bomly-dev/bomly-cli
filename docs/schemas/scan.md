@@ -269,17 +269,6 @@ Complete reference for the `bomly scan` JSON output.
 | `install_executed` | `boolean` | |
 | `install_command` | Array<`string`> | |
 | `install_working_dir` | `string` | |
-| `validation` | [`ResolutionValidation`](#resolutionvalidation) | |
-
-### `ResolutionValidation`
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `performed` | `boolean` | |
-| `matched` | `boolean` | |
-| `declared_count` | `integer` | |
-| `matched_count` | `integer` | |
-| `missing` | Array<`string`> | |
 
 ### `ScanDependency`
 

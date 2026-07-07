@@ -7,7 +7,7 @@
 | `requirements.lock` present and readable | Lockfile parser | None |
 | No lockfile | Isolated install + inspect | `python -m venv <tmp>/bomly-pyvenv-*`, then `<venv>/python -m pip install -r <requirements-file>`, then `<venv>/python -m pip inspect --local` |
 
-The isolated virtualenv lives under the OS temp directory and is keyed by the project path. Bomly recreates it before installing so stale packages cannot leak into the scan. After inspection, Bomly validates that the inspected environment contains the packages declared by the project's requirements files. If validation fails, the detector fails with the missing package names instead of returning a graph for the wrong environment.
+The isolated virtualenv lives under the OS temp directory and is keyed by the project path. Bomly recreates it before installing so stale packages cannot leak into the scan, then inspects that venv directly. Ambient site-packages are never accepted as the project graph.
 
 ## Network behavior
 
@@ -83,6 +83,6 @@ For pip-managed packages, the analyzer is `pyreach` at **Tier-3 (package)**. It 
 
 ## Limitations
 
-- **Validation is strict.** If the inspected environment does not contain the packages declared by the selected project, Bomly fails instead of returning an unrelated graph.
+- **Install failures are explicit.** If Bomly cannot create the isolated virtualenv, install the selected requirements file, or inspect the venv, the detector fails instead of falling back to ambient Python.
 - **Multiple Python installations** only affect which interpreter creates the isolated virtualenv. The project graph comes from the temp venv, not from ambient site-packages.
 - **Editable installs** (`pip install -e ./local-pkg`) are reflected in the inspection; their internal dependencies come from the local package's metadata.

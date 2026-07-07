@@ -14,14 +14,23 @@ func ScanMarkdown(w io.Writer, payload output.ScanResponse) error {
 	return writeMarkdownReport(w, MarkdownReport[output.ScanResponse]{
 		Title: "Bomly Scan Summary",
 		Intro: func(payload output.ScanResponse) []string {
+			var lines []string
 			project := payload.Project.Name
 			if project == "" {
 				project = payload.Project.Path
 			}
-			if project == "" {
-				return nil
+			if project != "" {
+				lines = append(lines, fmt.Sprintf("Project: `%s`", markdownInline(project)))
 			}
-			return []string{fmt.Sprintf("Project: `%s`", markdownInline(project))}
+			if notices := FallbackNotices(payload.Manifests); len(notices) > 0 {
+				if len(lines) > 0 {
+					lines = append(lines, "")
+				}
+				for _, notice := range notices {
+					lines = append(lines, "> **Warning:** "+markdownText(notice))
+				}
+			}
+			return lines
 		},
 		Sections: []MarkdownSection[output.ScanResponse]{
 			{Title: "Executive Summary", Lines: scanSummaryMarkdown},

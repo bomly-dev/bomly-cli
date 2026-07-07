@@ -154,7 +154,7 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 	logger.Debug("running go module detector", zap.String("working_dir", workingDir), zap.String("executable", goPath), zap.Strings("args", args))
 	raw, err := cmd.Output()
 	if err != nil {
-		logger.Error(fmt.Sprintf("Go module detector failed: %v", err))
+		logger.Warn(fmt.Sprintf("Go module detector failed: %v", err))
 		fields := []zap.Field{zap.Error(err)}
 		if commandStderr.String() != "" {
 			fields = append(fields, zap.String("stderr", commandStderr.String()))
@@ -165,7 +165,7 @@ func (d Detector) resolveGraph(stderr io.Writer, projectPath string, verbose boo
 
 	depsGraph, err := depGraphFromGoListWithScope(raw, modulePath, directRequires, scopeFilter)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to map Go module output to a dependency graph: %v", err))
+		logger.Warn(fmt.Sprintf("Failed to map Go module output to a dependency graph: %v", err))
 		logger.Debug("go module output mapping failed", zap.Error(err))
 		return nil, err
 	}

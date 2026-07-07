@@ -49,7 +49,7 @@ func (d Detector) resolveGraph(ctx context.Context, req sdk.DetectionRequest, wo
 
 	src, err := syftlib.GetSource(ctx, target, sourceConfig)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Syft source detection failed: %v", err))
+		logger.Warn(fmt.Sprintf("Syft source detection failed: %v", err))
 		logger.Debug("syft source detection failed", zap.Error(err))
 		return nil, fmt.Errorf("create syft source: %w", err)
 	}
@@ -59,14 +59,14 @@ func (d Detector) resolveGraph(ctx context.Context, req sdk.DetectionRequest, wo
 
 	syftSBOM, err := syftlib.CreateSBOM(ctx, src, syftCreateSBOMConfig(req))
 	if err != nil {
-		logger.Error(fmt.Sprintf("Syft SBOM generation failed: %v", err))
+		logger.Warn(fmt.Sprintf("Syft SBOM generation failed: %v", err))
 		logger.Debug("syft sbom generation failed", zap.Error(err))
 		return nil, fmt.Errorf("create syft sbom: %w", err)
 	}
 
 	graphs, err := graphContainerFromSyftSBOM(syftSBOM, req.PackageManager)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to map Syft SBOM to a dependency graph: %v", err))
+		logger.Warn(fmt.Sprintf("Failed to map Syft SBOM to a dependency graph: %v", err))
 		logger.Debug("syft sbom mapping failed", zap.Error(err))
 		return nil, err
 	}

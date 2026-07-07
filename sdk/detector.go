@@ -49,7 +49,14 @@ type DetectionResult struct {
 	DetectorName        string            `json:"detectorName,omitempty"`
 	Origin              DetectorOrigin    `json:"origin,omitempty"`
 	Technique           DetectorTechnique `json:"technique,omitempty"`
-	Graphs              *GraphContainer   `json:"graphs,omitempty"`
+	// FallbackFrom names the planned primary detector that failed before a
+	// fallback detector produced this result. Empty for routine applicability
+	// hand-off between chained detectors.
+	FallbackFrom string `json:"fallbackFrom,omitempty"`
+	// FallbackReason is the human-readable cause of the primary detector's
+	// failure, e.g. "not ready: java executable not found on PATH".
+	FallbackReason string          `json:"fallbackReason,omitempty"`
+	Graphs         *GraphContainer `json:"graphs,omitempty"`
 }
 
 // ConsolidatedGraph returns a single graph view for the resolve result.

@@ -1051,6 +1051,20 @@
           },
           "resolution": {
             "properties": {
+              "fallback": {
+                "properties": {
+                  "from": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "from"
+                ],
+                "type": "object"
+              },
               "install_command": {
                 "items": {
                   "type": "string"

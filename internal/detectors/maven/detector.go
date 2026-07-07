@@ -131,7 +131,7 @@ func (d Detector) resolveGraph(ctx context.Context, stderr io.Writer, projectPat
 	logger.Debug("running maven dependencies detector", zap.String("working_dir", cmd.Dir), zap.String("executable", executable), zap.Strings("args", args))
 	raw, err := cmd.Output()
 	if err != nil {
-		logger.Error(fmt.Sprintf("Maven dependencies detector failed: %v", err))
+		logger.Warn(fmt.Sprintf("Maven dependencies detector failed: %v", err))
 		fields := []zap.Field{zap.Error(err)}
 		if commandStderr.String() != "" {
 			fields = append(fields, zap.String("stderr", commandStderr.String()))
@@ -142,7 +142,7 @@ func (d Detector) resolveGraph(ctx context.Context, stderr io.Writer, projectPat
 
 	depsGraph, err := depGraphFromMavenTGF(raw)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to map Maven output to a dependency graph: %v", err))
+		logger.Warn(fmt.Sprintf("Failed to map Maven output to a dependency graph: %v", err))
 		logger.Debug("maven output mapping failed", zap.Error(err))
 		return nil, err
 	}

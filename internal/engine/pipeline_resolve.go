@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
@@ -34,6 +35,11 @@ func (p *Pipeline) resolveAll(ctx context.Context, req PipelineRequest) ([]sdk.D
 	}
 
 	workerCount := resolveWorkerCount(len(req.Subprojects))
+	started := time.Now()
+	p.Logger.Info("pipeline: detection started",
+		zap.Int("subprojects", len(req.Subprojects)),
+		zap.Int("workers", workerCount),
+	)
 	if req.Progress != nil {
 		req.Progress.StartStage("Detecting dependencies", len(req.Subprojects))
 	}
@@ -84,6 +90,21 @@ func (p *Pipeline) resolveAll(ctx context.Context, req PipelineRequest) ([]sdk.D
 		}
 		results = append(results, resolution.results...)
 	}
+
+	packages, edges := 0, 0
+	for _, result := range results {
+		resultPackages, resultEdges := graphContainerStats(result.Graphs)
+		packages += resultPackages
+		edges += resultEdges
+	}
+	p.Logger.Info("pipeline: detection completed",
+		zap.Int("subprojects", len(req.Subprojects)),
+		zap.Int("succeeded", len(req.Subprojects)-len(errs)),
+		zap.Int("failed", len(errs)),
+		zap.Int("packages", packages),
+		zap.Int("edges", edges),
+		zap.Duration("duration", time.Since(started)),
+	)
 
 	if len(errs) > 0 {
 		return results, errors.Join(errs...)
@@ -293,9 +314,42 @@ func (p *Pipeline) resolveFallback(ctx context.Context, req sdk.DetectionRequest
 		return results, fallbackErr
 	}
 	if fallbackErr == nil {
+		annotateFallbackResults(results, detector.Descriptor().Name, primaryErr)
 		return results, nil
 	}
 	return nil, errors.Join(primaryErr, fallbackErr)
+}
+
+// annotateFallbackResults records fallback provenance on every result produced
+// after a real primary-detector failure. The outermost failure wins: chained
+// fallbacks overwrite inner annotations so the warning names the planned
+// primary detector, while routine applicability hand-off (nil primaryErr)
+// never reaches this point and leaves inner annotations intact. The reason is
+// collapsed to a single line because tool errors (e.g. macOS java_home) can
+// span multiple lines, which would break the single-line warning channels.
+func annotateFallbackResults(results []sdk.DetectionResult, primaryName string, primaryErr error) {
+	reason := trimDetectorErrorPrefix(strings.Join(strings.Fields(primaryErr.Error()), " "), primaryName)
+	for i := range results {
+		results[i].FallbackFrom = primaryName
+		results[i].FallbackReason = reason
+		if results[i].Graphs == nil {
+			continue
+		}
+		for j := range results[i].Graphs.Entries {
+			manifest := &results[i].Graphs.Entries[j].Manifest
+			if manifest.Resolution == nil {
+				manifest.Resolution = &sdk.ResolutionMetadata{}
+			}
+			manifest.Resolution.Fallback = &sdk.ResolutionFallback{From: primaryName, Reason: reason}
+		}
+	}
+}
+
+// trimDetectorErrorPrefix strips the "detector <name>: " prefix that
+// resolveDetector wraps around primary failures, so stored fallback reasons do
+// not repeat the detector name already carried alongside them.
+func trimDetectorErrorPrefix(message, detectorName string) string {
+	return strings.TrimPrefix(message, "detector "+detectorName+": ")
 }
 
 func reportProgressDetail(progress ProgressReporter, label, detail string) {

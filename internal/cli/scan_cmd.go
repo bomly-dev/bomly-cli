@@ -107,9 +107,11 @@ func newScanCmd() *cobra.Command {
 			markdownRenderer := func(w io.Writer) error {
 				return render.ScanMarkdown(w, payload)
 			}
-			subprojectSummary := render.BuildSubprojectSummary(output.ScanManifestsFromConsolidated(consolidated, pipeResult.Registry))
+			scanManifests := output.ScanManifestsFromConsolidated(consolidated, pipeResult.Registry)
+			subprojectSummary := render.BuildSubprojectSummary(scanManifests)
+			fallbackNotices := render.FallbackNotices(scanManifests)
 			textRenderer := func(w io.Writer) error {
-				if _, err := io.WriteString(w, render.Scan(selectedGraph, pipeResult.Registry, findings, pipeResult.MatcherStats, commandCtx.ResolvedConfig.Enrich, commandCtx.ResolvedConfig.Audit, commandCtx.ResolvedConfig.Analyze, commandCtx.ResolvedConfig.FailOn, subprojectSummary)); err != nil {
+				if _, err := io.WriteString(w, render.Scan(selectedGraph, pipeResult.Registry, findings, pipeResult.MatcherStats, commandCtx.ResolvedConfig.Enrich, commandCtx.ResolvedConfig.Audit, commandCtx.ResolvedConfig.Analyze, commandCtx.ResolvedConfig.FailOn, subprojectSummary, fallbackNotices)); err != nil {
 					return fmt.Errorf("write scan text output: %w", err)
 				}
 				return nil

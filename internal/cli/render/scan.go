@@ -34,7 +34,8 @@ func ScanGraphDisplayName(g *sdk.Graph, fallback string) string {
 // findings (e.g. unknown-license) are suppressed unless "any" is present.
 // subprojectSummary is an optional pre-computed line like "Discovered 2
 // subprojects: web (npm), api (go)" shown before the package count.
-func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, matcherStats []sdk.MatcherStats, enrichEnabled, auditEnabled, reachabilityEnabled bool, failOn []string, subprojectSummary string) string {
+// fallbackNotices are pre-computed FallbackNotices lines shown after it.
+func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, matcherStats []sdk.MatcherStats, enrichEnabled, auditEnabled, reachabilityEnabled bool, failOn []string, subprojectSummary string, fallbackNotices []string) string {
 	var b strings.Builder
 
 	if g == nil {
@@ -43,6 +44,9 @@ func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, m
 
 	if subprojectSummary != "" {
 		fmt.Fprintf(&b, "%s\n", Style(subprojectSummary, Dim))
+	}
+	for _, notice := range fallbackNotices {
+		fmt.Fprintf(&b, "%s\n", Style("⚠ "+notice, Yellow))
 	}
 
 	roots, direct, transitive := scanRelationshipCounts(g)
@@ -100,6 +104,84 @@ func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, m
 	}
 
 	return b.String()
+}
+
+// maxFallbackNoticePaths caps how many manifest paths are named in a single
+// fallback notice; monorepos where one missing toolchain affects many
+// modules would otherwise print one path per module.
+const maxFallbackNoticePaths = 5
+
+// FallbackNotices returns one human-readable line per (primary detector,
+// reason, fallback detector) group that resolved at least one manifest via a
+// fallback detector after its planned primary failed, e.g. "maven-detector
+// unavailable (not ready: java executable not found on PATH) — resolved
+// pom.xml with syft-detector; transitive dependencies may be missing".
+// Manifests sharing the same fallback cause are grouped into a single line
+// instead of one per manifest. Returns nil when no manifest carries fallback
+// provenance.
+func FallbackNotices(manifests []output.ScanManifest) []string {
+	type group struct {
+		from, reason, detector string
+		paths                  []string
+	}
+	var groups []*group
+	index := make(map[string]int)
+	for _, m := range manifests {
+		if m.Resolution == nil || m.Resolution.Fallback == nil {
+			continue
+		}
+		fallback := m.Resolution.Fallback
+		// Reason and Path may originate from scanned repository content
+		// (subprocess error text, file names); collapse embedded newlines so
+		// a crafted value cannot inject extra lines into rendered output.
+		from := collapseWhitespace(fallback.From)
+		reason := collapseWhitespace(fallback.Reason)
+		detector := collapseWhitespace(m.Detector)
+		path := collapseWhitespace(m.Path)
+		key := from + "\x00" + reason + "\x00" + detector
+		if idx, ok := index[key]; ok {
+			groups[idx].paths = append(groups[idx].paths, path)
+			continue
+		}
+		index[key] = len(groups)
+		groups = append(groups, &group{from: from, reason: reason, detector: detector, paths: []string{path}})
+	}
+
+	if len(groups) == 0 {
+		return nil
+	}
+	notices := make([]string, 0, len(groups))
+	for _, g := range groups {
+		var b strings.Builder
+		fmt.Fprintf(&b, "%s unavailable", g.from)
+		if g.reason != "" {
+			fmt.Fprintf(&b, " (%s)", g.reason)
+		}
+		paths := g.paths
+		overflow := 0
+		if len(paths) > maxFallbackNoticePaths {
+			overflow = len(paths) - maxFallbackNoticePaths
+			paths = paths[:maxFallbackNoticePaths]
+		}
+		pathList := strings.Join(paths, ", ")
+		if overflow > 0 {
+			pathList += fmt.Sprintf(", +%d more", overflow)
+		}
+		if len(g.paths) == 1 {
+			fmt.Fprintf(&b, " — resolved %s with %s; transitive dependencies may be missing", pathList, g.detector)
+		} else {
+			fmt.Fprintf(&b, " — resolved %d manifests with %s (%s); transitive dependencies may be missing", len(g.paths), g.detector, pathList)
+		}
+		notices = append(notices, b.String())
+	}
+	return notices
+}
+
+// collapseWhitespace trims and folds runs of whitespace (including
+// newlines) into single spaces, so untrusted, multi-line input cannot inject
+// extra lines into single-line rendered output.
+func collapseWhitespace(value string) string {
+	return strings.Join(strings.Fields(value), " ")
 }
 
 // BuildSubprojectSummary returns a human-readable line like

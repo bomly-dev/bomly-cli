@@ -392,6 +392,10 @@
       "kind": "requirements.txt",
       "package_manager": "pip",
       "path": "requirements.txt",
+      "resolution": {
+        "install_executed": false,
+        "method": "lockfile"
+      },
       "subproject": "."
     }
   ],

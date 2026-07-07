@@ -448,6 +448,10 @@
       "kind": "uv.lock",
       "package_manager": "uv",
       "path": "uv.lock",
+      "resolution": {
+        "install_executed": false,
+        "method": "lockfile"
+      },
       "subproject": "."
     }
   ],

@@ -345,6 +345,10 @@
       "kind": "Pipfile",
       "package_manager": "pipenv",
       "path": "Pipfile",
+      "resolution": {
+        "install_executed": false,
+        "method": "manifest-only"
+      },
       "subproject": "."
     }
   ],

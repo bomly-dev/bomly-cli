@@ -524,6 +524,13 @@
       "kind": "Package.resolved",
       "package_manager": "swiftpm",
       "path": "Package.resolved",
+      "resolution": {
+        "fallback": {
+          "from": "swiftpm-native-detector",
+          "reason": "swift package show-dependencies: exit status 1"
+        },
+        "install_executed": false
+      },
       "subproject": "."
     }
   ],

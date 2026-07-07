@@ -101,6 +101,9 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a Cargo dependency graph.
 func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+	// Prefer the request-scoped logger (bound to this subproject) so
+	// concurrent per-subproject resolution stays attributable in logs.
+	d.Logger = req.DetectorLogger(d.Logger)
 	logger := d.Logger
 	if logger == nil {
 		logger = zap.NewNop()

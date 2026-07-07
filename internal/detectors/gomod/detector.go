@@ -108,6 +108,9 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a Go module dependency graph for the scan engine.
 func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+	// Prefer the request-scoped logger (bound to this subproject) so
+	// concurrent per-subproject resolution stays attributable in logs.
+	d.Logger = req.DetectorLogger(d.Logger)
 	depsGraph, err := d.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, req.ScopeFilter)
 	if err != nil {
 		return sdk.DetectionResult{}, err

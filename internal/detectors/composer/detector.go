@@ -72,6 +72,9 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a Composer dependency graph from composer.lock.
 func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+	// Prefer the request-scoped logger (bound to this subproject) so
+	// concurrent per-subproject resolution stays attributable in logs.
+	d.Logger = req.DetectorLogger(d.Logger)
 	workingDir := d.workingDir(req.ProjectPath)
 	manifest, err := readComposerManifest(filepath.Join(workingDir, "composer.json"))
 	if err != nil {

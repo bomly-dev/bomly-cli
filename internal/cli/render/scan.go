@@ -186,6 +186,10 @@ func collapseWhitespace(value string) string {
 
 // BuildSubprojectSummary returns a human-readable line like
 // "Discovered 2 subprojects: web (npm), api (go)" from the scan manifests.
+// A single path can host more than one ecosystem (e.g. a repo root with both
+// GitHub Actions workflows and an npm manifest), so entries are counted per
+// path per ecosystem rather than per path — otherwise the count and labels
+// under-report what was actually discovered.
 // Returns "" when no named subprojects are present (e.g. single-root repos).
 func BuildSubprojectSummary(manifests []output.ScanManifest) string {
 	type entry struct {
@@ -199,10 +203,12 @@ func BuildSubprojectSummary(manifests []output.ScanManifest) string {
 		if name == "" {
 			continue
 		}
-		if _, ok := seen[name]; ok {
+		ecosystem := strings.TrimSpace(string(m.Ecosystem))
+		key := name + "\x00" + ecosystem
+		if _, ok := seen[key]; ok {
 			continue
 		}
-		seen[name] = struct{}{}
+		seen[key] = struct{}{}
 		pm := strings.TrimSpace(m.PackageManager.Name())
 		entries = append(entries, entry{name: name, pm: pm})
 	}

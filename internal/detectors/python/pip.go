@@ -50,6 +50,9 @@ func (d PipDetector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a Python dependency graph with pip inspect.
 func (d PipDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+	// Prefer the request-scoped logger (bound to this subproject) so
+	// concurrent per-subproject resolution stays attributable in logs.
+	d.Logger = req.DetectorLogger(d.Logger)
 	workingDir := d.base().workingDir(req.ProjectPath)
 	base := d.base()
 

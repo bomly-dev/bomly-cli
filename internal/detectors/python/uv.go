@@ -49,6 +49,9 @@ func (d UVDetector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a Python dependency graph through uv.
 func (d UVDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+	// Prefer the request-scoped logger (bound to this subproject) so
+	// concurrent per-subproject resolution stays attributable in logs.
+	d.Logger = req.DetectorLogger(d.Logger)
 	workingDir := d.base().workingDir(req.ProjectPath)
 	base := d.base()
 

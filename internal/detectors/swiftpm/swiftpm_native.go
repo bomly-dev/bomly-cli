@@ -52,6 +52,9 @@ func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a SwiftPM dependency graph via swift package show-dependencies.
 func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+	// Prefer the request-scoped logger (bound to this subproject) so
+	// concurrent per-subproject resolution stays attributable in logs.
+	d.Logger = req.DetectorLogger(d.Logger)
 	logger := d.logger()
 	workingDir := d.workingDir(req.ProjectPath)
 

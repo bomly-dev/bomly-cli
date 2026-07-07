@@ -59,6 +59,9 @@ func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves an npm dependency graph via npm ls.
 func (d NativeDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+	// Prefer the request-scoped logger (bound to this subproject) so
+	// concurrent per-subproject resolution stays attributable in logs.
+	d.Logger = req.DetectorLogger(d.Logger)
 	depsGraph, err := d.base().ResolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "npm", npmListArgs(req.ScopeFilter), "NPM detector", node.DepGraphFromNPMJSON)
 	if err != nil {
 		return sdk.DetectionResult{}, err

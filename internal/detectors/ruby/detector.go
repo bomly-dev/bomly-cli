@@ -75,6 +75,9 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 
 // ResolveGraph resolves a Bundler dependency graph from Gemfile.lock.
 func (d Detector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+	// Prefer the request-scoped logger (bound to this subproject) so
+	// concurrent per-subproject resolution stays attributable in logs.
+	d.Logger = req.DetectorLogger(d.Logger)
 	workingDir := d.workingDir(req.ProjectPath)
 	lockPath, err := findBundlerLockfile(workingDir)
 	if err != nil {

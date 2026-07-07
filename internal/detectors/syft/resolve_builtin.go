@@ -18,6 +18,9 @@ import (
 
 // ResolveGraph resolves a dependency graph by invoking the Syft Go library.
 func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+	// Prefer the request-scoped logger (bound to this subproject) so
+	// concurrent per-subproject resolution stays attributable in logs.
+	d.Logger = req.DetectorLogger(d.Logger)
 	workingDir := syftWorkingDir(d.WorkingDir, req)
 
 	graphs, err := d.resolveGraph(ctx, req, workingDir, req.Stderr)

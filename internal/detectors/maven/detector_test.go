@@ -130,6 +130,29 @@ func TestDepGraphFromMavenTGF_WithMavenLogPrefixes(t *testing.T) {
 	}
 }
 
+func TestDepGraphFromMavenTGF_WithColoredMavenLogPrefixes(t *testing.T) {
+	raw := []byte("[\x1b[1;34mINFO\x1b[m] Scanning for projects...\n" +
+		"[\x1b[1;34mINFO\x1b[m] 1 com.example:demo-app:jar:1.0.0\n" +
+		"[\x1b[1;34mINFO\x1b[m] 2 org.apache.commons:commons-configuration2:jar:2.7:compile\n" +
+		"[\x1b[1;34mINFO\x1b[m] 3 org.apache.commons:commons-text:jar:1.8:compile\n" +
+		"[\x1b[1;34mINFO\x1b[m] #\n" +
+		"[\x1b[1;34mINFO\x1b[m] 1 2 compile\n" +
+		"[\x1b[1;34mINFO\x1b[m] 2 3 compile\n" +
+		"[\x1b[1;34mINFO\x1b[m] BUILD SUCCESS\n")
+
+	g, err := depGraphFromMavenTGF(raw)
+	if err != nil {
+		t.Fatalf("depGraphFromMavenTGF() error = %v", err)
+	}
+
+	if g.Size() != 3 {
+		t.Fatalf("expected 3 packages, got %d", g.Size())
+	}
+
+	requireMavenEdge(t, g, "com.example:demo-app@1.0.0", "org.apache.commons:commons-configuration2@2.7")
+	requireMavenEdge(t, g, "org.apache.commons:commons-configuration2@2.7", "org.apache.commons:commons-text@1.8")
+}
+
 func TestNodeFromMavenCoords_WithClassifier(t *testing.T) {
 	node, err := nodeFromMavenCoords("com.example:demo-artifact:jar:sources:1.0.0:test")
 	if err != nil {
@@ -223,19 +246,19 @@ func TestMavenDependencyTreeArgsScopeFilter(t *testing.T) {
 		{
 			name:  "unknown resolves full tree",
 			scope: sdk.ScopeUnknown,
-			want:  []string{"dependency:tree", "-DoutputType=tgf"},
+			want:  []string{"-B", "dependency:tree", "-DoutputType=tgf"},
 		},
 		{
 			name:   "runtime selects runtime scope",
 			prefix: []string{"./mvnw"},
 			scope:  sdk.ScopeRuntime,
-			want:   []string{"./mvnw", "dependency:tree", "-DoutputType=tgf", "-Dscope=runtime"},
+			want:   []string{"./mvnw", "-B", "dependency:tree", "-DoutputType=tgf", "-Dscope=runtime"},
 		},
 		{
 			name:      "development selects test scope",
 			prefix:    []string{"-f", "demo/pom.xml"},
 			scope:     sdk.ScopeDevelopment,
-			want:      []string{"-f", "demo/pom.xml", "dependency:tree", "-DoutputType=tgf", "-Dscope=test"},
+			want:      []string{"-f", "demo/pom.xml", "-B", "dependency:tree", "-DoutputType=tgf", "-Dscope=test"},
 			unchanged: []string{"-f", "demo/pom.xml"},
 		},
 	}

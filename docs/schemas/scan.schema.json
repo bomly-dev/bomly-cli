@@ -1049,6 +1049,29 @@
           "path": {
             "type": "string"
           },
+          "resolution": {
+            "properties": {
+              "install_command": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "install_executed": {
+                "type": "boolean"
+              },
+              "install_working_dir": {
+                "type": "string"
+              },
+              "method": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "install_executed"
+            ],
+            "type": "object"
+          },
           "subproject": {
             "type": "string"
           }

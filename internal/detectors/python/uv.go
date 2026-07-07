@@ -2,6 +2,7 @@ package python
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/bomly-dev/bomly-cli/internal/detectors"
 	"github.com/bomly-dev/bomly-cli/internal/system"
@@ -47,8 +48,9 @@ func (d UVDetector) Descriptor() sdk.DetectorDescriptor {
 }
 
 // ResolveGraph resolves a Python dependency graph through uv.
-func (d UVDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d UVDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	workingDir := d.base().workingDir(req.ProjectPath)
+	base := d.base()
 
 	// Prefer the native uv.lock parser: it produces a proper transitive graph
 	// with runtime/development scope from the lock file's dependency groups.
@@ -57,30 +59,44 @@ func (d UVDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (s
 		if err == nil {
 			attachDeclaredPositions(depsGraph, workingDir)
 			attachLoosePythonPositions(depsGraph, workingDir)
+			resolution := resolutionMetadata(sdk.ResolutionMethodLockfile, false, nil, workingDir)
+			logResolution(base.Logger, "uv detector", workingDir, resolution)
 			return sdk.DetectionResult{
-				Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, uvEvidencePatterns)),
+				Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, uvEvidencePatterns, resolution)),
 			}, nil
 		}
 		// Fall through to pip-inspect on parse failure.
+	} else {
+		return sdk.DetectionResult{}, fmt.Errorf("uv detector: uv.lock not found; refusing to inspect an unprepared or ambient environment")
+	}
+
+	installCommand := uvSyncCommand()
+	if err := base.install(ctx, req, "uv detector", installCommand); err != nil {
+		return sdk.DetectionResult{}, fmt.Errorf("uv detector: prepare frozen project environment: %w", err)
+	}
+	if err := base.install(ctx, req, "uv detector", uvPipInstallCommand()); err != nil {
+		return sdk.DetectionResult{}, fmt.Errorf("uv detector: ensure pip is available in project environment: %w", err)
 	}
 
 	command, err := pipInspectCommand("uv", "run", "--no-sync")
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return sdk.DetectionResult{}, fmt.Errorf("uv detector: build pip inspect command: %w", err)
 	}
-	depsGraph, err := d.base().resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "uv detector", command)
+	depsGraph, err := base.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "uv detector", command)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return sdk.DetectionResult{}, fmt.Errorf("uv detector: resolve project environment graph: %w", err)
 	}
 	depsGraph, err = filterPythonToolPackages(depsGraph, workingDir)
 	if err != nil {
-		return sdk.DetectionResult{}, err
+		return sdk.DetectionResult{}, fmt.Errorf("uv detector: filter tool packages: %w", err)
 	}
 	annotateGraphScopes(depsGraph, workingDir)
 	attachDeclaredPositions(depsGraph, workingDir)
 	attachLoosePythonPositions(depsGraph, workingDir)
+	resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, true, append(installCommand, req.InstallArgs...), workingDir)
+	logResolution(base.Logger, "uv detector", workingDir, resolution)
 	return sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, uvEvidencePatterns)),
+		Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, uvEvidencePatterns, resolution)),
 	}, nil
 }
 
@@ -99,8 +115,26 @@ func (d UVDetector) base() baseDetector {
 // Install prepares uv dependencies before graph resolution.
 func (d UVDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 	base := d.base()
-	if err := base.install(ctx, req, "uv detector", []string{"uv", "sync", "--no-install-project"}); err != nil {
-		return err
+	if err := base.install(ctx, req, "uv detector", uvSyncCommand()); err != nil {
+		return fmt.Errorf("uv detector: prepare frozen project environment: %w", err)
 	}
-	return base.install(ctx, req, "uv detector", []string{"uv", "pip", "install", "pip"})
+	if err := base.install(ctx, req, "uv detector", uvPipInstallCommand()); err != nil {
+		return fmt.Errorf("uv detector: ensure pip is available in project environment: %w", err)
+	}
+	return nil
+}
+
+func uvSyncCommand() []string {
+	return []string{"uv", "sync", "--frozen", "--no-install-project"}
+}
+
+func uvPipInstallCommand() []string {
+	return []string{"uv", "pip", "install", "pip"}
+}
+
+func uvReconstructedInstallCommand(req sdk.DetectionRequest) []string {
+	if !req.InstallFirst {
+		return nil
+	}
+	return append(uvSyncCommand(), req.InstallArgs...)
 }

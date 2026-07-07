@@ -94,7 +94,8 @@ func (d baseDetector) resolveGraph(stderr io.Writer, projectPath string, verbose
 	cmd.Stderr = commandStderr
 
 	started := time.Now()
-	logger.Debug("running external dependency detector", zap.String("detector", detectorName), zap.String("working_dir", cmd.Dir), zap.String("executable", command[0]), zap.Strings("args", command[1:]))
+	sanitizedCommand := sanitizeCommand(command)
+	logger.Debug("running external dependency detector", zap.String("detector", detectorName), zap.String("working_dir", cmd.Dir), zap.String("executable", sanitizedCommand[0]), zap.Strings("args", sanitizedCommand[1:]))
 	if err := cmd.Run(); err != nil {
 		logger.Error(fmt.Sprintf("%s failed: %v", detectorName, err))
 		fields := []zap.Field{zap.Error(err), zap.String("detector", detectorName)}
@@ -133,7 +134,8 @@ func (d baseDetector) install(ctx context.Context, req sdk.DetectionRequest, det
 	cmd.Stderr = commandStderr
 	started := time.Now()
 	logger.Info(fmt.Sprintf("%s running install-first step", detectorName))
-	logger.Debug("running python detector install-first", zap.String("detector", detectorName), zap.String("working_dir", cmd.Dir), zap.String("executable", command[0]), zap.Strings("args", command[1:]))
+	sanitizedCommand := sanitizeCommand(command)
+	logger.Debug("running python detector install-first", zap.String("detector", detectorName), zap.String("working_dir", cmd.Dir), zap.String("executable", sanitizedCommand[0]), zap.Strings("args", sanitizedCommand[1:]))
 	if err := cmd.Run(); err != nil {
 		fields := []zap.Field{zap.Error(err)}
 		if commandStderr.String() != "" {

@@ -1,29 +1,32 @@
 ## How `poetry` resolves
 
-`poetry-detector` is **hybrid (lockfile-first)**: it parses `poetry.lock` directly and only falls back to `poetry run pip inspect` if the lockfile cannot be read.
+`poetry-detector` is **lockfile-first**. A readable `poetry.lock` is the preferred source because it is deterministic and carries transitive dependency data. Bomly only falls back to Poetry environment inspection when a lockfile exists but cannot be parsed.
 
 | Path | Strategy | Command |
 | --- | --- | --- |
 | `poetry.lock` present | Lockfile parser | None |
-| Lockfile missing or unreadable | Build tool | `poetry run python -m pip inspect` |
+| Lockfile unreadable | Locked install + inspect | `poetry install --no-root --sync`, then `poetry run python -m pip inspect --local` |
+| Lockfile missing | Fail | None |
+
+The inspected graph comes from Poetry's project-managed virtualenv after a locked install attempt. Bomly does not inspect an arbitrary ambient Python environment.
 
 ## Network behavior
 
-✅ Both paths are **offline-safe**. The lockfile parser reads a committed file; `pip inspect` reads from the local Poetry virtualenv.
+✅ The `poetry.lock` parser is offline and does not execute Poetry.
+
+⚠️ The locked install fallback can download packages from PyPI or configured Poetry sources, but it uses the existing lockfile and must not update project manifests.
 
 ## Prerequisites
 
-- One of:
-  - A committed `poetry.lock` (strongly recommended), **or**
-  - A Poetry-managed virtualenv (`poetry install` has been run).
+- A committed `poetry.lock`.
 - `pyproject.toml` for evidence pattern matching.
 - For `--install-first`: `poetry` on `PATH`.
 
 ## `--install-first`
 
-`poetry` supports `--install-first`. When passed, Bomly runs `poetry install --no-root` before resolving the graph.
+`poetry` supports `--install-first`. When passed, Bomly runs `poetry install --no-root --sync` before resolving the graph.
 
-⚠️ **`--install-first` downloads packages from PyPI** and writes to the Poetry-managed virtualenv. Use it on a clean checkout.
+⚠️ **`--install-first` can download packages from PyPI** and writes to the Poetry-managed virtualenv without changing the lockfile.
 
 ```bash
 bomly scan --install-first
@@ -31,7 +34,7 @@ bomly scan --install-first
 
 ### Customizing the install command
 
-Append flags to `poetry install --no-root` with repeatable `--install-arg`. Requires `--detectors poetry-detector`.
+Append flags to `poetry install --no-root --sync` with repeatable `--install-arg`. Requires `--detectors poetry-detector`. Bomly records the sanitized command in scan JSON under the manifest's resolution metadata.
 
 ```bash
 # Production-only graph: skip dev dependencies and a specific group
@@ -73,3 +76,4 @@ For Poetry-managed packages, the analyzer is `pyreach` at **Tier-3 (package)**. 
 - **Poetry 1.x and 2.x** lockfile formats are both supported.
 - **Optional extras** (`requests[socks]`) are recorded as a single distribution; extras-specific transitives appear in the lockfile and graph normally.
 - **Private indexes** (Poetry `source` configuration) require `~/.config/pypoetry/auth.toml` set up locally.
+- **No lockfile, no graph.** Bomly refuses to inspect an unprepared Poetry environment when `poetry.lock` is missing because that can produce stale or unrelated dependencies.

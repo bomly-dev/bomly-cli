@@ -52,8 +52,13 @@ func (d PipenvDetector) Descriptor() sdk.DetectorDescriptor {
 }
 
 // ResolveGraph resolves a Python dependency graph through Pipenv.
-func (d PipenvDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
+func (d PipenvDetector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	workingDir := d.base().workingDir(req.ProjectPath)
+	base := d.base()
+	logger := base.Logger
+	if logger == nil {
+		logger = zap.NewNop()
+	}
 
 	// Try pip inspect first: it can build a full transitive tree via RequiresDist.
 	// Pipfile.lock is flat (no parent-child edges), so the build tool wins here.
@@ -62,14 +67,36 @@ func (d PipenvDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 	if pipenvVenvExists(workingDir) {
 		command, err := pipInspectCommand("pipenv", "run")
 		if err == nil {
-			if depsGraph, err := d.base().resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "Pipenv detector", command); err == nil {
+			if depsGraph, err := base.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "Pipenv detector", command); err == nil {
+				resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, false, nil, workingDir)
+				logResolution(base.Logger, "Pipenv detector", workingDir, resolution)
 				annotateGraphScopes(depsGraph, workingDir)
 				attachDeclaredPositions(depsGraph, workingDir)
 				attachLoosePythonPositions(depsGraph, workingDir)
 				return sdk.DetectionResult{
-					Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, pipenvEvidencePatterns)),
+					Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipenvEvidencePatterns, resolution)),
 				}, nil
 			}
+		}
+	}
+
+	if lockPath := filepath.Join(workingDir, "Pipfile.lock"); fileExists(lockPath) {
+		installCommand := pipenvSyncCommand(req)
+		if err := base.install(ctx, req, "Pipenv detector", installCommand); err == nil && pipenvVenvExists(workingDir) {
+			if command, err := pipInspectCommand("pipenv", "run"); err == nil {
+				if depsGraph, err := base.resolveGraph(req.Stderr, req.ProjectPath, req.Verbose, "Pipenv detector", command); err == nil {
+					annotateGraphScopes(depsGraph, workingDir)
+					attachDeclaredPositions(depsGraph, workingDir)
+					attachLoosePythonPositions(depsGraph, workingDir)
+					resolution := resolutionMetadata(sdk.ResolutionMethodProjectEnvironment, true, append(installCommand, req.InstallArgs...), workingDir)
+					logResolution(base.Logger, "Pipenv detector", workingDir, resolution)
+					return sdk.DetectionResult{
+						Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipenvEvidencePatterns, resolution)),
+					}, nil
+				}
+			}
+		} else if err != nil {
+			logger.Warn("Pipenv detector could not prepare project virtualenv; falling back to Pipfile.lock", zap.Error(err))
 		}
 	}
 
@@ -78,8 +105,10 @@ func (d PipenvDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest
 		annotateGraphScopes(depsGraph, workingDir)
 		attachDeclaredPositions(depsGraph, workingDir)
 		attachLoosePythonPositions(depsGraph, workingDir)
+		resolution := resolutionMetadata(sdk.ResolutionMethodManifestOnly, false, nil, workingDir)
+		logResolution(base.Logger, "Pipenv detector", workingDir, resolution)
 		return sdk.DetectionResult{
-			Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, pipenvEvidencePatterns)),
+			Graphs: sdk.SingleGraphContainer(depsGraph, manifestWithResolution(req, pipenvEvidencePatterns, resolution)),
 		}, nil
 	}
 
@@ -100,7 +129,7 @@ func (d PipenvDetector) base() baseDetector {
 
 // Install prepares Pipenv dependencies before graph resolution.
 func (d PipenvDetector) Install(ctx context.Context, req sdk.DetectionRequest) error {
-	return d.base().install(ctx, req, "Pipenv detector", []string{"pipenv", "install"})
+	return d.base().install(ctx, req, "Pipenv detector", pipenvInstallCommand(d.base().workingDir(req.ProjectPath), req))
 }
 
 // pipenvVenvExists checks whether a pipenv virtual environment has been created
@@ -117,6 +146,33 @@ func pipenvVenvExists(workingDir string) bool {
 		return false
 	}
 	ok, err := system.FileExists(venvPath)
+	return err == nil && ok
+}
+
+func pipenvInstallCommand(workingDir string, req sdk.DetectionRequest) []string {
+	if fileExists(filepath.Join(workingDir, "Pipfile.lock")) {
+		return pipenvSyncCommand(req)
+	}
+	return []string{"pipenv", "install"}
+}
+
+func pipenvSyncCommand(req sdk.DetectionRequest) []string {
+	command := []string{"pipenv", "sync"}
+	if req.ScopeFilter != sdk.ScopeRuntime {
+		command = append(command, "--dev")
+	}
+	return command
+}
+
+func pipenvReconstructedInstallCommand(req sdk.DetectionRequest, workingDir string) []string {
+	if !req.InstallFirst {
+		return nil
+	}
+	return append(pipenvInstallCommand(workingDir, req), req.InstallArgs...)
+}
+
+func fileExists(path string) bool {
+	ok, err := system.FileExists(path)
 	return err == nil && ok
 }
 

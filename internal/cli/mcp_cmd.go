@@ -225,7 +225,7 @@ func applyCSVOverride(target *[]string, value string) {
 	*target = out
 }
 
-func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (output.ScanResponse, error) {
+func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (mcp.ScanRunResult, error) {
 	started := time.Now()
 	o := a.cloneWithOverrides(mcpOverrides{
 		Path:       req.Path,
@@ -240,32 +240,78 @@ func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (o
 	})
 	cmdCtx, err := o.Prepare(ctx, a.logger)
 	if err != nil {
-		return output.ScanResponse{}, err
+		return mcp.ScanRunResult{}, err
 	}
 	scopeFilter, err := sdk.ParseScope(req.Scope)
 	if err != nil {
-		return output.ScanResponse{}, err
+		return mcp.ScanRunResult{}, err
 	}
 
 	pipeline := engine.NewPipeline(cmdCtx.Registry(), a.logger)
 	pipeReq := cmdCtx.PipelineRequest(scopeFilter, io.Discard)
 	pipeResult, runErr := scanengine.Run(ctx, pipeline, pipeReq)
 	if runErr != nil && len(pipeResult.ResolveResults) == 0 {
-		return output.ScanResponse{}, runErr
+		return mcp.ScanRunResult{}, runErr
 	}
 
 	var findings []sdk.Finding
 	if cmdCtx.ResolvedConfig.Audit {
 		findings = pipeResult.Findings
 	}
-	return output.BuildScanResponse(
+	response := output.BuildScanResponse(
 		cmdCtx.ProjectDescriptor(),
 		pipeResult.Consolidated,
 		pipeResult.Registry,
 		findings,
 		started,
 		reportOptionsFromPipelineResults(cmdCtx.ResolvedConfig.Analyze, pipeResult),
-	), nil
+	)
+	return mcp.ScanRunResult{
+		Response:    response,
+		Findings:    findings,
+		Graph:       pipeResult.Graph,
+		Registry:    pipeResult.Registry,
+		Diagnostics: mcpDiagnosticsFromPipeline(pipeResult),
+		EnrichRan:   cmdCtx.ResolvedConfig.Enrich,
+		AuditRan:    cmdCtx.ResolvedConfig.Audit,
+	}, nil
+}
+
+// mcpDiagnosticsFromPipeline maps pipeline warnings (and manifest resolution
+// fallbacks) to MCP diagnostics so internal/mcp never imports internal/engine.
+func mcpDiagnosticsFromPipeline(pipeResult engine.PipelineResult) []mcp.Diagnostic {
+	var diagnostics []mcp.Diagnostic
+	appendWarnings := func(stage string, warnings []engine.PipelineWarning) {
+		for _, warning := range warnings {
+			diagnostics = append(diagnostics, mcp.Diagnostic{
+				Stage:   stage,
+				Source:  warning.Source,
+				Message: warning.Message,
+			})
+		}
+	}
+	appendWarnings("detect", pipeResult.DetectorWarnings)
+	appendWarnings("match", pipeResult.MatchWarnings)
+	appendWarnings("analyze", pipeResult.AnalyzeWarnings)
+	appendWarnings("audit", pipeResult.AuditWarnings)
+	for _, manifest := range pipeResult.Consolidated.Manifests {
+		resolution := manifest.Entry.Manifest.Resolution
+		if resolution == nil || resolution.Fallback == nil {
+			continue
+		}
+		message := fmt.Sprintf("manifest %s resolved via fallback detector %s (primary %s failed",
+			manifest.Entry.Manifest.Path, manifest.DetectorName, resolution.Fallback.From)
+		if resolution.Fallback.Reason != "" {
+			message += ": " + resolution.Fallback.Reason
+		}
+		message += ")"
+		diagnostics = append(diagnostics, mcp.Diagnostic{
+			Stage:   "detect",
+			Source:  manifest.DetectorName,
+			Message: message,
+		})
+	}
+	return diagnostics
 }
 
 func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainRequest) (output.ExplainResponse, error) {

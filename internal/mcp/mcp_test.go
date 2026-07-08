@@ -16,7 +16,7 @@ import (
 
 // mockAdapter is a test double for OptionsAdapter.
 type mockAdapter struct {
-	scanResult    output.ScanResponse
+	scanResult    mcp.ScanRunResult
 	scanErr       error
 	scanReq       mcp.ScanRequest
 	explainResult output.ExplainResponse
@@ -29,7 +29,7 @@ type mockAdapter struct {
 	fixErr        error
 }
 
-func (m *mockAdapter) RunScan(_ context.Context, req mcp.ScanRequest) (output.ScanResponse, error) {
+func (m *mockAdapter) RunScan(_ context.Context, req mcp.ScanRequest) (mcp.ScanRunResult, error) {
 	m.scanReq = req
 	return m.scanResult, m.scanErr
 }
@@ -99,9 +99,11 @@ func TestNewServer_RegistersFiveTools(t *testing.T) {
 	}
 }
 
-func TestScanTool_ReturnsJSONResult(t *testing.T) {
+func TestScanTool_ReturnsCompactJSONResult(t *testing.T) {
 	adapter := &mockAdapter{
-		scanResult: output.ScanResponse{Command: "scan", SchemaVersion: "1"},
+		scanResult: mcp.ScanRunResult{
+			Response: output.ScanResponse{Command: "scan", SchemaVersion: "1"},
+		},
 	}
 	c := newTestClient(t, adapter)
 	result := callTool(t, c, "bomly_scan", map[string]any{"path": "/tmp"})
@@ -112,7 +114,7 @@ func TestScanTool_ReturnsJSONResult(t *testing.T) {
 	if len(result.Content) == 0 {
 		t.Fatal("empty content")
 	}
-	var resp output.ScanResponse
+	var resp mcp.CompactScanResponse
 	text := result.Content[0].(mcplib.TextContent).Text
 	if err := json.Unmarshal([]byte(text), &resp); err != nil {
 		t.Fatalf("unmarshal: %v", err)
@@ -120,11 +122,16 @@ func TestScanTool_ReturnsJSONResult(t *testing.T) {
 	if resp.Command != "scan" {
 		t.Errorf("Command = %q, want %q", resp.Command, "scan")
 	}
+	if resp.SchemaVersion != mcp.CompactSchemaVersion {
+		t.Errorf("SchemaVersion = %q, want %q", resp.SchemaVersion, mcp.CompactSchemaVersion)
+	}
 }
 
 func TestScanTool_PropagatesScope(t *testing.T) {
 	adapter := &mockAdapter{
-		scanResult: output.ScanResponse{Command: "scan", SchemaVersion: "1"},
+		scanResult: mcp.ScanRunResult{
+			Response: output.ScanResponse{Command: "scan", SchemaVersion: "1"},
+		},
 	}
 	c := newTestClient(t, adapter)
 	result := callTool(t, c, "bomly_scan", map[string]any{"path": "/tmp", "scope": "runtime"})

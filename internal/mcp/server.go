@@ -7,6 +7,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	mcplib "github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
@@ -86,10 +87,25 @@ type VulnFixResult struct {
 	Recommendation    string                    `json:"recommendation"`
 }
 
+// ScanRunResult carries a scan run's full output back to the MCP layer:
+// the structured response plus the raw domain data (findings, graph,
+// registry) the compact builders group and rank, and the pipeline
+// diagnostics mapped by the adapter (internal/mcp never imports
+// internal/engine).
+type ScanRunResult struct {
+	Response    output.ScanResponse
+	Findings    []sdk.Finding
+	Graph       *sdk.Graph
+	Registry    *sdk.PackageRegistry
+	Diagnostics []Diagnostic
+	EnrichRan   bool
+	AuditRan    bool
+}
+
 // OptionsAdapter is implemented by the CLI adapter in internal/cli/mcp_cmd.go.
 // It lives in package cli so it can access unexported pipeline helpers.
 type OptionsAdapter interface {
-	RunScan(ctx context.Context, req ScanRequest) (output.ScanResponse, error)
+	RunScan(ctx context.Context, req ScanRequest) (ScanRunResult, error)
 	RunExplain(ctx context.Context, req ExplainRequest) (output.ExplainResponse, error)
 	RunDiff(ctx context.Context, req DiffRequest) (output.DiffResponse, error)
 	ListPlugins(ctx context.Context) (managedplugin.ListResponse, error)

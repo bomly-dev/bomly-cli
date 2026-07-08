@@ -424,6 +424,16 @@ func findingPackageRefFromRegistryPackage(purl string, pkg *sdk.Package) Finding
 	}
 }
 
+// ResolvedVulnerabilityID returns the advisory id a finding references,
+// falling back to the finding id when VulnerabilityID is unset. All joins
+// against packages[].vulnerabilities use this precedence rule.
+func (f AuditFinding) ResolvedVulnerabilityID() string {
+	if f.VulnerabilityID != "" {
+		return f.VulnerabilityID
+	}
+	return f.ID
+}
+
 // FindingVulnerabilityInPackages resolves the advisory a finding references
 // (finding.package.purl + finding.vulnerability_id) against the top-level
 // packages collection. Returns nil when the package or advisory is absent —
@@ -432,10 +442,7 @@ func FindingVulnerabilityInPackages(f AuditFinding, packages []ScanPackageEntry)
 	if f.Package.Purl == "" {
 		return nil
 	}
-	vulnID := f.VulnerabilityID
-	if vulnID == "" {
-		vulnID = f.ID
-	}
+	vulnID := f.ResolvedVulnerabilityID()
 	for idx := range packages {
 		if packages[idx].Purl != f.Package.Purl {
 			continue

@@ -66,7 +66,7 @@ func BuildCompactDiff(run DiffRunResult) CompactDiffResponse {
 			Resolved:         len(run.Resolved),
 			Persisted:        len(run.Persisted),
 			AuditRan:         run.AuditRan,
-			EnrichRan:        run.HeadRegistry != nil && run.HeadRegistry.Len() > 0,
+			EnrichRan:        run.EnrichRan,
 		},
 		Diagnostics: capDiagnostics(run.Diagnostics),
 		Hint:        diffHint,
@@ -96,7 +96,7 @@ func BuildCompactDiff(run DiffRunResult) CompactDiffResponse {
 	response.Remediations = remediation.Remediations
 	mergeTruncation(trunc, remediation.Truncation)
 
-	if trunc.OmittedFindings > 0 || trunc.OmittedGroups > 0 {
+	if trunc.OmittedFindings > 0 || trunc.OmittedGroups > 0 || trunc.OmittedPackages > 0 || trunc.OmittedPaths > 0 {
 		trunc.Truncated = true
 		trunc.Note = "response was capped; diff a narrower path or use bomly_explain per package for the rest"
 		response.Truncation = trunc
@@ -130,4 +130,6 @@ func mergeTruncation(target, source *TruncationInfo) {
 	}
 	target.OmittedFindings += source.OmittedFindings
 	target.OmittedGroups += source.OmittedGroups
+	target.OmittedPackages += source.OmittedPackages
+	target.OmittedPaths += source.OmittedPaths
 }

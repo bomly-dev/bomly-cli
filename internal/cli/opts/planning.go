@@ -641,10 +641,13 @@ func DescribeDiscovery(target sdk.ExecutionTarget) []string {
 		if detectErr != nil {
 			return nil //nolint:nilerr // best-effort probe
 		}
-		for _, manager := range managers {
+		for idx, manager := range managers {
 			evidence := firstEvidenceInDir(path, registry.EvidencePatternsForPackageManager(manager))
 			lines = append(lines, fmt.Sprintf("found %s at %s (%s)", valueOrPattern(evidence, "manifest evidence"), filepath.ToSlash(rel), manager.Name()))
 			if len(lines) >= discoveryProbeMaxLines {
+				if idx < len(managers)-1 {
+					truncated = true
+				}
 				break
 			}
 		}

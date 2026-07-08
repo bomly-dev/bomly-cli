@@ -124,6 +124,7 @@ type TruncationInfo struct {
 	OmittedFindings int    `json:"omitted_findings,omitempty"`
 	OmittedGroups   int    `json:"omitted_groups,omitempty"`
 	OmittedPackages int    `json:"omitted_packages,omitempty"`
+	OmittedPaths    int    `json:"omitted_paths,omitempty"`
 	Note            string `json:"note,omitempty"`
 }
 

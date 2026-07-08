@@ -117,11 +117,7 @@ func explainImpactMarkdown(payload output.ExplainResponse) []string {
 				suffix := ""
 				if payload.Metadata.ReachabilityEnabled {
 					reachability := (*sdk.Reachability)(nil)
-					vulnID := finding.VulnerabilityID
-					if vulnID == "" {
-						vulnID = finding.ID
-					}
-					if vuln := output.MatchVulnerabilityRef(target.Dependency.Vulnerabilities, vulnID); vuln != nil {
+					if vuln := output.MatchVulnerabilityRef(target.Dependency.Vulnerabilities, finding.ResolvedVulnerabilityID()); vuln != nil {
 						reachability = vuln.Reachability
 					}
 					suffix = " (" + markdownText("reachability "+formatReachabilityCell(reachability)) + ")"

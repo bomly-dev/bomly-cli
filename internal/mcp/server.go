@@ -99,6 +99,7 @@ type DiffRunResult struct {
 	BaseRegistry  *sdk.PackageRegistry
 	HeadManifests []output.ScanManifest
 	Diagnostics   []Diagnostic
+	EnrichRan     bool
 	AuditRan      bool
 }
 

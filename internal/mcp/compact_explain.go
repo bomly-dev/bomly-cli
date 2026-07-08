@@ -77,7 +77,7 @@ func BuildCompactExplain(query string, run ExplainRunResult) CompactExplainRespo
 		response.Matches = append(response.Matches, match)
 	}
 
-	if trunc.OmittedFindings > 0 || trunc.OmittedGroups > 0 || trunc.OmittedPackages > 0 {
+	if trunc.OmittedFindings > 0 || trunc.OmittedGroups > 0 || trunc.OmittedPackages > 0 || trunc.OmittedPaths > 0 {
 		trunc.Truncated = true
 		response.Truncation = trunc
 	}
@@ -98,7 +98,7 @@ func compactExplainPaths(paths []output.DependencyPath, trunc *TruncationInfo) (
 			direct = true
 		}
 		if idx >= maxExplainPaths {
-			trunc.OmittedPackages++
+			trunc.OmittedPaths++
 			continue
 		}
 		chain := make([]string, 0, len(path.Packages))

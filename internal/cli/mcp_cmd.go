@@ -237,18 +237,18 @@ func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (m
 	})
 	cmdCtx, err := o.Prepare(ctx, a.logger)
 	if err != nil {
-		return mcp.ScanRunResult{}, err
+		return mcp.ScanRunResult{}, fmt.Errorf("prepare scan: %w", err)
 	}
 	scopeFilter, err := sdk.ParseScope(req.Scope)
 	if err != nil {
-		return mcp.ScanRunResult{}, err
+		return mcp.ScanRunResult{}, fmt.Errorf("parse scope: %w", err)
 	}
 
 	pipeline := engine.NewPipeline(cmdCtx.Registry(), a.logger)
 	pipeReq := cmdCtx.PipelineRequest(scopeFilter, io.Discard)
 	pipeResult, runErr := scanengine.Run(ctx, pipeline, pipeReq)
 	if runErr != nil && len(pipeResult.ResolveResults) == 0 {
-		return mcp.ScanRunResult{}, runErr
+		return mcp.ScanRunResult{}, fmt.Errorf("run scan pipeline: %w", runErr)
 	}
 
 	var findings []sdk.Finding
@@ -321,7 +321,7 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 	})
 	cmdCtx, err := o.Prepare(ctx, a.logger)
 	if err != nil {
-		return mcp.ExplainRunResult{}, err
+		return mcp.ExplainRunResult{}, fmt.Errorf("prepare explain: %w", err)
 	}
 
 	pipeline := engine.NewPipeline(cmdCtx.Registry(), a.logger)
@@ -330,7 +330,7 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 		Pipeline: cmdCtx.PipelineRequest(sdk.ScopeUnknown, io.Discard),
 	})
 	if err != nil {
-		return mcp.ExplainRunResult{}, err
+		return mcp.ExplainRunResult{}, fmt.Errorf("run explain pipeline: %w", err)
 	}
 
 	targets := make([]output.ExplainTargetResponse, 0, len(explainResult.Targets))
@@ -390,7 +390,7 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (m
 
 	baseTarget, headTarget, projectIdentifier, _, _, err := resolveGitDiffGraphs(ctx, o, nil, logger, req.Base, req.Head)
 	if err != nil {
-		return mcp.DiffRunResult{}, err
+		return mcp.DiffRunResult{}, fmt.Errorf("resolve diff refs: %w", err)
 	}
 	defer func() { _ = baseTarget.close() }()
 	defer func() { _ = headTarget.close() }()
@@ -406,7 +406,7 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (m
 		},
 	})
 	if err != nil {
-		return mcp.DiffRunResult{}, err
+		return mcp.DiffRunResult{}, fmt.Errorf("run diff pipeline: %w", err)
 	}
 
 	reportOptions := reportOptionsFromPipelineResults(o.GetConfig().Analyze, diffResult.Base, diffResult.Head)
@@ -433,7 +433,8 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (m
 			mcpDiagnosticsFromPipeline(diffResult.Base),
 			mcpDiagnosticsFromPipeline(diffResult.Head)...,
 		),
-		AuditRan: o.GetConfig().Audit,
+		EnrichRan: o.GetConfig().Enrich,
+		AuditRan:  o.GetConfig().Audit,
 	}
 	if diffResult.Audit != nil {
 		run.Introduced = diffResult.Audit.Introduced

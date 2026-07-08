@@ -40,6 +40,7 @@ type DiffRequest struct {
 	Head                  string `json:"head"`
 	Path                  string `json:"path"`
 	Image                 string `json:"image"`
+	SBOM                  bool   `json:"sbom"`
 	Enrich                bool   `json:"enrich"`
 	Audit                 bool   `json:"audit"`
 	Analyze               bool   `json:"analyze"`

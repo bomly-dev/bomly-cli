@@ -123,6 +123,7 @@ type mcpOverrides struct {
 	TyposquatMode         string
 	WarnOnly              bool
 	Ecosystems            string
+	SBOM                  bool
 }
 
 // cloneWithOverrides returns a copy of CommandContext with per-call values layered on top.
@@ -158,6 +159,9 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 	if o.WarnOnly {
 		clone.ResolvedConfig.WarnOnly = true
 	}
+	if o.SBOM {
+		clone.ResolvedConfig.SBOM = true
+	}
 	clone.ResolvedConfig.Interactive = false
 
 	applyStringOverride(&resolved.Path, o.Path)
@@ -186,6 +190,9 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 	}
 	if o.WarnOnly {
 		resolved.WarnOnly = true
+	}
+	if o.SBOM {
+		resolved.SBOM = true
 	}
 	resolved.Interactive = false
 	clone.SetConfig(resolved)
@@ -371,6 +378,7 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (m
 	o := a.cloneWithOverrides(mcpOverrides{
 		Path:                  req.Path,
 		Image:                 req.Image,
+		SBOM:                  req.SBOM,
 		Enrich:                req.Enrich,
 		Audit:                 req.Audit,
 		Analyze:               req.Analyze,
@@ -394,11 +402,14 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (m
 		projectIdentifier string
 		err               error
 	)
-	// Mirror the CLI diff command: an image target resolves base/head as
-	// container tags/digests, otherwise they are Git refs in the local repo.
-	if o.GetConfig().Image != "" {
+	// Mirror the CLI diff command's target dispatch: SBOM file paths, then
+	// container tags/digests, then Git refs in the local repo by default.
+	switch {
+	case o.GetConfig().SBOM:
+		baseTarget, headTarget, projectIdentifier, _, err = resolveSBOMDiffGraphs(ctx, o, nil, logger, req.Base, req.Head)
+	case o.GetConfig().Image != "":
 		baseTarget, headTarget, projectIdentifier, _, err = resolveContainerDiffGraphs(ctx, o, nil, logger, req.Base, req.Head)
-	} else {
+	default:
 		baseTarget, headTarget, projectIdentifier, _, _, err = resolveGitDiffGraphs(ctx, o, nil, logger, req.Base, req.Head)
 	}
 	if err != nil {

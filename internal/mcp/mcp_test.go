@@ -23,6 +23,7 @@ type mockAdapter struct {
 	explainErr    error
 	diffResult    mcp.DiffRunResult
 	diffErr       error
+	diffReq       mcp.DiffRequest
 	plugins       []managedplugin.Info
 	pluginsErr    error
 }
@@ -34,7 +35,8 @@ func (m *mockAdapter) RunScan(_ context.Context, req mcp.ScanRequest) (mcp.ScanR
 func (m *mockAdapter) RunExplain(_ context.Context, _ mcp.ExplainRequest) (mcp.ExplainRunResult, error) {
 	return m.explainResult, m.explainErr
 }
-func (m *mockAdapter) RunDiff(_ context.Context, _ mcp.DiffRequest) (mcp.DiffRunResult, error) {
+func (m *mockAdapter) RunDiff(_ context.Context, req mcp.DiffRequest) (mcp.DiffRunResult, error) {
+	m.diffReq = req
 	return m.diffResult, m.diffErr
 }
 func (m *mockAdapter) ListPlugins(_ context.Context) (managedplugin.ListResponse, error) {
@@ -251,6 +253,39 @@ func TestDiffTool_ReturnsCompactJSONResult(t *testing.T) {
 	}
 	if resp.Summary.Resolved != 1 {
 		t.Fatalf("summary resolved count = %d", resp.Summary.Resolved)
+	}
+}
+
+func TestDiffTool_PropagatesTargetSelectors(t *testing.T) {
+	// The image, container-alias, and sbom selectors must reach the adapter
+	// so it can dispatch to the container / SBOM resolvers instead of the
+	// default Git path.
+	cases := []struct {
+		name      string
+		args      map[string]any
+		wantImage string
+		wantSBOM  bool
+	}{
+		{"git default", map[string]any{"base": "main", "head": "HEAD"}, "", false},
+		{"image", map[string]any{"base": "3.19", "head": "3.20", "image": "alpine"}, "alpine", false},
+		{"container alias", map[string]any{"base": "3.19", "head": "3.20", "container": "alpine"}, "alpine", false},
+		{"sbom", map[string]any{"base": "base.spdx.json", "head": "head.spdx.json", "sbom": true}, "", true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			adapter := &mockAdapter{diffResult: mcp.DiffRunResult{Response: output.DiffResponse{Command: "diff"}}}
+			c := newTestClient(t, adapter)
+			result := callTool(t, c, "bomly_diff", tc.args)
+			if result.IsError {
+				t.Fatalf("unexpected tool error: %v", result.Content)
+			}
+			if adapter.diffReq.Image != tc.wantImage {
+				t.Errorf("DiffRequest.Image = %q, want %q", adapter.diffReq.Image, tc.wantImage)
+			}
+			if adapter.diffReq.SBOM != tc.wantSBOM {
+				t.Errorf("DiffRequest.SBOM = %v, want %v", adapter.diffReq.SBOM, tc.wantSBOM)
+			}
+		})
 	}
 }
 

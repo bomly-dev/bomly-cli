@@ -97,7 +97,7 @@ Bomly registers four MCP tools.
 | --- | --- | --- | --- | --- |
 | `bomly_scan` | Scan a path, Git URL, container image, or SBOM and get a compact, remediation-grouped summary of what needs fixing. | None | `path`, `image`, `url`, `ref`, `enrich`, `audit`, `analyze`, `fail_on`, `ecosystems`, `scope` | Calls external matchers only when `enrich` is true. Pass `enrich` and `audit` together for a security review. |
 | `bomly_explain` | Drill into one package: dependency paths, full advisory detail, and concrete fix context. | `package` | `path`, `enrich`, `audit`, `analyze` | Calls external matchers only when `enrich` is true. |
-| `bomly_diff` | Branch-aware security delta between two Git refs or container tags/digests: what head fixes, introduces, and leaves open after merge. | `base`, `head` | `path`, `image`, `enrich`, `audit`, `analyze`, `fail_on`, `allow_vulnerability_ids`, `allow_licenses`, `deny_licenses`, `license_exempt_packages`, `deny_packages`, `deny_groups`, `protected_packages`, `typosquat_threshold`, `typosquat_mode`, `warn_only` | Calls external matchers only when `enrich` is true. |
+| `bomly_diff` | Branch-aware security delta between two Git refs, container tags/digests, or SBOM files: what head fixes, introduces, and leaves open after merge. | `base`, `head` | `path`, `image`, `sbom`, `enrich`, `audit`, `analyze`, `fail_on`, `allow_vulnerability_ids`, `allow_licenses`, `deny_licenses`, `license_exempt_packages`, `deny_packages`, `deny_groups`, `protected_packages`, `typosquat_threshold`, `typosquat_mode`, `warn_only` | Calls external matchers only when `enrich` is true. |
 | `bomly_plugins` | List built-in and installed external plugins with their enabled state. | None | None | Does not enrich package data. |
 
 MCP coverage matches Bomly CLI coverage: `bomly_scan`, `bomly_explain`, and `bomly_diff` use the same detector, matcher, auditor, and analyzer registry as the CLI. See [Support Matrix](SUPPORT_MATRIX.md) for the current ecosystem and package-manager list.
@@ -121,7 +121,7 @@ For the omitted detail:
 - **One package**: call `bomly_explain` with `enrich` (and `audit` for remediation context). Its response carries the package's full advisory records — descriptions, references, CVSS, affected ranges — bounded to that package.
 - **The complete document**: run the CLI (`bomly scan --format json -o <file>`). The MCP server intentionally never returns the full scan document; it does not fit tool-result limits on real projects.
 
-`bomly_diff` returns the same finding shape bucketed into a `security_delta` — `introduced` (new on head), `resolved` (closed when head merges), `persisted` (still open after merge) — keyed by advisory id independent of version bumps, plus remediation groups for everything still open.
+`bomly_diff` returns the same finding shape bucketed into a `security_delta` — `introduced` (new on head), `resolved` (closed when head merges), `persisted` (still open after merge) — keyed by advisory id independent of version bumps, plus remediation groups for everything still open. By default `base` and `head` are Git refs; set `image` to diff two container tags/digests, or `sbom: true` to diff two SBOM file paths (SPDX or CycloneDX), mirroring the CLI's `--image` and `--sbom` diff modes.
 
 ## Example Prompts
 

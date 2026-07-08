@@ -9,7 +9,7 @@ import (
 
 func registerScanTool(s *server.MCPServer, mcpCtx Context) {
 	tool := mcplib.NewTool("bomly_scan",
-		mcplib.WithDescription("Scan a project for dependencies, vulnerabilities, and policy findings. Returns structured JSON with all packages, manifests, and optional audit results."),
+		mcplib.WithDescription("Scan a project for dependencies, vulnerabilities, and policy findings. Returns a compact, remediation-focused JSON summary sized for tool-result limits: vulnerable packages grouped by the concrete fix that closes them (which direct dependency to bump, in which manifest, to which version), plus coverage counts for everything omitted. For a security review pass audit=true and enrich=true. Drill into one package's full advisory detail with bomly_explain; for the complete scan document run `bomly scan --format json -o <file>` via the CLI instead of this tool."),
 		mcplib.WithString("path", mcplib.Description("Filesystem path to scan (defaults to cwd)")),
 		mcplib.WithString("image", mcplib.Description("Container image reference to scan (e.g. alpine:latest)")),
 		mcplib.WithString("container", mcplib.Description("Deprecated alias for image")),
@@ -39,6 +39,6 @@ func registerScanTool(s *server.MCPServer, mcpCtx Context) {
 		if err != nil {
 			return mcplib.NewToolResultError(err.Error()), nil
 		}
-		return jsonResult(result)
+		return jsonResult(BuildCompactScan(result))
 	})
 }

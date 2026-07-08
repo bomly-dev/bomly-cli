@@ -133,7 +133,7 @@ func TestPersistedLicenseFindingCountDedupesByPackage(t *testing.T) {
 	// Two persisted license findings on the same package must count as one
 	// package, so the count matches the "N packages" wording in
 	// licensePersistedNote.
-	pkg := output.PackageRef{ID: "pkg:npm/lib@1.0.0"}
+	pkg := output.FindingPackageRef{Purl: "pkg:npm/lib@1.0.0"}
 	audit := &output.DiffAudit{
 		Persisted: []output.AuditFinding{
 			{Kind: sdk.FindingKindLicense, Package: pkg},
@@ -155,7 +155,7 @@ func TestDiffMarkdownFindingsTableHasLegendNoDisposition(t *testing.T) {
 				Auditor:     "license",
 				Severity:    sdk.SeverityWarning,
 				Disposition: sdk.FindingDispositionWarn,
-				Package:     output.PackageRef{Name: "junit", Version: "4.12"},
+				Package:     output.FindingPackageRef{Name: "junit", Version: "4.12"},
 				Title:       "Package has invalid SPDX license: non-standard",
 			}},
 		},

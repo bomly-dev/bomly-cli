@@ -12,6 +12,7 @@ Complete reference for the `bomly diff` JSON output.
 | `comparison` | [`DiffComparison`](#diffcomparison) | |
 | `results` | [`DiffResults`](#diffresults) | |
 | `summary` | [`DiffSummary`](#diffsummary) | |
+| `packages` | Array<[`ScanPackageEntry`](#scanpackageentry)> | |
 | `audit` | [`DiffAudit`](#diffaudit) | |
 | `metadata` | [`Metadata`](#metadata) | |
 
@@ -34,31 +35,14 @@ Complete reference for the `bomly diff` JSON output.
 | `id` | `string` | |
 | `kind` | `string` | |
 | `severity` | `string` | |
-| `package` | [`PackageRef`](#packageref) | |
+| `package` | [`FindingPackageRef`](#findingpackageref) | |
 | `title` | `string` | |
 | `reasons` | Array<`string`> | |
 | `source` | `string` | |
 | `auditor` | `string` | |
 | `disposition` | `string` | |
-| `fixed_in` | `string` | |
-| `fixed_versions` | Array<`string`> | |
-| `fix_state` | `string` | |
-| `fix_available` | Array<[`FixAvailable`](#fixavailable)> | |
-| `aliases` | Array<`string`> | |
-| `description` | `string` | |
-| `severity_source` | `string` | |
-| `cvss` | Array<[`CVSSScore`](#cvssscore)> | |
-| `affected_version_range` | `string` | |
-| `references` | Array<[`Reference`](#reference)> | |
-| `kev_exploited` | `boolean` | |
-| `known_exploited` | Array<[`KnownExploited`](#knownexploited)> | |
-| `epss` | Array<[`EPSSScore`](#epssscore)> | |
-| `cwes` | Array<[`CWE`](#cwe)> | |
-| `risk_score` | `number` | |
-| `data_source` | `string` | |
-| `namespace` | `string` | |
-| `cpes` | Array<`string`> | |
-| `reachability` | [`Reachability`](#reachability) | |
+| `vulnerability_id` | `string` | |
+| `dependency_refs` | Array<`string`> | |
 
 ### `AuditSummary`
 
@@ -218,6 +202,13 @@ Complete reference for the `bomly diff` JSON output.
 | `removed` | Array<[`DiffVulnerabilityChange`](#diffvulnerabilitychange)> | |
 | `persisted` | Array<[`DiffVulnerabilityChange`](#diffvulnerabilitychange)> | |
 
+### `Digest`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `algorithm` | `string` | |
+| `value` | `string` | |
+
 ### `EPSSScore`
 
 | Field | Type | Description |
@@ -226,6 +217,16 @@ Complete reference for the `bomly diff` JSON output.
 | `epss` | `number` | |
 | `percentile` | `number` | |
 | `date` | `string` | |
+
+### `FindingPackageRef`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | `string` | |
+| `org` | `string` | |
+| `version` | `string` | |
+| `purl` | `string` | |
+| `ecosystem` | `string` | |
 
 ### `FixAvailable`
 
@@ -275,6 +276,18 @@ Complete reference for the `bomly diff` JSON output.
 | `scorecard_enabled` | `boolean` | |
 | `analyzer_runs` | Array<`string`> | |
 | `analyzer_stats` | `object` | |
+
+### `PackageEOL`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `source` | `string` | |
+| `cycle` | `string` | |
+| `eol` | `boolean` | |
+| `eol_date` | `string` | |
+| `latest_version` | `string` | |
+| `release_date` | `string` | |
+| `supported` | `boolean` | |
 
 ### `PackageRef`
 
@@ -354,6 +367,24 @@ Complete reference for the `bomly diff` JSON output.
 |-------|------|-------------|
 | `url` | `string` | |
 | `type` | `string` | |
+
+### `ScanPackageEntry`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `purl` | `string` | |
+| `name` | `string` | |
+| `org` | `string` | |
+| `version` | `string` | |
+| `ecosystem` | `string` | |
+| `matched` | `boolean` | |
+| `licenses` | Array<[`LicenseRef`](#licenseref)> | |
+| `vulnerabilities` | Array<[`VulnerabilityRef`](#vulnerabilityref)> | |
+| `scorecard` | [`PackageScorecard`](#packagescorecard) | |
+| `eol` | [`PackageEOL`](#packageeol) | |
+| `cpes` | Array<`string`> | |
+| `digests` | Array<[`Digest`](#digest)> | |
+| `metadata` | `object` | |
 
 ### `SourcePosition`
 

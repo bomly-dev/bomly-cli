@@ -9,18 +9,19 @@ import (
 
 func registerDiffTool(s *server.MCPServer, mcpCtx Context) {
 	tool := mcplib.NewTool("bomly_diff",
-		mcplib.WithDescription("Compare dependency states between two Git refs. Returns added, removed, and changed packages with optional audit delta."),
+		mcplib.WithDescription("Compare dependency state between two targets and answer: what does head fix vs base, what does it introduce, and what remains open after merge? By default base and head are Git refs; set image to diff container tags/digests, or sbom to diff two SBOM files. With enrich+audit the response carries a security delta (introduced / resolved / persisted findings, keyed by advisory id independent of version bumps) plus remediation groups for everything still open. Compact by design; use bomly_explain on the head checkout for full advisory detail of one package."),
 		mcplib.WithString("base",
 			mcplib.Required(),
-			mcplib.Description("Base Git ref to compare (e.g. main, HEAD~1, a commit SHA)"),
+			mcplib.Description("Base to compare: a Git ref (e.g. main, HEAD~1, a SHA), a container tag/digest when image is set, or an SBOM file path when sbom is true"),
 		),
 		mcplib.WithString("head",
 			mcplib.Required(),
-			mcplib.Description("Head Git ref to compare (e.g. HEAD, a branch name, a commit SHA)"),
+			mcplib.Description("Head to compare: a Git ref (e.g. HEAD, a branch, a SHA), a container tag/digest when image is set, or an SBOM file path when sbom is true"),
 		),
 		mcplib.WithString("path", mcplib.Description("Local repository path (defaults to cwd)")),
 		mcplib.WithString("image", mcplib.Description("Container image reference to diff; base and head are treated as tags/digests (e.g. alpine)")),
 		mcplib.WithString("container", mcplib.Description("Deprecated alias for image")),
+		mcplib.WithBoolean("sbom", mcplib.Description("Treat base and head as SBOM file paths (SPDX or CycloneDX) instead of Git refs")),
 		mcplib.WithBoolean("enrich", mcplib.Description("Enrich packages with vulnerability and license data")),
 		mcplib.WithBoolean("audit", mcplib.Description("Include audit delta (introduced, resolved, and persisted findings) (requires enrich)")),
 		mcplib.WithBoolean("analyze", mcplib.Description("Run code analysis on each side and include reachability annotations on the audit delta (requires enrich)")),
@@ -50,6 +51,7 @@ func registerDiffTool(s *server.MCPServer, mcpCtx Context) {
 			Head:                  head,
 			Path:                  req.GetString("path", ""),
 			Image:                 firstNonEmpty(req.GetString("image", ""), req.GetString("container", "")),
+			SBOM:                  req.GetBool("sbom", false),
 			Enrich:                req.GetBool("enrich", false),
 			Audit:                 req.GetBool("audit", false),
 			Analyze:               req.GetBool("analyze", false),
@@ -69,6 +71,6 @@ func registerDiffTool(s *server.MCPServer, mcpCtx Context) {
 		if err != nil {
 			return mcplib.NewToolResultError(err.Error()), nil
 		}
-		return jsonResult(result)
+		return jsonResult(BuildCompactDiff(result))
 	})
 }

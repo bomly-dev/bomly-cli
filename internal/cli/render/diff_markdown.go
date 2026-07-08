@@ -232,7 +232,7 @@ func persistedLicenseFindingCount(audit *output.DiffAudit) int {
 	packages := map[string]struct{}{}
 	for _, finding := range audit.Persisted {
 		if finding.Kind == sdk.FindingKindLicense {
-			packages[finding.Package.ID] = struct{}{}
+			packages[finding.Package.Purl] = struct{}{}
 		}
 	}
 	return len(packages)
@@ -285,9 +285,9 @@ func diffPolicyFindingsMarkdown(payload output.DiffResponse) []string {
 		diffPolicySummary(audit),
 		"",
 	}
-	lines = append(lines, diffAuditFindingTable("Introduced Findings", "introduced", audit.Introduced, payload.Metadata.ReachabilityEnabled)...)
-	lines = append(lines, diffAuditFindingTable("Persisted Findings", "persisted", audit.Persisted, payload.Metadata.ReachabilityEnabled)...)
-	lines = append(lines, diffAuditFindingTable("Resolved Findings", "resolved", audit.Resolved, payload.Metadata.ReachabilityEnabled)...)
+	lines = append(lines, diffAuditFindingTable("Introduced Findings", "introduced", audit.Introduced, payload.Packages, payload.Metadata.ReachabilityEnabled)...)
+	lines = append(lines, diffAuditFindingTable("Persisted Findings", "persisted", audit.Persisted, payload.Packages, payload.Metadata.ReachabilityEnabled)...)
+	lines = append(lines, diffAuditFindingTable("Resolved Findings", "resolved", audit.Resolved, payload.Packages, payload.Metadata.ReachabilityEnabled)...)
 	if len(audit.Introduced) == 0 && len(audit.Persisted) == 0 && len(audit.Resolved) == 0 {
 		return []string{"✅ No policy differences were identified."}
 	}
@@ -304,25 +304,34 @@ func diffPolicySummary(audit *output.DiffAudit) string {
 	return "**Summary:** " + strings.Join(parts, ", ") + "."
 }
 
-func diffAuditFindingTable(title, status string, findings []output.AuditFinding, includeReachability bool) []string {
+func diffAuditFindingTable(title, status string, findings []output.AuditFinding, packages []output.ScanPackageEntry, includeReachability bool) []string {
 	if len(findings) == 0 {
 		return nil
 	}
 	rows := make([][]string, 0, len(findings))
 	for _, finding := range sortDiffAuditFindings(findings) {
+		vuln := output.FindingVulnerabilityInPackages(finding, packages)
 		row := []string{
 			findingIcon(status, string(finding.Disposition)),
 			status,
 			valueOrDash(finding.Auditor),
 			strings.ToUpper(valueOrDash(string(finding.Severity))),
 			valueOrDash(finding.ID),
-			DiffPackageDisplayName(finding.Package),
+			finding.Package.DisplayLabel(),
 		}
 		if includeReachability {
-			row = append(row, valueOrDash(formatReachabilityCell(finding.Reachability)))
+			reachability := ""
+			if vuln != nil {
+				reachability = formatReachabilityCell(vuln.Reachability)
+			}
+			row = append(row, valueOrDash(reachability))
+		}
+		fixed := ""
+		if vuln != nil {
+			fixed = fixedVersionSummary(vuln.FixedIn, vuln.FixedVersions)
 		}
 		row = append(row,
-			valueOrDash(fixedVersionSummary(finding.FixedIn, finding.FixedVersions)),
+			valueOrDash(fixed),
 			emphasizeFindingTitle(finding),
 		)
 		rows = append(rows, row)

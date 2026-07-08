@@ -111,7 +111,7 @@ func findingsSummaryLine(audit *output.DiffAudit) []string {
 	lines := []string{"", Style(compactAuditSummary(introduced, persisted), Red)}
 	for _, item := range findings {
 		f := item.finding
-		pkg := DiffPackageDisplayName(f.Package)
+		pkg := f.Package.DisplayLabel()
 		if pkg == "" {
 			pkg = "-"
 		}
@@ -271,8 +271,8 @@ func sortDiffAuditFindings(findings []output.AuditFinding) []output.AuditFinding
 		if sorted[i].ID != sorted[j].ID {
 			return sorted[i].ID < sorted[j].ID
 		}
-		pi := DiffPackageDisplayName(sorted[i].Package)
-		pj := DiffPackageDisplayName(sorted[j].Package)
+		pi := sorted[i].Package.DisplayLabel()
+		pj := sorted[j].Package.DisplayLabel()
 		if pi != pj {
 			return pi < pj
 		}

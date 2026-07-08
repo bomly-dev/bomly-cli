@@ -577,10 +577,106 @@ func noSubprojectsError(req Request) error {
 	// failure (3): no subprojects were discovered at all, which CI wrappers can
 	// treat as a neutral pass. ErrNoSubprojects stays the inner sentinel so
 	// errors.Is(err, ErrNoSubprojects) callers keep working.
+	err := ErrNoSubprojects
 	if len(hints) > 0 {
-		return exit.NothingToEvaluateError(fmt.Errorf("%w (active filters: %s)", ErrNoSubprojects, strings.Join(hints, ", ")))
+		err = fmt.Errorf("%w (active filters: %s)", err, strings.Join(hints, ", "))
 	}
-	return exit.NothingToEvaluateError(ErrNoSubprojects)
+	if probe := DescribeDiscovery(req.ExecutionTarget); len(probe) > 0 {
+		err = fmt.Errorf("%w; discovery probe: %s", err, strings.Join(probe, "; "))
+	}
+	return exit.NothingToEvaluateError(err)
+}
+
+// discoveryProbe limits for DescribeDiscovery: how deep below the target to
+// look for manifest evidence and how many findings to report.
+const (
+	discoveryProbeMaxDepth = 3
+	discoveryProbeMaxLines = 8
+)
+
+// DescribeDiscovery probes a filesystem execution target for known manifest
+// evidence (drawn from the built-in package-manager support catalog) so a
+// "no subprojects discovered" failure explains itself: which manifest files
+// exist, where, and which package manager they belong to. Returns nil for
+// non-filesystem targets.
+func DescribeDiscovery(target sdk.ExecutionTarget) []string {
+	if strings.TrimSpace(target.Location) == "" {
+		return nil
+	}
+	switch target.Kind {
+	case sdk.ExecutionTargetFilesystem, sdk.ExecutionTargetGitRepository, "":
+	default:
+		return nil
+	}
+	root, err := filepath.Abs(target.Location)
+	if err != nil {
+		return nil
+	}
+
+	var lines []string
+	truncated := false
+	_ = filepath.WalkDir(root, func(path string, entry os.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return nil //nolint:nilerr // best-effort probe: skip unreadable entries
+		}
+		if !entry.IsDir() {
+			return nil
+		}
+		rel, relErr := filepath.Rel(root, path)
+		if relErr != nil {
+			return nil //nolint:nilerr // best-effort probe
+		}
+		name := entry.Name()
+		if rel != "." && (strings.HasPrefix(name, ".") || name == "node_modules" || name == "vendor") {
+			return filepath.SkipDir
+		}
+		if strings.Count(filepath.ToSlash(rel), "/") >= discoveryProbeMaxDepth {
+			return filepath.SkipDir
+		}
+		if len(lines) >= discoveryProbeMaxLines {
+			truncated = true
+			return filepath.SkipAll
+		}
+		managers, detectErr := registry.DetectPackageManagers(path)
+		if detectErr != nil {
+			return nil //nolint:nilerr // best-effort probe
+		}
+		for idx, manager := range managers {
+			evidence := firstEvidenceInDir(path, registry.EvidencePatternsForPackageManager(manager))
+			lines = append(lines, fmt.Sprintf("found %s at %s (%s)", valueOrPattern(evidence, "manifest evidence"), filepath.ToSlash(rel), manager.Name()))
+			if len(lines) >= discoveryProbeMaxLines {
+				if idx < len(managers)-1 {
+					truncated = true
+				}
+				break
+			}
+		}
+		return nil
+	})
+	if truncated {
+		lines = append(lines, "…")
+	}
+	if len(lines) == 0 {
+		return []string{fmt.Sprintf("no known manifest files found under %s (depth <= %d)", root, discoveryProbeMaxDepth)}
+	}
+	return lines
+}
+
+// firstEvidenceInDir names the first evidence pattern that exists in dir.
+func firstEvidenceInDir(dir string, patterns []string) string {
+	for _, pattern := range patterns {
+		if patternExists(dir, pattern) {
+			return pattern
+		}
+	}
+	return ""
+}
+
+func valueOrPattern(value, fallback string) string {
+	if strings.TrimSpace(value) == "" {
+		return fallback
+	}
+	return value
 }
 
 func pathMatchesPatterns(candidatePath string, patterns []string) bool {

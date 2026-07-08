@@ -325,36 +325,46 @@ func VulnerabilityRefsFromPackageVulnerabilities(vulnerabilities []sdk.Vulnerabi
 	return out
 }
 
-// AuditFinding is the serialized form of one normalized scan finding.
+// FindingPackageRef is an identity-only reference from a finding into the
+// top-level packages collection (join key: purl). Advisory enrichment lives
+// once, on the referenced ScanPackageEntry — findings never re-embed it.
+type FindingPackageRef struct {
+	Name      string `json:"name"`
+	Org       string `json:"org,omitempty"`
+	Version   string `json:"version,omitempty"`
+	Purl      string `json:"purl,omitempty"`
+	Ecosystem string `json:"ecosystem,omitempty"`
+}
+
+// DisplayLabel returns a human-readable name@version label for the package.
+func (p FindingPackageRef) DisplayLabel() string {
+	switch {
+	case p.Name != "" && p.Version != "":
+		return p.Name + "@" + p.Version
+	case p.Name != "":
+		return p.Name
+	default:
+		return p.Purl
+	}
+}
+
+// AuditFinding is the serialized form of one normalized scan finding. It
+// mirrors sdk.Finding's three-collection shape: the package is referenced by
+// identity (join to packages[] via purl), the advisory by vulnerability_id
+// (join to packages[].vulnerabilities), and the introducing graph nodes by
+// dependency_refs (join to manifests[].dependencies ids).
 type AuditFinding struct {
-	ID                   string                 `json:"id"`
-	Kind                 sdk.FindingKind        `json:"kind"`
-	Severity             sdk.SeverityLevel      `json:"severity"`
-	Package              PackageRef             `json:"package"`
-	Title                string                 `json:"title"`
-	Reasons              []string               `json:"reasons,omitempty"`
-	Source               string                 `json:"source"`
-	Auditor              string                 `json:"auditor,omitempty"`
-	Disposition          sdk.FindingDisposition `json:"disposition,omitempty"`
-	FixedIn              string                 `json:"fixed_in,omitempty"`
-	FixedVersions        []string               `json:"fixed_versions,omitempty"`
-	FixState             sdk.FixState           `json:"fix_state,omitempty"`
-	FixAvailable         []sdk.FixAvailable     `json:"fix_available,omitempty"`
-	Aliases              []string               `json:"aliases,omitempty"`
-	Description          string                 `json:"description,omitempty"`
-	SeveritySource       string                 `json:"severity_source,omitempty"`
-	CVSS                 []sdk.CVSSScore        `json:"cvss,omitempty"`
-	AffectedVersionRange string                 `json:"affected_version_range,omitempty"`
-	References           []sdk.Reference        `json:"references,omitempty"`
-	KEVExploited         bool                   `json:"kev_exploited,omitempty"`
-	KnownExploited       []sdk.KnownExploited   `json:"known_exploited,omitempty"`
-	EPSS                 []sdk.EPSSScore        `json:"epss,omitempty"`
-	CWEs                 []sdk.CWE              `json:"cwes,omitempty"`
-	RiskScore            float64                `json:"risk_score,omitempty"`
-	DataSource           string                 `json:"data_source,omitempty"`
-	Namespace            string                 `json:"namespace,omitempty"`
-	CPEs                 []string               `json:"cpes,omitempty"`
-	Reachability         *sdk.Reachability      `json:"reachability,omitempty"`
+	ID              string                 `json:"id"`
+	Kind            sdk.FindingKind        `json:"kind"`
+	Severity        sdk.SeverityLevel      `json:"severity"`
+	Package         FindingPackageRef      `json:"package"`
+	Title           string                 `json:"title"`
+	Reasons         []string               `json:"reasons,omitempty"`
+	Source          string                 `json:"source"`
+	Auditor         string                 `json:"auditor,omitempty"`
+	Disposition     sdk.FindingDisposition `json:"disposition,omitempty"`
+	VulnerabilityID string                 `json:"vulnerability_id,omitempty"`
+	DependencyRefs  []string               `json:"dependency_refs,omitempty"`
 }
 
 // AuditSummary aggregates finding counts by severity.
@@ -368,70 +378,90 @@ type AuditSummary struct {
 }
 
 // FindingsFromScan converts normalized findings into JSON-friendly DTOs.
-// When registry is non-nil the AuditFinding output is re-enriched: the
-// PackageRef is resolved against the registry, and (for vulnerability
-// findings) the specific Vulnerability identified by f.VulnerabilityID
-// supplies CVSS / EPSS / KEV / CWE / fix-state / reachability properties.
+// When registry is non-nil the finding's package reference is resolved
+// against it for display identity (name/org/version/ecosystem), and a
+// missing finding severity is backfilled from the referenced advisory.
 func FindingsFromScan(findings []sdk.Finding, registry *sdk.PackageRegistry) []AuditFinding {
 	result := make([]AuditFinding, 0, len(findings))
 	for _, f := range findings {
 		pkg := lookupRegistryPackage(registry, f.PackageRef)
 		af := AuditFinding{
-			ID:          f.ID,
-			Kind:        f.Kind,
-			Severity:    f.Severity,
-			Package:     packageRefFromRegistryPackage(f.PackageRef, pkg),
-			Title:       f.Title,
-			Reasons:     f.Reasons,
-			Source:      f.Source,
-			Auditor:     f.Auditor,
-			Disposition: f.Disposition,
+			ID:              f.ID,
+			Kind:            f.Kind,
+			Severity:        f.Severity,
+			Package:         findingPackageRefFromRegistryPackage(f.PackageRef, pkg),
+			Title:           f.Title,
+			Reasons:         f.Reasons,
+			Source:          f.Source,
+			Auditor:         f.Auditor,
+			Disposition:     f.Disposition,
+			VulnerabilityID: f.VulnerabilityID,
+			DependencyRefs:  append([]string(nil), f.DependencyRefs...),
 		}
-		if vuln := lookupVulnerability(pkg, f.VulnerabilityID, f.ID); vuln != nil {
-			af.Aliases = append([]string(nil), vuln.Aliases...)
-			af.Description = vuln.Details
-			if af.Severity == "" {
+		if af.Severity == "" {
+			if vuln := lookupVulnerability(pkg, f.VulnerabilityID, f.ID); vuln != nil {
 				af.Severity = vuln.ParsedSeverity
 			}
-			af.SeveritySource = vuln.SeveritySource
-			af.CVSS = append([]sdk.CVSSScore(nil), vuln.CVSS...)
-			af.AffectedVersionRange = vuln.AffectedVersionRange
-			af.References = append([]sdk.Reference(nil), vuln.References...)
-			af.KEVExploited = vuln.KEVExploited
-			af.KnownExploited = cloneKnownExploited(vuln.KnownExploited)
-			af.EPSS = append([]sdk.EPSSScore(nil), vuln.EPSS...)
-			af.CWEs = append([]sdk.CWE(nil), vuln.CWEs...)
-			af.RiskScore = vuln.RiskScore
-			af.DataSource = vuln.DataSource
-			af.Namespace = vuln.Namespace
-			af.CPEs = append([]string(nil), vuln.CPEs...)
-			af.FixedIn = vuln.FixedIn
-			af.FixedVersions = append([]string(nil), vuln.FixedVersions...)
-			af.FixState = vuln.FixState
-			af.FixAvailable = append([]sdk.FixAvailable(nil), vuln.FixAvailable...)
-			af.Reachability = vuln.Reachability.Clone()
 		}
 		result = append(result, af)
 	}
 	return result
 }
 
-// packageRefFromRegistryPackage builds a PackageRef from a registry package
-// (PURL-keyed). When the registry has no entry for purl, returns a thin
-// PackageRef carrying just the PURL identifier.
-func packageRefFromRegistryPackage(purl string, pkg *sdk.Package) PackageRef {
+// findingPackageRefFromRegistryPackage builds a FindingPackageRef from a
+// registry package (PURL-keyed). When the registry has no entry for purl,
+// returns a thin ref carrying just the PURL identifier.
+func findingPackageRefFromRegistryPackage(purl string, pkg *sdk.Package) FindingPackageRef {
 	if pkg == nil {
-		return PackageRef{Name: purl, Purl: purl, Licenses: []LicenseRef{}, Vulnerabilities: []VulnerabilityRef{}}
+		return FindingPackageRef{Name: purl, Purl: purl}
 	}
-	return PackageRef{
-		Name:            pkg.Name,
-		Version:         pkg.Version,
-		Purl:            pkg.PURL,
-		Licenses:        LicenseRefsFromGraphLicenses(pkg.Licenses),
-		Vulnerabilities: VulnerabilityRefsFromPackageVulnerabilities(pkg.Vulnerabilities),
-		Scorecard:       pkg.Scorecard.Clone(),
-		Metadata:        cloneRefMetadata(pkg.Metadata),
+	return FindingPackageRef{
+		Name:      pkg.DisplayName(),
+		Org:       pkg.Org,
+		Version:   pkg.Version,
+		Purl:      pkg.PURL,
+		Ecosystem: string(pkg.Ecosystem),
 	}
+}
+
+// FindingVulnerabilityInPackages resolves the advisory a finding references
+// (finding.package.purl + finding.vulnerability_id) against the top-level
+// packages collection. Returns nil when the package or advisory is absent —
+// e.g. non-vulnerability findings or unenriched scans.
+func FindingVulnerabilityInPackages(f AuditFinding, packages []ScanPackageEntry) *VulnerabilityRef {
+	if f.Package.Purl == "" {
+		return nil
+	}
+	vulnID := f.VulnerabilityID
+	if vulnID == "" {
+		vulnID = f.ID
+	}
+	for idx := range packages {
+		if packages[idx].Purl != f.Package.Purl {
+			continue
+		}
+		return MatchVulnerabilityRef(packages[idx].Vulnerabilities, vulnID)
+	}
+	return nil
+}
+
+// MatchVulnerabilityRef finds the vulnerability ref matching id (or one of
+// its aliases) in refs. Returns nil when id is empty or no ref matches.
+func MatchVulnerabilityRef(refs []VulnerabilityRef, id string) *VulnerabilityRef {
+	if id == "" {
+		return nil
+	}
+	for idx := range refs {
+		if refs[idx].ID == id {
+			return &refs[idx]
+		}
+		for _, alias := range refs[idx].Aliases {
+			if alias == id {
+				return &refs[idx]
+			}
+		}
+	}
+	return nil
 }
 
 // lookupVulnerability resolves a vulnerability ID (or alias) against a
@@ -459,12 +489,6 @@ func lookupVulnerability(pkg *sdk.Package, vulnID, fallbackID string) *sdk.Vulne
 		}
 	}
 	return nil
-}
-
-func (f AuditFinding) withoutReachability() AuditFinding {
-	f.Reachability = nil
-	f.Package = f.Package.withoutReachability()
-	return f
 }
 
 // FailingFindingCount reports how many findings should fail policy evaluation.
@@ -543,6 +567,7 @@ func (d ScanDependency) PrimaryScope() string {
 type ScanPackageEntry struct {
 	Purl            string                `json:"purl"`
 	Name            string                `json:"name,omitempty"`
+	Org             string                `json:"org,omitempty"`
 	Version         string                `json:"version,omitempty"`
 	Ecosystem       string                `json:"ecosystem,omitempty"`
 	Matched         bool                  `json:"matched,omitempty"`
@@ -635,7 +660,8 @@ func PackagesFromRegistry(registry *sdk.PackageRegistry) []ScanPackageEntry {
 		}
 		entry := ScanPackageEntry{
 			Purl:            pkg.PURL,
-			Name:            pkg.Name,
+			Name:            pkg.DisplayName(),
+			Org:             pkg.Org,
 			Version:         pkg.Version,
 			Ecosystem:       string(pkg.Ecosystem),
 			Matched:         pkg.Matched,

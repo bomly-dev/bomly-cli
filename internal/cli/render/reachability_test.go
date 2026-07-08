@@ -65,10 +65,10 @@ func TestScanMarkdownRendersReachabilityOnlyWhenEnabled(t *testing.T) {
 			}},
 		}},
 		Findings: []output.AuditFinding{{
-			ID:           "CVE-2024-0001",
-			Severity:     "high",
-			Package:      output.PackageRef{Name: "lib"},
-			Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
+			ID:              "CVE-2024-0001",
+			VulnerabilityID: "CVE-2024-0001",
+			Severity:        "high",
+			Package:         output.FindingPackageRef{Name: "lib", Purl: "pkg:golang/lib@1.0.0"},
 		}},
 	}
 	var out bytes.Buffer
@@ -104,12 +104,21 @@ func TestDiffTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 				}},
 			},
 		},
-		Audit: &output.DiffAudit{
-			Introduced: []output.AuditFinding{{
+		Packages: []output.ScanPackageEntry{{
+			Purl: "pkg:golang/lib@1.0.0",
+			Name: "lib",
+			Vulnerabilities: []output.VulnerabilityRef{{
 				ID:           "CVE-2024-0001",
 				Severity:     "high",
-				Package:      output.PackageRef{Name: "lib", Version: "1.0.0"},
 				Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
+			}},
+		}},
+		Audit: &output.DiffAudit{
+			Introduced: []output.AuditFinding{{
+				ID:              "CVE-2024-0001",
+				VulnerabilityID: "CVE-2024-0001",
+				Severity:        "high",
+				Package:         output.FindingPackageRef{Name: "lib", Version: "1.0.0", Purl: "pkg:golang/lib@1.0.0"},
 			}},
 		},
 	}
@@ -158,10 +167,10 @@ func TestExplainTextAndMarkdownRenderReachabilityOnlyWhenEnabled(t *testing.T) {
 			}},
 		},
 		Findings: []output.AuditFinding{{
-			ID:           "CVE-2024-0001",
-			Severity:     "high",
-			Package:      output.PackageRef{Name: "lib"},
-			Reachability: &model.Reachability{Status: model.ReachabilityReachable, Tier: model.TierPackage},
+			ID:              "CVE-2024-0001",
+			VulnerabilityID: "CVE-2024-0001",
+			Severity:        "high",
+			Package:         output.FindingPackageRef{Name: "lib"},
 		}},
 	}
 	// Compact text explain shows the CVE ID and severity but not the reachability

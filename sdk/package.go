@@ -144,12 +144,13 @@ func (p *Package) QualifiedName() string {
 	return p.Coordinates.QualifiedName()
 }
 
-// DisplayName returns the most human-friendly identifier available.
+// DisplayName returns the most human-friendly identifier available, using
+// the ecosystem-native name form (e.g. "@org/name" for npm).
 func (p *Package) DisplayName() string {
 	if p == nil {
 		return ""
 	}
-	if name := p.QualifiedName(); name != "" {
+	if name := p.Coordinates.DisplayName(); name != "" {
 		return name
 	}
 	return p.PURL

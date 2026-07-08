@@ -21,7 +21,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:code-frame",
+          "name": "@babel/code-frame",
           "package_ref": "pkg:npm/%40babel/code-frame@7.29.0",
           "purl": "pkg:npm/%40babel/code-frame@7.29.0",
           "scopes": [
@@ -43,7 +43,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:compat-data",
+          "name": "@babel/compat-data",
           "package_ref": "pkg:npm/%40babel/compat-data@7.29.3",
           "purl": "pkg:npm/%40babel/compat-data@7.29.3",
           "scopes": [
@@ -81,7 +81,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:core",
+          "name": "@babel/core",
           "package_ref": "pkg:npm/%40babel/core@7.29.0",
           "purl": "pkg:npm/%40babel/core@7.29.0",
           "scopes": [
@@ -109,7 +109,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:generator",
+          "name": "@babel/generator",
           "package_ref": "pkg:npm/%40babel/generator@7.29.1",
           "purl": "pkg:npm/%40babel/generator@7.29.1",
           "scopes": [
@@ -137,7 +137,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:helper-compilation-targets",
+          "name": "@babel/helper-compilation-targets",
           "package_ref": "pkg:npm/%40babel/helper-compilation-targets@7.28.6",
           "purl": "pkg:npm/%40babel/helper-compilation-targets@7.28.6",
           "scopes": [
@@ -159,7 +159,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:helper-globals",
+          "name": "@babel/helper-globals",
           "package_ref": "pkg:npm/%40babel/helper-globals@7.28.0",
           "purl": "pkg:npm/%40babel/helper-globals@7.28.0",
           "scopes": [
@@ -184,7 +184,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:helper-module-imports",
+          "name": "@babel/helper-module-imports",
           "package_ref": "pkg:npm/%40babel/helper-module-imports@7.28.6",
           "purl": "pkg:npm/%40babel/helper-module-imports@7.28.6",
           "scopes": [
@@ -211,7 +211,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:helper-module-transforms",
+          "name": "@babel/helper-module-transforms",
           "package_ref": "pkg:npm/%40babel/helper-module-transforms@7.28.6",
           "purl": "pkg:npm/%40babel/helper-module-transforms@7.28.6",
           "scopes": [
@@ -233,7 +233,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:helper-plugin-utils",
+          "name": "@babel/helper-plugin-utils",
           "package_ref": "pkg:npm/%40babel/helper-plugin-utils@7.28.6",
           "purl": "pkg:npm/%40babel/helper-plugin-utils@7.28.6",
           "scopes": [
@@ -255,7 +255,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:helper-string-parser",
+          "name": "@babel/helper-string-parser",
           "package_ref": "pkg:npm/%40babel/helper-string-parser@7.27.1",
           "purl": "pkg:npm/%40babel/helper-string-parser@7.27.1",
           "scopes": [
@@ -277,7 +277,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:helper-validator-identifier",
+          "name": "@babel/helper-validator-identifier",
           "package_ref": "pkg:npm/%40babel/helper-validator-identifier@7.28.5",
           "purl": "pkg:npm/%40babel/helper-validator-identifier@7.28.5",
           "scopes": [
@@ -299,7 +299,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:helper-validator-option",
+          "name": "@babel/helper-validator-option",
           "package_ref": "pkg:npm/%40babel/helper-validator-option@7.27.1",
           "purl": "pkg:npm/%40babel/helper-validator-option@7.27.1",
           "scopes": [
@@ -324,7 +324,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:helpers",
+          "name": "@babel/helpers",
           "package_ref": "pkg:npm/%40babel/helpers@7.29.2",
           "purl": "pkg:npm/%40babel/helpers@7.29.2",
           "scopes": [
@@ -348,7 +348,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:parser",
+          "name": "@babel/parser",
           "package_ref": "pkg:npm/%40babel/parser@7.29.3",
           "purl": "pkg:npm/%40babel/parser@7.29.3",
           "scopes": [
@@ -373,7 +373,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:plugin-syntax-async-generators",
+          "name": "@babel/plugin-syntax-async-generators",
           "package_ref": "pkg:npm/%40babel/plugin-syntax-async-generators@7.8.4",
           "purl": "pkg:npm/%40babel/plugin-syntax-async-generators@7.8.4",
           "scopes": [
@@ -398,7 +398,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:plugin-syntax-bigint",
+          "name": "@babel/plugin-syntax-bigint",
           "package_ref": "pkg:npm/%40babel/plugin-syntax-bigint@7.8.3",
           "purl": "pkg:npm/%40babel/plugin-syntax-bigint@7.8.3",
           "scopes": [
@@ -423,7 +423,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:plugin-syntax-class-properties",
+          "name": "@babel/plugin-syntax-class-properties",
           "package_ref": "pkg:npm/%40babel/plugin-syntax-class-properties@7.12.13",
           "purl": "pkg:npm/%40babel/plugin-syntax-class-properties@7.12.13",
           "scopes": [
@@ -448,7 +448,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:plugin-syntax-class-static-block",
+          "name": "@babel/plugin-syntax-class-static-block",
           "package_ref": "pkg:npm/%40babel/plugin-syntax-class-static-block@7.14.5",
           "purl": "pkg:npm/%40babel/plugin-syntax-class-static-block@7.14.5",
           "scopes": [
@@ -473,7 +473,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:plugin-syntax-import-attributes",
+          "name": "@babel/plugin-syntax-import-attributes",
           "package_ref": "pkg:npm/%40babel/plugin-syntax-import-attributes@7.28.6",
           "purl": "pkg:npm/%40babel/plugin-syntax-import-attributes@7.28.6",
           "scopes": [
@@ -498,7 +498,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:plugin-syntax-import-meta",
+          "name": "@babel/plugin-syntax-import-meta",
           "package_ref": "pkg:npm/%40babel/plugin-syntax-import-meta@7.10.4",
           "purl": "pkg:npm/%40babel/plugin-syntax-import-meta@7.10.4",
           "scopes": [
@@ -523,7 +523,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:plugin-syntax-json-strings",
+          "name": "@babel/plugin-syntax-json-strings",
           "package_ref": "pkg:npm/%40babel/plugin-syntax-json-strings@7.8.3",
           "purl": "pkg:npm/%40babel/plugin-syntax-json-strings@7.8.3",
           "scopes": [
@@ -548,7 +548,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:plugin-syntax-jsx",
+          "name": "@babel/plugin-syntax-jsx",
           "package_ref": "pkg:npm/%40babel/plugin-syntax-jsx@7.28.6",
           "purl": "pkg:npm/%40babel/plugin-syntax-jsx@7.28.6",
           "scopes": [
@@ -573,7 +573,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:plugin-syntax-logical-assignment-operators",
+          "name": "@babel/plugin-syntax-logical-assignment-operators",
           "package_ref": "pkg:npm/%40babel/plugin-syntax-logical-assignment-operators@7.10.4",
           "purl": "pkg:npm/%40babel/plugin-syntax-logical-assignment-operators@7.10.4",
           "scopes": [
@@ -598,7 +598,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:plugin-syntax-nullish-coalescing-operator",
+          "name": "@babel/plugin-syntax-nullish-coalescing-operator",
           "package_ref": "pkg:npm/%40babel/plugin-syntax-nullish-coalescing-operator@7.8.3",
           "purl": "pkg:npm/%40babel/plugin-syntax-nullish-coalescing-operator@7.8.3",
           "scopes": [
@@ -623,7 +623,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:plugin-syntax-numeric-separator",
+          "name": "@babel/plugin-syntax-numeric-separator",
           "package_ref": "pkg:npm/%40babel/plugin-syntax-numeric-separator@7.10.4",
           "purl": "pkg:npm/%40babel/plugin-syntax-numeric-separator@7.10.4",
           "scopes": [
@@ -648,7 +648,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:plugin-syntax-object-rest-spread",
+          "name": "@babel/plugin-syntax-object-rest-spread",
           "package_ref": "pkg:npm/%40babel/plugin-syntax-object-rest-spread@7.8.3",
           "purl": "pkg:npm/%40babel/plugin-syntax-object-rest-spread@7.8.3",
           "scopes": [
@@ -673,7 +673,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:plugin-syntax-optional-catch-binding",
+          "name": "@babel/plugin-syntax-optional-catch-binding",
           "package_ref": "pkg:npm/%40babel/plugin-syntax-optional-catch-binding@7.8.3",
           "purl": "pkg:npm/%40babel/plugin-syntax-optional-catch-binding@7.8.3",
           "scopes": [
@@ -698,7 +698,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:plugin-syntax-optional-chaining",
+          "name": "@babel/plugin-syntax-optional-chaining",
           "package_ref": "pkg:npm/%40babel/plugin-syntax-optional-chaining@7.8.3",
           "purl": "pkg:npm/%40babel/plugin-syntax-optional-chaining@7.8.3",
           "scopes": [
@@ -723,7 +723,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:plugin-syntax-private-property-in-object",
+          "name": "@babel/plugin-syntax-private-property-in-object",
           "package_ref": "pkg:npm/%40babel/plugin-syntax-private-property-in-object@7.14.5",
           "purl": "pkg:npm/%40babel/plugin-syntax-private-property-in-object@7.14.5",
           "scopes": [
@@ -748,7 +748,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:plugin-syntax-top-level-await",
+          "name": "@babel/plugin-syntax-top-level-await",
           "package_ref": "pkg:npm/%40babel/plugin-syntax-top-level-await@7.14.5",
           "purl": "pkg:npm/%40babel/plugin-syntax-top-level-await@7.14.5",
           "scopes": [
@@ -773,7 +773,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:plugin-syntax-typescript",
+          "name": "@babel/plugin-syntax-typescript",
           "package_ref": "pkg:npm/%40babel/plugin-syntax-typescript@7.28.6",
           "purl": "pkg:npm/%40babel/plugin-syntax-typescript@7.28.6",
           "scopes": [
@@ -799,7 +799,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:template",
+          "name": "@babel/template",
           "package_ref": "pkg:npm/%40babel/template@7.28.6",
           "purl": "pkg:npm/%40babel/template@7.28.6",
           "scopes": [
@@ -829,7 +829,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:traverse",
+          "name": "@babel/traverse",
           "package_ref": "pkg:npm/%40babel/traverse@7.29.0",
           "purl": "pkg:npm/%40babel/traverse@7.29.0",
           "scopes": [
@@ -854,7 +854,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "babel:types",
+          "name": "@babel/types",
           "package_ref": "pkg:npm/%40babel/types@7.29.0",
           "purl": "pkg:npm/%40babel/types@7.29.0",
           "scopes": [
@@ -876,7 +876,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "bcoe:v8-coverage",
+          "name": "@bcoe/v8-coverage",
           "package_ref": "pkg:npm/%40bcoe/v8-coverage@0.2.3",
           "purl": "pkg:npm/%40bcoe/v8-coverage@0.2.3",
           "scopes": [
@@ -901,7 +901,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "eslint-community:eslint-utils",
+          "name": "@eslint-community/eslint-utils",
           "package_ref": "pkg:npm/%40eslint-community/eslint-utils@4.9.1",
           "purl": "pkg:npm/%40eslint-community/eslint-utils@4.9.1",
           "scopes": [
@@ -923,7 +923,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "eslint-community:regexpp",
+          "name": "@eslint-community/regexpp",
           "package_ref": "pkg:npm/%40eslint-community/regexpp@4.12.2",
           "purl": "pkg:npm/%40eslint-community/regexpp@4.12.2",
           "scopes": [
@@ -955,7 +955,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "eslint:eslintrc",
+          "name": "@eslint/eslintrc",
           "package_ref": "pkg:npm/%40eslint/eslintrc@2.1.4",
           "purl": "pkg:npm/%40eslint/eslintrc@2.1.4",
           "scopes": [
@@ -977,7 +977,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "eslint:js",
+          "name": "@eslint/js",
           "package_ref": "pkg:npm/%40eslint/js@8.57.1",
           "purl": "pkg:npm/%40eslint/js@8.57.1",
           "scopes": [
@@ -1003,7 +1003,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "humanwhocodes:config-array",
+          "name": "@humanwhocodes/config-array",
           "package_ref": "pkg:npm/%40humanwhocodes/config-array@0.13.0",
           "purl": "pkg:npm/%40humanwhocodes/config-array@0.13.0",
           "scopes": [
@@ -1025,7 +1025,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "humanwhocodes:module-importer",
+          "name": "@humanwhocodes/module-importer",
           "package_ref": "pkg:npm/%40humanwhocodes/module-importer@1.0.1",
           "purl": "pkg:npm/%40humanwhocodes/module-importer@1.0.1",
           "scopes": [
@@ -1047,7 +1047,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "humanwhocodes:object-schema",
+          "name": "@humanwhocodes/object-schema",
           "package_ref": "pkg:npm/%40humanwhocodes/object-schema@2.0.3",
           "purl": "pkg:npm/%40humanwhocodes/object-schema@2.0.3",
           "scopes": [
@@ -1075,7 +1075,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "istanbuljs:load-nyc-config",
+          "name": "@istanbuljs/load-nyc-config",
           "package_ref": "pkg:npm/%40istanbuljs/load-nyc-config@1.1.0",
           "purl": "pkg:npm/%40istanbuljs/load-nyc-config@1.1.0",
           "scopes": [
@@ -1097,7 +1097,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "istanbuljs:schema",
+          "name": "@istanbuljs/schema",
           "package_ref": "pkg:npm/%40istanbuljs/schema@0.1.6",
           "purl": "pkg:npm/%40istanbuljs/schema@0.1.6",
           "scopes": [
@@ -1126,7 +1126,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "jest:console",
+          "name": "@jest/console",
           "package_ref": "pkg:npm/%40jest/console@29.7.0",
           "purl": "pkg:npm/%40jest/console@29.7.0",
           "scopes": [
@@ -1177,7 +1177,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "jest:core",
+          "name": "@jest/core",
           "package_ref": "pkg:npm/%40jest/core@29.7.0",
           "purl": "pkg:npm/%40jest/core@29.7.0",
           "scopes": [
@@ -1204,7 +1204,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "jest:environment",
+          "name": "@jest/environment",
           "package_ref": "pkg:npm/%40jest/environment@29.7.0",
           "purl": "pkg:npm/%40jest/environment@29.7.0",
           "scopes": [
@@ -1228,7 +1228,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "jest:expect-utils",
+          "name": "@jest/expect-utils",
           "package_ref": "pkg:npm/%40jest/expect-utils@29.7.0",
           "purl": "pkg:npm/%40jest/expect-utils@29.7.0",
           "scopes": [
@@ -1253,7 +1253,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "jest:expect",
+          "name": "@jest/expect",
           "package_ref": "pkg:npm/%40jest/expect@29.7.0",
           "purl": "pkg:npm/%40jest/expect@29.7.0",
           "scopes": [
@@ -1282,7 +1282,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "jest:fake-timers",
+          "name": "@jest/fake-timers",
           "package_ref": "pkg:npm/%40jest/fake-timers@29.7.0",
           "purl": "pkg:npm/%40jest/fake-timers@29.7.0",
           "scopes": [
@@ -1309,7 +1309,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "jest:globals",
+          "name": "@jest/globals",
           "package_ref": "pkg:npm/%40jest/globals@29.7.0",
           "purl": "pkg:npm/%40jest/globals@29.7.0",
           "scopes": [
@@ -1356,7 +1356,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "jest:reporters",
+          "name": "@jest/reporters",
           "package_ref": "pkg:npm/%40jest/reporters@29.7.0",
           "purl": "pkg:npm/%40jest/reporters@29.7.0",
           "scopes": [
@@ -1380,7 +1380,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "jest:schemas",
+          "name": "@jest/schemas",
           "package_ref": "pkg:npm/%40jest/schemas@29.6.3",
           "purl": "pkg:npm/%40jest/schemas@29.6.3",
           "scopes": [
@@ -1406,7 +1406,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "jest:source-map",
+          "name": "@jest/source-map",
           "package_ref": "pkg:npm/%40jest/source-map@29.6.3",
           "purl": "pkg:npm/%40jest/source-map@29.6.3",
           "scopes": [
@@ -1433,7 +1433,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "jest:test-result",
+          "name": "@jest/test-result",
           "package_ref": "pkg:npm/%40jest/test-result@29.7.0",
           "purl": "pkg:npm/%40jest/test-result@29.7.0",
           "scopes": [
@@ -1460,7 +1460,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "jest:test-sequencer",
+          "name": "@jest/test-sequencer",
           "package_ref": "pkg:npm/%40jest/test-sequencer@29.7.0",
           "purl": "pkg:npm/%40jest/test-sequencer@29.7.0",
           "scopes": [
@@ -1498,7 +1498,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "jest:transform",
+          "name": "@jest/transform",
           "package_ref": "pkg:npm/%40jest/transform@29.7.0",
           "purl": "pkg:npm/%40jest/transform@29.7.0",
           "scopes": [
@@ -1527,7 +1527,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "jest:types",
+          "name": "@jest/types",
           "package_ref": "pkg:npm/%40jest/types@29.6.3",
           "purl": "pkg:npm/%40jest/types@29.6.3",
           "scopes": [
@@ -1552,7 +1552,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "jridgewell:gen-mapping",
+          "name": "@jridgewell/gen-mapping",
           "package_ref": "pkg:npm/%40jridgewell/gen-mapping@0.3.13",
           "purl": "pkg:npm/%40jridgewell/gen-mapping@0.3.13",
           "scopes": [
@@ -1577,7 +1577,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "jridgewell:remapping",
+          "name": "@jridgewell/remapping",
           "package_ref": "pkg:npm/%40jridgewell/remapping@2.3.5",
           "purl": "pkg:npm/%40jridgewell/remapping@2.3.5",
           "scopes": [
@@ -1599,7 +1599,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "jridgewell:resolve-uri",
+          "name": "@jridgewell/resolve-uri",
           "package_ref": "pkg:npm/%40jridgewell/resolve-uri@3.1.2",
           "purl": "pkg:npm/%40jridgewell/resolve-uri@3.1.2",
           "scopes": [
@@ -1621,7 +1621,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "jridgewell:sourcemap-codec",
+          "name": "@jridgewell/sourcemap-codec",
           "package_ref": "pkg:npm/%40jridgewell/sourcemap-codec@1.5.5",
           "purl": "pkg:npm/%40jridgewell/sourcemap-codec@1.5.5",
           "scopes": [
@@ -1646,7 +1646,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "jridgewell:trace-mapping",
+          "name": "@jridgewell/trace-mapping",
           "package_ref": "pkg:npm/%40jridgewell/trace-mapping@0.3.31",
           "purl": "pkg:npm/%40jridgewell/trace-mapping@0.3.31",
           "scopes": [
@@ -1671,7 +1671,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "nodelib:fs.scandir",
+          "name": "@nodelib/fs.scandir",
           "package_ref": "pkg:npm/%40nodelib/fs.scandir@2.1.5",
           "purl": "pkg:npm/%40nodelib/fs.scandir@2.1.5",
           "scopes": [
@@ -1693,7 +1693,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "nodelib:fs.stat",
+          "name": "@nodelib/fs.stat",
           "package_ref": "pkg:npm/%40nodelib/fs.stat@2.0.5",
           "purl": "pkg:npm/%40nodelib/fs.stat@2.0.5",
           "scopes": [
@@ -1718,7 +1718,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "nodelib:fs.walk",
+          "name": "@nodelib/fs.walk",
           "package_ref": "pkg:npm/%40nodelib/fs.walk@1.2.8",
           "purl": "pkg:npm/%40nodelib/fs.walk@1.2.8",
           "scopes": [
@@ -1740,7 +1740,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "sinclair:typebox",
+          "name": "@sinclair/typebox",
           "package_ref": "pkg:npm/%40sinclair/typebox@0.27.10",
           "purl": "pkg:npm/%40sinclair/typebox@0.27.10",
           "scopes": [
@@ -1764,7 +1764,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "sinonjs:commons",
+          "name": "@sinonjs/commons",
           "package_ref": "pkg:npm/%40sinonjs/commons@3.0.1",
           "purl": "pkg:npm/%40sinonjs/commons@3.0.1",
           "scopes": [
@@ -1788,7 +1788,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "sinonjs:fake-timers",
+          "name": "@sinonjs/fake-timers",
           "package_ref": "pkg:npm/%40sinonjs/fake-timers@10.3.0",
           "purl": "pkg:npm/%40sinonjs/fake-timers@10.3.0",
           "scopes": [
@@ -1816,7 +1816,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "types:babel__core",
+          "name": "@types/babel__core",
           "package_ref": "pkg:npm/%40types/babel__core@7.20.5",
           "purl": "pkg:npm/%40types/babel__core@7.20.5",
           "scopes": [
@@ -1840,7 +1840,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "types:babel__generator",
+          "name": "@types/babel__generator",
           "package_ref": "pkg:npm/%40types/babel__generator@7.27.0",
           "purl": "pkg:npm/%40types/babel__generator@7.27.0",
           "scopes": [
@@ -1865,7 +1865,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "types:babel__template",
+          "name": "@types/babel__template",
           "package_ref": "pkg:npm/%40types/babel__template@7.4.4",
           "purl": "pkg:npm/%40types/babel__template@7.4.4",
           "scopes": [
@@ -1889,7 +1889,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "types:babel__traverse",
+          "name": "@types/babel__traverse",
           "package_ref": "pkg:npm/%40types/babel__traverse@7.28.0",
           "purl": "pkg:npm/%40types/babel__traverse@7.28.0",
           "scopes": [
@@ -1913,7 +1913,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "types:graceful-fs",
+          "name": "@types/graceful-fs",
           "package_ref": "pkg:npm/%40types/graceful-fs@4.1.9",
           "purl": "pkg:npm/%40types/graceful-fs@4.1.9",
           "scopes": [
@@ -1935,7 +1935,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "types:istanbul-lib-coverage",
+          "name": "@types/istanbul-lib-coverage",
           "package_ref": "pkg:npm/%40types/istanbul-lib-coverage@2.0.6",
           "purl": "pkg:npm/%40types/istanbul-lib-coverage@2.0.6",
           "scopes": [
@@ -1959,7 +1959,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "types:istanbul-lib-report",
+          "name": "@types/istanbul-lib-report",
           "package_ref": "pkg:npm/%40types/istanbul-lib-report@3.0.3",
           "purl": "pkg:npm/%40types/istanbul-lib-report@3.0.3",
           "scopes": [
@@ -1983,7 +1983,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "types:istanbul-reports",
+          "name": "@types/istanbul-reports",
           "package_ref": "pkg:npm/%40types/istanbul-reports@3.0.4",
           "purl": "pkg:npm/%40types/istanbul-reports@3.0.4",
           "scopes": [
@@ -2007,7 +2007,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "types:node",
+          "name": "@types/node",
           "package_ref": "pkg:npm/%40types/node@25.7.0",
           "purl": "pkg:npm/%40types/node@25.7.0",
           "scopes": [
@@ -2029,7 +2029,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "types:stack-utils",
+          "name": "@types/stack-utils",
           "package_ref": "pkg:npm/%40types/stack-utils@2.0.3",
           "purl": "pkg:npm/%40types/stack-utils@2.0.3",
           "scopes": [
@@ -2051,7 +2051,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "types:yargs-parser",
+          "name": "@types/yargs-parser",
           "package_ref": "pkg:npm/%40types/yargs-parser@21.0.3",
           "purl": "pkg:npm/%40types/yargs-parser@21.0.3",
           "scopes": [
@@ -2075,7 +2075,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "types:yargs",
+          "name": "@types/yargs",
           "package_ref": "pkg:npm/%40types/yargs@17.0.35",
           "purl": "pkg:npm/%40types/yargs@17.0.35",
           "scopes": [
@@ -2097,7 +2097,7 @@
               "real_path": "pnpm-lock.yaml"
             }
           ],
-          "name": "ungap:structured-clone",
+          "name": "@ungap/structured-clone",
           "package_ref": "pkg:npm/%40ungap/structured-clone@1.3.1",
           "purl": "pkg:npm/%40ungap/structured-clone@1.3.1",
           "scopes": [
@@ -13237,7 +13237,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "code-frame",
+      "name": "@babel/code-frame",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/code-frame@7.29.0",
       "version": "7.29.0",
       "vulnerabilities": []
@@ -13245,7 +13246,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "compat-data",
+      "name": "@babel/compat-data",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/compat-data@7.29.3",
       "version": "7.29.3",
       "vulnerabilities": []
@@ -13253,7 +13255,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "core",
+      "name": "@babel/core",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/core@7.29.0",
       "version": "7.29.0",
       "vulnerabilities": []
@@ -13261,7 +13264,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "generator",
+      "name": "@babel/generator",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/generator@7.29.1",
       "version": "7.29.1",
       "vulnerabilities": []
@@ -13269,7 +13273,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "helper-compilation-targets",
+      "name": "@babel/helper-compilation-targets",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/helper-compilation-targets@7.28.6",
       "version": "7.28.6",
       "vulnerabilities": []
@@ -13277,7 +13282,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "helper-globals",
+      "name": "@babel/helper-globals",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/helper-globals@7.28.0",
       "version": "7.28.0",
       "vulnerabilities": []
@@ -13285,7 +13291,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "helper-module-imports",
+      "name": "@babel/helper-module-imports",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/helper-module-imports@7.28.6",
       "version": "7.28.6",
       "vulnerabilities": []
@@ -13293,7 +13300,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "helper-module-transforms",
+      "name": "@babel/helper-module-transforms",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/helper-module-transforms@7.28.6",
       "version": "7.28.6",
       "vulnerabilities": []
@@ -13301,7 +13309,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "helper-plugin-utils",
+      "name": "@babel/helper-plugin-utils",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/helper-plugin-utils@7.28.6",
       "version": "7.28.6",
       "vulnerabilities": []
@@ -13309,7 +13318,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "helper-string-parser",
+      "name": "@babel/helper-string-parser",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/helper-string-parser@7.27.1",
       "version": "7.27.1",
       "vulnerabilities": []
@@ -13317,7 +13327,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "helper-validator-identifier",
+      "name": "@babel/helper-validator-identifier",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/helper-validator-identifier@7.28.5",
       "version": "7.28.5",
       "vulnerabilities": []
@@ -13325,7 +13336,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "helper-validator-option",
+      "name": "@babel/helper-validator-option",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/helper-validator-option@7.27.1",
       "version": "7.27.1",
       "vulnerabilities": []
@@ -13333,7 +13345,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "helpers",
+      "name": "@babel/helpers",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/helpers@7.29.2",
       "version": "7.29.2",
       "vulnerabilities": []
@@ -13341,7 +13354,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "parser",
+      "name": "@babel/parser",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/parser@7.29.3",
       "version": "7.29.3",
       "vulnerabilities": []
@@ -13349,7 +13363,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "plugin-syntax-async-generators",
+      "name": "@babel/plugin-syntax-async-generators",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/plugin-syntax-async-generators@7.8.4",
       "version": "7.8.4",
       "vulnerabilities": []
@@ -13357,7 +13372,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "plugin-syntax-bigint",
+      "name": "@babel/plugin-syntax-bigint",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/plugin-syntax-bigint@7.8.3",
       "version": "7.8.3",
       "vulnerabilities": []
@@ -13365,7 +13381,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "plugin-syntax-class-properties",
+      "name": "@babel/plugin-syntax-class-properties",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/plugin-syntax-class-properties@7.12.13",
       "version": "7.12.13",
       "vulnerabilities": []
@@ -13373,7 +13390,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "plugin-syntax-class-static-block",
+      "name": "@babel/plugin-syntax-class-static-block",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/plugin-syntax-class-static-block@7.14.5",
       "version": "7.14.5",
       "vulnerabilities": []
@@ -13381,7 +13399,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "plugin-syntax-import-attributes",
+      "name": "@babel/plugin-syntax-import-attributes",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/plugin-syntax-import-attributes@7.28.6",
       "version": "7.28.6",
       "vulnerabilities": []
@@ -13389,7 +13408,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "plugin-syntax-import-meta",
+      "name": "@babel/plugin-syntax-import-meta",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/plugin-syntax-import-meta@7.10.4",
       "version": "7.10.4",
       "vulnerabilities": []
@@ -13397,7 +13417,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "plugin-syntax-json-strings",
+      "name": "@babel/plugin-syntax-json-strings",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/plugin-syntax-json-strings@7.8.3",
       "version": "7.8.3",
       "vulnerabilities": []
@@ -13405,7 +13426,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "plugin-syntax-jsx",
+      "name": "@babel/plugin-syntax-jsx",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/plugin-syntax-jsx@7.28.6",
       "version": "7.28.6",
       "vulnerabilities": []
@@ -13413,7 +13435,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "plugin-syntax-logical-assignment-operators",
+      "name": "@babel/plugin-syntax-logical-assignment-operators",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/plugin-syntax-logical-assignment-operators@7.10.4",
       "version": "7.10.4",
       "vulnerabilities": []
@@ -13421,7 +13444,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "plugin-syntax-nullish-coalescing-operator",
+      "name": "@babel/plugin-syntax-nullish-coalescing-operator",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/plugin-syntax-nullish-coalescing-operator@7.8.3",
       "version": "7.8.3",
       "vulnerabilities": []
@@ -13429,7 +13453,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "plugin-syntax-numeric-separator",
+      "name": "@babel/plugin-syntax-numeric-separator",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/plugin-syntax-numeric-separator@7.10.4",
       "version": "7.10.4",
       "vulnerabilities": []
@@ -13437,7 +13462,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "plugin-syntax-object-rest-spread",
+      "name": "@babel/plugin-syntax-object-rest-spread",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/plugin-syntax-object-rest-spread@7.8.3",
       "version": "7.8.3",
       "vulnerabilities": []
@@ -13445,7 +13471,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "plugin-syntax-optional-catch-binding",
+      "name": "@babel/plugin-syntax-optional-catch-binding",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/plugin-syntax-optional-catch-binding@7.8.3",
       "version": "7.8.3",
       "vulnerabilities": []
@@ -13453,7 +13480,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "plugin-syntax-optional-chaining",
+      "name": "@babel/plugin-syntax-optional-chaining",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/plugin-syntax-optional-chaining@7.8.3",
       "version": "7.8.3",
       "vulnerabilities": []
@@ -13461,7 +13489,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "plugin-syntax-private-property-in-object",
+      "name": "@babel/plugin-syntax-private-property-in-object",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/plugin-syntax-private-property-in-object@7.14.5",
       "version": "7.14.5",
       "vulnerabilities": []
@@ -13469,7 +13498,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "plugin-syntax-top-level-await",
+      "name": "@babel/plugin-syntax-top-level-await",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/plugin-syntax-top-level-await@7.14.5",
       "version": "7.14.5",
       "vulnerabilities": []
@@ -13477,7 +13507,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "plugin-syntax-typescript",
+      "name": "@babel/plugin-syntax-typescript",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/plugin-syntax-typescript@7.28.6",
       "version": "7.28.6",
       "vulnerabilities": []
@@ -13485,7 +13516,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "template",
+      "name": "@babel/template",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/template@7.28.6",
       "version": "7.28.6",
       "vulnerabilities": []
@@ -13493,7 +13525,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "traverse",
+      "name": "@babel/traverse",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/traverse@7.29.0",
       "version": "7.29.0",
       "vulnerabilities": []
@@ -13501,7 +13534,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "types",
+      "name": "@babel/types",
+      "org": "babel",
       "purl": "pkg:npm/%40babel/types@7.29.0",
       "version": "7.29.0",
       "vulnerabilities": []
@@ -13509,7 +13543,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "v8-coverage",
+      "name": "@bcoe/v8-coverage",
+      "org": "bcoe",
       "purl": "pkg:npm/%40bcoe/v8-coverage@0.2.3",
       "version": "0.2.3",
       "vulnerabilities": []
@@ -13517,7 +13552,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "eslint-utils",
+      "name": "@eslint-community/eslint-utils",
+      "org": "eslint-community",
       "purl": "pkg:npm/%40eslint-community/eslint-utils@4.9.1",
       "version": "4.9.1",
       "vulnerabilities": []
@@ -13525,7 +13561,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "regexpp",
+      "name": "@eslint-community/regexpp",
+      "org": "eslint-community",
       "purl": "pkg:npm/%40eslint-community/regexpp@4.12.2",
       "version": "4.12.2",
       "vulnerabilities": []
@@ -13533,7 +13570,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "eslintrc",
+      "name": "@eslint/eslintrc",
+      "org": "eslint",
       "purl": "pkg:npm/%40eslint/eslintrc@2.1.4",
       "version": "2.1.4",
       "vulnerabilities": []
@@ -13541,7 +13579,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "js",
+      "name": "@eslint/js",
+      "org": "eslint",
       "purl": "pkg:npm/%40eslint/js@8.57.1",
       "version": "8.57.1",
       "vulnerabilities": []
@@ -13549,7 +13588,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "config-array",
+      "name": "@humanwhocodes/config-array",
+      "org": "humanwhocodes",
       "purl": "pkg:npm/%40humanwhocodes/config-array@0.13.0",
       "version": "0.13.0",
       "vulnerabilities": []
@@ -13557,7 +13597,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "module-importer",
+      "name": "@humanwhocodes/module-importer",
+      "org": "humanwhocodes",
       "purl": "pkg:npm/%40humanwhocodes/module-importer@1.0.1",
       "version": "1.0.1",
       "vulnerabilities": []
@@ -13565,7 +13606,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "object-schema",
+      "name": "@humanwhocodes/object-schema",
+      "org": "humanwhocodes",
       "purl": "pkg:npm/%40humanwhocodes/object-schema@2.0.3",
       "version": "2.0.3",
       "vulnerabilities": []
@@ -13573,7 +13615,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "load-nyc-config",
+      "name": "@istanbuljs/load-nyc-config",
+      "org": "istanbuljs",
       "purl": "pkg:npm/%40istanbuljs/load-nyc-config@1.1.0",
       "version": "1.1.0",
       "vulnerabilities": []
@@ -13581,7 +13624,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "schema",
+      "name": "@istanbuljs/schema",
+      "org": "istanbuljs",
       "purl": "pkg:npm/%40istanbuljs/schema@0.1.6",
       "version": "0.1.6",
       "vulnerabilities": []
@@ -13589,7 +13633,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "console",
+      "name": "@jest/console",
+      "org": "jest",
       "purl": "pkg:npm/%40jest/console@29.7.0",
       "version": "29.7.0",
       "vulnerabilities": []
@@ -13597,7 +13642,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "core",
+      "name": "@jest/core",
+      "org": "jest",
       "purl": "pkg:npm/%40jest/core@29.7.0",
       "version": "29.7.0",
       "vulnerabilities": []
@@ -13605,7 +13651,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "environment",
+      "name": "@jest/environment",
+      "org": "jest",
       "purl": "pkg:npm/%40jest/environment@29.7.0",
       "version": "29.7.0",
       "vulnerabilities": []
@@ -13613,7 +13660,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "expect-utils",
+      "name": "@jest/expect-utils",
+      "org": "jest",
       "purl": "pkg:npm/%40jest/expect-utils@29.7.0",
       "version": "29.7.0",
       "vulnerabilities": []
@@ -13621,7 +13669,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "expect",
+      "name": "@jest/expect",
+      "org": "jest",
       "purl": "pkg:npm/%40jest/expect@29.7.0",
       "version": "29.7.0",
       "vulnerabilities": []
@@ -13629,7 +13678,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "fake-timers",
+      "name": "@jest/fake-timers",
+      "org": "jest",
       "purl": "pkg:npm/%40jest/fake-timers@29.7.0",
       "version": "29.7.0",
       "vulnerabilities": []
@@ -13637,7 +13687,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "globals",
+      "name": "@jest/globals",
+      "org": "jest",
       "purl": "pkg:npm/%40jest/globals@29.7.0",
       "version": "29.7.0",
       "vulnerabilities": []
@@ -13645,7 +13696,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "reporters",
+      "name": "@jest/reporters",
+      "org": "jest",
       "purl": "pkg:npm/%40jest/reporters@29.7.0",
       "version": "29.7.0",
       "vulnerabilities": []
@@ -13653,7 +13705,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "schemas",
+      "name": "@jest/schemas",
+      "org": "jest",
       "purl": "pkg:npm/%40jest/schemas@29.6.3",
       "version": "29.6.3",
       "vulnerabilities": []
@@ -13661,7 +13714,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "source-map",
+      "name": "@jest/source-map",
+      "org": "jest",
       "purl": "pkg:npm/%40jest/source-map@29.6.3",
       "version": "29.6.3",
       "vulnerabilities": []
@@ -13669,7 +13723,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "test-result",
+      "name": "@jest/test-result",
+      "org": "jest",
       "purl": "pkg:npm/%40jest/test-result@29.7.0",
       "version": "29.7.0",
       "vulnerabilities": []
@@ -13677,7 +13732,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "test-sequencer",
+      "name": "@jest/test-sequencer",
+      "org": "jest",
       "purl": "pkg:npm/%40jest/test-sequencer@29.7.0",
       "version": "29.7.0",
       "vulnerabilities": []
@@ -13685,7 +13741,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "transform",
+      "name": "@jest/transform",
+      "org": "jest",
       "purl": "pkg:npm/%40jest/transform@29.7.0",
       "version": "29.7.0",
       "vulnerabilities": []
@@ -13693,7 +13750,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "types",
+      "name": "@jest/types",
+      "org": "jest",
       "purl": "pkg:npm/%40jest/types@29.6.3",
       "version": "29.6.3",
       "vulnerabilities": []
@@ -13701,7 +13759,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "gen-mapping",
+      "name": "@jridgewell/gen-mapping",
+      "org": "jridgewell",
       "purl": "pkg:npm/%40jridgewell/gen-mapping@0.3.13",
       "version": "0.3.13",
       "vulnerabilities": []
@@ -13709,7 +13768,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "remapping",
+      "name": "@jridgewell/remapping",
+      "org": "jridgewell",
       "purl": "pkg:npm/%40jridgewell/remapping@2.3.5",
       "version": "2.3.5",
       "vulnerabilities": []
@@ -13717,7 +13777,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "resolve-uri",
+      "name": "@jridgewell/resolve-uri",
+      "org": "jridgewell",
       "purl": "pkg:npm/%40jridgewell/resolve-uri@3.1.2",
       "version": "3.1.2",
       "vulnerabilities": []
@@ -13725,7 +13786,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "sourcemap-codec",
+      "name": "@jridgewell/sourcemap-codec",
+      "org": "jridgewell",
       "purl": "pkg:npm/%40jridgewell/sourcemap-codec@1.5.5",
       "version": "1.5.5",
       "vulnerabilities": []
@@ -13733,7 +13795,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "trace-mapping",
+      "name": "@jridgewell/trace-mapping",
+      "org": "jridgewell",
       "purl": "pkg:npm/%40jridgewell/trace-mapping@0.3.31",
       "version": "0.3.31",
       "vulnerabilities": []
@@ -13741,7 +13804,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "fs.scandir",
+      "name": "@nodelib/fs.scandir",
+      "org": "nodelib",
       "purl": "pkg:npm/%40nodelib/fs.scandir@2.1.5",
       "version": "2.1.5",
       "vulnerabilities": []
@@ -13749,7 +13813,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "fs.stat",
+      "name": "@nodelib/fs.stat",
+      "org": "nodelib",
       "purl": "pkg:npm/%40nodelib/fs.stat@2.0.5",
       "version": "2.0.5",
       "vulnerabilities": []
@@ -13757,7 +13822,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "fs.walk",
+      "name": "@nodelib/fs.walk",
+      "org": "nodelib",
       "purl": "pkg:npm/%40nodelib/fs.walk@1.2.8",
       "version": "1.2.8",
       "vulnerabilities": []
@@ -13765,7 +13831,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "typebox",
+      "name": "@sinclair/typebox",
+      "org": "sinclair",
       "purl": "pkg:npm/%40sinclair/typebox@0.27.10",
       "version": "0.27.10",
       "vulnerabilities": []
@@ -13773,7 +13840,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "commons",
+      "name": "@sinonjs/commons",
+      "org": "sinonjs",
       "purl": "pkg:npm/%40sinonjs/commons@3.0.1",
       "version": "3.0.1",
       "vulnerabilities": []
@@ -13781,7 +13849,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "fake-timers",
+      "name": "@sinonjs/fake-timers",
+      "org": "sinonjs",
       "purl": "pkg:npm/%40sinonjs/fake-timers@10.3.0",
       "version": "10.3.0",
       "vulnerabilities": []
@@ -13789,7 +13858,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "babel__core",
+      "name": "@types/babel__core",
+      "org": "types",
       "purl": "pkg:npm/%40types/babel__core@7.20.5",
       "version": "7.20.5",
       "vulnerabilities": []
@@ -13797,7 +13867,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "babel__generator",
+      "name": "@types/babel__generator",
+      "org": "types",
       "purl": "pkg:npm/%40types/babel__generator@7.27.0",
       "version": "7.27.0",
       "vulnerabilities": []
@@ -13805,7 +13876,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "babel__template",
+      "name": "@types/babel__template",
+      "org": "types",
       "purl": "pkg:npm/%40types/babel__template@7.4.4",
       "version": "7.4.4",
       "vulnerabilities": []
@@ -13813,7 +13885,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "babel__traverse",
+      "name": "@types/babel__traverse",
+      "org": "types",
       "purl": "pkg:npm/%40types/babel__traverse@7.28.0",
       "version": "7.28.0",
       "vulnerabilities": []
@@ -13821,7 +13894,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "graceful-fs",
+      "name": "@types/graceful-fs",
+      "org": "types",
       "purl": "pkg:npm/%40types/graceful-fs@4.1.9",
       "version": "4.1.9",
       "vulnerabilities": []
@@ -13829,7 +13903,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "istanbul-lib-coverage",
+      "name": "@types/istanbul-lib-coverage",
+      "org": "types",
       "purl": "pkg:npm/%40types/istanbul-lib-coverage@2.0.6",
       "version": "2.0.6",
       "vulnerabilities": []
@@ -13837,7 +13912,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "istanbul-lib-report",
+      "name": "@types/istanbul-lib-report",
+      "org": "types",
       "purl": "pkg:npm/%40types/istanbul-lib-report@3.0.3",
       "version": "3.0.3",
       "vulnerabilities": []
@@ -13845,7 +13921,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "istanbul-reports",
+      "name": "@types/istanbul-reports",
+      "org": "types",
       "purl": "pkg:npm/%40types/istanbul-reports@3.0.4",
       "version": "3.0.4",
       "vulnerabilities": []
@@ -13853,7 +13930,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "node",
+      "name": "@types/node",
+      "org": "types",
       "purl": "pkg:npm/%40types/node@25.7.0",
       "version": "25.7.0",
       "vulnerabilities": []
@@ -13861,7 +13939,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "stack-utils",
+      "name": "@types/stack-utils",
+      "org": "types",
       "purl": "pkg:npm/%40types/stack-utils@2.0.3",
       "version": "2.0.3",
       "vulnerabilities": []
@@ -13869,7 +13948,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "yargs-parser",
+      "name": "@types/yargs-parser",
+      "org": "types",
       "purl": "pkg:npm/%40types/yargs-parser@21.0.3",
       "version": "21.0.3",
       "vulnerabilities": []
@@ -13877,7 +13957,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "yargs",
+      "name": "@types/yargs",
+      "org": "types",
       "purl": "pkg:npm/%40types/yargs@17.0.35",
       "version": "17.0.35",
       "vulnerabilities": []
@@ -13885,7 +13966,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "structured-clone",
+      "name": "@ungap/structured-clone",
+      "org": "ungap",
       "purl": "pkg:npm/%40ungap/structured-clone@1.3.1",
       "version": "1.3.1",
       "vulnerabilities": []

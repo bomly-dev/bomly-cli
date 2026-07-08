@@ -38,16 +38,20 @@ type ScanManifest struct {
 	Dependencies   []ScanDependency        `json:"dependencies"`
 }
 
-// DiffResponse is the structured payload for the diff command.
+// DiffResponse is the structured payload for the diff command. Packages is
+// the PURL-deduplicated union of the base and head registries (head wins on
+// conflict) so audit findings can be joined against advisory data the same
+// way scan findings join against ScanResponse.Packages.
 type DiffResponse struct {
-	SchemaVersion string            `json:"schema_version"`
-	Command       string            `json:"command"`
-	Project       ProjectDescriptor `json:"project"`
-	Comparison    DiffComparison    `json:"comparison"`
-	Results       DiffResults       `json:"results"`
-	Summary       DiffSummary       `json:"summary"`
-	Audit         *DiffAudit        `json:"audit,omitempty"`
-	Metadata      Metadata          `json:"metadata"`
+	SchemaVersion string             `json:"schema_version"`
+	Command       string             `json:"command"`
+	Project       ProjectDescriptor  `json:"project"`
+	Comparison    DiffComparison     `json:"comparison"`
+	Results       DiffResults        `json:"results"`
+	Summary       DiffSummary        `json:"summary"`
+	Packages      []ScanPackageEntry `json:"packages"`
+	Audit         *DiffAudit         `json:"audit,omitempty"`
+	Metadata      Metadata           `json:"metadata"`
 }
 
 // DiffAudit groups audit deltas for diff output.
@@ -223,9 +227,6 @@ func (r ScanResponse) WithReportOptions(options ReportOptions) ScanResponse {
 	for idx := range r.Packages {
 		r.Packages[idx] = r.Packages[idx].withoutReachability()
 	}
-	for idx := range r.Findings {
-		r.Findings[idx] = r.Findings[idx].withoutReachability()
-	}
 	return r
 }
 
@@ -338,10 +339,32 @@ func BuildDiffResponse(projectPath, baseRef, headRef string, baseConsolidated, h
 		Comparison: DiffComparison{Base: baseRef, Head: headRef},
 		Results:    results,
 		Summary:    summary,
+		Packages:   PackagesFromRegistries(reportOptions.BaseRegistry, reportOptions.HeadRegistry),
 		Audit:      audit,
 		Metadata:   Metadata{DurationMS: time.Since(started).Milliseconds()},
 	}
 	return response.WithReportOptions(reportOptions)
+}
+
+// PackagesFromRegistries projects the union of the base and head registries
+// into one PURL-deduplicated packages collection. Head entries win on
+// conflict, so findings computed against the head state resolve to head
+// advisory data while base-only (resolved-finding) packages stay joinable.
+func PackagesFromRegistries(base, head *sdk.PackageRegistry) []ScanPackageEntry {
+	headEntries := PackagesFromRegistry(head)
+	seen := make(map[string]struct{}, len(headEntries))
+	for _, entry := range headEntries {
+		seen[entry.Purl] = struct{}{}
+	}
+	merged := headEntries
+	for _, entry := range PackagesFromRegistry(base) {
+		if _, ok := seen[entry.Purl]; ok {
+			continue
+		}
+		merged = append(merged, entry)
+	}
+	sort.Slice(merged, func(i, j int) bool { return merged[i].Purl < merged[j].Purl })
+	return merged
 }
 
 // WithReportOptions annotates a DiffResponse with optional report data and
@@ -357,21 +380,9 @@ func (r DiffResponse) WithReportOptions(options ReportOptions) DiffResponse {
 	for idx := range r.Results.Manifests {
 		r.Results.Manifests[idx] = stripDiffManifestReachability(r.Results.Manifests[idx])
 	}
-	if r.Audit != nil {
-		audit := *r.Audit
-		audit.Introduced = append([]AuditFinding(nil), audit.Introduced...)
-		audit.Resolved = append([]AuditFinding(nil), audit.Resolved...)
-		audit.Persisted = append([]AuditFinding(nil), audit.Persisted...)
-		r.Audit = &audit
-		for idx := range r.Audit.Introduced {
-			r.Audit.Introduced[idx] = r.Audit.Introduced[idx].withoutReachability()
-		}
-		for idx := range r.Audit.Resolved {
-			r.Audit.Resolved[idx] = r.Audit.Resolved[idx].withoutReachability()
-		}
-		for idx := range r.Audit.Persisted {
-			r.Audit.Persisted[idx] = r.Audit.Persisted[idx].withoutReachability()
-		}
+	r.Packages = append([]ScanPackageEntry(nil), r.Packages...)
+	for idx := range r.Packages {
+		r.Packages[idx] = r.Packages[idx].withoutReachability()
 	}
 	return r
 }
@@ -389,10 +400,6 @@ func (r ExplainResponse) WithReportOptions(options ReportOptions) ExplainRespons
 		for packageIdx := range r.Paths[pathIdx].Packages {
 			r.Paths[pathIdx].Packages[packageIdx] = r.Paths[pathIdx].Packages[packageIdx].withoutReachability()
 		}
-	}
-	r.Findings = append([]AuditFinding(nil), r.Findings...)
-	for idx := range r.Findings {
-		r.Findings[idx] = r.Findings[idx].withoutReachability()
 	}
 	r.Targets = copyExplainTargets(r.Targets)
 	for targetIdx := range r.Targets {
@@ -490,10 +497,6 @@ func stripExplainTargetReachability(target ExplainTargetResponse) ExplainTargetR
 		for packageIdx := range target.Paths[pathIdx].Packages {
 			target.Paths[pathIdx].Packages[packageIdx] = target.Paths[pathIdx].Packages[packageIdx].withoutReachability()
 		}
-	}
-	target.Findings = append([]AuditFinding(nil), target.Findings...)
-	for idx := range target.Findings {
-		target.Findings[idx] = target.Findings[idx].withoutReachability()
 	}
 	return target
 }

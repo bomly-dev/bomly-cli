@@ -31,9 +31,9 @@ Every document carries a `schema_version` and a `command`, then the three top-le
 
 - **`manifests[]`** — detection-stage results, one entry per discovered project, each holding lean `dependencies[]` (identity, `scopes`, `depends_on`, and a `package_ref` into `packages`).
 - **`packages[]`** — matching-stage artifacts, deduplicated by PURL, carrying the enrichment: `licenses`, `vulnerabilities` (OSV-aligned, with CVSS/EPSS/reachability), `scorecard`, and `eol`.
-- **`findings[]`** — reference-style audit results that point back at a package (and, for a vulnerability, a specific advisory) rather than copying its data inline.
+- **`findings[]`** — reference-style audit results that point back at the other collections rather than copying data inline: `package` is an identity-only ref (join `packages` by `purl`), `vulnerability_id` names the advisory inside `packages[].vulnerabilities`, and `dependency_refs` lists the introducing `manifests[].dependencies` ids.
 
-Enrichment lives once, in `packages`, and is resolved by PURL — so a CVE that affects a package shared by 50 dependencies appears a single time. See the per-command pages for the exact field-by-field breakdown.
+Enrichment lives once, in `packages`, and is resolved by PURL — so a CVE that affects a package shared by 50 dependencies appears a single time. `bomly diff` documents carry the same `packages` collection (the PURL-deduplicated union of the base and head states, head winning on conflict) so audit findings in the diff join the same way. See the per-command pages for the exact field-by-field breakdown.
 
 ## Stability
 

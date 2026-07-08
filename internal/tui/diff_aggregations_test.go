@@ -52,14 +52,14 @@ func fixtureDiffPayload() output.DiffResponse {
 		}},
 		Audit: &output.DiffAudit{
 			Introduced: []output.AuditFinding{
-				{ID: "CVE-2024-0001", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityHigh, Source: "osv", Package: output.PackageRef{Name: "react", Version: "19.0.0"}},
-				{ID: "license:unknown-license:zod@3.23.0", Kind: sdk.FindingKindLicense, Severity: "n/a", Auditor: "license", Source: "license", Package: output.PackageRef{Name: "zod", Version: "3.23.0"}},
+				{ID: "CVE-2024-0001", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityHigh, Source: "osv", Package: output.FindingPackageRef{Name: "react", Version: "19.0.0"}},
+				{ID: "license:unknown-license:zod@3.23.0", Kind: sdk.FindingKindLicense, Severity: "n/a", Auditor: "license", Source: "license", Package: output.FindingPackageRef{Name: "zod", Version: "3.23.0"}},
 			},
 			Persisted: []output.AuditFinding{
-				{ID: "CVE-2023-9999", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityMedium, Source: "osv", Package: output.PackageRef{Name: "lodash", Version: "4.17.20"}},
+				{ID: "CVE-2023-9999", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityMedium, Source: "osv", Package: output.FindingPackageRef{Name: "lodash", Version: "4.17.20"}},
 			},
 			Resolved: []output.AuditFinding{
-				{ID: "CVE-2022-1111", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityLow, Source: "osv", Package: output.PackageRef{Name: "dropped", Version: "0.1.0"}},
+				{ID: "CVE-2022-1111", Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityLow, Source: "osv", Package: output.FindingPackageRef{Name: "dropped", Version: "0.1.0"}},
 			},
 			// AuditSummary.Total now reflects Introduced + Persisted only
 			// (scan_output.go no longer appends Resolved). For this fixture

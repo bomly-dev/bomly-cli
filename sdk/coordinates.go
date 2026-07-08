@@ -23,6 +23,41 @@ func (i Coordinates) QualifiedName() string {
 	return qualifiedName(i.Org, i.Name)
 }
 
+// DisplayName returns the package name in its ecosystem-native form:
+// "@org/name" for npm-family packages, "org/name" for path-style ecosystems
+// (Go, Composer), and "org:name" otherwise. Unlike QualifiedName it is a
+// presentation label only and must never be used as an identity key.
+func (i Coordinates) DisplayName() string {
+	if i.Org == "" || i.Name == "" {
+		return qualifiedName(i.Org, i.Name)
+	}
+	switch i.displayEcosystem() {
+	case EcosystemNPM:
+		return "@" + i.Org + "/" + i.Name
+	case EcosystemGo, EcosystemPHP:
+		return i.Org + "/" + i.Name
+	default:
+		return i.Org + ":" + i.Name
+	}
+}
+
+// displayEcosystem resolves the effective ecosystem for display formatting,
+// falling back to the package-manager name when Ecosystem is unset (e.g.
+// pnpm/yarn graphs that only carry a manager identifier).
+func (i Coordinates) displayEcosystem() Ecosystem {
+	for _, candidate := range []string{string(i.Ecosystem), i.PackageManager.Name(), string(i.Type)} {
+		switch strings.ToLower(strings.TrimSpace(candidate)) {
+		case string(EcosystemNPM), "pnpm", "yarn", "bun":
+			return EcosystemNPM
+		case string(EcosystemGo), "gomod", "golang":
+			return EcosystemGo
+		case string(EcosystemPHP), "composer", "packagist":
+			return EcosystemPHP
+		}
+	}
+	return i.Ecosystem
+}
+
 // StableID returns a graph-friendly identifier derived from name and version.
 func (i Coordinates) StableID() string {
 	base := i.QualifiedName()

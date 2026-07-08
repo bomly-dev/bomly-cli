@@ -108,12 +108,13 @@ func (d *Dependency) QualifiedName() string {
 	return d.Coordinates.QualifiedName()
 }
 
-// DisplayName returns the most human-friendly identifier available.
+// DisplayName returns the most human-friendly identifier available, using
+// the ecosystem-native name form (e.g. "@org/name" for npm).
 func (d *Dependency) DisplayName() string {
 	if d == nil {
 		return ""
 	}
-	if name := d.QualifiedName(); name != "" {
+	if name := d.Coordinates.DisplayName(); name != "" {
 		return name
 	}
 	return d.ID

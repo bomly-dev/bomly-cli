@@ -235,7 +235,8 @@
     {
       "ecosystem": "scala",
       "licenses": [],
-      "name": "jackson-databind",
+      "name": "com.fasterxml.jackson.core:jackson-databind",
+      "org": "com.fasterxml.jackson.core",
       "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.10",
       "version": "2.9.10",
       "vulnerabilities": []
@@ -243,7 +244,8 @@
     {
       "ecosystem": "scala",
       "licenses": [],
-      "name": "play_2.12",
+      "name": "com.typesafe.play:play_2.12",
+      "org": "com.typesafe.play",
       "purl": "pkg:maven/com.typesafe.play/play_2.12@2.6.7",
       "version": "2.6.7",
       "vulnerabilities": []
@@ -251,7 +253,8 @@
     {
       "ecosystem": "scala",
       "licenses": [],
-      "name": "commons-codec",
+      "name": "commons-codec:commons-codec",
+      "org": "commons-codec",
       "purl": "pkg:maven/commons-codec/commons-codec@1.11",
       "version": "1.11",
       "vulnerabilities": []
@@ -259,7 +262,8 @@
     {
       "ecosystem": "scala",
       "licenses": [],
-      "name": "commons-collections",
+      "name": "commons-collections:commons-collections",
+      "org": "commons-collections",
       "purl": "pkg:maven/commons-collections/commons-collections@3.2.1",
       "version": "3.2.1",
       "vulnerabilities": []
@@ -267,7 +271,8 @@
     {
       "ecosystem": "scala",
       "licenses": [],
-      "name": "log4j",
+      "name": "log4j:log4j",
+      "org": "log4j",
       "purl": "pkg:maven/log4j/log4j@1.2.17",
       "version": "1.2.17",
       "vulnerabilities": []
@@ -275,7 +280,8 @@
     {
       "ecosystem": "scala",
       "licenses": [],
-      "name": "lift-webkit_2.12",
+      "name": "net.liftweb:lift-webkit_2.12",
+      "org": "net.liftweb",
       "purl": "pkg:maven/net.liftweb/lift-webkit_2.12@3.2.0-M3",
       "version": "3.2.0-m3",
       "vulnerabilities": []
@@ -283,7 +289,8 @@
     {
       "ecosystem": "scala",
       "licenses": [],
-      "name": "jbcrypt",
+      "name": "org.mindrot:jbcrypt",
+      "org": "org.mindrot",
       "purl": "pkg:maven/org.mindrot/jbcrypt@0.3m",
       "version": "0.3m",
       "vulnerabilities": []
@@ -291,7 +298,8 @@
     {
       "ecosystem": "scala",
       "licenses": [],
-      "name": "mockito-core",
+      "name": "org.mockito:mockito-core",
+      "org": "org.mockito",
       "purl": "pkg:maven/org.mockito/mockito-core@4.11.0",
       "version": "4.11.0",
       "vulnerabilities": []
@@ -299,7 +307,8 @@
     {
       "ecosystem": "scala",
       "licenses": [],
-      "name": "scalatestplus-play_2.12",
+      "name": "org.scalatestplus.play:scalatestplus-play_2.12",
+      "org": "org.scalatestplus.play",
       "purl": "pkg:maven/org.scalatestplus.play/scalatestplus-play_2.12@3.1.2",
       "version": "3.1.2",
       "vulnerabilities": []
@@ -307,7 +316,8 @@
     {
       "ecosystem": "scala",
       "licenses": [],
-      "name": "spring-core",
+      "name": "org.springframework:spring-core",
+      "org": "org.springframework",
       "purl": "pkg:maven/org.springframework/spring-core@5.3.16",
       "version": "5.3.16",
       "vulnerabilities": []

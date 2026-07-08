@@ -7,6 +7,56 @@
   "metadata": {
     "duration_ms": 0
   },
+  "packages": [
+    {
+      "ecosystem": "go",
+      "licenses": [],
+      "name": "example.com/app",
+      "purl": "pkg:golang/example.com/app@1.0.0",
+      "version": "1.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [],
+      "name": "github.com/google/uuid",
+      "purl": "pkg:golang/github.com/google/uuid@1.6.0",
+      "version": "1.6.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "go",
+      "licenses": [],
+      "name": "github.com/pkg/errors",
+      "purl": "pkg:golang/github.com/pkg/errors@0.9.1",
+      "version": "0.9.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "lodash",
+      "purl": "pkg:npm/lodash@4.17.21",
+      "version": "4.17.21",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "my-js-app",
+      "purl": "pkg:npm/my-js-app@2.0.0",
+      "version": "2.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "react",
+      "purl": "pkg:npm/react@18.2.0",
+      "version": "18.2.0",
+      "vulnerabilities": []
+    }
+  ],
   "project": {
     "ecosystem": "other",
     "name": "\u003cnormalized\u003e",

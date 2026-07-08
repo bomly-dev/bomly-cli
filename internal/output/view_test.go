@@ -151,8 +151,8 @@ func TestBuildScanResponseGatesReachability(t *testing.T) {
 	if got := scanPackageByName(t, disabled.Packages, "react").Vulnerabilities[0].Reachability; got != nil {
 		t.Fatalf("disabled scan package reachability leaked: %#v", got)
 	}
-	if got := disabled.Findings[0].Reachability; got != nil {
-		t.Fatalf("disabled scan finding reachability leaked: %#v", got)
+	if got := output.FindingVulnerabilityInPackages(disabled.Findings[0], disabled.Packages); got == nil || got.Reachability != nil {
+		t.Fatalf("disabled scan finding join leaked reachability: %#v", got)
 	}
 
 	enabled := output.BuildScanResponse(output.ProjectDescriptor{Name: "demo"}, consolidated, registry, []sdk.Finding{finding}, time.Now().Add(-time.Second), output.ReportOptions{
@@ -172,8 +172,9 @@ func TestBuildScanResponseGatesReachability(t *testing.T) {
 	if got := scanPackageByName(t, enabled.Packages, "react").Vulnerabilities[0].Reachability; got == nil || got.Status != sdk.ReachabilityReachable {
 		t.Fatalf("enabled scan package reachability missing: %#v", got)
 	}
-	if got := enabled.Findings[0].Reachability; got == nil || got.Status != sdk.ReachabilityReachable {
-		t.Fatalf("enabled scan finding reachability missing: %#v", got)
+	joined := output.FindingVulnerabilityInPackages(enabled.Findings[0], enabled.Packages)
+	if joined == nil || joined.Reachability == nil || joined.Reachability.Status != sdk.ReachabilityReachable {
+		t.Fatalf("enabled scan finding reachability missing via join: %#v", joined)
 	}
 }
 
@@ -343,14 +344,13 @@ func TestBuildExplainResponseGatesReachability(t *testing.T) {
 			}},
 		}}}},
 		Findings: []output.AuditFinding{{
-			ID:           "OSV-REACH",
-			Kind:         sdk.FindingKindVulnerability,
-			Package:      output.PackageRef{Name: "react"},
-			Reachability: &sdk.Reachability{Status: sdk.ReachabilityReachable, Tier: sdk.TierPackage},
+			ID:      "OSV-REACH",
+			Kind:    sdk.FindingKindVulnerability,
+			Package: output.FindingPackageRef{Name: "react"},
 		}},
 	}}
 	disabled := output.BuildExplainResponse(output.ProjectDescriptor{Name: "demo"}, "react", targets, time.Now().Add(-time.Second))
-	if disabled.Dependency.Vulnerabilities[0].Reachability != nil || disabled.Targets[0].Findings[0].Reachability != nil {
+	if disabled.Dependency.Vulnerabilities[0].Reachability != nil {
 		t.Fatalf("disabled explain reachability leaked: %#v", disabled)
 	}
 
@@ -529,25 +529,34 @@ func TestBuildDiffResponseGatesReachability(t *testing.T) {
 		t.Fatalf("ConsolidateGraphs(head) error = %v", err)
 	}
 	reachable := &sdk.Reachability{Status: sdk.ReachabilityReachable, Tier: sdk.TierPackage}
-	audit := &output.DiffAudit{
-		Introduced: []output.AuditFinding{{
+	headRegistry := sdk.NewPackageRegistry()
+	headRegistry.Add(&sdk.Package{
+		Coordinates: sdk.Coordinates{PURL: pkg.PURL, Name: "newpkg", Version: "1.0.0", Ecosystem: sdk.EcosystemNPM},
+		Vulnerabilities: []sdk.Vulnerability{{
 			ID:           "OSV-REACH",
-			Kind:         sdk.FindingKindVulnerability,
-			Package:      output.PackageFromGraphPackage(pkg),
+			Source:       "osv",
 			Reachability: reachable,
 		}},
+	})
+	audit := &output.DiffAudit{
+		Introduced: []output.AuditFinding{{
+			ID:              "OSV-REACH",
+			VulnerabilityID: "OSV-REACH",
+			Kind:            sdk.FindingKindVulnerability,
+			Package:         output.FindingPackageRef{Name: "newpkg", Version: "1.0.0", Purl: pkg.PURL},
+		}},
 	}
-	disabled := output.BuildDiffResponse("/tmp/demo", "base", "head", baseConsolidated, headConsolidated, audit, time.Now().Add(-time.Second))
-	if disabled.Audit.Introduced[0].Reachability != nil {
-		t.Fatalf("disabled diff audit reachability leaked: %#v", disabled.Audit.Introduced[0].Reachability)
+	disabled := output.BuildDiffResponse("/tmp/demo", "base", "head", baseConsolidated, headConsolidated, audit, time.Now().Add(-time.Second), output.ReportOptions{HeadRegistry: headRegistry})
+	if got := output.FindingVulnerabilityInPackages(disabled.Audit.Introduced[0], disabled.Packages); got == nil || got.Reachability != nil {
+		t.Fatalf("disabled diff audit join leaked reachability: %#v", got)
 	}
 
-	enabled := output.BuildDiffResponse("/tmp/demo", "base", "head", baseConsolidated, headConsolidated, audit, time.Now().Add(-time.Second), output.ReportOptions{ReachabilityEnabled: true})
+	enabled := output.BuildDiffResponse("/tmp/demo", "base", "head", baseConsolidated, headConsolidated, audit, time.Now().Add(-time.Second), output.ReportOptions{ReachabilityEnabled: true, HeadRegistry: headRegistry})
 	if !enabled.Metadata.ReachabilityEnabled {
 		t.Fatal("reachability metadata should be set when enabled")
 	}
-	if enabled.Audit.Introduced[0].Reachability == nil {
-		t.Fatal("enabled diff audit reachability missing")
+	if got := output.FindingVulnerabilityInPackages(enabled.Audit.Introduced[0], enabled.Packages); got == nil || got.Reachability == nil {
+		t.Fatalf("enabled diff audit reachability missing via join: %#v", got)
 	}
 }
 

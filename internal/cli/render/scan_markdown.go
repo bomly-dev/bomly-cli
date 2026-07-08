@@ -107,7 +107,8 @@ func scanFindingsMarkdown(payload output.ScanResponse) []string {
 	}
 	rows := make([][]string, 0, len(payload.Findings))
 	for _, finding := range sortDiffAuditFindings(payload.Findings) {
-		pkg := markdownPackageDisplayName(finding.Package)
+		vuln := output.FindingVulnerabilityInPackages(finding, payload.Packages)
+		pkg := finding.Package.DisplayLabel()
 		if pkg == "" {
 			pkg = "-"
 		}
@@ -121,11 +122,20 @@ func scanFindingsMarkdown(payload output.ScanResponse) []string {
 			pkg,
 		}
 		if payload.Metadata.ReachabilityEnabled {
-			row = append(row, valueOrDash(formatReachabilityCell(finding.Reachability)))
+			reachability := ""
+			if vuln != nil {
+				reachability = formatReachabilityCell(vuln.Reachability)
+			}
+			row = append(row, valueOrDash(reachability))
+		}
+		fixed, exploitability := "", ""
+		if vuln != nil {
+			fixed = fixedVersionSummary(vuln.FixedIn, vuln.FixedVersions)
+			exploitability = exploitabilitySummary(vuln.KEVExploited, vuln.KnownExploited, vuln.RiskScore)
 		}
 		row = append(row,
-			valueOrDash(fixedVersionSummary(finding.FixedIn, finding.FixedVersions)),
-			valueOrDash(exploitabilitySummary(finding.KEVExploited, finding.KnownExploited, finding.RiskScore)),
+			valueOrDash(fixed),
+			valueOrDash(exploitability),
 			valueOrDash(finding.Source),
 			title,
 		)

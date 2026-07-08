@@ -27,7 +27,7 @@
               "real_path": "yarn.lock"
             }
           ],
-          "name": "google-cloud:common-grpc",
+          "name": "@google-cloud/common-grpc",
           "package_ref": "pkg:npm/%40google-cloud/common-grpc@0.1.4",
           "purl": "pkg:npm/%40google-cloud/common-grpc@0.1.4",
           "scopes": [
@@ -70,7 +70,7 @@
               "real_path": "yarn.lock"
             }
           ],
-          "name": "google-cloud:common",
+          "name": "@google-cloud/common",
           "package_ref": "pkg:npm/%40google-cloud/common@0.12.0",
           "purl": "pkg:npm/%40google-cloud/common@0.12.0",
           "scopes": [
@@ -105,7 +105,7 @@
               "real_path": "yarn.lock"
             }
           ],
-          "name": "google-cloud:vision",
+          "name": "@google-cloud/vision",
           "package_ref": "pkg:npm/%40google-cloud/vision@0.8.0",
           "purl": "pkg:npm/%40google-cloud/vision@0.8.0",
           "scopes": [
@@ -9025,7 +9025,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "common-grpc",
+      "name": "@google-cloud/common-grpc",
+      "org": "google-cloud",
       "purl": "pkg:npm/%40google-cloud/common-grpc@0.1.4",
       "version": "0.1.4",
       "vulnerabilities": []
@@ -9033,7 +9034,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "common",
+      "name": "@google-cloud/common",
+      "org": "google-cloud",
       "purl": "pkg:npm/%40google-cloud/common@0.12.0",
       "version": "0.12.0",
       "vulnerabilities": []
@@ -9041,7 +9043,8 @@
     {
       "ecosystem": "npm",
       "licenses": [],
-      "name": "vision",
+      "name": "@google-cloud/vision",
+      "org": "google-cloud",
       "purl": "pkg:npm/%40google-cloud/vision@0.8.0",
       "version": "0.8.0",
       "vulnerabilities": []

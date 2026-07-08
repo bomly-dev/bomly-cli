@@ -313,7 +313,7 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:swift/github.com/apple/swift-system@1.7.2",
+          "id": "pkg:swift/github.com/apple/swift-system@1.7.4",
           "licenses": [],
           "locations": [
             {
@@ -326,12 +326,12 @@
             }
           ],
           "name": "github.com/apple:swift-system",
-          "package_ref": "pkg:swift/github.com/apple/swift-system@1.7.2",
-          "purl": "pkg:swift/github.com/apple/swift-system@1.7.2",
+          "package_ref": "pkg:swift/github.com/apple/swift-system@1.7.4",
+          "purl": "pkg:swift/github.com/apple/swift-system@1.7.4",
           "scopes": [
             "runtime"
           ],
-          "version": "1.7.2"
+          "version": "1.7.4"
         },
         {
           "depends_on": [],
@@ -503,7 +503,7 @@
             "pkg:swift/github.com/apple/swift-nio-transport-services@1.23.1",
             "pkg:swift/github.com/apple/swift-nio@2.65.0",
             "pkg:swift/github.com/apple/swift-numerics@1.1.1",
-            "pkg:swift/github.com/apple/swift-system@1.7.2",
+            "pkg:swift/github.com/apple/swift-system@1.7.4",
             "pkg:swift/github.com/swift-server/async-http-client@1.22.0",
             "pkg:swift/github.com/vapor/async-kit@1.20.0",
             "pkg:swift/github.com/vapor/console-kit@4.14.2",
@@ -541,7 +541,8 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "swift-algorithms",
+      "name": "github.com/apple:swift-algorithms",
+      "org": "github.com/apple",
       "purl": "pkg:swift/github.com/apple/swift-algorithms@1.2.1",
       "version": "1.2.1",
       "vulnerabilities": []
@@ -549,7 +550,8 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "swift-argument-parser",
+      "name": "github.com/apple:swift-argument-parser",
+      "org": "github.com/apple",
       "purl": "pkg:swift/github.com/apple/swift-argument-parser@1.3.0",
       "version": "1.3.0",
       "vulnerabilities": []
@@ -557,7 +559,8 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "swift-atomics",
+      "name": "github.com/apple:swift-atomics",
+      "org": "github.com/apple",
       "purl": "pkg:swift/github.com/apple/swift-atomics@1.3.1",
       "version": "1.3.1",
       "vulnerabilities": []
@@ -565,7 +568,8 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "swift-collections",
+      "name": "github.com/apple:swift-collections",
+      "org": "github.com/apple",
       "purl": "pkg:swift/github.com/apple/swift-collections@1.1.4",
       "version": "1.1.4",
       "vulnerabilities": []
@@ -573,7 +577,8 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "swift-crypto",
+      "name": "github.com/apple:swift-crypto",
+      "org": "github.com/apple",
       "purl": "pkg:swift/github.com/apple/swift-crypto@3.3.0",
       "version": "3.3.0",
       "vulnerabilities": []
@@ -581,7 +586,8 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "swift-http-types",
+      "name": "github.com/apple:swift-http-types",
+      "org": "github.com/apple",
       "purl": "pkg:swift/github.com/apple/swift-http-types@1.6.0",
       "version": "1.6.0",
       "vulnerabilities": []
@@ -589,7 +595,8 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "swift-log",
+      "name": "github.com/apple:swift-log",
+      "org": "github.com/apple",
       "purl": "pkg:swift/github.com/apple/swift-log@1.5.4",
       "version": "1.5.4",
       "vulnerabilities": []
@@ -597,7 +604,8 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "swift-metrics",
+      "name": "github.com/apple:swift-metrics",
+      "org": "github.com/apple",
       "purl": "pkg:swift/github.com/apple/swift-metrics@2.11.0",
       "version": "2.11.0",
       "vulnerabilities": []
@@ -605,7 +613,8 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "swift-nio-extras",
+      "name": "github.com/apple:swift-nio-extras",
+      "org": "github.com/apple",
       "purl": "pkg:swift/github.com/apple/swift-nio-extras@1.22.0",
       "version": "1.22.0",
       "vulnerabilities": []
@@ -613,7 +622,8 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "swift-nio-http2",
+      "name": "github.com/apple:swift-nio-http2",
+      "org": "github.com/apple",
       "purl": "pkg:swift/github.com/apple/swift-nio-http2@1.30.0",
       "version": "1.30.0",
       "vulnerabilities": []
@@ -621,7 +631,8 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "swift-nio-ssl",
+      "name": "github.com/apple:swift-nio-ssl",
+      "org": "github.com/apple",
       "purl": "pkg:swift/github.com/apple/swift-nio-ssl@2.27.2",
       "version": "2.27.2",
       "vulnerabilities": []
@@ -629,7 +640,8 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "swift-nio-transport-services",
+      "name": "github.com/apple:swift-nio-transport-services",
+      "org": "github.com/apple",
       "purl": "pkg:swift/github.com/apple/swift-nio-transport-services@1.23.1",
       "version": "1.23.1",
       "vulnerabilities": []
@@ -637,7 +649,8 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "swift-nio",
+      "name": "github.com/apple:swift-nio",
+      "org": "github.com/apple",
       "purl": "pkg:swift/github.com/apple/swift-nio@2.65.0",
       "version": "2.65.0",
       "vulnerabilities": []
@@ -645,7 +658,8 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "swift-numerics",
+      "name": "github.com/apple:swift-numerics",
+      "org": "github.com/apple",
       "purl": "pkg:swift/github.com/apple/swift-numerics@1.1.1",
       "version": "1.1.1",
       "vulnerabilities": []
@@ -653,15 +667,17 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "swift-system",
-      "purl": "pkg:swift/github.com/apple/swift-system@1.7.2",
-      "version": "1.7.2",
+      "name": "github.com/apple:swift-system",
+      "org": "github.com/apple",
+      "purl": "pkg:swift/github.com/apple/swift-system@1.7.4",
+      "version": "1.7.4",
       "vulnerabilities": []
     },
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "async-http-client",
+      "name": "github.com/swift-server:async-http-client",
+      "org": "github.com/swift-server",
       "purl": "pkg:swift/github.com/swift-server/async-http-client@1.22.0",
       "version": "1.22.0",
       "vulnerabilities": []
@@ -669,7 +685,8 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "async-kit",
+      "name": "github.com/vapor:async-kit",
+      "org": "github.com/vapor",
       "purl": "pkg:swift/github.com/vapor/async-kit@1.20.0",
       "version": "1.20.0",
       "vulnerabilities": []
@@ -677,7 +694,8 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "console-kit",
+      "name": "github.com/vapor:console-kit",
+      "org": "github.com/vapor",
       "purl": "pkg:swift/github.com/vapor/console-kit@4.14.2",
       "version": "4.14.2",
       "vulnerabilities": []
@@ -685,7 +703,8 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "multipart-kit",
+      "name": "github.com/vapor:multipart-kit",
+      "org": "github.com/vapor",
       "purl": "pkg:swift/github.com/vapor/multipart-kit@4.5.4",
       "version": "4.5.4",
       "vulnerabilities": []
@@ -693,7 +712,8 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "routing-kit",
+      "name": "github.com/vapor:routing-kit",
+      "org": "github.com/vapor",
       "purl": "pkg:swift/github.com/vapor/routing-kit@4.9.1",
       "version": "4.9.1",
       "vulnerabilities": []
@@ -701,7 +721,8 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "vapor",
+      "name": "github.com/vapor:vapor",
+      "org": "github.com/vapor",
       "purl": "pkg:swift/github.com/vapor/vapor@4.89.0",
       "version": "4.89.0",
       "vulnerabilities": []
@@ -709,7 +730,8 @@
     {
       "ecosystem": "swift",
       "licenses": [],
-      "name": "websocket-kit",
+      "name": "github.com/vapor:websocket-kit",
+      "org": "github.com/vapor",
       "purl": "pkg:swift/github.com/vapor/websocket-kit@2.15.0",
       "version": "2.15.0",
       "vulnerabilities": []

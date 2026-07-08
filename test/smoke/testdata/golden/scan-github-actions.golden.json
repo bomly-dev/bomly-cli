@@ -108,7 +108,8 @@
     {
       "ecosystem": "github-actions",
       "licenses": [],
-      "name": "checkout",
+      "name": "actions:checkout",
+      "org": "actions",
       "purl": "pkg:githubactions/actions/checkout@v1",
       "version": "v1",
       "vulnerabilities": []

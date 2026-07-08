@@ -1813,6 +1813,10 @@ type auditDelta struct {
 	status   string // "introduced", "persisted", "resolved"
 	finding  output.AuditFinding
 	severity string
+	// vuln and licenses are resolved against payload.Packages at collection
+	// time (findings reference advisory data by purl + vulnerability_id).
+	vuln     *output.VulnerabilityRef
+	licenses []output.LicenseRef
 }
 
 // auditDeltas walks the three diff buckets and returns the subset
@@ -1829,7 +1833,15 @@ func (m *DiffModel) auditDeltas(keep func(output.AuditFinding) bool) []auditDelt
 			if keep != nil && !keep(f) {
 				continue
 			}
-			out = append(out, auditDelta{status: status, finding: f, severity: string(f.Severity)})
+			delta := auditDelta{status: status, finding: f, severity: string(f.Severity)}
+			delta.vuln = output.FindingVulnerabilityInPackages(f, m.payload.Packages)
+			for idx := range m.payload.Packages {
+				if m.payload.Packages[idx].Purl == f.Package.Purl && f.Package.Purl != "" {
+					delta.licenses = m.payload.Packages[idx].Licenses
+					break
+				}
+			}
+			out = append(out, delta)
 		}
 	}
 	collect("introduced", m.payload.Audit.Introduced)
@@ -2328,7 +2340,7 @@ func auditGroupKey(d auditDelta, group string) string {
 		}
 		return sev
 	case "package":
-		name := render.DiffPackageDisplayName(d.finding.Package)
+		name := d.finding.Package.DisplayLabel()
 		if name == "" {
 			return "unknown"
 		}
@@ -2411,7 +2423,7 @@ func auditDeltaTitle(d auditDelta) string {
 	if id == "" {
 		id = "(no id)"
 	}
-	pkg := render.DiffPackageDisplayName(d.finding.Package)
+	pkg := d.finding.Package.DisplayLabel()
 	if pkg == "" {
 		return id
 	}
@@ -2451,9 +2463,9 @@ func auditDeltaDetails(d auditDelta) []string {
 		render.Style("  Source: ", render.Dim)+valueOrDash(f.Source),
 		"",
 		render.Style("Package", render.Bold, render.Magenta),
-		render.Style("  Display: ", render.Dim)+valueOrDash(render.DiffPackageDisplayName(f.Package)),
+		render.Style("  Display: ", render.Dim)+valueOrDash(f.Package.DisplayLabel()),
 		render.Style("  Purl: ", render.Dim)+valueOrDash(f.Package.Purl),
-		render.Style("  Scope: ", render.Dim)+valueOrDash(f.Package.Scope),
+		render.Style("  Org: ", render.Dim)+valueOrDash(f.Package.Org),
 	)
 	if len(f.Reasons) > 0 {
 		lines = append(lines, "", render.Style("Reasons", render.Bold, render.Magenta))
@@ -2461,17 +2473,18 @@ func auditDeltaDetails(d auditDelta) []string {
 			lines = append(lines, render.Style("  - ", render.Dim)+r)
 		}
 	}
-	if f.Reachability != nil {
+	if d.vuln != nil && d.vuln.Reachability != nil {
+		reachability := d.vuln.Reachability
 		lines = append(lines, "", render.Style("Reachability", render.Bold, render.Yellow))
-		lines = append(lines, render.Style("  Tier: ", render.Dim)+valueOrDash(string(f.Reachability.Tier)))
-		if f.Reachability.Analyzer != "" {
-			lines = append(lines, render.Style("  Analyzer: ", render.Dim)+f.Reachability.Analyzer)
+		lines = append(lines, render.Style("  Tier: ", render.Dim)+valueOrDash(string(reachability.Tier)))
+		if reachability.Analyzer != "" {
+			lines = append(lines, render.Style("  Analyzer: ", render.Dim)+reachability.Analyzer)
 		}
 	}
 	// For vuln findings include licenses on the affected package so the
 	// reader sees the full picture without bouncing to the Components tab.
-	if len(f.Package.Licenses) > 0 {
-		lines = append(lines, renderLicenseList(f.Package.Licenses)...)
+	if len(d.licenses) > 0 {
+		lines = append(lines, renderLicenseList(d.licenses)...)
 	}
 	return lines
 }

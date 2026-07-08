@@ -7,12 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Masterminds/semver/v3"
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
-	"github.com/bomly-dev/bomly-cli/internal/engine/explain"
 	scanengine "github.com/bomly-dev/bomly-cli/internal/engine/scan"
 	"github.com/bomly-dev/bomly-cli/internal/mcp"
 	"github.com/bomly-dev/bomly-cli/internal/output"
@@ -69,10 +67,9 @@ func printMCPBanner(w io.Writer) {
 		desc string
 	}
 	tools := []tool{
-		{"bomly_scan", "Scan a path, image, Git URL, or SBOM."},
-		{"bomly_explain", "Show the dependency path for a package."},
-		{"bomly_diff", "Compare dependency state across refs or SBOMs."},
-		{"bomly_vuln_fix_context", "Get fix context for a vulnerability."},
+		{"bomly_scan", "Scan and get compact, remediation-grouped findings."},
+		{"bomly_explain", "Dependency paths, advisories, and fix context for one package."},
+		{"bomly_diff", "Security delta between two Git refs (introduced/resolved/persisted)."},
 		{"bomly_plugins", "List registered Bomly plugins."},
 	}
 
@@ -314,7 +311,7 @@ func mcpDiagnosticsFromPipeline(pipeResult engine.PipelineResult) []mcp.Diagnost
 	return diagnostics
 }
 
-func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainRequest) (output.ExplainResponse, error) {
+func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainRequest) (mcp.ExplainRunResult, error) {
 	started := time.Now()
 	o := a.cloneWithOverrides(mcpOverrides{
 		Path:    req.Path,
@@ -324,7 +321,7 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 	})
 	cmdCtx, err := o.Prepare(ctx, a.logger)
 	if err != nil {
-		return output.ExplainResponse{}, err
+		return mcp.ExplainRunResult{}, err
 	}
 
 	pipeline := engine.NewPipeline(cmdCtx.Registry(), a.logger)
@@ -333,11 +330,13 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 		Pipeline: cmdCtx.PipelineRequest(sdk.ScopeUnknown, io.Discard),
 	})
 	if err != nil {
-		return output.ExplainResponse{}, err
+		return mcp.ExplainRunResult{}, err
 	}
 
 	targets := make([]output.ExplainTargetResponse, 0, len(explainResult.Targets))
+	var findings []sdk.Finding
 	for _, target := range explainResult.Targets {
+		findings = append(findings, target.Findings...)
 		targets = append(targets, output.ExplainTargetResponse{
 			Project:        cmdCtx.ProjectDescriptorForSubproject(target.Manifest.Subproject),
 			Detector:       target.Manifest.DetectorName,
@@ -348,16 +347,26 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 			AuditSummary:   output.SummaryFromFindings(target.Findings),
 		})
 	}
-	return output.BuildExplainResponse(
+	response := output.BuildExplainResponse(
 		cmdCtx.ProjectDescriptor(),
 		req.Package,
 		targets,
 		started,
 		reportOptionsFromPipelineResults(cmdCtx.ResolvedConfig.Analyze, explainResult.PipelineResult),
-	), nil
+	)
+	return mcp.ExplainRunResult{
+		Response:    response,
+		Findings:    findings,
+		Graph:       explainResult.Graph,
+		Registry:    explainResult.Registry,
+		Manifests:   output.ScanManifestsFromConsolidated(explainResult.Consolidated, explainResult.Registry),
+		Diagnostics: mcpDiagnosticsFromPipeline(explainResult.PipelineResult),
+		EnrichRan:   cmdCtx.ResolvedConfig.Enrich,
+		AuditRan:    cmdCtx.ResolvedConfig.Audit,
+	}, nil
 }
 
-func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (output.DiffResponse, error) {
+func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (mcp.DiffRunResult, error) {
 	started := time.Now()
 	o := a.cloneWithOverrides(mcpOverrides{
 		Path:                  req.Path,
@@ -381,7 +390,7 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (o
 
 	baseTarget, headTarget, projectIdentifier, _, _, err := resolveGitDiffGraphs(ctx, o, nil, logger, req.Base, req.Head)
 	if err != nil {
-		return output.DiffResponse{}, err
+		return mcp.DiffRunResult{}, err
 	}
 	defer func() { _ = baseTarget.close() }()
 	defer func() { _ = headTarget.close() }()
@@ -397,14 +406,14 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (o
 		},
 	})
 	if err != nil {
-		return output.DiffResponse{}, err
+		return mcp.DiffRunResult{}, err
 	}
 
 	reportOptions := reportOptionsFromPipelineResults(o.GetConfig().Analyze, diffResult.Base, diffResult.Head)
 	reportOptions.BaseRegistry = diffResult.Base.Registry
 	reportOptions.HeadRegistry = diffResult.Head.Registry
 
-	return output.BuildDiffResponse(
+	response := output.BuildDiffResponse(
 		projectIdentifier,
 		req.Base,
 		req.Head,
@@ -413,7 +422,25 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (o
 		diffAuditOutput(diffResult.Audit, diffResult.Base.Registry, diffResult.Head.Registry),
 		started,
 		reportOptions,
-	), nil
+	)
+	run := mcp.DiffRunResult{
+		Response:      response,
+		HeadGraph:     diffResult.Head.Graph,
+		HeadRegistry:  diffResult.Head.Registry,
+		BaseRegistry:  diffResult.Base.Registry,
+		HeadManifests: output.ScanManifestsFromConsolidated(diffResult.Head.Consolidated, diffResult.Head.Registry),
+		Diagnostics: append(
+			mcpDiagnosticsFromPipeline(diffResult.Base),
+			mcpDiagnosticsFromPipeline(diffResult.Head)...,
+		),
+		AuditRan: o.GetConfig().Audit,
+	}
+	if diffResult.Audit != nil {
+		run.Introduced = diffResult.Audit.Introduced
+		run.Resolved = diffResult.Audit.Resolved
+		run.Persisted = diffResult.Audit.Persisted
+	}
+	return run, nil
 }
 
 func (a *mcpOptionsAdapter) ListPlugins(_ context.Context) (plugin.ListResponse, error) {
@@ -424,111 +451,4 @@ func (a *mcpOptionsAdapter) ListPlugins(_ context.Context) (plugin.ListResponse,
 		return plugin.ListResponse{}, err
 	}
 	return plugin.GroupPluginInfos(infos), nil
-}
-
-func (a *mcpOptionsAdapter) VulnFixContext(ctx context.Context, req mcp.VulnFixRequest) (mcp.VulnFixResult, error) {
-	// Force enrich=true — vulnerability data is required for fix context.
-	o := a.cloneWithOverrides(mcpOverrides{Path: req.Path, Enrich: true})
-	cmdCtx, err := o.Prepare(ctx, a.logger)
-	if err != nil {
-		return mcp.VulnFixResult{}, err
-	}
-
-	pipeline := engine.NewPipeline(cmdCtx.Registry(), a.logger)
-	pipeReq := cmdCtx.PipelineRequest(sdk.ScopeUnknown, io.Discard)
-	pipeResult, runErr := scanengine.Run(ctx, pipeline, pipeReq)
-	if runErr != nil && len(pipeResult.ResolveResults) == 0 {
-		return mcp.VulnFixResult{}, runErr
-	}
-
-	consolidatedGraph := pipeResult.Graph
-	if consolidatedGraph == nil {
-		return mcp.VulnFixResult{}, fmt.Errorf("no dependency graph resolved")
-	}
-
-	dependency, paths, findErr := explain.FindWhy(consolidatedGraph, req.Package)
-	if findErr != nil {
-		return mcp.VulnFixResult{}, findErr
-	}
-
-	if _, ok := consolidatedGraph.Node(dependency.ID); !ok {
-		return mcp.VulnFixResult{}, fmt.Errorf("package %q not found in graph", req.Package)
-	}
-
-	var registryPkgVulns []sdk.Vulnerability
-	if pipeResult.Registry != nil {
-		if pkg, ok := pipeResult.Registry.Get(dependency.Purl); ok && pkg != nil {
-			registryPkgVulns = pkg.Vulnerabilities
-		}
-	}
-	matchedVulns := collectVulns(registryPkgVulns, req.VulnID)
-	if len(matchedVulns) == 0 {
-		if req.VulnID != "" {
-			return mcp.VulnFixResult{}, fmt.Errorf("vulnerability %q not found for package %q; run with enrich enabled to populate vulnerability data", req.VulnID, req.Package)
-		}
-		return mcp.VulnFixResult{}, fmt.Errorf("no vulnerabilities found for package %q; run with enrich enabled to populate vulnerability data", req.Package)
-	}
-
-	minSafeVersion := maxFixedIn(matchedVulns)
-	vulnIDs := make([]string, len(matchedVulns))
-	for i, v := range matchedVulns {
-		vulnIDs[i] = v.ID
-	}
-
-	manifests := output.ScanManifestsFromConsolidated(pipeResult.Consolidated, pipeResult.Registry)
-	affectedManifests := mcp.BuildManifestFixTargets(dependency, paths, minSafeVersion, manifests)
-	recommendation := mcp.BuildRecommendationText(dependency, vulnIDs, minSafeVersion, affectedManifests)
-	vulnRefs := output.VulnerabilityRefsFromPackageVulnerabilities(matchedVulns)
-
-	return mcp.VulnFixResult{
-		Package:           dependency,
-		Vulnerabilities:   vulnRefs,
-		MinSafeVersion:    minSafeVersion,
-		AffectedManifests: affectedManifests,
-		Paths:             paths,
-		Recommendation:    recommendation,
-	}, nil
-}
-
-// collectVulns returns all vulnerabilities from the slice matching vulnID (by ID or alias).
-// When vulnID is empty all vulnerabilities are returned.
-func collectVulns(all []sdk.Vulnerability, vulnID string) []sdk.Vulnerability {
-	if vulnID == "" {
-		return all
-	}
-	for i, v := range all {
-		if v.ID == vulnID {
-			return []sdk.Vulnerability{all[i]}
-		}
-		for _, alias := range v.Aliases {
-			if alias == vulnID {
-				return []sdk.Vulnerability{all[i]}
-			}
-		}
-	}
-	return nil
-}
-
-// maxFixedIn returns the highest FixedIn version across the given vulnerabilities.
-// Uses semver comparison when parseable; falls back to the last non-empty string.
-func maxFixedIn(vulns []sdk.Vulnerability) string {
-	var maxV *semver.Version
-	var maxStr string
-	for _, v := range vulns {
-		if v.FixedIn == "" {
-			continue
-		}
-		parsed, err := semver.NewVersion(v.FixedIn)
-		if err != nil {
-			if maxStr == "" {
-				maxStr = v.FixedIn
-			}
-			continue
-		}
-		if maxV == nil || parsed.GreaterThan(maxV) {
-			maxV = parsed
-			maxStr = v.FixedIn
-		}
-	}
-	return maxStr
 }

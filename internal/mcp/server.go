@@ -3,7 +3,6 @@ package mcp
 import (
 	"context"
 	"encoding/json"
-	"strings"
 
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
@@ -57,36 +56,6 @@ type DiffRequest struct {
 	WarnOnly              bool   `json:"warn_only"`
 }
 
-// VulnFixRequest holds per-call overrides for the bomly_vuln_fix_context tool.
-type VulnFixRequest struct {
-	Package string `json:"package"`
-	VulnID  string `json:"vuln_id"`
-	Path    string `json:"path"`
-}
-
-// ManifestFixTarget describes one actionable change an agent can make to fix a vulnerability.
-type ManifestFixTarget struct {
-	ManifestPath       string `json:"manifest_path"`
-	ManifestKind       string `json:"manifest_kind"`
-	PackageManager     string `json:"package_manager"`
-	TargetPackage      string `json:"target_package"`
-	CurrentVersion     string `json:"current_version"`
-	RecommendedVersion string `json:"recommended_version"`
-	ChangeType         string `json:"change_type"`
-}
-
-// VulnFixResult is returned by the bomly_vuln_fix_context tool.
-// Vulnerabilities holds all matched vulnerabilities (one when vuln_id was specified, all otherwise).
-// MinSafeVersion is the minimum version that addresses every matched vulnerability.
-type VulnFixResult struct {
-	Package           output.PackageRef         `json:"package"`
-	Vulnerabilities   []output.VulnerabilityRef `json:"vulnerabilities"`
-	MinSafeVersion    string                    `json:"min_safe_version,omitempty"`
-	AffectedManifests []ManifestFixTarget       `json:"affected_manifests"`
-	Paths             []output.DependencyPath   `json:"paths"`
-	Recommendation    string                    `json:"recommendation"`
-}
-
 // ScanRunResult carries a scan run's full output back to the MCP layer:
 // the structured response plus the raw domain data (findings, graph,
 // registry) the compact builders group and rank, and the pipeline
@@ -102,14 +71,44 @@ type ScanRunResult struct {
 	AuditRan    bool
 }
 
+// ExplainRunResult carries an explain run's output plus the raw domain data
+// the compact builders need to attach remediation context to the queried
+// package.
+type ExplainRunResult struct {
+	Response    output.ExplainResponse
+	Findings    []sdk.Finding
+	Graph       *sdk.Graph
+	Registry    *sdk.PackageRegistry
+	Manifests   []output.ScanManifest
+	Diagnostics []Diagnostic
+	EnrichRan   bool
+	AuditRan    bool
+}
+
+// DiffRunResult carries a diff run's output plus the audit delta buckets
+// ([]sdk.Finding per bucket, computed version-independently by advisory id)
+// and the head-side domain data used to build remediation context for what
+// remains after merge.
+type DiffRunResult struct {
+	Response      output.DiffResponse
+	Introduced    []sdk.Finding
+	Resolved      []sdk.Finding
+	Persisted     []sdk.Finding
+	HeadGraph     *sdk.Graph
+	HeadRegistry  *sdk.PackageRegistry
+	BaseRegistry  *sdk.PackageRegistry
+	HeadManifests []output.ScanManifest
+	Diagnostics   []Diagnostic
+	AuditRan      bool
+}
+
 // OptionsAdapter is implemented by the CLI adapter in internal/cli/mcp_cmd.go.
 // It lives in package cli so it can access unexported pipeline helpers.
 type OptionsAdapter interface {
 	RunScan(ctx context.Context, req ScanRequest) (ScanRunResult, error)
-	RunExplain(ctx context.Context, req ExplainRequest) (output.ExplainResponse, error)
-	RunDiff(ctx context.Context, req DiffRequest) (output.DiffResponse, error)
+	RunExplain(ctx context.Context, req ExplainRequest) (ExplainRunResult, error)
+	RunDiff(ctx context.Context, req DiffRequest) (DiffRunResult, error)
 	ListPlugins(ctx context.Context) (managedplugin.ListResponse, error)
-	VulnFixContext(ctx context.Context, req VulnFixRequest) (VulnFixResult, error)
 }
 
 // Context carries the adapter and version into tool handlers.
@@ -128,7 +127,6 @@ func NewServer(mcpCtx Context) *server.MCPServer {
 	registerScanTool(s, mcpCtx)
 	registerExplainTool(s, mcpCtx)
 	registerDiffTool(s, mcpCtx)
-	registerVulnFixTool(s, mcpCtx)
 	registerPluginsTool(s, mcpCtx)
 	return s
 }
@@ -151,105 +149,4 @@ func jsonResult(v any) (*mcplib.CallToolResult, error) {
 		return mcplib.NewToolResultError("marshal result: " + err.Error()), nil
 	}
 	return mcplib.NewToolResultText(string(data)), nil
-}
-
-// BuildManifestFixTargets maps dependency paths back to actionable manifest edits.
-// For direct dependencies, the manifest containing the vulnerable package is targeted.
-// For transitive dependencies, the manifest containing the direct ancestor is targeted.
-// minSafeVersion is the minimum version that fixes all matched vulnerabilities; it is used
-// as the RecommendedVersion for direct dependencies (empty string for transitive).
-func BuildManifestFixTargets(
-	dependency output.PackageRef,
-	paths []output.DependencyPath,
-	minSafeVersion string,
-	manifests []output.ScanManifest,
-) []ManifestFixTarget {
-	seen := make(map[string]bool)
-	targets := make([]ManifestFixTarget, 0)
-
-	for _, path := range paths {
-		if len(path.Packages) < 2 {
-			continue
-		}
-
-		var targetInManifest output.PackageRef
-		isDirect := path.Relationship == "direct"
-
-		if isDirect {
-			targetInManifest = dependency
-		} else {
-			targetInManifest = path.Packages[1]
-		}
-
-		for _, manifest := range manifests {
-			for _, pkg := range manifest.Dependencies {
-				if pkg.ID != targetInManifest.ID {
-					continue
-				}
-				key := manifest.Path + "::" + targetInManifest.ID
-				if seen[key] {
-					break
-				}
-				seen[key] = true
-
-				recommendedVersion := ""
-				if isDirect {
-					recommendedVersion = minSafeVersion
-				}
-
-				targets = append(targets, ManifestFixTarget{
-					ManifestPath:       manifest.Path,
-					ManifestKind:       string(manifest.Kind),
-					PackageManager:     manifest.PackageManager.Name(),
-					TargetPackage:      targetInManifest.Name,
-					CurrentVersion:     targetInManifest.Version,
-					RecommendedVersion: recommendedVersion,
-					ChangeType:         "upgrade",
-				})
-				break
-			}
-		}
-	}
-
-	return targets
-}
-
-// BuildRecommendationText produces a human-readable summary for an AI agent.
-// vulnIDs lists all vulnerability identifiers being addressed.
-// minSafeVersion is the minimum version that fixes all of them (may be empty if unknown).
-func BuildRecommendationText(
-	dependency output.PackageRef,
-	vulnIDs []string,
-	minSafeVersion string,
-	targets []ManifestFixTarget,
-) string {
-	vulnLabel := strings.Join(vulnIDs, ", ")
-
-	if len(targets) == 0 {
-		msg := vulnLabel + " affects " + dependency.Name + "@" + dependency.Version
-		if minSafeVersion != "" {
-			msg += ". A fix is available in version " + minSafeVersion
-		} else {
-			msg += ". No fixed version is available at this time"
-		}
-		msg += ". No manifest file could be identified for automated remediation."
-		return msg
-	}
-
-	t := targets[0]
-	if t.RecommendedVersion != "" {
-		return "Upgrade `" + t.TargetPackage + "` from " + t.CurrentVersion +
-			" to " + t.RecommendedVersion +
-			" in " + t.ManifestPath +
-			" to fix " + vulnLabel + " affecting " + dependency.Name + "@" + dependency.Version + "."
-	}
-	suffix := ""
-	if minSafeVersion != "" {
-		suffix = " (fixed in " + minSafeVersion + ")"
-	}
-	return vulnLabel + " in `" + dependency.Name + "@" + dependency.Version +
-		"` is a transitive dependency introduced via `" + t.TargetPackage + "@" + t.CurrentVersion + "`" +
-		" in " + t.ManifestPath + "." +
-		" Look for a newer version of `" + t.TargetPackage + "` that depends on a patched version of `" + dependency.Name + "`" +
-		suffix + "."
 }

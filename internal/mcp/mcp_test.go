@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"strings"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/mcp"
 	"github.com/bomly-dev/bomly-cli/internal/output"
 	managedplugin "github.com/bomly-dev/bomly-cli/internal/plugin"
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"github.com/mark3labs/mcp-go/client"
 	mcplib "github.com/mark3labs/mcp-go/mcp"
 )
@@ -19,31 +19,26 @@ type mockAdapter struct {
 	scanResult    mcp.ScanRunResult
 	scanErr       error
 	scanReq       mcp.ScanRequest
-	explainResult output.ExplainResponse
+	explainResult mcp.ExplainRunResult
 	explainErr    error
-	diffResult    output.DiffResponse
+	diffResult    mcp.DiffRunResult
 	diffErr       error
 	plugins       []managedplugin.Info
 	pluginsErr    error
-	fixResult     mcp.VulnFixResult
-	fixErr        error
 }
 
 func (m *mockAdapter) RunScan(_ context.Context, req mcp.ScanRequest) (mcp.ScanRunResult, error) {
 	m.scanReq = req
 	return m.scanResult, m.scanErr
 }
-func (m *mockAdapter) RunExplain(_ context.Context, _ mcp.ExplainRequest) (output.ExplainResponse, error) {
+func (m *mockAdapter) RunExplain(_ context.Context, _ mcp.ExplainRequest) (mcp.ExplainRunResult, error) {
 	return m.explainResult, m.explainErr
 }
-func (m *mockAdapter) RunDiff(_ context.Context, _ mcp.DiffRequest) (output.DiffResponse, error) {
+func (m *mockAdapter) RunDiff(_ context.Context, _ mcp.DiffRequest) (mcp.DiffRunResult, error) {
 	return m.diffResult, m.diffErr
 }
 func (m *mockAdapter) ListPlugins(_ context.Context) (managedplugin.ListResponse, error) {
 	return managedplugin.GroupPluginInfos(m.plugins), m.pluginsErr
-}
-func (m *mockAdapter) VulnFixContext(_ context.Context, _ mcp.VulnFixRequest) (mcp.VulnFixResult, error) {
-	return m.fixResult, m.fixErr
 }
 
 func newTestClient(t *testing.T, adapter mcp.OptionsAdapter) *client.Client {
@@ -78,13 +73,13 @@ func callTool(t *testing.T, c *client.Client, name string, args map[string]any) 
 	return result
 }
 
-func TestNewServer_RegistersFiveTools(t *testing.T) {
+func TestNewServer_RegistersFourTools(t *testing.T) {
 	c := newTestClient(t, &mockAdapter{})
 	toolsResult, err := c.ListTools(context.Background(), mcplib.ListToolsRequest{})
 	if err != nil {
 		t.Fatalf("ListTools: %v", err)
 	}
-	expected := []string{"bomly_scan", "bomly_explain", "bomly_diff", "bomly_vuln_fix_context", "bomly_plugins"}
+	expected := []string{"bomly_scan", "bomly_explain", "bomly_diff", "bomly_plugins"}
 	if len(toolsResult.Tools) != len(expected) {
 		t.Errorf("got %d tools, want %d", len(toolsResult.Tools), len(expected))
 	}
@@ -161,9 +156,24 @@ func TestExplainTool_RequiresPackage(t *testing.T) {
 	}
 }
 
-func TestExplainTool_ReturnsJSONResult(t *testing.T) {
+func TestExplainTool_ReturnsCompactJSONResult(t *testing.T) {
 	adapter := &mockAdapter{
-		explainResult: output.ExplainResponse{Command: "explain", Query: output.ExplainQuery{Name: "lodash"}},
+		explainResult: mcp.ExplainRunResult{
+			Response: output.ExplainResponse{
+				Command: "explain",
+				Query:   output.ExplainQuery{Name: "lodash"},
+				Targets: []output.ExplainTargetResponse{{
+					Dependency: output.PackageRef{Name: "lodash", Version: "4.17.20", Purl: "pkg:npm/lodash@4.17.20"},
+					Paths: []output.DependencyPath{{
+						Relationship: "direct",
+						Packages: []output.PackageRef{
+							{Name: "app", Version: "1.0.0"},
+							{Name: "lodash", Version: "4.17.20"},
+						},
+					}},
+				}},
+			},
+		},
 	}
 	c := newTestClient(t, adapter)
 	result := callTool(t, c, "bomly_explain", map[string]any{"package": "lodash"})
@@ -171,13 +181,23 @@ func TestExplainTool_ReturnsJSONResult(t *testing.T) {
 	if result.IsError {
 		t.Fatalf("unexpected tool error: %v", result.Content)
 	}
-	var resp output.ExplainResponse
+	var resp mcp.CompactExplainResponse
 	text := result.Content[0].(mcplib.TextContent).Text
 	if err := json.Unmarshal([]byte(text), &resp); err != nil {
 		t.Fatalf("unmarshal: %v", err)
 	}
-	if resp.Query.Name != "lodash" {
-		t.Errorf("Query.Name = %q, want %q", resp.Query.Name, "lodash")
+	if resp.Query != "lodash" {
+		t.Errorf("Query = %q, want %q", resp.Query, "lodash")
+	}
+	if len(resp.Matches) != 1 {
+		t.Fatalf("expected one match, got %#v", resp.Matches)
+	}
+	match := resp.Matches[0]
+	if match.Direct == nil || !*match.Direct {
+		t.Fatalf("expected direct match, got %#v", match.Direct)
+	}
+	if len(match.Paths) != 1 || match.Paths[0][0] != "app@1.0.0" || match.Paths[0][1] != "lodash@4.17.20" {
+		t.Fatalf("unexpected paths: %#v", match.Paths)
 	}
 }
 
@@ -197,9 +217,20 @@ func TestDiffTool_RequiresBaseAndHead(t *testing.T) {
 	}
 }
 
-func TestDiffTool_ReturnsJSONResult(t *testing.T) {
+func TestDiffTool_ReturnsCompactJSONResult(t *testing.T) {
 	adapter := &mockAdapter{
-		diffResult: output.DiffResponse{Command: "diff"},
+		diffResult: mcp.DiffRunResult{
+			Response: output.DiffResponse{
+				Command:    "diff",
+				Comparison: output.DiffComparison{Base: "main", Head: "HEAD"},
+			},
+			Resolved: []sdk.Finding{{
+				ID: "GHSA-fixed", VulnerabilityID: "GHSA-fixed",
+				Kind: sdk.FindingKindVulnerability, Severity: sdk.SeverityHigh,
+				PackageRef: "pkg:npm/lib@1.0.0",
+			}},
+			AuditRan: true,
+		},
 	}
 	c := newTestClient(t, adapter)
 	result := callTool(t, c, "bomly_diff", map[string]any{"base": "main", "head": "HEAD"})
@@ -207,13 +238,19 @@ func TestDiffTool_ReturnsJSONResult(t *testing.T) {
 	if result.IsError {
 		t.Fatalf("unexpected tool error: %v", result.Content)
 	}
-	var resp output.DiffResponse
+	var resp mcp.CompactDiffResponse
 	text := result.Content[0].(mcplib.TextContent).Text
 	if err := json.Unmarshal([]byte(text), &resp); err != nil {
 		t.Fatalf("unmarshal: %v", err)
 	}
-	if resp.Command != "diff" {
-		t.Errorf("Command = %q, want %q", resp.Command, "diff")
+	if resp.Command != "diff" || resp.Comparison.Base != "main" {
+		t.Errorf("unexpected response header: %#v", resp)
+	}
+	if len(resp.SecurityDelta.Resolved) != 1 || resp.SecurityDelta.Resolved[0].VulnID != "GHSA-fixed" {
+		t.Fatalf("resolved delta missing: %#v", resp.SecurityDelta)
+	}
+	if resp.Summary.Resolved != 1 {
+		t.Fatalf("summary resolved count = %d", resp.Summary.Resolved)
 	}
 }
 
@@ -236,212 +273,5 @@ func TestPluginsTool_ReturnsJSONResult(t *testing.T) {
 	}
 	if len(resp.Detectors) != 1 {
 		t.Errorf("len(resp.Detectors) = %d, want 1", len(resp.Detectors))
-	}
-}
-
-func TestVulnFixTool_RequiresPackage(t *testing.T) {
-	c := newTestClient(t, &mockAdapter{})
-	r := callTool(t, c, "bomly_vuln_fix_context", map[string]any{"vuln_id": "CVE-2024-1234"})
-	if !r.IsError {
-		t.Error("expected error when package is missing")
-	}
-}
-
-func TestVulnFixTool_ReturnsJSONResult(t *testing.T) {
-	adapter := &mockAdapter{
-		fixResult: mcp.VulnFixResult{
-			Package:        output.PackageRef{Name: "lodash", Version: "4.17.20"},
-			MinSafeVersion: "4.17.21",
-			Vulnerabilities: []output.VulnerabilityRef{
-				{ID: "CVE-2024-1234", FixedIn: "4.17.21"},
-			},
-			Recommendation: "Upgrade lodash",
-		},
-	}
-	c := newTestClient(t, adapter)
-	result := callTool(t, c, "bomly_vuln_fix_context", map[string]any{
-		"package": "lodash",
-		"vuln_id": "CVE-2024-1234",
-	})
-
-	if result.IsError {
-		t.Fatalf("unexpected tool error: %v", result.Content)
-	}
-	var resp mcp.VulnFixResult
-	text := result.Content[0].(mcplib.TextContent).Text
-	if err := json.Unmarshal([]byte(text), &resp); err != nil {
-		t.Fatalf("unmarshal: %v", err)
-	}
-	if resp.MinSafeVersion != "4.17.21" {
-		t.Errorf("MinSafeVersion = %q, want %q", resp.MinSafeVersion, "4.17.21")
-	}
-}
-
-func TestVulnFixTool_AllVulnsWhenVulnIDOmitted(t *testing.T) {
-	adapter := &mockAdapter{
-		fixResult: mcp.VulnFixResult{
-			Package:        output.PackageRef{Name: "lodash", Version: "4.17.20"},
-			MinSafeVersion: "4.17.22",
-			Vulnerabilities: []output.VulnerabilityRef{
-				{ID: "CVE-2024-1111", FixedIn: "4.17.21"},
-				{ID: "CVE-2024-2222", FixedIn: "4.17.22"},
-			},
-			Recommendation: "Upgrade lodash to 4.17.22",
-		},
-	}
-	c := newTestClient(t, adapter)
-	result := callTool(t, c, "bomly_vuln_fix_context", map[string]any{
-		"package": "lodash",
-		// vuln_id intentionally omitted
-	})
-
-	if result.IsError {
-		t.Fatalf("unexpected tool error: %v", result.Content)
-	}
-	var resp mcp.VulnFixResult
-	text := result.Content[0].(mcplib.TextContent).Text
-	if err := json.Unmarshal([]byte(text), &resp); err != nil {
-		t.Fatalf("unmarshal: %v", err)
-	}
-	if len(resp.Vulnerabilities) != 2 {
-		t.Errorf("len(Vulnerabilities) = %d, want 2", len(resp.Vulnerabilities))
-	}
-	if resp.MinSafeVersion != "4.17.22" {
-		t.Errorf("MinSafeVersion = %q, want %q", resp.MinSafeVersion, "4.17.22")
-	}
-}
-
-func TestBuildManifestFixTargets_DirectDependency(t *testing.T) {
-	dep := output.PackageRef{ID: "lodash@4.17.20", Name: "lodash", Version: "4.17.20"}
-	paths := []output.DependencyPath{
-		{
-			Relationship: "direct",
-			Packages:     []output.PackageRef{{ID: "root"}, dep},
-		},
-	}
-	manifests := []output.ScanManifest{
-		{
-			Path:           "package.json",
-			Kind:           "npm-package",
-			PackageManager: "npm",
-			Dependencies: []output.ScanDependency{
-				{ID: dep.ID, Name: dep.Name, Version: dep.Version, Purl: dep.Purl},
-			},
-		},
-	}
-
-	targets := mcp.BuildManifestFixTargets(dep, paths, "4.17.21", manifests)
-
-	if len(targets) != 1 {
-		t.Fatalf("len(targets) = %d, want 1", len(targets))
-	}
-	got := targets[0]
-	if got.ManifestPath != "package.json" {
-		t.Errorf("ManifestPath = %q, want %q", got.ManifestPath, "package.json")
-	}
-	if got.RecommendedVersion != "4.17.21" {
-		t.Errorf("RecommendedVersion = %q, want %q", got.RecommendedVersion, "4.17.21")
-	}
-	if got.ChangeType != "upgrade" {
-		t.Errorf("ChangeType = %q, want %q", got.ChangeType, "upgrade")
-	}
-}
-
-func TestBuildManifestFixTargets_TransitiveDependency(t *testing.T) {
-	dep := output.PackageRef{ID: "lodash@4.17.20", Name: "lodash", Version: "4.17.20"}
-	directDep := output.PackageRef{ID: "webpack@5.0.0", Name: "webpack", Version: "5.0.0"}
-	paths := []output.DependencyPath{
-		{
-			Relationship: "transitive",
-			Packages:     []output.PackageRef{{ID: "root"}, directDep, dep},
-		},
-	}
-	manifests := []output.ScanManifest{
-		{
-			Path:           "package.json",
-			PackageManager: "npm",
-			Dependencies: []output.ScanDependency{
-				{ID: directDep.ID, Name: directDep.Name, Version: directDep.Version, Purl: directDep.Purl},
-			},
-		},
-	}
-
-	targets := mcp.BuildManifestFixTargets(dep, paths, "4.17.21", manifests)
-
-	if len(targets) != 1 {
-		t.Fatalf("len(targets) = %d, want 1", len(targets))
-	}
-	got := targets[0]
-	if got.TargetPackage != "webpack" {
-		t.Errorf("TargetPackage = %q, want %q", got.TargetPackage, "webpack")
-	}
-	// No recommended version for transitive (we don't know which ancestor version fixes it)
-	if got.RecommendedVersion != "" {
-		t.Errorf("RecommendedVersion = %q, want empty for transitive", got.RecommendedVersion)
-	}
-}
-
-func TestBuildManifestFixTargets_Deduplication(t *testing.T) {
-	dep := output.PackageRef{ID: "lodash@4.17.20", Name: "lodash", Version: "4.17.20"}
-	paths := []output.DependencyPath{
-		{Relationship: "direct", Packages: []output.PackageRef{{ID: "root"}, dep}},
-		{Relationship: "direct", Packages: []output.PackageRef{{ID: "root2"}, dep}},
-	}
-	manifests := []output.ScanManifest{
-		{
-			Path:         "package.json",
-			Dependencies: []output.ScanDependency{{ID: dep.ID, Name: dep.Name, Version: dep.Version, Purl: dep.Purl}},
-		},
-	}
-
-	targets := mcp.BuildManifestFixTargets(dep, paths, "4.17.21", manifests)
-	if len(targets) != 1 {
-		t.Errorf("expected deduplication: got %d targets, want 1", len(targets))
-	}
-}
-
-func TestBuildRecommendationText_Direct(t *testing.T) {
-	dep := output.PackageRef{Name: "lodash", Version: "4.17.20"}
-	targets := []mcp.ManifestFixTarget{
-		{
-			ManifestPath:       "package.json",
-			TargetPackage:      "lodash",
-			CurrentVersion:     "4.17.20",
-			RecommendedVersion: "4.17.21",
-		},
-	}
-
-	rec := mcp.BuildRecommendationText(dep, []string{"CVE-2024-1234"}, "4.17.21", targets)
-	if rec == "" {
-		t.Error("expected non-empty recommendation")
-	}
-}
-
-func TestBuildRecommendationText_MultipleVulns(t *testing.T) {
-	dep := output.PackageRef{Name: "lodash", Version: "4.17.20"}
-	targets := []mcp.ManifestFixTarget{
-		{
-			ManifestPath:       "package.json",
-			TargetPackage:      "lodash",
-			CurrentVersion:     "4.17.20",
-			RecommendedVersion: "4.17.22",
-		},
-	}
-
-	rec := mcp.BuildRecommendationText(dep, []string{"CVE-2024-1111", "CVE-2024-2222"}, "4.17.22", targets)
-	if rec == "" {
-		t.Error("expected non-empty recommendation")
-	}
-	if !strings.Contains(rec, "CVE-2024-1111") || !strings.Contains(rec, "CVE-2024-2222") {
-		t.Errorf("recommendation should mention all vuln IDs, got: %s", rec)
-	}
-}
-
-func TestBuildRecommendationText_NoTargets(t *testing.T) {
-	dep := output.PackageRef{Name: "lodash", Version: "4.17.20"}
-
-	rec := mcp.BuildRecommendationText(dep, []string{"CVE-2024-1234"}, "4.17.21", nil)
-	if rec == "" {
-		t.Error("expected non-empty fallback recommendation")
 	}
 }

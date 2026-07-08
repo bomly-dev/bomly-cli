@@ -9,7 +9,7 @@ import (
 
 func registerDiffTool(s *server.MCPServer, mcpCtx Context) {
 	tool := mcplib.NewTool("bomly_diff",
-		mcplib.WithDescription("Compare dependency states between two Git refs. Returns added, removed, and changed packages with optional audit delta."),
+		mcplib.WithDescription("Compare dependency state between two Git refs and answer: what does head fix vs base, what does it introduce, and what remains open after merge? With enrich+audit the response carries a security delta (introduced / resolved / persisted findings, keyed by advisory id independent of version bumps) plus remediation groups for everything still open. Compact by design; use bomly_explain on the head checkout for full advisory detail of one package."),
 		mcplib.WithString("base",
 			mcplib.Required(),
 			mcplib.Description("Base Git ref to compare (e.g. main, HEAD~1, a commit SHA)"),
@@ -69,6 +69,6 @@ func registerDiffTool(s *server.MCPServer, mcpCtx Context) {
 		if err != nil {
 			return mcplib.NewToolResultError(err.Error()), nil
 		}
-		return jsonResult(result)
+		return jsonResult(BuildCompactDiff(result))
 	})
 }

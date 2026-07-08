@@ -56,7 +56,7 @@ func buildRemediations(in remediationInput) remediationOutput {
 			continue
 		}
 
-		action := remediationAction(f, vuln, compact, ancestor)
+		action := remediationAction(f, vuln, compact, ancestor, ancestor.packageManager)
 		key := remediationGroupKey(action, ancestor, compact)
 		group, ok := groups[key]
 		if !ok {
@@ -162,8 +162,11 @@ func buildCompactFinding(f sdk.Finding, vuln *sdk.Vulnerability, in remediationI
 	return compact, ancestor
 }
 
-// remediationAction decides what kind of change closes the finding.
-func remediationAction(f sdk.Finding, vuln *sdk.Vulnerability, compact CompactFinding, ancestor ancestorTarget) string {
+// remediationAction decides what kind of change closes the finding: a direct
+// version bump, a declarative override on the transitive dependency, a
+// lockfile refresh for managers without overrides, a policy review, or —
+// when upstream has released nothing — no fix at all.
+func remediationAction(f sdk.Finding, vuln *sdk.Vulnerability, compact CompactFinding, ancestor ancestorTarget, packageManager string) string {
 	if f.Kind != sdk.FindingKindVulnerability {
 		return ActionPolicyReview
 	}
@@ -176,7 +179,10 @@ func remediationAction(f sdk.Finding, vuln *sdk.Vulnerability, compact CompactFi
 	if ancestor.direct {
 		return ActionDirectBump
 	}
-	return ActionTransitiveOverride
+	if _, supported := overrideAdvice(packageManager, compact.Package, "x", ""); supported {
+		return ActionTransitiveOverride
+	}
+	return ActionLockfileRefresh
 }
 
 func remediationGroupKey(action string, ancestor ancestorTarget, compact CompactFinding) string {
@@ -215,16 +221,21 @@ func finalizeGroup(group *RemediationGroup) {
 			group.Recommendation = fmt.Sprintf("Upgrade `%s` in %s to address %s; no single safe version was computed.",
 				group.TargetPackage.Name, valueOr(group.ManifestPath, "its manifest"), label)
 		}
-	case ActionTransitiveOverride:
+	case ActionTransitiveOverride, ActionLockfileRefresh:
 		group.RecommendedVersion = minSafe
-		suffix := ""
-		if minSafe != "" {
-			suffix = fmt.Sprintf(" to %s or newer", minSafe)
+		group.OverrideAdvice = groupOverrideAdvice(group)
+		verb := "override the transitive version"
+		if group.Action == ActionLockfileRefresh {
+			verb = "refresh the resolved version"
+		}
+		detail := ""
+		if group.OverrideAdvice != "" {
+			detail = ": " + group.OverrideAdvice
 		}
 		group.Recommendation = fmt.Sprintf(
-			"Introduced via direct dependency `%s@%s` in %s: override the transitive version of %s%s, or upgrade `%s` to a release that pulls a patched version.",
+			"Introduced via direct dependency `%s@%s` in %s: %s%s. Alternatively upgrade `%s` to a release that pulls a patched version.",
 			group.TargetPackage.Name, group.TargetPackage.Version, valueOr(group.ManifestPath, "its manifest"),
-			affectedPackagesLabel(group.Fixes), suffix, group.TargetPackage.Name)
+			verb, detail, group.TargetPackage.Name)
 	case ActionNoFixUpstream:
 		group.Recommendation = fmt.Sprintf(
 			"No fixed version released for %s. Remove or replace the dependency, or acknowledge via allow_vulnerability_ids.", label)
@@ -281,6 +292,41 @@ func rankGroups(groups []RemediationGroup) {
 		}
 		return groups[i].TargetPackage.Label() < groups[j].TargetPackage.Label()
 	})
+}
+
+// groupOverrideAdvice renders package-manager-specific override advice for
+// each distinct fixable package in the group (capped at three). Multiple
+// advisories on the same package collapse to its highest fixed version.
+func groupOverrideAdvice(group *RemediationGroup) string {
+	versionByPackage := map[string]string{}
+	var order []string
+	for _, fix := range group.Fixes {
+		if fix.FixedIn == "" {
+			continue
+		}
+		key := fix.Package.Label()
+		if _, ok := versionByPackage[key]; !ok {
+			order = append(order, key)
+		}
+		versionByPackage[key] = higherVersion(versionByPackage[key], fix.FixedIn)
+	}
+	var advices []string
+	rendered := map[string]PackageIdentity{}
+	for _, fix := range group.Fixes {
+		key := fix.Package.Label()
+		if _, ok := rendered[key]; ok {
+			continue
+		}
+		rendered[key] = fix.Package
+	}
+	for _, key := range order {
+		advice, _ := overrideAdvice(group.PackageManager, rendered[key], versionByPackage[key], group.ManifestPath)
+		advices = append(advices, advice)
+		if len(advices) == 3 {
+			break
+		}
+	}
+	return strings.Join(advices, "; ")
 }
 
 func sortCompactFindings(findings []CompactFinding) {

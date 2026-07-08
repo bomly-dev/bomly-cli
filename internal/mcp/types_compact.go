@@ -98,6 +98,7 @@ type RemediationGroup struct {
 	ManifestPath       string           `json:"manifest_path,omitempty"`
 	PackageManager     string           `json:"package_manager,omitempty"`
 	RecommendedVersion string           `json:"recommended_version,omitempty"`
+	OverrideAdvice     string           `json:"override_advice,omitempty"`
 	Recommendation     string           `json:"recommendation,omitempty"`
 	Fixes              []CompactFinding `json:"fixes"`
 }

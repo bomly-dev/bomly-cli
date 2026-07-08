@@ -171,6 +171,7 @@ Every new flag on `bomly scan` / `bomly explain` / `bomly diff` must be reachabl
 - Add the field to `ScanRequest` / `ExplainRequest` / `DiffRequest` in `internal/mcp/server.go`.
 - Register the `mcplib.WithBoolean` / `WithString` argument in `tool_scan.go` / `tool_explain.go` / `tool_diff.go`. Mirror the CLI flag's help text and call out any prerequisite ("requires enrich").
 - Wire the field through `mcpOptionsAdapter` in `internal/cli/mcp_cmd.go`. Add it to the `mcpOverrides` struct (so future additions stay one-line) and apply it in `cloneWithOverrides`.
+- MCP tool responses are compact projections (`internal/mcp/types_compact.go`, schema `mcp/1`), not the CLI JSON documents. If the flag adds response data, decide whether it belongs in the compact shape (respect the size caps and truncation counters) or only in the CLI document.
 
 ### Plugin command
 

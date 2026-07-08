@@ -388,9 +388,21 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (m
 	})
 	logger := a.logger
 
-	baseTarget, headTarget, projectIdentifier, _, _, err := resolveGitDiffGraphs(ctx, o, nil, logger, req.Base, req.Head)
+	var (
+		baseTarget        diffResolvedTarget
+		headTarget        diffResolvedTarget
+		projectIdentifier string
+		err               error
+	)
+	// Mirror the CLI diff command: an image target resolves base/head as
+	// container tags/digests, otherwise they are Git refs in the local repo.
+	if o.GetConfig().Image != "" {
+		baseTarget, headTarget, projectIdentifier, _, err = resolveContainerDiffGraphs(ctx, o, nil, logger, req.Base, req.Head)
+	} else {
+		baseTarget, headTarget, projectIdentifier, _, _, err = resolveGitDiffGraphs(ctx, o, nil, logger, req.Base, req.Head)
+	}
 	if err != nil {
-		return mcp.DiffRunResult{}, fmt.Errorf("resolve diff refs: %w", err)
+		return mcp.DiffRunResult{}, fmt.Errorf("resolve diff targets: %w", err)
 	}
 	defer func() { _ = baseTarget.close() }()
 	defer func() { _ = headTarget.close() }()

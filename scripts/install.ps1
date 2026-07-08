@@ -21,12 +21,14 @@ if ([string]::IsNullOrWhiteSpace($Version)) {
   throw "Could not resolve Bomly version."
 }
 
+$AssetVersion = $Version -replace "^v", ""
+
 $arch = switch ((Get-CimInstance Win32_OperatingSystem).OSArchitecture) {
   { $_ -match "ARM64" } { "arm64"; break }
   default { "amd64" }
 }
 
-$archive = "${Binary}_${Version}_windows_${arch}.zip"
+$archive = "${Binary}_${AssetVersion}_windows_${arch}.zip"
 $baseUrl = "https://github.com/$Repo/releases/download/$Version"
 $tmp = New-Item -ItemType Directory -Path ([System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), [System.Guid]::NewGuid()))
 

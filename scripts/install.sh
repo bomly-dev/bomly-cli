@@ -33,7 +33,8 @@ if [ -z "$version" ]; then
   exit 1
 fi
 
-archive="${binary}_${version}_${os}_${arch}.tar.gz"
+asset_version="${version#v}"
+archive="${binary}_${asset_version}_${os}_${arch}.tar.gz"
 base_url="https://github.com/${repo}/releases/download/${version}"
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT INT TERM

@@ -4,63 +4,51 @@
     {
       "dependencies": [
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/meta@1.18.2"
+          ],
           "id": "pkg:pub/_fe_analyzer_shared@67.0.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "_fe_analyzer_shared",
           "package_ref": "pkg:pub/_fe_analyzer_shared@67.0.0",
           "purl": "pkg:pub/_fe_analyzer_shared@67.0.0",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "67.0.0"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/_fe_analyzer_shared@67.0.0",
+            "pkg:pub/collection@1.18.0",
+            "pkg:pub/convert@3.1.2",
+            "pkg:pub/crypto@3.0.7",
+            "pkg:pub/glob@2.1.3",
+            "pkg:pub/meta@1.18.2",
+            "pkg:pub/package_config@2.2.0",
+            "pkg:pub/path@1.9.0",
+            "pkg:pub/pub_semver@2.2.0",
+            "pkg:pub/source_span@1.10.2",
+            "pkg:pub/watcher@1.2.1",
+            "pkg:pub/yaml@3.1.3"
+          ],
           "id": "pkg:pub/analyzer@6.4.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "analyzer",
           "package_ref": "pkg:pub/analyzer@6.4.1",
           "purl": "pkg:pub/analyzer@6.4.1",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "6.4.1"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/crypto@3.0.7",
+            "pkg:pub/path@1.9.0"
+          ],
           "id": "pkg:pub/archive@3.3.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "archive",
           "package_ref": "pkg:pub/archive@3.3.0",
           "purl": "pkg:pub/archive@3.3.0",
@@ -73,38 +61,21 @@
           "depends_on": [],
           "id": "pkg:pub/args@2.7.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "args",
           "package_ref": "pkg:pub/args@2.7.0",
           "purl": "pkg:pub/args@2.7.0",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "2.7.0"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/collection@1.18.0",
+            "pkg:pub/meta@1.18.2"
+          ],
           "id": "pkg:pub/async@2.13.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "async",
           "package_ref": "pkg:pub/async@2.13.1",
           "purl": "pkg:pub/async@2.13.1",
@@ -114,46 +85,39 @@
           "version": "2.13.1"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/source_span@1.10.2",
+            "pkg:pub/string_scanner@1.4.1"
+          ],
           "id": "pkg:pub/boolean_selector@2.1.2",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "boolean_selector",
           "package_ref": "pkg:pub/boolean_selector@2.1.2",
           "purl": "pkg:pub/boolean_selector@2.1.2",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "2.1.2"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/analyzer@6.4.1",
+            "pkg:pub/async@2.13.1",
+            "pkg:pub/convert@3.1.2",
+            "pkg:pub/crypto@3.0.7",
+            "pkg:pub/glob@2.1.3",
+            "pkg:pub/logging@1.3.0",
+            "pkg:pub/meta@1.18.2",
+            "pkg:pub/package_config@2.2.0",
+            "pkg:pub/path@1.9.0"
+          ],
           "id": "pkg:pub/build@2.4.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "build",
           "package_ref": "pkg:pub/build@2.4.1",
           "purl": "pkg:pub/build@2.4.1",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "2.4.1"
         },
@@ -161,65 +125,43 @@
           "depends_on": [],
           "id": "pkg:pub/built_collection@5.1.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "built_collection",
           "package_ref": "pkg:pub/built_collection@5.1.1",
           "purl": "pkg:pub/built_collection@5.1.1",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "5.1.1"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/built_collection@5.1.1",
+            "pkg:pub/collection@1.18.0",
+            "pkg:pub/fixnum@1.1.1",
+            "pkg:pub/meta@1.18.2"
+          ],
           "id": "pkg:pub/built_value@8.12.6",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "built_value",
           "package_ref": "pkg:pub/built_value@8.12.6",
           "purl": "pkg:pub/built_value@8.12.6",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "8.12.6"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/args@2.7.0",
+            "pkg:pub/yaml@3.1.3"
+          ],
           "id": "pkg:pub/cli_config@0.2.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "cli_config",
           "package_ref": "pkg:pub/cli_config@0.2.0",
           "purl": "pkg:pub/cli_config@0.2.0",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "0.2.0"
         },
@@ -227,16 +169,6 @@
           "depends_on": [],
           "id": "pkg:pub/clock@1.1.2",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "clock",
           "package_ref": "pkg:pub/clock@1.1.2",
           "purl": "pkg:pub/clock@1.1.2",
@@ -246,24 +178,20 @@
           "version": "1.1.2"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/built_collection@5.1.1",
+            "pkg:pub/built_value@8.12.6",
+            "pkg:pub/collection@1.18.0",
+            "pkg:pub/matcher@0.12.16%2B1",
+            "pkg:pub/meta@1.18.2"
+          ],
           "id": "pkg:pub/code_builder@4.10.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "code_builder",
           "package_ref": "pkg:pub/code_builder@4.10.1",
           "purl": "pkg:pub/code_builder@4.10.1",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "4.10.1"
         },
@@ -271,82 +199,59 @@
           "depends_on": [],
           "id": "pkg:pub/collection@1.18.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "collection",
           "package_ref": "pkg:pub/collection@1.18.0",
           "purl": "pkg:pub/collection@1.18.0",
           "scopes": [
+            "development",
             "runtime"
           ],
           "version": "1.18.0"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/typed_data@1.4.0"
+          ],
           "id": "pkg:pub/convert@3.1.2",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "convert",
           "package_ref": "pkg:pub/convert@3.1.2",
           "purl": "pkg:pub/convert@3.1.2",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "3.1.2"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/args@2.7.0",
+            "pkg:pub/cli_config@0.2.0",
+            "pkg:pub/glob@2.1.3",
+            "pkg:pub/logging@1.3.0",
+            "pkg:pub/meta@1.18.2",
+            "pkg:pub/package_config@2.2.0",
+            "pkg:pub/path@1.9.0",
+            "pkg:pub/source_maps@0.10.13",
+            "pkg:pub/stack_trace@1.12.1",
+            "pkg:pub/vm_service@14.3.1",
+            "pkg:pub/yaml@3.1.3"
+          ],
           "id": "pkg:pub/coverage@1.15.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "coverage",
           "package_ref": "pkg:pub/coverage@1.15.0",
           "purl": "pkg:pub/coverage@1.15.0",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "1.15.0"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/typed_data@1.4.0"
+          ],
           "id": "pkg:pub/crypto@3.0.7",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "crypto",
           "package_ref": "pkg:pub/crypto@3.0.7",
           "purl": "pkg:pub/crypto@3.0.7",
@@ -356,89 +261,35 @@
           "version": "3.0.7"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/analyzer@6.4.1",
+            "pkg:pub/args@2.7.0",
+            "pkg:pub/collection@1.18.0",
+            "pkg:pub/path@1.9.0",
+            "pkg:pub/pub_semver@2.2.0",
+            "pkg:pub/source_span@1.10.2"
+          ],
           "id": "pkg:pub/dart_style@2.3.6",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "dart_style",
           "package_ref": "pkg:pub/dart_style@2.3.6",
           "purl": "pkg:pub/dart_style@2.3.6",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "2.3.6"
         },
         {
           "depends_on": [
-            "pkg:pub/_fe_analyzer_shared@67.0.0",
-            "pkg:pub/analyzer@6.4.1",
             "pkg:pub/archive@3.3.0",
-            "pkg:pub/args@2.7.0",
-            "pkg:pub/async@2.13.1",
-            "pkg:pub/boolean_selector@2.1.2",
-            "pkg:pub/build@2.4.1",
-            "pkg:pub/built_collection@5.1.1",
-            "pkg:pub/built_value@8.12.6",
-            "pkg:pub/cli_config@0.2.0",
-            "pkg:pub/clock@1.1.2",
-            "pkg:pub/code_builder@4.10.1",
-            "pkg:pub/collection@1.18.0",
-            "pkg:pub/convert@3.1.2",
-            "pkg:pub/coverage@1.15.0",
             "pkg:pub/crypto@3.0.7",
-            "pkg:pub/dart_style@2.3.6",
-            "pkg:pub/file@7.0.1",
-            "pkg:pub/fixnum@1.1.1",
-            "pkg:pub/frontend_server_client@4.0.0",
-            "pkg:pub/glob@2.1.3",
             "pkg:pub/http@1.6.0",
-            "pkg:pub/http_multi_server@3.2.2",
-            "pkg:pub/http_parser@4.0.2",
             "pkg:pub/intl@0.18.1",
-            "pkg:pub/io@1.0.5",
-            "pkg:pub/js@0.7.2",
             "pkg:pub/lints@3.0.0",
             "pkg:pub/logging@1.3.0",
-            "pkg:pub/matcher@0.12.16%2B1",
-            "pkg:pub/meta@1.18.2",
-            "pkg:pub/mime@2.0.0",
             "pkg:pub/mockito@5.4.4",
-            "pkg:pub/node_preamble@2.0.2",
-            "pkg:pub/package_config@2.2.0",
             "pkg:pub/path@1.9.0",
-            "pkg:pub/pool@1.5.2",
-            "pkg:pub/pub_semver@2.2.0",
-            "pkg:pub/shelf@1.4.1",
-            "pkg:pub/shelf_packages_handler@3.0.2",
-            "pkg:pub/shelf_static@1.1.3",
-            "pkg:pub/shelf_web_socket@2.0.1",
-            "pkg:pub/source_gen@1.5.0",
-            "pkg:pub/source_map_stack_trace@2.1.2",
-            "pkg:pub/source_maps@0.10.13",
-            "pkg:pub/source_span@1.10.2",
-            "pkg:pub/stack_trace@1.12.1",
-            "pkg:pub/stream_channel@2.1.4",
-            "pkg:pub/string_scanner@1.4.1",
-            "pkg:pub/term_glyph@1.2.2",
             "pkg:pub/test@1.25.8",
-            "pkg:pub/test_api@0.7.3",
-            "pkg:pub/test_core@0.6.5",
-            "pkg:pub/typed_data@1.4.0",
-            "pkg:pub/vm_service@14.3.1",
-            "pkg:pub/watcher@1.2.1",
-            "pkg:pub/web@1.1.1",
-            "pkg:pub/web_socket@1.0.1",
-            "pkg:pub/web_socket_channel@3.0.3",
-            "pkg:pub/webkit_inspection_protocol@1.2.1",
             "pkg:pub/yaml@3.1.3"
           ],
           "id": "pkg:pub/example_dart_pub@1.0.0",
@@ -449,24 +300,17 @@
           "version": "1.0.0"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/meta@1.18.2",
+            "pkg:pub/path@1.9.0"
+          ],
           "id": "pkg:pub/file@7.0.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "file",
           "package_ref": "pkg:pub/file@7.0.1",
           "purl": "pkg:pub/file@7.0.1",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "7.0.1"
         },
@@ -474,82 +318,56 @@
           "depends_on": [],
           "id": "pkg:pub/fixnum@1.1.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "fixnum",
           "package_ref": "pkg:pub/fixnum@1.1.1",
           "purl": "pkg:pub/fixnum@1.1.1",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "1.1.1"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/async@2.13.1",
+            "pkg:pub/path@1.9.0"
+          ],
           "id": "pkg:pub/frontend_server_client@4.0.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "frontend_server_client",
           "package_ref": "pkg:pub/frontend_server_client@4.0.0",
           "purl": "pkg:pub/frontend_server_client@4.0.0",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "4.0.0"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/async@2.13.1",
+            "pkg:pub/collection@1.18.0",
+            "pkg:pub/file@7.0.1",
+            "pkg:pub/path@1.9.0",
+            "pkg:pub/string_scanner@1.4.1"
+          ],
           "id": "pkg:pub/glob@2.1.3",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "glob",
           "package_ref": "pkg:pub/glob@2.1.3",
           "purl": "pkg:pub/glob@2.1.3",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "2.1.3"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/async@2.13.1",
+            "pkg:pub/http_parser@4.0.2",
+            "pkg:pub/meta@1.18.2",
+            "pkg:pub/web@1.1.1"
+          ],
           "id": "pkg:pub/http@1.6.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "http",
           "package_ref": "pkg:pub/http@1.6.0",
           "purl": "pkg:pub/http@1.6.0",
@@ -559,41 +377,28 @@
           "version": "1.6.0"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/async@2.13.1"
+          ],
           "id": "pkg:pub/http_multi_server@3.2.2",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "http_multi_server",
           "package_ref": "pkg:pub/http_multi_server@3.2.2",
           "purl": "pkg:pub/http_multi_server@3.2.2",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "3.2.2"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/collection@1.18.0",
+            "pkg:pub/source_span@1.10.2",
+            "pkg:pub/string_scanner@1.4.1",
+            "pkg:pub/typed_data@1.4.0"
+          ],
           "id": "pkg:pub/http_parser@4.0.2",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "http_parser",
           "package_ref": "pkg:pub/http_parser@4.0.2",
           "purl": "pkg:pub/http_parser@4.0.2",
@@ -603,19 +408,13 @@
           "version": "4.0.2"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/clock@1.1.2",
+            "pkg:pub/meta@1.18.2",
+            "pkg:pub/path@1.9.0"
+          ],
           "id": "pkg:pub/intl@0.18.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "intl",
           "package_ref": "pkg:pub/intl@0.18.1",
           "purl": "pkg:pub/intl@0.18.1",
@@ -625,24 +424,18 @@
           "version": "0.18.1"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/meta@1.18.2",
+            "pkg:pub/path@1.9.0",
+            "pkg:pub/string_scanner@1.4.1"
+          ],
           "id": "pkg:pub/io@1.0.5",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "io",
           "package_ref": "pkg:pub/io@1.0.5",
           "purl": "pkg:pub/io@1.0.5",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "1.0.5"
         },
@@ -650,21 +443,11 @@
           "depends_on": [],
           "id": "pkg:pub/js@0.7.2",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "js",
           "package_ref": "pkg:pub/js@0.7.2",
           "purl": "pkg:pub/js@0.7.2",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "0.7.2"
         },
@@ -672,16 +455,6 @@
           "depends_on": [],
           "id": "pkg:pub/lints@3.0.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "lints",
           "package_ref": "pkg:pub/lints@3.0.0",
           "purl": "pkg:pub/lints@3.0.0",
@@ -694,16 +467,6 @@
           "depends_on": [],
           "id": "pkg:pub/logging@1.3.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "logging",
           "package_ref": "pkg:pub/logging@1.3.0",
           "purl": "pkg:pub/logging@1.3.0",
@@ -713,24 +476,20 @@
           "version": "1.3.0"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/async@2.13.1",
+            "pkg:pub/meta@1.18.2",
+            "pkg:pub/stack_trace@1.12.1",
+            "pkg:pub/term_glyph@1.2.2",
+            "pkg:pub/test_api@0.7.3"
+          ],
           "id": "pkg:pub/matcher@0.12.16%2B1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "matcher",
           "package_ref": "pkg:pub/matcher@0.12.16%2B1",
           "purl": "pkg:pub/matcher@0.12.16%2B1",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "0.12.16+1"
         },
@@ -738,16 +497,6 @@
           "depends_on": [],
           "id": "pkg:pub/meta@1.18.2",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "meta",
           "package_ref": "pkg:pub/meta@1.18.2",
           "purl": "pkg:pub/meta@1.18.2",
@@ -760,38 +509,29 @@
           "depends_on": [],
           "id": "pkg:pub/mime@2.0.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "mime",
           "package_ref": "pkg:pub/mime@2.0.0",
           "purl": "pkg:pub/mime@2.0.0",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "2.0.0"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/analyzer@6.4.1",
+            "pkg:pub/build@2.4.1",
+            "pkg:pub/code_builder@4.10.1",
+            "pkg:pub/collection@1.18.0",
+            "pkg:pub/dart_style@2.3.6",
+            "pkg:pub/matcher@0.12.16%2B1",
+            "pkg:pub/meta@1.18.2",
+            "pkg:pub/path@1.9.0",
+            "pkg:pub/source_gen@1.5.0",
+            "pkg:pub/test_api@0.7.3"
+          ],
           "id": "pkg:pub/mockito@5.4.4",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "mockito",
           "package_ref": "pkg:pub/mockito@5.4.4",
           "purl": "pkg:pub/mockito@5.4.4",
@@ -804,43 +544,25 @@
           "depends_on": [],
           "id": "pkg:pub/node_preamble@2.0.2",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "node_preamble",
           "package_ref": "pkg:pub/node_preamble@2.0.2",
           "purl": "pkg:pub/node_preamble@2.0.2",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "2.0.2"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/path@1.9.0"
+          ],
           "id": "pkg:pub/package_config@2.2.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "package_config",
           "package_ref": "pkg:pub/package_config@2.2.0",
           "purl": "pkg:pub/package_config@2.2.0",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "2.2.0"
         },
@@ -848,16 +570,6 @@
           "depends_on": [],
           "id": "pkg:pub/path@1.9.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "path",
           "package_ref": "pkg:pub/path@1.9.0",
           "purl": "pkg:pub/path@1.9.0",
@@ -867,283 +579,205 @@
           "version": "1.9.0"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/async@2.13.1",
+            "pkg:pub/stack_trace@1.12.1"
+          ],
           "id": "pkg:pub/pool@1.5.2",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "pool",
           "package_ref": "pkg:pub/pool@1.5.2",
           "purl": "pkg:pub/pool@1.5.2",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "1.5.2"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/collection@1.18.0"
+          ],
           "id": "pkg:pub/pub_semver@2.2.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "pub_semver",
           "package_ref": "pkg:pub/pub_semver@2.2.0",
           "purl": "pkg:pub/pub_semver@2.2.0",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "2.2.0"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/async@2.13.1",
+            "pkg:pub/collection@1.18.0",
+            "pkg:pub/http_parser@4.0.2",
+            "pkg:pub/path@1.9.0",
+            "pkg:pub/stack_trace@1.12.1",
+            "pkg:pub/stream_channel@2.1.4"
+          ],
           "id": "pkg:pub/shelf@1.4.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "shelf",
           "package_ref": "pkg:pub/shelf@1.4.1",
           "purl": "pkg:pub/shelf@1.4.1",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "1.4.1"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/path@1.9.0",
+            "pkg:pub/shelf@1.4.1",
+            "pkg:pub/shelf_static@1.1.3"
+          ],
           "id": "pkg:pub/shelf_packages_handler@3.0.2",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "shelf_packages_handler",
           "package_ref": "pkg:pub/shelf_packages_handler@3.0.2",
           "purl": "pkg:pub/shelf_packages_handler@3.0.2",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "3.0.2"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/convert@3.1.2",
+            "pkg:pub/http_parser@4.0.2",
+            "pkg:pub/mime@2.0.0",
+            "pkg:pub/path@1.9.0",
+            "pkg:pub/shelf@1.4.1"
+          ],
           "id": "pkg:pub/shelf_static@1.1.3",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "shelf_static",
           "package_ref": "pkg:pub/shelf_static@1.1.3",
           "purl": "pkg:pub/shelf_static@1.1.3",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "1.1.3"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/shelf@1.4.1",
+            "pkg:pub/stream_channel@2.1.4",
+            "pkg:pub/web_socket_channel@3.0.3"
+          ],
           "id": "pkg:pub/shelf_web_socket@2.0.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "shelf_web_socket",
           "package_ref": "pkg:pub/shelf_web_socket@2.0.1",
           "purl": "pkg:pub/shelf_web_socket@2.0.1",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "2.0.1"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/analyzer@6.4.1",
+            "pkg:pub/async@2.13.1",
+            "pkg:pub/build@2.4.1",
+            "pkg:pub/dart_style@2.3.6",
+            "pkg:pub/glob@2.1.3",
+            "pkg:pub/path@1.9.0",
+            "pkg:pub/source_span@1.10.2",
+            "pkg:pub/yaml@3.1.3"
+          ],
           "id": "pkg:pub/source_gen@1.5.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "source_gen",
           "package_ref": "pkg:pub/source_gen@1.5.0",
           "purl": "pkg:pub/source_gen@1.5.0",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "1.5.0"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/path@1.9.0",
+            "pkg:pub/source_maps@0.10.13",
+            "pkg:pub/stack_trace@1.12.1"
+          ],
           "id": "pkg:pub/source_map_stack_trace@2.1.2",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "source_map_stack_trace",
           "package_ref": "pkg:pub/source_map_stack_trace@2.1.2",
           "purl": "pkg:pub/source_map_stack_trace@2.1.2",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "2.1.2"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/source_span@1.10.2"
+          ],
           "id": "pkg:pub/source_maps@0.10.13",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "source_maps",
           "package_ref": "pkg:pub/source_maps@0.10.13",
           "purl": "pkg:pub/source_maps@0.10.13",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "0.10.13"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/collection@1.18.0",
+            "pkg:pub/path@1.9.0",
+            "pkg:pub/term_glyph@1.2.2"
+          ],
           "id": "pkg:pub/source_span@1.10.2",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "source_span",
           "package_ref": "pkg:pub/source_span@1.10.2",
           "purl": "pkg:pub/source_span@1.10.2",
           "scopes": [
+            "development",
             "runtime"
           ],
           "version": "1.10.2"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/path@1.9.0"
+          ],
           "id": "pkg:pub/stack_trace@1.12.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "stack_trace",
           "package_ref": "pkg:pub/stack_trace@1.12.1",
           "purl": "pkg:pub/stack_trace@1.12.1",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "1.12.1"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/async@2.13.1"
+          ],
           "id": "pkg:pub/stream_channel@2.1.4",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "stream_channel",
           "package_ref": "pkg:pub/stream_channel@2.1.4",
           "purl": "pkg:pub/stream_channel@2.1.4",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "2.1.4"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/source_span@1.10.2"
+          ],
           "id": "pkg:pub/string_scanner@1.4.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "string_scanner",
           "package_ref": "pkg:pub/string_scanner@1.4.1",
           "purl": "pkg:pub/string_scanner@1.4.1",
@@ -1156,38 +790,46 @@
           "depends_on": [],
           "id": "pkg:pub/term_glyph@1.2.2",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "term_glyph",
           "package_ref": "pkg:pub/term_glyph@1.2.2",
           "purl": "pkg:pub/term_glyph@1.2.2",
           "scopes": [
+            "development",
             "runtime"
           ],
           "version": "1.2.2"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/analyzer@6.4.1",
+            "pkg:pub/async@2.13.1",
+            "pkg:pub/boolean_selector@2.1.2",
+            "pkg:pub/collection@1.18.0",
+            "pkg:pub/coverage@1.15.0",
+            "pkg:pub/http_multi_server@3.2.2",
+            "pkg:pub/io@1.0.5",
+            "pkg:pub/js@0.7.2",
+            "pkg:pub/matcher@0.12.16%2B1",
+            "pkg:pub/node_preamble@2.0.2",
+            "pkg:pub/package_config@2.2.0",
+            "pkg:pub/path@1.9.0",
+            "pkg:pub/pool@1.5.2",
+            "pkg:pub/shelf@1.4.1",
+            "pkg:pub/shelf_packages_handler@3.0.2",
+            "pkg:pub/shelf_static@1.1.3",
+            "pkg:pub/shelf_web_socket@2.0.1",
+            "pkg:pub/source_span@1.10.2",
+            "pkg:pub/stack_trace@1.12.1",
+            "pkg:pub/stream_channel@2.1.4",
+            "pkg:pub/test_api@0.7.3",
+            "pkg:pub/test_core@0.6.5",
+            "pkg:pub/typed_data@1.4.0",
+            "pkg:pub/web_socket_channel@3.0.3",
+            "pkg:pub/webkit_inspection_protocol@1.2.1",
+            "pkg:pub/yaml@3.1.3"
+          ],
           "id": "pkg:pub/test@1.25.8",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "test",
           "package_ref": "pkg:pub/test@1.25.8",
           "purl": "pkg:pub/test@1.25.8",
@@ -1197,63 +839,67 @@
           "version": "1.25.8"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/async@2.13.1",
+            "pkg:pub/boolean_selector@2.1.2",
+            "pkg:pub/collection@1.18.0",
+            "pkg:pub/meta@1.18.2",
+            "pkg:pub/source_span@1.10.2",
+            "pkg:pub/stack_trace@1.12.1",
+            "pkg:pub/stream_channel@2.1.4",
+            "pkg:pub/string_scanner@1.4.1",
+            "pkg:pub/term_glyph@1.2.2"
+          ],
           "id": "pkg:pub/test_api@0.7.3",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "test_api",
           "package_ref": "pkg:pub/test_api@0.7.3",
           "purl": "pkg:pub/test_api@0.7.3",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "0.7.3"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/analyzer@6.4.1",
+            "pkg:pub/args@2.7.0",
+            "pkg:pub/async@2.13.1",
+            "pkg:pub/boolean_selector@2.1.2",
+            "pkg:pub/collection@1.18.0",
+            "pkg:pub/coverage@1.15.0",
+            "pkg:pub/frontend_server_client@4.0.0",
+            "pkg:pub/glob@2.1.3",
+            "pkg:pub/io@1.0.5",
+            "pkg:pub/meta@1.18.2",
+            "pkg:pub/package_config@2.2.0",
+            "pkg:pub/path@1.9.0",
+            "pkg:pub/pool@1.5.2",
+            "pkg:pub/source_map_stack_trace@2.1.2",
+            "pkg:pub/source_maps@0.10.13",
+            "pkg:pub/source_span@1.10.2",
+            "pkg:pub/stack_trace@1.12.1",
+            "pkg:pub/stream_channel@2.1.4",
+            "pkg:pub/test_api@0.7.3",
+            "pkg:pub/vm_service@14.3.1",
+            "pkg:pub/yaml@3.1.3"
+          ],
           "id": "pkg:pub/test_core@0.6.5",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "test_core",
           "package_ref": "pkg:pub/test_core@0.6.5",
           "purl": "pkg:pub/test_core@0.6.5",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "0.6.5"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/collection@1.18.0"
+          ],
           "id": "pkg:pub/typed_data@1.4.0",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "typed_data",
           "package_ref": "pkg:pub/typed_data@1.4.0",
           "purl": "pkg:pub/typed_data@1.4.0",
@@ -1266,43 +912,26 @@
           "depends_on": [],
           "id": "pkg:pub/vm_service@14.3.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "vm_service",
           "package_ref": "pkg:pub/vm_service@14.3.1",
           "purl": "pkg:pub/vm_service@14.3.1",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "14.3.1"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/async@2.13.1",
+            "pkg:pub/path@1.9.0"
+          ],
           "id": "pkg:pub/watcher@1.2.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "watcher",
           "package_ref": "pkg:pub/watcher@1.2.1",
           "purl": "pkg:pub/watcher@1.2.1",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "1.2.1"
         },
@@ -1310,16 +939,6 @@
           "depends_on": [],
           "id": "pkg:pub/web@1.1.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "web",
           "package_ref": "pkg:pub/web@1.1.1",
           "purl": "pkg:pub/web@1.1.1",
@@ -1329,85 +948,59 @@
           "version": "1.1.1"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/web@1.1.1"
+          ],
           "id": "pkg:pub/web_socket@1.0.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "web_socket",
           "package_ref": "pkg:pub/web_socket@1.0.1",
           "purl": "pkg:pub/web_socket@1.0.1",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "1.0.1"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/async@2.13.1",
+            "pkg:pub/crypto@3.0.7",
+            "pkg:pub/stream_channel@2.1.4",
+            "pkg:pub/web@1.1.1",
+            "pkg:pub/web_socket@1.0.1"
+          ],
           "id": "pkg:pub/web_socket_channel@3.0.3",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "web_socket_channel",
           "package_ref": "pkg:pub/web_socket_channel@3.0.3",
           "purl": "pkg:pub/web_socket_channel@3.0.3",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "3.0.3"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/logging@1.3.0"
+          ],
           "id": "pkg:pub/webkit_inspection_protocol@1.2.1",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "webkit_inspection_protocol",
           "package_ref": "pkg:pub/webkit_inspection_protocol@1.2.1",
           "purl": "pkg:pub/webkit_inspection_protocol@1.2.1",
           "scopes": [
-            "runtime"
+            "development"
           ],
           "version": "1.2.1"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:pub/collection@1.18.0",
+            "pkg:pub/source_span@1.10.2",
+            "pkg:pub/string_scanner@1.4.1"
+          ],
           "id": "pkg:pub/yaml@3.1.3",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "pubspec.lock",
-              "position": {
-                "file": "pubspec.lock",
-                "line": 0
-              },
-              "real_path": "pubspec.lock"
-            }
-          ],
           "name": "yaml",
           "package_ref": "pkg:pub/yaml@3.1.3",
           "purl": "pkg:pub/yaml@3.1.3",
@@ -1417,18 +1010,11 @@
           "version": "3.1.3"
         }
       ],
-      "detector": "pub-detector",
+      "detector": "pub-native-detector",
       "ecosystem": "dart",
       "kind": "pubspec.lock",
       "package_manager": "pub",
       "path": "pubspec.lock",
-      "resolution": {
-        "fallback": {
-          "from": "pub-native-detector",
-          "reason": "not ready: dart executable not found on PATH"
-        },
-        "install_executed": false
-      },
       "subproject": "."
     }
   ],

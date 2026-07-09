@@ -1021,7 +1021,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "aopalliance",
+      "name": "aopalliance:aopalliance",
+      "org": "aopalliance",
       "purl": "pkg:maven/aopalliance/aopalliance@1.0",
       "version": "1.0",
       "vulnerabilities": []
@@ -1029,7 +1030,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "zkclient",
+      "name": "com.101tec:zkclient",
+      "org": "com.101tec",
       "purl": "pkg:maven/com.101tec/zkclient@0.7",
       "version": "0.7",
       "vulnerabilities": []
@@ -1037,7 +1039,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "concurrentlinkedhashmap-lru",
+      "name": "com.googlecode.concurrentlinkedhashmap:concurrentlinkedhashmap-lru",
+      "org": "com.googlecode.concurrentlinkedhashmap",
       "purl": "pkg:maven/com.googlecode.concurrentlinkedhashmap/concurrentlinkedhashmap-lru@1.4.1",
       "version": "1.4.1",
       "vulnerabilities": []
@@ -1045,7 +1048,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "h2",
+      "name": "com.h2database:h2",
+      "org": "com.h2database",
       "purl": "pkg:maven/com.h2database/h2@1.3.176",
       "version": "1.3.176",
       "vulnerabilities": []
@@ -1053,7 +1057,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "orientdb-client",
+      "name": "com.orientechnologies:orientdb-client",
+      "org": "com.orientechnologies",
       "purl": "pkg:maven/com.orientechnologies/orientdb-client@2.1.9",
       "version": "2.1.9",
       "vulnerabilities": []
@@ -1061,7 +1066,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "orientdb-core",
+      "name": "com.orientechnologies:orientdb-core",
+      "org": "com.orientechnologies",
       "purl": "pkg:maven/com.orientechnologies/orientdb-core@2.1.9",
       "version": "2.1.9",
       "vulnerabilities": []
@@ -1069,7 +1075,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "orientdb-enterprise",
+      "name": "com.orientechnologies:orientdb-enterprise",
+      "org": "com.orientechnologies",
       "purl": "pkg:maven/com.orientechnologies/orientdb-enterprise@2.1.9",
       "version": "2.1.9",
       "vulnerabilities": []
@@ -1077,7 +1084,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "orientdb-server",
+      "name": "com.orientechnologies:orientdb-server",
+      "org": "com.orientechnologies",
       "purl": "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
       "version": "2.1.9",
       "vulnerabilities": []
@@ -1085,7 +1093,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "metrics-core",
+      "name": "com.yammer.metrics:metrics-core",
+      "org": "com.yammer.metrics",
       "purl": "pkg:maven/com.yammer.metrics/metrics-core@2.2.0",
       "version": "2.2.0",
       "vulnerabilities": []
@@ -1093,7 +1102,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "commons-collections",
+      "name": "commons-collections:commons-collections",
+      "org": "commons-collections",
       "purl": "pkg:maven/commons-collections/commons-collections@3.2.1",
       "version": "3.2.1",
       "vulnerabilities": []
@@ -1101,7 +1111,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "commons-fileupload",
+      "name": "commons-fileupload:commons-fileupload",
+      "org": "commons-fileupload",
       "purl": "pkg:maven/commons-fileupload/commons-fileupload@1.1.1",
       "version": "1.1.1",
       "vulnerabilities": []
@@ -1109,7 +1120,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "commons-io",
+      "name": "commons-io:commons-io",
+      "org": "commons-io",
       "purl": "pkg:maven/commons-io/commons-io@1.1",
       "version": "1.1",
       "vulnerabilities": []
@@ -1117,7 +1129,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "commons-logging",
+      "name": "commons-logging:commons-logging",
+      "org": "commons-logging",
       "purl": "pkg:maven/commons-logging/commons-logging@1.1.1",
       "version": "1.1.1",
       "vulnerabilities": []
@@ -1132,7 +1145,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "netty",
+      "name": "io.netty:netty",
+      "org": "io.netty",
       "purl": "pkg:maven/io.netty/netty@3.7.0.final",
       "version": "3.7.0.final",
       "vulnerabilities": []
@@ -1140,7 +1154,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "activation",
+      "name": "javax.activation:activation",
+      "org": "javax.activation",
       "purl": "pkg:maven/javax.activation/activation@1.1",
       "version": "1.1",
       "vulnerabilities": []
@@ -1148,7 +1163,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "jcr",
+      "name": "javax.jcr:jcr",
+      "org": "javax.jcr",
       "purl": "pkg:maven/javax.jcr/jcr@1.0",
       "version": "1.0",
       "vulnerabilities": []
@@ -1156,7 +1172,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "mail",
+      "name": "javax.mail:mail",
+      "org": "javax.mail",
       "purl": "pkg:maven/javax.mail/mail@1.4",
       "version": "1.4",
       "vulnerabilities": []
@@ -1164,7 +1181,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "jline",
+      "name": "jline:jline",
+      "org": "jline",
       "purl": "pkg:maven/jline/jline@0.9.94",
       "version": "0.9.94",
       "vulnerabilities": []
@@ -1172,7 +1190,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "junit",
+      "name": "junit:junit",
+      "org": "junit",
       "purl": "pkg:maven/junit/junit@3.8.1",
       "version": "3.8.1",
       "vulnerabilities": []
@@ -1180,7 +1199,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "junit",
+      "name": "junit:junit",
+      "org": "junit",
       "purl": "pkg:maven/junit/junit@4.11",
       "version": "4.11",
       "vulnerabilities": []
@@ -1188,7 +1208,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "log4j",
+      "name": "log4j:log4j",
+      "org": "log4j",
       "purl": "pkg:maven/log4j/log4j@1.2.17",
       "version": "1.2.17",
       "vulnerabilities": []
@@ -1196,7 +1217,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "javamelody-core",
+      "name": "net.bull.javamelody:javamelody-core",
+      "org": "net.bull.javamelody",
       "purl": "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0",
       "version": "1.59.0",
       "vulnerabilities": []
@@ -1204,7 +1226,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "jna-platform",
+      "name": "net.java.dev.jna:jna-platform",
+      "org": "net.java.dev.jna",
       "purl": "pkg:maven/net.java.dev.jna/jna-platform@4.0.0",
       "version": "4.0.0",
       "vulnerabilities": []
@@ -1212,7 +1235,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "jna",
+      "name": "net.java.dev.jna:jna",
+      "org": "net.java.dev.jna",
       "purl": "pkg:maven/net.java.dev.jna/jna@4.0.0",
       "version": "4.0.0",
       "vulnerabilities": []
@@ -1220,7 +1244,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "lz4",
+      "name": "net.jpountz.lz4:lz4",
+      "org": "net.jpountz.lz4",
       "purl": "pkg:maven/net.jpountz.lz4/lz4@1.2.0",
       "version": "1.2.0",
       "vulnerabilities": []
@@ -1228,7 +1253,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "jopt-simple",
+      "name": "net.sf.jopt-simple:jopt-simple",
+      "org": "net.sf.jopt-simple",
       "purl": "pkg:maven/net.sf.jopt-simple/jopt-simple@3.2",
       "version": "3.2",
       "vulnerabilities": []
@@ -1236,7 +1262,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "jackrabbit-api",
+      "name": "org.apache.jackrabbit:jackrabbit-api",
+      "org": "org.apache.jackrabbit",
       "purl": "pkg:maven/org.apache.jackrabbit/jackrabbit-api@1.4",
       "version": "1.4",
       "vulnerabilities": []
@@ -1244,7 +1271,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "jackrabbit-classloader",
+      "name": "org.apache.jackrabbit:jackrabbit-classloader",
+      "org": "org.apache.jackrabbit",
       "purl": "pkg:maven/org.apache.jackrabbit/jackrabbit-classloader@1.4",
       "version": "1.4",
       "vulnerabilities": []
@@ -1252,7 +1280,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "jackrabbit-jcr-commons",
+      "name": "org.apache.jackrabbit:jackrabbit-jcr-commons",
+      "org": "org.apache.jackrabbit",
       "purl": "pkg:maven/org.apache.jackrabbit/jackrabbit-jcr-commons@1.4",
       "version": "1.4",
       "vulnerabilities": []
@@ -1260,7 +1289,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "kafka-clients",
+      "name": "org.apache.kafka:kafka-clients",
+      "org": "org.apache.kafka",
       "purl": "pkg:maven/org.apache.kafka/kafka-clients@0.9.0.1",
       "version": "0.9.0.1",
       "vulnerabilities": []
@@ -1268,7 +1298,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "kafka_2.11",
+      "name": "org.apache.kafka:kafka_2.11",
+      "org": "org.apache.kafka",
       "purl": "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
       "version": "0.9.0.1",
       "vulnerabilities": []
@@ -1276,7 +1307,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "xmlsec",
+      "name": "org.apache.santuario:xmlsec",
+      "org": "org.apache.santuario",
       "purl": "pkg:maven/org.apache.santuario/xmlsec@1.5.1",
       "version": "1.5.1",
       "vulnerabilities": []
@@ -1284,7 +1316,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "org.apache.sling.adapter",
+      "name": "org.apache.sling:org.apache.sling.adapter",
+      "org": "org.apache.sling",
       "purl": "pkg:maven/org.apache.sling/org.apache.sling.adapter@2.0.2-incubator",
       "version": "2.0.2-incubator",
       "vulnerabilities": []
@@ -1292,7 +1325,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "org.apache.sling.api",
+      "name": "org.apache.sling:org.apache.sling.api",
+      "org": "org.apache.sling",
       "purl": "pkg:maven/org.apache.sling/org.apache.sling.api@2.0.4-incubator",
       "version": "2.0.4-incubator",
       "vulnerabilities": []
@@ -1300,7 +1334,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "org.apache.sling.commons.mime",
+      "name": "org.apache.sling:org.apache.sling.commons.mime",
+      "org": "org.apache.sling",
       "purl": "pkg:maven/org.apache.sling/org.apache.sling.commons.mime@2.0.2-incubator",
       "version": "2.0.2-incubator",
       "vulnerabilities": []
@@ -1308,7 +1343,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "org.apache.sling.commons.osgi",
+      "name": "org.apache.sling:org.apache.sling.commons.osgi",
+      "org": "org.apache.sling",
       "purl": "pkg:maven/org.apache.sling/org.apache.sling.commons.osgi@2.0.2-incubator",
       "version": "2.0.2-incubator",
       "vulnerabilities": []
@@ -1316,7 +1352,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "org.apache.sling.engine",
+      "name": "org.apache.sling:org.apache.sling.engine",
+      "org": "org.apache.sling",
       "purl": "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
       "version": "2.0.4-incubator",
       "vulnerabilities": []
@@ -1324,7 +1361,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "org.apache.sling.jcr.api",
+      "name": "org.apache.sling:org.apache.sling.jcr.api",
+      "org": "org.apache.sling",
       "purl": "pkg:maven/org.apache.sling/org.apache.sling.jcr.api@2.0.2-incubator",
       "version": "2.0.2-incubator",
       "vulnerabilities": []
@@ -1332,7 +1370,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "org.apache.sling.jcr.resource",
+      "name": "org.apache.sling:org.apache.sling.jcr.resource",
+      "org": "org.apache.sling",
       "purl": "pkg:maven/org.apache.sling/org.apache.sling.jcr.resource@2.0.2-incubator",
       "version": "2.0.2-incubator",
       "vulnerabilities": []
@@ -1340,7 +1379,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "zookeeper",
+      "name": "org.apache.zookeeper:zookeeper",
+      "org": "org.apache.zookeeper",
       "purl": "pkg:maven/org.apache.zookeeper/zookeeper@3.4.6",
       "version": "3.4.6",
       "vulnerabilities": []
@@ -1348,7 +1388,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "hamcrest-core",
+      "name": "org.hamcrest:hamcrest-core",
+      "org": "org.hamcrest",
       "purl": "pkg:maven/org.hamcrest/hamcrest-core@1.3",
       "version": "1.3",
       "vulnerabilities": []
@@ -1356,7 +1397,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "jrobin",
+      "name": "org.jrobin:jrobin",
+      "org": "org.jrobin",
       "purl": "pkg:maven/org.jrobin/jrobin@1.5.9",
       "version": "1.5.9",
       "vulnerabilities": []
@@ -1364,7 +1406,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "keycloak-saml-core",
+      "name": "org.keycloak:keycloak-saml-core",
+      "org": "org.keycloak",
       "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
       "version": "1.8.1.final",
       "vulnerabilities": []
@@ -1372,7 +1415,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "jbcrypt",
+      "name": "org.mindrot:jbcrypt",
+      "org": "org.mindrot",
       "purl": "pkg:maven/org.mindrot/jbcrypt@0.3m",
       "version": "0.3m",
       "vulnerabilities": []
@@ -1380,7 +1424,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "neo4j-jmx",
+      "name": "org.neo4j:neo4j-jmx",
+      "org": "org.neo4j",
       "purl": "pkg:maven/org.neo4j/neo4j-jmx@1.3",
       "version": "1.3",
       "vulnerabilities": []
@@ -1388,7 +1433,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "scala-parser-combinators_2.11",
+      "name": "org.scala-lang.modules:scala-parser-combinators_2.11",
+      "org": "org.scala-lang.modules",
       "purl": "pkg:maven/org.scala-lang.modules/scala-parser-combinators_2.11@1.0.4",
       "version": "1.0.4",
       "vulnerabilities": []
@@ -1396,7 +1442,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "scala-xml_2.11",
+      "name": "org.scala-lang.modules:scala-xml_2.11",
+      "org": "org.scala-lang.modules",
       "purl": "pkg:maven/org.scala-lang.modules/scala-xml_2.11@1.0.4",
       "version": "1.0.4",
       "vulnerabilities": []
@@ -1404,7 +1451,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "scala-library",
+      "name": "org.scala-lang:scala-library",
+      "org": "org.scala-lang",
       "purl": "pkg:maven/org.scala-lang/scala-library@2.11.7",
       "version": "2.11.7",
       "vulnerabilities": []
@@ -1412,7 +1460,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "slf4j-api",
+      "name": "org.slf4j:slf4j-api",
+      "org": "org.slf4j",
       "purl": "pkg:maven/org.slf4j/slf4j-api@1.7.6",
       "version": "1.7.6",
       "vulnerabilities": []
@@ -1420,7 +1469,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "slf4j-log4j12",
+      "name": "org.slf4j:slf4j-log4j12",
+      "org": "org.slf4j",
       "purl": "pkg:maven/org.slf4j/slf4j-log4j12@1.7.6",
       "version": "1.7.6",
       "vulnerabilities": []
@@ -1428,7 +1478,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "spring-aop",
+      "name": "org.springframework:spring-aop",
+      "org": "org.springframework",
       "purl": "pkg:maven/org.springframework/spring-aop@3.1.1.release",
       "version": "3.1.1.release",
       "vulnerabilities": []
@@ -1436,7 +1487,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "spring-asm",
+      "name": "org.springframework:spring-asm",
+      "org": "org.springframework",
       "purl": "pkg:maven/org.springframework/spring-asm@3.1.1.release",
       "version": "3.1.1.release",
       "vulnerabilities": []
@@ -1444,7 +1496,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "spring-beans",
+      "name": "org.springframework:spring-beans",
+      "org": "org.springframework",
       "purl": "pkg:maven/org.springframework/spring-beans@3.1.1.release",
       "version": "3.1.1.release",
       "vulnerabilities": []
@@ -1452,7 +1505,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "spring-context",
+      "name": "org.springframework:spring-context",
+      "org": "org.springframework",
       "purl": "pkg:maven/org.springframework/spring-context@3.1.1.release",
       "version": "3.1.1.release",
       "vulnerabilities": []
@@ -1460,7 +1514,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "spring-core",
+      "name": "org.springframework:spring-core",
+      "org": "org.springframework",
       "purl": "pkg:maven/org.springframework/spring-core@3.1.1.release",
       "version": "3.1.1.release",
       "vulnerabilities": []
@@ -1468,7 +1523,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "spring-expression",
+      "name": "org.springframework:spring-expression",
+      "org": "org.springframework",
       "purl": "pkg:maven/org.springframework/spring-expression@3.1.1.release",
       "version": "3.1.1.release",
       "vulnerabilities": []
@@ -1476,7 +1532,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "spring-web",
+      "name": "org.springframework:spring-web",
+      "org": "org.springframework",
       "purl": "pkg:maven/org.springframework/spring-web@3.1.1.release",
       "version": "3.1.1.release",
       "vulnerabilities": []
@@ -1484,7 +1541,8 @@
     {
       "ecosystem": "maven",
       "licenses": [],
-      "name": "snappy-java",
+      "name": "org.xerial.snappy:snappy-java",
+      "org": "org.xerial.snappy",
       "purl": "pkg:maven/org.xerial.snappy/snappy-java@1.1.1.7",
       "version": "1.1.1.7",
       "vulnerabilities": []

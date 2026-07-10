@@ -4,6 +4,35 @@
     {
       "dependencies": [
         {
+          "depends_on": [],
+          "id": "pkg:maven/aopalliance/aopalliance@1.0",
+          "licenses": [],
+          "matched": true,
+          "name": "aopalliance:aopalliance",
+          "package_ref": "pkg:maven/aopalliance/aopalliance@1.0",
+          "purl": "pkg:maven/aopalliance/aopalliance@1.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/log4j/log4j@1.2.15",
+            "pkg:maven/org.slf4j/slf4j-api@1.6.1"
+          ],
+          "id": "pkg:maven/com.101tec/zkclient@0.7",
+          "licenses": [],
+          "matched": true,
+          "name": "com.101tec:zkclient",
+          "package_ref": "pkg:maven/com.101tec/zkclient@0.7",
+          "purl": "pkg:maven/com.101tec/zkclient@0.7",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.7"
+        },
+        {
           "depends_on": [
             "pkg:maven/com.h2database/h2@1.3.176",
             "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
@@ -12,23 +41,30 @@
             "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
             "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
             "pkg:maven/org.apache.struts/struts2-core@2.5.13",
-            "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
+            "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
             "pkg:maven/org.mindrot/jbcrypt@0.4",
             "pkg:maven/org.neo4j/neo4j-jmx@1.3",
-            "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE"
+            "pkg:maven/org.springframework/spring-web@3.1.1.release"
           ],
-          "id": "pkg:maven/com.bomly/example-java-maven@1.0-SNAPSHOT",
+          "id": "pkg:maven/com.bomly/example-java-maven@1.0-snapshot",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "/pom.xml",
-              "real_path": "/pom.xml"
-            }
-          ],
           "name": "com.bomly:example-java-maven",
-          "package_ref": "pkg:maven/com.bomly/example-java-maven@1.0-SNAPSHOT",
-          "purl": "pkg:maven/com.bomly/example-java-maven@1.0-SNAPSHOT",
+          "package_ref": "pkg:maven/com.bomly/example-java-maven@1.0-snapshot",
+          "purl": "pkg:maven/com.bomly/example-java-maven@1.0-snapshot",
           "version": "1.0-snapshot"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/com.googlecode.concurrentlinkedhashmap/concurrentlinkedhashmap-lru@1.4.1",
+          "licenses": [],
+          "matched": true,
+          "name": "com.googlecode.concurrentlinkedhashmap:concurrentlinkedhashmap-lru",
+          "package_ref": "pkg:maven/com.googlecode.concurrentlinkedhashmap/concurrentlinkedhashmap-lru@1.4.1",
+          "purl": "pkg:maven/com.googlecode.concurrentlinkedhashmap/concurrentlinkedhashmap-lru@1.4.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.4.1"
         },
         {
           "depends_on": [],
@@ -36,126 +72,722 @@
           "licenses": [],
           "locations": [
             {
-              "access_path": "/pom.xml",
-              "real_path": "/pom.xml"
+              "access_path": "pom.xml",
+              "position": {
+                "file": "pom.xml",
+                "line": 0
+              },
+              "real_path": "pom.xml"
             }
           ],
           "matched": true,
           "name": "com.h2database:h2",
           "package_ref": "pkg:maven/com.h2database/h2@1.3.176",
           "purl": "pkg:maven/com.h2database/h2@1.3.176",
+          "scopes": [
+            "runtime"
+          ],
           "version": "1.3.176"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:maven/com.orientechnologies/orientdb-enterprise@2.1.9"
+          ],
+          "id": "pkg:maven/com.orientechnologies/orientdb-client@2.1.9",
+          "licenses": [],
+          "matched": true,
+          "name": "com.orientechnologies:orientdb-client",
+          "package_ref": "pkg:maven/com.orientechnologies/orientdb-client@2.1.9",
+          "purl": "pkg:maven/com.orientechnologies/orientdb-client@2.1.9",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.1.9"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/com.googlecode.concurrentlinkedhashmap/concurrentlinkedhashmap-lru@1.4.1",
+            "pkg:maven/net.java.dev.jna/jna-platform@4.0.0",
+            "pkg:maven/net.java.dev.jna/jna@4.0.0"
+          ],
+          "id": "pkg:maven/com.orientechnologies/orientdb-core@2.1.9",
+          "licenses": [],
+          "matched": true,
+          "name": "com.orientechnologies:orientdb-core",
+          "package_ref": "pkg:maven/com.orientechnologies/orientdb-core@2.1.9",
+          "purl": "pkg:maven/com.orientechnologies/orientdb-core@2.1.9",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.1.9"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/com.orientechnologies/orientdb-core@2.1.9"
+          ],
+          "id": "pkg:maven/com.orientechnologies/orientdb-enterprise@2.1.9",
+          "licenses": [],
+          "matched": true,
+          "name": "com.orientechnologies:orientdb-enterprise",
+          "package_ref": "pkg:maven/com.orientechnologies/orientdb-enterprise@2.1.9",
+          "purl": "pkg:maven/com.orientechnologies/orientdb-enterprise@2.1.9",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.1.9"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/com.orientechnologies/orientdb-client@2.1.9",
+            "pkg:maven/javax.mail/mail@1.4"
+          ],
           "id": "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
           "licenses": [],
           "locations": [
             {
-              "access_path": "/pom.xml",
-              "real_path": "/pom.xml"
+              "access_path": "pom.xml",
+              "position": {
+                "file": "pom.xml",
+                "line": 0
+              },
+              "real_path": "pom.xml"
             }
           ],
           "matched": true,
           "name": "com.orientechnologies:orientdb-server",
           "package_ref": "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
           "purl": "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
+          "scopes": [
+            "runtime"
+          ],
           "version": "2.1.9"
         },
         {
           "depends_on": [],
+          "id": "pkg:maven/com.yammer.metrics/metrics-core@2.2.0",
+          "licenses": [],
+          "matched": true,
+          "name": "com.yammer.metrics:metrics-core",
+          "package_ref": "pkg:maven/com.yammer.metrics/metrics-core@2.2.0",
+          "purl": "pkg:maven/com.yammer.metrics/metrics-core@2.2.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.2.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/commons-collections/commons-collections@3.2.1",
+          "licenses": [],
+          "matched": true,
+          "name": "commons-collections:commons-collections",
+          "package_ref": "pkg:maven/commons-collections/commons-collections@3.2.1",
+          "purl": "pkg:maven/commons-collections/commons-collections@3.2.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.2.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/commons-fileupload/commons-fileupload@1.3.3",
+          "licenses": [],
+          "matched": true,
+          "name": "commons-fileupload:commons-fileupload",
+          "package_ref": "pkg:maven/commons-fileupload/commons-fileupload@1.3.3",
+          "purl": "pkg:maven/commons-fileupload/commons-fileupload@1.3.3",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.3.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/commons-io/commons-io@2.5",
+          "licenses": [],
+          "matched": true,
+          "name": "commons-io:commons-io",
+          "package_ref": "pkg:maven/commons-io/commons-io@2.5",
+          "purl": "pkg:maven/commons-io/commons-io@2.5",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.5"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/commons-logging/commons-logging@1.1.1",
+          "licenses": [],
+          "matched": true,
+          "name": "commons-logging:commons-logging",
+          "package_ref": "pkg:maven/commons-logging/commons-logging@1.1.1",
+          "purl": "pkg:maven/commons-logging/commons-logging@1.1.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.1.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/io.netty/netty@3.7.0.final",
+          "licenses": [],
+          "matched": true,
+          "name": "io.netty:netty",
+          "package_ref": "pkg:maven/io.netty/netty@3.7.0.final",
+          "purl": "pkg:maven/io.netty/netty@3.7.0.final",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.7.0.final"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/javax.activation/activation@1.1",
+          "licenses": [],
+          "matched": true,
+          "name": "javax.activation:activation",
+          "package_ref": "pkg:maven/javax.activation/activation@1.1",
+          "purl": "pkg:maven/javax.activation/activation@1.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/javax.jcr/jcr@1.0",
+          "licenses": [],
+          "matched": true,
+          "name": "javax.jcr:jcr",
+          "package_ref": "pkg:maven/javax.jcr/jcr@1.0",
+          "purl": "pkg:maven/javax.jcr/jcr@1.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/javax.activation/activation@1.1"
+          ],
+          "id": "pkg:maven/javax.mail/mail@1.4",
+          "licenses": [],
+          "matched": true,
+          "name": "javax.mail:mail",
+          "package_ref": "pkg:maven/javax.mail/mail@1.4",
+          "purl": "pkg:maven/javax.mail/mail@1.4",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.4"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/jline/jline@0.9.94",
+          "licenses": [],
+          "matched": true,
+          "name": "jline:jline",
+          "package_ref": "pkg:maven/jline/jline@0.9.94",
+          "purl": "pkg:maven/jline/jline@0.9.94",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.9.94"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/org.hamcrest/hamcrest-core@1.3"
+          ],
           "id": "pkg:maven/junit/junit@4.12",
           "licenses": [],
           "locations": [
             {
-              "access_path": "/pom.xml",
-              "real_path": "/pom.xml"
+              "access_path": "pom.xml",
+              "position": {
+                "file": "pom.xml",
+                "line": 0
+              },
+              "real_path": "pom.xml"
             }
           ],
           "matched": true,
           "name": "junit:junit",
           "package_ref": "pkg:maven/junit/junit@4.12",
           "purl": "pkg:maven/junit/junit@4.12",
+          "scopes": [
+            "development"
+          ],
           "version": "4.12"
         },
         {
           "depends_on": [],
+          "id": "pkg:maven/log4j/log4j@1.2.15",
+          "licenses": [],
+          "matched": true,
+          "name": "log4j:log4j",
+          "package_ref": "pkg:maven/log4j/log4j@1.2.15",
+          "purl": "pkg:maven/log4j/log4j@1.2.15",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.2.15"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/org.jrobin/jrobin@1.5.9"
+          ],
           "id": "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0",
           "licenses": [],
           "locations": [
             {
-              "access_path": "/pom.xml",
-              "real_path": "/pom.xml"
+              "access_path": "pom.xml",
+              "position": {
+                "file": "pom.xml",
+                "line": 0
+              },
+              "real_path": "pom.xml"
             }
           ],
           "matched": true,
           "name": "net.bull.javamelody:javamelody-core",
           "package_ref": "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0",
           "purl": "pkg:maven/net.bull.javamelody/javamelody-core@1.59.0",
+          "scopes": [
+            "runtime"
+          ],
           "version": "1.59.0"
         },
         {
           "depends_on": [],
+          "id": "pkg:maven/net.java.dev.jna/jna-platform@4.0.0",
+          "licenses": [],
+          "matched": true,
+          "name": "net.java.dev.jna:jna-platform",
+          "package_ref": "pkg:maven/net.java.dev.jna/jna-platform@4.0.0",
+          "purl": "pkg:maven/net.java.dev.jna/jna-platform@4.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/net.java.dev.jna/jna@4.0.0",
+          "licenses": [],
+          "matched": true,
+          "name": "net.java.dev.jna:jna",
+          "package_ref": "pkg:maven/net.java.dev.jna/jna@4.0.0",
+          "purl": "pkg:maven/net.java.dev.jna/jna@4.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/net.jpountz.lz4/lz4@1.2.0",
+          "licenses": [],
+          "matched": true,
+          "name": "net.jpountz.lz4:lz4",
+          "package_ref": "pkg:maven/net.jpountz.lz4/lz4@1.2.0",
+          "purl": "pkg:maven/net.jpountz.lz4/lz4@1.2.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.2.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/net.sf.jopt-simple/jopt-simple@3.2",
+          "licenses": [],
+          "matched": true,
+          "name": "net.sf.jopt-simple:jopt-simple",
+          "package_ref": "pkg:maven/net.sf.jopt-simple/jopt-simple@3.2",
+          "purl": "pkg:maven/net.sf.jopt-simple/jopt-simple@3.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.2"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/org.javassist/javassist@3.20.0-ga"
+          ],
+          "id": "pkg:maven/ognl/ognl@3.1.15",
+          "licenses": [],
+          "matched": true,
+          "name": "ognl:ognl",
+          "package_ref": "pkg:maven/ognl/ognl@3.1.15",
+          "purl": "pkg:maven/ognl/ognl@3.1.15",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.1.15"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.apache.commons/commons-lang3@3.6",
+          "licenses": [],
+          "matched": true,
+          "name": "org.apache.commons:commons-lang3",
+          "package_ref": "pkg:maven/org.apache.commons/commons-lang3@3.6",
+          "purl": "pkg:maven/org.apache.commons/commons-lang3@3.6",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.6"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.apache.jackrabbit/jackrabbit-api@1.4",
+          "licenses": [],
+          "matched": true,
+          "name": "org.apache.jackrabbit:jackrabbit-api",
+          "package_ref": "pkg:maven/org.apache.jackrabbit/jackrabbit-api@1.4",
+          "purl": "pkg:maven/org.apache.jackrabbit/jackrabbit-api@1.4",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.4"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/org.apache.jackrabbit/jackrabbit-api@1.4",
+            "pkg:maven/org.apache.jackrabbit/jackrabbit-jcr-commons@1.4"
+          ],
+          "id": "pkg:maven/org.apache.jackrabbit/jackrabbit-classloader@1.4",
+          "licenses": [],
+          "matched": true,
+          "name": "org.apache.jackrabbit:jackrabbit-classloader",
+          "package_ref": "pkg:maven/org.apache.jackrabbit/jackrabbit-classloader@1.4",
+          "purl": "pkg:maven/org.apache.jackrabbit/jackrabbit-classloader@1.4",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.4"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.apache.jackrabbit/jackrabbit-jcr-commons@1.4",
+          "licenses": [],
+          "matched": true,
+          "name": "org.apache.jackrabbit:jackrabbit-jcr-commons",
+          "package_ref": "pkg:maven/org.apache.jackrabbit/jackrabbit-jcr-commons@1.4",
+          "purl": "pkg:maven/org.apache.jackrabbit/jackrabbit-jcr-commons@1.4",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.4"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/net.jpountz.lz4/lz4@1.2.0",
+            "pkg:maven/org.xerial.snappy/snappy-java@1.1.1.7"
+          ],
+          "id": "pkg:maven/org.apache.kafka/kafka-clients@0.9.0.1",
+          "licenses": [],
+          "matched": true,
+          "name": "org.apache.kafka:kafka-clients",
+          "package_ref": "pkg:maven/org.apache.kafka/kafka-clients@0.9.0.1",
+          "purl": "pkg:maven/org.apache.kafka/kafka-clients@0.9.0.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.9.0.1"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/com.101tec/zkclient@0.7",
+            "pkg:maven/com.yammer.metrics/metrics-core@2.2.0",
+            "pkg:maven/net.sf.jopt-simple/jopt-simple@3.2",
+            "pkg:maven/org.apache.kafka/kafka-clients@0.9.0.1",
+            "pkg:maven/org.apache.zookeeper/zookeeper@3.4.6",
+            "pkg:maven/org.scala-lang.modules/scala-parser-combinators_2.11@1.0.4",
+            "pkg:maven/org.scala-lang.modules/scala-xml_2.11@1.0.4",
+            "pkg:maven/org.scala-lang/scala-library@2.11.7",
+            "pkg:maven/org.slf4j/slf4j-log4j12@1.7.6"
+          ],
           "id": "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
           "licenses": [],
           "locations": [
             {
-              "access_path": "/pom.xml",
-              "real_path": "/pom.xml"
+              "access_path": "pom.xml",
+              "position": {
+                "file": "pom.xml",
+                "line": 0
+              },
+              "real_path": "pom.xml"
             }
           ],
           "matched": true,
           "name": "org.apache.kafka:kafka_2.11",
           "package_ref": "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
           "purl": "pkg:maven/org.apache.kafka/kafka_2.11@0.9.0.1",
+          "scopes": [
+            "runtime"
+          ],
           "version": "0.9.0.1"
         },
         {
           "depends_on": [],
+          "id": "pkg:maven/org.apache.logging.log4j/log4j-api@2.8.2",
+          "licenses": [],
+          "matched": true,
+          "name": "org.apache.logging.log4j:log4j-api",
+          "package_ref": "pkg:maven/org.apache.logging.log4j/log4j-api@2.8.2",
+          "purl": "pkg:maven/org.apache.logging.log4j/log4j-api@2.8.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.8.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.apache.santuario/xmlsec@1.5.1",
+          "licenses": [],
+          "matched": true,
+          "name": "org.apache.santuario:xmlsec",
+          "package_ref": "pkg:maven/org.apache.santuario/xmlsec@1.5.1",
+          "purl": "pkg:maven/org.apache.santuario/xmlsec@1.5.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.5.1"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/org.apache.sling/org.apache.sling.commons.osgi@2.0.2-incubator"
+          ],
+          "id": "pkg:maven/org.apache.sling/org.apache.sling.adapter@2.0.2-incubator",
+          "licenses": [],
+          "matched": true,
+          "name": "org.apache.sling:org.apache.sling.adapter",
+          "package_ref": "pkg:maven/org.apache.sling/org.apache.sling.adapter@2.0.2-incubator",
+          "purl": "pkg:maven/org.apache.sling/org.apache.sling.adapter@2.0.2-incubator",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.0.2-incubator"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.apache.sling/org.apache.sling.api@2.0.4-incubator",
+          "licenses": [],
+          "matched": true,
+          "name": "org.apache.sling:org.apache.sling.api",
+          "package_ref": "pkg:maven/org.apache.sling/org.apache.sling.api@2.0.4-incubator",
+          "purl": "pkg:maven/org.apache.sling/org.apache.sling.api@2.0.4-incubator",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.0.4-incubator"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.apache.sling/org.apache.sling.commons.mime@2.0.2-incubator",
+          "licenses": [],
+          "matched": true,
+          "name": "org.apache.sling:org.apache.sling.commons.mime",
+          "package_ref": "pkg:maven/org.apache.sling/org.apache.sling.commons.mime@2.0.2-incubator",
+          "purl": "pkg:maven/org.apache.sling/org.apache.sling.commons.mime@2.0.2-incubator",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.0.2-incubator"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.apache.sling/org.apache.sling.commons.osgi@2.0.2-incubator",
+          "licenses": [],
+          "matched": true,
+          "name": "org.apache.sling:org.apache.sling.commons.osgi",
+          "package_ref": "pkg:maven/org.apache.sling/org.apache.sling.commons.osgi@2.0.2-incubator",
+          "purl": "pkg:maven/org.apache.sling/org.apache.sling.commons.osgi@2.0.2-incubator",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.0.2-incubator"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/commons-collections/commons-collections@3.2.1",
+            "pkg:maven/org.apache.sling/org.apache.sling.api@2.0.4-incubator",
+            "pkg:maven/org.apache.sling/org.apache.sling.commons.mime@2.0.2-incubator",
+            "pkg:maven/org.apache.sling/org.apache.sling.jcr.api@2.0.2-incubator",
+            "pkg:maven/org.apache.sling/org.apache.sling.jcr.resource@2.0.2-incubator"
+          ],
           "id": "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
           "licenses": [],
           "locations": [
             {
-              "access_path": "/pom.xml",
-              "real_path": "/pom.xml"
+              "access_path": "pom.xml",
+              "position": {
+                "file": "pom.xml",
+                "line": 0
+              },
+              "real_path": "pom.xml"
             }
           ],
           "matched": true,
           "name": "org.apache.sling:org.apache.sling.engine",
           "package_ref": "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
           "purl": "pkg:maven/org.apache.sling/org.apache.sling.engine@2.0.4-incubator",
+          "scopes": [
+            "runtime"
+          ],
           "version": "2.0.4-incubator"
         },
         {
-          "depends_on": [],
+          "depends_on": [
+            "pkg:maven/javax.jcr/jcr@1.0"
+          ],
+          "id": "pkg:maven/org.apache.sling/org.apache.sling.jcr.api@2.0.2-incubator",
+          "licenses": [],
+          "matched": true,
+          "name": "org.apache.sling:org.apache.sling.jcr.api",
+          "package_ref": "pkg:maven/org.apache.sling/org.apache.sling.jcr.api@2.0.2-incubator",
+          "purl": "pkg:maven/org.apache.sling/org.apache.sling.jcr.api@2.0.2-incubator",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.0.2-incubator"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/org.apache.jackrabbit/jackrabbit-classloader@1.4",
+            "pkg:maven/org.apache.sling/org.apache.sling.adapter@2.0.2-incubator"
+          ],
+          "id": "pkg:maven/org.apache.sling/org.apache.sling.jcr.resource@2.0.2-incubator",
+          "licenses": [],
+          "matched": true,
+          "name": "org.apache.sling:org.apache.sling.jcr.resource",
+          "package_ref": "pkg:maven/org.apache.sling/org.apache.sling.jcr.resource@2.0.2-incubator",
+          "purl": "pkg:maven/org.apache.sling/org.apache.sling.jcr.resource@2.0.2-incubator",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.0.2-incubator"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/commons-fileupload/commons-fileupload@1.3.3",
+            "pkg:maven/commons-io/commons-io@2.5",
+            "pkg:maven/ognl/ognl@3.1.15",
+            "pkg:maven/org.apache.commons/commons-lang3@3.6",
+            "pkg:maven/org.apache.logging.log4j/log4j-api@2.8.2",
+            "pkg:maven/org.freemarker/freemarker@2.3.23"
+          ],
           "id": "pkg:maven/org.apache.struts/struts2-core@2.5.13",
           "licenses": [],
           "locations": [
             {
-              "access_path": "/pom.xml",
-              "real_path": "/pom.xml"
+              "access_path": "pom.xml",
+              "position": {
+                "file": "pom.xml",
+                "line": 0
+              },
+              "real_path": "pom.xml"
             }
           ],
           "matched": true,
           "name": "org.apache.struts:struts2-core",
           "package_ref": "pkg:maven/org.apache.struts/struts2-core@2.5.13",
           "purl": "pkg:maven/org.apache.struts/struts2-core@2.5.13",
+          "scopes": [
+            "runtime"
+          ],
           "version": "2.5.13"
         },
         {
+          "depends_on": [
+            "pkg:maven/io.netty/netty@3.7.0.final",
+            "pkg:maven/jline/jline@0.9.94"
+          ],
+          "id": "pkg:maven/org.apache.zookeeper/zookeeper@3.4.6",
+          "licenses": [],
+          "matched": true,
+          "name": "org.apache.zookeeper:zookeeper",
+          "package_ref": "pkg:maven/org.apache.zookeeper/zookeeper@3.4.6",
+          "purl": "pkg:maven/org.apache.zookeeper/zookeeper@3.4.6",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.4.6"
+        },
+        {
           "depends_on": [],
-          "id": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
+          "id": "pkg:maven/org.freemarker/freemarker@2.3.23",
+          "licenses": [],
+          "matched": true,
+          "name": "org.freemarker:freemarker",
+          "package_ref": "pkg:maven/org.freemarker/freemarker@2.3.23",
+          "purl": "pkg:maven/org.freemarker/freemarker@2.3.23",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.3.23"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.hamcrest/hamcrest-core@1.3",
+          "licenses": [],
+          "matched": true,
+          "name": "org.hamcrest:hamcrest-core",
+          "package_ref": "pkg:maven/org.hamcrest/hamcrest-core@1.3",
+          "purl": "pkg:maven/org.hamcrest/hamcrest-core@1.3",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.javassist/javassist@3.20.0-ga",
+          "licenses": [],
+          "name": "org.javassist:javassist",
+          "package_ref": "pkg:maven/org.javassist/javassist@3.20.0-ga",
+          "purl": "pkg:maven/org.javassist/javassist@3.20.0-ga",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.20.0-ga"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.jrobin/jrobin@1.5.9",
+          "licenses": [],
+          "matched": true,
+          "name": "org.jrobin:jrobin",
+          "package_ref": "pkg:maven/org.jrobin/jrobin@1.5.9",
+          "purl": "pkg:maven/org.jrobin/jrobin@1.5.9",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.5.9"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/org.apache.santuario/xmlsec@1.5.1"
+          ],
+          "id": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
           "licenses": [],
           "locations": [
             {
-              "access_path": "/pom.xml",
-              "real_path": "/pom.xml"
+              "access_path": "pom.xml",
+              "position": {
+                "file": "pom.xml",
+                "line": 0
+              },
+              "real_path": "pom.xml"
             }
           ],
           "matched": true,
           "name": "org.keycloak:keycloak-saml-core",
-          "package_ref": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
-          "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
+          "package_ref": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
+          "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
+          "scopes": [
+            "runtime"
+          ],
           "version": "1.8.1.final"
         },
         {
@@ -164,14 +796,21 @@
           "licenses": [],
           "locations": [
             {
-              "access_path": "/pom.xml",
-              "real_path": "/pom.xml"
+              "access_path": "pom.xml",
+              "position": {
+                "file": "pom.xml",
+                "line": 0
+              },
+              "real_path": "pom.xml"
             }
           ],
           "matched": true,
           "name": "org.mindrot:jbcrypt",
           "package_ref": "pkg:maven/org.mindrot/jbcrypt@0.4",
           "purl": "pkg:maven/org.mindrot/jbcrypt@0.4",
+          "scopes": [
+            "runtime"
+          ],
           "version": "0.4"
         },
         {
@@ -180,45 +819,217 @@
           "licenses": [],
           "locations": [
             {
-              "access_path": "/pom.xml",
-              "real_path": "/pom.xml"
+              "access_path": "pom.xml",
+              "position": {
+                "file": "pom.xml",
+                "line": 0
+              },
+              "real_path": "pom.xml"
             }
           ],
           "matched": true,
           "name": "org.neo4j:neo4j-jmx",
           "package_ref": "pkg:maven/org.neo4j/neo4j-jmx@1.3",
           "purl": "pkg:maven/org.neo4j/neo4j-jmx@1.3",
+          "scopes": [
+            "runtime"
+          ],
           "version": "1.3"
         },
         {
           "depends_on": [],
-          "id": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
+          "id": "pkg:maven/org.scala-lang.modules/scala-parser-combinators_2.11@1.0.4",
+          "licenses": [],
+          "matched": true,
+          "name": "org.scala-lang.modules:scala-parser-combinators_2.11",
+          "package_ref": "pkg:maven/org.scala-lang.modules/scala-parser-combinators_2.11@1.0.4",
+          "purl": "pkg:maven/org.scala-lang.modules/scala-parser-combinators_2.11@1.0.4",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.4"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.scala-lang.modules/scala-xml_2.11@1.0.4",
+          "licenses": [],
+          "matched": true,
+          "name": "org.scala-lang.modules:scala-xml_2.11",
+          "package_ref": "pkg:maven/org.scala-lang.modules/scala-xml_2.11@1.0.4",
+          "purl": "pkg:maven/org.scala-lang.modules/scala-xml_2.11@1.0.4",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.4"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.scala-lang/scala-library@2.11.7",
+          "licenses": [],
+          "matched": true,
+          "name": "org.scala-lang:scala-library",
+          "package_ref": "pkg:maven/org.scala-lang/scala-library@2.11.7",
+          "purl": "pkg:maven/org.scala-lang/scala-library@2.11.7",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.11.7"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.slf4j/slf4j-api@1.6.1",
+          "licenses": [],
+          "matched": true,
+          "name": "org.slf4j:slf4j-api",
+          "package_ref": "pkg:maven/org.slf4j/slf4j-api@1.6.1",
+          "purl": "pkg:maven/org.slf4j/slf4j-api@1.6.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.6.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.slf4j/slf4j-log4j12@1.7.6",
+          "licenses": [],
+          "matched": true,
+          "name": "org.slf4j:slf4j-log4j12",
+          "package_ref": "pkg:maven/org.slf4j/slf4j-log4j12@1.7.6",
+          "purl": "pkg:maven/org.slf4j/slf4j-log4j12@1.7.6",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.7.6"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.springframework/spring-aop@3.1.1.release",
+          "licenses": [],
+          "name": "org.springframework:spring-aop",
+          "package_ref": "pkg:maven/org.springframework/spring-aop@3.1.1.release",
+          "purl": "pkg:maven/org.springframework/spring-aop@3.1.1.release",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.1.1.release"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.springframework/spring-asm@3.1.1.release",
+          "licenses": [],
+          "name": "org.springframework:spring-asm",
+          "package_ref": "pkg:maven/org.springframework/spring-asm@3.1.1.release",
+          "purl": "pkg:maven/org.springframework/spring-asm@3.1.1.release",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.1.1.release"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.springframework/spring-beans@3.1.1.release",
+          "licenses": [],
+          "matched": true,
+          "name": "org.springframework:spring-beans",
+          "package_ref": "pkg:maven/org.springframework/spring-beans@3.1.1.release",
+          "purl": "pkg:maven/org.springframework/spring-beans@3.1.1.release",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.1.1.release"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/org.springframework/spring-aop@3.1.1.release",
+            "pkg:maven/org.springframework/spring-asm@3.1.1.release",
+            "pkg:maven/org.springframework/spring-expression@3.1.1.release"
+          ],
+          "id": "pkg:maven/org.springframework/spring-context@3.1.1.release",
+          "licenses": [],
+          "matched": true,
+          "name": "org.springframework:spring-context",
+          "package_ref": "pkg:maven/org.springframework/spring-context@3.1.1.release",
+          "purl": "pkg:maven/org.springframework/spring-context@3.1.1.release",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.1.1.release"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/commons-logging/commons-logging@1.1.1"
+          ],
+          "id": "pkg:maven/org.springframework/spring-core@3.1.1.release",
+          "licenses": [],
+          "matched": true,
+          "name": "org.springframework:spring-core",
+          "package_ref": "pkg:maven/org.springframework/spring-core@3.1.1.release",
+          "purl": "pkg:maven/org.springframework/spring-core@3.1.1.release",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.1.1.release"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.springframework/spring-expression@3.1.1.release",
+          "licenses": [],
+          "matched": true,
+          "name": "org.springframework:spring-expression",
+          "package_ref": "pkg:maven/org.springframework/spring-expression@3.1.1.release",
+          "purl": "pkg:maven/org.springframework/spring-expression@3.1.1.release",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.1.1.release"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/aopalliance/aopalliance@1.0",
+            "pkg:maven/org.springframework/spring-beans@3.1.1.release",
+            "pkg:maven/org.springframework/spring-context@3.1.1.release",
+            "pkg:maven/org.springframework/spring-core@3.1.1.release"
+          ],
+          "id": "pkg:maven/org.springframework/spring-web@3.1.1.release",
           "licenses": [],
           "locations": [
             {
-              "access_path": "/pom.xml",
-              "real_path": "/pom.xml"
+              "access_path": "pom.xml",
+              "position": {
+                "file": "pom.xml",
+                "line": 0
+              },
+              "real_path": "pom.xml"
             }
           ],
           "matched": true,
           "name": "org.springframework:spring-web",
-          "package_ref": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
-          "purl": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
+          "package_ref": "pkg:maven/org.springframework/spring-web@3.1.1.release",
+          "purl": "pkg:maven/org.springframework/spring-web@3.1.1.release",
+          "scopes": [
+            "runtime"
+          ],
           "version": "3.1.1.release"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.xerial.snappy/snappy-java@1.1.1.7",
+          "licenses": [],
+          "matched": true,
+          "name": "org.xerial.snappy:snappy-java",
+          "package_ref": "pkg:maven/org.xerial.snappy/snappy-java@1.1.1.7",
+          "purl": "pkg:maven/org.xerial.snappy/snappy-java@1.1.1.7",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.1.1.7"
         }
       ],
-      "detector": "syft-detector",
+      "detector": "maven-detector",
       "ecosystem": "maven",
-      "kind": "maven",
+      "kind": "pom.xml",
       "package_manager": "maven",
       "path": "pom.xml",
-      "resolution": {
-        "fallback": {
-          "from": "maven-detector",
-          "reason": "not ready: java runtime is unavailable: The operation couldn’t be completed. Unable to locate a Java Runtime. Please visit http://www.java.com for information on installing Java."
-        },
-        "install_executed": false
-      },
       "subproject": "."
     }
   ],
@@ -228,8 +1039,8 @@
     ],
     "analyzer_stats": {
       "jvmreach": {
-        "reachable": 10,
-        "unreachable": 25
+        "reachable": 32,
+        "unreachable": 62
       }
     },
     "duration_ms": 0,
@@ -238,11 +1049,59 @@
   "packages": [
     {
       "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "non-standard",
+          "type": "external-depsdev",
+          "value": "non-standard"
+        }
+      ],
+      "matched": true,
+      "name": "aopalliance:aopalliance",
+      "org": "aopalliance",
+      "purl": "pkg:maven/aopalliance/aopalliance@1.0",
+      "version": "1.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "com.101tec:zkclient",
+      "org": "com.101tec",
+      "purl": "pkg:maven/com.101tec/zkclient@0.7",
+      "version": "0.7",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
       "licenses": [],
       "name": "com.bomly:example-java-maven",
       "org": "com.bomly",
-      "purl": "pkg:maven/com.bomly/example-java-maven@1.0-SNAPSHOT",
+      "purl": "pkg:maven/com.bomly/example-java-maven@1.0-snapshot",
       "version": "1.0-snapshot",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "com.googlecode.concurrentlinkedhashmap:concurrentlinkedhashmap-lru",
+      "org": "com.googlecode.concurrentlinkedhashmap",
+      "purl": "pkg:maven/com.googlecode.concurrentlinkedhashmap/concurrentlinkedhashmap-lru@1.4.1",
+      "version": "1.4.1",
       "vulnerabilities": []
     },
     {
@@ -406,10 +1265,1305 @@
         }
       ],
       "matched": true,
+      "name": "com.orientechnologies:orientdb-client",
+      "org": "com.orientechnologies",
+      "purl": "pkg:maven/com.orientechnologies/orientdb-client@2.1.9",
+      "version": "2.1.9",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "com.orientechnologies:orientdb-core",
+      "org": "com.orientechnologies",
+      "purl": "pkg:maven/com.orientechnologies/orientdb-core@2.1.9",
+      "version": "2.1.9",
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2017-11467",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-xm6r-4466-mr74",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "com.orientechnologies:orientdb-enterprise",
+      "org": "com.orientechnologies",
+      "purl": "pkg:maven/com.orientechnologies/orientdb-enterprise@2.1.9",
+      "version": "2.1.9",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
       "name": "com.orientechnologies:orientdb-server",
       "org": "com.orientechnologies",
       "purl": "pkg:maven/com.orientechnologies/orientdb-server@2.1.9",
       "version": "2.1.9",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "com.yammer.metrics:metrics-core",
+      "org": "com.yammer.metrics",
+      "purl": "pkg:maven/com.yammer.metrics/metrics-core@2.2.0",
+      "version": "2.2.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "commons-collections:commons-collections",
+      "org": "commons-collections",
+      "purl": "pkg:maven/commons-collections/commons-collections@3.2.1",
+      "version": "3.2.1",
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2015-6420",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-6hgm-866r-3cjv",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2015-7501",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-fjq5-5j5f-mvxh",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "commons-fileupload:commons-fileupload",
+      "org": "commons-fileupload",
+      "purl": "pkg:maven/commons-fileupload/commons-fileupload@1.3.3",
+      "version": "1.3.3",
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2023-24998",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-hfrx-6qgj-fp6c",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2025-48976",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-vv7r-c36w-3prj",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "commons-io:commons-io",
+      "org": "commons-io",
+      "purl": "pkg:maven/commons-io/commons-io@2.5",
+      "version": "2.5",
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2024-47554",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-78wr-2p64-hpwj",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2021-29425",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-gwrp-pvrq-jmwv",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "commons-logging:commons-logging",
+      "org": "commons-logging",
+      "purl": "pkg:maven/commons-logging/commons-logging@1.1.1",
+      "version": "1.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "matched": true,
+      "name": "io.netty:netty",
+      "org": "io.netty",
+      "purl": "pkg:maven/io.netty/netty@3.7.0.final",
+      "version": "3.7.0.final",
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2021-21290",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-5mcr-gq6c-3hq2",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2014-0193",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-7vpq-g998-qpv7",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2021-37137",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-9vjp-v76f-g363",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2019-20444",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-cqqj-4p63-rrmm",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2021-21409",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-f256-j965-7f32",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2021-37136",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-grg4-wf29-r9vv",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2019-20445",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-p2v9-g2qv-p635",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2019-16869",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-p979-4mfw-53vg",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2021-21295",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-wm47-8v5p-wjpj",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2021-43797",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-wx5j-54mm-rqqq",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2015-2156",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-xfv3-rrfm-f2rv",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "non-standard",
+          "type": "external-depsdev",
+          "value": "non-standard"
+        }
+      ],
+      "matched": true,
+      "name": "javax.activation:activation",
+      "org": "javax.activation",
+      "purl": "pkg:maven/javax.activation/activation@1.1",
+      "version": "1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "non-standard",
+          "type": "external-depsdev",
+          "value": "non-standard"
+        }
+      ],
+      "matched": true,
+      "name": "javax.jcr:jcr",
+      "org": "javax.jcr",
+      "purl": "pkg:maven/javax.jcr/jcr@1.0",
+      "version": "1.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "non-standard",
+          "type": "external-depsdev",
+          "value": "non-standard"
+        }
+      ],
+      "matched": true,
+      "name": "javax.mail:mail",
+      "org": "javax.mail",
+      "purl": "pkg:maven/javax.mail/mail@1.4",
+      "version": "1.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "non-standard",
+          "type": "external-depsdev",
+          "value": "non-standard"
+        }
+      ],
+      "matched": true,
+      "name": "jline:jline",
+      "org": "jline",
+      "purl": "pkg:maven/jline/jline@0.9.94",
+      "version": "0.9.94",
       "vulnerabilities": []
     },
     {
@@ -478,6 +2632,370 @@
             "dynamic_imports_detected": true,
             "hops": 0,
             "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "log4j:log4j",
+      "org": "log4j",
+      "purl": "pkg:maven/log4j/log4j@1.2.15",
+      "version": "1.2.15",
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2019-17571",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-2qrg-x229-3v8q",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2022-23305",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-65fg-84f6-3jq3",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2022-23307",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-f7vh-qwp3-x37m",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2021-4104",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-fp5r-v3w9-4333",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2023-26464",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-vp98-w2p3-mv35",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2022-23302",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-w9p3-5cr8-m3jj",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
             "tier": "package"
           },
           "reasons": [
@@ -702,6 +3220,425 @@
       "ecosystem": "maven",
       "licenses": [
         {
+          "spdxExpression": "LGPL-2.1",
+          "type": "external-depsdev",
+          "value": "LGPL-2.1"
+        },
+        {
+          "spdxExpression": "non-standard",
+          "type": "external-depsdev",
+          "value": "non-standard"
+        }
+      ],
+      "matched": true,
+      "name": "net.java.dev.jna:jna-platform",
+      "org": "net.java.dev.jna",
+      "purl": "pkg:maven/net.java.dev.jna/jna-platform@4.0.0",
+      "version": "4.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "LGPL-2.1",
+          "type": "external-depsdev",
+          "value": "LGPL-2.1"
+        },
+        {
+          "spdxExpression": "non-standard",
+          "type": "external-depsdev",
+          "value": "non-standard"
+        }
+      ],
+      "matched": true,
+      "name": "net.java.dev.jna:jna",
+      "org": "net.java.dev.jna",
+      "purl": "pkg:maven/net.java.dev.jna/jna@4.0.0",
+      "version": "4.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "net.jpountz.lz4:lz4",
+      "org": "net.jpountz.lz4",
+      "purl": "pkg:maven/net.jpountz.lz4/lz4@1.2.0",
+      "version": "1.2.0",
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2025-66566",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-cmp6-m4wj-q63q",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2025-12183",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-vqf4-7m7x-wgfc",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "non-standard",
+          "type": "external-depsdev",
+          "value": "non-standard"
+        }
+      ],
+      "matched": true,
+      "name": "net.sf.jopt-simple:jopt-simple",
+      "org": "net.sf.jopt-simple",
+      "purl": "pkg:maven/net.sf.jopt-simple/jopt-simple@3.2",
+      "version": "3.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "ognl:ognl",
+      "org": "ognl",
+      "purl": "pkg:maven/ognl/ognl@3.1.15",
+      "version": "3.1.15",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "org.apache.commons:commons-lang3",
+      "org": "org.apache.commons",
+      "purl": "pkg:maven/org.apache.commons/commons-lang3@3.6",
+      "version": "3.6",
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2025-48924",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-j288-q9x7-2f5v",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "org.apache.jackrabbit:jackrabbit-api",
+      "org": "org.apache.jackrabbit",
+      "purl": "pkg:maven/org.apache.jackrabbit/jackrabbit-api@1.4",
+      "version": "1.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "org.apache.jackrabbit:jackrabbit-classloader",
+      "org": "org.apache.jackrabbit",
+      "purl": "pkg:maven/org.apache.jackrabbit/jackrabbit-classloader@1.4",
+      "version": "1.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "org.apache.jackrabbit:jackrabbit-jcr-commons",
+      "org": "org.apache.jackrabbit",
+      "purl": "pkg:maven/org.apache.jackrabbit/jackrabbit-jcr-commons@1.4",
+      "version": "1.4",
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2025-58782",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-cxvc-g8f2-4gmm",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "org.apache.kafka:kafka-clients",
+      "org": "org.apache.kafka",
+      "purl": "pkg:maven/org.apache.kafka/kafka-clients@0.9.0.1",
+      "version": "0.9.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
           "spdxExpression": "Apache-2.0",
           "type": "external-depsdev",
           "value": "Apache-2.0"
@@ -770,6 +3707,591 @@
           "title": "\u003cnormalized\u003e"
         }
       ]
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "org.apache.logging.log4j:log4j-api",
+      "org": "org.apache.logging.log4j",
+      "purl": "pkg:maven/org.apache.logging.log4j/log4j-api@2.8.2",
+      "version": "2.8.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "org.apache.santuario:xmlsec",
+      "org": "org.apache.santuario",
+      "purl": "pkg:maven/org.apache.santuario/xmlsec@1.5.1",
+      "version": "1.5.1",
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2013-4517",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-4p4w-6h54-g885",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2013-5823",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-8gwc-x7mg-7p7p",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2021-40690",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-j8wc-gxx9-82hx",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2013-2172",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-r237-w2w6-jq3p",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2023-44483",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-xfrj-6vvc-3xm2",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 0,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "org.apache.sling:org.apache.sling.adapter",
+      "org": "org.apache.sling",
+      "purl": "pkg:maven/org.apache.sling/org.apache.sling.adapter@2.0.2-incubator",
+      "version": "2.0.2-incubator",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "org.apache.sling:org.apache.sling.api",
+      "org": "org.apache.sling",
+      "purl": "pkg:maven/org.apache.sling/org.apache.sling.api@2.0.4-incubator",
+      "version": "2.0.4-incubator",
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2013-2254",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-cxwh-vmhg-39r2",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2022-32549",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-qmx3-m648-hr74",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2015-2944",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-rxvx-44w5-44r7",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "org.apache.sling:org.apache.sling.commons.mime",
+      "org": "org.apache.sling",
+      "purl": "pkg:maven/org.apache.sling/org.apache.sling.commons.mime@2.0.2-incubator",
+      "version": "2.0.2-incubator",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "org.apache.sling:org.apache.sling.commons.osgi",
+      "org": "org.apache.sling",
+      "purl": "pkg:maven/org.apache.sling/org.apache.sling.commons.osgi@2.0.2-incubator",
+      "version": "2.0.2-incubator",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
@@ -854,6 +4376,38 @@
           "title": "\u003cnormalized\u003e"
         }
       ]
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "org.apache.sling:org.apache.sling.jcr.api",
+      "org": "org.apache.sling",
+      "purl": "pkg:maven/org.apache.sling/org.apache.sling.jcr.api@2.0.2-incubator",
+      "version": "2.0.2-incubator",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "org.apache.sling:org.apache.sling.jcr.resource",
+      "org": "org.apache.sling",
+      "purl": "pkg:maven/org.apache.sling/org.apache.sling.jcr.resource@2.0.2-incubator",
+      "version": "2.0.2-incubator",
+      "vulnerabilities": []
     },
     {
       "ecosystem": "maven",
@@ -1818,6 +5372,285 @@
     },
     {
       "ecosystem": "maven",
+      "licenses": [],
+      "matched": true,
+      "name": "org.apache.zookeeper:zookeeper",
+      "org": "org.apache.zookeeper",
+      "purl": "pkg:maven/org.apache.zookeeper/zookeeper@3.4.6",
+      "version": "3.4.6",
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2019-0201",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-2hw2-62cp-p9p7",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2023-44981",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-7286-pgfv-vxvh",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2017-5637",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-7cwj-j333-x7f7",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2018-8012",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-ccqf-c5hq-77mp",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
+    },
+    {
+      "ecosystem": "maven",
       "licenses": [
         {
           "spdxExpression": "Apache-2.0",
@@ -1826,9 +5659,60 @@
         }
       ],
       "matched": true,
+      "name": "org.freemarker:freemarker",
+      "org": "org.freemarker",
+      "purl": "pkg:maven/org.freemarker/freemarker@2.3.23",
+      "version": "2.3.23",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "non-standard",
+          "type": "external-depsdev",
+          "value": "non-standard"
+        }
+      ],
+      "matched": true,
+      "name": "org.hamcrest:hamcrest-core",
+      "org": "org.hamcrest",
+      "purl": "pkg:maven/org.hamcrest/hamcrest-core@1.3",
+      "version": "1.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "org.javassist:javassist",
+      "org": "org.javassist",
+      "purl": "pkg:maven/org.javassist/javassist@3.20.0-ga",
+      "version": "3.20.0-ga",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "non-standard",
+          "type": "external-depsdev",
+          "value": "non-standard"
+        }
+      ],
+      "matched": true,
+      "name": "org.jrobin:jrobin",
+      "org": "org.jrobin",
+      "purl": "pkg:maven/org.jrobin/jrobin@1.5.9",
+      "version": "1.5.9",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "matched": true,
       "name": "org.keycloak:keycloak-saml-core",
       "org": "org.keycloak",
-      "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.Final",
+      "purl": "pkg:maven/org.keycloak/keycloak-saml-core@1.8.1.final",
       "version": "1.8.1.final",
       "vulnerabilities": [
         {
@@ -2137,15 +6021,1144 @@
       "ecosystem": "maven",
       "licenses": [
         {
-          "spdxExpression": "Apache-2.0",
+          "spdxExpression": "BSD-3-Clause",
           "type": "external-depsdev",
-          "value": "Apache-2.0"
+          "value": "BSD-3-Clause"
         }
       ],
       "matched": true,
+      "name": "org.scala-lang.modules:scala-parser-combinators_2.11",
+      "org": "org.scala-lang.modules",
+      "purl": "pkg:maven/org.scala-lang.modules/scala-parser-combinators_2.11@1.0.4",
+      "version": "1.0.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "BSD-3-Clause",
+          "type": "external-depsdev",
+          "value": "BSD-3-Clause"
+        }
+      ],
+      "matched": true,
+      "name": "org.scala-lang.modules:scala-xml_2.11",
+      "org": "org.scala-lang.modules",
+      "purl": "pkg:maven/org.scala-lang.modules/scala-xml_2.11@1.0.4",
+      "version": "1.0.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "BSD-3-Clause",
+          "type": "external-depsdev",
+          "value": "BSD-3-Clause"
+        }
+      ],
+      "matched": true,
+      "name": "org.scala-lang:scala-library",
+      "org": "org.scala-lang",
+      "purl": "pkg:maven/org.scala-lang/scala-library@2.11.7",
+      "version": "2.11.7",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "MIT",
+          "type": "external-depsdev",
+          "value": "MIT"
+        }
+      ],
+      "matched": true,
+      "name": "org.slf4j:slf4j-api",
+      "org": "org.slf4j",
+      "purl": "pkg:maven/org.slf4j/slf4j-api@1.6.1",
+      "version": "1.6.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "MIT",
+          "type": "external-depsdev",
+          "value": "MIT"
+        }
+      ],
+      "matched": true,
+      "name": "org.slf4j:slf4j-log4j12",
+      "org": "org.slf4j",
+      "purl": "pkg:maven/org.slf4j/slf4j-log4j12@1.7.6",
+      "version": "1.7.6",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "org.springframework:spring-aop",
+      "org": "org.springframework",
+      "purl": "pkg:maven/org.springframework/spring-aop@3.1.1.release",
+      "version": "3.1.1.release",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "org.springframework:spring-asm",
+      "org": "org.springframework",
+      "purl": "pkg:maven/org.springframework/spring-asm@3.1.1.release",
+      "version": "3.1.1.release",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "matched": true,
+      "name": "org.springframework:spring-beans",
+      "org": "org.springframework",
+      "purl": "pkg:maven/org.springframework/spring-beans@3.1.1.release",
+      "version": "3.1.1.release",
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2022-22965",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-36p3-wjmg-h94x",
+          "kev_exploited": true,
+          "known_exploited": [
+            {
+              "cve": "CVE-2022-22965",
+              "cwes": [
+                "CWE-94"
+              ],
+              "date_added": "2022-04-04",
+              "due_date": "2022-04-25",
+              "known_ransomware_campaign_use": "unknown",
+              "product": "Spring Framework",
+              "required_action": "Apply updates per vendor instructions.",
+              "urls": [
+                "https://nvd.nist.gov/vuln/detail/CVE-2022-22965"
+              ],
+              "vendor_project": "VMware"
+            }
+          ],
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 1,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2022-22970",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-hh26-6xwr-ggv7",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 1,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "matched": true,
+      "name": "org.springframework:spring-context",
+      "org": "org.springframework",
+      "purl": "pkg:maven/org.springframework/spring-context@3.1.1.release",
+      "version": "3.1.1.release",
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2024-38820",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-4gc7-5j7h-4qph",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 1,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2025-22233",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "id": "GHSA-4wp7-92pw-q264",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 1,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2022-22968",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-g5mm-vmx4-3rg7",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 1,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "matched": true,
+      "name": "org.springframework:spring-core",
+      "org": "org.springframework",
+      "purl": "pkg:maven/org.springframework/spring-core@3.1.1.release",
+      "version": "3.1.1.release",
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2018-1272",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-4487-x383-qpph",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 1,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2016-5007",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-8crv-49fr-2h6j",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 1,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2018-1271",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-g8hw-794c-4j9g",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 1,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2015-5211",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-pgf9-h69p-pcgf",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 1,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2018-1257",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-rcpf-vj53-7h2m",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 1,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2014-3578",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-rhcg-rwhx-qj3j",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 1,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "matched": true,
+      "name": "org.springframework:spring-expression",
+      "org": "org.springframework",
+      "purl": "pkg:maven/org.springframework/spring-expression@3.1.1.release",
+      "version": "3.1.1.release",
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2022-22950",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-558x-2xjg-6232",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 2,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2023-20861",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-564r-hj7v-mcr5",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 2,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2024-38808",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-9cmq-m9j5-mvww",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 2,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2023-20863",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-wxqc-pxw9-g2p8",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "confidence": "low",
+            "dynamic_imports_detected": true,
+            "hops": 2,
+            "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "matched": true,
       "name": "org.springframework:spring-web",
       "org": "org.springframework",
-      "purl": "pkg:maven/org.springframework/spring-web@3.1.1.RELEASE",
+      "purl": "pkg:maven/org.springframework/spring-web@3.1.1.release",
       "version": "3.1.1.release",
       "vulnerabilities": [
         {
@@ -2714,6 +7727,291 @@
             "dynamic_imports_detected": true,
             "hops": 0,
             "status": "reachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        }
+      ]
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [
+        {
+          "spdxExpression": "Apache-2.0",
+          "type": "external-depsdev",
+          "value": "Apache-2.0"
+        }
+      ],
+      "matched": true,
+      "name": "org.xerial.snappy:snappy-java",
+      "org": "org.xerial.snappy",
+      "purl": "pkg:maven/org.xerial.snappy/snappy-java@1.1.1.7",
+      "version": "1.1.1.7",
+      "vulnerabilities": [
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2023-43642",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-55g7-9cwv-5qfv",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2023-34454",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-fjpj-2g6w-x25r",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2023-34453",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-pqr6-cmr2-h8hf",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
+            "tier": "package"
+          },
+          "reasons": [
+            "\u003cnormalized\u003e"
+          ],
+          "references": [
+            {
+              "type": "\u003cnormalized\u003e",
+              "url": "\u003cnormalized\u003e"
+            }
+          ],
+          "risk_score": 0,
+          "severity": "\u003cnormalized\u003e",
+          "severity_source": "\u003cnormalized\u003e",
+          "source": "grype",
+          "title": "\u003cnormalized\u003e"
+        },
+        {
+          "affected_version_range": "\u003cnormalized\u003e",
+          "aliases": [
+            "\u003cnormalized\u003e"
+          ],
+          "cvss": [
+            {
+              "score": 0,
+              "vector": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "cwes": [
+            {
+              "cve": "\u003cnormalized\u003e",
+              "id": "\u003cnormalized\u003e",
+              "source": "\u003cnormalized\u003e",
+              "type": "\u003cnormalized\u003e"
+            }
+          ],
+          "data_source": "\u003cnormalized\u003e",
+          "description": "\u003cnormalized\u003e",
+          "epss": [
+            {
+              "cve": "CVE-2023-34455",
+              "date": "\u003cnormalized\u003e",
+              "epss": 0,
+              "percentile": 0
+            }
+          ],
+          "fix_available": [
+            {
+              "date": "\u003cnormalized\u003e",
+              "kind": "\u003cnormalized\u003e",
+              "version": "\u003cnormalized\u003e"
+            }
+          ],
+          "fix_state": "\u003cnormalized\u003e",
+          "fixed_in": "\u003cnormalized\u003e",
+          "fixed_versions": [
+            "\u003cnormalized\u003e"
+          ],
+          "id": "GHSA-qcwq-55hx-v3vh",
+          "namespace": "\u003cnormalized\u003e",
+          "reachability": {
+            "analyzed_at": "\u003ctimestamp\u003e",
+            "analyzer": "jvmreach",
+            "dynamic_imports_detected": true,
+            "reason": "package-not-imported",
+            "status": "unreachable",
             "tier": "package"
           },
           "reasons": [

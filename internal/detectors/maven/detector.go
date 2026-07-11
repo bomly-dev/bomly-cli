@@ -242,7 +242,6 @@ func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
 	// dependency trees (or single nodes with very long coordinate strings)
 	// routinely exceed that and fail with "token too long", so raise the cap.
 	scanner.Buffer(make([]byte, 0, 64*1024), maxTGFTokenSize)
-	inEdges := false
 
 	tgfPackages := make(map[string]*sdk.Dependency)
 	tgfGraph := sdk.New()
@@ -252,20 +251,31 @@ func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
 	}
 	relationships := make([]edge, 0, 16)
 
+	// `mvn dependency:tree -DoutputType=tgf` on a multi-module reactor emits
+	// ONE TGF block per module (nodes, then a `#` separator, then edges),
+	// all concatenated on stdout. Node ids are global object hashcodes,
+	// unique across the whole reactor — verified against a real 13-module
+	// reactor: zero id was reused for a different coordinate across blocks.
+	// So we classify each line by its SHAPE — a node line ("<id> <coords>")
+	// or an edge line ("<from> <to> <scope>") — instead of relying on a
+	// single nodes→edges transition. The previous single `#` flag flipped to
+	// "edges" on the first module and never reset, so every later block's
+	// node lines were dropped and their edges then referenced ids that were
+	// never registered ("maven tgf references unknown package"). Node and
+	// edge lines are unambiguous (a node's second field is a coordinate with
+	// colons; an edge's second field is a numeric id), and nodes are checked
+	// first, so a shape check is safe.
 	for scanner.Scan() {
 		line, ok := normalizeMavenTGFLine(scanner.Text())
 		if !ok {
 			continue
 		}
-		if line == "#" {
-			inEdges = true
+		switch {
+		case line == "#":
+			// Block/section separator; classification is by shape, so there
+			// is nothing to track across it.
 			continue
-		}
-
-		if !inEdges {
-			if !looksLikeTGFNodeLine(line) {
-				continue
-			}
+		case looksLikeTGFNodeLine(line):
 			id, node, err := parseTGFNodeLine(line)
 			if err != nil {
 				return nil, err
@@ -276,14 +286,10 @@ func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
 			} else if err := tgfGraph.AddNode(node); err != nil && !errors.Is(err, sdk.ErrNodeAlreadyExist) {
 				return nil, fmt.Errorf("add maven package %q: %w", node.ID, err)
 			}
-			continue
+		case looksLikeTGFEdgeLine(line):
+			fields := strings.Fields(line)
+			relationships = append(relationships, edge{from: fields[0], to: fields[1]})
 		}
-
-		if !looksLikeTGFEdgeLine(line) {
-			continue
-		}
-		fields := strings.Fields(line)
-		relationships = append(relationships, edge{from: fields[0], to: fields[1]})
 	}
 
 	if err := scanner.Err(); err != nil {

@@ -1,0 +1,10 @@
+105194717 com.bomly:module-a:jar:1.0.0
+366752671 org.apache.commons:commons-lang3:jar:3.12.0:compile
+#
+105194717 366752671 compile
+773708944 com.bomly:module-b:jar:1.0.0
+811111111 com.bomly:module-a:jar:1.0.0:compile
+366752672 org.apache.commons:commons-lang3:jar:3.12.0:test
+#
+773708944 811111111 compile
+773708944 366752672 test

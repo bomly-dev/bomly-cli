@@ -1,0 +1,16 @@
+105194717 com.bomly:module-a:jar:1.0.0
+366752671 org.apache.commons:commons-lang3:jar:3.12.0:compile
+#
+105194717 366752671 compile
+773708944 com.bomly:module-b:jar:1.0.0
+834153999 com.fasterxml.jackson.core:jackson-databind:jar:2.13.0:compile
+399683701 org.yaml:snakeyaml:jar:1.30:compile
+#
+773708944 834153999 compile
+834153999 399683701 compile
+1274547241 com.bomly:module-c:jar:1.0.0
+1364958538 junit:junit:jar:4.13.2:test
+1858779250 org.hamcrest:hamcrest-core:jar:1.3:test
+#
+1274547241 1364958538 test
+1364958538 1858779250 test

@@ -25,6 +25,9 @@ type Resolved struct {
 	URL                   string   `doc:"Remote Git URL to clone and scan" env:"BOMLY_URL"`
 	Ref                   string   `doc:"Git ref to checkout when scanning a URL" env:"BOMLY_REF"`
 	SBOM                  bool     `doc:"Treat the selected filesystem target as an SBOM file" env:"BOMLY_SBOM"`
+	Recursive             bool     `doc:"Recursively discover nested manifests under the scan root" env:"BOMLY_RECURSIVE"`
+	MaxDepth              int      `doc:"Maximum directory depth for recursive discovery, counted from the scan root (0 = unlimited)" env:"BOMLY_MAX_DEPTH" default:"3"`
+	ExcludePaths          []string `doc:"Glob pattern(s) relative to the scan root excluded from recursive discovery, in addition to built-in ignore rules; requires recursive" env:"BOMLY_EXCLUDE"`
 	Enrich                bool     `doc:"Enrich packages with external license and vulnerability data" env:"BOMLY_ENRICH"`
 	Audit                 bool     `doc:"Evaluate policy and create findings from package vulnerability data" env:"BOMLY_AUDIT"`
 	Analyze               bool     `doc:"Run code analysis to confirm whether vulnerabilities are reachable from application code" env:"BOMLY_ANALYZE"`
@@ -97,12 +100,15 @@ type File struct {
 
 // TargetFile configures the execution target selected for a scan.
 type TargetFile struct {
-	Path      *string `yaml:"path,omitempty" resolved:"Path" legacy:"path"`
-	Container *string `yaml:"container,omitempty" resolved:"Image" legacy:"container"` // deprecated alias for image
-	Image     *string `yaml:"image,omitempty" resolved:"Image" legacy:"image"`
-	URL       *string `yaml:"url,omitempty" resolved:"URL" legacy:"url"`
-	Ref       *string `yaml:"ref,omitempty" resolved:"Ref" legacy:"ref"`
-	SBOM      *bool   `yaml:"sbom,omitempty" resolved:"SBOM" legacy:"sbom"`
+	Path      *string   `yaml:"path,omitempty" resolved:"Path" legacy:"path"`
+	Container *string   `yaml:"container,omitempty" resolved:"Image" legacy:"container"` // deprecated alias for image
+	Image     *string   `yaml:"image,omitempty" resolved:"Image" legacy:"image"`
+	URL       *string   `yaml:"url,omitempty" resolved:"URL" legacy:"url"`
+	Ref       *string   `yaml:"ref,omitempty" resolved:"Ref" legacy:"ref"`
+	SBOM      *bool     `yaml:"sbom,omitempty" resolved:"SBOM" legacy:"sbom"`
+	Recursive *bool     `yaml:"recursive,omitempty" resolved:"Recursive" legacy:"recursive"`
+	MaxDepth  *int      `yaml:"max_depth,omitempty" resolved:"MaxDepth" legacy:"max_depth"`
+	Exclude   *[]string `yaml:"exclude,omitempty" resolved:"ExcludePaths" legacy:"exclude"`
 }
 
 // PipelineFile configures optional pipeline behavior and dependency preparation.

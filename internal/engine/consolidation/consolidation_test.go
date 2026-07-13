@@ -329,3 +329,70 @@ func graphFixture(packages []nodeFixture, relationships [][2]string) *sdk.Graph 
 	}
 	return g
 }
+
+func TestConsolidateGraphs_KeepsSameManifestNameAcrossSubprojects(t *testing.T) {
+	rootTarget := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"}
+	serviceGraph := graphFixture(
+		[]nodeFixture{{id: "svc@1.0.0", name: "svc", version: "1.0.0"}},
+		nil,
+	)
+	harnessGraph := graphFixture(
+		[]nodeFixture{{id: "harness@1.0.0", name: "harness", version: "1.0.0"}},
+		nil,
+	)
+
+	// Two nested subprojects that each emit a manifest named requirements.txt
+	// in their own coordinate space. Consolidation must rebase both onto the
+	// repository root instead of collapsing them into one dedup key.
+	consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{
+		{
+			SubprojectInfo:      sdk.Subproject{ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/repo/fixtures/service"}, RelativePath: "fixtures/service", PrimaryDetector: "python-pip", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerPip}, Ecosystem: sdk.EcosystemPython},
+			RootExecutionTarget: rootTarget,
+			DetectorName:        "python-pip",
+			Origin:              sdk.CoreOrigin,
+			Graphs:              sdk.SingleGraphContainer(serviceGraph, sdk.ManifestMetadata{Path: "requirements.txt", Kind: "pip"}),
+		},
+		{
+			SubprojectInfo:      sdk.Subproject{ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/repo/harness"}, RelativePath: "harness", PrimaryDetector: "python-pip", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerPip}, Ecosystem: sdk.EcosystemPython},
+			RootExecutionTarget: rootTarget,
+			DetectorName:        "python-pip",
+			Origin:              sdk.CoreOrigin,
+			Graphs:              sdk.SingleGraphContainer(harnessGraph, sdk.ManifestMetadata{Path: "requirements.txt", Kind: "pip"}),
+		},
+	})
+	if err != nil {
+		t.Fatalf("ConsolidateGraphs() error = %v", err)
+	}
+	if len(consolidated.Graphs.Entries) != 2 {
+		t.Fatalf("expected both same-named manifests to survive dedup, got %d entries", len(consolidated.Graphs.Entries))
+	}
+	paths := []string{consolidated.Graphs.Entries[0].Manifest.Path, consolidated.Graphs.Entries[1].Manifest.Path}
+	want := map[string]bool{"fixtures/service/requirements.txt": true, "harness/requirements.txt": true}
+	for _, p := range paths {
+		if !want[p] {
+			t.Fatalf("expected repo-relative manifest paths, got %v", paths)
+		}
+	}
+}
+
+func TestConsolidateGraphs_AcceptsNestedSubprojectExecutionTargets(t *testing.T) {
+	// Nested subprojects carry their own ExecutionTarget locations; the
+	// multiple-execution-target guard must key on RootExecutionTarget (stamped
+	// by the resolve stage), not the per-subproject targets.
+	rootTarget := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"}
+	_, err := ConsolidateGraphs([]sdk.DetectionResult{
+		{
+			SubprojectInfo:      sdk.Subproject{ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/repo/apps/web"}, RelativePath: "apps/web", PrimaryDetector: "npm-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM},
+			RootExecutionTarget: rootTarget,
+			Graphs:              sdk.SingleGraphContainer(graphFixture([]nodeFixture{{id: "web@1.0.0", name: "web", version: "1.0.0"}}, nil), sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		},
+		{
+			SubprojectInfo:      sdk.Subproject{ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/repo/services/api"}, RelativePath: "services/api", PrimaryDetector: "go-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerGoMod}, Ecosystem: sdk.EcosystemGo},
+			RootExecutionTarget: rootTarget,
+			Graphs:              sdk.SingleGraphContainer(graphFixture([]nodeFixture{{id: "api", name: "api"}}, nil), sdk.ManifestMetadata{Path: "go.mod", Kind: "go.mod"}),
+		},
+	})
+	if err != nil {
+		t.Fatalf("ConsolidateGraphs() error = %v; nested subproject targets must not trip the multi-target guard", err)
+	}
+}

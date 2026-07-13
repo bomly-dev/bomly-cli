@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"reflect"
 	"strconv"
@@ -299,6 +300,12 @@ func ApplyDefaults(cfg *Resolved) {
 					fv.SetBool(b)
 				}
 			}
+		case reflect.Int:
+			if fv.Int() == 0 {
+				if parsed, err := strconv.Atoi(strings.TrimSpace(def)); err == nil {
+					fv.SetInt(int64(parsed))
+				}
+			}
 		}
 	}
 }
@@ -321,6 +328,27 @@ func Validate(cfg Resolved) error {
 	}
 	if cfg.Analyze && !cfg.Enrich {
 		return fmt.Errorf("--analyze requires --enrich")
+	}
+	if cfg.MaxDepth < 0 {
+		return fmt.Errorf("--max-depth must be a positive depth or 0 for unlimited")
+	}
+	if len(cfg.ExcludePaths) > 0 && !cfg.Recursive {
+		return fmt.Errorf("--exclude requires --recursive")
+	}
+	if cfg.Recursive && strings.TrimSpace(cfg.Image) != "" {
+		return fmt.Errorf("--recursive cannot be combined with --image")
+	}
+	if cfg.Recursive && cfg.SBOM {
+		return fmt.Errorf("--recursive cannot be combined with --sbom")
+	}
+	for _, pattern := range cfg.ExcludePaths {
+		normalized := strings.TrimSpace(strings.ReplaceAll(pattern, "\\", "/"))
+		if normalized == "" {
+			return fmt.Errorf("invalid --exclude pattern %q: pattern is empty", pattern)
+		}
+		if _, err := path.Match(normalized, "probe"); err != nil {
+			return fmt.Errorf("invalid --exclude pattern %q: %w", pattern, err)
+		}
 	}
 	if len(cfg.AllowLicenses) > 0 && len(cfg.DenyLicenses) > 0 {
 		return fmt.Errorf("--allow-license cannot be combined with --deny-license")

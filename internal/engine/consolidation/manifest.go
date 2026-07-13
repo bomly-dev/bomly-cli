@@ -90,6 +90,28 @@ func splitPathVolume(value string) (string, string, bool) {
 	return "", value, false
 }
 
+// rebaseManifestPathToRoot prefixes the subproject's RelativePath onto a
+// subproject-relative manifest path so consolidated manifest paths are
+// repository-root-relative — the invariant manifestDedupKey relies on to keep
+// same-named manifests in different subprojects distinct. A no-op for
+// root-level subprojects (RelativePath "." or "") and for absolute paths. A
+// subproject planned directly on a manifest file (e.g. an SBOM document) has
+// the manifest itself as its RelativePath, which already is the rebased path.
+func rebaseManifestPathToRoot(subproject sdk.Subproject, manifestPath string) string {
+	rel := strings.Trim(strings.TrimSpace(strings.ReplaceAll(subproject.RelativePath, "\\", "/")), "/")
+	if rel == "" || rel == "." || manifestPath == "" || manifestPathIsAbs(manifestPath) {
+		return manifestPath
+	}
+	if rel == manifestPath || strings.HasSuffix(rel, "/"+manifestPath) {
+		return rel
+	}
+	return rebaseLocationPath(manifestPath, rel)
+}
+
+// manifestDedupKey identifies a manifest across detector results. Core
+// detector paths are repo-root-relative after rebaseManifestPathToRoot, so the
+// normalized path alone distinguishes same-named manifests in different
+// subprojects.
 func manifestDedupKey(subproject sdk.Subproject, manifest sdk.ManifestMetadata) string {
 	p := manifestDedupPath(subproject, manifest.Path)
 	return p

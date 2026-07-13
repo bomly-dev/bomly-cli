@@ -73,7 +73,7 @@ type metadataDepKind struct {
 
 // PackageManagerSupport returns Cargo package-manager discovery metadata.
 func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerCargo, evidencePatterns...).WithNativeMultiModule()}
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerCargo, evidencePatterns...).WithMultiModule()}
 }
 
 // Ready reports whether Cargo is available.
@@ -90,13 +90,13 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 // Descriptor describes the Cargo detector.
 func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		DiscoveryIgnoredDirectories: []string{"target"},
-		Name:                        detectors.NameCargo,
-		Technique:                   sdk.LockfileTechnique,
-		SupportedEcosystems:         []sdk.Ecosystem{sdk.EcosystemRust},
-		SupportedManagers:           []sdk.PackageManager{sdk.PackageManagerCargo},
-		Tags:                        []string{"graph-resolution", "component-targeting", "module-graph", "scope-annotation"},
-		SupportsInstallFirst:        true,
+		IgnoredDirectories:   []string{"target"},
+		Name:                 detectors.NameCargo,
+		Technique:            sdk.LockfileTechnique,
+		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemRust},
+		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerCargo},
+		Tags:                 []string{"graph-resolution", "component-targeting", "module-graph", "scope-annotation"},
+		SupportsInstallFirst: true,
 	}
 }
 

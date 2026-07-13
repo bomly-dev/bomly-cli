@@ -10,5 +10,8 @@ Bomly uses this chain when it finds `swipl-pack` evidence.
 | Ecosystem | `prolog` |
 | Detector chain | `syft-detector` |
 | Evidence patterns | `pack.pl` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | `syft for bomly-lite` |

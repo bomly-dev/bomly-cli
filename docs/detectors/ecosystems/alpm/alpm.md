@@ -10,5 +10,8 @@ Bomly uses this chain when it finds `alpm` evidence.
 | Ecosystem | `alpm` |
 | Detector chain | `syft-detector` |
 | Evidence patterns | `var/lib/pacman/local/*/desc` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | `syft for bomly-lite` |

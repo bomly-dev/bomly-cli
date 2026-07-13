@@ -10,5 +10,8 @@ Bomly uses this chain when it finds `luarocks` evidence.
 | Ecosystem | `lua` |
 | Detector chain | `syft-detector` |
 | Evidence patterns | `*.rockspec` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | `syft for bomly-lite` |

@@ -10,5 +10,8 @@ Bomly uses this chain when it finds `mix` evidence.
 | Ecosystem | `elixir` |
 | Detector chain | `mix-detector`, `syft-detector` |
 | Evidence patterns | `mix.lock`, `mix.exs` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | Yes |
 | Install-first support | No |
 | Native command hints | `mix`, `syft for bomly-lite` |

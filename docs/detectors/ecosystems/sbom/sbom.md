@@ -10,6 +10,9 @@ Bomly uses this chain when it finds `sbom` evidence.
 | Ecosystem | `sbom` |
 | Detector chain | `sbom-detector` |
 | Evidence patterns | `*.syft.json`, `*.bom.*`, `*.bom`, `bom`, `*.sbom.*`, `*.sbom`, `sbom`, `*.cdx.*`, `*.cdx`, `*.spdx.*`, `*.spdx` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | - |
 

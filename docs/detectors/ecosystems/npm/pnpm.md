@@ -10,6 +10,9 @@ Bomly uses this chain when it finds `pnpm` evidence.
 | Ecosystem | `npm` |
 | Detector chain | `pnpm-detector`, `pnpm-native-detector`, `syft-detector` |
 | Evidence patterns | `pnpm-lock.yaml`, `package.json` |
+| Ignored directories | `node_modules`, `dist` |
+| Ignored directory markers | - |
+| Multi-module resolution | Yes |
 | Install-first support | Yes |
 | Native command hints | `npm`, `syft for bomly-lite` |
 

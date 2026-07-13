@@ -10,6 +10,9 @@ Bomly uses this chain when it finds `poetry` evidence.
 | Ecosystem | `python` |
 | Detector chain | `poetry-detector`, `syft-detector` |
 | Evidence patterns | `poetry.lock`, `pyproject.toml` |
+| Ignored directories | `__pycache__` |
+| Ignored directory markers | `pyvenv.cfg` |
+| Multi-module resolution | No |
 | Install-first support | Yes |
 | Native command hints | `poetry`, `syft for bomly-lite` |
 

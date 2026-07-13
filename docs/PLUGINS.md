@@ -167,9 +167,9 @@ Detector plugins can participate in subproject discovery. Their runtime descript
 
 Detector plugins can also shape recursive discovery (`--recursive`) through three optional descriptor fields, all aggregated across every registered detector exactly like the built-ins' declarations:
 
-- `DetectorDescriptor.DiscoveryIgnoredDirectories` — directory basename globs the recursive walk must not descend into (a Node detector declares `node_modules`, a Maven detector declares `target`).
-- `DetectorDescriptor.DiscoveryIgnoredDirectoryMarkers` — file names whose presence marks a directory as ignored regardless of its name (the Python detectors declare `pyvenv.cfg` to skip virtualenvs).
-- `PackageManagerSupport.NativeMultiModule` (set via `sdk.Support(...).WithNativeMultiModule()`) — declares that the detector natively expands nested workspace/reactor modules from a root manifest, so recursive discovery prunes nested subprojects for the same package manager below a detected root instead of scanning the modules twice.
+- `DetectorDescriptor.IgnoredDirectories` — directory basename globs the recursive walk must not descend into (a Node detector declares `node_modules`, a Maven detector declares `target`).
+- `DetectorDescriptor.IgnoredDirectoryMarkers` — file names whose presence marks a directory as ignored regardless of its name (the Python detectors declare `pyvenv.cfg` to skip virtualenvs).
+- `PackageManagerSupport.MultiModule` (set via `sdk.Support(...).WithMultiModule()`) — declares that the detector natively expands nested workspace/reactor modules from a root manifest, so recursive discovery prunes nested subprojects for the same package manager below a detected root instead of scanning the modules twice.
 
 All three are optional and older plugins that omit them keep working unchanged.
 

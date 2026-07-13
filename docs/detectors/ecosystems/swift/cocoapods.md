@@ -10,5 +10,8 @@ Bomly uses this chain when it finds `cocoapods` evidence.
 | Ecosystem | `swift` |
 | Detector chain | `cocoapods-detector`, `syft-detector` |
 | Evidence patterns | `Podfile.lock`, `Podfile` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | `syft for bomly-lite` |

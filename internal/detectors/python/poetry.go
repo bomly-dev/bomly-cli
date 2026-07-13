@@ -38,14 +38,14 @@ func (d PoetryDetector) Applicable(ctx context.Context, req sdk.DetectionRequest
 // Descriptor describes the Poetry detector.
 func (d PoetryDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		DiscoveryIgnoredDirectories:      []string{"__pycache__"},
-		DiscoveryIgnoredDirectoryMarkers: []string{"pyvenv.cfg"},
-		Name:                             detectors.NamePoetry,
-		Technique:                        sdk.BuildToolTechnique,
-		SupportedEcosystems:              []sdk.Ecosystem{sdk.EcosystemPython},
-		SupportedManagers:                []sdk.PackageManager{sdk.PackageManagerPoetry},
-		Tags:                             []string{"graph-resolution", "component-targeting"},
-		SupportsInstallFirst:             true,
+		IgnoredDirectories:      []string{"__pycache__"},
+		IgnoredDirectoryMarkers: []string{"pyvenv.cfg"},
+		Name:                    detectors.NamePoetry,
+		Technique:               sdk.BuildToolTechnique,
+		SupportedEcosystems:     []sdk.Ecosystem{sdk.EcosystemPython},
+		SupportedManagers:       []sdk.PackageManager{sdk.PackageManagerPoetry},
+		Tags:                    []string{"graph-resolution", "component-targeting"},
+		SupportsInstallFirst:    true,
 	}
 }
 

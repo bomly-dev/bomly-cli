@@ -32,7 +32,7 @@ var evidencePatterns = []string{"build.gradle", "build.gradle.kts", "settings.gr
 
 // PackageManagerSupport returns Gradle package-manager discovery metadata.
 func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerGradle, evidencePatterns...)}
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerGradle, evidencePatterns...).WithNativeMultiModule()}
 }
 
 // Ready returns nil when a Gradle wrapper is present for the request's working
@@ -78,12 +78,13 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 // Descriptor describes the Gradle graph detector.
 func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		Name:                 detectors.NameGradle,
-		Technique:            sdk.BuildToolTechnique,
-		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemMaven},
-		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerGradle},
-		Tags:                 []string{"graph-resolution", "component-targeting"},
-		SupportsInstallFirst: true,
+		DiscoveryIgnoredDirectories: []string{"build"},
+		Name:                        detectors.NameGradle,
+		Technique:                   sdk.BuildToolTechnique,
+		SupportedEcosystems:         []sdk.Ecosystem{sdk.EcosystemMaven},
+		SupportedManagers:           []sdk.PackageManager{sdk.PackageManagerGradle},
+		Tags:                        []string{"graph-resolution", "component-targeting"},
+		SupportsInstallFirst:        true,
 	}
 }
 

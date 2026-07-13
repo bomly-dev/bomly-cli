@@ -1,11 +1,13 @@
 package opts
 
 import (
+	"context"
 	"errors"
 	"os"
 	"path/filepath"
 	"reflect"
 	"runtime"
+	"slices"
 	"strings"
 	"testing"
 
@@ -367,5 +369,111 @@ func TestDescribeDiscoveryUsesSharedSkipRules(t *testing.T) {
 	}
 	if !strings.Contains(joined, "requirements.txt at src") {
 		t.Fatalf("expected probe to report src evidence, got %q", joined)
+	}
+}
+
+// fakeRulesDetector is a minimal detector used to prove that recursive
+// discovery honors detector-declared ignore rules and native multi-module
+// support the same way for registered plugins as for built-ins.
+type fakeRulesDetector struct {
+	descriptor sdk.DetectorDescriptor
+	supports   []sdk.PackageManagerSupport
+}
+
+func (d fakeRulesDetector) Descriptor() sdk.DetectorDescriptor { return d.descriptor }
+func (d fakeRulesDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
+	return d.supports
+}
+func (d fakeRulesDetector) Ready(context.Context, sdk.DetectionRequest) error { return nil }
+func (d fakeRulesDetector) Applicable(context.Context, sdk.DetectionRequest) (bool, error) {
+	return false, nil
+}
+func (d fakeRulesDetector) ResolveGraph(context.Context, sdk.DetectionRequest) (sdk.DetectionResult, error) {
+	return sdk.DetectionResult{}, nil
+}
+
+func TestPlanSubprojectsRecursiveHonorsDetectorDeclaredIgnoreRules(t *testing.T) {
+	root := t.TempDir()
+	writeEvidenceFile(t, root, "app/requirements.txt")
+	writeEvidenceFile(t, root, "generated-src/requirements.txt")
+	writeEvidenceFile(t, root, "cache/.bomlyskip")
+	writeEvidenceFile(t, root, "cache/requirements.txt")
+
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
+	reg.Build()
+	reg.RegisterDetector(fakeRulesDetector{descriptor: sdk.DetectorDescriptor{
+		Name:                             "fake-rules-detector",
+		DiscoveryIgnoredDirectories:      []string{"generated-*"},
+		DiscoveryIgnoredDirectoryMarkers: []string{".bomlyskip"},
+	}})
+
+	subprojects, err := PlanSubprojects(reg, Request{
+		Registry:        reg,
+		ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: root},
+		Recursive:       true,
+		MaxDepth:        3,
+	})
+	if err != nil {
+		t.Fatalf("PlanSubprojects() error = %v", err)
+	}
+	if got, want := subprojectRelPaths(subprojects), []string{"app"}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("expected detector-declared rules to skip generated-src and marker dir, got %v", got)
+	}
+}
+
+func TestPlanSubprojectsRecursiveHonorsDetectorDeclaredMultiModule(t *testing.T) {
+	root := t.TempDir()
+	writeEvidenceFile(t, root, "go.mod")
+	writeEvidenceFile(t, root, "tools/go.mod")
+
+	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
+	reg.Build()
+	// gomod does not prune by default (nested modules are independent); a
+	// registered detector declaring native multi-module support for it must
+	// flip that, proving plugins can opt their manager into pruning.
+	reg.RegisterDetector(fakeRulesDetector{
+		descriptor: sdk.DetectorDescriptor{Name: "fake-go-workspace-detector"},
+		supports:   []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerGoMod, "go.mod").WithNativeMultiModule()},
+	})
+
+	subprojects, err := PlanSubprojects(reg, Request{
+		Registry:        reg,
+		ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: root},
+		Recursive:       true,
+		MaxDepth:        3,
+	})
+	if err != nil {
+		t.Fatalf("PlanSubprojects() error = %v", err)
+	}
+	if got, want := subprojectRelPaths(subprojects), []string{"."}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("expected declared multi-module support to prune nested module, got %v", got)
+	}
+}
+
+func TestBuiltinDiscoveryRulesMatchExpectedCatalog(t *testing.T) {
+	rules := builtinDiscoveryRules()
+
+	wantGlobs := []string{"node_modules", "vendor", "target", "build", "dist", "__pycache__"}
+	for _, glob := range wantGlobs {
+		if !slices.Contains(rules.ignoredDirGlobs, glob) {
+			t.Errorf("expected built-in ignored directory %q, got %v", glob, rules.ignoredDirGlobs)
+		}
+	}
+	if !slices.Contains(rules.ignoredDirMarkers, "pyvenv.cfg") {
+		t.Errorf("expected pyvenv.cfg marker, got %v", rules.ignoredDirMarkers)
+	}
+
+	wantManagers := []sdk.PackageManager{
+		sdk.PackageManagerMaven, sdk.PackageManagerGradle,
+		sdk.PackageManagerNPM, sdk.PackageManagerPNPM, sdk.PackageManagerYarn,
+		sdk.PackageManagerCargo, sdk.PackageManagerSBT, sdk.PackageManagerMix,
+	}
+	for _, manager := range wantManagers {
+		if _, ok := rules.multiModuleManagers[manager]; !ok {
+			t.Errorf("expected %s in the native multi-module set, got %v", manager.Name(), rules.multiModuleManagers)
+		}
+	}
+	if _, ok := rules.multiModuleManagers[sdk.PackageManagerGoMod]; ok {
+		t.Error("gomod must not be in the native multi-module set: nested go.mod modules are independent")
 	}
 }

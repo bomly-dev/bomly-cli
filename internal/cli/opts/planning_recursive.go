@@ -6,55 +6,124 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/bomly-dev/bomly-cli/internal/engine"
+	"github.com/bomly-dev/bomly-cli/internal/registry"
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
 )
 
-// defaultDiscoverySkipDirs are directory names the recursive walk never
-// descends into, in addition to any name starting with a dot. They hold
-// third-party installs, vendored dependencies, or build outputs that commonly
-// contain copied manifests (Maven copies pom.xml into target/, bundlers copy
-// package.json into dist/), so walking them produces duplicate or misleading
-// subprojects. Directories containing a pyvenv.cfg file (non-hidden Python
-// virtualenvs) are skipped via shouldSkipDiscoveryDir's probe.
-var defaultDiscoverySkipDirs = map[string]struct{}{
-	"node_modules": {},
-	"vendor":       {},
-	"target":       {},
-	"build":        {},
-	"dist":         {},
-	"__pycache__":  {},
+// discoveryRules aggregates detector-declared recursive-discovery metadata:
+// directory globs the walk must not descend into, marker files that flag a
+// directory as ignored (e.g. pyvenv.cfg), and package managers whose
+// detectors natively expand nested workspace/reactor modules from a root
+// manifest. Each detector owns its ecosystem's rules via
+// sdk.DetectorDescriptor.DiscoveryIgnoredDirectories /
+// DiscoveryIgnoredDirectoryMarkers and
+// sdk.PackageManagerSupport.NativeMultiModule, so external detector plugins
+// contribute rules the same way built-ins do. Directories whose name starts
+// with a dot are always skipped, independent of detector declarations.
+type discoveryRules struct {
+	ignoredDirGlobs     []string
+	ignoredDirMarkers   []string
+	multiModuleManagers map[sdk.PackageManager]struct{}
 }
 
-// nativeMultiModulePackageManagers lists package managers whose primary
-// detectors expand nested workspace/reactor modules from the root manifest
-// (Maven reactor TGF blocks, Gradle settings subprojects, npm/pnpm/yarn
-// workspaces, cargo metadata workspace_members, sbt aggregated builds, mix
-// umbrella apps). When one of these is detected at an ancestor directory,
-// nested manifests for the same manager resolve through the ancestor and must
-// not become their own subprojects, or the same modules would be scanned
-// twice. Managers absent from this set (gomod, pip/poetry/uv, bundler,
-// composer, ...) treat every nested manifest as an independent project:
-// notably a nested go.mod is excluded from the parent Go module by language
-// semantics, so it must be scanned on its own.
-var nativeMultiModulePackageManagers = map[sdk.PackageManager]struct{}{
-	sdk.PackageManagerMaven:  {},
-	sdk.PackageManagerGradle: {},
-	sdk.PackageManagerNPM:    {},
-	sdk.PackageManagerPNPM:   {},
-	sdk.PackageManagerYarn:   {},
-	sdk.PackageManagerCargo:  {},
-	sdk.PackageManagerSBT:    {},
-	sdk.PackageManagerMix:    {},
+// discoveryRulesFromDetectors folds every detector's declarations into one
+// rule set. Native multi-module support is read from both the descriptor's
+// PackageManagerSupport (how external plugins declare it) and the
+// PackageManagerSupport() method (how built-ins declare it), so either
+// declaration style opts a manager into ancestor pruning.
+func discoveryRulesFromDetectors(detectors []sdk.Detector) discoveryRules {
+	rules := discoveryRules{multiModuleManagers: map[sdk.PackageManager]struct{}{}}
+	seenGlobs := map[string]struct{}{}
+	seenMarkers := map[string]struct{}{}
+	for _, detector := range detectors {
+		if detector == nil {
+			continue
+		}
+		descriptor := detector.Descriptor()
+		for _, glob := range descriptor.DiscoveryIgnoredDirectories {
+			glob = strings.TrimSpace(glob)
+			if glob == "" {
+				continue
+			}
+			if _, ok := seenGlobs[glob]; ok {
+				continue
+			}
+			seenGlobs[glob] = struct{}{}
+			rules.ignoredDirGlobs = append(rules.ignoredDirGlobs, glob)
+		}
+		for _, marker := range descriptor.DiscoveryIgnoredDirectoryMarkers {
+			marker = strings.TrimSpace(marker)
+			if marker == "" {
+				continue
+			}
+			if _, ok := seenMarkers[marker]; ok {
+				continue
+			}
+			seenMarkers[marker] = struct{}{}
+			rules.ignoredDirMarkers = append(rules.ignoredDirMarkers, marker)
+		}
+		supports := append(append([]sdk.PackageManagerSupport(nil), descriptor.PackageManagerSupport...), detector.PackageManagerSupport()...)
+		for _, support := range supports {
+			if support.NativeMultiModule && support.PackageManager != sdk.PackageManagerUnknown {
+				rules.multiModuleManagers[support.PackageManager] = struct{}{}
+			}
+		}
+	}
+	return rules
+}
+
+// discoveryRulesFor picks the widest available detector set: the request's
+// unfiltered registry when present (so --detectors / --ecosystems filters
+// never change which directories are walked), the planning registry
+// otherwise, and the static built-in catalog as a last resort.
+func discoveryRulesFor(registryValue *engine.Registry, req Request) discoveryRules {
+	switch {
+	case req.Registry != nil:
+		return discoveryRulesFromDetectors(req.Registry.AllDetectors())
+	case registryValue != nil:
+		return discoveryRulesFromDetectors(registryValue.AllDetectors())
+	default:
+		return builtinDiscoveryRules()
+	}
+}
+
+// builtinDiscoveryRules caches the rule set aggregated from the built-in
+// detector catalog, for callers with no runtime registry in scope (the
+// diagnostic discovery probe).
+var builtinDiscoveryRules = sync.OnceValue(func() discoveryRules {
+	return discoveryRulesFromDetectors(registry.BuiltinDetectors())
+})
+
+// shouldSkipDiscoveryDir reports whether discovery must not descend into a
+// directory: dot-directories (always), detector-declared ignored directory
+// globs matched against the basename, and detector-declared marker files
+// present inside the directory.
+func (r discoveryRules) shouldSkipDiscoveryDir(name, dir string) bool {
+	if strings.HasPrefix(name, ".") {
+		return true
+	}
+	for _, glob := range r.ignoredDirGlobs {
+		if matched, _ := path.Match(glob, name); matched {
+			return true
+		}
+	}
+	for _, marker := range r.ignoredDirMarkers {
+		if info, err := os.Stat(filepath.Join(dir, marker)); err == nil && !info.IsDir() {
+			return true
+		}
+	}
+	return false
 }
 
 // planRecursiveFilesystemSubprojects walks the execution-target directory tree
 // and plans subprojects for every directory with recognized manifest evidence,
-// honoring the request's depth cap, exclude globs, the built-in skip rules,
-// and per-package-manager ancestor pruning.
+// honoring the request's depth cap, exclude globs, the detector-declared
+// ignore rules, and per-package-manager ancestor pruning.
 func planRecursiveFilesystemSubprojects(registryValue *engine.Registry, req Request) ([]sdk.Subproject, error) {
 	logger := req.Logger
 	if logger == nil {
@@ -74,6 +143,7 @@ func planRecursiveFilesystemSubprojects(registryValue *engine.Registry, req Requ
 	rootTarget := req.ExecutionTarget
 	rootTarget.Location = absRoot
 
+	rules := discoveryRulesFor(registryValue, req)
 	excludes := normalizeExcludeGlobs(req.ExcludeGlobs)
 	start := time.Now()
 	logger.Info("discovery: recursive walk starting",
@@ -102,7 +172,7 @@ func planRecursiveFilesystemSubprojects(registryValue *engine.Registry, req Requ
 		}
 		rel = filepath.ToSlash(rel)
 		if rel != "." {
-			if shouldSkipDiscoveryDir(entry.Name(), currentPath) {
+			if rules.shouldSkipDiscoveryDir(entry.Name(), currentPath) {
 				dirsSkippedBuiltin++
 				return filepath.SkipDir
 			}
@@ -118,7 +188,7 @@ func planRecursiveFilesystemSubprojects(registryValue *engine.Registry, req Requ
 
 		for _, subproject := range plannedSubprojectsForPath(registryValue, rootTarget, currentPath, req.DetectorFilter, req.EcosystemFilter) {
 			manager := subproject.PrimaryPackageManager()
-			if ancestor, pruned := ancestorWithMultiModuleManager(prunedAt, rel, manager); pruned {
+			if ancestor, pruned := ancestorWithMultiModuleManager(rules.multiModuleManagers, prunedAt, rel, manager); pruned {
 				prunedCount++
 				logger.Debug("discovery: pruned nested subproject covered by ancestor",
 					zap.String("path", subproject.RelativePath),
@@ -132,7 +202,7 @@ func planRecursiveFilesystemSubprojects(registryValue *engine.Registry, req Requ
 				zap.String("package_manager", manager.Name()),
 				zap.Strings("detectors", subproject.PlannedDetectors))
 		}
-		recordMultiModuleManagers(prunedAt, rel, currentPath)
+		recordMultiModuleManagers(rules.multiModuleManagers, prunedAt, rel, currentPath)
 
 		// Depth is only cut after the directory itself was inspected, so a
 		// manifest at exactly MaxDepth is still discovered.
@@ -160,22 +230,6 @@ func planRecursiveFilesystemSubprojects(registryValue *engine.Registry, req Requ
 	}
 	sortSubprojects(subprojects)
 	return subprojects, nil
-}
-
-// shouldSkipDiscoveryDir reports whether discovery must not descend into a
-// directory: dot-directories, the built-in skip list, and non-hidden Python
-// virtualenvs (identified by a pyvenv.cfg file).
-func shouldSkipDiscoveryDir(name, dir string) bool {
-	if strings.HasPrefix(name, ".") {
-		return true
-	}
-	if _, ok := defaultDiscoverySkipDirs[name]; ok {
-		return true
-	}
-	if info, err := os.Stat(filepath.Join(dir, "pyvenv.cfg")); err == nil && !info.IsDir() {
-		return true
-	}
-	return false
 }
 
 // discoveryDepth returns the directory depth of a root-relative slash path:
@@ -223,8 +277,8 @@ func matchExcludeGlob(patterns []string, rel, name string) (string, bool) {
 // nested modules; such nested subprojects resolve through the ancestor.
 // Merged subprojects share one planned detector chain, so the primary manager
 // decides for the whole subproject.
-func ancestorWithMultiModuleManager(prunedAt map[string]map[sdk.PackageManager]struct{}, rel string, manager sdk.PackageManager) (string, bool) {
-	if _, ok := nativeMultiModulePackageManagers[manager]; !ok {
+func ancestorWithMultiModuleManager(multiModule map[sdk.PackageManager]struct{}, prunedAt map[string]map[sdk.PackageManager]struct{}, rel string, manager sdk.PackageManager) (string, bool) {
+	if _, ok := multiModule[manager]; !ok {
 		return "", false
 	}
 	for _, ancestor := range ancestorRelPaths(rel) {
@@ -254,9 +308,9 @@ func ancestorRelPaths(rel string) []string {
 
 // recordMultiModuleManagers remembers which workspace-expanding package
 // managers have manifest evidence in dir so descendants can be pruned.
-func recordMultiModuleManagers(prunedAt map[string]map[sdk.PackageManager]struct{}, rel, dir string) {
+func recordMultiModuleManagers(multiModule map[sdk.PackageManager]struct{}, prunedAt map[string]map[sdk.PackageManager]struct{}, rel, dir string) {
 	for _, manager := range detectPackageManagers(dir) {
-		if _, ok := nativeMultiModulePackageManagers[manager]; !ok {
+		if _, ok := multiModule[manager]; !ok {
 			continue
 		}
 		managers, ok := prunedAt[rel]

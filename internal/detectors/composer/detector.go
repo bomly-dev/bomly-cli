@@ -61,12 +61,13 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 // Descriptor describes the Composer detector.
 func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		Name:                 detectors.NameComposer,
-		Technique:            sdk.LockfileTechnique,
-		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemPHP},
-		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerComposer},
-		Tags:                 []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
-		SupportsInstallFirst: true,
+		DiscoveryIgnoredDirectories: []string{"vendor"},
+		Name:                        detectors.NameComposer,
+		Technique:                   sdk.LockfileTechnique,
+		SupportedEcosystems:         []sdk.Ecosystem{sdk.EcosystemPHP},
+		SupportedManagers:           []sdk.PackageManager{sdk.PackageManagerComposer},
+		Tags:                        []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
+		SupportsInstallFirst:        true,
 	}
 }
 

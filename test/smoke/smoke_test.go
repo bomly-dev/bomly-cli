@@ -17,6 +17,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/bomly-dev/bomly-cli/internal/benchmark"
@@ -199,6 +200,31 @@ func TestScan(t *testing.T) {
 			tools: []string{"npm"},
 		},
 		{
+			// Recursive discovery smoke pinned to bomly-dev/bomly-agent-study
+			// (tag v1-fixtures-final). The repo has no manifest at its root and
+			// independent projects in nested directories; the golden proves
+			// nested subprojects resolve with repo-relative manifest paths and
+			// distinct subproject values across two ecosystems:
+			// fixtures/api-java (Maven, native TGF) and fixtures/webapp (npm,
+			// lockfile parser). The pip projects (fixtures/service, harness/)
+			// are excluded because their graphs resolve through a live
+			// `pip install` (no committed requirements.lock fast-path), which
+			// is not deterministic across environments; the exclusions also
+			// exercise --exclude. Same-named-manifest dedup across nested
+			// subprojects is covered by consolidation unit tests.
+			name:  "scan-recursive-monorepo",
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/bomly-agent-study", "--ref", "fc32147b3be526ea6c5d563a505c867f4bae93f3", "--recursive", "--exclude", "harness,fixtures/service", "--format", "json"},
+			tools: []string{"mvn"},
+		},
+		{
+			// Depth + exclude bounds on the same pinned monorepo: excluding
+			// everything except fixtures/webapp (depth 2) leaves only the npm
+			// lockfile subproject, which parses without any package-manager
+			// binary; --max-depth 2 exercises the depth flag end to end.
+			name: "scan-recursive-depth-exclude",
+			args: []string{"scan", "--url", "https://github.com/bomly-dev/bomly-agent-study", "--ref", "fc32147b3be526ea6c5d563a505c867f4bae93f3", "--recursive", "--max-depth", "2", "--exclude", "harness,fixtures/api-java,fixtures/service", "--format", "json"},
+		},
+		{
 			name: "scan-sbom-spdx",
 			args: []string{"scan", "--sbom", "--path", sbomFixture("go.spdx.json"), "--format", "json"},
 		},
@@ -226,6 +252,26 @@ func TestScan(t *testing.T) {
 			got := normalizeJSON(t, []byte(stdout))
 			assertGolden(t, tc.name, got)
 		})
+	}
+}
+
+// TestScanRecursiveNothingAtRootWithoutFlag locks in the non-recursive
+// default: scanning the pinned monorepo (which has no root manifest) without
+// --recursive must exit 5 (nothing to evaluate) and point the user at
+// --recursive via the discovery-probe hint.
+func TestScanRecursiveNothingAtRootWithoutFlag(t *testing.T) {
+	t.Parallel()
+	_, stderr, code := runBomly(t,
+		"scan",
+		"--url", "https://github.com/bomly-dev/bomly-agent-study",
+		"--ref", "fc32147b3be526ea6c5d563a505c867f4bae93f3",
+		"--format", "json",
+	)
+	if code != 5 {
+		t.Fatalf("expected exit 5 for a rootless monorepo without --recursive, got %d\nstderr:\n%s", code, stderr)
+	}
+	if !strings.Contains(stderr, "retry with --recursive") {
+		t.Fatalf("expected --recursive hint in stderr, got:\n%s", stderr)
 	}
 }
 

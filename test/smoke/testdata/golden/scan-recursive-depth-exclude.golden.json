@@ -1,0 +1,5691 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "dependencies": [
+        {
+          "depends_on": [
+            "pkg:npm/mime-types@2.1.35",
+            "pkg:npm/negotiator@0.6.3"
+          ],
+          "id": "pkg:npm/accepts@1.3.8",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "accepts",
+          "package_ref": "pkg:npm/accepts@1.3.8",
+          "purl": "pkg:npm/accepts@1.3.8",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.3.8"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/fast-deep-equal@3.1.3",
+            "pkg:npm/fast-json-stable-stringify@2.1.0",
+            "pkg:npm/json-schema-traverse@0.4.1",
+            "pkg:npm/uri-js@4.4.1"
+          ],
+          "id": "pkg:npm/ajv@6.15.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "ajv",
+          "package_ref": "pkg:npm/ajv@6.15.0",
+          "purl": "pkg:npm/ajv@6.15.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "6.15.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/array-flatten@1.1.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "array-flatten",
+          "package_ref": "pkg:npm/array-flatten@1.1.1",
+          "purl": "pkg:npm/array-flatten@1.1.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.1.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/safer-buffer@2.1.2"
+          ],
+          "id": "pkg:npm/asn1@0.2.6",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "asn1",
+          "package_ref": "pkg:npm/asn1@0.2.6",
+          "purl": "pkg:npm/asn1@0.2.6",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.2.6"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/assert-plus@1.0.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "assert-plus",
+          "package_ref": "pkg:npm/assert-plus@1.0.0",
+          "purl": "pkg:npm/assert-plus@1.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/asynckit@0.4.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "asynckit",
+          "package_ref": "pkg:npm/asynckit@0.4.0",
+          "purl": "pkg:npm/asynckit@0.4.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.4.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/aws-sign2@0.7.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "aws-sign2",
+          "package_ref": "pkg:npm/aws-sign2@0.7.0",
+          "purl": "pkg:npm/aws-sign2@0.7.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.7.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/aws4@1.13.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "aws4",
+          "package_ref": "pkg:npm/aws4@1.13.2",
+          "purl": "pkg:npm/aws4@1.13.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.13.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/follow-redirects@1.16.0",
+            "pkg:npm/form-data@4.0.6",
+            "pkg:npm/proxy-from-env@1.1.0"
+          ],
+          "id": "pkg:npm/axios@1.6.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "axios",
+          "package_ref": "pkg:npm/axios@1.6.0",
+          "purl": "pkg:npm/axios@1.6.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.6.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/tweetnacl@0.14.5"
+          ],
+          "id": "pkg:npm/bcrypt-pbkdf@1.0.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "BSD-3-Clause"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "bcrypt-pbkdf",
+          "package_ref": "pkg:npm/bcrypt-pbkdf@1.0.2",
+          "purl": "pkg:npm/bcrypt-pbkdf@1.0.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/bytes@3.1.2",
+            "pkg:npm/content-type@1.0.5",
+            "pkg:npm/debug@2.6.9",
+            "pkg:npm/depd@2.0.0",
+            "pkg:npm/destroy@1.2.0",
+            "pkg:npm/http-errors@2.0.0",
+            "pkg:npm/iconv-lite@0.4.24",
+            "pkg:npm/on-finished@2.4.1",
+            "pkg:npm/qs@6.11.0",
+            "pkg:npm/raw-body@2.5.2",
+            "pkg:npm/type-is@1.6.18",
+            "pkg:npm/unpipe@1.0.0"
+          ],
+          "id": "pkg:npm/body-parser@1.20.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "body-parser",
+          "package_ref": "pkg:npm/body-parser@1.20.2",
+          "purl": "pkg:npm/body-parser@1.20.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.20.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/buffer-equal-constant-time@1.0.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "BSD-3-Clause"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "buffer-equal-constant-time",
+          "package_ref": "pkg:npm/buffer-equal-constant-time@1.0.1",
+          "purl": "pkg:npm/buffer-equal-constant-time@1.0.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/bytes@3.1.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "bytes",
+          "package_ref": "pkg:npm/bytes@3.1.2",
+          "purl": "pkg:npm/bytes@3.1.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.1.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/es-errors@1.3.0",
+            "pkg:npm/function-bind@1.1.2"
+          ],
+          "id": "pkg:npm/call-bind-apply-helpers@1.0.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "call-bind-apply-helpers",
+          "package_ref": "pkg:npm/call-bind-apply-helpers@1.0.2",
+          "purl": "pkg:npm/call-bind-apply-helpers@1.0.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/call-bind-apply-helpers@1.0.2",
+            "pkg:npm/get-intrinsic@1.3.0"
+          ],
+          "id": "pkg:npm/call-bound@1.0.4",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "call-bound",
+          "package_ref": "pkg:npm/call-bound@1.0.4",
+          "purl": "pkg:npm/call-bound@1.0.4",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.4"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/caseless@0.12.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "caseless",
+          "package_ref": "pkg:npm/caseless@0.12.0",
+          "purl": "pkg:npm/caseless@0.12.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.12.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/delayed-stream@1.0.0"
+          ],
+          "id": "pkg:npm/combined-stream@1.0.8",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "combined-stream",
+          "package_ref": "pkg:npm/combined-stream@1.0.8",
+          "purl": "pkg:npm/combined-stream@1.0.8",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.8"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/safe-buffer@5.2.1"
+          ],
+          "id": "pkg:npm/content-disposition@0.5.4",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "content-disposition",
+          "package_ref": "pkg:npm/content-disposition@0.5.4",
+          "purl": "pkg:npm/content-disposition@0.5.4",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.5.4"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/content-type@1.0.5",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "content-type",
+          "package_ref": "pkg:npm/content-type@1.0.5",
+          "purl": "pkg:npm/content-type@1.0.5",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.5"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/cookie-signature@1.0.6",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "cookie-signature",
+          "package_ref": "pkg:npm/cookie-signature@1.0.6",
+          "purl": "pkg:npm/cookie-signature@1.0.6",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.6"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/cookie@0.6.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "cookie",
+          "package_ref": "pkg:npm/cookie@0.6.0",
+          "purl": "pkg:npm/cookie@0.6.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.6.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/core-util-is@1.0.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "core-util-is",
+          "package_ref": "pkg:npm/core-util-is@1.0.2",
+          "purl": "pkg:npm/core-util-is@1.0.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/assert-plus@1.0.0"
+          ],
+          "id": "pkg:npm/dashdash@1.14.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "dashdash",
+          "package_ref": "pkg:npm/dashdash@1.14.1",
+          "purl": "pkg:npm/dashdash@1.14.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.14.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/ms@2.0.0"
+          ],
+          "id": "pkg:npm/debug@2.6.9",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "debug",
+          "package_ref": "pkg:npm/debug@2.6.9",
+          "purl": "pkg:npm/debug@2.6.9",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.6.9"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/delayed-stream@1.0.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "delayed-stream",
+          "package_ref": "pkg:npm/delayed-stream@1.0.0",
+          "purl": "pkg:npm/delayed-stream@1.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/depd@2.0.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "depd",
+          "package_ref": "pkg:npm/depd@2.0.0",
+          "purl": "pkg:npm/depd@2.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/destroy@1.2.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "destroy",
+          "package_ref": "pkg:npm/destroy@1.2.0",
+          "purl": "pkg:npm/destroy@1.2.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.2.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/call-bind-apply-helpers@1.0.2",
+            "pkg:npm/es-errors@1.3.0",
+            "pkg:npm/gopd@1.2.0"
+          ],
+          "id": "pkg:npm/dunder-proto@1.0.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "dunder-proto",
+          "package_ref": "pkg:npm/dunder-proto@1.0.1",
+          "purl": "pkg:npm/dunder-proto@1.0.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/jsbn@0.1.1",
+            "pkg:npm/safer-buffer@2.1.2"
+          ],
+          "id": "pkg:npm/ecc-jsbn@0.1.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "ecc-jsbn",
+          "package_ref": "pkg:npm/ecc-jsbn@0.1.2",
+          "purl": "pkg:npm/ecc-jsbn@0.1.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.1.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/safe-buffer@5.2.1"
+          ],
+          "id": "pkg:npm/ecdsa-sig-formatter@1.0.11",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "ecdsa-sig-formatter",
+          "package_ref": "pkg:npm/ecdsa-sig-formatter@1.0.11",
+          "purl": "pkg:npm/ecdsa-sig-formatter@1.0.11",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.11"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/ee-first@1.1.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "ee-first",
+          "package_ref": "pkg:npm/ee-first@1.1.1",
+          "purl": "pkg:npm/ee-first@1.1.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.1.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/encodeurl@1.0.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "encodeurl",
+          "package_ref": "pkg:npm/encodeurl@1.0.2",
+          "purl": "pkg:npm/encodeurl@1.0.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/es-define-property@1.0.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "es-define-property",
+          "package_ref": "pkg:npm/es-define-property@1.0.1",
+          "purl": "pkg:npm/es-define-property@1.0.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/es-errors@1.3.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "es-errors",
+          "package_ref": "pkg:npm/es-errors@1.3.0",
+          "purl": "pkg:npm/es-errors@1.3.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.3.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/es-errors@1.3.0"
+          ],
+          "id": "pkg:npm/es-object-atoms@1.1.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "es-object-atoms",
+          "package_ref": "pkg:npm/es-object-atoms@1.1.2",
+          "purl": "pkg:npm/es-object-atoms@1.1.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.1.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/es-errors@1.3.0",
+            "pkg:npm/get-intrinsic@1.3.0",
+            "pkg:npm/has-tostringtag@1.0.2",
+            "pkg:npm/hasown@2.0.4"
+          ],
+          "id": "pkg:npm/es-set-tostringtag@2.1.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "es-set-tostringtag",
+          "package_ref": "pkg:npm/es-set-tostringtag@2.1.0",
+          "purl": "pkg:npm/es-set-tostringtag@2.1.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.1.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/escape-html@1.0.3",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "escape-html",
+          "package_ref": "pkg:npm/escape-html@1.0.3",
+          "purl": "pkg:npm/escape-html@1.0.3",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/etag@1.8.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "etag",
+          "package_ref": "pkg:npm/etag@1.8.1",
+          "purl": "pkg:npm/etag@1.8.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.8.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/accepts@1.3.8",
+            "pkg:npm/array-flatten@1.1.1",
+            "pkg:npm/body-parser@1.20.2",
+            "pkg:npm/content-disposition@0.5.4",
+            "pkg:npm/content-type@1.0.5",
+            "pkg:npm/cookie-signature@1.0.6",
+            "pkg:npm/cookie@0.6.0",
+            "pkg:npm/debug@2.6.9",
+            "pkg:npm/depd@2.0.0",
+            "pkg:npm/encodeurl@1.0.2",
+            "pkg:npm/escape-html@1.0.3",
+            "pkg:npm/etag@1.8.1",
+            "pkg:npm/finalhandler@1.2.0",
+            "pkg:npm/fresh@0.5.2",
+            "pkg:npm/http-errors@2.0.0",
+            "pkg:npm/merge-descriptors@1.0.1",
+            "pkg:npm/methods@1.1.2",
+            "pkg:npm/on-finished@2.4.1",
+            "pkg:npm/parseurl@1.3.3",
+            "pkg:npm/path-to-regexp@0.1.7",
+            "pkg:npm/proxy-addr@2.0.7",
+            "pkg:npm/qs@6.11.0",
+            "pkg:npm/range-parser@1.2.1",
+            "pkg:npm/safe-buffer@5.2.1",
+            "pkg:npm/send@0.18.0",
+            "pkg:npm/serve-static@1.15.0",
+            "pkg:npm/setprototypeof@1.2.0",
+            "pkg:npm/statuses@2.0.1",
+            "pkg:npm/type-is@1.6.18",
+            "pkg:npm/utils-merge@1.0.1",
+            "pkg:npm/vary@1.1.2"
+          ],
+          "id": "pkg:npm/express@4.19.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "express",
+          "package_ref": "pkg:npm/express@4.19.2",
+          "purl": "pkg:npm/express@4.19.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.19.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/extend@3.0.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "extend",
+          "package_ref": "pkg:npm/extend@3.0.2",
+          "purl": "pkg:npm/extend@3.0.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.0.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/extsprintf@1.3.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "extsprintf",
+          "package_ref": "pkg:npm/extsprintf@1.3.0",
+          "purl": "pkg:npm/extsprintf@1.3.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.3.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/fast-deep-equal@3.1.3",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "fast-deep-equal",
+          "package_ref": "pkg:npm/fast-deep-equal@3.1.3",
+          "purl": "pkg:npm/fast-deep-equal@3.1.3",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.1.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/fast-json-stable-stringify@2.1.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "fast-json-stable-stringify",
+          "package_ref": "pkg:npm/fast-json-stable-stringify@2.1.0",
+          "purl": "pkg:npm/fast-json-stable-stringify@2.1.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.1.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/debug@2.6.9",
+            "pkg:npm/encodeurl@1.0.2",
+            "pkg:npm/escape-html@1.0.3",
+            "pkg:npm/on-finished@2.4.1",
+            "pkg:npm/parseurl@1.3.3",
+            "pkg:npm/statuses@2.0.1",
+            "pkg:npm/unpipe@1.0.0"
+          ],
+          "id": "pkg:npm/finalhandler@1.2.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "finalhandler",
+          "package_ref": "pkg:npm/finalhandler@1.2.0",
+          "purl": "pkg:npm/finalhandler@1.2.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.2.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/follow-redirects@1.16.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "follow-redirects",
+          "package_ref": "pkg:npm/follow-redirects@1.16.0",
+          "purl": "pkg:npm/follow-redirects@1.16.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.16.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/forever-agent@0.6.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "forever-agent",
+          "package_ref": "pkg:npm/forever-agent@0.6.1",
+          "purl": "pkg:npm/forever-agent@0.6.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.6.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/asynckit@0.4.0",
+            "pkg:npm/combined-stream@1.0.8",
+            "pkg:npm/mime-types@2.1.35"
+          ],
+          "id": "pkg:npm/form-data@2.3.3",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "form-data",
+          "package_ref": "pkg:npm/form-data@2.3.3",
+          "purl": "pkg:npm/form-data@2.3.3",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.3.3"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/asynckit@0.4.0",
+            "pkg:npm/combined-stream@1.0.8",
+            "pkg:npm/es-set-tostringtag@2.1.0",
+            "pkg:npm/hasown@2.0.4",
+            "pkg:npm/mime-types@2.1.35"
+          ],
+          "id": "pkg:npm/form-data@4.0.6",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "form-data",
+          "package_ref": "pkg:npm/form-data@4.0.6",
+          "purl": "pkg:npm/form-data@4.0.6",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.0.6"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/forwarded@0.2.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "forwarded",
+          "package_ref": "pkg:npm/forwarded@0.2.0",
+          "purl": "pkg:npm/forwarded@0.2.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.2.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/fresh@0.5.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "fresh",
+          "package_ref": "pkg:npm/fresh@0.5.2",
+          "purl": "pkg:npm/fresh@0.5.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.5.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/function-bind@1.1.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "function-bind",
+          "package_ref": "pkg:npm/function-bind@1.1.2",
+          "purl": "pkg:npm/function-bind@1.1.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.1.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/call-bind-apply-helpers@1.0.2",
+            "pkg:npm/es-define-property@1.0.1",
+            "pkg:npm/es-errors@1.3.0",
+            "pkg:npm/es-object-atoms@1.1.2",
+            "pkg:npm/function-bind@1.1.2",
+            "pkg:npm/get-proto@1.0.1",
+            "pkg:npm/gopd@1.2.0",
+            "pkg:npm/has-symbols@1.1.0",
+            "pkg:npm/hasown@2.0.4",
+            "pkg:npm/math-intrinsics@1.1.0"
+          ],
+          "id": "pkg:npm/get-intrinsic@1.3.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "get-intrinsic",
+          "package_ref": "pkg:npm/get-intrinsic@1.3.0",
+          "purl": "pkg:npm/get-intrinsic@1.3.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.3.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/dunder-proto@1.0.1",
+            "pkg:npm/es-object-atoms@1.1.2"
+          ],
+          "id": "pkg:npm/get-proto@1.0.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "get-proto",
+          "package_ref": "pkg:npm/get-proto@1.0.1",
+          "purl": "pkg:npm/get-proto@1.0.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/assert-plus@1.0.0"
+          ],
+          "id": "pkg:npm/getpass@0.1.7",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "getpass",
+          "package_ref": "pkg:npm/getpass@0.1.7",
+          "purl": "pkg:npm/getpass@0.1.7",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.1.7"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/gopd@1.2.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "gopd",
+          "package_ref": "pkg:npm/gopd@1.2.0",
+          "purl": "pkg:npm/gopd@1.2.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.2.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/har-schema@2.0.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "ISC"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "har-schema",
+          "package_ref": "pkg:npm/har-schema@2.0.0",
+          "purl": "pkg:npm/har-schema@2.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.0.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/ajv@6.15.0",
+            "pkg:npm/har-schema@2.0.0"
+          ],
+          "id": "pkg:npm/har-validator@5.1.5",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "har-validator",
+          "package_ref": "pkg:npm/har-validator@5.1.5",
+          "purl": "pkg:npm/har-validator@5.1.5",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "5.1.5"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/has-symbols@1.1.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "has-symbols",
+          "package_ref": "pkg:npm/has-symbols@1.1.0",
+          "purl": "pkg:npm/has-symbols@1.1.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.1.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/has-symbols@1.1.0"
+          ],
+          "id": "pkg:npm/has-tostringtag@1.0.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "has-tostringtag",
+          "package_ref": "pkg:npm/has-tostringtag@1.0.2",
+          "purl": "pkg:npm/has-tostringtag@1.0.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/function-bind@1.1.2"
+          ],
+          "id": "pkg:npm/hasown@2.0.4",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "hasown",
+          "package_ref": "pkg:npm/hasown@2.0.4",
+          "purl": "pkg:npm/hasown@2.0.4",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.0.4"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/depd@2.0.0",
+            "pkg:npm/inherits@2.0.4",
+            "pkg:npm/setprototypeof@1.2.0",
+            "pkg:npm/statuses@2.0.1",
+            "pkg:npm/toidentifier@1.0.1"
+          ],
+          "id": "pkg:npm/http-errors@2.0.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "http-errors",
+          "package_ref": "pkg:npm/http-errors@2.0.0",
+          "purl": "pkg:npm/http-errors@2.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.0.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/assert-plus@1.0.0",
+            "pkg:npm/jsprim@1.4.2",
+            "pkg:npm/sshpk@1.18.0"
+          ],
+          "id": "pkg:npm/http-signature@1.2.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "http-signature",
+          "package_ref": "pkg:npm/http-signature@1.2.0",
+          "purl": "pkg:npm/http-signature@1.2.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.2.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/safer-buffer@2.1.2"
+          ],
+          "id": "pkg:npm/iconv-lite@0.4.24",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "iconv-lite",
+          "package_ref": "pkg:npm/iconv-lite@0.4.24",
+          "purl": "pkg:npm/iconv-lite@0.4.24",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.4.24"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/inherits@2.0.4",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "ISC"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "inherits",
+          "package_ref": "pkg:npm/inherits@2.0.4",
+          "purl": "pkg:npm/inherits@2.0.4",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.0.4"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/ipaddr.js@1.9.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "ipaddr.js",
+          "package_ref": "pkg:npm/ipaddr.js@1.9.1",
+          "purl": "pkg:npm/ipaddr.js@1.9.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.9.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/is-typedarray@1.0.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "is-typedarray",
+          "package_ref": "pkg:npm/is-typedarray@1.0.0",
+          "purl": "pkg:npm/is-typedarray@1.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/isstream@0.1.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "isstream",
+          "package_ref": "pkg:npm/isstream@0.1.2",
+          "purl": "pkg:npm/isstream@0.1.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.1.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/jsbn@0.1.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "jsbn",
+          "package_ref": "pkg:npm/jsbn@0.1.1",
+          "purl": "pkg:npm/jsbn@0.1.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.1.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/json-schema-traverse@0.4.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "json-schema-traverse",
+          "package_ref": "pkg:npm/json-schema-traverse@0.4.1",
+          "purl": "pkg:npm/json-schema-traverse@0.4.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.4.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/json-schema@0.4.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "(AFL-2.1 OR BSD-3-Clause)"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "json-schema",
+          "package_ref": "pkg:npm/json-schema@0.4.0",
+          "purl": "pkg:npm/json-schema@0.4.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.4.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/json-stringify-safe@5.0.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "ISC"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "json-stringify-safe",
+          "package_ref": "pkg:npm/json-stringify-safe@5.0.1",
+          "purl": "pkg:npm/json-stringify-safe@5.0.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "5.0.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/jws@3.2.3",
+            "pkg:npm/lodash.includes@4.3.0",
+            "pkg:npm/lodash.isboolean@3.0.3",
+            "pkg:npm/lodash.isinteger@4.0.4",
+            "pkg:npm/lodash.isnumber@3.0.3",
+            "pkg:npm/lodash.isplainobject@4.0.6",
+            "pkg:npm/lodash.isstring@4.0.1",
+            "pkg:npm/lodash.once@4.1.1",
+            "pkg:npm/ms@2.1.3",
+            "pkg:npm/semver@5.7.2"
+          ],
+          "id": "pkg:npm/jsonwebtoken@8.5.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "jsonwebtoken",
+          "package_ref": "pkg:npm/jsonwebtoken@8.5.1",
+          "purl": "pkg:npm/jsonwebtoken@8.5.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "8.5.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/assert-plus@1.0.0",
+            "pkg:npm/extsprintf@1.3.0",
+            "pkg:npm/json-schema@0.4.0",
+            "pkg:npm/verror@1.10.0"
+          ],
+          "id": "pkg:npm/jsprim@1.4.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "jsprim",
+          "package_ref": "pkg:npm/jsprim@1.4.2",
+          "purl": "pkg:npm/jsprim@1.4.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.4.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/buffer-equal-constant-time@1.0.1",
+            "pkg:npm/ecdsa-sig-formatter@1.0.11",
+            "pkg:npm/safe-buffer@5.2.1"
+          ],
+          "id": "pkg:npm/jwa@1.4.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "jwa",
+          "package_ref": "pkg:npm/jwa@1.4.2",
+          "purl": "pkg:npm/jwa@1.4.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.4.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/jwa@1.4.2",
+            "pkg:npm/safe-buffer@5.2.1"
+          ],
+          "id": "pkg:npm/jws@3.2.3",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "jws",
+          "package_ref": "pkg:npm/jws@3.2.3",
+          "purl": "pkg:npm/jws@3.2.3",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.2.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/lodash.includes@4.3.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "lodash.includes",
+          "package_ref": "pkg:npm/lodash.includes@4.3.0",
+          "purl": "pkg:npm/lodash.includes@4.3.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.3.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/lodash.isboolean@3.0.3",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "lodash.isboolean",
+          "package_ref": "pkg:npm/lodash.isboolean@3.0.3",
+          "purl": "pkg:npm/lodash.isboolean@3.0.3",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.0.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/lodash.isinteger@4.0.4",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "lodash.isinteger",
+          "package_ref": "pkg:npm/lodash.isinteger@4.0.4",
+          "purl": "pkg:npm/lodash.isinteger@4.0.4",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.0.4"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/lodash.isnumber@3.0.3",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "lodash.isnumber",
+          "package_ref": "pkg:npm/lodash.isnumber@3.0.3",
+          "purl": "pkg:npm/lodash.isnumber@3.0.3",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.0.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/lodash.isplainobject@4.0.6",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "lodash.isplainobject",
+          "package_ref": "pkg:npm/lodash.isplainobject@4.0.6",
+          "purl": "pkg:npm/lodash.isplainobject@4.0.6",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.0.6"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/lodash.isstring@4.0.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "lodash.isstring",
+          "package_ref": "pkg:npm/lodash.isstring@4.0.1",
+          "purl": "pkg:npm/lodash.isstring@4.0.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.0.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/lodash.once@4.1.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "lodash.once",
+          "package_ref": "pkg:npm/lodash.once@4.1.1",
+          "purl": "pkg:npm/lodash.once@4.1.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.1.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/lodash@4.17.20",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "lodash",
+          "package_ref": "pkg:npm/lodash@4.17.20",
+          "purl": "pkg:npm/lodash@4.17.20",
+          "scopes": [
+            "development"
+          ],
+          "version": "4.17.20"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/math-intrinsics@1.1.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "math-intrinsics",
+          "package_ref": "pkg:npm/math-intrinsics@1.1.0",
+          "purl": "pkg:npm/math-intrinsics@1.1.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.1.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/media-typer@0.3.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "media-typer",
+          "package_ref": "pkg:npm/media-typer@0.3.0",
+          "purl": "pkg:npm/media-typer@0.3.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.3.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/merge-descriptors@1.0.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "merge-descriptors",
+          "package_ref": "pkg:npm/merge-descriptors@1.0.1",
+          "purl": "pkg:npm/merge-descriptors@1.0.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/methods@1.1.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "methods",
+          "package_ref": "pkg:npm/methods@1.1.2",
+          "purl": "pkg:npm/methods@1.1.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.1.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/mime-db@1.52.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "mime-db",
+          "package_ref": "pkg:npm/mime-db@1.52.0",
+          "purl": "pkg:npm/mime-db@1.52.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.52.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/mime-db@1.52.0"
+          ],
+          "id": "pkg:npm/mime-types@2.1.35",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "mime-types",
+          "package_ref": "pkg:npm/mime-types@2.1.35",
+          "purl": "pkg:npm/mime-types@2.1.35",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.1.35"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/mime@1.6.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "mime",
+          "package_ref": "pkg:npm/mime@1.6.0",
+          "purl": "pkg:npm/mime@1.6.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.6.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/ms@2.0.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "ms",
+          "package_ref": "pkg:npm/ms@2.0.0",
+          "purl": "pkg:npm/ms@2.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/ms@2.1.3",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            },
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "ms",
+          "package_ref": "pkg:npm/ms@2.1.3",
+          "purl": "pkg:npm/ms@2.1.3",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.1.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/negotiator@0.6.3",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "negotiator",
+          "package_ref": "pkg:npm/negotiator@0.6.3",
+          "purl": "pkg:npm/negotiator@0.6.3",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.6.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/oauth-sign@0.9.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "oauth-sign",
+          "package_ref": "pkg:npm/oauth-sign@0.9.0",
+          "purl": "pkg:npm/oauth-sign@0.9.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.9.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/object-inspect@1.13.4",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "object-inspect",
+          "package_ref": "pkg:npm/object-inspect@1.13.4",
+          "purl": "pkg:npm/object-inspect@1.13.4",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.13.4"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/ee-first@1.1.1"
+          ],
+          "id": "pkg:npm/on-finished@2.4.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "on-finished",
+          "package_ref": "pkg:npm/on-finished@2.4.1",
+          "purl": "pkg:npm/on-finished@2.4.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.4.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/parseurl@1.3.3",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "parseurl",
+          "package_ref": "pkg:npm/parseurl@1.3.3",
+          "purl": "pkg:npm/parseurl@1.3.3",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.3.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/path-to-regexp@0.1.7",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "path-to-regexp",
+          "package_ref": "pkg:npm/path-to-regexp@0.1.7",
+          "purl": "pkg:npm/path-to-regexp@0.1.7",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.1.7"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/performance-now@2.1.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "performance-now",
+          "package_ref": "pkg:npm/performance-now@2.1.0",
+          "purl": "pkg:npm/performance-now@2.1.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.1.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/forwarded@0.2.0",
+            "pkg:npm/ipaddr.js@1.9.1"
+          ],
+          "id": "pkg:npm/proxy-addr@2.0.7",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "proxy-addr",
+          "package_ref": "pkg:npm/proxy-addr@2.0.7",
+          "purl": "pkg:npm/proxy-addr@2.0.7",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.0.7"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/proxy-from-env@1.1.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "proxy-from-env",
+          "package_ref": "pkg:npm/proxy-from-env@1.1.0",
+          "purl": "pkg:npm/proxy-from-env@1.1.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.1.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/punycode@2.3.1"
+          ],
+          "id": "pkg:npm/psl@1.15.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "psl",
+          "package_ref": "pkg:npm/psl@1.15.0",
+          "purl": "pkg:npm/psl@1.15.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.15.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/punycode@2.3.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "punycode",
+          "package_ref": "pkg:npm/punycode@2.3.1",
+          "purl": "pkg:npm/punycode@2.3.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.3.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/side-channel@1.1.1"
+          ],
+          "id": "pkg:npm/qs@6.11.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "BSD-3-Clause"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "qs",
+          "package_ref": "pkg:npm/qs@6.11.0",
+          "purl": "pkg:npm/qs@6.11.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "6.11.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/qs@6.5.5",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "BSD-3-Clause"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "qs",
+          "package_ref": "pkg:npm/qs@6.5.5",
+          "purl": "pkg:npm/qs@6.5.5",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "6.5.5"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/range-parser@1.2.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "range-parser",
+          "package_ref": "pkg:npm/range-parser@1.2.1",
+          "purl": "pkg:npm/range-parser@1.2.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.2.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/bytes@3.1.2",
+            "pkg:npm/http-errors@2.0.0",
+            "pkg:npm/iconv-lite@0.4.24",
+            "pkg:npm/unpipe@1.0.0"
+          ],
+          "id": "pkg:npm/raw-body@2.5.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "raw-body",
+          "package_ref": "pkg:npm/raw-body@2.5.2",
+          "purl": "pkg:npm/raw-body@2.5.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.5.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/aws-sign2@0.7.0",
+            "pkg:npm/aws4@1.13.2",
+            "pkg:npm/caseless@0.12.0",
+            "pkg:npm/combined-stream@1.0.8",
+            "pkg:npm/extend@3.0.2",
+            "pkg:npm/forever-agent@0.6.1",
+            "pkg:npm/form-data@2.3.3",
+            "pkg:npm/har-validator@5.1.5",
+            "pkg:npm/http-signature@1.2.0",
+            "pkg:npm/is-typedarray@1.0.0",
+            "pkg:npm/isstream@0.1.2",
+            "pkg:npm/json-stringify-safe@5.0.1",
+            "pkg:npm/mime-types@2.1.35",
+            "pkg:npm/oauth-sign@0.9.0",
+            "pkg:npm/performance-now@2.1.0",
+            "pkg:npm/qs@6.5.5",
+            "pkg:npm/safe-buffer@5.2.1",
+            "pkg:npm/tough-cookie@2.5.0",
+            "pkg:npm/tunnel-agent@0.6.0",
+            "pkg:npm/uuid@3.4.0"
+          ],
+          "id": "pkg:npm/request@2.88.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "request",
+          "package_ref": "pkg:npm/request@2.88.2",
+          "purl": "pkg:npm/request@2.88.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.88.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/safe-buffer@5.2.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "safe-buffer",
+          "package_ref": "pkg:npm/safe-buffer@5.2.1",
+          "purl": "pkg:npm/safe-buffer@5.2.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "5.2.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/safer-buffer@2.1.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "safer-buffer",
+          "package_ref": "pkg:npm/safer-buffer@2.1.2",
+          "purl": "pkg:npm/safer-buffer@2.1.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.1.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/sax@1.6.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "BlueOak-1.0.0"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "sax",
+          "package_ref": "pkg:npm/sax@1.6.0",
+          "purl": "pkg:npm/sax@1.6.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.6.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/semver@5.7.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "ISC"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "semver",
+          "package_ref": "pkg:npm/semver@5.7.2",
+          "purl": "pkg:npm/semver@5.7.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "5.7.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/debug@2.6.9",
+            "pkg:npm/depd@2.0.0",
+            "pkg:npm/destroy@1.2.0",
+            "pkg:npm/encodeurl@1.0.2",
+            "pkg:npm/escape-html@1.0.3",
+            "pkg:npm/etag@1.8.1",
+            "pkg:npm/fresh@0.5.2",
+            "pkg:npm/http-errors@2.0.0",
+            "pkg:npm/mime@1.6.0",
+            "pkg:npm/ms@2.1.3",
+            "pkg:npm/on-finished@2.4.1",
+            "pkg:npm/range-parser@1.2.1",
+            "pkg:npm/statuses@2.0.1"
+          ],
+          "id": "pkg:npm/send@0.18.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "send",
+          "package_ref": "pkg:npm/send@0.18.0",
+          "purl": "pkg:npm/send@0.18.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.18.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/encodeurl@1.0.2",
+            "pkg:npm/escape-html@1.0.3",
+            "pkg:npm/parseurl@1.3.3",
+            "pkg:npm/send@0.18.0"
+          ],
+          "id": "pkg:npm/serve-static@1.15.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "serve-static",
+          "package_ref": "pkg:npm/serve-static@1.15.0",
+          "purl": "pkg:npm/serve-static@1.15.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.15.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/setprototypeof@1.2.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "ISC"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "setprototypeof",
+          "package_ref": "pkg:npm/setprototypeof@1.2.0",
+          "purl": "pkg:npm/setprototypeof@1.2.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.2.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/es-errors@1.3.0",
+            "pkg:npm/object-inspect@1.13.4"
+          ],
+          "id": "pkg:npm/side-channel-list@1.0.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "side-channel-list",
+          "package_ref": "pkg:npm/side-channel-list@1.0.1",
+          "purl": "pkg:npm/side-channel-list@1.0.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/call-bound@1.0.4",
+            "pkg:npm/es-errors@1.3.0",
+            "pkg:npm/get-intrinsic@1.3.0",
+            "pkg:npm/object-inspect@1.13.4"
+          ],
+          "id": "pkg:npm/side-channel-map@1.0.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "side-channel-map",
+          "package_ref": "pkg:npm/side-channel-map@1.0.1",
+          "purl": "pkg:npm/side-channel-map@1.0.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/call-bound@1.0.4",
+            "pkg:npm/es-errors@1.3.0",
+            "pkg:npm/get-intrinsic@1.3.0",
+            "pkg:npm/object-inspect@1.13.4",
+            "pkg:npm/side-channel-map@1.0.1"
+          ],
+          "id": "pkg:npm/side-channel-weakmap@1.0.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "side-channel-weakmap",
+          "package_ref": "pkg:npm/side-channel-weakmap@1.0.2",
+          "purl": "pkg:npm/side-channel-weakmap@1.0.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/es-errors@1.3.0",
+            "pkg:npm/object-inspect@1.13.4",
+            "pkg:npm/side-channel-list@1.0.1",
+            "pkg:npm/side-channel-map@1.0.1",
+            "pkg:npm/side-channel-weakmap@1.0.2"
+          ],
+          "id": "pkg:npm/side-channel@1.1.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "side-channel",
+          "package_ref": "pkg:npm/side-channel@1.1.1",
+          "purl": "pkg:npm/side-channel@1.1.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.1.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/asn1@0.2.6",
+            "pkg:npm/assert-plus@1.0.0",
+            "pkg:npm/bcrypt-pbkdf@1.0.2",
+            "pkg:npm/dashdash@1.14.1",
+            "pkg:npm/ecc-jsbn@0.1.2",
+            "pkg:npm/getpass@0.1.7",
+            "pkg:npm/jsbn@0.1.1",
+            "pkg:npm/safer-buffer@2.1.2",
+            "pkg:npm/tweetnacl@0.14.5"
+          ],
+          "id": "pkg:npm/sshpk@1.18.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "sshpk",
+          "package_ref": "pkg:npm/sshpk@1.18.0",
+          "purl": "pkg:npm/sshpk@1.18.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.18.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/statuses@2.0.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "statuses",
+          "package_ref": "pkg:npm/statuses@2.0.1",
+          "purl": "pkg:npm/statuses@2.0.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.0.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/axios@1.6.0",
+            "pkg:npm/express@4.19.2",
+            "pkg:npm/jsonwebtoken@8.5.1",
+            "pkg:npm/lodash@4.17.20",
+            "pkg:npm/request@2.88.2",
+            "pkg:npm/xml2js@0.6.2"
+          ],
+          "id": "pkg:npm/team-bookmarks@1.0.0",
+          "licenses": [],
+          "name": "team-bookmarks",
+          "package_ref": "pkg:npm/team-bookmarks@1.0.0",
+          "purl": "pkg:npm/team-bookmarks@1.0.0",
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/toidentifier@1.0.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "toidentifier",
+          "package_ref": "pkg:npm/toidentifier@1.0.1",
+          "purl": "pkg:npm/toidentifier@1.0.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.1"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/psl@1.15.0",
+            "pkg:npm/punycode@2.3.1"
+          ],
+          "id": "pkg:npm/tough-cookie@2.5.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "BSD-3-Clause"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "tough-cookie",
+          "package_ref": "pkg:npm/tough-cookie@2.5.0",
+          "purl": "pkg:npm/tough-cookie@2.5.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.5.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/safe-buffer@5.2.1"
+          ],
+          "id": "pkg:npm/tunnel-agent@0.6.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "Apache-2.0"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "tunnel-agent",
+          "package_ref": "pkg:npm/tunnel-agent@0.6.0",
+          "purl": "pkg:npm/tunnel-agent@0.6.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.6.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/tweetnacl@0.14.5",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "Unlicense"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "tweetnacl",
+          "package_ref": "pkg:npm/tweetnacl@0.14.5",
+          "purl": "pkg:npm/tweetnacl@0.14.5",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.14.5"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/media-typer@0.3.0",
+            "pkg:npm/mime-types@2.1.35"
+          ],
+          "id": "pkg:npm/type-is@1.6.18",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "type-is",
+          "package_ref": "pkg:npm/type-is@1.6.18",
+          "purl": "pkg:npm/type-is@1.6.18",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.6.18"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/unpipe@1.0.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "unpipe",
+          "package_ref": "pkg:npm/unpipe@1.0.0",
+          "purl": "pkg:npm/unpipe@1.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/punycode@2.3.1"
+          ],
+          "id": "pkg:npm/uri-js@4.4.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "BSD-2-Clause"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "uri-js",
+          "package_ref": "pkg:npm/uri-js@4.4.1",
+          "purl": "pkg:npm/uri-js@4.4.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.4.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/utils-merge@1.0.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "utils-merge",
+          "package_ref": "pkg:npm/utils-merge@1.0.1",
+          "purl": "pkg:npm/utils-merge@1.0.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/uuid@3.4.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "uuid",
+          "package_ref": "pkg:npm/uuid@3.4.0",
+          "purl": "pkg:npm/uuid@3.4.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "3.4.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/vary@1.1.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "vary",
+          "package_ref": "pkg:npm/vary@1.1.2",
+          "purl": "pkg:npm/vary@1.1.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.1.2"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/assert-plus@1.0.0",
+            "pkg:npm/core-util-is@1.0.2",
+            "pkg:npm/extsprintf@1.3.0"
+          ],
+          "id": "pkg:npm/verror@1.10.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "verror",
+          "package_ref": "pkg:npm/verror@1.10.0",
+          "purl": "pkg:npm/verror@1.10.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.10.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/sax@1.6.0",
+            "pkg:npm/xmlbuilder@11.0.1"
+          ],
+          "id": "pkg:npm/xml2js@0.6.2",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "xml2js",
+          "package_ref": "pkg:npm/xml2js@0.6.2",
+          "purl": "pkg:npm/xml2js@0.6.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.6.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/xmlbuilder@11.0.1",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "fixtures/webapp/package-lock.json",
+              "position": {
+                "file": "fixtures/webapp/package-lock.json",
+                "line": 0
+              },
+              "real_path": "fixtures/webapp/package-lock.json"
+            }
+          ],
+          "name": "xmlbuilder",
+          "package_ref": "pkg:npm/xmlbuilder@11.0.1",
+          "purl": "pkg:npm/xmlbuilder@11.0.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "11.0.1"
+        }
+      ],
+      "detector": "npm-detector",
+      "ecosystem": "npm",
+      "kind": "package-lock.json",
+      "package_manager": "npm",
+      "path": "fixtures/webapp/package-lock.json",
+      "subproject": "fixtures/webapp"
+    }
+  ],
+  "metadata": {
+    "duration_ms": 0
+  },
+  "packages": [
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "accepts",
+      "purl": "pkg:npm/accepts@1.3.8",
+      "version": "1.3.8",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "ajv",
+      "purl": "pkg:npm/ajv@6.15.0",
+      "version": "6.15.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "array-flatten",
+      "purl": "pkg:npm/array-flatten@1.1.1",
+      "version": "1.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "asn1",
+      "purl": "pkg:npm/asn1@0.2.6",
+      "version": "0.2.6",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "assert-plus",
+      "purl": "pkg:npm/assert-plus@1.0.0",
+      "version": "1.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "asynckit",
+      "purl": "pkg:npm/asynckit@0.4.0",
+      "version": "0.4.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
+      "name": "aws-sign2",
+      "purl": "pkg:npm/aws-sign2@0.7.0",
+      "version": "0.7.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "aws4",
+      "purl": "pkg:npm/aws4@1.13.2",
+      "version": "1.13.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "axios",
+      "purl": "pkg:npm/axios@1.6.0",
+      "version": "1.6.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "BSD-3-Clause"
+        }
+      ],
+      "name": "bcrypt-pbkdf",
+      "purl": "pkg:npm/bcrypt-pbkdf@1.0.2",
+      "version": "1.0.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "body-parser",
+      "purl": "pkg:npm/body-parser@1.20.2",
+      "version": "1.20.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "BSD-3-Clause"
+        }
+      ],
+      "name": "buffer-equal-constant-time",
+      "purl": "pkg:npm/buffer-equal-constant-time@1.0.1",
+      "version": "1.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "bytes",
+      "purl": "pkg:npm/bytes@3.1.2",
+      "version": "3.1.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "call-bind-apply-helpers",
+      "purl": "pkg:npm/call-bind-apply-helpers@1.0.2",
+      "version": "1.0.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "call-bound",
+      "purl": "pkg:npm/call-bound@1.0.4",
+      "version": "1.0.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
+      "name": "caseless",
+      "purl": "pkg:npm/caseless@0.12.0",
+      "version": "0.12.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "combined-stream",
+      "purl": "pkg:npm/combined-stream@1.0.8",
+      "version": "1.0.8",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "content-disposition",
+      "purl": "pkg:npm/content-disposition@0.5.4",
+      "version": "0.5.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "content-type",
+      "purl": "pkg:npm/content-type@1.0.5",
+      "version": "1.0.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "cookie-signature",
+      "purl": "pkg:npm/cookie-signature@1.0.6",
+      "version": "1.0.6",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "cookie",
+      "purl": "pkg:npm/cookie@0.6.0",
+      "version": "0.6.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "core-util-is",
+      "purl": "pkg:npm/core-util-is@1.0.2",
+      "version": "1.0.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "dashdash",
+      "purl": "pkg:npm/dashdash@1.14.1",
+      "version": "1.14.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "debug",
+      "purl": "pkg:npm/debug@2.6.9",
+      "version": "2.6.9",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "delayed-stream",
+      "purl": "pkg:npm/delayed-stream@1.0.0",
+      "version": "1.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "depd",
+      "purl": "pkg:npm/depd@2.0.0",
+      "version": "2.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "destroy",
+      "purl": "pkg:npm/destroy@1.2.0",
+      "version": "1.2.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "dunder-proto",
+      "purl": "pkg:npm/dunder-proto@1.0.1",
+      "version": "1.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "ecc-jsbn",
+      "purl": "pkg:npm/ecc-jsbn@0.1.2",
+      "version": "0.1.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
+      "name": "ecdsa-sig-formatter",
+      "purl": "pkg:npm/ecdsa-sig-formatter@1.0.11",
+      "version": "1.0.11",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "ee-first",
+      "purl": "pkg:npm/ee-first@1.1.1",
+      "version": "1.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "encodeurl",
+      "purl": "pkg:npm/encodeurl@1.0.2",
+      "version": "1.0.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "es-define-property",
+      "purl": "pkg:npm/es-define-property@1.0.1",
+      "version": "1.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "es-errors",
+      "purl": "pkg:npm/es-errors@1.3.0",
+      "version": "1.3.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "es-object-atoms",
+      "purl": "pkg:npm/es-object-atoms@1.1.2",
+      "version": "1.1.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "es-set-tostringtag",
+      "purl": "pkg:npm/es-set-tostringtag@2.1.0",
+      "version": "2.1.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "escape-html",
+      "purl": "pkg:npm/escape-html@1.0.3",
+      "version": "1.0.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "etag",
+      "purl": "pkg:npm/etag@1.8.1",
+      "version": "1.8.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "express",
+      "purl": "pkg:npm/express@4.19.2",
+      "version": "4.19.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "extend",
+      "purl": "pkg:npm/extend@3.0.2",
+      "version": "3.0.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "extsprintf",
+      "purl": "pkg:npm/extsprintf@1.3.0",
+      "version": "1.3.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "fast-deep-equal",
+      "purl": "pkg:npm/fast-deep-equal@3.1.3",
+      "version": "3.1.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "fast-json-stable-stringify",
+      "purl": "pkg:npm/fast-json-stable-stringify@2.1.0",
+      "version": "2.1.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "finalhandler",
+      "purl": "pkg:npm/finalhandler@1.2.0",
+      "version": "1.2.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "follow-redirects",
+      "purl": "pkg:npm/follow-redirects@1.16.0",
+      "version": "1.16.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
+      "name": "forever-agent",
+      "purl": "pkg:npm/forever-agent@0.6.1",
+      "version": "0.6.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "form-data",
+      "purl": "pkg:npm/form-data@2.3.3",
+      "version": "2.3.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "form-data",
+      "purl": "pkg:npm/form-data@4.0.6",
+      "version": "4.0.6",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "forwarded",
+      "purl": "pkg:npm/forwarded@0.2.0",
+      "version": "0.2.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "fresh",
+      "purl": "pkg:npm/fresh@0.5.2",
+      "version": "0.5.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "function-bind",
+      "purl": "pkg:npm/function-bind@1.1.2",
+      "version": "1.1.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "get-intrinsic",
+      "purl": "pkg:npm/get-intrinsic@1.3.0",
+      "version": "1.3.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "get-proto",
+      "purl": "pkg:npm/get-proto@1.0.1",
+      "version": "1.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "getpass",
+      "purl": "pkg:npm/getpass@0.1.7",
+      "version": "0.1.7",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "gopd",
+      "purl": "pkg:npm/gopd@1.2.0",
+      "version": "1.2.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "ISC"
+        }
+      ],
+      "name": "har-schema",
+      "purl": "pkg:npm/har-schema@2.0.0",
+      "version": "2.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "har-validator",
+      "purl": "pkg:npm/har-validator@5.1.5",
+      "version": "5.1.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "has-symbols",
+      "purl": "pkg:npm/has-symbols@1.1.0",
+      "version": "1.1.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "has-tostringtag",
+      "purl": "pkg:npm/has-tostringtag@1.0.2",
+      "version": "1.0.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "hasown",
+      "purl": "pkg:npm/hasown@2.0.4",
+      "version": "2.0.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "http-errors",
+      "purl": "pkg:npm/http-errors@2.0.0",
+      "version": "2.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "http-signature",
+      "purl": "pkg:npm/http-signature@1.2.0",
+      "version": "1.2.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "iconv-lite",
+      "purl": "pkg:npm/iconv-lite@0.4.24",
+      "version": "0.4.24",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "ISC"
+        }
+      ],
+      "name": "inherits",
+      "purl": "pkg:npm/inherits@2.0.4",
+      "version": "2.0.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "ipaddr.js",
+      "purl": "pkg:npm/ipaddr.js@1.9.1",
+      "version": "1.9.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "is-typedarray",
+      "purl": "pkg:npm/is-typedarray@1.0.0",
+      "version": "1.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "isstream",
+      "purl": "pkg:npm/isstream@0.1.2",
+      "version": "0.1.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "jsbn",
+      "purl": "pkg:npm/jsbn@0.1.1",
+      "version": "0.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "json-schema-traverse",
+      "purl": "pkg:npm/json-schema-traverse@0.4.1",
+      "version": "0.4.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "(AFL-2.1 OR BSD-3-Clause)"
+        }
+      ],
+      "name": "json-schema",
+      "purl": "pkg:npm/json-schema@0.4.0",
+      "version": "0.4.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "ISC"
+        }
+      ],
+      "name": "json-stringify-safe",
+      "purl": "pkg:npm/json-stringify-safe@5.0.1",
+      "version": "5.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "jsonwebtoken",
+      "purl": "pkg:npm/jsonwebtoken@8.5.1",
+      "version": "8.5.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "jsprim",
+      "purl": "pkg:npm/jsprim@1.4.2",
+      "version": "1.4.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "jwa",
+      "purl": "pkg:npm/jwa@1.4.2",
+      "version": "1.4.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "jws",
+      "purl": "pkg:npm/jws@3.2.3",
+      "version": "3.2.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "lodash.includes",
+      "purl": "pkg:npm/lodash.includes@4.3.0",
+      "version": "4.3.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "lodash.isboolean",
+      "purl": "pkg:npm/lodash.isboolean@3.0.3",
+      "version": "3.0.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "lodash.isinteger",
+      "purl": "pkg:npm/lodash.isinteger@4.0.4",
+      "version": "4.0.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "lodash.isnumber",
+      "purl": "pkg:npm/lodash.isnumber@3.0.3",
+      "version": "3.0.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "lodash.isplainobject",
+      "purl": "pkg:npm/lodash.isplainobject@4.0.6",
+      "version": "4.0.6",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "lodash.isstring",
+      "purl": "pkg:npm/lodash.isstring@4.0.1",
+      "version": "4.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "lodash.once",
+      "purl": "pkg:npm/lodash.once@4.1.1",
+      "version": "4.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "lodash",
+      "purl": "pkg:npm/lodash@4.17.20",
+      "version": "4.17.20",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "math-intrinsics",
+      "purl": "pkg:npm/math-intrinsics@1.1.0",
+      "version": "1.1.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "media-typer",
+      "purl": "pkg:npm/media-typer@0.3.0",
+      "version": "0.3.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "merge-descriptors",
+      "purl": "pkg:npm/merge-descriptors@1.0.1",
+      "version": "1.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "methods",
+      "purl": "pkg:npm/methods@1.1.2",
+      "version": "1.1.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "mime-db",
+      "purl": "pkg:npm/mime-db@1.52.0",
+      "version": "1.52.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "mime-types",
+      "purl": "pkg:npm/mime-types@2.1.35",
+      "version": "2.1.35",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "mime",
+      "purl": "pkg:npm/mime@1.6.0",
+      "version": "1.6.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "ms",
+      "purl": "pkg:npm/ms@2.0.0",
+      "version": "2.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "ms",
+      "purl": "pkg:npm/ms@2.1.3",
+      "version": "2.1.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "negotiator",
+      "purl": "pkg:npm/negotiator@0.6.3",
+      "version": "0.6.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
+      "name": "oauth-sign",
+      "purl": "pkg:npm/oauth-sign@0.9.0",
+      "version": "0.9.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "object-inspect",
+      "purl": "pkg:npm/object-inspect@1.13.4",
+      "version": "1.13.4",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "on-finished",
+      "purl": "pkg:npm/on-finished@2.4.1",
+      "version": "2.4.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "parseurl",
+      "purl": "pkg:npm/parseurl@1.3.3",
+      "version": "1.3.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "path-to-regexp",
+      "purl": "pkg:npm/path-to-regexp@0.1.7",
+      "version": "0.1.7",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "performance-now",
+      "purl": "pkg:npm/performance-now@2.1.0",
+      "version": "2.1.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "proxy-addr",
+      "purl": "pkg:npm/proxy-addr@2.0.7",
+      "version": "2.0.7",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "proxy-from-env",
+      "purl": "pkg:npm/proxy-from-env@1.1.0",
+      "version": "1.1.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "psl",
+      "purl": "pkg:npm/psl@1.15.0",
+      "version": "1.15.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "punycode",
+      "purl": "pkg:npm/punycode@2.3.1",
+      "version": "2.3.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "BSD-3-Clause"
+        }
+      ],
+      "name": "qs",
+      "purl": "pkg:npm/qs@6.11.0",
+      "version": "6.11.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "BSD-3-Clause"
+        }
+      ],
+      "name": "qs",
+      "purl": "pkg:npm/qs@6.5.5",
+      "version": "6.5.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "range-parser",
+      "purl": "pkg:npm/range-parser@1.2.1",
+      "version": "1.2.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "raw-body",
+      "purl": "pkg:npm/raw-body@2.5.2",
+      "version": "2.5.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
+      "name": "request",
+      "purl": "pkg:npm/request@2.88.2",
+      "version": "2.88.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "safe-buffer",
+      "purl": "pkg:npm/safe-buffer@5.2.1",
+      "version": "5.2.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "safer-buffer",
+      "purl": "pkg:npm/safer-buffer@2.1.2",
+      "version": "2.1.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "BlueOak-1.0.0"
+        }
+      ],
+      "name": "sax",
+      "purl": "pkg:npm/sax@1.6.0",
+      "version": "1.6.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "ISC"
+        }
+      ],
+      "name": "semver",
+      "purl": "pkg:npm/semver@5.7.2",
+      "version": "5.7.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "send",
+      "purl": "pkg:npm/send@0.18.0",
+      "version": "0.18.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "serve-static",
+      "purl": "pkg:npm/serve-static@1.15.0",
+      "version": "1.15.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "ISC"
+        }
+      ],
+      "name": "setprototypeof",
+      "purl": "pkg:npm/setprototypeof@1.2.0",
+      "version": "1.2.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "side-channel-list",
+      "purl": "pkg:npm/side-channel-list@1.0.1",
+      "version": "1.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "side-channel-map",
+      "purl": "pkg:npm/side-channel-map@1.0.1",
+      "version": "1.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "side-channel-weakmap",
+      "purl": "pkg:npm/side-channel-weakmap@1.0.2",
+      "version": "1.0.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "side-channel",
+      "purl": "pkg:npm/side-channel@1.1.1",
+      "version": "1.1.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "sshpk",
+      "purl": "pkg:npm/sshpk@1.18.0",
+      "version": "1.18.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "statuses",
+      "purl": "pkg:npm/statuses@2.0.1",
+      "version": "2.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "team-bookmarks",
+      "purl": "pkg:npm/team-bookmarks@1.0.0",
+      "version": "1.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "toidentifier",
+      "purl": "pkg:npm/toidentifier@1.0.1",
+      "version": "1.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "BSD-3-Clause"
+        }
+      ],
+      "name": "tough-cookie",
+      "purl": "pkg:npm/tough-cookie@2.5.0",
+      "version": "2.5.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "Apache-2.0"
+        }
+      ],
+      "name": "tunnel-agent",
+      "purl": "pkg:npm/tunnel-agent@0.6.0",
+      "version": "0.6.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "Unlicense"
+        }
+      ],
+      "name": "tweetnacl",
+      "purl": "pkg:npm/tweetnacl@0.14.5",
+      "version": "0.14.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "type-is",
+      "purl": "pkg:npm/type-is@1.6.18",
+      "version": "1.6.18",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "unpipe",
+      "purl": "pkg:npm/unpipe@1.0.0",
+      "version": "1.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "BSD-2-Clause"
+        }
+      ],
+      "name": "uri-js",
+      "purl": "pkg:npm/uri-js@4.4.1",
+      "version": "4.4.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "utils-merge",
+      "purl": "pkg:npm/utils-merge@1.0.1",
+      "version": "1.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "uuid",
+      "purl": "pkg:npm/uuid@3.4.0",
+      "version": "3.4.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "vary",
+      "purl": "pkg:npm/vary@1.1.2",
+      "version": "1.1.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "verror",
+      "purl": "pkg:npm/verror@1.10.0",
+      "version": "1.10.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "xml2js",
+      "purl": "pkg:npm/xml2js@0.6.2",
+      "version": "0.6.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "xmlbuilder",
+      "purl": "pkg:npm/xmlbuilder@11.0.1",
+      "version": "11.0.1",
+      "vulnerabilities": []
+    }
+  ],
+  "project": {
+    "ecosystem": "npm",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "npm",
+    "path": "\u003cnormalized\u003e",
+    "target_ref": "fc32147b3be526ea6c5d563a505c867f4bae93f3",
+    "target_type": "git repository"
+  },
+  "schema_version": "1.0"
+}

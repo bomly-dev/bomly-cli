@@ -47,7 +47,7 @@ var evidencePatterns = []string{"pom.xml", "*pom.xml"}
 
 // PackageManagerSupport returns Maven package-manager discovery metadata.
 func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerMaven, evidencePatterns...)}
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerMaven, evidencePatterns...).WithNativeMultiModule()}
 }
 
 // Ready reports whether a Maven wrapper is present or Maven is installed and a
@@ -75,12 +75,13 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 // Descriptor describes the Maven graph detector.
 func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		Name:                 detectors.NameMaven,
-		Technique:            sdk.BuildToolTechnique,
-		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemMaven},
-		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerMaven},
-		Tags:                 []string{"graph-resolution", "component-targeting", "wrapper-detection"},
-		SupportsInstallFirst: true,
+		DiscoveryIgnoredDirectories: []string{"target"},
+		Name:                        detectors.NameMaven,
+		Technique:                   sdk.BuildToolTechnique,
+		SupportedEcosystems:         []sdk.Ecosystem{sdk.EcosystemMaven},
+		SupportedManagers:           []sdk.PackageManager{sdk.PackageManagerMaven},
+		Tags:                        []string{"graph-resolution", "component-targeting", "wrapper-detection"},
+		SupportsInstallFirst:        true,
 	}
 }
 

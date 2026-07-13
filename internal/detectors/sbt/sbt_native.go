@@ -29,7 +29,7 @@ type NativeDetector struct {
 
 // PackageManagerSupport returns sbt package-manager discovery metadata.
 func (d NativeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerSBT, evidencePatterns...)}
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerSBT, evidencePatterns...).WithNativeMultiModule()}
 }
 
 // Ready reports whether the sbt binary and a usable Java runtime are available.
@@ -60,11 +60,12 @@ func (d NativeDetector) Applicable(ctx context.Context, req sdk.DetectionRequest
 // Descriptor describes the sbt native detector.
 func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		Name:                detectors.NameSBTNative,
-		Technique:           sdk.BuildToolTechnique,
-		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemScala, sdk.EcosystemMaven},
-		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerSBT},
-		Tags:                []string{"graph-resolution", "component-targeting", "scope-annotation"},
+		DiscoveryIgnoredDirectories: []string{"target"},
+		Name:                        detectors.NameSBTNative,
+		Technique:                   sdk.BuildToolTechnique,
+		SupportedEcosystems:         []sdk.Ecosystem{sdk.EcosystemScala, sdk.EcosystemMaven},
+		SupportedManagers:           []sdk.PackageManager{sdk.PackageManagerSBT},
+		Tags:                        []string{"graph-resolution", "component-targeting", "scope-annotation"},
 	}
 }
 

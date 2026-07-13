@@ -42,12 +42,14 @@ func (d PipenvDetector) Applicable(ctx context.Context, req sdk.DetectionRequest
 // Descriptor describes the Pipenv detector.
 func (d PipenvDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		Name:                 detectors.NamePipenv,
-		Technique:            sdk.BuildToolTechnique,
-		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemPython},
-		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerPipenv},
-		Tags:                 []string{"graph-resolution", "component-targeting"},
-		SupportsInstallFirst: true,
+		DiscoveryIgnoredDirectories:      []string{"__pycache__"},
+		DiscoveryIgnoredDirectoryMarkers: []string{"pyvenv.cfg"},
+		Name:                             detectors.NamePipenv,
+		Technique:                        sdk.BuildToolTechnique,
+		SupportedEcosystems:              []sdk.Ecosystem{sdk.EcosystemPython},
+		SupportedManagers:                []sdk.PackageManager{sdk.PackageManagerPipenv},
+		Tags:                             []string{"graph-resolution", "component-targeting"},
+		SupportsInstallFirst:             true,
 	}
 }
 

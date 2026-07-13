@@ -38,12 +38,14 @@ func (d UVDetector) Applicable(ctx context.Context, req sdk.DetectionRequest) (b
 // Descriptor describes the uv detector.
 func (d UVDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		Name:                 detectors.NameUV,
-		Technique:            sdk.BuildToolTechnique,
-		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemPython},
-		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerUV},
-		Tags:                 []string{"graph-resolution", "component-targeting"},
-		SupportsInstallFirst: true,
+		DiscoveryIgnoredDirectories:      []string{"__pycache__"},
+		DiscoveryIgnoredDirectoryMarkers: []string{"pyvenv.cfg"},
+		Name:                             detectors.NameUV,
+		Technique:                        sdk.BuildToolTechnique,
+		SupportedEcosystems:              []sdk.Ecosystem{sdk.EcosystemPython},
+		SupportedManagers:                []sdk.PackageManager{sdk.PackageManagerUV},
+		Tags:                             []string{"graph-resolution", "component-targeting"},
+		SupportsInstallFirst:             true,
 	}
 }
 

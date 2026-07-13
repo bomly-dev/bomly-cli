@@ -601,7 +601,7 @@ func noSubprojectsError(req Request) error {
 	if len(hints) > 0 {
 		err = fmt.Errorf("%w (active filters: %s)", err, strings.Join(hints, ", "))
 	}
-	findings, truncated := describeDiscoveryFindings(req.ExecutionTarget)
+	findings, truncated := describeDiscoveryFindings(req.ExecutionTarget, discoveryRulesFor(nil, req))
 	if probe := renderDiscoveryProbe(req.ExecutionTarget, findings, truncated); len(probe) > 0 {
 		err = fmt.Errorf("%w; discovery probe: %s", err, strings.Join(probe, "; "))
 	}
@@ -654,14 +654,14 @@ type discoveryFinding struct {
 // exist, where, and which package manager they belong to. Returns nil for
 // non-filesystem targets.
 func DescribeDiscovery(target sdk.ExecutionTarget) []string {
-	findings, truncated := describeDiscoveryFindings(target)
+	findings, truncated := describeDiscoveryFindings(target, builtinDiscoveryRules())
 	return renderDiscoveryProbe(target, findings, truncated)
 }
 
 // describeDiscoveryFindings walks the target (bounded by
 // discoveryProbeMaxDepth / discoveryProbeMaxLines and the shared skip rules)
 // and returns the manifest evidence it saw, plus whether output was truncated.
-func describeDiscoveryFindings(target sdk.ExecutionTarget) ([]discoveryFinding, bool) {
+func describeDiscoveryFindings(target sdk.ExecutionTarget, rules discoveryRules) ([]discoveryFinding, bool) {
 	if strings.TrimSpace(target.Location) == "" {
 		return nil, false
 	}
@@ -689,7 +689,7 @@ func describeDiscoveryFindings(target sdk.ExecutionTarget) ([]discoveryFinding, 
 			return nil //nolint:nilerr // best-effort probe
 		}
 		rel = filepath.ToSlash(rel)
-		if rel != "." && shouldSkipDiscoveryDir(entry.Name(), path) {
+		if rel != "." && rules.shouldSkipDiscoveryDir(entry.Name(), path) {
 			return filepath.SkipDir
 		}
 		if discoveryDepth(rel) > discoveryProbeMaxDepth {

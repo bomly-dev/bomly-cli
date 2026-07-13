@@ -217,14 +217,6 @@ func TestScan(t *testing.T) {
 			tools: []string{"mvn"},
 		},
 		{
-			// Depth + exclude bounds on the same pinned monorepo: excluding
-			// everything except fixtures/webapp (depth 2) leaves only the npm
-			// lockfile subproject, which parses without any package-manager
-			// binary; --max-depth 2 exercises the depth flag end to end.
-			name: "scan-recursive-depth-exclude",
-			args: []string{"scan", "--url", "https://github.com/bomly-dev/bomly-agent-study", "--ref", "fc32147b3be526ea6c5d563a505c867f4bae93f3", "--recursive", "--max-depth", "2", "--exclude", "harness,fixtures/api-java,fixtures/service", "--format", "json"},
-		},
-		{
 			name: "scan-sbom-spdx",
 			args: []string{"scan", "--sbom", "--path", sbomFixture("go.spdx.json"), "--format", "json"},
 		},
@@ -272,6 +264,34 @@ func TestScanRecursiveNothingAtRootWithoutFlag(t *testing.T) {
 	}
 	if !strings.Contains(stderr, "retry with --recursive") {
 		t.Fatalf("expected --recursive hint in stderr, got:\n%s", stderr)
+	}
+}
+
+// TestScanRecursiveDepthLimitFindsNothing exercises the depth bound end to
+// end: at --max-depth 1 the pinned monorepo's nested projects (all at depth 2)
+// are out of reach and the only depth-1 candidate (harness) is excluded, so
+// the scan must exit 5 and describe the bounded recursive search. The
+// scan-recursive-monorepo golden already covers the implicit default depth
+// finding nested projects.
+func TestScanRecursiveDepthLimitFindsNothing(t *testing.T) {
+	t.Parallel()
+	_, stderr, code := runBomly(t,
+		"scan",
+		"--url", "https://github.com/bomly-dev/bomly-agent-study",
+		"--ref", "fc32147b3be526ea6c5d563a505c867f4bae93f3",
+		"--recursive",
+		"--max-depth", "1",
+		"--exclude", "harness",
+		"--format", "json",
+	)
+	if code != 5 {
+		t.Fatalf("expected exit 5 when the depth limit hides every manifest, got %d\nstderr:\n%s", code, stderr)
+	}
+	if !strings.Contains(stderr, "recursive discovery, max depth 1, 1 exclude pattern(s)") {
+		t.Fatalf("expected bounded recursive-search description in stderr, got:\n%s", stderr)
+	}
+	if strings.Contains(stderr, "retry with --recursive") {
+		t.Fatalf("recursive run must not suggest --recursive, got:\n%s", stderr)
 	}
 }
 

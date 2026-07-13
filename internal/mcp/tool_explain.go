@@ -18,6 +18,9 @@ func registerExplainTool(s *server.MCPServer, mcpCtx Context) {
 		mcplib.WithBoolean("enrich", mcplib.Description("Enrich packages with vulnerability and license data")),
 		mcplib.WithBoolean("audit", mcplib.Description("Evaluate policy on the target package (requires enrich)")),
 		mcplib.WithBoolean("analyze", mcplib.Description("Run code analysis to confirm whether vulnerabilities on the target package are reachable from application code (requires enrich)")),
+		mcplib.WithBoolean("recursive", mcplib.Description("Recursively discover nested manifests under the scan root (monorepos)")),
+		mcplib.WithNumber("max_depth", mcplib.Description("Maximum directory depth for recursive discovery, counted from the scan root; defaults to 3, use a large value for effectively unlimited (requires recursive)")),
+		mcplib.WithString("exclude", mcplib.Description("Comma-separated glob patterns relative to the scan root excluded from recursive discovery, in addition to built-in ignore rules (requires recursive)")),
 	)
 	s.AddTool(tool, func(ctx context.Context, req mcplib.CallToolRequest) (*mcplib.CallToolResult, error) {
 		pkg, err := req.RequireString("package")
@@ -25,11 +28,14 @@ func registerExplainTool(s *server.MCPServer, mcpCtx Context) {
 			return mcplib.NewToolResultError(err.Error()), nil
 		}
 		explainReq := ExplainRequest{
-			Package: pkg,
-			Path:    req.GetString("path", ""),
-			Enrich:  req.GetBool("enrich", false),
-			Audit:   req.GetBool("audit", false),
-			Analyze: req.GetBool("analyze", false),
+			Package:   pkg,
+			Path:      req.GetString("path", ""),
+			Enrich:    req.GetBool("enrich", false),
+			Audit:     req.GetBool("audit", false),
+			Analyze:   req.GetBool("analyze", false),
+			Recursive: req.GetBool("recursive", false),
+			MaxDepth:  req.GetInt("max_depth", 0),
+			Exclude:   req.GetString("exclude", ""),
 		}
 		result, err := mcpCtx.Adapter.RunExplain(ctx, explainReq)
 		if err != nil {

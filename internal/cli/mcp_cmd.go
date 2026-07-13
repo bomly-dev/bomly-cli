@@ -9,6 +9,7 @@ import (
 
 	"github.com/bomly-dev/bomly-cli/internal/cli/opts"
 	"github.com/bomly-dev/bomly-cli/internal/cli/render"
+	"github.com/bomly-dev/bomly-cli/internal/config"
 	"github.com/bomly-dev/bomly-cli/internal/engine"
 	diffengine "github.com/bomly-dev/bomly-cli/internal/engine/diff"
 	scanengine "github.com/bomly-dev/bomly-cli/internal/engine/scan"
@@ -124,6 +125,9 @@ type mcpOverrides struct {
 	WarnOnly              bool
 	Ecosystems            string
 	SBOM                  bool
+	Recursive             bool
+	MaxDepth              int
+	Exclude               string
 }
 
 // cloneWithOverrides returns a copy of CommandContext with per-call values layered on top.
@@ -162,6 +166,13 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 	if o.SBOM {
 		clone.ResolvedConfig.SBOM = true
 	}
+	if o.Recursive {
+		clone.ResolvedConfig.Recursive = true
+	}
+	if o.MaxDepth > 0 {
+		clone.ResolvedConfig.MaxDepth = o.MaxDepth
+	}
+	applyCSVOverride(&clone.ResolvedConfig.ExcludePaths, o.Exclude)
 	clone.ResolvedConfig.Interactive = false
 
 	applyStringOverride(&resolved.Path, o.Path)
@@ -194,10 +205,29 @@ func (a *mcpOptionsAdapter) cloneWithOverrides(o mcpOverrides) *opts.Options {
 	if o.SBOM {
 		resolved.SBOM = true
 	}
+	if o.Recursive {
+		resolved.Recursive = true
+	}
+	if o.MaxDepth > 0 {
+		resolved.MaxDepth = o.MaxDepth
+	}
+	applyCSVOverride(&resolved.ExcludePaths, o.Exclude)
 	resolved.Interactive = false
 	clone.SetConfig(resolved)
 
 	return &clone
+}
+
+// validatedCloneWithOverrides layers per-call values and re-runs config
+// validation, so invalid MCP argument combinations (e.g. exclude without
+// recursive) fail with the same actionable message the CLI flags produce
+// instead of surfacing deep in the pipeline.
+func (a *mcpOptionsAdapter) validatedCloneWithOverrides(o mcpOverrides) (*opts.Options, error) {
+	clone := a.cloneWithOverrides(o)
+	if err := config.Validate(clone.GetConfig()); err != nil {
+		return nil, err
+	}
+	return clone, nil
 }
 
 func applyStringOverride(target *string, value string) {
@@ -231,7 +261,7 @@ func applyCSVOverride(target *[]string, value string) {
 
 func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (mcp.ScanRunResult, error) {
 	started := time.Now()
-	o := a.cloneWithOverrides(mcpOverrides{
+	o, err := a.validatedCloneWithOverrides(mcpOverrides{
 		Path:       req.Path,
 		Image:      req.Image,
 		URL:        req.URL,
@@ -241,7 +271,13 @@ func (a *mcpOptionsAdapter) RunScan(ctx context.Context, req mcp.ScanRequest) (m
 		Analyze:    req.Analyze,
 		FailOn:     req.FailOn,
 		Ecosystems: req.Ecosystems,
+		Recursive:  req.Recursive,
+		MaxDepth:   req.MaxDepth,
+		Exclude:    req.Exclude,
 	})
+	if err != nil {
+		return mcp.ScanRunResult{}, fmt.Errorf("validate scan request: %w", err)
+	}
 	cmdCtx, err := o.Prepare(ctx, a.logger)
 	if err != nil {
 		return mcp.ScanRunResult{}, fmt.Errorf("prepare scan: %w", err)
@@ -320,12 +356,18 @@ func mcpDiagnosticsFromPipeline(pipeResult engine.PipelineResult) []mcp.Diagnost
 
 func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainRequest) (mcp.ExplainRunResult, error) {
 	started := time.Now()
-	o := a.cloneWithOverrides(mcpOverrides{
-		Path:    req.Path,
-		Enrich:  req.Enrich,
-		Audit:   req.Audit,
-		Analyze: req.Analyze,
+	o, err := a.validatedCloneWithOverrides(mcpOverrides{
+		Path:      req.Path,
+		Enrich:    req.Enrich,
+		Audit:     req.Audit,
+		Analyze:   req.Analyze,
+		Recursive: req.Recursive,
+		MaxDepth:  req.MaxDepth,
+		Exclude:   req.Exclude,
 	})
+	if err != nil {
+		return mcp.ExplainRunResult{}, fmt.Errorf("validate explain request: %w", err)
+	}
 	cmdCtx, err := o.Prepare(ctx, a.logger)
 	if err != nil {
 		return mcp.ExplainRunResult{}, fmt.Errorf("prepare explain: %w", err)
@@ -375,7 +417,7 @@ func (a *mcpOptionsAdapter) RunExplain(ctx context.Context, req mcp.ExplainReque
 
 func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (mcp.DiffRunResult, error) {
 	started := time.Now()
-	o := a.cloneWithOverrides(mcpOverrides{
+	o, err := a.validatedCloneWithOverrides(mcpOverrides{
 		Path:                  req.Path,
 		Image:                 req.Image,
 		SBOM:                  req.SBOM,
@@ -393,14 +435,19 @@ func (a *mcpOptionsAdapter) RunDiff(ctx context.Context, req mcp.DiffRequest) (m
 		TyposquatThreshold:    req.TyposquatThreshold,
 		TyposquatMode:         req.TyposquatMode,
 		WarnOnly:              req.WarnOnly,
+		Recursive:             req.Recursive,
+		MaxDepth:              req.MaxDepth,
+		Exclude:               req.Exclude,
 	})
+	if err != nil {
+		return mcp.DiffRunResult{}, fmt.Errorf("validate diff request: %w", err)
+	}
 	logger := a.logger
 
 	var (
 		baseTarget        diffResolvedTarget
 		headTarget        diffResolvedTarget
 		projectIdentifier string
-		err               error
 	)
 	// Mirror the CLI diff command's target dispatch: SBOM file paths, then
 	// container tags/digests, then Git refs in the local repo by default.

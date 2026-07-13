@@ -23,15 +23,21 @@ type ScanRequest struct {
 	FailOn     string `json:"fail_on"`
 	Ecosystems string `json:"ecosystems"`
 	Scope      string `json:"scope"`
+	Recursive  bool   `json:"recursive"`
+	MaxDepth   int    `json:"max_depth"`
+	Exclude    string `json:"exclude"`
 }
 
 // ExplainRequest holds per-call overrides for the bomly_explain tool.
 type ExplainRequest struct {
-	Package string `json:"package"`
-	Path    string `json:"path"`
-	Enrich  bool   `json:"enrich"`
-	Audit   bool   `json:"audit"`
-	Analyze bool   `json:"analyze"`
+	Package   string `json:"package"`
+	Path      string `json:"path"`
+	Enrich    bool   `json:"enrich"`
+	Audit     bool   `json:"audit"`
+	Analyze   bool   `json:"analyze"`
+	Recursive bool   `json:"recursive"`
+	MaxDepth  int    `json:"max_depth"`
+	Exclude   string `json:"exclude"`
 }
 
 // DiffRequest holds per-call overrides for the bomly_diff tool.
@@ -55,6 +61,9 @@ type DiffRequest struct {
 	TyposquatThreshold    string `json:"typosquat_threshold"`
 	TyposquatMode         string `json:"typosquat_mode"`
 	WarnOnly              bool   `json:"warn_only"`
+	Recursive             bool   `json:"recursive"`
+	MaxDepth              int    `json:"max_depth"`
+	Exclude               string `json:"exclude"`
 }
 
 // ScanRunResult carries a scan run's full output back to the MCP layer:

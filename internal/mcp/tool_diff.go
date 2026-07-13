@@ -36,6 +36,9 @@ func registerDiffTool(s *server.MCPServer, mcpCtx Context) {
 		mcplib.WithString("typosquat_threshold", mcplib.Description("Typosquatting similarity threshold")),
 		mcplib.WithString("typosquat_mode", mcplib.Description("Typosquatting mode: warn or fail")),
 		mcplib.WithBoolean("warn_only", mcplib.Description("Downgrade failing findings to warnings")),
+		mcplib.WithBoolean("recursive", mcplib.Description("Recursively discover nested manifests under each compared ref (monorepos); not valid with image or sbom")),
+		mcplib.WithNumber("max_depth", mcplib.Description("Maximum directory depth for recursive discovery, counted from the scan root; defaults to 3, use a large value for effectively unlimited (requires recursive)")),
+		mcplib.WithString("exclude", mcplib.Description("Comma-separated glob patterns relative to the scan root excluded from recursive discovery, in addition to built-in ignore rules (requires recursive)")),
 	)
 	s.AddTool(tool, func(ctx context.Context, req mcplib.CallToolRequest) (*mcplib.CallToolResult, error) {
 		base, err := req.RequireString("base")
@@ -66,6 +69,9 @@ func registerDiffTool(s *server.MCPServer, mcpCtx Context) {
 			TyposquatThreshold:    req.GetString("typosquat_threshold", ""),
 			TyposquatMode:         req.GetString("typosquat_mode", ""),
 			WarnOnly:              req.GetBool("warn_only", false),
+			Recursive:             req.GetBool("recursive", false),
+			MaxDepth:              req.GetInt("max_depth", 0),
+			Exclude:               req.GetString("exclude", ""),
 		}
 		result, err := mcpCtx.Adapter.RunDiff(ctx, diffReq)
 		if err != nil {

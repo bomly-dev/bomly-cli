@@ -61,6 +61,8 @@ The walk never descends into:
 - `target`, `build`, `dist` — build outputs that commonly contain copied manifests
 - `__pycache__`, and any directory containing a `pyvenv.cfg` file (Python virtualenvs)
 
+These rules are declared by the detectors themselves (each detector owns its ecosystem's ignore list), so external [detector plugins](PLUGINS.md) contribute additional ignored directories the same way built-ins do.
+
 Symlinked directories are not followed; only the scan root itself is resolved if it is a symlink.
 
 ### Workspace roots are not double-counted
@@ -72,6 +74,8 @@ When a package manager whose detector natively expands nested modules is detecte
 | maven (reactor modules), gradle (subprojects), npm / pnpm / yarn (workspaces), cargo (workspace members), sbt (aggregated builds), mix (umbrella apps) | gomod, pip / pipenv / poetry / uv / pdm, bundler, composer, nuget, pub, cocoapods, swiftpm, conan, github-actions, … |
 
 A nested `go.mod` is an independent Go module by language semantics, so every nested Go module becomes its own subproject (`go.work` workspaces are also scanned per-module). Pruning is per package manager: a Maven root does not hide a nested `requirements.txt`.
+
+Like the ignore rules, multi-module expansion is declared by each detector (`sdk.PackageManagerSupport.NativeMultiModule`), so external detector plugins can opt their package manager into pruning.
 
 ## Git repository — `--url` and `--ref`
 

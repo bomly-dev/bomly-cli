@@ -20,7 +20,7 @@ type NativeDetector struct {
 
 // PackageManagerSupport returns discovery metadata for the internal pnpm CLI fallback detector.
 func (d NativeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerPNPM, "package.json")}
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerPNPM, "package.json").WithNativeMultiModule()}
 }
 
 // Ready reports whether pnpm is available.
@@ -48,12 +48,13 @@ func (d NativeDetector) Applicable(ctx context.Context, req sdk.DetectionRequest
 // Descriptor describes the pnpm CLI fallback detector.
 func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		Name:                 detectors.NamePNPMNative,
-		Technique:            sdk.BuildToolTechnique,
-		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemNPM},
-		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerPNPM},
-		Tags:                 []string{"graph-resolution", "component-targeting"},
-		SupportsInstallFirst: true,
+		DiscoveryIgnoredDirectories: []string{"node_modules", "dist"},
+		Name:                        detectors.NamePNPMNative,
+		Technique:                   sdk.BuildToolTechnique,
+		SupportedEcosystems:         []sdk.Ecosystem{sdk.EcosystemNPM},
+		SupportedManagers:           []sdk.PackageManager{sdk.PackageManagerPNPM},
+		Tags:                        []string{"graph-resolution", "component-targeting"},
+		SupportsInstallFirst:        true,
 	}
 }
 

@@ -165,6 +165,14 @@ bomly scan --audit --auditors bomly.examples.auditor.meme-deps
 
 Detector plugins can participate in subproject discovery. Their runtime descriptor and `PackageManagerSupport` response record package-manager support and evidence patterns such as `go.mod`. Bomly stores that verified descriptor snapshot during install so external detectors can join the same scan-planning flow as built-ins.
 
+Detector plugins can also shape recursive discovery (`--recursive`) through three optional descriptor fields, all aggregated across every registered detector exactly like the built-ins' declarations:
+
+- `DetectorDescriptor.DiscoveryIgnoredDirectories` — directory basename globs the recursive walk must not descend into (a Node detector declares `node_modules`, a Maven detector declares `target`).
+- `DetectorDescriptor.DiscoveryIgnoredDirectoryMarkers` — file names whose presence marks a directory as ignored regardless of its name (the Python detectors declare `pyvenv.cfg` to skip virtualenvs).
+- `PackageManagerSupport.NativeMultiModule` (set via `sdk.Support(...).WithNativeMultiModule()`) — declares that the detector natively expands nested workspace/reactor modules from a root manifest, so recursive discovery prunes nested subprojects for the same package manager below a detected root instead of scanning the modules twice.
+
+All three are optional and older plugins that omit them keep working unchanged.
+
 ## Configuration And Proxy Support
 
 Bomly passes the active plugin API version, the explicit `BOMLY_CONFIG` path when one was provided, proxy settings, and the enabled plugin's own config to managed plugin subprocesses.

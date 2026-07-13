@@ -98,6 +98,15 @@ func builtInSupportDetectors() []sdk.Detector {
 	}
 }
 
+// BuiltinDetectors returns fresh instances of every built-in detector in the
+// support catalog. Callers use it to aggregate detector-declared metadata
+// (discovery ignore rules, native multi-module support) when no runtime
+// registry is available, e.g. in diagnostics that run before registry
+// construction.
+func BuiltinDetectors() []sdk.Detector {
+	return builtInSupportDetectors()
+}
+
 // SupportedPackageManagers returns package managers known to Bomly's built-in registry.
 func SupportedPackageManagers() []sdk.PackageManager {
 	values := make([]sdk.PackageManager, 0, len(packageManagerSupport))

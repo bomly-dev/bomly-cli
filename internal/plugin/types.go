@@ -861,6 +861,8 @@ func cloneDetectorDescriptor(descriptor *plugschema.DetectorDescriptor) *plugsch
 	copyValue.PackageManagerSupport = clonePackageManagerSupport(descriptor.PackageManagerSupport)
 	copyValue.Tags = append([]string(nil), descriptor.Tags...)
 	copyValue.FallbackDetectors = append([]string(nil), descriptor.FallbackDetectors...)
+	copyValue.DiscoveryIgnoredDirectories = append([]string(nil), descriptor.DiscoveryIgnoredDirectories...)
+	copyValue.DiscoveryIgnoredDirectoryMarkers = append([]string(nil), descriptor.DiscoveryIgnoredDirectoryMarkers...)
 	return &copyValue
 }
 

@@ -100,6 +100,18 @@ type DetectorDescriptor struct {
 	PackageManagerSupport []PackageManagerSupport `json:"packageManagerSupport,omitempty"`
 	FallbackDetectors     []string                `json:"fallbackDetectors,omitempty"`
 	SupportsInstallFirst  bool                    `json:"supportsInstallFirst,omitempty"`
+	// IgnoredDirectories lists directory basename globs (Go
+	// path.Match syntax) that recursive subproject discovery must not descend
+	// into because they hold third-party installs, vendored dependencies, or
+	// build outputs for this detector's ecosystem (e.g. "node_modules",
+	// "target"). Discovery aggregates these across every registered detector,
+	// including external plugins. Optional; omitted by older plugins.
+	IgnoredDirectories []string `json:"ignoredDirectories,omitempty"`
+	// IgnoredDirectoryMarkers lists file names whose presence inside
+	// a directory marks that directory as ignored during recursive discovery
+	// regardless of its name (e.g. "pyvenv.cfg" identifies a Python
+	// virtualenv). Optional; omitted by older plugins.
+	IgnoredDirectoryMarkers []string `json:"ignoredDirectoryMarkers,omitempty"`
 }
 
 // PackageManagerSupport records package-manager discovery metadata for a
@@ -108,6 +120,14 @@ type DetectorDescriptor struct {
 type PackageManagerSupport struct {
 	PackageManager   PackageManager `json:"packageManager"`
 	EvidencePatterns []string       `json:"evidencePatterns,omitempty"`
+	// MultiModule marks that the detector natively expands nested
+	// workspace/reactor modules for this package manager from a root manifest
+	// (Maven reactors, npm/pnpm/yarn workspaces, cargo workspace members,
+	// ...). Recursive discovery prunes nested subprojects for the same
+	// package manager below a directory where a native multi-module manager
+	// was detected, so the same modules are not scanned twice. Optional;
+	// omitted by older plugins.
+	MultiModule bool `json:"multiModule,omitempty"`
 }
 
 // PackageManagerSupporter reports detector package-manager discovery metadata.
@@ -121,6 +141,14 @@ func Support(manager PackageManager, evidencePatterns ...string) PackageManagerS
 		PackageManager:   manager,
 		EvidencePatterns: append([]string(nil), evidencePatterns...),
 	}
+}
+
+// WithMultiModule returns a copy of the support entry marked as natively
+// expanding nested workspace/reactor modules from a root manifest, opting the
+// package manager into recursive-discovery ancestor pruning.
+func (s PackageManagerSupport) WithMultiModule() PackageManagerSupport {
+	s.MultiModule = true
+	return s
 }
 
 // Detector resolves dependency information.

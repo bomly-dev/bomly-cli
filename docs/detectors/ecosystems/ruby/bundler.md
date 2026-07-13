@@ -10,6 +10,9 @@ Bomly uses this chain when it finds `bundler` evidence.
 | Ecosystem | `ruby` |
 | Detector chain | `bundler-detector`, `syft-detector` |
 | Evidence patterns | `Gemfile.lock`, `Gemfile.next.lock` |
+| Ignored directories | `vendor` |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | Yes |
 | Native command hints | `bundle`, `syft for bomly-lite` |
 

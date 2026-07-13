@@ -658,3 +658,87 @@ func containsManager(values []sdk.PackageManager, target sdk.PackageManager) boo
 	}
 	return false
 }
+
+func TestResolveConfigRejectsMaxDepthWithoutRecursive(t *testing.T) {
+	tempHome := t.TempDir()
+	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
+	t.Chdir(t.TempDir())
+
+	options := &Options{}
+	root := newTestRootCommand(t)
+	if err := options.Bind(root); err != nil {
+		t.Fatalf("Bind() error = %v", err)
+	}
+	if err := BindCommandFlagGroups(root, &options.ResolvedConfig, FlagGroupTarget); err != nil {
+		t.Fatalf("BindCommandFlagGroups() error = %v", err)
+	}
+	if err := root.ParseFlags([]string{"--max-depth", "2"}); err != nil {
+		t.Fatalf("ParseFlags() error = %v", err)
+	}
+	err := options.ResolveConfig(root)
+	if err == nil {
+		t.Fatal("expected error for explicit --max-depth without --recursive")
+	}
+	if !strings.Contains(err.Error(), "--max-depth requires --recursive") {
+		t.Fatalf("expected --max-depth gating message, got %q", err.Error())
+	}
+}
+
+func TestResolveConfigAcceptsMaxDepthWithRecursive(t *testing.T) {
+	tempHome := t.TempDir()
+	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
+	t.Chdir(t.TempDir())
+
+	options := &Options{}
+	root := newTestRootCommand(t)
+	if err := options.Bind(root); err != nil {
+		t.Fatalf("Bind() error = %v", err)
+	}
+	if err := BindCommandFlagGroups(root, &options.ResolvedConfig, FlagGroupTarget); err != nil {
+		t.Fatalf("BindCommandFlagGroups() error = %v", err)
+	}
+	if err := root.ParseFlags([]string{"--recursive", "--max-depth", "2", "--exclude", "apps/*,dist"}); err != nil {
+		t.Fatalf("ParseFlags() error = %v", err)
+	}
+	if err := options.ResolveConfig(root); err != nil {
+		t.Fatalf("ResolveConfig() error = %v", err)
+	}
+	got := options.GetConfig()
+	if !got.Recursive || got.MaxDepth != 2 {
+		t.Fatalf("expected recursive with max depth 2, got %+v", got)
+	}
+	if len(got.ExcludePaths) != 2 || got.ExcludePaths[0] != "apps/*" || got.ExcludePaths[1] != "dist" {
+		t.Fatalf("expected CSV exclude parsing, got %#v", got.ExcludePaths)
+	}
+}
+
+func TestResolveConfigDefaultsMaxDepthWithoutFlags(t *testing.T) {
+	tempHome := t.TempDir()
+	t.Setenv("HOME", tempHome)
+	t.Setenv("USERPROFILE", tempHome)
+	t.Chdir(t.TempDir())
+
+	options := &Options{}
+	root := newTestRootCommand(t)
+	if err := options.Bind(root); err != nil {
+		t.Fatalf("Bind() error = %v", err)
+	}
+	if err := BindCommandFlagGroups(root, &options.ResolvedConfig, FlagGroupTarget); err != nil {
+		t.Fatalf("BindCommandFlagGroups() error = %v", err)
+	}
+	if err := root.ParseFlags(nil); err != nil {
+		t.Fatalf("ParseFlags() error = %v", err)
+	}
+	if err := options.ResolveConfig(root); err != nil {
+		t.Fatalf("ResolveConfig() error = %v", err)
+	}
+	got := options.GetConfig()
+	if got.Recursive {
+		t.Fatal("expected recursive discovery to default off")
+	}
+	if got.MaxDepth != 3 {
+		t.Fatalf("expected default max depth 3, got %d", got.MaxDepth)
+	}
+}

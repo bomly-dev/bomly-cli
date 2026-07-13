@@ -137,6 +137,7 @@ func normalizeSubprojectManifest(subproject sdk.Subproject, manifest sdk.Manifes
 	manifest.Path = strings.ReplaceAll(strings.TrimSpace(manifest.Path), "\\", "/")
 	if isCoreDetector(origin) {
 		manifest.Path = normalizeNativeManifestPath(subproject, manifest.Path)
+		manifest.Path = rebaseManifestPathToRoot(subproject, manifest.Path)
 	}
 	if strings.TrimSpace(string(manifest.Kind)) == "" {
 		manifest.Kind = sdk.ManifestKind(subproject.PrimaryPackageManager().Name())

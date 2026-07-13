@@ -21,6 +21,7 @@ type mockAdapter struct {
 	scanReq       mcp.ScanRequest
 	explainResult mcp.ExplainRunResult
 	explainErr    error
+	explainReq    mcp.ExplainRequest
 	diffResult    mcp.DiffRunResult
 	diffErr       error
 	diffReq       mcp.DiffRequest
@@ -32,7 +33,8 @@ func (m *mockAdapter) RunScan(_ context.Context, req mcp.ScanRequest) (mcp.ScanR
 	m.scanReq = req
 	return m.scanResult, m.scanErr
 }
-func (m *mockAdapter) RunExplain(_ context.Context, _ mcp.ExplainRequest) (mcp.ExplainRunResult, error) {
+func (m *mockAdapter) RunExplain(_ context.Context, req mcp.ExplainRequest) (mcp.ExplainRunResult, error) {
+	m.explainReq = req
 	return m.explainResult, m.explainErr
 }
 func (m *mockAdapter) RunDiff(_ context.Context, req mcp.DiffRequest) (mcp.DiffRunResult, error) {
@@ -308,5 +310,44 @@ func TestPluginsTool_ReturnsJSONResult(t *testing.T) {
 	}
 	if len(resp.Detectors) != 1 {
 		t.Errorf("len(resp.Detectors) = %d, want 1", len(resp.Detectors))
+	}
+}
+
+func TestTools_PropagateRecursiveDiscoveryArgs(t *testing.T) {
+	args := map[string]any{"recursive": true, "max_depth": 2, "exclude": "fixtures/*,dist"}
+
+	adapter := &mockAdapter{scanResult: mcp.ScanRunResult{Response: output.ScanResponse{Command: "scan"}}}
+	c := newTestClient(t, adapter)
+	if result := callTool(t, c, "bomly_scan", args); result.IsError {
+		t.Fatalf("unexpected scan tool error: %v", result.Content)
+	}
+	if !adapter.scanReq.Recursive || adapter.scanReq.MaxDepth != 2 || adapter.scanReq.Exclude != "fixtures/*,dist" {
+		t.Fatalf("scan request missing recursive args: %#v", adapter.scanReq)
+	}
+
+	adapter = &mockAdapter{explainResult: mcp.ExplainRunResult{Response: output.ExplainResponse{Command: "explain"}}}
+	c = newTestClient(t, adapter)
+	explainArgs := map[string]any{"package": "lodash"}
+	for k, v := range args {
+		explainArgs[k] = v
+	}
+	if result := callTool(t, c, "bomly_explain", explainArgs); result.IsError {
+		t.Fatalf("unexpected explain tool error: %v", result.Content)
+	}
+	if !adapter.explainReq.Recursive || adapter.explainReq.MaxDepth != 2 || adapter.explainReq.Exclude != "fixtures/*,dist" {
+		t.Fatalf("explain request missing recursive args: %#v", adapter.explainReq)
+	}
+
+	adapter = &mockAdapter{diffResult: mcp.DiffRunResult{Response: output.DiffResponse{Command: "diff"}}}
+	c = newTestClient(t, adapter)
+	diffArgs := map[string]any{"base": "main", "head": "HEAD"}
+	for k, v := range args {
+		diffArgs[k] = v
+	}
+	if result := callTool(t, c, "bomly_diff", diffArgs); result.IsError {
+		t.Fatalf("unexpected diff tool error: %v", result.Content)
+	}
+	if !adapter.diffReq.Recursive || adapter.diffReq.MaxDepth != 2 || adapter.diffReq.Exclude != "fixtures/*,dist" {
+		t.Fatalf("diff request missing recursive args: %#v", adapter.diffReq)
 	}
 }

@@ -24,7 +24,7 @@ var yarnManifestMetadataPatterns = []string{"yarn.lock", "package.json"}
 
 // PackageManagerSupport returns Yarn package-manager discovery metadata.
 func (d LockfileDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerYarn, yarnEvidencePatterns...)}
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerYarn, yarnEvidencePatterns...).WithMultiModule()}
 }
 
 // Ready reports whether Yarn is available.
@@ -46,6 +46,7 @@ func (d LockfileDetector) Applicable(ctx context.Context, req sdk.DetectionReque
 // Descriptor describes the Yarn detector.
 func (d LockfileDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
+		IgnoredDirectories:   []string{"node_modules", "dist"},
 		Name:                 detectors.NameYarn,
 		Technique:            sdk.LockfileTechnique,
 		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemNPM},

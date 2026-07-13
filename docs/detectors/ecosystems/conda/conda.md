@@ -10,5 +10,8 @@ Bomly uses this chain when it finds `conda` evidence.
 | Ecosystem | `conda` |
 | Detector chain | `syft-detector` |
 | Evidence patterns | `conda-meta/*.json` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | `syft for bomly-lite` |

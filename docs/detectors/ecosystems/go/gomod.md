@@ -10,6 +10,9 @@ Bomly uses this chain when it finds `gomod` evidence.
 | Ecosystem | `go` |
 | Detector chain | `go-detector`, `syft-detector` |
 | Evidence patterns | `go.mod` |
+| Ignored directories | `vendor` |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | Yes |
 | Native command hints | `go`, `syft for bomly-lite` |
 

@@ -177,6 +177,12 @@ func (o *Options) ResolveConfig(cmd *cobra.Command) error {
 
 	config.ApplyEnvOverrides(&resolved)
 	applyFlagOverrides(&resolved, flagValues, cmd)
+	// MaxDepth carries a non-zero default, so config.Validate cannot tell an
+	// explicit --max-depth from the default value. Gate the flag combination
+	// here where flag explicitness is still observable.
+	if flagChanged(cmd, "max-depth") && !resolved.Recursive {
+		return exit.InvalidInputError("--max-depth requires --recursive")
+	}
 	if err := config.Validate(resolved); err != nil {
 		return exit.InvalidInputError("%v", err)
 	}
@@ -310,6 +316,10 @@ func (o *Options) PrepareForExecutionTarget(ctx context.Context, logger *zap.Log
 		ForcedPackageManager: forcedPackageManager,
 		DetectorFilter:       detectorFilter,
 		EcosystemFilter:      ecosystemFilter,
+		Recursive:            resolved.Recursive,
+		MaxDepth:             resolved.MaxDepth,
+		ExcludeGlobs:         append([]string(nil), resolved.ExcludePaths...),
+		Logger:               logger,
 	})
 	if err != nil {
 		if cleanup != nil {

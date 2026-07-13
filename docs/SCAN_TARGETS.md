@@ -15,7 +15,7 @@ Exactly one target type per run. Combining `--image` with `--url`, or passing `-
 
 ## Local directory — `--path`
 
-The default. Scans every subproject Bomly finds beneath the path.
+The default. Scans the subprojects Bomly finds at the path.
 
 ```bash
 bomly scan                       # scan current directory
@@ -23,9 +23,59 @@ bomly scan --path ./services/api # scan a sub-tree
 bomly scan --path /tmp/extract   # scan an arbitrary tree
 ```
 
-Discovery is recursive. Every directory containing recognized evidence (a lockfile, a manifest, a workflow file) becomes a subproject. Bomly consolidates them into a single graph.
+By default, discovery inspects only the target directory itself: every package manager with recognized evidence there (a lockfile, a manifest, a workflow file) becomes a subproject, and workspace-aware package managers (npm/pnpm/yarn workspaces, Maven reactors, Gradle builds, Cargo workspaces) expand their own nested modules from the root manifest. To also discover independent projects in nested directories, use `--recursive`.
 
-There is no project-root concept: pointing at a monorepo root scans every workspace in one pass.
+## Recursive discovery — `--recursive`
+
+`--recursive` walks the directory tree below the scan root and plans a subproject for every directory with recognized manifest evidence. Bomly consolidates them all into a single graph, so pointing at a monorepo root scans every project in one pass.
+
+```bash
+bomly scan --recursive                          # walk 3 levels deep (default)
+bomly scan --recursive --max-depth 1            # direct children only
+bomly scan --recursive --max-depth 0            # no depth limit
+bomly scan --recursive --exclude "fixtures/*"   # skip a subtree
+bomly scan --recursive --exclude dist,examples  # repeatable / comma-separated
+```
+
+It works with `--path` and `--url` targets. `--image` and `--sbom` scans do not use directory discovery and reject `--recursive` with exit 4.
+
+### Depth — `--max-depth`
+
+Depth is counted from the scan root: the root itself is depth 0 and a direct child is depth 1. Directories at depths beyond `--max-depth` are not visited. The default is `3`; `--max-depth 0` removes the limit. `--max-depth` requires `--recursive`.
+
+### Excludes — `--exclude`
+
+`--exclude` adds glob patterns on top of the built-in ignore rules. Matching directories and everything beneath them are skipped.
+
+- A pattern containing `/` matches against the directory's path relative to the scan root: `--exclude "apps/*"` skips every direct child of `apps/`, `--exclude apps/api` skips exactly that directory.
+- A pattern without `/` matches against the directory basename at any depth: `--exclude dist` skips every `dist/` directory in the tree.
+- Patterns use Go `path.Match` syntax (`*`, `?`, `[...]`). `**` is not supported.
+- The flag is repeatable and accepts comma-separated values. It requires `--recursive`.
+
+### Built-in ignore rules
+
+The walk never descends into:
+
+- directories whose name starts with `.` (`.git`, `.venv`, `.idea`, …) — GitHub Actions workflows are still detected because their evidence is matched from the parent directory
+- `node_modules`, `vendor` — third-party and vendored dependencies
+- `target`, `build`, `dist` — build outputs that commonly contain copied manifests
+- `__pycache__`, and any directory containing a `pyvenv.cfg` file (Python virtualenvs)
+
+These rules are declared by the detectors themselves (each detector owns its ecosystem's ignore list), so external [detector plugins](PLUGINS.md) contribute additional ignored directories the same way built-ins do.
+
+Symlinked directories are not followed; only the scan root itself is resolved if it is a symlink.
+
+### Workspace roots are not double-counted
+
+When a package manager whose detector natively expands nested modules is detected at an ancestor directory, nested manifests for that same package manager are pruned — the ancestor's detector already resolves them:
+
+| Pruned below an ancestor root | Never pruned |
+| --- | --- |
+| maven (reactor modules), gradle (subprojects), npm / pnpm / yarn (workspaces), cargo (workspace members), sbt (aggregated builds), mix (umbrella apps) | gomod, pip / pipenv / poetry / uv / pdm, bundler, composer, nuget, pub, cocoapods, swiftpm, conan, github-actions, … |
+
+A nested `go.mod` is an independent Go module by language semantics, so every nested Go module becomes its own subproject (`go.work` workspaces are also scanned per-module). Pruning is per package manager: a Maven root does not hide a nested `requirements.txt`.
+
+Like the ignore rules, multi-module expansion is declared by each detector (`sdk.PackageManagerSupport.MultiModule`), so external detector plugins can opt their package manager into pruning.
 
 ## Git repository — `--url` and `--ref`
 
@@ -82,6 +132,10 @@ See [SBOM formats](SBOM.md) for the format comparison.
 | `--sbom` + `--url` | No | Exit 4 |
 | `--ref` without `--url` | No | Exit 4 |
 | `--image` + `--url` | No | Exit 4 |
+| `--recursive` + `--path` or `--url` | Yes | Walks nested directories |
+| `--recursive` + `--image` | No | Exit 4 |
+| `--recursive` + `--sbom` | No | Exit 4 |
+| `--max-depth` / `--exclude` without `--recursive` | No | Exit 4 |
 
 ## What runs after target resolution
 

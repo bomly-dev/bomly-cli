@@ -71,6 +71,9 @@ func bindTargetFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
 	flags.StringVar(&cfg.URL, "url", "", "Git repository URL to clone and scan")
 	flags.StringVar(&cfg.Ref, "ref", "", "Git reference to scan when using --url")
 	flags.BoolVar(&cfg.SBOM, "sbom", false, "Treat the selected filesystem target as an SBOM file")
+	flags.BoolVar(&cfg.Recursive, "recursive", false, "Recursively discover nested manifests under the scan root")
+	flags.IntVar(&cfg.MaxDepth, "max-depth", 3, "Maximum directory depth for recursive discovery, counted from the scan root; 0 means unlimited (requires --recursive)")
+	flags.StringSliceVar(&cfg.ExcludePaths, "exclude", nil, "Glob pattern relative to the scan root to exclude from recursive discovery; repeatable or comma-separated (requires --recursive)")
 }
 
 func bindAnalysisFlags(flags *pflag.FlagSet, cfg *config.Resolved) {
@@ -143,6 +146,15 @@ func applyFlagOverrides(dst *config.Resolved, flags config.Resolved, cmd *cobra.
 	}
 	if flagChanged(cmd, "sbom") {
 		dst.SBOM = flags.SBOM
+	}
+	if flagChanged(cmd, "recursive") {
+		dst.Recursive = flags.Recursive
+	}
+	if flagChanged(cmd, "max-depth") {
+		dst.MaxDepth = flags.MaxDepth
+	}
+	if flagChanged(cmd, "exclude") {
+		dst.ExcludePaths = append([]string(nil), flags.ExcludePaths...)
 	}
 	if flagChanged(cmd, "enrich") {
 		dst.Enrich = flags.Enrich

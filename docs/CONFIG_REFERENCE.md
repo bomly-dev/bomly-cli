@@ -24,6 +24,9 @@ YAML files use the nested keys documented below. Unknown keys and the former fla
 | `target.url` | `BOMLY_URL` | `string` | - | Remote Git URL to clone and scan |
 | `target.ref` | `BOMLY_REF` | `string` | - | Git ref to checkout when scanning a URL |
 | `target.sbom` | `BOMLY_SBOM` | `bool` | - | Treat the selected filesystem target as an SBOM file |
+| `target.recursive` | `BOMLY_RECURSIVE` | `bool` | - | Recursively discover nested manifests under the scan root |
+| `target.max_depth` | `BOMLY_MAX_DEPTH` | `int` | 3 | Maximum directory depth for recursive discovery, counted from the scan root (0 = unlimited) |
+| `target.exclude` | `BOMLY_EXCLUDE` | `[]string` | - | Glob pattern(s) relative to the scan root excluded from recursive discovery, in addition to built-in ignore rules; requires recursive |
 | `pipeline.enrich` | `BOMLY_ENRICH` | `bool` | - | Enrich packages with external license and vulnerability data |
 | `pipeline.audit` | `BOMLY_AUDIT` | `bool` | - | Evaluate policy and create findings from package vulnerability data |
 | `pipeline.analyze` | `BOMLY_ANALYZE` | `bool` | - | Run code analysis to confirm whether vulnerabilities are reachable from application code |
@@ -103,6 +106,7 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 | `detectors` | `components.detectors` |
 | `ecosystems` | `components.ecosystems` |
 | `enrich` | `pipeline.enrich` |
+| `exclude` | `target.exclude` |
 | `fail_on` | `policy.fail_on` |
 | `format` | `output.format` |
 | `http_ca_cert_file` | `network.ca_cert_file` |
@@ -121,6 +125,7 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 | `kev_cache_ttl` | `matchers.osv.kev.cache_ttl` |
 | `license_exempt_packages` | `policy.license_exempt_packages` |
 | `matchers` | `components.matchers` |
+| `max_depth` | `target.max_depth` |
 | `osv_api_base` | `matchers.osv.api_base` |
 | `osv_cache_dir` | `matchers.osv.cache_dir` |
 | `osv_cache_ttl` | `matchers.osv.cache_ttl` |
@@ -128,6 +133,7 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 | `path` | `target.path` |
 | `protected_packages` | `policy.protected_packages` |
 | `quiet` | `logging.quiet` |
+| `recursive` | `target.recursive` |
 | `ref` | `target.ref` |
 | `sbom` | `target.sbom` |
 | `scorecard_api_base` | `matchers.scorecard.api_base` |
@@ -155,6 +161,12 @@ Flat YAML keys are no longer accepted. Move each existing key to its nested repl
 #   ref: ""
 #   Treat the selected filesystem target as an SBOM file
 #   sbom: false
+#   Recursively discover nested manifests under the scan root
+#   recursive: false
+#   Maximum directory depth for recursive discovery, counted from the scan root (0 = unlimited)
+#   max_depth: 3
+#   Glob pattern(s) relative to the scan root excluded from recursive discovery, in addition to built-in ignore rules; requires recursive
+#   exclude: []
 # pipeline:
 #   Enrich packages with external license and vulnerability data
 #   enrich: false

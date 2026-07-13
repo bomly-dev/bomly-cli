@@ -21,6 +21,9 @@ func registerScanTool(s *server.MCPServer, mcpCtx Context) {
 		mcplib.WithString("fail_on", mcplib.Description("Audit finding constraint: any, low, medium, high, critical, reachable, or exploitable")),
 		mcplib.WithString("ecosystems", mcplib.Description("Ecosystem filter; supports +name/-name modifiers")),
 		mcplib.WithString("scope", mcplib.Description("Filter dependencies by scope: runtime or development")),
+		mcplib.WithBoolean("recursive", mcplib.Description("Recursively discover nested manifests under the scan root (monorepos); not valid with image")),
+		mcplib.WithNumber("max_depth", mcplib.Description("Maximum directory depth for recursive discovery, counted from the scan root; defaults to 3, use a large value for effectively unlimited (requires recursive)")),
+		mcplib.WithString("exclude", mcplib.Description("Comma-separated glob patterns relative to the scan root excluded from recursive discovery, in addition to built-in ignore rules (requires recursive)")),
 	)
 	s.AddTool(tool, func(ctx context.Context, req mcplib.CallToolRequest) (*mcplib.CallToolResult, error) {
 		scanReq := ScanRequest{
@@ -34,6 +37,9 @@ func registerScanTool(s *server.MCPServer, mcpCtx Context) {
 			FailOn:     req.GetString("fail_on", ""),
 			Ecosystems: req.GetString("ecosystems", ""),
 			Scope:      req.GetString("scope", ""),
+			Recursive:  req.GetBool("recursive", false),
+			MaxDepth:   req.GetInt("max_depth", 0),
+			Exclude:    req.GetString("exclude", ""),
 		}
 		result, err := mcpCtx.Adapter.RunScan(ctx, scanReq)
 		if err != nil {

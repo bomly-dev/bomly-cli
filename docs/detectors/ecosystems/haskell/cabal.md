@@ -10,5 +10,8 @@ Bomly uses this chain when it finds `cabal` evidence.
 | Ecosystem | `haskell` |
 | Detector chain | `syft-detector` |
 | Evidence patterns | `cabal.project.freeze` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | `syft for bomly-lite` |

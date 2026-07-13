@@ -10,5 +10,8 @@ Bomly uses this chain when it finds `conan` evidence.
 | Ecosystem | `cpp` |
 | Detector chain | `conan-detector`, `syft-detector` |
 | Evidence patterns | `conan.lock`, `conanfile.txt`, `conanfile.py`, `conaninfo.txt` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | `conan`, `syft for bomly-lite` |

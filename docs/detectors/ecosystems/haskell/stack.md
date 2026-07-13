@@ -10,5 +10,8 @@ Bomly uses this chain when it finds `stack` evidence.
 | Ecosystem | `haskell` |
 | Detector chain | `syft-detector` |
 | Evidence patterns | `stack.yaml`, `stack.yaml.lock` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | `syft for bomly-lite` |

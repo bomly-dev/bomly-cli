@@ -13,6 +13,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/registry"
 	"github.com/bomly-dev/bomly-cli/internal/system"
 	"github.com/bomly-dev/bomly-cli/sdk"
+	"go.uber.org/zap"
 )
 
 // Request defines the inputs required to build one execution runtime.
@@ -22,6 +23,15 @@ type Request struct {
 	ForcedPackageManager sdk.PackageManager
 	DetectorFilter       sdk.DetectorFilter
 	EcosystemFilter      sdk.EcosystemFilter
+	// Recursive enables nested-manifest discovery below the execution-target
+	// root. MaxDepth bounds the walk (0 = unlimited) and ExcludeGlobs adds
+	// root-relative glob skips on top of the built-in ignore rules. Both are
+	// only consulted when Recursive is set.
+	Recursive    bool
+	MaxDepth     int
+	ExcludeGlobs []string
+	// Logger receives discovery progress diagnostics; nil is treated as no-op.
+	Logger *zap.Logger
 }
 
 // ErrNoSubprojects indicates that no compatible subprojects were discovered for the runtime.
@@ -103,6 +113,9 @@ func planFilesystemSubprojects(registryValue *engine.Registry, req Request) ([]s
 		return nil, fmt.Errorf("discover subprojects: %w", err)
 	}
 	if isSingleFile {
+		if req.Recursive {
+			return nil, exit.InvalidInputError("--recursive requires a directory target, got file %s", req.ExecutionTarget.Location)
+		}
 		subprojects := plannedSubprojectsForPath(
 			registryValue,
 			req.ExecutionTarget,
@@ -114,6 +127,10 @@ func planFilesystemSubprojects(registryValue *engine.Registry, req Request) ([]s
 			return nil, noSubprojectsError(req)
 		}
 		return subprojects, nil
+	}
+
+	if req.Recursive {
+		return planRecursiveFilesystemSubprojects(registryValue, req)
 	}
 
 	seen := map[string]sdk.Subproject{}
@@ -578,13 +595,41 @@ func noSubprojectsError(req Request) error {
 	// treat as a neutral pass. ErrNoSubprojects stays the inner sentinel so
 	// errors.Is(err, ErrNoSubprojects) callers keep working.
 	err := ErrNoSubprojects
+	if req.Recursive {
+		err = fmt.Errorf("%w (recursive discovery, max depth %s, %d exclude pattern(s))", err, describeMaxDepth(req.MaxDepth), len(req.ExcludeGlobs))
+	}
 	if len(hints) > 0 {
 		err = fmt.Errorf("%w (active filters: %s)", err, strings.Join(hints, ", "))
 	}
-	if probe := DescribeDiscovery(req.ExecutionTarget); len(probe) > 0 {
+	findings, truncated := describeDiscoveryFindings(req.ExecutionTarget, discoveryRulesFor(nil, req))
+	if probe := renderDiscoveryProbe(req.ExecutionTarget, findings, truncated); len(probe) > 0 {
 		err = fmt.Errorf("%w; discovery probe: %s", err, strings.Join(probe, "; "))
 	}
+	if !req.Recursive {
+		if nested := firstNestedFinding(findings); nested != "" {
+			err = fmt.Errorf("%w; hint: manifests exist in subdirectories (e.g. %s); retry with --recursive", err, nested)
+		}
+	}
 	return exit.NothingToEvaluateError(err)
+}
+
+// describeMaxDepth renders a depth cap for error messages (0 = unlimited).
+func describeMaxDepth(maxDepth int) string {
+	if maxDepth <= 0 {
+		return "unlimited"
+	}
+	return fmt.Sprintf("%d", maxDepth)
+}
+
+// firstNestedFinding returns the relative path of the first discovery finding
+// below the target root, or "" when all evidence sits at the root.
+func firstNestedFinding(findings []discoveryFinding) string {
+	for _, finding := range findings {
+		if finding.RelativePath != "." && finding.RelativePath != "" {
+			return finding.RelativePath
+		}
+	}
+	return ""
 }
 
 // discoveryProbe limits for DescribeDiscovery: how deep below the target to
@@ -594,26 +639,43 @@ const (
 	discoveryProbeMaxLines = 8
 )
 
+// discoveryFinding is one piece of manifest evidence surfaced by the
+// diagnostic discovery probe: which manifest pattern exists, in which
+// root-relative directory, and which package manager it belongs to.
+type discoveryFinding struct {
+	RelativePath string
+	Manager      sdk.PackageManager
+	Evidence     string
+}
+
 // DescribeDiscovery probes a filesystem execution target for known manifest
 // evidence (drawn from the built-in package-manager support catalog) so a
 // "no subprojects discovered" failure explains itself: which manifest files
 // exist, where, and which package manager they belong to. Returns nil for
 // non-filesystem targets.
 func DescribeDiscovery(target sdk.ExecutionTarget) []string {
+	findings, truncated := describeDiscoveryFindings(target, builtinDiscoveryRules())
+	return renderDiscoveryProbe(target, findings, truncated)
+}
+
+// describeDiscoveryFindings walks the target (bounded by
+// discoveryProbeMaxDepth / discoveryProbeMaxLines and the shared skip rules)
+// and returns the manifest evidence it saw, plus whether output was truncated.
+func describeDiscoveryFindings(target sdk.ExecutionTarget, rules discoveryRules) ([]discoveryFinding, bool) {
 	if strings.TrimSpace(target.Location) == "" {
-		return nil
+		return nil, false
 	}
 	switch target.Kind {
 	case sdk.ExecutionTargetFilesystem, sdk.ExecutionTargetGitRepository, "":
 	default:
-		return nil
+		return nil, false
 	}
 	root, err := filepath.Abs(target.Location)
 	if err != nil {
-		return nil
+		return nil, false
 	}
 
-	var lines []string
+	var findings []discoveryFinding
 	truncated := false
 	_ = filepath.WalkDir(root, func(path string, entry os.DirEntry, walkErr error) error {
 		if walkErr != nil {
@@ -626,14 +688,14 @@ func DescribeDiscovery(target sdk.ExecutionTarget) []string {
 		if relErr != nil {
 			return nil //nolint:nilerr // best-effort probe
 		}
-		name := entry.Name()
-		if rel != "." && (strings.HasPrefix(name, ".") || name == "node_modules" || name == "vendor") {
+		rel = filepath.ToSlash(rel)
+		if rel != "." && rules.shouldSkipDiscoveryDir(entry.Name(), path) {
 			return filepath.SkipDir
 		}
-		if strings.Count(filepath.ToSlash(rel), "/") >= discoveryProbeMaxDepth {
+		if discoveryDepth(rel) > discoveryProbeMaxDepth {
 			return filepath.SkipDir
 		}
-		if len(lines) >= discoveryProbeMaxLines {
+		if len(findings) >= discoveryProbeMaxLines {
 			truncated = true
 			return filepath.SkipAll
 		}
@@ -643,8 +705,8 @@ func DescribeDiscovery(target sdk.ExecutionTarget) []string {
 		}
 		for idx, manager := range managers {
 			evidence := firstEvidenceInDir(path, registry.EvidencePatternsForPackageManager(manager))
-			lines = append(lines, fmt.Sprintf("found %s at %s (%s)", valueOrPattern(evidence, "manifest evidence"), filepath.ToSlash(rel), manager.Name()))
-			if len(lines) >= discoveryProbeMaxLines {
+			findings = append(findings, discoveryFinding{RelativePath: rel, Manager: manager, Evidence: evidence})
+			if len(findings) >= discoveryProbeMaxLines {
 				if idx < len(managers)-1 {
 					truncated = true
 				}
@@ -653,11 +715,33 @@ func DescribeDiscovery(target sdk.ExecutionTarget) []string {
 		}
 		return nil
 	})
+	return findings, truncated
+}
+
+// renderDiscoveryProbe formats probe findings for the "no subprojects
+// discovered" error text. Returns nil for targets the probe does not cover.
+func renderDiscoveryProbe(target sdk.ExecutionTarget, findings []discoveryFinding, truncated bool) []string {
+	if strings.TrimSpace(target.Location) == "" {
+		return nil
+	}
+	switch target.Kind {
+	case sdk.ExecutionTargetFilesystem, sdk.ExecutionTargetGitRepository, "":
+	default:
+		return nil
+	}
+	if len(findings) == 0 {
+		root, err := filepath.Abs(target.Location)
+		if err != nil {
+			return nil
+		}
+		return []string{fmt.Sprintf("no known manifest files found under %s (depth <= %d)", root, discoveryProbeMaxDepth)}
+	}
+	lines := make([]string, 0, len(findings)+1)
+	for _, finding := range findings {
+		lines = append(lines, fmt.Sprintf("found %s at %s (%s)", valueOrPattern(finding.Evidence, "manifest evidence"), finding.RelativePath, finding.Manager.Name()))
+	}
 	if truncated {
 		lines = append(lines, "…")
-	}
-	if len(lines) == 0 {
-		return []string{fmt.Sprintf("no known manifest files found under %s (depth <= %d)", root, discoveryProbeMaxDepth)}
 	}
 	return lines
 }

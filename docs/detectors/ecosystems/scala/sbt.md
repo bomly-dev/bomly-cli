@@ -10,5 +10,8 @@ Bomly uses this chain when it finds `sbt` evidence.
 | Ecosystem | `scala` |
 | Detector chain | `sbt-native-detector`, `sbt-detector` |
 | Evidence patterns | `build.sbt`, `project/plugins.sbt`, `project/build.properties` |
+| Ignored directories | `target` |
+| Ignored directory markers | - |
+| Multi-module resolution | Yes |
 | Install-first support | No |
 | Native command hints | `sbt` |

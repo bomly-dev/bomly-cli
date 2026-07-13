@@ -10,5 +10,8 @@ Bomly uses this chain when it finds `terraform` evidence.
 | Ecosystem | `terraform` |
 | Detector chain | `syft-detector` |
 | Evidence patterns | `.terraform.lock.hcl` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | `syft for bomly-lite` |

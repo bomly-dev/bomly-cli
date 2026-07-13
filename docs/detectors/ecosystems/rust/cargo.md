@@ -10,6 +10,9 @@ Bomly uses this chain when it finds `cargo` evidence.
 | Ecosystem | `rust` |
 | Detector chain | `cargo-detector`, `syft-detector` |
 | Evidence patterns | `Cargo.lock`, `Cargo.toml` |
+| Ignored directories | `target` |
+| Ignored directory markers | - |
+| Multi-module resolution | Yes |
 | Install-first support | Yes |
 | Native command hints | `cargo`, `syft for bomly-lite` |
 

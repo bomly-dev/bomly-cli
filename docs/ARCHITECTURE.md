@@ -31,7 +31,7 @@ flowchart TD
     A --> B --> C --> D --> E --> F
 ```
 
-1. **Discover** — Bomly walks the target and finds every supported package-manager root (a `go.mod`, a `package-lock.json`, a `pom.xml`, and so on), including nested subprojects in a monorepo.
+1. **Discover** — Bomly inspects the target root and finds every supported package-manager root (a `go.mod`, a `package-lock.json`, a `pom.xml`, and so on). With `--recursive` it also walks nested directories, discovering independent subprojects in a monorepo while workspace-aware managers (npm workspaces, Maven reactors, …) keep expanding their own modules from the root. See [Scan targets](SCAN_TARGETS.md#recursive-discovery----recursive).
 2. **Detect** — For each root, a [detector](DETECTORS.md) reads the lockfile, manifest, or SBOM and resolves a dependency graph. Per-subproject graphs are then *consolidated* into one graph and one deduplicated package set for the rest of the run. `--scope` narrows the graph to runtime or development dependencies here.
 3. **Match** — When you pass `--enrich`, [matchers](MATCHERS.md) add data to each package: known vulnerabilities, licenses, end-of-life status, and project health scores.
 4. **Analyze** — When you pass `--analyze`, [reachability](REACHABILITY.md) analysis runs on top of the matched data to flag whether a vulnerability is actually reachable from your code.

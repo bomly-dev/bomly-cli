@@ -10,5 +10,8 @@ Bomly uses this chain when it finds `apk` evidence.
 | Ecosystem | `apk` |
 | Detector chain | `syft-detector` |
 | Evidence patterns | `lib/apk/db/installed` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | `syft for bomly-lite` |

@@ -10,5 +10,8 @@ Bomly uses this chain when it finds `swiftpm` evidence.
 | Ecosystem | `swift` |
 | Detector chain | `swiftpm-native-detector`, `swiftpm-detector`, `syft-detector` |
 | Evidence patterns | `Package.resolved`, `.package.resolved`, `Package.swift`, `project.xcworkspace/xcshareddata/swiftpm/Package.resolved` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | `swift`, `syft for bomly-lite` |

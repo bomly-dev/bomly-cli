@@ -75,7 +75,7 @@ When a package manager whose detector natively expands nested modules is detecte
 
 A nested `go.mod` is an independent Go module by language semantics, so every nested Go module becomes its own subproject (`go.work` workspaces are also scanned per-module). Pruning is per package manager: a Maven root does not hide a nested `requirements.txt`.
 
-Like the ignore rules, multi-module expansion is declared by each detector (`sdk.PackageManagerSupport.NativeMultiModule`), so external detector plugins can opt their package manager into pruning.
+Like the ignore rules, multi-module expansion is declared by each detector (`sdk.PackageManagerSupport.MultiModule`), so external detector plugins can opt their package manager into pruning.
 
 ## Git repository — `--url` and `--ref`
 

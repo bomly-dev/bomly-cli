@@ -10,5 +10,8 @@ Bomly uses this chain when it finds `rebar` evidence.
 | Ecosystem | `erlang` |
 | Detector chain | `syft-detector` |
 | Evidence patterns | `rebar.lock` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | `syft for bomly-lite` |

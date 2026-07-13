@@ -20,9 +20,9 @@ import (
 // directory as ignored (e.g. pyvenv.cfg), and package managers whose
 // detectors natively expand nested workspace/reactor modules from a root
 // manifest. Each detector owns its ecosystem's rules via
-// sdk.DetectorDescriptor.DiscoveryIgnoredDirectories /
-// DiscoveryIgnoredDirectoryMarkers and
-// sdk.PackageManagerSupport.NativeMultiModule, so external detector plugins
+// sdk.DetectorDescriptor.IgnoredDirectories /
+// IgnoredDirectoryMarkers and
+// sdk.PackageManagerSupport.MultiModule, so external detector plugins
 // contribute rules the same way built-ins do. Directories whose name starts
 // with a dot are always skipped, independent of detector declarations.
 type discoveryRules struct {
@@ -45,7 +45,7 @@ func discoveryRulesFromDetectors(detectors []sdk.Detector) discoveryRules {
 			continue
 		}
 		descriptor := detector.Descriptor()
-		for _, glob := range descriptor.DiscoveryIgnoredDirectories {
+		for _, glob := range descriptor.IgnoredDirectories {
 			glob = strings.TrimSpace(glob)
 			if glob == "" {
 				continue
@@ -56,7 +56,7 @@ func discoveryRulesFromDetectors(detectors []sdk.Detector) discoveryRules {
 			seenGlobs[glob] = struct{}{}
 			rules.ignoredDirGlobs = append(rules.ignoredDirGlobs, glob)
 		}
-		for _, marker := range descriptor.DiscoveryIgnoredDirectoryMarkers {
+		for _, marker := range descriptor.IgnoredDirectoryMarkers {
 			marker = strings.TrimSpace(marker)
 			if marker == "" {
 				continue
@@ -69,7 +69,7 @@ func discoveryRulesFromDetectors(detectors []sdk.Detector) discoveryRules {
 		}
 		supports := append(append([]sdk.PackageManagerSupport(nil), descriptor.PackageManagerSupport...), detector.PackageManagerSupport()...)
 		for _, support := range supports {
-			if support.NativeMultiModule && support.PackageManager != sdk.PackageManagerUnknown {
+			if support.MultiModule && support.PackageManager != sdk.PackageManagerUnknown {
 				rules.multiModuleManagers[support.PackageManager] = struct{}{}
 			}
 		}

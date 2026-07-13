@@ -10,5 +10,8 @@ Bomly uses this chain when it finds `pdm` evidence.
 | Ecosystem | `python` |
 | Detector chain | `syft-detector` |
 | Evidence patterns | `pdm.lock`, `pyproject.toml` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | `syft for bomly-lite` |

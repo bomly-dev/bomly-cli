@@ -172,7 +172,7 @@ func TestPlanSubprojectsRecursiveExcludeGlobs(t *testing.T) {
 	}
 }
 
-func TestPlanSubprojectsRecursivePrunesNativeMultiModuleDescendants(t *testing.T) {
+func TestPlanSubprojectsRecursivePrunesMultiModuleDescendants(t *testing.T) {
 	cases := []struct {
 		name    string
 		manager sdk.PackageManager
@@ -402,9 +402,9 @@ func TestPlanSubprojectsRecursiveHonorsDetectorDeclaredIgnoreRules(t *testing.T)
 	reg := engine.NewRegistry(engine.RegistryConfigs{}, *zap.NewNop())
 	reg.Build()
 	reg.RegisterDetector(fakeRulesDetector{descriptor: sdk.DetectorDescriptor{
-		Name:                             "fake-rules-detector",
-		DiscoveryIgnoredDirectories:      []string{"generated-*"},
-		DiscoveryIgnoredDirectoryMarkers: []string{".bomlyskip"},
+		Name:                    "fake-rules-detector",
+		IgnoredDirectories:      []string{"generated-*"},
+		IgnoredDirectoryMarkers: []string{".bomlyskip"},
 	}})
 
 	subprojects, err := PlanSubprojects(reg, Request{
@@ -433,7 +433,7 @@ func TestPlanSubprojectsRecursiveHonorsDetectorDeclaredMultiModule(t *testing.T)
 	// flip that, proving plugins can opt their manager into pruning.
 	reg.RegisterDetector(fakeRulesDetector{
 		descriptor: sdk.DetectorDescriptor{Name: "fake-go-workspace-detector"},
-		supports:   []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerGoMod, "go.mod").WithNativeMultiModule()},
+		supports:   []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerGoMod, "go.mod").WithMultiModule()},
 	})
 
 	subprojects, err := PlanSubprojects(reg, Request{

@@ -10,6 +10,9 @@ Bomly uses this chain when it finds `yarn` evidence.
 | Ecosystem | `npm` |
 | Detector chain | `yarn-detector`, `yarn-native-detector`, `syft-detector` |
 | Evidence patterns | `yarn.lock`, `package.json` |
+| Ignored directories | `node_modules`, `dist` |
+| Ignored directory markers | - |
+| Multi-module resolution | Yes |
 | Install-first support | Yes |
 | Native command hints | `yarn`, `syft for bomly-lite` |
 

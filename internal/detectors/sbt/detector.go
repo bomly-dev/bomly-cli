@@ -35,7 +35,7 @@ var sbtDependencyPattern = regexp.MustCompile(`"([^"]+)"\s*%{1,2}\s*"([^"]+)"\s*
 
 // PackageManagerSupport returns sbt package-manager discovery metadata.
 func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerSBT, evidencePatterns...).WithNativeMultiModule()}
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerSBT, evidencePatterns...).WithMultiModule()}
 }
 
 // Ready reports whether committed sbt files can be parsed.
@@ -58,12 +58,12 @@ func (d Detector) Applicable(ctx context.Context, req sdk.DetectionRequest) (boo
 // Descriptor describes the sbt detector.
 func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		DiscoveryIgnoredDirectories: []string{"target"},
-		Name:                        detectors.NameSBT,
-		Technique:                   sdk.ManifestTechnique,
-		SupportedEcosystems:         []sdk.Ecosystem{sdk.EcosystemScala, sdk.EcosystemMaven},
-		SupportedManagers:           []sdk.PackageManager{sdk.PackageManagerSBT},
-		Tags:                        []string{"graph-resolution", "component-targeting", "manifest-parsing", "scope-annotation"},
+		IgnoredDirectories:  []string{"target"},
+		Name:                detectors.NameSBT,
+		Technique:           sdk.ManifestTechnique,
+		SupportedEcosystems: []sdk.Ecosystem{sdk.EcosystemScala, sdk.EcosystemMaven},
+		SupportedManagers:   []sdk.PackageManager{sdk.PackageManagerSBT},
+		Tags:                []string{"graph-resolution", "component-targeting", "manifest-parsing", "scope-annotation"},
 	}
 }
 

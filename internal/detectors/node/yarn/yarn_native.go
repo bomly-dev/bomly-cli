@@ -20,7 +20,7 @@ type NativeDetector struct {
 
 // PackageManagerSupport returns discovery metadata for the internal Yarn CLI fallback detector.
 func (d NativeDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerYarn, "package.json").WithNativeMultiModule()}
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerYarn, "package.json").WithMultiModule()}
 }
 
 // Ready reports whether Yarn is available.
@@ -48,13 +48,13 @@ func (d NativeDetector) Applicable(ctx context.Context, req sdk.DetectionRequest
 // Descriptor describes the Yarn CLI fallback detector.
 func (d NativeDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		DiscoveryIgnoredDirectories: []string{"node_modules", "dist"},
-		Name:                        detectors.NameYarnNative,
-		Technique:                   sdk.BuildToolTechnique,
-		SupportedEcosystems:         []sdk.Ecosystem{sdk.EcosystemNPM},
-		SupportedManagers:           []sdk.PackageManager{sdk.PackageManagerYarn},
-		Tags:                        []string{"graph-resolution", "component-targeting"},
-		SupportsInstallFirst:        true,
+		IgnoredDirectories:   []string{"node_modules", "dist"},
+		Name:                 detectors.NameYarnNative,
+		Technique:            sdk.BuildToolTechnique,
+		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemNPM},
+		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerYarn},
+		Tags:                 []string{"graph-resolution", "component-targeting"},
+		SupportsInstallFirst: true,
 	}
 }
 

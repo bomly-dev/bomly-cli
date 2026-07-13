@@ -24,7 +24,7 @@ var pnpmManifestMetadataPatterns = []string{"pnpm-lock.yaml", "package.json"}
 
 // PackageManagerSupport returns pnpm package-manager discovery metadata.
 func (d LockfileDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerPNPM, pnpmEvidencePatterns...).WithNativeMultiModule()}
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerPNPM, pnpmEvidencePatterns...).WithMultiModule()}
 }
 
 // Ready reports whether pnpm is available.
@@ -46,13 +46,13 @@ func (d LockfileDetector) Applicable(ctx context.Context, req sdk.DetectionReque
 // Descriptor describes the pnpm detector.
 func (d LockfileDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		DiscoveryIgnoredDirectories: []string{"node_modules", "dist"},
-		Name:                        detectors.NamePNPM,
-		Technique:                   sdk.LockfileTechnique,
-		SupportedEcosystems:         []sdk.Ecosystem{sdk.EcosystemNPM},
-		SupportedManagers:           []sdk.PackageManager{sdk.PackageManagerPNPM},
-		Tags:                        []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
-		SupportsInstallFirst:        true,
+		IgnoredDirectories:   []string{"node_modules", "dist"},
+		Name:                 detectors.NamePNPM,
+		Technique:            sdk.LockfileTechnique,
+		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemNPM},
+		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerPNPM},
+		Tags:                 []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
+		SupportsInstallFirst: true,
 	}
 }
 

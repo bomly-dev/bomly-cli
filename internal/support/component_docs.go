@@ -571,6 +571,7 @@ func renderEcosystemReadme(ecosystem sdk.Ecosystem, entries []registry.PackageMa
 	b.WriteString("- Each package-manager page documents the exact commands Bomly runs (if any), the network behavior, and the lockfile or manifest formats supported.\n")
 	b.WriteString("- Bomly tries detector chains from left to right. Later detectors in the chain are fallbacks Bomly uses when the preferred detector cannot produce graph data.\n")
 	b.WriteString("- Install-first support means `--install-first` can run the package manager's normal install command before graph resolution. This downloads packages and modifies the filesystem; see [docs/DETECTORS.md](../../../DETECTORS.md#install-first).\n")
+	b.WriteString("- Each package-manager page also lists the directories its detectors declare as ignored during recursive discovery (`--recursive`) and whether the chain resolves nested workspace/reactor modules from a root manifest (multi-module); see [docs/SCAN_TARGETS.md](../../../SCAN_TARGETS.md#recursive-discovery----recursive).\n")
 	b.WriteString("- Syft-backed entries provide broad compatibility, especially for containers and ecosystems without native Bomly graph resolution.\n")
 	return b.String()
 }
@@ -587,6 +588,9 @@ func renderPackageManagerMarkdown(ecosystem sdk.Ecosystem, entry registry.Packag
 	_, _ = fmt.Fprintf(&b, "| Ecosystem | `%s` |\n", ecosystem)
 	_, _ = fmt.Fprintf(&b, "| Detector chain | %s |\n", codeList(entry.Detectors))
 	_, _ = fmt.Fprintf(&b, "| Evidence patterns | %s |\n", codeListOrDash(entry.EvidencePatterns))
+	_, _ = fmt.Fprintf(&b, "| Ignored directories | %s |\n", codeListOrDash(chainIgnoredDirectories(entry.Detectors)))
+	_, _ = fmt.Fprintf(&b, "| Ignored directory markers | %s |\n", codeListOrDash(chainIgnoredDirectoryMarkers(entry.Detectors)))
+	_, _ = fmt.Fprintf(&b, "| Multi-module resolution | %s |\n", yesNo(chainSupportsMultiModule(entry.Detectors, entry.Manager)))
 	_, _ = fmt.Fprintf(&b, "| Install-first support | %s |\n", yesNo(chainSupportsInstallFirst(entry.Detectors)))
 	_, _ = fmt.Fprintf(&b, "| Native command hints | %s |\n", commandHintsForChain(entry.Detectors))
 	if prose := loadProse("detectors", name); prose != "" {
@@ -853,6 +857,72 @@ func detectorSupportsInstallFirst(detectorName string) bool {
 	for _, descriptor := range reg.DetectorDescriptors() {
 		if descriptor.Name == detectorName {
 			return descriptor.SupportsInstallFirst
+		}
+	}
+	return false
+}
+
+// builtinDetectorsByName indexes the built-in detector catalog by descriptor
+// name for chain-level aggregation of recursive-discovery metadata.
+func builtinDetectorsByName() map[string]sdk.Detector {
+	detectors := registry.BuiltinDetectors()
+	byName := make(map[string]sdk.Detector, len(detectors))
+	for _, detector := range detectors {
+		byName[detector.Descriptor().Name] = detector
+	}
+	return byName
+}
+
+// chainIgnoredDirectories unions the directory globs every detector in the
+// chain declares as skipped during recursive discovery.
+func chainIgnoredDirectories(detectors []string) []string {
+	return chainIgnoredValues(detectors, func(descriptor sdk.DetectorDescriptor) []string {
+		return descriptor.IgnoredDirectories
+	})
+}
+
+// chainIgnoredDirectoryMarkers unions the marker files every detector in the
+// chain declares as flagging an ignored directory during recursive discovery.
+func chainIgnoredDirectoryMarkers(detectors []string) []string {
+	return chainIgnoredValues(detectors, func(descriptor sdk.DetectorDescriptor) []string {
+		return descriptor.IgnoredDirectoryMarkers
+	})
+}
+
+func chainIgnoredValues(detectors []string, values func(sdk.DetectorDescriptor) []string) []string {
+	byName := builtinDetectorsByName()
+	seen := make(map[string]struct{})
+	out := make([]string, 0)
+	for _, detectorName := range detectors {
+		detector, ok := byName[detectorName]
+		if !ok {
+			continue
+		}
+		for _, value := range values(detector.Descriptor()) {
+			if _, ok := seen[value]; ok {
+				continue
+			}
+			seen[value] = struct{}{}
+			out = append(out, value)
+		}
+	}
+	return out
+}
+
+// chainSupportsMultiModule reports whether any detector in the chain declares
+// native multi-module (workspace/reactor) expansion for the package manager.
+func chainSupportsMultiModule(detectors []string, manager sdk.PackageManager) bool {
+	byName := builtinDetectorsByName()
+	for _, detectorName := range detectors {
+		detector, ok := byName[detectorName]
+		if !ok {
+			continue
+		}
+		supports := append(append([]sdk.PackageManagerSupport(nil), detector.Descriptor().PackageManagerSupport...), detector.PackageManagerSupport()...)
+		for _, support := range supports {
+			if support.MultiModule && support.PackageManager == manager {
+				return true
+			}
 		}
 	}
 	return false

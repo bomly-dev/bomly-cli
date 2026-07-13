@@ -44,7 +44,7 @@ var (
 
 // PackageManagerSupport returns Mix package-manager discovery metadata.
 func (d Detector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerMix, evidencePatterns...).WithNativeMultiModule()}
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerMix, evidencePatterns...).WithMultiModule()}
 }
 
 // Ready reports whether committed Mix files can be parsed.

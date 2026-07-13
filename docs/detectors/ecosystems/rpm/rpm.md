@@ -10,5 +10,8 @@ Bomly uses this chain when it finds `rpm` evidence.
 | Ecosystem | `rpm` |
 | Detector chain | `syft-detector` |
 | Evidence patterns | `var/lib/rpmmanifest/container-manifest-2`, `var/lib/rpm/Packages`, `var/lib/rpm/Packages.db`, `var/lib/rpm/rpmdb.sqlite`, `usr/share/rpm/Packages`, `usr/share/rpm/Packages.db`, `usr/share/rpm/rpmdb.sqlite`, `usr/lib/sysimage/rpm/Packages`, `usr/lib/sysimage/rpm/Packages.db`, `usr/lib/sysimage/rpm/rpmdb.sqlite` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | `syft for bomly-lite` |

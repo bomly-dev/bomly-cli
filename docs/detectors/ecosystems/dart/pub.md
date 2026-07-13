@@ -10,5 +10,8 @@ Bomly uses this chain when it finds `pub` evidence.
 | Ecosystem | `dart` |
 | Detector chain | `pub-native-detector`, `pub-detector`, `syft-detector` |
 | Evidence patterns | `pubspec.lock`, `pubspec.yaml`, `pubspec.yml` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | `dart`, `syft for bomly-lite` |

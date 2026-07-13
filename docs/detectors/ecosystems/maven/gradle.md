@@ -10,6 +10,9 @@ Bomly uses this chain when it finds `gradle` evidence.
 | Ecosystem | `maven` |
 | Detector chain | `gradle-detector`, `syft-detector` |
 | Evidence patterns | `build.gradle`, `build.gradle.kts`, `settings.gradle`, `settings.gradle.kts`, `gradle.lockfile*` |
+| Ignored directories | `build` |
+| Ignored directory markers | - |
+| Multi-module resolution | Yes |
 | Install-first support | Yes |
 | Native command hints | `gradle`, `syft for bomly-lite` |
 

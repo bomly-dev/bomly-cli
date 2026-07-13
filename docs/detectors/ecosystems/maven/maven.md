@@ -10,6 +10,9 @@ Bomly uses this chain when it finds `maven` evidence.
 | Ecosystem | `maven` |
 | Detector chain | `maven-detector`, `syft-detector` |
 | Evidence patterns | `pom.xml`, `*pom.xml` |
+| Ignored directories | `target` |
+| Ignored directory markers | - |
+| Multi-module resolution | Yes |
 | Install-first support | Yes |
 | Native command hints | `mvn`, `syft for bomly-lite` |
 

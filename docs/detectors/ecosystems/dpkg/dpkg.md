@@ -10,5 +10,8 @@ Bomly uses this chain when it finds `dpkg` evidence.
 | Ecosystem | `dpkg` |
 | Detector chain | `syft-detector` |
 | Evidence patterns | `lib/dpkg/status`, `lib/dpkg/status.d/*`, `lib/opkg/info/*.control`, `lib/opkg/status` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | `syft for bomly-lite` |

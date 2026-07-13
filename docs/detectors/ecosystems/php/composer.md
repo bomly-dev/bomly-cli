@@ -10,6 +10,9 @@ Bomly uses this chain when it finds `composer` evidence.
 | Ecosystem | `php` |
 | Detector chain | `composer-detector`, `syft-detector` |
 | Evidence patterns | `composer.lock`, `installed.json` |
+| Ignored directories | `vendor` |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | Yes |
 | Native command hints | `composer`, `syft for bomly-lite` |
 

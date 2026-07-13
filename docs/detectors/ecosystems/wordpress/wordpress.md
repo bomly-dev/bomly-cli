@@ -10,5 +10,8 @@ Bomly uses this chain when it finds `wordpress` evidence.
 | Ecosystem | `wordpress` |
 | Detector chain | `syft-detector` |
 | Evidence patterns | `wp-content/plugins/*/*.php` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | `syft for bomly-lite` |

@@ -24,7 +24,7 @@ var npmManifestMetadataPatterns = []string{"package-lock.json", "package.json"}
 
 // PackageManagerSupport returns npm package-manager discovery metadata.
 func (d LockfileDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
-	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerNPM, npmEvidencePatterns...).WithNativeMultiModule()}
+	return []sdk.PackageManagerSupport{sdk.Support(sdk.PackageManagerNPM, npmEvidencePatterns...).WithMultiModule()}
 }
 
 // Ready reports whether npm is available.
@@ -46,13 +46,13 @@ func (d LockfileDetector) Applicable(ctx context.Context, req sdk.DetectionReque
 // Descriptor describes the npm detector.
 func (d LockfileDetector) Descriptor() sdk.DetectorDescriptor {
 	return sdk.DetectorDescriptor{
-		DiscoveryIgnoredDirectories: []string{"node_modules", "dist"},
-		Name:                        detectors.NameNPM,
-		Technique:                   sdk.LockfileTechnique,
-		SupportedEcosystems:         []sdk.Ecosystem{sdk.EcosystemNPM},
-		SupportedManagers:           []sdk.PackageManager{sdk.PackageManagerNPM},
-		Tags:                        []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
-		SupportsInstallFirst:        true,
+		IgnoredDirectories:   []string{"node_modules", "dist"},
+		Name:                 detectors.NameNPM,
+		Technique:            sdk.LockfileTechnique,
+		SupportedEcosystems:  []sdk.Ecosystem{sdk.EcosystemNPM},
+		SupportedManagers:    []sdk.PackageManager{sdk.PackageManagerNPM},
+		Tags:                 []string{"graph-resolution", "component-targeting", "lockfile-parsing", "scope-annotation"},
+		SupportsInstallFirst: true,
 	}
 }
 

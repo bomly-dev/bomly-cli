@@ -10,6 +10,9 @@ Bomly uses this chain when it finds `nuget` evidence.
 | Ecosystem | `dotnet` |
 | Detector chain | `nuget-detector`, `syft-detector` |
 | Evidence patterns | `packages.lock.json`, `*.deps.json`, `packages.config`, `*.csproj`, `*.fsproj`, `*.vbproj`, `*.vcxproj`, `project.assets.json` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | `dotnet`, `syft for bomly-lite` |
 

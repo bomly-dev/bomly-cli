@@ -10,6 +10,9 @@ Bomly uses this chain when it finds `pip` evidence.
 | Ecosystem | `python` |
 | Detector chain | `pip-detector`, `syft-detector` |
 | Evidence patterns | `requirements.txt`, `requirements-dev.txt`, `requirements.in`, `requirements.lock`, `*requirements*.txt` |
+| Ignored directories | `__pycache__` |
+| Ignored directory markers | `pyvenv.cfg` |
+| Multi-module resolution | No |
 | Install-first support | Yes |
 | Native command hints | `pip`, `syft for bomly-lite` |
 

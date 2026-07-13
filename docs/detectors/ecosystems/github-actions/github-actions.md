@@ -10,6 +10,9 @@ Bomly uses this chain when it finds `github-actions` evidence.
 | Ecosystem | `github-actions` |
 | Detector chain | `github-actions-detector`, `syft-detector` |
 | Evidence patterns | `.github/workflows/*.yaml`, `.github/workflows/*.yml`, `.github/actions/*/action.yml`, `.github/actions/*/action.yaml` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | `syft for bomly-lite` |
 

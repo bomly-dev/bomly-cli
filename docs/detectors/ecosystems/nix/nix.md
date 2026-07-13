@@ -10,5 +10,8 @@ Bomly uses this chain when it finds `nix` evidence.
 | Ecosystem | `nix` |
 | Detector chain | `syft-detector` |
 | Evidence patterns | `nix/var/nix/db/db.sqlite`, `nix/store/*.drv` |
+| Ignored directories | - |
+| Ignored directory markers | - |
+| Multi-module resolution | No |
 | Install-first support | No |
 | Native command hints | `syft for bomly-lite` |

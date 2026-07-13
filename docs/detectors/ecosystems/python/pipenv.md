@@ -10,6 +10,9 @@ Bomly uses this chain when it finds `pipenv` evidence.
 | Ecosystem | `python` |
 | Detector chain | `pipenv-detector`, `syft-detector` |
 | Evidence patterns | `Pipfile`, `Pipfile.lock` |
+| Ignored directories | `__pycache__` |
+| Ignored directory markers | `pyvenv.cfg` |
+| Multi-module resolution | No |
 | Install-first support | Yes |
 | Native command hints | `pipenv`, `syft for bomly-lite` |
 

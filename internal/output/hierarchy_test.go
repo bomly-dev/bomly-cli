@@ -1,6 +1,7 @@
 package output
 
 import (
+	"github.com/bomly-dev/bomly-cli/sdk"
 	"reflect"
 	"testing"
 )
@@ -19,6 +20,7 @@ func TestClassifyManifest(t *testing.T) {
 		{"deep module under root", "", "crates/tools/cli/Cargo.toml", ".", "crates/tools/cli"},
 		{"subproject manifest", "services/api", "services/api/pom.xml", "services/api", ""},
 		{"module under subproject", "services/api", "services/api/module-a/pom.xml", "services/api", "services/api/module-a"},
+		{"hidden dirs are not modules", ".", ".github/workflows/ci.yml", ".", ""},
 		{"manifest outside subproject attaches directly", "services/api", "pom.xml", "services/api", ""},
 		{"windows separators", `services\api`, `services\api\module-a\pom.xml`, "services/api", "services/api/module-a"},
 	}
@@ -113,5 +115,38 @@ func TestBuildHierarchySubprojectsAndModules(t *testing.T) {
 	}
 	if !hierarchy.HasGroups() {
 		t.Fatal("expected HasGroups to be true")
+	}
+}
+
+func TestBuildHierarchyAttachesModulesToParentManifest(t *testing.T) {
+	hierarchy := BuildHierarchy([]ScanManifest{
+		{Path: "package-lock.json", Subproject: ".", PackageManager: sdk.PackageManagerNPM, Ecosystem: sdk.EcosystemNPM},
+		{Path: "go.mod", Subproject: ".", PackageManager: sdk.PackageManagerGoMod, Ecosystem: sdk.EcosystemGo},
+		{Path: "apps/web/package.json", Subproject: ".", PackageManager: sdk.PackageManagerNPM, Ecosystem: sdk.EcosystemNPM},
+	})
+	if len(hierarchy.Children) != 1 {
+		t.Fatalf("expected one module child, got %#v", hierarchy.Children)
+	}
+	module := hierarchy.Children[0]
+	// The npm workspace member attaches to the npm lockfile (index 0), not
+	// the go.mod manifest.
+	if module.AttachedManifest != 0 {
+		t.Fatalf("AttachedManifest = %d, want 0 (the npm lockfile)", module.AttachedManifest)
+	}
+}
+
+func TestBuildHierarchyModuleWithoutParentManifestUnattached(t *testing.T) {
+	hierarchy := BuildHierarchy([]ScanManifest{
+		{Path: "package-lock.json", Subproject: ".", PackageManager: sdk.PackageManagerNPM, Ecosystem: sdk.EcosystemNPM},
+		{Path: "yarn.lock", Subproject: ".", PackageManager: sdk.PackageManagerYarn, Ecosystem: sdk.EcosystemNPM},
+		{Path: "crates/api/Cargo.toml", Subproject: ".", PackageManager: sdk.PackageManagerCargo, Ecosystem: sdk.EcosystemRust},
+	})
+	if len(hierarchy.Children) != 1 {
+		t.Fatalf("expected one module child, got %#v", hierarchy.Children)
+	}
+	// No cargo parent manifest and two root manifests: the module stays
+	// attached to the node itself.
+	if hierarchy.Children[0].AttachedManifest != -1 {
+		t.Fatalf("AttachedManifest = %d, want -1", hierarchy.Children[0].AttachedManifest)
 	}
 }

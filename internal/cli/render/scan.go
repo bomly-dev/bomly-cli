@@ -49,7 +49,7 @@ func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, m
 	_, direct, transitive := scanRelationshipCounts(g)
 	runtimeCount, developmentCount, _ := scanScopeCounts(g)
 
-	// Package count line: ✓ N packages in M manifests  (D direct, T transitive)
+	// Package count line: relationship and scope distributions share one line.
 	checkmark := Style("✓", Green)
 	countPart := Style(fmt.Sprintf("%d", g.Size()), Cyan, Bold)
 	manifestCount := len(manifests)
@@ -58,11 +58,8 @@ func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, m
 		manifestWord = "manifests"
 	}
 	manifestPart := Style(fmt.Sprintf("in %d %s", manifestCount, manifestWord), Dim)
-	detailPart := Style(fmt.Sprintf("(%d direct, %d transitive)", direct, transitive), Dim)
+	detailPart := Style(fmt.Sprintf("(%d direct, %d transitive · runtime %d, dev %d)", direct, transitive, runtimeCount, developmentCount), Dim)
 	fmt.Fprintf(&b, "%s %s packages %s   %s\n", checkmark, countPart, manifestPart, detailPart)
-
-	// Scopes line
-	fmt.Fprintf(&b, "  %s\n", Style(fmt.Sprintf("scopes: runtime %d · dev %d", runtimeCount, developmentCount), Dim))
 
 	// Grouped manifest tree — only when the scan spans subprojects or
 	// modules; flat single-root scans keep the compact report unchanged.
@@ -70,7 +67,7 @@ func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, m
 		b.WriteString(renderManifestHierarchy(hierarchy, manifests))
 	}
 
-	// Enrichment line
+	// Enrichment line — blank-line separated from the counts block.
 	if enrichEnabled && len(matcherStats) > 0 {
 		sources := make([]string, 0, len(matcherStats))
 		seen := make(map[string]struct{})
@@ -87,7 +84,7 @@ func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, m
 			}
 		}
 		if len(sources) > 0 {
-			fmt.Fprintf(&b, "%s %s\n", checkmark, Style("Enriched via "+strings.Join(sources, ", "), Green))
+			fmt.Fprintf(&b, "\n%s %s\n", checkmark, Style("Enriched via "+strings.Join(sources, ", "), Green))
 		}
 	}
 
@@ -189,17 +186,13 @@ func collapseWhitespace(value string) string {
 }
 
 // renderManifestHierarchy renders the grouped manifest tree shown when a
-// scan spans subprojects or modules:
+// scan spans subprojects or modules. Modules nest under the manifest that
+// natively resolves them (the workspace lockfile, the reactor pom), and every
+// node is named after its package when a root name exists:
 //
-//	├─ package-lock.json — 120 packages
-//	├─ apps/web (module, npm) — 34 packages
-//	└─ services/api (subproject, maven)
-//	   ├─ pom.xml — 3 packages
-//	   └─ module-a (module, maven) — 41 packages
-//
-// Group nodes holding exactly one manifest collapse onto a single line; a
-// group with several manifests lists them as children with paths relative to
-// the group directory.
+//	└─ dev.bomly.example:multimodule-parent — 1 package, 2 modules [pom.xml]
+//	   ├─ dev.bomly.example:core (module, maven) — 2 packages [core/pom.xml]
+//	   └─ dev.bomly.example:web (module, maven) — 6 packages [web/pom.xml]
 func renderManifestHierarchy(hierarchy output.HierarchyNode, manifests []output.ScanManifest) string {
 	var b strings.Builder
 	type line struct {
@@ -208,13 +201,35 @@ func renderManifestHierarchy(hierarchy output.HierarchyNode, manifests []output.
 	}
 	var lines []line
 
-	manifestLabel := func(index int, baseDir string) string {
+	pluralize := func(count int, word string) string {
+		if count == 1 {
+			return fmt.Sprintf("%d %s", count, word)
+		}
+		return fmt.Sprintf("%d %ss", count, word)
+	}
+	// manifestLabel names a manifest line after its package when a root name
+	// exists (a manifest and its project/module are one thing), keeping the
+	// manifest path as a bracketed hint. moduleCount > 0 marks a parent
+	// manifest whose modules nest beneath it.
+	manifestLabel := func(index, moduleCount int, baseDir string) string {
 		manifest := manifests[index]
 		path := strings.TrimSpace(manifest.Path)
 		if baseDir != "" && baseDir != "." {
 			path = strings.TrimPrefix(path, baseDir+"/")
 		}
-		return fmt.Sprintf("%s — %d packages", path, len(manifest.Dependencies))
+		label := output.ManifestRootName(manifest)
+		if label == "" {
+			label = path
+			path = ""
+		}
+		label += " — " + pluralize(len(manifest.Dependencies), "package")
+		if moduleCount > 0 {
+			label += ", " + pluralize(moduleCount, "module")
+		}
+		if path != "" {
+			label += " [" + path + "]"
+		}
+		return label
 	}
 	groupLabel := func(node output.HierarchyNode) string {
 		pm := ""
@@ -241,40 +256,58 @@ func renderManifestHierarchy(hierarchy output.HierarchyNode, manifests []output.
 		if pm != "" {
 			label += ", " + pm
 		}
-		return fmt.Sprintf("%s) — %d packages [%s]", label, len(manifest.Dependencies), strings.TrimSpace(manifest.Path))
+		return fmt.Sprintf("%s) — %s [%s]", label, pluralize(len(manifest.Dependencies), "package"), strings.TrimSpace(manifest.Path))
 	}
 
-	var walk func(node output.HierarchyNode, indent string)
-	walk = func(node output.HierarchyNode, indent string) {
-		type child struct {
-			text     string
-			children *output.HierarchyNode
+	type child struct {
+		text     string
+		children []child
+	}
+	moduleChild := func(group output.HierarchyNode) child {
+		return child{text: mergedGroupLabel(group)}
+	}
+	var nodeChildren func(node output.HierarchyNode) []child
+	nodeChildren = func(node output.HierarchyNode) []child {
+		// Modules nest under the manifest that resolves them; unattached
+		// modules and subproject nodes stay children of the node itself.
+		attached := map[int][]child{}
+		var unattached []child
+		var subprojects []child
+		for _, group := range node.Children {
+			if group.Kind == output.ManifestNodeModule && len(group.Children) == 0 && len(group.ManifestIndexes) == 1 {
+				if group.AttachedManifest >= 0 {
+					attached[group.AttachedManifest] = append(attached[group.AttachedManifest], moduleChild(group))
+				} else {
+					unattached = append(unattached, moduleChild(group))
+				}
+				continue
+			}
+			subprojects = append(subprojects, child{text: groupLabel(group), children: nodeChildren(group)})
 		}
 		children := make([]child, 0, len(node.ManifestIndexes)+len(node.Children))
 		for _, index := range node.ManifestIndexes {
-			children = append(children, child{text: manifestLabel(index, node.Dir)})
+			modules := attached[index]
+			children = append(children, child{text: manifestLabel(index, len(modules), node.Dir), children: modules})
 		}
-		for i := range node.Children {
-			group := node.Children[i]
-			if len(group.Children) == 0 && len(group.ManifestIndexes) == 1 {
-				// Merged node: single-manifest groups are one line.
-				children = append(children, child{text: mergedGroupLabel(group)})
-				continue
-			}
-			children = append(children, child{text: groupLabel(group), children: &node.Children[i]})
-		}
+		children = append(children, unattached...)
+		children = append(children, subprojects...)
+		return children
+	}
+
+	var emit func(children []child, indent string)
+	emit = func(children []child, indent string) {
 		for i, c := range children {
 			connector, continuation := "├─ ", "│  "
 			if i == len(children)-1 {
 				connector, continuation = "└─ ", "   "
 			}
 			lines = append(lines, line{indent: indent + connector, text: c.text})
-			if c.children != nil {
-				walk(*c.children, indent+continuation)
+			if len(c.children) > 0 {
+				emit(c.children, indent+continuation)
 			}
 		}
 	}
-	walk(hierarchy, "  ")
+	emit(nodeChildren(hierarchy), "  ")
 
 	for _, l := range lines {
 		fmt.Fprintf(&b, "%s%s\n", Style(l.indent, Dim), l.text)

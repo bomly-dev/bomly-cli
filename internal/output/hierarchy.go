@@ -41,6 +41,12 @@ type HierarchyNode struct {
 	// subproject nodes (under the project node only), modules first, each
 	// group sorted by Dir.
 	Children []HierarchyNode
+	// AttachedManifest is set on module nodes only: the index (into the
+	// manifests slice passed to BuildHierarchy) of the parent node's manifest
+	// that natively resolves this module — the workspace lockfile or reactor
+	// pom. -1 when no unambiguous parent manifest exists. Views nest modules
+	// under that manifest's node.
+	AttachedManifest int
 }
 
 // HasGroups reports whether the hierarchy contains any subproject or module
@@ -74,6 +80,12 @@ func ClassifyManifest(subprojectRel, manifestPath string) (subprojectDir, module
 	if manifestDir == subprojectDir {
 		return subprojectDir, ""
 	}
+	if hasHiddenPathSegment(manifestDir) {
+		// Manifests inside dot-directories (.github/workflows/ci.yml) belong
+		// to the node itself — hidden directories are metadata locations, not
+		// modules.
+		return subprojectDir, ""
+	}
 	if subprojectDir == "." {
 		if manifestDir != "." && manifestDir != "" {
 			return subprojectDir, manifestDir
@@ -86,13 +98,24 @@ func ClassifyManifest(subprojectRel, manifestPath string) (subprojectDir, module
 	return subprojectDir, ""
 }
 
+// hasHiddenPathSegment reports whether any segment of a slash path starts
+// with a dot.
+func hasHiddenPathSegment(dir string) bool {
+	for _, segment := range strings.Split(dir, "/") {
+		if strings.HasPrefix(segment, ".") && segment != "." && segment != ".." {
+			return true
+		}
+	}
+	return false
+}
+
 // BuildHierarchy groups scan manifests into the derived project hierarchy:
 // root-level manifests attach directly to the project node; module nodes and
 // subproject nodes are its children (modules first, then subprojects, each
 // sorted by directory); a subproject's own manifests attach to its node with
 // its modules as children.
 func BuildHierarchy(manifests []ScanManifest) HierarchyNode {
-	root := HierarchyNode{Kind: ManifestNodeProject, Dir: ".", Label: "."}
+	root := HierarchyNode{Kind: ManifestNodeProject, Dir: ".", Label: ".", AttachedManifest: -1}
 	subprojects := map[string]*HierarchyNode{}
 	modules := map[string]map[string]*HierarchyNode{} // parent dir → module dir → node
 
@@ -108,7 +131,7 @@ func BuildHierarchy(manifests []ScanManifest) HierarchyNode {
 			if parentDir != "." {
 				label = strings.TrimPrefix(moduleDir, parentDir+"/")
 			}
-			node = &HierarchyNode{Kind: ManifestNodeModule, Dir: moduleDir, Label: label}
+			node = &HierarchyNode{Kind: ManifestNodeModule, Dir: moduleDir, Label: label, AttachedManifest: -1}
 			byDir[moduleDir] = node
 		}
 		node.ManifestIndexes = append(node.ManifestIndexes, index)
@@ -126,7 +149,7 @@ func BuildHierarchy(manifests []ScanManifest) HierarchyNode {
 		}
 		node, ok := subprojects[subprojectDir]
 		if !ok {
-			node = &HierarchyNode{Kind: ManifestNodeSubproject, Dir: subprojectDir, Label: subprojectDir}
+			node = &HierarchyNode{Kind: ManifestNodeSubproject, Dir: subprojectDir, Label: subprojectDir, AttachedManifest: -1}
 			subprojects[subprojectDir] = node
 		}
 		if moduleDir == "" {
@@ -136,7 +159,37 @@ func BuildHierarchy(manifests []ScanManifest) HierarchyNode {
 		}
 	}
 
-	childModules := func(parentDir string) []HierarchyNode {
+	// attachedManifestFor resolves which of the parent node's manifests
+	// natively produced a module: the manifest with the module's package
+	// manager (falling back to ecosystem, then to a sole parent manifest).
+	attachedManifestFor := func(parentManifests []int, module *HierarchyNode) int {
+		if len(module.ManifestIndexes) == 0 {
+			return -1
+		}
+		moduleManifest := manifests[module.ManifestIndexes[0]]
+		byManager := make([]int, 0, 1)
+		byEcosystem := make([]int, 0, 1)
+		for _, index := range parentManifests {
+			if manifests[index].PackageManager == moduleManifest.PackageManager {
+				byManager = append(byManager, index)
+			}
+			if manifests[index].Ecosystem == moduleManifest.Ecosystem {
+				byEcosystem = append(byEcosystem, index)
+			}
+		}
+		switch {
+		case len(byManager) == 1:
+			return byManager[0]
+		case len(byEcosystem) == 1:
+			return byEcosystem[0]
+		case len(parentManifests) == 1:
+			return parentManifests[0]
+		default:
+			return -1
+		}
+	}
+
+	childModules := func(parentDir string, parentManifests []int) []HierarchyNode {
 		byDir := modules[parentDir]
 		dirs := make([]string, 0, len(byDir))
 		for dir := range byDir {
@@ -145,12 +198,14 @@ func BuildHierarchy(manifests []ScanManifest) HierarchyNode {
 		sort.Strings(dirs)
 		children := make([]HierarchyNode, 0, len(dirs))
 		for _, dir := range dirs {
-			children = append(children, *byDir[dir])
+			node := *byDir[dir]
+			node.AttachedManifest = attachedManifestFor(parentManifests, &node)
+			children = append(children, node)
 		}
 		return children
 	}
 
-	root.Children = childModules(".")
+	root.Children = childModules(".", root.ManifestIndexes)
 	subprojectDirs := make([]string, 0, len(subprojects))
 	for dir := range subprojects {
 		subprojectDirs = append(subprojectDirs, dir)
@@ -158,7 +213,7 @@ func BuildHierarchy(manifests []ScanManifest) HierarchyNode {
 	sort.Strings(subprojectDirs)
 	for _, dir := range subprojectDirs {
 		node := *subprojects[dir]
-		node.Children = childModules(dir)
+		node.Children = childModules(dir, node.ManifestIndexes)
 		root.Children = append(root.Children, node)
 	}
 	return root

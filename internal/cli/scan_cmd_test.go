@@ -26,7 +26,7 @@ func TestRenderScanReportShowsPackageCountAndDirectDeps(t *testing.T) {
 		"packages",
 		"direct",
 		"transitive",
-		"scopes:",
+		"runtime",
 		"Top-level dependencies",
 		"react",
 		"Findings",
@@ -124,11 +124,12 @@ func TestRenderScanReportGroupsManifestsBySubprojectAndModule(t *testing.T) {
 
 	for _, want := range []string{
 		"in 4 manifests",
-		"package-lock.json — 3 packages",
-		"apps/web (module, npm) — 2 packages",
+		// Modules nest under the manifest that resolves them.
+		"package-lock.json — 3 packages, 1 module",
+		"│  └─ apps/web (module, npm) — 2 packages [apps/web/package.json]",
 		"services/api (subproject, maven)",
-		"pom.xml — 1 packages",
-		"module-a (module, maven) — 4 packages",
+		"pom.xml — 1 package, 1 module",
+		"└─ module-a (module, maven) — 4 packages [services/api/module-a/pom.xml]",
 	} {
 		if !strings.Contains(report, want) {
 			t.Fatalf("expected grouped manifest tree to contain %q, got:\n%s", want, report)

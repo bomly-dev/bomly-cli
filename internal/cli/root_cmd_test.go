@@ -2355,7 +2355,7 @@ func TestRoot_ScanCommand_TextReportOutput(t *testing.T) {
 		"packages",
 		"direct",
 		"transitive",
-		"scopes:",
+		"runtime",
 		"Top-level dependencies",
 		"react",
 		"18.2.0",

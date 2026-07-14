@@ -534,7 +534,8 @@ func (m *ScanModel) buildManifestListModel() *listModel {
 		expanded: true,
 	})
 
-	appendManifest := func(manifestIdx int, ancestorsLast []bool, last bool) {
+	var appendGroup func(group *manifestTreeGroup, ancestorsLast []bool, last bool)
+	appendManifest := func(manifestIdx int, ancestorsLast []bool, last bool, attached []*manifestTreeGroup) {
 		manifest := m.manifests[manifestIdx]
 		title := fmt.Sprintf("%s (%s, %d components) [%s]", manifest.displayName, manifestEcosystem(m.graphValue, manifest), manifestComponentCount(m.graphValue, manifest.rootID), manifest.id)
 		items = append(items, listItem{
@@ -544,8 +545,11 @@ func (m *ScanModel) buildManifestListModel() *listModel {
 			tree:     treeLevelPrefix(ancestorsLast) + treeConnector(last),
 			depth:    len(ancestorsLast) + 1,
 		})
+		childAncestors := append(append([]bool(nil), ancestorsLast...), last)
+		for i, group := range attached {
+			appendGroup(group, childAncestors, i == len(attached)-1)
+		}
 	}
-	var appendGroup func(group *manifestTreeGroup, ancestorsLast []bool, last bool)
 	appendGroup = func(group *manifestTreeGroup, ancestorsLast []bool, last bool) {
 		if len(group.manifests) == 1 && len(group.children) == 0 {
 			// Merged node: the module/subproject and its single manifest are
@@ -568,30 +572,50 @@ func (m *ScanModel) buildManifestListModel() *listModel {
 			depth:    len(ancestorsLast) + 1,
 		})
 		childAncestors := append(append([]bool(nil), ancestorsLast...), last)
-		total := len(group.manifests) + len(group.children)
+		childAttached := map[int][]*manifestTreeGroup{}
+		unattachedChildren := make([]*manifestTreeGroup, 0, len(group.children))
+		for _, child := range group.children {
+			if child.kind == output.ManifestNodeModule && child.attachedTo >= 0 {
+				childAttached[child.attachedTo] = append(childAttached[child.attachedTo], child)
+				continue
+			}
+			unattachedChildren = append(unattachedChildren, child)
+		}
+		total := len(group.manifests) + len(unattachedChildren)
 		pos := 0
 		for _, index := range group.manifests {
-			appendManifest(index, childAncestors, pos == total-1)
+			appendManifest(index, childAncestors, pos == total-1, childAttached[index])
 			pos++
 		}
-		for _, child := range group.children {
+		for _, child := range unattachedChildren {
 			appendGroup(child, childAncestors, pos == total-1)
 			pos++
 		}
 	}
-	total := len(rootManifests) + len(groups)
+	// Modules nest under the manifest that resolves them; the merged project
+	// row itself stands in for the single root manifest.
+	attachedByManifest := map[int][]*manifestTreeGroup{}
+	unattachedGroups := make([]*manifestTreeGroup, 0, len(groups))
+	for _, group := range groups {
+		if group.kind == output.ManifestNodeModule && group.attachedTo >= 0 && !projectMerged {
+			attachedByManifest[group.attachedTo] = append(attachedByManifest[group.attachedTo], group)
+			continue
+		}
+		unattachedGroups = append(unattachedGroups, group)
+	}
+	total := len(rootManifests) + len(unattachedGroups)
 	pos := 0
 	if projectMerged {
-		// The single root manifest lives on the project row itself; only
-		// subproject/module rows follow.
-		total = len(groups)
+		// The single root manifest lives on the project row itself; module
+		// and subproject rows follow directly beneath it.
+		total = len(unattachedGroups)
 	} else {
 		for _, index := range rootManifests {
-			appendManifest(index, nil, pos == total-1)
+			appendManifest(index, nil, pos == total-1, attachedByManifest[index])
 			pos++
 		}
 	}
-	for _, group := range groups {
+	for _, group := range unattachedGroups {
 		appendGroup(group, nil, pos == total-1)
 		pos++
 	}
@@ -673,27 +697,7 @@ func (m *ScanModel) buildComponentsTreeListModel() *listModel {
 		}
 	}
 
-	emitManifest := func(manifestIdx int, ancestorsLast []bool, last bool) {
-		manifest := m.manifests[manifestIdx]
-		manifestKey := "manifest:" + manifest.id
-		manifestExpanded := expandedValue(m.componentExpanded, manifestKey, false)
-		depth := len(ancestorsLast) + 1
-		items = append(items, listItem{
-			title:    fmt.Sprintf("%s (%s, %d components)", manifest.displayName, manifestEcosystem(m.graphValue, manifest), m.filteredManifestComponentCount(manifest.rootID, maxSevByID)),
-			subtitle: "manifest",
-			details:  manifestDetails(m.graphValue, manifest),
-			key:      manifestKey,
-			tree:     treeLevelPrefix(ancestorsLast) + treeConnector(last),
-			depth:    depth,
-			canOpen:  manifest.rootID != "",
-			expanded: manifestExpanded,
-		})
-		if !manifestExpanded {
-			return
-		}
-		componentAncestors := append(append([]bool(nil), ancestorsLast...), last)
-		emitComponents(manifest, componentAncestors, true, depth+1)
-	}
+	var emitManifest func(manifestIdx int, ancestorsLast []bool, last bool, attached []*manifestTreeGroup)
 
 	// emitMergedComponents renders the component subtree of an absorbed root:
 	// the merged node stands in for the root row, and the root's children
@@ -727,6 +731,83 @@ func (m *ScanModel) buildComponentsTreeListModel() *listModel {
 	}
 
 	var emitGroup func(group *manifestTreeGroup, ancestorsLast []bool, last bool)
+
+	emitManifest = func(manifestIdx int, ancestorsLast []bool, last bool, attached []*manifestTreeGroup) {
+		manifest := m.manifests[manifestIdx]
+		manifestKey := "manifest:" + manifest.id
+		manifestExpanded := expandedValue(m.componentExpanded, manifestKey, len(attached) > 0)
+		depth := len(ancestorsLast) + 1
+		items = append(items, listItem{
+			title:    fmt.Sprintf("%s (%s, %d components)", manifest.displayName, manifestEcosystem(m.graphValue, manifest), m.filteredManifestComponentCount(manifest.rootID, maxSevByID)),
+			subtitle: "manifest",
+			details:  manifestDetails(m.graphValue, manifest),
+			key:      manifestKey,
+			tree:     treeLevelPrefix(ancestorsLast) + treeConnector(last),
+			depth:    depth,
+			canOpen:  manifest.rootID != "" || len(attached) > 0,
+			expanded: manifestExpanded,
+		})
+		if !manifestExpanded {
+			return
+		}
+		componentAncestors := append(append([]bool(nil), ancestorsLast...), last)
+		// Attached module nodes branch out of the manifest that resolves
+		// them, before the manifest's own dependency subtree.
+		for i, group := range attached {
+			emitGroup(group, componentAncestors, i == len(attached)-1 && manifest.rootID == "")
+		}
+		emitComponents(manifest, componentAncestors, true, depth+1)
+	}
+
+	// emitRootNode renders the merged project's ROOT component row with its
+	// attached module nodes branching out of it, followed by the root's own
+	// dependency forest.
+	emitRootNode := func(manifest listPackageRow, ancestorsLast []bool, last bool, attached []*manifestTreeGroup) {
+		rootPkg, ok := m.graphValue.Node(manifest.rootID)
+		var row listPackageRow
+		rootVisible := ok && rootPkg != nil
+		if rootVisible {
+			row = packageRowFromGraph(rootPkg, "root")
+			rootVisible = len(m.filterComponentRows([]listPackageRow{row}, maxSevByID)) == 1
+		}
+		if !rootVisible {
+			// No visible root component to stand on (missing, or hidden by
+			// the active filters): fall back to the flat forest.
+			for i, group := range attached {
+				emitGroup(group, ancestorsLast, i == len(attached)-1)
+			}
+			emitComponents(manifest, ancestorsLast, true, len(ancestorsLast)+1)
+			return
+		}
+		badges := packageBadges(row)
+		if sev := maxSevByID[row.id]; sev != "" {
+			badges = append([]badge{{label: sev, kind: "severity-" + strings.ToLower(sev)}}, badges...)
+		}
+		deps, _ := m.graphValue.DirectDependencies(row.id)
+		// Roots carrying module nodes default expanded so the project
+		// structure is visible at a glance.
+		rootExpanded := expandedValue(m.componentExpanded, row.id, len(attached) > 0)
+		depth := len(ancestorsLast) + 1
+		items = append(items, listItem{
+			title:    row.displayName,
+			subtitle: row.relationship,
+			badges:   badges,
+			details:  componentDetails(m.graphValue, m.registry, row, manifest),
+			key:      row.id,
+			tree:     treeLevelPrefix(ancestorsLast) + treeConnector(last),
+			depth:    depth,
+			canOpen:  len(deps) > 0 || len(attached) > 0,
+			expanded: rootExpanded,
+		})
+		if !rootExpanded {
+			return
+		}
+		childAncestors := append(append([]bool(nil), ancestorsLast...), last)
+		for i, group := range attached {
+			emitGroup(group, childAncestors, i == len(attached)-1 && len(deps) == 0)
+		}
+		emitMergedComponents(manifest, childAncestors, depth)
+	}
 
 	emitMergedGroup := func(group *manifestTreeGroup, ancestorsLast []bool, last bool) {
 		manifest := m.manifests[group.manifests[0]]
@@ -786,37 +867,58 @@ func (m *ScanModel) buildComponentsTreeListModel() *listModel {
 			return
 		}
 		childAncestors := append(append([]bool(nil), ancestorsLast...), last)
-		total := len(group.manifests) + len(group.children)
+		// Nest child modules under the manifest that resolves them.
+		childAttached := map[int][]*manifestTreeGroup{}
+		unattachedChildren := make([]*manifestTreeGroup, 0, len(group.children))
+		for _, child := range group.children {
+			if child.kind == output.ManifestNodeModule && child.attachedTo >= 0 {
+				childAttached[child.attachedTo] = append(childAttached[child.attachedTo], child)
+				continue
+			}
+			unattachedChildren = append(unattachedChildren, child)
+		}
+		total := len(group.manifests) + len(unattachedChildren)
 		pos := 0
 		for _, index := range group.manifests {
-			emitManifest(index, childAncestors, pos == total-1)
+			emitManifest(index, childAncestors, pos == total-1, childAttached[index])
 			pos++
 		}
-		for _, child := range group.children {
+		for _, child := range unattachedChildren {
 			emitGroup(child, childAncestors, pos == total-1)
 			pos++
 		}
 	}
 
+	// Modules branch out of the manifest that resolves them; only groups with
+	// no unambiguous parent manifest (and subprojects) stay at project level.
+	attachedByManifest := map[int][]*manifestTreeGroup{}
+	unattachedGroups := make([]*manifestTreeGroup, 0, len(groups))
+	for _, group := range groups {
+		if group.kind == output.ManifestNodeModule && group.attachedTo >= 0 {
+			attachedByManifest[group.attachedTo] = append(attachedByManifest[group.attachedTo], group)
+			continue
+		}
+		unattachedGroups = append(unattachedGroups, group)
+	}
+
 	if projectExpanded {
 		if projectMerged {
-			// The single root manifest merges into the project node:
-			// subproject/module nodes first, then the project's own
-			// dependency forest as the final block.
+			// The single root manifest merges into the project node; its ROOT
+			// component row leads, with attached module nodes branching out
+			// of it, then any unattached/subproject nodes.
 			mergedManifest := m.manifests[rootManifests[0]]
-			componentCount := m.filteredManifestComponentCount(mergedManifest.rootID, maxSevByID)
-			for i, group := range groups {
-				emitGroup(group, nil, i == len(groups)-1 && componentCount == 0)
+			emitRootNode(mergedManifest, nil, len(unattachedGroups) == 0, attachedByManifest[rootManifests[0]])
+			for i, group := range unattachedGroups {
+				emitGroup(group, nil, i == len(unattachedGroups)-1)
 			}
-			emitComponents(mergedManifest, nil, true, 1)
 		} else {
-			total := len(rootManifests) + len(groups)
+			total := len(rootManifests) + len(unattachedGroups)
 			pos := 0
 			for _, index := range rootManifests {
-				emitManifest(index, nil, pos == total-1)
+				emitManifest(index, nil, pos == total-1, attachedByManifest[index])
 				pos++
 			}
-			for _, group := range groups {
+			for _, group := range unattachedGroups {
 				emitGroup(group, nil, pos == total-1)
 				pos++
 			}
@@ -2574,7 +2676,16 @@ func manifestRows(consolidated sdk.ConsolidatedGraph) []listPackageRow {
 		})
 	}
 
-	sort.Slice(rows, func(i, j int) bool { return rows[i].id < rows[j].id })
+	// Shortest path first: parent manifests (fewer path segments) sort ahead
+	// of their modules' manifests, so "pom.xml" precedes "core/pom.xml" in
+	// every listing built from these rows.
+	sort.Slice(rows, func(i, j int) bool {
+		di, dj := strings.Count(rows[i].id, "/"), strings.Count(rows[j].id, "/")
+		if di != dj {
+			return di < dj
+		}
+		return rows[i].id < rows[j].id
+	})
 	return rows
 }
 

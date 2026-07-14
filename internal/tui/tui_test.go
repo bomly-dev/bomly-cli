@@ -1855,3 +1855,62 @@ func TestScanInteractiveModel_SourceTabListsSubprojects(t *testing.T) {
 		t.Fatalf("expected subprojects section in source tab, got:\n%s", plain)
 	}
 }
+
+func TestScanInteractiveModel_ModulesBranchFromParentRoot(t *testing.T) {
+	rootTarget := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/reactor"}
+	parent := sdk.NewDependencyWithID("parent@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "maven", Name: "parent", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	core := sdk.NewDependencyWithID("core@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "maven", Name: "core", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	dep := sdk.NewDependencyWithID("commons@3.12.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "maven", Name: "commons", Version: "3.12.0"}})
+
+	parentGraph := sdk.New()
+	if err := parentGraph.AddNode(parent); err != nil {
+		t.Fatalf("add parent: %v", err)
+	}
+	coreGraph := sdk.New()
+	for _, pkg := range []*sdk.Dependency{core, dep} {
+		if err := coreGraph.AddNode(pkg); err != nil {
+			t.Fatalf("add core node: %v", err)
+		}
+	}
+	if err := coreGraph.AddEdge(core.ID, dep.ID); err != nil {
+		t.Fatalf("add core edge: %v", err)
+	}
+
+	subproject := sdk.Subproject{ExecutionTarget: rootTarget, RelativePath: ".", PrimaryDetector: "maven-detector",
+		DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerMaven}, Ecosystem: sdk.EcosystemMaven}
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: subproject,
+		DetectorName:   "maven-detector",
+		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{
+			{Graph: parentGraph, Manifest: sdk.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}},
+			{Graph: coreGraph, Manifest: sdk.ManifestMetadata{Path: "core/pom.xml", Kind: "pom.xml"}},
+		}},
+	}})
+	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	model := NewScan(output.ProjectDescriptor{Name: "reactor", Path: "/tmp/reactor"}, consolidated, graphValue, nil)
+	model.SelectView(2)
+	plain := render.StripANSI(model.View(190, 40))
+
+	// The parent ROOT row leads and the module node branches out of it
+	// (default-expanded because it carries modules).
+	rootIdx := strings.Index(plain, "parent@1.0.0")
+	moduleIdx := strings.Index(plain, "core (")
+	if rootIdx < 0 || moduleIdx < 0 {
+		t.Fatalf("expected parent root and module rows, got:\n%s", plain)
+	}
+	if rootIdx > moduleIdx {
+		t.Fatalf("expected parent root row above the module node, got:\n%s", plain)
+	}
+
+	// Collapsing the parent root hides its modules (keyed by the normalized
+	// consolidated-graph root ID).
+	model.componentExpanded[model.manifests[0].rootID] = false
+	model.Rebuild()
+	plain = render.StripANSI(model.View(190, 40))
+	if strings.Contains(plain, "core (") {
+		t.Fatalf("expected collapsed parent root to hide module nodes, got:\n%s", plain)
+	}
+}

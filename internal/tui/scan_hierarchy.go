@@ -19,6 +19,11 @@ type manifestTreeGroup struct {
 	label     string
 	manifests []int                // indexes into ScanModel.manifests
 	children  []*manifestTreeGroup // module groups nested under a subproject
+	// attachedTo is the index (into ScanModel.manifests) of the parent-level
+	// manifest that natively resolves this module (the workspace lockfile or
+	// reactor pom), or -1 when no unambiguous parent manifest exists. Views
+	// nest attached modules under that manifest's node.
+	attachedTo int
 }
 
 // key returns the stable expansion key for the group node.
@@ -56,7 +61,7 @@ func (m *ScanModel) manifestTreeGroups() (rootManifests []int, groups []*manifes
 			if parentDir != "." {
 				label = strings.TrimPrefix(moduleDir, parentDir+"/")
 			}
-			group = &manifestTreeGroup{kind: output.ManifestNodeModule, dir: moduleDir, label: label}
+			group = &manifestTreeGroup{kind: output.ManifestNodeModule, dir: moduleDir, label: label, attachedTo: -1}
 			byDir[moduleDir] = group
 		}
 		group.manifests = append(group.manifests, index)
@@ -74,7 +79,7 @@ func (m *ScanModel) manifestTreeGroups() (rootManifests []int, groups []*manifes
 		}
 		group, ok := subprojects[subprojectDir]
 		if !ok {
-			group = &manifestTreeGroup{kind: output.ManifestNodeSubproject, dir: subprojectDir, label: subprojectDir}
+			group = &manifestTreeGroup{kind: output.ManifestNodeSubproject, dir: subprojectDir, label: subprojectDir, attachedTo: -1}
 			subprojects[subprojectDir] = group
 		}
 		if moduleDir == "" {
@@ -98,7 +103,38 @@ func (m *ScanModel) manifestTreeGroups() (rootManifests []int, groups []*manifes
 		return out
 	}
 
+	// attachModules resolves which parent-level manifest natively produced
+	// each module (matched by package-manager label, then ecosystem, then a
+	// sole parent manifest), mirroring output.BuildHierarchy.
+	attachModules := func(moduleGroups []*manifestTreeGroup, parentManifests []int) {
+		for _, group := range moduleGroups {
+			if group.kind != output.ManifestNodeModule || len(group.manifests) == 0 {
+				continue
+			}
+			moduleManifest := m.manifests[group.manifests[0]]
+			byManager := make([]int, 0, 1)
+			byEcosystem := make([]int, 0, 1)
+			for _, index := range parentManifests {
+				if m.manifests[index].packageManagers == moduleManifest.packageManagers {
+					byManager = append(byManager, index)
+				}
+				if m.manifests[index].ecosystem == moduleManifest.ecosystem {
+					byEcosystem = append(byEcosystem, index)
+				}
+			}
+			switch {
+			case len(byManager) == 1:
+				group.attachedTo = byManager[0]
+			case len(byEcosystem) == 1:
+				group.attachedTo = byEcosystem[0]
+			case len(parentManifests) == 1:
+				group.attachedTo = parentManifests[0]
+			}
+		}
+	}
+
 	groups = sortedModules(".")
+	attachModules(groups, rootManifests)
 	subprojectDirs := make([]string, 0, len(subprojects))
 	for dir := range subprojects {
 		subprojectDirs = append(subprojectDirs, dir)
@@ -107,6 +143,7 @@ func (m *ScanModel) manifestTreeGroups() (rootManifests []int, groups []*manifes
 	for _, dir := range subprojectDirs {
 		group := subprojects[dir]
 		group.children = sortedModules(dir)
+		attachModules(group.children, group.manifests)
 		groups = append(groups, group)
 	}
 	return rootManifests, groups

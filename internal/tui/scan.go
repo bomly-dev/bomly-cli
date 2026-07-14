@@ -552,9 +552,9 @@ func (m *ScanModel) buildManifestListModel() *listModel {
 			// one row, named after the package with the manifest in details.
 			manifest := m.manifests[group.manifests[0]]
 			items = append(items, listItem{
-				title:    fmt.Sprintf("%s (%s, %d components) [%s]", m.manifestRootName(manifest), manifestEcosystem(m.graphValue, manifest), manifestComponentCount(m.graphValue, manifest.rootID), manifest.id),
+				title:    fmt.Sprintf("%s (%s, %d components) [%s]", m.manifestRootName(manifest), manifestEcosystem(m.graphValue, manifest), mergedComponentCount(m.graphValue, manifest.rootID), manifest.id),
 				subtitle: string(group.kind),
-				details:  m.mergedGroupDetails(group, manifest, manifestComponentCount(m.graphValue, manifest.rootID)),
+				details:  m.mergedGroupDetails(group, manifest, mergedComponentCount(m.graphValue, manifest.rootID)),
 				tree:     treeLevelPrefix(ancestorsLast) + treeConnector(last),
 				depth:    len(ancestorsLast) + 1,
 			})
@@ -731,7 +731,9 @@ func (m *ScanModel) buildComponentsTreeListModel() *listModel {
 	emitMergedGroup := func(group *manifestTreeGroup, ancestorsLast []bool, last bool) {
 		manifest := m.manifests[group.manifests[0]]
 		groupExpanded := expandedValue(m.componentExpanded, group.key(), false)
-		componentCount := m.filteredManifestComponentCount(manifest.rootID, maxSevByID)
+		// The merged node stands in for its root: count the components
+		// beneath it, not the absorbed root itself.
+		componentCount := m.filteredMergedComponentCount(manifest.rootID, maxSevByID)
 		depth := len(ancestorsLast) + 1
 		items = append(items, listItem{
 			title:    fmt.Sprintf("%s (%s, %d components) [%s]", m.manifestRootName(manifest), manifestEcosystem(m.graphValue, manifest), componentCount, manifest.id),
@@ -903,6 +905,16 @@ func packageCount(graphValue *sdk.Graph) int {
 	return graphValue.Size()
 }
 
+// mergedComponentCount counts the components below a merged node, excluding
+// the absorbed root itself.
+func mergedComponentCount(graphValue *sdk.Graph, rootID string) int {
+	count := manifestComponentCount(graphValue, rootID)
+	if count > 0 {
+		count--
+	}
+	return count
+}
+
 func manifestComponentCount(graphValue *sdk.Graph, rootID string) int {
 	if graphValue == nil || rootID == "" {
 		return 0
@@ -930,6 +942,20 @@ func (m *ScanModel) filteredComponentCount(maxSevByID map[string]string) int {
 
 func (m *ScanModel) filteredManifestComponentCount(rootID string, maxSevByID map[string]string) int {
 	return len(m.filteredManifestComponentRows(rootID, maxSevByID))
+}
+
+// filteredMergedComponentCount counts a merged node's filtered components,
+// excluding the absorbed root row.
+func (m *ScanModel) filteredMergedComponentCount(rootID string, maxSevByID map[string]string) int {
+	rows := m.filteredManifestComponentRows(rootID, maxSevByID)
+	count := len(rows)
+	for _, row := range rows {
+		if row.id == rootID {
+			count--
+			break
+		}
+	}
+	return count
 }
 
 func (m *ScanModel) filteredManifestComponentRows(rootID string, maxSevByID map[string]string) []listPackageRow {

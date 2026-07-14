@@ -47,24 +47,31 @@ func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, m
 	}
 
 	_, direct, transitive := scanRelationshipCounts(g)
-	runtimeCount, developmentCount, _ := scanScopeCounts(g)
+	runtimeCount, developmentCount, unscopedCount := scanScopeCounts(g)
 
-	// Package count line: relationship and scope distributions share one line.
+	// Package count line: the total counts dependencies only — project and
+	// module nodes are structure, not packages — so the relationship and
+	// scope distributions always sum to it: total = direct + transitive =
+	// runtime + dev (+ unscoped).
 	checkmark := Style("✓", Green)
-	countPart := Style(fmt.Sprintf("%d", g.Size()), Cyan, Bold)
+	countPart := Style(fmt.Sprintf("%d", direct+transitive), Cyan, Bold)
 	manifestCount := len(manifests)
 	manifestWord := "manifest"
 	if manifestCount != 1 {
 		manifestWord = "manifests"
 	}
 	manifestPart := Style(fmt.Sprintf("in %d %s", manifestCount, manifestWord), Dim)
-	detailPart := Style(fmt.Sprintf("(%d direct, %d transitive · runtime %d, dev %d)", direct, transitive, runtimeCount, developmentCount), Dim)
+	scopePart := fmt.Sprintf("runtime %d, dev %d", runtimeCount, developmentCount)
+	if unscopedCount > 0 {
+		scopePart += fmt.Sprintf(", unscoped %d", unscopedCount)
+	}
+	detailPart := Style(fmt.Sprintf("(%d direct, %d transitive · %s)", direct, transitive, scopePart), Dim)
 	fmt.Fprintf(&b, "%s %s packages %s   %s\n", checkmark, countPart, manifestPart, detailPart)
 
 	// Grouped manifest tree — only when the scan spans subprojects or
 	// modules; flat single-root scans keep the compact report unchanged.
 	if hierarchy := output.BuildHierarchy(manifests); hierarchy.HasGroups() {
-		b.WriteString(renderManifestHierarchy(hierarchy, manifests))
+		b.WriteString(renderManifestHierarchy(g, hierarchy, manifests))
 	}
 
 	// Enrichment line — blank-line separated from the counts block.
@@ -193,7 +200,7 @@ func collapseWhitespace(value string) string {
 //	└─ dev.bomly.example:multimodule-parent — 1 package, 2 modules [pom.xml]
 //	   ├─ dev.bomly.example:core (module, maven) — 2 packages [core/pom.xml]
 //	   └─ dev.bomly.example:web (module, maven) — 6 packages [web/pom.xml]
-func renderManifestHierarchy(hierarchy output.HierarchyNode, manifests []output.ScanManifest) string {
+func renderManifestHierarchy(g *sdk.Graph, hierarchy output.HierarchyNode, manifests []output.ScanManifest) string {
 	var b strings.Builder
 	type line struct {
 		indent string
@@ -206,6 +213,21 @@ func renderManifestHierarchy(hierarchy output.HierarchyNode, manifests []output.
 			return fmt.Sprintf("%d %s", count, word)
 		}
 		return fmt.Sprintf("%d %ss", count, word)
+	}
+	// packageCount counts a manifest's dependencies, excluding structural
+	// nodes (graph roots and project/module application nodes): they are
+	// structure, not packages, so per-manifest counts stay consistent with
+	// the header total.
+	structural := topLevelParentIDs(g)
+	packageCount := func(manifest output.ScanManifest) int {
+		count := 0
+		for _, dep := range manifest.Dependencies {
+			if _, isStructural := structural[dep.ID]; isStructural {
+				continue
+			}
+			count++
+		}
+		return count
 	}
 	// manifestLabel names a manifest line after its package when a root name
 	// exists (a manifest and its project/module are one thing), keeping the
@@ -222,7 +244,7 @@ func renderManifestHierarchy(hierarchy output.HierarchyNode, manifests []output.
 			label = path
 			path = ""
 		}
-		label += " — " + pluralize(len(manifest.Dependencies), "package")
+		label += " — " + pluralize(packageCount(manifest), "package")
 		if moduleCount > 0 {
 			label += ", " + pluralize(moduleCount, "module")
 		}
@@ -256,7 +278,7 @@ func renderManifestHierarchy(hierarchy output.HierarchyNode, manifests []output.
 		if pm != "" {
 			label += ", " + pm
 		}
-		return fmt.Sprintf("%s) — %s [%s]", label, pluralize(len(manifest.Dependencies), "package"), strings.TrimSpace(manifest.Path))
+		return fmt.Sprintf("%s) — %s [%s]", label, pluralize(packageCount(manifest), "package"), strings.TrimSpace(manifest.Path))
 	}
 
 	type child struct {
@@ -643,12 +665,19 @@ func scanRelationshipCounts(g *sdk.Graph) (roots, direct, transitive int) {
 	return roots, direct, transitive
 }
 
-func scanScopeCounts(g *sdk.Graph) (runtimeCount, developmentCount, unknownCount int) {
+// scanScopeCounts buckets dependencies by scope over the same node set the
+// relationship counts cover (structural project/module nodes excluded), so
+// runtime + dev + unscoped always equals direct + transitive.
+func scanScopeCounts(g *sdk.Graph) (runtimeCount, developmentCount, unscopedCount int) {
 	if g == nil {
 		return 0, 0, 0
 	}
+	structural := topLevelParentIDs(g)
 	for _, pkg := range g.Nodes() {
 		if pkg == nil {
+			continue
+		}
+		if _, isStructural := structural[pkg.ID]; isStructural {
 			continue
 		}
 		switch pkg.PrimaryScope() {
@@ -657,10 +686,10 @@ func scanScopeCounts(g *sdk.Graph) (runtimeCount, developmentCount, unknownCount
 		case sdk.ScopeDevelopment:
 			developmentCount++
 		default:
-			unknownCount++
+			unscopedCount++
 		}
 	}
-	return runtimeCount, developmentCount, unknownCount
+	return runtimeCount, developmentCount, unscopedCount
 }
 
 func scanUniqueLicenseCount(g *sdk.Graph, registry *sdk.PackageRegistry) int {

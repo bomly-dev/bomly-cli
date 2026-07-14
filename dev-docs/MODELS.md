@@ -26,6 +26,46 @@ flowchart TD
     F -->|PackageRef + VulnerabilityID| P
 ```
 
+## Project structure: projects, subprojects, modules, manifests
+
+How dependencies relate to manifests, and manifests to the project tree. A
+**subproject** is an independently discovered nested directory (its own
+`sdk.Subproject`, what `--recursive` finds); a **module** is a member the
+package manager natively resolves under one root manifest (reactor module,
+workspace member) and gets its own manifest entry from the detector. A
+project/module and its manifest are two faces of the same thing — user-facing
+views merge them into one node when the mapping is 1:1; machine formats
+(JSON, SARIF, SBOM) keep the flat manifests collection.
+
+```mermaid
+flowchart TD
+    PR["Project (scan root)"]
+    SP["Subproject<br/><i>independently discovered nested dir</i><br/>sdk.Subproject, RelativePath != &quot;.&quot;"]
+    MOD["Module<br/><i>workspace/reactor member</i><br/>manifest dir below its subproject dir"]
+    MAN["Manifest entry<br/>sdk.GraphEntry{Graph, ManifestMetadata}<br/>path, kind, resolution"]
+    ROOT["Module root node<br/>sdk.Dependency, Type=application<br/><i>the project/module's own package</i>"]
+    DEP["Dependency instances<br/>sdk.Dependency (direct + transitive)"]
+    PKG["sdk.Package registry<br/>deduplicated by PURL"]
+
+    PR -->|"discovers (recursive walk)"| SP
+    PR -->|"root manifests attach directly"| MAN
+    SP -->|"its own manifests"| MAN
+    SP -->|"native expansion (npm, pnpm, cargo, maven)"| MOD
+    PR -->|"native expansion at the root"| MOD
+    MOD -->|"exactly one"| MAN
+    MAN -->|"graph root"| ROOT
+    ROOT -->|"reachable subtree"| DEP
+    DEP -->|"PURL identity (shared transitives dedup)"| PKG
+```
+
+Derivation rule (implemented once in `output.ClassifyManifest` /
+`BuildHierarchy`, consumed by every view): `dir(manifest.path)` equal to the
+manifest's `subproject` directory → the manifest belongs directly to that
+subproject (or the project when `"."`); `dir(manifest.path)` nested beneath it
+→ a module keyed by that directory. Shared transitive dependencies appear in
+every module entry that reaches them; the PURL-keyed registry counts each
+package once.
+
 ## `sdk.Dependency` — detection node
 
 ```go

@@ -59,10 +59,15 @@ func scanManifestMarkdown(payload output.ScanResponse) []string {
 	}
 	hierarchy := output.BuildHierarchy(payload.Manifests)
 	rows := make([][]string, 0, len(payload.Manifests))
-	appendManifestRows := func(location string, indexes []int) {
+	appendManifestRows := func(name, location string, indexes []int) {
 		for _, index := range indexes {
 			manifest := payload.Manifests[index]
+			rowName := name
+			if rowName == "" {
+				rowName = output.ManifestRootName(manifest)
+			}
 			rows = append(rows, []string{
+				ValueOrDash(rowName),
 				location,
 				ValueOrDash(manifest.Path),
 				ValueOrDash(manifest.PackageManager.Name()),
@@ -72,14 +77,14 @@ func scanManifestMarkdown(payload output.ScanResponse) []string {
 	}
 	var walk func(node output.HierarchyNode, location string)
 	walk = func(node output.HierarchyNode, location string) {
-		appendManifestRows(location, node.ManifestIndexes)
+		appendManifestRows("", location, node.ManifestIndexes)
 		for _, child := range node.Children {
 			childLocation := fmt.Sprintf("%s (%s)", child.Dir, child.Kind)
 			walk(child, childLocation)
 		}
 	}
 	walk(hierarchy, ".")
-	return markdownTable([]string{"Location", "Manifest", "Manager", "Packages"}, rows)
+	return markdownTable([]string{"Name", "Location", "Manifest", "Manager", "Packages"}, rows)
 }
 
 func scanInventoryMarkdown(payload output.ScanResponse) []string {

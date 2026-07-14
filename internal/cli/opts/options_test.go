@@ -52,9 +52,11 @@ func TestProjectDescriptor_UsesUserFacingTargetLabels(t *testing.T) {
 		t.Fatalf("unexpected container project descriptor: %#v", containerProject)
 	}
 
+	// Git repositories name themselves after the repo (last URL segment,
+	// .git trimmed); the full URL remains the descriptor's Path.
 	urlOptions := Options{executionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetGitRepository, Location: `C:\Temp\bomly-clone`, RepositoryURL: "https://github.com/acme/demo.git", Ref: "main"}}
 	urlProject := urlOptions.ProjectDescriptor()
-	if urlProject.Name != "https://github.com/acme/demo.git" || urlProject.Path != "https://github.com/acme/demo.git" || urlProject.TargetType != "git repository" || urlProject.TargetRef != "main" {
+	if urlProject.Name != "demo" || urlProject.Path != "https://github.com/acme/demo.git" || urlProject.TargetType != "git repository" || urlProject.TargetRef != "main" {
 		t.Fatalf("unexpected url project descriptor: %#v", urlProject)
 	}
 }

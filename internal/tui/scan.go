@@ -695,31 +695,69 @@ func (m *ScanModel) buildComponentsTreeListModel() *listModel {
 		emitComponents(manifest, componentAncestors, true, depth+1)
 	}
 
+	// emitMergedComponents renders the component subtree of an absorbed root:
+	// the merged node stands in for the root row, and the root's children
+	// render as a top-level forest beneath it.
+	emitMergedComponents := func(manifest listPackageRow, ancestorsLast []bool, baseDepth int) {
+		rows := m.componentSubtreeRows(manifest.rootID)
+		rows = m.filterComponentRows(rows, maxSevByID)
+		for _, row := range rows {
+			badges := packageBadges(row)
+			if sev := maxSevByID[row.id]; sev != "" {
+				badges = append([]badge{{label: sev, kind: "severity-" + strings.ToLower(sev)}}, badges...)
+			}
+			deps, _ := m.graphValue.DirectDependencies(row.id)
+			expanded := expandedValue(m.componentExpanded, row.id, false)
+			if row.repeated {
+				deps = nil
+				expanded = false
+			}
+			items = append(items, listItem{
+				title:    row.displayName,
+				subtitle: row.relationship,
+				badges:   badges,
+				details:  componentDetails(m.graphValue, m.registry, row, manifest),
+				key:      row.id,
+				tree:     treeLevelPrefix(ancestorsLast) + row.tree,
+				depth:    baseDepth + row.depth,
+				canOpen:  len(deps) > 0,
+				expanded: expanded,
+			})
+		}
+	}
+
+	var emitGroup func(group *manifestTreeGroup, ancestorsLast []bool, last bool)
+
 	emitMergedGroup := func(group *manifestTreeGroup, ancestorsLast []bool, last bool) {
 		manifest := m.manifests[group.manifests[0]]
 		groupExpanded := expandedValue(m.componentExpanded, group.key(), false)
 		componentCount := m.filteredManifestComponentCount(manifest.rootID, maxSevByID)
 		depth := len(ancestorsLast) + 1
 		items = append(items, listItem{
-			title:    fmt.Sprintf("%s (%s, %d components) [%s]", m.manifestRootName(manifest), manifestEcosystem(m.graphValue, manifest), componentCount, group.dir),
+			title:    fmt.Sprintf("%s (%s, %d components) [%s]", m.manifestRootName(manifest), manifestEcosystem(m.graphValue, manifest), componentCount, manifest.id),
 			subtitle: string(group.kind),
 			details:  m.mergedGroupDetails(group, manifest, componentCount),
 			key:      group.key(),
 			tree:     treeLevelPrefix(ancestorsLast) + treeConnector(last),
 			depth:    depth,
-			canOpen:  manifest.rootID != "",
+			canOpen:  manifest.rootID != "" && (componentCount > 0 || len(group.children) > 0),
 			expanded: groupExpanded,
 		})
 		if !groupExpanded {
 			return
 		}
-		componentAncestors := append(append([]bool(nil), ancestorsLast...), last)
-		emitComponents(manifest, componentAncestors, true, depth+1)
+		childAncestors := append(append([]bool(nil), ancestorsLast...), last)
+		// Child module nodes first, then the merged node's own dependency
+		// forest as the final block — its internal connectors already close
+		// the tree.
+		for i, child := range group.children {
+			emitGroup(child, childAncestors, i == len(group.children)-1 && componentCount == 0)
+		}
+		emitMergedComponents(manifest, childAncestors, depth)
 	}
 
-	var emitGroup func(group *manifestTreeGroup, ancestorsLast []bool, last bool)
 	emitGroup = func(group *manifestTreeGroup, ancestorsLast []bool, last bool) {
-		if len(group.manifests) == 1 && len(group.children) == 0 {
+		if len(group.manifests) == 1 {
 			emitMergedGroup(group, ancestorsLast, last)
 			return
 		}
@@ -760,13 +798,15 @@ func (m *ScanModel) buildComponentsTreeListModel() *listModel {
 
 	if projectExpanded {
 		if projectMerged {
-			// The single root manifest merges into the project node: its
-			// components render directly under the project, followed by any
-			// subproject/module nodes.
-			emitComponents(m.manifests[rootManifests[0]], nil, len(groups) == 0, 1)
+			// The single root manifest merges into the project node:
+			// subproject/module nodes first, then the project's own
+			// dependency forest as the final block.
+			mergedManifest := m.manifests[rootManifests[0]]
+			componentCount := m.filteredManifestComponentCount(mergedManifest.rootID, maxSevByID)
 			for i, group := range groups {
-				emitGroup(group, nil, i == len(groups)-1)
+				emitGroup(group, nil, i == len(groups)-1 && componentCount == 0)
 			}
+			emitComponents(mergedManifest, nil, true, 1)
 		} else {
 			total := len(rootManifests) + len(groups)
 			pos := 0
@@ -2599,6 +2639,17 @@ func packageRowFromGraph(pkg *sdk.Dependency, relationship string) listPackageRo
 }
 
 func (m *ScanModel) componentTreeRows(rootID string) []listPackageRow {
+	return m.componentTreeRowsFrom(rootID, true)
+}
+
+// componentSubtreeRows returns the component rows of rootID's children as a
+// top-level forest: the root itself is absorbed by its merged project/module
+// node, so it is neither emitted nor gated on its own expansion state.
+func (m *ScanModel) componentSubtreeRows(rootID string) []listPackageRow {
+	return m.componentTreeRowsFrom(rootID, false)
+}
+
+func (m *ScanModel) componentTreeRowsFrom(rootID string, includeRoot bool) []listPackageRow {
 	if m == nil || m.graphValue == nil || strings.TrimSpace(rootID) == "" {
 		return nil
 	}
@@ -2630,9 +2681,16 @@ func (m *ScanModel) componentTreeRows(rootID string) []listPackageRow {
 				return
 			}
 		}
-		rows = append(rows, row)
+		if depth > 0 || includeRoot {
+			rows = append(rows, row)
+		}
 
 		expanded := expandedValue(m.componentExpanded, pkg.ID, false)
+		if depth == 0 && !includeRoot {
+			// The absorbed root's children render whenever the merged node is
+			// expanded; the root row itself no longer gates them.
+			expanded = true
+		}
 		if !expanded {
 			return
 		}
@@ -3248,7 +3306,9 @@ func componentsByRelationshipLines(manifests []listPackageRow, graphValue *sdk.G
 			counts[valueOrDefault(row.relationship, "transitive")]++
 		}
 		lines = append(lines,
-			padRight(truncateToWidth(manifest.displayName, nameWidth), nameWidth)+
+			// Full relative path: base names collide across modules (three
+			// pom.xml rows would be indistinguishable).
+			padRight(truncateToWidth(manifest.id, nameWidth), nameWidth)+
 				padRight(fmt.Sprintf("%d", counts["direct"]), 8)+
 				padRight(fmt.Sprintf("%d", counts["transitive"]), 12)+
 				fmt.Sprintf("%d", counts["root"]),
@@ -3280,7 +3340,7 @@ func componentsByScopeLines(manifests []listPackageRow, graphValue *sdk.Graph, w
 			counts[scope]++
 		}
 		lines = append(lines,
-			padRight(truncateToWidth(manifest.displayName, nameWidth), nameWidth)+
+			padRight(truncateToWidth(manifest.id, nameWidth), nameWidth)+
 				padRight(fmt.Sprintf("%d", counts["runtime"]), 9)+
 				padRight(fmt.Sprintf("%d", counts["development"]), 13)+
 				fmt.Sprintf("%d", counts["unset"]),

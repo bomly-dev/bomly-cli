@@ -1742,7 +1742,7 @@ func TestScanInteractiveModel_ComponentsTreeShowsSubprojectAndModuleNodes(t *tes
 	}
 	model := NewScan(output.ProjectDescriptor{Name: "demo", Path: "/tmp/demo"}, consolidated, graphValue, nil)
 	model.SelectView(2)
-	plain := render.StripANSI(model.View(130, 40))
+	plain := render.StripANSI(model.View(190, 40))
 
 	// Merged nodes: the module/subproject and its single manifest are one
 	// row, named after the package with the directory as a hint; the root
@@ -1752,10 +1752,10 @@ func TestScanInteractiveModel_ComponentsTreeShowsSubprojectAndModuleNodes(t *tes
 		"demo (3 manifests, 1 subprojects, 1 modules)",
 		"web-app@1.0.0",
 		"web-member (",
-		"[apps/web]",
+		"[apps/web/package.json]",
 		"module",
 		"api (",
-		"[services/api]",
+		"[services/api/pom.xml]",
 		"subproject",
 	} {
 		if !strings.Contains(plain, want) {
@@ -1766,12 +1766,16 @@ func TestScanInteractiveModel_ComponentsTreeShowsSubprojectAndModuleNodes(t *tes
 		t.Fatalf("merged nodes must not render separate manifest rows, got:\n%s", plain)
 	}
 
-	// Expanding a merged node by its group key reveals its components.
+	// Expanding a merged node reveals the absorbed root's direct
+	// dependencies — the root row itself is represented by the node.
 	model.componentExpanded["subproject:services/api"] = true
 	model.Rebuild()
-	plain = render.StripANSI(model.View(130, 40))
-	if !strings.Contains(plain, "api@2.0.0") {
-		t.Fatalf("expected expanded merged subproject to show its components, got:\n%s", plain)
+	plain = render.StripANSI(model.View(190, 40))
+	if !strings.Contains(plain, "guava@33.0.0") {
+		t.Fatalf("expected expanded merged subproject to show its dependencies, got:\n%s", plain)
+	}
+	if strings.Contains(plain, "api@2.0.0") {
+		t.Fatalf("merged node must absorb its root component row, got:\n%s", plain)
 	}
 }
 

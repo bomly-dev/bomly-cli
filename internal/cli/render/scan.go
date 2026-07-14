@@ -227,6 +227,22 @@ func renderManifestHierarchy(hierarchy output.HierarchyNode, manifests []output.
 		}
 		return label + ")"
 	}
+	// mergedGroupLabel renders a single-manifest group as one merged node,
+	// preferring the package's own name over the directory, with the manifest
+	// path as a hint — a module and its manifest are one thing to the user.
+	mergedGroupLabel := func(node output.HierarchyNode) string {
+		manifest := manifests[node.ManifestIndexes[0]]
+		name := output.ManifestRootName(manifest)
+		if name == "" {
+			name = node.Label
+		}
+		pm := strings.TrimSpace(manifest.PackageManager.Name())
+		label := fmt.Sprintf("%s (%s", name, node.Kind)
+		if pm != "" {
+			label += ", " + pm
+		}
+		return fmt.Sprintf("%s) — %d packages [%s]", label, len(manifest.Dependencies), strings.TrimSpace(manifest.Path))
+	}
 
 	var walk func(node output.HierarchyNode, indent string)
 	walk = func(node output.HierarchyNode, indent string) {
@@ -241,9 +257,8 @@ func renderManifestHierarchy(hierarchy output.HierarchyNode, manifests []output.
 		for i := range node.Children {
 			group := node.Children[i]
 			if len(group.Children) == 0 && len(group.ManifestIndexes) == 1 {
-				// Collapse single-manifest groups onto one line.
-				manifest := manifests[group.ManifestIndexes[0]]
-				children = append(children, child{text: fmt.Sprintf("%s — %d packages", groupLabel(group), len(manifest.Dependencies))})
+				// Merged node: single-manifest groups are one line.
+				children = append(children, child{text: mergedGroupLabel(group)})
 				continue
 			}
 			children = append(children, child{text: groupLabel(group), children: &node.Children[i]})
@@ -267,19 +282,39 @@ func renderManifestHierarchy(hierarchy output.HierarchyNode, manifests []output.
 	return b.String()
 }
 
+// topLevelParentIDs returns the nodes whose direct children count as
+// "top-level" dependencies: graph roots plus every application-type node.
+// Workspace members and reactor modules are application nodes that may have
+// inbound edges (a sibling depends on them), so a roots-only view would hide
+// every non-root module's direct dependencies.
+func topLevelParentIDs(g *sdk.Graph) map[string]struct{} {
+	parents := make(map[string]struct{})
+	for _, root := range g.Roots() {
+		if root != nil {
+			parents[root.ID] = struct{}{}
+		}
+	}
+	for _, pkg := range g.Nodes() {
+		if pkg == nil {
+			continue
+		}
+		if pkg.Type == sdk.PackageTypeApplication {
+			parents[pkg.ID] = struct{}{}
+		}
+	}
+	return parents
+}
+
 // renderDirectDepsTable renders the "Top-level dependencies" section showing
-// only packages that are direct dependents of a root node.
+// packages that are direct dependencies of any top-level parent — the scan
+// roots and every module/application node — so multi-module scans list each
+// module's direct dependencies, not only the root's.
 func renderDirectDepsTable(g *sdk.Graph, registry *sdk.PackageRegistry) string {
 	if g == nil || g.Size() == 0 {
 		return ""
 	}
 
-	rootIDs := make(map[string]struct{})
-	for _, root := range g.Roots() {
-		if root != nil {
-			rootIDs[root.ID] = struct{}{}
-		}
-	}
+	rootIDs := topLevelParentIDs(g)
 
 	type row struct {
 		name    string
@@ -544,13 +579,8 @@ func scanRelationshipCounts(g *sdk.Graph) (roots, direct, transitive int) {
 	if g == nil {
 		return 0, 0, 0
 	}
-	rootIDs := make(map[string]struct{})
-	for _, root := range g.Roots() {
-		if root != nil {
-			rootIDs[root.ID] = struct{}{}
-			roots++
-		}
-	}
+	rootIDs := topLevelParentIDs(g)
+	roots = len(rootIDs)
 	for _, pkg := range g.Nodes() {
 		if pkg == nil {
 			continue

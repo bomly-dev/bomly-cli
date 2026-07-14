@@ -164,6 +164,32 @@ func BuildHierarchy(manifests []ScanManifest) HierarchyNode {
 	return root
 }
 
+// ManifestRootName returns the package name of a manifest's root dependency —
+// the project/module's own name (web, core-lib) — or "" when the manifest has
+// no single unambiguous root. The root is the one dependency no other
+// dependency in the manifest depends on.
+func ManifestRootName(manifest ScanManifest) string {
+	referenced := map[string]struct{}{}
+	for _, dep := range manifest.Dependencies {
+		for _, id := range dep.DependsOn {
+			referenced[id] = struct{}{}
+		}
+	}
+	rootName := ""
+	roots := 0
+	for _, dep := range manifest.Dependencies {
+		if _, ok := referenced[dep.ID]; ok {
+			continue
+		}
+		roots++
+		rootName = dep.Name
+	}
+	if roots != 1 || strings.TrimSpace(rootName) == "" {
+		return ""
+	}
+	return rootName
+}
+
 // normalizeHierarchyDir canonicalizes a subproject or manifest path to a
 // clean slash form with "." for the root.
 func normalizeHierarchyDir(value string) string {

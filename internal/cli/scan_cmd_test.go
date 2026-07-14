@@ -149,3 +149,48 @@ func TestRenderScanReportFlatScanHasNoManifestTree(t *testing.T) {
 		t.Fatalf("flat scan must not render a manifest tree, got:\n%s", report)
 	}
 }
+
+func TestRenderScanReportMergedNodeUsesPackageName(t *testing.T) {
+	g, registry := newScanTestGraph(t)
+	manifests := []output.ScanManifest{
+		{Path: "package-lock.json", Subproject: ".", PackageManager: sdk.PackageManagerNPM, Dependencies: []output.ScanDependency{
+			{ID: "root@1.0.0", Name: "demo-workspace", DependsOn: []string{"ms@2.1.3"}},
+			{ID: "ms@2.1.3", Name: "ms"},
+		}},
+		{Path: "apps/web/package.json", Subproject: ".", PackageManager: sdk.PackageManagerNPM, Dependencies: []output.ScanDependency{
+			{ID: "web@1.0.0", Name: "web", DependsOn: []string{"minimist@1.2.5"}},
+			{ID: "minimist@1.2.5", Name: "minimist"},
+		}},
+	}
+	report := render.StripANSI(render.Scan(g, registry, nil, nil, false, false, false, nil, manifests, nil))
+	if !strings.Contains(report, "web (module, npm) — 2 packages [apps/web/package.json]") {
+		t.Fatalf("expected merged module line named by package with manifest hint, got:\n%s", report)
+	}
+}
+
+func TestRenderScanReportTopLevelDepsCoverAllModules(t *testing.T) {
+	g := sdk.New()
+	parent := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "parent", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	web := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "web", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	core := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "core", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	coreDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "commons-lang3", Version: "3.12.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	webDep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Name: "jackson-databind", Version: "2.13.0"}, Scopes: sdk.ScopesOf(sdk.ScopeRuntime)})
+	for _, pkg := range []*sdk.Dependency{parent, web, core, coreDep, webDep} {
+		if err := g.AddNode(pkg); err != nil {
+			t.Fatalf("add node: %v", err)
+		}
+	}
+	// web -> core makes core a non-root module; its direct dep must still be
+	// listed as top-level.
+	for _, edge := range [][2]string{{web.ID, core.ID}, {web.ID, webDep.ID}, {core.ID, coreDep.ID}} {
+		if err := g.AddEdge(edge[0], edge[1]); err != nil {
+			t.Fatalf("add edge: %v", err)
+		}
+	}
+	report := render.StripANSI(render.Scan(g, sdk.NewPackageRegistry(), nil, nil, false, false, false, nil, nil, nil))
+	for _, want := range []string{"commons-lang3", "jackson-databind"} {
+		if !strings.Contains(report, want) {
+			t.Fatalf("expected %q in top-level dependencies, got:\n%s", want, report)
+		}
+	}
+}

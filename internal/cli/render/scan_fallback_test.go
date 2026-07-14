@@ -90,7 +90,7 @@ func TestScanRendersFallbackNotices(t *testing.T) {
 	if err := g.AddNode(model.NewDependencyRef("app", "1.0.0")); err != nil {
 		t.Fatalf("add node: %v", err)
 	}
-	out := Scan(g, nil, nil, nil, false, false, false, nil, "", FallbackNotices(fallbackTestManifests()))
+	out := Scan(g, nil, nil, nil, false, false, false, nil, nil, FallbackNotices(fallbackTestManifests()))
 	if !strings.Contains(out, "⚠ maven-detector unavailable") {
 		t.Fatalf("expected fallback notice in scan text output, got:\n%s", out)
 	}

@@ -32,39 +32,43 @@ func ScanGraphDisplayName(g *sdk.Graph, fallback string) string {
 // Scan returns the compact human-readable text report for a scan command.
 // failOn is the active fail-on constraint list from config; N/A-severity
 // findings (e.g. unknown-license) are suppressed unless "any" is present.
-// subprojectSummary is an optional pre-computed line like "Discovered 2
-// subprojects: web (npm), api (go)" shown before the package count.
-// fallbackNotices are pre-computed FallbackNotices lines shown after it.
-func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, matcherStats []sdk.MatcherStats, enrichEnabled, auditEnabled, reachabilityEnabled bool, failOn []string, subprojectSummary string, fallbackNotices []string) string {
+// manifests are the scan manifests the run produced; when they span
+// subprojects or modules a grouped manifest tree is rendered after the
+// scopes line. fallbackNotices are pre-computed FallbackNotices lines.
+func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, matcherStats []sdk.MatcherStats, enrichEnabled, auditEnabled, reachabilityEnabled bool, failOn []string, manifests []output.ScanManifest, fallbackNotices []string) string {
 	var b strings.Builder
 
 	if g == nil {
 		return "(empty graph)"
 	}
 
-	if subprojectSummary != "" {
-		fmt.Fprintf(&b, "%s\n", Style(subprojectSummary, Dim))
-	}
 	for _, notice := range fallbackNotices {
 		fmt.Fprintf(&b, "%s\n", Style("⚠ "+notice, Yellow))
 	}
 
-	roots, direct, transitive := scanRelationshipCounts(g)
+	_, direct, transitive := scanRelationshipCounts(g)
 	runtimeCount, developmentCount, _ := scanScopeCounts(g)
 
 	// Package count line: ✓ N packages in M manifests  (D direct, T transitive)
 	checkmark := Style("✓", Green)
 	countPart := Style(fmt.Sprintf("%d", g.Size()), Cyan, Bold)
+	manifestCount := len(manifests)
 	manifestWord := "manifest"
-	if roots != 1 {
+	if manifestCount != 1 {
 		manifestWord = "manifests"
 	}
-	manifestPart := Style(fmt.Sprintf("in %d %s", roots, manifestWord), Dim)
+	manifestPart := Style(fmt.Sprintf("in %d %s", manifestCount, manifestWord), Dim)
 	detailPart := Style(fmt.Sprintf("(%d direct, %d transitive)", direct, transitive), Dim)
 	fmt.Fprintf(&b, "%s %s packages %s   %s\n", checkmark, countPart, manifestPart, detailPart)
 
 	// Scopes line
 	fmt.Fprintf(&b, "  %s\n", Style(fmt.Sprintf("scopes: runtime %d · dev %d", runtimeCount, developmentCount), Dim))
+
+	// Grouped manifest tree — only when the scan spans subprojects or
+	// modules; flat single-root scans keep the compact report unchanged.
+	if hierarchy := output.BuildHierarchy(manifests); hierarchy.HasGroups() {
+		b.WriteString(renderManifestHierarchy(hierarchy, manifests))
+	}
 
 	// Enrichment line
 	if enrichEnabled && len(matcherStats) > 0 {
@@ -184,50 +188,83 @@ func collapseWhitespace(value string) string {
 	return strings.Join(strings.Fields(value), " ")
 }
 
-// BuildSubprojectSummary returns a human-readable line like
-// "Discovered 2 subprojects: web (npm), api (go)" from the scan manifests.
-// A single path can host more than one ecosystem (e.g. a repo root with both
-// GitHub Actions workflows and an npm manifest), so entries are counted per
-// path per ecosystem rather than per path — otherwise the count and labels
-// under-report what was actually discovered.
-// Returns "" when no named subprojects are present (e.g. single-root repos).
-func BuildSubprojectSummary(manifests []output.ScanManifest) string {
-	type entry struct {
-		name string
-		pm   string
+// renderManifestHierarchy renders the grouped manifest tree shown when a
+// scan spans subprojects or modules:
+//
+//	├─ package-lock.json — 120 packages
+//	├─ apps/web (module, npm) — 34 packages
+//	└─ services/api (subproject, maven)
+//	   ├─ pom.xml — 3 packages
+//	   └─ module-a (module, maven) — 41 packages
+//
+// Group nodes holding exactly one manifest collapse onto a single line; a
+// group with several manifests lists them as children with paths relative to
+// the group directory.
+func renderManifestHierarchy(hierarchy output.HierarchyNode, manifests []output.ScanManifest) string {
+	var b strings.Builder
+	type line struct {
+		indent string
+		text   string
 	}
-	seen := make(map[string]struct{})
-	var entries []entry
-	for _, m := range manifests {
-		name := strings.TrimSpace(m.Subproject)
-		if name == "" {
-			continue
+	var lines []line
+
+	manifestLabel := func(index int, baseDir string) string {
+		manifest := manifests[index]
+		path := strings.TrimSpace(manifest.Path)
+		if baseDir != "" && baseDir != "." {
+			path = strings.TrimPrefix(path, baseDir+"/")
 		}
-		ecosystem := strings.TrimSpace(string(m.Ecosystem))
-		key := name + "\x00" + ecosystem
-		if _, ok := seen[key]; ok {
-			continue
+		return fmt.Sprintf("%s — %d packages", path, len(manifest.Dependencies))
+	}
+	groupLabel := func(node output.HierarchyNode) string {
+		pm := ""
+		if len(node.ManifestIndexes) > 0 {
+			pm = strings.TrimSpace(manifests[node.ManifestIndexes[0]].PackageManager.Name())
 		}
-		seen[key] = struct{}{}
-		pm := strings.TrimSpace(m.PackageManager.Name())
-		entries = append(entries, entry{name: name, pm: pm})
-	}
-	if len(entries) == 0 {
-		return ""
-	}
-	word := "subproject"
-	if len(entries) > 1 {
-		word = "subprojects"
-	}
-	labels := make([]string, 0, len(entries))
-	for _, e := range entries {
-		label := e.name
-		if e.pm != "" {
-			label += " (" + e.pm + ")"
+		label := fmt.Sprintf("%s (%s", node.Label, node.Kind)
+		if pm != "" {
+			label += ", " + pm
 		}
-		labels = append(labels, label)
+		return label + ")"
 	}
-	return fmt.Sprintf("Discovered %d %s: %s", len(entries), word, strings.Join(labels, ", "))
+
+	var walk func(node output.HierarchyNode, indent string)
+	walk = func(node output.HierarchyNode, indent string) {
+		type child struct {
+			text     string
+			children *output.HierarchyNode
+		}
+		children := make([]child, 0, len(node.ManifestIndexes)+len(node.Children))
+		for _, index := range node.ManifestIndexes {
+			children = append(children, child{text: manifestLabel(index, node.Dir)})
+		}
+		for i := range node.Children {
+			group := node.Children[i]
+			if len(group.Children) == 0 && len(group.ManifestIndexes) == 1 {
+				// Collapse single-manifest groups onto one line.
+				manifest := manifests[group.ManifestIndexes[0]]
+				children = append(children, child{text: fmt.Sprintf("%s — %d packages", groupLabel(group), len(manifest.Dependencies))})
+				continue
+			}
+			children = append(children, child{text: groupLabel(group), children: &node.Children[i]})
+		}
+		for i, c := range children {
+			connector, continuation := "├─ ", "│  "
+			if i == len(children)-1 {
+				connector, continuation = "└─ ", "   "
+			}
+			lines = append(lines, line{indent: indent + connector, text: c.text})
+			if c.children != nil {
+				walk(*c.children, indent+continuation)
+			}
+		}
+	}
+	walk(hierarchy, "  ")
+
+	for _, l := range lines {
+		fmt.Fprintf(&b, "%s%s\n", Style(l.indent, Dim), l.text)
+	}
+	return b.String()
 }
 
 // renderDirectDepsTable renders the "Top-level dependencies" section showing

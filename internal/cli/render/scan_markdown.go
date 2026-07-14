@@ -57,20 +57,29 @@ func scanManifestMarkdown(payload output.ScanResponse) []string {
 	if len(payload.Manifests) == 0 {
 		return []string{"No manifests detected."}
 	}
+	hierarchy := output.BuildHierarchy(payload.Manifests)
 	rows := make([][]string, 0, len(payload.Manifests))
-	for _, manifest := range payload.Manifests {
-		subproject := manifest.Subproject
-		if subproject == "" {
-			subproject = "."
+	appendManifestRows := func(location string, indexes []int) {
+		for _, index := range indexes {
+			manifest := payload.Manifests[index]
+			rows = append(rows, []string{
+				location,
+				ValueOrDash(manifest.Path),
+				ValueOrDash(manifest.PackageManager.Name()),
+				fmt.Sprintf("%d", len(manifest.Dependencies)),
+			})
 		}
-		rows = append(rows, []string{
-			subproject,
-			ValueOrDash(manifest.Path),
-			ValueOrDash(manifest.PackageManager.Name()),
-			fmt.Sprintf("%d", len(manifest.Dependencies)),
-		})
 	}
-	return markdownTable([]string{"Subproject", "Manifest", "Manager", "Packages"}, rows)
+	var walk func(node output.HierarchyNode, location string)
+	walk = func(node output.HierarchyNode, location string) {
+		appendManifestRows(location, node.ManifestIndexes)
+		for _, child := range node.Children {
+			childLocation := fmt.Sprintf("%s (%s)", child.Dir, child.Kind)
+			walk(child, childLocation)
+		}
+	}
+	walk(hierarchy, ".")
+	return markdownTable([]string{"Location", "Manifest", "Manager", "Packages"}, rows)
 }
 
 func scanInventoryMarkdown(payload output.ScanResponse) []string {
@@ -149,18 +158,30 @@ func scanFindingsMarkdown(payload output.ScanResponse) []string {
 	return markdownTable(header, rows)
 }
 
+// scanPackageCount counts distinct packages across manifests. Manifests can
+// share packages (workspace/reactor module manifests overlap on transitive
+// dependencies), so counting per-manifest lengths would overcount.
 func scanPackageCount(manifests []output.ScanManifest) int {
-	total := 0
-	for _, manifest := range manifests {
-		total += len(manifest.Dependencies)
-	}
-	return total
+	return len(scanDependencies(manifests))
 }
 
+// scanDependencies flattens manifests into a distinct, sorted dependency
+// list, deduplicating shared packages by identity (PURL when set, else ID).
 func scanDependencies(manifests []output.ScanManifest) []output.ScanDependency {
-	dependencies := make([]output.ScanDependency, 0, scanPackageCount(manifests))
+	seen := make(map[string]struct{})
+	dependencies := make([]output.ScanDependency, 0)
 	for _, manifest := range manifests {
-		dependencies = append(dependencies, manifest.Dependencies...)
+		for _, dep := range manifest.Dependencies {
+			key := dep.Purl
+			if key == "" {
+				key = dep.ID
+			}
+			if _, ok := seen[key]; ok {
+				continue
+			}
+			seen[key] = struct{}{}
+			dependencies = append(dependencies, dep)
+		}
 	}
 	sort.Slice(dependencies, func(i, j int) bool {
 		if dependencies[i].Name != dependencies[j].Name {

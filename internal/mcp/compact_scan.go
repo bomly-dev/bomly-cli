@@ -38,8 +38,11 @@ func BuildCompactScan(run ScanRunResult) CompactScanResponse {
 		// dependencies instead so the summary stays meaningful.
 		totalPackages = countManifestDependencies(run.Response.Manifests)
 	}
+	hierarchy := output.BuildHierarchy(run.Response.Manifests)
 	response.Summary = CompactSummary{
 		Manifests:          len(run.Response.Manifests),
+		Subprojects:        hierarchy.CountKind(output.ManifestNodeSubproject),
+		Modules:            hierarchy.CountKind(output.ManifestNodeModule),
 		TotalPackages:      totalPackages,
 		VulnerablePackages: len(vulnerablePackages),
 		CleanPackages:      totalPackages - len(vulnerablePackages),

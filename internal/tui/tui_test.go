@@ -750,9 +750,10 @@ func TestScanInteractiveModel_ManifestDetailsIncludeDetectorMetadata(t *testing.
 	}
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
 	model.SelectView(2)
-	model.Move(1)
 
-	plain := render.StripANSI(model.View(110, 32))
+	// The single root manifest is merged into the project node, so the
+	// project details pane carries the manifest and detector metadata.
+	plain := render.StripANSI(model.View(110, 40))
 	for _, want := range []string{"Detector", "Name: npm-detector", "Package managers: npm", "Planned chain: npm-detector, syft-detector"} {
 		if !strings.Contains(plain, want) {
 			t.Fatalf("expected manifest details to contain %q, got:\n%s", want, plain)
@@ -1303,7 +1304,7 @@ func TestScanInteractiveModel_ComponentTreeExpandsSelectedNode(t *testing.T) {
 
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
 	model.SelectView(2)
-	expandTreeLayers(model, 2)
+	expandTreeLayers(model, 1)
 	plain := render.StripANSI(model.View(100, 24))
 	if !strings.Contains(plain, "react@18.2.0") {
 		t.Fatalf("expected direct dependency in component tree, got:\n%s", plain)
@@ -1312,7 +1313,7 @@ func TestScanInteractiveModel_ComponentTreeExpandsSelectedNode(t *testing.T) {
 		t.Fatalf("expected transitive dependency to be collapsed initially, got:\n%s", plain)
 	}
 
-	model.Move(3)
+	model.Move(2)
 	model.ToggleSelected()
 	plain = render.StripANSI(model.View(100, 24))
 	if !strings.Contains(plain, "loose-envify@1.4.0") {
@@ -1357,10 +1358,8 @@ func TestScanInteractiveModel_ComponentExpandCollapseAllProgressesByLayer(t *tes
 
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
 	model.SelectView(2)
-	assertViewContains(t, model, []string{"package-lock.json"}, []string{"demo-app@1.0.0", "react@18.2.0", "loose-envify@1.4.0"})
-
-	model.ExpandAll()
-	assertViewContains(t, model, []string{"demo-app@1.0.0"}, []string{"react@18.2.0", "loose-envify@1.4.0"})
+	// The merged project node exposes its root component directly.
+	assertViewContains(t, model, []string{"demo-app (1 manifest)", "demo-app@1.0.0"}, []string{"react@18.2.0", "loose-envify@1.4.0"})
 
 	model.ExpandAll()
 	assertViewContains(t, model, []string{"react@18.2.0"}, []string{"loose-envify@1.4.0"})
@@ -1375,7 +1374,7 @@ func TestScanInteractiveModel_ComponentExpandCollapseAllProgressesByLayer(t *tes
 	assertViewContains(t, model, []string{"demo-app@1.0.0"}, []string{"react@18.2.0"})
 
 	model.CollapseAll()
-	assertViewContains(t, model, []string{"package-lock.json"}, []string{"demo-app@1.0.0"})
+	assertViewContains(t, model, []string{"demo-app (1 manifest)"}, []string{"demo-app@1.0.0"})
 }
 
 func assertViewContains(t *testing.T, model *ScanModel, contains, excludes []string) {
@@ -1743,27 +1742,36 @@ func TestScanInteractiveModel_ComponentsTreeShowsSubprojectAndModuleNodes(t *tes
 	}
 	model := NewScan(output.ProjectDescriptor{Name: "demo", Path: "/tmp/demo"}, consolidated, graphValue, nil)
 	model.SelectView(2)
-	plain := render.StripANSI(model.View(120, 40))
+	plain := render.StripANSI(model.View(130, 40))
 
+	// Merged nodes: the module/subproject and its single manifest are one
+	// row, named after the package with the directory as a hint; the root
+	// manifest is merged into the project node whose components render
+	// directly beneath it.
 	for _, want := range []string{
 		"demo (3 manifests, 1 subprojects, 1 modules)",
-		"package-lock.json",
-		"apps/web (1 manifest",
+		"web-app@1.0.0",
+		"web-member (",
+		"[apps/web]",
 		"module",
-		"services/api (1 manifest",
+		"api (",
+		"[services/api]",
 		"subproject",
 	} {
 		if !strings.Contains(plain, want) {
 			t.Fatalf("expected components tree to contain %q, got:\n%s", want, plain)
 		}
 	}
+	if strings.Contains(plain, "package.json (") || strings.Contains(plain, "pom.xml (") {
+		t.Fatalf("merged nodes must not render separate manifest rows, got:\n%s", plain)
+	}
 
-	// Collapsing a group node by key hides its manifests.
-	model.componentExpanded["subproject:services/api"] = false
+	// Expanding a merged node by its group key reveals its components.
+	model.componentExpanded["subproject:services/api"] = true
 	model.Rebuild()
-	plain = render.StripANSI(model.View(120, 40))
-	if strings.Contains(plain, "pom.xml") {
-		t.Fatalf("expected collapsed subproject to hide its manifest, got:\n%s", plain)
+	plain = render.StripANSI(model.View(130, 40))
+	if !strings.Contains(plain, "api@2.0.0") {
+		t.Fatalf("expected expanded merged subproject to show its components, got:\n%s", plain)
 	}
 }
 
@@ -1799,6 +1807,11 @@ func TestScanInteractiveModel_SingleRootScanHasNoGroupNodes(t *testing.T) {
 	plain := render.StripANSI(model.View(120, 30))
 	if !strings.Contains(plain, "demo-app (1 manifest)") {
 		t.Fatalf("expected flat project title without group counts, got:\n%s", plain)
+	}
+	// The merged project node exposes its root component directly — no
+	// intermediate manifest row.
+	if !strings.Contains(plain, "demo-app@1.0.0") {
+		t.Fatalf("expected root component directly under the merged project node, got:\n%s", plain)
 	}
 	for _, forbidden := range []string{"subproject", "module"} {
 		if strings.Contains(plain, forbidden) {

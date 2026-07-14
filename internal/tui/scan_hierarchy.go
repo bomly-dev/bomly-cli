@@ -181,6 +181,41 @@ func manifestModuleDir(row listPackageRow) string {
 	return moduleDir
 }
 
+// manifestRootName returns the package name of a manifest's graph root — the
+// project/module's own name (web, core-lib) — falling back to the manifest
+// file name when the root carries no name.
+func (m *ScanModel) manifestRootName(manifest listPackageRow) string {
+	if m.graphValue != nil && manifest.rootID != "" {
+		if pkg, ok := m.graphValue.Node(manifest.rootID); ok && pkg != nil && strings.TrimSpace(pkg.Name) != "" {
+			return pkg.Name
+		}
+	}
+	return manifest.displayName
+}
+
+// mergedGroupDetails renders the details pane for a merged project/module
+// node: the node identity (a subproject or module and its manifest are two
+// faces of the same thing), followed by the full manifest, detector, and
+// dependency sections.
+func (m *ScanModel) mergedGroupDetails(group *manifestTreeGroup, manifest listPackageRow, componentCount int) []string {
+	title := "Subproject"
+	description := "An independently discovered nested project under the scan root."
+	if group.kind == output.ManifestNodeModule {
+		title = "Module"
+		description = "A workspace/reactor member resolved by its package manager under one root manifest."
+	}
+	lines := []string{
+		render.Style(title, render.Bold, render.Cyan),
+		"",
+		render.Style("  Name: ", render.Dim) + m.manifestRootName(manifest),
+		render.Style("  Directory: ", render.Dim) + group.dir,
+		render.Style("  Components: ", render.Dim) + fmt.Sprintf("%d", componentCount),
+		render.Style("  "+description, render.Dim),
+		"",
+	}
+	return append(lines, manifestDetails(m.graphValue, manifest)...)
+}
+
 func sortedKeyList(values map[string]struct{}) string {
 	keys := make([]string, 0, len(values))
 	for key := range values {

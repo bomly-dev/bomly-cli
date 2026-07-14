@@ -77,6 +77,17 @@ A nested `go.mod` is an independent Go module by language semantics, so every ne
 
 Like the ignore rules, multi-module expansion is declared by each detector (`sdk.PackageManagerSupport.MultiModule`), so external detector plugins can opt their package manager into pruning.
 
+## Subprojects and modules in scan output
+
+Scan output distinguishes two kinds of nesting:
+
+- A **subproject** is an independently discovered nested directory (its own detector run) — what `--recursive` finds.
+- A **module** is a member the package manager natively resolves under one root manifest: a Maven reactor module, an npm/pnpm workspace member, a Cargo workspace member.
+
+The npm, pnpm, cargo, and maven detectors emit **one manifest entry per module** — `apps/web/package.json`, `crates/api/Cargo.toml`, `core/pom.xml` — alongside the root manifest, each carrying the module's reachable dependency subtree (a virtual Cargo workspace root emits member entries only). Detectors without per-module emission (gradle, sbt, mix, yarn classic, pub, and the node *native* detectors) keep one merged root manifest.
+
+Every view derives the same hierarchy from the manifests' `subproject` and `path` fields — no extra JSON fields: the interactive components tab shows subproject and module nodes with their manifests, the text report renders a grouped manifest tree, the markdown manifest table carries a Location column, and the MCP compact summary reports `subprojects`/`modules` counts. JSON consumers can group rows the same way: a manifest whose directory sits below its `subproject` directory is a module manifest.
+
 ## Git repository — `--url` and `--ref`
 
 Clone-then-scan, all in one step.

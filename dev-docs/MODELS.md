@@ -205,6 +205,17 @@ dependencies are **lean** — they carry detection-time facts and a `package_ref
 into `packages`, but no inlined vulnerabilities/scorecard. Enrichment lives once,
 in `packages`, and is resolved by PURL.
 
+For workspace/reactor package managers (npm, pnpm, cargo, maven) the manifests
+collection carries **one entry per module** — e.g. `apps/web/package.json`
+alongside the root `package-lock.json` — each listing the module's reachable
+dependency instances (shared transitives appear under every module that
+reaches them; `packages` still deduplicates by PURL). Consumers derive the
+project hierarchy from the existing fields without schema additions: each
+manifest's `subproject` names its discovery directory ("." for the scan
+root), and a manifest whose `path` directory sits *below* its subproject
+directory is a **module** manifest (`output.ClassifyManifest` /
+`output.BuildHierarchy` implement this rule for every built-in view).
+
 ```jsonc
 {
   "schema_version": "1.0",

@@ -149,14 +149,29 @@ func (d Detector) reactorGraphEntries(depsGraph *sdk.Graph, modules []mavenModul
 		module mavenModule
 		rootID string
 	}
+	// Match module coordinates against every node, not only graph roots: a
+	// module consumed by a sibling (web -> core) has inbound edges and is no
+	// longer a root, yet still needs its own manifest entry.
 	matchedModules := make([]moduleEntry, 0, len(modules))
+	matchedIDs := map[string]struct{}{}
+	for _, pkg := range depsGraph.Nodes() {
+		if pkg == nil {
+			continue
+		}
+		if module, ok := moduleByKey[graphNodeModuleKey(pkg)]; ok {
+			if _, seen := matchedIDs[pkg.ID]; seen {
+				continue
+			}
+			matchedIDs[pkg.ID] = struct{}{}
+			matchedModules = append(matchedModules, moduleEntry{module: module, rootID: pkg.ID})
+		}
+	}
 	rootIDs := make([]string, 0)
 	for _, root := range depsGraph.Roots() {
 		if root == nil {
 			continue
 		}
-		if module, ok := moduleByKey[graphNodeModuleKey(root)]; ok {
-			matchedModules = append(matchedModules, moduleEntry{module: module, rootID: root.ID})
+		if _, ok := matchedIDs[root.ID]; ok {
 			continue
 		}
 		rootIDs = append(rootIDs, root.ID)

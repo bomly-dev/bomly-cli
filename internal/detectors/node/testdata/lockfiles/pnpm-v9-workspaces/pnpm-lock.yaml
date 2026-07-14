@@ -1,0 +1,47 @@
+lockfileVersion: '9.0'
+
+importers:
+
+  .:
+    dependencies:
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
+
+  apps/web:
+    dependencies:
+      lib:
+        specifier: workspace:*
+        version: link:../../packages/lib
+      shared-transitive:
+        specifier: ^2.0.0
+        version: 2.0.0
+    devDependencies:
+      member-dev-tool:
+        specifier: ^3.1.0
+        version: 3.1.0
+
+  packages/lib:
+    dependencies:
+      shared-transitive:
+        specifier: ^2.0.0
+        version: 2.0.0
+
+packages:
+
+  lodash@4.17.21:
+    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZkEWoYthKS95mu+EGGA==}
+
+  member-dev-tool@3.1.0:
+    resolution: {integrity: sha512-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa==}
+
+  shared-transitive@2.0.0:
+    resolution: {integrity: sha512-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb==}
+
+snapshots:
+
+  lodash@4.17.21: {}
+
+  member-dev-tool@3.1.0: {}
+
+  shared-transitive@2.0.0: {}

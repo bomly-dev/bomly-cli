@@ -1,0 +1,6 @@
+{
+  "name": "web",
+  "version": "0.2.0",
+  "dependencies": { "shared-transitive": "^2.0.0", "lib": "workspace:*" },
+  "devDependencies": { "member-dev-tool": "^3.1.0" }
+}

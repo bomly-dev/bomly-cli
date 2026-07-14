@@ -1,0 +1,5 @@
+{
+  "name": "lib",
+  "version": "1.0.0",
+  "dependencies": { "shared-transitive": "^2.0.0" }
+}

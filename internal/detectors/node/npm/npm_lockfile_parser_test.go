@@ -37,11 +37,11 @@ func TestNPMLockfileParserAllowsArrayEngines(t *testing.T) {
 		t.Fatalf("write package-lock.json: %v", err)
 	}
 
-	graph, err := depGraphFromNPMLockfile(projectDir)
+	graphs, err := depGraphFromNPMLockfile(projectDir)
 	if err != nil {
 		t.Fatalf("depGraphFromNPMLockfile() error = %v", err)
 	}
-	pkg, ok := graph.Node("benchmark@1.0.0")
+	pkg, ok := graphs.graph.Node("benchmark@1.0.0")
 	if !ok {
 		t.Fatalf("expected benchmark@1.0.0 package")
 	}

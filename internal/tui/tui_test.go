@@ -197,7 +197,7 @@ func TestNewScanInteractiveModel_ViewIncludesGraphSummary(t *testing.T) {
 		"Components (2)",
 		"Component Details",
 		"Group: Dependency",
-		"demo-app (1 manifests)",
+		"demo-app (1 manifest)",
 	} {
 		if !strings.Contains(plain, want) {
 			t.Fatalf("expected view to contain %q, got:\n%s", want, view)
@@ -1704,5 +1704,137 @@ func TestNewDiffInteractiveModel_ComponentsCycleGroupingAxis(t *testing.T) {
 	}
 	if !strings.Contains(plain, "left-pad@1.3.0") {
 		t.Fatalf("expected manifest-group to still show left-pad, got:\n%s", plain)
+	}
+}
+
+func TestScanInteractiveModel_ComponentsTreeShowsSubprojectAndModuleNodes(t *testing.T) {
+	rootTarget := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo"}
+	r1 := sdk.NewDependencyRef("web-app", "1.0.0")
+	c1 := sdk.NewDependencyRef("react", "18.2.0")
+	r2 := sdk.NewDependencyRef("web-member", "1.0.0")
+	c2 := sdk.NewDependencyRef("zod", "3.23.0")
+	r3 := sdk.NewDependencyRef("api", "2.0.0")
+	c3 := sdk.NewDependencyRef("guava", "33.0.0")
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{
+		{
+			SubprojectInfo: sdk.Subproject{ExecutionTarget: rootTarget, RelativePath: ".", PrimaryDetector: "npm-detector",
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM},
+			DetectorName: "npm-detector",
+			Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r1, c1), sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		},
+		{
+			// Workspace member: same root subproject, manifest nested below it.
+			SubprojectInfo: sdk.Subproject{ExecutionTarget: rootTarget, RelativePath: ".", PrimaryDetector: "npm-detector",
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM},
+			DetectorName: "npm-detector",
+			Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r2, c2), sdk.ManifestMetadata{Path: "apps/web/package.json", Kind: "package.json"}),
+		},
+		{
+			// Independently discovered nested subproject.
+			SubprojectInfo: sdk.Subproject{ExecutionTarget: rootTarget, RelativePath: "services/api", PrimaryDetector: "maven-detector",
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerMaven}, Ecosystem: sdk.EcosystemMaven},
+			DetectorName: "maven-detector",
+			Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r3, c3), sdk.ManifestMetadata{Path: "services/api/pom.xml", Kind: "pom.xml"}),
+		},
+	})
+	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	model := NewScan(output.ProjectDescriptor{Name: "demo", Path: "/tmp/demo"}, consolidated, graphValue, nil)
+	model.SelectView(2)
+	plain := render.StripANSI(model.View(120, 40))
+
+	for _, want := range []string{
+		"demo (3 manifests, 1 subprojects, 1 modules)",
+		"package-lock.json",
+		"apps/web (1 manifest",
+		"module",
+		"services/api (1 manifest",
+		"subproject",
+	} {
+		if !strings.Contains(plain, want) {
+			t.Fatalf("expected components tree to contain %q, got:\n%s", want, plain)
+		}
+	}
+
+	// Collapsing a group node by key hides its manifests.
+	model.componentExpanded["subproject:services/api"] = false
+	model.Rebuild()
+	plain = render.StripANSI(model.View(120, 40))
+	if strings.Contains(plain, "pom.xml") {
+		t.Fatalf("expected collapsed subproject to hide its manifest, got:\n%s", plain)
+	}
+}
+
+func TestScanInteractiveModel_SingleRootScanHasNoGroupNodes(t *testing.T) {
+	g := sdk.New()
+	root := sdk.NewDependencyRef("demo-app", "1.0.0")
+	dep := sdk.NewDependencyRef("react", "18.2.0")
+	for _, pkg := range []*sdk.Dependency{root, dep} {
+		if err := g.AddNode(pkg); err != nil {
+			t.Fatalf("add package: %v", err)
+		}
+	}
+	if err := g.AddEdge(root.ID, dep.ID); err != nil {
+		t.Fatalf("add dependency: %v", err)
+	}
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
+			RelativePath:            ".",
+			PrimaryDetector:         "npm-detector",
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
+		},
+		DetectorName: "npm-detector",
+		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+	}})
+	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
+	model.SelectView(2)
+	plain := render.StripANSI(model.View(120, 30))
+	if !strings.Contains(plain, "demo-app (1 manifest)") {
+		t.Fatalf("expected flat project title without group counts, got:\n%s", plain)
+	}
+	for _, forbidden := range []string{"subproject", "module"} {
+		if strings.Contains(plain, forbidden) {
+			t.Fatalf("flat scan must not render %q nodes, got:\n%s", forbidden, plain)
+		}
+	}
+}
+
+func TestScanInteractiveModel_SourceTabListsSubprojects(t *testing.T) {
+	rootTarget := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo"}
+	r1 := sdk.NewDependencyRef("web-app", "1.0.0")
+	c1 := sdk.NewDependencyRef("react", "18.2.0")
+	r2 := sdk.NewDependencyRef("api", "2.0.0")
+	c2 := sdk.NewDependencyRef("guava", "33.0.0")
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{
+		{
+			SubprojectInfo: sdk.Subproject{ExecutionTarget: rootTarget, RelativePath: ".", PrimaryDetector: "npm-detector",
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM},
+			DetectorName: "npm-detector",
+			Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r1, c1), sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		},
+		{
+			SubprojectInfo: sdk.Subproject{ExecutionTarget: rootTarget, RelativePath: "services/api", PrimaryDetector: "maven-detector",
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerMaven}, Ecosystem: sdk.EcosystemMaven},
+			DetectorName: "maven-detector",
+			Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r2, c2), sdk.ManifestMetadata{Path: "services/api/pom.xml", Kind: "pom.xml"}),
+		},
+	})
+	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	model := NewScan(output.ProjectDescriptor{Name: "demo", Path: "/tmp/demo"}, consolidated, graphValue, nil)
+	model.SelectView(7)
+	plain := render.StripANSI(model.View(140, 40))
+	if !strings.Contains(plain, "subprojects: [] (2 items)") {
+		t.Fatalf("expected subprojects section in source tab, got:\n%s", plain)
 	}
 }

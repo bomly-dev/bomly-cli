@@ -243,6 +243,7 @@ type ScanModel struct {
 	explainMode           bool
 	manifests             []listPackageRow
 	manifestByID          map[string]listPackageRow
+	subprojects           []sdk.ConsolidatedSubproject
 	mode                  scanMode
 	findings              []sdk.Finding
 	enrichEnabled         bool

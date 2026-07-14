@@ -12,13 +12,15 @@ import (
 
 // componentsGroup names the cycling-axis for the Components tab. "status"
 // groups Added/Changed/Removed; "manifest" groups by manifest (the old
-// nested tree); "ecosystem" groups by ecosystem.
+// nested tree); "subproject" groups by the manifest's subproject directory;
+// "ecosystem" groups by ecosystem.
 type componentsGroup string
 
 const (
-	componentsGroupStatus    componentsGroup = "status"
-	componentsGroupManifest  componentsGroup = "manifest"
-	componentsGroupEcosystem componentsGroup = "ecosystem"
+	componentsGroupStatus     componentsGroup = "status"
+	componentsGroupManifest   componentsGroup = "manifest"
+	componentsGroupSubproject componentsGroup = "subproject"
+	componentsGroupEcosystem  componentsGroup = "ecosystem"
 )
 
 type diffSourceSide string
@@ -206,12 +208,14 @@ func (m *DiffModel) CycleEcosystemFilter() {
 }
 
 // nextComponentsGroup advances the Components-tab grouping axis through
-// status → manifest → ecosystem → status.
+// status → manifest → subproject → ecosystem → status.
 func nextComponentsGroup(g componentsGroup) componentsGroup {
 	switch g {
 	case componentsGroupStatus:
 		return componentsGroupManifest
 	case componentsGroupManifest:
+		return componentsGroupSubproject
+	case componentsGroupSubproject:
 		return componentsGroupEcosystem
 	default:
 		return componentsGroupStatus
@@ -1506,6 +1510,12 @@ func componentsGroupKey(c flatComponentChange, group componentsGroup) string {
 			return "(unknown manifest)"
 		}
 		return c.manifestName
+	case componentsGroupSubproject:
+		subproject := strings.TrimSpace(c.manifest.Subproject)
+		if subproject == "" || subproject == "." {
+			return "(root)"
+		}
+		return subproject
 	case componentsGroupEcosystem:
 		return c.ecosystem
 	default:
@@ -1526,6 +1536,8 @@ func componentsGroupName(group componentsGroup) string {
 	switch group {
 	case componentsGroupManifest:
 		return "Manifest"
+	case componentsGroupSubproject:
+		return "Subproject"
 	case componentsGroupEcosystem:
 		return "Ecosystem"
 	default:
@@ -1564,6 +1576,28 @@ func (m *DiffModel) componentsGroupDetails(key string, group componentsGroup, it
 		render.Style("  Changed: ", render.Dim)+fmt.Sprintf("%d", counts["changed"]),
 		render.Style("  Removed: ", render.Dim)+fmt.Sprintf("%d", counts["removed"]),
 	)
+	// When grouping by subproject, list the manifests the group spans so the
+	// user can see which lockfiles/manifests contributed changes.
+	if group == componentsGroupSubproject && len(items) > 0 {
+		seen := map[string]struct{}{}
+		manifestPaths := make([]string, 0)
+		for _, c := range items {
+			path := strings.TrimSpace(c.manifest.Path)
+			if path == "" {
+				continue
+			}
+			if _, ok := seen[path]; ok {
+				continue
+			}
+			seen[path] = struct{}{}
+			manifestPaths = append(manifestPaths, path)
+		}
+		sort.Strings(manifestPaths)
+		lines = append(lines, "", render.Style("Manifests", render.Bold, render.Magenta))
+		for _, path := range manifestPaths {
+			lines = append(lines, render.Style("  ", render.Dim)+path)
+		}
+	}
 	// When grouping by manifest, surface the manifest's full metadata
 	// (ecosystem, package manager, detector, subproject path) so the user
 	// knows exactly what this row represents.

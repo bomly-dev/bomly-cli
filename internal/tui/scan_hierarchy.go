@@ -241,41 +241,108 @@ func (m *ScanModel) mergedGroupDetails(group *manifestTreeGroup, manifest listPa
 		title = "Module"
 		description = "A workspace/reactor member resolved by its package manager under one root manifest."
 	}
-	lines := []string{
-		render.Style(title, render.Bold, render.Cyan),
-		"",
-		render.Style("  Name: ", render.Dim) + m.manifestRootName(manifest),
-		render.Style("  Directory: ", render.Dim) + group.dir,
-		render.Style("  Components: ", render.Dim) + fmt.Sprintf("%d", componentCount),
-		render.Style("  "+description, render.Dim),
-		"",
-	}
-	return append(lines, manifestDetails(m.graphValue, manifest)...)
+	return m.mergedNodeDetails(title, description, m.manifestRootName(manifest), group.dir, componentCount, manifest, group.children)
 }
 
-// rootNodeDetails renders the details pane for the merged project's ROOT
-// component row: the root component itself, the root manifest it stands on,
-// and the module nodes branching out of it.
-func (m *ScanModel) rootNodeDetails(row listPackageRow, manifest listPackageRow, attached []*manifestTreeGroup) []string {
-	lines := componentDetails(m.graphValue, m.registry, row, manifest)
+// mergedNodeDetails renders the unified details pane for every merged node —
+// the project's root, module nodes, and subproject nodes. They are all the
+// same thing to the user: an internal package standing on a manifest. The
+// pane shows the node identity, a compact section for the internal package
+// itself, the manifest and detector metadata, the dependency counts, and the
+// module nodes branching out of it.
+func (m *ScanModel) mergedNodeDetails(kind, description, name, dir string, componentCount int, manifest listPackageRow, modules []*manifestTreeGroup) []string {
+	lines := []string{
+		render.Style(kind, render.Bold, render.Cyan),
+		"",
+		render.Style("  Name: ", render.Dim) + valueOrDash(name),
+		render.Style("  Directory: ", render.Dim) + valueOrDash(dir),
+		render.Style("  Components: ", render.Dim) + fmt.Sprintf("%d", componentCount),
+		render.Style("  "+description, render.Dim),
+	}
+	lines = append(lines, m.rootPackageSection(manifest.rootID)...)
 	lines = append(lines, "")
 	lines = append(lines, manifestDetails(m.graphValue, manifest)...)
-	if len(attached) > 0 {
+	if len(modules) > 0 {
 		lines = append(lines, "", render.Style("Modules", render.Bold, render.Cyan))
-		for _, group := range attached {
-			name := group.label
+		for _, module := range modules {
+			moduleName := module.label
 			suffix := ""
-			if len(group.manifests) > 0 {
-				moduleManifest := m.manifests[group.manifests[0]]
+			if len(module.manifests) > 0 {
+				moduleManifest := m.manifests[module.manifests[0]]
 				if rootName := m.manifestRootName(moduleManifest); rootName != "" && rootName != moduleManifest.displayName {
-					name = rootName
+					moduleName = rootName
 				}
 				suffix = " [" + moduleManifest.id + "]"
 			}
-			lines = append(lines, render.Style("  ", render.Dim)+name+render.Style(suffix, render.Dim))
+			lines = append(lines, render.Style("  ", render.Dim)+moduleName+render.Style(suffix, render.Dim))
 		}
 	}
 	return lines
+}
+
+// rootPackageSection describes the internal application package a merged node
+// stands on. Internal packages are rarely enriched, but a custom plugin (an
+// internal advisory source, say) can attach licenses or vulnerabilities to
+// them, so both surface here compactly when present.
+func (m *ScanModel) rootPackageSection(rootID string) []string {
+	if m.graphValue == nil || rootID == "" {
+		return nil
+	}
+	pkg, ok := m.graphValue.Node(rootID)
+	if !ok || pkg == nil {
+		return nil
+	}
+	licenseValues := make([]string, 0)
+	for _, license := range licensesForDependency(m.registry, pkg) {
+		if id := strings.TrimSpace(license.SPDXExpression); id != "" {
+			licenseValues = append(licenseValues, id)
+		} else if value := strings.TrimSpace(license.Value); value != "" {
+			licenseValues = append(licenseValues, value)
+		}
+	}
+	vulnerabilities := vulnsForDependency(m.registry, pkg)
+	vulnerabilitySummary := "none"
+	if len(vulnerabilities) > 0 {
+		bySeverity := map[string]int{}
+		for _, vulnerability := range vulnerabilities {
+			severity := strings.ToLower(strings.TrimSpace(string(vulnerability.ParsedSeverity)))
+			if severity == "" {
+				severity = "unknown"
+			}
+			bySeverity[severity]++
+		}
+		parts := make([]string, 0, len(bySeverity))
+		for _, severity := range []string{"critical", "high", "medium", "low", "unknown"} {
+			if count := bySeverity[severity]; count > 0 {
+				parts = append(parts, fmt.Sprintf("%d %s", count, severity))
+			}
+		}
+		vulnerabilitySummary = fmt.Sprintf("%d (%s)", len(vulnerabilities), strings.Join(parts, ", "))
+	}
+	return []string{
+		"",
+		render.Style("Root package", render.Bold, render.Cyan),
+		render.Style("  Name: ", render.Dim) + packageDisplayName(pkg),
+		render.Style("  PURL: ", render.Dim) + valueOrDash(pkg.PURL),
+		render.Style("  Licenses: ", render.Dim) + valueOrDash(strings.Join(licenseValues, ", ")),
+		render.Style("  Vulnerabilities: ", render.Dim) + vulnerabilitySummary,
+	}
+}
+
+// rootNodeDetails renders the details pane for the merged project's ROOT
+// component row through the same unified layout the module and subproject
+// nodes use: node identity, root package, manifest and detector metadata,
+// and the module nodes branching out of it.
+func (m *ScanModel) rootNodeDetails(row listPackageRow, manifest listPackageRow, attached []*manifestTreeGroup) []string {
+	return m.mergedNodeDetails(
+		"Project root",
+		"The project's own package — the internal application its root manifest describes.",
+		row.displayName,
+		valueOrDefault(manifest.relativePath, "."),
+		mergedComponentCount(m.graphValue, manifest.rootID),
+		manifest,
+		attached,
+	)
 }
 
 func sortedKeyList(values map[string]struct{}) string {

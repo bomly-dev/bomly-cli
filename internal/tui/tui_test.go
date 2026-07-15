@@ -769,10 +769,14 @@ func TestScanInteractiveModel_ManifestDetailsIncludeDetectorMetadata(t *testing.
 	updated, _ := wrapper.Update(tea.KeyMsg{Type: tea.KeyDown})
 	wrapper = updated.(*teaModel)
 	plain = render.StripANSI(wrapper.View())
-	for _, want := range []string{"Detector", "Name: npm-detector", "Package managers: npm", "Planned chain: npm-detector, syft-detector"} {
+	for _, want := range []string{"Project root", "Root package", "Detector", "Name: npm-detector", "Package managers: npm", "Planned chain: npm-detector, syft-detector"} {
 		if !strings.Contains(plain, want) {
 			t.Fatalf("expected root component details to contain %q, got:\n%s", want, plain)
 		}
+	}
+	// The unified merged-node layout replaces the verbose component dump.
+	if strings.Contains(plain, "Dependents (") {
+		t.Fatalf("root details must use the compact merged-node layout, got:\n%s", plain)
 	}
 }
 

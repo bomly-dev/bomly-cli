@@ -64,6 +64,29 @@ flowchart TD
 
 In the JSON output these surface as three top-level collections — `manifests` (with their `dependencies`), `packages`, and `findings` — and the same vocabulary carries through SARIF and SBOM output. See [Output formats](OUTPUT_FORMATS.md) and the [schema reference](SCHEMAS.md) for the exact shapes.
 
+Manifests themselves hang off the project structure. A **subproject** is an independently discovered nested directory (what `--recursive` finds); a **module** is a workspace or reactor member the package manager resolves natively (npm/pnpm workspace packages, Cargo workspace members, Maven reactor modules), each with its own manifest entry. A project or module and its manifest are two faces of the same thing, so user-facing views (interactive mode, text, markdown) merge them into a single named node; machine formats keep the flat `manifests` collection, from which the hierarchy is derived using the `subproject` and `path` fields.
+
+```mermaid
+flowchart TD
+    PR["Project (scan root)"]
+    SP["Subproject — nested dir<br/>discovered by --recursive"]
+    MOD["Module — workspace/reactor member<br/>resolved by the package manager"]
+    MAN["Manifest<br/>(path, kind, detector, resolution)"]
+    ROOT["Module's own package<br/>(graph root, application)"]
+    DEP[Dependency instances]
+    P2[Packages, deduplicated by PURL]
+
+    PR -->|discovers| SP
+    PR -->|root manifests| MAN
+    SP -->|its manifests| MAN
+    PR -->|workspace / reactor expansion| MOD
+    SP -->|workspace / reactor expansion| MOD
+    MOD -->|one manifest each| MAN
+    MAN -->|graph root| ROOT
+    ROOT -->|direct + transitive| DEP
+    DEP -->|shared transitives count once| P2
+```
+
 ## Extensibility
 
 Every built-in is an implementation of the same contract an external plugin implements — there is no privileged internal path. Three extension points are pluggable today, and a fourth is planned:

@@ -217,6 +217,41 @@ func TestScan(t *testing.T) {
 			tools: []string{"mvn"},
 		},
 		{
+			// npm workspaces pinned to bomly-dev/example-javascript-npm-workspaces:
+			// a root dependency plus two members sharing pinned vulnerable
+			// deps, a workspace link (web -> lib), and a member devDependency.
+			// The golden proves one manifest entry per workspace member
+			// (apps/web/package.json, packages/lib/package.json) alongside the
+			// root lockfile entry. Lockfile parsing needs no npm binary.
+			name: "scan-npm-workspaces",
+			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm-workspaces", "--ref", "v1.0.0", "--format", "json"},
+		},
+		{
+			// pnpm workspace pinned to bomly-dev/example-javascript-pnpm-workspaces
+			// (same shape as the npm fixture, resolved through pnpm-lock.yaml
+			// importers). Lockfile parsing needs no pnpm binary.
+			name: "scan-pnpm-workspaces",
+			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-pnpm-workspaces", "--ref", "v1.0.0", "--format", "json"},
+		},
+		{
+			// Virtual Cargo workspace pinned to bomly-dev/example-rust-cargo-workspace:
+			// a workspace-only root Cargo.toml (no [package]) with two members,
+			// one depending on the other. The golden proves per-member entries
+			// from the Cargo.lock partitioning path (no cargo binary needed)
+			// and that virtual roots resolve natively instead of erroring.
+			name: "scan-cargo-workspace",
+			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-rust-cargo-workspace", "--ref", "v1.0.0", "--format", "json"},
+		},
+		{
+			// Maven reactor pinned to bomly-dev/example-java-maven-multimodule:
+			// a pom-packaging parent with two modules, web depending on the
+			// core module. The golden proves one manifest entry per reactor
+			// module (core/pom.xml, web/pom.xml) plus the parent root entry.
+			name:  "scan-maven-multimodule",
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-java-maven-multimodule", "--ref", "v1.0.0", "--format", "json"},
+			tools: []string{"mvn"},
+		},
+		{
 			name: "scan-sbom-spdx",
 			args: []string{"scan", "--sbom", "--path", sbomFixture("go.spdx.json"), "--format", "json"},
 		},

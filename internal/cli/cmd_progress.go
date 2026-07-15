@@ -56,6 +56,12 @@ func subprojectProgressChildren(results []sdk.DetectionResult) []progress.Child 
 		if detail != "" {
 			label += " (" + detail + ")"
 		}
+		// Multi-module resolutions (workspaces, reactors) produce one manifest
+		// entry per module; surface the count so the step explains the fan-out.
+		if r.Graphs != nil && len(r.Graphs.Entries) > 1 {
+			children = append(children, progress.Child{Label: label, Detail: fmt.Sprintf("[%d manifests]", len(r.Graphs.Entries))})
+			continue
+		}
 		children = append(children, progress.Child{Label: label})
 	}
 	return children

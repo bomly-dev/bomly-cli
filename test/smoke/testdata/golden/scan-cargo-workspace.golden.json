@@ -1,0 +1,372 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "dependencies": [
+        {
+          "depends_on": [
+            "pkg:cargo/core-lib@1.0.0",
+            "pkg:cargo/lazy_static@1.4.0",
+            "pkg:cargo/time@0.1.45"
+          ],
+          "id": "pkg:cargo/api@1.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
+          "name": "api",
+          "package_ref": "pkg:cargo/api@1.0.0",
+          "purl": "pkg:cargo/api@1.0.0",
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [
+            "pkg:cargo/time@0.1.45"
+          ],
+          "id": "pkg:cargo/core-lib@1.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
+          "name": "core-lib",
+          "package_ref": "pkg:cargo/core-lib@1.0.0",
+          "purl": "pkg:cargo/core-lib@1.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:cargo/lazy_static@1.4.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
+          "name": "lazy-static",
+          "package_ref": "pkg:cargo/lazy_static@1.4.0",
+          "purl": "pkg:cargo/lazy_static@1.4.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.4.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:cargo/libc@0.2.155",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
+          "name": "libc",
+          "package_ref": "pkg:cargo/libc@0.2.155",
+          "purl": "pkg:cargo/libc@0.2.155",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.2.155"
+        },
+        {
+          "depends_on": [
+            "pkg:cargo/libc@0.2.155",
+            "pkg:cargo/wasi@0.10.0%2Bwasi-snapshot-preview1",
+            "pkg:cargo/winapi@0.3.9"
+          ],
+          "id": "pkg:cargo/time@0.1.45",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
+          "name": "time",
+          "package_ref": "pkg:cargo/time@0.1.45",
+          "purl": "pkg:cargo/time@0.1.45",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.1.45"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:cargo/wasi@0.10.0%2Bwasi-snapshot-preview1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
+          "name": "wasi",
+          "package_ref": "pkg:cargo/wasi@0.10.0%2Bwasi-snapshot-preview1",
+          "purl": "pkg:cargo/wasi@0.10.0%2Bwasi-snapshot-preview1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.10.0+wasi-snapshot-preview1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:cargo/winapi@0.3.9",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
+          "name": "winapi",
+          "package_ref": "pkg:cargo/winapi@0.3.9",
+          "purl": "pkg:cargo/winapi@0.3.9",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.3.9"
+        }
+      ],
+      "detector": "cargo-detector",
+      "ecosystem": "rust",
+      "kind": "Cargo.toml",
+      "package_manager": "cargo",
+      "path": "crates/api/Cargo.toml",
+      "subproject": "."
+    },
+    {
+      "dependencies": [
+        {
+          "depends_on": [
+            "pkg:cargo/time@0.1.45"
+          ],
+          "id": "pkg:cargo/core-lib@1.0.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
+          "name": "core-lib",
+          "package_ref": "pkg:cargo/core-lib@1.0.0",
+          "purl": "pkg:cargo/core-lib@1.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:cargo/libc@0.2.155",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
+          "name": "libc",
+          "package_ref": "pkg:cargo/libc@0.2.155",
+          "purl": "pkg:cargo/libc@0.2.155",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.2.155"
+        },
+        {
+          "depends_on": [
+            "pkg:cargo/libc@0.2.155",
+            "pkg:cargo/wasi@0.10.0%2Bwasi-snapshot-preview1",
+            "pkg:cargo/winapi@0.3.9"
+          ],
+          "id": "pkg:cargo/time@0.1.45",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
+          "name": "time",
+          "package_ref": "pkg:cargo/time@0.1.45",
+          "purl": "pkg:cargo/time@0.1.45",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.1.45"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:cargo/wasi@0.10.0%2Bwasi-snapshot-preview1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
+          "name": "wasi",
+          "package_ref": "pkg:cargo/wasi@0.10.0%2Bwasi-snapshot-preview1",
+          "purl": "pkg:cargo/wasi@0.10.0%2Bwasi-snapshot-preview1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.10.0+wasi-snapshot-preview1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:cargo/winapi@0.3.9",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "Cargo.lock",
+              "position": {
+                "file": "Cargo.lock",
+                "line": 0
+              },
+              "real_path": "Cargo.lock"
+            }
+          ],
+          "name": "winapi",
+          "package_ref": "pkg:cargo/winapi@0.3.9",
+          "purl": "pkg:cargo/winapi@0.3.9",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.3.9"
+        }
+      ],
+      "detector": "cargo-detector",
+      "ecosystem": "rust",
+      "kind": "Cargo.toml",
+      "package_manager": "cargo",
+      "path": "crates/core/Cargo.toml",
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "duration_ms": 0
+  },
+  "packages": [
+    {
+      "ecosystem": "rust",
+      "licenses": [],
+      "name": "api",
+      "purl": "pkg:cargo/api@1.0.0",
+      "version": "1.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "rust",
+      "licenses": [],
+      "name": "core-lib",
+      "purl": "pkg:cargo/core-lib@1.0.0",
+      "version": "1.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "rust",
+      "licenses": [],
+      "name": "lazy-static",
+      "purl": "pkg:cargo/lazy_static@1.4.0",
+      "version": "1.4.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "rust",
+      "licenses": [],
+      "name": "libc",
+      "purl": "pkg:cargo/libc@0.2.155",
+      "version": "0.2.155",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "rust",
+      "licenses": [],
+      "name": "time",
+      "purl": "pkg:cargo/time@0.1.45",
+      "version": "0.1.45",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "rust",
+      "licenses": [],
+      "name": "wasi",
+      "purl": "pkg:cargo/wasi@0.10.0%2Bwasi-snapshot-preview1",
+      "version": "0.10.0+wasi-snapshot-preview1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "rust",
+      "licenses": [],
+      "name": "winapi",
+      "purl": "pkg:cargo/winapi@0.3.9",
+      "version": "0.3.9",
+      "vulnerabilities": []
+    }
+  ],
+  "project": {
+    "ecosystem": "rust",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "cargo",
+    "path": "\u003cnormalized\u003e",
+    "target_ref": "v1.0.0",
+    "target_type": "git repository"
+  },
+  "schema_version": "1.0"
+}

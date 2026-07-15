@@ -56,22 +56,67 @@ func (d LockfileDetector) Descriptor() sdk.DetectorDescriptor {
 	}
 }
 
-// ResolveGraph resolves an npm dependency graph from package-lock.json.
+// ResolveGraph resolves an npm dependency graph from package-lock.json. A
+// workspace lockfile yields one manifest entry per workspace member (the
+// member's package.json plus its reachable dependency subtree) alongside the
+// root entry.
 func (d LockfileDetector) ResolveGraph(_ context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	// Prefer the request-scoped logger (bound to this subproject) so
 	// concurrent per-subproject resolution stays attributable in logs.
 	d.Logger = req.DetectorLogger(d.Logger)
-	depsGraph, err := depGraphFromNPMLockfile(d.base().ProjectDir(req.ProjectPath))
+	workingDir := d.base().ProjectDir(req.ProjectPath)
+	graphs, err := depGraphFromNPMLockfile(workingDir)
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("npm lockfile parser detector: %w", err)
 	}
-	if err := node.AnnotateScopesFromPackageJSON(d.base().ProjectDir(req.ProjectPath), depsGraph); err != nil {
+	if err := node.AnnotateScopesFromPackageJSON(workingDir, graphs.graph); err != nil {
 		return sdk.DetectionResult{}, err
 	}
-	AttachPackageLockPositions(depsGraph, d.base().ProjectDir(req.ProjectPath))
+	AttachPackageLockPositions(graphs.graph, workingDir)
+
+	rootManifest := detectors.InferManifestMetadata(req, npmManifestMetadataPatterns)
+	if len(graphs.modules) == 0 {
+		return sdk.DetectionResult{
+			Graphs: sdk.SingleGraphContainer(graphs.graph, rootManifest),
+		}, nil
+	}
+
+	entries, err := workspaceGraphEntries(graphs, rootManifest)
+	if err != nil {
+		return sdk.DetectionResult{}, fmt.Errorf("npm lockfile parser detector: %w", err)
+	}
+	req.DetectorLogger(d.Logger).Info("npm lockfile detector resolved workspace members",
+		zap.Int("members", len(graphs.modules)))
 	return sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, npmManifestMetadataPatterns)),
+		Graphs: &sdk.GraphContainer{Entries: entries},
 	}, nil
+}
+
+// workspaceGraphEntries partitions a workspace lockfile graph into the root
+// manifest entry (root node plus its own dependency subtree) and one entry
+// per workspace member (member root plus its reachable subtree, manifest
+// path "<member-dir>/package.json").
+func workspaceGraphEntries(graphs npmLockfileGraphs, rootManifest sdk.ManifestMetadata) ([]sdk.GraphEntry, error) {
+	entries := make([]sdk.GraphEntry, 0, len(graphs.modules)+1)
+	rootGraph, err := detectors.SubgraphFrom(graphs.graph, graphs.rootID)
+	if err != nil {
+		return nil, fmt.Errorf("extract workspace root graph: %w", err)
+	}
+	entries = append(entries, sdk.GraphEntry{Graph: rootGraph, Manifest: rootManifest})
+	for _, module := range graphs.modules {
+		moduleGraph, err := detectors.SubgraphFrom(graphs.graph, module.rootID)
+		if err != nil {
+			return nil, fmt.Errorf("extract workspace member graph %q: %w", module.dir, err)
+		}
+		entries = append(entries, sdk.GraphEntry{
+			Graph: moduleGraph,
+			Manifest: sdk.ManifestMetadata{
+				Path: module.dir + "/package.json",
+				Kind: sdk.ManifestKind("package.json"),
+			},
+		})
+	}
+	return entries, nil
 }
 
 func (d LockfileDetector) base() node.BaseDetector {

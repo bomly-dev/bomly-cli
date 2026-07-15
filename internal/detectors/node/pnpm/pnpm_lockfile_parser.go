@@ -52,18 +52,34 @@ type resolvedPackage struct {
 	version string
 }
 
-func depGraphFromPNPMLockfile(projectPath string) (*sdk.Graph, error) {
+// pnpmModuleGraph identifies one workspace importer inside the parsed
+// lockfile graph: the importer's directory (relative to the project root,
+// slash form) and its application root node in the merged graph.
+type pnpmModuleGraph struct {
+	dir    string
+	rootID string
+}
+
+// pnpmLockfileGraphs carries the merged lockfile graph plus the workspace
+// importer roots the detector partitions into per-module manifest entries.
+type pnpmLockfileGraphs struct {
+	graph   *sdk.Graph
+	rootID  string
+	modules []pnpmModuleGraph
+}
+
+func depGraphFromPNPMLockfile(projectPath string) (pnpmLockfileGraphs, error) {
 	raw, err := os.ReadFile(filepath.Join(projectPath, "pnpm-lock.yaml"))
 	if err != nil {
-		return nil, fmt.Errorf("read pnpm-lock.yaml: %w", err)
+		return pnpmLockfileGraphs{}, fmt.Errorf("read pnpm-lock.yaml: %w", err)
 	}
 
 	var lockfile pnpmLockfile
 	if err := yaml.Unmarshal(raw, &lockfile); err != nil {
-		return nil, fmt.Errorf("parse pnpm-lock.yaml: %w", err)
+		return pnpmLockfileGraphs{}, fmt.Errorf("parse pnpm-lock.yaml: %w", err)
 	}
 	if len(lockfile.Packages) == 0 {
-		return nil, errors.New("pnpm-lock.yaml has no packages")
+		return pnpmLockfileGraphs{}, errors.New("pnpm-lock.yaml has no packages")
 	}
 
 	// In pnpm v9+, packages section has metadata (resolution, license) and snapshots
@@ -81,7 +97,7 @@ func depGraphFromPNPMLockfile(projectPath string) (*sdk.Graph, error) {
 	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: rootName, Version: manifest.Version, Type: sdk.PackageTypeApplication}})
 	depsGraph := sdk.New()
 	if err := depsGraph.AddNode(rootNode); err != nil {
-		return nil, fmt.Errorf("add pnpm root node: %w", err)
+		return pnpmLockfileGraphs{}, fmt.Errorf("add pnpm root node: %w", err)
 	}
 
 	byKey := make(map[string]resolvedPackage, len(lockfile.Packages))
@@ -114,7 +130,7 @@ func depGraphFromPNPMLockfile(projectPath string) (*sdk.Graph, error) {
 			sdk.SetDetectionLicenses(pkgNode, []sdk.PackageLicense{{Value: entry.License, Type: "declared"}})
 		}
 		if err := node.AddNodeIfMissing(depsGraph, pkgNode); err != nil {
-			return nil, err
+			return pnpmLockfileGraphs{}, err
 		}
 		resolved := resolvedPackage{id: pkgNode.ID, name: name, version: node.NormalizeVersionToken(version)}
 		byKey[key] = resolved
@@ -150,37 +166,68 @@ func depGraphFromPNPMLockfile(projectPath string) (*sdk.Graph, error) {
 			if !ok {
 				synthetic := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(dependencyVersion)}})
 				if err := node.AddNodeIfMissing(depsGraph, synthetic); err != nil {
-					return nil, err
+					return pnpmLockfileGraphs{}, err
 				}
 				resolved = resolvedPackage{id: synthetic.ID, name: dependencyName, version: node.NormalizeVersionToken(dependencyVersion)}
 			}
 			if err := depsGraph.AddEdge(parent.id, resolved.id); err != nil {
-				return nil, fmt.Errorf("add pnpm dependency %q -> %q: %w", parent.id, resolved.id, err)
+				return pnpmLockfileGraphs{}, fmt.Errorf("add pnpm dependency %q -> %q: %w", parent.id, resolved.id, err)
 			}
 		}
 	}
 
-	if importer, ok := lockfile.Importers["."]; ok {
-		runtimeDeps := mergeAnyMaps(importer.Dependencies, importer.OptionalDependencies)
-		for dependencyName, dependencyVersion := range runtimeDeps {
-			resolved, ok := resolvePNPMDependency(byName, dependencyName, dependencyVersion)
+	// Workspace importers: "." is the root; every other importer is a member
+	// with its own application root node and manifest entry. Importers were
+	// previously only wired for "." — member direct-dependency edges (and
+	// workspace link: dependencies between members) were silently dropped.
+	memberByDir := map[string]string{".": rootNode.ID}
+	modules := make([]pnpmModuleGraph, 0)
+	importerDirs := make([]string, 0, len(lockfile.Importers))
+	for dir := range lockfile.Importers {
+		importerDirs = append(importerDirs, dir)
+	}
+	sort.Strings(importerDirs)
+	for _, dir := range importerDirs {
+		if dir == "." {
+			continue
+		}
+		cleanDir := strings.TrimPrefix(filepath.ToSlash(filepath.Clean(dir)), "./")
+		memberManifest, _ := node.ReadPackageJSONManifest(filepath.Join(projectPath, filepath.FromSlash(cleanDir)))
+		memberName := memberManifest.Name
+		if memberName == "" {
+			memberName = filepath.Base(cleanDir)
+		}
+		memberNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: memberName, Version: memberManifest.Version, Type: sdk.PackageTypeApplication}})
+		if err := node.AddNodeIfMissing(depsGraph, memberNode); err != nil {
+			return pnpmLockfileGraphs{}, err
+		}
+		memberByDir[cleanDir] = memberNode.ID
+		modules = append(modules, pnpmModuleGraph{dir: cleanDir, rootID: memberNode.ID})
+	}
+
+	if len(lockfile.Importers) > 0 {
+		for _, dir := range importerDirs {
+			importer := lockfile.Importers[dir]
+			cleanDir := strings.TrimPrefix(filepath.ToSlash(filepath.Clean(dir)), "./")
+			parentID, ok := memberByDir[cleanDir]
 			if !ok {
 				continue
 			}
-			if err := depsGraph.AddEdge(rootNode.ID, resolved.id); err != nil {
-				return nil, fmt.Errorf("add pnpm root dependency %q -> %q: %w", rootNode.ID, resolved.id, err)
+			deps := mergeAnyMaps(importer.Dependencies, importer.OptionalDependencies)
+			for dependencyName, dependencyVersion := range importer.DevDependencies {
+				deps[dependencyName] = versionFromPNPMAny(dependencyVersion)
 			}
+			for dependencyName, dependencyVersion := range deps {
+				targetID, ok := resolvePNPMImporterDependency(byName, memberByDir, cleanDir, dependencyName, dependencyVersion)
+				if !ok {
+					continue
+				}
+				if err := depsGraph.AddEdge(parentID, targetID); err != nil {
+					return pnpmLockfileGraphs{}, fmt.Errorf("add pnpm importer dependency %q -> %q: %w", parentID, targetID, err)
+				}
+			}
+			node.ApplyDirectDependencyScopes(depsGraph, parentID, pnpmImporterDirectScopes(importer))
 		}
-		for dependencyName, dependencyVersion := range importer.DevDependencies {
-			resolved, ok := resolvePNPMDependency(byName, dependencyName, versionFromPNPMAny(dependencyVersion))
-			if !ok {
-				continue
-			}
-			if err := depsGraph.AddEdge(rootNode.ID, resolved.id); err != nil {
-				return nil, fmt.Errorf("add pnpm root dev dependency %q -> %q: %w", rootNode.ID, resolved.id, err)
-			}
-		}
-		node.ApplyDirectDependencyScopes(depsGraph, rootNode.ID, pnpmImporterDirectScopes(importer))
 	} else {
 		// Old pnpm lockfile format (pre-importers): root-level dependency tables.
 		runtimeDeps := mergeAnyMaps(lockfile.Dependencies, lockfile.OptionalDependencies)
@@ -190,7 +237,7 @@ func depGraphFromPNPMLockfile(projectPath string) (*sdk.Graph, error) {
 				continue
 			}
 			if err := depsGraph.AddEdge(rootNode.ID, resolved.id); err != nil {
-				return nil, fmt.Errorf("add pnpm root dependency %q -> %q: %w", rootNode.ID, resolved.id, err)
+				return pnpmLockfileGraphs{}, fmt.Errorf("add pnpm root dependency %q -> %q: %w", rootNode.ID, resolved.id, err)
 			}
 		}
 		for dependencyName, dependencyVersion := range lockfile.DevDependencies {
@@ -199,13 +246,40 @@ func depGraphFromPNPMLockfile(projectPath string) (*sdk.Graph, error) {
 				continue
 			}
 			if err := depsGraph.AddEdge(rootNode.ID, resolved.id); err != nil {
-				return nil, fmt.Errorf("add pnpm root dev dependency %q -> %q: %w", rootNode.ID, resolved.id, err)
+				return pnpmLockfileGraphs{}, fmt.Errorf("add pnpm root dev dependency %q -> %q: %w", rootNode.ID, resolved.id, err)
 			}
 		}
 		node.ApplyDirectDependencyScopes(depsGraph, rootNode.ID, pnpmRootDirectScopes(lockfile))
 	}
 
-	return depsGraph, nil
+	return pnpmLockfileGraphs{graph: depsGraph, rootID: rootNode.ID, modules: modules}, nil
+}
+
+// resolvePNPMImporterDependency resolves one importer dependency edge target:
+// "link:" version specs point at another workspace importer directory
+// (relative to the importer), everything else resolves through the package
+// tables.
+func resolvePNPMImporterDependency(byName map[string][]resolvedPackage, memberByDir map[string]string, importerDir, dependencyName, dependencyVersion string) (string, bool) {
+	version := strings.TrimSpace(dependencyVersion)
+	if strings.HasPrefix(version, "link:") {
+		target := strings.TrimPrefix(version, "link:")
+		base := importerDir
+		if base == "." {
+			base = ""
+		}
+		resolvedDir := filepath.ToSlash(filepath.Clean(filepath.Join(base, filepath.FromSlash(target))))
+		resolvedDir = strings.TrimPrefix(resolvedDir, "./")
+		if resolvedDir == "" {
+			resolvedDir = "."
+		}
+		id, ok := memberByDir[resolvedDir]
+		return id, ok
+	}
+	resolved, ok := resolvePNPMDependency(byName, dependencyName, version)
+	if !ok {
+		return "", false
+	}
+	return resolved.id, true
 }
 
 func pnpmImporterDirectScopes(importer pnpmImporter) map[string]sdk.Scope {

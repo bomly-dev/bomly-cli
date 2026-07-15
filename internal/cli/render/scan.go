@@ -32,41 +32,49 @@ func ScanGraphDisplayName(g *sdk.Graph, fallback string) string {
 // Scan returns the compact human-readable text report for a scan command.
 // failOn is the active fail-on constraint list from config; N/A-severity
 // findings (e.g. unknown-license) are suppressed unless "any" is present.
-// subprojectSummary is an optional pre-computed line like "Discovered 2
-// subprojects: web (npm), api (go)" shown before the package count.
-// fallbackNotices are pre-computed FallbackNotices lines shown after it.
-func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, matcherStats []sdk.MatcherStats, enrichEnabled, auditEnabled, reachabilityEnabled bool, failOn []string, subprojectSummary string, fallbackNotices []string) string {
+// manifests are the scan manifests the run produced; when they span
+// subprojects or modules a grouped manifest tree is rendered after the
+// scopes line. fallbackNotices are pre-computed FallbackNotices lines.
+func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, matcherStats []sdk.MatcherStats, enrichEnabled, auditEnabled, reachabilityEnabled bool, failOn []string, manifests []output.ScanManifest, fallbackNotices []string) string {
 	var b strings.Builder
 
 	if g == nil {
 		return "(empty graph)"
 	}
 
-	if subprojectSummary != "" {
-		fmt.Fprintf(&b, "%s\n", Style(subprojectSummary, Dim))
-	}
 	for _, notice := range fallbackNotices {
 		fmt.Fprintf(&b, "%s\n", Style("⚠ "+notice, Yellow))
 	}
 
-	roots, direct, transitive := scanRelationshipCounts(g)
-	runtimeCount, developmentCount, _ := scanScopeCounts(g)
+	_, direct, transitive := scanRelationshipCounts(g)
+	runtimeCount, developmentCount, unscopedCount := scanScopeCounts(g)
 
-	// Package count line: ✓ N packages in M manifests  (D direct, T transitive)
+	// Package count line: the total counts dependencies only — project and
+	// module nodes are structure, not packages — so the relationship and
+	// scope distributions always sum to it: total = direct + transitive =
+	// runtime + dev (+ unscoped).
 	checkmark := Style("✓", Green)
-	countPart := Style(fmt.Sprintf("%d", g.Size()), Cyan, Bold)
+	countPart := Style(fmt.Sprintf("%d", direct+transitive), Cyan, Bold)
+	manifestCount := len(manifests)
 	manifestWord := "manifest"
-	if roots != 1 {
+	if manifestCount != 1 {
 		manifestWord = "manifests"
 	}
-	manifestPart := Style(fmt.Sprintf("in %d %s", roots, manifestWord), Dim)
-	detailPart := Style(fmt.Sprintf("(%d direct, %d transitive)", direct, transitive), Dim)
+	manifestPart := Style(fmt.Sprintf("in %d %s", manifestCount, manifestWord), Dim)
+	scopePart := fmt.Sprintf("runtime %d, dev %d", runtimeCount, developmentCount)
+	if unscopedCount > 0 {
+		scopePart += fmt.Sprintf(", unscoped %d", unscopedCount)
+	}
+	detailPart := Style(fmt.Sprintf("(%d direct, %d transitive · %s)", direct, transitive, scopePart), Dim)
 	fmt.Fprintf(&b, "%s %s packages %s   %s\n", checkmark, countPart, manifestPart, detailPart)
 
-	// Scopes line
-	fmt.Fprintf(&b, "  %s\n", Style(fmt.Sprintf("scopes: runtime %d · dev %d", runtimeCount, developmentCount), Dim))
+	// Grouped manifest tree — only when the scan spans subprojects or
+	// modules; flat single-root scans keep the compact report unchanged.
+	if hierarchy := output.BuildHierarchy(manifests); hierarchy.HasGroups() {
+		b.WriteString(renderManifestHierarchy(g, hierarchy, manifests))
+	}
 
-	// Enrichment line
+	// Enrichment line — blank-line separated from the counts block.
 	if enrichEnabled && len(matcherStats) > 0 {
 		sources := make([]string, 0, len(matcherStats))
 		seen := make(map[string]struct{})
@@ -83,7 +91,7 @@ func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, m
 			}
 		}
 		if len(sources) > 0 {
-			fmt.Fprintf(&b, "%s %s\n", checkmark, Style("Enriched via "+strings.Join(sources, ", "), Green))
+			fmt.Fprintf(&b, "\n%s %s\n", checkmark, Style("Enriched via "+strings.Join(sources, ", "), Green))
 		}
 	}
 
@@ -184,65 +192,184 @@ func collapseWhitespace(value string) string {
 	return strings.Join(strings.Fields(value), " ")
 }
 
-// BuildSubprojectSummary returns a human-readable line like
-// "Discovered 2 subprojects: web (npm), api (go)" from the scan manifests.
-// A single path can host more than one ecosystem (e.g. a repo root with both
-// GitHub Actions workflows and an npm manifest), so entries are counted per
-// path per ecosystem rather than per path — otherwise the count and labels
-// under-report what was actually discovered.
-// Returns "" when no named subprojects are present (e.g. single-root repos).
-func BuildSubprojectSummary(manifests []output.ScanManifest) string {
-	type entry struct {
-		name string
-		pm   string
+// renderManifestHierarchy renders the grouped manifest tree shown when a
+// scan spans subprojects or modules. Modules nest under the manifest that
+// natively resolves them (the workspace lockfile, the reactor pom), and every
+// node is named after its package when a root name exists:
+//
+//	└─ dev.bomly.example:multimodule-parent — 1 package, 2 modules [pom.xml]
+//	   ├─ dev.bomly.example:core (module, maven) — 2 packages [core/pom.xml]
+//	   └─ dev.bomly.example:web (module, maven) — 6 packages [web/pom.xml]
+func renderManifestHierarchy(g *sdk.Graph, hierarchy output.HierarchyNode, manifests []output.ScanManifest) string {
+	var b strings.Builder
+	type line struct {
+		indent string
+		text   string
 	}
-	seen := make(map[string]struct{})
-	var entries []entry
-	for _, m := range manifests {
-		name := strings.TrimSpace(m.Subproject)
+	var lines []line
+
+	pluralize := func(count int, word string) string {
+		if count == 1 {
+			return fmt.Sprintf("%d %s", count, word)
+		}
+		return fmt.Sprintf("%d %ss", count, word)
+	}
+	// packageCount counts a manifest's dependencies, excluding structural
+	// nodes (graph roots and project/module application nodes): they are
+	// structure, not packages, so per-manifest counts stay consistent with
+	// the header total.
+	structural := topLevelParentIDs(g)
+	packageCount := func(manifest output.ScanManifest) int {
+		count := 0
+		for _, dep := range manifest.Dependencies {
+			if _, isStructural := structural[dep.ID]; isStructural {
+				continue
+			}
+			count++
+		}
+		return count
+	}
+	// manifestLabel names a manifest line after its package when a root name
+	// exists (a manifest and its project/module are one thing), keeping the
+	// manifest path as a bracketed hint. moduleCount > 0 marks a parent
+	// manifest whose modules nest beneath it.
+	manifestLabel := func(index, moduleCount int, baseDir string) string {
+		manifest := manifests[index]
+		path := strings.TrimSpace(manifest.Path)
+		if baseDir != "" && baseDir != "." {
+			path = strings.TrimPrefix(path, baseDir+"/")
+		}
+		label := output.ManifestRootName(manifest)
+		if label == "" {
+			label = path
+			path = ""
+		}
+		label += " — " + pluralize(packageCount(manifest), "package")
+		if moduleCount > 0 {
+			label += ", " + pluralize(moduleCount, "module")
+		}
+		if path != "" {
+			label += " [" + path + "]"
+		}
+		return label
+	}
+	groupLabel := func(node output.HierarchyNode) string {
+		pm := ""
+		if len(node.ManifestIndexes) > 0 {
+			pm = strings.TrimSpace(manifests[node.ManifestIndexes[0]].PackageManager.Name())
+		}
+		label := fmt.Sprintf("%s (%s", node.Label, node.Kind)
+		if pm != "" {
+			label += ", " + pm
+		}
+		return label + ")"
+	}
+	// mergedGroupLabel renders a single-manifest group as one merged node,
+	// preferring the package's own name over the directory, with the manifest
+	// path as a hint — a module and its manifest are one thing to the user.
+	mergedGroupLabel := func(node output.HierarchyNode) string {
+		manifest := manifests[node.ManifestIndexes[0]]
+		name := output.ManifestRootName(manifest)
 		if name == "" {
+			name = node.Label
+		}
+		pm := strings.TrimSpace(manifest.PackageManager.Name())
+		label := fmt.Sprintf("%s (%s", name, node.Kind)
+		if pm != "" {
+			label += ", " + pm
+		}
+		return fmt.Sprintf("%s) — %s [%s]", label, pluralize(packageCount(manifest), "package"), strings.TrimSpace(manifest.Path))
+	}
+
+	type child struct {
+		text     string
+		children []child
+	}
+	moduleChild := func(group output.HierarchyNode) child {
+		return child{text: mergedGroupLabel(group)}
+	}
+	var nodeChildren func(node output.HierarchyNode) []child
+	nodeChildren = func(node output.HierarchyNode) []child {
+		// Modules nest under the manifest that resolves them; unattached
+		// modules and subproject nodes stay children of the node itself.
+		attached := map[int][]child{}
+		var unattached []child
+		var subprojects []child
+		for _, group := range node.Children {
+			if group.Kind == output.ManifestNodeModule && len(group.Children) == 0 && len(group.ManifestIndexes) == 1 {
+				if group.AttachedManifest >= 0 {
+					attached[group.AttachedManifest] = append(attached[group.AttachedManifest], moduleChild(group))
+				} else {
+					unattached = append(unattached, moduleChild(group))
+				}
+				continue
+			}
+			subprojects = append(subprojects, child{text: groupLabel(group), children: nodeChildren(group)})
+		}
+		children := make([]child, 0, len(node.ManifestIndexes)+len(node.Children))
+		for _, index := range node.ManifestIndexes {
+			modules := attached[index]
+			children = append(children, child{text: manifestLabel(index, len(modules), node.Dir), children: modules})
+		}
+		children = append(children, unattached...)
+		children = append(children, subprojects...)
+		return children
+	}
+
+	var emit func(children []child, indent string)
+	emit = func(children []child, indent string) {
+		for i, c := range children {
+			connector, continuation := "├─ ", "│  "
+			if i == len(children)-1 {
+				connector, continuation = "└─ ", "   "
+			}
+			lines = append(lines, line{indent: indent + connector, text: c.text})
+			if len(c.children) > 0 {
+				emit(c.children, indent+continuation)
+			}
+		}
+	}
+	emit(nodeChildren(hierarchy), "  ")
+
+	for _, l := range lines {
+		fmt.Fprintf(&b, "%s%s\n", Style(l.indent, Dim), l.text)
+	}
+	return b.String()
+}
+
+// topLevelParentIDs returns the nodes whose direct children count as
+// "top-level" dependencies: graph roots plus every application-type node.
+// Workspace members and reactor modules are application nodes that may have
+// inbound edges (a sibling depends on them), so a roots-only view would hide
+// every non-root module's direct dependencies.
+func topLevelParentIDs(g *sdk.Graph) map[string]struct{} {
+	parents := make(map[string]struct{})
+	for _, root := range g.Roots() {
+		if root != nil {
+			parents[root.ID] = struct{}{}
+		}
+	}
+	for _, pkg := range g.Nodes() {
+		if pkg == nil {
 			continue
 		}
-		ecosystem := strings.TrimSpace(string(m.Ecosystem))
-		key := name + "\x00" + ecosystem
-		if _, ok := seen[key]; ok {
-			continue
+		if pkg.Type == sdk.PackageTypeApplication {
+			parents[pkg.ID] = struct{}{}
 		}
-		seen[key] = struct{}{}
-		pm := strings.TrimSpace(m.PackageManager.Name())
-		entries = append(entries, entry{name: name, pm: pm})
 	}
-	if len(entries) == 0 {
-		return ""
-	}
-	word := "subproject"
-	if len(entries) > 1 {
-		word = "subprojects"
-	}
-	labels := make([]string, 0, len(entries))
-	for _, e := range entries {
-		label := e.name
-		if e.pm != "" {
-			label += " (" + e.pm + ")"
-		}
-		labels = append(labels, label)
-	}
-	return fmt.Sprintf("Discovered %d %s: %s", len(entries), word, strings.Join(labels, ", "))
+	return parents
 }
 
 // renderDirectDepsTable renders the "Top-level dependencies" section showing
-// only packages that are direct dependents of a root node.
+// packages that are direct dependencies of any top-level parent — the scan
+// roots and every module/application node — so multi-module scans list each
+// module's direct dependencies, not only the root's.
 func renderDirectDepsTable(g *sdk.Graph, registry *sdk.PackageRegistry) string {
 	if g == nil || g.Size() == 0 {
 		return ""
 	}
 
-	rootIDs := make(map[string]struct{})
-	for _, root := range g.Roots() {
-		if root != nil {
-			rootIDs[root.ID] = struct{}{}
-		}
-	}
+	rootIDs := topLevelParentIDs(g)
 
 	type row struct {
 		name    string
@@ -507,13 +634,8 @@ func scanRelationshipCounts(g *sdk.Graph) (roots, direct, transitive int) {
 	if g == nil {
 		return 0, 0, 0
 	}
-	rootIDs := make(map[string]struct{})
-	for _, root := range g.Roots() {
-		if root != nil {
-			rootIDs[root.ID] = struct{}{}
-			roots++
-		}
-	}
+	rootIDs := topLevelParentIDs(g)
+	roots = len(rootIDs)
 	for _, pkg := range g.Nodes() {
 		if pkg == nil {
 			continue
@@ -543,12 +665,19 @@ func scanRelationshipCounts(g *sdk.Graph) (roots, direct, transitive int) {
 	return roots, direct, transitive
 }
 
-func scanScopeCounts(g *sdk.Graph) (runtimeCount, developmentCount, unknownCount int) {
+// scanScopeCounts buckets dependencies by scope over the same node set the
+// relationship counts cover (structural project/module nodes excluded), so
+// runtime + dev + unscoped always equals direct + transitive.
+func scanScopeCounts(g *sdk.Graph) (runtimeCount, developmentCount, unscopedCount int) {
 	if g == nil {
 		return 0, 0, 0
 	}
+	structural := topLevelParentIDs(g)
 	for _, pkg := range g.Nodes() {
 		if pkg == nil {
+			continue
+		}
+		if _, isStructural := structural[pkg.ID]; isStructural {
 			continue
 		}
 		switch pkg.PrimaryScope() {
@@ -557,10 +686,10 @@ func scanScopeCounts(g *sdk.Graph) (runtimeCount, developmentCount, unknownCount
 		case sdk.ScopeDevelopment:
 			developmentCount++
 		default:
-			unknownCount++
+			unscopedCount++
 		}
 	}
-	return runtimeCount, developmentCount, unknownCount
+	return runtimeCount, developmentCount, unscopedCount
 }
 
 func scanUniqueLicenseCount(g *sdk.Graph, registry *sdk.PackageRegistry) int {

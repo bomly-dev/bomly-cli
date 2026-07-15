@@ -457,9 +457,12 @@ func displayTargetName(target sdk.ExecutionTarget) string {
 	if strings.TrimSpace(location) == "" {
 		return ""
 	}
-	if target.Kind == sdk.ExecutionTargetContainerImage || target.Kind == sdk.ExecutionTargetGitRepository {
+	if target.Kind == sdk.ExecutionTargetContainerImage {
 		return location
 	}
+	// Git repositories and filesystem paths both name themselves after the
+	// last path segment — the repo or directory name. The full URL stays
+	// available as the descriptor's Path.
 	trimmed := strings.TrimSuffix(strings.TrimRight(location, `/\`), ".git")
 	if idx := strings.LastIndexAny(trimmed, `/\`); idx >= 0 && idx < len(trimmed)-1 {
 		return trimmed[idx+1:]

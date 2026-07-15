@@ -1,0 +1,376 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "dependencies": [
+        {
+          "depends_on": [],
+          "id": "pkg:npm/left-pad@1.3.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "WTFPL"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "left-pad",
+          "package_ref": "pkg:npm/left-pad@1.3.0",
+          "purl": "pkg:npm/left-pad@1.3.0",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.3.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/lodash@4.17.20",
+            "pkg:npm/minimist@1.2.5"
+          ],
+          "id": "pkg:npm/lib@1.0.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "name": "lib",
+          "package_ref": "pkg:npm/lib@1.0.0",
+          "purl": "pkg:npm/lib@1.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/lodash@4.17.20",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "lodash",
+          "package_ref": "pkg:npm/lodash@4.17.20",
+          "purl": "pkg:npm/lodash@4.17.20",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.17.20"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/minimist@1.2.5",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "minimist",
+          "package_ref": "pkg:npm/minimist@1.2.5",
+          "purl": "pkg:npm/minimist@1.2.5",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.2.5"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/left-pad@1.3.0",
+            "pkg:npm/lib@1.0.0",
+            "pkg:npm/minimist@1.2.5"
+          ],
+          "id": "pkg:npm/web@1.0.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "web",
+          "package_ref": "pkg:npm/web@1.0.0",
+          "purl": "pkg:npm/web@1.0.0",
+          "version": "1.0.0"
+        }
+      ],
+      "detector": "npm-detector",
+      "ecosystem": "npm",
+      "kind": "package.json",
+      "package_manager": "npm",
+      "path": "apps/web/package.json",
+      "subproject": "."
+    },
+    {
+      "dependencies": [
+        {
+          "depends_on": [
+            "pkg:npm/ms@2.1.3"
+          ],
+          "id": "pkg:npm/example-javascript-npm-workspaces@1.0.0",
+          "licenses": [],
+          "name": "example-javascript-npm-workspaces",
+          "package_ref": "pkg:npm/example-javascript-npm-workspaces@1.0.0",
+          "purl": "pkg:npm/example-javascript-npm-workspaces@1.0.0",
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/ms@2.1.3",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "ms",
+          "package_ref": "pkg:npm/ms@2.1.3",
+          "purl": "pkg:npm/ms@2.1.3",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "2.1.3"
+        }
+      ],
+      "detector": "npm-detector",
+      "ecosystem": "npm",
+      "kind": "package-lock.json",
+      "package_manager": "npm",
+      "path": "package-lock.json",
+      "subproject": "."
+    },
+    {
+      "dependencies": [
+        {
+          "depends_on": [
+            "pkg:npm/lodash@4.17.20",
+            "pkg:npm/minimist@1.2.5"
+          ],
+          "id": "pkg:npm/lib@1.0.0",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "name": "lib",
+          "package_ref": "pkg:npm/lib@1.0.0",
+          "purl": "pkg:npm/lib@1.0.0",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/lodash@4.17.20",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "lodash",
+          "package_ref": "pkg:npm/lodash@4.17.20",
+          "purl": "pkg:npm/lodash@4.17.20",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "4.17.20"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/minimist@1.2.5",
+          "licenses": [
+            {
+              "type": "declared",
+              "value": "MIT"
+            }
+          ],
+          "locations": [
+            {
+              "access_path": "package-lock.json",
+              "position": {
+                "file": "package-lock.json",
+                "line": 0
+              },
+              "real_path": "package-lock.json"
+            }
+          ],
+          "name": "minimist",
+          "package_ref": "pkg:npm/minimist@1.2.5",
+          "purl": "pkg:npm/minimist@1.2.5",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.2.5"
+        }
+      ],
+      "detector": "npm-detector",
+      "ecosystem": "npm",
+      "kind": "package.json",
+      "package_manager": "npm",
+      "path": "packages/lib/package.json",
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "duration_ms": 0
+  },
+  "packages": [
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "example-javascript-npm-workspaces",
+      "purl": "pkg:npm/example-javascript-npm-workspaces@1.0.0",
+      "version": "1.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "WTFPL"
+        }
+      ],
+      "name": "left-pad",
+      "purl": "pkg:npm/left-pad@1.3.0",
+      "version": "1.3.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "lib",
+      "purl": "pkg:npm/lib@1.0.0",
+      "version": "1.0.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "lodash",
+      "purl": "pkg:npm/lodash@4.17.20",
+      "version": "4.17.20",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "minimist",
+      "purl": "pkg:npm/minimist@1.2.5",
+      "version": "1.2.5",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "ms",
+      "purl": "pkg:npm/ms@2.1.3",
+      "version": "2.1.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [
+        {
+          "type": "declared",
+          "value": "MIT"
+        }
+      ],
+      "name": "web",
+      "purl": "pkg:npm/web@1.0.0",
+      "version": "1.0.0",
+      "vulnerabilities": []
+    }
+  ],
+  "project": {
+    "ecosystem": "npm",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "npm",
+    "path": "\u003cnormalized\u003e",
+    "target_ref": "v1.0.0",
+    "target_type": "git repository"
+  },
+  "schema_version": "1.0"
+}

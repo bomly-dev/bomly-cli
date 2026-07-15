@@ -197,7 +197,7 @@ func TestNewScanInteractiveModel_ViewIncludesGraphSummary(t *testing.T) {
 		"Components (2)",
 		"Component Details",
 		"Group: Dependency",
-		"demo-app (1 manifests)",
+		"demo-app (1 manifest)",
 	} {
 		if !strings.Contains(plain, want) {
 			t.Fatalf("expected view to contain %q, got:\n%s", want, view)
@@ -750,13 +750,33 @@ func TestScanInteractiveModel_ManifestDetailsIncludeDetectorMetadata(t *testing.
 	}
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
 	model.SelectView(2)
-	model.Move(1)
 
-	plain := render.StripANSI(model.View(110, 32))
-	for _, want := range []string{"Detector", "Name: npm-detector", "Package managers: npm", "Planned chain: npm-detector, syft-detector"} {
+	// The project node describes the scan target and lists its manifests;
+	// manifest and detector metadata belong to the ROOT component's details.
+	plain := render.StripANSI(model.View(110, 40))
+	for _, want := range []string{"Manifests", "package-lock.json (npm)"} {
 		if !strings.Contains(plain, want) {
-			t.Fatalf("expected manifest details to contain %q, got:\n%s", want, plain)
+			t.Fatalf("expected project details to list manifests, got:\n%s", want+"\n"+plain)
 		}
+	}
+	if strings.Contains(plain, "Planned chain:") {
+		t.Fatalf("project details must not carry detector metadata, got:\n%s", plain)
+	}
+
+	// Selecting the ROOT component row surfaces the manifest + detector
+	// sections.
+	wrapper := &teaModel{inner: model, width: 130, height: 60}
+	updated, _ := wrapper.Update(tea.KeyMsg{Type: tea.KeyDown})
+	wrapper = updated.(*teaModel)
+	plain = render.StripANSI(wrapper.View())
+	for _, want := range []string{"Project root", "Root package", "Detector", "Name: npm-detector", "Package managers: npm", "Planned chain: npm-detector, syft-detector"} {
+		if !strings.Contains(plain, want) {
+			t.Fatalf("expected root component details to contain %q, got:\n%s", want, plain)
+		}
+	}
+	// The unified merged-node layout replaces the verbose component dump.
+	if strings.Contains(plain, "Dependents (") {
+		t.Fatalf("root details must use the compact merged-node layout, got:\n%s", plain)
 	}
 }
 
@@ -1303,7 +1323,7 @@ func TestScanInteractiveModel_ComponentTreeExpandsSelectedNode(t *testing.T) {
 
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
 	model.SelectView(2)
-	expandTreeLayers(model, 2)
+	expandTreeLayers(model, 1)
 	plain := render.StripANSI(model.View(100, 24))
 	if !strings.Contains(plain, "react@18.2.0") {
 		t.Fatalf("expected direct dependency in component tree, got:\n%s", plain)
@@ -1312,7 +1332,7 @@ func TestScanInteractiveModel_ComponentTreeExpandsSelectedNode(t *testing.T) {
 		t.Fatalf("expected transitive dependency to be collapsed initially, got:\n%s", plain)
 	}
 
-	model.Move(3)
+	model.Move(2)
 	model.ToggleSelected()
 	plain = render.StripANSI(model.View(100, 24))
 	if !strings.Contains(plain, "loose-envify@1.4.0") {
@@ -1357,10 +1377,8 @@ func TestScanInteractiveModel_ComponentExpandCollapseAllProgressesByLayer(t *tes
 
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
 	model.SelectView(2)
-	assertViewContains(t, model, []string{"package-lock.json"}, []string{"demo-app@1.0.0", "react@18.2.0", "loose-envify@1.4.0"})
-
-	model.ExpandAll()
-	assertViewContains(t, model, []string{"demo-app@1.0.0"}, []string{"react@18.2.0", "loose-envify@1.4.0"})
+	// The merged project node exposes its root component directly.
+	assertViewContains(t, model, []string{"demo-app (1 manifest)", "demo-app@1.0.0"}, []string{"react@18.2.0", "loose-envify@1.4.0"})
 
 	model.ExpandAll()
 	assertViewContains(t, model, []string{"react@18.2.0"}, []string{"loose-envify@1.4.0"})
@@ -1375,7 +1393,7 @@ func TestScanInteractiveModel_ComponentExpandCollapseAllProgressesByLayer(t *tes
 	assertViewContains(t, model, []string{"demo-app@1.0.0"}, []string{"react@18.2.0"})
 
 	model.CollapseAll()
-	assertViewContains(t, model, []string{"package-lock.json"}, []string{"demo-app@1.0.0"})
+	assertViewContains(t, model, []string{"demo-app (1 manifest)"}, []string{"demo-app@1.0.0"})
 }
 
 func assertViewContains(t *testing.T, model *ScanModel, contains, excludes []string) {
@@ -1704,5 +1722,216 @@ func TestNewDiffInteractiveModel_ComponentsCycleGroupingAxis(t *testing.T) {
 	}
 	if !strings.Contains(plain, "left-pad@1.3.0") {
 		t.Fatalf("expected manifest-group to still show left-pad, got:\n%s", plain)
+	}
+}
+
+func TestScanInteractiveModel_ComponentsTreeShowsSubprojectAndModuleNodes(t *testing.T) {
+	rootTarget := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo"}
+	r1 := sdk.NewDependencyRef("web-app", "1.0.0")
+	c1 := sdk.NewDependencyRef("react", "18.2.0")
+	r2 := sdk.NewDependencyRef("web-member", "1.0.0")
+	c2 := sdk.NewDependencyRef("zod", "3.23.0")
+	r3 := sdk.NewDependencyRef("api", "2.0.0")
+	c3 := sdk.NewDependencyRef("guava", "33.0.0")
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{
+		{
+			SubprojectInfo: sdk.Subproject{ExecutionTarget: rootTarget, RelativePath: ".", PrimaryDetector: "npm-detector",
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM},
+			DetectorName: "npm-detector",
+			Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r1, c1), sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		},
+		{
+			// Workspace member: same root subproject, manifest nested below it.
+			SubprojectInfo: sdk.Subproject{ExecutionTarget: rootTarget, RelativePath: ".", PrimaryDetector: "npm-detector",
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM},
+			DetectorName: "npm-detector",
+			Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r2, c2), sdk.ManifestMetadata{Path: "apps/web/package.json", Kind: "package.json"}),
+		},
+		{
+			// Independently discovered nested subproject.
+			SubprojectInfo: sdk.Subproject{ExecutionTarget: rootTarget, RelativePath: "services/api", PrimaryDetector: "maven-detector",
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerMaven}, Ecosystem: sdk.EcosystemMaven},
+			DetectorName: "maven-detector",
+			Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r3, c3), sdk.ManifestMetadata{Path: "services/api/pom.xml", Kind: "pom.xml"}),
+		},
+	})
+	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	model := NewScan(output.ProjectDescriptor{Name: "demo", Path: "/tmp/demo"}, consolidated, graphValue, nil)
+	model.SelectView(2)
+	plain := render.StripANSI(model.View(190, 40))
+
+	// Merged nodes: the module/subproject and its single manifest are one
+	// row, named after the package with the directory as a hint; the root
+	// manifest is merged into the project node whose components render
+	// directly beneath it.
+	for _, want := range []string{
+		"demo (3 manifests, 1 subprojects, 1 modules)",
+		"web-app@1.0.0",
+		"web-member (",
+		"[apps/web/package.json]",
+		"module",
+		"api (",
+		"[services/api/pom.xml]",
+		"subproject",
+	} {
+		if !strings.Contains(plain, want) {
+			t.Fatalf("expected components tree to contain %q, got:\n%s", want, plain)
+		}
+	}
+	if strings.Contains(plain, "package.json (") || strings.Contains(plain, "pom.xml (") {
+		t.Fatalf("merged nodes must not render separate manifest rows, got:\n%s", plain)
+	}
+
+	// Expanding a merged node reveals the absorbed root's direct
+	// dependencies — the root row itself is represented by the node.
+	model.componentExpanded["subproject:services/api"] = true
+	model.Rebuild()
+	plain = render.StripANSI(model.View(190, 40))
+	if !strings.Contains(plain, "guava@33.0.0") {
+		t.Fatalf("expected expanded merged subproject to show its dependencies, got:\n%s", plain)
+	}
+	if strings.Contains(plain, "api@2.0.0") {
+		t.Fatalf("merged node must absorb its root component row, got:\n%s", plain)
+	}
+}
+
+func TestScanInteractiveModel_SingleRootScanHasNoGroupNodes(t *testing.T) {
+	g := sdk.New()
+	root := sdk.NewDependencyRef("demo-app", "1.0.0")
+	dep := sdk.NewDependencyRef("react", "18.2.0")
+	for _, pkg := range []*sdk.Dependency{root, dep} {
+		if err := g.AddNode(pkg); err != nil {
+			t.Fatalf("add package: %v", err)
+		}
+	}
+	if err := g.AddEdge(root.ID, dep.ID); err != nil {
+		t.Fatalf("add dependency: %v", err)
+	}
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{
+			ExecutionTarget:         sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo-app"},
+			RelativePath:            ".",
+			PrimaryDetector:         "npm-detector",
+			DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM},
+			Ecosystem:               sdk.EcosystemNPM,
+		},
+		DetectorName: "npm-detector",
+		Graphs:       engine.SingleGraphContainer(g, sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+	}})
+	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
+	model.SelectView(2)
+	plain := render.StripANSI(model.View(120, 30))
+	if !strings.Contains(plain, "demo-app (1 manifest)") {
+		t.Fatalf("expected flat project title without group counts, got:\n%s", plain)
+	}
+	// The merged project node exposes its root component directly — no
+	// intermediate manifest row.
+	if !strings.Contains(plain, "demo-app@1.0.0") {
+		t.Fatalf("expected root component directly under the merged project node, got:\n%s", plain)
+	}
+	for _, forbidden := range []string{"subproject", "module"} {
+		if strings.Contains(plain, forbidden) {
+			t.Fatalf("flat scan must not render %q nodes, got:\n%s", forbidden, plain)
+		}
+	}
+}
+
+func TestScanInteractiveModel_SourceTabListsSubprojects(t *testing.T) {
+	rootTarget := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/demo"}
+	r1 := sdk.NewDependencyRef("web-app", "1.0.0")
+	c1 := sdk.NewDependencyRef("react", "18.2.0")
+	r2 := sdk.NewDependencyRef("api", "2.0.0")
+	c2 := sdk.NewDependencyRef("guava", "33.0.0")
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{
+		{
+			SubprojectInfo: sdk.Subproject{ExecutionTarget: rootTarget, RelativePath: ".", PrimaryDetector: "npm-detector",
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM},
+			DetectorName: "npm-detector",
+			Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r1, c1), sdk.ManifestMetadata{Path: "package-lock.json", Kind: "package-lock.json"}),
+		},
+		{
+			SubprojectInfo: sdk.Subproject{ExecutionTarget: rootTarget, RelativePath: "services/api", PrimaryDetector: "maven-detector",
+				DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerMaven}, Ecosystem: sdk.EcosystemMaven},
+			DetectorName: "maven-detector",
+			Graphs:       engine.SingleGraphContainer(graphFixtureForInteractive(t, r2, c2), sdk.ManifestMetadata{Path: "services/api/pom.xml", Kind: "pom.xml"}),
+		},
+	})
+	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	model := NewScan(output.ProjectDescriptor{Name: "demo", Path: "/tmp/demo"}, consolidated, graphValue, nil)
+	model.SelectView(7)
+	plain := render.StripANSI(model.View(140, 40))
+	if !strings.Contains(plain, "subprojects: [] (2 items)") {
+		t.Fatalf("expected subprojects section in source tab, got:\n%s", plain)
+	}
+}
+
+func TestScanInteractiveModel_ModulesBranchFromParentRoot(t *testing.T) {
+	rootTarget := sdk.ExecutionTarget{Kind: sdk.ExecutionTargetFilesystem, Location: "/tmp/reactor"}
+	parent := sdk.NewDependencyWithID("parent@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "maven", Name: "parent", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	core := sdk.NewDependencyWithID("core@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "maven", Name: "core", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	dep := sdk.NewDependencyWithID("commons@3.12.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "maven", Name: "commons", Version: "3.12.0"}})
+
+	parentGraph := sdk.New()
+	if err := parentGraph.AddNode(parent); err != nil {
+		t.Fatalf("add parent: %v", err)
+	}
+	coreGraph := sdk.New()
+	for _, pkg := range []*sdk.Dependency{core, dep} {
+		if err := coreGraph.AddNode(pkg); err != nil {
+			t.Fatalf("add core node: %v", err)
+		}
+	}
+	if err := coreGraph.AddEdge(core.ID, dep.ID); err != nil {
+		t.Fatalf("add core edge: %v", err)
+	}
+
+	subproject := sdk.Subproject{ExecutionTarget: rootTarget, RelativePath: ".", PrimaryDetector: "maven-detector",
+		DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerMaven}, Ecosystem: sdk.EcosystemMaven}
+	consolidated := consolidatedForInteractive(t, []sdk.DetectionResult{{
+		SubprojectInfo: subproject,
+		DetectorName:   "maven-detector",
+		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{
+			{Graph: parentGraph, Manifest: sdk.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}},
+			{Graph: coreGraph, Manifest: sdk.ManifestMetadata{Path: "core/pom.xml", Kind: "pom.xml"}},
+		}},
+	}})
+	graphValue, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	model := NewScan(output.ProjectDescriptor{Name: "reactor", Path: "/tmp/reactor"}, consolidated, graphValue, nil)
+	model.SelectView(2)
+	plain := render.StripANSI(model.View(190, 40))
+
+	// The parent ROOT row leads and the module node branches out of it
+	// (default-expanded because it carries modules).
+	rootIdx := strings.Index(plain, "parent@1.0.0")
+	moduleIdx := strings.Index(plain, "core (")
+	if rootIdx < 0 || moduleIdx < 0 {
+		t.Fatalf("expected parent root and module rows, got:\n%s", plain)
+	}
+	if rootIdx > moduleIdx {
+		t.Fatalf("expected parent root row above the module node, got:\n%s", plain)
+	}
+
+	// Collapsing the parent root hides its modules (keyed by the normalized
+	// consolidated-graph root ID).
+	model.componentExpanded[model.manifests[0].rootID] = false
+	model.Rebuild()
+	plain = render.StripANSI(model.View(190, 40))
+	// The module tree node ("core (maven, ...)") disappears; the project
+	// details pane still lists the module as content.
+	if strings.Contains(plain, "core (maven") {
+		t.Fatalf("expected collapsed parent root to hide module nodes, got:\n%s", plain)
 	}
 }

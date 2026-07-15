@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 	"time"
 	"unicode"
@@ -85,11 +86,18 @@ func (d Detector) Descriptor() sdk.DetectorDescriptor {
 	}
 }
 
-// ResolveGraph resolves a Maven dependency graph for the scan engine.
+// ResolveGraph resolves a Maven dependency graph for the scan engine. A
+// multi-module reactor yields one manifest entry per module (the module's
+// pom.xml plus its reachable dependency subtree) alongside the root entry;
+// single-module projects keep exactly one entry.
 func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (sdk.DetectionResult, error) {
 	// Prefer the request-scoped logger (bound to this subproject) so
 	// concurrent per-subproject resolution stays attributable in logs.
 	d.Logger = req.DetectorLogger(d.Logger)
+	logger := d.Logger
+	if logger == nil {
+		logger = zap.NewNop()
+	}
 	depsGraph, err := d.resolveGraph(ctx, req.Stderr, req.ProjectPath, req.Verbose, req.ScopeFilter)
 	if err != nil {
 		return sdk.DetectionResult{}, err
@@ -101,9 +109,110 @@ func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (s
 	}
 	AttachPomPositions(depsGraph, workingDir)
 
+	rootManifest := detectors.InferManifestMetadata(req, evidencePatterns)
+	modules, err := walkPomModules(workingDir)
+	if err != nil || len(modules) == 0 {
+		if err != nil {
+			logger.Warn("maven module walk failed; emitting a single reactor manifest", zap.Error(err))
+		}
+		return sdk.DetectionResult{
+			Graphs: sdk.SingleGraphContainer(depsGraph, rootManifest),
+		}, nil
+	}
+
+	entries, matched := d.reactorGraphEntries(depsGraph, modules, rootManifest, workingDir)
+	if matched == 0 {
+		// No TGF root matched a pom-declared module (e.g. the reactor was
+		// resolved for a subset); keep the merged single entry.
+		return sdk.DetectionResult{
+			Graphs: sdk.SingleGraphContainer(depsGraph, rootManifest),
+		}, nil
+	}
+	logger.Info("maven detector resolved reactor modules", zap.Int("modules", matched))
 	return sdk.DetectionResult{
-		Graphs: sdk.SingleGraphContainer(depsGraph, detectors.InferManifestMetadata(req, evidencePatterns)),
+		Graphs: &sdk.GraphContainer{Entries: entries},
 	}, nil
+}
+
+// reactorGraphEntries partitions a merged reactor graph into per-module
+// manifest entries by matching graph roots against pom-declared module
+// coordinates. Unmatched graph roots (including the aggregator root pom's own
+// node) stay in the root entry, so blocks that cannot be mapped to a module
+// directory are never dropped.
+func (d Detector) reactorGraphEntries(depsGraph *sdk.Graph, modules []mavenModule, rootManifest sdk.ManifestMetadata, workingDir string) ([]sdk.GraphEntry, int) {
+	moduleByKey := make(map[string]mavenModule, len(modules))
+	for _, module := range modules {
+		moduleByKey[module.moduleKey()] = module
+	}
+
+	type moduleEntry struct {
+		module mavenModule
+		rootID string
+	}
+	// Match module coordinates against every node, not only graph roots: a
+	// module consumed by a sibling (web -> core) has inbound edges and is no
+	// longer a root, yet still needs its own manifest entry.
+	matchedModules := make([]moduleEntry, 0, len(modules))
+	matchedIDs := map[string]struct{}{}
+	for _, pkg := range depsGraph.Nodes() {
+		if pkg == nil {
+			continue
+		}
+		if module, ok := moduleByKey[graphNodeModuleKey(pkg)]; ok {
+			if _, seen := matchedIDs[pkg.ID]; seen {
+				continue
+			}
+			matchedIDs[pkg.ID] = struct{}{}
+			// Reactor modules are the project's own applications; typing them
+			// lets downstream views treat their direct dependencies as
+			// top-level even when a sibling module depends on them.
+			if pkg.Type == "" {
+				pkg.Type = sdk.PackageTypeApplication
+			}
+			matchedModules = append(matchedModules, moduleEntry{module: module, rootID: pkg.ID})
+		}
+	}
+	rootIDs := make([]string, 0)
+	for _, root := range depsGraph.Roots() {
+		if root == nil {
+			continue
+		}
+		if _, ok := matchedIDs[root.ID]; ok {
+			continue
+		}
+		rootIDs = append(rootIDs, root.ID)
+	}
+	if len(matchedModules) == 0 {
+		return nil, 0
+	}
+	sort.Slice(matchedModules, func(i, j int) bool { return matchedModules[i].module.Dir < matchedModules[j].module.Dir })
+
+	entries := make([]sdk.GraphEntry, 0, len(matchedModules)+1)
+	rootGraph := sdk.New()
+	for _, rootID := range rootIDs {
+		subgraph, err := detectors.SubgraphFrom(depsGraph, rootID)
+		if err != nil {
+			continue
+		}
+		if err := sdk.MergeGraph(rootGraph, subgraph); err != nil {
+			continue
+		}
+	}
+	if rootGraph.Size() > 0 {
+		entries = append(entries, sdk.GraphEntry{Graph: rootGraph, Manifest: rootManifest})
+	}
+	for _, matched := range matchedModules {
+		moduleGraph, err := detectors.SubgraphFrom(depsGraph, matched.rootID)
+		if err != nil {
+			continue
+		}
+		AttachPomPositions(moduleGraph, filepath.Join(workingDir, filepath.FromSlash(matched.module.Dir)))
+		entries = append(entries, sdk.GraphEntry{
+			Graph:    moduleGraph,
+			Manifest: sdk.ManifestMetadata{Path: matched.module.Dir + "/pom.xml", Kind: sdk.ManifestKind("pom.xml")},
+		})
+	}
+	return entries, len(matchedModules)
 }
 
 // FallbackDetector returns the configured fallback detector.

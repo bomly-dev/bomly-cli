@@ -396,3 +396,59 @@ func TestConsolidateGraphs_AcceptsNestedSubprojectExecutionTargets(t *testing.T)
 		t.Fatalf("ConsolidateGraphs() error = %v; nested subproject targets must not trip the multi-target guard", err)
 	}
 }
+
+func TestConsolidateGraphs_SharedDependencyAcrossModuleEntriesCountsOnce(t *testing.T) {
+	// Two module entries from one workspace resolution share a transitive
+	// dependency. The consolidated graph must contain it once.
+	shared := sdk.NewDependencyWithID("shared@2.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "shared", Version: "2.0.0"}})
+	webRoot := sdk.NewDependencyWithID("web@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "web", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+	libRoot := sdk.NewDependencyWithID("lib@1.0.0", sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: "npm", Name: "lib", Version: "1.0.0", Type: sdk.PackageTypeApplication}})
+
+	webGraph := sdk.New()
+	for _, pkg := range []*sdk.Dependency{webRoot, shared} {
+		if err := webGraph.AddNode(pkg); err != nil {
+			t.Fatalf("add web node: %v", err)
+		}
+	}
+	if err := webGraph.AddEdge(webRoot.ID, shared.ID); err != nil {
+		t.Fatalf("add web edge: %v", err)
+	}
+	libGraph := sdk.New()
+	for _, pkg := range []*sdk.Dependency{libRoot, shared} {
+		if err := libGraph.AddNode(pkg); err != nil {
+			t.Fatalf("add lib node: %v", err)
+		}
+	}
+	if err := libGraph.AddEdge(libRoot.ID, shared.ID); err != nil {
+		t.Fatalf("add lib edge: %v", err)
+	}
+
+	consolidated, err := ConsolidateGraphs([]sdk.DetectionResult{{
+		SubprojectInfo: sdk.Subproject{ExecutionTarget: sdk.ExecutionTarget{Kind: sdk.ExecutionTargetWorkingDirectory, Location: "/repo"}, RelativePath: ".", PrimaryDetector: "npm-detector", DetectedPackageManagers: []sdk.PackageManager{sdk.PackageManagerNPM}, Ecosystem: sdk.EcosystemNPM},
+		DetectorName:   "npm-detector",
+		Origin:         sdk.CoreOrigin,
+		Graphs: &sdk.GraphContainer{Entries: []sdk.GraphEntry{
+			{Graph: webGraph, Manifest: sdk.ManifestMetadata{Path: "apps/web/package.json", Kind: "package.json"}},
+			{Graph: libGraph, Manifest: sdk.ManifestMetadata{Path: "packages/lib/package.json", Kind: "package.json"}},
+		}},
+	}})
+	if err != nil {
+		t.Fatalf("ConsolidateGraphs() error = %v", err)
+	}
+	if len(consolidated.Graphs.Entries) != 2 {
+		t.Fatalf("expected both module manifests to survive, got %d", len(consolidated.Graphs.Entries))
+	}
+	merged, err := consolidated.Graphs.ConsolidatedGraph()
+	if err != nil {
+		t.Fatalf("ConsolidatedGraph() error = %v", err)
+	}
+	sharedCount := 0
+	for _, pkg := range merged.Nodes() {
+		if pkg != nil && pkg.Name == "shared" {
+			sharedCount++
+		}
+	}
+	if sharedCount != 1 {
+		t.Fatalf("expected shared dependency once in merged graph, got %d", sharedCount)
+	}
+}

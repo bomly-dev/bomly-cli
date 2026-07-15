@@ -1534,3 +1534,31 @@ func stripPanels(panels []listPanel) string {
 	}
 	return render.StripANSI(b.String())
 }
+
+func TestDiffInteractiveModel_ComponentsGroupBySubproject(t *testing.T) {
+	payload := fixtureDiffPayload()
+	payload.Results.Manifests[0].Subproject = "."
+	payload.Results.Manifests[1].Subproject = "services/api"
+	m := NewDiff(payload, sdk.ConsolidatedGraph{}, sdk.ConsolidatedGraph{})
+	m.componentsGroup = componentsGroupSubproject
+	m.SelectView(2)
+	plain := render.StripANSI(m.View(140, 50))
+
+	if !strings.Contains(plain, "Group: Subproject") {
+		t.Fatalf("expected subproject group axis in controls, got:\n%s", plain)
+	}
+	for _, want := range []string{"(root) (", "services/api ("} {
+		if !strings.Contains(plain, want) {
+			t.Fatalf("expected group header %q, got:\n%s", want, plain)
+		}
+	}
+}
+
+func TestNextComponentsGroupCyclesThroughSubproject(t *testing.T) {
+	order := []componentsGroup{componentsGroupStatus, componentsGroupManifest, componentsGroupSubproject, componentsGroupEcosystem, componentsGroupStatus}
+	for i := 0; i < len(order)-1; i++ {
+		if got := nextComponentsGroup(order[i]); got != order[i+1] {
+			t.Fatalf("nextComponentsGroup(%s) = %s, want %s", order[i], got, order[i+1])
+		}
+	}
+}

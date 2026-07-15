@@ -20,13 +20,15 @@ Switch with the number keys or `Tab`:
 | Key | View | What's shown |
 | --- | --- | --- |
 | `1` | Overview | Scan summary, totals by ecosystem and severity |
-| `2` | Packages | Full dependency list with tree expansion |
+| `2` | Components | Project tree: manifests and their dependency trees |
 | `3` | Vulnerabilities | Findings grouped by package |
 | `4` | Licenses | License inventory and conflicts |
 | `5` | Findings | Audit policy hits with reasons |
 | `6` | Source | Detected manifest and lockfile inventory |
 
 `Tab` cycles forward through views; `Shift+Tab` is the reverse cycle in supporting terminals.
+
+The Components tree groups manifests the way the project is actually laid out: manifests at the scan root sit directly under the project node, **subproject** nodes hold the manifests of independently discovered nested directories (what `--recursive` finds), and **module** nodes hold workspace/reactor members (npm/pnpm workspace packages, Cargo workspace members, Maven reactor modules) that resolve under one root manifest. Flat single-root scans keep a plain project → manifests tree. Group nodes expand and collapse like any other row, and their details pane shows the directory, ecosystems, and manifest counts. See [Scan targets](SCAN_TARGETS.md#subprojects-and-modules-in-scan-output) for the terminology.
 
 ## Navigation
 

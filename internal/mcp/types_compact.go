@@ -106,7 +106,13 @@ type RemediationGroup struct {
 // CompactSummary tells the agent what the scan covered and what the compact
 // response omitted (clean packages are counted, not listed).
 type CompactSummary struct {
-	Manifests          int            `json:"manifests"`
+	Manifests int `json:"manifests"`
+	// Subprojects counts independently discovered nested directories and
+	// Modules counts workspace/reactor members resolved under one root
+	// manifest; both are derived from the manifests' subproject and path
+	// fields and omitted for flat single-root scans.
+	Subprojects        int            `json:"subprojects,omitempty"`
+	Modules            int            `json:"modules,omitempty"`
 	TotalPackages      int            `json:"total_packages"`
 	VulnerablePackages int            `json:"vulnerable_packages,omitempty"`
 	CleanPackages      int            `json:"clean_packages,omitempty"`

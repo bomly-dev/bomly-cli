@@ -33,6 +33,6 @@ func FuzzDepGraphFromPNPMLockfile(f *testing.F) {
 		if err != nil {
 			return
 		}
-		nodetest.RequireFuzzGraphValid(t, graph)
+		nodetest.RequireFuzzGraphValid(t, graph.graph)
 	})
 }

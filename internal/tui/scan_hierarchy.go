@@ -253,6 +253,31 @@ func (m *ScanModel) mergedGroupDetails(group *manifestTreeGroup, manifest listPa
 	return append(lines, manifestDetails(m.graphValue, manifest)...)
 }
 
+// rootNodeDetails renders the details pane for the merged project's ROOT
+// component row: the root component itself, the root manifest it stands on,
+// and the module nodes branching out of it.
+func (m *ScanModel) rootNodeDetails(row listPackageRow, manifest listPackageRow, attached []*manifestTreeGroup) []string {
+	lines := componentDetails(m.graphValue, m.registry, row, manifest)
+	lines = append(lines, "")
+	lines = append(lines, manifestDetails(m.graphValue, manifest)...)
+	if len(attached) > 0 {
+		lines = append(lines, "", render.Style("Modules", render.Bold, render.Cyan))
+		for _, group := range attached {
+			name := group.label
+			suffix := ""
+			if len(group.manifests) > 0 {
+				moduleManifest := m.manifests[group.manifests[0]]
+				if rootName := m.manifestRootName(moduleManifest); rootName != "" && rootName != moduleManifest.displayName {
+					name = rootName
+				}
+				suffix = " [" + moduleManifest.id + "]"
+			}
+			lines = append(lines, render.Style("  ", render.Dim)+name+render.Style(suffix, render.Dim))
+		}
+	}
+	return lines
+}
+
 func sortedKeyList(values map[string]struct{}) string {
 	keys := make([]string, 0, len(values))
 	for key := range values {

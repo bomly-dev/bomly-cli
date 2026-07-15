@@ -521,10 +521,6 @@ func (m *ScanModel) buildManifestListModel() *listModel {
 	rootManifests, groups := m.manifestTreeGroups()
 	projectMerged := len(rootManifests) == 1
 	projectDetailLines := projectDetails(m, packageCount(m.graphValue), packageCount(m.graphValue))
-	if projectMerged {
-		projectDetailLines = append(projectDetailLines, "")
-		projectDetailLines = append(projectDetailLines, manifestDetails(m.graphValue, m.manifests[rootManifests[0]])...)
-	}
 	items = append(items, listItem{
 		title:    m.projectNodeTitle(groups),
 		subtitle: "project",
@@ -656,10 +652,6 @@ func (m *ScanModel) buildComponentsTreeListModel() *listModel {
 	projectKey := "project"
 	projectExpanded := expandedValue(m.componentExpanded, projectKey, true)
 	projectDetailLines := projectDetails(m, filteredComponentCount, totalComponents)
-	if projectMerged {
-		projectDetailLines = append(projectDetailLines, "")
-		projectDetailLines = append(projectDetailLines, manifestDetails(m.graphValue, m.manifests[rootManifests[0]])...)
-	}
 	items = append(items, listItem{
 		title:    m.projectNodeTitle(groups),
 		subtitle: "project",
@@ -792,7 +784,7 @@ func (m *ScanModel) buildComponentsTreeListModel() *listModel {
 			title:    row.displayName,
 			subtitle: row.relationship,
 			badges:   badges,
-			details:  componentDetails(m.graphValue, m.registry, row, manifest),
+			details:  m.rootNodeDetails(row, manifest, attached),
 			key:      row.id,
 			tree:     treeLevelPrefix(ancestorsLast) + treeConnector(last),
 			depth:    depth,
@@ -989,7 +981,7 @@ func (m *ScanModel) projectNodeTitle(groups []*manifestTreeGroup) string {
 }
 
 func projectDetails(m *ScanModel, filteredComponents, totalComponents int) []string {
-	return []string{
+	lines := []string{
 		render.Style("Project", render.Bold, render.Cyan),
 		"",
 		render.Style("  Name: ", render.Dim) + valueOrDash(m.project.Name),
@@ -998,6 +990,54 @@ func projectDetails(m *ScanModel, filteredComponents, totalComponents int) []str
 		render.Style("  Manifests: ", render.Dim) + fmt.Sprintf("%d", len(m.manifests)),
 		render.Style("  Components: ", render.Dim) + fmt.Sprintf("%d of %d", filteredComponents, totalComponents),
 	}
+	if contents := m.projectContentsLines(); len(contents) > 0 {
+		lines = append(lines, "", render.Style("Manifests", render.Bold, render.Cyan))
+		lines = append(lines, contents...)
+	}
+	return lines
+}
+
+// projectContentsLines lists what the scan found inside the target: its
+// manifests with the module and subproject nodes nested beneath the manifest
+// that resolves them.
+func (m *ScanModel) projectContentsLines() []string {
+	rootManifests, groups := m.manifestTreeGroups()
+	var lines []string
+	groupLine := func(group *manifestTreeGroup, indent string) string {
+		name := group.label
+		suffix := ""
+		if len(group.manifests) > 0 {
+			manifest := m.manifests[group.manifests[0]]
+			if rootName := m.manifestRootName(manifest); rootName != "" && rootName != manifest.displayName {
+				name = rootName
+			}
+			suffix = " [" + manifest.id + "]"
+		}
+		return render.Style(indent, render.Dim) + name + render.Style(" ("+string(group.kind)+")"+suffix, render.Dim)
+	}
+	attachedByManifest := map[int][]*manifestTreeGroup{}
+	var unattached []*manifestTreeGroup
+	for _, group := range groups {
+		if group.kind == output.ManifestNodeModule && group.attachedTo >= 0 {
+			attachedByManifest[group.attachedTo] = append(attachedByManifest[group.attachedTo], group)
+			continue
+		}
+		unattached = append(unattached, group)
+	}
+	for _, index := range rootManifests {
+		manifest := m.manifests[index]
+		lines = append(lines, render.Style("  ", render.Dim)+manifest.id+render.Style(" ("+valueOrDash(manifest.packageManagers)+")", render.Dim))
+		for _, group := range attachedByManifest[index] {
+			lines = append(lines, groupLine(group, "    "))
+		}
+	}
+	for _, group := range unattached {
+		lines = append(lines, groupLine(group, "  "))
+		for _, child := range group.children {
+			lines = append(lines, groupLine(child, "    "))
+		}
+	}
+	return lines
 }
 
 func packageCount(graphValue *sdk.Graph) int {
@@ -2715,9 +2755,6 @@ func manifestDetails(graphValue *sdk.Graph, row listPackageRow) []string {
 		render.Style("  Root (project package): ", render.Dim) + packageDisplayName(rootPkg),
 		render.Style("  Direct dependencies: ", render.Dim) + fmt.Sprintf("%d", len(groups.direct)),
 		render.Style("  Transitive dependencies: ", render.Dim) + fmt.Sprintf("%d", len(groups.transitive)),
-		"",
-		render.Style("Press Enter to view components for this manifest.", render.Dim),
-		"",
 	}
 	return lines
 }

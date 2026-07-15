@@ -751,12 +751,27 @@ func TestScanInteractiveModel_ManifestDetailsIncludeDetectorMetadata(t *testing.
 	model := NewScan(output.ProjectDescriptor{Name: "demo-app", Path: "/tmp/demo-app"}, consolidated, graphValue, nil)
 	model.SelectView(2)
 
-	// The single root manifest is merged into the project node, so the
-	// project details pane carries the manifest and detector metadata.
+	// The project node describes the scan target and lists its manifests;
+	// manifest and detector metadata belong to the ROOT component's details.
 	plain := render.StripANSI(model.View(110, 40))
+	for _, want := range []string{"Manifests", "package-lock.json (npm)"} {
+		if !strings.Contains(plain, want) {
+			t.Fatalf("expected project details to list manifests, got:\n%s", want+"\n"+plain)
+		}
+	}
+	if strings.Contains(plain, "Planned chain:") {
+		t.Fatalf("project details must not carry detector metadata, got:\n%s", plain)
+	}
+
+	// Selecting the ROOT component row surfaces the manifest + detector
+	// sections.
+	wrapper := &teaModel{inner: model, width: 130, height: 60}
+	updated, _ := wrapper.Update(tea.KeyMsg{Type: tea.KeyDown})
+	wrapper = updated.(*teaModel)
+	plain = render.StripANSI(wrapper.View())
 	for _, want := range []string{"Detector", "Name: npm-detector", "Package managers: npm", "Planned chain: npm-detector, syft-detector"} {
 		if !strings.Contains(plain, want) {
-			t.Fatalf("expected manifest details to contain %q, got:\n%s", want, plain)
+			t.Fatalf("expected root component details to contain %q, got:\n%s", want, plain)
 		}
 	}
 }
@@ -1910,7 +1925,9 @@ func TestScanInteractiveModel_ModulesBranchFromParentRoot(t *testing.T) {
 	model.componentExpanded[model.manifests[0].rootID] = false
 	model.Rebuild()
 	plain = render.StripANSI(model.View(190, 40))
-	if strings.Contains(plain, "core (") {
+	// The module tree node ("core (maven, ...)") disappears; the project
+	// details pane still lists the module as content.
+	if strings.Contains(plain, "core (maven") {
 		t.Fatalf("expected collapsed parent root to hide module nodes, got:\n%s", plain)
 	}
 }

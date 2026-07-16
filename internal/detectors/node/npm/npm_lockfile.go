@@ -69,6 +69,9 @@ func (d LockfileDetector) ResolveGraph(_ context.Context, req sdk.DetectionReque
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("npm lockfile parser detector: %w", err)
 	}
+	if _, err := node.AttachUnknownComponents(graphs.graph, graphs.rootID, d.Logger, detectors.NameNPM, "package-lock.json"); err != nil {
+		return sdk.DetectionResult{}, fmt.Errorf("npm lockfile parser detector: %w", err)
+	}
 	if err := node.AnnotateScopesFromPackageJSON(workingDir, graphs.graph); err != nil {
 		return sdk.DetectionResult{}, err
 	}

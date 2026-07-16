@@ -164,6 +164,11 @@ func addNodeIfMissing(g *Graph, node *Dependency) error {
 	}
 	clone := node.Clone()
 	err := g.AddNode(clone)
+	if errors.Is(err, ErrNodeAlreadyExist) {
+		if existing, ok := g.Node(node.ID); ok && existing != nil {
+			existing.Relationship = MergeDependencyRelationship(existing.Relationship, node.Relationship)
+		}
+	}
 	if err != nil && !errors.Is(err, ErrNodeAlreadyExist) {
 		return err
 	}

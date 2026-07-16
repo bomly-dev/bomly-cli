@@ -1,6 +1,7 @@
 package node
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -33,10 +34,15 @@ func ReadPackageJSONManifest(projectPath string) (PackageJSONManifest, error) {
 		return PackageJSONManifest{}, err
 	}
 	var manifest PackageJSONManifest
-	if err := json.Unmarshal(data, &manifest); err != nil {
+	if err := json.Unmarshal(StripUTF8BOM(data), &manifest); err != nil {
 		return PackageJSONManifest{}, fmt.Errorf("parse package.json: %w", err)
 	}
 	return manifest, nil
+}
+
+// StripUTF8BOM removes an optional UTF-8 byte-order mark from input.
+func StripUTF8BOM(data []byte) []byte {
+	return bytes.TrimPrefix(data, []byte{0xef, 0xbb, 0xbf})
 }
 
 // NormalizeVersionToken removes common package-manager range and protocol markers from a version token.

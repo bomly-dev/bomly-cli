@@ -9,6 +9,19 @@ import (
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
+func TestRemediationActionRequiresManualReviewForUnknownParent(t *testing.T) {
+	got := remediationAction(
+		sdk.Finding{Kind: sdk.FindingKindVulnerability},
+		&sdk.Vulnerability{FixedIn: "2.0.0"},
+		CompactFinding{Classification: ClassificationFixAvailable},
+		ancestorTarget{unresolvedParent: true},
+		"npm",
+	)
+	if got != ActionManualReview {
+		t.Fatalf("remediationAction() = %q, want %q", got, ActionManualReview)
+	}
+}
+
 // remediationFixture builds a small realistic scan state:
 //
 //	app@1.0.0 (root)

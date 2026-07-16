@@ -75,13 +75,10 @@ func toPath(packages []*sdk.Dependency, cyclic bool, cycleTo string) Path {
 	for _, pkg := range packages {
 		refs = append(refs, output.PackageFromGraphPackage(pkg))
 	}
-	relationship := "transitive"
-	if len(refs) <= 2 {
-		relationship = "direct"
-	}
+	relationship := sdk.RelationshipForPath(packages)
 	introducedVia := refs[0].ID
 	return Path{
-		Relationship:  relationship,
+		Relationship:  string(relationship),
 		Packages:      refs,
 		IntroducedVia: introducedVia,
 		Cyclic:        cyclic,

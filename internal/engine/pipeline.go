@@ -229,8 +229,8 @@ func (p *Pipeline) logUnexpectedMultiRootGraph(stage, detector, subproject strin
 	if !hasApplicationRoot {
 		return
 	}
-	p.Logger.Warn(
-		"pipeline: unexpected multi-root graph detected",
+	p.Logger.Debug(
+		"pipeline: dependency components with unknown parent relationships detected",
 		zap.String("stage", stage),
 		zap.String("detector", detector),
 		zap.String("subproject", subproject),

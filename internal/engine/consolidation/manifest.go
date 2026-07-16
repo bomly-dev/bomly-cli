@@ -178,6 +178,7 @@ func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error
 			if target == nil || target.ID == preferred.ID {
 				continue
 			}
+			target.Relationship = sdk.DependencyRelationshipUnknown
 			if err := g.AddEdge(preferred.ID, target.ID); err != nil {
 				if errors.Is(err, sdk.ErrSelfDependency) {
 					continue
@@ -215,6 +216,9 @@ func ensureEntryRoot(g *sdk.Graph, manifest sdk.ManifestMetadata, idx int) error
 	for _, target := range targets {
 		if target == nil || target.ID == rootID {
 			continue
+		}
+		if target.Relationship == "" {
+			target.Relationship = sdk.DependencyRelationshipUnknown
 		}
 		if err := g.AddEdge(rootID, target.ID); err != nil {
 			if errors.Is(err, sdk.ErrSelfDependency) {

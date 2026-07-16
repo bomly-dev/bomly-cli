@@ -83,7 +83,7 @@ flowchart TD
     SP -->|workspace / reactor expansion| MOD
     MOD -->|one manifest each| MAN
     MAN -->|graph root| ROOT
-    ROOT -->|direct + transitive| DEP
+    ROOT -->|direct + transitive + unknown| DEP
     DEP -->|shared transitives count once| P2
 ```
 

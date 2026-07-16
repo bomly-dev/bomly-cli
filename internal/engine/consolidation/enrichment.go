@@ -117,7 +117,11 @@ func addNodeIfMissing(g *sdk.Graph, node *sdk.Dependency) error {
 		return nil
 	}
 	clone := node.Clone()
-	if err := g.AddNode(clone); err != nil && !errors.Is(err, sdk.ErrNodeAlreadyExist) {
+	if err := g.AddNode(clone); errors.Is(err, sdk.ErrNodeAlreadyExist) {
+		if existing, ok := g.Node(node.ID); ok && existing != nil {
+			existing.Relationship = sdk.MergeDependencyRelationship(existing.Relationship, node.Relationship)
+		}
+	} else if err != nil {
 		return fmt.Errorf("add dependency %q: %w", node.ID, err)
 	}
 	return nil

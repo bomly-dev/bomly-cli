@@ -307,6 +307,13 @@ func TestConsolidateGraphs_PrefersApplicationRootWhenEntryHasMultipleRoots(t *te
 	if len(deps) != 2 {
 		t.Fatalf("expected application root to depend on both original roots, got %d", len(deps))
 	}
+	orphanNode, ok := mergedGraph.Node("pkg:npm/string-width@2.1.1")
+	if !ok {
+		t.Fatal("expected orphan dependency to remain in the graph")
+	}
+	if orphanNode.Relationship != sdk.DependencyRelationshipUnknown {
+		t.Fatalf("orphan relationship = %q, want unknown", orphanNode.Relationship)
+	}
 }
 
 type nodeFixture struct {

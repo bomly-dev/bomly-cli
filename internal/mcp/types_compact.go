@@ -86,6 +86,7 @@ const (
 	ActionTransitiveOverride = "transitive-override"
 	ActionLockfileRefresh    = "lockfile-refresh"
 	ActionNoFixUpstream      = "no-fix-upstream"
+	ActionManualReview       = "manual-review"
 	ActionPolicyReview       = "policy-review"
 )
 

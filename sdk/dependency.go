@@ -84,15 +84,17 @@ func ScopesOf(scopes ...Scope) []Scope {
 // vulnerabilities, scorecard) lives on the referenced Package, not here.
 type Dependency struct {
 	Coordinates
-	ID          string            `json:"id"`
-	Scopes      []Scope           `json:"scopes,omitempty"`
-	Locations   []PackageLocation `json:"locations,omitempty"`
-	CPEs        []string          `json:"cpes,omitempty"`
-	Digests     []Digest          `json:"digests,omitempty"`
-	Copyright   string            `json:"copyright,omitempty"`
-	FoundBy     string            `json:"found_by,omitempty"`
-	ResolvedURL string            `json:"resolved_url,omitempty"`
-	Metadata    map[string]any    `json:"metadata,omitempty"`
+	ID           string                 `json:"id"`
+	Relationship DependencyRelationship `json:"relationship,omitempty"`
+	Source       DependencySource       `json:"source,omitempty"`
+	Scopes       []Scope                `json:"scopes,omitempty"`
+	Locations    []PackageLocation      `json:"locations,omitempty"`
+	CPEs         []string               `json:"cpes,omitempty"`
+	Digests      []Digest               `json:"digests,omitempty"`
+	Copyright    string                 `json:"copyright,omitempty"`
+	FoundBy      string                 `json:"found_by,omitempty"`
+	ResolvedURL  string                 `json:"resolved_url,omitempty"`
+	Metadata     map[string]any         `json:"metadata,omitempty"`
 
 	// Matched is true when the referenced package was enriched by a matcher.
 	Matched bool `json:"matched,omitempty"`

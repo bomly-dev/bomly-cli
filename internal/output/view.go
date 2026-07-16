@@ -1068,8 +1068,18 @@ func (m directMembership) apply(ref *PackageRef, dep *sdk.Dependency) {
 	if !m.known || dep == nil {
 		return
 	}
+	if dep.Relationship == sdk.DependencyRelationshipUnknown {
+		ref.Relationship = string(sdk.DependencyRelationshipUnknown)
+		ref.Direct = nil
+		return
+	}
 	_, isDirect := m.ids[dep.ID]
 	ref.Direct = &isDirect
+	if isDirect {
+		ref.Relationship = string(sdk.DependencyRelationshipDirect)
+	} else {
+		ref.Relationship = string(sdk.DependencyRelationshipTransitive)
+	}
 }
 
 const (

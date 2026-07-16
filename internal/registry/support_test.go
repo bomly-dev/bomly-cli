@@ -157,7 +157,7 @@ func TestSupportEntriesForTechniqueFiltersEvidencePatterns(t *testing.T) {
 			manager:        sdk.PackageManagerNPM,
 			technique:      sdk.LockfileTechnique,
 			wantDetectors:  []string{detectors.NameNPM},
-			wantEvidence:   []string{"package-lock.json"},
+			wantEvidence:   []string{"npm-shrinkwrap.json", "package-lock.json"},
 			rejectEvidence: []string{},
 		},
 		{

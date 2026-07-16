@@ -89,7 +89,7 @@
             "pkg:npm/google-proto-files@0.8.6",
             "pkg:npm/is@3.2.0",
             "pkg:npm/propprop@0.3.1",
-            "pkg:npm/request@2.79.0",
+            "pkg:npm/request@2.76.0",
             "pkg:npm/rgb-hex@1.0.0",
             "pkg:npm/string-format-obj@1.1.0"
           ],
@@ -906,6 +906,30 @@
             "runtime"
           ],
           "version": "2.0.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/tweetnacl@0.14.5"
+          ],
+          "id": "pkg:npm/bcrypt-pbkdf@1.0.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "yarn.lock",
+              "position": {
+                "file": "yarn.lock",
+                "line": 0
+              },
+              "real_path": "yarn.lock"
+            }
+          ],
+          "name": "bcrypt-pbkdf",
+          "package_ref": "pkg:npm/bcrypt-pbkdf@1.0.1",
+          "purl": "pkg:npm/bcrypt-pbkdf@1.0.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.1"
         },
         {
           "depends_on": [],
@@ -2099,6 +2123,28 @@
         },
         {
           "depends_on": [],
+          "id": "pkg:npm/debug@%3D",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "yarn.lock",
+              "position": {
+                "file": "yarn.lock",
+                "line": 0
+              },
+              "real_path": "yarn.lock"
+            }
+          ],
+          "name": "debug",
+          "package_ref": "pkg:npm/debug@%3D",
+          "purl": "pkg:npm/debug@%3D",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "="
+        },
+        {
+          "depends_on": [],
           "id": "pkg:npm/debug@0.7.4",
           "licenses": [],
           "locations": [
@@ -2158,9 +2204,6 @@
           "name": "debug",
           "package_ref": "pkg:npm/debug@0.8.1",
           "purl": "pkg:npm/debug@0.8.1",
-          "scopes": [
-            "runtime"
-          ],
           "version": "0.8.1"
         },
         {
@@ -2416,6 +2459,30 @@
             "runtime"
           ],
           "version": "3.5.0"
+        },
+        {
+          "depends_on": [
+            "pkg:npm/jsbn@0.1.1"
+          ],
+          "id": "pkg:npm/ecc-jsbn@0.1.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "yarn.lock",
+              "position": {
+                "file": "yarn.lock",
+                "line": 0
+              },
+              "real_path": "yarn.lock"
+            }
+          ],
+          "name": "ecc-jsbn",
+          "package_ref": "pkg:npm/ecc-jsbn@0.1.1",
+          "purl": "pkg:npm/ecc-jsbn@0.1.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.1.1"
         },
         {
           "depends_on": [
@@ -2698,6 +2765,7 @@
             "pkg:npm/boom@4.2.0",
             "pkg:npm/console-io@2.6.3",
             "pkg:npm/cookie-signature@1.0.2",
+            "pkg:npm/debug@0.8.1",
             "pkg:npm/express@4.1.1",
             "pkg:npm/handlebars-ex@0.0.2",
             "pkg:npm/jquery@3.0.0-alpha1",
@@ -2740,7 +2808,7 @@
             "pkg:npm/buffer-crc32@0.2.1",
             "pkg:npm/cookie-signature@1.0.3",
             "pkg:npm/cookie@0.1.2",
-            "pkg:npm/debug@0.8.1",
+            "pkg:npm/debug@%3D",
             "pkg:npm/escape-html@1.0.1",
             "pkg:npm/fresh@0.2.2",
             "pkg:npm/merge-descriptors@0.0.2",
@@ -3636,7 +3704,7 @@
             "pkg:npm/google-p12-pem@0.1.1",
             "pkg:npm/jws@3.0.0",
             "pkg:npm/mime@1.2.11",
-            "pkg:npm/request@2.79.0"
+            "pkg:npm/request@2.76.0"
           ],
           "id": "pkg:npm/gtoken@1.2.1",
           "licenses": [],
@@ -4508,6 +4576,30 @@
         },
         {
           "depends_on": [
+            "pkg:npm/jsbn@0.1.1"
+          ],
+          "id": "pkg:npm/jodid25519@1.0.2",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "yarn.lock",
+              "position": {
+                "file": "yarn.lock",
+                "line": 0
+              },
+              "real_path": "yarn.lock"
+            }
+          ],
+          "name": "jodid25519",
+          "package_ref": "pkg:npm/jodid25519@1.0.2",
+          "purl": "pkg:npm/jodid25519@1.0.2",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "1.0.2"
+        },
+        {
+          "depends_on": [
             "pkg:npm/execon@1.2.9",
             "pkg:npm/files-io@1.2.8",
             "pkg:npm/minify@2.0.13",
@@ -4554,6 +4646,28 @@
             "runtime"
           ],
           "version": "3.0.0-alpha1"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/jsbn@0.1.1",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "yarn.lock",
+              "position": {
+                "file": "yarn.lock",
+                "line": 0
+              },
+              "real_path": "yarn.lock"
+            }
+          ],
+          "name": "jsbn",
+          "package_ref": "pkg:npm/jsbn@0.1.1",
+          "purl": "pkg:npm/jsbn@0.1.1",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.1.1"
         },
         {
           "depends_on": [],
@@ -5703,7 +5817,7 @@
           "depends_on": [
             "pkg:npm/async@1.5.2",
             "pkg:npm/proxyquire@1.7.11",
-            "pkg:npm/request@2.79.0",
+            "pkg:npm/request@2.76.0",
             "pkg:npm/supertest@1.2.0"
           ],
           "id": "pkg:npm/nodejs-repo-tools@1.0.0",
@@ -7719,8 +7833,13 @@
           "depends_on": [
             "pkg:npm/asn1@0.2.3",
             "pkg:npm/assert-plus@1.0.0",
+            "pkg:npm/bcrypt-pbkdf@1.0.1",
             "pkg:npm/dashdash@1.14.1",
-            "pkg:npm/getpass@0.1.6"
+            "pkg:npm/ecc-jsbn@0.1.1",
+            "pkg:npm/getpass@0.1.6",
+            "pkg:npm/jodid25519@1.0.2",
+            "pkg:npm/jsbn@0.1.1",
+            "pkg:npm/tweetnacl@0.14.5"
           ],
           "id": "pkg:npm/sshpk@1.10.2",
           "licenses": [],
@@ -8339,6 +8458,28 @@
             "runtime"
           ],
           "version": "0.4.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:npm/tweetnacl@0.14.5",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "yarn.lock",
+              "position": {
+                "file": "yarn.lock",
+                "line": 0
+              },
+              "real_path": "yarn.lock"
+            }
+          ],
+          "name": "tweetnacl",
+          "package_ref": "pkg:npm/tweetnacl@0.14.5",
+          "purl": "pkg:npm/tweetnacl@0.14.5",
+          "scopes": [
+            "runtime"
+          ],
+          "version": "0.14.5"
         },
         {
           "depends_on": [
@@ -9332,6 +9473,14 @@
     {
       "ecosystem": "npm",
       "licenses": [],
+      "name": "bcrypt-pbkdf",
+      "purl": "pkg:npm/bcrypt-pbkdf@1.0.1",
+      "version": "1.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
       "name": "benchmark",
       "purl": "pkg:npm/benchmark@1.0.0",
       "version": "1.0.0",
@@ -9741,6 +9890,14 @@
       "ecosystem": "npm",
       "licenses": [],
       "name": "debug",
+      "purl": "pkg:npm/debug@%3D",
+      "version": "=",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "debug",
       "purl": "pkg:npm/debug@0.7.4",
       "version": "0.7.4",
       "vulnerabilities": []
@@ -9847,6 +10004,14 @@
       "name": "duplexify",
       "purl": "pkg:npm/duplexify@3.5.0",
       "version": "3.5.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "ecc-jsbn",
+      "purl": "pkg:npm/ecc-jsbn@0.1.1",
+      "version": "0.1.1",
       "vulnerabilities": []
     },
     {
@@ -10532,6 +10697,14 @@
     {
       "ecosystem": "npm",
       "licenses": [],
+      "name": "jodid25519",
+      "purl": "pkg:npm/jodid25519@1.0.2",
+      "version": "1.0.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
       "name": "join-io",
       "purl": "pkg:npm/join-io@1.4.5",
       "version": "1.4.5",
@@ -10543,6 +10716,14 @@
       "name": "jquery",
       "purl": "pkg:npm/jquery@3.0.0-alpha1",
       "version": "3.0.0-alpha1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "jsbn",
+      "purl": "pkg:npm/jsbn@0.1.1",
+      "version": "0.1.1",
       "vulnerabilities": []
     },
     {
@@ -11791,6 +11972,14 @@
       "name": "tunnel-agent",
       "purl": "pkg:npm/tunnel-agent@0.4.3",
       "version": "0.4.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "npm",
+      "licenses": [],
+      "name": "tweetnacl",
+      "purl": "pkg:npm/tweetnacl@0.14.5",
+      "version": "0.14.5",
       "vulnerabilities": []
     },
     {

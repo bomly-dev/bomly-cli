@@ -2,6 +2,7 @@ package node
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/bomly-dev/bomly-cli/sdk"
 	"go.uber.org/zap"
@@ -39,17 +40,28 @@ func AttachUnknownComponents(graph *sdk.Graph, rootID string, logger *zap.Logger
 	if _, ok := graph.Node(rootID); !ok {
 		return nil, fmt.Errorf("dependency root %q not found", rootID)
 	}
+	known := make(map[string]struct{}, graph.Size())
+	for _, candidate := range graph.Roots() {
+		if candidate != nil && candidate.Type == sdk.PackageTypeApplication {
+			addReachable(graph, candidate.ID, known)
+		}
+	}
+	addReachable(graph, rootID, known)
+
 	components := make([]UnknownComponent, 0)
-	for _, root := range graph.Roots() {
-		if root == nil || root.ID == rootID || root.Type == sdk.PackageTypeApplication {
-			continue
+	for {
+		unresolved := unresolvedDependencyNodes(graph, known)
+		if len(unresolved) == 0 {
+			break
 		}
-		root.Relationship = sdk.DependencyRelationshipUnknown
-		size := reachableSize(graph, root.ID)
-		if err := graph.AddEdge(rootID, root.ID); err != nil {
-			return nil, fmt.Errorf("attach unknown component %q to %q: %w", root.ID, rootID, err)
+		candidate := unresolvedComponentRoot(graph, unresolved, known)
+		candidate.Relationship = sdk.DependencyRelationshipUnknown
+		before := len(known)
+		addReachable(graph, candidate.ID, known)
+		if err := graph.AddEdge(rootID, candidate.ID); err != nil {
+			return nil, fmt.Errorf("attach unknown component %q to %q: %w", candidate.ID, rootID, err)
 		}
-		components = append(components, UnknownComponent{RootID: root.ID, Size: size})
+		components = append(components, UnknownComponent{RootID: candidate.ID, Size: len(known) - before})
 	}
 	if len(components) == 0 {
 		return nil, nil
@@ -67,8 +79,11 @@ func AttachUnknownComponents(graph *sdk.Graph, rootID string, logger *zap.Logger
 	return components, nil
 }
 
-func reachableSize(graph *sdk.Graph, rootID string) int {
-	seen := map[string]struct{}{rootID: {}}
+func addReachable(graph *sdk.Graph, rootID string, seen map[string]struct{}) {
+	if _, ok := seen[rootID]; ok {
+		return
+	}
+	seen[rootID] = struct{}{}
 	queue := []string{rootID}
 	for len(queue) > 0 {
 		current := queue[0]
@@ -88,5 +103,50 @@ func reachableSize(graph *sdk.Graph, rootID string) int {
 			queue = append(queue, child.ID)
 		}
 	}
-	return len(seen)
+}
+
+func unresolvedDependencyNodes(graph *sdk.Graph, known map[string]struct{}) []*sdk.Dependency {
+	var unresolved []*sdk.Dependency
+	for _, dependency := range graph.Nodes() {
+		if dependency == nil || dependency.Type == sdk.PackageTypeApplication || dependency.Type == sdk.PackageTypeManifest {
+			continue
+		}
+		if _, ok := known[dependency.ID]; !ok {
+			unresolved = append(unresolved, dependency)
+		}
+	}
+	sort.Slice(unresolved, func(i, j int) bool { return unresolved[i].ID < unresolved[j].ID })
+	return unresolved
+}
+
+func unresolvedComponentRoot(graph *sdk.Graph, unresolved []*sdk.Dependency, known map[string]struct{}) *sdk.Dependency {
+	set := make(map[string]struct{}, len(unresolved))
+	for _, dependency := range unresolved {
+		set[dependency.ID] = struct{}{}
+	}
+	for _, dependency := range unresolved {
+		parents, err := graph.Dependents(dependency.ID)
+		if err != nil {
+			continue
+		}
+		hasUnresolvedParent := false
+		for _, parent := range parents {
+			if parent == nil {
+				continue
+			}
+			if _, ok := set[parent.ID]; ok {
+				hasUnresolvedParent = true
+				break
+			}
+			if _, ok := known[parent.ID]; ok {
+				continue
+			}
+		}
+		if !hasUnresolvedParent {
+			return dependency
+		}
+	}
+	// A remaining strongly connected component has no natural root. Selecting
+	// the stable first ID retains the cycle while making parent uncertainty explicit.
+	return unresolved[0]
 }

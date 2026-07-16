@@ -45,3 +45,31 @@ func TestAttachUnknownComponentsMarksOnlyComponentRoots(t *testing.T) {
 		t.Fatalf("child relationship = %q, want transitive", got)
 	}
 }
+
+func TestAttachUnknownComponentsRetainsDisconnectedCycle(t *testing.T) {
+	graph := sdk.New()
+	root := sdk.NewDependencyWithID("app", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "app", Type: sdk.PackageTypeApplication}})
+	a := sdk.NewDependencyRefWithID("a", "a", "1")
+	b := sdk.NewDependencyRefWithID("b", "b", "1")
+	for _, dependency := range []*sdk.Dependency{root, a, b} {
+		if err := graph.AddNode(dependency); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := graph.AddEdge(a.ID, b.ID); err != nil {
+		t.Fatal(err)
+	}
+	if err := graph.AddEdge(b.ID, a.ID); err != nil {
+		t.Fatal(err)
+	}
+	components, err := AttachUnknownComponents(graph, root.ID, nil, "test", "yarn.lock")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(components) != 1 || components[0].Size != 2 {
+		t.Fatalf("components = %#v", components)
+	}
+	if components[0].RootID != "a" || a.Relationship != sdk.DependencyRelationshipUnknown {
+		t.Fatalf("cycle root = %#v, relationship=%q", components[0], a.Relationship)
+	}
+}

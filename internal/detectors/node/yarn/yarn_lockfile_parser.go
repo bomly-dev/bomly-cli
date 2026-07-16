@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
@@ -15,6 +16,7 @@ type yarnLockEntry struct {
 	Name         string
 	Version      string
 	Resolved     string
+	Resolution   string
 	Integrity    string
 	Selectors    []string
 	Dependencies map[string]string
@@ -40,7 +42,7 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 	}
 
 	depsGraph := sdk.New()
-	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: rootName, Version: manifest.Version, Type: sdk.PackageTypeApplication}})
+	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: rootName, Version: manifest.Version, Type: sdk.PackageTypeApplication}, Source: sdk.DependencySourceProject})
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add yarn root node: %w", err)
 	}
@@ -49,6 +51,12 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 	entriesByName := make(map[string][]int)
 	for idx, entry := range entries {
 		entriesByName[entry.Name] = append(entriesByName[entry.Name], idx)
+		for _, selector := range entry.Selectors {
+			selectorName := yarnPackageNameFromSelector(selector)
+			if selectorName != "" && selectorName != entry.Name {
+				entriesByName[selectorName] = append(entriesByName[selectorName], idx)
+			}
+		}
 	}
 
 	addEntryNode := func(idx int) (string, error) {
@@ -58,10 +66,13 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 		entry := entries[idx]
 		pkg := sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
 			Name:    entry.Name,
-			Version: entry.Version}, ResolvedURL: entry.Resolved,
+			Version: entry.Version}, Source: yarnEntrySource(entry), ResolvedURL: entry.Resolved,
 			Digests: node.ParseIntegrityDigests(entry.Integrity),
 		}
 		pkgNode := sdk.NewDependency(pkg)
+		if existing, ok := depsGraph.Node(pkgNode.ID); ok && existing.Type == sdk.PackageTypeApplication {
+			pkgNode = sdk.NewDependencyWithID(fmt.Sprintf("yarn-package:%d", idx), pkg)
+		}
 		if err := node.AddNodeIfMissing(depsGraph, pkgNode); err != nil {
 			return "", err
 		}
@@ -69,33 +80,15 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 		return pkgNode.ID, nil
 	}
 
-	runtimeDeps := node.MergeStringMaps(manifest.Dependencies, node.MergeStringMaps(manifest.OptionalDependencies, manifest.PeerDependencies))
-	directDeps := node.MergeStringMaps(runtimeDeps, manifest.DevDependencies)
-	queue := make([]int, 0, len(directDeps))
-	seen := make(map[int]struct{})
-	for dependencyName, requested := range directDeps {
-		entryIdx, ok := selectYarnEntry(entries, entriesByName, dependencyName, requested)
-		if !ok {
-			continue
-		}
-		entryID, err := addEntryNode(entryIdx)
-		if err != nil {
+	// Inventory every resolved entry first. Edges and manifest roots are wired
+	// in subsequent passes so lockfile components without a known parent remain
+	// available for unknown-relationship attachment.
+	for idx := range entries {
+		if _, err := addEntryNode(idx); err != nil {
 			return nil, err
 		}
-		if err := depsGraph.AddEdge(rootNode.ID, entryID); err != nil {
-			return nil, fmt.Errorf("add yarn root dependency %q -> %q: %w", rootNode.ID, entryID, err)
-		}
-		queue = append(queue, entryIdx)
 	}
-
-	for len(queue) > 0 {
-		current := queue[0]
-		queue = queue[1:]
-		if _, ok := seen[current]; ok {
-			continue
-		}
-		seen[current] = struct{}{}
-
+	for current := range entries {
 		parentID, err := addEntryNode(current)
 		if err != nil {
 			return nil, err
@@ -107,19 +100,49 @@ func depGraphFromYarnLockfile(projectPath string) (*sdk.Graph, error) {
 				if err != nil {
 					return nil, err
 				}
+				if parentID == entryID {
+					continue
+				}
 				if err := depsGraph.AddEdge(parentID, entryID); err != nil {
 					return nil, fmt.Errorf("add yarn dependency %q -> %q: %w", parentID, entryID, err)
 				}
-				queue = append(queue, entryIdx)
 				continue
 			}
-			synthetic := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(requested)}})
+			synthetic := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(requested)}, Source: node.DependencySourceFromSpecifier(requested)})
 			if err := node.AddNodeIfMissing(depsGraph, synthetic); err != nil {
 				return nil, err
 			}
 			if err := depsGraph.AddEdge(parentID, synthetic.ID); err != nil {
 				return nil, fmt.Errorf("add yarn synthetic dependency %q -> %q: %w", parentID, synthetic.ID, err)
 			}
+		}
+	}
+
+	runtimeDeps := node.MergeStringMaps(manifest.Dependencies, node.MergeStringMaps(manifest.OptionalDependencies, manifest.PeerDependencies))
+	directDeps := node.MergeStringMaps(runtimeDeps, manifest.DevDependencies)
+	for dependencyName, requested := range directDeps {
+		entryIdx, ok := selectYarnEntry(entries, entriesByName, dependencyName, requested)
+		if !ok {
+			synthetic := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(requested)}, Source: node.DependencySourceFromSpecifier(requested)})
+			if err := node.AddNodeIfMissing(depsGraph, synthetic); err != nil {
+				return nil, err
+			}
+			if rootNode.ID != synthetic.ID {
+				if err := depsGraph.AddEdge(rootNode.ID, synthetic.ID); err != nil {
+					return nil, fmt.Errorf("add yarn root dependency %q -> %q: %w", rootNode.ID, synthetic.ID, err)
+				}
+			}
+			continue
+		}
+		entryID, err := addEntryNode(entryIdx)
+		if err != nil {
+			return nil, err
+		}
+		if rootNode.ID == entryID {
+			continue
+		}
+		if err := depsGraph.AddEdge(rootNode.ID, entryID); err != nil {
+			return nil, fmt.Errorf("add yarn root dependency %q -> %q: %w", rootNode.ID, entryID, err)
 		}
 	}
 
@@ -192,6 +215,14 @@ func parseYarnLockEntries(content string) ([]yarnLockEntry, error) {
 			inDependencies = false
 			continue
 		}
+		if strings.HasPrefix(trimmed, "resolution: ") {
+			current.Resolution = strings.Trim(strings.TrimSpace(strings.TrimPrefix(trimmed, "resolution:")), "\"")
+			if name := yarnPackageNameFromResolution(current.Resolution); name != "" {
+				current.Name = name
+			}
+			inDependencies = false
+			continue
+		}
 		// integrity field: classic `integrity sha512-...`, Berry `integrity: sha512-...`.
 		if strings.HasPrefix(trimmed, "integrity ") || strings.HasPrefix(trimmed, "integrity: ") {
 			raw := trimmed
@@ -204,7 +235,7 @@ func parseYarnLockEntries(content string) ([]yarnLockEntry, error) {
 			inDependencies = false
 			continue
 		}
-		if trimmed == "dependencies:" {
+		if trimmed == "dependencies:" || trimmed == "optionalDependencies:" {
 			inDependencies = true
 			continue
 		}
@@ -225,7 +256,7 @@ func parseYarnLockEntries(content string) ([]yarnLockEntry, error) {
 }
 
 func parseYarnSelectors(raw string) []string {
-	parts := strings.Split(raw, ",")
+	parts := splitYarnOutsideQuotes(raw, ',')
 	selectors := make([]string, 0, len(parts))
 	for _, part := range parts {
 		selector := strings.Trim(strings.TrimSpace(part), "\"")
@@ -251,11 +282,15 @@ func yarnPackageNameFromSelector(selector string) string {
 }
 
 func parseYarnDependencyLine(line string) (string, string) {
+	line = strings.TrimSpace(line)
+	if key, value, ok := splitYarnMapping(line); ok {
+		return strings.Trim(strings.TrimSpace(key), "\"'"), strings.Trim(strings.TrimSpace(value), "\"'")
+	}
 	parts := strings.Fields(line)
 	if len(parts) < 2 {
 		return "", ""
 	}
-	return strings.Trim(parts[0], "\""), strings.Trim(parts[1], "\"")
+	return strings.Trim(parts[0], "\"'"), strings.Trim(parts[1], "\"'")
 }
 
 func selectYarnEntry(entries []yarnLockEntry, entriesByName map[string][]int, dependencyName string, requested string) (int, bool) {
@@ -263,17 +298,90 @@ func selectYarnEntry(entries []yarnLockEntry, entriesByName map[string][]int, de
 	if len(indices) == 0 {
 		return 0, false
 	}
-	normalizedRequest := node.NormalizeVersionToken(requested)
+	normalizedRequest := normalizeYarnRange(requested)
 	for _, idx := range indices {
 		entry := entries[idx]
 		if normalizedRequest != "" && node.NormalizeVersionToken(entry.Version) == normalizedRequest {
 			return idx, true
 		}
 		for _, selector := range entry.Selectors {
-			if strings.HasPrefix(selector, dependencyName+"@") && strings.Contains(selector, requested) {
+			if strings.HasPrefix(selector, dependencyName+"@") && normalizeYarnRange(strings.TrimPrefix(selector, dependencyName+"@")) == normalizedRequest {
+				return idx, true
+			}
+		}
+		if constraint, err := semver.NewConstraint(normalizedRequest); err == nil {
+			if version, err := semver.NewVersion(entry.Version); err == nil && constraint.Check(version) {
 				return idx, true
 			}
 		}
 	}
-	return indices[0], true
+	if len(indices) == 1 {
+		return indices[0], true
+	}
+	return 0, false
+}
+
+func normalizeYarnRange(value string) string {
+	value = strings.Trim(strings.TrimSpace(value), "\"'")
+	value = strings.TrimPrefix(value, "npm:")
+	return value
+}
+
+func splitYarnOutsideQuotes(value string, separator rune) []string {
+	var out []string
+	start := 0
+	var quote rune
+	for idx, char := range value {
+		switch {
+		case quote != 0 && char == quote:
+			quote = 0
+		case quote == 0 && (char == '\'' || char == '"'):
+			quote = char
+		case quote == 0 && char == separator:
+			out = append(out, value[start:idx])
+			start = idx + len(string(char))
+		}
+	}
+	out = append(out, value[start:])
+	return out
+}
+
+func splitYarnMapping(value string) (string, string, bool) {
+	var quote rune
+	for idx, char := range value {
+		switch {
+		case quote != 0 && char == quote:
+			quote = 0
+		case quote == 0 && (char == '\'' || char == '"'):
+			quote = char
+		case quote == 0 && char == ':':
+			return value[:idx], value[idx+1:], true
+		}
+	}
+	return "", "", false
+}
+
+func yarnPackageNameFromResolution(resolution string) string {
+	value := strings.Trim(strings.TrimSpace(resolution), "\"'")
+	if strings.HasPrefix(value, "virtual:") {
+		if idx := strings.Index(value, "#"); idx >= 0 {
+			value = value[idx+1:]
+		}
+	}
+	if strings.HasPrefix(value, "patch:") {
+		value = strings.TrimPrefix(value, "patch:")
+	}
+	return yarnPackageNameFromSelector(value)
+}
+
+func yarnEntrySource(entry yarnLockEntry) sdk.DependencySource {
+	for _, value := range append(append([]string(nil), entry.Selectors...), entry.Resolution) {
+		lower := strings.ToLower(value)
+		for _, marker := range []string{"workspace:", "link:", "file:", "git:", "git+", "github:", "http:", "https:"} {
+			if idx := strings.Index(lower, marker); idx >= 0 {
+				return node.DependencySourceFromSpecifier(value[idx:])
+			}
+		}
+	}
+	return sdk.DependencySourceRegistry
 }

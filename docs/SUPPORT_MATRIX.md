@@ -24,7 +24,7 @@ Some primary detectors execute the ecosystem build tool to recover richer depend
 | `github-actions` | `github-actions` | `.github/workflows/*.yaml`, `.github/workflows/*.yml`, `.github/actions/*/action.yml`, `.github/actions/*/action.yaml` | - | Native detector |
 | `go` | `gomod` | `go.mod` | - | Native Go detector |
 | `maven` | `gradle`, `maven` | `build.gradle`, `build.gradle.kts`, `settings.gradle`, `settings.gradle.kts`, `gradle.lockfile*`, `pom.xml`, `*pom.xml` | - | Native Maven and Gradle detectors |
-| `npm` | `npm`, `pnpm`, `yarn` | `npm-shrinkwrap.json`, `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock` | `package.json` | Native Node detectors |
+| `npm` | `npm`, `pnpm`, `yarn`, `bun` | `npm-shrinkwrap.json`, `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, `bun.lock`, `bun.lockb` | `package.json` | Native Node detectors |
 | `php` | `composer` | `composer.lock`, `installed.json` | - | Native detector |
 | `python` | `pip`, `pipenv`, `poetry`, `uv` | `requirements.txt`, `requirements-dev.txt`, `requirements.in`, `requirements.lock`, `*requirements*.txt`, `Pipfile`, `Pipfile.lock`, `poetry.lock`, `pyproject.toml`, `uv.lock` | - | Native Python detectors |
 | `ruby` | `bundler` | `Gemfile.lock`, `Gemfile.next.lock` | - | Native detector |
@@ -57,7 +57,7 @@ Source: https://oss.anchore.com/docs/capabilities/all-packages/
 | `lua` | `luarocks` | `*.rockspec` |
 | `maven` | `gradle`, `maven` | `build.gradle`, `build.gradle.kts`, `settings.gradle`, `settings.gradle.kts`, `gradle.lockfile*`, `pom.xml`, `*pom.xml` |
 | `nix` | `nix` | `nix/var/nix/db/db.sqlite`, `nix/store/*.drv` |
-| `npm` | `npm`, `pnpm`, `yarn` | `package-lock.json`, `package.json`, `pnpm-lock.yaml`, `yarn.lock` |
+| `npm` | `npm`, `pnpm`, `yarn`, `bun` | `package-lock.json`, `package.json`, `pnpm-lock.yaml`, `yarn.lock`, `bun.lockb` |
 | `ocaml` | `opam` | `*opam` |
 | `php` | `composer`, `pear` | `composer.lock`, `installed.json`, `php/.registry/**/*.reg` |
 | `portage` | `portage` | `var/db/pkg/*/*/CONTENTS` |

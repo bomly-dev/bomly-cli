@@ -25,6 +25,7 @@ var packageManagerSupport = []sdk.PackageManagerSupport{
 	sdk.Support(sdk.PackageManagerNPM, "package-lock.json", "package.json"),
 	sdk.Support(sdk.PackageManagerPNPM, "pnpm-lock.yaml", "package.json"),
 	sdk.Support(sdk.PackageManagerYarn, "yarn.lock", "package.json"),
+	sdk.Support(sdk.PackageManagerBun, "bun.lockb"),
 	sdk.Support(sdk.PackageManagerGradle, "build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts", "gradle.lockfile*"),
 	sdk.Support(sdk.PackageManagerMaven, "pom.xml", "*pom.xml"),
 	sdk.Support(sdk.PackageManagerGoMod, "go.mod"),

@@ -1,0 +1,20 @@
+{
+  "manifest_count": 20,
+  "package_count": 1539,
+  "root_manifest": {
+    "kind": "bun.lock",
+    "path": "bun.lock"
+  },
+  "selected": [
+    {
+      "name": "esbuild",
+      "purl": "pkg:npm/esbuild@0.27.7",
+      "version": "0.27.7"
+    },
+    {
+      "name": "vite",
+      "purl": "pkg:npm/vite@8.0.14",
+      "version": "8.0.14"
+    }
+  ]
+}

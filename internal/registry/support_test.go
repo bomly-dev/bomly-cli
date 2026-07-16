@@ -41,6 +41,12 @@ func TestSupportCatalogDetectorChainOrdering(t *testing.T) {
 		t.Fatalf("expected yarn detector chain %v, got %v", want, chain)
 	}
 
+	chain = DetectorNamesForPackageManager(sdk.PackageManagerBun)
+	want = []string{detectors.NameBun, detectors.NameSyft}
+	if !reflect.DeepEqual(chain, want) {
+		t.Fatalf("expected Bun detector chain %v, got %v", want, chain)
+	}
+
 	chain = DetectorNamesForPackageManager(sdk.PackageManagerCargo)
 	want = []string{detectors.NameCargo, detectors.NameSyft}
 	if !reflect.DeepEqual(chain, want) {

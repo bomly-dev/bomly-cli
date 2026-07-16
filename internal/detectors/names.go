@@ -6,6 +6,7 @@ const (
 	NamePNPM          = "pnpm-detector"
 	NamePNPMNative    = "pnpm-native-detector"
 	NameYarn          = "yarn-detector"
+	NameBun           = "bun-detector"
 	NameYarnNative    = "yarn-native-detector"
 	NameGradle        = "gradle-detector"
 	NameMaven         = "maven-detector"

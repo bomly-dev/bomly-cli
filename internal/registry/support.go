@@ -13,6 +13,7 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/detectors/gradle"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/maven"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/mix"
+	"github.com/bomly-dev/bomly-cli/internal/detectors/node/bun"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/npm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/pnpm"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node/yarn"
@@ -72,6 +73,7 @@ func builtInSupportDetectors() []sdk.Detector {
 		pnpm.NativeDetector{},
 		yarn.LockfileDetector{},
 		yarn.NativeDetector{},
+		bun.LockfileDetector{},
 		gradle.Detector{},
 		maven.Detector{},
 		gomod.Detector{},

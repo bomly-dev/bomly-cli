@@ -1,0 +1,436 @@
+{
+  "command": "scan",
+  "manifests": [
+    {
+      "dependencies": [
+        {
+          "depends_on": [],
+          "id": "pkg:maven/com.google.code.findbugs/jsr305@3.0.2",
+          "licenses": [],
+          "name": "com.google.code.findbugs:jsr305",
+          "package_ref": "pkg:maven/com.google.code.findbugs/jsr305@3.0.2",
+          "purl": "pkg:maven/com.google.code.findbugs/jsr305@3.0.2",
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "3.0.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/com.google.errorprone/error_prone_annotations@2.11.0",
+          "licenses": [],
+          "name": "com.google.errorprone:error_prone_annotations",
+          "package_ref": "pkg:maven/com.google.errorprone/error_prone_annotations@2.11.0",
+          "purl": "pkg:maven/com.google.errorprone/error_prone_annotations@2.11.0",
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "2.11.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/com.google.guava/failureaccess@1.0.1",
+          "licenses": [],
+          "name": "com.google.guava:failureaccess",
+          "package_ref": "pkg:maven/com.google.guava/failureaccess@1.0.1",
+          "purl": "pkg:maven/com.google.guava/failureaccess@1.0.1",
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "1.0.1"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/com.google.code.findbugs/jsr305@3.0.2",
+            "pkg:maven/com.google.errorprone/error_prone_annotations@2.11.0",
+            "pkg:maven/com.google.guava/failureaccess@1.0.1",
+            "pkg:maven/com.google.guava/listenablefuture@9999.0-empty-to-avoid-conflict-with-guava",
+            "pkg:maven/com.google.j2objc/j2objc-annotations@1.3",
+            "pkg:maven/org.checkerframework/checker-qual@3.12.0"
+          ],
+          "id": "pkg:maven/com.google.guava/guava@31.1-jre",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "build.gradle",
+              "position": {
+                "file": "build.gradle",
+                "line": 0
+              },
+              "real_path": "build.gradle"
+            }
+          ],
+          "name": "com.google.guava:guava",
+          "package_ref": "pkg:maven/com.google.guava/guava@31.1-jre",
+          "purl": "pkg:maven/com.google.guava/guava@31.1-jre",
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "31.1-jre"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/com.google.guava/listenablefuture@9999.0-empty-to-avoid-conflict-with-guava",
+          "licenses": [],
+          "name": "com.google.guava:listenablefuture",
+          "package_ref": "pkg:maven/com.google.guava/listenablefuture@9999.0-empty-to-avoid-conflict-with-guava",
+          "purl": "pkg:maven/com.google.guava/listenablefuture@9999.0-empty-to-avoid-conflict-with-guava",
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "9999.0-empty-to-avoid-conflict-with-guava"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/com.google.j2objc/j2objc-annotations@1.3",
+          "licenses": [],
+          "name": "com.google.j2objc:j2objc-annotations",
+          "package_ref": "pkg:maven/com.google.j2objc/j2objc-annotations@1.3",
+          "purl": "pkg:maven/com.google.j2objc/j2objc-annotations@1.3",
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "1.3"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/com.google.guava/guava@31.1-jre",
+            "pkg:maven/dev.bomly.example/lib",
+            "pkg:maven/junit/junit@4.13.2"
+          ],
+          "id": "pkg:maven/dev.bomly.example/app",
+          "licenses": [],
+          "name": "dev.bomly.example:app",
+          "package_ref": "pkg:maven/dev.bomly.example/app",
+          "purl": "pkg:maven/dev.bomly.example/app"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/org.slf4j/slf4j-api@1.7.36"
+          ],
+          "id": "pkg:maven/dev.bomly.example/lib",
+          "licenses": [],
+          "name": "dev.bomly.example:lib",
+          "package_ref": "pkg:maven/dev.bomly.example/lib",
+          "purl": "pkg:maven/dev.bomly.example/lib"
+        },
+        {
+          "depends_on": [
+            "pkg:maven/org.hamcrest/hamcrest-core@1.3"
+          ],
+          "id": "pkg:maven/junit/junit@4.13.2",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "build.gradle",
+              "position": {
+                "file": "build.gradle",
+                "line": 0
+              },
+              "real_path": "build.gradle"
+            }
+          ],
+          "name": "junit:junit",
+          "package_ref": "pkg:maven/junit/junit@4.13.2",
+          "purl": "pkg:maven/junit/junit@4.13.2",
+          "scopes": [
+            "development"
+          ],
+          "version": "4.13.2"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.checkerframework/checker-qual@3.12.0",
+          "licenses": [],
+          "name": "org.checkerframework:checker-qual",
+          "package_ref": "pkg:maven/org.checkerframework/checker-qual@3.12.0",
+          "purl": "pkg:maven/org.checkerframework/checker-qual@3.12.0",
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "3.12.0"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.hamcrest/hamcrest-core@1.3",
+          "licenses": [],
+          "name": "org.hamcrest:hamcrest-core",
+          "package_ref": "pkg:maven/org.hamcrest/hamcrest-core@1.3",
+          "purl": "pkg:maven/org.hamcrest/hamcrest-core@1.3",
+          "scopes": [
+            "development"
+          ],
+          "version": "1.3"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.slf4j/slf4j-api@1.7.36",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "build.gradle",
+              "position": {
+                "file": "build.gradle",
+                "line": 0
+              },
+              "real_path": "build.gradle"
+            }
+          ],
+          "name": "org.slf4j:slf4j-api",
+          "package_ref": "pkg:maven/org.slf4j/slf4j-api@1.7.36",
+          "purl": "pkg:maven/org.slf4j/slf4j-api@1.7.36",
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "1.7.36"
+        }
+      ],
+      "detector": "gradle-detector",
+      "ecosystem": "maven",
+      "kind": "build.gradle",
+      "package_manager": "gradle",
+      "path": "app/build.gradle",
+      "subproject": "."
+    },
+    {
+      "dependencies": [
+        {
+          "depends_on": [
+            "pkg:maven/org.apache.commons/commons-lang3@3.12.0"
+          ],
+          "id": "pkg:maven/example-java-gradle-multimodule",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "settings.gradle",
+              "position": {
+                "file": "settings.gradle",
+                "line": 0
+              },
+              "real_path": "settings.gradle"
+            }
+          ],
+          "name": "example-java-gradle-multimodule",
+          "package_ref": "pkg:maven/example-java-gradle-multimodule",
+          "purl": "pkg:maven/example-java-gradle-multimodule"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.apache.commons/commons-lang3@3.12.0",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "build.gradle",
+              "position": {
+                "file": "build.gradle",
+                "line": 0
+              },
+              "real_path": "build.gradle"
+            }
+          ],
+          "name": "org.apache.commons:commons-lang3",
+          "package_ref": "pkg:maven/org.apache.commons/commons-lang3@3.12.0",
+          "purl": "pkg:maven/org.apache.commons/commons-lang3@3.12.0",
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "3.12.0"
+        }
+      ],
+      "detector": "gradle-detector",
+      "ecosystem": "maven",
+      "kind": "build.gradle",
+      "package_manager": "gradle",
+      "path": "build.gradle",
+      "subproject": "."
+    },
+    {
+      "dependencies": [
+        {
+          "depends_on": [
+            "pkg:maven/org.slf4j/slf4j-api@1.7.36"
+          ],
+          "id": "pkg:maven/dev.bomly.example/lib",
+          "licenses": [],
+          "name": "dev.bomly.example:lib",
+          "package_ref": "pkg:maven/dev.bomly.example/lib",
+          "purl": "pkg:maven/dev.bomly.example/lib"
+        },
+        {
+          "depends_on": [],
+          "id": "pkg:maven/org.slf4j/slf4j-api@1.7.36",
+          "licenses": [],
+          "locations": [
+            {
+              "access_path": "build.gradle",
+              "position": {
+                "file": "build.gradle",
+                "line": 0
+              },
+              "real_path": "build.gradle"
+            }
+          ],
+          "name": "org.slf4j:slf4j-api",
+          "package_ref": "pkg:maven/org.slf4j/slf4j-api@1.7.36",
+          "purl": "pkg:maven/org.slf4j/slf4j-api@1.7.36",
+          "scopes": [
+            "development",
+            "runtime"
+          ],
+          "version": "1.7.36"
+        }
+      ],
+      "detector": "gradle-detector",
+      "ecosystem": "maven",
+      "kind": "build.gradle",
+      "package_manager": "gradle",
+      "path": "lib/build.gradle",
+      "subproject": "."
+    }
+  ],
+  "metadata": {
+    "duration_ms": 0
+  },
+  "packages": [
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "com.google.code.findbugs:jsr305",
+      "org": "com.google.code.findbugs",
+      "purl": "pkg:maven/com.google.code.findbugs/jsr305@3.0.2",
+      "version": "3.0.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "com.google.errorprone:error_prone_annotations",
+      "org": "com.google.errorprone",
+      "purl": "pkg:maven/com.google.errorprone/error_prone_annotations@2.11.0",
+      "version": "2.11.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "com.google.guava:failureaccess",
+      "org": "com.google.guava",
+      "purl": "pkg:maven/com.google.guava/failureaccess@1.0.1",
+      "version": "1.0.1",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "com.google.guava:guava",
+      "org": "com.google.guava",
+      "purl": "pkg:maven/com.google.guava/guava@31.1-jre",
+      "version": "31.1-jre",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "com.google.guava:listenablefuture",
+      "org": "com.google.guava",
+      "purl": "pkg:maven/com.google.guava/listenablefuture@9999.0-empty-to-avoid-conflict-with-guava",
+      "version": "9999.0-empty-to-avoid-conflict-with-guava",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "com.google.j2objc:j2objc-annotations",
+      "org": "com.google.j2objc",
+      "purl": "pkg:maven/com.google.j2objc/j2objc-annotations@1.3",
+      "version": "1.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "dev.bomly.example:app",
+      "org": "dev.bomly.example",
+      "purl": "pkg:maven/dev.bomly.example/app",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "dev.bomly.example:lib",
+      "org": "dev.bomly.example",
+      "purl": "pkg:maven/dev.bomly.example/lib",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "example-java-gradle-multimodule",
+      "purl": "pkg:maven/example-java-gradle-multimodule",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "junit:junit",
+      "org": "junit",
+      "purl": "pkg:maven/junit/junit@4.13.2",
+      "version": "4.13.2",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "org.apache.commons:commons-lang3",
+      "org": "org.apache.commons",
+      "purl": "pkg:maven/org.apache.commons/commons-lang3@3.12.0",
+      "version": "3.12.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "org.checkerframework:checker-qual",
+      "org": "org.checkerframework",
+      "purl": "pkg:maven/org.checkerframework/checker-qual@3.12.0",
+      "version": "3.12.0",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "org.hamcrest:hamcrest-core",
+      "org": "org.hamcrest",
+      "purl": "pkg:maven/org.hamcrest/hamcrest-core@1.3",
+      "version": "1.3",
+      "vulnerabilities": []
+    },
+    {
+      "ecosystem": "maven",
+      "licenses": [],
+      "name": "org.slf4j:slf4j-api",
+      "org": "org.slf4j",
+      "purl": "pkg:maven/org.slf4j/slf4j-api@1.7.36",
+      "version": "1.7.36",
+      "vulnerabilities": []
+    }
+  ],
+  "project": {
+    "ecosystem": "maven",
+    "name": "\u003cnormalized\u003e",
+    "package_manager": "gradle",
+    "path": "\u003cnormalized\u003e",
+    "target_ref": "v1.0.0",
+    "target_type": "git repository"
+  },
+  "schema_version": "1.0"
+}

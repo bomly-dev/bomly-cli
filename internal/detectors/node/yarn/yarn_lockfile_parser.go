@@ -368,9 +368,7 @@ func yarnPackageNameFromResolution(resolution string) string {
 			value = value[idx+1:]
 		}
 	}
-	if strings.HasPrefix(value, "patch:") {
-		value = strings.TrimPrefix(value, "patch:")
-	}
+	value = strings.TrimPrefix(value, "patch:")
 	return yarnPackageNameFromSelector(value)
 }
 

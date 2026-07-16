@@ -54,7 +54,7 @@ func AttachUnknownComponents(graph *sdk.Graph, rootID string, logger *zap.Logger
 		if len(unresolved) == 0 {
 			break
 		}
-		candidate := unresolvedComponentRoot(graph, unresolved, known)
+		candidate := unresolvedComponentRoot(graph, unresolved)
 		candidate.Relationship = sdk.DependencyRelationshipUnknown
 		before := len(known)
 		addReachable(graph, candidate.ID, known)
@@ -119,7 +119,7 @@ func unresolvedDependencyNodes(graph *sdk.Graph, known map[string]struct{}) []*s
 	return unresolved
 }
 
-func unresolvedComponentRoot(graph *sdk.Graph, unresolved []*sdk.Dependency, known map[string]struct{}) *sdk.Dependency {
+func unresolvedComponentRoot(graph *sdk.Graph, unresolved []*sdk.Dependency) *sdk.Dependency {
 	set := make(map[string]struct{}, len(unresolved))
 	for _, dependency := range unresolved {
 		set[dependency.ID] = struct{}{}
@@ -137,9 +137,6 @@ func unresolvedComponentRoot(graph *sdk.Graph, unresolved []*sdk.Dependency, kno
 			if _, ok := set[parent.ID]; ok {
 				hasUnresolvedParent = true
 				break
-			}
-			if _, ok := known[parent.ID]; ok {
-				continue
 			}
 		}
 		if !hasUnresolvedParent {

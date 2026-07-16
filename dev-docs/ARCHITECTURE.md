@@ -120,6 +120,12 @@ Reachability data lives on `sdk.Vulnerability.Reachability` rather than on `Find
 
 Pipeline plumbing: `engine.PipelineResult` exposes `Graph`, `Registry`, `Findings`, and `RiskScores`. The registry is built right after consolidation (`consolidation.BuildPackageRegistry`) and threaded through match/analyze/audit requests; output helpers (`BuildScanResponse`, `WriteSARIF`, `FindingsFromScan`, `PackagesFromGraph`) all accept `*sdk.PackageRegistry` and re-enrich their projections by resolving `PackageRef` and `VulnerabilityID`. See [`MODELS.md`](MODELS.md) for the full schema reference.
 
+### Decision: registry matching eligibility is an occurrence-level engine boundary
+
+Detection keeps every dependency occurrence and every PURL-backed package artifact, including application roots, workspace members, local sources, and unknown relationships. Immediately before matcher selection and execution, `engine.registryMatchRequest` clones only occurrences for which `Dependency.RegistryMatchEligible()` is true and preserves edges whose endpoints are both eligible. Every built-in and external matcher therefore receives the same filtered graph, while the full `PackageRegistry` remains shared so enrichment is still deduplicated by PURL. Analysis and auditors continue with the complete original graph.
+
+Published registry releases are eligible, including releases downloaded through custom registries or mirrors. Application and manifest nodes are always ineligible. Project, workspace/link, file, Git, and arbitrary URL occurrences are ineligible. An omitted source and unknown plugin-defined source values remain eligible for protocol-v1 compatibility. Relationship `unknown` does not affect eligibility: a registry package whose parent could not be recovered is still enriched normally. Targeted matching of an ineligible occurrence short-circuits instead of widening to unrelated eligible packages. When eligible and ineligible occurrences share an exact PURL, vulnerability findings reference only the eligible occurrences; if a PURL has no eligible occurrence, detector- or SBOM-supplied vulnerability data remains auditable on its local occurrences.
+
 ### Decision: unresolved dependency parents use an explicit unknown relationship
 
 Lockfiles can contain a package component whose parent chain cannot be

@@ -95,10 +95,11 @@ func compactExplainPaths(paths []output.DependencyPath, trunc *TruncationInfo) (
 	known := false
 	out := make([][]string, 0, len(paths))
 	for idx, path := range paths {
-		if path.Relationship == "direct" {
+		switch path.Relationship {
+		case "direct":
 			direct = true
 			known = true
-		} else if path.Relationship == "transitive" {
+		case "transitive":
 			known = true
 		}
 		if idx >= maxExplainPaths {

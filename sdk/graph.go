@@ -466,6 +466,25 @@ func NodeIsDiffable(node *Dependency) bool {
 	return true
 }
 
+// NodeIsEnrichable reports whether node should be queried against external
+// enrichment sources (advisory databases, package registries, scorecards).
+// Manifest-typed structural nodes and application-typed first-party artifacts
+// (workspace members, reactor modules, the project's own package) are not
+// published to public sources, so querying them wastes lookups and risks
+// coincidental name matches; they remain in the packages inventory and in
+// generated SBOMs, just without external enrichment. External plugin matchers
+// should apply the same predicate to the nodes they iterate.
+func NodeIsEnrichable(node *Dependency) bool {
+	if node == nil {
+		return false
+	}
+	switch node.Type {
+	case PackageTypeManifest, PackageTypeApplication:
+		return false
+	}
+	return true
+}
+
 func groupNodesByIdentity(nodes map[string]*Dependency) map[string][]*Dependency {
 	grouped := make(map[string][]*Dependency)
 	for _, node := range nodes {

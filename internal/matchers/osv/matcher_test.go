@@ -136,6 +136,58 @@ func TestMatcherMatchEnrichesRegistry(t *testing.T) {
 	}
 }
 
+func TestMatcherMatchSkipsFirstPartyPackages(t *testing.T) {
+	var queried []string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/querybatch" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		var batch struct {
+			Queries []struct {
+				Package json.RawMessage `json:"package"`
+			} `json:"queries"`
+		}
+		_ = json.NewDecoder(r.Body).Decode(&batch)
+		results := make([]BatchResult, len(batch.Queries))
+		for _, q := range batch.Queries {
+			queried = append(queried, string(q.Package))
+		}
+		_ = json.NewEncoder(w).Encode(BatchResponse{Results: results})
+	}))
+	defer server.Close()
+
+	matcher, err := New(Config{APIBase: server.URL, CacheDir: t.TempDir(), EnableKEV: false, BypassCache: true})
+	if err != nil {
+		t.Fatalf("New() error = %v", err)
+	}
+
+	graph := sdk.New()
+	app := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
+		Name: "my-module", Version: "1.0.0", Ecosystem: "maven",
+		PURL: "pkg:maven/com.acme/my-module@1.0.0", Type: sdk.PackageTypeApplication,
+	}})
+	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
+		Name: "lodash", Version: "4.17.15", Ecosystem: "npm", PURL: "pkg:npm/lodash@4.17.15",
+	}})
+	_ = graph.AddNode(app)
+	_ = graph.AddNode(dep)
+
+	if _, err := matcher.Match(context.Background(), sdk.MatchRequest{Graph: graph, Registry: sdk.NewPackageRegistry()}); err != nil {
+		t.Fatalf("Match() error = %v", err)
+	}
+
+	if len(queried) != 1 {
+		t.Fatalf("expected exactly one OSV query (third-party only), got %d: %v", len(queried), queried)
+	}
+	if strings.Contains(queried[0], "my-module") {
+		t.Fatalf("first-party application package must not be queried, got %q", queried[0])
+	}
+	if !strings.Contains(queried[0], "lodash") {
+		t.Fatalf("expected the third-party package to be queried, got %q", queried[0])
+	}
+}
+
 // --- cache hit ---
 
 func TestAudit_CacheHit_NoHTTPCall(t *testing.T) {

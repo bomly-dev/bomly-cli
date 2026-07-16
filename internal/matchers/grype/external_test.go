@@ -54,7 +54,7 @@ func TestParseGrypeJSONOutputCarriesRichFields(t *testing.T) {
 			}
 		}]
 	}`)
-	if _, _, err := parseGrypeJSONOutput(data, registry); err != nil {
+	if _, _, err := parseGrypeJSONOutput(data, registry, nil); err != nil {
 		t.Fatalf("parseGrypeJSONOutput: %v", err)
 	}
 	pkg, ok := registry.Get(purl)
@@ -73,5 +73,54 @@ func TestParseGrypeJSONOutputCarriesRichFields(t *testing.T) {
 	}
 	if len(v.CVSS) != 1 || len(v.EPSS) != 1 || len(v.CWEs) != 1 || len(v.KnownExploited) != 1 || len(v.CPEs) != 1 {
 		t.Fatalf("rich fields missing: %#v", v)
+	}
+}
+
+func TestParseGrypeJSONOutputSkipsFirstPartyPURLs(t *testing.T) {
+	registry := sdk.NewPackageRegistry()
+	const firstParty = "pkg:npm/my-app@1.0.0"
+	const thirdParty = "pkg:npm/lodash@4.17.15"
+
+	data := []byte(`{
+		"matches": [
+			{"vulnerability": {"id": "CVE-0000-0001"}, "artifact": {"name": "my-app", "version": "1.0.0", "purl": "pkg:npm/my-app@1.0.0"}},
+			{"vulnerability": {"id": "CVE-2020-8203"}, "artifact": {"name": "lodash", "version": "4.17.15", "purl": "pkg:npm/lodash@4.17.15"}}
+		]
+	}`)
+	skip := map[string]struct{}{firstParty: {}}
+	matched, vulnerabilities, err := parseGrypeJSONOutput(data, registry, skip)
+	if err != nil {
+		t.Fatalf("parseGrypeJSONOutput: %v", err)
+	}
+	if matched != 1 || vulnerabilities != 1 {
+		t.Fatalf("matched, vulnerabilities = %d, %d; want 1, 1 (first-party match dropped)", matched, vulnerabilities)
+	}
+	if _, ok := registry.Get(firstParty); ok {
+		t.Fatalf("first-party PURL %q must not be added to the registry", firstParty)
+	}
+	pkg, ok := registry.Get(thirdParty)
+	if !ok || len(pkg.Vulnerabilities) != 1 {
+		t.Fatalf("expected third-party match to survive, got %#v", pkg)
+	}
+}
+
+func TestFirstPartyPURLs(t *testing.T) {
+	graph := sdk.New()
+	app := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
+		Name: "my-app", Version: "1.0.0", PURL: "pkg:npm/my-app@1.0.0",
+		Ecosystem: "npm", Type: sdk.PackageTypeApplication,
+	}})
+	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
+		Name: "lodash", Version: "4.17.15", PURL: "pkg:npm/lodash@4.17.15", Ecosystem: "npm",
+	}})
+	_ = graph.AddNode(app)
+	_ = graph.AddNode(dep)
+
+	skip := firstPartyPURLs(graph)
+	if _, ok := skip["pkg:npm/my-app@1.0.0"]; !ok {
+		t.Fatal("expected application-typed node PURL in the skip set")
+	}
+	if _, ok := skip["pkg:npm/lodash@4.17.15"]; ok {
+		t.Fatal("package-typed node PURL must not be in the skip set")
 	}
 }

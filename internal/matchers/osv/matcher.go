@@ -234,6 +234,13 @@ func (a *Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResul
 
 	// First pass: try cache
 	for _, dep := range deps {
+		if !sdk.NodeIsEnrichable(dep) {
+			// First-party artifacts (workspace members, reactor modules, the
+			// project's own package) are absent from OSV; querying them only
+			// risks coincidental name matches.
+			stats.skippedPackages++
+			continue
+		}
 		purl := sdk.CanonicalPackageURLFromDependency(dep)
 		if purl == "" {
 			stats.skippedPackages++
@@ -531,7 +538,7 @@ func applyPackageVulnerabilityEnrichment(registry *sdk.PackageRegistry, deps []*
 	}
 	purlToDeps := make(map[string][]*sdk.Dependency, len(deps))
 	for _, dep := range deps {
-		if dep == nil {
+		if !sdk.NodeIsEnrichable(dep) {
 			continue
 		}
 		purl := sdk.CanonicalPackageURLFromDependency(dep)

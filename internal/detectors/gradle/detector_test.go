@@ -40,7 +40,7 @@ func TestDetectorCommandSpec_PrefersWrapper(t *testing.T) {
 	}
 
 	detector := Detector{WorkingDir: projectDir}
-	executable, _, err := detector.commandSpec(projectDir)
+	executable, _, err := detector.commandSpec(projectDir, nil)
 	if err != nil {
 		t.Fatalf("commandSpec() error = %v", err)
 	}
@@ -69,7 +69,7 @@ func TestDetectorCommandSpec_MakesUnixWrapperExecutable(t *testing.T) {
 	}
 
 	detector := Detector{WorkingDir: projectDir}
-	executable, _, err := detector.commandSpec(projectDir)
+	executable, _, err := detector.commandSpec(projectDir, nil)
 	if err != nil {
 		t.Fatalf("commandSpec() error = %v", err)
 	}
@@ -185,10 +185,11 @@ testRuntimeClasspath - Test runtime classpath of source set 'test'.
 \--- org.junit:junit-bom:5.10.2
 `)
 
-	g, err := depGraphFromGradleOutput(raw, "demo")
+	parsed, err := depGraphFromGradleOutput(raw, "demo", nil)
 	if err != nil {
 		t.Fatalf("depGraphFromGradleOutput() error = %v", err)
 	}
+	g := parsed.graph
 
 	if g.Size() != 7 {
 		t.Fatalf("expected 7 packages, got %d", g.Size())
@@ -234,12 +235,12 @@ func TestDepGraphFromGradleOutput_UsesResolvedVersion(t *testing.T) {
 \--- org.slf4j:slf4j-api:1.7.30 -> 2.0.12
 `)
 
-	g, err := depGraphFromGradleOutput(raw, "demo")
+	parsed, err := depGraphFromGradleOutput(raw, "demo", nil)
 	if err != nil {
 		t.Fatalf("depGraphFromGradleOutput() error = %v", err)
 	}
 
-	if _, ok := g.Node("org.slf4j:slf4j-api@2.0.12"); !ok {
+	if _, ok := parsed.graph.Node("org.slf4j:slf4j-api@2.0.12"); !ok {
 		t.Fatalf("expected resolved version package to exist")
 	}
 }
@@ -281,15 +282,151 @@ func TestRunDependencies_UsesSettingsGradleRootName(t *testing.T) {
 		t.Fatalf("write gradle fixture: %v", err)
 	}
 
-	g, err := (Detector{}).runDependencies(context.Background(), &bytes.Buffer{}, projectDir, false, gradlePath, nil)
+	parsed, err := (Detector{}).runDependencies(context.Background(), &bytes.Buffer{}, projectDir, false, gradlePath, nil, nil)
 	if err != nil {
 		t.Fatalf("runDependencies() error = %v", err)
 	}
-	if _, ok := g.Node("example-java-gradle"); !ok {
+	if _, ok := parsed.graph.Node("example-java-gradle"); !ok {
 		t.Fatalf("expected settings.gradle root node")
 	}
-	if _, ok := g.Node(filepath.Base(projectDir)); ok {
+	if _, ok := parsed.graph.Node(filepath.Base(projectDir)); ok {
 		t.Fatalf("did not expect temp directory root node")
+	}
+}
+
+func TestResolveGraphMultiProjectEmitsPerModuleEntries(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("shell fixture is unix-only")
+	}
+
+	projectDir := t.TempDir()
+	writeGradleFile(t, projectDir, "settings.gradle", "rootProject.name = 'demo'\ninclude(\":app\", \":lib\")\n")
+	writeGradleFile(t, projectDir, "build.gradle", "group = \"com.acme\"\n")
+	writeGradleFile(t, projectDir, "app/build.gradle", "dependencies {}\n")
+	writeGradleFile(t, projectDir, "lib/build.gradle", "dependencies {}\n")
+
+	fixture, err := os.ReadFile(filepath.Join("testdata", "dependencies-multiproject.txt"))
+	if err != nil {
+		t.Fatalf("read fixture: %v", err)
+	}
+	argsFile := filepath.Join(projectDir, "gradle-args.txt")
+	script := "#!/bin/sh\necho \"$@\" > " + argsFile + "\ncat <<'FIXTURE_EOF'\n" + string(fixture) + "FIXTURE_EOF\n"
+	if err := os.WriteFile(filepath.Join(projectDir, "gradlew"), []byte(script), 0o755); err != nil {
+		t.Fatalf("write gradlew fixture: %v", err)
+	}
+
+	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	if err != nil {
+		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+
+	recordedArgs, err := os.ReadFile(argsFile)
+	if err != nil {
+		t.Fatalf("read recorded args: %v", err)
+	}
+	for _, want := range []string{"dependencies", ":app:dependencies", ":lib:dependencies", "--console=plain"} {
+		if !strings.Contains(string(recordedArgs), want) {
+			t.Fatalf("expected gradle args to contain %q, got %q", want, string(recordedArgs))
+		}
+	}
+
+	entries := result.Graphs.Entries
+	if len(entries) != 3 {
+		t.Fatalf("expected root + 2 subproject entries, got %d", len(entries))
+	}
+	paths := []string{entries[1].Manifest.Path, entries[2].Manifest.Path}
+	if !reflect.DeepEqual(paths, []string{"app/build.gradle", "lib/build.gradle"}) {
+		t.Fatalf("module manifest paths = %v", paths)
+	}
+	if entries[1].Manifest.Kind != sdk.ManifestKind("build.gradle") {
+		t.Fatalf("module manifest kind = %q", entries[1].Manifest.Kind)
+	}
+
+	// Root entry: root project node + its own dependency only.
+	if _, ok := entries[0].Graph.Node("org.apache.commons:commons-lang3@3.14.0"); !ok {
+		t.Fatal("root entry must contain the root project's own dependency")
+	}
+	if _, ok := entries[0].Graph.Node("com.google.guava:guava@33.0.0-jre"); ok {
+		t.Fatal("root entry must not absorb subproject dependencies")
+	}
+
+	// app entry: its deps plus the lib subtree through the project edge.
+	appGraph := entries[1].Graph
+	for _, want := range []string{"com.google.guava:guava@33.0.0-jre", "org.slf4j:slf4j-api@2.0.12"} {
+		if _, ok := appGraph.Node(want); !ok {
+			t.Fatalf("app entry missing %s", want)
+		}
+	}
+
+	// lib entry: rooted at an application-typed node with only its own dep.
+	libGraph := entries[2].Graph
+	if _, ok := libGraph.Node("com.google.guava:guava@33.0.0-jre"); ok {
+		t.Fatal("lib entry must not contain app dependencies")
+	}
+	libRoots := libGraph.Roots()
+	if len(libRoots) != 1 || libRoots[0].Type != sdk.PackageTypeApplication || libRoots[0].Name != "lib" {
+		t.Fatalf("unexpected lib entry root: %#v", libRoots)
+	}
+}
+
+// TestResolveGraphSingleProjectStillSingleEntry pins the regression contract:
+// a build without subprojects keeps exactly one graph entry.
+func TestResolveGraphSingleProjectStillSingleEntry(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("shell fixture is unix-only")
+	}
+
+	projectDir := t.TempDir()
+	writeGradleFile(t, projectDir, "settings.gradle", "rootProject.name = 'demo'\n")
+	writeGradleFile(t, projectDir, "build.gradle", "dependencies {}\n")
+	script := "#!/bin/sh\ncat <<'OUT'\nruntimeClasspath - Runtime classpath of source set 'main'.\n\\--- org.springframework:spring-core:6.1.1\nOUT\n"
+	if err := os.WriteFile(filepath.Join(projectDir, "gradlew"), []byte(script), 0o755); err != nil {
+		t.Fatalf("write gradlew fixture: %v", err)
+	}
+
+	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	if err != nil {
+		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+	if len(result.Graphs.Entries) != 1 {
+		t.Fatalf("expected a single graph entry, got %d", len(result.Graphs.Entries))
+	}
+}
+
+// TestResolveGraphMultiTaskFailureRetriesRootOnly pins the degrade path: when
+// the multi-task invocation fails (e.g. stale settings naming a removed
+// subproject), the detector retries the root-only report.
+func TestResolveGraphMultiTaskFailureRetriesRootOnly(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("shell fixture is unix-only")
+	}
+
+	projectDir := t.TempDir()
+	writeGradleFile(t, projectDir, "settings.gradle", "rootProject.name = 'demo'\ninclude(\":gone\")\n")
+	writeGradleFile(t, projectDir, "build.gradle", "dependencies {}\n")
+	writeGradleFile(t, projectDir, "gone/build.gradle", "")
+	script := `#!/bin/sh
+case "$@" in
+*:gone:dependencies*) echo "Project 'gone' not found" >&2; exit 1 ;;
+esac
+cat <<'OUT'
+runtimeClasspath - Runtime classpath of source set 'main'.
+\--- org.springframework:spring-core:6.1.1
+OUT
+`
+	if err := os.WriteFile(filepath.Join(projectDir, "gradlew"), []byte(script), 0o755); err != nil {
+		t.Fatalf("write gradlew fixture: %v", err)
+	}
+
+	result, err := (Detector{}).ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	if err != nil {
+		t.Fatalf("ResolveGraph() error = %v", err)
+	}
+	if len(result.Graphs.Entries) != 1 {
+		t.Fatalf("expected root-only fallback single entry, got %d", len(result.Graphs.Entries))
+	}
+	if _, ok := result.Graphs.Entries[0].Graph.Node("org.springframework:spring-core@6.1.1"); !ok {
+		t.Fatal("expected root-only graph from the fallback run")
 	}
 }
 

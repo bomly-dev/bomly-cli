@@ -156,7 +156,7 @@
     ],
     "analyzer_stats": {
       "govulncheck": {
-        "unreachable": 4
+        "unreachable": 2
       }
     },
     "duration_ms": 0,
@@ -346,138 +346,6 @@
             "\u003cnormalized\u003e"
           ],
           "id": "GHSA-ppp9-7jff-5vj2",
-          "namespace": "\u003cnormalized\u003e",
-          "reachability": {
-            "analyzed_at": "\u003ctimestamp\u003e",
-            "analyzer": "govulncheck",
-            "reason": "package-not-imported",
-            "status": "unreachable",
-            "tier": "package"
-          },
-          "reasons": [
-            "\u003cnormalized\u003e"
-          ],
-          "references": [
-            {
-              "type": "\u003cnormalized\u003e",
-              "url": "\u003cnormalized\u003e"
-            }
-          ],
-          "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
-          "severity_source": "\u003cnormalized\u003e",
-          "source": "grype",
-          "title": "\u003cnormalized\u003e"
-        },
-        {
-          "affected_version_range": "\u003cnormalized\u003e",
-          "aliases": [
-            "\u003cnormalized\u003e"
-          ],
-          "cvss": [
-            {
-              "score": 0,
-              "vector": "\u003cnormalized\u003e",
-              "version": "\u003cnormalized\u003e"
-            }
-          ],
-          "cwes": [
-            {
-              "cve": "\u003cnormalized\u003e",
-              "id": "\u003cnormalized\u003e",
-              "source": "\u003cnormalized\u003e",
-              "type": "\u003cnormalized\u003e"
-            }
-          ],
-          "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
-          "epss": [
-            {
-              "cve": "CVE-2021-38561",
-              "date": "\u003cnormalized\u003e",
-              "epss": 0,
-              "percentile": 0
-            }
-          ],
-          "fix_available": [
-            {
-              "date": "\u003cnormalized\u003e",
-              "kind": "\u003cnormalized\u003e",
-              "version": "\u003cnormalized\u003e"
-            }
-          ],
-          "fix_state": "\u003cnormalized\u003e",
-          "fixed_in": "\u003cnormalized\u003e",
-          "fixed_versions": [
-            "\u003cnormalized\u003e"
-          ],
-          "id": "GO-2021-0113",
-          "namespace": "\u003cnormalized\u003e",
-          "reachability": {
-            "analyzed_at": "\u003ctimestamp\u003e",
-            "analyzer": "govulncheck",
-            "reason": "package-not-imported",
-            "status": "unreachable",
-            "tier": "package"
-          },
-          "reasons": [
-            "\u003cnormalized\u003e"
-          ],
-          "references": [
-            {
-              "type": "\u003cnormalized\u003e",
-              "url": "\u003cnormalized\u003e"
-            }
-          ],
-          "risk_score": 0,
-          "severity": "\u003cnormalized\u003e",
-          "severity_source": "\u003cnormalized\u003e",
-          "source": "grype",
-          "title": "\u003cnormalized\u003e"
-        },
-        {
-          "affected_version_range": "\u003cnormalized\u003e",
-          "aliases": [
-            "\u003cnormalized\u003e"
-          ],
-          "cvss": [
-            {
-              "score": 0,
-              "vector": "\u003cnormalized\u003e",
-              "version": "\u003cnormalized\u003e"
-            }
-          ],
-          "cwes": [
-            {
-              "cve": "\u003cnormalized\u003e",
-              "id": "\u003cnormalized\u003e",
-              "source": "\u003cnormalized\u003e",
-              "type": "\u003cnormalized\u003e"
-            }
-          ],
-          "data_source": "\u003cnormalized\u003e",
-          "description": "\u003cnormalized\u003e",
-          "epss": [
-            {
-              "cve": "CVE-2022-32149",
-              "date": "\u003cnormalized\u003e",
-              "epss": 0,
-              "percentile": 0
-            }
-          ],
-          "fix_available": [
-            {
-              "date": "\u003cnormalized\u003e",
-              "kind": "\u003cnormalized\u003e",
-              "version": "\u003cnormalized\u003e"
-            }
-          ],
-          "fix_state": "\u003cnormalized\u003e",
-          "fixed_in": "\u003cnormalized\u003e",
-          "fixed_versions": [
-            "\u003cnormalized\u003e"
-          ],
-          "id": "GO-2022-1059",
           "namespace": "\u003cnormalized\u003e",
           "reachability": {
             "analyzed_at": "\u003ctimestamp\u003e",

@@ -37,12 +37,16 @@ type npmLockPackage struct {
 	OptionalDependencies     map[string]string `json:"optionalDependencies"`
 	PeerDependencies         map[string]string `json:"peerDependencies"`
 	OptionalPeerDependencies []string          `json:"optionalPeerDependencies"`
-	Engines                  npmEngines        `json:"engines"`
-	Bundled                  bool              `json:"bundled"`
-	Extraneous               bool              `json:"extraneous"`
-	HasInstallScript         bool              `json:"hasInstallScript"`
-	Dev                      bool              `json:"dev"`
-	Optional                 bool              `json:"optional"`
+	PeerDependenciesMeta     map[string]struct {
+		Optional bool `json:"optional"`
+	} `json:"peerDependenciesMeta"`
+	Engines          npmEngines `json:"engines"`
+	Bundled          bool       `json:"bundled"`
+	Extraneous       bool       `json:"extraneous"`
+	HasInstallScript bool       `json:"hasInstallScript"`
+	Dev              bool       `json:"dev"`
+	DevOptional      bool       `json:"devOptional"`
+	Optional         bool       `json:"optional"`
 }
 
 type npmEngines map[string]string
@@ -73,8 +77,15 @@ func (e *npmEngines) UnmarshalJSON(raw []byte) error {
 // npmLockPackageMetadata builds an NPMPackageMetadata from a lockfile package entry.
 // Returns nil when there is no ecosystem-specific metadata worth recording.
 func npmLockPackageMetadata(entry npmLockPackage) *sdk.NPMPackageMetadata {
+	optionalPeers := append([]string(nil), entry.OptionalPeerDependencies...)
+	for name, meta := range entry.PeerDependenciesMeta {
+		if meta.Optional {
+			optionalPeers = append(optionalPeers, name)
+		}
+	}
+	sort.Strings(optionalPeers)
 	if !entry.Bundled && !entry.Extraneous && !entry.HasInstallScript &&
-		len(entry.PeerDependencies) == 0 && len(entry.OptionalPeerDependencies) == 0 &&
+		len(entry.PeerDependencies) == 0 && len(optionalPeers) == 0 &&
 		len(entry.Engines) == 0 {
 		return nil
 	}
@@ -82,7 +93,7 @@ func npmLockPackageMetadata(entry npmLockPackage) *sdk.NPMPackageMetadata {
 		Bundled:                  entry.Bundled,
 		Extraneous:               entry.Extraneous,
 		HasInstallScript:         entry.HasInstallScript,
-		OptionalPeerDependencies: entry.OptionalPeerDependencies,
+		OptionalPeerDependencies: optionalPeers,
 	}
 	if len(entry.PeerDependencies) > 0 {
 		meta.PeerDependencies = entry.PeerDependencies
@@ -104,29 +115,34 @@ type npmModuleGraph struct {
 // npmLockfileGraphs carries the merged lockfile graph plus the workspace
 // member roots the detector partitions into per-module manifest entries.
 type npmLockfileGraphs struct {
-	graph   *sdk.Graph
-	rootID  string
-	modules []npmModuleGraph
+	graph        *sdk.Graph
+	rootID       string
+	modules      []npmModuleGraph
+	lockfileName string
 }
 
 func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
-	raw, err := os.ReadFile(filepath.Join(projectPath, "package-lock.json"))
+	lockfileName, err := npmLockfileName(projectPath)
 	if err != nil {
-		return npmLockfileGraphs{}, fmt.Errorf("read package-lock.json: %w", err)
+		return npmLockfileGraphs{}, err
+	}
+	raw, err := os.ReadFile(filepath.Join(projectPath, lockfileName))
+	if err != nil {
+		return npmLockfileGraphs{}, fmt.Errorf("read %s: %w", lockfileName, err)
 	}
 
 	var lockfile npmPackageLock
-	if err := json.Unmarshal(raw, &lockfile); err != nil {
-		return npmLockfileGraphs{}, fmt.Errorf("parse package-lock.json: %w", err)
+	if err := json.Unmarshal(node.StripUTF8BOM(raw), &lockfile); err != nil {
+		return npmLockfileGraphs{}, fmt.Errorf("parse %s: %w", lockfileName, err)
+	}
+	if lockfile.LockfileVersion < 1 || lockfile.LockfileVersion > 3 {
+		return npmLockfileGraphs{}, fmt.Errorf("unsupported %s lockfileVersion %d (supported: 1, 2, 3)", lockfileName, lockfile.LockfileVersion)
 	}
 
 	// Prefer the packages-map path (v2/v3) when available: it carries richer metadata
 	// (resolved URL, integrity, license, engines). Fall back to the flat dependencies path
 	// only for v1 lockfiles that have no packages map.
 	if len(lockfile.Packages) == 0 {
-		if len(lockfile.Dependencies) == 0 {
-			return npmLockfileGraphs{}, errors.New("package-lock.json has no dependencies")
-		}
 		root := &node.NPMListNode{Name: lockfile.Name, Version: lockfile.Version, Dependencies: lockfile.Dependencies}
 		if root.Name == "" {
 			root.Name = "root"
@@ -140,15 +156,32 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 		if len(roots) > 0 && roots[0] != nil {
 			rootID = roots[0].ID
 		}
-		return npmLockfileGraphs{graph: flat, rootID: rootID}, nil
+		if rootNode, ok := flat.Node(rootID); ok {
+			rootNode.Source = sdk.DependencySourceProject
+		}
+		for _, dependency := range flat.Nodes() {
+			if dependency != nil && dependency.ID != rootID {
+				dependency.Source = sdk.DependencySourceRegistry
+			}
+		}
+		return npmLockfileGraphs{graph: flat, rootID: rootID, lockfileName: lockfileName}, nil
 	}
 
 	depsGraph := sdk.New()
 	rootName := lockfile.Name
+	rootVersion := lockfile.Version
+	if rootEntry, ok := lockfile.Packages[""]; ok {
+		if rootName == "" {
+			rootName = rootEntry.Name
+		}
+		if rootVersion == "" {
+			rootVersion = rootEntry.Version
+		}
+	}
 	if rootName == "" {
 		rootName = "root"
 	}
-	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: rootName, Version: lockfile.Version, Type: sdk.PackageTypeApplication}})
+	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: rootName, Version: rootVersion, Type: sdk.PackageTypeApplication}, Source: sdk.DependencySourceProject})
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return npmLockfileGraphs{}, fmt.Errorf("add npm root node: %w", err)
 	}
@@ -161,6 +194,16 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 
 	pathToID := map[string]string{"": rootNode.ID}
 	modules := make([]npmModuleGraph, 0)
+	workspaceTargets := make(map[string]struct{})
+	for _, entry := range lockfile.Packages {
+		if !entry.Link {
+			continue
+		}
+		target := strings.TrimPrefix(strings.TrimSpace(strings.ReplaceAll(entry.Resolved, "\\", "/")), "./")
+		if target != "" {
+			workspaceTargets[target] = struct{}{}
+		}
+	}
 	for _, packagePath := range paths {
 		if packagePath == "" {
 			continue
@@ -171,7 +214,8 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 			// resolved after all real entries have nodes.
 			continue
 		}
-		member := isNPMWorkspaceMemberPath(packagePath)
+		normalizedPackagePath := strings.TrimPrefix(filepath.ToSlash(packagePath), "./")
+		_, member := workspaceTargets[normalizedPackagePath]
 		name := strings.TrimSpace(entry.Name)
 		if name == "" {
 			name = npmNameFromPackagePath(packagePath)
@@ -184,7 +228,7 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 		}
 		pkg := sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM,
 			Name:    name,
-			Version: entry.Version}, Scopes: sdk.ScopesOf(scopeFromNPMLockPackage(entry)),
+			Version: entry.Version}, Source: npmPackageSource(entry), Scopes: sdk.ScopesOf(scopeFromNPMLockPackage(entry)),
 			ResolvedURL: entry.Resolved,
 			Digests:     node.ParseIntegrityDigests(entry.Integrity),
 		}
@@ -192,6 +236,7 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 			// Workspace members are local applications, not fetched packages.
 			pkg.Type = sdk.PackageTypeApplication
 			pkg.ResolvedURL = ""
+			pkg.Source = sdk.DependencySourceWorkspace
 		}
 		if meta := npmLockPackageMetadata(entry); meta != nil {
 			pkg.Metadata = map[string]any{sdk.MetadataKeyNPM: meta}
@@ -236,10 +281,11 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 			}
 			parentID = id
 		}
-		for dependencyName, dependencyVersion := range packageDependencyVersions(packagePath, entry) {
+		_, member := workspaceTargets[strings.TrimPrefix(filepath.ToSlash(packagePath), "./")]
+		for dependencyName, dependencyVersion := range packageDependencyVersions(packagePath, entry, member) {
 			targetID, ok := resolveNPMLockDependencyID(packagePath, dependencyName, dependencyVersion, lockfile, pathToID)
 			if !ok {
-				synthetic := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(dependencyVersion)}})
+				synthetic := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, Name: dependencyName, Version: node.NormalizeVersionToken(dependencyVersion)}, Source: node.DependencySourceFromSpecifier(dependencyVersion)})
 				if err := node.AddNodeIfMissing(depsGraph, synthetic); err != nil {
 					return npmLockfileGraphs{}, err
 				}
@@ -259,27 +305,39 @@ func depGraphFromNPMLockfile(projectPath string) (npmLockfileGraphs, error) {
 			node.ApplyDirectDependencyScopes(depsGraph, module.rootID, npmRootDirectScopes(entry))
 		}
 	}
-	return npmLockfileGraphs{graph: depsGraph, rootID: rootNode.ID, modules: modules}, nil
+	return npmLockfileGraphs{graph: depsGraph, rootID: rootNode.ID, modules: modules, lockfileName: lockfileName}, nil
 }
 
-// isNPMWorkspaceMemberPath reports whether a packages-map key addresses a
-// local source directory (npm writes workspace members and file: dependencies
-// by their directory) rather than an installed node_modules entry or the root.
-func isNPMWorkspaceMemberPath(packagePath string) bool {
-	normalized := strings.TrimPrefix(strings.ReplaceAll(packagePath, "\\", "/"), "./")
-	if normalized == "" || normalized == "." {
-		return false
+func npmLockfileName(projectPath string) (string, error) {
+	for _, name := range []string{"npm-shrinkwrap.json", "package-lock.json"} {
+		if _, err := os.Stat(filepath.Join(projectPath, name)); err == nil {
+			return name, nil
+		} else if !errors.Is(err, os.ErrNotExist) {
+			return "", fmt.Errorf("inspect %s: %w", name, err)
+		}
 	}
-	return normalized != "node_modules" &&
-		!strings.HasPrefix(normalized, "node_modules/") &&
-		!strings.Contains(normalized, "/node_modules/")
+	return "", fmt.Errorf("read npm lockfile: %w", os.ErrNotExist)
 }
 
-func packageDependencyVersions(packagePath string, entry npmLockPackage) map[string]string {
+func npmPackageSource(entry npmLockPackage) sdk.DependencySource {
+	resolved := strings.ToLower(strings.TrimSpace(entry.Resolved))
+	switch {
+	case entry.Link, strings.HasPrefix(resolved, "link:"), strings.HasPrefix(resolved, "workspace:"):
+		return sdk.DependencySourceWorkspace
+	case strings.HasPrefix(resolved, "file:"):
+		return sdk.DependencySourceFile
+	case strings.HasPrefix(resolved, "git:"), strings.HasPrefix(resolved, "git+"):
+		return sdk.DependencySourceGit
+	default:
+		return sdk.DependencySourceRegistry
+	}
+}
+
+func packageDependencyVersions(packagePath string, entry npmLockPackage, workspaceMember bool) map[string]string {
 	deps := node.MergeStringMaps(entry.Dependencies, entry.OptionalDependencies)
 	// Dev dependencies are edges only for local application roots — the
 	// lockfile root and workspace members — never for installed packages.
-	if packagePath == "" || isNPMWorkspaceMemberPath(packagePath) {
+	if packagePath == "" || workspaceMember {
 		deps = node.MergeStringMaps(deps, entry.DevDependencies)
 	}
 	return deps
@@ -383,7 +441,7 @@ func npmNameFromPackagePath(packagePath string) string {
 }
 
 func scopeFromNPMLockPackage(entry npmLockPackage) sdk.Scope {
-	if entry.Dev {
+	if entry.Dev || entry.DevOptional {
 		if entry.Optional {
 			return sdk.ScopeDevelopment
 		}

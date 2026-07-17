@@ -135,6 +135,19 @@ func (e *Engine) Analyze(ctx context.Context, req sdk.AnalyzeRequest) (sdk.Analy
 
 // Match runs registered matchers against the graph and returns the enriched graph.
 func (e *Engine) Match(ctx context.Context, req sdk.MatchRequest) (MatchResult, error) {
+	originalGraphSize := 0
+	if req.Graph != nil {
+		originalGraphSize = req.Graph.Size()
+	}
+	hadTarget := req.Target != nil
+	prepared, err := registryMatchRequest(req)
+	if err != nil {
+		return MatchResult{Registry: req.Registry}, fmt.Errorf("prepare registry matching: %w", err)
+	}
+	req = prepared
+	if req.Graph == nil || (req.Graph.Size() == 0 && (originalGraphSize > 0 || hadTarget)) {
+		return MatchResult{Registry: req.Registry}, nil
+	}
 	matcherList := e.registry.Matchers(req)
 	if len(matcherList) == 0 {
 		return MatchResult{Registry: req.Registry}, fmt.Errorf("%w for ecosystem %q, and package manager %q", ErrNoMatcher, req.Ecosystem, req.PackageManager)

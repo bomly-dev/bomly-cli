@@ -9,7 +9,7 @@ Bomly uses this chain when it finds `npm` evidence.
 | Package manager | `npm` |
 | Ecosystem | `npm` |
 | Detector chain | `npm-detector`, `npm-native-detector`, `syft-detector` |
-| Evidence patterns | `package-lock.json`, `package.json` |
+| Evidence patterns | `npm-shrinkwrap.json`, `package-lock.json`, `package.json` |
 | Ignored directories | `node_modules`, `dist` |
 | Ignored directory markers | - |
 | Multi-module resolution | Yes |

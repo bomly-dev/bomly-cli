@@ -133,6 +133,37 @@ func TestBuildSourceSummaryUsesPackageScoreWhenEdgesAreUnavailable(t *testing.T)
 	}
 }
 
+func TestBuildSourceSummaryClassifiesAdjudicatedExtensions(t *testing.T) {
+	bomly := &sbom.Document{
+		Components: []sbom.Component{
+			{ID: "exact", PURL: "pkg:npm/exact@1.0.0"},
+			{ID: "extension", PURL: "pkg:npm/extension@1.0.0"},
+		},
+		Dependencies: []sbom.Dependency{{Ref: "extension", DependsOn: []string{"exact"}}},
+	}
+	source := &sbom.Document{Components: []sbom.Component{{ID: "exact", PURL: "pkg:npm/exact@1.0.0"}}}
+	policy := ComparisonPolicy{
+		PackageExtensions:      map[string]string{"pkg:npm/extension@1.0.0": "project identity"},
+		RelationshipExtensions: map[string]string{relationshipKey("pkg:npm/extension@1.0.0", "pkg:npm/exact@1.0.0"): "project edge"},
+	}
+
+	summary, report := BuildSourceSummaryWithPolicy("fixture", bomly, source, SourceArtifacts{}, policy)
+	if summary.Scores.Overall != 100 || summary.Packages.Extensions != 1 || summary.Packages.Unadjudicated != 0 {
+		t.Fatalf("summary = %#v", summary)
+	}
+	if summary.Agreement == nil || summary.Agreement.Package >= 100 {
+		t.Fatalf("agreement = %#v", summary.Agreement)
+	}
+	if len(report.Differences) != 2 {
+		t.Fatalf("differences = %#v", report.Differences)
+	}
+	for _, difference := range report.Differences {
+		if difference.Classification != "adjudicated_extension" || difference.Reason == "" {
+			t.Fatalf("difference = %#v", difference)
+		}
+	}
+}
+
 func TestFilterDocumentKeepsOnlySelectedEcosystemAndInternalEdges(t *testing.T) {
 	doc := &sbom.Document{
 		Components: []sbom.Component{

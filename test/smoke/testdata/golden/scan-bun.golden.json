@@ -1,0 +1,25 @@
+{
+  "manifest_count": 3,
+  "package_count": 11,
+  "root_manifest": {
+    "kind": "package.json",
+    "path": "apps/api/package.json"
+  },
+  "selected": [
+    {
+      "name": "is-even",
+      "purl": "pkg:npm/is-even@1.0.0",
+      "version": "1.0.0"
+    },
+    {
+      "name": "is-number",
+      "purl": "pkg:npm/is-number@3.0.0",
+      "version": "3.0.0"
+    },
+    {
+      "name": "is-number",
+      "purl": "pkg:npm/is-number@7.0.0",
+      "version": "7.0.0"
+    }
+  ]
+}

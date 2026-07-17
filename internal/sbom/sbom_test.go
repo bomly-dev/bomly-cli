@@ -235,6 +235,7 @@ func TestMarshalDepGraphJSON_CycloneDXVersions(t *testing.T) {
 		{target: TargetCycloneDX14JSON, version: cdx.SpecVersion1_4},
 		{target: TargetCycloneDX15JSON, version: cdx.SpecVersion1_5},
 		{target: TargetCycloneDX16JSON, version: cdx.SpecVersion1_6},
+		{target: TargetCycloneDX17JSON, version: cdx.SpecVersion1_7},
 	}
 
 	for _, tc := range targets {

@@ -45,6 +45,26 @@ func StripUTF8BOM(data []byte) []byte {
 	return bytes.TrimPrefix(data, []byte{0xef, 0xbb, 0xbf})
 }
 
+// DependencySourceFromSpecifier classifies a Node dependency specifier by
+// where its resolved artifact originates.
+func DependencySourceFromSpecifier(value string) sdk.DependencySource {
+	normalized := strings.ToLower(strings.TrimSpace(value))
+	switch {
+	case strings.HasPrefix(normalized, "workspace:"), strings.HasPrefix(normalized, "link:"):
+		return sdk.DependencySourceWorkspace
+	case strings.HasPrefix(normalized, "file:"):
+		return sdk.DependencySourceFile
+	case strings.HasPrefix(normalized, "git:"), strings.HasPrefix(normalized, "git+"),
+		strings.HasPrefix(normalized, "github:"), strings.HasPrefix(normalized, "gitlab:"),
+		strings.HasPrefix(normalized, "bitbucket:"):
+		return sdk.DependencySourceGit
+	case strings.HasPrefix(normalized, "http:"), strings.HasPrefix(normalized, "https:"):
+		return sdk.DependencySourceURL
+	default:
+		return sdk.DependencySourceRegistry
+	}
+}
+
 // NormalizeVersionToken removes common package-manager range and protocol markers from a version token.
 func NormalizeVersionToken(value string) string {
 	trimmed := strings.Trim(strings.TrimSpace(value), "\"")

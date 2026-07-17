@@ -13,6 +13,7 @@ Inspect all available artifacts:
 - `.benchmark-runs/latest/cases/*/sources/bomly/*.sbom.json`
 - `.benchmark-runs/latest/cases/*/sources/*/benchmark-summary.json`
 - `.benchmark-runs/latest/cases/*/sources/*/diff.json`
+- `.benchmark-runs/latest/cases/*/sources/*/mismatches.json`
 - `.benchmark-runs/latest/cases/*/sources/*/source.sbom.json`
 
 The root summary and per-case summaries are the primary source for status and scores. Per-source summaries contain package, relationship, scope, detector-provenance, and artifact details.
@@ -30,6 +31,7 @@ Definitions:
 ## Evidence Model
 
 - Use `used_detectors` to identify the native Bomly detector path. Flag `syft-detector` provenance as a benchmark setup problem.
+- Report correctness and raw agreement separately. Inspect every adjudicated extension reason and flag any unadjudicated Bomly-only or source-only mismatch.
 - Use `diff.json` for concrete package presence and version differences.
 - Use filtered `source.sbom.json` and Bomly `*.sbom.json` artifacts for dependency-edge and scope evidence.
 - Treat missing baseline scope metadata as unknown, not automatically as a Bomly issue.

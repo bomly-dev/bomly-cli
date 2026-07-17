@@ -72,11 +72,16 @@ func finalNPMPathSegment(p string) string {
 // for every package whose name matches a node_modules/... key in
 // package-lock.json.
 func AttachPackageLockPositions(g *sdk.Graph, projectDir string) {
+	AttachPackageLockPositionsForName(g, projectDir, "package-lock.json")
+}
+
+// AttachPackageLockPositionsForName populates positions from the selected npm lockfile.
+func AttachPackageLockPositionsForName(g *sdk.Graph, projectDir, lockfileName string) {
 	if g == nil || projectDir == "" {
 		return
 	}
-	lockPath := filepath.Join(projectDir, "package-lock.json")
-	relPath := "package-lock.json"
+	lockPath := filepath.Join(projectDir, lockfileName)
+	relPath := lockfileName
 	positions := packageLockPositions(lockPath, relPath)
 	if len(positions) == 0 {
 		return

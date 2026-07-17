@@ -16,6 +16,7 @@ const (
 	PackageManagerNPM           PackageManager = "npm"
 	PackageManagerPNPM          PackageManager = "pnpm"
 	PackageManagerYarn          PackageManager = "yarn"
+	PackageManagerBun           PackageManager = "bun"
 	PackageManagerGradle        PackageManager = "gradle"
 	PackageManagerMaven         PackageManager = "maven"
 	PackageManagerGoMod         PackageManager = "gomod"
@@ -77,6 +78,7 @@ var packageManagerInfoByID = map[PackageManager]packageManagerInfo{
 	PackageManagerNPM:           {Name: "npm", Ecosystem: EcosystemNPM, Languages: []Language{LanguageJavaScript, LanguageTypeScript}},
 	PackageManagerPNPM:          {Name: "pnpm", Ecosystem: EcosystemNPM, Languages: []Language{LanguageJavaScript, LanguageTypeScript}},
 	PackageManagerYarn:          {Name: "yarn", Ecosystem: EcosystemNPM, Languages: []Language{LanguageJavaScript, LanguageTypeScript}},
+	PackageManagerBun:           {Name: "bun", Ecosystem: EcosystemNPM, Languages: []Language{LanguageJavaScript, LanguageTypeScript}},
 	PackageManagerGradle:        {Name: "gradle", Ecosystem: EcosystemMaven, Languages: []Language{LanguageJava, LanguageKotlin, LanguageGroovy, LanguageScala}},
 	PackageManagerMaven:         {Name: "maven", Ecosystem: EcosystemMaven, Languages: []Language{LanguageJava, LanguageKotlin, LanguageScala, LanguageGroovy}},
 	PackageManagerGoMod:         {Name: "gomod", Ecosystem: EcosystemGo, Languages: []Language{LanguageGo}},
@@ -127,6 +129,7 @@ var allPackageManagers = []PackageManager{
 	PackageManagerNPM,
 	PackageManagerPNPM,
 	PackageManagerYarn,
+	PackageManagerBun,
 	PackageManagerGradle,
 	PackageManagerMaven,
 	PackageManagerGoMod,

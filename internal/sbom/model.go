@@ -14,6 +14,7 @@ const (
 	TargetCycloneDX14JSON Target = "cyclonedx-1.4+json"
 	TargetCycloneDX15JSON Target = "cyclonedx-1.5+json"
 	TargetCycloneDX16JSON Target = "cyclonedx-1.6+json"
+	TargetCycloneDX17JSON Target = "cyclonedx-1.7+json"
 	TargetSyftJSON        Target = "syft+json"
 	defaultDocumentName          = "bomly-dependencies"
 	defaultToolName              = "bomly-cli"

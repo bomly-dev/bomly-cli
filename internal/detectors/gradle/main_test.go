@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/bomly-dev/bomly-cli/internal/system"
+	"github.com/bomly-dev/bomly-cli/internal/testutil"
 )
 
 // TestMain builds the package's fake gradle and java executables once, per
@@ -30,12 +30,12 @@ func TestMain(m *testing.M) {
 
 	fakeGradleBinPath = filepath.Join(dir, executableName("gradle"))
 	fakeJavaBinPath = filepath.Join(dir, executableName("java"))
-	if err := buildHelperBinary(fakeGradleBinPath, fakeGradleSource()); err != nil {
+	if err := testutil.BuildGoBinaryFromSource(fakeGradleBinPath, fakeGradleSource()); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "build fake gradle: %v\n", err)
 		_ = os.RemoveAll(dir)
 		os.Exit(1)
 	}
-	if err := buildHelperBinary(fakeJavaBinPath, fakeJavaSource()); err != nil {
+	if err := testutil.BuildGoBinaryFromSource(fakeJavaBinPath, fakeJavaSource()); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "build fake java: %v\n", err)
 		_ = os.RemoveAll(dir)
 		os.Exit(1)
@@ -44,25 +44,6 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 	_ = os.RemoveAll(dir)
 	os.Exit(code)
-}
-
-func buildHelperBinary(outputPath, source string) error {
-	srcDir, err := os.MkdirTemp("", "bomly-gradle-fakesrc-*")
-	if err != nil {
-		return err
-	}
-	defer func() { _ = os.RemoveAll(srcDir) }()
-
-	srcPath := filepath.Join(srcDir, "main.go")
-	if err := os.WriteFile(srcPath, []byte(source), 0o644); err != nil {
-		return err
-	}
-	buildCmd := system.Command("go", "build", "-o", outputPath, srcPath)
-	buildCmd.Env = append(os.Environ(), "GOFLAGS=-modcacherw")
-	if buildOutput, err := buildCmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("go build failed: %w (%s)", err, string(buildOutput))
-	}
-	return nil
 }
 
 func executableName(base string) string {

@@ -55,3 +55,14 @@ func TestLoadTargetsRejectsUnsafeCaseName(t *testing.T) {
 		t.Fatal("LoadTargets() expected unsafe name error")
 	}
 }
+
+func TestLoadTargetsRejectsUnexplainedAdjudication(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "targets.json")
+	raw := []byte(`[{"name":"scan-npm","url":"https://github.com/example/npm","ref":"v1","ecosystem":"npm","adjudicated_relationships":[{"from":"pkg:npm/a@1.0.0","to":"pkg:npm/b@1.0.0"}]}]`)
+	if err := os.WriteFile(path, raw, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := LoadTargets(path); err == nil {
+		t.Fatal("LoadTargets() expected missing adjudication reason error")
+	}
+}

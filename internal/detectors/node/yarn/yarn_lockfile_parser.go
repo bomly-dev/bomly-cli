@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/bomly-dev/bomly-cli/internal/detectors/node"
@@ -286,11 +287,11 @@ func parseYarnDependencyLine(line string) (string, string) {
 	if key, value, ok := splitYarnMapping(line); ok {
 		return strings.Trim(strings.TrimSpace(key), "\"'"), strings.Trim(strings.TrimSpace(value), "\"'")
 	}
-	parts := strings.Fields(line)
-	if len(parts) < 2 {
+	key, value, ok := splitYarnWhitespaceMapping(line)
+	if !ok {
 		return "", ""
 	}
-	return strings.Trim(parts[0], "\"'"), strings.Trim(parts[1], "\"'")
+	return strings.Trim(strings.TrimSpace(key), "\"'"), strings.Trim(strings.TrimSpace(value), "\"'")
 }
 
 func selectYarnEntry(entries []yarnLockEntry, entriesByName map[string][]int, dependencyName string, requested string) (int, bool) {
@@ -299,6 +300,9 @@ func selectYarnEntry(entries []yarnLockEntry, entriesByName map[string][]int, de
 		return 0, false
 	}
 	normalizedRequest := normalizeYarnRange(requested)
+	// Prefer the descriptor group Yarn recorded for the exact requested range.
+	// A merely compatible version can occur earlier in the lockfile and must not
+	// shadow that authoritative selector.
 	for _, idx := range indices {
 		entry := entries[idx]
 		if normalizedRequest != "" && node.NormalizeVersionToken(entry.Version) == normalizedRequest {
@@ -309,6 +313,9 @@ func selectYarnEntry(entries []yarnLockEntry, entriesByName map[string][]int, de
 				return idx, true
 			}
 		}
+	}
+	for _, idx := range indices {
+		entry := entries[idx]
 		if constraint, err := semver.NewConstraint(normalizedRequest); err == nil {
 			if version, err := semver.NewVersion(entry.Version); err == nil && constraint.Check(version) {
 				return idx, true
@@ -319,6 +326,23 @@ func selectYarnEntry(entries []yarnLockEntry, entriesByName map[string][]int, de
 		return indices[0], true
 	}
 	return 0, false
+}
+
+func splitYarnWhitespaceMapping(value string) (string, string, bool) {
+	var quote rune
+	for idx, char := range value {
+		switch {
+		case quote != 0 && char == quote:
+			quote = 0
+		case quote == 0 && (char == '\'' || char == '"'):
+			quote = char
+		case quote == 0 && unicode.IsSpace(char):
+			key := strings.TrimSpace(value[:idx])
+			remainder := strings.TrimSpace(value[idx:])
+			return key, remainder, key != "" && remainder != ""
+		}
+	}
+	return "", "", false
 }
 
 func normalizeYarnRange(value string) string {

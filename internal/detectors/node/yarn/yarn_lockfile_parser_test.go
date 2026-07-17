@@ -125,3 +125,72 @@ lodash@4.17.21:
 		}
 	}
 }
+
+func TestParseYarnDependencyLinePreservesQuotedClassicRange(t *testing.T) {
+	name, requested := parseYarnDependencyLine(`debug ">= 0.7.3 < 1"`)
+	if name != "debug" || requested != ">= 0.7.3 < 1" {
+		t.Fatalf("parseYarnDependencyLine() = %q, %q", name, requested)
+	}
+}
+
+func TestYarnLockfilePrefersExactDescriptorGroupBeforeCompatibleVersion(t *testing.T) {
+	projectDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte(`{"name":"demo","version":"1.0.0","dependencies":{"parent":"1.0.0"}}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(projectDir, "yarn.lock"), []byte(`parent@1.0.0:
+  version "1.0.0"
+  dependencies:
+    debug ">= 0.7.3 < 1"
+    mime "^1.2.11"
+    request "^2.70.0"
+
+debug@0.7.4:
+  version "0.7.4"
+
+"debug@>= 0.7.3 < 1":
+  version "0.8.1"
+
+mime@1.2.11:
+  version "1.2.11"
+
+mime@1.3.4, mime@^1.2.11:
+  version "1.3.4"
+
+request@2.76.0:
+  version "2.76.0"
+
+request@^2.70.0, request@^2.72.0:
+  version "2.79.0"
+`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := LockfileDetector{}.ResolveGraph(context.Background(), sdk.DetectionRequest{ProjectPath: projectDir})
+	if err != nil {
+		t.Fatal(err)
+	}
+	graph := result.Graphs.Entries[0].Graph
+	parent, ok := graph.Node("parent@1.0.0")
+	if !ok {
+		t.Fatal("missing parent")
+	}
+	children, err := graph.DirectDependencies(parent.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := make(map[string]bool, len(children))
+	for _, child := range children {
+		got[child.ID] = true
+	}
+	for _, want := range []string{"debug@0.8.1", "mime@1.3.4", "request@2.79.0"} {
+		if !got[want] {
+			t.Fatalf("dependencies = %v, missing %s", got, want)
+		}
+	}
+	for _, reject := range []string{"debug@=", "mime@1.2.11", "request@2.76.0"} {
+		if got[reject] {
+			t.Fatalf("dependencies = %v, unexpectedly selected %s", got, reject)
+		}
+	}
+}

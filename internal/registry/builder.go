@@ -1067,6 +1067,7 @@ var builtInDetectorAliases = map[string][]string{
 	detectors.NameYarn:          {"yarn"},
 	detectors.NameYarnNative:    {"yarn-native"},
 	detectors.NameBun:           {"bun"},
+	detectors.NameBunNative:     {"bun-native"},
 	detectors.NameGradle:        {"gradle"},
 	detectors.NameMaven:         {"maven"},
 	detectors.NameGoMod:         {"go", "gomod"},
@@ -1113,6 +1114,7 @@ var builtInDisplayNames = map[string]string{
 	detectors.NameYarn:          "Yarn Detector",
 	detectors.NameYarnNative:    "Yarn Native Detector",
 	detectors.NameBun:           "Bun Detector",
+	detectors.NameBunNative:     "Bun Native Detector",
 	detectors.NameGradle:        "Gradle Detector",
 	detectors.NameMaven:         "Maven Detector",
 	detectors.NameGoMod:         "Go Module Detector",
@@ -1177,7 +1179,8 @@ func builtInDetectorsByName(logger *zap.Logger) map[string]sdk.Detector {
 	npmDetector := npm.LockfileDetector{Logger: logger, Fallback: npmNativeDetector}
 	pnpmDetector := pnpm.LockfileDetector{Logger: logger, Fallback: pnpmNativeDetector}
 	yarnDetector := yarn.LockfileDetector{Logger: logger, Fallback: yarnNativeDetector}
-	bunDetector := bun.LockfileDetector{Logger: logger, Fallback: syftFallback}
+	bunNativeDetector := bun.NativeDetector{Logger: logger, Fallback: syftFallback}
+	bunDetector := bun.LockfileDetector{Logger: logger, Fallback: bunNativeDetector}
 	gradleDetector := gradle.Detector{Logger: logger, Fallback: syftFallback}
 	mavenDetector := maven.Detector{Logger: logger, Fallback: syftFallback}
 	goDetector := gomod.Detector{Logger: logger, Fallback: syftFallback}
@@ -1206,6 +1209,7 @@ func builtInDetectorsByName(logger *zap.Logger) map[string]sdk.Detector {
 		pnpmDetector.Descriptor().Name:          pnpmDetector,
 		yarnDetector.Descriptor().Name:          yarnDetector,
 		bunDetector.Descriptor().Name:           bunDetector,
+		bunNativeDetector.Descriptor().Name:     bunNativeDetector,
 		gradleDetector.Descriptor().Name:        gradleDetector,
 		mavenDetector.Descriptor().Name:         mavenDetector,
 		goDetector.Descriptor().Name:            goDetector,

@@ -74,6 +74,7 @@ func builtInSupportDetectors() []sdk.Detector {
 		yarn.LockfileDetector{},
 		yarn.NativeDetector{},
 		bun.LockfileDetector{},
+		bun.NativeDetector{},
 		gradle.Detector{},
 		maven.Detector{},
 		gomod.Detector{},

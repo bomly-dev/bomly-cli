@@ -128,6 +128,14 @@ func depGraphFromBunLockfile(projectPath string) (bunLockfileGraphs, error) {
 		if err != nil {
 			return bunLockfileGraphs{}, err
 		}
+		// Bun repeats workspace members in the packages table. Their canonical
+		// application nodes were already created above; ingesting the tuple as a
+		// registry package would duplicate the workspace with a path-like version.
+		if entry.source == sdk.DependencySourceWorkspace {
+			if _, ok := workspaceByName[entry.name]; ok {
+				continue
+			}
+		}
 		dep := sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerBun, Name: entry.name, Version: entry.version}, Source: entry.source, ResolvedURL: entry.resolved, Digests: node.ParseIntegrityDigests(entry.integrity)}
 		pkgNode := sdk.NewDependency(dep)
 		if _, exists := graph.Node(pkgNode.ID); exists {
@@ -207,7 +215,11 @@ func parseBunPackageEntry(key string, raw json.RawMessage) (bunPackageEntry, err
 	if name == "" {
 		return bunPackageEntry{}, fmt.Errorf("parse Bun package %q: invalid identity %q", key, identity)
 	}
-	entry := bunPackageEntry{key: key, name: name, version: version, source: node.DependencySourceFromSpecifier(version)}
+	rawVersion := version
+	if idx := strings.LastIndex(identity, "@"); idx > 0 && idx < len(identity)-1 {
+		rawVersion = identity[idx+1:]
+	}
+	entry := bunPackageEntry{key: key, name: name, version: version, source: node.DependencySourceFromSpecifier(rawVersion)}
 	if len(tuple) > 1 {
 		_ = json.Unmarshal(tuple[1], &entry.resolved)
 	}

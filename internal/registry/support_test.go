@@ -42,7 +42,7 @@ func TestSupportCatalogDetectorChainOrdering(t *testing.T) {
 	}
 
 	chain = DetectorNamesForPackageManager(sdk.PackageManagerBun)
-	want = []string{detectors.NameBun, detectors.NameSyft}
+	want = []string{detectors.NameBun, detectors.NameBunNative, detectors.NameSyft}
 	if !reflect.DeepEqual(chain, want) {
 		t.Fatalf("expected Bun detector chain %v, got %v", want, chain)
 	}

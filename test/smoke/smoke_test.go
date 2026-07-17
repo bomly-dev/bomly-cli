@@ -24,14 +24,13 @@ import (
 	"github.com/bomly-dev/bomly-cli/internal/benchmark"
 )
 
-// TestScanBunLockfile exercises the native text-lockfile path against a
-// pinned public monorepo. The compact golden locks the detector identity,
-// workspace partitioning, complete package inventory, and two known versions
-// without committing a multi-thousand-line scan document.
+// TestScanBunLockfile exercises the text-lockfile path against the controlled
+// Bun workspace fixture. The compact golden locks detector identity, workspace
+// partitioning, complete inventory, and duplicate-version handling.
 func TestScanBunLockfile(t *testing.T) {
 	stdout, stderr, code := runBomly(t,
-		"scan", "--url", "https://github.com/cline/cline.git",
-		"--ref", "d7cc9b61557aa0efd962512c16d183f49aa6bf20",
+		"scan", "--url", "https://github.com/bomly-dev/example-javascript-bun",
+		"--ref", "v1.0.0",
 		"--detectors", "bun", "--format", "json")
 	if code != 0 {
 		t.Fatalf("bomly exited %d\nstderr:\n%s", code, stderr)
@@ -50,9 +49,9 @@ func TestScanBunLockfile(t *testing.T) {
 	if err := json.Unmarshal([]byte(stdout), &document); err != nil {
 		t.Fatalf("decode Bun scan output: %v", err)
 	}
-	selected := make([]map[string]string, 0, 2)
+	selected := make([]map[string]string, 0, 3)
 	for _, pkg := range document.Packages {
-		if pkg.Name == "esbuild" || pkg.Name == "vite" {
+		if pkg.Name == "is-even" || pkg.Name == "is-number" {
 			selected = append(selected, map[string]string{"name": pkg.Name, "version": pkg.Version, "purl": pkg.PURL})
 		}
 	}

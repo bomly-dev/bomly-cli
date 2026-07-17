@@ -122,6 +122,32 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y maven
 
+      # Transitive POMs of the pinned demo repos declare long-dead
+      # repositories (codehaus, repository.jboss.org, oss.sonatype.org
+      # snapshots, ...). Some of them accept connections and never respond,
+      # and Maven's default read timeout is effectively unbounded, which has
+      # stalled runs. Every artifact the demos need lives on Central, so
+      # route all repository access there: dead-repo lookups become fast
+      # 404s instead of hangs. Maven resolves user.home from passwd, so this
+      # settings.xml applies to every bomly-spawned mvn despite the smoke
+      # harness's per-test HOME override.
+      - name: Route all Maven repositories through Central
+        if: matrix.slice.maven
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<'XML'
+          <settings>
+            <mirrors>
+              <mirror>
+                <id>central-mirror-all</id>
+                <name>Force all repositories through Maven Central</name>
+                <url>https://repo.maven.apache.org/maven2</url>
+                <mirrorOf>*</mirrorOf>
+              </mirror>
+            </mirrors>
+          </settings>
+          XML
+
       # Smoke scans clone pinned repos at runtime, so there are no lockfiles
       # in the workspace to hash — use a rolling key (unique per run, prefix
       # restore) to keep the newest cache warm. Java derives user.home from

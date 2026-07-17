@@ -49,6 +49,7 @@ jobs:
             run: 'TestScan/(scan-maven|scan-gradle|scan-recursive-monorepo)'
             java: true
             maven: true
+            gradle: true
           - name: java-reachability
             run: 'TestScan/scan-java-maven-reachability'
             java: true
@@ -145,6 +146,32 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y maven
+
+      # Smoke scans clone pinned repos at runtime, so there are no lockfiles
+      # in the workspace to hash — use a rolling key (unique per run, prefix
+      # restore) to keep the newest cache warm. Java derives user.home from
+      # passwd, not $HOME, so every bomly invocation shares the runner-level
+      # ~/.m2 despite the harness's per-test HOME override; a warm cache
+      # removes the cold-start Maven Central downloads that have stalled runs.
+      - name: Cache Maven repository
+        if: matrix.slice.maven
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.m2/repository
+          key: maven-repo-${{ runner.os }}-${{ matrix.slice.name }}-${{ github.run_id }}
+          restore-keys: |
+            maven-repo-${{ runner.os }}-
+
+      - name: Cache Gradle caches
+        if: matrix.slice.gradle
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-home-${{ runner.os }}-${{ matrix.slice.name }}-${{ github.run_id }}
+          restore-keys: |
+            gradle-home-${{ runner.os }}-
 
       # Mirrors `make smoke` but invokes go test directly: the slice patterns
       # use $ anchors, which make would expand (e.g. `$|` becomes empty) if

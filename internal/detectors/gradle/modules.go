@@ -23,13 +23,71 @@ type gradleModule struct {
 	ManifestFile string
 }
 
+// The declaration regexes run over comment-stripped script text (see
+// stripGradleComments) and are line-anchored, so commented-out declarations
+// and include-shaped text inside unrelated string literals never register as
+// modules.
 var (
-	gradleParenthesizedInclude = regexp.MustCompile(`(?s)\binclude\s*\((.*?)\)`)
-	gradleLineInclude          = regexp.MustCompile(`(?m)^\s*include\s+([^\r\n]+)$`)
+	gradleParenthesizedInclude = regexp.MustCompile(`(?ms)^[ \t]*include\s*\((.*?)\)`)
+	gradleLineInclude          = regexp.MustCompile(`(?m)^[ \t]*include\s+([^\r\n(][^\r\n]*)$`)
 	gradleQuotedValue          = regexp.MustCompile(`["']([^"']+)["']`)
-	gradleProjectDirOverride   = regexp.MustCompile(`(?m)project\s*\(\s*["']([^"']+)["']\s*\)\.projectDir\s*=\s*file\s*\(\s*["']([^"']+)["']\s*\)`)
+	gradleProjectDirOverride   = regexp.MustCompile(`(?m)^[ \t]*project\s*\(\s*["']([^"']+)["']\s*\)\.projectDir\s*=\s*file\s*\(\s*["']([^"']+)["']\s*\)`)
 	gradleGroupAssignment      = regexp.MustCompile(`(?m)^\s*group\s*=\s*["']([^"']+)["']`)
 )
+
+// stripGradleComments removes line (//) and block (/* ... */) comments from a
+// Gradle script while preserving string literals and line structure, so the
+// line-anchored declaration regexes never match commented-out code. It is a
+// lightweight scanner, not a Groovy/Kotlin lexer: single- and double-quoted
+// strings (with backslash escapes) pass through verbatim, block comments keep
+// their newlines, and everything else is copied as-is.
+func stripGradleComments(body string) string {
+	var out strings.Builder
+	out.Grow(len(body))
+	for i := 0; i < len(body); {
+		c := body[i]
+		switch {
+		case c == '/' && i+1 < len(body) && body[i+1] == '/':
+			for i < len(body) && body[i] != '\n' {
+				i++
+			}
+		case c == '/' && i+1 < len(body) && body[i+1] == '*':
+			i += 2
+			for i < len(body) {
+				if body[i] == '*' && i+1 < len(body) && body[i+1] == '/' {
+					i += 2
+					break
+				}
+				if body[i] == '\n' {
+					out.WriteByte('\n')
+				}
+				i++
+			}
+		case c == '\'' || c == '"':
+			quote := c
+			out.WriteByte(c)
+			i++
+			for i < len(body) {
+				if body[i] == '\\' && i+1 < len(body) {
+					out.WriteByte(body[i])
+					out.WriteByte(body[i+1])
+					i += 2
+					continue
+				}
+				out.WriteByte(body[i])
+				if body[i] == quote {
+					i++
+					break
+				}
+				i++
+			}
+		default:
+			out.WriteByte(c)
+			i++
+		}
+	}
+	return out.String()
+}
 
 // walkGradleSettingsModules reads the settings script in workingDir and
 // returns every included subproject in project-path order. A build without a
@@ -38,9 +96,13 @@ var (
 // resolve outside the build root are skipped.
 func walkGradleSettingsModules(workingDir string) ([]gradleModule, error) {
 	body, err := readGradleSettings(workingDir)
-	if err != nil || body == "" {
-		return nil, err
+	if err != nil {
+		return nil, fmt.Errorf("walk gradle settings modules: %w", err)
 	}
+	if body == "" {
+		return nil, nil
+	}
+	body = stripGradleComments(body)
 
 	overrides := map[string]string{}
 	for _, match := range gradleProjectDirOverride.FindAllStringSubmatch(body, -1) {
@@ -136,8 +198,8 @@ func readGradleGroupAssignment(dir string) string {
 		if err != nil {
 			continue
 		}
-		if match := gradleGroupAssignment.FindSubmatch(raw); len(match) == 2 {
-			return strings.TrimSpace(string(match[1]))
+		if match := gradleGroupAssignment.FindStringSubmatch(stripGradleComments(string(raw))); len(match) == 2 {
+			return strings.TrimSpace(match[1])
 		}
 	}
 	return ""

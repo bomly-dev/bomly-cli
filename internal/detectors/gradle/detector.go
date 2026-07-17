@@ -596,9 +596,9 @@ func gradleRootName(workingDir string) string {
 		if err != nil {
 			continue
 		}
-		matches := gradleRootProjectNamePattern.FindSubmatch(raw)
+		matches := gradleRootProjectNamePattern.FindStringSubmatch(stripGradleComments(string(raw)))
 		if len(matches) == 2 {
-			if value := strings.TrimSpace(string(matches[1])); value != "" {
+			if value := strings.TrimSpace(matches[1]); value != "" {
 				return value
 			}
 		}

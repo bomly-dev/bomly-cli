@@ -26,6 +26,56 @@ func gradleModuleDirs(modules []gradleModule) []string {
 	return dirs
 }
 
+// TestWalkGradleSettingsModulesIgnoresCommentedIncludes pins the review
+// finding: a commented-out include must not register a module — a nonexistent
+// `:removed:dependencies` task would fail the whole multi-project invocation
+// and throw away every legitimate module through the root-only fallback.
+func TestWalkGradleSettingsModulesIgnoresCommentedIncludes(t *testing.T) {
+	root := t.TempDir()
+	writeGradleFile(t, root, "settings.gradle", `rootProject.name = 'demo'
+// include(":removed")
+//include ':also-removed'
+/*
+include(":block-removed")
+project(":block-removed").projectDir = file("elsewhere")
+*/
+include(":app") // trailing comments are fine
+println "include(':fake')"
+include ':lib'
+`)
+	writeGradleFile(t, root, "app/build.gradle", "dependencies {}\n")
+	writeGradleFile(t, root, "lib/build.gradle", "dependencies {}\n")
+
+	modules, err := walkGradleSettingsModules(root)
+	if err != nil {
+		t.Fatalf("walkGradleSettingsModules() error = %v", err)
+	}
+	if got := gradleModuleDirs(modules); !reflect.DeepEqual(got, []string{"app", "lib"}) {
+		t.Fatalf("module dirs = %v, want [app lib] (commented/string includes must be ignored)", got)
+	}
+}
+
+func TestStripGradleComments(t *testing.T) {
+	cases := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{name: "line comment", in: "include(\":a\") // include(\":b\")\n", want: "include(\":a\") \n"},
+		{name: "block comment keeps newlines", in: "a /* x\ny */ b", want: "a \n b"},
+		{name: "comment markers inside strings survive", in: "name = 'http://example.com' // gone", want: "name = 'http://example.com' "},
+		{name: "escaped quote does not end string", in: `id = "a\"//b" // gone`, want: `id = "a\"//b" `},
+		{name: "unterminated string passes through", in: "x = 'abc", want: "x = 'abc"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := stripGradleComments(tc.in); got != tc.want {
+				t.Fatalf("stripGradleComments(%q) = %q, want %q", tc.in, got, tc.want)
+			}
+		})
+	}
+}
+
 func TestWalkGradleSettingsModulesParenthesizedInclude(t *testing.T) {
 	root := t.TempDir()
 	writeGradleFile(t, root, "settings.gradle", "rootProject.name = 'demo'\ninclude(\":app\", \":lib\")\n")

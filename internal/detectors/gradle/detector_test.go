@@ -287,8 +287,8 @@ func TestResolveGraphMultiProjectEmitsPerModuleEntries(t *testing.T) {
 	projectDir := t.TempDir()
 	writeGradleFile(t, projectDir, "settings.gradle", "rootProject.name = 'demo'\ninclude(\":app\", \":lib\")\n")
 	writeGradleFile(t, projectDir, "build.gradle", "group = \"com.acme\"\n")
-	writeGradleFile(t, projectDir, "app/build.gradle", "dependencies {}\n")
-	writeGradleFile(t, projectDir, "lib/build.gradle", "dependencies {}\n")
+	writeGradleFile(t, projectDir, "app/build.gradle", "dependencies {\n    implementation project(':lib')\n    implementation 'com.google.guava:guava:33.0.0-jre'\n}\n")
+	writeGradleFile(t, projectDir, "lib/build.gradle", "dependencies {\n    api 'org.slf4j:slf4j-api:2.0.12'\n}\n")
 
 	fixturePath, err := filepath.Abs(filepath.Join("testdata", "dependencies-multiproject.txt"))
 	if err != nil {
@@ -350,6 +350,33 @@ func TestResolveGraphMultiProjectEmitsPerModuleEntries(t *testing.T) {
 	libRoots := libGraph.Roots()
 	if len(libRoots) != 1 || libRoots[0].Type != sdk.PackageTypeApplication || libRoots[0].Name != "lib" {
 		t.Fatalf("unexpected lib entry root: %#v", libRoots)
+	}
+
+	// Regression: subproject positions must keep the module directory prefix
+	// so SARIF/diff annotations point at the child build file, not the root.
+	guava, _ := appGraph.Node("com.google.guava:guava@33.0.0-jre")
+	if guava == nil || len(guava.Locations) == 0 {
+		t.Fatalf("guava location missing: %+v", guava)
+	}
+	if loc := guava.Locations[0]; loc.RealPath != "app/build.gradle" || loc.Position == nil || loc.Position.File != "app/build.gradle" || loc.Position.Line != 3 {
+		t.Fatalf("guava location = %+v, want app/build.gradle line 3", loc)
+	}
+	libSlf4j, _ := libGraph.Node("org.slf4j:slf4j-api@2.0.12")
+	if libSlf4j == nil || len(libSlf4j.Locations) == 0 {
+		t.Fatalf("lib slf4j-api location missing: %+v", libSlf4j)
+	}
+	if loc := libSlf4j.Locations[0]; loc.RealPath != "lib/build.gradle" || loc.Position == nil || loc.Position.File != "lib/build.gradle" || loc.Position.Line != 2 {
+		t.Fatalf("lib slf4j-api location = %+v, want lib/build.gradle line 2", loc)
+	}
+	// The consuming subproject's copy of the api dependency is a distinct
+	// node instance with no declaration in app/build.gradle, so it carries no
+	// location; SARIF unions locations across entry graphs to compensate.
+	appSlf4j, _ := appGraph.Node("org.slf4j:slf4j-api@2.0.12")
+	if appSlf4j == nil {
+		t.Fatal("app entry must expose lib's api dependency through the project edge")
+	}
+	if len(appSlf4j.Locations) != 0 {
+		t.Fatalf("app slf4j-api unexpectedly located: %+v", appSlf4j.Locations)
 	}
 }
 

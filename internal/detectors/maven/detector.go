@@ -107,7 +107,7 @@ func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (s
 	if workingDir == "" {
 		workingDir = req.ProjectPath
 	}
-	AttachPomPositions(depsGraph, workingDir)
+	AttachPomPositions(depsGraph, workingDir, "pom.xml")
 
 	rootManifest := detectors.InferManifestMetadata(req, evidencePatterns)
 	modules, err := walkPomModules(workingDir)
@@ -208,7 +208,7 @@ func (d Detector) reactorGraphEntries(depsGraph *sdk.Graph, modules []mavenModul
 		if err != nil {
 			continue
 		}
-		AttachPomPositions(moduleGraph, filepath.Join(workingDir, filepath.FromSlash(matched.module.Dir)))
+		AttachPomPositions(moduleGraph, filepath.Join(workingDir, filepath.FromSlash(matched.module.Dir)), matched.module.Dir+"/pom.xml")
 		entries = append(entries, sdk.GraphEntry{
 			Graph:    moduleGraph,
 			Manifest: sdk.ManifestMetadata{Path: matched.module.Dir + "/pom.xml", Kind: sdk.ManifestKind("pom.xml")},

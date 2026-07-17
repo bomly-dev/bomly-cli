@@ -155,6 +155,82 @@ func TestMavenPerModuleEntriesFromTGF(t *testing.T) {
 	}
 }
 
+// TestMavenPerModuleEntriesAttachModuleRelativePositions pins the regression
+// where reactor-module dependency locations lost the module directory prefix:
+// a dep declared in module-a/pom.xml must surface as "module-a/pom.xml", not
+// the module-relative "pom.xml" that points SARIF consumers at the parent pom.
+func TestMavenPerModuleEntriesAttachModuleRelativePositions(t *testing.T) {
+	raw, err := os.ReadFile(filepath.Join("testdata", "dependency-tree-multimodule.tgf"))
+	if err != nil {
+		t.Fatalf("read fixture: %v", err)
+	}
+	depsGraph, err := depGraphFromMavenTGF(raw)
+	if err != nil {
+		t.Fatalf("depGraphFromMavenTGF() error = %v", err)
+	}
+
+	root := t.TempDir()
+	writePom(t, root, "pom.xml", `<project>
+  <groupId>com.bomly</groupId>
+  <artifactId>reactor</artifactId>
+  <modules>
+    <module>module-a</module>
+    <module>module-b</module>
+    <module>module-c</module>
+  </modules>
+</project>`)
+	writePom(t, root, "module-a/pom.xml", `<project>
+  <parent><groupId>com.bomly</groupId></parent>
+  <artifactId>module-a</artifactId>
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.12.0</version>
+    </dependency>
+  </dependencies>
+</project>`)
+	for _, name := range []string{"module-b", "module-c"} {
+		writePom(t, root, name+"/pom.xml", `<project>
+  <parent><groupId>com.bomly</groupId></parent>
+  <artifactId>`+name+`</artifactId>
+</project>`)
+	}
+
+	modules, err := walkPomModules(root)
+	if err != nil {
+		t.Fatalf("walkPomModules() error = %v", err)
+	}
+	entries, matched := Detector{}.reactorGraphEntries(depsGraph, modules, sdk.ManifestMetadata{Path: "pom.xml", Kind: "pom.xml"}, root)
+	if matched != 3 {
+		t.Fatalf("expected 3 matched modules, got %d", matched)
+	}
+	var moduleA sdk.GraphEntry
+	for _, entry := range entries {
+		if entry.Manifest.Path == "module-a/pom.xml" {
+			moduleA = entry
+		}
+	}
+	if moduleA.Graph == nil {
+		t.Fatalf("module-a entry missing from %d entries", len(entries))
+	}
+	lang3, ok := moduleA.Graph.Node("org.apache.commons:commons-lang3@3.12.0")
+	if !ok || lang3 == nil || len(lang3.Locations) == 0 {
+		t.Fatalf("commons-lang3 location missing: %+v", lang3)
+	}
+	loc := lang3.Locations[0]
+	if loc.RealPath != "module-a/pom.xml" || loc.AccessPath != "module-a/pom.xml" {
+		t.Errorf("location paths = %q / %q, want module-a/pom.xml", loc.RealPath, loc.AccessPath)
+	}
+	if loc.Position == nil || loc.Position.File != "module-a/pom.xml" {
+		t.Fatalf("position = %+v, want file module-a/pom.xml", loc.Position)
+	}
+	// Exact version match anchors at the <version> line of the dependency block.
+	if loc.Position.Line != 8 {
+		t.Errorf("position line = %d, want 8", loc.Position.Line)
+	}
+}
+
 func TestMavenUnmatchedTGFRootsFallBackToRootEntry(t *testing.T) {
 	raw, err := os.ReadFile(filepath.Join("testdata", "dependency-tree-multimodule.tgf"))
 	if err != nil {

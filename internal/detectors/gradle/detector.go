@@ -112,7 +112,7 @@ func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (s
 
 	rootManifest := detectors.InferManifestMetadata(req, evidencePatterns)
 	if len(parsed.modules) == 0 {
-		AttachGradlePositions(parsed.rootGraph, workingDir)
+		AttachGradlePositions(parsed.rootGraph, workingDir, "")
 		return sdk.DetectionResult{
 			Graphs: sdk.SingleGraphContainer(parsed.rootGraph, rootManifest),
 		}, nil
@@ -131,11 +131,11 @@ func (d Detector) ResolveGraph(ctx context.Context, req sdk.DetectionRequest) (s
 // project-local node instances, so attaching positions here cannot leak file
 // locations (or scopes) between entries.
 func subprojectGraphEntries(parsed gradleParseResult, rootManifest sdk.ManifestMetadata, workingDir string) []sdk.GraphEntry {
-	AttachGradlePositions(parsed.rootGraph, workingDir)
+	AttachGradlePositions(parsed.rootGraph, workingDir, "")
 	entries := []sdk.GraphEntry{{Graph: parsed.rootGraph, Manifest: rootManifest}}
 
 	for _, moduleEntry := range parsed.modules {
-		AttachGradlePositions(moduleEntry.graph, filepath.Join(workingDir, filepath.FromSlash(moduleEntry.module.Dir)))
+		AttachGradlePositions(moduleEntry.graph, filepath.Join(workingDir, filepath.FromSlash(moduleEntry.module.Dir)), moduleEntry.module.Dir)
 		entries = append(entries, sdk.GraphEntry{
 			Graph:    moduleEntry.graph,
 			Manifest: sdk.ManifestMetadata{Path: moduleEntry.module.Dir + "/" + moduleEntry.module.ManifestFile, Kind: sdk.ManifestKind(moduleEntry.module.ManifestFile)},

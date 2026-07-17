@@ -158,12 +158,19 @@ func pomArtifactPropertyVersion(artifact string, properties map[string]pomProper
 	return prop.value, prop.line, true
 }
 
-// AttachPomPositions wires pom.xml line numbers into a maven graph.
-func AttachPomPositions(g *sdk.Graph, projectDir string) {
+// AttachPomPositions wires pom.xml line numbers into a maven graph. The pom
+// is read from projectDir; relPomPath is the scan-root-relative pom path
+// (e.g. "pom.xml" for the root, "core/pom.xml" for a reactor module) stamped
+// into every recorded position, so multi-module locations stay repo-relative
+// in SARIF and diff annotations.
+func AttachPomPositions(g *sdk.Graph, projectDir, relPomPath string) {
 	if g == nil || projectDir == "" {
 		return
 	}
-	positions := pomPositions(filepath.Join(projectDir, "pom.xml"), "pom.xml")
+	if relPomPath == "" {
+		relPomPath = "pom.xml"
+	}
+	positions := pomPositions(filepath.Join(projectDir, "pom.xml"), relPomPath)
 	if len(positions) == 0 {
 		return
 	}

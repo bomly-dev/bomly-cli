@@ -108,7 +108,7 @@ func TestFirstPartyPURLs(t *testing.T) {
 	graph := sdk.New()
 	app := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
 		Name: "my-app", Version: "1.0.0", PURL: "pkg:npm/my-app@1.0.0",
-		Ecosystem: "npm", Type: sdk.PackageTypeApplication,
+		Ecosystem: "npm", Type: sdk.PackageTypeApplication, FirstParty: true,
 	}})
 	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
 		Name: "lodash", Version: "4.17.15", PURL: "pkg:npm/lodash@4.17.15", Ecosystem: "npm",

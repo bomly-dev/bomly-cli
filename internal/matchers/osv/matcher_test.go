@@ -165,7 +165,7 @@ func TestMatcherMatchSkipsFirstPartyPackages(t *testing.T) {
 	graph := sdk.New()
 	app := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
 		Name: "my-module", Version: "1.0.0", Ecosystem: "maven",
-		PURL: "pkg:maven/com.acme/my-module@1.0.0", Type: sdk.PackageTypeApplication,
+		PURL: "pkg:maven/com.acme/my-module@1.0.0", Type: sdk.PackageTypeApplication, FirstParty: true,
 	}})
 	dep := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
 		Name: "lodash", Version: "4.17.15", Ecosystem: "npm", PURL: "pkg:npm/lodash@4.17.15",

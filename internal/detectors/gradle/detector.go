@@ -498,7 +498,8 @@ func (r *gradleModuleRoots) ensure(projectPath string) (string, error) {
 		PackageManager: sdk.PackageManagerGradle,
 		// Subprojects are the build's own applications: enrichment skips
 		// them and views treat their direct dependencies as top-level.
-		Type: sdk.PackageTypeApplication,
+		Type:       sdk.PackageTypeApplication,
+		FirstParty: true,
 	}})
 	if err := r.graph.AddNode(node); err != nil && !errors.Is(err, sdk.ErrNodeAlreadyExist) {
 		return "", fmt.Errorf("add subproject root %q: %w", module.ProjectPath, err)

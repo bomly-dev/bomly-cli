@@ -165,10 +165,12 @@ func (d Detector) reactorGraphEntries(depsGraph *sdk.Graph, modules []mavenModul
 			matchedIDs[pkg.ID] = struct{}{}
 			// Reactor modules are the project's own applications; typing them
 			// lets downstream views treat their direct dependencies as
-			// top-level even when a sibling module depends on them.
+			// top-level even when a sibling module depends on them, and the
+			// first-party mark keeps enrichment from querying them.
 			if pkg.Type == "" {
 				pkg.Type = sdk.PackageTypeApplication
 			}
+			pkg.FirstParty = true
 			matchedModules = append(matchedModules, moduleEntry{module: module, rootID: pkg.ID})
 		}
 	}

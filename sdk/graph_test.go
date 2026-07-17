@@ -531,7 +531,11 @@ func TestNodeIsEnrichable(t *testing.T) {
 	}{
 		{name: "nil node", node: nil, want: false},
 		{name: "manifest node", node: &Dependency{Coordinates: Coordinates{Name: "pom.xml", Type: PackageTypeManifest}}, want: false},
-		{name: "application node", node: &Dependency{Coordinates: Coordinates{Name: "my-module", Version: "1.0.0", Type: PackageTypeApplication, PURL: "pkg:maven/com.acme/my-module@1.0.0"}}, want: false},
+		{name: "first-party module node", node: &Dependency{Coordinates: Coordinates{Name: "my-module", Version: "1.0.0", Type: PackageTypeApplication, FirstParty: true, PURL: "pkg:maven/com.acme/my-module@1.0.0"}}, want: false},
+		{name: "first-party untyped node", node: &Dependency{Coordinates: Coordinates{Name: "my-root", FirstParty: true}}, want: false},
+		// An application type imported from an SBOM is an artifact kind, not
+		// an ownership signal: without the first-party mark it stays enrichable.
+		{name: "imported application node", node: &Dependency{Coordinates: Coordinates{Name: "bundled-app", Version: "2.0.0", Type: PackageTypeApplication, PURL: "pkg:npm/bundled-app@2.0.0"}}, want: true},
 		{name: "package node", node: &Dependency{Coordinates: Coordinates{Name: "lodash", Version: "4.17.15", PURL: "pkg:npm/lodash@4.17.15"}}, want: true},
 		{name: "untyped node", node: &Dependency{Coordinates: Coordinates{Name: "guava", Version: "31.0"}}, want: true},
 	}

@@ -173,6 +173,7 @@ func rootNode(manifest pubspec) *sdk.Dependency {
 		Version:        strings.TrimSpace(manifest.Version),
 		PackageManager: sdk.PackageManagerPub,
 		Type:           sdk.PackageTypeApplication,
+		FirstParty:     true,
 		Language:       "dart"},
 	})
 

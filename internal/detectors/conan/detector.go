@@ -302,6 +302,7 @@ func rootNode() *sdk.Dependency {
 		Name:           "root",
 		PackageManager: sdk.PackageManagerConan,
 		Type:           sdk.PackageTypeApplication,
+		FirstParty:     true,
 		Language:       "cpp"},
 	})
 

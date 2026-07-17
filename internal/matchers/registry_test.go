@@ -3,6 +3,7 @@ package matchers
 import (
 	"testing"
 
+	"github.com/bomly-dev/bomly-cli/internal/sbom"
 	"github.com/bomly-dev/bomly-cli/sdk"
 )
 
@@ -11,7 +12,7 @@ func TestRegistryPackagesForGraphSkipsFirstPartyNodes(t *testing.T) {
 	app := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
 		Ecosystem: sdk.EcosystemMaven, PackageManager: sdk.PackageManagerMaven,
 		Org: "com.acme", Name: "my-module", Version: "1.0.0",
-		Type: sdk.PackageTypeApplication, PURL: "pkg:maven/com.acme/my-module@1.0.0",
+		Type: sdk.PackageTypeApplication, FirstParty: true, PURL: "pkg:maven/com.acme/my-module@1.0.0",
 	}})
 	manifest := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
 		Name: "pom.xml", Type: sdk.PackageTypeManifest,
@@ -41,12 +42,34 @@ func TestRegistryPackagesForGraphSkipsFirstPartyNodes(t *testing.T) {
 	}
 }
 
+// TestRegistryPackagesForGraphKeepsImportedApplicationComponents locks in
+// that ownership is the FirstParty marker, never the component type: an
+// application-typed component imported from an SBOM document is an artifact
+// kind (CycloneDX/SPDX), not proof it belongs to the scanned project, and
+// must keep flowing to enrichment.
+func TestRegistryPackagesForGraphKeepsImportedApplicationComponents(t *testing.T) {
+	doc := &sbom.Document{Components: []sbom.Component{{
+		ID: "pkg:npm/bundled-app@2.0.0", Name: "bundled-app", Version: "2.0.0",
+		PURL: "pkg:npm/bundled-app@2.0.0", Ecosystem: "npm", Type: "application",
+	}}}
+	graph, err := sbom.ToGraph(doc)
+	if err != nil {
+		t.Fatalf("ToGraph() error = %v", err)
+	}
+
+	registry := sdk.NewPackageRegistry()
+	packages := RegistryPackagesForGraph(graph, registry, nil)
+	if len(packages) != 1 || packages[0].Name != "bundled-app" {
+		t.Fatalf("expected the imported application component to stay enrichable, got %#v", packages)
+	}
+}
+
 func TestRegistryPackagesForGraphTargetRespectsFirstParty(t *testing.T) {
 	graph := sdk.New()
 	app := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{
 		Ecosystem: sdk.EcosystemNPM, PackageManager: sdk.PackageManagerNPM,
 		Name: "my-app", Version: "1.0.0",
-		Type: sdk.PackageTypeApplication, PURL: "pkg:npm/my-app@1.0.0",
+		Type: sdk.PackageTypeApplication, FirstParty: true, PURL: "pkg:npm/my-app@1.0.0",
 	}})
 	if err := graph.AddNode(app); err != nil {
 		t.Fatalf("add node: %v", err)

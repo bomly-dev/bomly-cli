@@ -243,6 +243,7 @@ func rootNode() *sdk.Dependency {
 		Name:           "root",
 		PackageManager: sdk.PackageManagerSwiftPM,
 		Type:           sdk.PackageTypeApplication,
+		FirstParty:     true,
 		Language:       "swift"},
 	})
 

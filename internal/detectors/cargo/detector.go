@@ -364,6 +364,7 @@ func rootNode() *sdk.Dependency {
 		Name:           "root",
 		PackageManager: sdk.PackageManagerCargo,
 		Type:           sdk.PackageTypeApplication,
+		FirstParty:     true,
 		Language:       "rust"},
 	})
 
@@ -445,6 +446,7 @@ func depGraphFromLockWithScope(lockRaw, manifestRaw []byte, scopeFilter sdk.Scop
 		Version:        manifest.Version,
 		PackageManager: sdk.PackageManagerCargo,
 		Type:           sdk.PackageTypeApplication,
+		FirstParty:     true,
 		Language:       "rust",
 		PURL:           sdk.BuildPackageURL("cargo", "", manifest.Name, manifest.Version)},
 	})

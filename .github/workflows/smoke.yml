@@ -23,50 +23,67 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # Mirrors the slice layout of update-smoke-goldens.yml: one slice per
+        # ecosystem, slow network-heavy reachability cases isolated in their
+        # own slices, and `$`-anchored patterns (including the `TestScan$`
+        # top level) so every test runs in exactly one slice. Keep the two
+        # matrices in sync when adding smoke tests.
         slice:
           - name: go
-            run: 'TestScan/scan-go|TestDiff/diff-go|TestExplain/explain-go|TestAuditScan/(scan-go-enrich|scan-go-audit|scan-go-audit-high)|TestAuditDiffAndExplain/(diff-go-audit|explain-go-enrich)|TestLiteScan/lite-scan-go|TestLiteDiff/lite-diff-go|TestLiteExplain/lite-explain-go'
+            run: 'TestScan$/scan-go$|TestDiff/diff-go|TestExplain/explain-go|TestAuditScan/(scan-go-enrich|scan-go-audit)|TestAuditDiffAndExplain/(diff-go-audit|explain-go-enrich)|TestLiteScan/lite-scan-go|TestLiteDiff/lite-diff-go|TestLiteExplain/lite-explain-go'
+          - name: go-reachability
+            run: 'TestScan$/scan-go-reachability'
           - name: node
-            run: 'TestScan/(scan-npm|scan-yarn|scan-pnpm|scan-bun$|scan-github-actions)|TestDiff/diff-npm|TestAuditScan/scan-npm-audit'
+            run: 'TestScan$/(scan-npm$|scan-npm-scope-runtime|scan-npm-workspaces|scan-yarn|scan-pnpm|scan-bun$|scan-github-actions)|TestDiff/diff-npm|TestAuditScan/scan-npm-audit'
+            node: true
+          - name: node-reachability
+            run: 'TestScan$/scan-npm-reachability'
             node: true
           - name: java
-            run: 'TestScan/(scan-maven|scan-gradle|scan-recursive-monorepo|scan-java-maven-reachability)'
+            run: 'TestScan$/(scan-maven|scan-gradle|scan-recursive-monorepo)'
             java: true
             maven: true
             gradle: true
+          - name: java-reachability
+            run: 'TestScan$/scan-java-maven-reachability'
+            java: true
+            maven: true
           - name: python
-            run: 'TestScan/(scan-python-pip|scan-python-pipenv|scan-python-poetry)'
+            run: 'TestScan$/(scan-python-pip$|scan-python-pipenv|scan-python-poetry)'
+            python: true
+          - name: python-reachability
+            run: 'TestScan$/scan-python-pip-reachability'
             python: true
           - name: uv
-            run: 'TestScan/scan-python-uv'
+            run: 'TestScan$/scan-python-uv'
             python: true
             uv: true
           - name: php
-            run: 'TestScan/scan-composer'
+            run: 'TestScan$/scan-composer'
           - name: ruby
-            run: 'TestScan/scan-bundler'
+            run: 'TestScan$/scan-bundler'
           - name: sbom
-            run: 'TestScan/(scan-sbom-spdx|scan-sbom-cyclonedx)|TestDiff/diff-sbom|TestLiteScan/(lite-scan-sbom-spdx|lite-scan-sbom-cyclonedx)'
+            run: 'TestScan$/scan-sbom|TestDiff/diff-sbom|TestLiteScan/lite-scan-sbom'
           - name: dotnet
-            run: 'TestScan/scan-nuget'
+            run: 'TestScan$/scan-nuget'
             dotnet: true
           - name: rust
-            run: 'TestScan/scan-cargo'
+            run: 'TestScan$/scan-cargo'
           - name: dart
-            run: 'TestScan/scan-pub'
+            run: 'TestScan$/scan-pub'
             dart: true
           - name: swift
-            run: 'TestScan/(scan-cocoapods|scan-swiftpm)'
+            run: 'TestScan$/(scan-cocoapods|scan-swiftpm)'
           - name: elixir
-            run: 'TestScan/scan-mix'
+            run: 'TestScan$/scan-mix'
           - name: scala
-            run: 'TestScan/scan-sbt'
+            run: 'TestScan$/scan-sbt'
           - name: cpp
-            run: 'TestScan/scan-cpp-conan'
+            run: 'TestScan$/scan-cpp-conan'
           - name: container
             run: 'TestContainer(Scan|Diff|Explain)|TestContainerAuditScan/container-scan-alpine-audit'
           - name: plugin
-            run: 'TestPluginWorkflows|TestLiteVersion'
+            run: 'TestPluginWorkflows|TestLiteVersion|TestScanRecursive'
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0

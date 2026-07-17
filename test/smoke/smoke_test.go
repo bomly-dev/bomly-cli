@@ -142,7 +142,7 @@ func TestScan(t *testing.T) {
 			// line numbers, file paths, analyzed_at) via
 			// normalizeReachability.
 			name:  "scan-go-reachability",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-go-gomod", "--ref", "v1.0.0", "--enrich", "--analyze", "--format", "json"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-go-gomod", "--ref", "v1.0.0", "--enrich", "--analyze", "--format", "json", "--detectors", "go"},
 			tools: []string{"go"},
 		},
 		{
@@ -155,7 +155,7 @@ func TestScan(t *testing.T) {
 			// of the analyzer. package-lock.json pins the graph. Goldens
 			// scrub timestamps via normalizeReachability.
 			name:  "scan-npm-reachability",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm", "--ref", "v1.0.0", "--enrich", "--analyze", "--format", "json"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm", "--ref", "v1.0.0", "--enrich", "--analyze", "--format", "json", "--detectors", "npm"},
 			tools: []string{"npm"},
 		},
 		{
@@ -172,7 +172,7 @@ func TestScan(t *testing.T) {
 			// module-to-distribution override (jwt → pyjwt). Goldens scrub
 			// timestamps via normalizeReachability.
 			name:  "scan-python-pip-reachability",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-python-pip", "--ref", "fe04c758134b95dab102e1fce10275f7d18c0cf2", "--enrich", "--analyze", "--format", "json"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-python-pip", "--ref", "fe04c758134b95dab102e1fce10275f7d18c0cf2", "--enrich", "--analyze", "--format", "json", "--detectors", "pip"},
 			tools: []string{"pip"},
 		},
 		{
@@ -187,7 +187,7 @@ func TestScan(t *testing.T) {
 			// unreachable branches plus the package-prefix map. Goldens
 			// scrub timestamps via normalizeReachability.
 			name:  "scan-java-maven-reachability",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-java-maven", "--ref", "v1.0.0", "--enrich", "--analyze", "--format", "json"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-java-maven", "--ref", "v1.0.0", "--enrich", "--analyze", "--format", "json", "--detectors", "maven"},
 			tools: []string{"mvn"},
 		},
 		{
@@ -196,7 +196,7 @@ func TestScan(t *testing.T) {
 			// golden proves runtime-only filtering. package-lock.json pins
 			// the graph.
 			name:  "scan-npm-scope-runtime",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm", "--ref", "v1.0.0", "--format", "json", "--scope", "runtime"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm", "--ref", "v1.0.0", "--format", "json", "--scope", "runtime", "--detectors", "npm"},
 			tools: []string{"npm"},
 		},
 		{
@@ -213,7 +213,7 @@ func TestScan(t *testing.T) {
 			// exercise --exclude. Same-named-manifest dedup across nested
 			// subprojects is covered by consolidation unit tests.
 			name:  "scan-recursive-monorepo",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/bomly-agent-study", "--ref", "fc32147b3be526ea6c5d563a505c867f4bae93f3", "--recursive", "--exclude", "harness,fixtures/service", "--format", "json"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/bomly-agent-study", "--ref", "fc32147b3be526ea6c5d563a505c867f4bae93f3", "--recursive", "--exclude", "harness,fixtures/service", "--format", "json", "--detectors", "maven,npm"},
 			tools: []string{"mvn"},
 		},
 		{
@@ -224,14 +224,14 @@ func TestScan(t *testing.T) {
 			// (apps/web/package.json, packages/lib/package.json) alongside the
 			// root lockfile entry. Lockfile parsing needs no npm binary.
 			name: "scan-npm-workspaces",
-			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm-workspaces", "--ref", "v1.0.0", "--format", "json"},
+			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-npm-workspaces", "--ref", "v1.0.0", "--format", "json", "--detectors", "npm"},
 		},
 		{
 			// pnpm workspace pinned to bomly-dev/example-javascript-pnpm-workspaces
 			// (same shape as the npm fixture, resolved through pnpm-lock.yaml
 			// importers). Lockfile parsing needs no pnpm binary.
 			name: "scan-pnpm-workspaces",
-			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-pnpm-workspaces", "--ref", "v1.0.0", "--format", "json"},
+			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-javascript-pnpm-workspaces", "--ref", "v1.0.0", "--format", "json", "--detectors", "pnpm"},
 		},
 		{
 			// Virtual Cargo workspace pinned to bomly-dev/example-rust-cargo-workspace:
@@ -240,7 +240,7 @@ func TestScan(t *testing.T) {
 			// from the Cargo.lock partitioning path (no cargo binary needed)
 			// and that virtual roots resolve natively instead of erroring.
 			name: "scan-cargo-workspace",
-			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-rust-cargo-workspace", "--ref", "v1.0.0", "--format", "json"},
+			args: []string{"scan", "--url", "https://github.com/bomly-dev/example-rust-cargo-workspace", "--ref", "v1.0.0", "--format", "json", "--detectors", "cargo"},
 		},
 		{
 			// Maven reactor pinned to bomly-dev/example-java-maven-multimodule:
@@ -248,7 +248,7 @@ func TestScan(t *testing.T) {
 			// core module. The golden proves one manifest entry per reactor
 			// module (core/pom.xml, web/pom.xml) plus the parent root entry.
 			name:  "scan-maven-multimodule",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-java-maven-multimodule", "--ref", "v1.0.0", "--format", "json"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-java-maven-multimodule", "--ref", "v1.0.0", "--format", "json", "--detectors", "maven"},
 			tools: []string{"mvn"},
 		},
 		{
@@ -260,16 +260,16 @@ func TestScan(t *testing.T) {
 			// entry, resolved through one multi-task dependency report. The
 			// repo commits its gradle wrapper, so only java is required.
 			name:  "scan-gradle-multimodule",
-			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-java-gradle-multimodule", "--ref", "v1.0.0", "--format", "json"},
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-java-gradle-multimodule", "--ref", "v1.0.0", "--format", "json", "--detectors", "gradle"},
 			tools: []string{"java"},
 		},
 		{
 			name: "scan-sbom-spdx",
-			args: []string{"scan", "--sbom", "--path", sbomFixture("go.spdx.json"), "--format", "json"},
+			args: []string{"scan", "--sbom", "--path", sbomFixture("go.spdx.json"), "--format", "json", "--detectors", "sbom"},
 		},
 		{
 			name: "scan-sbom-cyclonedx",
-			args: []string{"scan", "--sbom", "--path", sbomFixture("go.cdx.json"), "--format", "json"},
+			args: []string{"scan", "--sbom", "--path", sbomFixture("go.cdx.json"), "--format", "json", "--detectors", "sbom"},
 		},
 	}...)
 

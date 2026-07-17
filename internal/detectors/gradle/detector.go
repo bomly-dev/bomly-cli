@@ -677,10 +677,14 @@ func gradleNodeFromToken(token string, scope sdk.Scope) (*sdk.Dependency, bool) 
 		if name == "" {
 			return nil, false
 		}
+		// A placeholder for a project the settings walk does not know (e.g.
+		// a composite build's member) is still part of this build, never a
+		// published artifact.
 		return sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemMaven,
 				Name: name,
 
-				PackageManager: sdk.PackageManagerGradle}, Scopes: sdk.ScopesOf(scope),
+				PackageManager: sdk.PackageManagerGradle,
+				FirstParty:     true}, Scopes: sdk.ScopesOf(scope),
 			}),
 
 			true

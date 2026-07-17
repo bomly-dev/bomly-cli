@@ -186,7 +186,10 @@ func depGraphFromPipInspect(raw []byte) (*sdk.Graph, error) {
 
 	depsGraph := sdk.New()
 	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
-		Name: "root"},
+		Name: "root",
+		// Synthetic root for the scanned environment; "root" is also a real
+		// PyPI package name, so enrichment must never query it.
+		FirstParty: true},
 	})
 
 	if err := depsGraph.AddNode(rootNode); err != nil {

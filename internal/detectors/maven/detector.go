@@ -425,6 +425,17 @@ func depGraphFromMavenTGF(raw []byte) (*sdk.Graph, error) {
 		}
 	}
 
+	// Every TGF block root is one of the build's own reactor projects (the
+	// single-module project artifact or the aggregator pom), never a fetched
+	// dependency: mark them first-party so enrichment skips them. Reactor
+	// modules consumed by siblings are not graph roots; reactorGraphEntries
+	// marks those when it matches pom-declared coordinates.
+	for _, root := range tgfGraph.Roots() {
+		if root != nil {
+			root.FirstParty = true
+		}
+	}
+
 	return tgfGraph, nil
 }
 

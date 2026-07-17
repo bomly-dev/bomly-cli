@@ -103,6 +103,16 @@ func TestDepGraphFromGoList(t *testing.T) {
 		t.Fatalf("expected 3 root dependencies, got %d", len(rootDeps))
 	}
 
+	// The main module is the scanned project itself: first-party, so
+	// enrichment (OSV/deps.dev/scorecard) never queries it.
+	rootNode, ok := g.Node("example.com/demo")
+	if !ok {
+		t.Fatal("expected main module root node")
+	}
+	if !rootNode.FirstParty || sdk.NodeIsEnrichable(rootNode) {
+		t.Fatalf("main module must be first-party and not enrichable, got %#v", rootNode.Coordinates)
+	}
+
 	uuidNode, ok := g.Node("github.com/google/uuid@v1.6.0")
 	if !ok {
 		t.Fatal("expected runtime dependency package")

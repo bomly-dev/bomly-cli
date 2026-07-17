@@ -89,6 +89,8 @@ func depGraphFromUVLock(uvLockPath string) (*sdk.Graph, error) {
 	if rootNode == nil {
 		return nil, fmt.Errorf("uv.lock editable package %q not found in package index", editablePkg.Name)
 	}
+	// The editable package is the scanned project itself.
+	rootNode.FirstParty = true
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)
 	}

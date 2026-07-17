@@ -43,29 +43,47 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	binName := "bomly"
-	if runtime.GOOS == "windows" {
-		binName += ".exe"
-	}
-	bomlyBin = filepath.Join(dir, binName)
+	// BOMLY_SMOKE_BINARY points at a prebuilt full binary (builtin
+	// Syft/Grype). CI builds once and shares the artifact across the slice
+	// matrix instead of compiling in every job; local runs build as before.
+	if prebuilt := os.Getenv("BOMLY_SMOKE_BINARY"); prebuilt != "" {
+		abs, absErr := filepath.Abs(prebuilt)
+		if absErr != nil {
+			fmt.Fprintf(os.Stderr, "smoke: resolve BOMLY_SMOKE_BINARY %q: %v\n", prebuilt, absErr)
+			_ = os.RemoveAll(dir)
+			os.Exit(1)
+		}
+		if _, statErr := os.Stat(abs); statErr != nil {
+			fmt.Fprintf(os.Stderr, "smoke: BOMLY_SMOKE_BINARY %q: %v\n", prebuilt, statErr)
+			_ = os.RemoveAll(dir)
+			os.Exit(1)
+		}
+		bomlyBin = abs
+	} else {
+		binName := "bomly"
+		if runtime.GOOS == "windows" {
+			binName += ".exe"
+		}
+		bomlyBin = filepath.Join(dir, binName)
 
-	// Build the default binary, which includes builtin Syft/Grype support.
-	// The working directory must be the repo root so the module is resolved.
-	repoRoot, err := findRepoRoot()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "smoke: find repo root: %v\n", err)
-		os.Exit(1)
-	}
+		// Build the default binary, which includes builtin Syft/Grype support.
+		// The working directory must be the repo root so the module is resolved.
+		repoRoot, err := findRepoRoot()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "smoke: find repo root: %v\n", err)
+			os.Exit(1)
+		}
 
-	build := exec.Command("go", "build", "-o", bomlyBin, "./cmd/bomly")
-	build.Dir = repoRoot
-	build.Stdout = os.Stdout
-	build.Stderr = os.Stderr
+		build := exec.Command("go", "build", "-o", bomlyBin, "./cmd/bomly")
+		build.Dir = repoRoot
+		build.Stdout = os.Stdout
+		build.Stderr = os.Stderr
 
-	if err := build.Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "smoke: build bomly binary: %v\n", err)
-		_ = os.RemoveAll(dir)
-		os.Exit(1)
+		if err := build.Run(); err != nil {
+			fmt.Fprintf(os.Stderr, "smoke: build bomly binary: %v\n", err)
+			_ = os.RemoveAll(dir)
+			os.Exit(1)
+		}
 	}
 
 	smokeRuntimeDir, err = os.MkdirTemp("", "bomly-smoke-runtime-*")

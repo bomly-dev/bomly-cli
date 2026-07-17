@@ -22,8 +22,41 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Build the CLI binaries once and share them with every slice via an
+  # artifact — 21 matrix jobs otherwise each compile the full binary (and the
+  # lite binary) inside TestMain.
+  build:
+    name: Build CLI binaries
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ inputs.source_ref }}
+
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: |
+            go.sum
+
+      - name: Build bomly and bomly-lite
+        run: make build
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bomly-binaries
+          path: bin/
+          if-no-files-found: error
+          retention-days: 1
+
   regenerate:
     name: Regenerate (${{ matrix.slice.name }})
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -209,10 +242,22 @@ jobs:
           restore-keys: |
             gradle-home-${{ runner.os }}-
 
+      - name: Download prebuilt binaries
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: bomly-binaries
+          path: ${{ runner.temp }}/bomly-bin
+
+      - name: Make prebuilt binaries executable
+        run: chmod +x "${RUNNER_TEMP}/bomly-bin/bomly" "${RUNNER_TEMP}/bomly-bin/bomly-lite"
+
       # Mirrors `make smoke` but invokes go test directly: the slice patterns
       # use $ anchors, which make would expand (e.g. `$|` becomes empty) if
       # passed through ARGS.
       - name: Regenerate golden files
+        env:
+          BOMLY_SMOKE_BINARY: ${{ runner.temp }}/bomly-bin/bomly
+          BOMLY_SMOKE_LITE_BINARY: ${{ runner.temp }}/bomly-bin/bomly-lite
         run: go test -tags smoke ./test/smoke/ -v -count=1 -timeout 15m -update -run '${{ matrix.slice.run }}'
 
       - name: Stage regenerated goldens

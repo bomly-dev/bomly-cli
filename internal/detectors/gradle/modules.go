@@ -39,8 +39,11 @@ var (
 // Gradle script while preserving string literals and line structure, so the
 // line-anchored declaration regexes never match commented-out code. It is a
 // lightweight scanner, not a Groovy/Kotlin lexer: single- and double-quoted
-// strings (with backslash escapes) pass through verbatim, block comments keep
-// their newlines, and everything else is copied as-is.
+// strings (with backslash escapes) pass through verbatim, triple-quoted
+// multiline strings (Kotlin """raw""" / Groovy '''...''') are blanked down to
+// their newlines — their inner lines would otherwise satisfy the line-anchored
+// regexes, and no legitimate declaration lives inside one — block comments
+// keep their newlines, and everything else is copied as-is.
 func stripGradleComments(body string) string {
 	var out strings.Builder
 	out.Grow(len(body))
@@ -56,6 +59,19 @@ func stripGradleComments(body string) string {
 			for i < len(body) {
 				if body[i] == '*' && i+1 < len(body) && body[i+1] == '/' {
 					i += 2
+					break
+				}
+				if body[i] == '\n' {
+					out.WriteByte('\n')
+				}
+				i++
+			}
+		case (c == '\'' || c == '"') && i+2 < len(body) && body[i+1] == c && body[i+2] == c:
+			quote := c
+			i += 3
+			for i < len(body) {
+				if body[i] == quote && i+2 < len(body) && body[i+1] == quote && body[i+2] == quote {
+					i += 3
 					break
 				}
 				if body[i] == '\n' {

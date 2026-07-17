@@ -41,6 +41,9 @@ project(":block-removed").projectDir = file("elsewhere")
 */
 include(":app") // trailing comments are fine
 println "include(':fake')"
+val banner = """
+include(":ghost")
+"""
 include ':lib'
 `)
 	writeGradleFile(t, root, "app/build.gradle", "dependencies {}\n")
@@ -66,6 +69,10 @@ func TestStripGradleComments(t *testing.T) {
 		{name: "comment markers inside strings survive", in: "name = 'http://example.com' // gone", want: "name = 'http://example.com' "},
 		{name: "escaped quote does not end string", in: `id = "a\"//b" // gone`, want: `id = "a\"//b" `},
 		{name: "unterminated string passes through", in: "x = 'abc", want: "x = 'abc"},
+		{name: "kotlin raw string blanked to newlines", in: "val s = \"\"\"\ninclude(\":ghost\")\n\"\"\"\ninclude(\":real\")", want: "val s = \n\n\ninclude(\":real\")"},
+		{name: "groovy triple string blanked", in: "def s = '''\ninclude ':ghost'\n'''", want: "def s = \n\n"},
+		{name: "empty string pair is not a triple quote", in: `a = "" + "b"`, want: `a = "" + "b"`},
+		{name: "unterminated triple string blanked to end", in: "s = \"\"\"\ninclude(\":ghost\")", want: "s = \n"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

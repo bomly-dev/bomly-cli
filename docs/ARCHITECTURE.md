@@ -33,7 +33,7 @@ flowchart TD
 
 1. **Discover** — Bomly inspects the target root and finds every supported package-manager root (a `go.mod`, a `package-lock.json`, a `pom.xml`, and so on). With `--recursive` it also walks nested directories, discovering independent subprojects in a monorepo while workspace-aware managers (npm workspaces, Maven reactors, …) keep expanding their own modules from the root. See [Scan targets](SCAN_TARGETS.md#recursive-discovery----recursive).
 2. **Detect** — For each root, a [detector](DETECTORS.md) reads the lockfile, manifest, or SBOM and resolves a dependency graph. Per-subproject graphs are then *consolidated* into one graph and one deduplicated package set for the rest of the run. `--scope` narrows the graph to runtime or development dependencies here.
-3. **Match** — When you pass `--enrich`, [matchers](MATCHERS.md) add data to each package: known vulnerabilities, licenses, end-of-life status, and project health scores.
+3. **Match** — When you pass `--enrich`, [matchers](MATCHERS.md) add data to published registry packages: known vulnerabilities, licenses, end-of-life status, and project health scores. Project roots, workspace members, and local/file/Git/URL artifacts remain in the graph and reports but are not queried as if they were registry releases.
 4. **Analyze** — When you pass `--analyze`, [reachability](REACHABILITY.md) analysis runs on top of the matched data to flag whether a vulnerability is actually reachable from your code.
 5. **Audit** — When you pass `--audit`, [auditors](AUDITORS.md) evaluate policy (severity thresholds, license rules, denied packages) against the enriched data and produce findings. Combine `--enrich --audit` to gate on fresh external data in one run.
 6. **Render** — Bomly emits the result as text, JSON, SARIF, or an SBOM. See [Output formats](OUTPUT_FORMATS.md) and [SBOM formats](SBOM.md).
@@ -83,7 +83,7 @@ flowchart TD
     SP -->|workspace / reactor expansion| MOD
     MOD -->|one manifest each| MAN
     MAN -->|graph root| ROOT
-    ROOT -->|direct + transitive| DEP
+    ROOT -->|direct + transitive + unknown| DEP
     DEP -->|shared transitives count once| P2
 ```
 
@@ -105,7 +105,7 @@ External plugins run as sandboxed, versioned binaries and are disabled until you
 **Bomly is offline-safe by default.** A plain `bomly scan` reads files on disk and makes no network calls of its own.
 
 - **Matchers** only run when you pass `--enrich`. `--audit` evaluates data that is already present and never triggers enrichment on its own.
-- **Detectors** vary: lockfile parsers (npm, pnpm, Yarn, Composer, Bundler, NuGet, GitHub Actions, SBOM ingest, …) are pure file readers and make no network calls. Build-tool–backed detectors (Go, Maven, Gradle, SBT) shell out to the build tool, which may fetch packages as part of its own normal resolution — that is the build tool's behavior, not Bomly's. Hybrid detectors prefer the lockfile and pass offline flags to any fallback.
+- **Detectors** vary: lockfile parsers (npm, pnpm, Yarn, Bun text lockfiles, Composer, Bundler, NuGet, GitHub Actions, SBOM ingest, …) are pure file readers and make no network calls. Build-tool–backed detectors shell out to the package manager when their deterministic file parser cannot resolve the project. Bun prefers `bun.lock`, then uses `bun pm ls --all` for the installed tree, and finally falls back to Syft; displayed child edges are preserved and unprovable hoisted parent relationships remain explicitly `unknown`. Install-first is never implicit.
 - `--install-first` is the explicit opt-in that lets supporting detectors run their install command (`npm install`, `pip install`, …) before resolving; this downloads packages by design.
 
 When enrichment is enabled, the **only** services Bomly's built-in matchers contact are OSV, CISA KEV, deps.dev, ClearlyDefined, endoflife.date, and OpenSSF Scorecard. No telemetry, no credentials sent. External plugin matchers may contact their own documented services once you install and enable them. See [Detectors → Network behavior](DETECTORS.md#network-behavior) and [Matchers](MATCHERS.md).

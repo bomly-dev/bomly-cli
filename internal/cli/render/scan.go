@@ -46,15 +46,15 @@ func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, m
 		fmt.Fprintf(&b, "%s\n", Style("⚠ "+notice, Yellow))
 	}
 
-	_, direct, transitive := scanRelationshipCounts(g)
+	_, direct, transitive, unknown := scanRelationshipCounts(g)
 	runtimeCount, developmentCount, unscopedCount := scanScopeCounts(g)
 
 	// Package count line: the total counts dependencies only — project and
 	// module nodes are structure, not packages — so the relationship and
-	// scope distributions always sum to it: total = direct + transitive =
+	// scope distributions always sum to it: total = direct + transitive + unknown =
 	// runtime + dev (+ unscoped).
 	checkmark := Style("✓", Green)
-	countPart := Style(fmt.Sprintf("%d", direct+transitive), Cyan, Bold)
+	countPart := Style(fmt.Sprintf("%d", direct+transitive+unknown), Cyan, Bold)
 	manifestCount := len(manifests)
 	manifestWord := "manifest"
 	if manifestCount != 1 {
@@ -65,7 +65,11 @@ func Scan(g *sdk.Graph, registry *sdk.PackageRegistry, findings []sdk.Finding, m
 	if unscopedCount > 0 {
 		scopePart += fmt.Sprintf(", unscoped %d", unscopedCount)
 	}
-	detailPart := Style(fmt.Sprintf("(%d direct, %d transitive · %s)", direct, transitive, scopePart), Dim)
+	relationshipPart := fmt.Sprintf("%d direct, %d transitive", direct, transitive)
+	if unknown > 0 {
+		relationshipPart += fmt.Sprintf(", %d unknown", unknown)
+	}
+	detailPart := Style(fmt.Sprintf("(%s · %s)", relationshipPart, scopePart), Dim)
 	fmt.Fprintf(&b, "%s %s packages %s   %s\n", checkmark, countPart, manifestPart, detailPart)
 
 	// Grouped manifest tree — only when the scan spans subprojects or
@@ -386,6 +390,9 @@ func renderDirectDepsTable(g *sdk.Graph, registry *sdk.PackageRegistry) string {
 		if _, isRoot := rootIDs[pkg.ID]; isRoot {
 			continue
 		}
+		if pkg.Relationship == sdk.DependencyRelationshipUnknown {
+			continue
+		}
 		dependents, err := g.Dependents(pkg.ID)
 		if err != nil {
 			continue
@@ -630,9 +637,9 @@ func formatReachabilityCell(r *sdk.Reachability) string {
 	return fmt.Sprintf("%s (%s)", r.Status, r.Tier)
 }
 
-func scanRelationshipCounts(g *sdk.Graph) (roots, direct, transitive int) {
+func scanRelationshipCounts(g *sdk.Graph) (roots, direct, transitive, unknown int) {
 	if g == nil {
-		return 0, 0, 0
+		return 0, 0, 0, 0
 	}
 	rootIDs := topLevelParentIDs(g)
 	roots = len(rootIDs)
@@ -641,6 +648,10 @@ func scanRelationshipCounts(g *sdk.Graph) (roots, direct, transitive int) {
 			continue
 		}
 		if _, isRoot := rootIDs[pkg.ID]; isRoot {
+			continue
+		}
+		if pkg.Relationship == sdk.DependencyRelationshipUnknown {
+			unknown++
 			continue
 		}
 		dependents, err := g.Dependents(pkg.ID)
@@ -662,12 +673,12 @@ func scanRelationshipCounts(g *sdk.Graph) (roots, direct, transitive int) {
 			transitive++
 		}
 	}
-	return roots, direct, transitive
+	return roots, direct, transitive, unknown
 }
 
 // scanScopeCounts buckets dependencies by scope over the same node set the
 // relationship counts cover (structural project/module nodes excluded), so
-// runtime + dev + unscoped always equals direct + transitive.
+// runtime + dev + unscoped always equals direct + transitive + unknown.
 func scanScopeCounts(g *sdk.Graph) (runtimeCount, developmentCount, unscopedCount int) {
 	if g == nil {
 		return 0, 0, 0

@@ -108,6 +108,7 @@ func Run(ctx context.Context, opts RunOptions) (RunSummary, error) {
 	completedComparisons := 0
 	failures := make([]string, 0)
 	caseScores := make([]*ScoreSummary, 0, len(targets))
+	caseAgreements := make([]*ScoreSummary, 0, len(targets))
 	for _, target := range targets {
 		caseDir := filepath.Join(casesDir, target.Name)
 		if err := os.MkdirAll(caseDir, 0o755); err != nil {
@@ -120,6 +121,9 @@ func Run(ctx context.Context, opts RunOptions) (RunSummary, error) {
 		if caseSummary.Scores != nil {
 			caseScores = append(caseScores, caseSummary.Scores)
 		}
+		if caseSummary.Agreement != nil {
+			caseAgreements = append(caseAgreements, caseSummary.Agreement)
+		}
 		if caseErr != nil {
 			failures = append(failures, fmt.Sprintf("%s: %v", target.Name, caseErr))
 		}
@@ -130,6 +134,7 @@ func Run(ctx context.Context, opts RunOptions) (RunSummary, error) {
 		opts.Logger.Info("benchmark: case completed", zap.String("case", target.Name), zap.String("status", caseSummary.Status), zap.Int("completed_comparisons", caseCompleted))
 	}
 	summary.Scores = averageScores(caseScores)
+	summary.Agreement = averageScores(caseAgreements)
 	switch {
 	case len(failures) > 0:
 		summary.Status = "failed"
@@ -256,9 +261,11 @@ func runCase(ctx context.Context, opts RunOptions, caseDir string, target Target
 	completed := 0
 	failures := make([]string, 0)
 	sourceScores := make([]*ScoreSummary, 0, len(sources))
+	sourceAgreements := make(map[string][]*ScoreSummary)
+	policy := comparisonPolicy(scanResult.Graph, target)
 	for _, source := range sources {
 		artifacts := sourceArtifacts(source.Name())
-		sourceSummary := SourceSummary{Source: source.Name(), Status: "completed", Artifacts: artifacts, Detectors: summary.Detectors}
+		sourceSummary := SourceSummary{Source: source.Name(), Role: source.Role(), Status: "completed", Artifacts: artifacts, Detectors: summary.Detectors}
 		if missing := missingTool(source.Tools()); missing != "" {
 			sourceSummary.Status = "unavailable"
 			sourceSummary.Reason = "missing required tool: " + missing
@@ -310,16 +317,36 @@ func runCase(ctx context.Context, opts RunOptions, caseDir string, target Target
 		if err != nil {
 			return summary, completed, err
 		}
-		sourceSummary = BuildSourceSummary(source.Name(), filteredBomlyDoc, filteredSourceDoc, artifacts)
+		var report ComparisonReport
+		sourceSummary, report = BuildSourceSummaryWithPolicy(source.Name(), filteredBomlyDoc, filteredSourceDoc, artifacts, policy)
+		sourceSummary.Role = source.Role()
+		if source.Role() != "evidence" {
+			sourceSummary.Scores = nil
+		}
+		if err := writeJSON(filepath.Join(caseDir, artifacts.Mismatches), report); err != nil {
+			return summary, completed, fmt.Errorf("write %s mismatch report: %w", source.Name(), err)
+		}
 		summary.Sources = append(summary.Sources, sourceSummary)
-		sourceScores = append(sourceScores, sourceSummary.Scores)
+		if sourceSummary.Scores != nil {
+			sourceScores = append(sourceScores, sourceSummary.Scores)
+		}
+		sourceAgreements[source.AgreementGroup()] = append(sourceAgreements[source.AgreementGroup()], sourceSummary.Agreement)
 		completed++
-		opts.Logger.Info("benchmark: source completed", zap.String("case", target.Name), zap.String("source", source.Name()), zap.Float64("overall_score", sourceSummary.Scores.Overall))
+		overallAgreement := 0.0
+		if sourceSummary.Agreement != nil {
+			overallAgreement = sourceSummary.Agreement.Overall
+		}
+		opts.Logger.Info("benchmark: source completed", zap.String("case", target.Name), zap.String("source", source.Name()), zap.Float64("agreement_score", overallAgreement))
 		if err := writeJSON(filepath.Join(caseDir, artifacts.Summary), sourceSummary); err != nil {
 			return summary, completed, err
 		}
 	}
 	summary.Scores = averageScores(sourceScores)
+	agreementGroups := make([]*ScoreSummary, 0, len(sourceAgreements))
+	for _, group := range sourceAgreements {
+		agreementGroups = append(agreementGroups, averageScores(group))
+	}
+	summary.Agreement = averageScores(agreementGroups)
 	switch {
 	case len(failures) > 0:
 		summary.Status = "failed"
@@ -334,6 +361,8 @@ func runCase(ctx context.Context, opts RunOptions, caseDir string, target Target
 
 type baselineSource interface {
 	Name() string
+	Role() string
+	AgreementGroup() string
 	Tools() []string
 	BomlyFormat() string
 	ProduceSBOM(context.Context, *zap.Logger, *http.Client, string, string, Target, string) error
@@ -341,9 +370,11 @@ type baselineSource interface {
 
 type githubBaselineSource struct{}
 
-func (githubBaselineSource) Name() string        { return "github" }
-func (githubBaselineSource) Tools() []string     { return nil }
-func (githubBaselineSource) BomlyFormat() string { return "spdx" }
+func (githubBaselineSource) Name() string           { return "github" }
+func (githubBaselineSource) Role() string           { return "evidence" }
+func (githubBaselineSource) AgreementGroup() string { return "github" }
+func (githubBaselineSource) Tools() []string        { return nil }
+func (githubBaselineSource) BomlyFormat() string    { return "spdx" }
 func (githubBaselineSource) ProduceSBOM(ctx context.Context, _ *zap.Logger, client *http.Client, caseDir, _ string, target Target, outputPath string) error {
 	responsePath := filepath.Join(caseDir, "sources", "github", "response.json")
 	if err := fetchGitHubSBOM(ctx, client, repoSlug(target.URL), responsePath); err != nil {
@@ -358,9 +389,11 @@ type syftBaselineSource struct {
 	syftFormat  string
 }
 
-func (s syftBaselineSource) Name() string        { return s.name }
-func (syftBaselineSource) Tools() []string       { return []string{"syft"} }
-func (s syftBaselineSource) BomlyFormat() string { return s.bomlyFormat }
+func (s syftBaselineSource) Name() string         { return s.name }
+func (syftBaselineSource) Role() string           { return "observation" }
+func (syftBaselineSource) AgreementGroup() string { return "syft" }
+func (syftBaselineSource) Tools() []string        { return []string{"syft"} }
+func (s syftBaselineSource) BomlyFormat() string  { return s.bomlyFormat }
 func (s syftBaselineSource) ProduceSBOM(ctx context.Context, logger *zap.Logger, _ *http.Client, caseDir, checkoutDir string, _ Target, outputPath string) error {
 	return runLoggedCommandWithLogger(ctx, logger, nil, filepath.Join(caseDir, "sources", s.name, "source.log"), "syft", checkoutDir, "-o", s.syftFormat+"="+outputPath)
 }
@@ -509,17 +542,66 @@ func benchmarkInstallFirst(target Target, requested bool) (bool, error) {
 func sourceArtifacts(source string) SourceArtifacts {
 	prefix := filepath.ToSlash(filepath.Join("sources", source))
 	artifacts := SourceArtifacts{
-		SBOM:    filepath.ToSlash(filepath.Join(prefix, "source.sbom.json")),
-		RawSBOM: filepath.ToSlash(filepath.Join(prefix, "source.raw.sbom.json")),
-		Diff:    filepath.ToSlash(filepath.Join(prefix, "diff.json")),
-		Log:     filepath.ToSlash(filepath.Join(prefix, "source.log")),
-		Summary: filepath.ToSlash(filepath.Join(prefix, "benchmark-summary.json")),
+		SBOM:       filepath.ToSlash(filepath.Join(prefix, "source.sbom.json")),
+		RawSBOM:    filepath.ToSlash(filepath.Join(prefix, "source.raw.sbom.json")),
+		Diff:       filepath.ToSlash(filepath.Join(prefix, "diff.json")),
+		Log:        filepath.ToSlash(filepath.Join(prefix, "source.log")),
+		Summary:    filepath.ToSlash(filepath.Join(prefix, "benchmark-summary.json")),
+		Mismatches: filepath.ToSlash(filepath.Join(prefix, "mismatches.json")),
 	}
 	if source == "github" {
 		artifacts.Log = ""
 		artifacts.Response = filepath.ToSlash(filepath.Join(prefix, "response.json"))
 	}
 	return artifacts
+}
+
+func comparisonPolicy(graph *sdk.Graph, target Target) ComparisonPolicy {
+	policy := ComparisonPolicy{PackageExtensions: make(map[string]string), RelationshipExtensions: make(map[string]string)}
+	if graph == nil {
+		return policy
+	}
+	extensionIDs := make(map[string]string)
+	graph.WalkNodes(func(dependency *sdk.Dependency) bool {
+		if dependency == nil || dependency.RegistryMatchEligible() {
+			return true
+		}
+		purl := sdk.CanonicalizePackageURL(dependency.PURL)
+		if purl == "" {
+			return true
+		}
+		reason := "non-registry graph occurrence: " + string(dependency.Source)
+		if dependency.Type == sdk.PackageTypeApplication || dependency.Type == sdk.PackageTypeManifest {
+			reason = "project graph identity"
+		}
+		policy.PackageExtensions[purl] = reason
+		extensionIDs[dependency.ID] = reason
+		return true
+	})
+	graph.WalkEdges(func(from, to *sdk.Dependency) bool {
+		if from == nil || to == nil {
+			return true
+		}
+		reason := extensionIDs[from.ID]
+		if reason == "" {
+			reason = extensionIDs[to.ID]
+		}
+		if reason == "" {
+			return true
+		}
+		fromPURL := sdk.CanonicalizePackageURL(from.PURL)
+		toPURL := sdk.CanonicalizePackageURL(to.PURL)
+		if fromPURL != "" && toPURL != "" {
+			policy.RelationshipExtensions[relationshipKey(fromPURL, toPURL)] = reason
+		}
+		return true
+	})
+	for _, relationship := range target.AdjudicatedRelationships {
+		from := sdk.CanonicalizePackageURL(relationship.From)
+		to := sdk.CanonicalizePackageURL(relationship.To)
+		policy.RelationshipExtensions[relationshipKey(from, to)] = strings.TrimSpace(relationship.Reason)
+	}
+	return policy
 }
 
 func loggerOrNop(logger *zap.Logger) *zap.Logger {

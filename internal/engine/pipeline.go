@@ -229,8 +229,8 @@ func (p *Pipeline) logUnexpectedMultiRootGraph(stage, detector, subproject strin
 	if !hasApplicationRoot {
 		return
 	}
-	p.Logger.Warn(
-		"pipeline: unexpected multi-root graph detected",
+	p.Logger.Debug(
+		"pipeline: dependency components with unknown parent relationships detected",
 		zap.String("stage", stage),
 		zap.String("detector", detector),
 		zap.String("subproject", subproject),
@@ -248,7 +248,22 @@ func (p *Pipeline) runMatch(ctx context.Context, result *PipelineResult, req Pip
 		req.Progress.StartStage("Enriching packages", 1)
 	}
 	started := time.Now()
-	p.Logger.Info("pipeline: enrichment started", zap.Int("packages", result.Graph.Size()))
+	eligible := 0
+	result.Graph.WalkNodes(func(dependency *sdk.Dependency) bool {
+		if dependency.RegistryMatchEligible() {
+			eligible++
+		} else {
+			p.Logger.Debug("pipeline: dependency excluded from registry enrichment",
+				zap.String("dependency_id", dependency.ID),
+				zap.String("source", string(dependency.Source)),
+				zap.String("type", string(dependency.Type)))
+		}
+		return true
+	})
+	p.Logger.Info("pipeline: enrichment started",
+		zap.Int("packages", result.Graph.Size()),
+		zap.Int("eligible_packages", eligible),
+		zap.Int("excluded_packages", result.Graph.Size()-eligible))
 	p.match(ctx, result, req)
 	p.Logger.Info("pipeline: enrichment completed",
 		zap.Int("matchers", len(result.MatcherStats)),

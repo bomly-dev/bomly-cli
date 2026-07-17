@@ -100,11 +100,12 @@ func buildRemediations(in remediationInput) remediationOutput {
 // remediate a (possibly transitive) vulnerable package, plus the manifest
 // that declares it.
 type ancestorTarget struct {
-	identity       PackageIdentity
-	dependencyID   string
-	direct         bool
-	manifestPath   string
-	packageManager string
+	identity         PackageIdentity
+	dependencyID     string
+	direct           bool
+	manifestPath     string
+	packageManager   string
+	unresolvedParent bool
 }
 
 // buildCompactFinding projects one finding (and its resolved advisory) into
@@ -138,18 +139,26 @@ func buildCompactFinding(f sdk.Finding, vuln *sdk.Vulnerability, in remediationI
 	// package itself is the direct remediation target.
 	ancestor := ancestorTarget{identity: compact.Package, direct: true}
 	if node != nil {
-		path := shortestPathToRoot(in.Graph, node.ID)
-		if len(path) > 0 {
-			direct := len(path) <= 2
-			compact.Direct = &direct
-			compact.ShortestPath = pathLabels(path)
-			ancestor.direct = direct
-			ancestorNode := path[len(path)-1]
-			if !direct && len(path) >= 2 {
-				ancestorNode = path[1]
+		if node.Relationship == sdk.DependencyRelationshipUnknown {
+			compact.Direct = nil
+			ancestor.direct = false
+			ancestor.identity = packageIdentityFromDependency(node)
+			ancestor.dependencyID = node.ID
+			ancestor.unresolvedParent = true
+		} else {
+			path := shortestPathToRoot(in.Graph, node.ID)
+			if len(path) > 0 {
+				direct := len(path) <= 2
+				compact.Direct = &direct
+				compact.ShortestPath = pathLabels(path)
+				ancestor.direct = direct
+				ancestorNode := path[len(path)-1]
+				if !direct && len(path) >= 2 {
+					ancestorNode = path[1]
+				}
+				ancestor.identity = packageIdentityFromDependency(ancestorNode)
+				ancestor.dependencyID = ancestorNode.ID
 			}
-			ancestor.identity = packageIdentityFromDependency(ancestorNode)
-			ancestor.dependencyID = ancestorNode.ID
 		}
 	}
 	if ancestor.dependencyID == "" && node != nil {
@@ -169,6 +178,9 @@ func buildCompactFinding(f sdk.Finding, vuln *sdk.Vulnerability, in remediationI
 func remediationAction(f sdk.Finding, vuln *sdk.Vulnerability, compact CompactFinding, ancestor ancestorTarget, packageManager string) string {
 	if f.Kind != sdk.FindingKindVulnerability {
 		return ActionPolicyReview
+	}
+	if ancestor.unresolvedParent {
+		return ActionManualReview
 	}
 	switch compact.Classification {
 	case ClassificationWontFix, ClassificationNoFixUpstream, ClassificationUnknown:
@@ -190,7 +202,7 @@ func remediationGroupKey(action string, ancestor ancestorTarget, compact Compact
 	if target == "" {
 		target = ancestor.identity.Label()
 	}
-	if action == ActionNoFixUpstream || action == ActionPolicyReview {
+	if action == ActionNoFixUpstream || action == ActionManualReview || action == ActionPolicyReview {
 		// No-fix and policy groups key on the affected package itself.
 		target = compact.Package.Purl
 		if target == "" {
@@ -239,6 +251,8 @@ func finalizeGroup(group *RemediationGroup) {
 	case ActionNoFixUpstream:
 		group.Recommendation = fmt.Sprintf(
 			"No fixed version released for %s. Remove or replace the dependency, or acknowledge via allow_vulnerability_ids.", label)
+	case ActionManualReview:
+		group.Recommendation = "The dependency is real, but its declaring parent could not be recovered. Review the owning manifest before selecting a change."
 	case ActionPolicyReview:
 		group.Recommendation = "Policy finding: requires review, not fixed by a version upgrade."
 	}
@@ -266,7 +280,7 @@ func rankGroups(groups []RemediationGroup) {
 			return 0
 		case ActionTransitiveOverride, ActionLockfileRefresh:
 			return 1
-		case ActionPolicyReview:
+		case ActionManualReview, ActionPolicyReview:
 			return 2
 		default: // no-fix-upstream last — nothing to do right now
 			return 3

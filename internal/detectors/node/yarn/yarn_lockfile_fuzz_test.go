@@ -12,6 +12,7 @@ func FuzzDepGraphFromYarnLockfile(f *testing.F) {
 	for _, seed := range []string{
 		"left-pad@^1.3.0:\n  version \"1.3.0\"\n  resolved \"https://registry.yarnpkg.com/left-pad/-/left-pad-1.3.0.tgz\"\n  integrity sha512-seed\n",
 		"\"@scope/pkg@npm:1.0.0\":\n  version: 1.0.0\n  resolution: \"@scope/pkg@npm:1.0.0\"\n  dependencies:\n    left-pad: ^1.3.0\nleft-pad@^1.3.0:\n  version: 1.3.0\n",
+		"parent@1.0.0:\n  version \"1.0.0\"\n  dependencies:\n    debug \">= 0.7.3 < 1\"\n\"debug@>= 0.7.3 < 1\":\n  version \"0.8.1\"\n",
 		"__metadata:\n  version: 8\n  cacheKey: 10\n",
 	} {
 		f.Add([]byte(seed))

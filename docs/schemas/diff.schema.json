@@ -971,6 +971,9 @@
                       "purl": {
                         "type": "string"
                       },
+                      "relationship": {
+                        "type": "string"
+                      },
                       "scope": {
                         "type": "string"
                       },
@@ -1511,6 +1514,9 @@
                       "purl": {
                         "type": "string"
                       },
+                      "relationship": {
+                        "type": "string"
+                      },
                       "scope": {
                         "type": "string"
                       },
@@ -2038,6 +2044,9 @@
                         "type": "string"
                       },
                       "purl": {
+                        "type": "string"
+                      },
+                      "relationship": {
                         "type": "string"
                       },
                       "scope": {
@@ -2579,6 +2588,9 @@
                         "type": "string"
                       },
                       "purl": {
+                        "type": "string"
+                      },
+                      "relationship": {
                         "type": "string"
                       },
                       "scope": {
@@ -3143,6 +3155,9 @@
                       "purl": {
                         "type": "string"
                       },
+                      "relationship": {
+                        "type": "string"
+                      },
                       "scope": {
                         "type": "string"
                       },
@@ -3718,6 +3733,9 @@
                       "purl": {
                         "type": "string"
                       },
+                      "relationship": {
+                        "type": "string"
+                      },
                       "scope": {
                         "type": "string"
                       },
@@ -4277,6 +4295,9 @@
                       "purl": {
                         "type": "string"
                       },
+                      "relationship": {
+                        "type": "string"
+                      },
                       "scope": {
                         "type": "string"
                       },
@@ -4824,6 +4845,9 @@
                         "purl": {
                           "type": "string"
                         },
+                        "relationship": {
+                          "type": "string"
+                        },
                         "scope": {
                           "type": "string"
                         },
@@ -5364,6 +5388,9 @@
                         "purl": {
                           "type": "string"
                         },
+                        "relationship": {
+                          "type": "string"
+                        },
                         "scope": {
                           "type": "string"
                         },
@@ -5891,6 +5918,9 @@
                           "type": "string"
                         },
                         "purl": {
+                          "type": "string"
+                        },
+                        "relationship": {
                           "type": "string"
                         },
                         "scope": {
@@ -6444,6 +6474,9 @@
                           "type": "string"
                         },
                         "purl": {
+                          "type": "string"
+                        },
+                        "relationship": {
                           "type": "string"
                         },
                         "scope": {
@@ -7000,6 +7033,9 @@
                         "type": "string"
                       },
                       "purl": {
+                        "type": "string"
+                      },
+                      "relationship": {
                         "type": "string"
                       },
                       "scope": {
@@ -7938,6 +7974,9 @@
                       "purl": {
                         "type": "string"
                       },
+                      "relationship": {
+                        "type": "string"
+                      },
                       "scope": {
                         "type": "string"
                       },
@@ -8872,6 +8911,9 @@
                         "type": "string"
                       },
                       "purl": {
+                        "type": "string"
+                      },
+                      "relationship": {
                         "type": "string"
                       },
                       "scope": {

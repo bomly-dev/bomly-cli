@@ -65,6 +65,9 @@ func (d LockfileDetector) ResolveGraph(_ context.Context, req sdk.DetectionReque
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("yarn lockfile parser detector: %w", err)
 	}
+	if _, err := node.AttachUnknownComponentsToApplication(depsGraph, d.Logger, detectors.NameYarn, "yarn.lock"); err != nil {
+		return sdk.DetectionResult{}, fmt.Errorf("yarn lockfile parser detector: %w", err)
+	}
 	if err := node.AnnotateScopesFromPackageJSON(d.base().ProjectDir(req.ProjectPath), depsGraph); err != nil {
 		return sdk.DetectionResult{}, err
 	}

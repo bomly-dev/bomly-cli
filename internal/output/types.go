@@ -100,6 +100,7 @@ type PackageRef struct {
 	Licenses        []LicenseRef          `json:"licenses"`
 	Vulnerabilities []VulnerabilityRef    `json:"vulnerabilities"`
 	Scorecard       *sdk.PackageScorecard `json:"scorecard,omitempty"`
+	Relationship    string                `json:"relationship,omitempty"`
 	// Direct reports whether the package is a direct dependency of a project
 	// root. nil means directness could not be determined (e.g. a flat SBOM with
 	// no dependency edges); it is only populated where a graph is in scope.
@@ -186,6 +187,7 @@ func PackageFromDependencyAndRegistry(dep *sdk.Dependency, registry *sdk.Package
 		Scope:           string(dep.PrimaryScope()),
 		Purl:            dep.PURL,
 		ID:              dep.ID,
+		Relationship:    string(dep.Relationship),
 		Metadata:        cloneRefMetadata(dep.Metadata),
 		Locations:       LocationRefsFromGraphLocations(dep.Locations),
 		Licenses:        LicenseRefsFromGraphLicenses(sdk.DetectionLicenses(dep)),

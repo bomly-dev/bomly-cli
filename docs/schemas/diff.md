@@ -303,6 +303,7 @@ Complete reference for the `bomly diff` JSON output.
 | `licenses` | Array<[`LicenseRef`](#licenseref)> | |
 | `vulnerabilities` | Array<[`VulnerabilityRef`](#vulnerabilityref)> | |
 | `scorecard` | [`PackageScorecard`](#packagescorecard) | |
+| `relationship` | `string` | |
 | `direct` | `boolean` | |
 
 ### `PackageScorecard`

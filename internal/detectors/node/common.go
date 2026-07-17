@@ -355,7 +355,7 @@ func AnnotateScopesFromPackageJSON(projectPath string, depsGraph *sdk.Graph) err
 	}
 
 	var manifest PackageJSONManifest
-	if err := json.Unmarshal(data, &manifest); err != nil {
+	if err := json.Unmarshal(StripUTF8BOM(data), &manifest); err != nil {
 		return fmt.Errorf("parse package.json: %w", err)
 	}
 

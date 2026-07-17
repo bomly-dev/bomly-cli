@@ -12,6 +12,8 @@ const (
 	ManifestKindNPMLockfile ManifestKind = "npm-lockfile"
 	// ManifestKindPackageJSON identifies npm package.json manifests.
 	ManifestKindPackageJSON ManifestKind = "package.json"
+	// ManifestKindBunLock identifies Bun text lockfiles.
+	ManifestKindBunLock ManifestKind = "bun.lock"
 	// ManifestKindGoMod identifies Go module manifests.
 	ManifestKindGoMod ManifestKind = "go.mod"
 	// ManifestKindGoModule identifies normalized Go module manifests.
@@ -165,12 +167,8 @@ func addNodeIfMissing(g *Graph, node *Dependency) error {
 	clone := node.Clone()
 	err := g.AddNode(clone)
 	if errors.Is(err, ErrNodeAlreadyExist) {
-		// Entry graphs can hold distinct instances of the same node where
-		// only the declaring module's copy carries manifest locations (e.g.
-		// a gradle `api` dependency appears in both the declaring
-		// subproject's graph and each consumer's). Union locations so no
-		// declaration site is lost in the merged view.
 		if existing, ok := g.Node(node.ID); ok && existing != nil {
+			existing.Relationship = MergeDependencyRelationship(existing.Relationship, node.Relationship)
 			mergeDependencyLocations(existing, clone.Locations)
 		}
 		return nil

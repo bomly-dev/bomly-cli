@@ -6,7 +6,8 @@ Package managers Bomly recognizes in the `npm` ecosystem:
 
 | Package manager | Detector chain | Evidence patterns | Install-first support |
 | --- | --- | --- | --- |
-| [`npm`](npm.md) | `npm-detector`, `npm-native-detector`, `syft-detector` | `package-lock.json`, `package.json` | Yes |
+| [`bun`](bun.md) | `bun-detector`, `bun-native-detector`, `syft-detector` | `bun.lock`, `bun.lockb` | Yes |
+| [`npm`](npm.md) | `npm-detector`, `npm-native-detector`, `syft-detector` | `npm-shrinkwrap.json`, `package-lock.json`, `package.json` | Yes |
 | [`pnpm`](pnpm.md) | `pnpm-detector`, `pnpm-native-detector`, `syft-detector` | `pnpm-lock.yaml`, `package.json` | Yes |
 | [`yarn`](yarn.md) | `yarn-detector`, `yarn-native-detector`, `syft-detector` | `yarn.lock`, `package.json` | Yes |
 

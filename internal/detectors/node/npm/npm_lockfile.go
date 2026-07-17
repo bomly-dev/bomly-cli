@@ -19,8 +19,8 @@ type LockfileDetector struct {
 	Fallback   sdk.Detector
 }
 
-var npmEvidencePatterns = []string{"package-lock.json"}
-var npmManifestMetadataPatterns = []string{"package-lock.json", "package.json"}
+var npmEvidencePatterns = []string{"npm-shrinkwrap.json", "package-lock.json"}
+var npmManifestMetadataPatterns = []string{"npm-shrinkwrap.json", "package-lock.json", "package.json"}
 
 // PackageManagerSupport returns npm package-manager discovery metadata.
 func (d LockfileDetector) PackageManagerSupport() []sdk.PackageManagerSupport {
@@ -36,11 +36,16 @@ func (d LockfileDetector) Ready(context.Context, sdk.DetectionRequest) error {
 func (d LockfileDetector) Applicable(ctx context.Context, req sdk.DetectionRequest) (bool, error) {
 	_ = ctx
 	workingDir := d.base().ProjectDir(req.ProjectPath)
-	exists, err := system.FileExists(filepath.Join(workingDir, "package-lock.json"))
-	if err != nil {
-		return false, err
+	for _, name := range npmEvidencePatterns {
+		exists, err := system.FileExists(filepath.Join(workingDir, name))
+		if err != nil {
+			return false, err
+		}
+		if exists {
+			return true, nil
+		}
 	}
-	return exists, nil
+	return false, nil
 }
 
 // Descriptor describes the npm detector.
@@ -69,10 +74,13 @@ func (d LockfileDetector) ResolveGraph(_ context.Context, req sdk.DetectionReque
 	if err != nil {
 		return sdk.DetectionResult{}, fmt.Errorf("npm lockfile parser detector: %w", err)
 	}
+	if _, err := node.AttachUnknownComponents(graphs.graph, graphs.rootID, d.Logger, detectors.NameNPM, graphs.lockfileName); err != nil {
+		return sdk.DetectionResult{}, fmt.Errorf("npm lockfile parser detector: %w", err)
+	}
 	if err := node.AnnotateScopesFromPackageJSON(workingDir, graphs.graph); err != nil {
 		return sdk.DetectionResult{}, err
 	}
-	AttachPackageLockPositions(graphs.graph, workingDir)
+	AttachPackageLockPositionsForName(graphs.graph, workingDir, graphs.lockfileName)
 
 	rootManifest := detectors.InferManifestMetadata(req, npmManifestMetadataPatterns)
 	if len(graphs.modules) == 0 {

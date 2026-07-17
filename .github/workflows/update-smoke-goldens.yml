@@ -141,11 +141,21 @@ jobs:
         if: matrix.slice.python
         run: python -m pip install --require-hashes -r .github/requirements-ci-tools.txt
 
+      # apt's Maven on ubuntu-24.04 is 3.8.7, which cannot resolve in-reactor
+      # sibling modules during dependency:tree ("Could not find artifact
+      # dev.bomly.example:core") and silently degraded the multimodule scan
+      # to the syft fallback. Maven 3.9+ resolves reactor siblings without a
+      # prior install, so pin a modern release (checksum-verified).
       - name: Install Maven
         if: matrix.slice.maven
+        env:
+          MAVEN_VERSION: 3.9.16
+          MAVEN_SHA512: 831a8591fe20c8243b1dbe7d71e3244f31d1665b0804b2e825e38cbbe5ce0cafb8338851f90780735568773e0a6cd07bbec107cda0b896b008b861075358b6f6
         run: |
-          sudo apt-get update
-          sudo apt-get install -y maven
+          curl -fsSL "https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o /tmp/maven.tar.gz
+          echo "${MAVEN_SHA512}  /tmp/maven.tar.gz" | sha512sum -c -
+          sudo tar -xzf /tmp/maven.tar.gz -C /opt
+          echo "/opt/apache-maven-${MAVEN_VERSION}/bin" >> "$GITHUB_PATH"
 
       # Transitive POMs of the pinned demo repos declare long-dead
       # repositories (codehaus, repository.jboss.org, oss.sonatype.org

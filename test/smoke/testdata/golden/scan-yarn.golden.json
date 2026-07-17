@@ -89,7 +89,7 @@
             "pkg:npm/google-proto-files@0.8.6",
             "pkg:npm/is@3.2.0",
             "pkg:npm/propprop@0.3.1",
-            "pkg:npm/request@2.76.0",
+            "pkg:npm/request@2.79.0",
             "pkg:npm/rgb-hex@1.0.0",
             "pkg:npm/string-format-obj@1.1.0"
           ],
@@ -2123,28 +2123,6 @@
         },
         {
           "depends_on": [],
-          "id": "pkg:npm/debug@%3D",
-          "licenses": [],
-          "locations": [
-            {
-              "access_path": "yarn.lock",
-              "position": {
-                "file": "yarn.lock",
-                "line": 0
-              },
-              "real_path": "yarn.lock"
-            }
-          ],
-          "name": "debug",
-          "package_ref": "pkg:npm/debug@%3D",
-          "purl": "pkg:npm/debug@%3D",
-          "scopes": [
-            "runtime"
-          ],
-          "version": "="
-        },
-        {
-          "depends_on": [],
           "id": "pkg:npm/debug@0.7.4",
           "licenses": [],
           "locations": [
@@ -2204,6 +2182,9 @@
           "name": "debug",
           "package_ref": "pkg:npm/debug@0.8.1",
           "purl": "pkg:npm/debug@0.8.1",
+          "scopes": [
+            "runtime"
+          ],
           "version": "0.8.1"
         },
         {
@@ -2765,7 +2746,6 @@
             "pkg:npm/boom@4.2.0",
             "pkg:npm/console-io@2.6.3",
             "pkg:npm/cookie-signature@1.0.2",
-            "pkg:npm/debug@0.8.1",
             "pkg:npm/express@4.1.1",
             "pkg:npm/handlebars-ex@0.0.2",
             "pkg:npm/jquery@3.0.0-alpha1",
@@ -2808,7 +2788,7 @@
             "pkg:npm/buffer-crc32@0.2.1",
             "pkg:npm/cookie-signature@1.0.3",
             "pkg:npm/cookie@0.1.2",
-            "pkg:npm/debug@%3D",
+            "pkg:npm/debug@0.8.1",
             "pkg:npm/escape-html@1.0.1",
             "pkg:npm/fresh@0.2.2",
             "pkg:npm/merge-descriptors@0.0.2",
@@ -3703,8 +3683,8 @@
           "depends_on": [
             "pkg:npm/google-p12-pem@0.1.1",
             "pkg:npm/jws@3.0.0",
-            "pkg:npm/mime@1.2.11",
-            "pkg:npm/request@2.76.0"
+            "pkg:npm/mime@1.3.4",
+            "pkg:npm/request@2.79.0"
           ],
           "id": "pkg:npm/gtoken@1.2.1",
           "licenses": [],
@@ -5817,7 +5797,7 @@
           "depends_on": [
             "pkg:npm/async@1.5.2",
             "pkg:npm/proxyquire@1.7.11",
-            "pkg:npm/request@2.76.0",
+            "pkg:npm/request@2.79.0",
             "pkg:npm/supertest@1.2.0"
           ],
           "id": "pkg:npm/nodejs-repo-tools@1.0.0",
@@ -9884,14 +9864,6 @@
       "name": "dashdash",
       "purl": "pkg:npm/dashdash@1.14.1",
       "version": "1.14.1",
-      "vulnerabilities": []
-    },
-    {
-      "ecosystem": "npm",
-      "licenses": [],
-      "name": "debug",
-      "purl": "pkg:npm/debug@%3D",
-      "version": "=",
       "vulnerabilities": []
     },
     {

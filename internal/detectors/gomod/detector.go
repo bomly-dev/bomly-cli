@@ -217,7 +217,10 @@ func depGraphFromGoListWithScope(raw []byte, rootModule string, directRequires [
 
 	depsGraph := sdk.New()
 	rootNode := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemGo,
-		Name: rootModule},
+		Name: rootModule,
+		// The main module is the scanned project itself: enrichment must not
+		// query advisory/registry/scorecard sources for it.
+		FirstParty: true},
 	})
 	if err := depsGraph.AddNode(rootNode); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)

@@ -61,7 +61,8 @@ internal/engine/consolidation/   Cross-subproject graph consolidation, manifest 
                                  sync (ConsolidateGraphs, ManifestDedupPriority,
                                  SyncConsolidatedEnrichmentToManifests)
 internal/registry/               Support/discovery registry; built-in wiring in builder.go
-internal/matchers/*              External enrichment: osv, grype, deps.dev, ClearlyDefined, eol, scorecard
+internal/matchers/*              External enrichment: osv, grype, deps.dev, scorecard
+                                 (ClearlyDefined and eol run as external matcher plugins)
 internal/matchers/cache          File-based cache shared by matchers
 internal/analyzers/*             Reachability analyzers (govulncheck — Go;
                                  jsreach — JavaScript/TypeScript;

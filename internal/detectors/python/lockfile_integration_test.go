@@ -151,6 +151,11 @@ func TestUVLockFixture(t *testing.T) {
 	g := resolvePyLockGraph(t, UVDetector{}, pyFixture("uv"))
 
 	requirePySingleRoot(t, g, pyStableID("demo-app", "1.0.0"))
+	// The editable package is the scanned project itself — first-party, so
+	// enrichment never queries it.
+	if root, ok := g.Node(pyStableID("demo-app", "1.0.0")); !ok || !root.FirstParty || sdk.NodeIsEnrichable(root) {
+		t.Fatalf("uv editable root must be first-party and not enrichable, got %#v", root)
+	}
 	for _, want := range [][2]string{
 		{"requests", "2.32.3"}, {"certifi", "2024.8.30"},
 		{"idna", "3.10"}, {"urllib3", "2.2.3"},

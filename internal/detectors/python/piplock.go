@@ -83,7 +83,7 @@ func depGraphFromRequirementsLock(lockPath, projectPath string) (*sdk.Graph, err
 		Name:           "root",
 		PackageManager: sdk.PackageManagerPip,
 		Language:       "python",
-		Type:           sdk.PackageTypeApplication},
+		Type:           sdk.PackageTypeApplication, FirstParty: true},
 	})
 	if err := g.AddNode(root); err != nil {
 		return nil, fmt.Errorf("add root node: %w", err)

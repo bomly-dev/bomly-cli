@@ -123,7 +123,7 @@ func focusedAuditGraph(packages []*sdk.Dependency) (*sdk.Graph, error) {
 	}
 
 	root := sdk.NewDependencyWithID(diffAuditRootID, sdk.Dependency{Coordinates: sdk.Coordinates{Name: "bomly-diff-audit-root",
-		Type: sdk.PackageTypeApplication},
+		Type: sdk.PackageTypeApplication, FirstParty: true},
 	})
 	if err := focused.AddNode(root); err != nil {
 		return nil, err

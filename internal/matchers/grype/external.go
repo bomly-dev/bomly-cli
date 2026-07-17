@@ -60,7 +60,7 @@ func (a Matcher) Match(_ context.Context, req sdk.MatchRequest) (sdk.MatchResult
 		return sdk.MatchResult{Registry: req.Registry, MatcherStats: grypeMatcherStats(0, 0, 0)}, fmt.Errorf("grype match failed: %w", err)
 	}
 
-	matchedPackages, vulnerabilities, err := parseGrypeJSONOutput(stdout.Bytes(), req.Registry)
+	matchedPackages, vulnerabilities, err := parseGrypeJSONOutput(stdout.Bytes(), req.Registry, firstPartyPURLs(req.Graph))
 	if err != nil {
 		return sdk.MatchResult{Registry: req.Registry, MatcherStats: grypeMatcherStats(0, 0, 0)}, fmt.Errorf("grype: parse output: %w", err)
 	}
@@ -177,7 +177,29 @@ type grypeJSONArtifact struct {
 	PURL    string   `json:"purl"`
 }
 
-func parseGrypeJSONOutput(data []byte, registry *sdk.PackageRegistry) (int, int, error) {
+// firstPartyPURLs collects the PURLs of graph nodes that must not receive
+// external matches (sdk.NodeIsEnrichable is false). The SBOM handed to grype
+// intentionally keeps first-party components — the transform is shared with
+// user-facing SBOM output — so their matches are dropped on the way back in.
+func firstPartyPURLs(g *sdk.Graph) map[string]struct{} {
+	if g == nil {
+		return nil
+	}
+	skip := make(map[string]struct{})
+	for _, dep := range g.Nodes() {
+		if dep == nil || sdk.NodeIsEnrichable(dep) {
+			continue
+		}
+		for _, purl := range []string{strings.TrimSpace(dep.PURL), sdk.CanonicalPackageURLFromDependency(dep)} {
+			if purl != "" {
+				skip[purl] = struct{}{}
+			}
+		}
+	}
+	return skip
+}
+
+func parseGrypeJSONOutput(data []byte, registry *sdk.PackageRegistry, skipPURLs map[string]struct{}) (int, int, error) {
 	var out grypeJSONOutput
 	if err := json.Unmarshal(data, &out); err != nil {
 		return 0, 0, fmt.Errorf("decode grype json: %w", err)
@@ -191,6 +213,9 @@ func parseGrypeJSONOutput(data []byte, registry *sdk.PackageRegistry) (int, int,
 	for _, m := range out.Matches {
 		purl := strings.TrimSpace(m.Artifact.PURL)
 		if purl == "" {
+			continue
+		}
+		if _, firstParty := skipPURLs[purl]; firstParty {
 			continue
 		}
 		seen[purl] = struct{}{}

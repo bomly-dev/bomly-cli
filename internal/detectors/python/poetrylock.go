@@ -99,7 +99,7 @@ func depGraphFromPoetryLock(lockPath, projectPath string) (*sdk.Graph, error) {
 		Version:        rootVersion,
 		PackageManager: sdk.PackageManagerPoetry,
 		Language:       "python",
-		Type:           sdk.PackageTypeApplication},
+		Type:           sdk.PackageTypeApplication, FirstParty: true},
 	})
 
 	if err := g.AddNode(root); err != nil {

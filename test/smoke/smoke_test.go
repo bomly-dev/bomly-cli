@@ -252,6 +252,18 @@ func TestScan(t *testing.T) {
 			tools: []string{"mvn"},
 		},
 		{
+			// Gradle multi-project build pinned to
+			// bomly-dev/example-java-gradle-multimodule: a root project with
+			// one direct dependency and two subprojects, app depending on the
+			// lib subproject. The golden proves one manifest entry per
+			// subproject (app/build.gradle, lib/build.gradle) plus the root
+			// entry, resolved through one multi-task dependency report. The
+			// repo commits its gradle wrapper, so only java is required.
+			name:  "scan-gradle-multimodule",
+			args:  []string{"scan", "--url", "https://github.com/bomly-dev/example-java-gradle-multimodule", "--ref", "v1.0.0", "--format", "json"},
+			tools: []string{"java"},
+		},
+		{
 			name: "scan-sbom-spdx",
 			args: []string{"scan", "--sbom", "--path", sbomFixture("go.spdx.json"), "--format", "json"},
 		},

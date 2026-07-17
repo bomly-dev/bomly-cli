@@ -156,6 +156,7 @@ func depGraphFromLock(raw []byte, manifest composerManifest) (*sdk.Graph, error)
 		Name:           "root",
 		PackageManager: sdk.PackageManagerComposer,
 		Type:           sdk.PackageTypeApplication,
+		FirstParty:     true,
 		Language:       "php"},
 	})
 

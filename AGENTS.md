@@ -39,7 +39,7 @@ See [`dev-docs/ARCHITECTURE.md`](dev-docs/ARCHITECTURE.md) for full detail (the 
 | `internal/engine`      | Pipeline, engine, consolidation, auditors, matchers, and orchestration                            |
 | `internal/registry`    | Canonical support/discovery registry and built-in engine registry wiring                          |
 | `internal/detectors/*` | Concrete dependency resolution per ecosystem (gomod, gradle, maven, node, python, sbom, syft)     |
-| `internal/matchers/*`  | External enrichment matchers and shared matcher cache (osv, grype, deps.dev, ClearlyDefined, eol, scorecard) |
+| `internal/matchers/*`  | External enrichment matchers and shared matcher cache (osv, grype, deps.dev, scorecard; ClearlyDefined and eol run as external matcher plugins) |
 | `internal/auditors/*`  | Policy evaluators and audit-only logic (policy, noop)                                             |
 | `internal/sbom`        | SBOM codec (SPDX 2.3, CycloneDX)                                                                  |
 | `internal/benchmark`   | Hidden local dependency-graph benchmark, baseline comparison, scoring, and embedded presets       |

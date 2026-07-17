@@ -206,7 +206,8 @@ func depGraphFromPipfileLock(path string) (*sdk.Graph, error) {
 	root := sdk.NewDependency(sdk.Dependency{Coordinates: sdk.Coordinates{Ecosystem: sdk.EcosystemPython,
 		PackageManager: sdk.PackageManagerPipenv,
 		Name:           "root",
-		Type:           sdk.PackageTypeProject},
+		Type:           sdk.PackageTypeProject,
+		FirstParty:     true},
 	})
 
 	if err := depsGraph.AddNode(root); err != nil {

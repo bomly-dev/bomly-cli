@@ -118,7 +118,11 @@
           "licenses": [],
           "name": "dev.bomly.example:lib",
           "package_ref": "pkg:maven/dev.bomly.example/lib",
-          "purl": "pkg:maven/dev.bomly.example/lib"
+          "purl": "pkg:maven/dev.bomly.example/lib",
+          "scopes": [
+            "development",
+            "runtime"
+          ]
         },
         {
           "depends_on": [
@@ -173,16 +177,6 @@
           "depends_on": [],
           "id": "pkg:maven/org.slf4j/slf4j-api@1.7.36",
           "licenses": [],
-          "locations": [
-            {
-              "access_path": "build.gradle",
-              "position": {
-                "file": "build.gradle",
-                "line": 0
-              },
-              "real_path": "build.gradle"
-            }
-          ],
           "name": "org.slf4j:slf4j-api",
           "package_ref": "pkg:maven/org.slf4j/slf4j-api@1.7.36",
           "purl": "pkg:maven/org.slf4j/slf4j-api@1.7.36",

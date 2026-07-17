@@ -164,10 +164,46 @@ func addNodeIfMissing(g *Graph, node *Dependency) error {
 	}
 	clone := node.Clone()
 	err := g.AddNode(clone)
-	if err != nil && !errors.Is(err, ErrNodeAlreadyExist) {
-		return err
+	if errors.Is(err, ErrNodeAlreadyExist) {
+		// Entry graphs can hold distinct instances of the same node where
+		// only the declaring module's copy carries manifest locations (e.g.
+		// a gradle `api` dependency appears in both the declaring
+		// subproject's graph and each consumer's). Union locations so no
+		// declaration site is lost in the merged view.
+		if existing, ok := g.Node(node.ID); ok && existing != nil {
+			mergeDependencyLocations(existing, clone.Locations)
+		}
+		return nil
 	}
-	return nil
+	return err
+}
+
+// mergeDependencyLocations appends the locations dst does not already carry.
+func mergeDependencyLocations(dst *Dependency, locations []PackageLocation) {
+	for _, loc := range locations {
+		if !hasDependencyLocation(dst.Locations, loc) {
+			dst.Locations = append(dst.Locations, loc)
+		}
+	}
+}
+
+func hasDependencyLocation(existing []PackageLocation, loc PackageLocation) bool {
+	for _, e := range existing {
+		if e.RealPath != loc.RealPath || e.AccessPath != loc.AccessPath {
+			continue
+		}
+		if sourcePositionsEqual(e.Position, loc.Position) {
+			return true
+		}
+	}
+	return false
+}
+
+func sourcePositionsEqual(a, b *SourcePosition) bool {
+	if a == nil || b == nil {
+		return a == b
+	}
+	return *a == *b
 }
 
 // ConsolidateGraphContainerEntry ensures one entry is present.

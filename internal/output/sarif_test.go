@@ -364,6 +364,66 @@ func TestWriteSARIF_UsesDependencyLocationsFromGraph(t *testing.T) {
 	}
 }
 
+// TestWriteSARIF_UnionsLocationsAcrossGraphs pins the multi-module regression:
+// when the same dependency ref resolves to distinct node instances across
+// entry graphs (a gradle `api` dependency appears in both the declaring
+// subproject's graph and each consumer's graph) and only a later graph's
+// instance carries manifest locations, the located instance must win instead
+// of the location-less first match falling back to the repository file.
+func TestWriteSARIF_UnionsLocationsAcrossGraphs(t *testing.T) {
+	consumer := sdk.New()
+	bare := sdk.NewDependencyWithID("org.apache.commons:commons-text@1.9", sdk.Dependency{
+		Coordinates: sdk.Coordinates{Name: "commons-text"},
+		PackageRef:  sarifTestPURL,
+	})
+	if err := consumer.AddNode(bare); err != nil {
+		t.Fatalf("AddNode: %v", err)
+	}
+	declaring := sdk.New()
+	located := sdk.NewDependencyWithID("org.apache.commons:commons-text@1.9", sdk.Dependency{
+		Coordinates: sdk.Coordinates{Name: "commons-text"},
+		PackageRef:  sarifTestPURL,
+		Locations: []sdk.PackageLocation{
+			{
+				RealPath: "lib/build.gradle",
+				Position: &sdk.SourcePosition{File: "lib/build.gradle", Line: 7},
+			},
+		},
+	})
+	if err := declaring.AddNode(located); err != nil {
+		t.Fatalf("AddNode: %v", err)
+	}
+	findings := []sdk.Finding{
+		{
+			ID:             "CVE-2022-42889",
+			Kind:           sdk.FindingKindVulnerability,
+			PackageRef:     sarifTestPURL,
+			DependencyRefs: []string{bare.ID},
+			Title:          "Vuln",
+			Severity:       sdk.SeverityCritical,
+		},
+	}
+
+	var buf bytes.Buffer
+	if err := WriteSARIF(&buf, findings, nil, "bomly", "0.1.0", SARIFOptions{LocationGraphs: []*sdk.Graph{consumer, declaring}}); err != nil {
+		t.Fatalf("WriteSARIF: %v", err)
+	}
+	var doc map[string]any
+	_ = json.Unmarshal(buf.Bytes(), &doc)
+	result := doc["runs"].([]any)[0].(map[string]any)["results"].([]any)[0].(map[string]any)
+	locations := result["locations"].([]any)
+	if len(locations) != 1 {
+		t.Fatalf("locations = %#v, want exactly the declaring module location", locations)
+	}
+	pl := locations[0].(map[string]any)["physicalLocation"].(map[string]any)
+	if uri := pl["artifactLocation"].(map[string]any)["uri"]; uri != "lib/build.gradle" {
+		t.Errorf("location uri = %v, want lib/build.gradle", uri)
+	}
+	if region := pl["region"].(map[string]any); region["startLine"] != float64(7) {
+		t.Errorf("region = %#v, want startLine 7", region)
+	}
+}
+
 func TestWriteSARIF_PrefersLocationIntersectingChangedLines(t *testing.T) {
 	graph := sdk.New()
 	dep := sdk.NewDependencyWithID("actions:checkout@v5", sdk.Dependency{Coordinates: sdk.Coordinates{Name: "actions/checkout"}, PackageRef: "actions:checkout@v5",

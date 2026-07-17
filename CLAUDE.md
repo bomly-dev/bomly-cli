@@ -204,6 +204,8 @@ If a new analyzer / matcher / detector produces deterministic output for a fixed
 - The pinned ref must exercise the feature meaningfully. For reachability that means a repo with at least one symbol-tier reachable advisory; for a new ecosystem detector that means a repo whose lockfile actually parses.
 - Update `test/smoke/helpers_test.go::normalizeJSON` (or the more specific normalizers it calls) to scrub any new volatile fields (timestamps, line numbers, file paths under temp clone dirs) before they reach goldens.
 - Run `make smoke ARGS="-update"` to regenerate goldens. Commit the regenerated `.golden.json` in the same PR.
+- Register the new test in both CI slice matrices: add it to a slice in `.github/workflows/smoke.yml` (nightly runs) and to **exactly one** slice in `.github/workflows/update-smoke-goldens.yml` (regeneration uploads per-slice golden artifacts, so each golden file must be produced by exactly one slice — no gaps, no overlaps). `go test -run` matches each `/`-separated element as an **unanchored** regex: `scan-go` also matches `scan-go-reachability`, so use `$` anchors (`scan-go$`) to keep slice ownership exact. The workflows invoke `go test` directly rather than `make smoke ARGS=...` because make expands `$` in ARGS (`$|` becomes empty) and silently corrupts the pattern.
+- Keep slow, network-heavy cases (reachability, build-tool resolution) in their own dedicated slices so a stalled remote fails one small re-runnable job instead of an ecosystem's whole regeneration.
 
 ### Documentation
 

@@ -234,7 +234,9 @@ func (d Detector) resolveGraph(ctx context.Context, stderr io.Writer, projectPat
 	}
 
 	args := mavenDependencyTreeArgs(prefixArgs, scopeFilter)
-	cmd := system.CommandContext(ctx, executable, args...)
+	cmdCtx, cancel := detectors.BuildToolContext(ctx)
+	defer cancel()
+	cmd := system.CommandContext(cmdCtx, executable, args...)
 	cmd.Dir = projectPath
 	if d.WorkingDir != "" {
 		cmd.Dir = d.WorkingDir
@@ -246,6 +248,9 @@ func (d Detector) resolveGraph(ctx context.Context, stderr io.Writer, projectPat
 	logger.Debug("running maven dependencies detector", zap.String("working_dir", cmd.Dir), zap.String("executable", executable), zap.Strings("args", args))
 	raw, err := cmd.Output()
 	if err != nil {
+		if errors.Is(cmdCtx.Err(), context.DeadlineExceeded) {
+			err = fmt.Errorf("timed out after %s: %w", detectors.BuildToolTimeout, err)
+		}
 		logger.Warn(fmt.Sprintf("Maven dependencies detector failed: %v", err))
 		fields := []zap.Field{zap.Error(err)}
 		if commandStderr.String() != "" {
@@ -579,7 +584,9 @@ func (d Detector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 	}
 	args := append(prefixArgs, "dependency:resolve")
 	args = append(args, req.InstallArgs...)
-	cmd := system.CommandContext(ctx, executable, args...)
+	cmdCtx, cancel := detectors.BuildToolContext(ctx)
+	defer cancel()
+	cmd := system.CommandContext(cmdCtx, executable, args...)
 	cmd.Dir = req.ProjectPath
 	if d.WorkingDir != "" {
 		cmd.Dir = d.WorkingDir
@@ -590,6 +597,9 @@ func (d Detector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 	logger.Info("Maven detector running install-first step")
 	logger.Debug("running maven detector install-first", zap.String("working_dir", cmd.Dir), zap.String("executable", executable), zap.Strings("args", args))
 	if err := cmd.Run(); err != nil {
+		if errors.Is(cmdCtx.Err(), context.DeadlineExceeded) {
+			err = fmt.Errorf("timed out after %s: %w", detectors.BuildToolTimeout, err)
+		}
 		return fmt.Errorf("run maven dependency resolve: %w", err)
 	}
 	logger.Info(fmt.Sprintf("Maven detector install-first completed in %s", logging.FormatDuration(time.Since(started))))

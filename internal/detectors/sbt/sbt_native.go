@@ -3,6 +3,7 @@ package sbt
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -77,7 +78,9 @@ func (d NativeDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 	logger := d.logger()
 	workingDir := d.workingDir(req.ProjectPath)
 
-	cmd := system.CommandContext(ctx, "sbt", "--no-colors", "--batch", "dependencyTree")
+	cmdCtx, cancel := detectors.BuildToolContext(ctx)
+	defer cancel()
+	cmd := system.CommandContext(cmdCtx, "sbt", "--no-colors", "--batch", "dependencyTree")
 	cmd.Dir = workingDir
 	var out bytes.Buffer
 	cmd.Stdout = &out
@@ -86,6 +89,9 @@ func (d NativeDetector) ResolveGraph(ctx context.Context, req sdk.DetectionReque
 	started := time.Now()
 	logger.Debug("running sbt native detector", zap.String("working_dir", workingDir))
 	if err := cmd.Run(); err != nil {
+		if errors.Is(cmdCtx.Err(), context.DeadlineExceeded) {
+			err = fmt.Errorf("timed out after %s: %w", detectors.BuildToolTimeout, err)
+		}
 		logger.Debug("sbt dependencyTree failed", zap.Error(err))
 		return sdk.DetectionResult{}, fmt.Errorf("sbt dependencyTree: %w", err)
 	}

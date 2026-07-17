@@ -22,12 +22,107 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  update-goldens:
+  # Build the CLI binaries once and share them with every slice via an
+  # artifact — 21 matrix jobs otherwise each compile the full binary (and the
+  # lite binary) inside TestMain.
+  build:
+    name: Build CLI binaries
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    permissions:
-      contents: write
-      pull-requests: write
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ inputs.source_ref }}
+
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: |
+            go.sum
+
+      - name: Build bomly and bomly-lite
+        run: make build
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bomly-binaries
+          path: bin/
+          if-no-files-found: error
+          retention-days: 1
+
+  regenerate:
+    name: Regenerate (${{ matrix.slice.name }})
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        slice:
+          # Every golden-producing smoke test must be matched by exactly one
+          # slice so the per-slice artifacts never overlap. Reachability cases
+          # get their own slices: they are the slowest, most network-dependent
+          # cases, and isolating them keeps a stall from blocking the rest of
+          # an ecosystem's goldens.
+          - name: go
+            run: 'TestScan$/scan-go$|TestDiff/diff-go|TestExplain/explain-go|TestAuditScan/(scan-go-enrich|scan-go-audit)|TestAuditDiffAndExplain/(diff-go-audit|explain-go-enrich)|TestLiteScan/lite-scan-go|TestLiteDiff/lite-diff-go|TestLiteExplain/lite-explain-go'
+          - name: go-reachability
+            run: 'TestScan$/scan-go-reachability'
+          - name: node
+            run: 'TestScan$/(scan-npm$|scan-npm-scope-runtime|scan-npm-workspaces|scan-yarn|scan-pnpm|scan-bun$|scan-github-actions)|TestDiff/diff-npm|TestAuditScan/scan-npm-audit'
+            node: true
+          - name: node-reachability
+            run: 'TestScan$/scan-npm-reachability'
+            node: true
+          - name: java
+            run: 'TestScan$/(scan-maven|scan-gradle|scan-recursive-monorepo)'
+            java: true
+            maven: true
+            gradle: true
+          - name: java-reachability
+            run: 'TestScan$/scan-java-maven-reachability'
+            java: true
+            maven: true
+          - name: python
+            run: 'TestScan$/(scan-python-pip$|scan-python-pipenv|scan-python-poetry)'
+            python: true
+          - name: python-reachability
+            run: 'TestScan$/scan-python-pip-reachability'
+            python: true
+          - name: uv
+            run: 'TestScan$/scan-python-uv'
+            python: true
+            uv: true
+          - name: php
+            run: 'TestScan$/scan-composer'
+          - name: ruby
+            run: 'TestScan$/scan-bundler'
+          - name: dotnet
+            run: 'TestScan$/scan-nuget'
+            dotnet: true
+          - name: rust
+            run: 'TestScan$/scan-cargo'
+          - name: dart
+            run: 'TestScan$/scan-pub'
+            dart: true
+          - name: swift
+            run: 'TestScan$/(scan-cocoapods|scan-swiftpm)'
+          - name: elixir
+            run: 'TestScan$/scan-mix'
+          - name: scala
+            run: 'TestScan$/scan-sbt'
+          - name: cpp
+            run: 'TestScan$/scan-cpp-conan'
+          - name: sbom
+            run: 'TestScan$/scan-sbom|TestDiff/diff-sbom|TestLiteScan/lite-scan-sbom'
+          - name: plugin
+            run: 'TestPluginWorkflows'
+          - name: container
+            run: 'TestContainer'
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -43,51 +138,210 @@ jobs:
             go.sum
 
       - name: Set up Node.js
+        if: matrix.slice.node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "22"
 
       - name: Set up Python
+        if: matrix.slice.python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: "3.12"
 
       - name: Set up Java
+        if: matrix.slice.java
         uses: actions/setup-java@0f481fcb613427c0f801b606911222b5b6f3083a # v5.5.0
         with:
           distribution: temurin
           java-version: "21"
 
       - name: Set up .NET
+        if: matrix.slice.dotnet
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:
           dotnet-version: "8.0.x"
 
       - name: Set up Dart
+        if: matrix.slice.dart
         uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260 # v1.7.2
 
       - name: Set up uv
+        if: matrix.slice.uv
         uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
 
-      - name: Install smoke-test dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y maven
-          python -m pip install --require-hashes -r .github/requirements-ci-tools.txt
+      - name: Install Python smoke-test dependencies
+        if: matrix.slice.python
+        run: python -m pip install --require-hashes -r .github/requirements-ci-tools.txt
 
+      # apt's Maven on ubuntu-24.04 is 3.8.7, which cannot resolve in-reactor
+      # sibling modules during dependency:tree ("Could not find artifact
+      # dev.bomly.example:core") and silently degraded the multimodule scan
+      # to the syft fallback. Maven 3.9+ resolves reactor siblings without a
+      # prior install, so pin a modern release (checksum-verified).
+      - name: Install Maven
+        if: matrix.slice.maven
+        env:
+          MAVEN_VERSION: 3.9.16
+          MAVEN_SHA512: 831a8591fe20c8243b1dbe7d71e3244f31d1665b0804b2e825e38cbbe5ce0cafb8338851f90780735568773e0a6cd07bbec107cda0b896b008b861075358b6f6
+        run: |
+          curl -fsSL "https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o /tmp/maven.tar.gz
+          echo "${MAVEN_SHA512}  /tmp/maven.tar.gz" | sha512sum -c -
+          sudo tar -xzf /tmp/maven.tar.gz -C /opt
+          echo "/opt/apache-maven-${MAVEN_VERSION}/bin" >> "$GITHUB_PATH"
+
+      # Transitive POMs of the pinned demo repos declare long-dead
+      # repositories (codehaus, repository.jboss.org, oss.sonatype.org
+      # snapshots, ...). Some of them accept connections and never respond,
+      # and Maven's default read timeout is effectively unbounded, which has
+      # stalled runs. Every artifact the demos need lives on Central, so
+      # route all repository access there: dead-repo lookups become fast
+      # 404s instead of hangs. Maven resolves user.home from passwd, so this
+      # settings.xml applies to every bomly-spawned mvn despite the smoke
+      # harness's per-test HOME override.
+      - name: Route all Maven repositories through Central
+        if: matrix.slice.maven
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<'XML'
+          <settings>
+            <mirrors>
+              <mirror>
+                <id>central-mirror-all</id>
+                <name>Force all repositories through Maven Central</name>
+                <url>https://repo.maven.apache.org/maven2</url>
+                <mirrorOf>*</mirrorOf>
+              </mirror>
+            </mirrors>
+          </settings>
+          XML
+
+      # Smoke scans clone pinned repos at runtime, so there are no lockfiles
+      # in the workspace to hash — use a rolling key (unique per run, prefix
+      # restore) to keep the newest cache warm. Java derives user.home from
+      # passwd, not $HOME, so every bomly invocation shares the runner-level
+      # ~/.m2 despite the harness's per-test HOME override; a warm cache
+      # removes the cold-start Maven Central downloads that have stalled runs.
+      - name: Cache Maven repository
+        if: matrix.slice.maven
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.m2/repository
+          key: maven-repo-${{ runner.os }}-${{ matrix.slice.name }}-${{ github.run_id }}
+          restore-keys: |
+            maven-repo-${{ runner.os }}-
+
+      - name: Cache Gradle caches
+        if: matrix.slice.gradle
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-home-${{ runner.os }}-${{ matrix.slice.name }}-${{ github.run_id }}
+          restore-keys: |
+            gradle-home-${{ runner.os }}-
+
+      - name: Download prebuilt binaries
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: bomly-binaries
+          path: ${{ runner.temp }}/bomly-bin
+
+      - name: Make prebuilt binaries executable
+        run: chmod +x "${RUNNER_TEMP}/bomly-bin/bomly" "${RUNNER_TEMP}/bomly-bin/bomly-lite"
+
+      # Mirrors `make smoke` but invokes go test directly: the slice patterns
+      # use $ anchors, which make would expand (e.g. `$|` becomes empty) if
+      # passed through ARGS.
       - name: Regenerate golden files
-        run: make smoke ARGS="-update"
+        env:
+          BOMLY_SMOKE_BINARY: ${{ runner.temp }}/bomly-bin/bomly
+          BOMLY_SMOKE_LITE_BINARY: ${{ runner.temp }}/bomly-bin/bomly-lite
+        run: go test -tags smoke ./test/smoke/ -v -count=1 -timeout 15m -update -run '${{ matrix.slice.run }}'
+
+      - name: Stage regenerated goldens
+        # Runs even when the slice fails: goldens written before the failure
+        # are still valid, and the failed slice stays visibly red.
+        if: always()
+        id: stage
+        shell: bash
+        run: |
+          set -euo pipefail
+          staging="${RUNNER_TEMP}/goldens"
+          mkdir -p "${staging}"
+          {
+            git diff --name-only --diff-filter=ACMR -- test/smoke/testdata/golden
+            git ls-files --others --exclude-standard -- test/smoke/testdata/golden
+          } | sort -u > "${RUNNER_TEMP}/changed-goldens.txt"
+          if [ -s "${RUNNER_TEMP}/changed-goldens.txt" ]; then
+            while IFS= read -r file; do
+              mkdir -p "${staging}/$(dirname "${file}")"
+              cp "${file}" "${staging}/${file}"
+            done < "${RUNNER_TEMP}/changed-goldens.txt"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload regenerated goldens
+        if: always() && steps.stage.outputs.changed == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: goldens-${{ matrix.slice.name }}
+          # Point at the golden directory itself so artifact paths are
+          # relative to it and download-artifact can merge every slice
+          # straight into test/smoke/testdata/golden.
+          path: ${{ runner.temp }}/goldens/test/smoke/testdata/golden
+          if-no-files-found: error
+          retention-days: 7
+
+  open-pr:
+    name: Open goldens pull request
+    needs: regenerate
+    # Collect whatever the slices produced even when some failed; the failed
+    # slices stay red on the run and are listed in the PR body.
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ inputs.source_ref }}
+
+      - name: Download regenerated goldens
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: goldens-*
+          merge-multiple: true
+          path: test/smoke/testdata/golden
 
       - name: Detect golden file changes
         id: changes
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet -- test/smoke/testdata/golden; then
+          if [ -z "$(git status --porcelain -- test/smoke/testdata/golden)" ]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: List failed slices
+        id: failures
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          failed="$(gh run view "${RUN_ID}" --repo "${GITHUB_REPOSITORY}" --json jobs \
+            --jq '[.jobs[] | select(.name | startswith("Regenerate (")) | select(.conclusion == "failure" or .conclusion == "cancelled" or .conclusion == "timed_out") | .name] | join(", ")')"
+          echo "failed=${failed}" >> "$GITHUB_OUTPUT"
 
       - name: Create pull request with updated goldens
         if: steps.changes.outputs.changed == 'true'
@@ -96,6 +350,7 @@ jobs:
           SOURCE_REF: ${{ inputs.source_ref }}
           BASE_REF: ${{ inputs.base_ref }}
           RUN_ID: ${{ github.run_id }}
+          FAILED_SLICES: ${{ steps.failures.outputs.failed }}
         shell: bash
         run: |
           set -euo pipefail
@@ -111,12 +366,23 @@ jobs:
           git commit -m "test: update smoke golden files"
           git push --set-upstream origin "${branch_name}"
 
+          body="Automated smoke golden update generated from \`${SOURCE_REF}\` after maintainer review."
+          if [ -n "${FAILED_SLICES}" ]; then
+            run_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}"
+            body="$(printf '%s\n\n> [!WARNING]\n> These regeneration slices failed, so their goldens may be missing or partial: %s. Check the [workflow run](%s) and re-run the failed jobs before relying on this PR for those ecosystems.' "${body}" "${FAILED_SLICES}" "${run_url}")"
+          fi
+
           gh pr create \
             --base "${BASE_REF}" \
             --head "${branch_name}" \
             --title "test: update smoke golden files" \
-            --body "Automated smoke golden update generated from \`${SOURCE_REF}\` after maintainer review."
+            --body "${body}"
 
       - name: Report no-op run
         if: steps.changes.outputs.changed != 'true'
-        run: echo "Smoke golden files already match the regenerated outputs."
+        shell: bash
+        run: |
+          echo "Smoke golden files already match the regenerated outputs."
+          if [ -n "${{ steps.failures.outputs.failed }}" ]; then
+            echo "Note: some slices failed and produced no goldens: ${{ steps.failures.outputs.failed }}"
+          fi

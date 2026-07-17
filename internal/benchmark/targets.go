@@ -16,12 +16,18 @@ var embeddedTargets []byte
 
 // Target describes one repository-backed smoke and benchmark case.
 type Target struct {
-	Name                     string                    `json:"name"`
-	URL                      string                    `json:"url"`
-	Ref                      string                    `json:"ref"`
-	Ecosystem                sdk.Ecosystem             `json:"ecosystem"`
-	Args                     []string                  `json:"args,omitempty"`
-	Tools                    []string                  `json:"tools,omitempty"`
+	Name      string        `json:"name"`
+	URL       string        `json:"url"`
+	Ref       string        `json:"ref"`
+	Ecosystem sdk.Ecosystem `json:"ecosystem"`
+	Args      []string      `json:"args,omitempty"`
+	Tools     []string      `json:"tools,omitempty"`
+	// Detectors pins the smoke scan to the detector selector(s) whose output
+	// the golden encodes (passed as --detectors). With a pinned selector set
+	// the engine skips any fallback outside it, so a degraded environment
+	// (e.g. a flaked java readiness probe) fails the case loudly instead of
+	// silently regenerating a fallback-shaped golden.
+	Detectors                string                    `json:"detectors,omitempty"`
 	BenchmarkEnabled         bool                      `json:"benchmark_enabled,omitempty"`
 	AdjudicatedRelationships []AdjudicatedRelationship `json:"adjudicated_relationships,omitempty"`
 }
@@ -69,6 +75,9 @@ func Targets(targets []Target) []Target {
 func (t Target) SmokeArgs() []string {
 	args := []string{"scan", "--url", t.URL, "--ref", t.Ref, "--format", "json"}
 	args = append(args, "--ecosystems", string(t.Ecosystem))
+	if strings.TrimSpace(t.Detectors) != "" {
+		args = append(args, "--detectors", t.Detectors)
+	}
 	args = append(args, t.Args...)
 	return args
 }

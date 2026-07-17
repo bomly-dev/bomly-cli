@@ -16,54 +16,105 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Build the CLI binaries once and share them with every slice via an
+  # artifact — 21 matrix jobs otherwise each compile the full binary (and the
+  # lite binary) inside TestMain.
+  build:
+    name: Build CLI binaries
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: |
+            go.sum
+
+      - name: Build bomly and bomly-lite
+        run: make build
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bomly-binaries
+          path: bin/
+          if-no-files-found: error
+          retention-days: 1
+
   smoke:
     name: Smoke (${{ matrix.slice.name }})
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
+        # Mirrors the slice layout of update-smoke-goldens.yml: one slice per
+        # ecosystem, slow network-heavy reachability cases isolated in their
+        # own slices, and `$`-anchored patterns (including the `TestScan$`
+        # top level) so every test runs in exactly one slice. Keep the two
+        # matrices in sync when adding smoke tests.
         slice:
           - name: go
-            run: 'TestScan/scan-go|TestDiff/diff-go|TestExplain/explain-go|TestAuditScan/(scan-go-enrich|scan-go-audit|scan-go-audit-high)|TestAuditDiffAndExplain/(diff-go-audit|explain-go-enrich)|TestLiteScan/lite-scan-go|TestLiteDiff/lite-diff-go|TestLiteExplain/lite-explain-go'
+            run: 'TestScan$/scan-go$|TestDiff/diff-go|TestExplain/explain-go|TestAuditScan/(scan-go-enrich|scan-go-audit)|TestAuditDiffAndExplain/(diff-go-audit|explain-go-enrich)|TestLiteScan/lite-scan-go|TestLiteDiff/lite-diff-go|TestLiteExplain/lite-explain-go'
+          - name: go-reachability
+            run: 'TestScan$/scan-go-reachability'
           - name: node
-            run: 'TestScan/(scan-npm|scan-yarn|scan-pnpm|scan-github-actions)|TestDiff/diff-npm|TestAuditScan/scan-npm-audit'
+            run: 'TestScan$/(scan-npm$|scan-npm-scope-runtime|scan-npm-workspaces|scan-yarn|scan-pnpm|scan-bun$|scan-github-actions)|TestDiff/diff-npm|TestAuditScan/scan-npm-audit'
+            node: true
+          - name: node-reachability
+            run: 'TestScan$/scan-npm-reachability'
             node: true
           - name: java
-            run: 'TestScan/(scan-maven|scan-gradle)'
+            run: 'TestScan$/(scan-maven|scan-gradle|scan-recursive-monorepo)'
+            java: true
+            maven: true
+            gradle: true
+          - name: java-reachability
+            run: 'TestScan$/scan-java-maven-reachability'
             java: true
             maven: true
           - name: python
-            run: 'TestScan/(scan-python-pip|scan-python-pipenv|scan-python-poetry)'
+            run: 'TestScan$/(scan-python-pip$|scan-python-pipenv|scan-python-poetry)'
+            python: true
+          - name: python-reachability
+            run: 'TestScan$/scan-python-pip-reachability'
             python: true
           - name: uv
-            run: 'TestScan/scan-python-uv'
+            run: 'TestScan$/scan-python-uv'
             python: true
             uv: true
           - name: php
-            run: 'TestScan/scan-composer'
+            run: 'TestScan$/scan-composer'
           - name: ruby
-            run: 'TestScan/scan-bundler'
+            run: 'TestScan$/scan-bundler'
           - name: sbom
-            run: 'TestScan/(scan-sbom-spdx|scan-sbom-cyclonedx)|TestDiff/diff-sbom|TestLiteScan/(lite-scan-sbom-spdx|lite-scan-sbom-cyclonedx)'
+            run: 'TestScan$/scan-sbom|TestDiff/diff-sbom|TestLiteScan/lite-scan-sbom'
           - name: dotnet
-            run: 'TestScan/scan-nuget'
+            run: 'TestScan$/scan-nuget'
             dotnet: true
           - name: rust
-            run: 'TestScan/scan-cargo'
+            run: 'TestScan$/scan-cargo'
           - name: dart
-            run: 'TestScan/scan-pub'
+            run: 'TestScan$/scan-pub'
             dart: true
           - name: swift
-            run: 'TestScan/(scan-cocoapods|scan-swiftpm)'
+            run: 'TestScan$/(scan-cocoapods|scan-swiftpm)'
           - name: elixir
-            run: 'TestScan/scan-mix'
+            run: 'TestScan$/scan-mix'
           - name: scala
-            run: 'TestScan/scan-sbt'
+            run: 'TestScan$/scan-sbt'
           - name: cpp
-            run: 'TestScan/scan-cpp-conan'
+            run: 'TestScan$/scan-cpp-conan'
           - name: container
             run: 'TestContainer(Scan|Diff|Explain)|TestContainerAuditScan/container-scan-alpine-audit'
+          - name: plugin
+            run: 'TestPluginWorkflows|TestLiteVersion|TestScanRecursive'
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -113,16 +164,93 @@ jobs:
         if: matrix.slice.python
         run: python -m pip install --require-hashes -r .github/requirements-ci-tools.txt
 
-      - name: Install smoke-test dependencies
+      # apt's Maven on ubuntu-24.04 is 3.8.7, which cannot resolve in-reactor
+      # sibling modules during dependency:tree ("Could not find artifact
+      # dev.bomly.example:core") and silently degraded the multimodule scan
+      # to the syft fallback. Maven 3.9+ resolves reactor siblings without a
+      # prior install, so pin a modern release (checksum-verified).
+      - name: Install Maven
+        if: matrix.slice.maven
+        env:
+          MAVEN_VERSION: 3.9.16
+          MAVEN_SHA512: 831a8591fe20c8243b1dbe7d71e3244f31d1665b0804b2e825e38cbbe5ce0cafb8338851f90780735568773e0a6cd07bbec107cda0b896b008b861075358b6f6
+        run: |
+          curl -fsSL "https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o /tmp/maven.tar.gz
+          echo "${MAVEN_SHA512}  /tmp/maven.tar.gz" | sha512sum -c -
+          sudo tar -xzf /tmp/maven.tar.gz -C /opt
+          echo "/opt/apache-maven-${MAVEN_VERSION}/bin" >> "$GITHUB_PATH"
+
+      # Transitive POMs of the pinned demo repos declare long-dead
+      # repositories (codehaus, repository.jboss.org, oss.sonatype.org
+      # snapshots, ...). Some of them accept connections and never respond,
+      # and Maven's default read timeout is effectively unbounded, which has
+      # stalled runs. Every artifact the demos need lives on Central, so
+      # route all repository access there: dead-repo lookups become fast
+      # 404s instead of hangs. Maven resolves user.home from passwd, so this
+      # settings.xml applies to every bomly-spawned mvn despite the smoke
+      # harness's per-test HOME override.
+      - name: Route all Maven repositories through Central
         if: matrix.slice.maven
         run: |
-          sudo apt-get update
-          sudo apt-get install -y maven
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<'XML'
+          <settings>
+            <mirrors>
+              <mirror>
+                <id>central-mirror-all</id>
+                <name>Force all repositories through Maven Central</name>
+                <url>https://repo.maven.apache.org/maven2</url>
+                <mirrorOf>*</mirrorOf>
+              </mirror>
+            </mirrors>
+          </settings>
+          XML
 
+      # Smoke scans clone pinned repos at runtime, so there are no lockfiles
+      # in the workspace to hash — use a rolling key (unique per run, prefix
+      # restore) to keep the newest cache warm. Java derives user.home from
+      # passwd, not $HOME, so every bomly invocation shares the runner-level
+      # ~/.m2 despite the harness's per-test HOME override; a warm cache
+      # removes the cold-start Maven Central downloads that have stalled runs.
+      - name: Cache Maven repository
+        if: matrix.slice.maven
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.m2/repository
+          key: maven-repo-${{ runner.os }}-${{ matrix.slice.name }}-${{ github.run_id }}
+          restore-keys: |
+            maven-repo-${{ runner.os }}-
+
+      - name: Cache Gradle caches
+        if: matrix.slice.gradle
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-home-${{ runner.os }}-${{ matrix.slice.name }}-${{ github.run_id }}
+          restore-keys: |
+            gradle-home-${{ runner.os }}-
+
+      - name: Download prebuilt binaries
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: bomly-binaries
+          path: ${{ runner.temp }}/bomly-bin
+
+      - name: Make prebuilt binaries executable
+        run: chmod +x "${RUNNER_TEMP}/bomly-bin/bomly" "${RUNNER_TEMP}/bomly-bin/bomly-lite"
+
+      # Mirrors `make smoke` but invokes go test directly: slice patterns may
+      # use $ anchors, which make would expand (e.g. `$|` becomes empty) if
+      # passed through ARGS.
       - name: Run smoke tests
         id: smoke_tests
         continue-on-error: true
-        run: make smoke ARGS="-run '${{ matrix.slice.run }}'"
+        env:
+          BOMLY_SMOKE_BINARY: ${{ runner.temp }}/bomly-bin/bomly
+          BOMLY_SMOKE_LITE_BINARY: ${{ runner.temp }}/bomly-bin/bomly-lite
+        run: go test -tags smoke ./test/smoke/ -v -count=1 -timeout 15m -run '${{ matrix.slice.run }}'
 
       - name: Fail job if smoke tests failed
         if: steps.smoke_tests.outcome == 'failure'

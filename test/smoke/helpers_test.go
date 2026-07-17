@@ -123,6 +123,15 @@ func normalizeJSON(t *testing.T, raw []byte) []byte {
 		t.Fatalf("normalizeJSON: unmarshal: %v\nraw:\n%s", err, string(raw))
 	}
 
+	// Refuse to compare — or, in -update mode, write — output produced by a
+	// degraded environment. A readiness probe or build-tool invocation that
+	// timed out makes the scan silently fall back (e.g. maven-detector →
+	// syft-detector with reason "not ready: java readiness check timed out"),
+	// and baking that into a golden corrupts the suite. Deterministic
+	// fallbacks ("executable not found on PATH", "exit status 1") are
+	// legitimate golden content; timeouts never are.
+	failOnTimedOutResolution(t, obj)
+
 	// Zero out top-level metadata.duration_ms.
 	if md, ok := obj["metadata"].(map[string]any); ok {
 		md["duration_ms"] = 0
@@ -215,6 +224,27 @@ func normalizeJSON(t *testing.T, raw []byte) []byte {
 		t.Fatalf("normalizeJSON: marshal: %v", err)
 	}
 	return append(out, '\n')
+}
+
+// failOnTimedOutResolution walks the JSON tree and fails the test when any
+// "reason" string mentions a timeout. See the call site in normalizeJSON.
+func failOnTimedOutResolution(t *testing.T, node any) {
+	t.Helper()
+	switch v := node.(type) {
+	case map[string]any:
+		for key, val := range v {
+			if key == "reason" {
+				if s, ok := val.(string); ok && strings.Contains(s, "timed out") {
+					t.Fatalf("output was produced by a degraded environment (%q); refusing to use it for golden comparison or update", s)
+				}
+			}
+			failOnTimedOutResolution(t, val)
+		}
+	case []any:
+		for _, child := range v {
+			failOnTimedOutResolution(t, child)
+		}
+	}
 }
 
 // scrubReachabilityFields zeroes the volatile fields on a reachability

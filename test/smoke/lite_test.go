@@ -29,6 +29,21 @@ func buildLiteBinary(t *testing.T) string {
 		return bomlyLiteBin
 	}
 
+	// BOMLY_SMOKE_LITE_BINARY points at a prebuilt lite binary (external
+	// Syft/Grype build tags). CI builds once and shares the artifact across
+	// the slice matrix; local runs build as before.
+	if prebuilt := os.Getenv("BOMLY_SMOKE_LITE_BINARY"); prebuilt != "" {
+		abs, err := filepath.Abs(prebuilt)
+		if err != nil {
+			t.Fatalf("resolve BOMLY_SMOKE_LITE_BINARY %q: %v", prebuilt, err)
+		}
+		if _, err := os.Stat(abs); err != nil {
+			t.Fatalf("BOMLY_SMOKE_LITE_BINARY %q: %v", prebuilt, err)
+		}
+		bomlyLiteBin = abs
+		return bomlyLiteBin
+	}
+
 	dir, err := os.MkdirTemp("", "bomly-lite-smoke-*")
 	if err != nil {
 		t.Fatalf("create temp dir for lite binary: %v", err)

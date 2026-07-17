@@ -232,7 +232,9 @@ func (d Detector) runDependencies(ctx context.Context, stderr io.Writer, working
 		logger = zap.NewNop()
 	}
 
-	cmd := system.CommandContext(ctx, executable, args...)
+	cmdCtx, cancel := detectors.BuildToolContext(ctx)
+	defer cancel()
+	cmd := system.CommandContext(cmdCtx, executable, args...)
 	cmd.Dir = workingDir
 	commandStderr := logging.NewCommandStderr(stderr, verbose)
 	cmd.Stderr = commandStderr
@@ -243,6 +245,9 @@ func (d Detector) runDependencies(ctx context.Context, stderr io.Writer, working
 	started := time.Now()
 	logger.Debug("running gradle dependencies detector", zap.String("working_dir", workingDir), zap.String("executable", executable), zap.Strings("args", args))
 	if err := cmd.Run(); err != nil {
+		if errors.Is(cmdCtx.Err(), context.DeadlineExceeded) {
+			err = fmt.Errorf("timed out after %s: %w", detectors.BuildToolTimeout, err)
+		}
 		logger.Warn(fmt.Sprintf("Gradle dependencies detector failed: %v", err))
 		fields := []zap.Field{zap.Error(err)}
 		if commandStderr.String() != "" {
@@ -740,7 +745,9 @@ func (d Detector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 		return fmt.Errorf("resolve gradle command: %w", err)
 	}
 	args = append(args, req.InstallArgs...)
-	cmd := system.CommandContext(ctx, executable, args...)
+	cmdCtx, cancel := detectors.BuildToolContext(ctx)
+	defer cancel()
+	cmd := system.CommandContext(cmdCtx, executable, args...)
 	cmd.Dir = workingDir
 	commandStderr := logging.NewCommandStderr(req.Stderr, req.Verbose)
 	cmd.Stderr = commandStderr
@@ -748,6 +755,9 @@ func (d Detector) Install(ctx context.Context, req sdk.DetectionRequest) error {
 	logger.Info("Gradle detector running install-first step")
 	logger.Debug("running gradle detector install-first", zap.String("working_dir", workingDir), zap.String("executable", executable), zap.Strings("args", args))
 	if err := cmd.Run(); err != nil {
+		if errors.Is(cmdCtx.Err(), context.DeadlineExceeded) {
+			err = fmt.Errorf("timed out after %s: %w", detectors.BuildToolTimeout, err)
+		}
 		return fmt.Errorf("run gradle install step: %w", err)
 	}
 	logger.Info(fmt.Sprintf("Gradle detector install-first completed in %s", logging.FormatDuration(time.Since(started))))

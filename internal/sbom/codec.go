@@ -27,6 +27,7 @@ var codecs = map[Target]codec{
 	TargetCycloneDX14JSON: cycloneDXCodec{version: TargetCycloneDX14JSON},
 	TargetCycloneDX15JSON: cycloneDXCodec{version: TargetCycloneDX15JSON},
 	TargetCycloneDX16JSON: cycloneDXCodec{version: TargetCycloneDX16JSON},
+	TargetCycloneDX17JSON: cycloneDXCodec{version: TargetCycloneDX17JSON},
 }
 
 // MarshalJSON renders the intermediate SBOM document to a target JSON format.
@@ -81,6 +82,8 @@ func DetectJSONTarget(data []byte) (Target, error) {
 			return TargetCycloneDX15JSON, nil
 		case "1.6":
 			return TargetCycloneDX16JSON, nil
+		case "1.7":
+			return TargetCycloneDX17JSON, nil
 		}
 		return "", ErrUnsupportedFormat
 	}

@@ -295,8 +295,10 @@ func toCycloneDXVersion(target Target) cdx.SpecVersion {
 		return cdx.SpecVersion1_4
 	case TargetCycloneDX15JSON:
 		return cdx.SpecVersion1_5
-	default:
+	case TargetCycloneDX16JSON:
 		return cdx.SpecVersion1_6
+	default:
+		return cdx.SpecVersion1_7
 	}
 }
 

@@ -14,6 +14,44 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  preflight:
+    # Fail within seconds if WINGET_GITHUB_TOKEN is expired or revoked,
+    # instead of 14 minutes into GoReleaser — after it has already created
+    # the draft release and opened the Homebrew/Scoop PRs — which strands
+    # the release in a half-published state (see the v0.18.2 run). The
+    # winget publisher is the only one on a long-lived PAT: the release-bot
+    # app token cannot open PRs on microsoft/winget-pkgs, where the app is
+    # not installed.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check winget token validity and expiry
+        env:
+          WINGET_GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          headers_file="$(mktemp)"
+          status="$(curl -sS -o /dev/null -D "$headers_file" -w '%{http_code}' \
+            -H "Authorization: Bearer ${WINGET_GITHUB_TOKEN}" \
+            https://api.github.com/repos/bomly-dev/winget-pkgs)"
+          if [ "$status" != "200" ]; then
+            echo "::error::WINGET_GITHUB_TOKEN cannot read bomly-dev/winget-pkgs (HTTP ${status}). The PAT has likely expired or been revoked — mint a new one (public_repo scope, it must be able to open PRs on microsoft/winget-pkgs) and update the secret: gh secret set WINGET_GITHUB_TOKEN -R bomly-dev/bomly-cli"
+            exit 1
+          fi
+
+          expiry="$(grep -i '^github-authentication-token-expiration:' "$headers_file" | cut -d' ' -f2- | tr -d '\r' || true)"
+          if [ -n "$expiry" ]; then
+            expiry_epoch="$(date -u -d "$expiry" +%s)"
+            days_left=$(( (expiry_epoch - $(date -u +%s)) / 86400 ))
+            echo "WINGET_GITHUB_TOKEN expires ${expiry} UTC (${days_left} days from now)."
+            if [ "$days_left" -lt 14 ]; then
+              echo "::warning::WINGET_GITHUB_TOKEN expires in ${days_left} days (${expiry} UTC). Rotate it soon: gh secret set WINGET_GITHUB_TOKEN -R bomly-dev/bomly-cli"
+            fi
+          else
+            echo "WINGET_GITHUB_TOKEN has no expiration date."
+          fi
+
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -36,7 +74,7 @@ jobs:
         run: go vet ./...
 
   release:
-    needs: validate
+    needs: [preflight, validate]
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
